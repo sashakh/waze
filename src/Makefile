@@ -189,6 +189,7 @@ cleanall:
 rebuild: cleanall everything
 
 icons: $(ICONS)
+	rm -f temp.png
 
 # --- The real targets --------------------------------------------
 
@@ -216,5 +217,4 @@ buildus: $(BUOBJS) $(RDMLIBS)
 %.png : %.xpm
 	convert -transparent yellow $< temp.png
 	convert -scale 16x16 temp.png $@
-	# rm -f temp.png
 
