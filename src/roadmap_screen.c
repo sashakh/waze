@@ -1281,7 +1281,5 @@ void roadmap_screen_set_initial_position (void) {
 
    RoadMapHighlightForeground =
       roadmap_canvas_create_pen ("Highlight.Foreground");
-
-   roadmap_screen_refresh ();
 }
 

@@ -66,6 +66,8 @@ void roadmap_math_rotate_object
          (int count, RoadMapGuiPoint *points,
           RoadMapGuiPoint *center, int orientation);
 
+int  roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2);
+
 char *roadmap_math_distance_unit (void);
 char *roadmap_math_trip_unit     (void);
 

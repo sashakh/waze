@@ -154,12 +154,80 @@ static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
 }
 
 
+static int roadmap_math_arccosine (int cosine, int sign) {
+    
+    int i;
+    int low;
+    int high;
+    int result;
+    int cosine_negative = 0;
+    
+    if (cosine < 0) {
+        cosine = 0 - cosine;
+        cosine_negative = 1;
+    }
+    if (cosine >= 32768) {
+        if (cosine > 32768) {
+            roadmap_log (ROADMAP_ERROR, "invalid cosine value %d", cosine);
+            return 0;
+        }
+        cosine = 32767;
+    }
+    
+    high = 45;
+    low  = 0;
+    
+    if (cosine >= RoadMapTrigonometricTable[45].y) {
+        
+        while (high > low + 1) {
+            
+            i = (high + low) / 2;
+            
+            if (cosine > RoadMapTrigonometricTable[i-1].y) {
+                high = i - 1;
+            } else if (cosine < RoadMapTrigonometricTable[i].y) {
+                low = i;
+            } else {
+                high = i;
+                break;
+            }
+        }
+        
+        result = high;
+        
+    } else {
+        
+        while (high > low + 1) {
+            
+            i = (high + low) / 2;
+            
+            if (cosine >= RoadMapTrigonometricTable[i].x) {
+                low = i;
+            } else if (cosine < RoadMapTrigonometricTable[i-1].y) {
+                high = i - 1;
+            } else {
+                high = i;
+                break;
+            }
+        }
+        
+        result = 90 - high;
+    }
+    
+    result = sign * result;
+    
+    if (cosine_negative) {
+        result = 180 - result;
+        if (result > 180) {
+            result = result - 360;
+        }
+    }
+    return result;
+}
+
+
 static void roadmap_math_compute_scale (void) {
 
-   int west;
-   int east;
-   int north;
-   int south;
    int orientation;
 
    int sine;
@@ -180,9 +248,13 @@ static void roadmap_math_compute_scale (void) {
     * compute a map projection and avoid an horizontal distortion
     * when getting close to the poles.
     */
-   roadmap_square_edges (ROADMAP_SQUARE_GLOBAL, &west, &east, &north, &south);
 
-   roadmap_math_trigonometry ((north/2 + south/2) / 1000000, &sine, &cosine);
+   roadmap_log (ROADMAP_DEBUG, "Center's latitude: %d",
+                               RoadMapContext.center.latitude);
+
+   roadmap_math_trigonometry (RoadMapContext.center.latitude / 1000000,
+                                &sine,
+                                &cosine);
 
    RoadMapContext.m_per_longitude =
       (RoadMapContext.m_per_latitude * cosine) / 32768;
@@ -586,6 +658,35 @@ void roadmap_math_coordinate (const RoadMapPosition *position,
    ROADMAP_POINT_SET_Y(point,
       ((RoadMapContext.upright_screen.north - position->latitude)
              / RoadMapContext.zoom_y));
+}
+
+
+int roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2) {
+
+    int result;
+    double x;
+    double y;
+    double d;
+
+
+    x = RoadMapContext.unit_per_longitude
+            * (point2->longitude - point1->longitude);
+    y = RoadMapContext.unit_per_latitude
+            * (point2->latitude  - point1->latitude);
+
+    d = sqrt ((x * x) + (y * y));
+    
+    if (abs(d) > 0.0001) {
+        result = roadmap_math_arccosine
+                    ((int) ((32768 * y) / d), (x > 0)?1:-1);
+    } else {
+        result = 0;
+    }
+    
+    roadmap_log (ROADMAP_DEBUG,
+                    "azymuth for (x=%f, y=%f): %d",
+                    x, y, result);
+    return result;
 }
 
 

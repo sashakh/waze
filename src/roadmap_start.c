@@ -118,6 +118,12 @@ static void roadmap_start_save_trip_as (void) {
     roadmap_trip_save (NULL);
 }
 
+static void roadmap_start_trip_end (void) {
+    
+    roadmap_trip_set_focus ("GPS", 0);
+    roadmap_screen_refresh ();
+}
+
 static void roadmap_start_trip (void) {
     
     roadmap_trip_start (1);
@@ -164,6 +170,8 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Start tracking the current trip", roadmap_start_trip},
    {"Start Trip (North Up)",
        "Start tracking the current trip", roadmap_start_trip_north_up},
+   {"Stop Trip",
+       "Stop tracking the current trip", roadmap_start_trip_end},
    {RoadMapFactorySeparator, NULL, NULL},
    {"Set Destination..",
        "Set the trip's destination point", roadmap_address_destination_by_city},
@@ -353,6 +361,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
+
+   roadmap_trip_set_focus ("GPS", 1);
+   roadmap_screen_refresh ();
 }
 
 

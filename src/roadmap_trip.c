@@ -51,6 +51,7 @@
 static int RoadMapTripRotate   = 1;
 static int RoadMapTripModified = 0; /* List needs to be saved ? */
 static int RoadMapTripRefresh  = 1; /* Screen needs to be refreshed ? */
+static int RoadMapTripOnTheRoad = 0;
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved   = 1;
 
@@ -83,7 +84,7 @@ RoadMapTripPoint RoadMapTripPredefined[] = {
 };
 
 
-static RoadMapTripPoint *RoadMapTripFocus = RoadMapTripPredefined;
+static RoadMapTripPoint *RoadMapTripFocus = NULL;
 
 static RoadMapList RoadMapTripWaypoints = ROADMAP_LIST_EMPTY;
 
@@ -97,6 +98,7 @@ static void roadmap_trip_unfocus (void) {
         
         RoadMapTripLastPosition = RoadMapTripFocus->position;
         RoadMapTripFocus = NULL;
+        RoadMapTripOnTheRoad = 0;
     }
 }
 
@@ -401,6 +403,10 @@ static void roadmap_trip_set_point_focus (RoadMapTripPoint *point, int rotate) {
         RoadMapTripRefresh = 1;
         RoadMapTripFocusChanged = 1;
     }
+    if (RoadMapTripOnTheRoad) {
+        RoadMapTripRefresh = 1;
+        RoadMapTripOnTheRoad = 0;
+    }
 }
 
 
@@ -551,15 +557,16 @@ void  roadmap_trip_start (int rotate) {
                     (&destination->position, &waypoint->position);
             
             roadmap_log (ROADMAP_DEBUG,
-                            "Waypoint %s: distance = %d %s",
+                            "Waypoint %s: distance to destination = %d %s",
                             waypoint->id,
-                            roadmap_math_to_trip_distance(waypoint->distance),
-                            roadmap_math_trip_unit());
+                            waypoint->distance,
+                            roadmap_math_distance_unit());
         }
     }
     destination->distance = 0;
     
     roadmap_trip_set_focus ("GPS", rotate);
+    RoadMapTripOnTheRoad = 1;
     roadmap_screen_refresh ();
 }
 
@@ -587,6 +594,7 @@ void roadmap_trip_display_points (void) {
 void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background) {
     
     int count;
+    int azymuth;
     int width, ascent, descent;
     int distance_to_destination;
     char *unit;
@@ -599,7 +607,7 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
     RoadMapTripPoint *next_waypoint;
 
     
-    if (RoadMapTripFocus == gps) {
+    if (RoadMapTripFocus == gps && RoadMapTripOnTheRoad) {
         
         destination = roadmap_trip_search ("Destination");
         
@@ -607,7 +615,11 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
             roadmap_math_distance
                 (&gps->position, &destination->position);
     
-        next_waypoint = gps;
+        roadmap_log (ROADMAP_DEBUG,
+                        "GPS: distance to destination = %d %s",
+                        distance_to_destination,
+                        roadmap_math_distance_unit());
+        next_waypoint = destination;
         
         for (waypoint = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
              waypoint != NULL;
@@ -623,16 +635,22 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
         
         unit = roadmap_math_trip_unit();
         
-        if (next_waypoint != gps) {
+        if (next_waypoint != destination) {
             
             int distance_to_waypoint =
                     roadmap_math_distance (&gps->position, &next_waypoint->position);
             
+            roadmap_log (ROADMAP_DEBUG,
+                            "GPS: distance to next waypoint %s = %d %s",
+                            next_waypoint->id,
+                            distance_to_waypoint,
+                            roadmap_math_distance_unit());
             snprintf (text, sizeof(text), "%d %s (%d %s)",
                         roadmap_math_to_trip_distance(distance_to_destination),
                         unit,
                         roadmap_math_to_trip_distance(distance_to_waypoint),
                         unit);
+            
         } else {
             snprintf (text, sizeof(text), "%d %s",
                         roadmap_math_to_trip_distance(distance_to_destination),
@@ -661,6 +679,11 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
         roadmap_canvas_draw_string (&text_position,
                                     ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
                                     text);
+        
+        azymuth = roadmap_math_azymuth (&gps->position,
+                                        &next_waypoint->position);
+        roadmap_math_coordinate (&gps->position, frame);
+        roadmap_sprite_draw ("Direction", frame, azymuth);
     }
 }
 

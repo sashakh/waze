@@ -28,6 +28,12 @@ L 10,0 20,0
 L -10,0 -20,0
 C 0,0 15
 
+S Direction
+F red 1
+P -5,-20 0,-35 5,-20
+F black 1
+L -5,-20 0,-35 5,-20 -5,-20
+
 S Destination
 F red 1
 D 0,0 5
