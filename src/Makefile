@@ -212,6 +212,8 @@ clean: cleanone
 
 cleanone:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS)
+	# Clean up CVS backup files as well.
+	$(RM) .#*
 
 install: everything
 	mkdir -p $(DESTDIR)$(pkgdatadir)

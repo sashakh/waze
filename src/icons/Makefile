@@ -22,6 +22,8 @@ clean: cleanone
 
 cleanone:
 	$(RM) $(ICONS)
+	# Clean up CVS backup files as well.
+	$(RM) .#*
 
 %.png : %.xpm
 	convert -transparent yellow $< temp.png
