@@ -2,7 +2,7 @@
 
 VERSION=$1
 
-SRCDIR=roadmap/src
+SRCDIR=roadmap
 ARMDIR=arm/roadmap/src
 IPKGDIR=arm/roadmap/ipkg
 
@@ -12,9 +12,9 @@ rm -rf $IPKGDIR
 echo "Building package 'roadmap' .."
 
 mkdir -p $IPKGDIR/roadmap/CONTROL
-sed -e s/_VERSION_/$VERSION/ $SRCDIR/ipkg/roadmap.control >$IPKGDIR/roadmap/CONTROL/control
-cp $SRCDIR/ipkg/roadmap.postinst $IPKGDIR/roadmap/CONTROL/postinst
-cp $SRCDIR/ipkg/roadmap.postrm   $IPKGDIR/roadmap/CONTROL/postrm
+sed -e s/_VERSION_/$VERSION/ $SRCDIR/src/ipkg/roadmap.control >$IPKGDIR/roadmap/CONTROL/control
+cp $SRCDIR/src/ipkg/roadmap.postinst $IPKGDIR/roadmap/CONTROL/postinst
+cp $SRCDIR/src/ipkg/roadmap.postrm   $IPKGDIR/roadmap/CONTROL/postrm
 chmod a+x $IPKGDIR/roadmap/CONTROL/postinst $IPKGDIR/roadmap/CONTROL/postrm
 
 mkdir -p $IPKGDIR/roadmap/usr/bin
@@ -22,18 +22,20 @@ cp $ARMDIR/gtk2/gtkroadmap $IPKGDIR/roadmap/usr/bin/roadmap
 cp $ARMDIR/gtk2/gtkroadgps $IPKGDIR/roadmap/usr/bin/roadgps
 
 mkdir -p $IPKGDIR/roadmap/usr/share/applications
-cp $SRCDIR/roadmap.desktop $IPKGDIR/roadmap/usr/share/applications
+cp $SRCDIR/src/roadmap.desktop $IPKGDIR/roadmap/usr/share/applications
 
 mkdir -p $IPKGDIR/roadmap/usr/share/pixmaps
-cp $SRCDIR/roadmap*.png $IPKGDIR/roadmap/usr/share/pixmaps
-cp $SRCDIR/icons/rm_*.png $IPKGDIR/roadmap/usr/share/pixmaps
+cp $SRCDIR/src/roadmap*.png $IPKGDIR/roadmap/usr/share/pixmaps
+cp $SRCDIR/src/icons/rm_*.png $IPKGDIR/roadmap/usr/share/pixmaps
 
 mkdir -p $IPKGDIR/roadmap/usr/share/roadmap
-cp $SRCDIR/schema      $IPKGDIR/roadmap/usr/share/roadmap/schema
-cp $SRCDIR/sprites     $IPKGDIR/roadmap/usr/share/roadmap/sprites
+cp $SRCDIR/src/schema      $IPKGDIR/roadmap/usr/share/roadmap/schema
+cp $SRCDIR/src/sprites     $IPKGDIR/roadmap/usr/share/roadmap/sprites
+cp $SRCDIR/web/manual.html $IPKGDIR/roadmap/usr/share/roadmap/manual.html
+cp $SRCDIR/web/apt_toc.gif $IPKGDIR/roadmap/usr/share/roadmap/apt_toc.gif
 cp roadmap/README      $IPKGDIR/roadmap/usr/share/roadmap/README
 
-sed -e 's/Map.Path:.*$/Map.Path: \&\/maps,\/usr\/share\/roadmap,\/mnt\/hda\/share\/roadmap\/,\/mnt\/card\/share\/roadmap/' < $SRCDIR/preferences > $IPKGDIR/roadmap/usr/share/roadmap/preferences
+sed -e 's/Map.Path:.*$/Map.Path: \&\/maps,\/usr\/share\/roadmap,\/mnt\/hda\/share\/roadmap\/,\/mnt\/card\/share\/roadmap/' < $SRCDIR/src/preferences > $IPKGDIR/roadmap/usr/share/roadmap/preferences
 
 roadmap/ipkg-build -o root -g root `pwd`/$IPKGDIR/roadmap `pwd`/$IPKGDIR
 
@@ -44,7 +46,7 @@ if [ -e $ARMDIR/buildmap ] ; then
   echo "Building package 'buildmap' .."
 
   mkdir -p $IPKGDIR/buildmap/CONTROL
-  sed -e s/_VERSION_/$VERSION/ $SRCDIR/ipkg/roadmap-build.control >$IPKGDIR/buildmap/CONTROL/control
+  sed -e s/_VERSION_/$VERSION/ $SRCDIR/src/ipkg/roadmap-build.control >$IPKGDIR/buildmap/CONTROL/control
 
   mkdir -p $IPKGDIR/buildmap/usr/bin
   cp $ARMDIR/buildmap $IPKGDIR/buildmap/usr/bin/buildmap
