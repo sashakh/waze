@@ -42,6 +42,7 @@
 
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
+#include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_screen.h"
@@ -140,12 +141,6 @@ static void roadmap_start_save_trip_as (void) {
     roadmap_trip_save (NULL);
 }
 
-static void roadmap_start_trip_end (void) {
-    
-    roadmap_trip_set_focus ("GPS", RoadMapStartTripOrientation);
-    roadmap_screen_refresh ();
-}
-
 static void roadmap_start_trip (void) {
     
     roadmap_trip_start (1);
@@ -165,11 +160,23 @@ static void roadmap_start_trip_resume_north_up (void) {
 
 static void roadmap_start_trip_reverse (void) {
     
-    roadmap_trip_reverse (1);
+    roadmap_trip_reverse (RoadMapStartTripOrientation);
+}
+
+static void roadmap_start_set_destination (void) {
+
+    roadmap_trip_set_location_as ("Destination");
+    roadmap_screen_refresh();
 }
 
 static void roadmap_start_set_waypoint (void) {
-    roadmap_display_set_waypoint ("Selected Street");
+
+    const char *id = roadmap_display_get_id ("Selected Street");
+
+    if (id != NULL) {
+       roadmap_trip_set_location_as (id);
+       roadmap_screen_refresh();
+    }
 }
 
 static void roadmap_start_delete_waypoint (void) {
@@ -232,10 +239,12 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Start tracking the current trip back to the departure",
        roadmap_start_trip_reverse},
    {"Stop Trip",
-       "Stop tracking the current trip", roadmap_start_trip_end},
+       "Stop tracking the current trip", roadmap_trip_stop},
    {RoadMapFactorySeparator, NULL, NULL},
-   {"Set Destination..",
-       "Set the trip's destination point", roadmap_address_destination_by_city},
+   {"Set as Destination",
+       "Set the selected street block as the trip's destination",
+       roadmap_start_set_destination
+   },
    {"Add as Waypoint", 
        "Set the selected street block as waypoint", roadmap_start_set_waypoint},
    {"Delete Waypoints..", 
@@ -244,6 +253,8 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Screen", NULL, NULL},
    {"Show location..",
        "Show a specified address", roadmap_address_location_by_city},
+   {"Show intersection..",
+       "Show a specified street intersection", roadmap_crossing_dialog},
    {"Show Destination",
        "Show the map around the destination point", roadmap_start_show_destination},
    {RoadMapFactorySeparator, NULL, NULL},

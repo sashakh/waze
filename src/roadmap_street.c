@@ -718,7 +718,7 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
    RoadMapPosition to;
 
 
-   for (i = blocks->first, end = blocks->first + blocks->count; i < end; i++) {
+   for (i = blocks->first, end = blocks->first + blocks->count; i < end; ++i) {
 
       RoadMapRange *this_addr = RoadMapRangeActive->RoadMapAddr + i;
 
@@ -730,6 +730,8 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
                     + (((int)(this_addr[1].fradd) & 0xffff) << 16);
          toadd = ((int)(this_addr->toadd) & 0xffff)
                     + (((int)(this_addr[1].toadd) & 0xffff) << 16);
+
+         ++i;
 
       } else {
 
@@ -1073,6 +1075,275 @@ static int roadmap_street_get_city (int street, int range) {
    }
 
    return 0; /* No city. */
+}
+
+
+#define STREET_HASH_MODULO  513
+
+typedef struct {
+
+   RoadMapRange  *range;
+   unsigned short next;
+   unsigned short side;
+
+} RoadMapRangesHashEntry;
+
+typedef struct {
+
+   RoadMapRangesHashEntry *list;
+   int list_size;
+   int list_cursor;
+
+   unsigned short head[STREET_HASH_MODULO];
+
+} RoadMapRangesHash;
+
+static int roadmap_street_hash_code (RoadMapPosition *position) {
+
+   int hash_code =
+          (position->latitude - position->longitude) % STREET_HASH_MODULO;
+
+   if (hash_code < 0) return 0 - hash_code;
+
+   return hash_code;
+}
+
+RoadMapRange *roadmap_street_hash_search (RoadMapRangesHash *hash,
+                                          int erase,
+                                          RoadMapPosition *position) {
+
+   int i;
+   int line;
+   RoadMapPosition position2;
+   RoadMapRangesHashEntry *entry;
+
+   int hash_code = roadmap_street_hash_code (position);
+
+
+   for (i = hash->head[hash_code]; i < 0xffff; i = entry->next) {
+
+       entry = hash->list + i;
+
+       if (entry->side == 0xffff) continue; /* Already matched. */
+
+       line = entry->range->line & (~CONTINUATION_FLAG);
+
+       if (entry->side == 0) {
+          roadmap_line_from(line, &position2);
+       } else {
+          roadmap_line_to(line, &position2);
+       }
+
+       if (position2.latitude == position->latitude &&
+           position2.longitude == position->longitude) {
+          if (erase) {
+             entry->side = 0xffff;
+          }
+          return entry->range;
+       }
+   }
+   return NULL;
+}
+
+static void roadmap_street_hash_add (RoadMapRangesHash *hash,
+                                     RoadMapRange *this_addr,
+                                     int side,
+                                     RoadMapPosition *position) {
+
+   if (roadmap_street_hash_search (hash, 0, position) == NULL) {
+
+       int hash_code = roadmap_street_hash_code (position);
+
+       hash->list[hash->list_cursor].range = this_addr;
+       hash->list[hash->list_cursor].side  = side;
+       hash->list[hash->list_cursor].next = hash->head[hash_code];
+       hash->head[hash_code] = hash->list_cursor;
+       hash->list_cursor += 1;
+   }
+}
+
+static int roadmap_street_intersection_county
+               (int fips,
+                RoadMapStreetIdentifier *street1,
+                RoadMapStreetIdentifier *street2,
+                RoadMapStreetIntersection *intersection,
+                int count) {
+
+   static int Initialized = 0;
+   static RoadMapRangesHash Hash;
+
+   int i, j;
+   int line;
+   int results = 0;
+   int range_end;
+
+   RoadMapPosition position;
+
+
+   /* First loop: build a hash table of all the street block endpoint
+    * positions for the 1st street.
+    */
+   if (! Initialized) {
+      Hash.list = NULL;
+      Hash.list_size = 0;
+      Hash.list_cursor = 1; /* Force an initial reset. */
+      Initialized = 1;
+   }
+
+   if (Hash.list_cursor > 0) {
+
+      /* This hash has been used before: reset it. */
+
+      for (i = STREET_HASH_MODULO - 1; i >= 0; --i) {
+         Hash.head[i] = 0xffff;
+      }
+      Hash.list_cursor = 0;
+   }
+
+   for (i = RoadMapRangeActive->RoadMapByStreetCount - 1; i >= 0; --i) {
+
+       RoadMapStreet *this_street = RoadMapStreetActive->RoadMapStreets + i;
+
+       if (this_street->fename == street1->name &&
+           (street1->prefix == 0 || this_street->fedirp == street1->prefix) &&
+           (street1->suffix == 0 || this_street->fedirs == street1->suffix) &&
+           (street1->type   == 0 || this_street->fetype == street1->type)) {
+
+           RoadMapRangeByStreet *by_street;
+
+           by_street = RoadMapRangeActive->RoadMapByStreet + i;
+
+           if (by_street->count_range > 0) {
+
+               int required = 2 * (Hash.list_cursor + by_street->count_range);
+
+               range_end = by_street->first_range + by_street->count_range;
+
+               if (required > Hash.list_size) {
+
+                  Hash.list_size = required * 2;
+                  if (Hash.list_size >= 0xffff) break;
+
+                  Hash.list =
+                      realloc (Hash.list,
+                               Hash.list_size * sizeof(RoadMapRangesHashEntry));
+                  roadmap_check_allocated(Hash.list);
+               }
+
+               for (j = by_street->first_range; j < range_end; ++j) {
+
+                   RoadMapRange *this_addr =
+                      RoadMapRangeActive->RoadMapAddr + j;
+
+                   if (HAS_CONTINUATION(this_addr)) ++j;
+
+                   line = this_addr->line & (~CONTINUATION_FLAG);
+
+                   roadmap_line_from(line, &position);
+                   roadmap_street_hash_add (&Hash, this_addr, 0, &position);
+
+                   roadmap_line_to(line, &position);
+                   roadmap_street_hash_add (&Hash, this_addr, 1, &position);
+               }
+           }
+       }
+   }
+   if (Hash.list_cursor == 0) return 0;
+
+
+   /* Second loop: match each street block endpoint positions for the 2nd
+    * street with the positions for the 1st street.
+    */
+   for (i = RoadMapRangeActive->RoadMapByStreetCount - 1; i >= 0; --i) {
+
+       RoadMapStreet *this_street = RoadMapStreetActive->RoadMapStreets + i;
+
+       if (this_street->fename == street2->name &&
+           (street2->prefix == 0 || this_street->fedirp == street2->prefix) &&
+           (street2->suffix == 0 || this_street->fedirs == street2->suffix) &&
+           (street2->type   == 0 || this_street->fetype == street2->type)) {
+
+           RoadMapRangeByStreet *by_street;
+
+           by_street = RoadMapRangeActive->RoadMapByStreet + i;
+
+           if (by_street->count_range > 0) {
+
+               range_end = by_street->first_range + by_street->count_range;
+
+               for (j = by_street->first_range; j < range_end; ++j) {
+
+                   RoadMapRange *this_addr1;
+                   RoadMapRange *this_addr2 =
+                      RoadMapRangeActive->RoadMapAddr + j;
+
+                   if (HAS_CONTINUATION(this_addr2)) ++j;
+
+                   line = this_addr2->line & (~CONTINUATION_FLAG);
+
+                   roadmap_line_from(line, &position);
+                   this_addr1 =
+                       roadmap_street_hash_search (&Hash, 1, &position);
+
+                   if (this_addr1 == NULL) {
+                      roadmap_line_to(line, &position);
+                      this_addr1 =
+                          roadmap_street_hash_search (&Hash, 1, &position);
+                   }
+
+                   if (this_addr1 != NULL) {
+
+                      intersection[results].fips = fips;
+                      intersection[results].line1 =
+                          this_addr1->line & (~CONTINUATION_FLAG);
+                      intersection[results].line2 =
+                          this_addr2->line & (~CONTINUATION_FLAG);
+                      intersection[results].position = position;
+
+                      ++results;
+                      if (results >= count) return results;
+                   }
+               }
+           }
+       }
+   }
+
+   return results;
+}
+
+
+int roadmap_street_intersection (const char *state,
+                                 const char *street1_name,
+                                 const char *street2_name,
+                                 RoadMapStreetIntersection *intersection,
+                                 int count) {
+
+   static int *fips = NULL;
+
+   int i;
+   int results = 0;
+   int county_count = roadmap_locator_by_state (state, &fips);
+
+   RoadMapStreetIdentifier street1, street2;
+
+
+   for (i = county_count - 1; i >= 0; --i) {
+
+      if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
+
+      roadmap_street_locate (street1_name, &street1);
+      if (street1.name <= 0) continue;
+
+      roadmap_street_locate (street2_name, &street2);
+      if (street2.name <= 0) continue;
+
+      results += roadmap_street_intersection_county
+                     (fips[i], &street1, &street2,
+                      intersection + results,
+                      count - results);
+   }
+
+   return results;
 }
 
 

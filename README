@@ -391,18 +391,36 @@ USING ROADMAP:
 
    Waypoints and addresses:
 
-   RoadMap manages four types of points: a destination point (selected using
-   a street address), a location point (same method), the GPS position
-   (updated automatically if a GPS fix is available) and user-defined
-   waypoints. One can select which of the first three locations serves as the
-   center of the map. The GPS and waypoints positions are special cases:
-   see the section on trip management.
+   RoadMap manages four types of points: a location point (selected using
+   a street address or the mouse), the GPS position (updated automatically
+   if a GPS fix is available), a destination point, and an arbitrary number
+   of user-defined waypoints.
 
-   The destination and location waypoints can be entered manually by providing
-   a valid USPS address: street number, name, city and state names.
+   One can select which one of these locations serves as the center of
+   the map. The GPS and waypoints positions are special cases: see the
+   section on trip management.
+
+   The location point is really a buffer for the selection of a street
+   block. Once selected, the point can be defined as a (new) waypoint or
+   as the destination. Thus the definition of a destination or waypoint
+   is a two step procedure: (1) select a location, and (2) set the selected
+   point as a waypoint or the destination point (in the Trip menu).
+
+   The location point can be entered in one of three ways:
+   - by clicking on a location on the map,
+   - by entering a valid USPS address (street number, name, city and state
+     names) in the dialog launched by the "View / Show Location.." menu entry,
+   - by specifying the intersection of two streets in the dialog launched
+     by the "View / Show intersection.." menu entry.
+
+   More details are provided in the following sections.
 
 
    Street name options:
+
+   Street names are used in the two dialogs used to select a specific location:
+   the address and intersection dialogs. These dialogs follow the same rules
+   regarding the format of the names.
 
    When entering a street name, the street prefix, suffix and type, if provided,
    must be among the abbreviations listed by the US Census Bureau (N for north,
@@ -465,7 +483,7 @@ USING ROADMAP:
 
    Other Address options:
 
-   It is possible not to specify the street number part of the address:
+   It is possible not to specify the street number part of an address:
    in that case, all street blocks matching the street and city names will
    be listed. Be careful, that might make a long list, and RoadMap has a
    limit of 256 items per list (matching items beyond the 256th one are
@@ -477,6 +495,20 @@ USING ROADMAP:
    list all similar addresses around (i.e. in the county). This is useful
    when one is not sure of the city name, or only knows the name of a city
    nearby.
+
+
+   Selecting an Intersection
+
+   The "View / Show intersection.." menu entry activates a dialog that
+   requires two street names and a state name. RoadMap will search within
+   the given state for all intersections between streets that match the
+   street names provided. This search may take a few seconds, especially
+   if the maps must be read from disk.
+
+   In the (likely) case where multiple intersections have been found, RoadMap
+   displays a list that shows the name of the city and the name of the county
+   where each intersection is located. This selection list follows the same
+   rules as the address selection list described in the previous sections.
 
 
    Managing Trips
@@ -503,7 +535,7 @@ USING ROADMAP:
    the "Delete" button.
    
    A trip that has been created or loaded can then be activated. Activating
-   a trip defines the departure point (as the current GPS location) and
+   a trip defines the departure point (the current GPS location) and
    enable the "trip display" mode, i.e. some trip information displayed on
    top of the map. These trip displays include an arrow beside the GPS
    location symbol to indicate the direction of the next waypoint (if any)
@@ -523,6 +555,17 @@ USING ROADMAP:
    point switch roles. Note that this does not modify the trip, only the
    way RoadMap uses the trip information. The reverse mode makes it
    possible to use the same RoadMap trip on the way back.
+
+   When starting a trip, the map will rotate to match the orientation
+   of the vehicule. This display mode is the most convenient as it matches
+   the driver's or passenger's view. It is however possible to switch the
+   display in the "North Up" mode by selecting the "Trips / Resume Trip
+   (North Up)" menu entry.
+
+   The reserve trip always works in the same mode as previously selected
+   the last time the trip was started or resumed: for example, if the "North
+   Up" mode was selected when the trip was resumed, then the reverse trip
+   will still use this "North Up" mode.
 
 
    RoadMap Preferences:

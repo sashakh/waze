@@ -406,6 +406,8 @@ int roadmap_display_activate
         
         sign->line = line;
         sign->was_visible = 0;
+
+        street = sign->properties.street;
     }
 
 
@@ -563,13 +565,13 @@ void roadmap_display_signs (void) {
 }
 
 
-void roadmap_display_set_waypoint (const char *title) {
+const char *roadmap_display_get_id (const char *title) {
 
     RoadMapSign *sign = roadmap_display_search_sign (title);
 
-    if (sign == NULL || (! sign->has_position)) return;
+    if (sign == NULL || (! sign->has_position)) return NULL;
         
-    roadmap_trip_set_point (sign->id, &sign->position);
+    return sign->id;
 }
 
 

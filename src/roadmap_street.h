@@ -54,6 +54,16 @@ typedef struct {
 } RoadMapStreetProperties;
 
 
+typedef struct {
+
+    int fips;
+    int line1;
+    int line2;
+    RoadMapPosition position;
+
+} RoadMapStreetIntersection;
+
+
 /* The function roadmap_street_blocks either returns a positive count
  * of matching blocks on success, or else an error code (null or negative).
  * The values below are the possible error codes:
@@ -80,6 +90,13 @@ int roadmap_street_get_distance (const RoadMapPosition *position, int line);
 int roadmap_street_get_closest
        (const RoadMapPosition *position,
         int count, int *categories, int *distance);
+
+int roadmap_street_intersection (const char *state,
+                                 const char *street1_name,
+                                 const char *street2_name,
+                                 RoadMapStreetIntersection *intersection,
+                                 int count);
+
 
 void roadmap_street_get_properties
         (int line, RoadMapStreetProperties *properties);

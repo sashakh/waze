@@ -41,6 +41,7 @@
 #include "roadmap_math.h"
 #include "roadmap_dbread.h"
 #include "roadmap_db_county.h"
+#include "roadmap_dictionary.h"
 
 #include "roadmap_county.h"
 
@@ -59,6 +60,8 @@ typedef struct {
 
    RoadMapCountyByState *state;
    int                   state_count;
+
+   RoadMapDictionary names;
 
 } RoadMapCountyContext;
 
@@ -105,6 +108,8 @@ static void *roadmap_county_map (roadmap_db *root) {
       roadmap_log (ROADMAP_FATAL, "invalid county/data structure");
    }
 
+   context->names = NULL; /* Map it later (on the 1st activation. */
+
    return context;
 }
 
@@ -116,6 +121,10 @@ static void roadmap_county_activate (void *context) {
       roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
    }
    RoadMapCountyActive = county_context;
+
+   if (county_context->names == NULL) {
+      county_context->names = roadmap_dictionary_open ("county");
+   }
 }
 
 static void roadmap_county_unmap (void *context) {
@@ -228,32 +237,98 @@ int roadmap_county_by_position
 }
 
 
-int roadmap_county_by_city (RoadMapString city, RoadMapString state) {
+static RoadMapCountyByState *roadmap_county_search_state (RoadMapString state) {
 
    int i;
-   int j;
-   RoadMapCountyCity *this_city;
    RoadMapCountyByState *this_state;
 
    for (i = 1; i <= RoadMapCountyActive->state_count; i++) {
 
       this_state = RoadMapCountyActive->state + i;
 
-      if ((this_state->symbol != state) && (this_state->name != state)) {
-         continue;
-      }
-
-      for (j = this_state->first_city; j <= this_state->last_city; j++) {
-
-         this_city = RoadMapCountyActive->city + j;
-
-         if (this_city->city == city) {
-            return this_city->fips;
-         }
+      if ((this_state->symbol == state) || (this_state->name == state)) {
+         return this_state;
       }
    }
 
-   return 0;
+   return NULL;
+}
+
+
+int roadmap_county_by_city (RoadMapString city, RoadMapString state) {
+
+   int i;
+   RoadMapCountyCity *this_city;
+   RoadMapCountyByState *this_state;
+
+   this_state = roadmap_county_search_state (state);
+   if (this_state == NULL) {
+      return 0; /* State not in this map ??? */
+   }
+
+   for (i = this_state->first_city; i <= this_state->last_city; ++i) {
+
+      this_city = RoadMapCountyActive->city + i;
+
+      if (this_city->city == city) {
+            return this_city->fips;
+      }
+   }
+
+   return 0; /* No such city in this state. */
+}
+
+
+int roadmap_county_by_state(RoadMapString state, int *fips, int count) {
+
+   int i;
+   int found;
+   int last_county;
+   RoadMapCountyByState *this_state;
+
+   this_state = roadmap_county_search_state (state);
+   if (this_state == NULL) {
+      return 0; /* State not in this map ??? */
+   }
+
+   last_county = this_state->first_county + count;
+   if (last_county > this_state->last_county) {
+      last_county = this_state->last_county;
+   }
+
+   found = 0;
+
+   for (i = this_state->first_county; i <= last_county; ++i) {
+
+      fips[found++] = RoadMapCountyActive->county[i].fips;
+   }
+
+   return found;
+}
+
+
+const char *roadmap_county_name (RoadMapString state, int fips) {
+
+   int i;
+   RoadMapCounty *this_county;
+   RoadMapCountyByState *this_state;
+
+   this_state = roadmap_county_search_state (state);
+   if (this_state == NULL) {
+      return 0; /* State not in this map ??? */
+   }
+
+   for (i = this_state->first_county; i <= this_state->last_county; ++i) {
+
+      this_county = RoadMapCountyActive->county + i;
+
+      if (fips == this_county->fips) {
+         return roadmap_dictionary_get
+                   (RoadMapCountyActive->names, this_county->name);
+      }
+   }
+
+   return "";
 }
 
 

@@ -36,6 +36,6 @@ void roadmap_display_hide (const char *title);
 void roadmap_display_console    (void);
 void roadmap_display_signs      (void);
 
-void roadmap_display_set_waypoint (const char *title);
+const char *roadmap_display_get_id (const char *title);
 
 #endif // INCLUDE__ROADMAP_DISPLAY__H

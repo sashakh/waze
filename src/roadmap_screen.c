@@ -713,10 +713,13 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
-    roadmap_trip_display ();
+
+    roadmap_trip_format_messages ();
     
     roadmap_display_console ();
     roadmap_display_signs ();
+
+    roadmap_trip_display ();
 
     roadmap_canvas_refresh ();
 
@@ -753,6 +756,7 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
 
     if (line >= 0) {
 
+        roadmap_trip_set_point ("Location", &position);
         roadmap_display_activate ("Selected Street", line, &position);
         roadmap_screen_repaint ();
     }
@@ -766,13 +770,13 @@ void roadmap_screen_refresh (void) {
     roadmap_log_push ("roadmap_screen_refresh");
 
     if (roadmap_trip_is_focus_changed()) {
-        
+
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         RoadMapScreenRotation = 0;
         refresh = 1;
         
     } else if (roadmap_trip_is_focus_moved()) {
-        
+
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
 
     }
@@ -780,9 +784,9 @@ void roadmap_screen_refresh (void) {
     refresh |=
         roadmap_math_set_orientation
             (roadmap_trip_get_orientation() + RoadMapScreenRotation);
-        
+
     refresh |= roadmap_trip_is_refresh_needed();
-        
+
     if (refresh) {
         roadmap_screen_repaint ();
     }

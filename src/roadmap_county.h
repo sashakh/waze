@@ -31,7 +31,12 @@ int  roadmap_county_by_position
 
 int  roadmap_county_by_city (RoadMapString city, RoadMapString state);
 
+int  roadmap_county_by_state(RoadMapString state, int *fips, int count);
+
+const char *roadmap_county_name (RoadMapString state, int fips);
+
 int  roadmap_county_count (void);
+
 
 extern roadmap_db_handler RoadMapCountyHandler;
 
