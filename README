@@ -119,30 +119,35 @@ INSTALLATION:
    It is also possible to rebuild RoadMap and the map files from scratch
    from the source distribution:
 
-   1- Install the development libraries for Gtk+ 1.2
+   1- Install the development libraries for Gtk+ 1.2, Gtk+ 2.0 or Qt.
 
    2- install the RoadMap's tarball:
 
       tar xzvf <tarball>
 
-   3- Compile roadmap for the Gtk, Gtk2 or the QT toolkit:
+   3- Compile the map building tools:
 
-      cd roadmap/src/gtk     -- if using the Gtk 1.2 toolkit
+      cd roadmap/src
+      make build
+
+   4- Compile roadmap for the Gtk, Gtk2 or the QT toolkit:
+
+      cd gtk     -- if using the Gtk 1.2 toolkit
       make
       cd ..
 
-      cd roadmap/src/gtk2    -- if using the Gtk 2.0 toolkit
+      cd gtk2    -- if using the Gtk 2.0 toolkit
       make
       cd ..
 
-      cd roadmap/src/qt      -- if using the QT toolkit
+      cd qt      -- if using the QT toolkit
       make
       cd ..
 
-      (If you want to build only the "runtime" programs--and skip the
-      "build" programs, use "make runtime" instead of "make").
+      If you want to build all three versions of RoadMap, just type:
+      make       -- This replaces steps 3 and 4.
 
-   4- download some maps from the US Census bureau:
+   5- download some maps from the US Census bureau:
 
          http://www.census.gov/geo/www/tiger/tiger2002/tgr2002.html
 
@@ -156,13 +161,13 @@ INSTALLATION:
 
       rdmgenmaps <tiger-path> format=2000 [<state-symbol> ..]
 
-   5- download the list of counties from the US Census bureau:
+   6- download the list of counties from the US Census bureau:
 
          http://www.census.gov/geo/tigerline/app_a02.txt
 
       (A version of app_a02.txt is also provided in directory src.)
 
-   6- Build the maps:
+   7- Build the maps:
 
       rdmgenmaps <tiger-path> [maps=<map-path>]
 
@@ -207,16 +212,16 @@ INSTALLATION:
    The buildus tool uses popt for parsing the command line arguments:
    the option --help gives more information about the available options.
 
-   9- run make to install roadmap:
+   10- run make to install roadmap:
 
-      cd gtk
+      cd gtk        -- or gtk2 or qt, depending on your preferences.
       make install
       cd ..
 
-   This last step installs the RoadMap executables. The maps should have
-   been generated at their proper location in steps 3 to 7. The install
-   is not required for running RoadMap: the roadmap program (and the build
-   tools) can run from the local directory as well.
+   This last step installs the RoadMap executables. These executables
+   and the maps should have been generated at their proper location in
+   steps 3 to 8. The install is not required for running RoadMap: the
+   programs and build tools) can run from the local directory as well.
 
 
 ROADMAP APPLICATIONS:
