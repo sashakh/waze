@@ -34,7 +34,6 @@
 #include "roadmap_line.h"
 #include "roadmap_square.h"
 #include "roadmap_street.h"
-#include "roadmap_trip.h"
 #include "roadmap_layer.h"
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
