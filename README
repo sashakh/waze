@@ -844,16 +844,46 @@ USING ROADMAP
 
 * SELECTING AN INTERSECTION
 
-   The "View / Show intersection.." menu entry activates a dialog that
-   requires two street names and a state name. RoadMap will search within
-   the given state for all intersections between streets that match the
-   street names provided. This search may take a few seconds, especially
-   if the maps must be read from disk.
+   The "Find / Intersection.." menu entry activates a dialog that asks for
+   two street names and a state name. RoadMap will search within the given
+   state for all intersections between streets that match the street names
+   provided. This search may take a few seconds, especially if the maps must
+   be read from disk.
 
    In the (likely) case where multiple intersections have been found, RoadMap
    displays a list that shows the name of the city and the name of the county
    where each intersection is located. This selection list follows the same
    rules as the address selection list described in the previous sections.
+
+
+* SELECTING A POSITION
+
+   The "Find / Position.." menu entry activates a dialog that asks for a
+   longitude / latitude position. The format for the longitude and latitude
+   must conform to the ISO 6709-1983 standard (with some extensions).
+ 
+   The format for longitude is:
+
+----
+   [+-EW][d]dd[mm[ss]][.ffffff]
+----
+   
+   The format for latitude is:
+
+----
+   [+-NS]dd[mm[ss]][.ffffff]
+----
+
+   Where "[d]dd" or "dd" stands for the degrees, "mm" stands for the minutes,
+   "ss" stands for the seconds and "ffffff" stands for the fractional part
+   (either fraction of degrees, minutes or seconds, depending on the context).
+
+   The main extensions compare to ISO 6709 are as follow:
+   
+   * the letters 'E', 'W', 'N' and 'S' are recognized as a replacement
+     for '+' or '-'.
+
+   * the longitude may be expressed with 2 digits for the degrees.
 
 
 * MANAGING {TRIPS}
