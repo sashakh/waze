@@ -177,6 +177,7 @@ BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 
+DESTDIR=
 INSTALLDIR=/usr/local
 
 
@@ -205,23 +206,23 @@ cleanone:
 	rm -f *.o *.a *.da $(BUILD)
 
 install: build runtime icons
-	mkdir -p $(INSTALLDIR)/share/roadmap
-	cd $(INSTALLDIR)/share/roadmap ; rm -f sprites preferences
-	cp sprites preferences schema $(INSTALLDIR)/share/roadmap
-	cd $(INSTALLDIR)/share/roadmap ; chmod a+r sprites preferences
-	# aptconvert -toc $(INSTALLDIR)/share/roadmap/manual.html ../README
-	cd $(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(INSTALLDIR)/bin
-	cd $(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)
+	mkdir -p $(DESTDIR)$(INSTALLDIR)/share/roadmap
+	cd $(DESTDIR)$(INSTALLDIR)/share/roadmap ; rm -f sprites preferences
+	cp sprites preferences schema $(DESTDIR)$(INSTALLDIR)/share/roadmap
+	cd $(DESTDIR)$(INSTALLDIR)/share/roadmap ; chmod a+r sprites preferences
+	# aptconvert -toc $(DESTDIR)$(INSTALLDIR)/share/roadmap/manual.html ../README
+	cd $(DESTDIR)$(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
+	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(INSTALLDIR)/bin
+	cd $(DESTDIR)$(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)
 	if [ -d /usr/lib/menu ] ; then cp roadmap.menu /usr/lib/menu/roadmap; fi
-	mkdir -p $(INSTALLDIR)/share/pixmaps
-	cd icons ; make ICONDIR="$(INSTALLDIR)/share/pixmaps" install
-	cp -f roadmap*.png $(INSTALLDIR)/share/pixmaps
-	cp -f roadmap.desktop $(INSTALLDIR)/applications
+	mkdir -p $(DESTDIR)$(INSTALLDIR)/share/pixmaps
+	cd icons ; make ICONDIR="$(DESTDIR)$(INSTALLDIR)/share/pixmaps" install
+	cp -f roadmap*.png $(DESTDIR)$(INSTALLDIR)/share/pixmaps
+	cp -f roadmap.desktop $(DESTDIR)$(INSTALLDIR)/applications
 
 uninstall:
-	cd $(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
-	cd $(INSTALLDIR) ; rm -rf share/roadmap
+	cd $(DESTDIR)$(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
+	cd $(DESTDIR)$(INSTALLDIR) ; rm -rf share/roadmap
 	rm -f /usr/lib/menu/roadmap
 
 everything: modules runtime build icons $(TOOLS)
