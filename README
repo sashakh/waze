@@ -27,14 +27,16 @@ INTRODUCTION
    computer, or on a PDA such as the iPAQ from HP (formely from COMPAQ)
    or the Sharp Zaurus.
    
-   In its current version, RoadMap can work with either the Gtk+ 1.2,
-   Gtk 2.0, GPE, QT/X11 or QT/QPE graphic environments. The QT environment
-   --especially its QT/QPE version--is used for the Zaurus port (but
-   could probably be used with OPIE), the Gtk 1.2 environment is being
-   phased out (due to its old age). The most stable environment is the
-   Gtk 2.0 one (this is the one used by the author). The GPE support is
-   and optional extension of the Gtk 2.0 environment and is still very
-   experimental.
+   In its current version, RoadMap can work with either the GTK+ 1.2,
+   GTK 2.0, GPE, QT/X11 or QT/QPE graphic environments. The QT environment
+   --especially its QT/QPE version--is mostly used for the Zaurus port (but
+   could probably be used with OPIE). RoadMap is configured for using QT3
+   by default, but the QT2 compatibility headers must be installed (the
+   QT2-style coding has been kept because of the Zaurus QPE environment).
+   The GTK 1.2 environment is being phased out (due to its old age). The
+   most stable environment is the GTK 2.0 one (this is the one used for
+   developping RoadMap). The GPE support is and optional extension of the
+   GTK 2.0 environment and is still very experimental (i.e. untested).
 
    RoadMap is at an early stage of development. At this time all the
    features have not been implemented yet. RoadMap can display the map
@@ -94,6 +96,10 @@ INSTALLATION
 
    RoadMap uses aptconvert to format the documentation (see previous section).
 
+   Support for a "Point of Interest" feature is in the way, where the plan
+   is to store the points in a SQLite database. RoadMap is not at this time
+   dependent on SQLite, even while using SQLite will be an option in the
+   future.
 
 * DOWNLOADING
 
@@ -132,7 +138,7 @@ INSTALLATION
    built on a Mac (PowerPC CPU) would not be compatible with an Intel or
    (small endian) ARM computer.
 
-   Note: the main Gtk RoadMap executables (roadmap and roadgps) are
+   Note: the main GTK RoadMap executables (roadmap and roadgps) are
    built as "gtkroadmap" and "gtkroadgps", while the QT equivalent are
    built as "qtroadmap" and qtroadgps" to avoid a clash. These executables
    are installed under their "standard" names using symbolic links, so
@@ -157,7 +163,7 @@ INSTALLATION
 
    The RoadMap familiar distribution contains one .ipk package file. This
    package contains the RoadMap executables (roadmap and roadgps) as well as
-   the configuration files for a Gtk 2.0 setup (such as the Familiar 0.7.1 GPE
+   the configuration files for a GTK 2.0 setup (such as the Familiar 0.7.1 GPE
    image). This package does not contain the map files or the map index file.
 
    If RoadMap is available from your feed:
@@ -200,7 +206,7 @@ INSTALLATION
    It is also possible to rebuild RoadMap and the map files from scratch
    from the source distribution:
 
-   [[1]] Install the development libraries for Gtk+ 1.2, Gtk+ 2.0 or Qt.
+   [[1]] Install the development libraries for GTK+ 1.2, GTK+ 2.0 or Qt.
 
    [[2]] Install the RoadMap's tarball:
 
@@ -215,18 +221,18 @@ INSTALLATION
       make build
 ----
 
-   [[4]] Compile roadmap for the Gtk, Gtk2 or the QT toolkit:
+   [[4]] Compile roadmap for the GTK, GTK2 or the QT toolkit:
 
 ----
-      cd gtk     -- if using the Gtk 1.2 toolkit
+      cd gtk     -- if using the GTK 1.2 toolkit
       make
       cd ..
 
-      cd gtk2    -- if using the Gtk 2.0 toolkit
+      cd gtk2    -- if using the GTK 2.0 toolkit
       make
       cd ..
 
-      cd gtk2    -- if using GPE with the Gtk 2.0 toolkit
+      cd gtk2    -- if using GPE with the GTK 2.0 toolkit
       make DESKTOP=GPE
       cd ..
 
@@ -245,10 +251,8 @@ INSTALLATION
       make       -- This replaces steps 3 and 4.
 ----
 
-      <<Note for QT users>>: the RoadMap QT module cannot be built with QT3.
-      This is a problem with the linker: it seems that UNIX make cannot
-      be used with QT3, the QT-specific "qmake" must be used instead..
-      This might actually be a problem with my version of gcc.
+      <<Note for QT users>>: the RoadMap QT module is built with QT3 by
+      default, but requires the QT2 compatibility headers.
 
       <<Note for developpers>>: using MODE=DEBUG causes RoadMap to be
       compiled in debug mode.
@@ -978,7 +982,7 @@ IMPLEMENTATION DETAILS
 
      [roadmap_library.c]       Load and link to dynamic libraries.
 
-   Implementations of the user interface for the Gtk, Gtk2 and Qt toolkits
+   Implementations of the user interface for the GTK, GTK2 and Qt toolkits
    are provided, as well as one implementation of the OS interface for UNIX.
 
    Porting RoadMap to a new environment probably means to adapt the RoadMap
