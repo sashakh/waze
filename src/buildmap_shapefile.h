@@ -27,5 +27,8 @@
 void buildmap_shapefile_process (const char *source,
                                  int verbose, int canals, int rivers);
 
+void buildmap_shapefile_dcw_process (const char *source,
+                                     int verbose, int canals, int rivers);
+
 #endif // INCLUDE__BUILDMAP_SHAPEFILE__H
 

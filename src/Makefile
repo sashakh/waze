@@ -161,7 +161,7 @@ BUOBJS=$(BUSRCS:.c=.o)
 
 
 BUILD=buildmap buildus dumpmap
-SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmcompare
+SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 
 INSTALLDIR=/usr/local
@@ -196,7 +196,7 @@ install: build runtime icons
 	cd $(INSTALLDIR)/share/roadmap ; rm -f sprites preferences
 	cp sprites preferences schema $(INSTALLDIR)/share/roadmap
 	cd $(INSTALLDIR)/share/roadmap ; chmod a+r sprites preferences
-	aptconvert -toc $(INSTALLDIR)/share/roadmap/manual.html ../README
+	# aptconvert -toc $(INSTALLDIR)/share/roadmap/manual.html ../README
 	cd $(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
 	cp $(BUILD) $(SCRIPTS) $(INSTALLDIR)/bin
 	cd $(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)

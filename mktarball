@@ -52,6 +52,7 @@ RDM_CFG="${ROADMAP}/src/preferences
 RDM_SH="${ROADMAP}/src/rdmdownload
         ${ROADMAP}/src/rdmgetall
         ${ROADMAP}/src/rdmgenmaps
+        ${ROADMAP}/src/rdmgendcwmaps
         ${ROADMAP}/src/rdmcompare"
 
 RDM_BIN="${ROADMAP}/src/usdir.rdm

@@ -48,6 +48,7 @@
 
 #define BUILDMAP_FORMAT_TIGER     1
 #define BUILDMAP_FORMAT_SHAPE     2
+#define BUILDMAP_FORMAT_DCW       3
 
 static int   BuildMapFormatFamily = 0;
 
@@ -62,7 +63,7 @@ static struct poptOption BuildMapTigerOptions [] = {
 
    {"format", 'f',
       POPT_ARG_STRING, &BuildMapFormat, 0,
-      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE"},
+      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW"},
 
    POPT_TABLEEND
 };
@@ -125,6 +126,10 @@ static void  buildmap_county_select_format (poptContext decoder) {
 
       BuildMapFormatFamily = BUILDMAP_FORMAT_SHAPE;
 
+   } else if (strcmp (BuildMapFormat, "DCW") == 0) {
+
+      BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
+         
    } else {
       fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
       poptPrintUsage (decoder, stderr, 0);
@@ -215,6 +220,10 @@ static void buildmap_county_process (const char *source,
       case BUILDMAP_FORMAT_SHAPE:
          buildmap_shapefile_process (source, verbose, canals, rivers);
          break;
+
+      case BUILDMAP_FORMAT_DCW:
+         buildmap_shapefile_dcw_process (source, verbose, canals, rivers);
+         break;
    }
 
    buildmap_county_sort();
@@ -246,6 +255,8 @@ int main (int argc, const char **argv) {
    poptContext decoder =
       poptGetContext ("buildmap", argc, argv, BuildMapOptionTable, 0);
 
+   poptSetOtherOptionHelp(decoder, "[OPTIONS]* <fips> <source>");
+
    while (poptGetNextOpt(decoder) > 0) ;
 
    buildmap_county_select_format (decoder);
@@ -254,7 +265,7 @@ int main (int argc, const char **argv) {
 
    if (leftovers == NULL || leftovers[0] == NULL || leftovers[1] == NULL)
    {
-      fprintf (stderr, "invalid number of arguments, expected: fips source\n");
+      poptPrintUsage (decoder, stderr, 0);
       return 1;
    }
 

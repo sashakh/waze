@@ -3234,6 +3234,25 @@ FIPS          County     State
 78     010     St. Croix     VI
 78     020     St. John     VI
 78     030     St. Thomas     VI
+83     010     DCW Europe and North Asia     DW
+83     011     DCW Europe and North Asia     DW
+83     012     DCW Europe and North Asia     DW
+83     013     DCW Europe and North Asia     DW
+83     020     DCW Europe and North Asia     DW
+83     030     DCW Europe and North Asia     DW
+83     040     DCW Europe and North Asia     DW
+84     010     DCW South Asia     DX
+84     020     DCW South Asia     DX
+84     030     DCW South Asia     DX
+84     040     DCW South Asia     DX
+85     010     DCW North America     DY
+85     020     DCW North America     DY
+85     030     DCW North America     DY
+85     040     DCW North America     DY
+86     010     DCW South America and Africa     DZ
+86     020     DCW South America and Africa     DZ
+86     030     DCW South America and Africa     DZ
+86     040     DCW South America and Africa     DZ
 87     001     Alberta     AB
 88     001     British Columbia     BC
 89     001     Manitoba     MB
