@@ -249,12 +249,16 @@ static gboolean roadmap_dialog_list_selected
                      gboolean path_currently_selected,
                      gpointer data) {
 
-   int i = *gtk_tree_path_get_indices(path);
    RoadMapDialogSelection *choice = (RoadMapDialogSelection *) data;
 
-   if (choice != NULL && i >= 0) {
+   if (! path_currently_selected) {
 
-      roadmap_dialog_chosen (choice + i, NULL);
+      int i = *gtk_tree_path_get_indices(path);
+
+      if (choice != NULL && i >= 0) {
+
+         roadmap_dialog_chosen (choice + i, NULL);
+      }
    }
 
    return TRUE;
@@ -529,6 +533,12 @@ void roadmap_dialog_show_list (const char  *frame,
    choice = (RoadMapDialogSelection *) calloc (count, sizeof(*choice));
    roadmap_check_allocated(choice);
 
+   gtk_tree_selection_set_select_function
+       (gtk_tree_view_get_selection (GTK_TREE_VIEW (child->w)),
+        roadmap_dialog_list_selected,
+        (gpointer)choice,
+        NULL);
+
    for (i = 0; i < count; ++i) {
 
       choice[i].typeid = "RoadMapDialogSelection";
@@ -540,15 +550,13 @@ void roadmap_dialog_show_list (const char  *frame,
       gtk_list_store_set (GTK_LIST_STORE(model), &iterator,
                           RM_LIST_WAYPOINT_NAME, labels[i],
                           -1);
+      if (i == 0) {
+         gtk_tree_selection_select_iter
+            (gtk_tree_view_get_selection(GTK_TREE_VIEW (child->w)), &iterator);
+      }
    }
    child->choice = choice;
    child->value  = choice[0].value;
-
-   gtk_tree_selection_set_select_function
-       (gtk_tree_view_get_selection (GTK_TREE_VIEW (child->w)),
-        roadmap_dialog_list_selected,
-        (gpointer)choice,
-        NULL);
 
    gtk_widget_show (parent->w);
 }
