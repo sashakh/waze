@@ -42,14 +42,14 @@
 
 #include <shapefil.h>
 
-// shapefile column names
+/* shapefile column names */
 
 #define F_NAME  "NAME"
 #define F_STATE "STATE"
 #define F_CC    "CC"
 #define F_TYPE  "TYPE"
 
-#endif // ROADMAP_USE_SHAPEFILES
+#endif /* ROADMAP_USE_SHAPEFILES */
 
 
 #define BUILDPLACE_FORMAT_SHAPE     1
@@ -287,7 +287,7 @@ static void buildplace_shapefile_process (const char *source, int verbose) {
         if (cfcc == 0)
             continue;
 
-        // add the place
+        /* add the place */
 
         shp = SHPReadObject(hSHP, irec);
 
@@ -318,7 +318,7 @@ static void buildplace_shapefile_process (const char *source, int verbose) {
             source);
    exit(1);
 
-#endif // ROADMAP_USE_SHAPEFILES
+#endif /* ROADMAP_USE_SHAPEFILES */
 }
 
 
@@ -352,7 +352,7 @@ static void buildplace_read_dsg (const char *dsgfile) {
             if (cfcc < 0 || cfcc > BUILDMAP_MAX_PLACE_CFCC)
                 buildmap_fatal (0, "place cfcc is out of range");
             
-            while (isspace(*p)) p++; // skip leading blanks
+            while (isspace(*p)) p++; /* skip leading blanks */
             c = strcspn(p, " \t\r\n");
             p[c] = '\0';
             

@@ -121,7 +121,7 @@ static void buildmap_db_extend (int size) {
 static void buildmap_db_propagate (buildmap_db *parent, int size) {
 
    while (parent != NULL) {
-      parent->head->count = 1; // Just a convention, not really used.
+      parent->head->count = 1; /* Just a convention, not really used. */
       parent->head->size += size;
       parent = parent->parent;
    }
