@@ -4,15 +4,24 @@ GUILDFLAGS=-lqt
 MOC=/usr/bin/moc
 INSTALLDIR=/usr/local
 
-## QPE: GUICFLAGS=-I$(QTDIR)/include -DQWS
-## QPE: GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
-## QPE: MOC=$(QTDIR)/bin/moc
-## QPE: LDFLAGS=-L$(QTDIR)/lib
-## INSTALLDIR=$(QTDIR)
+ifeq ($(TARGET),QPE)
+   QPE: GUICFLAGS=-I$(QTDIR)/include -DQWS
+   QPE: GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
+   QPE: MOC=$(QTDIR)/bin/moc
+   QPE: LDFLAGS=-L$(QTDIR)/lib
+   INSTALLDIR=$(QTDIR)
+endif
 
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
-# STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
-# STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
+ifeq ($(MODE),DEBUG)
+   STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+else
+ifeq ($(MODE),PROFILE)
+   STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
+   LDFLAGS=-pg $(LDFLAGS)
+else
+   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
+endif
+endif
 
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
 CPPFLAGS=-I.. $(GUICFLAGS) $(STDCFLAGS) -fno-rtti -fno-exceptions -pipe
@@ -21,7 +30,6 @@ RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a
 LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
 STRIP=strip
 
-# LDFLAGS=-pg $(LDFLAGS)
 
 
 RMLIBSRCS= \

@@ -189,6 +189,10 @@ INSTALLATION:
       make
       cd ..
 
+      cd qt      -- if using the QT/QPE toolkit
+      make TARGET=QPE
+      cd ..
+
       If you want to build all three versions of RoadMap, just type:
       make       -- This replaces steps 3 and 4.
 

@@ -5,11 +5,18 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0`
 GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
 GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
 
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
-# STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
-# STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
-
 RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a
+
+ifeq ($(MODE),DEBUG)
+   STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+else
+ifeq ($(MODE),PROFILE)
+   STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
+   LDFLAGS=-pg $(LDFLAGS)
+else
+   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
+endif
+endif
 
 ifeq ($(TARGET),GPE)
    CFLAGS=$(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I..
@@ -18,8 +25,6 @@ else
    CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
    LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
 endif
-
-# LDFLAGS=-pg $(LDFLAGS)
 
 
 RMLIBSRCS=roadmap_keyboard.c \
