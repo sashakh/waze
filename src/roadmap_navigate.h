@@ -30,7 +30,8 @@ void roadmap_navigate_enable  (void);
 int roadmap_navigate_retrieve_line
         (const RoadMapPosition *position, int accuracy, int *distance);
 
-void roadmap_navigate_locate (const RoadMapPosition *position);
+void roadmap_navigate_locate
+        (const RoadMapPosition *position, int speed, int direction);
 
 void roadmap_navigate_initialize (void);
 

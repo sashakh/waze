@@ -37,12 +37,10 @@
 #include "roadmap_layer.h"
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
+#include "roadmap_fuzzy.h"
 
 #include "roadmap_navigate.h"
 
-
-static RoadMapConfigDescriptor RoadMapConfigAccuracyStreet =
-                        ROADMAP_CONFIG_ITEM("Accuracy", "Street");
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Confirm");
@@ -463,13 +461,14 @@ invalidate:
 }
 
 
-void roadmap_navigate_locate (const RoadMapPosition *position) {
+void roadmap_navigate_locate
+         (const RoadMapPosition *position, int speed, int direction) {
 
     int fips;
-    int distance = RoadMapAccuracyStreet + 1;
 
 
     if (RoadMapNavigateDisable) return;
+
 
 
     if ((position->latitude == RoadMapPreviousPosition.latitude) &&
@@ -487,8 +486,7 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
     roadmap_log_push ("roadmap_navigate_locate");
 
-    RoadMapAccuracyStreet =
-        roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
+    RoadMapAccuracyStreet = roadmap_fuzzy_max_distance ();
     RoadMapAccuracyMouse =
         roadmap_config_get_integer (&RoadMapConfigAccuracyMouse);
 
@@ -525,8 +523,11 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
          * Look around for another one. The closest line will be
          * selected only if it is close enough.
          */
+        int distance = RoadMapAccuracyStreet + 1;
+
         int line = roadmap_navigate_retrieve_line
                         (position, RoadMapAccuracyMouse, &distance);
+
 
         if ((line < 0) || (distance > RoadMapAccuracyStreet)){
 
@@ -613,8 +614,6 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
 void roadmap_navigate_initialize (void) {
     
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyStreet, "80");
     roadmap_config_declare
         ("preferences", &RoadMapConfigAccuracyConfirm, "3");
 }

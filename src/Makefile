@@ -1,6 +1,7 @@
 
 
 CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
+# CFLAGS=-g -Wall
 # CFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
 # CFLAGS=-g -Wall -pg -fprofile-arcs -g
 
@@ -38,6 +39,7 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 RMGUISRCS=roadmap_sprite.c \
           roadmap_trip.c \
           roadmap_layer.c \
+          roadmap_fuzzy.c \
           roadmap_navigate.c \
           roadmap_screen.c \
           roadmap_display.c \

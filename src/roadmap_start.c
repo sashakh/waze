@@ -46,6 +46,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_screen.h"
+#include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
 #include "roadmap_display.h"
 #include "roadmap_factory.h"
@@ -370,7 +371,7 @@ static void roadmap_gps_update
 
     roadmap_trip_set_mobile ("GPS", position, speed, direction);
     roadmap_log_reset_stack ();
-    roadmap_navigate_locate (position);
+    roadmap_navigate_locate (position, speed, direction);
     roadmap_log_reset_stack ();
     roadmap_screen_refresh();
     roadmap_log_reset_stack ();
@@ -422,6 +423,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
    roadmap_screen_initialize   ();
+   roadmap_fuzzy_initialize    ();
    roadmap_navigate_initialize ();
    roadmap_display_initialize  ();
    roadmap_voice_initialize    ();
