@@ -109,50 +109,31 @@ INSTALLATION:
    to run from the src subdirectory. For example, use: gtk/gtkroadmap
 
 
-   INSTALLING FROM THE FAMILIAR PACKAGES:
+   INSTALLING FROM THE FAMILIAR PACKAGE:
 
-   The packages are provided in a compressed tar file. The tar file contains
-   three package files: one package contains the San Francisco map, another
-   contains the RoadMap executables and configuration files for a Gtk 1.2
-   setup (such as Familiar 0.4) and the third package contains the RoadMap
-   executables and configuration files for a Gtk 2.0 setup (such as Familiar
-   0.7).
-
-   I strongly recommend to install RoadMap on a CompactFlash card, and
-   not on the iPAQ internal flash. The reason is that the maps are too
-   big to be installed on the iPAQ flash. Note that all RoadMap packages
-   must be installed at the same place (this is because they all install
-   some files in the "share/roadmap" directory). The binary package should
-   be installed first (it creates the "share/roadmap" directory).
+   The RoadMap familiar package (.ipk) contains the RoadMap executables and
+   configuration files for a Gtk 2.0 setup (such as the Familiar 0.7.1 GPE
+   image). This package contains nor the map files nor the map index file.
 
    If RoadMap is available from your feed:
 
-      ipkg -d ext install roadmap-gtk
-      ipkg -d ext install roadmap-sfca
-
-   or:
-
-      ipkg -d ext install roadmap-gtk2
-      ipkg -d ext install roadmap-sfca
+      ipkg install roadmap-gtk2
 
    If you downloaded the ipk files on the iPAQ:
 
-      ipkg -d ext install roadmap-gtk_X.X_arm.ipk
-      ipkg -d ext install roadmap-sfca_X.X_arm.ipk
+      ipkg install roadmap-gtk2_X.Y.Z_arm.ipk
 
-   or:
-
-      ipkg -d ext install roadmap-gtk2_X.X_arm.ipk
-      ipkg -d ext install roadmap-sfca_X.X_arm.ipk
-
-   Other maps must be generated from the US Census Bureau's files (see below)
+   The maps must be generated from the US Census Bureau's files (see below)
    or downloaded from http://roadmap.saignon.net/maps.html
 
-   Many map files are too big to be installed as packages on the iPAQ.
-   The more reasonable way of handling the map files is to store them
-   on a desktop computer and transfer the ones you need on a compact flash
-   or MMC memory card. To build the maps, you need the Linux/i686 binary
-   tarball, or the source tarball.
+   It is strongly recommended you install the RoadMap maps on a CompactFlash
+   or SD/MMC card, and not on the iPAQ internal flash. The reason is that
+   the maps are too big to be installed on the iPAQ flash. As configured,
+   RoadMap will look for the maps either in /mnt/hda/share/roadmap or
+   /mnt/card/share/roadmap.
+
+   To build the maps yourself, you need the Linux/i686 binary or the source
+   tarball.
 
 
    INSTALLING FROM THE SOURCE TARBALL:
@@ -182,7 +163,7 @@ INSTALLATION:
       cd ..
 
       cd gtk2    -- if using GPE with the Gtk 2.0 toolkit
-      make TARGET=GPE
+      make DESKTOP=GPE
       cd ..
 
       cd qt      -- if using the QT toolkit
@@ -190,7 +171,7 @@ INSTALLATION:
       cd ..
 
       cd qt      -- if using the QT/QPE toolkit
-      make TARGET=QPE
+      make DESKTOP=QPE
       cd ..
 
       If you want to build all three versions of RoadMap, just type:
