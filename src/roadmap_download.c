@@ -64,8 +64,9 @@ struct roadmap_download_tool {
 };
 
 static struct roadmap_download_tool RoadMapDownloadCompressTools[] = {
-   {".gz",  "gunzip"},
-   {".bz2", "bunzip2"},
+   {".gz",  "gunzip -f"},
+   {".bz2", "bunzip2 -f"},
+   {".lzo", "lzop -d -fU -p"},
    {NULL, NULL}
 };
 
