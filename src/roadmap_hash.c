@@ -63,6 +63,7 @@ RoadMapHash *roadmap_hash_new (char *name, int size) {
 
    hash->size = size;
    hash->next = malloc (size * sizeof(int));
+   hash->values = NULL;
 
    roadmap_check_allocated(hash->next);
 
@@ -125,13 +126,46 @@ void roadmap_hash_resize (RoadMapHash *hash, int size) {
    int i;
 
    hash->next = realloc (hash->next, size * sizeof(int));
-
    roadmap_check_allocated(hash->next);
+
+   if (hash->values != NULL) {
+      hash->values = realloc (hash->values, size * sizeof(void *));
+      roadmap_check_allocated(hash->values);
+   }
 
    for (i = hash->size; i < size; i++) {
       hash->next[i] = -1;
    }
    hash->size = size;
+}
+
+
+void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value) {
+
+   if ((index < 0) || (index > hash->size)) {
+      roadmap_log (ROADMAP_FATAL, "invalid index %d in hash table %s",
+                         index, hash->name);
+   }
+
+   if (hash->values == NULL) {
+      hash->values = calloc (hash->size, sizeof(void *));
+      roadmap_check_allocated(hash->values);
+   }
+
+   hash->values[index] = value;
+}
+
+
+void *roadmap_hash_get_value (RoadMapHash *hash, int index) {
+
+   if ((index < 0) || (index > hash->size)) {
+      roadmap_log (ROADMAP_FATAL, "invalid index %d in hash table %s",
+                         index, hash->name);
+   }
+
+   if (hash->values == NULL) return NULL;
+
+   return hash->values[index];
 }
 
 
