@@ -53,9 +53,9 @@ static RoadMapConfigDescriptor RoadMapConfigSource =
 static RoadMapConfigDescriptor RoadMapConfigDestination =
                                   ROADMAP_CONFIG_ITEM("Download", "Destination");
 
-static RoadMapHash *RoadMapDownloadCancel = NULL;
-static int *RoadMapDownloadCancelList = NULL;
-static int  RoadMapDownloadCancelCount = 0;
+static RoadMapHash *RoadMapDownloadBlock = NULL;
+static int *RoadMapDownloadBlockList = NULL;
+static int  RoadMapDownloadBlockCount = 0;
 
 static int *RoadMapDownloadQueue = NULL;
 static int  RoadMapDownloadQueueConsumer = 0;
@@ -202,6 +202,56 @@ static RoadMapDownloadCallbacks RoadMapDownloadCallbackFunctions = {
 };
 
 
+static void roadmap_download_allocate (void) {
+
+   if (RoadMapDownloadQueue == NULL) {
+
+      RoadMapDownloadQueueSize = roadmap_county_count();
+
+      RoadMapDownloadQueue =
+         calloc (RoadMapDownloadQueueSize, sizeof(int));
+      roadmap_check_allocated(RoadMapDownloadQueue);
+
+      RoadMapDownloadBlockList = calloc (RoadMapDownloadQueueSize, sizeof(int));
+      roadmap_check_allocated(RoadMapDownloadBlockList);
+
+      RoadMapDownloadBlock =
+         roadmap_hash_new ("download", RoadMapDownloadQueueSize);
+   }
+}
+
+
+static void roadmap_download_block (int fips) {
+
+   roadmap_download_allocate ();
+
+   roadmap_hash_add (RoadMapDownloadBlock,
+                     fips,
+                     RoadMapDownloadBlockCount);
+
+   RoadMapDownloadBlockList[RoadMapDownloadBlockCount] = fips;
+   RoadMapDownloadBlockCount += 1;
+}
+
+
+static int roadmap_download_blocked (int fips) {
+
+   int i;
+
+   roadmap_download_allocate ();
+
+   for (i = roadmap_hash_get_first (RoadMapDownloadBlock, fips);
+        i >= 0;
+        i = roadmap_hash_get_next (RoadMapDownloadBlock, i)) {
+
+      if (RoadMapDownloadBlockList[i] == fips) {
+         return 1;
+      }
+   }
+   return 0;
+}
+
+
 static void roadmap_download_ok (const char *name, void *context) {
 
    int  fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
@@ -226,6 +276,8 @@ static void roadmap_download_ok (const char *name, void *context) {
    roadmap_path_create (directory);
    roadmap_path_free (directory);
 
+
+   /* Search for the correct protocol handler to call this time. */
 
    for (protocol = RoadMapDownloadProtocolMap;
         protocol != NULL;
@@ -253,16 +305,9 @@ static void roadmap_download_ok (const char *name, void *context) {
 
 static void roadmap_download_cancel (const char *name, void *context) {
 
-   int fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
-
    roadmap_dialog_hide (name);
 
-   roadmap_hash_add (RoadMapDownloadCancel,
-                     fips,
-                     RoadMapDownloadCancelCount);
-
-   RoadMapDownloadCancelList[RoadMapDownloadCancelCount] = fips;
-   RoadMapDownloadCancelCount += 1;
+   roadmap_download_block (RoadMapDownloadQueue[RoadMapDownloadQueueConsumer]);
 
    roadmap_download_end ();
 }
@@ -297,38 +342,15 @@ static void roadmap_download_next_county (void) {
 
 int roadmap_download_get_county (int fips) {
 
-   int i;
    int next;
 
    if (RoadMapDownloadWhenDone == roadmap_download_no_handler) return 0;
 
-   if (RoadMapDownloadQueue == NULL) {
-
-      RoadMapDownloadQueueSize = roadmap_county_count();
-
-      RoadMapDownloadQueue =
-         calloc (RoadMapDownloadQueueSize, sizeof(int));
-      roadmap_check_allocated(RoadMapDownloadQueue);
-
-      RoadMapDownloadCancelList =
-         calloc (RoadMapDownloadQueueSize, sizeof(int));
-      roadmap_check_allocated(RoadMapDownloadCancelList);
-
-      RoadMapDownloadCancel =
-         roadmap_hash_new ("download", RoadMapDownloadQueueSize);
-   }
-
 
    /* Check that we did not refuse to download that county once. */
 
-   for (i = roadmap_hash_get_first (RoadMapDownloadCancel, fips);
-        i >= 0;
-        i = roadmap_hash_get_next (RoadMapDownloadCancel, i)) {
+   if (roadmap_download_blocked (fips)) return 0;
 
-      if (RoadMapDownloadCancelList[i] == fips) {
-         return 0;
-      }
-   }
 
    /* Add this county to the download request queue. */
 
@@ -342,7 +364,9 @@ int roadmap_download_get_county (int fips) {
    RoadMapDownloadQueue[RoadMapDownloadQueueProducer] = fips;
 
    if (RoadMapDownloadQueueProducer == RoadMapDownloadQueueConsumer) {
+
       /* The queue was empty: start downloading now. */
+
       RoadMapDownloadQueueProducer = next;
       roadmap_download_next_county();
       return 0;
@@ -353,12 +377,11 @@ int roadmap_download_get_county (int fips) {
 }
 
 
-static void roadmap_download_show_space_ok (const char *name, void *context) {
-   roadmap_dialog_hide (name);
-}
+/* -------------------------------------------------------------------------
+ * Show map statistics: number of files, disk space occupied.
+ */
 
-
-void roadmap_download_compute_space (int *count, int *size) {
+static void roadmap_download_compute_space (int *count, int *size) {
 
    char *directory;
    char **files;
@@ -378,6 +401,11 @@ void roadmap_download_compute_space (int *count, int *size) {
    }
 
    roadmap_path_list_free (files);
+}
+
+
+static void roadmap_download_show_space_ok (const char *name, void *context) {
+   roadmap_dialog_hide (name);
 }
 
 
@@ -410,6 +438,9 @@ void roadmap_download_show_space (void) {
 }
 
 
+/* -------------------------------------------------------------------------
+ * Select & delete map files.
+ */
 static int   *RoadMapDownloadDeleteFips = NULL;
 
 static char **RoadMapDownloadDeleteNames = NULL;
@@ -530,6 +561,8 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
 
    if (RoadMapDownloadDeleteSelected > 0) {
 
+      roadmap_download_block (RoadMapDownloadDeleteSelected);
+
       snprintf (path, sizeof(path),
                 roadmap_config_get (&RoadMapConfigDestination),
                 RoadMapDownloadDeleteSelected);
@@ -562,6 +595,10 @@ void roadmap_download_delete (void) {
    roadmap_download_delete_populate ();
 }
 
+
+/* -------------------------------------------------------------------------
+ * Configure this download module.
+ */
 
 void roadmap_download_subscribe_protocol  (const char *prefix,
                                            RoadMapDownloadProtocol handler) {
