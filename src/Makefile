@@ -1,7 +1,7 @@
 
 
-# CFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall -DROADMAP_USES_SIGCHLD
-CFLAGS=-g -Wall
+CFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall -DROADMAP_USES_SIGCHLD
+# CFLAGS=-g -Wall
 
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
