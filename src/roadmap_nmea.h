@@ -27,6 +27,8 @@
 
 #include "sys/time.h"
 
+#define ROADMAP_NMEA_MAX_SATELLITE   16
+
 typedef union {
 
    struct {
@@ -54,7 +56,7 @@ typedef union {
       char  automatic;
       char  dimension;
       short reserved0;
-      char  satellite[12];
+      char  satellite[ROADMAP_NMEA_MAX_SATELLITE];
       float dilution_position;
       float dilution_horizontal;
       float dilution_vertical;

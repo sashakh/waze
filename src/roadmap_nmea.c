@@ -212,7 +212,7 @@ static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
    RoadMapNmeaReceived.gpgsa.automatic = argv[1][0];
    RoadMapNmeaReceived.gpgsa.dimension = atoi(argv[2]);
 
-   for (index = 2, i = 0; i < 12; ++i) {
+   for (index = 2, i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; ++i) {
 
       RoadMapNmeaReceived.gpgsa.satellite[i] = atoi(argv[++index]);
    }
@@ -239,6 +239,20 @@ static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
    RoadMapNmeaReceived.gpgsv.total = (char) atoi(argv[1]);
    RoadMapNmeaReceived.gpgsv.index = (char) atoi(argv[2]);
    RoadMapNmeaReceived.gpgsv.count = (char) atoi(argv[3]);
+
+   if (RoadMapNmeaReceived.gpgsv.count < 0) {
+      roadmap_log (ROADMAP_ERROR, "%d is an invalid number of satellites",
+                   RoadMapNmeaReceived.gpgsv.count);
+      return 0;
+   }
+
+   if (RoadMapNmeaReceived.gpgsv.count > ROADMAP_NMEA_MAX_SATELLITE) {
+
+      roadmap_log (ROADMAP_ERROR, "%d is too many satellite, %d max supported",
+                   RoadMapNmeaReceived.gpgsv.count,
+                   ROADMAP_NMEA_MAX_SATELLITE);
+      RoadMapNmeaReceived.gpgsv.count = ROADMAP_NMEA_MAX_SATELLITE;
+   }
 
    end = RoadMapNmeaReceived.gpgsv.count
             - ((RoadMapNmeaReceived.gpgsv.index - 1) * 4);

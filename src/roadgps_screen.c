@@ -60,10 +60,9 @@ typedef struct {
 
 } RoadMapObject;
 
-#define ROADGPS_SATELLITE_COUNT  12
 
-static RoadMapObject RoadGpsSatellites[ROADGPS_SATELLITE_COUNT];
-static char          RoadGpsActiveSatellites[ROADGPS_SATELLITE_COUNT];
+static RoadMapObject RoadGpsSatellites[ROADMAP_NMEA_MAX_SATELLITE];
+static char          RoadGpsActiveSatellites[ROADMAP_NMEA_MAX_SATELLITE];
 static int           RoadGpsSatelliteCount = 0;
 
 struct {
@@ -290,7 +289,7 @@ static void roadgps_screen_gpgsa
 
    int i;
 
-   for (i = 0; i < ROADGPS_SATELLITE_COUNT; i += 1) {
+   for (i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; i += 1) {
 
       RoadGpsActiveSatellites[i] = fields->gpgsa.satellite[i];
    }
@@ -324,9 +323,13 @@ static void roadgps_screen_gpgsv
 
       RoadGpsSatelliteCount = fields->gpgsv.count;
 
+      if (RoadGpsSatelliteCount > ROADMAP_NMEA_MAX_SATELLITE) {
+         RoadGpsSatelliteCount = ROADMAP_NMEA_MAX_SATELLITE;
+      }
+
       for (index = 0; index < RoadGpsSatelliteCount; index += 1) {
 
-         for (i = 0; i < ROADGPS_SATELLITE_COUNT; i += 1) {
+         for (i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; i += 1) {
 
             if (RoadGpsActiveSatellites[i] == RoadGpsSatellites[index].id) {
                RoadGpsSatellites[index].status = ROADGPS_STATUS_OK;
@@ -336,7 +339,7 @@ static void roadgps_screen_gpgsv
       }
 
       for (index = RoadGpsSatelliteCount;
-           index < ROADGPS_SATELLITE_COUNT;
+           index < ROADMAP_NMEA_MAX_SATELLITE;
            index += 1) {
          RoadGpsSatellites[index].status = ROADGPS_STATUS_OFF;
       }
