@@ -76,24 +76,6 @@ RMPLUGINSRCS=roadmap_copy.c roadmap_httpcopy.c
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 
 
-ICONSRC= rm_clockwise.xpm \
-			rm_counterclockwise.xpm \
-			rm_destination.xpm \
-			rm_hold.xpm \
-			rm_full.xpm \
-			rm_gps.xpm \
-			rm_location.xpm \
-			rm_zoom1.xpm \
-			rm_zoomin.xpm \
-			rm_zoomout.xpm \
-			rm_down.xpm \
-			rm_left.xpm \
-			rm_right.xpm \
-			rm_up.xpm
-
-ICONS=$(ICONSRC:.xpm=.png)
-
-
 DMSRCS=dumpmap_main.c
 
 DMOBJS=$(DMSRCS:.c=.o)
@@ -153,11 +135,8 @@ clean: cleanone
 	make -C gtk2 cleanone
 	make -C unix cleanone
 
-cleanone: cleanicons
+cleanone:
 	rm -f *.o *.a *.da $(BUILD)
-
-cleanicons:
-	rm -f $(ICONS)
 
 install: build runtime icons
 	mkdir -p $(INSTALLDIR)/share/roadmap
@@ -168,7 +147,9 @@ install: build runtime icons
 	cp $(BUILD) $(SCRIPTS) $(INSTALLDIR)/bin
 	cd $(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)
 	if [ -d /usr/lib/menu ] ; then cp roadmap.menu /usr/lib/menu/roadmap; fi
-	cp -f roadmap*.png rm_*.png $(INSTALLDIR)/share/pixmaps
+	mkdir -p $(INSTALLDIR)/share/pixmaps
+	cd icons ; make ICONDIR="$(INSTALLDIR)/share/pixmaps" install
+	cp -f roadmap*.png $(INSTALLDIR)/share/pixmaps
 	cp -f roadmap.desktop $(INSTALLDIR)/applications
 
 uninstall:
@@ -188,8 +169,6 @@ cleanall:
 
 rebuild: cleanall everything
 
-icons: $(ICONS)
-	rm -f temp.png
 
 # --- The real targets --------------------------------------------
 
@@ -213,8 +192,4 @@ buildmap: $(BMOBJS) $(RDMLIBS)
 
 buildus: $(BUOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BUOBJS) -o buildus $(LIBS)
-
-%.png : %.xpm
-	convert -transparent yellow $< temp.png
-	convert -scale 16x16 temp.png $@
 
