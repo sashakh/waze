@@ -73,6 +73,7 @@ typedef struct roadmap_trip_point {
     char predefined;
     char mobile;
     char in_trip;
+    char has_value;
 
     RoadMapPosition position;
 
@@ -85,16 +86,16 @@ typedef struct roadmap_trip_point {
 } RoadMapTripPoint;
 
 
-#define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip) \
-    {{NULL, NULL}, id, sprite, 1, mobile, in_trip, \
+#define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip, has_value) \
+    {{NULL, NULL}, id, sprite, 1, mobile, in_trip, has_value, \
      {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}, \
      ROADMAP_CONFIG_ITEM("Locations",id) \
     }
 
 RoadMapTripPoint RoadMapTripPredefined[] = {
-    ROADMAP_TRIP_ITEM("GPS",         "GPS",         1, 0),
-    ROADMAP_TRIP_ITEM("Destination", "Destination", 0, 1),
-    ROADMAP_TRIP_ITEM("Location",    NULL,          0, 0),
+    ROADMAP_TRIP_ITEM("GPS",         "GPS",         1, 0, 1),
+    ROADMAP_TRIP_ITEM("Destination", "Destination", 0, 1, 0),
+    ROADMAP_TRIP_ITEM("Location",    NULL,          0, 0, 1),
     {{NULL, NULL}, NULL, NULL}
 };
 
@@ -230,6 +231,7 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
     }
     
     result->position = *position;
+    result->has_value = 1;
     
     return result;
 }
@@ -663,7 +665,9 @@ void roadmap_trip_format_messages (void) {
     RoadMapTripPoint *waypoint;
 
 
-    if (RoadMapTripFocus == gps && RoadMapTripDestination != NULL) {
+    if (RoadMapTripFocus == gps &&
+        RoadMapTripDestination != NULL &&
+        RoadMapTripDestination->has_value) {
     
         roadmap_message_set ('T', roadmap_time_get_hours_minutes());
         
@@ -748,6 +752,7 @@ void roadmap_trip_display (void) {
          waypoint = (RoadMapTripPoint *)waypoint->link.next) {
 
         if (waypoint->sprite == NULL) continue;
+        if (! waypoint->has_value) continue;
 
         if (roadmap_math_point_is_visible (&waypoint->position)) {
 
@@ -772,7 +777,9 @@ void roadmap_trip_clear (void) {
     RoadMapTripPoint *point;
     RoadMapTripPoint *next;
     
-    for (point = (RoadMapTripPoint *)RoadMapTripWaypoints.first; point != NULL; point = next) {
+    for (point = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
+         point != NULL;
+         point = next) {
         
         next = (RoadMapTripPoint *)point->link.next;
         
@@ -788,6 +795,10 @@ void roadmap_trip_clear (void) {
             free (point->id);
             free(point);
             RoadMapTripModified = 1;
+
+        } else {
+
+            point->has_value = 0;
         }
     }
     
@@ -920,7 +931,7 @@ void roadmap_trip_save (const char *name) {
              point != NULL;
              point = (RoadMapTripPoint *)point->link.next) {
                   
-            if (point->in_trip) {
+            if (point->in_trip && point->has_value) {
                 roadmap_trip_printf (file, point);
             }
         }
