@@ -32,8 +32,8 @@
 #include "roadmap_start.h"
 #include "roadmap_config.h"
 #include "roadmap_history.h"
-#include "gtk/roadmap_gtkcanvas.h"
-#include "gtk/roadmap_gtkmain.h"
+#include "roadmap_gtkcanvas.h"
+#include "roadmap_gtkmain.h"
 
 #include "roadmap_main.h"
 

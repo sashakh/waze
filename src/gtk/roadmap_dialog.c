@@ -32,8 +32,8 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
-#include "gtk/roadmap_gtkmain.h"
-#include "gtk/roadmap_keyboard.h"
+#include "roadmap_gtkmain.h"
+#include "roadmap_keyboard.h"
 
 #include "roadmap_dialog.h"
 
