@@ -53,7 +53,7 @@
 #include "roadmap_httpcopy.h"
 
 
-#define ROADMAP_HTTP_MAX_CHUNK 10240
+#define ROADMAP_HTTP_MAX_CHUNK 32768
 
 
 static int roadmap_http_send (int socket,

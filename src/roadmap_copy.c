@@ -59,7 +59,7 @@
 #include "roadmap_copy.h"
 
 
-#define ROADMAP_COPY_MAX_CHUNK 10240
+#define ROADMAP_COPY_MAX_CHUNK 51200
 
 
 static int roadmap_copy (RoadMapDownloadCallbacks *callbacks,
