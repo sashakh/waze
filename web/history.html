@@ -15,6 +15,39 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mailing List</a>
 <HR> <BR>
+<P>Roadmap v1.0 (June 29, 2003): 
+<UL>
+  <LI>Fixed the generation of maps when the street numbers do not fit into
+      a 16 bit integer (the Hawaii maps have been regenerated).
+  <LI>Have all the necessary characters in the Gtk keyboard: '?' and '-'.
+  <LI>Use a lot less memory for the squares grid (but no less than needed..).
+  <LI>Change the RoadMap user interface to be more compliant with the Gnome's
+      Human Interface Guide. Mostly, this is following common sense advices.
+  <LI>Fix yet another "square -2" error.
+  <LI>Merged QT changes by Latchesar Ionkov.
+  <LI>Merged an additional feature by Latchesar Ionkov: find a place using
+      coordinates (Longitude, Latitude).
+  <LI>Merged and extended the session context changes by Latchesar Ionkov:
+      RoadMap now saves the latest display context on exit and restores this
+      context on restart. Basically, the initial RoadMap display now shows
+      the same area as when the user last exited, using the same zoom level
+      and rotation.
+  <LI>Keep the display offsets (up, down, left, right and rotation) in GPS
+      tracking mode. This way it is possible to position the GPS symbol at
+      the bottom of the screen or setup the map in a (very rough) "landscape"
+      mode (beware: the signs are not rotated..).
+  <LI>Do not show the navigation signs (current street, next intersection)
+      when not tracking the GPS position. Note that the voice messages are
+      not filtered the same way (bug or feature ?).
+  <LI>Selecting a street on the map does not overwrite anymore the location
+      selected using a dialog (address, intersection or position). This makes
+      the "L" button much more usable.
+  <LI>Fixed a few potential memory leaks. There are probably other leaks
+      because the size of the RoadMap process memory grows when replaying
+      the same trip log over and over.
+  <LI>Fixed the error recovery when the user selects a trip file that does
+      not exist, or when the latest trip has been deleted.
+</UL>
 <P>Roadmap v1.0rc6 (June 2, 2003): 
 <UL>
   <LI>This is a brown bag version: fix 3 regressions and one old bug found
@@ -25,7 +58,7 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
       GPS errors.
   <LI>When a sign is shown on more than one line, the text was truncated
       to its first line after 1 second. In fact, the text was truncated
-      after first displayed: any refresh thereafter show the damage.
+      after first displayed: any refresh thereafter shows the damage.
   <LI>The old bug: the number of parameters in the NMEA GPGSV sentence
       actually depends on the number of satellites listed, it is not
       always greater than 9.

@@ -35,49 +35,80 @@ A version of RoadMap for the Sharp Zaurus is also available from
 <CENTER>
    (c) Copyright Pascal Martin, 2003 (pascal dot martin at iname dot com)
 </CENTER>
-<P>RoadMap is a program for Linux that displays street maps. The maps are 
-provided by the US Census Bureau, and thus only cover the US. 
-<P>RoadMap has been designed to be usable on both a desktop or laptop computer, 
-or on a PDA such as the iPAQ from HP (formely from COMPAQ). It uses the Gtk 1.2 
-graphic library for its user interface. A Qt interface is planned as well, so 
-that RoadMap could be used on the Sharp's Zaurus PDA. 
+<P>RoadMap is a program for street (and car) navigation on Linux. It displays
+a street map, can track the position provided by a NMEA-compliant GPS receiver
+and identifies the current street that matches this position. A rudimentary
+trip feature allows RoadMap to display some basic navigation information
+(distance to the destination, direction, speed, etc..). Voice messages are
+generated that duplicate some of the screen information.
+
+<P>The map files used by RoadMap are generated from the TIGER files provided
+by the US Census Bureau, and thus cover the USA only.  The RoadMap map format
+is a binary format that is sensitive to the endianness of the processor. Maps
+available on this site cover all the USA and have been generated for a little
+endian processor (such as the Intel Pentium and StrongARM processors).
+
+<P>RoadMap has been designed to be usable on both a desktop or laptop PC, 
+or on a PDA such as the iPAQ from HP (formely from COMPAQ). It can use either
+the Gtk 1.2 , Gtk 2.0 or QT graphic library for its user interface. The Qt
+interface supports the Sharp's Zaurus PDA (see above). These machines can
+all use the maps provided on this site.
+
 <P>RoadMap is at an early stage of development. At this time there are no 
-routing features implemented yet. RoadMap can only display the map around a 
-specified street address or follow a GPS device (using gpsd). The plan for the 
-future is to implement some navigation features similar to those found in 
-commercial street navigation systems. 
+routing features implemented yet. The plan for the future is to implement
+some navigation features similar to those found in commercial street
+navigation systems.  The main limit for implementing routing is the lack of
+navigation information in the US Census Bureau database (for example one-way
+street are not indicated). The US Census Bureau has clearly indicated that
+it does not plan to add these information in the future (the USCB does
+not need them).
+
+<P>RoadMap uses <b>gpsd</b> for the GPS link and <b>flite</b> for the voice
+messages.
+
 <P>RoadMap comes with its own GPS status screen, which provides an overview of 
-the satellites received and highlight those the GPS has a fix on. This status 
+the satellites received and highlights those the GPS has a fix on. This status 
 screen allows for placing the GPS device in a position that optimizes satellite 
 reception, even if that means making the GPS device's screen not accessible. 
+
 <P>RoadMap uses a binary file format for representing the maps that is compact 
 enough to allow the storage of many maps on a Compact Flash or MultiMedia card. 
-For example, the map of Los Angeles county takes about 10 Mbytes of flash space. 
-RoadMap comes with a set of tools to convert the US Census bureau data (the 2000 
-and 2002 versions) into its own map format. 
-<P>RoadMap is distributed with the map of San Francisco as an example. Other 
-maps will be made available as soon as I can identify a public web site that is 
-willing to accept them (these maps take some significant disk space). 
-<P>Clicking on the map screen displays the name of the closest street, road or 
-freeway (if any). On the iPAQ the "calendar" button is used to zoom in, the 
-"telephone" button is used to zoom out, the arrow buttons are used to move the 
-map and the Compaq ("menu") button is used as "quit". The other features are 
-(IMHO) quite obvious. 
-<P>When entering a street name, the street prefix, suffix and type, if provided, 
-must be among the abbreviations listed by the US Census Bureau (N for north, E 
-for east, Blvd for boulevard, etc..). In almost all cases these conventions 
-follow the usual abbreviations, so there is no need to worry here. In addition, 
-any of these fields is optional: not providing them only makes the search less 
-selective. If several matches are found, RoadMap shows a list of all matching 
-streets and lets the user select the appropriate one. 
-<P>The exact format of the data expected by RoadMap as a complete street name is 
-as follow: 
+For example, the map of Los Angeles county takes about 10 Mbytes of flash
+space. RoadMap comes with a set of tools to convert the US Census bureau data
+(both the 2000 and 2002 versions) into its own map format. Future versions of
+the US Census bureau data will be supported as well (usually a 1 or 2 months
+after the data has been released).
+
+<P>When RoadMap starts, it displays a map of the same area that was displayed
+on the latest session. Clicking on the map screen triggers a "sign" that
+displays the name of the street, road or freeway (if any) that is the closest
+to the mouse hotpoint. On the iPAQ the "calendar" button is used to zoom in,
+the "telephone" button is used to zoom out, the arrow buttons are used to move
+the map and the Compaq ("menu") button is used as "quit".
+
+<P>It is possible to display a specific area by providing a (complete or
+incomplete) postal address, the intersection of two streets or an exact
+position (longitude / latitude).
+
+<P>When entering a street name, the street prefix, suffix and type, if
+provided, must be among the abbreviations listed by the US Census Bureau
+(N for north, E for east, Blvd for boulevard, etc..). In almost all cases
+these conventions follow the usual abbreviations, so there is no need to
+worry here. In addition, any of the fields above is optional: not providing
+all of them only makes the search less selective. If several matches are found,
+RoadMap shows a list of all matching streets and lets the user select the
+appropriate one. 
+
+<P>The exact format of a complete street name as expected by RoadMap is as
+follows: 
 <P>
 <CENTER>[<I>prefix</I> ' '] <I>name</I> [[' ' <I>suffix</I>] ' ' 
 <I>type</I>]</CENTER>
+
 <P>It is also possible to omit the street number, or to search around a given 
-city (prefix the city name with character '?'). These options have the effect of 
-making the search broader. 
-<P>More information is available in the README file distributed with the sources 
-and binaries. 
-</BODY></HTML>
+city (prefix the city name with character '?'). These options have the effect
+of making the search even broader. 
+
+<P>More information is available in the README file distributed with RoadMap.
+</BODY>
+</HTML>
