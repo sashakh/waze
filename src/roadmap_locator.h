@@ -27,9 +27,9 @@
 #include "roadmap_types.h"
 
 #define ROADMAP_US_OK      0
-#define ROADMAP_US_NOSTATE 1
-#define ROADMAP_US_NOCITY  2
-#define ROADMAP_US_NOMAP   3
+#define ROADMAP_US_NOSTATE -1
+#define ROADMAP_US_NOCITY  -2
+#define ROADMAP_US_NOMAP   -3
 
 int roadmap_locator_by_position
         (const RoadMapPosition *position, int **fips);
