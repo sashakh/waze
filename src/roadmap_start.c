@@ -741,7 +741,7 @@ void roadmap_start (int argc, char **argv) {
       roadmap_start_create_trip ();
    }
 
-   roadmap_main_set_periodic (1000, roadmap_start_periodic);
+   roadmap_main_set_periodic (200, roadmap_start_periodic);
 }
 
 
