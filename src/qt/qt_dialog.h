@@ -66,6 +66,7 @@ public:
 		ChoiceEntry,
 		ListEntry,
 		ButtonEntry,
+		LabelEntry,
 	};
 
 	Entry(RMapDialog* dialog, int type, QString name);
@@ -99,6 +100,7 @@ public:
 	virtual ~RMapDialog();
 
 	void addTextEntry(const char* frame, const char* name);
+	void addLabelEntry(const char* frame, const char* name);
 	void addColorEntry(const char* frame, const char* name);
 	void addChoiceEntry(const char* frame, const char* name, int count,
 		char** labels, void** values, RoadMapDialogCallback callback);

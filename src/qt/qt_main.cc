@@ -124,16 +124,22 @@ void RMapMainWindow::addTool(const char* label, const char* tip,
 	// removed.
 
 	if (toolBar == 0) {
-		toolBar = new QToolBar(this);
+		toolBar = new QToolBar("toolbar", this, QMainWindow::Top);
 		toolBar->setFocusPolicy(QWidget::NoFocus);
-		toolBar->setHorizontalStretchable(TRUE);
+      // For some reason, removing that line makes RoadMap to not
+      // crash on (my) Linux/x86. Seems to be some random behavior
+      // of Qt, which changes from one build to the other for no
+      // clear reason.. I hate Qt!
+		// toolBar->setHorizontalStretchable(TRUE);
 	}
 
-	QPushButton* b = new QPushButton(label, toolBar);
-	b->setFocusPolicy(QWidget::NoFocus);
-	RMapCallback* cb = new RMapCallback(callback);
+   if (label != NULL) {
+      QPushButton* b = new QPushButton(label, toolBar);
+      b->setFocusPolicy(QWidget::NoFocus);
+      RMapCallback* cb = new RMapCallback(callback);
 
-	connect(b, SIGNAL(clicked()), cb, SLOT(fire()));
+      connect(b, SIGNAL(clicked()), cb, SLOT(fire()));
+   }
 #endif
 }	
 
@@ -144,11 +150,7 @@ void RMapMainWindow::addToolSpace(void) {
 	// on the Sharp Zaurus. This should be fixed and the ifndef
 	// removed.
 
-	if (toolBar == 0) {
-		toolBar = new QToolBar(this);
-		toolBar->setFocusPolicy(QWidget::NoFocus);
-		toolBar->setHorizontalStretchable(TRUE);
-	}
+   addTool (NULL, NULL, NULL);
 
 	toolBar->addSeparator();
 #endif

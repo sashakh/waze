@@ -73,6 +73,13 @@ void RMapDialog::addTextEntry(const char* frameName, const char* name) {
 	frame->append(entry);
 }
 
+void RMapDialog::addLabelEntry(const char* frameName, const char* name) {
+	QList<Entry>* frame = getFrame(frameName);
+
+	Entry* entry = new Entry(this, Entry::LabelEntry, name);
+	frame->append(entry);
+}
+
 void RMapDialog::addColorEntry(const char* frameName, const char* name) {
 	addTextEntry(frameName, name);
 }
@@ -186,15 +193,20 @@ void RMapDialog::setEntryValue(const char* frame, const char* name, const void* 
 }
 
 void RMapDialog::initTab(QWidget* tab, QList<Entry>* entries) {
-	QGridLayout* grid = new QGridLayout(tab, entries->count(), 2);
+	QGridLayout* grid = new QGridLayout(tab, entries->count(), 2, 2, 5);
 	int i = 0;
 
         for(Entry* entry = entries->first(); entry != 0; entry = entries->next(), i++) {
-		QLabel* l = new QLabel(entry->getName(), tab, entry->getName());
 		QWidget* w = entry->create(tab);
-
-		grid->addWidget(l, i, 0);
-		grid->addWidget(w, i, 1);
+		QLabel* l;
+      
+      if (entry->getName()[0] == '.') {
+         grid->addMultiCellWidget(w, i, i, 0, 1);
+      } else {
+         l = new QLabel(entry->getName(), tab, entry->getName());
+         grid->addWidget(l, i, 0);
+         grid->addWidget(w, i, 1);
+      }
 	}
 }
 
@@ -276,6 +288,10 @@ QWidget* Entry::create(QWidget* parent) {
 			connect(widget, SIGNAL(clicked()), this, SLOT(run()));
 			break;
 
+		case LabelEntry:
+			widget = new QLabel(parent, name);
+         ((QLabel *)widget)->setAlignment (AlignRight|AlignVCenter|ExpandTabs);
+			break;
 	}
 
 	return widget;
@@ -330,6 +346,9 @@ void Entry::setValue(const void* val) {
 			items[((QListBox*) widget)->currentItem()]->value = (char *)val;
 			break;
 
+		case LabelEntry:
+			((QLabel*) widget)->setText((char *)val);
+			break;
 	}
 }
 
@@ -342,7 +361,10 @@ void Entry::setValues(QVector<Item>& eitems,
 
 	QListBox* lb = (QListBox*) widget;
 
+   if (lb->count() > 0) lb->clear();
+
 	items.resize(eitems.count());
+
 	for(uint i = 0; i < eitems.count(); i++) {
 		items.insert(i, eitems[i]);
 		lb->insertItem(eitems[i]->label);

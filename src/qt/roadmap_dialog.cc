@@ -67,8 +67,7 @@ void roadmap_dialog_new_entry (const char *frame, const char *name) {
 }
 
 void roadmap_dialog_new_label (const char *frame, const char *name) {
-	// FIXME: made an entry as a temporary patch.
-	currentDialog->addTextEntry(frame, name);
+	currentDialog->addLabelEntry(frame, name);
 }
 
 void roadmap_dialog_new_color (const char *frame, const char *name) {
