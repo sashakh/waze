@@ -71,6 +71,21 @@ typedef union {
       short strength[4];
    } gpgsv;
 
+   /* The following structures match Garmin extensions: */
+
+   struct {
+      char  datum[256];
+   } pgrmm;
+
+   struct {
+      int   horizontal;
+      char  horizontal_unit[4];
+      int   vertical;
+      char  vertical_unit[4];
+      int   three_dimensions;
+      char  three_dimensions_unit[4];
+   } pgrme;
+
 } RoadMapNmeaFields;
 
 typedef void (*RoadMapNmeaFilter)   (RoadMapNmeaFields *fields);

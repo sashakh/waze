@@ -264,6 +264,54 @@ static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
 }
 
 
+static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
+
+    if (argc <= 1) {
+        return 0;
+    }
+
+    strncpy (RoadMapNmeaReceived.pgrmm.datum,
+             argv[1], sizeof(RoadMapNmeaReceived.pgrmm.datum));
+
+    return 1;
+}
+
+
+static char *roadmap_nmea_pgrme_unit (const char *original) {
+
+    if (strcasecmp (original, "M") == 0) {
+        return "cm";
+    }
+
+    roadmap_log (ROADMAP_ERROR, "unknown distance unit '%s'", original);
+    return "??";
+}
+
+static int roadmap_nmea_pgrme (int argc, char *argv[]) {
+
+    if (argc <= 6) {
+       return 0;
+    }
+
+    RoadMapNmeaReceived.pgrme.horizontal =
+        roadmap_nmea_decode_numeric (argv[1], 100);
+    strcpy (RoadMapNmeaReceived.pgrme.horizontal_unit,
+            roadmap_nmea_pgrme_unit (argv[2]));
+
+    RoadMapNmeaReceived.pgrme.vertical =
+        roadmap_nmea_decode_numeric (argv[3], 100);
+    strcpy (RoadMapNmeaReceived.pgrme.vertical_unit,
+            roadmap_nmea_pgrme_unit (argv[4]));
+
+    RoadMapNmeaReceived.pgrme.three_dimensions =
+        roadmap_nmea_decode_numeric (argv[5], 100);
+    strcpy (RoadMapNmeaReceived.pgrme.three_dimensions_unit,
+            roadmap_nmea_pgrme_unit (argv[6]));
+
+    return 1;
+}
+
+
 /* Empty implementations: save from testing NULL. */
 
 static int roadmap_nmea_null_decoder (int argc, char *argv[]) {
@@ -282,7 +330,7 @@ static void roadmap_nmea_null_listener (void *context,
 static struct {
 
    char               *name;
-   RoadMapNmeaDecoder  active;
+   RoadMapNmeaDecoder  active_decoder;
    RoadMapNmeaDecoder  decoder;
    RoadMapNmeaFilter   filter;
    RoadMapNmeaListener listener;
@@ -293,6 +341,11 @@ static struct {
    ROADMAP_NMEA_PHRASE("GPGGA", roadmap_nmea_gpgga),
    ROADMAP_NMEA_PHRASE("GPGSA", roadmap_nmea_gpgsa),
    ROADMAP_NMEA_PHRASE("GPGSV", roadmap_nmea_gpgsv),
+
+   /* Garmin extensions: */
+   ROADMAP_NMEA_PHRASE("PGRME", roadmap_nmea_pgrme),
+   ROADMAP_NMEA_PHRASE("PGRMM", roadmap_nmea_pgrmm),
+
    { "", NULL, NULL, NULL, NULL}
 };
 
@@ -335,7 +388,7 @@ RoadMapNmeaListener roadmap_nmea_subscribe (char *name,
           /* Since someone want to listen to this sentence, it is time
            * to activate the decoder.
            */
-          RoadMapNmeaPhrase[i].active = RoadMapNmeaPhrase[i].decoder;
+          RoadMapNmeaPhrase[i].active_decoder = RoadMapNmeaPhrase[i].decoder;
           return previous;
        }
    }
@@ -397,7 +450,7 @@ int roadmap_nmea_decode (void *context, char *sentence) {
 
        if (strcmp (RoadMapNmeaPhrase[i].name, field[0]) == 0) {
 
-          if ((*RoadMapNmeaPhrase[i].active) (count, field)) {
+          if ((*RoadMapNmeaPhrase[i].active_decoder) (count, field)) {
 
              (*RoadMapNmeaPhrase[i].filter)   (&RoadMapNmeaReceived);
              (*RoadMapNmeaPhrase[i].listener) (context, &RoadMapNmeaReceived);
