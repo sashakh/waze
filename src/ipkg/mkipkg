@@ -33,7 +33,6 @@ cp $SRCDIR/src/schema      $IPKGDIR/roadmap/usr/share/roadmap/schema
 cp $SRCDIR/src/sprites     $IPKGDIR/roadmap/usr/share/roadmap/sprites
 cp $SRCDIR/web/manual.html $IPKGDIR/roadmap/usr/share/roadmap/manual.html
 cp $SRCDIR/web/apt_toc.gif $IPKGDIR/roadmap/usr/share/roadmap/apt_toc.gif
-cp roadmap/README      $IPKGDIR/roadmap/usr/share/roadmap/README
 
 sed -e 's/Map.Path:.*$/Map.Path: \&\/maps,\/usr\/share\/roadmap,\/mnt\/hda\/share\/roadmap\/,\/mnt\/card\/share\/roadmap/' < $SRCDIR/src/preferences > $IPKGDIR/roadmap/usr/share/roadmap/preferences
 
