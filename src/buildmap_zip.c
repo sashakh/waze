@@ -70,7 +70,7 @@ static int ThisMapCounty = 0;
 
 static int ZipCodeCount = 0;
 static int ZipCodeAddCount = 0;
-static struct zip_code_record ZipCode[BUILDMAP_MAX_ZIP] = {{0}};
+static struct zip_code_record ZipCode[BUILDMAP_MAX_ZIP];
 
 
 

@@ -278,20 +278,14 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 
 void roadmap_address_location_by_city (void) {
 
-   static RoadMapAddressDialog context = {
-       "Location",
-       0
-   };
+   static RoadMapAddressDialog context = {"Location", 0, NULL, NULL};
 
    roadmap_address_dialog (&context);
 }
 
 void roadmap_address_location_by_zip (void) {
 
-   static RoadMapAddressDialog context = {
-       "Location by ZIP",
-       1
-   };
+   static RoadMapAddressDialog context = {"Location by ZIP", 1, NULL, NULL};
 
    roadmap_address_dialog (&context);
 }

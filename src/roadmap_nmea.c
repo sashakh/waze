@@ -77,7 +77,7 @@ static int dec2bin (char c) {
 static time_t roadmap_nmea_decode_time (const char *hhmmss,
                                         const char *ddmmyy) {
 
-   static struct tm tm = {0};
+   static struct tm tm;
 
 
    if (sscanf (hhmmss, "%02d%02d%02d",

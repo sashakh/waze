@@ -53,6 +53,7 @@ typedef struct {
     
 } RoadMapStreetProperties;
 
+#define ROADMAP_STREET_NOPROPERTY {{0, 0}, 0, 0}
 
 typedef struct {
 

@@ -115,7 +115,7 @@ typedef struct {
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
-     w, t, b, f}
+     w, t, b, f, ROADMAP_STREET_NOPROPERTY}
 
 
 RoadMapSign RoadMapStreetSign[] = {
@@ -198,6 +198,11 @@ static void roadmap_display_string
     
     if (lines > 1) {
         
+        /* There is more than one line of text to display:
+         * find where to cut the text. We choose to cut at
+         * a space, either before of after the string midpoint,
+         * whichever end with the shortest chunks.
+         */
         char *text_end = text_line + strlen(text_line);
         char *p1 = text_line + (strlen(text_line) / 2);
         char *p2 = p1;
@@ -282,6 +287,9 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     height = roadmap_canvas_height();
     screen_width = roadmap_canvas_width();
     
+    /* Check if the text fits into one line, or if we need to use
+     * more than one.
+     */
     if (width + 10 < screen_width) {
         sign_width = width;
         lines = 1;
@@ -485,7 +493,6 @@ int roadmap_display_activate
 
         if (street != sign->properties.street) {
            street_has_changed = 1;
-           street = sign->properties.street;
         }
     }
 
