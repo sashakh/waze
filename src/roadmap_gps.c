@@ -37,7 +37,7 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
-// #include "roadmap_math.h"
+#include "roadmap_math.h"
 #include "roadmap_config.h"
 
 #include "roadmap_net.h"
