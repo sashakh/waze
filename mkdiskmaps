@@ -1,7 +1,8 @@
 #!/bin/sh
 #
 # make CD-ROM disks of tar files from the RoadMap US files, one tar file
-# per state.
+# per state. One CD is for the west side of the US, the other one is for
+# the east side.
 #
 MAPDIR=/usr/local/share/roadmap
 TARDIR=/cdspace/roadmap
@@ -16,68 +17,68 @@ function tar1state {
 }
 
 rm -rf $TARDIR
-mkdir -p $TARDIR/Disk1
-mkdir -p $TARDIR/Disk2
+mkdir -p $TARDIR/DiskE
+mkdir -p $TARDIR/DiskW
 
 cd $MAPDIR
 
-tar1state AL 01 1
-tar1state AK 02 2
-tar1state AZ 04 1
-tar1state AR 05 2
-tar1state CA 06 1
-tar1state CO 08 2
-tar1state CT 09 1
-tar1state DE 10 2
-tar1state DC 11 1
-tar1state FL 12 2
-tar1state GA 13 1
-tar1state HI 15 2
-tar1state ID 16 1
-tar1state IL 17 2
-tar1state IN 18 1
-tar1state IA 19 2
-tar1state KS 20 1
-tar1state KY 21 2
-tar1state LA 22 1
-tar1state ME 23 2
-tar1state MD 24 1
-tar1state MA 25 2
-tar1state MI 26 1
-tar1state MN 27 2
-tar1state MS 28 1
-tar1state MO 29 2
-tar1state MT 30 1
-tar1state NE 31 2
-tar1state NV 32 1
-tar1state NH 33 1
-tar1state NJ 34 2
-tar1state NM 35 1
-tar1state NY 36 2
-tar1state NC 37 1
-tar1state ND 38 2
-tar1state OH 39 1
-tar1state OK 40 2
-tar1state OR 41 1
-tar1state PA 42 2
-tar1state RI 44 1
-tar1state SC 45 2
-tar1state SD 46 1
-tar1state TN 47 2
-tar1state TX 48 1
-tar1state UT 49 2
-tar1state VT 50 1
-tar1state VA 51 2
-tar1state WA 53 1
-tar1state WV 54 2
-tar1state WI 55 1
-tar1state WY 56 2
-tar1state AS 60 1
-tar1state GU 66 2
-tar1state MP 69 1
-tar1state PR 72 2
-tar1state VI 78 1
+cp usdir.rdm $TARDIR/DiskE
+cp usdir.rdm $TARDIR/DiskW
 
-cp usdir.rdm $TARDIR/Disk1
-cp usdir.rdm $TARDIR/Disk2
+tar1state AL 01 E
+tar1state AK 02 W
+tar1state AZ 04 W
+tar1state AR 05 E
+tar1state CA 06 W
+tar1state CO 08 W
+tar1state CT 09 E
+tar1state DE 10 E
+tar1state DC 11 E
+tar1state FL 12 E
+tar1state GA 13 E
+tar1state HI 15 W
+tar1state ID 16 W
+tar1state IL 17 E
+tar1state IN 18 E
+tar1state IA 19 W
+tar1state KS 20 W
+tar1state KY 21 E
+tar1state LA 22 E
+tar1state ME 23 E
+tar1state MD 24 E
+tar1state MA 25 E
+tar1state MI 26 E
+tar1state MN 27 E
+tar1state MS 28 E
+tar1state MO 29 E
+tar1state MT 30 E
+tar1state NE 31 W
+tar1state NV 32 W
+tar1state NH 33 E
+tar1state NJ 34 E
+tar1state NM 35 W
+tar1state NY 36 E
+tar1state NC 37 E
+tar1state ND 38 W
+tar1state OH 39 E
+tar1state OK 40 W
+tar1state OR 41 W
+tar1state PA 42 E
+tar1state RI 44 E
+tar1state SC 45 E
+tar1state SD 46 W
+tar1state TN 47 E
+tar1state TX 48 W
+tar1state UT 49 W
+tar1state VT 50 E
+tar1state VA 51 E
+tar1state WA 53 W
+tar1state WV 54 E
+tar1state WI 55 E
+tar1state WY 56 W
+tar1state AS 60 W
+tar1state GU 66 W
+tar1state MP 69 W
+tar1state PR 72 E
+tar1state VI 78 E
 
