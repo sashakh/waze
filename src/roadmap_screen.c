@@ -453,6 +453,8 @@ static int roadmap_screen_draw_square
    int drawn = 0;
 
 
+   roadmap_log_push ("roadmap_screen_draw_square");
+
    /* Draw each line that belongs to this square. */
 
    if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
@@ -576,6 +578,7 @@ static int roadmap_screen_draw_square
       free (on_canvas);
    }
 
+   roadmap_log_pop ();
    return drawn;
 }
 
@@ -612,10 +615,13 @@ static int roadmap_screen_repaint_square (int square) {
    }
    SquareOnScreen[square] = 1;
 
+   roadmap_log_push ("roadmap_screen_repaint_square");
+
    roadmap_square_edges (square, &west, &east, &north, &south);
 
    switch (roadmap_math_is_visible (west, east, north, south)) {
    case 0:
+      roadmap_log_pop ();
       return 0;
    case 1:
       fully_visible = 1;
@@ -645,6 +651,7 @@ static int roadmap_screen_repaint_square (int square) {
         }
    }
 
+   roadmap_log_pop ();
    return drawn;
 }
 
@@ -659,6 +666,8 @@ static void roadmap_screen_repaint (void) {
     int count;
     int in_view[4096];
     
+
+    roadmap_log_push ("roadmap_screen_repaint");
 
     roadmap_math_set_center (&RoadMapScreenCenter);
     
@@ -710,6 +719,8 @@ static void roadmap_screen_repaint (void) {
     roadmap_display_signs ();
 
     roadmap_canvas_refresh ();
+
+    roadmap_log_pop ();
 }
 
 
@@ -751,7 +762,9 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
-    
+
+    roadmap_log_push ("roadmap_screen_refresh");
+
     if (roadmap_trip_is_focus_changed()) {
         
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
@@ -773,6 +786,8 @@ void roadmap_screen_refresh (void) {
     if (refresh) {
         roadmap_screen_repaint ();
     }
+
+    roadmap_log_pop ();
 }
 
 

@@ -251,6 +251,8 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     int lines;
 
 
+    roadmap_log_push ("roadmap_display_sign");
+
     roadmap_canvas_get_text_extents
         (sign->content, &width, &ascent, &descent);
 
@@ -276,6 +278,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         
         if (sign->was_visible && (! visible)) {
             sign->deadline = 0;
+            roadmap_log_pop ();
             return;
         }
         sign->was_visible = visible;
@@ -366,6 +369,8 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     roadmap_canvas_select_pen (sign->foreground);
     roadmap_display_string
         (sign->content, lines, text_height, &text_position);
+
+    roadmap_log_pop ();
 }
 
 
@@ -379,8 +384,13 @@ int roadmap_display_activate
     RoadMapSign *sign;
 
 
+    roadmap_log_push ("roadmap_display_activate");
+
     sign = roadmap_display_search_sign (title);
-    if (sign == NULL) return -1;
+    if (sign == NULL) {
+        roadmap_log_pop ();
+        return -1;
+    }
 
     street = sign->properties.street;
     
@@ -412,6 +422,7 @@ int roadmap_display_activate
     format = roadmap_config_get (&sign->format_descriptor);
     
     if (! roadmap_message_format (text, sizeof(text), format)) {
+        roadmap_log_pop ();
         return sign->properties.street;
     }
     message_has_changed =
@@ -447,7 +458,8 @@ int roadmap_display_activate
         sign->has_position = 1;
         sign->position = *position;
     }
-    
+ 
+    roadmap_log_pop ();
     return sign->properties.street;
 }
 

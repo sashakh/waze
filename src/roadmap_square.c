@@ -261,7 +261,8 @@ void  roadmap_square_min (int square, RoadMapPosition *position) {
    }
 
    if ((square < 0) || (square >= RoadMapSquareActive->SquareGridCount)) {
-      roadmap_log (ROADMAP_FATAL, "invalid square index %d", square);
+      roadmap_log (ROADMAP_ERROR, "invalid square index %d", square);
+      return;
    }
 
    square = RoadMapSquareActive->SquareGrid[square].index;
@@ -300,7 +301,8 @@ void  roadmap_square_edges
    }
 
    if ((square < 0) || (square >= RoadMapSquareActive->SquareGridCount)) {
-      roadmap_log (ROADMAP_FATAL, "invalid square index %d", square);
+      roadmap_log (ROADMAP_ERROR, "invalid square index %d", square);
+      return;
    }
    square = RoadMapSquareActive->SquareGrid[square].index;
 
@@ -318,7 +320,8 @@ void  roadmap_square_edges
 int roadmap_square_index (int square) {
 
    if (square < 0 || square >= RoadMapSquareActive->SquareGridCount) {
-      roadmap_log (ROADMAP_FATAL, "invalid square index %d", square);
+      roadmap_log (ROADMAP_ERROR, "invalid square index %d", square);
+      return -1;
    }
 
    return RoadMapSquareActive->SquareGrid[square].index;

@@ -38,23 +38,52 @@
 #include <stdarg.h>
 
 #include "roadmap.h"
+#include "roadmap_file.h"
 
+
+#define ROADMAP_LOG_STACK_SIZE 256
+
+static const char *RoadMapLogStack[ROADMAP_LOG_STACK_SIZE];
+static int         RoadMapLogStackCursor = 0;
 
 static struct {
-   int level;
-   char *text;
+   int   level;
+   int   show_stack;
+   char *prefix;
 } RoadMapMessageHead [] = {
-   {ROADMAP_MESSAGE_DEBUG,   "++"},
-   {ROADMAP_MESSAGE_INFO,    "--"},
-   {ROADMAP_MESSAGE_WARNING, "=="},
-   {ROADMAP_MESSAGE_ERROR,   "**"},
-   {ROADMAP_MESSAGE_FATAL,   "##"},
-   {0,                       "??"}
+   {ROADMAP_MESSAGE_DEBUG,   0, "++"},
+   {ROADMAP_MESSAGE_INFO,    0, "--"},
+   {ROADMAP_MESSAGE_WARNING, 0, "=="},
+   {ROADMAP_MESSAGE_ERROR,   1, "**"},
+   {ROADMAP_MESSAGE_FATAL,   1, "##"},
+   {0,                       1, "??"}
 };
+
+
+void roadmap_log_push (const char *description) {
+
+   if (RoadMapLogStackCursor < ROADMAP_LOG_STACK_SIZE) {
+      RoadMapLogStack[RoadMapLogStackCursor++] = description;
+   }
+}
+
+void roadmap_log_pop (void) {
+
+   if (RoadMapLogStackCursor > 0) {
+      RoadMapLogStackCursor -= 1;
+   }
+}
+
+void roadmap_log_reset (void) {
+
+   RoadMapLogStackCursor = 0;
+}
+
 
 void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    int i;
+   FILE *file;
    va_list ap;
 
    if (level < roadmap_verbosity()) return;
@@ -63,14 +92,45 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
       if (RoadMapMessageHead[i].level == level) break;
    }
 
-   fprintf (stderr, "%s %s, line %d: ",
-                    RoadMapMessageHead[i].text, source, line);
+   if (level == ROADMAP_MESSAGE_FATAL) {
+
+      char *full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
+      file = fopen (full_name, "w");
+
+      if (file == NULL) {
+         file = stderr;
+      } else {
+         fprintf (stderr, "%s %s, line %d: see postmortem info in %s\n",
+                  RoadMapMessageHead[i].prefix, source, line, full_name);
+      }
+   } else {
+      file = stderr;
+   }
+
+   fprintf (file, "%s %s, line %d: ",
+                  RoadMapMessageHead[i].prefix, source, line);
 
    va_start(ap, format);
-   vfprintf(stderr, format, ap);
+   vfprintf(file, format, ap);
    va_end(ap);
 
-   fprintf (stderr, "\n");
+   fprintf (file, "\n");
+
+   if (RoadMapMessageHead[i].show_stack && RoadMapLogStackCursor > 0) {
+
+      int indent = 8;
+
+      fprintf (file, "   Call stack:\n");
+
+      for (i = RoadMapLogStackCursor - 1; i >= 0; --i) {
+          fprintf (file, "%*.*s %s\n", indent, indent, "", RoadMapLogStack[i]);
+          indent += 3;
+      }
+   }
+
+   if (file != NULL && file != stderr) {
+      fclose (file);
+   }
 
    if (level == ROADMAP_MESSAGE_FATAL) {
       exit(1);

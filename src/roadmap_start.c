@@ -342,8 +342,11 @@ static void roadmap_gps_update
                 (RoadMapPosition *position, int speed, int direction) {
 
     roadmap_trip_set_mobile ("GPS", position, speed, direction);
+    roadmap_log_reset ();
     roadmap_navigate_locate (position);
+    roadmap_log_reset ();
     roadmap_screen_refresh();
+    roadmap_log_reset ();
 }
 
 

@@ -38,6 +38,10 @@
 #define ROADMAP_ERROR   ROADMAP_MESSAGE_ERROR,__FILE__,__LINE__
 #define ROADMAP_FATAL   ROADMAP_MESSAGE_FATAL,__FILE__,__LINE__
 
+void roadmap_log_push  (const char *description);
+void roadmap_log_pop   (void);
+void roadmap_log_reset (void);
+
 void roadmap_log (int level, char *source, int line, char *format, ...);
 
 #define roadmap_check_allocated(p) \

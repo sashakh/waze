@@ -150,6 +150,8 @@ int roadmap_navigate_retrieve_line
     RoadMapPosition focus_position;
 
 
+    roadmap_log_push ("roadmap_navigate_retrieve_line");
+
     roadmap_math_coordinate (position, &focus_point);
     roadmap_math_rotate_coordinates (1, &focus_point);
 
@@ -163,7 +165,7 @@ int roadmap_navigate_retrieve_line
     focus.south = focus_position.latitude;
 
     accuracy *= 2;
-    
+ 
     focus_point.x -= accuracy;
     roadmap_navigate_adjust_focus (&focus, &focus_point);
 
@@ -185,10 +187,13 @@ int roadmap_navigate_retrieve_line
 
         roadmap_math_release_focus ();
 
-        return line;
+    } else {
+
+        line = -1;
     }
-    
-    return -1;
+
+    roadmap_log_pop ();
+    return line;
 }
 
 
@@ -278,6 +283,8 @@ static int roadmap_navigate_next_intersection
     RoadMapStreetProperties properties;
 
 
+    roadmap_log_push ("roadmap_navigate_next_intersection");
+
     square = roadmap_square_search (crossing);
 
     if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
@@ -327,7 +334,10 @@ static int roadmap_navigate_next_intersection
         }
     }
 
-    if (line_count <= 0) return 0;
+    if (line_count <= 0) {
+        roadmap_log_pop ();
+        return 0;
+    }
 
     while (line_count > 0) {
         
@@ -348,7 +358,10 @@ static int roadmap_navigate_next_intersection
         }
     }
 
-    if (count <= 0) return 0;
+    if (count <= 0) {
+        roadmap_log_pop ();
+        return 0;
+    }
     
     for (i = 0; i < count; ++i) {
         roadmap_line_to   (found[i].line, &RoadMapCrossingStreet.to);
@@ -359,8 +372,10 @@ static int roadmap_navigate_next_intersection
         }
     }
     if (i >= count) {
+        /* We found some, but they are not visible yet. */
         RoadMapConfirmedStreet.crossing = NULL;
-        return 1; /* We found some, but they are not visible yet. */
+        roadmap_log_pop ();
+        return 1;
     }
 
     if (found[i].street != RoadMapCrossingStreet.street) {
@@ -375,6 +390,7 @@ static int roadmap_navigate_next_intersection
         RoadMapCrossingStreet.detected += 1;
     }
 
+    roadmap_log_pop ();
     return 1;
 }
 
@@ -391,7 +407,9 @@ static int roadmap_navigate_update
     if (roadmap_locator_activate (tracked->fips) != ROADMAP_US_OK) {
         goto invalidate;
     }
-    
+
+    roadmap_log_push ("roadmap_navigate_update");
+
     /* Confirm the current street if we are still at a "short"
      * distance from it. This is to avoid switching streets
      * randomly at the intersections.
@@ -406,6 +424,7 @@ static int roadmap_navigate_update
 
     /* This line has been confirmed again. */
     
+    roadmap_log_pop ();
     return 1;
     
 invalidate:
@@ -420,10 +439,13 @@ invalidate:
     }
 #endif
     tracked->line = -1;
+    tracked->fips = -1;
     tracked->detected = 0;
     
+    roadmap_log_pop ();
     return 0;
 }
+
 
 void roadmap_navigate_locate (const RoadMapPosition *position) {
 
@@ -433,7 +455,9 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
     if ((position->latitude == RoadMapPreviousPosition.latitude) &&
         (position->longitude == RoadMapPreviousPosition.longitude)) {
-        return; /* The position has not changed, no reason to do any navigation. */
+
+        /* The position has not changed, no reason to do any navigation. */
+        return;
     }
     RoadMapPreviousPosition = *position;
 
@@ -441,6 +465,8 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
     printf ("Locating position (long=%d, lat=%d)\n",
             position->longitude, position->latitude);
 #endif
+
+    roadmap_log_push ("roadmap_navigate_locate");
 
     RoadMapAccuracyStreet =
         roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
@@ -457,7 +483,10 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
         crossing = roadmap_navigate_next_crossing (position);
 
-        if (crossing == NULL) return;
+        if (crossing == NULL) {
+            roadmap_log_pop ();
+            return;
+        }
 
         for (cfcc = ROADMAP_ROAD_FIRST; cfcc <= ROADMAP_ROAD_LAST; ++cfcc) {
             
@@ -466,6 +495,7 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
             }
         }
         
+        roadmap_log_pop ();
         return; /* No need to look for a new line. */
     }
 
@@ -481,6 +511,7 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
         if ((line < 0) || (distance > RoadMapAccuracyStreet)){
 
+            roadmap_log_pop ();
             return; /* There is no candidate line here. */
         }
     
@@ -517,6 +548,12 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
             
         if (RoadMapCandidateStreet.detected >= confirm) {
 
+            if (roadmap_locator_activate
+                   (RoadMapCandidateStreet.fips) != ROADMAP_US_OK) {
+                roadmap_log_pop ();
+                return;
+            }
+
             RoadMapConfirmedStreet = RoadMapCandidateStreet;
             RoadMapConfirmedStreet.distance_to = 0;
             RoadMapConfirmedStreet.distance_from = 0;
@@ -545,10 +582,13 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
             RoadMapCandidateStreet.line = -1;
             RoadMapCandidateStreet.detected = 0;
+            roadmap_log_pop ();
             return;
         }
     }
     RoadMapCandidateStreet.detected += 1;
+
+    roadmap_log_pop ();
 }
 
 

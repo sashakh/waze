@@ -310,6 +310,10 @@ int roadmap_locator_by_city (char *city_name, char *state_symbol) {
 
 int roadmap_locator_activate (int fips) {
 
+   if (RoadMapActiveCounty == fips) {
+       return ROADMAP_US_OK;
+   }
+
    roadmap_locator_initialize();
 
    return roadmap_locator_open (fips);
