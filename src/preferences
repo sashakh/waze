@@ -6,7 +6,8 @@ Map.Cache: 8
 Map.Background: LightYellow
 General.Default Zoom: 20
 General.Keyboard: no
-General.Toolbar: no
+General.Icons: yes
+General.Toolbar: yes
 General.Unit: imperial
 GPS.Background: LightYellow
 GPS.Color: red
