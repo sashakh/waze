@@ -33,28 +33,18 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_gui.h"
-#include "roadmap_street.h"
+// #include "roadmap_street.h"
 #include "roadmap_history.h"
-#include "roadmap_locator.h"
+// #include "roadmap_locator.h"
 #include "roadmap_trip.h"
 #include "roadmap_screen.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 #include "roadmap_display.h"
 #include "roadmap_preferences.h"
+#include "roadmap_geocode.h"
 
 #include "roadmap_address.h"
-
-
-#define ROADMAP_MAX_STREETS  256
-
-
-typedef struct {
-
-    int line;
-    RoadMapPosition position;
-
-} RoadMapAddressSelection;
 
 
 typedef struct {
@@ -63,30 +53,32 @@ typedef struct {
     
     int   use_zip;
 
-    RoadMapAddressSelection *selections;
+    RoadMapGeocode *selections;
 
     void *history;
 
 } RoadMapAddressDialog;
 
 
-static void roadmap_address_done (RoadMapAddressSelection *selected) {
+static void roadmap_address_done (RoadMapGeocode *selected) {
 
     roadmap_display_activate
        ("Selected Street", selected->line, &selected->position);
+
     roadmap_trip_set_point ("Selection", &selected->position);
     roadmap_trip_set_point ("Address", &selected->position);
     roadmap_trip_set_focus ("Address", 0);
+
     roadmap_screen_refresh ();
 }
 
 
 static void roadmap_address_selected (const char *name, void *data) {
 
-   RoadMapAddressSelection *selected;
+   RoadMapGeocode *selected;
 
    selected =
-      (RoadMapAddressSelection *) roadmap_dialog_get_data ("List", ".Streets");
+      (RoadMapGeocode *) roadmap_dialog_get_data ("List", ".Streets");
 
    if (selected != NULL) {
       roadmap_address_done (selected);
@@ -110,20 +102,21 @@ static void roadmap_address_selection_ok (const char *name, void *data) {
 
 static void roadmap_address_selection (void  *data,
                                        int    count,
-                                       char **names,
-                                       RoadMapAddressSelection *selections) {
+                                       RoadMapGeocode *selections) {
 
    int i;
+   char **names = calloc (count, sizeof(char *));
+   void **list  = calloc (count, sizeof(void *));
 
-   void *list[ROADMAP_MAX_STREETS];
 
-   if (count > ROADMAP_MAX_STREETS) {
-       count = ROADMAP_MAX_STREETS;
-   }
+   roadmap_check_allocated(list);
+   roadmap_check_allocated(names);
 
    for (i = count-1; i >= 0; --i) {
+      names[i] = selections[i].name;
       list[i] = selections + i;
    }
+
 
    if (roadmap_dialog_activate ("Street Select", data)) {
 
@@ -136,6 +129,9 @@ static void roadmap_address_selection (void  *data,
 
    roadmap_dialog_show_list
       ("List", ".Streets", count, names, list, roadmap_address_selected);
+
+   free (names);
+   free (list);
 }
 
 
@@ -174,14 +170,10 @@ static void roadmap_address_after (const char *name, void *data) {
 
 static void roadmap_address_ok (const char *name, void *data) {
 
-   int i, j, k;
+   int i;
    int count;
 
-   char *names[ROADMAP_MAX_STREETS];
-   int   street_number[ROADMAP_MAX_STREETS];
-   RoadMapBlocks blocks[ROADMAP_MAX_STREETS];
-
-   RoadMapAddressSelection *selections;
+   RoadMapGeocode *selections;
 
    char *street_number_image;
    char *street_name;
@@ -199,143 +191,18 @@ static void roadmap_address_ok (const char *name, void *data) {
    state         = (char *) roadmap_dialog_get_data ("Address", "State:");
 
    if (context->use_zip) {
-      // TBD: how to select by ZIP ? Need one more table in usdir.
-      // int zip =  atoi(roadmap_dialog_get_data ("Address", "Zip:");
-      // count = roadmap_street_blocks_by_zip (street_name, zip, blocks, 256);
-      return;
+      return; // TBD: how to select by ZIP ? Need one more table in usdir.
    }
 
    city = (char *) roadmap_dialog_get_data ("Address", "City:");
 
-   switch (roadmap_locator_by_city (city, state)) {
-
-   case ROADMAP_US_OK:
-
-      count = roadmap_street_blocks_by_city (street_name, city, blocks, 256);
-      break;
-
-   case ROADMAP_US_NOSTATE:
-
-      roadmap_messagebox ("Warning", "No state with that name could be found");
-      return;
-
-   case ROADMAP_US_NOCITY:
-
-      roadmap_messagebox ("Warning", "No city with that name could be found");
-      return;
-
-   default:
-
-      roadmap_messagebox ("Warning", "No related map could not be found");
-      return;
-   }
-
+   count = roadmap_geocode_address (&selections,
+                                    street_number_image,
+                                    street_name,
+                                    city,
+                                    state);
    if (count <= 0) {
-      switch (count) {
-      case ROADMAP_STREET_NOADDRESS:
-         roadmap_messagebox ("Warning", 
-                             "The street address could not be found");
-         break;
-      case ROADMAP_STREET_NOCITY:
-         roadmap_messagebox ("Warning", 
-                             "No city with that name could be found");
-         break;
-      case ROADMAP_STREET_NOSTREET:
-         roadmap_messagebox ("Warning", 
-                             "No street with that name could be found");
-         break;
-      default:
-         roadmap_messagebox ("Warning", 
-                             "The address could not be found");
-      }
-      return;
-   }
-
-   if (count > ROADMAP_MAX_STREETS) {
-      roadmap_log (ROADMAP_ERROR, "too many blocks");
-      count = ROADMAP_MAX_STREETS;
-   }
-
-   /* If the street number was not provided, retrieve all street blocks to
-    * expand the match list, else decode that street number and update the
-    * match list.
-    */
-   if (street_number_image[0] == 0) {
-
-      int range_count;
-      RoadMapStreetRange ranges[ROADMAP_MAX_STREETS];
-
-      for (i = 0, j = 0; i < count; ++i) {
-         street_number[i] = -1;
-      }
-
-      for (i = 0, j = 0; i < count && street_number[i] < 0; ++i) {
-
-         range_count =
-            roadmap_street_get_ranges (blocks+i, ROADMAP_MAX_STREETS, ranges);
-
-         if (range_count > 0) {
-
-            street_number[i] = (ranges[0].min + ranges[0].max) / 2;
-
-            for (k = 1; k < range_count; ++k) {
-
-               if (count >= ROADMAP_MAX_STREETS) {
-                  roadmap_log (ROADMAP_WARNING,
-                               "too many blocks, cannot expand");
-                  break;
-               }
-               blocks[count] = blocks[i];
-               ranges[count] = ranges[k];
-               street_number[count] =
-                  (ranges[count].min + ranges[count].max) / 2;
-               count += 1;
-            }
-         }
-      }
-
-   } else {
-
-      int number;
-
-      number = roadmap_math_street_address
-                  (street_number_image, strlen(street_number_image));
-
-      for (i = 0, j = 0; i < count; ++i) {
-         street_number[i] = number;
-      }
-   }
-
-   selections = (RoadMapAddressSelection *)
-       calloc (count, sizeof(RoadMapAddressSelection));
-
-   for (i = 0, j = 0; i< count; ++i) {
-
-      int line;
-
-      line = roadmap_street_get_position
-                    (blocks+i, street_number[i], &selections[j].position);
-
-      for (k = 0; k < j; ++k) {
-         if (selections[k].line == line) {
-            line = -1;
-            break;
-         }
-      }
-
-      if (line >= 0) {
-        RoadMapStreetProperties properties;
-          
-        roadmap_street_get_properties (line, &properties);
-        names[j] = strdup (roadmap_street_get_full_name (&properties));
-        selections[j].line = line;
-        j += 1;
-      }
-   }
-
-   if (j <= 0) {
-
-      roadmap_messagebox ("Warning", "No valid street was found");
+      roadmap_messagebox ("Warning", roadmap_geocode_last_error());
       free (selections);
       return;
    }
@@ -349,14 +216,15 @@ static void roadmap_address_ok (const char *name, void *data) {
 
    roadmap_dialog_hide (name);
 
-   if (j > 1) {
+   if (count > 1) {
 
       /* Open a selection dialog to let the user choose the right block. */
 
-      roadmap_address_selection (context, j, names, selections);
+      roadmap_address_selection (context, count, selections);
 
-      for (i = 0; i < j; ++i) {
-         free (names[i]);
+      for (i = 0; i < count; ++i) {
+         free (selections[i].name);
+         selections[i].name = NULL;
       }
 
       context->selections = selections; /* Free these only when done. */
@@ -365,7 +233,7 @@ static void roadmap_address_ok (const char *name, void *data) {
 
       roadmap_address_done (selections);
 
-      free (names[0]);
+      free (selections[0].name);
       free (selections);
    }
 }

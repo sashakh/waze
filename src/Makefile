@@ -35,6 +35,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_shape.c \
           roadmap_polygon.c \
           roadmap_street.c \
+          roadmap_geocode.c \
           roadmap_history.c \
           roadmap_nmea.c \
           roadmap_gps.c
