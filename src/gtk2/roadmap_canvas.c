@@ -221,7 +221,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
       break;
 
    case ROADMAP_CANVAS_CENTER:
-      y = position->y + (text_height / 2);
+      y = position->y + ((text_height - text_ascent - text_descent) / 2);
       x = position->x - (text_width / 2);
       break;
 
