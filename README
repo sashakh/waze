@@ -305,10 +305,16 @@ INSTALLATION
    to keep the TIGER files in compressed form, considering their huge size..
 
 
-   The <<buildmap>> tool takes the TIGER files as input, processes one county
-   at a time, and produces one RoadMap .rdm map file per county. The tool
-   uses the popt library for parsing the command line arguments: the option
-   --help gives more information about the available options.
+   The <<buildmap>> tool takes a county "FIPS" and a TIGER file as input and
+   produces one RoadMap .rdm map file. The tool uses the popt library for
+   parsing the command line arguments: the option --help gives more
+   information about the available options.
+
+   Here is an example:
+
+----
+      buildmap 01001 /tmp/TGR01001.RT1
+----
 
    The <<buildus>> tool creates a catalog of maps that is used by RoadMap
    to combine all states & counties into a giant US map. It looks for:
