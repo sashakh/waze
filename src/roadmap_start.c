@@ -192,6 +192,11 @@ static void roadmap_start_delete_waypoint (void) {
     roadmap_trip_remove_point (NULL);
 }
 
+static void roadmap_start_enable_download (void) {
+
+   roadmap_download_subscribe_when_done (roadmap_screen_redraw);
+}
+
 
 /* The RoadMap menu and toolbar items: ----------------------------------- */
 
@@ -274,6 +279,11 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
    {"Destination",
        "Show the map around the destination point", roadmap_start_show_destination},
+
+   {RoadMapFactorySeparator, NULL, NULL},
+
+   {"Enable Map Download",
+       "Enable the map download mechanism", roadmap_start_enable_download},
 
 
    {"Trip", NULL, NULL},
@@ -534,7 +544,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
 
-   roadmap_download_subscribe_when_done (roadmap_screen_redraw);
    roadmap_screen_set_initial_position ();
 
    roadmap_history_load ();
