@@ -15,6 +15,34 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mailing List</a>
 <HR> <BR>
+<P>Roadmap v1.0rc5 (June 1, 2003): 
+<UL>
+  <LI>Integrated the "find by intersection" feature by Latchesar Ionkov:
+      try "Screen / Show Location..". This is a really neat feature, thanks
+      Latchesar!
+  <LI>RoadMap and RoadGps now periodically attempt to reconnect to gpsd
+      if the connection has failed.
+  <LI>RoadMap now has a "full screen" mode when using GTK2 (not GTK or QT).
+      Too bad my window manager does not seem to cooperate: nothing happens.
+      Or maybe is it a bug in RoadMap? I don't know yet..
+  <LI>Two garmin-specific MNEA sentences have been implemented: one to detect
+      when the GPS receiver's datum is not compatible with RoadMap (must be
+      NAD83 or WGS 84), the second to get the estimated position error (EPE).
+      Note RoadMap should work with no problem with other brands: the EPE
+      will stay at its original worst case value and the datum check will
+      never be performed.
+  <LI>Fixed several errors in the code that search the closest street (used
+      for street selection and street navigation). This should lead to
+      a more stable street identification & navigation.
+  <LI>The navigation module now searches for the next intersection only
+      if the car's speed is greater than the GPS precision worst case.
+      This improves RoadMap's stability when the car has stopped.
+  <LI>RoadMap is in the middle of a redesign of the navigation module,
+      using fuzzy logic and considering the car location, direction vs.
+      the street geometry. This version includes all the changes required
+      for providing the navigation module with the necessary information.
+      The next step is to rewrite the navigation module itself.
+</UL>
 <P>Roadmap v1.0rc4 (May 11, 2003): 
 <UL>
   <LI>Fixed a fatal error in the navigation code when driving not too

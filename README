@@ -18,14 +18,15 @@ INTRODUCTION:
    In its current version, RoadMap can work with either the Gtk+ 1.2,
    Gtk 2.0, QT/X11 or QT/QPE graphic environments. The QT environment
    --especially its QT/QPE version--is still experimental, the Gtk 1.2
-   environment being the most stable.
+   environment is the most stable and the GTK 2.0 one has the most features.
 
    RoadMap is at an early stage of development. At this time there
    are not much features implemented yet. RoadMap can merely display
-   the map around a specified street address or follow a GPS device
-   (using gpsd). The plan for the future is to implement some navigation
-   features similar to those found in commercial street navigation systems,
-   and to port RoadMap to as many environment as possible.
+   the map around a specified street address, identify the current street
+   or follow a GPS device. The plan for the future is to implement some
+   navigation features similar to those found in commercial car navigation
+   systems, and to port RoadMap to as many environment as possible. In the
+   mean time a basic trip support is provided (waypoints and destination).
 
    RoadMap uses a binary file format for representing the maps that is
    compact enough to allow the storage of many maps on a Compact Flash or
@@ -44,6 +45,22 @@ INTRODUCTION:
    If you do need the complete set, please drop an email to the author.
 
 
+DEPENDENCIES:
+
+   RoadMap gets the current location from a GPS receiver, using the NMEA 0183
+   protocol. RoadMap is tested with a Garmin 38. The GPS receiver must be
+   configured with the datum set to either NAD83 or WGS 84.
+
+   RoadMap communicates with the GPS receiver using gpsd (a GPS communication
+   daemon for UNIX). Therefore gpsd is required when using RoadMap. However
+   gpsd is not required when building RoadMap, and it may run on a remote
+   computer accessible through a TCp/IP network.
+
+   RoadMap uses either GTK, GTK2 or QT for its user interface. One of these
+   toolkits must be installed. RoadMap can be built for QT/QPE, but the
+   RoadMap makefile for QT must be modified.
+
+
 INSTALLATION:
 
    Roadmap comes either as a set of sources, or as a set of binary files,
@@ -51,11 +68,11 @@ INSTALLATION:
    distribution formats:
 
       1- a binary tarball with executables for Linux/i686.
-      2- a set of Familiar's .ipk packages for Linux/armv4l
+      2- a set of .ipk packages for Linux/armv4l (Linux/Familiar).
       3- a source tarball.
 
-   The arm and i686 executables can use the same map files. Please note
-   that the map files are dependent on the computer's endianess: map files
+   The arm and i686 executables use the same map files. Please note that
+   the map files are dependent on the computer's endianess: map files
    built on a Mac (PowerPC CPU) would not be compatible with an Intel or
    (small endian) ARM computer.
 
@@ -65,7 +82,6 @@ INSTALLATION:
    are installed under their "standard" names using symbolic links, so
    that only one version can be installed at a time (the reason is to
    share one roadmap.menu file..).
-
 
    A version of RoadMap for the Sharp Zaurus is available at:
    
@@ -105,7 +121,8 @@ INSTALLATION:
       ipkg -d ext install roadmap-gtk_X.X_arm.ipk
       ipkg -d ext install roadmap-sfca_X.X_arm.ipk
 
-   Other maps must be generated from the US Census Bureau's files (see below).
+   Other maps must be generated from the US Census Bureau's files (see below)
+   or downloaded from http://roadmap.saignon.net/maps.html
 
    Many map files are too big to be installed as packages on the iPAQ.
    The more reasonable way of handling the map files is to store them
@@ -148,7 +165,7 @@ INSTALLATION:
       make       -- This replaces steps 3 and 4.
 
       Note for QT users: the RoadMap QT module cannot be built with QT3.
-      This is a problem with the linker: it seems the UNIX make cannot
+      This is a problem with the linker: it seems that UNIX make cannot
       be used with QT3, the QT-specific "qmake" must be used instead..
 
    5- download some maps from the US Census bureau:
@@ -874,6 +891,17 @@ CONFIGURATION:
          Description: the command used to announce the selected street's name
          Format: RoadMap format string
          Default: flite -t '%N'
+
+     Accuracy.GPS:
+
+         Description: GPS's estimated position error (worst case)
+         Format: integer
+         Default: 1000
+         Comment: the unit depends on the selected one (feet or meters),
+                  the default here being for feet. This default accuracy
+                  can be adjusted to the actual GPS estimate if a Garmin
+                  GPS receiver is used.
+                  This is not used yet (reserved for fuzzy logic navigation).
 
      Accuracy.Confirm:
 
