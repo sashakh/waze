@@ -87,6 +87,8 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
 
 /* The menu and toolbar callbacks: --------------------------------------- */
 
+static void roadmap_start_periodic (void);
+
 static void roadmap_start_console (void) {
    roadmap_spawn ("roadgps", "");
 }
@@ -113,6 +115,16 @@ static void roadmap_start_show_gps (void) {
 static void roadmap_start_show_gps_north_up (void) {
     roadmap_trip_set_focus ("GPS", 0);
     roadmap_screen_refresh ();
+}
+
+static void roadmap_start_hold_map (void) {
+   roadmap_start_periodic (); /* To make sure the map is current. */
+   roadmap_trip_copy_focus ("Hold");
+   if (roadmap_trip_get_orientation () != 0) {
+      roadmap_trip_set_focus ("Hold", 1);
+   } else {
+      roadmap_trip_set_focus ("Hold", 0);
+   }
 }
 
 static void roadmap_start_rotate (void) {
@@ -293,6 +305,11 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Rotate Counter-Clockwise", NULL,
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
 
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
+
+   {"Hold Map", NULL,
+       "Hold the map view in its current position", roadmap_start_hold_map},
+
 
    {"Find", NULL, NULL, NULL},
 
@@ -379,6 +396,9 @@ static RoadMapFactory RoadMapStartToolbar[] = {
       "Center the map on the GPS position (north up)",
        roadmap_start_show_gps_north_up},
 
+   {"H", NULL,
+       "Hold the map view in its current position", roadmap_start_hold_map},
+
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
    {"F", NULL,
@@ -433,12 +453,14 @@ static RoadMapFactory RoadMapStartKeyBinding[] = {
    {"l", NULL, NULL, roadmap_start_show_location},
    {"G", NULL, NULL, roadmap_start_show_gps},
    {"g", NULL, NULL, roadmap_start_show_gps},
+   {"H", NULL, NULL, roadmap_start_hold_map},
+   {"h", NULL, NULL, roadmap_start_hold_map},
    {"M", NULL, NULL, roadmap_start_toggle_download_mode},
    {"m", NULL, NULL, roadmap_start_toggle_download_mode},
    {"E", NULL, NULL, roadmap_download_delete},
    {"e", NULL, NULL, roadmap_download_delete},
-   {"H", NULL, NULL, roadmap_start_trip},
-   {"h", NULL, NULL, roadmap_start_trip},
+   {"S", NULL, NULL, roadmap_start_trip},
+   {"s", NULL, NULL, roadmap_start_trip},
    {"P", NULL, NULL, roadmap_trip_stop},
    {"p", NULL, NULL, roadmap_trip_stop},
    {"U", NULL, NULL, roadmap_start_trip_reverse},

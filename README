@@ -363,11 +363,23 @@ USING ROADMAP:
    The toolbar is optional: all the commands are also available from the menu
    bar or from the keyboard or iPAQ buttons.
 
-   When RoadMap starts, the map tracks the current GPS position. It is possible
-   to select another mode: show the current destination point (see the section
-   "Managing Trips" below), show a specific location, track the GPS position
-   with the north shown up, track the GPS position with the direction of
-   movement shown up.
+   When RoadMap starts, the map view reflects the previous session's mode
+   If no session data is found, RoadMap tracks the current GPS position. It
+   is possible to select another mode: show the current destination point
+   (see the section "Managing Trips" below), show a specific location, track
+   the GPS position with the north shown up, track the GPS position with the
+   direction of movement shown up.
+
+   When RoadMap is in GPS tracking mode, the map view will reflect the
+   movement of the car so that the GPS sprite will remains at the predefined
+   position (usually the center, but it is possible to move the position of
+   the GPS sprite using the arrow keys). The map can be held to its current
+   position: the hold command "freezes" the map view to its current location,
+   but updates will continue, so that, for example, one should see the GPS
+   sprite move away from the map's center. The hold mode make it easy to
+   select streets and read street names while on the road. To come back to
+   the original map view, this view must be reselected (for example by using
+   Find / GPS position or Trip / Resume Trip).
 
    Clicking on the map screen displays the name of the closest street (with
    the selected street block's range of address), road or freeway (if any).
@@ -427,9 +439,10 @@ USING ROADMAP:
    'd'           show the destination point.
    'l'           show the location last searched.
    'g'           show (and track) the current GPS position.
+   'h'           Hold the map in its current position.
    'm'           toggle the map download mode on and off.
    'e'           delete maps (i.e. open the map delete dialog).
-   'h'           hit the road (a.k.a. start a trip).
+   's'           Start a trip.
    'p'           pause (a.k.a. stop the current trip).
    'u'           U-turn (a.k.a. restart the current trip in reverse).
    'q'           quit roadmap.

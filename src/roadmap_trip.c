@@ -109,6 +109,7 @@ RoadMapTripPoint RoadMapTripPredefined[] = {
     ROADMAP_TRIP_ITEM("Destination", "Destination", 0, 1, 0),
     ROADMAP_TRIP_ITEM("Address",     NULL,          0, 0, 1),
     ROADMAP_TRIP_ITEM("Selection",   NULL,          0, 0, 1),
+    ROADMAP_TRIP_ITEM("Hold",        NULL,          1, 0, 0),
     {{NULL, NULL}, NULL, NULL}
 };
 
@@ -559,6 +560,31 @@ void roadmap_trip_set_mobile (const char *name,
 }
 
 
+void  roadmap_trip_copy_focus (const char *name) {
+
+   RoadMapTripPoint *to = roadmap_trip_search (name);
+
+   if (to != NULL &&
+         RoadMapTripFocus != NULL && to != RoadMapTripFocus) {
+
+      to->has_value = RoadMapTripFocus->has_value;
+
+      if (RoadMapTripFocus->mobile) {
+         to->direction = RoadMapTripFocus->direction;
+      } else {
+         to->direction = 0;
+      }
+      to->position  = RoadMapTripFocus->position;
+
+      if (to->predefined && (! to->in_trip)) {
+         roadmap_config_set_position
+            (&to->config_position, &to->position);
+         roadmap_config_set_integer (&to->config_direction, to->direction);
+      }
+   }
+}
+
+
 void roadmap_trip_remove_point (const char *name) {
     
     RoadMapTripPoint *result;
@@ -923,6 +949,8 @@ void roadmap_trip_initialize (void) {
         ("session", &RoadMapConfigTripName, "default");
     roadmap_config_declare
         ("session", &RoadMapConfigFocusName, "GPS");
+    roadmap_config_declare
+        ("session", &RoadMapConfigFocusName, "Hold");
     roadmap_config_declare
         ("session", &RoadMapConfigFocusRotate, "1");
 }
