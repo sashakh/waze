@@ -50,8 +50,11 @@ mkdir -p $IPKGDIR/roadmap-gtk2/usr/bin
 cp $ARMDIR/gtk2roadmap $IPKGDIR/roadmap-gtk2/usr/bin/roadmap
 cp $ARMDIR/gtk2roadgps $IPKGDIR/roadmap-gtk2/usr/bin/roadgps
 
-mkdir -p $IPKGDIR/roadmap-gtk2/usr/lib/menu
-cp $SRCDIR/roadmap.menu $IPKGDIR/roadmap-gtk2/usr/lib/menu/roadmap
+mkdir -p $IPKGDIR/roadmap-gtk2/usr/share/applications
+cp $SRCDIR/roadmap.desktop $IPKGDIR/roadmap-gtk2/usr/share/applications
+
+mkdir -p $IPKGDIR/roadmap-gtk2/usr/share/pixmaps
+cp $SRCDIR/roadmap*.png $IPKGDIR/roadmap-gtk2/usr/share/pixmaps
 
 mkdir -p $IPKGDIR/roadmap-gtk2/usr/share/roadmap
 cp $MAPDIR/usdir.rdm   $IPKGDIR/roadmap-gtk2/usr/share/roadmap/usdir.rdm
@@ -101,7 +104,8 @@ sources="`find roadmap -name '*.[ch]'`
          roadmap/src/schema
          roadmap/src/sprites
          roadmap/src/preferences
-         roadmap/src/roadmap.menu"
+         roadmap/src/roadmap*.png
+         roadmap/src/roadmap.desktop"
 tar czf $ARMDIR/roadmap-gtk-$VERSION.orig.tar.gz $sources
 
 
