@@ -24,9 +24,9 @@
 #ifndef INCLUDE__ROADMAP_MAIN__H
 #define INCLUDE__ROADMAP_MAIN__H
 
+#include "roadmap.h"
 #include "roadmap_gui.h"
 
-typedef void (* RoadMapCallback) (void);
 typedef void (* RoadMapKeyInput) (char *key);
 typedef void (* RoadMapInput)    (int fd);
 
@@ -52,6 +52,9 @@ void roadmap_main_show (void);
 
 void roadmap_main_set_input    (int fd, RoadMapInput callback);
 void roadmap_main_remove_input (int fd);
+
+void roadmap_main_set_periodic (int interval, RoadMapCallback callback);
+void roadmap_main_remove_periodic (RoadMapCallback callback);
 
 void roadmap_main_set_status (const char *text);
 

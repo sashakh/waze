@@ -25,33 +25,47 @@
 #define _ROADMAP_GPS__H_
 
 /* The listener is a function to be called each time a valid GPS position
- * has been received.
+ * has been received. There can be more than one listener at a given time.
  */
 typedef void (*roadmap_gps_listener)
                    (RoadMapPosition *position, int speed, int direction);
 
+void roadmap_gps_initialize (roadmap_gps_listener listener);
+
+
+/* The link and periodic control functions are hooks designed to let the GPS
+ * link to be managed from within an application's GUI main loop.
+ *
+ * When data is detected from the GPS link, roadmap_gps_input() should be
+ * called. If the GPS link is down, roadmap_gps_open() should be called
+ * periodically.
+ *
+ * The functions below provide this module with a way for managing these
+ * callbacks in behalf of the application.
+ */
+typedef void (*roadmap_gps_link_control) (int fd);
+typedef void (*roadmap_gps_periodic_control) (RoadMapCallback handler);
+
+void roadmap_gps_register_link_control
+                 (roadmap_gps_link_control add,
+                  roadmap_gps_link_control remove);
+
+void roadmap_gps_register_periodic_control
+                 (roadmap_gps_periodic_control add,
+                  roadmap_gps_periodic_control remove);
+
+
 /* The logger is a function to be called each time data has been
- * received from the GPS link (good or bad).
+ * received from the GPS link (good or bad). Its should record the data
+ * for later analysis or replay.
  */
 typedef void (*roadmap_gps_logger)   (char *sentence);
 
-/* The link control functions are hooks designed to let the NMEA reception
- * to be managed from within a GUI main loop. When data is detected from
- * the GPS link, roadmap_gps_input() should be called.
- */
-typedef void (*roadmap_gps_link_control) (int fd);
-
-
-void roadmap_gps_initialize (roadmap_gps_listener listener);
-void roadmap_gps_open       (void);
-
 void roadmap_gps_register_logger (roadmap_gps_logger logger);
 
-void roadmap_gps_register_link_control
-        (roadmap_gps_link_control add, roadmap_gps_link_control remove);
 
-void roadmap_gps_input (int fd);
-
+void roadmap_gps_open   (void);
+void roadmap_gps_input  (int fd);
 int  roadmap_gps_active (void);
 
 int  roadmap_gps_estimated_error (void);

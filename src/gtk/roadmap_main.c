@@ -40,6 +40,9 @@
 
 static int RoadMapMainInputFile = -1;
 
+static RoadMapCallback RoadMapMainPeriodicCall = NULL;
+static guint RoadMapMainPeriodicId;
+
 static RoadMapKeyInput RoadMapMainInput = NULL;
 static GtkWidget      *RoadMapMainWindow  = NULL;
 static GtkWidget      *RoadMapMainBox     = NULL;
@@ -293,6 +296,36 @@ void roadmap_main_set_input (int fd, RoadMapInput callback) {
 void roadmap_main_remove_input (int fd) {
 
    gtk_input_remove (RoadMapMainInputFile);
+}
+
+
+static gboolean roadmap_main_timeout (gpointer data) {
+
+   RoadMapCallback callback = (RoadMapCallback) data;
+
+   if (callback != NULL) {
+      (*callback) ();
+   }
+   return TRUE;
+}
+
+void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
+
+   RoadMapMainPeriodicCall = callback;
+   RoadMapMainPeriodicId =
+      gtk_timeout_add (interval, roadmap_main_timeout, callback);
+}
+
+
+void roadmap_main_remove_periodic (RoadMapCallback callback) {
+
+   if (RoadMapMainPeriodicCall != callback) {
+      roadmap_log (ROADMAP_ERROR,
+                   "no support for multiple periodic callbacks");
+      return;
+   }
+   gtk_timeout_remove (RoadMapMainPeriodicId);
+   RoadMapMainPeriodicId = 0;
 }
 
 

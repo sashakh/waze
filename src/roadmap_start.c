@@ -389,6 +389,12 @@ static void roadmap_start_add_gps (int fd) {
 }
 
 
+static void roadmap_start_set_timeout (RoadMapCallback callback) {
+
+   roadmap_main_set_periodic (3000, callback);
+}
+
+
 static void roadmap_start_window (void) {
 
    roadmap_main_new ("RoadMap",
@@ -405,6 +411,9 @@ static void roadmap_start_window (void) {
 
    roadmap_gps_register_link_control
       (roadmap_start_add_gps, roadmap_main_remove_input);
+
+   roadmap_gps_register_periodic_control
+      (roadmap_start_set_timeout, roadmap_main_remove_periodic);
 }
 
 

@@ -67,5 +67,7 @@ void roadmap_option (int argc, char **argv);
 void roadmap_check_allocated_with_source_line
                 (char *source, int line, const void *allocated);
 
+typedef void (* RoadMapCallback) (void);
+
 #endif // INCLUDE__ROADMAP__H
 

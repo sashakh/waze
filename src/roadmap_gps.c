@@ -66,14 +66,21 @@ static RoadMapNmeaListener RoadMapGpsNextPgrme = NULL;
 static RoadMapNmeaListener RoadMapGpsNextPgrmm = NULL;
 
 
-static char RoadMapLastKnownStatus = 'A';
-
+static char   RoadMapLastKnownStatus = 'A';
 static time_t RoadMapGpsLatestData = 0;
-
-static int RoadMapGpsEstimatedError = 0;
+static int    RoadMapGpsEstimatedError = 0;
+static int    RoadMapGpsRetryPending = 0;
 
 
 static void roadmap_gps_no_link_control (int fd) {}
+static void roadmap_gps_no_periodic_control (RoadMapCallback callback) {}
+
+
+static roadmap_gps_periodic_control RoadMapGpsPeriodicAdd =
+                                    &roadmap_gps_no_periodic_control;
+
+static roadmap_gps_periodic_control RoadMapGpsPeriodicRemove =
+                                    &roadmap_gps_no_periodic_control;
 
 static roadmap_gps_link_control RoadMapGpsLinkAdd =
                                     &roadmap_gps_no_link_control;
@@ -211,8 +218,17 @@ void roadmap_gps_open (void) {
    }
 
    if (RoadMapGpsLink < 0) {
-      roadmap_log (ROADMAP_WARNING, "cannot access GPS source %s", url);
+      if (! RoadMapGpsRetryPending) {
+         roadmap_log (ROADMAP_WARNING, "cannot access GPS source %s", url);
+         (*RoadMapGpsPeriodicAdd) (roadmap_gps_open);
+         RoadMapGpsRetryPending = 1;
+      }
       return;
+   }
+
+   if (RoadMapGpsRetryPending) {
+      (*RoadMapGpsPeriodicRemove) (roadmap_gps_open);
+      RoadMapGpsRetryPending = 0;
    }
 
    RoadMapGpsConnectedSince = time(NULL);
@@ -263,6 +279,15 @@ void roadmap_gps_register_link_control
 
    RoadMapGpsLinkAdd    = add;
    RoadMapGpsLinkRemove = remove;
+}
+
+
+void roadmap_gps_register_periodic_control
+                 (roadmap_gps_periodic_control add,
+                  roadmap_gps_periodic_control remove) {
+
+   RoadMapGpsPeriodicAdd      = add;
+   RoadMapGpsPeriodicRemove   = remove;
 }
 
 
