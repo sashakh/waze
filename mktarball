@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# Usage:
+#
+#    mktarball <version>
+#
+# where <version> is either n.n or n_n
+#
+
+if [ "x$1" = "x" ] ; then
+   echo "Version number is missing"
+   exit 1
+fi
+
+version=`expr $1 : '\([0-9][0-9]*\)'`_`expr $1 : '[0-9][0-9]*[._]\([0-9][0-9]*\)'`
+dotversion=`expr $1 : '\([0-9][0-9]*\)'`.`expr $1 : '[0-9][0-9]*[._]\([0-9][0-9]*\)'`
+
+
+PROJROOT=~/sourceforge
+
+RELEASE=releases
+
+RDM_SRC="roadmap/src/Makefile
+         roadmap/src/app_a02.txt
+         roadmap/src/usstates.txt
+         roadmap/src/*.[ch]
+         roadmap/src/gtk/Makefile
+         roadmap/src/gtk/*.[ch]
+         roadmap/src/unix/Makefile
+         roadmap/src/unix/*.[ch]
+         roadmap/src/ipkg/mkipkg
+         roadmap/src/ipkg/roadmap*"
+
+RDM_CFG="roadmap/src/preferences
+         roadmap/src/schema
+         roadmap/src/sprites
+         roadmap/src/roadmap.menu"
+
+RDM_SH="roadmap/src/rdmdownload
+        roadmap/src/rdmgetall
+        roadmap/src/rdmgenmaps
+        roadmap/src/rdmcompare"
+
+RDM_BIN="roadmap/src/usdir.rdm
+         roadmap/src/usc06075.rdm
+         roadmap/src/gtk/gtkroadmap
+         roadmap/src/gtk/gtkroadgps
+         roadmap/src/buildmap
+         roadmap/src/buildus"
+
+RDM_INFO="roadmap/AUTHORS
+          roadmap/BUGS
+          roadmap/COPYING
+          roadmap/README
+          roadmap/TODO"
+
+RDM_IPK="roadmap/arm/ipkg/roadmap-gtk_${dotversion}_arm.ipk
+         roadmap/arm/ipkg/roadmap-sfca_${dotversion}_arm.ipk"
+
+
+mkdir -p $PROJROOT/$RELEASE
+
+(cd $PROJROOT/roadmap/src/ipkg ; ./mkipkg $dotversion ; echo "Done with ipkg")
+
+cd $PROJROOT
+
+rm -rf roadmap/test/roadmap
+
+rm -f roadmap/src/*.rdm
+for i in usdir usc06075
+do
+   cp /usr/local/share/roadmap/$i.rdm roadmap/src
+done
+
+echo "Creating tar ball for section src ..."
+tar cf $RELEASE/roadmap_${version}_src.tar  $RDM_SRC $RDM_SH $RDM_CFG $RDM_INFO
+echo "Creating tar ball for section i686 ..."
+tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_INFO
+echo "Creating tar ball for section armv4l ..."
+tar cf $RELEASE/roadmap_${version}_armv4l.tar $RDM_IPK $RDM_INFO
+
+rm -f roadmap/src/*.rdm 
+
+
+cd $RELEASE
+
+for x in src i686 armv4l
+do
+  echo "Compressing tar ball for section $x ..."
+  gzip -9 roadmap_${version}_$x.tar
+done
+
