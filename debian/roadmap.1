@@ -1,0 +1,36 @@
+.TH "roadmap" "1" "1.0.8" "Petter Reinholdtsen" ""
+.SH "NAME"
+.LP 
+roadmap \- Street navigation system using the vector maps and GPS
+.SH "SYNTAX"
+.LP 
+roadmap
+.SH "DESCRIPTION"
+.LP 
+RoadMap is a program for UNIX that displays street maps. The maps
+are provided for example by the US Census Bureau. When a GPS receiver is
+available RoadMap can track the current location of the vehicule on the
+screen, continuously adjusting the position of the map; it can also
+identify the name of the current street as well as the name of the
+next intersection. RoadMap can be used without a GPS receiver, as a
+static map viewer or address finder.
+.SH "FILES"
+.LP 
+\fI~/.roadmap/preferences\fP 
+.br 
+\fI/etc/roadmap/preferences\fP 
+.br 
+\fI/usr/share/roadmap/preferences\fP 
+.SH "ENVIRONMENT VARIABLES"
+.LP 
+.TP 
+\fBROADMAP_MAPPATH\fP
+Specifies extra paths to use when looking for maps.
+.SH "AUTHORS"
+.LP 
+Pascal Martin <pascal.martin@ponts.org>
+.LP 
+This manual page was written by Petter Reinholdtsen for the Debian package.
+.SH "SEE ALSO"
+.LP 
+gpsd(1) roadgps(1)

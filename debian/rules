@@ -77,14 +77,6 @@ install: build
 	# Add here commands to install the package into debian/roadmap.
 	$(MAKE) -C src/qt $(BUILDFLAGS) DESTDIR=$(DESTDIR) pkgbindir=/usr/lib/roadmap install
 
-	@echo "Installing map file"
-	mkdir -p $(DESTDIR)/usr/lib/roadmap && \
-	cd $(DESTDIR)/usr/lib/roadmap && \
-	rm -f usdir.rdm.tgz && \
-	wget http://roadmap.digitalomaha.net/maps/usdir.rdm.tgz && \
-	tar zxf usdir.rdm.tgz usdir.rdm && \
-	rm -f usdir.rdm.tgz
-
 	dh_movefiles --sourcedir=debian/roadmap
 
 # Build architecture-independent files here.
@@ -92,12 +84,12 @@ install: build
 binary-indep: build install
 	dh_testdir -i
 	dh_testroot -i
-#	dh_installdebconf -i
+	dh_installdebconf -i
 	dh_installdocs -i
 	dh_installexamples -i
 	dh_installmenu -i
 	dh_installcron -i
-#	dh_installman -i
+	dh_installman -i
 	dh_installinfo -i
 	dh_installchangelogs -i
 	dh_link -i
@@ -112,12 +104,12 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir -a
 	dh_testroot -a
-#	dh_installdebconf -a
+	dh_installdebconf -a
 	dh_installdocs -a
 	dh_installexamples -a
 	dh_installmenu -a
 	dh_installcron -a
-#	dh_installman -a
+	dh_installman -a
 	dh_installinfo -a
 	dh_installchangelogs -a
 	dh_strip -a

@@ -3,15 +3,24 @@
 
 set -e
 
+indexdir=/var/lib/roadmap
+
 case "$1" in
-    purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    purge)
+        if [ -x /usr/bin/update-menus ] ; then update-menus ; fi
+	if [ -d "$indexdir" ] ; then
+	    rm -rf "$indexdir"
+	fi
+    ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         if [ -x /usr/bin/update-menus ] ; then update-menus ; fi
     ;;
 
     *)
         echo "postrm called with unknown argument \`$1'" >&2
         exit 1
-
+    ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically
