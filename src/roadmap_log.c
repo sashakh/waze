@@ -51,14 +51,15 @@ static struct roadmap_message_descriptor {
    int   level;
    int   show_stack;
    int   save_to_file;
+   int   do_exit;
    char *prefix;
 } RoadMapMessageHead [] = {
-   {ROADMAP_MESSAGE_DEBUG,   0, 0, "++"},
-   {ROADMAP_MESSAGE_INFO,    0, 0, "--"},
-   {ROADMAP_MESSAGE_WARNING, 0, 0, "=="},
-   {ROADMAP_MESSAGE_ERROR,   1, 1, "**"},
-   {ROADMAP_MESSAGE_FATAL,   1, 1, "##"},
-   {0,                       1, 1, "??"}
+   {ROADMAP_MESSAGE_DEBUG,   0, 0, 0, "++"},
+   {ROADMAP_MESSAGE_INFO,    0, 0, 0, "--"},
+   {ROADMAP_MESSAGE_WARNING, 0, 0, 0, "=="},
+   {ROADMAP_MESSAGE_ERROR,   1, 1, 0, "**"},
+   {ROADMAP_MESSAGE_FATAL,   1, 1, 1, "##"},
+   {0,                       1, 1, 1, "??"}
 };
 
 
@@ -163,6 +164,8 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
    roadmap_log_one (category, stderr, saved, source, line, format, ap);
 
    va_end(ap);
+
+   if (category->do_exit) exit(1);
 }
 
 
