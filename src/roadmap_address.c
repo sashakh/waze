@@ -124,7 +124,7 @@ static void roadmap_address_selection (void  *data,
       list[i] = selections + i;
    }
 
-   if (roadmap_dialog_activate ("RoadMap Street Select", data)) {
+   if (roadmap_dialog_activate ("Street Select", data)) {
 
       roadmap_dialog_new_list ("List", ".Streets");
 
@@ -220,39 +220,36 @@ static void roadmap_address_ok (const char *name, void *data) {
 
    case ROADMAP_US_NOSTATE:
 
-      roadmap_messagebox ("RoadMap Warning",
-                         "No state with that name could be found");
+      roadmap_messagebox ("Warning", "No state with that name could be found");
       return;
 
    case ROADMAP_US_NOCITY:
 
-      roadmap_messagebox ("RoadMap Warning", 
-                          "No city with that name could be found");
+      roadmap_messagebox ("Warning", "No city with that name could be found");
       return;
 
    default:
 
-      roadmap_messagebox ("RoadMap Warning", 
-                          "No related map could not be found");
+      roadmap_messagebox ("Warning", "No related map could not be found");
       return;
    }
 
    if (count <= 0) {
       switch (count) {
       case ROADMAP_STREET_NOADDRESS:
-         roadmap_messagebox ("RoadMap Warning", 
+         roadmap_messagebox ("Warning", 
                              "The street address could not be found");
          break;
       case ROADMAP_STREET_NOCITY:
-         roadmap_messagebox ("RoadMap Warning", 
+         roadmap_messagebox ("Warning", 
                              "No city with that name could be found");
          break;
       case ROADMAP_STREET_NOSTREET:
-         roadmap_messagebox ("RoadMap Warning", 
+         roadmap_messagebox ("Warning", 
                              "No street with that name could be found");
          break;
       default:
-         roadmap_messagebox ("RoadMap Warning", 
+         roadmap_messagebox ("Warning", 
                              "The address could not be found");
       }
       return;
@@ -342,7 +339,7 @@ static void roadmap_address_ok (const char *name, void *data) {
 
    if (j <= 0) {
 
-      roadmap_messagebox ("RoadMap Warning", "No valid street was found");
+      roadmap_messagebox ("Warning", "No valid street was found");
       return;
    }
 
@@ -417,7 +414,7 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 void roadmap_address_location_by_city (void) {
 
    static RoadMapAddressDialog context = {
-       "RoadMap Location by city",
+       "Location by city",
        0
    };
 
@@ -427,7 +424,7 @@ void roadmap_address_location_by_city (void) {
 void roadmap_address_location_by_zip (void) {
 
    static RoadMapAddressDialog context = {
-       "RoadMap Location by ZIP",
+       "Location by ZIP",
        1
    };
 

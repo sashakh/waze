@@ -113,7 +113,7 @@ static void roadmap_start_counter_rotate (void) {
 
 static void roadmap_start_about (void) {
 
-   roadmap_messagebox ("RoadMap About",
+   roadmap_messagebox ("About",
                        "RoadMap " ROADMAP_VERSION "\n"
                        "(c) " ROADMAP_YEAR " Pascal Martin\n"
                        "<pascal.martin@iname.com>\n"

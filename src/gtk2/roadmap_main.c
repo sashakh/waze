@@ -25,6 +25,9 @@
  *   int main (int argc, char **argv);
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
@@ -39,6 +42,8 @@
 
 
 static int RoadMapMainInputFile = -1;
+
+static char *RoadMapMainTitle = NULL;
 
 static RoadMapCallback RoadMapMainPeriodicCall = NULL;
 static guint RoadMapMainPeriodicId;
@@ -163,6 +168,11 @@ void roadmap_main_new (const char *title, int width, int height) {
    }
 
    gtk_window_set_title (GTK_WINDOW(RoadMapMainWindow), title);
+
+   if (RoadMapMainTitle != NULL) {
+      free(RoadMapMainTitle);
+   }
+   RoadMapMainTitle = strdup (title);
 }
 
 
@@ -347,6 +357,30 @@ void roadmap_main_exit (void) {
 
    roadmap_start_exit ();
    gtk_main_quit();
+}
+
+
+const char *roadmap_main_get_title (const char *name) {
+
+   static char *RoadMapMainTitleBuffer = NULL;
+
+   if (RoadMapMainTitle != NULL) {
+
+      int length = strlen(RoadMapMainTitle) + strlen(name) + 4;
+
+      if (RoadMapMainTitleBuffer != NULL) {
+         free(RoadMapMainTitleBuffer);
+      }
+      RoadMapMainTitleBuffer = malloc (length);
+
+      if (RoadMapMainTitleBuffer != NULL) {
+         strcpy (RoadMapMainTitleBuffer, RoadMapMainTitle);
+         strcat (RoadMapMainTitleBuffer, " ");
+         strcat (RoadMapMainTitleBuffer, name);
+      }
+      return RoadMapMainTitleBuffer;
+   }
+   return name;
 }
 
 

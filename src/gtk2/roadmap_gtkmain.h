@@ -37,5 +37,7 @@
  */
 void roadmap_main_set_window_size (GtkWidget *w, int width, int height);
 
+const char *roadmap_main_get_title (const char *name);
+
 #endif // INCLUDE__ROADMAP_GTK_CANVAS__H
 

@@ -121,7 +121,7 @@ static void roadmap_crossing_ok (const char *name, void *data) {
 
    state = roadmap_locator_get_state (state_name);
    if (state <= 0) {
-       roadmap_messagebox ("RoadMap Warning", "unknown state");
+       roadmap_messagebox ("Warning", "unknown state");
        return;
    }
 
@@ -135,8 +135,7 @@ static void roadmap_crossing_ok (const char *name, void *data) {
                                         ROADMAP_MAX_STREETS);
 
    if (count <= 0) {
-       roadmap_messagebox
-          ("RoadMap Warning", "Could not find any intersection");
+       roadmap_messagebox ("Warning", "Could not find any intersection");
        return;
    }
 
@@ -173,7 +172,7 @@ static void roadmap_crossing_ok (const char *name, void *data) {
        names[i] = strdup(buffer);
    }
 
-   if (roadmap_dialog_activate ("RoadMap Choose Intersection", NULL)) {
+   if (roadmap_dialog_activate ("Choose Intersection", NULL)) {
 
       roadmap_dialog_new_list ("List", ".Intersections");
 
@@ -199,7 +198,7 @@ static void roadmap_crossing_cancel (const char *name, void *data) {
 
 void roadmap_crossing_dialog (void) {
 
-   if (roadmap_dialog_activate ("RoadMap Intersection", NULL)) {
+   if (roadmap_dialog_activate ("Intersection", NULL)) {
 
       roadmap_dialog_new_entry ("Crossing", "Street 1:");
       roadmap_dialog_new_entry ("Crossing", "Street 2:");
