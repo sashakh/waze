@@ -386,22 +386,19 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
              (diff_fr > -10) && (diff_fr < 10) &&
              (diff_to > -10) && (diff_to < 10)) {
 
-            int fradd = fraddr;
-            int toadd = toaddr;
+            int fradd;
+            int toadd;
 
-            if (fradd < toadd) {
-               if (fradd > fraddl) fradd = fraddl;
-               if (toadd < toaddl) toadd = toaddl;
-            } else {
-               if (fradd < fraddl) fradd = fraddl;
-               if (toadd > toaddl) toadd = toaddl;
-            }
+            buildmap_range_merge (fraddl, toaddl,
+                                  fraddr, toaddr,
+                                  &fradd, &toadd);
 
             zip = buildmap_zip_add (zipl, frlong, frlat);
 
-            if (fradd == 0 && toadd == 0) 
+            if (fradd == 0 && toadd == 0)  {
                 buildmap_range_add_no_address (line, street);
-            else {
+                continue;
+            } else {
                buildmap_range_add_address
                   (munl, mafl, zip, line, street, fradd, toadd);
 
@@ -423,11 +420,14 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
             if (zipr != zipl)
                zip = buildmap_zip_add (zipr, frlong, frlat);
 
-            if (fraddr == 0 && toaddr == 0) 
-                buildmap_range_add_no_address (line, street);
-            else
+            if (fraddr == 0 && toaddr == 0) {
+               if (fraddl != 0 || toaddl != 0) {
+                  buildmap_range_add_no_address (line, street);
+               }
+            } else {
                 buildmap_range_add_address
                    (munr, mafr, zip, line, street, fraddr, toaddr);
+            }
          }
       }
 
