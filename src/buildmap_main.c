@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <popt.h>
@@ -204,7 +205,7 @@ static void buildmap_county_process
 }
 
 
-int main (int argc, const char *argv[]) {
+int main (int argc, const char **argv) {
 
    const char **leftovers;
 
