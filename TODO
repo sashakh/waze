@@ -12,7 +12,36 @@ Flexible tracking and waypoint handling
    RoadMap should allow the user to define as many waypoints as he wants. It
    should also make it possible to track as many GPS sources as defined by
    the user.
+   
+   Waypoints: the idea is to define trips. The user can create and recall
+   as many trip as he see fit (one trip is active at a given time). Each
+   trip has one destination and many (user defined) waypoints. When starting
+   a trip, RoadMap sorts the waypoints according to their distance to the
+   destination and starts tracking the direction & distance to the next
+   waypoint (i.e. the closest waypoint closer to the destination).
+   
+   Issue: when approaching a waypoint, we might switch back and forth
+   between this waypoint and the next one. Oh well..
 
+Accurate local time
+
+   The GPS receiver provides a reliable universal time and the current
+   location. This is all what RoadMap needs to show the correct local time:
+   
+   - associate a timezone to each state (problem: a few states have county
+   dependent timezones--we may have to add the timezone field to counties).
+   
+   - when showing a particular location on the map, display the local time
+   for this location.
+   
+   - show estimated time of arrival in the destination's timezone.
+   
+   One might think of setting the UNIX time and system timezone, but that
+   would be a bad idea:
+   1- this would cause a whole mess when replaying GPS logs.
+   2- RoadMap would need to be root or have the set UID bit set.
+   3- managing system setup is best left to system daemons.
+   
 Submaps & Plugins
 
    The RoadMap format is flexible (additional tables could be added), except
