@@ -569,6 +569,10 @@ CONFIGURATION:
    S:   Speed (set only when a trip is active).
    T:   Current time, format HH:MM (set only when a trip is active).
    W:   Distance to the next waypoint (set only when a trip is active).
+   #:   the street number range to the selected or current block.
+   N:   the name of the selected or current street.
+   C:   the name of the city for the selected or current street.
+   F:   the full (number, name, city) name of the selected or current street.
    
    Example: "%D (%W)" shows the distance to the destination point, followed
    by the distance to the next waypoint (in parenthesis).

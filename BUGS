@@ -55,3 +55,9 @@ Some urban areas are missing:
    This is a TIGER file problem: the string "WOODLAND HILLS" never appears
    in the LA county files.
 
+Gtk2 interface reports error:
+
+   The following error message appears:
+
+   ** (gtkroadmap:3487): WARNING **: Invalid UTF8 string passed to pango_layout_set_text()
+

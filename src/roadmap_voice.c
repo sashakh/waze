@@ -44,8 +44,10 @@
 
 static int   RoadMapVoiceMuted = 0;
 static int   RoadMapVoiceInUse = 0;
-static char *RoadMapVoiceName = NULL;
-static char *RoadMapVoiceArguments = NULL;
+static char *RoadMapVoiceCurrentCommand = NULL;
+static char *RoadMapVoiceCurrentArguments = NULL;
+static char *RoadMapVoiceNextCommand = NULL;
+static char *RoadMapVoiceNextArguments = NULL;
 
 static RoadMapFeedback RoadMapVoiceActive;
 
@@ -76,48 +78,72 @@ static struct voice_translation RoadMapVoiceTranslation[] = {
 };
 
 
+static void roadmap_voice_launch (const char *name, const char *arguments) {
+
+    if ((RoadMapVoiceCurrentCommand != NULL) &&
+        (RoadMapVoiceCurrentArguments != NULL) &&
+        (strcmp (name, RoadMapVoiceCurrentCommand) == 0) &&
+        (strcmp (arguments, RoadMapVoiceCurrentArguments) == 0)) {
+        
+        /* Do not repeat the same message again. */
+            
+        RoadMapVoiceInUse = 0;
+        return;
+    }
+    
+    RoadMapVoiceInUse = 1;
+    
+    if (RoadMapVoiceCurrentCommand != NULL) {
+        free (RoadMapVoiceCurrentCommand);
+    }
+    if (RoadMapVoiceCurrentArguments != NULL) {
+        free (RoadMapVoiceCurrentArguments);
+    }
+    RoadMapVoiceCurrentCommand = strdup (name);
+    RoadMapVoiceCurrentArguments = strdup (arguments);
+    
+    roadmap_spawn_with_feedback (name, arguments, &RoadMapVoiceActive);
+}
+
+
 static void roadmap_voice_queue (const char *name, const char *arguments) {
     
     if (RoadMapVoiceInUse) {
         
         /* Replace the previously queued message (too old now). */
         
-        if (RoadMapVoiceName != NULL) {
-            free(RoadMapVoiceName);
+        if (RoadMapVoiceNextCommand != NULL) {
+            free(RoadMapVoiceNextCommand);
         }
-        RoadMapVoiceName = strdup (name);
+        RoadMapVoiceNextCommand = strdup (name);
         
-        if (RoadMapVoiceArguments != NULL) {
-            free(RoadMapVoiceArguments);
+        if (RoadMapVoiceNextArguments != NULL) {
+            free(RoadMapVoiceNextArguments);
         }
-        RoadMapVoiceArguments = strdup (arguments);
+        RoadMapVoiceNextArguments = strdup (arguments);
 
     } else {
         
-        /* Play this message now. */
-        
-        RoadMapVoiceInUse = 1;
-        roadmap_spawn_with_feedback (name, arguments, &RoadMapVoiceActive);
+        roadmap_voice_launch (name, arguments);
     }
 }
 
 
 static void roadmap_voice_complete (void *data) {
     
-    if (RoadMapVoiceName != NULL) {
+    if (RoadMapVoiceNextCommand != NULL) {
         
         /* Play the queued message now. */
         
-        RoadMapVoiceInUse = 1;
-        roadmap_spawn_with_feedback
-            (RoadMapVoiceName, RoadMapVoiceArguments, &RoadMapVoiceActive);
+        roadmap_voice_launch
+            (RoadMapVoiceNextCommand, RoadMapVoiceNextArguments);
         
-        free (RoadMapVoiceName);
-        RoadMapVoiceName = NULL;
+        free (RoadMapVoiceNextCommand);
+        RoadMapVoiceNextCommand = NULL;
         
-        if (RoadMapVoiceArguments != NULL) {
-            free (RoadMapVoiceArguments);
-            RoadMapVoiceArguments = NULL;
+        if (RoadMapVoiceNextArguments != NULL) {
+            free (RoadMapVoiceNextArguments);
+            RoadMapVoiceNextArguments = NULL;
         }
         
     } else {
@@ -179,9 +205,8 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
     if (size <= 0) return 0;
     
     if ((acronym_length != 0) &&
-        (acronym[acronym_length] == ' ' ||
-         acronym[acronym_length] == ',' ||
-         acronym[acronym_length] == 0)) {
+        (acronym[acronym_length] == 0 ||
+         (! isalnum(acronym[acronym_length])))) {
         
         /* This is a valid acronym: translate it. */
         length = strlen(cursor->to);
@@ -203,12 +228,11 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
 }
 
 
-static void roadmap_voice_announce (const char *name, const char *format) {
+void roadmap_voice_announce (const char *title) {
 
     char  text[1024];
     char  expanded[1024];
-    
-    const char *final;
+    char *final;
     char *arguments;
 
     
@@ -216,36 +240,20 @@ static void roadmap_voice_announce (const char *name, const char *format) {
 
     RoadMapVoiceActive.handler = roadmap_voice_complete;
     
-    /* remove any heading number or punctuation from the message, as
-     * these are more annoying than useful.
-     * We must, however, keep the streets which name is a number...
-     */
-    while ((*name < 'a' || *name > 'z') && (*name < 'A' || *name > 'Z')) {
-        name += 1;
-    }
-    if (strncmp (name, "th ", 3) == 0 ||
-        strncmp (name, "st ", 3) == 0 ||
-        strncmp (name, "nd ", 3) == 0 ||
-        strncmp (name, "rd ", 3) == 0) {
-        for (name -= 1; *name >= '0' && *name <= '9'; --name) ;
-        name += 1;
-    }
+    roadmap_message_format (text, sizeof(text),
+                            roadmap_config_get ("Voice", title));
     
-    if (roadmap_voice_expand (name, expanded, sizeof(expanded))) {
+    if (roadmap_voice_expand (text, expanded, sizeof(expanded))) {
         final = expanded;
     } else {
-        final = name;
+        final = text;
     }
-    roadmap_message_set ('N', "%s", final);
     
-    roadmap_message_format (text, sizeof(text),
-                            roadmap_config_get ("Voice", format));
-    
-    arguments = strchr (text, ' ');
+    arguments = strchr (final, ' ');
     
     if (arguments == NULL) {
         
-        roadmap_voice_queue (text, "");
+        roadmap_voice_queue (final, "");
         
     } else {
         
@@ -253,29 +261,8 @@ static void roadmap_voice_announce (const char *name, const char *format) {
         
         while (isspace(*(++arguments))) ;
             
-        roadmap_voice_queue (text, arguments);
+        roadmap_voice_queue (final, arguments);
     }
-}
-
-
-void roadmap_voice_approach (const char *name) {
-
-    roadmap_voice_announce (name, "Approach");
-}
-
-void roadmap_voice_current_street (const char *name) {
-
-    roadmap_voice_announce (name, "Current Street");
-}
-
-void roadmap_voice_intersection (const char *name) {
-
-    roadmap_voice_announce (name, "Next Intersection");
-}
-
-void roadmap_voice_selected (const char *name) {
-
-    roadmap_voice_announce (name, "Selected Street");
 }
 
 
@@ -291,7 +278,7 @@ void roadmap_voice_enable (void) {
 void roadmap_voice_initialize (void) {
     
     roadmap_config_declare ("preferences", "Voice", "Approach", "flite -t 'Approaching %N'");
-    roadmap_config_declare ("preferences", "Voice", "Current Street", "flite -t 'Current street is %N'");
+    roadmap_config_declare ("preferences", "Voice", "Current Street", "flite -t 'On %N'");
     roadmap_config_declare ("preferences", "Voice", "Next Intersection", "flite -t 'Next intersection: %N'");
     roadmap_config_declare ("preferences", "Voice", "Selected Street", "flite -t 'Selected %N'");
 }

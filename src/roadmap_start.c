@@ -146,6 +146,10 @@ static void roadmap_start_trip_reverse (void) {
     roadmap_trip_reverse (1);
 }
 
+static void roadmap_start_set_waypoint (void) {
+    roadmap_display_set_waypoint ("Selected Street");
+}
+
 static void roadmap_start_delete_waypoint (void) {
     
     roadmap_trip_remove_point (NULL);
@@ -200,7 +204,7 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Set Destination..",
        "Set the trip's destination point", roadmap_address_destination_by_city},
    {"Add as Waypoint", 
-       "Set the selected street block as waypoint", roadmap_screen_set_waypoint},
+       "Set the selected street block as waypoint", roadmap_start_set_waypoint},
    {"Delete Waypoints..", 
        "Delete selected waypoints", roadmap_start_delete_waypoint},
 

@@ -773,7 +773,7 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
 
 static int roadmap_street_get_distance_with_shape
-              (RoadMapPosition *position,
+              (const RoadMapPosition *position,
                int  line, int first_shape, int last_shape) {
 
    int i;
@@ -825,7 +825,7 @@ static int roadmap_street_get_distance_with_shape
 
 
 static int roadmap_street_get_distance_no_shape
-              (RoadMapPosition *position, int line) {
+              (const RoadMapPosition *position, int line) {
 
    RoadMapPosition position1;
    RoadMapPosition position2;
@@ -844,7 +844,8 @@ static int roadmap_street_get_distance_no_shape
 }
 
 
-int roadmap_street_get_distance (RoadMapPosition *position, int line) {
+int roadmap_street_get_distance
+        (const RoadMapPosition *position, int line) {
 
    int square;
    int first_shape_line;
@@ -870,7 +871,7 @@ int roadmap_street_get_distance (RoadMapPosition *position, int line) {
 
 
 static int roadmap_street_get_closest_in_square
-              (RoadMapPosition *position,
+              (const RoadMapPosition *position,
                int square, int cfcc, int *distance) {
 
    int line;
@@ -930,7 +931,8 @@ static int roadmap_street_get_closest_in_square
 
 
 int roadmap_street_get_closest
-       (RoadMapPosition *position, int count, int *categories, int *distance) {
+       (const RoadMapPosition *position,
+        int count, int *categories, int *distance) {
 
    static int *fips = NULL;
 
@@ -1030,21 +1032,16 @@ static int roadmap_street_get_city (int street, int range) {
       by_city += 1;
    }
 
-   return 0; /* No city: return an empty string. */
+   return 0; /* No city. */
 }
 
 
-char *roadmap_street_get_name_from_line (int line) {
+void roadmap_street_get_properties
+        (int line, RoadMapStreetProperties *properties) {
 
-   static char RoadMapStreetName [512];
-
-   RoadMapStreet *this_street;
    RoadMapRangeBySquare *bysquare;
    RoadMapRangeNoAddress *noaddr;
 
-   char *p;
-
-   int city = 0;
    int range_index = -1;
    int hole;
    int stop;
@@ -1052,11 +1049,9 @@ char *roadmap_street_get_name_from_line (int line) {
    int square;
    RoadMapPosition position;
 
-   char address_range_image[256];
 
-
-   RoadMapStreetName[0] = 0;
-   address_range_image[0] = 0;
+   memset (properties, 0, sizeof(RoadMapStreetProperties));
+   properties->street = -1;
 
    roadmap_line_from (line, &position);
    square = roadmap_square_search (&position);
@@ -1112,57 +1107,143 @@ char *roadmap_street_get_name_from_line (int line) {
       }
    }
 
-   return ""; /* Really found nothing. */
+   return; /* Really found nothing. */
 
 
 found_street_with_address:
 
-   {
-      int address_min = 0;
-      int address_max = 0;
+    {
+        properties->range.min =
+            RoadMapRangeActive->RoadMapAddr[range_index].fradd;
+        properties->range.max =
+            RoadMapRangeActive->RoadMapAddr[range_index].toadd;
 
-      address_min = RoadMapRangeActive->RoadMapAddr[range_index].fradd;
-      address_max = RoadMapRangeActive->RoadMapAddr[range_index].toadd;
+        if (properties->range.min > properties->range.max) {
 
-      if (address_min > address_max) {
+            int tmp = properties->range.min;
 
-         int tmp = address_min;
-
-         address_min = address_max;
-         address_max = tmp;
-      }
-      snprintf (address_range_image,
-                sizeof(address_range_image),
-                "%d - %d,", address_min, address_max);
-   }
-   city = roadmap_street_get_city (street, range_index);
+            properties->range.min = properties->range.max;
+            properties->range.max = tmp;
+        }
+    }
+    properties->city = roadmap_street_get_city (street, range_index);
 
 found_street:
 
-   this_street = RoadMapStreetActive->RoadMapStreets + street;
-
-   snprintf (RoadMapStreetName, sizeof(RoadMapStreetName),
-             "%s%s %s %s %s%s%s",
-             address_range_image,
-             roadmap_dictionary_get
-                (RoadMapRangeActive->RoadMapStreetPrefix, this_street->fedirp),
-             roadmap_dictionary_get
-                (RoadMapRangeActive->RoadMapStreetNames, this_street->fename),
-             roadmap_dictionary_get
-                (RoadMapRangeActive->RoadMapStreetType, this_street->fetype),
-             roadmap_dictionary_get
-                (RoadMapRangeActive->RoadMapStreetSuffix, this_street->fedirs),
-             (city > 0) ? ", " : "",
-             roadmap_dictionary_get
-                (RoadMapRangeActive->RoadMapCityNames, city));
-
-   /* trim the resulting string on both sides (right then left): */
-
-   p = RoadMapStreetName + strlen(RoadMapStreetName) - 1;
-   while (*p == ' ') *(p--) = 0;
-
-   for (p = RoadMapStreetName; *p == ' '; p++) ;
-
-   return p;
+   properties->street = street;
 }
 
+
+static void roadmap_street_append (char *name, char *item) {
+    
+    if (item != NULL && item[0] != 0) {
+        strcat (name, item);
+        strcat (name, " ");
+    }
+}
+
+
+const char *roadmap_street_get_street_address
+                (const RoadMapStreetProperties *properties) {
+
+    static char RoadMapStreetAddress [32];
+
+    if (properties->range.min >= properties->range.max) {
+        return "";
+    }
+
+    sprintf (RoadMapStreetAddress,
+             "%d - %d", properties->range.min, properties->range.max);
+
+    return RoadMapStreetAddress;
+}
+
+
+const char *roadmap_street_get_street_name
+                (const RoadMapStreetProperties *properties) {
+
+    static char RoadMapStreetName [512];
+
+    char *p;
+    RoadMapStreet *this_street;
+
+    
+    if (properties->street < 0) {
+
+        return "";
+    }
+    
+    this_street =
+        RoadMapStreetActive->RoadMapStreets + properties->street;
+    
+    RoadMapStreetName[0] = 0;
+
+    roadmap_street_append
+        (RoadMapStreetName,
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetPrefix, this_street->fedirp));
+        
+    roadmap_street_append
+        (RoadMapStreetName,
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetNames, this_street->fename));
+        
+    roadmap_street_append
+        (RoadMapStreetName,
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetType, this_street->fetype));
+        
+    roadmap_street_append
+        (RoadMapStreetName,
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetSuffix, this_street->fedirs));
+
+    /* trim the resulting string on both sides (right then left): */
+
+    p = RoadMapStreetName + strlen(RoadMapStreetName) - 1;
+    while (*p == ' ') *(p--) = 0;
+
+    for (p = RoadMapStreetName; *p == ' '; p++) ;
+
+    return p;
+}
+
+
+const char *roadmap_street_get_city_name
+                (const RoadMapStreetProperties *properties) {
+    
+    return roadmap_dictionary_get
+                (RoadMapRangeActive->RoadMapCityNames, properties->city);
+}
+
+
+const char *roadmap_street_get_full_name
+                (const RoadMapStreetProperties *properties) {
+    
+    static char RoadMapStreetName [512];
+
+    RoadMapStreet *this_street;
+    const char *address;
+    const char *city;
+
+
+    if (properties->street <= 0) {
+        return "";
+    }
+
+    this_street =
+        RoadMapStreetActive->RoadMapStreets + properties->street;
+    
+    address = roadmap_street_get_street_address (properties);
+    city    = roadmap_street_get_city_name      (properties);
+    
+    snprintf (RoadMapStreetName, sizeof(RoadMapStreetName),
+              "%s%s%s%s%s",
+              address,
+              (address[0])? " " : "",
+              roadmap_street_get_street_name (properties),
+              (city[0])? ", " : "",
+              city);
+    
+    return RoadMapStreetName;
+}

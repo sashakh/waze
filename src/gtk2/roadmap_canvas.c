@@ -114,7 +114,7 @@ void roadmap_canvas_select_pen (RoadMapPen pen) {
 }
 
 
-RoadMapPen roadmap_canvas_create_pen (char *name) {
+RoadMapPen roadmap_canvas_create_pen (const char *name) {
 
    struct roadmap_canvas_pen *pen;
 
@@ -150,7 +150,7 @@ RoadMapPen roadmap_canvas_create_pen (char *name) {
 }
 
 
-void roadmap_canvas_set_foreground (char *color) {
+void roadmap_canvas_set_foreground (const char *color) {
 
    GdkColor *native_color;
 

@@ -315,9 +315,12 @@ static void roadmap_address_ok (const char *name, void *data) {
       }
 
       if (line >= 0) {
-         names[j] = strdup (roadmap_street_get_name_from_line (line));
-         lines[j] = line;
-         j += 1;
+        RoadMapStreetProperties properties;
+          
+        roadmap_street_get_properties (line, &properties);
+        names[j] = strdup (roadmap_street_get_full_name (&properties));
+        lines[j] = line;
+        j += 1;
       }
    }
 

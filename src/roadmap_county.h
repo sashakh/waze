@@ -27,7 +27,7 @@
 #include "roadmap_types.h"
 
 int  roadmap_county_by_position
-        (RoadMapPosition *position, int *fips, int count);
+        (const RoadMapPosition *position, int *fips, int count);
 
 int  roadmap_county_by_city (RoadMapString city, RoadMapString state);
 

@@ -106,7 +106,11 @@ void roadmap_message_set (char parameter, const char *format, ...) {
     if (RoadMapMessageParameters[(int)parameter] != NULL) {
         free (RoadMapMessageParameters[(int)parameter]);
     }
-    RoadMapMessageParameters[(int)parameter] = strdup (value);
+    if (value[0] == 0) {
+        RoadMapMessageParameters[(int)parameter] = NULL;
+    } else {
+        RoadMapMessageParameters[(int)parameter] = strdup (value);
+    }
 }
 
 

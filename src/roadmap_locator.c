@@ -233,7 +233,8 @@ static int roadmap_locator_open (int fips) {
 }
 
 
-int roadmap_locator_by_position (RoadMapPosition *position, int **fips) {
+int roadmap_locator_by_position
+        (const RoadMapPosition *position, int **fips) {
 
    int i;
    int count;

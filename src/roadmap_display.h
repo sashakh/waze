@@ -28,12 +28,15 @@
 
 void roadmap_display_initialize (void);
 
-void roadmap_display_colors (RoadMapPen foreground, RoadMapPen background);
+void roadmap_display_activate
+        (const char *title,
+         int line,
+         int distance,
+         const RoadMapPosition *position);
 
-void roadmap_display_details (RoadMapPosition *position, char *format);
+void roadmap_display_console    (void);
+void roadmap_display_signs      (void);
 
-void roadmap_display_message (int corner, char *format);
-
-void roadmap_display_show (void);
+void roadmap_display_set_waypoint (const char *title);
 
 #endif // INCLUDE__ROADMAP_DISPLAY__H

@@ -143,7 +143,7 @@ roadmap_db_handler RoadMapCountyHandler = {
 
 
 int roadmap_county_by_position
-       (RoadMapPosition *position, int *fips, int count) {
+       (const RoadMapPosition *position, int *fips, int count) {
 
    int i;
    int j;

@@ -58,7 +58,7 @@ void roadmap_canvas_get_text_extents
  * it should not be re-created.
  * The new (or existing) pen becomes selected (see below).
  */
-RoadMapPen roadmap_canvas_create_pen (char *name);
+RoadMapPen roadmap_canvas_create_pen (const char *name);
 
 
 /* This calls make the given pen the default context when drawing
@@ -71,7 +71,7 @@ void roadmap_canvas_select_pen (RoadMapPen pen);
  * This is mostly performed once for each pen (at initialization),
  * althrough the thickness may be changed when the zoom level changes.
  */
-void roadmap_canvas_set_foreground (char *color);
+void roadmap_canvas_set_foreground (const char *color);
 void roadmap_canvas_set_thickness  (int thickness);
 
 

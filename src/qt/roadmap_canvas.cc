@@ -60,7 +60,7 @@ void roadmap_canvas_get_text_extents(const char *text, int *width,
 	roadMapCanvas->getTextExtents(text, width, ascent, descent);
 }
 
-RoadMapPen roadmap_canvas_create_pen (char *name) {
+RoadMapPen roadmap_canvas_create_pen (const char *name) {
 	return roadMapCanvas->createPen(name);
 }
 
@@ -68,7 +68,7 @@ void roadmap_canvas_select_pen (RoadMapPen pen) {
 	roadMapCanvas->selectPen(pen);
 }
 
-void roadmap_canvas_set_foreground (char *color) {
+void roadmap_canvas_set_foreground (const char *color) {
 	roadMapCanvas->setPenColor(color);
 }
 

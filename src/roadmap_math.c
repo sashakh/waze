@@ -737,8 +737,9 @@ int roadmap_math_to_trip_distance (int distance) {
 
 
 int  roadmap_math_get_distance_from_segment
-        (RoadMapPosition *position,
-         RoadMapPosition *position1, RoadMapPosition *position2) {
+        (const RoadMapPosition *position,
+         const RoadMapPosition *position1,
+         const RoadMapPosition *position2) {
 
    int distance;
    int minimum;

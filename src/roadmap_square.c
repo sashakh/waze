@@ -152,7 +152,7 @@ int roadmap_square_count (void) {
 }
 
 
-static int roadmap_square_on_grid (RoadMapPosition *position) {
+static int roadmap_square_on_grid (const RoadMapPosition *position) {
 
    int x;
    int y;
@@ -165,7 +165,7 @@ static int roadmap_square_on_grid (RoadMapPosition *position) {
       return -1;
    }
 
-   y = (position->latitude  - global->min_latitude)  / global->step_latitude;
+   y = (position->latitude - global->min_latitude)  / global->step_latitude;
    if (y < 0 || y > global->count_latitude) {
       return -1;
    }
@@ -180,7 +180,7 @@ static int roadmap_square_on_grid (RoadMapPosition *position) {
 }
 
 
-static int roadmap_square_location (RoadMapPosition *position) {
+static int roadmap_square_location (const RoadMapPosition *position) {
 
    int square;
 
@@ -191,7 +191,7 @@ static int roadmap_square_location (RoadMapPosition *position) {
       return -1;
    }
 
-   /* The computation above may have rouding errors: adjust. */
+   /* The computation above may have rounding errors: adjust. */
 
    while (grid[square].square == NULL ||
           grid[square].square->max_longitude <= position->longitude) {
@@ -226,7 +226,7 @@ static int roadmap_square_location (RoadMapPosition *position) {
 }
 
 
-int roadmap_square_search (RoadMapPosition *position) {
+int roadmap_square_search (const RoadMapPosition *position) {
 
    int square = roadmap_square_location (position);
 

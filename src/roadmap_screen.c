@@ -131,19 +131,8 @@ static struct roadmap_screen_point_buffer RoadMapScreenPoints;
 static int RoadMapPolygonGeoPoints[ROADMAP_SCREEN_BULK];
 
 
-static struct {
-
-   char  *name;
-   time_t deadline;
-   RoadMapPosition position;
-   RoadMapPosition endpoint[2];
-
-} RoadMapStreetTip = {NULL, 0, {0, 0}};
-
-RoadMapPen RoadMapHighlightForeground = NULL;
-RoadMapPen RoadMapHighlightBackground = NULL;
-RoadMapPen RoadMapBackground = NULL;
-RoadMapPen RoadMapEdges = NULL;
+static RoadMapPen RoadMapBackground = NULL;
+static RoadMapPen RoadMapEdges = NULL;
 
 
 static void roadmap_screen_flush_points (void) {
@@ -740,120 +729,9 @@ static void roadmap_screen_repaint_map (void) {
 }
 
 
-static void roadmap_screen_repaint_sprites (void) {
-
-    RoadMapGuiPoint point;
-    
-    point.x = 20;
-    point.y = 20;
-    roadmap_sprite_draw ("Compass", &point, 0);
-    
-    roadmap_trip_display ();
-
-    roadmap_display_show ();
-}
-
-
-static int roadmap_screen_is_street_tip_active (void) {
-    
-    if (RoadMapStreetTip.name == NULL) {
-        return 0;
-    }
-    
-    if ((time(NULL) > RoadMapStreetTip.deadline) ||
-        (! roadmap_math_point_is_visible (&RoadMapStreetTip.position))) {
-
-        free (RoadMapStreetTip.name);
-        RoadMapStreetTip.name = NULL;
-            
-        return 0;
-   }
-
-   return 1;
-}
-
-
-static void roadmap_screen_repaint_street_tip (void) {
-
-   int i;
-   RoadMapGuiPoint point;
-
-   for (i = 1; i >= 0; --i) {
-      roadmap_math_coordinate (RoadMapStreetTip.endpoint+i, &point);
-      roadmap_math_rotate_coordinates (1, &point);
-      roadmap_sprite_draw ("Highlight", &point, 0);
-   }
-   roadmap_display_details
-       (&RoadMapStreetTip.position, RoadMapStreetTip.name);
-}
-
-
-static void roadmap_screen_repaint (void) {
-
-   roadmap_math_set_center (&RoadMapScreenCenter);
-
-   RoadMapScreenShapesVisible =
-      roadmap_math_declutter
-         (roadmap_config_get_integer("Shapes", "Declutter"));
-
-   roadmap_screen_repaint_map ();
-   roadmap_screen_repaint_sprites ();
-
-   if (roadmap_screen_is_street_tip_active()) {
-      roadmap_screen_repaint_street_tip ();
-   }
-
-   roadmap_canvas_refresh ();
-}
-
-
-static void roadmap_screen_configure (void) {
-
-   RoadMapScreenWidth = roadmap_canvas_width();
-   RoadMapScreenHeight = roadmap_canvas_height();
-
-   roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
-   if (RoadMapCategory != NULL) {
-      roadmap_screen_repaint ();
-   }
-}
-
-
-
-static int roadmap_screen_activate_street_tip (int line,
-                                               RoadMapPosition *position) {
-
-   char *name;
-
-   name = roadmap_street_get_name_from_line (line);
-
-   if (name == NULL || name[0] == 0) {
-       name = "(this street has no name)";
-   }
-
-   roadmap_voice_selected (name);
-   
-   if (RoadMapStreetTip.name != NULL) {
-      free (RoadMapStreetTip.name);
-   }
-   RoadMapStreetTip.name = strdup (name);
-
-   roadmap_line_from (line, &RoadMapStreetTip.endpoint[0]);
-   roadmap_line_to   (line, &RoadMapStreetTip.endpoint[1]);
-
-   RoadMapStreetTip.deadline =
-      time(NULL) + roadmap_config_get_integer ("Highlight", "Duration");
-   RoadMapStreetTip.position = *position;
-
-   roadmap_canvas_select_pen (RoadMapHighlightForeground);
-   roadmap_screen_draw_line (line);
-   roadmap_canvas_refresh ();
-
-   return 1;
-}
-
-
-static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
+static int roadmap_screen_retrieve_line
+                (const RoadMapGuiPoint *point,
+                 const RoadMapPosition *position, int *distance) {
 
    int i;
    int count = 0;
@@ -862,10 +740,8 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
    int west, east, north, south;
 
    int line;
-   int distance;
    int accuracy = atoi (roadmap_config_get ("Accuracy", "Mouse"));
 
-   RoadMapPosition position;
    RoadMapGuiPoint focus_point;
    RoadMapPosition focus_position;
 
@@ -934,8 +810,6 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
       north = focus_position.latitude;
    }
 
-   roadmap_math_to_position (point, &position);
-   
 #ifdef DEBUG
 printf ("Position: %d longitude, %d latitude\n",
         position.longitude,
@@ -957,24 +831,132 @@ fflush(stdout);
 
       roadmap_math_set_focus (west, east, north, south);
 
-      line = roadmap_street_get_closest (&position, count, detail, &distance);
+      line = roadmap_street_get_closest (position, count, detail, distance);
 
       roadmap_math_release_focus ();
 
-      if (line >= 0) {
+      return line;
+   }
+   
+   return -1;
+}
 
-         if (roadmap_screen_activate_street_tip (line, &position)) {
-            roadmap_screen_repaint ();
-         }
-      }
+
+static void roadmap_screen_repaint (int moved) {
+
+    static int DetectCount = 0;
+    static int PreviousLine = -1;    
+    static RoadMapGuiPoint CompassPoint = {20, 20};
+    
+    int distance;
+    
+
+    roadmap_math_set_center (&RoadMapScreenCenter);
+    
+    if (moved) {
+        
+        int line;
+        RoadMapGuiPoint point;
+        
+        point.x = RoadMapScreenWidth/2;
+        point.y = RoadMapScreenHeight/2;
+            
+        line = roadmap_screen_retrieve_line
+                    (&point, &RoadMapScreenCenter, &distance);
+        
+        if (line >= 0) {
+            
+            /* Activate this street only if we are at a distance from
+             * the previous one. This is to avoid switching streets
+             * randomly at the intersections.
+             */
+            if (line != PreviousLine) {
+
+                int accuracy;
+                int distance_to_previous;
+            
+                accuracy = roadmap_config_get_integer ("Accuracy", "Street");
+                distance_to_previous = accuracy + 1;
+            
+                if (PreviousLine >= 0) {
+                
+                    RoadMapPosition position1, position2;
+            
+                    roadmap_line_from (PreviousLine, &position1);
+                    roadmap_line_to   (PreviousLine, &position2);
+                
+                    distance_to_previous =
+                        roadmap_math_get_distance_from_segment
+                            (&RoadMapScreenCenter, &position1, &position2);
+                }
+                
+                if (distance < accuracy / 2 &&
+                    distance_to_previous > accuracy) {
+                    PreviousLine = line;
+                    DetectCount = 1;
+                }
+            }
+        
+            if (line == PreviousLine) {
+            
+                /* So we have validated this street. Make sure we wait
+                 * for a confirmation before we commit to an announcement.
+                 */
+                if (DetectCount == 2) {
+                    roadmap_display_activate
+                        ("Current Street", line, distance, NULL);
+                }
+                DetectCount += 1;
+            }
+        }
+    }
+
+    RoadMapScreenShapesVisible =
+        roadmap_math_declutter
+            (roadmap_config_get_integer("Shapes", "Declutter"));
+
+    roadmap_screen_repaint_map ();
+    
+    roadmap_sprite_draw ("Compass", &CompassPoint, 0);
+
+    roadmap_trip_display ();
+    
+    roadmap_display_console ();
+    roadmap_display_signs ();
+
+    roadmap_canvas_refresh ();
+}
+
+
+static void roadmap_screen_configure (void) {
+
+   RoadMapScreenWidth = roadmap_canvas_width();
+   RoadMapScreenHeight = roadmap_canvas_height();
+
+   roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
+   if (RoadMapCategory != NULL) {
+      roadmap_screen_repaint (0);
    }
 }
 
 
-void roadmap_screen_set_waypoint (void) {
+
+static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
     
-    if (roadmap_screen_is_street_tip_active()) {
-        roadmap_trip_set_point (RoadMapStreetTip.name, &RoadMapStreetTip.position);
+    int line;
+    int distance;
+    RoadMapPosition position;
+
+    
+    roadmap_math_to_position (point, &position);
+   
+    line = roadmap_screen_retrieve_line (point, &position, &distance);
+
+    if (line >= 0) {
+
+        roadmap_display_activate
+            ("Selected Street", line, distance, &position);
+        roadmap_screen_repaint (0);
     }
 }
 
@@ -982,6 +964,7 @@ void roadmap_screen_set_waypoint (void) {
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
+    int moved = 0;
     
     if (roadmap_trip_is_focus_changed()) {
         
@@ -991,6 +974,7 @@ void roadmap_screen_refresh (void) {
         
     } else if (roadmap_trip_is_focus_moved()) {
         
+        moved = 1;
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
 
     }
@@ -1002,7 +986,7 @@ void roadmap_screen_refresh (void) {
     refresh |= roadmap_trip_is_refresh_needed();
         
     if (refresh) {
-        roadmap_screen_repaint ();
+        roadmap_screen_repaint (moved);
     }
 }
 
@@ -1021,7 +1005,7 @@ void roadmap_screen_rotate (int delta) {
    if (roadmap_math_set_orientation
            (roadmap_trip_get_orientation() + rotation)) {
       RoadMapScreenRotation = rotation;
-      roadmap_screen_repaint ();
+      roadmap_screen_repaint (0);
    }
 }
 
@@ -1034,7 +1018,7 @@ void roadmap_screen_move_up (void) {
    ROADMAP_POINT_SET_Y(&center, RoadMapScreenHeight / 4);
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint ();
+   roadmap_screen_repaint (0);
 }
 
 
@@ -1046,7 +1030,7 @@ void roadmap_screen_move_down (void) {
    ROADMAP_POINT_SET_Y(&center, (3 * RoadMapScreenHeight) / 4);
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint ();
+   roadmap_screen_repaint (0);
 }
 
 
@@ -1058,7 +1042,7 @@ void roadmap_screen_move_right (void) {
    ROADMAP_POINT_SET_Y(&center, RoadMapScreenHeight / 2);
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint ();
+   roadmap_screen_repaint (0);
 }
 
 
@@ -1071,7 +1055,7 @@ void roadmap_screen_move_left (void) {
    ROADMAP_POINT_SET_Y(&center, RoadMapScreenHeight / 2);
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint ();
+   roadmap_screen_repaint (0);
 }
 
 
@@ -1092,7 +1076,7 @@ static void roadmap_screen_after_zoom (void) {
       }
    }
    
-   roadmap_screen_repaint ();
+   roadmap_screen_repaint (0);
 }
 
 
@@ -1113,7 +1097,7 @@ void roadmap_screen_zoom_out (void) {
 void roadmap_screen_zoom_reset (void) {
 
    roadmap_math_zoom_reset ();
-   roadmap_screen_repaint ();
+   roadmap_screen_repaint (0);
 }
 
 
@@ -1122,14 +1106,11 @@ void roadmap_screen_initialize (void) {
    roadmap_config_declare ("preferences", "Polygons", "Declutter", "1300");
    roadmap_config_declare ("preferences", "Shapes", "Declutter", "1300");
 
-   roadmap_config_declare ("preferences", "Accuracy", "GPS", "1000");
-   roadmap_config_declare ("preferences", "Accuracy", "Mouse", "20");
+   roadmap_config_declare ("preferences", "Accuracy", "Street", "200");
+   roadmap_config_declare ("preferences", "Accuracy", "GPS",    "1000");
+   roadmap_config_declare ("preferences", "Accuracy", "Mouse",  "20");
 
    roadmap_config_declare ("preferences", "Map", "Background", "LightYellow");
-
-   roadmap_config_declare ("preferences", "Highlight", "Background", "yellow");
-   roadmap_config_declare ("preferences", "Highlight", "Thickness", "4");
-   roadmap_config_declare ("preferences", "Highlight", "Duration", "10");
 
    roadmap_canvas_register_button_handler (&roadmap_screen_button_pressed);
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
@@ -1203,21 +1184,5 @@ void roadmap_screen_set_initial_position (void) {
    RoadMapEdges = roadmap_canvas_create_pen ("Map.Edges");
    roadmap_canvas_set_thickness (4);
    roadmap_canvas_set_foreground ("grey");
-
-
-   RoadMapHighlightBackground =
-      roadmap_canvas_create_pen ("Highlight.Background");
-
-   roadmap_canvas_set_foreground
-      (roadmap_config_get ("Highlight", "Background"));
-
-   roadmap_canvas_set_thickness
-      (roadmap_config_get_integer ("Highlight", "Thickness"));
-
-   RoadMapHighlightForeground =
-      roadmap_canvas_create_pen ("Highlight.Foreground");
-   
-   roadmap_display_colors (RoadMapHighlightForeground,
-                           RoadMapHighlightBackground);
 }
 

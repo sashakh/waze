@@ -30,7 +30,7 @@
 #define ROADMAP_SQUARE_OTHER  -2
 
 int   roadmap_square_count  (void);
-int   roadmap_square_search (RoadMapPosition *position);
+int   roadmap_square_search (const RoadMapPosition *position);
 void  roadmap_square_min    (int square, RoadMapPosition *position);
 
 void  roadmap_square_edges

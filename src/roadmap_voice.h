@@ -24,10 +24,7 @@
 #ifndef INCLUDE__ROADMAP_VOICE__H
 #define INCLUDE__ROADMAP_VOICE__H
 
-void roadmap_voice_approach       (const char *name);
-void roadmap_voice_current_street (const char *name);
-void roadmap_voice_intersection   (const char *name);
-void roadmap_voice_selected       (const char *name);
+void roadmap_voice_announce (const char *title);
 
 void roadmap_voice_mute   (void);
 void roadmap_voice_enable (void);
