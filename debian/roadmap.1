@@ -23,15 +23,16 @@ More information is available in the RoadMap online help.
 .SH "OPTIONS"
 
 .PP
-Most options may be set as preferences. In fact, when an option matches
-a preferences item, then using the option modify the preferences permanently.
-As a consequence theses command line options will appear "sticky" in the sense
-that their effect will be permanent until the same option is used again or the
-associated preference item are changed. Anyway most of these options are quite
-obsolete, since they were defined before there was a dialog to change the
-preferences. Because the same preferences are used by \fBroadmap\fR and
-\fBroadgps\fR, using one of those option with one program will impact
-the other.
+Most options may also be set as preferences. In fact, when an option matches
+a preferences item, using the option does modify the preferences item as well.
+As a consequence the effect of theses options will be permanent until the same
+option is used again or the associated preference item has been changed.
+Because the same preferences are used by \fBroadmap\fR and \fBroadgps\fR,
+using any of those options with one program will impact the other.
+
+.PP
+An option with no associated preference item behaves in a more traditional
+way, i.e. its effect is valid for that command only.
 
 .TP
 \fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR
@@ -51,7 +52,7 @@ Preference item: \fBGeneral.Unit = imperial\fR.
 .TP
 \fB\-\-no\-area\fR
 Do not show the polygons (parks, hospitals, airports, etc..).
-This option was created for debug puposes and is probably now useless.
+This option was created for debug purposes and is probably now useless.
 
 .TP
 \fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR
@@ -84,7 +85,7 @@ Use the specified GPS source. Two URL formats only are supported:
 "file://\fIpath\fR" or "\fIpath\fR" (\fIpath\fR must be a full path).
 As an exception, this option is \fInot\fR sticky: it does override
 the related preferences item, but the preferences are not modified.
-The main rational for this behavior is to make it painless to rerun GPS logs.
+The main rational for this behavior is to make it painless to replay GPS logs.
 
 .TP
 \fB\-\-cache=\fInumber\fR\fR
