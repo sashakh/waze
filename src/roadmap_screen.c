@@ -74,6 +74,12 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
 static RoadMapConfigDescriptor RoadMapConfigMapBackground =
                         ROADMAP_CONFIG_ITEM("Map", "Background");
 
+static RoadMapConfigDescriptor RoadMapConfigMapSigns =
+                        ROADMAP_CONFIG_ITEM("Map", "Signs");
+
+static RoadMapConfigDescriptor RoadMapConfigMapRefresh =
+                        ROADMAP_CONFIG_ITEM("Map", "Refresh");
+
 
 static int RoadMapScreenInitialized = 0;
 static int RoadMapScreenFrozen = 0;
@@ -734,14 +740,18 @@ static void roadmap_screen_repaint (void) {
         }
     }
 
-    roadmap_sprite_draw ("Compass", &CompassPoint, 0);
-
-
     roadmap_trip_format_messages ();
     
-    roadmap_display_signs ();
+    if (strcasecmp
+           (roadmap_config_get (&RoadMapConfigMapSigns), "yes") == 0) {
 
-    roadmap_trip_display ();
+       roadmap_sprite_draw ("Compass", &CompassPoint, 0);
+
+
+       roadmap_display_signs ();
+
+       roadmap_trip_display ();
+    }
 
     RoadMapScreenAfterRefresh();
 
@@ -853,10 +863,14 @@ void roadmap_screen_refresh (void) {
         roadmap_math_set_orientation
             (roadmap_trip_get_orientation() + RoadMapScreenRotation);
 
-    refresh |= roadmap_trip_is_refresh_needed();
+    if (strcasecmp
+           (roadmap_config_get (&RoadMapConfigMapRefresh), "forced") == 0) {
 
-    if (refresh) {
         roadmap_screen_repaint ();
+
+    } else if (refresh || roadmap_trip_is_refresh_needed()) {
+
+       roadmap_screen_repaint ();
     }
 
     roadmap_log_pop ();
@@ -970,6 +984,12 @@ void roadmap_screen_initialize (void) {
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigMapBackground, "LightYellow");
+
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
+
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigMapRefresh, "normal", "forced", NULL);
 
    roadmap_canvas_register_button_handler (&roadmap_screen_button_pressed);
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
