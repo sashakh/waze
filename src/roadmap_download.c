@@ -49,11 +49,25 @@
 #include "roadmap_download.h"
 
 
+#define ROADMAP_FILE_NAME_FORMAT "usc%05d.rdm"
+
+
 static RoadMapConfigDescriptor RoadMapConfigSource =
                                   ROADMAP_CONFIG_ITEM("Download", "Source");
 
 static RoadMapConfigDescriptor RoadMapConfigDestination =
                                   ROADMAP_CONFIG_ITEM("Download", "Destination");
+
+struct roadmap_download_tool {
+   char *suffix;
+   char *name;
+};
+
+static struct roadmap_download_tool RoadMapDownloadCompressTools[] = {
+   {".gz",  "gunzip"},
+   {".bz2", "bunzip2"},
+   {NULL, NULL}
+};
 
 static RoadMapHash *RoadMapDownloadBlock = NULL;
 static int *RoadMapDownloadBlockList = NULL;
@@ -310,6 +324,26 @@ static int roadmap_download_blocked (int fips) {
 }
 
 
+static void roadmap_download_uncompress (const char *destination) {
+
+   char *p;
+   char  command[2048];
+   struct roadmap_download_tool *tool;
+
+   for (tool = RoadMapDownloadCompressTools; tool->suffix != NULL; ++tool) {
+
+      p = strstr (destination, tool->suffix);
+
+      if ((p != NULL) && (strcmp (p, tool->suffix) == 0)) {
+
+         snprintf (command, sizeof(command), "%s %s", tool->name, destination);
+         system (command);
+         break;
+      }
+   }
+}
+
+
 static void roadmap_download_ok (const char *name, void *context) {
 
    int  fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
@@ -353,6 +387,8 @@ static void roadmap_download_ok (const char *name, void *context) {
 
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
                                 source, destination)) {
+
+            roadmap_download_uncompress (destination);
             RoadMapDownloadRefresh = 1;
          }
          roadmap_download_unblock (fips);
@@ -363,7 +399,7 @@ static void roadmap_download_ok (const char *name, void *context) {
 
    if (protocol == NULL) {
 
-      roadmap_messagebox ("Error", "invalid download protocol");
+      roadmap_messagebox ("Download Error", "invalid download protocol");
       roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
    }
 
@@ -387,6 +423,18 @@ static void roadmap_download_next_county (void) {
 
    int fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
 
+   const char *source;
+   const char *basename;
+
+   char buffer[2048];
+
+
+   source = roadmap_config_get (&RoadMapConfigSource);
+   basename = strrchr (source, '/');
+   if (basename == NULL) {
+      roadmap_messagebox ("Download Error", "Bad source file name (no path)");
+      return;
+   }
 
    if (roadmap_dialog_activate ("Download a Map", NULL)) {
 
@@ -403,10 +451,12 @@ static void roadmap_download_next_county (void) {
    roadmap_dialog_set_data (".file", "County", roadmap_county_get_name (fips));
    roadmap_dialog_set_data (".file", "State", roadmap_county_get_state (fips));
 
-   roadmap_dialog_set_data (".file", "From",
-                            roadmap_config_get (&RoadMapConfigSource));
-   roadmap_dialog_set_data (".file", "To",
-                            roadmap_config_get (&RoadMapConfigDestination));
+   roadmap_dialog_set_data (".file", "From", source);
+
+   snprintf (buffer, sizeof(buffer), "%s%s", 
+             roadmap_config_get (&RoadMapConfigDestination), basename);
+
+   roadmap_dialog_set_data (".file", "To", buffer);
 }
 
 
@@ -595,7 +645,7 @@ static void roadmap_download_delete_populate (void) {
 
     for (i = 0; i < RoadMapDownloadDeleteCount; ++i) {
 
-       snprintf (name, sizeof(name),
+       snprintf (name, sizeof(name), "%s/" ROADMAP_FILE_NAME_FORMAT,
                  roadmap_config_get (&RoadMapConfigDestination),
                  RoadMapDownloadDeleteFips[i]);
 
@@ -637,7 +687,7 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
 
       roadmap_download_block (RoadMapDownloadDeleteSelected);
 
-      snprintf (path, sizeof(path),
+      snprintf (path, sizeof(path), "%s/" ROADMAP_FILE_NAME_FORMAT,
                 roadmap_config_get (&RoadMapConfigDestination),
                 RoadMapDownloadDeleteSelected);
 
@@ -707,14 +757,15 @@ int  roadmap_download_enabled (void) {
 
 void roadmap_download_initialize (void) {
 
-   char default_destination[256];
+   char default_destination[1024];
 
    roadmap_config_declare
       ("preferences",
-      &RoadMapConfigSource, "/usr/local/share/roadmap/usc%05d.rdm");
+      &RoadMapConfigSource,
+      "/usr/local/share/roadmap/" ROADMAP_FILE_NAME_FORMAT);
 
    snprintf (default_destination, sizeof(default_destination),
-               "%s/maps/usc%%05d.rdm", roadmap_path_user());
+             "%s/maps", roadmap_path_user());
 
    roadmap_config_declare
       ("preferences",
