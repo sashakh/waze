@@ -66,18 +66,15 @@ RDM_INFO="roadmap/AUTHORS
           roadmap/README
           roadmap/TODO"
 
-RDM_IPK="roadmap/arm/ipkg/roadmap-gtk_${dotversion}_arm.ipk
-         roadmap/arm/ipkg/roadmap-gtk2_${dotversion}_arm.ipk
-         roadmap/arm/ipkg/roadmap-sfca_${dotversion}_arm.ipk"
+RDM_IPK="arm/roadmap/ipkg/roadmap-gtk2_${dotversion}_arm.ipk"
 
-
-mkdir -p $PROJROOT/$RELEASE
-
-(cd $PROJROOT/roadmap/src/ipkg ; ./mkipkg $dotversion ; echo "Done with ipkg")
 
 cd $PROJROOT
 
-rm -rf roadmap/test/roadmap
+mkdir -p $RELEASE
+
+arm/roadmap/src/ipkg/mkipkg $dotversion
+echo "Done with ipkg"
 
 rm -f roadmap/src/*.rdm
 for i in usdir usc06075
