@@ -62,9 +62,6 @@ static RoadMapConfigDescriptor RoadMapConfigDeltaY =
 static RoadMapConfigDescriptor RoadMapConfigDeltaRotate =
                         ROADMAP_CONFIG_ITEM("Delta", "Rotate");
 
-static RoadMapConfigDescriptor RoadMapConfigShapesDeclutter =
-                        ROADMAP_CONFIG_ITEM("Shapes", "Declutter");
-
 static RoadMapConfigDescriptor RoadMapConfigPolygonsDeclutter =
                         ROADMAP_CONFIG_ITEM("Polygons", "Declutter");
 
@@ -89,7 +86,6 @@ static RoadMapPosition RoadMapScreenCenter;
 static int RoadMapScreenRotation;
 static int RoadMapScreenWidth;
 static int RoadMapScreenHeight;
-static int RoadMapScreenShapesVisible = 0;
 
 static int RoadMapScreenDeltaX;
 static int RoadMapScreenDeltaY;
@@ -163,121 +159,127 @@ static void roadmap_screen_flush_lines (void) {
 }
 
 
-static void roadmap_screen_draw_line_no_shape (int line, int fully_visible) {
+void roadmap_screen_draw_one_line (int line,
+                                   int fully_visible,
+                                   int first_shape_line,
+                                   int last_shape_line) {
+
+   int has_shape;
+   int first_shape;
+   int last_shape;
 
    RoadMapPosition position0;
    RoadMapPosition position1;
 
+   RoadMapGuiPoint point0;
+   RoadMapGuiPoint point1;
+
 
    roadmap_line_from (line, &position0);
-
    roadmap_line_to   (line, &position1);
 
-   /* Optimization: do not draw lines that are obviously not visible. */
+   roadmap_math_coordinate (&position0, &point0);
+   roadmap_math_coordinate (&position1, &point1);
 
-   if (! fully_visible)
-   {
-      if (! roadmap_math_line_is_visible (&position0, &position1)) return;
+   if (first_shape_line < 0) {
+
+      has_shape = 0;
+
+   } else if (abs(point0.x - point1.x) < 5 &&
+              abs(point0.y - point1.y) < 5) {
+
+      /* This line is too small for us to consider a shape. */
+      has_shape = 0;
+
+   } else {
+      
+      has_shape = roadmap_shape_of_line (line,
+                                         first_shape_line, last_shape_line,
+                                         &first_shape, &last_shape);
    }
 
-   if (RoadMapScreenLinePoints.cursor + 2 >= RoadMapScreenLinePoints.end) {
-      roadmap_screen_flush_lines ();
-   }
+   if (has_shape > 0) {
 
-   roadmap_math_coordinate (&position0, RoadMapScreenLinePoints.cursor);
-   roadmap_math_coordinate (&position1, RoadMapScreenLinePoints.cursor+1);
+      /* Draw a shaped line. */
 
-   if ((RoadMapScreenLinePoints.cursor[0].x ==
-           RoadMapScreenLinePoints.cursor[1].x) &&
-       (RoadMapScreenLinePoints.cursor[0].y ==
-           RoadMapScreenLinePoints.cursor[1].y)) {
+      int i;
+      RoadMapGuiPoint *points;
 
-      if (RoadMapScreenPoints.cursor >= RoadMapScreenPoints.end) {
-         roadmap_screen_flush_points ();
+
+      if (last_shape - first_shape + 3 >=
+            RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.cursor) {
+
+         if (last_shape - first_shape + 3 >=
+               (RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.data)) {
+
+            roadmap_log (ROADMAP_ERROR,
+                  "cannot show all shape points (%d entries needed).",
+                  last_shape - first_shape + 3);
+
+            last_shape =
+               first_shape
+               + (RoadMapScreenLinePoints.data - RoadMapScreenLinePoints.cursor)
+               - 3;
+         }
+
+         roadmap_screen_flush_lines ();
       }
-      RoadMapScreenPoints.cursor[0] = RoadMapScreenLinePoints.cursor[0];
 
-      RoadMapScreenPoints.cursor += 1;
+      points = RoadMapScreenLinePoints.cursor;
+
+      *(points++) = point0;
+
+      for (i = first_shape; i <= last_shape; ++i) {
+
+         roadmap_shape_get_position (i, &position0);
+
+         roadmap_math_coordinate (&position0, points);
+         points += 1;
+      }
+
+      *(points++) = point1;
+
+      *RoadMapScreenObjects.cursor = points - RoadMapScreenLinePoints.cursor;
+
+      RoadMapScreenLinePoints.cursor   = points;
+      RoadMapScreenObjects.cursor += 1;
 
    } else {
 
-      *RoadMapScreenObjects.cursor = 2;
+      /* Draw a line with no shape. */
 
-      RoadMapScreenLinePoints.cursor  += 2;
-      RoadMapScreenObjects.cursor += 1;
-   }
-}
+      /* Optimization: do not draw a line that is obviously not visible. */
 
-
-static void roadmap_screen_draw_line_with_shape
-               (int line, int first_shape, int last_shape) {
-
-   int i;
-   RoadMapPosition position_end;
-   RoadMapPosition position;
-
-   RoadMapGuiPoint  point_end;
-   RoadMapGuiPoint *points;
-
-
-   if (last_shape - first_shape + 3 >=
-       RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.cursor) {
-
-      if (last_shape - first_shape + 3 >=
-          (RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.data)) {
-
-         roadmap_log (ROADMAP_ERROR,
-                      "cannot show all shape points (%d entries needed).",
-                      last_shape - first_shape + 3);
-
-         last_shape =
-            first_shape
-               + (RoadMapScreenLinePoints.data - RoadMapScreenLinePoints.cursor)
-               - 3;
+      if (! fully_visible)
+      {
+         if (! roadmap_math_line_is_visible (&position0, &position1)) return;
       }
 
-      roadmap_screen_flush_lines ();
-   }
+      if ((point0.x == point1.x) && (point0.y == point1.y)) {
 
-   roadmap_line_to (line, &position_end);
+         if (RoadMapScreenPoints.cursor >= RoadMapScreenPoints.end) {
+            roadmap_screen_flush_points ();
+         }
+         RoadMapScreenPoints.cursor[0] = point0;
 
-   points = RoadMapScreenLinePoints.cursor;
+         RoadMapScreenPoints.cursor += 1;
 
-   roadmap_line_from (line, &position);
-   roadmap_math_coordinate (&position, points);
+      } else {
 
-   roadmap_math_coordinate (&position_end, &point_end);
+         if (RoadMapScreenLinePoints.cursor + 2 >=
+                              RoadMapScreenLinePoints.end) {
+            roadmap_screen_flush_lines ();
+         }
 
-   if ((points->x == point_end.x) && (points->y == point_end.y)) {
+         RoadMapScreenLinePoints.cursor[0] = point0;
+         RoadMapScreenLinePoints.cursor[1] = point1;
 
-      if (RoadMapScreenPoints.cursor >= RoadMapScreenPoints.end) {
-         roadmap_screen_flush_points ();
+         *RoadMapScreenObjects.cursor = 2;
+
+         RoadMapScreenLinePoints.cursor  += 2;
+         RoadMapScreenObjects.cursor += 1;
       }
-      *RoadMapScreenPoints.cursor = *points;
-
-      RoadMapScreenPoints.cursor += 1;
-
-      return;
    }
-
-   points += 1;
-
-   for (i = first_shape; i <= last_shape; ++i) {
-
-      roadmap_shape_get_position (i, &position);
-
-      roadmap_math_coordinate (&position, points);
-      points += 1;
-   }
-
-   *points = point_end;
-   points += 1;
-
-
-   *RoadMapScreenObjects.cursor = points - RoadMapScreenLinePoints.cursor;
-
-   RoadMapScreenLinePoints.cursor   = points;
-   RoadMapScreenObjects.cursor += 1;
 }
 
 
@@ -286,8 +288,6 @@ void roadmap_screen_draw_line (int line) {
    int square;
    int first_shape_line;
    int last_shape_line;
-   int first_shape;
-   int last_shape;
 
    RoadMapPosition position;
 
@@ -298,15 +298,13 @@ void roadmap_screen_draw_line (int line) {
    if (roadmap_shape_in_square (square, &first_shape_line,
                                         &last_shape_line) > 0) {
 
-      if (roadmap_shape_of_line (line, first_shape_line,
-                                       last_shape_line,
-                                       &first_shape, &last_shape) > 0) {
+      roadmap_screen_draw_one_line
+         (line, 1, first_shape_line, last_shape_line);
 
-         roadmap_screen_draw_line_with_shape (line, first_shape, last_shape);
-         return;
-      }
+   } else {
+
+      roadmap_screen_draw_one_line (line, 1, -1, -1);
    }
-   roadmap_screen_draw_line_no_shape (line, 1);
 }
 
 
@@ -348,13 +346,11 @@ static void roadmap_screen_draw_polygons (void) {
    RoadMapGuiPoint *graphic_point;
    RoadMapGuiPoint *previous_point;
 
+   RoadMapGuiPoint upper_left;
+   RoadMapGuiPoint lower_right;
+
 
    if (! roadmap_is_visible (ROADMAP_SHOW_AREA)) return;
-
-   if (! roadmap_math_declutter
-            (roadmap_config_get_integer(&RoadMapConfigPolygonsDeclutter))) {
-        return;
-   }
 
 
    for (i = roadmap_polygon_count() - 1; i >= 0; --i) {
@@ -370,6 +366,22 @@ static void roadmap_screen_draw_polygons (void) {
       roadmap_polygon_edges (i, &west, &east, &north, &south);
 
       if (! roadmap_math_is_visible (west, east, north, south)) {
+         continue;
+      }
+
+      /* Declutter logic: do not show the polygon when it has been
+       * reduced (by the zoom) to a quasi-point.
+       */
+      position.longitude = west;
+      position.latitude  = north;
+      roadmap_math_coordinate (&position, &upper_left);
+
+      position.longitude = east;
+      position.latitude  = south;
+      roadmap_math_coordinate (&position, &lower_right);
+
+      if (abs(upper_left.x - lower_right.x) < 5 &&
+          abs(upper_left.y - lower_right.y) < 5) {
          continue;
       }
 
@@ -471,8 +483,6 @@ static int roadmap_screen_draw_square
    int last_line;
    int first_shape_line;
    int last_shape_line;
-   int first_shape;
-   int last_shape;
 
    int drawn = 0;
 
@@ -483,30 +493,16 @@ static int roadmap_screen_draw_square
 
    if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
 
-      if (RoadMapScreenShapesVisible &&
-          (roadmap_shape_in_square (square, &first_shape_line,
-                                            &last_shape_line) > 0)) {
+      if (roadmap_shape_in_square (square, &first_shape_line,
+                                            &last_shape_line) <= 0) {
+         first_shape_line = last_shape_line = -1;
+      }
 
-         for (line = first_line; line <= last_line; ++line) {
+      for (line = first_line; line <= last_line; ++line) {
 
-            if (roadmap_shape_of_line (line, first_shape_line,
-                                             last_shape_line,
-                                             &first_shape, &last_shape) > 0) {
-               roadmap_screen_draw_line_with_shape
-                        (line, first_shape, last_shape);
-            } else {
-               roadmap_screen_draw_line_no_shape (line, fully_visible);
-            }
-            drawn += 1;
-         }
-
-      } else {
-
-         for (line = first_line; line <= last_line; ++line) {
-
-            roadmap_screen_draw_line_no_shape (line, fully_visible);
-            drawn += 1;
-         }
+         roadmap_screen_draw_one_line
+            (line, fully_visible, first_shape_line, last_shape_line);
+         drawn += 1;
       }
    }
 
@@ -517,7 +513,6 @@ static int roadmap_screen_draw_square
 
       int last_real_square = -1;
       int real_square  = 0;
-      int check_shapes = 0;
       int west = 0;
       int east = 0;
       int north = 0;
@@ -569,12 +564,11 @@ static int roadmap_screen_draw_square
                continue;
             }
 
-            if (RoadMapScreenShapesVisible) {
-               check_shapes = roadmap_shape_in_square
+            if (roadmap_shape_in_square
                                  (real_square,
-                                  &first_shape_line, &last_shape_line);
-            } else {
-               check_shapes = 0;
+                                  &first_shape_line, &last_shape_line) <= 0) {
+
+               first_shape_line = last_shape_line = -1;
             }
          }
 
@@ -583,19 +577,8 @@ static int roadmap_screen_draw_square
             continue;
          }
 
-         if (check_shapes) {
-            if (roadmap_shape_of_line (real_line,
-                                       first_shape_line,
-                                       last_shape_line,
-                                       &first_shape, &last_shape) > 0) {
-               roadmap_screen_draw_line_with_shape
-                          (real_line, first_shape, last_shape);
-            } else {
-               roadmap_screen_draw_line_no_shape (real_line, fully_visible);
-            }
-         } else {
-            roadmap_screen_draw_line_no_shape (real_line, fully_visible);
-         }
+         roadmap_screen_draw_one_line
+            (real_line, fully_visible, first_shape_line, last_shape_line);
          drawn += 1;
       }
 
@@ -695,11 +678,6 @@ static void roadmap_screen_repaint (void) {
 
 
     roadmap_log_push ("roadmap_screen_repaint");
-
-    RoadMapScreenShapesVisible =
-        roadmap_math_declutter
-            (roadmap_config_get_integer(&RoadMapConfigShapesDeclutter));
-
 
     /* Clean the drawing buffer. */
 
@@ -976,8 +954,6 @@ void roadmap_screen_initialize (void) {
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigPolygonsDeclutter, "1300");
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigShapesDeclutter, "1300");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigAccuracyMouse,  "20");
