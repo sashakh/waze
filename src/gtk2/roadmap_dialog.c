@@ -550,7 +550,6 @@ void roadmap_dialog_complete (int use_keyboard) {
    int count;
    RoadMapDialogItem dialog = RoadMapDialogCurrent;
    RoadMapDialogItem frame;
-   RoadMapKeyboard keyboard;
 
 
    count = 0;
@@ -604,9 +603,8 @@ void roadmap_dialog_complete (int use_keyboard) {
 
    if (use_keyboard) {
 
-      int first_item = 1;
-
-      keyboard = roadmap_keyboard_new ();
+      RoadMapDialogItem last_item = NULL;
+      RoadMapKeyboard   keyboard  = roadmap_keyboard_new ();
 
       gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dialog->w)->vbox),
                           roadmap_keyboard_widget(keyboard),
@@ -626,13 +624,13 @@ void roadmap_dialog_complete (int use_keyboard) {
                                      (GCallback) roadmap_dialog_selected,
                                      keyboard);
 
-                   if (first_item) {
-                      roadmap_keyboard_set_focus (keyboard, item->w);
-                      first_item = 0;
-                   }
+                   last_item = item;
                 }
             }
          }
+      }
+      if (last_item != NULL) {
+         roadmap_keyboard_set_focus (keyboard, last_item->w);
       }
    }
 

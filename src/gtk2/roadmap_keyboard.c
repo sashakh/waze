@@ -33,6 +33,10 @@
 #include "roadmap.h"
 
 
+#define ROADMAP_KEYBOARD_ROWS      4
+#define ROADMAP_KEYBOARD_COLUMNS  10
+#define ROADMAP_KEYBOARD_KEYS (ROADMAP_KEYBOARD_ROWS*ROADMAP_KEYBOARD_COLUMNS)
+
 typedef struct {
 
    char character;
@@ -48,7 +52,7 @@ struct roadmap_keyboard_context {
    GtkWidget *frame;
    GtkWidget *focus;
 
-   RoadMapKey keys[40];
+   RoadMapKey keys[ROADMAP_KEYBOARD_KEYS];
 };
 
 
@@ -85,7 +89,6 @@ static gint roadmap_keyboard_pressed (GtkWidget *w, gpointer data) {
 
          gtk_editable_delete_text (GTK_EDITABLE(keyboard->focus), 0, -1);
       }
-      gtk_widget_grab_focus (keyboard->focus);
    }
 
    return FALSE;
@@ -119,6 +122,8 @@ static GtkWidget *roadmap_keyboard_add_key (RoadMapKey *key, char character) {
 
    key->button = gtk_button_new_with_label (label);
 
+   GTK_WIDGET_UNSET_FLAGS (key->button, GTK_CAN_FOCUS);
+
    g_signal_connect (key->button,
                      "clicked",
                      (GCallback) roadmap_keyboard_pressed, key);
@@ -132,7 +137,7 @@ RoadMapKeyboard roadmap_keyboard_new (void) {
    int i;
    int j;
    int k;
-   char keymap[40] = "1234567890qwertyuiopasdfghjkl\b-zxcvbnm \r";
+   char keymap[] = "1234567890qwertyuiopasdfghjkl\b-zxcvbnm \r";
 
    RoadMapKeyboard keyboard;
    GtkWidget *button;
@@ -140,13 +145,18 @@ RoadMapKeyboard roadmap_keyboard_new (void) {
    keyboard = (RoadMapKeyboard) malloc (sizeof(*keyboard));
    roadmap_check_allocated(keyboard);
 
-   keyboard->frame = gtk_table_new (4, 10, TRUE);
+   keyboard->frame =
+      gtk_table_new (ROADMAP_KEYBOARD_ROWS, ROADMAP_KEYBOARD_COLUMNS, TRUE);
 
-   for (i = 0; i < 4; i++) {
+   keyboard->focus = NULL;
 
-      for (j = 0; j < 10; j++) {
+   for (i = 0; i < ROADMAP_KEYBOARD_ROWS; i++) {
 
-         k = (10 * i) + j;
+      for (j = 0; j < ROADMAP_KEYBOARD_COLUMNS; j++) {
+
+         k = (ROADMAP_KEYBOARD_COLUMNS * i) + j;
+
+         if (keymap[k] == 0) return keyboard;
 
          button = roadmap_keyboard_add_key (&keyboard->keys[k], keymap[k]);
          gtk_table_attach_defaults

@@ -85,7 +85,6 @@ static gint roadmap_keyboard_pressed (GtkWidget *w, gpointer data) {
 
          gtk_editable_delete_text (GTK_EDITABLE(keyboard->focus), 0, -1);
       }
-      gtk_widget_grab_focus (keyboard->focus);
    }
 
    return FALSE;
@@ -111,6 +110,8 @@ static GtkWidget *roadmap_keyboard_add_key (RoadMapKey *key, char character) {
    label[1] = 0;
 
    key->button = gtk_button_new_with_label (label);
+
+   GTK_WIDGET_UNSET_FLAGS (key->button, GTK_CAN_FOCUS);
 
    gtk_signal_connect (GTK_OBJECT(key->button),
                        "clicked",
