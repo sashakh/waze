@@ -892,16 +892,23 @@ CONFIGURATION:
          Format: RoadMap format string
          Default: flite -t '%N'
 
-     Accuracy.GPS:
+     Accuracy.GPS Position:
 
          Description: GPS's estimated position error (worst case)
          Format: integer
-         Default: 1000
-         Comment: the unit depends on the selected one (feet or meters),
+         Default: 300
+         Comment: the unit depends on the selected unit system (feet or meter).
                   the default here being for feet. This default accuracy
                   can be adjusted to the actual GPS estimate if a Garmin
                   GPS receiver is used.
                   This is not used yet (reserved for fuzzy logic navigation).
+
+     Accuracy.GPS Speed:
+
+         Description: GPS's speed accuracy.
+         Format: integer
+         Default: 4
+         Comment: the unit depends on the selected unit system (ft/s or m/s).
 
      Accuracy.Confirm:
 

@@ -15,6 +15,21 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mailing List</a>
 <HR> <BR>
+<P>Roadmap v1.0rc6 (June 2, 2003): 
+<UL>
+  <LI>This is a brown bag version: fix 3 regressions and one old bug found
+      after a single trip (with a brand new GPS receiver :-).
+  <LI>Voice was silenced.
+  <LI>Don't consider the direction if the speed is at the noise level. In
+      this case the direction is pure junk because the only movement is
+      GPS errors.
+  <LI>When a sign is shown on more than one line, the text was truncated
+      to its first line after 1 second. In fact, the text was truncated
+      after first displayed: any refresh thereafter show the damage.
+  <LI>The old bug: the number of parameters in the NMEA GPGSV sentence
+      actually depends on the number of satellites listed, it is not
+      always greater than 9.
+</UL>
 <P>Roadmap v1.0rc5 (June 1, 2003): 
 <UL>
   <LI>Integrated the "find by intersection" feature by Latchesar Ionkov:
