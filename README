@@ -45,6 +45,13 @@ INTRODUCTION:
    If you do need the complete set, please drop an email to the author.
 
 
+WARNING:
+
+   Making the toolbar visible may crash the Qt version of RoadMap. For
+   those of you using Qt, I strongly recommend not activating the toolbar
+   (set "General.Toolbar" to "no" in the preferences file).
+
+
 DEPENDENCIES:
 
    RoadMap gets the current location from a GPS receiver, using the NMEA 0183
