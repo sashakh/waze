@@ -19,58 +19,59 @@ dotversion=`echo $1 | tr _ .`
 PROJROOT=~/sourceforge
 
 RELEASE=releases
+ROADMAP=roadmap-${dotversion}
 
-RDM_SRC="roadmap/src/Makefile
-         roadmap/src/app_a02.txt
-         roadmap/src/usstates.txt
-         roadmap/src/*.[ch]
-         roadmap/src/gtk/Makefile
-         roadmap/src/gtk/*.[ch]
-         roadmap/src/gtk2/Makefile
-         roadmap/src/gtk2/*.[ch]
-         roadmap/src/qt/Makefile
-         roadmap/src/qt/*.[ch]
-         roadmap/src/qt/*.cc
-         roadmap/src/qt/ipkg/zroad*
-         roadmap/src/unix/Makefile
-         roadmap/src/unix/*.[ch]
-         roadmap/src/ipkg/mkipkg
-         roadmap/src/ipkg/INSTALL
-         roadmap/src/ipkg/roadmap*"
+RDM_SRC="${ROADMAP}/src/Makefile
+         ${ROADMAP}/src/app_a02.txt
+         ${ROADMAP}/src/usstates.txt
+         ${ROADMAP}/src/*.[ch]
+         ${ROADMAP}/src/gtk/Makefile
+         ${ROADMAP}/src/gtk/*.[ch]
+         ${ROADMAP}/src/gtk2/Makefile
+         ${ROADMAP}/src/gtk2/*.[ch]
+         ${ROADMAP}/src/qt/Makefile
+         ${ROADMAP}/src/qt/*.[ch]
+         ${ROADMAP}/src/qt/*.cc
+         ${ROADMAP}/src/qt/ipkg/zroad*
+         ${ROADMAP}/src/unix/Makefile
+         ${ROADMAP}/src/unix/*.[ch]
+         ${ROADMAP}/src/ipkg/mkipkg
+         ${ROADMAP}/src/ipkg/INSTALL
+         ${ROADMAP}/src/ipkg/roadmap*"
 
-RDM_CFG="roadmap/src/preferences
-         roadmap/src/schema
-         roadmap/src/sprites
-         roadmap/src/*.png
-         roadmap/src/roadmap.desktop
-         roadmap/src/roadmap.menu
-         roadmap/src/icons/Makefile
-         roadmap/src/icons/rm_*.xpm
-         roadmap/src/icons/rm_*.png"
+RDM_CFG="${ROADMAP}/src/preferences
+         ${ROADMAP}/src/schema
+         ${ROADMAP}/src/sprites
+         ${ROADMAP}/src/*.png
+         ${ROADMAP}/src/roadmap.desktop
+         ${ROADMAP}/src/roadmap.menu
+         ${ROADMAP}/src/icons/Makefile
+         ${ROADMAP}/src/icons/rm_*.xpm
+         ${ROADMAP}/src/icons/rm_*.png"
 
-RDM_SH="roadmap/src/rdmdownload
-        roadmap/src/rdmgetall
-        roadmap/src/rdmgenmaps
-        roadmap/src/rdmcompare"
+RDM_SH="${ROADMAP}/src/rdmdownload
+        ${ROADMAP}/src/rdmgetall
+        ${ROADMAP}/src/rdmgenmaps
+        ${ROADMAP}/src/rdmcompare"
 
-RDM_BIN="roadmap/src/usdir.rdm
-         roadmap/src/usc06075.rdm
-         roadmap/src/gtk/gtkroadmap
-         roadmap/src/gtk/gtkroadgps
-         roadmap/src/gtk2/gtkroadmap
-         roadmap/src/gtk2/gtkroadgps
-         roadmap/src/qt/qtroadmap
-         roadmap/src/qt/qtroadgps
-         roadmap/src/buildmap
-         roadmap/src/buildus"
+RDM_BIN="${ROADMAP}/src/usdir.rdm
+         ${ROADMAP}/src/usc06075.rdm
+         ${ROADMAP}/src/gtk/gtkroadmap
+         ${ROADMAP}/src/gtk/gtkroadgps
+         ${ROADMAP}/src/gtk2/gtkroadmap
+         ${ROADMAP}/src/gtk2/gtkroadgps
+         ${ROADMAP}/src/qt/qtroadmap
+         ${ROADMAP}/src/qt/qtroadgps
+         ${ROADMAP}/src/buildmap
+         ${ROADMAP}/src/buildus"
 
-RDM_DOC="roadmap/AUTHORS
-         roadmap/BUGS
-         roadmap/COPYING
-         roadmap/README
-         roadmap/TODO"
+RDM_DOC="${ROADMAP}/AUTHORS
+         ${ROADMAP}/BUGS
+         ${ROADMAP}/COPYING
+         ${ROADMAP}/README
+         ${ROADMAP}/TODO"
 
-RDM_HELP="roadmap/web/manual.html roadmap/web/apt_toc.gif"
+RDM_HELP="${ROADMAP}/web/manual.html ${ROADMAP}/web/apt_toc.gif"
 
 RDM_IPK="arm/roadmap/ipkg/roadmap_${dotversion}_arm.ipk"
 
@@ -78,9 +79,7 @@ RDM_IPK="arm/roadmap/ipkg/roadmap_${dotversion}_arm.ipk"
 cd $PROJROOT
 
 mkdir -p $RELEASE
-
-roadmap/src/ipkg/mkipkg $dotversion
-echo "Done with ipkg"
+ln -s roadmap ${ROADMAP}
 
 rm -f roadmap/src/*.rdm
 for i in usdir usc06075
@@ -93,7 +92,7 @@ rm -f $RELEASE/roadmap_${version}_doc.tar*
 cp roadmap/src/ipkg/INSTALL roadmap/INSTALL.familiar
 aptconvert -toc roadmap/web/manual.html roadmap/README
 aptconvert -toc roadmap/web/familiar.html roadmap/src/ipkg/INSTALL
-tar cf $RELEASE/roadmap_${version}_doc.tar  $RDM_DOC roadmap/web roadmap/INSTALL.familiar
+tar cf $RELEASE/roadmap_${version}_doc.tar $RDM_DOC ${ROADMAP}/web ${ROADMAP}/INSTALL.familiar
 rm -f roadmap/INSTALL.familiar
 
 echo "Creating tar ball for section src ..."
@@ -105,11 +104,14 @@ rm -f $RELEASE/roadmap_${version}_i686.tar*
 tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_DOC $RDM_HELP
 
 echo "Creating tar ball for section armv4l ..."
+roadmap/src/ipkg/mkipkg $dotversion
+echo "  Done with ipkg"
+
 rm -f $RELEASE/roadmap_${version}_armv4l.tar*
 rm -f roadmap/*.ipk
 cp $RDM_IPK roadmap
 cp roadmap/src/ipkg/INSTALL roadmap
-tar cf $RELEASE/roadmap_${version}_armv4l.tar roadmap/*.ipk $RDM_DOC roadmap/INSTALL
+tar cf $RELEASE/roadmap_${version}_armv4l.tar ${ROADMAP}/*.ipk $RDM_DOC ${ROADMAP}/INSTALL
 rm -f roadmap/*.ipk roadmap/INSTALL
 
 rm -f roadmap/src/*.rdm 
@@ -122,4 +124,6 @@ do
   echo "Compressing tar ball for section $x ..."
   gzip -9 roadmap_${version}_$x.tar
 done
+
+rm -f ${ROADMAP}
 
