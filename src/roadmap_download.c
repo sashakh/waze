@@ -114,7 +114,7 @@ static int roadmap_download_request (int size) {
 
 static void roadmap_download_format_size (char *image, int value) {
 
-   if (value > (1024 * 1024)) {
+   if (value > (10 * 1024 * 1024)) {
       sprintf (image, "%dMB", value / (1024 * 1024));
    } else {
       sprintf (image, "%dKB", value / 1024);
