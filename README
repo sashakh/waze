@@ -252,14 +252,15 @@ USAGE:
    
        Do not show the polygons (parks, hospitals, malls, airports, etc..).
 
+   -geometry=WIDTHxHEIGHT
    --geometry=WIDTHxHEIGHT
    --geometry:WINDOW=WIDTHxHEIGHT
    
        Set the geometry of a specific RoadMap's window, according to its
-       title. The first form sets the size of the main windows (otherwise
-       called "Main"). If the window's title include spaces, dashes can be
-       used in place of the spaces (the goal is to be shell friendly). This
-       option is sticky.
+       title. The two first forms set the size of the main windows
+       (otherwise called "Main"). If the window's title include spaces,
+       dashes can be used in place of the spaces (the goal here is to be
+       shell friendly). This option is sticky.
 
    --no-toolbar
    
@@ -272,7 +273,10 @@ USAGE:
 
    --gps=URL
    
-       Use a specific GPS source. This option is sticky.
+       Use a specific GPS source. This option is not sticky: it overrides
+       the preferences setting this time, but the rpeferences setting is
+       not modified. The main use of this option is to rerun GPS logs
+       created using roadgps.
 
    --debug
    
@@ -281,6 +285,10 @@ USAGE:
    --verbose
    
        Print all informational traces.
+
+   --help
+
+       Show a description of all command line options.
 
    The options marked as "sticky" remain in effect the next time RoadMap
    is run. The use of the option actually changes the RoadMap preferences.
