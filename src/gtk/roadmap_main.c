@@ -120,6 +120,11 @@ void roadmap_main_set_window_size (GtkWidget *w, int width, int height) {
 }
 
 
+void roadmap_main_toggle_full_screen (void) {
+   /* Not implemented in GTK 1.2. */
+}
+
+
 void roadmap_main_new (const char *title, int width, int height) {
 
    if (RoadMapMainBox == NULL) {

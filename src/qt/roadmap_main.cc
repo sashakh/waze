@@ -133,6 +133,10 @@ void roadmap_main_set_status(const char *text) {
 	}
 }
 
+void roadmap_main_toggle_full_screen (void) {
+	// Not yet implemented (??)
+}
+
 void roadmap_main_exit(void) {
 	roadmap_start_exit();
 	exit(0);

@@ -120,6 +120,19 @@ void roadmap_main_set_window_size (GtkWidget *w, int width, int height) {
 }
 
 
+void roadmap_main_toggle_full_screen (void) {
+
+   static int RoadMapIsFullScreen = 0;
+
+   if (RoadMapIsFullScreen) {
+      gtk_window_unfullscreen (GTK_WINDOW(RoadMapMainWindow));
+      RoadMapIsFullScreen = 0;
+   } else {
+      gtk_window_fullscreen (GTK_WINDOW(RoadMapMainWindow));
+      RoadMapIsFullScreen = 1;
+   }
+}
+
 void roadmap_main_new (const char *title, int width, int height) {
 
    if (RoadMapMainBox == NULL) {

@@ -313,6 +313,9 @@ static RoadMapFactory RoadMapStartToolbar[] = {
 
    {RoadMapFactorySeparator, NULL, NULL},
 
+   {"F",
+       "Toggle the window full screen (if the window manager agrees)",
+        roadmap_main_toggle_full_screen},
    {"R-",
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
    {"R+",
@@ -340,6 +343,8 @@ static RoadMapFactory RoadMapStartKeyBinding[] = {
    {"-", NULL, roadmap_screen_zoom_out},
    {"R", NULL, roadmap_screen_zoom_reset},
    {"r", NULL, roadmap_screen_zoom_reset},
+   {"F", NULL, roadmap_main_toggle_full_screen},
+   {"f", NULL, roadmap_main_toggle_full_screen},
    {"Q", NULL, roadmap_main_exit},
    {"q", NULL, roadmap_main_exit},
 

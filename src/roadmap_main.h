@@ -55,6 +55,8 @@ void roadmap_main_remove_input (int fd);
 
 void roadmap_main_set_status (const char *text);
 
+void roadmap_main_toggle_full_screen (void);
+
 void roadmap_main_exit (void);
 
 #endif /* INCLUDE__ROADMAP_MAIN__H */
