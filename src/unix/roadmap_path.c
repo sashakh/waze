@@ -181,19 +181,22 @@ void roadmap_path_set (const char *path) {
          length = next_item - item;
       }
 
-      if (roadmap_file_exists(NULL, expand)) {
+      RoadMapPathItem[i] = malloc (length + expand_length + 1);
+      roadmap_check_allocated(RoadMapPathItem[i]);
 
-         RoadMapPathItem[i] = malloc (length + expand_length + 1);
-         roadmap_check_allocated(RoadMapPathItem[i]);
+      strcpy (RoadMapPathItem[i], expand);
+      strncat (RoadMapPathItem[i], item, length);
 
-         strcpy (RoadMapPathItem[i], expand);
-         strncat (RoadMapPathItem[i], item, length);
+      (RoadMapPathItem[i])[length+expand_length] = 0;
 
-         (RoadMapPathItem[i])[length+expand_length] = 0;
-
+      if (roadmap_file_exists(NULL, RoadMapPathItem[i])) {
          ++i;
+      } else {
+         free (RoadMapPathItem[i]);
+         RoadMapPathItem[i] = NULL;
       }
    }
+   RoadMapPathCount = i;
 }
 
 
