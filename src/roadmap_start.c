@@ -307,6 +307,8 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
    {"Destination",
        "Show the map around the destination point", roadmap_start_show_destination},
+   {"GPS Position",
+       "Show the map around the GPS position", roadmap_start_show_gps},
 
    {RoadMapFactorySeparator, NULL, NULL},
 
