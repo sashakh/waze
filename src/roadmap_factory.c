@@ -26,6 +26,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "roadmap.h"
 #include "roadmap_config.h"
@@ -46,21 +47,31 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
 const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
-static const RoadMapFactory *RoadMapFactoryBindings = NULL;
+
+struct RoadMapFactoryKeyMap {
+
+   const char          *key;
+   const RoadMapAction *action;
+};
+
+static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 
 
 static void roadmap_factory_keyboard (char *key) {
 
-   const RoadMapFactory *binding;
+   const struct RoadMapFactoryKeyMap *binding;
 
    if (RoadMapFactoryBindings == NULL) return;
 
-   for (binding = RoadMapFactoryBindings; binding->name != NULL; ++binding) {
+   for (binding = RoadMapFactoryBindings; binding->key != NULL; ++binding) {
 
-      if (strcasecmp (binding->name, key) == 0) {
-         if (binding->callback != NULL) {
-            (*binding->callback) ();
-            break;
+      if (strcasecmp (binding->key, key) == 0) {
+         if (binding->action != NULL) {
+            RoadMapCallback callback = binding->action->callback;
+            if (callback != NULL) {
+               (*callback) ();
+               break;
+            }
          }
       }
    }
@@ -81,9 +92,37 @@ static void roadmap_factory_add_help (void) {
 }
 
 
-void roadmap_factory (const RoadMapFactory *menu,
-                      const RoadMapFactory *toolbar,
-                      const RoadMapFactory *shortcuts) {
+static const RoadMapAction *roadmap_factory_find_action
+                              (const RoadMapAction *actions, const char *item) {
+
+   while (actions->name != NULL) {
+      if (strcmp (actions->name, item) == 0) return actions;
+      ++actions;
+   }
+
+   return NULL;
+}
+
+
+static const char *roadmap_factory_terse (const RoadMapAction *action) {
+
+   if (action->label_terse != NULL) {
+      return action->label_terse;
+   }
+   if (action->label_short != NULL) {
+      return action->label_short;
+   }
+   return action->label_long;
+}
+
+
+void roadmap_factory (const RoadMapAction  *actions,
+                      const char           *menu[],
+                      const char           *toolbar[],
+                      const char           *shortcuts[]) {
+
+   int i;
+   int prefix = strlen(ROADMAP_MENU);
 
    int use_toolbar =
             (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralToolbar),
@@ -94,45 +133,127 @@ void roadmap_factory (const RoadMapFactory *menu,
                          "yes") == 0);
 
 
-   while (menu->name != NULL) {
+   if (RoadMapFactoryBindings != NULL) {
+      roadmap_log (ROADMAP_FATAL, "RoadMap factory was called twice");
+   }
 
-      if (menu->callback == NULL) {
-         if (menu->name == RoadMapFactorySeparator) {
-            roadmap_main_add_separator ();
-         } else if (menu->name == RoadMapFactoryHelpTopics) {
-            roadmap_factory_add_help ();
-         } else {
-            roadmap_main_add_menu (menu->name);
-         }
+   for (i = 0; menu[i] != NULL; ++i) {
+
+      const char *item = menu[i];
+
+      if (item == RoadMapFactorySeparator) {
+
+         roadmap_main_add_separator ();
+
+      } else if (item == RoadMapFactoryHelpTopics) {
+
+         roadmap_factory_add_help ();
+
+      } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
+
+         roadmap_main_add_menu (item + prefix);
+
       } else {
-         roadmap_main_add_menu_item (menu->name, menu->tip, menu->callback);
-      }
+         const RoadMapAction *this_action;
 
-      menu += 1;
+         this_action = roadmap_factory_find_action (actions, item);
+         if (this_action != NULL) {
+            roadmap_main_add_menu_item (this_action->label_long,
+                                        this_action->tip,
+                                        this_action->callback);
+         }
+      }
    }
 
    if (use_toolbar) {
 
-      while (toolbar->name != NULL) {
+      for (i = 0; toolbar[i] != NULL; ++i) {
 
-         if (toolbar->callback == NULL) {
-            if (toolbar->name == RoadMapFactorySeparator) {
-               roadmap_main_add_tool_space ();
-            }
-         } else if (use_icons) {
-            roadmap_main_add_tool
-               (toolbar->name, toolbar->icon, toolbar->tip, toolbar->callback);
+         const char *item = toolbar[i];
+
+         if (item == RoadMapFactorySeparator) {
+
+            roadmap_main_add_tool_space ();
+
          } else {
-            roadmap_main_add_tool
-               (toolbar->name, NULL, toolbar->tip, toolbar->callback);
-         }
 
-         toolbar += 1;
+            const RoadMapAction *this_action;
+
+            this_action = roadmap_factory_find_action (actions, item);
+
+            if (this_action != NULL) {
+               roadmap_main_add_tool (roadmap_factory_terse(this_action),
+                                      (use_icons) ? this_action->name : NULL,
+                                      this_action->tip,
+                                      this_action->callback);
+            }
+         }
       }
    }
 
-   RoadMapFactoryBindings = shortcuts;
+   /* Count how many shortcuts we have to process. */
+   for (i = 0; shortcuts[i] != NULL; ++i) ;
 
-   roadmap_main_set_keyboard (roadmap_factory_keyboard);
+   /* Create the keyboard mapping table. */
+
+   if (i > 0) {
+
+      int j = 0;
+
+      RoadMapFactoryBindings = 
+         (struct RoadMapFactoryKeyMap *)
+             calloc (i+1, sizeof(struct RoadMapFactoryKeyMap));
+      roadmap_check_allocated(RoadMapFactoryBindings);
+
+      for (i = 0; shortcuts[i] != NULL; ++i) {
+
+         char *text;
+         char *separator;
+         const RoadMapAction *this_action;
+
+         text = strdup (shortcuts[i]);
+         roadmap_check_allocated(text);
+
+         separator = strstr (text, ROADMAP_MAPPED_TO);
+         if (separator != NULL) {
+
+            char *p;
+
+            /* Separate the name of the key from the name of the action. */
+
+            for (p = separator; *p <= ' '; --p) *p = 0;
+
+            p = separator + strlen(ROADMAP_MAPPED_TO);
+            while (*p <= ' ') ++p;
+            this_action = roadmap_factory_find_action (actions, p);
+
+            if (this_action != NULL) {
+               RoadMapFactoryBindings[j].key = text;
+               RoadMapFactoryBindings[j].action = this_action;
+               ++j;
+            }
+         }
+      }
+      RoadMapFactoryBindings[j].key = NULL;
+
+      roadmap_main_set_keyboard (roadmap_factory_keyboard);
+   }
+}
+
+
+void roadmap_factory_show_keymap (void) {
+
+   const struct RoadMapFactoryKeyMap *binding;
+
+   printf ("RoadMap button & key bindings:\n\n");
+
+   for (binding = RoadMapFactoryBindings; binding->key != NULL; ++binding) {
+
+      const RoadMapAction *action = binding->action;
+
+      if (action != NULL) {
+         printf ("  %-20.20s\t%s.\n", binding->key, action->tip);
+      }
+   }
 }
 

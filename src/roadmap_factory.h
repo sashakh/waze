@@ -26,22 +26,34 @@
 
 #include "roadmap_main.h"
 
+
 typedef struct {
 
    const char *name;
-   const char *icon;
+   const char *label_long;
+   const char *label_short;
+   const char *label_terse;
    const char *tip;
 
    RoadMapCallback callback;
 
-} RoadMapFactory;
+} RoadMapAction;
+
+
+#define ROADMAP_MENU      "/"
+#define ROADMAP_SUBMENU   "//"
+
+#define ROADMAP_MAPPED_TO " = "
 
 extern const char RoadMapFactorySeparator[];
 extern const char RoadMapFactoryHelpTopics[];
 
-void roadmap_factory (const RoadMapFactory *menu,
-                      const RoadMapFactory *toolbar,
-                      const RoadMapFactory *shortcuts);
+void roadmap_factory (const RoadMapAction *actions,
+                      const char          *menu[],
+                      const char          *toolbar[],
+                      const char          *shortcuts[]);
+
+void roadmap_factory_show_keymap (void);
 
 #endif /* INCLUDE__ROADMAP_FACTORY__H */
 
