@@ -69,6 +69,9 @@ static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
 
 
+static int GtkIconsInitialized = 0;
+
+
 #ifdef ROADMAP_USES_GPE
 
 static struct gpe_icon RoadMapGpeIcons[] = {
@@ -89,15 +92,14 @@ static struct gpe_icon RoadMapGpeIcons[] = {
    {NULL, NULL}
 };
 
-static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
 
-   static int GpeIconsInitialized = 0;
+static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
 
    if (icon == NULL) return NULL;
 
-   if (! GpeIconsInitialized) {
+   if (! GtkIconsInitialized) {
       if (gpe_load_icons (RoadMapGpeIcons) == FALSE) return NULL;
-      GpeIconsInitialized = 1;
+      GtkIconsInitialized = 1;
    }
    return gpe_render_icon (RoadMapMainWindow->style, gpe_find_icon (icon));
 }
@@ -111,6 +113,7 @@ static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
       const char *icon_file = roadmap_path_search_icon (icon);
 
       if (icon_file != NULL) {
+         GtkIconsInitialized = 1;
          return gtk_image_new_from_file (icon_file);
       }
    }
@@ -316,6 +319,16 @@ void roadmap_main_add_tool (const char *label,
                             label, tip, NULL,
                             roadmap_main_toolbar_icon (icon),
                             (GtkSignalFunc) roadmap_main_activate, callback);
+
+   if (gdk_screen_height() < 550)
+   {
+      /* When using a small screen, we want either the labels or the icons,
+       * but not both (small screens are typical with PDAs).
+       */
+      gtk_toolbar_set_style
+         (GTK_TOOLBAR(RoadMapMainToolbar),
+          GtkIconsInitialized?GTK_TOOLBAR_ICONS:GTK_TOOLBAR_TEXT);
+   }
 }
 
 
