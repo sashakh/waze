@@ -131,6 +131,49 @@ static BuildMapRange *buildmap_range_new (void) {
    return Range[block] + offset;
 }
 
+
+void buildmap_range_merge (int frleft,  int toleft,
+                           int frright, int toright,
+                           int *from,   int *to) {
+
+   int fradd = frright;
+   int toadd = toright;
+
+   if (fradd < toadd) {
+      if (fradd > frleft) fradd = frleft;
+      if (toadd < toleft) toadd = toleft;
+
+      /* The RoadMap logic requires that the merged from and to
+       * have different odd/even properties: this is how RoadMap
+       * knows the range covers both sides of the street.
+       * So we make the range somewhat larger by one.
+       */
+      if ((fradd & 1) == (toadd & 1)) {
+         if ((fradd & 1) == 1) --fradd;
+         if ((toadd & 1) == 0) ++toadd;
+      }
+
+   } else {
+
+      if (fradd < frleft) fradd = frleft;
+      if (toadd > toleft) toadd = toleft;
+
+      /* The RoadMap logic requires that the merged from and to
+       * have different odd/even properties: this is how RoadMap
+       * knows the range covers both sides of the street.
+       * So we make the range somewhat larger by one.
+       */
+      if ((fradd & 1) == (toadd & 1)) {
+         if ((fradd & 1) == 0) ++fradd;
+         if ((toadd & 1) == 1) --toadd;
+      }
+   }
+
+   *from = fradd;
+   *to   = toadd;
+}
+
+
 int buildmap_range_add
        (int line, int street,
         int fradd, int toadd, RoadMapZip zip, RoadMapString city) {

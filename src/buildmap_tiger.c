@@ -426,16 +426,12 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 
                      if (placel == placer) {
 
-                        int fradd = fraddr;
-                        int toadd = toaddr;
+                        int fradd;
+                        int toadd;
 
-                        if (fradd < toadd) {
-                           if (fradd > fraddl) fradd = fraddl;
-                           if (toadd < toaddl) toadd = toaddl;
-                        } else {
-                           if (fradd < fraddl) fradd = fraddl;
-                           if (toadd > toaddl) toadd = toaddl;
-                        }
+                        buildmap_range_merge (fraddl, toaddl,
+                                              fraddr, toaddr,
+                                              &fradd, &toadd);
 
                         zip = buildmap_zip_add (zipl, frlong, frlat);
 
