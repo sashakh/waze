@@ -40,6 +40,7 @@
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
 #include "roadmap_message.h"
+#include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_voice.h"
 
@@ -228,6 +229,16 @@ static RoadMapSign *roadmap_display_search_sign (const char *title) {
 }
 
 
+static void roadmap_display_highlight (const RoadMapPosition *position) {
+
+    RoadMapGuiPoint point;
+    
+    roadmap_math_coordinate (position, &point);
+    roadmap_math_rotate_coordinates (1, &point);
+    roadmap_sprite_draw ("Highlight", &point, 0);
+}
+
+
 static void roadmap_display_sign (RoadMapSign *sign) {
 
     RoadMapGuiPoint points[7];
@@ -309,7 +320,10 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         points[6].y = points[1].y;
 
         count = 7;
-        
+
+        roadmap_display_highlight (&sign->endpoint[0]);
+        roadmap_display_highlight (&sign->endpoint[1]);
+
     } else {
         
         points[0].x = (screen_width - sign_width) / 2;
