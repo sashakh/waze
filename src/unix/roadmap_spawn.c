@@ -46,6 +46,13 @@ static char *RoadMapSpawnPath = NULL;
 
 static RoadMapList RoadMapSpawnActive = ROADMAP_LIST_EMPTY;
 
+/* The GPE environment on the iPAQ does not seem to setup
+ * the process group right, and waitpid() does not work as
+ * a result. Detect when things do not seem normal and do
+ * some additional checks when this occurs.
+ */
+static int RoadMapSpawnDubiousWait = 0;
+
 
 static void roadmap_spawn_set_arguments
                (int argc, char *argv[], const char *command_line) {
@@ -97,6 +104,44 @@ end_of_string:
 }
 
 
+static void roadmap_spawn_cleanup (void) {
+
+    int pid;
+    RoadMapFeedback *item;
+
+
+    pid = waitpid (-1, NULL, WNOHANG);
+
+    while (pid > 0) {
+
+       roadmap_log (ROADMAP_DEBUG, "child %d exited", pid);
+
+       for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
+            item != NULL;
+            item = (RoadMapFeedback *)item->link.next) {
+
+          if (pid == item->child) {
+
+             roadmap_list_remove (&RoadMapSpawnActive, &item->link);
+
+             item->handler (item->data);
+             break;
+          }
+       }
+
+       pid = waitpid (-1, NULL, WNOHANG);
+    }
+
+    if ((pid < 0) && (RoadMapSpawnActive.first != NULL)) {
+
+       /* We have at least one child, but waitpid() does not
+        * agree. Is waitpid() wrong ?
+        */
+       RoadMapSpawnDubiousWait = 1;
+    }
+}
+
+
 #ifdef ROADMAP_USES_SIGCHLD
 
 static void (*RoadMapSpawnNextHandler) (int signal) = NULL;
@@ -122,7 +167,7 @@ static void roadmap_spawn_child_exit_handler (int signal) {
 
     if (signal != SIGCHLD) return; /* Should never happen. */
 
-    roadmap_spawn_check ();
+    roadmap_spawn_cleanup ();
 
     if (RoadMapSpawnNextHandler != NULL) {
         (*RoadMapSpawnNextHandler) (signal);
@@ -216,30 +261,28 @@ int  roadmap_spawn_with_feedback
 
 void roadmap_spawn_check (void) {
 
-    int pid;
     RoadMapFeedback *item;
 
 
-    pid = waitpid (-1, NULL, WNOHANG);
+#ifndef ROADMAP_USES_SIGCHLD
+    roadmap_spawn_cleanup ();
+#endif
 
-    while (pid > 0) {
-
-       roadmap_log (ROADMAP_DEBUG, "child %d exited", pid);
+    if (RoadMapSpawnDubiousWait) {
 
        for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
             item != NULL;
             item = (RoadMapFeedback *)item->link.next) {
 
-          if (pid == item->child) {
+          if (kill (item->child, 0) < 0) {
 
              roadmap_list_remove (&RoadMapSpawnActive, &item->link);
 
              item->handler (item->data);
-             break;
           }
        }
 
-       pid = waitpid (-1, NULL, WNOHANG);
+       RoadMapSpawnDubiousWait = 0;
     }
 }
 
