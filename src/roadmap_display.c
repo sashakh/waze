@@ -421,13 +421,10 @@ int roadmap_display_activate
     if (street != sign->properties.street) {
         roadmap_voice_announce (sign->title);
     }
-   
-    if (message_has_changed || (position != NULL)) {
-        sign->deadline =
-            time(NULL)
-                + roadmap_config_get_integer
-                        (&RoadMapConfigDisplayDuration);
-    }
+
+    sign->deadline =
+        time(NULL)
+            + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
     
     if (message_has_changed) {
 

@@ -234,7 +234,20 @@ static const RoadMapPosition *roadmap_navigate_next_crossing
 #endif
     
     if (crossing == RoadMapConfirmedStreet.crossing) {
+        if (crossing == NULL) {
+            /* It is confirmed that we are not headed toward one of
+             * the street ends. Time to cancel any announcement, if any.
+             */
+            roadmap_display_hide ("Approach");
+        }
         return NULL;
+    }
+
+    if (crossing != NULL) {
+        /* This crossing is different from the one before.
+         * We might have made an announcement: time to cancel it.
+         */
+        roadmap_display_hide ("Approach");
     }
     
     RoadMapConfirmedStreet.crossing = crossing;
