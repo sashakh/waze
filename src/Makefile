@@ -202,7 +202,7 @@ clean: cleanone
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			make -C $$module cleanone ; \
+			make -C $$module cleanone || exit 1; \
 		fi ; \
 	done
 	if [ -d unix ] ; then make -C unix cleanone ; fi
@@ -238,7 +238,7 @@ modules:
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			make -C $$module STDCFLAGS="$(CFLAGS)" all ; \
+			make -C $$module STDCFLAGS="$(CFLAGS)" all || exit 1; \
 		fi ; \
 	done
 
