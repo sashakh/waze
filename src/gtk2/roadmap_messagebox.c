@@ -53,6 +53,8 @@ void roadmap_messagebox (const char *title, const char *text) {
 
    label = gtk_label_new(text);
 
+   gtk_label_set_justify (GTK_LABEL(label), GTK_JUSTIFY_CENTER);
+
    ok = gtk_button_new_with_label ("Ok");
 
    GTK_WIDGET_SET_FLAGS (ok, GTK_CAN_DEFAULT);
