@@ -1,0 +1,17 @@
+Source: roadmap
+Section: utils
+Priority: optional
+Maintainer: Petter Reinholdtsen <pere@debian.org>
+Build-Depends: debhelper (>> 3.0.0), dpatch
+Standards-Version: 3.5.2
+
+Package: roadmap
+Architecture: any
+Depends: ${shlibs:Depends}, gpsdrive
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
+
+Package: roadmap-doc
+Architecture: all
+Description: Documentation for roadmap
+ <insert long description, indented with spaces>

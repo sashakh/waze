@@ -1,0 +1,49 @@
+#! /bin/sh -e
+## 20_more_warnings.dpatch by Petter Reinholdtsen <pere@hungry.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+##
+## DP: Add GCC flags to get more compile warnings
+
+[ -f debian/patches/00patch-opts ] && . debian/patches/00patch-opts
+patch_opts="${patch_opts:--f --no-backup-if-mismatch}"
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch $patch_opts -p0 < $0;;
+       -unpatch) patch $patch_opts -p0 -R < $0;;
+        *)
+                echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+                exit 1;;
+esac
+
+exit 0
+@DPATCH@
+Index: src/Makefile
+===================================================================
+RCS file: /cvsroot/roadmap/roadmap/src/Makefile,v
+retrieving revision 1.37
+diff -u -3 -p -u -r1.37 Makefile
+--- src/Makefile	10 Nov 2004 08:44:22 -0000	1.37
++++ src/Makefile	14 Nov 2004 09:59:51 -0000
+@@ -3,14 +3,14 @@ ifeq ($(MODE),DEBUG)
+ # Memory leak detection using mtrace:
+ # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
+ # then use the mtrace tool to analyze the output.
+-   MODECFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
++   MODECFLAGS=-g -W -Wall -DROADMAP_DEBUG_HEAP
+    MODELDFLAGS=
+ else
+ ifeq ($(MODE),PROFILE)
+-   MODECFLAGS=-g -Wall -pg -fprofile-arcs -g
++   MODECFLAGS=-g -W -Wall -pg -fprofile-arcs -g
+    MODELDFLAGS=-pg
+ else
+-   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall $(OPTIONS)
++   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer -W -Wall $(OPTIONS)
+    MODELDFLAGS=
+ endif
+ endif

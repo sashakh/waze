@@ -1,0 +1,3 @@
+# First try on watch file.  No idea if this work or not
+version=2
+http://prdownloads.sourceforge.net/roadmap/roadmap_(.*)_src\.tar\.gz debian uupdate
