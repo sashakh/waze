@@ -95,6 +95,12 @@ install: build
 	# Add here commands to install the package into debian/roadmap.
 	$(MAKE) -C src/$(GUI) $(BUILDFLAGS) DESTDIR=$(DESTDIR) pkgbindir=/usr/lib/roadmap install
 
+	# Remove symlinks and move binaries in place
+	cd $(DESTDIR)/usr/bin; \
+		rm roadmap roadgps ; \
+		mv gtkroadmap roadmap ; \
+		mv gtkroadgps roadgps		
+
 	install -m644 manual.html $(DESTDIR)/usr/share/roadmap/manual.html
 
 	dh_movefiles --sourcedir=debian/roadmap
