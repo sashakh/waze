@@ -25,6 +25,15 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   <LI>Integrated the sunrise/sunset calculation from Eric Domazlicky. At
       that time this information is only used for display. In the future
       it may be used to decide between the night and day themes.
+  <LI>A regression was fixed in buildmap: merging address range ended
+      with the wrong city name. The maps on the RoadMap sites are not
+      impacted.
+  <LI>Some cleanup in the RoadMap icon management: the search order is
+      not only more logical, it has also become documented.
+  <LI>Some cleanup in the declutter section: the obscure rules for
+      decluttering polygons and shapes have been replaced with rules
+      based on the visible size of each object. This is step one toward
+      a more sensible declutter management.
 </UL>
 <P>Roadmap v1.0.4 (November 22, 2003):
 <UL>
