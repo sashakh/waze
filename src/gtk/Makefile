@@ -26,7 +26,9 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
 RUNTIME=gtkroadgps gtkroadmap
 
+DESTDIR=
 INSTALLDIR=/usr/local
+bindir=$(INSTALLDIR)/bin
 
 
 # --- Conventional targets ----------------------------------------
@@ -51,14 +53,13 @@ cleanone:
 
 install: all
 	make -C .. install
-	cd $(INSTALLDIR)/bin; rm -f $(RUNTIME) roadmap roadgps
-	cp $(RUNTIME) $(INSTALLDIR)/bin
-	ln -s $(INSTALLDIR)/bin/gtkroadmap $(INSTALLDIR)/bin/roadmap
-	ln -s $(INSTALLDIR)/bin/gtkroadgps $(INSTALLDIR)/bin/roadgps
-	cd $(INSTALLDIR)/bin; chmod a+x $(RUNTIME)
+	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
+	install $(RUNTIME) $(DESTDIR)$(bindir)
+	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
+	ln -s gtkroadgps $(DESTDIR)$(bindir)/roadgps
 
 uninstall:
-	cd $(INSTALLDIR)/bin ; rm -f $(RUNTIME) roadmap roadgps
+	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	make -C .. uninstall
 
 # --- The real targets --------------------------------------------

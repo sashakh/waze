@@ -6,6 +6,7 @@ GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
 GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
 
 RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
+STRIP=strip
 
 WARNFLAGS = -W -Wall
 
@@ -41,6 +42,7 @@ RUNTIME=gtkroadgps gtkroadmap
 
 DESTDIR=
 INSTALLDIR=/usr/local
+bindir=$(INSTALLDIR)/bin
 
 # --- Conventional targets ----------------------------------------
 
@@ -66,14 +68,15 @@ cleanone:
 
 install: all
 	make -C .. install
-	cd $(DESTDIR)$(INSTALLDIR)/bin; rm -f $(RUNTIME) roadmap roadgps
-	cp $(RUNTIME) $(DESTDIR)$(INSTALLDIR)/bin
-	ln -s $(DESTDIR)$(INSTALLDIR)/bin/gtkroadmap $(DESTDIR)$(INSTALLDIR)/bin/roadmap
-	ln -s $(DESTDIR)$(INSTALLDIR)/bin/gtkroadgps $(DESTDIR)$(INSTALLDIR)/bin/roadgps
-	cd $(DESTDIR)$(INSTALLDIR)/bin; chmod a+x $(RUNTIME)
+	$(STRIP) $(RUNTIME)
+	mkdir -p $(DESTDIR)$(bindir)
+	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
+	install $(RUNTIME) $(DESTDIR)$(bindir)
+	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
+	ln -s gtkroadgps $(DESTDIR)$(bindir)/roadgps
 
 uninstall:
-	cd $(DESTDIR)$(INSTALLDIR)/bin ; rm -f $(RUNTIME) roadmap roadgps
+	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	make -C .. uninstall
 
 # --- The real targets --------------------------------------------
