@@ -235,7 +235,8 @@ static gint roadmap_dialog_chosen (gpointer data, GtkMenuItem *w) {
 
 static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
                                                   const char *name,
-                                                  GtkWidget *w) {
+                                                  GtkWidget *w,
+                                                  int expand) {
 
    RoadMapDialogItem parent;
    RoadMapDialogItem child;
@@ -256,6 +257,10 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
       gtk_table_resize (GTK_TABLE(parent->w), parent->count, 2);
    }
 
+   if (expand) {
+      expand = GTK_EXPAND+GTK_FILL+GTK_SHRINK;
+   }
+
    if (name[0] != '.') {
 
       gtk_table_attach_defaults (GTK_TABLE(parent->w),
@@ -264,14 +269,12 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
 
       gtk_table_attach (GTK_TABLE(parent->w),
                         w, 1, 2, child->rank, child->rank+1,
-                        GTK_EXPAND+GTK_FILL+GTK_SHRINK,
-                        GTK_EXPAND+GTK_FILL+GTK_SHRINK, 2, 2);
+                        GTK_EXPAND+GTK_FILL+GTK_SHRINK, expand, 2, 2);
    } else {
 
       gtk_table_attach (GTK_TABLE(parent->w),
                         w, 0, 2, child->rank, child->rank+1,
-                        GTK_EXPAND+GTK_FILL+GTK_SHRINK,
-                        GTK_EXPAND+GTK_FILL+GTK_SHRINK, 2, 2);
+                        GTK_EXPAND+GTK_FILL+GTK_SHRINK, expand, 2, 2);
    }
 
    child->w = w;
@@ -320,7 +323,7 @@ void roadmap_dialog_hide (const char *name) {
 void roadmap_dialog_new_entry (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_entry_new ();
-   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w);
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
 
    child->widget_type = ROADMAP_WIDGET_ENTRY;
 }
@@ -329,7 +332,7 @@ void roadmap_dialog_new_entry (const char *frame, const char *name) {
 void roadmap_dialog_new_label (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_label_new (name);
-   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w);
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
 
    child->widget_type = ROADMAP_WIDGET_LABEL;
 }
@@ -350,7 +353,7 @@ void roadmap_dialog_new_choice (const char *frame,
 
    int i;
    GtkWidget *w = gtk_option_menu_new ();
-   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w);
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
    GtkWidget *menu;
    GtkWidget *menu_item;
    RoadMapDialogSelection *choice;
@@ -395,7 +398,8 @@ void roadmap_dialog_new_list (const char  *frame, const char  *name) {
    GtkWidget *listbox = gtk_list_new ();
    GtkWidget *scrollbox = gtk_scrolled_window_new (NULL, NULL);
 
-   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, scrollbox);
+   RoadMapDialogItem child =
+      roadmap_dialog_new_item (frame, name, scrollbox, 1);
 
    gtk_scrolled_window_add_with_viewport
          (GTK_SCROLLED_WINDOW(scrollbox), listbox);
