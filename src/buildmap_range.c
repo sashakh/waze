@@ -70,6 +70,8 @@ typedef struct {
 } BuildMapRange;
 
 
+static int RangeDuplicates = 0;
+
 static int RangeCount = 0;
 static int RangeMaxStreet = 0;
 static int RangeTableSize = 0;
@@ -245,7 +247,11 @@ void buildmap_range_add_no_address (int line, int street) {
           RangeNoAddress[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
 
        if ((this_noaddr->street == street) && (this_noaddr->line == line)) {
-          buildmap_error (0, "duplicated no-address line");
+
+          if (RangeDuplicates == 0) {
+             buildmap_error (0, "duplicated no-address line");
+          }
+          ++RangeDuplicates;
           return;
        }
    }
@@ -927,8 +933,11 @@ void  buildmap_range_save (void) {
 void buildmap_range_summary (void) {
 
    fprintf (stderr,
-            "-- range table: %d items, %d add, %d bytes used\n",
-            RangeCount, RangeAddCount, RangeCount * sizeof(RoadMapRange));
+            "-- range table: %d items, %d add, %d bytes used, %d duplicates\n",
+            RangeCount,
+            RangeAddCount,
+            RangeCount * sizeof(RoadMapRange),
+            RangeDuplicates);
 }
 
 
