@@ -96,6 +96,8 @@ static struct voice_translation RoadMapVoiceTranslation[] = {
 
 static void roadmap_voice_launch (const char *name, const char *arguments) {
 
+    if (RoadMapVoiceMuted) return;
+
     if ((RoadMapVoiceCurrentCommand != NULL) &&
         (RoadMapVoiceCurrentArguments != NULL) &&
         (strcmp (name, RoadMapVoiceCurrentCommand) == 0) &&
@@ -137,6 +139,8 @@ static void roadmap_voice_queue (const char *name, const char *arguments) {
             free(RoadMapVoiceNextArguments);
         }
         RoadMapVoiceNextArguments = strdup (arguments);
+
+        roadmap_spawn_check ();
 
     } else {
         
@@ -252,7 +256,7 @@ void roadmap_voice_announce (const char *title) {
     char *final;
     char *arguments;
 
-    
+
     if (RoadMapVoiceMuted) return;
 
     RoadMapVoiceActive.handler = roadmap_voice_complete;
@@ -301,10 +305,12 @@ void roadmap_voice_announce (const char *title) {
 
 void roadmap_voice_mute (void) {
     RoadMapVoiceMuted = 1;
+    roadmap_spawn_check ();
 }
 
 void roadmap_voice_enable (void) {
     RoadMapVoiceMuted = 0;
+    roadmap_spawn_check ();
 }
 
 

@@ -45,8 +45,13 @@ static int RoadMapMainInputFile = -1;
 
 static char *RoadMapMainTitle = NULL;
 
-static RoadMapCallback RoadMapMainPeriodicCall = NULL;
-static guint RoadMapMainPeriodicId;
+struct roadmap_main_timer {
+   guint id;
+   RoadMapCallback callback;
+};
+
+#define ROADMAP_MAX_TIMER 16
+static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
 static RoadMapKeyInput RoadMapMainInput = NULL;
 static GtkWidget      *RoadMapMainWindow  = NULL;
@@ -327,21 +332,46 @@ static gboolean roadmap_main_timeout (gpointer data) {
 
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
 
-   RoadMapMainPeriodicCall = callback;
-   RoadMapMainPeriodicId =
-      gtk_timeout_add (interval, roadmap_main_timeout, callback);
+   int index;
+   struct roadmap_main_timer *timer = NULL;
+
+   for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
+
+      if (RoadMapMainPeriodicTimer[index].callback == callback) {
+         return;
+      }
+      if (timer == NULL) {
+         if (RoadMapMainPeriodicTimer[index].callback == NULL) {
+            timer = RoadMapMainPeriodicTimer + index;
+         }
+      }
+   }
+
+   if (timer == NULL) {
+      roadmap_log (ROADMAP_FATAL, "Timer table saturated");
+   }
+
+   timer->id = gtk_timeout_add (interval, roadmap_main_timeout, callback);
+   timer->callback = callback;
 }
 
 
 void roadmap_main_remove_periodic (RoadMapCallback callback) {
 
-   if (RoadMapMainPeriodicCall != callback) {
-      roadmap_log (ROADMAP_ERROR,
-                   "no support for multiple periodic callbacks");
-      return;
+   int index;
+
+   for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
+
+      if (RoadMapMainPeriodicTimer[index].callback == callback) {
+
+         RoadMapMainPeriodicTimer[index].callback = NULL;
+         gtk_timeout_remove (RoadMapMainPeriodicTimer[index].id);
+
+         return;
+      }
    }
-   gtk_timeout_remove (RoadMapMainPeriodicId);
-   RoadMapMainPeriodicId = 0;
+
+   roadmap_log (ROADMAP_ERROR, "timer 0x%08x not found", callback);
 }
 
 

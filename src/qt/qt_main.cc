@@ -58,12 +58,18 @@ void RMapCallback::fire() {
 	}
 }
 
+int  RMapCallback::same(RoadMapCallback cb) {
+	return (callback == cb);
+}
+
 // Implementation of RMapMainWindow class
 RMapMainWindow::RMapMainWindow(const char* name) : QMainWindow(0, name) {
 	currentMenu = 0;
 	spacePressed = false;
-	tm = 0;
-	tcb = 0;
+	for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
+		tm[i] = 0;
+		tcb[i] = 0;
+	}
 	setCaption(name);
 	canvas = new RMapCanvas(this);
 	setCentralWidget(canvas);
@@ -237,28 +243,49 @@ void RMapMainWindow::closeEvent(QCloseEvent* ev) {
 }
 
 void RMapMainWindow::setTimer(int interval, RoadMapCallback callback) {
-	if (tm != 0) {
-		roadmap_log (ROADMAP_ERROR, "no support for multiple timers");
-		return;
+
+	int empty = -1;
+
+	for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
+		if (tm[i] == 0) {
+			empty = i;
+		} else if (tcb[i]->same(callback)) {
+			return;
+		}
 	}
 
-	tm = new QTimer(this);
-	tcb = new RMapCallback(callback);
-	connect(tm, SIGNAL(timeout()), tcb, SLOT(fire()));
-	tm->start(interval, FALSE);
+	if (empty < 0) {
+		roadmap_log (ROADMAP_ERROR, "too many timers");
+	}
+
+	tm[empty] = new QTimer(this);
+	tcb[empty] = new RMapCallback(callback);
+	connect(tm[empty], SIGNAL(timeout()), tcb[empty], SLOT(fire()));
+	tm[empty]->start(interval, FALSE);
 }
 
 void RMapMainWindow::removeTimer(RoadMapCallback callback) {
-	if (tm == 0) {
+
+	int found = -1;
+
+	for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
+		if (tcb[i] != 0) {
+			if (tcb[i]->same(callback)) {
+				found = i;
+				break;
+			}
+		}
+	}
+	if (found < 0) {
 		roadmap_log (ROADMAP_ERROR, "no timer set");
 		return;
 	}
 
-	tm->stop();
-	delete tm;
-	delete tcb;
+	tm[found]->stop();
+	delete tm[found];
+	delete tcb[found];
 
-	tm = 0;
-	tcb = 0;
+	tm[found] = 0;
+	tcb[found] = 0;
 }
 

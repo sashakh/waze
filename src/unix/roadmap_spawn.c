@@ -100,6 +100,7 @@ end_of_string:
 }
 
 
+#ifdef ROADMAP_USES_SIGCHLD
 static void roadmap_spawn_child_exit_handler (int signal);
 
 static void roadmap_spawn_set_handler (void) {
@@ -118,30 +119,16 @@ static void roadmap_spawn_set_handler (void) {
 
 static void roadmap_spawn_child_exit_handler (int signal) {
 
-    int pid;
-    int status;
-    RoadMapFeedback *item;
+    if (signal != SIGCHLD) return; /* Should never happen. */
 
-    pid = waitpid (-1, &status, WNOHANG);
+    roadmap_spawn_check ();
 
     if (RoadMapSpawnNextHandler != NULL) {
         (*RoadMapSpawnNextHandler) (signal);
     }
     roadmap_spawn_set_handler ();
-   
-    if (pid <= 0) return;
-        
-    for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
-         item != NULL;
-         item = (RoadMapFeedback *)item->link.next) {
-
-        if (item->child == pid) {
-            item->handler (item->data);
-            roadmap_list_remove (&RoadMapSpawnActive, &item->link);
-            break;
-        }
-    }
 }
+#endif
 
 
 void roadmap_spawn_initialize (const char *argv0) {
@@ -167,7 +154,9 @@ int roadmap_spawn (const char *name, const char *command_line) {
    char *argv[16];
    pid_t child;
 
+#ifdef ROADMAP_USES_SIGCHLD
    roadmap_spawn_set_handler ();
+#endif
 
    child = fork();
 
@@ -222,3 +211,27 @@ int  roadmap_spawn_with_feedback
               
     return feedback->child;
 }
+
+
+void roadmap_spawn_check (void) {
+
+    int pid;
+    int status;
+    RoadMapFeedback *item;
+
+    pid = waitpid (-1, &status, WNOHANG);
+
+    if (pid <= 0) return;
+        
+    for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
+         item != NULL;
+         item = (RoadMapFeedback *)item->link.next) {
+
+        if (item->child == pid) {
+            item->handler (item->data);
+            roadmap_list_remove (&RoadMapSpawnActive, &item->link);
+            break;
+        }
+    }
+}
+

@@ -420,6 +420,11 @@ static void roadmap_gps_update
 }
 
 
+static void roadmap_start_periodic (void) {
+    roadmap_spawn_check ();
+}
+
+
 static void roadmap_start_add_gps (int fd) {
 
    roadmap_main_set_input (fd, roadmap_gps_input);
@@ -536,6 +541,8 @@ void roadmap_start (int argc, char **argv) {
    if (! roadmap_trip_load (roadmap_trip_current())) {
       roadmap_start_create_trip ();
    }
+
+   roadmap_main_set_periodic (1000, roadmap_start_periodic);
 }
 
 

@@ -34,6 +34,8 @@
 #include <qstatusbar.h>
 #include <qtimer.h>
 
+#define ROADMAP_MAX_TIMER 16
+
 extern "C" {
 
 #include "roadmap.h"
@@ -69,6 +71,7 @@ Q_OBJECT
 
 public:
 	RMapCallback(RoadMapCallback cb);
+	int same (RoadMapCallback cb);
 
 protected slots:
 	void fire();
@@ -112,8 +115,8 @@ protected:
 	QToolBar* toolBar;
 	RMapCanvas* canvas;
 
-	QTimer* tm;
-	RMapCallback* tcb;
+	QTimer* tm[ROADMAP_MAX_TIMER];
+	RMapCallback* tcb[ROADMAP_MAX_TIMER];
 	bool spacePressed;
 
 	virtual void keyPressEvent(QKeyEvent* event);
