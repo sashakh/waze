@@ -630,18 +630,6 @@ void roadmap_display_signs (void) {
 
     roadmap_display_create_pens ();
     
-    for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
-
-        if ((sign->page == NULL) ||
-            (RoadMapDisplayPage == NULL) ||
-            (! strcmp (sign->page, RoadMapDisplayPage))) {
-
-           if (sign->deadline > now && sign->content != NULL) {
-               roadmap_display_sign (sign);
-           }
-        }
-    }
-
     roadmap_display_console_box
         (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT,
          &RoadMapConfigDisplayBottomRight);
@@ -653,6 +641,18 @@ void roadmap_display_signs (void) {
     roadmap_display_console_box
         (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
          &RoadMapConfigDisplayTopRight);
+
+    for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
+
+        if ((sign->page == NULL) ||
+            (RoadMapDisplayPage == NULL) ||
+            (! strcmp (sign->page, RoadMapDisplayPage))) {
+
+           if (sign->deadline > now && sign->content != NULL) {
+               roadmap_display_sign (sign);
+           }
+        }
+    }
 }
 
 

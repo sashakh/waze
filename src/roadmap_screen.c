@@ -752,10 +752,8 @@ static void roadmap_screen_repaint (void) {
 
        roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
-
-       roadmap_display_signs ();
-
        roadmap_trip_display ();
+       roadmap_display_signs ();
     }
 
     RoadMapScreenAfterRefresh();
