@@ -63,6 +63,8 @@
 
 static const char *RoadMapMainTitle = "RoadMap";
 
+static int RoadMapStartFrozen = 0;
+
 /* Last trip orientation mode (1: follow GPS direction, 0: north up). */
 static int RoadMapStartTripOrientation = 1;
 
@@ -470,26 +472,33 @@ static void roadmap_gps_update
 
    static int RoadMapSynchronous = -1;
 
-   roadmap_trip_set_mobile ("GPS", position, speed, direction);
-   roadmap_log_reset_stack ();
-
-   roadmap_navigate_locate (position, speed, direction);
-   roadmap_log_reset_stack ();
-
-   if (RoadMapSynchronous) {
-
-      if (RoadMapSynchronous < 0) {
-         RoadMapSynchronous = roadmap_option_is_synchronous ();
-      }
+   if (RoadMapStartFrozen) {
 
       RoadMapStartGpsRefresh = 0;
 
-      roadmap_screen_refresh();
-      roadmap_log_reset_stack ();
-
    } else {
 
-      RoadMapStartGpsRefresh = 1;
+      roadmap_trip_set_mobile ("GPS", position, speed, direction);
+      roadmap_log_reset_stack ();
+
+      roadmap_navigate_locate (position, speed, direction);
+      roadmap_log_reset_stack ();
+
+      if (RoadMapSynchronous) {
+
+         if (RoadMapSynchronous < 0) {
+            RoadMapSynchronous = roadmap_option_is_synchronous ();
+         }
+
+         RoadMapStartGpsRefresh = 0;
+
+         roadmap_screen_refresh();
+         roadmap_log_reset_stack ();
+
+      } else {
+
+         RoadMapStartGpsRefresh = 1;
+      }
    }
 }
 
@@ -585,6 +594,21 @@ static void roadmap_start_after_refresh (void) {
       roadmap_sprite_draw
          ("Download", &download_point, 0 - roadmap_math_get_orientation());
    }
+}
+
+
+void roadmap_start_freeze (void) {
+
+   RoadMapStartFrozen = 1;
+   RoadMapStartGpsRefresh = 0;
+
+   roadmap_screen_freeze ();
+}
+
+void roadmap_start_unfreeze (void) {
+
+   RoadMapStartFrozen = 0;
+   roadmap_screen_unfreeze ();
 }
 
 

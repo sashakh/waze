@@ -24,6 +24,16 @@
 #ifndef INCLUDE__ROADMAP_START__H
 #define INCLUDE__ROADMAP_START__H
 
+/* The two following functions are used to freeze all RoadMap function
+ * in cases when the context does not allow for RoadMap to function in
+ * a normal fashion. The single example is when downloading maps:
+ * RoadMap should not try access the maps, as there is at least one
+ * map file that is incomplete.
+ * There ought to be a better way, such using a temporary file name...
+ */
+void roadmap_start_freeze   (void);
+void roadmap_start_unfreeze (void);
+
 void roadmap_start      (int argc, char **argv);
 void roadmap_start_exit (void);
 

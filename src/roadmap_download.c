@@ -41,6 +41,7 @@
 #include "roadmap_locator.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
+#include "roadmap_start.h"
 #include "roadmap_main.h"
 #include "roadmap_preferences.h"
 
@@ -223,14 +224,63 @@ static void roadmap_download_allocate (void) {
 
 static void roadmap_download_block (int fips) {
 
+   int i;
+   int candidate = -1;
+
    roadmap_download_allocate ();
 
-   roadmap_hash_add (RoadMapDownloadBlock,
-                     fips,
-                     RoadMapDownloadBlockCount);
+   /* Check if the county was not already locked. While doing this,
+    * detect any unused slot in that hash list that we might reuse.
+    */
+   for (i = roadmap_hash_get_first (RoadMapDownloadBlock, fips);
+        i >= 0;
+        i = roadmap_hash_get_next (RoadMapDownloadBlock, i)) {
 
-   RoadMapDownloadBlockList[RoadMapDownloadBlockCount] = fips;
-   RoadMapDownloadBlockCount += 1;
+      if (RoadMapDownloadBlockList[i] == fips) {
+         return; /* Already done. */
+      }
+      if (RoadMapDownloadBlockList[i] == 0) {
+         candidate = i;
+      }
+   }
+
+   if (candidate >= 0) {
+      /* This county is not yet blocked, and there is a free slot
+       * for us to reuse in the right hash list.
+       */
+      RoadMapDownloadBlockList[candidate] = fips;
+      return;
+   }
+
+   /* This county was not locked and there was no free slot: we must create
+    * a new one.
+    */
+   if (RoadMapDownloadBlockCount < RoadMapDownloadQueueSize) {
+
+      roadmap_hash_add (RoadMapDownloadBlock,
+                        fips,
+                        RoadMapDownloadBlockCount);
+
+      RoadMapDownloadBlockList[RoadMapDownloadBlockCount] = fips;
+      RoadMapDownloadBlockCount += 1;
+   }
+}
+
+
+static void roadmap_download_unblock (int fips) {
+
+   int i;
+
+   roadmap_download_allocate ();
+
+   for (i = roadmap_hash_get_first (RoadMapDownloadBlock, fips);
+        i >= 0;
+        i = roadmap_hash_get_next (RoadMapDownloadBlock, i)) {
+
+      if (RoadMapDownloadBlockList[i] == fips) {
+         RoadMapDownloadBlockList[i] = 0;
+      }
+   }
 }
 
 
@@ -277,6 +327,12 @@ static void roadmap_download_ok (const char *name, void *context) {
    roadmap_path_free (directory);
 
 
+   /* FIXME: at this point, we should set a temporary destination
+    * file name. When done with the transfer, we should rename the file
+    * to its final name. That would replace the "freeze" in a more
+    * elegant manner.
+    */
+
    /* Search for the correct protocol handler to call this time. */
 
    for (protocol = RoadMapDownloadProtocolMap;
@@ -285,11 +341,15 @@ static void roadmap_download_ok (const char *name, void *context) {
 
       if (strncmp (source, protocol->prefix, strlen(protocol->prefix)) == 0) {
 
+         roadmap_start_freeze ();
+
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
                                 source, destination)) {
             RoadMapDownloadRefresh = 1;
-            break;
          }
+         roadmap_download_unblock (fips);
+         roadmap_start_unfreeze ();
+         break;
       }
    }
 
@@ -347,9 +407,13 @@ int roadmap_download_get_county (int fips) {
    if (RoadMapDownloadWhenDone == roadmap_download_no_handler) return 0;
 
 
-   /* Check that we did not refuse to download that county once. */
-
+   /* Check that we did not refuse to download that county already.
+    * If not, set a block, which we will release when done. This is to
+    * avoid requesting a download while we are downloading this county.
+    */
    if (roadmap_download_blocked (fips)) return 0;
+
+   roadmap_download_block (fips);
 
 
    /* Add this county to the download request queue. */

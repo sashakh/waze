@@ -76,6 +76,7 @@ static RoadMapConfigDescriptor RoadMapConfigMapBackground =
 
 
 static int RoadMapScreenInitialized = 0;
+static int RoadMapScreenFrozen = 0;
 
 static RoadMapPosition RoadMapScreenCenter;
 
@@ -684,6 +685,9 @@ static void roadmap_screen_repaint (void) {
     int in_view[4096];
     
 
+    if (RoadMapScreenFrozen) return;
+
+
     roadmap_log_push ("roadmap_screen_repaint");
 
     RoadMapScreenShapesVisible =
@@ -858,6 +862,18 @@ void roadmap_screen_refresh (void) {
 void roadmap_screen_redraw (void) {
 
     roadmap_screen_repaint ();
+}
+
+
+void roadmap_screen_freeze (void) {
+
+   RoadMapScreenFrozen = 1;
+}
+
+void roadmap_screen_unfreeze (void) {
+
+   RoadMapScreenFrozen = 0;
+   roadmap_screen_repaint ();
 }
 
 
