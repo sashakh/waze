@@ -78,6 +78,7 @@ static FILE *buildus_fips_open (char *path, char *name, int verbose) {
 
 static void buildus_fips_read_states (char *path, int verbose) {
 
+   int   i;
    FILE *input;
    char  line[1024];
    int   line_count;
@@ -100,7 +101,16 @@ static void buildus_fips_read_states (char *path, int verbose) {
 
       buildmap_set_line (++line_count);
 
+      /* Separate the symbol from the state's name. */
       line[2] = 0;
+
+      /* Remove the end of line character. */
+      for (i = 3; line[i] > 0; ++i) {
+          if (line[i] < ' ') {
+             line[i] = 0;
+             break;
+          }
+      }
 
       state_symbol =
           buildmap_dictionary_add
@@ -109,6 +119,10 @@ static void buildus_fips_read_states (char *path, int verbose) {
       state_name =
           buildmap_dictionary_add
               (BuildMapStateDictionary, line+3, strlen(line+3));
+
+      if (state_symbol == 0 || state_name == 0) {
+         buildmap_fatal (0, "invalid state description");
+      }
 
       buildus_county_add_state (state_name, state_symbol);
    }
