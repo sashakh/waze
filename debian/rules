@@ -49,6 +49,7 @@ manual.html: README
 	if aptconvert -toc manual.html README ; then \
 		: ; \
 	else \
+		rm -f manual.html; \
 		wget http://roadmap.digitalomaha.net/manual.html ; \
 	fi
 
