@@ -723,7 +723,7 @@ void roadmap_trip_clear (void) {
 }
 
 
-char *roadmap_trip_current (void) {
+const char *roadmap_trip_current (void) {
     return roadmap_config_get (&RoadMapConfigLocationsTrip);
 }
 

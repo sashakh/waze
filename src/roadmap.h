@@ -58,7 +58,7 @@ void roadmap_option (int argc, char **argv);
 
 /* This function is hidden by a macro: */
 void roadmap_check_allocated_with_source_line
-                (char *source, int line, void *allocated);
+                (char *source, int line, const void *allocated);
 
 #endif // INCLUDE__ROADMAP__H
 

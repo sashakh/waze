@@ -25,9 +25,12 @@
  *   See roadmap_factory.h
  */
 
+#include <string.h>
+
 #include "roadmap.h"
 #include "roadmap_config.h"
 #include "roadmap_main.h"
+#include "roadmap_preferences.h"
 
 #include "roadmap_factory.h"
 
@@ -45,7 +48,6 @@ static void roadmap_factory_keyboard (char *key) {
 
    const RoadMapFactory *binding;
 
-// printf ("Keystroke: %s\n", key);
    if (RoadMapFactoryBindings == NULL) return;
 
    for (binding = RoadMapFactoryBindings; binding->name != NULL; ++binding) {
@@ -63,7 +65,9 @@ void roadmap_factory (const RoadMapFactory *menu,
                       const RoadMapFactory *toolbar,
                       const RoadMapFactory *shortcuts) {
 
-   char *use_toolbar = roadmap_config_get (&RoadMapConfigGeneralToolbar);
+   int use_toolbar =
+            (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralToolbar),
+                         "yes") == 0);
 
 
    while (menu->name != NULL) {
@@ -81,7 +85,7 @@ void roadmap_factory (const RoadMapFactory *menu,
       menu += 1;
    }
 
-   if (strcmp (use_toolbar, "yes") == 0) {
+   if (use_toolbar) {
 
       while (toolbar->name != NULL) {
 

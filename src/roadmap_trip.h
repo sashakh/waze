@@ -59,7 +59,7 @@ void  roadmap_trip_clear (void);
 
 void  roadmap_trip_initialize (void);
 
-char *roadmap_trip_current (void);
+const char *roadmap_trip_current (void);
 
 /* In the two primitives that follow, the name is either NULL (i.e.
  * open a dialog to let the user enter one), or an explicit name.
