@@ -68,4 +68,8 @@ PE,Prince Edward Island
 QC,Quebec
 SK,Saskatchewan
 YT,Yukon Territory
+DW,DCW Europe and North Asia
+DX,DCW South Asia
+DY,DCW North America
+DZ,DCW South America and Africa
 
