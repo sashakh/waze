@@ -40,12 +40,9 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
 	currentPen = 0;
 	roadMapCanvas = this;
 
-	initColors();
 	registerButtonHandler(bhandler);
 	registerConfigureHandler(chandler);
 	setBackgroundMode(QWidget::NoBackground);
-//	resize(400, 400);
-//	setFocusPolicy(QWidget::ClickFocus);
 }
 
 RMapCanvas::~RMapCanvas() {
@@ -91,8 +88,7 @@ void RMapCanvas::setPenThickness(int thickness) {
 
 void RMapCanvas::erase() {
 	if (pixmap) {
-		QColor c(qRgb(255,255,255));
-		pixmap->fill(c);
+		pixmap->fill(currentPen->color());
 	}
 }
 
@@ -303,34 +299,12 @@ void RMapCanvas::configure() {
 
 QColor RMapCanvas::getColor(const char* color) {
 	QColor *c = colors[color];
-	QColor ret(0, 0, 0);
 
 	if (c == 0) {
-		if (*color == '#') {
-			char* endptr;
-			int dc = strtol(color+1, &endptr, 16);
-			if (*endptr == 0) {
-				ret = QColor(dc >> 16, (dc >> 8) & 0xFF, dc & 0xFF);
-			}
-		}
-	} else {
-		ret = *c;
+		c = new QColor(color);
+      colors.insert(color, c);
 	}
 
-	return ret;
+	return *c;
 }
 
-void RMapCanvas::initColors() {
-	colors.insert("black", new QColor(0, 0, 0));
-	colors.insert("blue", new QColor(0, 0, 255));
-	colors.insert("DarkGrey", new QColor(169, 169, 169));
-	colors.insert("green", new QColor(0, 255, 0));
-	colors.insert("grey", new QColor(190, 190, 190));
-	colors.insert("IndianRed", new QColor(205, 92, 92));
-	colors.insert("LightBlue", new QColor(173, 216, 230));
-	colors.insert("LightSlateBlue", new QColor(132, 112, 255));
-	colors.insert("LightYellow", new QColor(255, 255, 224));
-	colors.insert("red", new QColor(255, 0, 0));
-	colors.insert("white", new QColor(255, 255, 255));
-	colors.insert("yellow", new QColor(255, 255, 0));
-}
