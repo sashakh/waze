@@ -42,6 +42,8 @@
 #include "roadmap_start.h"
 
 
+static const char *RoadGpsMainTitle = "GPS Console";
+
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
 
@@ -115,7 +117,7 @@ static void roadgps_start_set_timeout (RoadMapCallback callback) {
 
 static void roadgps_start_window (void) {
 
-   roadmap_main_new ("GPS Console", 300, 420);
+   roadmap_main_new (RoadGpsMainTitle, 300, 420);
 
    roadmap_factory (RoadGpsStartMenu,
                     RoadGpsStartToolbar,
@@ -131,6 +133,36 @@ static void roadgps_start_window (void) {
 
    roadmap_gps_register_periodic_control
       (roadgps_start_set_timeout, roadmap_main_remove_periodic);
+}
+
+
+const char *roadmap_start_get_title (const char *name) {
+
+   static char *RoadGpsMainTitleBuffer = NULL;
+
+   int length;
+
+
+   if (name == NULL) {
+      return RoadGpsMainTitle;
+   }
+
+   length = strlen(RoadGpsMainTitle) + strlen(name) + 4;
+
+   if (RoadGpsMainTitleBuffer != NULL) {
+         free(RoadGpsMainTitleBuffer);
+   }
+   RoadGpsMainTitleBuffer = malloc (length);
+
+   if (RoadGpsMainTitleBuffer != NULL) {
+
+      strcpy (RoadGpsMainTitleBuffer, RoadGpsMainTitle);
+      strcat (RoadGpsMainTitleBuffer, ": ");
+      strcat (RoadGpsMainTitleBuffer, name);
+      return RoadGpsMainTitleBuffer;
+   }
+
+   return name;
 }
 
 

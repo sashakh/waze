@@ -27,5 +27,7 @@
 void roadmap_start      (int argc, char **argv);
 void roadmap_start_exit (void);
 
+const char *roadmap_start_get_title (const char *name);
+
 #endif /* INCLUDE__ROADMAP_START__H */
 

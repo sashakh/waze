@@ -25,6 +25,9 @@
  *   void roadmap_start (int argc, char **argv);
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef ROADMAP_DEBUG_HEAP
 #include <mcheck.h>
 #endif
@@ -53,6 +56,8 @@
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
 
+
+static const char *RoadMapMainTitle = "RoadMap";
 
 /* Last trip orientation mode (1: follow GPS direction, 0: north up). */
 static int RoadMapStartTripOrientation = 1;
@@ -400,7 +405,7 @@ static void roadmap_start_set_timeout (RoadMapCallback callback) {
 
 static void roadmap_start_window (void) {
 
-   roadmap_main_new ("RoadMap",
+   roadmap_main_new (RoadMapMainTitle,
                      roadmap_option_width("Main"),
                      roadmap_option_height("Main"));
 
@@ -417,6 +422,36 @@ static void roadmap_start_window (void) {
 
    roadmap_gps_register_periodic_control
       (roadmap_start_set_timeout, roadmap_main_remove_periodic);
+}
+
+
+const char *roadmap_start_get_title (const char *name) {
+
+   static char *RoadMapMainTitleBuffer = NULL;
+
+   int length;
+
+
+   if (name == NULL) {
+      return RoadMapMainTitle;
+   }
+
+   length = strlen(RoadMapMainTitle) + strlen(name) + 4;
+
+   if (RoadMapMainTitleBuffer != NULL) {
+         free(RoadMapMainTitleBuffer);
+   }
+   RoadMapMainTitleBuffer = malloc (length);
+
+   if (RoadMapMainTitleBuffer != NULL) {
+
+      strcpy (RoadMapMainTitleBuffer, RoadMapMainTitle);
+      strcat (RoadMapMainTitleBuffer, ": ");
+      strcat (RoadMapMainTitleBuffer, name);
+      return RoadMapMainTitleBuffer;
+   }
+
+   return name;
 }
 
 

@@ -414,7 +414,7 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 void roadmap_address_location_by_city (void) {
 
    static RoadMapAddressDialog context = {
-       "Location by city",
+       "Location",
        0
    };
 
