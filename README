@@ -38,7 +38,10 @@ INTRODUCTION:
    map. The complete set of maps is available at the following URL:
    
            http://roadmap.saignon.net/maps.html
-   
+
+   The RoadMap directory file (usdir.rdm) must be downloaded first, as
+   RoadMap will not work without it.
+
    Please refrain from downloading all the US states at once, as the map
    files are huges and the bandwidth is expensive.
    
