@@ -88,7 +88,17 @@ static char *roadmap_file_cat (const char *s1, const char *s2) {
 
 const char *roadmap_file_default_path (void) {
 
-      return ".,/usr/local/share/roadmap,/usr/share/roadmap";
+#ifdef QWS
+    /* This is for the Sharp Zaurus PDA.. */
+    return ".,"
+           "/opt/QtPalmtop/share/roadmap,"
+           "/mnt/cf/QtPalmtop/share/roadmap,"
+           "/mnt/card/QtPalmtop/share/roadmap";
+#else
+    return ".,"
+           "/usr/local/share/roadmap,"
+           "/usr/share/roadmap";
+#endif
 }
 
 
