@@ -147,6 +147,10 @@ INSTALLATION:
       If you want to build all three versions of RoadMap, just type:
       make       -- This replaces steps 3 and 4.
 
+      Note for QT users: the RoadMap QT module cannot be built with QT3.
+      This is a problem with the linker: it seems the UNIX make cannot
+      be used with QT3, the QT-specific "qmake" must be used instead..
+
    5- download some maps from the US Census bureau:
 
          http://www.census.gov/geo/www/tiger/tiger2002/tgr2002.html
