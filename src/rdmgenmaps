@@ -128,10 +128,12 @@ fi
 
 if [ $gendir = 'Y' ] ; then
 
+   echo "Generating usdir.rdm, please wait.."
+
    if [ -e buildus ] ; then
-      ./buildus --maps=$maps
+      ./buildus -s --maps=$maps
    else
-      buildus --maps=$maps
+      buildus -s --maps=$maps
    fi
 fi
 

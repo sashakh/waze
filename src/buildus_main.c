@@ -46,6 +46,7 @@ static roadmap_db_model *RoadMapCountyModel;
 
 
 static int   BuildMapVerbose = 0;
+static int   BuildMapSilent = 0;
 static char *BuildMapTiger  = ".";
 static char *BuildMapPath   = "/usr/local/share/roadmap";
 
@@ -63,6 +64,9 @@ static struct poptOption BuildUsOptions[] = {
 
    {"verbose", 'v',
       POPT_ARG_NONE, &BuildMapVerbose, 0, "Show progress information", NULL},
+
+   {"silent", 's',
+      POPT_ARG_NONE, &BuildMapSilent, 0, "Show nothing", NULL},
 
    {NULL, 0, 0, NULL, 0, NULL, NULL}
 };
@@ -156,7 +160,7 @@ static void buildus_scan_maps (void) {
       fips = atoi (map_name + 3);
 
       buildmap_set_source (map_name);
-      buildmap_info ("scanning the county file...");
+      if (! BuildMapSilent) buildmap_info ("scanning the county file...");
 
       if (! roadmap_db_open (map_name, RoadMapCountyModel)) {
          buildmap_fatal (0, "cannot open map database %s", map_name);
