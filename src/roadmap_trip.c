@@ -888,6 +888,10 @@ void roadmap_trip_format_messages (void) {
                              roadmap_math_to_speed_unit(gps->gps.speed),
                              roadmap_math_speed_unit());
 
+        roadmap_message_set ('H', "%d %s",
+                             gps->gps.altitude,
+                             roadmap_math_distance_unit());
+
         sun = roadmap_sunset (&gps->gps);
         if (sun > now) {
 
