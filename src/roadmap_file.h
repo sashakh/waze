@@ -55,7 +55,8 @@ void roadmap_file_append (const char *path, const char *name,
 
 /* The following file operations hide the OS file mapping primitives. */
 
-const char *roadmap_file_map (const char *name,
+const char *roadmap_file_map (const char *set,
+                              const char *name,
                               const char *sequence, RoadMapFileContext *file);
 
 void *roadmap_file_base (RoadMapFileContext file);

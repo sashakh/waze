@@ -34,11 +34,6 @@
  *   subdirectory of the user context, named "trips"). These functions
  *   return the full path name of a single directory (i.e. not a list).
  *
- *   The roadmap_path_default() function returns a constant that represents
- *   the default search path. This default is used if the user did not
- *   specify a specific path in his preferences. This path is mostly used
- *   when looking for maps.
- *
  *   The roadmap_path_set() function sets a current RoadMap directory search
  *   list. If the search list was never set, the default path is used (see
  *   above). When analyzing the path string, roadmap_path_set() expands
@@ -54,9 +49,9 @@
  *   parse a directory search list. each set is used to parse the
  *   list in a specific order. For example:
  *
- *      for (path = roadmap_path_first();
+ *      for (path = roadmap_path_first("maps");
  *           path != NULL;
- *           path = roadmap_path_next()) {
+ *           path = roadmap_path_next("maps", path)) {
  *         // do something with path.
  *      }
  *
@@ -104,17 +99,16 @@
 #ifndef INCLUDE__ROADMAP_PATH__H
 #define INCLUDE__ROADMAP_PATH__H
 
-void roadmap_path_set  (const char *path);
+void roadmap_path_set  (const char *name, const char *path);
 
-const char *roadmap_path_first (void);
-const char *roadmap_path_next  (const char *current);
+const char *roadmap_path_first (const char *name);
+const char *roadmap_path_next  (const char *name, const char *current);
 
-const char *roadmap_path_last     (void);
-const char *roadmap_path_previous (const char *current);
+const char *roadmap_path_last     (const char *name);
+const char *roadmap_path_previous (const char *name, const char *current);
 
 const char *roadmap_path_user    (void);
 const char *roadmap_path_trips   (void);
-const char *roadmap_path_default (void);
 
 char *roadmap_path_join (const char *path, const char *name);
 char *roadmap_path_parent (const char *path, const char *name);

@@ -179,8 +179,10 @@ const char *roadmap_file_unique (const char *base) {
 }
 
 
-const char *roadmap_file_map (const char *name,
-                              const char *sequence, RoadMapFileContext *file) {
+const char *roadmap_file_map (const char *set,
+                              const char *name,
+                              const char *sequence,
+                              RoadMapFileContext *file) {
 
    RoadMapFileContext context;
 
@@ -209,9 +211,9 @@ const char *roadmap_file_map (const char *name,
 
 
       if (sequence == NULL) {
-         sequence = roadmap_path_first();
+         sequence = roadmap_path_first(set);
       } else {
-         sequence = roadmap_path_next(sequence);
+         sequence = roadmap_path_next(set, sequence);
       }
       if (sequence == NULL) {
          return NULL;
@@ -238,7 +240,7 @@ const char *roadmap_file_map (const char *name,
 
          if (context->fd >= 0) break;
 
-         sequence = roadmap_path_next(sequence);
+         sequence = roadmap_path_next(set, sequence);
 
       } while (sequence != NULL);
 

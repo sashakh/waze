@@ -439,9 +439,18 @@ void roadmap_sprite_initialize (void) {
    RoadMapFileContext file;
 
 
-   for (cursor = roadmap_file_map ("sprites", NULL, &file);
+   for (cursor = roadmap_file_map ("config", "sprites", NULL, &file);
         cursor != NULL;
-        cursor = roadmap_file_map ("sprites", cursor, &file)) {
+        cursor = roadmap_file_map ("config", "sprites", cursor, &file)) {
+
+      roadmap_sprite_load (roadmap_file_base(file), roadmap_file_size(file));
+
+      roadmap_file_unmap (&file);
+   }
+
+   for (cursor = roadmap_file_map ("user", "sprites", NULL, &file);
+        cursor != NULL;
+        cursor = roadmap_file_map ("user", "sprites", cursor, &file)) {
 
       roadmap_sprite_load (roadmap_file_base(file), roadmap_file_size(file));
 

@@ -54,6 +54,34 @@ static char *RoadMapHelpManual = NULL;
 
 /* -- The help display functions. -------------------------------------- */
 
+static int roadmap_help_make_url (const char *path) {
+
+   int size;
+
+   const char *options = roadmap_config_get(&RoadMapConfigBrowserOptions);
+   char *url;
+
+   size = strlen(options)
+             + strlen(RDM_URLHEAD)
+             + strlen(path)
+             + strlen(RDM_MANUAL)
+             + 8;
+
+   url = malloc (size);
+
+   strcpy(url, RDM_URLHEAD);
+   strcat(url, path);
+   strcat(url, "/" RDM_MANUAL "#%s");
+
+   if (options[0] != 0) {
+      RoadMapHelpManual = malloc(size);
+      sprintf (RoadMapHelpManual, options, url);
+      free (url);
+   } else {
+      RoadMapHelpManual = url;
+   }
+}
+
 static int roadmap_help_prepare (void) {
 
    int size;
@@ -61,41 +89,29 @@ static int roadmap_help_prepare (void) {
    const char *options = roadmap_config_get(&RoadMapConfigBrowserOptions);
    char *url;
 
-   for (path = roadmap_path_first();
+   /* First look for the user directory. */
+   path = roadmap_path_user();
+   if (roadmap_file_exists(path, RDM_MANUAL)) {
+      roadmap_help_make_url (path);
+      return 1;
+   }
+
+
+   /* Then look throughout the system path list. */
+
+   for (path = roadmap_path_first("config");
          path != NULL;
-         path = roadmap_path_next(path))
+         path = roadmap_path_next("config", path))
    {
       if (roadmap_file_exists(path, RDM_MANUAL)) {
 
-         size = strlen(options)
-                  + strlen(RDM_URLHEAD)
-                  + strlen(path)
-                  + strlen(RDM_MANUAL)
-                  + 8;
-
-         url = malloc (size);
-
-         strcpy(url, RDM_URLHEAD);
-         strcat(url, path);
-         strcat(url, "/" RDM_MANUAL "#%s");
-
-         if (options[0] != 0) {
-            RoadMapHelpManual = malloc(size);
-            sprintf (RoadMapHelpManual, options, url);
-            free (url);
-         } else {
-            RoadMapHelpManual = url;
-         }
-         break;
+         roadmap_help_make_url (path);
+         return 1;
       }
    }
 
-   if (RoadMapHelpManual == NULL) {
-      roadmap_log(ROADMAP_ERROR, "manual not found");
-      return 0;
-   }
-
-   return 1;
+   roadmap_log(ROADMAP_ERROR, "manual not found");
+   return 0;
 }
 
 static void roadmap_help_show (const char *index) {

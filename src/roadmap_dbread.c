@@ -389,7 +389,7 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
    strcpy (full_name, name);
    strcat (full_name, ROADMAP_DB_TYPE);
 
-   if (roadmap_file_map (full_name, NULL, &file) == NULL) {
+   if (roadmap_file_map ("maps", full_name, NULL, &file) == NULL) {
 
       roadmap_log (ROADMAP_INFO, "cannot open database file %s", full_name);
       free (full_name);

@@ -450,11 +450,11 @@ static int roadmap_config_load
 
 
    file = roadmap_file_open (path, config->name, "sr");
-
    if (file == NULL) return 0;
 
+   /* DEBUG: printf ("Loading %s from %s ..\n", config->name, path); */
 
-    while (!feof(file)) {
+   while (!feof(file)) {
 
         /* Read the next line, skip empty lines and comments. */
 
@@ -512,8 +512,7 @@ static int roadmap_config_load
 }
 
 
-static void roadmap_config_update
-               (const char *path, RoadMapConfig *config, int force) {
+static void roadmap_config_update (RoadMapConfig *config, int force) {
 
    FILE *file;
    const char *value;
@@ -566,18 +565,15 @@ void  roadmap_config_initialize (void) {
 
     const char *p;
     RoadMapConfig *file;
-    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM ("Map", "Path");
 
-   roadmap_config_declare
-      ("preferences", &descriptor, roadmap_path_default());
 
    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
 
       int loaded = 0;
 
-      for (p = roadmap_path_last();
+      for (p = roadmap_path_last("config");
            p != NULL;
-           p = roadmap_path_previous(p)) {
+           p = roadmap_path_previous("config", p)) {
 
          loaded |=
             roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
@@ -601,7 +597,7 @@ void roadmap_config_save (int force) {
    RoadMapConfig *file;
 
    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
-      roadmap_config_update (roadmap_path_user(), file, force);
+      roadmap_config_update (file, force);
    }
 }
 

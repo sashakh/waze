@@ -69,7 +69,7 @@ static int roadmap_copy (RoadMapDownloadCallbacks *callbacks,
    int size;
    RoadMapFileContext input;
 
-   if (roadmap_file_map (source, NULL, &input) == NULL) {
+   if (roadmap_file_map ("maps", source, NULL, &input) == NULL) {
       callbacks->error ("Cannot find the download source file");
       return 0;
    }

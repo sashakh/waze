@@ -777,7 +777,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_adjust_initialize   ();
    roadmap_config_initialize   ();
 
-   roadmap_path_set(roadmap_config_get(&RoadMapConfigMapPath));
+   roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
 
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 

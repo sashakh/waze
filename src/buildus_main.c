@@ -133,7 +133,7 @@ static void buildus_scan_maps (void) {
       roadmap_db_register
          (RoadMapCountyModel, "zip", &RoadMapZipHandler);
 
-   roadmap_path_set (BuildMapPath);
+   roadmap_path_set ("maps", BuildMapPath);
 
    directory = opendir (BuildMapPath);
 
