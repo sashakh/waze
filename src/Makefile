@@ -2,7 +2,13 @@
 
 CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
 # CFLAGS=-g -Wall
+
+# Memory leak detection using mtrace:
+# Do not forget to set the trace file using the env. variable MALLOC_TRACE,
+# then use the mtrace tool to analyze the output.
 # CFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+
+# Performance tuning:
 # CFLAGS=-g -Wall -pg -fprofile-arcs -g
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a

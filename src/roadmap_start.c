@@ -423,7 +423,8 @@ static void roadmap_start_window (void) {
 void roadmap_start (int argc, char **argv) {
 
 #ifdef ROADMAP_DEBUG_HEAP
-   // Do not forget to set the trace file using the env. variable MALLOC_TRACE.
+   // Do not forget to set the trace file using the env. variable MALLOC_TRACE,
+   // then use the mtrace tool to analyze the output.
    mtrace();
 #endif
 
