@@ -55,16 +55,6 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralZoom =
 
 
 typedef struct {
-
-   int north;
-   int east;
-   int south;
-   int west;
-
-} RoadMapArea;
-
-
-typedef struct {
     
     double unit_per_latitude;
     double unit_per_longitude;
@@ -417,12 +407,9 @@ void roadmap_math_use_imperial (void) {
 }
 
 
-void roadmap_math_set_focus     (int west, int east, int north, int south) {
+void roadmap_math_set_focus (const RoadMapArea *focus) {
 
-   RoadMapContext.focus.west  = west;
-   RoadMapContext.focus.north = north;
-   RoadMapContext.focus.east  = east;
-   RoadMapContext.focus.south = south;
+   RoadMapContext.focus = *focus;
 }
 
 
@@ -898,20 +885,9 @@ int roadmap_math_to_current_unit (int value, const char *unit) {
 }
 
 
-void roadmap_math_screen_edges (int *west, int *east, int *north, int *south) {
+void roadmap_math_screen_edges (RoadMapArea *area) {
 
-   if (west != NULL) {
-      *west = RoadMapContext.current_screen.west;
-   }
-   if (east != NULL) {
-      *east = RoadMapContext.current_screen.east;
-   }
-   if (north != NULL) {
-      *north = RoadMapContext.current_screen.north;
-   }
-   if (south != NULL) {
-      *south = RoadMapContext.current_screen.south;
-   }
+   *area = RoadMapContext.current_screen;
 }
 
 

@@ -82,15 +82,6 @@ static RoadMapNeighbour RoadMapConfirmedLine = ROADMAP_NEIGHBOUR_NULL;
 static RoadMapNeighbour RoadMapNeighbourhood[ROADMAP_NEIGHBOURHOUD];
 
 
-struct roadmap_navigate_rectangle {
-    
-    int west;
-    int east;
-    int north;
-    int south;
-};
-
-
 static void roadmap_navigate_trace (const char *format, int line) {
     
     char text[1024];
@@ -115,8 +106,7 @@ static void roadmap_navigate_trace (const char *format, int line) {
 
 
 static void roadmap_navigate_adjust_focus
-                (struct roadmap_navigate_rectangle *focus,
-                 const RoadMapGuiPoint *focused_point) {
+                (RoadMapArea *focus, const RoadMapGuiPoint *focused_point) {
 
     RoadMapPosition focus_position;
 
@@ -144,7 +134,7 @@ static int roadmap_navigate_get_neighbours
     int count;
     int layers[128];
 
-    struct roadmap_navigate_rectangle focus;
+    RoadMapArea focus;
 
     RoadMapGuiPoint focus_point;
     RoadMapPosition focus_position;
@@ -179,8 +169,7 @@ static int roadmap_navigate_get_neighbours
     
     if (count > 0) {
 
-        roadmap_math_set_focus
-            (focus.west, focus.east, focus.north, focus.south);
+        roadmap_math_set_focus (&focus);
 
         count = roadmap_street_get_closest
                     (position, layers, count, neighbours, max);

@@ -357,10 +357,7 @@ int roadmap_square_view (int *square, int size) {
    int *grid = RoadMapSquareActive->SquareGrid;
    RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
 
-   int west;
-   int east;
-   int north;
-   int south;
+   RoadMapArea screen;
    int x0;
    int x1;
    int x;
@@ -371,10 +368,10 @@ int roadmap_square_view (int *square, int size) {
    int grid_index;
 
 
-   roadmap_math_screen_edges (&west, &east, &north, &south);
+   roadmap_math_screen_edges (&screen);
 
-   x0 = (west - global->min_longitude) / global->step_longitude;
-   x1 = (east - global->min_longitude) / global->step_longitude;
+   x0 = (screen.west - global->min_longitude) / global->step_longitude;
+   x1 = (screen.east - global->min_longitude) / global->step_longitude;
    if ((x1 < 0) || (x0 >= global->count_longitude)) {
       return 0;
    }
@@ -385,8 +382,8 @@ int roadmap_square_view (int *square, int size) {
       x1 = global->count_longitude - 1;
    }
 
-   y0 = (north  - global->min_latitude)  / global->step_latitude;
-   y1 = (south  - global->min_latitude)  / global->step_latitude;
+   y0 = (screen.north  - global->min_latitude)  / global->step_latitude;
+   y1 = (screen.south  - global->min_latitude)  / global->step_latitude;
    if ((y0 < 0) || (y1 >= global->count_latitude)) {
       return 0;
    }

@@ -44,7 +44,7 @@ void roadmap_math_set_size        (int width, int height);
 int  roadmap_math_set_orientation (int direction);
 int  roadmap_math_get_orientation (void);
 
-void roadmap_math_set_focus     (int west, int east, int north, int south);
+void roadmap_math_set_focus     (const RoadMapArea *focus);
 void roadmap_math_release_focus ();
 
 int  roadmap_math_declutter (int level);
@@ -90,8 +90,7 @@ int  roadmap_math_get_distance_from_segment
          const RoadMapPosition *position2,
                RoadMapPosition *intersection);
 
-void roadmap_math_screen_edges
-        (int *west, int *east, int *north, int *south);
+void roadmap_math_screen_edges (RoadMapArea *area);
 
 int  roadmap_math_street_address (const char *image, int length);
 

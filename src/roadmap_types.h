@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_TYPES__H_
-#define _ROADMAP_TYPES__H_
+#ifndef INCLUDED__ROADMAP_TYPES__H
+#define INCLUDED__ROADMAP_TYPES__H
 
 typedef unsigned short RoadMapZip;
 typedef unsigned short RoadMapString;
@@ -36,6 +36,13 @@ typedef struct {
    int first;
    int count;
 } RoadMapSortedList;
+
+typedef struct {
+   int east;
+   int north;
+   int west;
+   int south;
+} RoadMapArea;
 
 
 /* The cfcc category codes: */
@@ -79,5 +86,5 @@ typedef struct {
 
 #define ROADMAP_CATEGORY_RANGE  14
 
-#endif // _ROADMAP_TYPES__H_
+#endif // INCLUDED__ROADMAP_TYPES__H
 
