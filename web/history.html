@@ -18,6 +18,50 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
+<P>Roadmap v1.0.8 (November 8, 2004)
+<UL>
+  <LI>Fix a GPS source selection problem: when launched from RoadMap,
+      roadgps now uses the same GPS source option as set for RoadMap.
+  <LI>Generate an error is a required configuration file is missing,
+      such as schema (thanks to James L. McNeill for finding this one).
+  <LI>Improve the make files: it is now possible to choose one toolkit
+      at the top level (option DESKTOP=toolkit) and the gtk2 makefile
+      behaves better when used with a cross compiler.
+  <LI>Temporarily allow the use of obsolete GTK features to stay
+      compatible with GTK 2.4.
+  <LI>Use the "action" design pattern for describing the menu and toolbar,
+      as this is the normal way for GTK 2.4 and QT 3. The GTK and QT code
+      has not been migrated yet: the roadmap_factory translates the new
+      data structure into the old GUI interface for now.
+  <LI>Redesigned the interface between buildmap_main.c and buildmap_tiger.c
+      to make it more generic and to be able to support shapefiles (see below).
+      This redesign causes the interface of buildmap to be different from
+      previous versions (rdmgenmaps was upgraded and still has the same
+      interface as before).
+  <LI>Added a prototype of shapefile support. This is not yet fully usable
+      as is, except if you are ready for some coding on your own :-). The
+      problem is that shapefiles are really a family of formats rather than
+      a well defined standard. (provided by Stephen Woodbridge.)
+  <LI>Added support for the Digital Charts of the World, i.e. major routes
+      for most of the world. Still incomplete, but functional. This can be
+      viewed as a simple example on how to convert shapefiles. (provided
+      by Stephen Woodbridge.)
+  <LI>Fix the usdir.rdm format--a short was used for fips (reported by
+      Stephen Woodbridge). Note this fix means that usdir.rdm MUST be
+      upgraded. RoadMap was modified to check this. Note also that only US
+      territories in the Pacific and caraibes were impacted by this bug.
+  <LI>Fix for a potential division by zero when a block contains only
+      one address (thanks to Stephen Woodbridge for finding this one).
+  <LI>Fix a RoadGps crash when receiving the position of 16 satellites:
+      RoadGps was limited to 12 satellite max, and did not check the NMEA
+      data was over this limit..
+  <LI>Increase the limit on the number of "squares" RoadMap can visualize
+      on one screen. This is an internal limit that prevents from zooming
+      out when using maps generated from the Digital Charts of the World.
+  <LI>Some minor cleanups in the RoadMap code: replace as many insane
+      "north, south, west, east" sequences of argument with a new type
+      used all over the place. This is unfinished business, still.
+</UL>
 <P>Roadmap v1.0.7 (July 5, 2004)
 <UL>
   <LI>Fix some gcc warning against libpopt primitives.
@@ -33,7 +77,6 @@ href="sitestandard.css" type=text/css rel=stylesheet>
       the user selects a street from a list (Find Address..). Bug reported
       by Mark Whitis.
   <LI>GTK2 only: set the first item as selected when opening a list.
-</UL>
 </UL>
 <P>Roadmap v1.0.6 (May 30, 2004):
 <UL>

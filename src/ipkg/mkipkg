@@ -3,8 +3,8 @@
 VERSION=$1
 
 SRCDIR=roadmap
-ARMDIR=arm/roadmap/src
-IPKGDIR=arm/roadmap/ipkg
+ARMDIR=arm/familiar/roadmap/src
+IPKGDIR=arm/familiar/roadmap/ipkg
 
 rm -rf $IPKGDIR
 

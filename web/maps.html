@@ -21,7 +21,7 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <P>
 <b>Disclaimer</b>: RoadMap is known to have bugs. The data provided by
 the US Census Bureau is known to have errors. The RoadMap maps generated
-from the US Census Bureau data contains even more errors. <b> Use RoadMap
+from the US Census Bureau data contain even more errors. <b> Use RoadMap
 at your own risk</b>.
 <P>
 <b>Caution</b>: always look at the road when driving a car, do not look
@@ -31,7 +31,9 @@ have a passenger use RoadMap, not the driver.
 <b>Caution</b>: the maps available on this pages are <i>little endian</i>,
 i.e. they will work fine on a PC, Zaurus or Linux/iPAQ. These maps
 will <i>not</i> work on PowerPC (i.e. MAC) or Sparc computers. Maps for
-these architectures might become available in the future. Stay tuned!
+these architectures might become available in the future. In the mean time
+users of these architectures will need to build the maps themselves.
+Stay tuned!
 <HR>
 <P>
 <CENTER>
@@ -62,9 +64,13 @@ which county or counties matche a specific geoposition or a specific address.
 This file must be present in the map directory or RoadMap will not work. 
 <P>
 <UL>
-  <LI><A class=normal href="maps/usdir.rdm.tgz">RoadMap directory</A> </LI>
+  <LI><A class=normal href="maps/usdir.rdm.tgz">
+         map directory for RoadMap version 1.0.8 and later</A> (includes
+         support for the Digital Charts of the World maps, see below).</LI>
+  <LI><A class=normal href="maps/old-usdir.rdm.tgz">
+         map directory for RoadMap version 1.0.7 and earlier</A></LI>
 </UL>
-<P>The following files are gzipped tar files that contains the RoadMap map 
+<P>The following files are gzipped tar files that contain the RoadMap map 
 files, one tar file per state. (To install the map files: go to the final map 
 directory and extract the map files using the "tar xzf <i>DOWNLOADED-FILE</i>" 
 command.) 
@@ -181,6 +187,34 @@ command.)
   </TR>
   </TBODY></TABLE> 
 </CENTER>
+<BR>
+<HR>
+<P>New in RoadMap 1.0.8 is a preliminary support for the Digital Charts of
+the World. This is a first draft: only roads are shown, maps are organized
+in large world blocks (not by country), etc..
+<P>It should be noted that the Digital Charts of the World contain limited
+information and cannot be the base for street navigation: only major roads
+are included, and sometime very few of them.
+
+<P>
+<CENTER>
+<TABLE width="100%">
+  <TBODY>
+  <TR vAlign=top>
+    <TD>
+      <UL>
+        <LI><A class=normal href="maps/dcwENAS.tar.gz">Europe and North Asia</A> 
+        <LI><A class=normal href="maps/dcwSAS.tar.gz">South Asia</A> 
+
+        <LI><A class=normal href="maps/dcwNAM.tar.gz">North America</A> 
+
+        <LI><A class=normal href="maps/dcwSAMAF.tar.gz">South America and Africa</A> 
+      </UL>
+    </TD>
+  </TR>
+  </TBODY></TABLE> 
+</CENTER>
+
 <BR>
 <HR>
 <CENTER>
