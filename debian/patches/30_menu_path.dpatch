@@ -1,0 +1,33 @@
+#! /bin/sh -e
+## 10_menu_path.dpatch by Petter Reinholdtsen <pere@hungry.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+##
+## DP: Correct path to program in menu entry.
+
+[ -f debian/patches/00patch-opts ] && . debian/patches/00patch-opts
+patch_opts="${patch_opts:--f --no-backup-if-mismatch}"
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+       -patch) patch $patch_opts -p0 < $0;;
+       -unpatch) patch $patch_opts -p0 -R < $0;;
+        *)
+                echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+                exit 1;;
+esac
+
+exit 0
+@DPATCH@
+--- src/roadmap.menu.~1.2.~	Tue Nov 23 09:34:35 2004
++++ src/roadmap.menu	Tue Nov 23 09:35:03 2004
+@@ -3,5 +3,5 @@
+   section="Apps/Tools"\
+   title="RoadMap"\
+   hints="Street navigation system"\
+-  command="/usr/local/bin/roadmap"\
++  command="/usr/bin/roadmap"\
+   icon="/usr/share/pixmaps/gnome-globe.png"
