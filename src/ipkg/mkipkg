@@ -38,6 +38,32 @@ bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/roadmap-gtk $IPKGDIR
 
 
 # --------------------------------------------------------------------------
+echo "Building package 'roadmap-gtk2' .."
+
+mkdir -p $IPKGDIR/roadmap-gtk2/CONTROL
+sed -e s/_VERSION_/$VERSION/ $SRCDIR/ipkg/roadmap-gtk2.control >$IPKGDIR/roadmap-gtk2/CONTROL/control
+cp $SRCDIR/ipkg/roadmap.postinst $IPKGDIR/roadmap-gtk2/CONTROL/postinst
+cp $SRCDIR/ipkg/roadmap.postrm   $IPKGDIR/roadmap-gtk2/CONTROL/postrm
+chmod a+x $IPKGDIR/roadmap-gtk2/CONTROL/postinst $IPKGDIR/roadmap-gtk2/CONTROL/postrm
+
+mkdir -p $IPKGDIR/roadmap-gtk2/usr/bin
+cp $ARMDIR/gtk2roadmap $IPKGDIR/roadmap-gtk2/usr/bin/roadmap
+cp $ARMDIR/gtk2roadgps $IPKGDIR/roadmap-gtk2/usr/bin/roadgps
+
+mkdir -p $IPKGDIR/roadmap-gtk2/usr/lib/menu
+cp $SRCDIR/roadmap.menu $IPKGDIR/roadmap-gtk2/usr/lib/menu/roadmap
+
+mkdir -p $IPKGDIR/roadmap-gtk2/usr/share/roadmap
+cp $MAPDIR/usdir.rdm   $IPKGDIR/roadmap-gtk2/usr/share/roadmap/usdir.rdm
+cp $SRCDIR/preferences $IPKGDIR/roadmap-gtk2/usr/share/roadmap/preferences
+cp $SRCDIR/schema      $IPKGDIR/roadmap-gtk2/usr/share/roadmap/schema
+cp $SRCDIR/sprites     $IPKGDIR/roadmap-gtk2/usr/share/roadmap/sprites
+cp roadmap/README      $IPKGDIR/roadmap-gtk2/usr/share/roadmap/README
+
+bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/roadmap-gtk2 $IPKGDIR
+
+
+# --------------------------------------------------------------------------
 echo "Building package 'roadmap-sfca' .."
 
 mkdir -p $IPKGDIR/roadmap-sfca/CONTROL

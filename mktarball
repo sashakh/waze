@@ -65,6 +65,7 @@ RDM_INFO="roadmap/AUTHORS
           roadmap/TODO"
 
 RDM_IPK="roadmap/arm/ipkg/roadmap-gtk_${dotversion}_arm.ipk
+         roadmap/arm/ipkg/roadmap-gtk2_${dotversion}_arm.ipk
          roadmap/arm/ipkg/roadmap-sfca_${dotversion}_arm.ipk"
 
 
