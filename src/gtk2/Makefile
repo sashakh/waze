@@ -18,7 +18,7 @@ else
 endif
 endif
 
-ifeq ($(DEKSTOP),GPE)
+ifeq ($(DESKTOP),GPE)
    CFLAGS=$(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I..
    LIBS=$(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm
 else

@@ -4,7 +4,7 @@ GUILDFLAGS=-lqt
 MOC=/usr/bin/moc
 INSTALLDIR=/usr/local
 
-ifeq ($(DEKSTOP),QPE)
+ifeq ($(DESKTOP),QPE)
    QPE: GUICFLAGS=-I$(QTDIR)/include -DQWS
    QPE: GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
    QPE: MOC=$(QTDIR)/bin/moc
