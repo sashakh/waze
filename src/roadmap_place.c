@@ -82,8 +82,8 @@ static void *roadmap_place_map (roadmap_db *root) {
    context->Place = (RoadMapPlace *) roadmap_db_get_data (place_table);
    context->PlaceCount = roadmap_db_get_count (place_table);
 
-   if (context->PlaceCount !=
-       roadmap_db_get_size (place_table) / sizeof(RoadMapPlace)) {
+   if (roadmap_db_get_size (place_table) !=
+       context->PlaceCount * sizeof(RoadMapPlace)) {
       roadmap_log (ROADMAP_ERROR, "invalid place/data structure");
       goto roadmap_place_map_abort;
    }
@@ -92,8 +92,8 @@ static void *roadmap_place_map (roadmap_db *root) {
       (RoadMapPlaceBySquare *) roadmap_db_get_data (square_table);
    context->PlaceBySquareCount = roadmap_db_get_count (square_table);
 
-   if (context->PlaceBySquareCount !=
-       roadmap_db_get_size (square_table) / sizeof(RoadMapPlaceBySquare)) {
+   if (roadmap_db_get_size (square_table) !=
+       context->PlaceBySquareCount * sizeof(RoadMapPlaceBySquare)) {
       roadmap_log (ROADMAP_ERROR, "invalid place/bysquare structure");
       goto roadmap_place_map_abort;
    }

@@ -104,7 +104,7 @@ static void roadmap_sprite_decode_plane
    char  pen[256];
    char  color[256];
 
-   if (length >= sizeof(color)-1) {
+   if (length >= (int)sizeof(color)-1) {
       roadmap_log (ROADMAP_FATAL,
                    "color name too long: %*s", length, arg);
    }

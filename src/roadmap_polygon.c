@@ -76,8 +76,8 @@ static void *roadmap_polygon_map (roadmap_db *root) {
    context->Polygon = (RoadMapPolygon *) roadmap_db_get_data (head_table);
    context->PolygonCount = roadmap_db_get_count (head_table);
 
-   if (context->PolygonCount !=
-       roadmap_db_get_size (head_table) / sizeof(RoadMapPolygon)) {
+   if (roadmap_db_get_size (head_table) !=
+       context->PolygonCount * sizeof(RoadMapPolygon)) {
       roadmap_log (ROADMAP_FATAL, "invalid polygon/head structure");
    }
 
@@ -85,8 +85,8 @@ static void *roadmap_polygon_map (roadmap_db *root) {
       (RoadMapPolygonPoint *) roadmap_db_get_data (point_table);
    context->PolygonPointCount = roadmap_db_get_count (point_table);
 
-   if (context->PolygonPointCount !=
-       roadmap_db_get_size (point_table) / sizeof(RoadMapPolygonPoint)) {
+   if (roadmap_db_get_size (point_table) !=
+       context->PolygonPointCount * sizeof(RoadMapPolygonPoint)) {
       roadmap_log (ROADMAP_FATAL, "invalid polygon/point structure");
    }
 

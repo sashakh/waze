@@ -95,8 +95,8 @@ static void *roadmap_line_map (roadmap_db *root) {
    context->Line = (RoadMapLine *) roadmap_db_get_data (line_table);
    context->LineCount = roadmap_db_get_count (line_table);
 
-   if (context->LineCount !=
-       roadmap_db_get_size (line_table) / sizeof(RoadMapLine)) {
+   if (roadmap_db_get_size (line_table) !=
+       context->LineCount * sizeof(RoadMapLine)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/data structure");
       goto roadmap_line_map_abort;
    }
@@ -105,8 +105,8 @@ static void *roadmap_line_map (roadmap_db *root) {
       (RoadMapLineBySquare *) roadmap_db_get_data (square1_table);
    context->LineBySquare1Count = roadmap_db_get_count (square1_table);
 
-   if (context->LineBySquare1Count !=
-       roadmap_db_get_size (square1_table) / sizeof(RoadMapLineBySquare)) {
+   if (roadmap_db_get_size (square1_table) !=
+       context->LineBySquare1Count * sizeof(RoadMapLineBySquare)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/bysquare1 structure");
       goto roadmap_line_map_abort;
    }
@@ -114,8 +114,8 @@ static void *roadmap_line_map (roadmap_db *root) {
    context->LineIndex2 = (int *) roadmap_db_get_data (index2_table);
    context->LineIndex2Count = roadmap_db_get_count (index2_table);
 
-   if (context->LineIndex2Count !=
-       roadmap_db_get_size (index2_table) / sizeof(int)) {
+   if (roadmap_db_get_size (index2_table) !=
+       context->LineIndex2Count * sizeof(int)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/index2 structure");
       goto roadmap_line_map_abort;
    }
@@ -124,8 +124,8 @@ static void *roadmap_line_map (roadmap_db *root) {
       (RoadMapLineBySquare *) roadmap_db_get_data (square2_table);
    context->LineBySquare2Count = roadmap_db_get_count (square2_table);
 
-   if (context->LineBySquare2Count !=
-       roadmap_db_get_size (square2_table) / sizeof(RoadMapLineBySquare)) {
+   if (roadmap_db_get_size (square2_table) !=
+       context->LineBySquare2Count * sizeof(RoadMapLineBySquare)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/bysquare2 structure");
       goto roadmap_line_map_abort;
    }

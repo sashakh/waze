@@ -123,8 +123,8 @@ static void *roadmap_street_map (roadmap_db *root) {
    context->RoadMapStreets = (RoadMapStreet *) roadmap_db_get_data (table);
    context->RoadMapStreetsCount = roadmap_db_get_count(table);
 
-   if (context->RoadMapStreetsCount !=
-       roadmap_db_get_size (table) / sizeof(RoadMapStreet)) {
+   if (roadmap_db_get_size (table) !=
+       context->RoadMapStreetsCount * sizeof(RoadMapStreet)) {
       roadmap_log (ROADMAP_FATAL,
                    "invalid street structure (%d != %d / %d)",
                    context->RoadMapStreetsCount,
@@ -186,8 +186,8 @@ static void *roadmap_street_zip_map (roadmap_db *root) {
    context->RoadMapZipCode = (int *) roadmap_db_get_data (root);
    context->RoadMapZipCodeCount = roadmap_db_get_count(root);
 
-   if (context->RoadMapZipCodeCount !=
-       roadmap_db_get_size (root) / sizeof(int)) {
+   if (roadmap_db_get_size (root) !=
+       context->RoadMapZipCodeCount * sizeof(int)) {
       roadmap_log (ROADMAP_FATAL, "invalid zip structure");
    }
 
@@ -246,8 +246,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
        (RoadMapRangeByStreet *) roadmap_db_get_data (table);
    context->RoadMapByStreetCount = roadmap_db_get_count (table);
 
-   if (context->RoadMapByStreetCount !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRangeByStreet)) {
+   if (roadmap_db_get_size (table) !=
+       context->RoadMapByStreetCount * sizeof(RoadMapRangeByStreet)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/bystreet structure");
    }
 
@@ -255,8 +255,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    context->RoadMapByCity = (RoadMapRangeByCity *) roadmap_db_get_data (table);
    context->RoadMapByCityCount = roadmap_db_get_count (table);
 
-   if (context->RoadMapByCityCount !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRangeByCity)) {
+   if (roadmap_db_get_size (table) !=
+       context->RoadMapByCityCount * sizeof(RoadMapRangeByCity)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/bycity structure");
    }
 
@@ -264,8 +264,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    context->RoadMapPlace = (RoadMapRangePlace *) roadmap_db_get_data (table);
    context->RoadMapPlaceCount = roadmap_db_get_count (table);
 
-   if (context->RoadMapPlaceCount !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRangePlace)) {
+   if (roadmap_db_get_size (table) !=
+       context->RoadMapPlaceCount * sizeof(RoadMapRangePlace)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/place structure");
    }
 
@@ -273,8 +273,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    context->RoadMapByZip = (RoadMapRangeByZip *) roadmap_db_get_data (table);
    context->RoadMapByZipCount = roadmap_db_get_count (table);
 
-   if (context->RoadMapByZipCount !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRangeByZip)) {
+   if (roadmap_db_get_size (table) !=
+       context->RoadMapByZipCount * sizeof(RoadMapRangeByZip)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/byzip structure");
    }
 
@@ -282,8 +282,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    context->bysquare = (RoadMapRangeBySquare *) roadmap_db_get_data (table);
    context->square_count = roadmap_db_get_count (table);
 
-   if (context->square_count !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRangeBySquare)) {
+   if (roadmap_db_get_size (table) !=
+       context->square_count * sizeof(RoadMapRangeBySquare)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/bysquare structure");
    }
 
@@ -291,8 +291,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    context->RoadMapAddr = (RoadMapRange *) roadmap_db_get_data (table);
    context->RoadMapAddrCount = roadmap_db_get_count (table);
 
-   if (context->RoadMapAddrCount !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRange)) {
+   if (roadmap_db_get_size (table) !=
+       context->RoadMapAddrCount * sizeof(RoadMapRange)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/addr structure");
    }
 
@@ -300,8 +300,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    context->noaddr = (RoadMapRangeNoAddress *) roadmap_db_get_data (table);
    context->noaddr_count = roadmap_db_get_count (table);
 
-   if (context->noaddr_count !=
-       roadmap_db_get_size (table) / sizeof(RoadMapRangeNoAddress)) {
+   if (roadmap_db_get_size (table) !=
+       context->noaddr_count * sizeof(RoadMapRangeNoAddress)) {
       roadmap_log (ROADMAP_FATAL, "invalid range/noaddr structure");
    }
 
@@ -392,9 +392,9 @@ static void roadmap_street_locate (const char *name,
 
    if (space != NULL) {
 
-      int  length;
+      unsigned  length;
 
-      length = space - name;
+      length = (unsigned)(space - name);
 
       if (length < sizeof(buffer)) {
 
@@ -429,7 +429,7 @@ static void roadmap_street_locate (const char *name,
 
          if (street->type > 0) {
 
-            length = space - name;
+            length = (unsigned)(space - name);
 
             if (length < sizeof(buffer)) {
 
@@ -1124,7 +1124,7 @@ static int roadmap_street_check_street (int street, int line) {
 
    for (i = by_street->first_range; i < range_end; i++) {
 
-      if ((range[i].line & (~CONTINUATION_FLAG)) == line) {
+      if ((range[i].line & (~CONTINUATION_FLAG)) == (unsigned)line) {
          return i;
       }
    }

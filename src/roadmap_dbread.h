@@ -75,7 +75,7 @@ roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path);
 
 roadmap_db *roadmap_db_get_first (roadmap_db *parent);
 char       *roadmap_db_get_name  (roadmap_db *section);
-int         roadmap_db_get_size  (roadmap_db *section);
+unsigned    roadmap_db_get_size  (roadmap_db *section);
 int         roadmap_db_get_count (roadmap_db *section);
 int         roadmap_db_get_level (roadmap_db *section);
 char       *roadmap_db_get_data  (roadmap_db *section);

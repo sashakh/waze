@@ -253,7 +253,8 @@ void roadmap_history_add (char category, const char *argv[]) {
 
    char data[1024];
    int i;
-   int length;
+   unsigned length;
+
    int argc = RoadMapHistoryCategories[(int)category];
 
    if (argc <= 0) {

@@ -71,7 +71,7 @@ static int RoadMapShape2Mask[8*sizeof(int)] = {0};
 
 static void *roadmap_shape_map (roadmap_db *root) {
 
-   int i;
+   unsigned i;
    RoadMapShapeContext *context;
 
    roadmap_db *shape_table;
@@ -96,8 +96,8 @@ static void *roadmap_shape_map (roadmap_db *root) {
    context->Shape = (RoadMapShape *) roadmap_db_get_data (shape_table);
    context->ShapeCount = roadmap_db_get_count (shape_table);
 
-   if (context->ShapeCount !=
-       roadmap_db_get_size (shape_table) / sizeof(RoadMapShape)) {
+   if (roadmap_db_get_size (shape_table) !=
+       context->ShapeCount * sizeof(RoadMapShape)) {
       roadmap_log (ROADMAP_FATAL, "invalid shape/data structure");
    }
 
@@ -105,8 +105,8 @@ static void *roadmap_shape_map (roadmap_db *root) {
       (RoadMapShapeByLine *) roadmap_db_get_data (line_table);
    context->ShapeByLineCount = roadmap_db_get_count (line_table);
 
-   if (context->ShapeByLineCount !=
-       roadmap_db_get_size (line_table) / sizeof(RoadMapShapeByLine)) {
+   if (roadmap_db_get_size (line_table) !=
+       context->ShapeByLineCount * sizeof(RoadMapShapeByLine)) {
       roadmap_log (ROADMAP_FATAL, "invalid shape/byline structure");
    }
 
@@ -114,8 +114,8 @@ static void *roadmap_shape_map (roadmap_db *root) {
       (RoadMapShapeBySquare *) roadmap_db_get_data (square_table);
    context->ShapeBySquareCount = roadmap_db_get_count (square_table);
 
-   if (context->ShapeBySquareCount !=
-       roadmap_db_get_size (square_table) / sizeof(RoadMapShapeBySquare)) {
+   if (roadmap_db_get_size (square_table) !=
+       context->ShapeBySquareCount * sizeof(RoadMapShapeBySquare)) {
       roadmap_log (ROADMAP_FATAL, "invalid shape/bysquare structure");
    }
 

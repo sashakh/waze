@@ -35,7 +35,7 @@
  *
  *   roadmap_db *roadmap_db_get_first (roadmap_db *parent);
  *   char       *roadmap_db_get_name  (roadmap_db *section);
- *   int         roadmap_db_get_size  (roadmap_db *section);
+ *   unsigned    roadmap_db_get_size  (roadmap_db *section);
  *   int         roadmap_db_get_count (roadmap_db *section);
  *   char       *roadmap_db_get_data  (roadmap_db *section);
  *   roadmap_db *roadmap_db_get_next  (roadmap_db *section);
@@ -461,7 +461,7 @@ void roadmap_db_activate (char *name) {
 roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path) {
 
    int found;
-   int length;
+   unsigned length;
    roadmap_db *child;
 
    char *item;
@@ -482,7 +482,7 @@ roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path) {
 
       } else {
 
-         length = separator - path;
+         length = (unsigned)(separator - path);
          next = separator + 1;
       }
 
@@ -539,12 +539,12 @@ int roadmap_db_get_level (roadmap_db *section) {
 }
 
 
-int roadmap_db_get_size  (roadmap_db *section) {
+unsigned roadmap_db_get_size  (roadmap_db *section) {
 
    if (section->head->count == 0) {
       return 0;
    }
-   return section->head->size;
+   return (unsigned) (section->head->size);
 }
 
 

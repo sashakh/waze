@@ -1,5 +1,5 @@
 
-WARNFLAGS = -W -Wall
+WARNFLAGS = -W -Wall -Wno-unused-parameter
 
 ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
@@ -49,12 +49,12 @@ endif
 endif
 endif
 
-ifeq ($(SHAPEFILES),YES)
-   ROADMAP_USE_SHAPEFILES=-DROADMAP_USE_SHAPEFILES
-	SHAPELDFLAGS=-lshp
-else
+ifeq ($(SHAPEFILES),NO)
    ROADMAP_USE_SHAPEFILES=
    SHAPELDFLAGS=
+else
+   ROADMAP_USE_SHAPEFILES=-DROADMAP_USE_SHAPEFILES
+	SHAPELDFLAGS=-lshp
 endif
 
 CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES)
@@ -175,6 +175,7 @@ BUSRCS=buildus_main.c \
 BUOBJS=$(BUSRCS:.c=.o)
 
 
+PKGDATAFILES=sprites preferences schema session
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
@@ -217,10 +218,9 @@ cleanone:
 
 install: everything
 	mkdir -p $(DESTDIR)$(pkgdatadir)
-	cd $(DESTDIR)$(pkgdatadir) && rm -f sprites preferences
-	cp sprites preferences schema $(DESTDIR)$(pkgdatadir)/.
-	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r sprites preferences
-	# aptconvert -toc $(DESTDIR)$(pkgdatadir)/manual.html ../README
+	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
+	cp $(PKGDATAFILES) $(DESTDIR)$(pkgdatadir)/.
+	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
 	mkdir -p $(DESTDIR)$(pkgbindir)
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
 	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(pkgbindir)/.
@@ -231,6 +231,12 @@ install: everything
 	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
 	mkdir -p $(DESTDIR)$(desktopdir)
 	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
+
+installdoc:
+	aptconvert -toc -enc ASCII $(DESTDIR)$(pkgdatadir)/manual.html ../README
+
+webdoc:
+	aptconvert -toc -enc ASCII ../web/manual.html ../README
 
 uninstall:
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)

@@ -111,7 +111,7 @@ RoadMapTripPoint RoadMapTripPredefined[] = {
     ROADMAP_TRIP_ITEM("Address",     NULL,          0, 0, 1),
     ROADMAP_TRIP_ITEM("Selection",   NULL,          0, 0, 1),
     ROADMAP_TRIP_ITEM("Hold",        NULL,          1, 0, 0),
-    {{NULL, NULL}, NULL, NULL}
+    ROADMAP_TRIP_ITEM(NULL, NULL, 0, 0, 0)
 };
 
 

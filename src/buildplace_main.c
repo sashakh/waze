@@ -338,7 +338,7 @@ static void buildplace_read_dsg (const char *dsgfile) {
     buildplace_dsg_initialize();
    
     file = fopen (dsgfile, "rb");
-    if (file < 0) {
+    if (file == NULL) {
         buildmap_fatal (0, "cannot open file %s", dsgfile);
     }
 
