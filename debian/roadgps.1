@@ -4,12 +4,85 @@
 roadgps \- GPS status console
 .SH "SYNTAX"
 .LP 
-roadgps
+\fBroadgps\fR [\fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR] [\fB\-\-metric\fR] [\fB\-\-imperial\fR] [\fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR] [\fB\-\-no\-toolbar\fR] [\fB\-\-no\-icon\fR] [\fB\-\-gps=\fIurl\fR] [\fB\-\-debug\fR[\fB=\fIsource\fR\fR]] [\fB\-\-verbose\fR] [\fB\-\-help\fR]
 .SH "DESCRIPTION"
 .LP 
 A very handy GPS console, inspired by the Garmin satellite status
 page, with a NMEA log capability.  Thanks to gpsd, roadgps and roadmap
-can be active at the same time.
+can be active at the same time. The roadgps program was intended to be
+started from the roadmap menu.
+
+.PP
+More information is available in the RoadMap online help.
+.SH "OPTIONS"
+
+.PP
+Most options may be set as preferences. In fact, when an option matches
+a preferences item, then using the option modify the preferences permanently.
+As a consequence theses command line options will appear "sticky" in the sense
+that their effect will be permanent until the same option is used again or the
+associated preference item are changed. Anyway most of these options are quite
+obsolete, since they were defined before there was a dialog to change the
+preferences. Because the same preferences are used by \fBroadmap\fR and
+\fBroadgps\fR, using one of those option with one program will impact
+the other.
+
+.TP
+\fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR
+Set the current location point (see menu entry View/Show Location..).
+Preference item: \fBLocations.Location\fR.
+
+.TP
+\fB\-\-metric\fR
+Use the metric system for all units.
+Preference item: \fBGeneral.Unit = metric\fR.
+
+.TP
+\fB\-\-imperial\fR
+Use the imperial system for all units.
+Preference item: \fBGeneral.Unit = imperial\fR.
+
+.TP
+\fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR
+Set the geometry of a specific RoadMap window, identified by it's title. If
+no window title is provided, this defines the geometry of the main window.
+If the window's title includes any space, dashes can be used in place of
+the spaces (the goal here is to be shell friendly).
+Preference item: \fBGeometry.\fIwindow\fR\fR.
+
+.TP
+\fB\-\-no\-toolbar\fR
+Do not show the toolbar.
+Preference item: \fBGeneral.Toolbar = no\fR.
+
+.TP
+\fB\-\-no\-icon\fR
+Do not show any icon (presumably to keep as much space as possible for
+the map).
+Preference item: \fBGeneral.Icons = no\R.
+
+.TP
+\fB\-\-gps=\fIurl\fR\fR
+Use the specified GPS source. Two URL formats only are supported:
+"gpsd://\fIhost\fR/" (access the GPS through a gpsd server) and
+"file://\fIpath\fR" or "\fIpath\fR" (\fIpath\fR must be a full path).
+As an exception, this option is \fInot\fR sticky: it does override
+the related preferences item, but the preferences are not modified.
+The main rational for this behavior is to make it painless to rerun GPS logs.
+
+.TP
+\fB\-\-debug\fR[\fB=\fIsource\fR\fR]
+Print debug messages. If a source file is provided, only debug messages
+generated from that source file are printed.
+
+.TP
+\fB\-\-verbose\fR
+Enable some log messages (a subset of the debug messages).
+
+.TP
+\fB\-\-help\fR
+Show a description of the program options and quit.
+
 .SH "FILES"
 .LP 
 \fI~/.roadmap/preferences\fP 
@@ -17,6 +90,10 @@ can be active at the same time.
 \fI/etc/roadmap/preferences\fP 
 .br 
 \fI/usr/share/roadmap/preferences\fP 
+.SH "BUGS"
+.LP 
+The \fBroadgps\fR program should really not decode all the \fBroadmap\fR
+command line options, some of which have no effect on \fBroadgps\fR.
 .SH "AUTHORS"
 .LP 
 Pascal Martin <pascal.martin@ponts.org>

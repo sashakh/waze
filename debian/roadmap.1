@@ -1,10 +1,10 @@
 .TH "roadmap" "1" "1.0.8" "Petter Reinholdtsen" ""
 .SH "NAME"
 .LP 
-roadmap \- Street navigation system using the vector maps and GPS
+roadmap \- Street navigation system using vector maps and a GPS receiver
 .SH "SYNTAX"
 .LP 
-roadmap
+\fBroadmap\fR [\fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR] [\fB\-\-metric\fR] [\fB\-\-imperial\fR] [\fB\-\-no\-area\fR] [\fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR] [\fB\-\-no\-toolbar\fR] [\fB\-\-no\-icon\fR] [\fB\-\-square\fR] [\fB\-\-gps=\fIurl\fR] [\fB\-\-cache=\fInumber\fR\fR] [\fB\-\-debug\fR[\fB=\fIsource\fR\fR]] [\fB\-\-verbose\fR] [\fB\-\-help\fR]
 .SH "DESCRIPTION"
 .LP 
 RoadMap is a program for UNIX that displays street maps. The maps
@@ -12,8 +12,101 @@ are provided for example by the US Census Bureau. When a GPS receiver is
 available RoadMap can track the current location of the vehicule on the
 screen, continuously adjusting the position of the map; it can also
 identify the name of the current street as well as the name of the
-next intersection. RoadMap can be used without a GPS receiver, as a
-static map viewer or address finder.
+next intersection.
+
+.PP
+RoadMap can be used without a GPS receiver, as a static map viewer or
+address finder.
+
+.PP
+More information is available in the RoadMap online help.
+.SH "OPTIONS"
+
+.PP
+Most options may be set as preferences. In fact, when an option matches
+a preferences item, then using the option modify the preferences permanently.
+As a consequence theses command line options will appear "sticky" in the sense
+that their effect will be permanent until the same option is used again or the
+associated preference item are changed. Anyway most of these options are quite
+obsolete, since they were defined before there was a dialog to change the
+preferences. Because the same preferences are used by \fBroadmap\fR and
+\fBroadgps\fR, using one of those option with one program will impact
+the other.
+
+.TP
+\fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR
+Set the current location point (see menu entry View/Show Location..).
+Preference item: \fBLocations.Location\fR.
+
+.TP
+\fB\-\-metric\fR
+Use the metric system for all units.
+Preference item: \fBGeneral.Unit = metric\fR.
+
+.TP
+\fB\-\-imperial\fR
+Use the imperial system for all units.
+Preference item: \fBGeneral.Unit = imperial\fR.
+
+.TP
+\fB\-\-no\-area\fR
+Do not show the polygons (parks, hospitals, airports, etc..).
+This option was created for debug puposes and is probably now useless.
+
+.TP
+\fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR
+Set the geometry of a specific RoadMap window, identified by it's title. If
+no window title is provided, this defines the geometry of the main window.
+If the window's title includes any space, dashes can be used in place of
+the spaces (the goal here is to be shell friendly).
+Preference item: \fBGeometry.\fIwindow\fR\fR.
+
+.TP
+\fB\-\-no\-toolbar\fR
+Do not show the toolbar.
+Preference item: \fBGeneral.Toolbar = no\fR.
+
+.TP
+\fB\-\-no\-icon\fR
+Do not show any icon (presumably to keep as much space as possible for
+the map).
+Preference item: \fBGeneral.Icons = no\R.
+
+.TP
+\fB\-\-square\fR
+Show the boundaries of the maps index grid (a variant of the R-Tree index).
+This option is for debug purpose only.
+
+.TP
+\fB\-\-gps=\fIurl\fR\fR
+Use the specified GPS source. Two URL formats only are supported:
+"gpsd://\fIhost\fR/" (access the GPS through a gpsd server) and
+"file://\fIpath\fR" or "\fIpath\fR" (\fIpath\fR must be a full path).
+As an exception, this option is \fInot\fR sticky: it does override
+the related preferences item, but the preferences are not modified.
+The main rational for this behavior is to make it painless to rerun GPS logs.
+
+.TP
+\fB\-\-cache=\fInumber\fR\fR
+Set the number of entries in the roadmap's map cache. To increase performances,
+roadmap keeps the last used map files mapped in memory. This option defines
+how many map files can be mapped at a given time. The greater this number is,
+the more system ressources (virtual memory page descriptors) roadmap will use.
+Preference item: \fBMap.Cache\R.
+
+.TP
+\fB\-\-debug\fR[\fB=\fIsource\fR\fR]
+Print debug messages. If a source file is provided, only debug messages
+generated from that source file are printed.
+
+.TP
+\fB\-\-verbose\fR
+Enable some log messages (a subset of the debug messages).
+
+.TP
+\fB\-\-help\fR
+Show a description of the program options and quit.
+
 .SH "FILES"
 .LP 
 \fI~/.roadmap/preferences\fP 
