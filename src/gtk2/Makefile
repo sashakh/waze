@@ -1,6 +1,6 @@
 
 GUICFLAGS=`pkg-config --cflags gtk+-2.0` -DGTK_DISABLE_DEPRECATED=1
-GUILDFLAGS=`pkg-config --libs gtk+-2.0`
+GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
 GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
@@ -79,8 +79,8 @@ libgtkroadmap.a: $(RMLIBOBJS)
 	$(AR) rf libgtkroadmap.a $(RMLIBOBJS)
 
 gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
-	$(CC) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
+	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
-	$(CC) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
+	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
 
