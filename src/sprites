@@ -34,6 +34,12 @@ D 0,0 5
 F black 1
 C 0,0 5
 
+S Waypoint
+F green 1
+D 0,0 5
+F black 1
+C 0,0 5
+
 S Highlight
 F yellow 1
 D 0,0 5

@@ -64,8 +64,6 @@ static int RoadMapScreenShapesVisible = 0;
 static char *SquareOnScreen;
 static int   SquareOnScreenCount;
 
-static RoadMapListItem *RoadMapScreenReference = NULL;
-
 
 /* CATEGORIES.
  * A category represents a group of map objects that are represented
@@ -813,22 +811,8 @@ static void roadmap_screen_repaint_map (void) {
 static void roadmap_screen_repaint_sprites (void) {
 
     RoadMapGuiPoint point;
-    RoadMapListItem *waypoint;
-    const RoadMapPosition *position;
     
-    for (waypoint = roadmap_trip_get_first (); waypoint != NULL; waypoint = waypoint->next) {
-        
-        position = roadmap_trip_get_position (waypoint);
-        
-        if (roadmap_math_point_is_visible (position)) {
-
-            roadmap_math_coordinate (position, &point);
-            roadmap_math_rotate_coordinates (1, &point);
-            roadmap_sprite_draw (roadmap_trip_get_sprite(waypoint),
-                                 &point,
-                                 roadmap_trip_get_direction(waypoint));
-        }
-    }
+    roadmap_trip_repaint ();
 
     point.x = 20;
     point.y = 20;
@@ -836,18 +820,29 @@ static void roadmap_screen_repaint_sprites (void) {
 }
 
 
+static int roadmap_screen_is_street_tip_active (void) {
+    
+    if (RoadMapStreetTip.name == NULL) {
+        return 0;
+    }
+    
+    if ((time(NULL) > RoadMapStreetTip.deadline) ||
+        (! roadmap_math_point_is_visible (&RoadMapStreetTip.position))) {
+
+        free (RoadMapStreetTip.name);
+        RoadMapStreetTip.name = NULL;
+            
+        return 0;
+   }
+
+   return 1;
+}
+
+
 static void roadmap_screen_repaint_street_tip (void) {
 
    int i;
    RoadMapGuiPoint point;
-
-   if ((time(NULL) > RoadMapStreetTip.deadline) ||
-       (! roadmap_math_point_is_visible (&RoadMapStreetTip.position))) {
-
-      free (RoadMapStreetTip.name);
-      RoadMapStreetTip.name = NULL;
-      return;
-   }
 
    for (i = 1; i >= 0; --i) {
       roadmap_math_coordinate (RoadMapStreetTip.endpoint+i, &point);
@@ -870,7 +865,7 @@ static void roadmap_screen_repaint (void) {
    roadmap_screen_repaint_map ();
    roadmap_screen_repaint_sprites ();
 
-   if (RoadMapStreetTip.name != NULL) {
+   if (roadmap_screen_is_street_tip_active()) {
       roadmap_screen_repaint_street_tip ();
    }
 
@@ -1003,7 +998,7 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
    }
 
    roadmap_math_to_position (point, &position);
-
+   
 #ifdef DEBUG
 printf ("Position: %d longitude, %d latitude\n",
         position.longitude,
@@ -1039,30 +1034,33 @@ fflush(stdout);
 }
 
 
+void roadmap_screen_set_waypoint (void) {
+    
+    if (roadmap_screen_is_street_tip_active()) {
+        roadmap_trip_set_point (NULL, &RoadMapStreetTip.position);
+    }
+}
+
 
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
-    RoadMapListItem *waypoint = roadmap_trip_get_focus();
     
-    if (waypoint != NULL) {
+    if (roadmap_trip_is_focus_changed()) {
         
-        if (waypoint != RoadMapScreenReference) {
-            RoadMapScreenRotation = 0;
-            RoadMapScreenReference = waypoint;
-        }
-        refresh |=
-            roadmap_math_set_orientation
-                (roadmap_trip_get_orientation() + RoadMapScreenRotation);
-        
-        refresh |= roadmap_trip_refresh_needed();
-        
-        if (refresh) {
-            RoadMapScreenCenter = *roadmap_trip_get_position (waypoint);
-        }
+        RoadMapScreenRotation = 0;
+        refresh = 1;
     }
     
+    refresh |=
+        roadmap_math_set_orientation
+            (roadmap_trip_get_orientation() + RoadMapScreenRotation);
+        
+    refresh |= roadmap_trip_is_refresh_needed();
+        
     if (refresh) {
+        
+        RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_screen_repaint ();
     }
 }

@@ -97,6 +97,42 @@ static void roadmap_start_about (void) {
                        "for Linux & UNIX");
 }
 
+static void roadmap_start_create_trip (void) {
+    
+    roadmap_trip_clear ();
+    roadmap_screen_refresh ();
+}
+
+static void roadmap_start_open_trip (void) {
+    
+    roadmap_trip_load (NULL);
+}
+
+static void roadmap_start_save_trip (void) {
+    
+    roadmap_trip_save (roadmap_trip_current());
+}
+
+static void roadmap_start_save_trip_as (void) {
+    
+    roadmap_trip_save (NULL);
+}
+
+static void roadmap_start_trip (void) {
+    
+    // TBD: roadmap_trip_start(1)
+}
+
+static void roadmap_start_trip_north_up (void) {
+    
+    // TBD: roadmap_trip_start (0);
+}
+
+static void roadmap_start_delete_waypoint (void) {
+    
+    roadmap_trip_remove_point (NULL);
+}
+
 
 /* The RoadMap menu and toolbar items: ----------------------------------- */
 
@@ -114,25 +150,33 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Quit",
        "Quit RoadMap", roadmap_main_exit},
 
-   {"Waypoints", NULL, NULL},
-   {"Destination..",
-       "Set the destination waypoint", roadmap_address_destination_by_city},
-   {"Location..",
-       "Set the location waypoint", roadmap_address_location_by_city},
+   {"Trips", NULL, NULL},
+   {"New Trip..",
+       "Create a new trip", roadmap_start_create_trip},
+   {"Open Trip..",
+       "Open an existing trip", roadmap_start_open_trip},
+   {"Save Trip",
+       "Save the current trip", roadmap_start_save_trip},
+   {"Save Trip As..",
+       "Save the current trip under a different name", roadmap_start_save_trip_as},
+   {"Start Trip",
+       "Start tracking the current trip", roadmap_start_trip},
+   {"Start Trip (North Up)",
+       "Start tracking the current trip", roadmap_start_trip_north_up},
    {RoadMapFactorySeparator, NULL, NULL},
-   {"Show Destination",
-       "Show the map around the destination waypoint",
-       roadmap_start_show_destination},
-   {"Show Location",
-       "Show the map around the location waypoint",
-       roadmap_start_show_location},
-   {"Follow GPS",
-       "Makes the map track the GPS position & direction",
-       roadmap_start_show_gps},
-   {"Follow GPS (North up)",
-       "Makes the map track the GPS position", roadmap_start_show_gps_north_up},
+   {"Set Destination..",
+       "Set the trip's destination point", roadmap_address_destination_by_city},
+   {"New Waypoint..", 
+       "Create or modify waypoint", roadmap_screen_set_waypoint},
+   {"Delete Waypoints..", 
+       "Delete selected waypoints", roadmap_start_delete_waypoint},
 
    {"Screen", NULL, NULL},
+   {"Show location..",
+       "Show a specified address", roadmap_address_location_by_city},
+   {"Show Destination",
+       "Show the map around the destination point", roadmap_start_show_destination},
+   {RoadMapFactorySeparator, NULL, NULL},
    {"Zoom In",
        "Enlarge the central part of the map", roadmap_screen_zoom_in},
    {"Zoom Out",
@@ -298,13 +342,13 @@ void roadmap_start (int argc, char **argv) {
    roadmap_option (argc, argv);
 
    roadmap_start_set_unit ();
-
-   roadmap_history_load ();
-   roadmap_trip_load (NULL);
    
    roadmap_sprite_initialize ();
    roadmap_screen_set_initial_position ();
 
+   roadmap_history_load ();
+   roadmap_trip_load (roadmap_trip_current());
+   
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
@@ -315,5 +359,5 @@ void roadmap_start_exit (void) {
     
     roadmap_history_save();
     roadmap_config_save (0);
-    roadmap_trip_save   (NULL);
+    roadmap_start_save_trip ();
 }

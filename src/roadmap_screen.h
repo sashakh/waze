@@ -43,4 +43,6 @@ void roadmap_screen_rotate (int delta);
 
 void roadmap_screen_refresh (void);
 
+void roadmap_screen_set_waypoint (void);
+
 #endif // INCLUDE__ROADMAP_SCREEN__H

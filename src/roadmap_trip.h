@@ -28,43 +28,39 @@
 #include "roadmap_list.h"
 
 
-void roadmap_trip_set_point (const char *name, RoadMapPosition *position);
+void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
 
-void roadmap_trip_set_mobile (const char *name,
-                              RoadMapPosition *position,
-                              int speed,
-                              int direction);
+void  roadmap_trip_set_mobile (const char *name,
+                               RoadMapPosition *position,
+                               int speed,
+                               int direction);
 
-void roadmap_trip_remove (char *name);
-
-
-void roadmap_trip_set_focus (const char *name, int rotate);
-
-RoadMapListItem *roadmap_trip_get_focus (void);
-    
-int roadmap_trip_refresh_needed (void);
-
-int roadmap_trip_get_orientation (void);
+void  roadmap_trip_remove_point (char *name);
 
 
-RoadMapListItem *roadmap_trip_retrieve (char *name);
-    
-RoadMapListItem *roadmap_trip_get_first (void);
+void  roadmap_trip_set_focus (const char *name, int rotate);
 
-const char *roadmap_trip_get_sprite (const RoadMapListItem *item);
+int   roadmap_trip_is_focus_changed  (void);
+int   roadmap_trip_is_refresh_needed (void);
 
-const RoadMapPosition *roadmap_trip_get_position (const RoadMapListItem *item);
+int   roadmap_trip_get_orientation (void);
 
-int roadmap_trip_is_mobile     (const RoadMapListItem *item);
-int roadmap_trip_get_speed     (const RoadMapListItem *item);
-int roadmap_trip_get_direction (const RoadMapListItem *item);
+const RoadMapPosition *roadmap_trip_get_focus_position (void);
 
 
-void roadmap_trip_clear (void);
+void  roadmap_trip_repaint (void);
 
-void roadmap_trip_initialize (void);
 
-void roadmap_trip_load (const char *name);
-void roadmap_trip_save (const char *name);
+void  roadmap_trip_clear (void);
+
+void  roadmap_trip_initialize (void);
+
+char *roadmap_trip_current (void);
+
+/* In the two primitives that follow, the name is either NULL (i.e.
+ * open a dialog to let the user enter one), or an explicit name.
+ */
+void  roadmap_trip_load (const char *name);
+void  roadmap_trip_save (const char *name);
 
 #endif // INCLUDE__ROADMAP_TRIP__H
