@@ -522,20 +522,23 @@ static void roadmap_config_update
 
       file = roadmap_file_open (roadmap_path_user(), config->name, "w");
 
-      for (item = config->first_item; item != NULL; item = item->next) {
+      if (file) {
 
-         if ((! force) && (item->state == ROADMAP_CONFIG_SHARED)) continue;
+         for (item = config->first_item; item != NULL; item = item->next) {
 
-         if (item->value != NULL) {
-            value = item->value;
-         } else {
-            value = item->default_value;
+            if ((! force) && (item->state == ROADMAP_CONFIG_SHARED)) continue;
+
+            if (item->value != NULL) {
+               value = item->value;
+            } else {
+               value = item->default_value;
+            }
+            fprintf (file, "%s.%s: %s\n", item->category, item->name, value);
          }
-         fprintf (file, "%s.%s: %s\n", item->category, item->name, value);
-      }
 
-      fclose (file);
-      config->state = ROADMAP_CONFIG_CLEAN;
+         fclose (file);
+         config->state = ROADMAP_CONFIG_CLEAN;
+      }
    }
 }
 

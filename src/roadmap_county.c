@@ -172,6 +172,12 @@ int roadmap_county_by_position
    RoadMapCountyByState *this_state;
 
 
+   if (RoadMapCountyActive == NULL) {
+
+      /* There is no point of looking for a county if none is available. */
+      return 0;
+   }
+
    found = 0;
 
    /* First find the counties that might "cover" the given location.
@@ -204,6 +210,7 @@ int roadmap_county_by_position
          if (found >= count) return found;
       }
    }
+
 
    /* Then find the counties that are merely visible.
     */
@@ -402,6 +409,9 @@ const char *roadmap_county_get_state (int fips) {
 
 int  roadmap_county_count (void) {
 
+   if (RoadMapCountyActive == NULL) {
+      return 0; /* None is available, anyway. */
+   }
    return RoadMapCountyActive->county_count;
 }
 
