@@ -329,11 +329,11 @@ void buildmap_line_sort (void) {
 
    LineCrossingCount = 0;
 
-   for (i = 0; i < LineCount; i++) {
+   for (i = 0; i < LineCount; ++i) {
       one_line = Line[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
       if (buildmap_point_get_square(one_line->record.from) !=
           buildmap_point_get_square(one_line->record.to)) {
-         LineCrossingCount++;
+         ++LineCrossingCount;
       }
    }
 
@@ -344,7 +344,7 @@ void buildmap_line_sort (void) {
       buildmap_fatal (0, "no more memory");
    }
 
-   for (i = 0; i < LineCount; i++) {
+   for (i = 0; i < LineCount; ++i) {
       SortedLine[i] = i;
       one_line = Line[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
       one_line->record.from = buildmap_point_get_sorted (one_line->record.from);
@@ -353,7 +353,7 @@ void buildmap_line_sort (void) {
 
    qsort (SortedLine, LineCount, sizeof(int), buildmap_line_compare);
 
-   for (i = 0; i < LineCount; i++) {
+   for (i = 0; i < LineCount; ++i) {
       j = SortedLine[i];
       one_line = Line[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
       one_line->sorted = i;
@@ -366,7 +366,7 @@ void buildmap_line_sort (void) {
       buildmap_fatal (0, "no more memory");
    }
 
-   for (i = 0, j = 0; i < LineCount; i++) {
+   for (i = 0, j = 0; i < LineCount; ++i) {
 
       one_line = Line[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
 
@@ -435,10 +435,19 @@ void buildmap_line_save (void) {
    db_index2  = (int *) buildmap_db_get_data (index2_table);
    db_square2 = (RoadMapLineBySquare *) buildmap_db_get_data (square2_table);
 
+
+   for (i = 0; i < square_count; ++i) {
+      for (k = 0; k < ROADMAP_CATEGORY_RANGE; k++) {
+         db_square1[i].first[k] = -1;
+         db_square2[i].first[k] = -1;
+      }
+   }
+
+
    square_current = -1;
    cfcc_current   = -1;
 
-   for (i = 0; i < LineCount; i++) {
+   for (i = 0; i < LineCount; ++i) {
 
       j = SortedLine[i];
 
@@ -459,9 +468,6 @@ void buildmap_line_save (void) {
          }
          square_current = square;
 
-         for (k = 0; k < ROADMAP_CATEGORY_RANGE; k++) {
-            db_square1[square].first[k] = -1;
-         }
          cfcc_current = -1; /* Force cfcc change. */
       }
 
@@ -487,7 +493,7 @@ void buildmap_line_save (void) {
    square_current = -1;
    cfcc_current   = -1;
 
-   for (i = 0; i < LineCrossingCount; i++) {
+   for (i = 0; i < LineCrossingCount; ++i) {
 
       j = SortedLine2[i];
 
@@ -512,9 +518,6 @@ void buildmap_line_save (void) {
          }
          square_current = square;
 
-         for (k = 0; k < ROADMAP_CATEGORY_RANGE; k++) {
-            db_square2[square].first[k] = -1;
-         }
          cfcc_current = -1; /* Force cfcc change. */
       }
 
@@ -551,7 +554,7 @@ void buildmap_line_reset (void) {
 
    int i;
 
-   for (i = 0; i < BUILDMAP_BLOCK; i++) {
+   for (i = 0; i < BUILDMAP_BLOCK; ++i) {
       if (Line[i] != NULL) {
          free(Line[i]);
          Line[i] = NULL;
