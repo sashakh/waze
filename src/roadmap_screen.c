@@ -855,12 +855,10 @@ void roadmap_screen_refresh (void) {
 
         if (RoadMapScreenDeltaX || RoadMapScreenDeltaY) {
 
+           /* Force recomputation. */
+
            int dx = RoadMapScreenDeltaX;
            int dy = RoadMapScreenDeltaY;
-
-           refresh |=
-               roadmap_math_set_orientation
-                   (roadmap_trip_get_orientation() + RoadMapScreenRotation);
 
            RoadMapScreenDeltaX = RoadMapScreenDeltaY = 0;
            roadmap_screen_record_move (dx, dy);
