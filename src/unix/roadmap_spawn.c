@@ -148,7 +148,11 @@ int  roadmap_spawn (const char *name, const char *command_line) {
       }
    }
 
+#ifdef QWS
+   /* Why not using roadmap_spawn_set_handler()? Ask Latchesar Ionkov. */
+#else
    roadmap_spawn_set_handler ();
+#endif
 
    return child;
 }
