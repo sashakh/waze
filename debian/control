@@ -2,7 +2,7 @@ Source: roadmap
 Section: utils
 Priority: optional
 Maintainer: Petter Reinholdtsen <pere@debian.org>
-Build-Depends: debhelper (>> 3.0.0), dpatch, imagemagick, libqt3-dev | libqt3-mt-dev, libpopt-dev
+Build-Depends: debhelper (>> 3.0.0), dpatch, imagemagick, libpopt-dev, libgtk2.0-dev
 Standards-Version: 3.6.1
 
 Package: roadmap

@@ -1,5 +1,9 @@
 roadmap (1.0.8-1) unstable; urgency=low
 
   * Initial Release. (Closes: #276135)
+  * Selected the Gtk version, as this is the version actively
+    maintained by the author.  To build the Qt version, the
+    build-dependencies should change to 'libqt3-compat-headers,
+    libqt3-dev | libqt3-mt-dev'.
 
  -- Petter Reinholdtsen <pere@debian.org>  Sun, 14 Nov 2004 10:21:17 +0100
