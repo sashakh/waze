@@ -44,7 +44,7 @@ typedef union {
       int    longitude;
       int    speed;
       int    steering;
-   } gprmc;
+   } rmc;
 
    struct {
       time_t fixtime;
@@ -55,14 +55,14 @@ typedef union {
       int    dilution;
       int    altitude;
       char   altitude_unit[4];
-   } gpgga;
+   } gga;
 
    struct {
       int    status;
       int    mode;
       int    latitude;
       int    longitude;
-   } gpgll;
+   } gll;
 
    struct {
       char  automatic;
@@ -72,7 +72,7 @@ typedef union {
       float dilution_position;
       float dilution_horizontal;
       float dilution_vertical;
-   } gpgsa;
+   } gsa;
 
    struct {
       char  total;
@@ -83,7 +83,7 @@ typedef union {
       char  elevation[4];
       short azimuth[4];
       short strength[4];
-   } gpgsv;
+   } gsv;
 
    /* The following structures match Garmin extensions: */
 
@@ -108,10 +108,14 @@ typedef void (*RoadMapNmeaListener) (void *context,
 
 
 RoadMapNmeaFilter
-    roadmap_nmea_add_filter (char *name, RoadMapNmeaFilter filter);
+    roadmap_nmea_add_filter (const char *talker, /* NULL means any talker. */
+                             const char *sentence,
+                             RoadMapNmeaFilter filter);
 
 RoadMapNmeaListener
-    roadmap_nmea_subscribe (char *name, RoadMapNmeaListener listener);
+    roadmap_nmea_subscribe (const char *talker, /* NULL means any talker. */
+                            const char *sentence,
+                            RoadMapNmeaListener listener);
 
 
 int roadmap_nmea_decode (void *context, char *sentence);

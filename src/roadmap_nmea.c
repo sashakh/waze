@@ -175,104 +175,104 @@ static char *roadmap_nmea_decode_unit (const char *original) {
 typedef int (*RoadMapNmeaDecoder) (int argc, char *argv[]);
 
 
-static int roadmap_nmea_gprmc (int argc, char *argv[]) {
+static int roadmap_nmea_rmc (int argc, char *argv[]) {
 
    if (argc <= 9) {
       return 0;
    }
 
-   RoadMapNmeaReceived.gprmc.status = *(argv[2]);
+   RoadMapNmeaReceived.rmc.status = *(argv[2]);
 
 
-   RoadMapNmeaReceived.gprmc.fixtime =
+   RoadMapNmeaReceived.rmc.fixtime =
       roadmap_nmea_decode_time (argv[1], argv[9]);
 
    strncpy (RoadMapNmeaDate, argv[9], sizeof(RoadMapNmeaDate));
 
-   if (RoadMapNmeaReceived.gprmc.fixtime < 0) return 0;
+   if (RoadMapNmeaReceived.rmc.fixtime < 0) return 0;
 
 
-   RoadMapNmeaReceived.gprmc.latitude =
+   RoadMapNmeaReceived.rmc.latitude =
       roadmap_nmea_decode_coordinate  (argv[3], argv[4], 'N', 'S');
 
-   if (RoadMapNmeaReceived.gprmc.latitude == 0) return 0;
+   if (RoadMapNmeaReceived.rmc.latitude == 0) return 0;
 
-   RoadMapNmeaReceived.gprmc.longitude =
+   RoadMapNmeaReceived.rmc.longitude =
       roadmap_nmea_decode_coordinate (argv[5], argv[6], 'E', 'W');
 
-   if (RoadMapNmeaReceived.gprmc.longitude == 0) return 0;
+   if (RoadMapNmeaReceived.rmc.longitude == 0) return 0;
 
 
-   RoadMapNmeaReceived.gprmc.speed =
+   RoadMapNmeaReceived.rmc.speed =
       roadmap_nmea_decode_numeric (argv[7], 1);
 
-   RoadMapNmeaReceived.gprmc.steering =
+   RoadMapNmeaReceived.rmc.steering =
       roadmap_nmea_decode_numeric (argv[8], 1);
 
    return 1;
 }
 
 
-static int roadmap_nmea_gpgga (int argc, char *argv[]) {
+static int roadmap_nmea_gga (int argc, char *argv[]) {
 
-   RoadMapNmeaReceived.gpgga.fixtime =
+   RoadMapNmeaReceived.gga.fixtime =
       roadmap_nmea_decode_time (argv[1], RoadMapNmeaDate);
 
-   if (RoadMapNmeaReceived.gpgga.fixtime < 0) return 0;
+   if (RoadMapNmeaReceived.gga.fixtime < 0) return 0;
 
-   RoadMapNmeaReceived.gpgga.latitude =
+   RoadMapNmeaReceived.gga.latitude =
       roadmap_nmea_decode_coordinate  (argv[2], argv[3], 'N', 'S');
 
-   RoadMapNmeaReceived.gpgga.longitude =
+   RoadMapNmeaReceived.gga.longitude =
       roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
 
    switch (*argv[6]) {
 
       case '0':
-         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_INVALID;
+         RoadMapNmeaReceived.gga.quality = ROADMAP_NMEA_QUALITY_INVALID;
          break;
 
       case '1':
-         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_GPS;
+         RoadMapNmeaReceived.gga.quality = ROADMAP_NMEA_QUALITY_GPS;
          break;
 
       case '2':
-         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_DGPS;
+         RoadMapNmeaReceived.gga.quality = ROADMAP_NMEA_QUALITY_DGPS;
          break;
 
       case '3':
-         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_PPS;
+         RoadMapNmeaReceived.gga.quality = ROADMAP_NMEA_QUALITY_PPS;
          break;
 
       default:
-         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_OTHER;
+         RoadMapNmeaReceived.gga.quality = ROADMAP_NMEA_QUALITY_OTHER;
          break;
    }
 
-   RoadMapNmeaReceived.gpgga.count =
+   RoadMapNmeaReceived.gga.count =
       roadmap_nmea_decode_numeric (argv[7], 1);
 
-   RoadMapNmeaReceived.gpgga.dilution =
+   RoadMapNmeaReceived.gga.dilution =
       roadmap_nmea_decode_numeric (argv[8], 100);
 
-   RoadMapNmeaReceived.gpgga.altitude =
+   RoadMapNmeaReceived.gga.altitude =
       roadmap_nmea_decode_numeric (argv[9], 100);
 
-   strcpy (RoadMapNmeaReceived.gpgga.altitude_unit,
+   strcpy (RoadMapNmeaReceived.gga.altitude_unit,
            roadmap_nmea_decode_unit (argv[10]));
 
    return 1;
 }
 
 
-static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
+static int roadmap_nmea_gsa (int argc, char *argv[]) {
 
    int i;
    int index;
    int last_satellite;
 
-   RoadMapNmeaReceived.gpgsa.automatic = *(argv[1]);
-   RoadMapNmeaReceived.gpgsa.dimension = atoi(argv[2]);
+   RoadMapNmeaReceived.gsa.automatic = *(argv[1]);
+   RoadMapNmeaReceived.gsa.dimension = atoi(argv[2]);
 
    /* The last 3 arguments (argc-3 .. argc-1) are not satellites. */
    last_satellite = argc - 4;
@@ -280,21 +280,21 @@ static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
    for (index = 2, i = 0;
         index < last_satellite && i < ROADMAP_NMEA_MAX_SATELLITE; ++i) {
 
-      RoadMapNmeaReceived.gpgsa.satellite[i] = atoi(argv[++index]);
+      RoadMapNmeaReceived.gsa.satellite[i] = atoi(argv[++index]);
    }
    while (i < ROADMAP_NMEA_MAX_SATELLITE) {
-      RoadMapNmeaReceived.gpgsa.satellite[i++] = 0;
+      RoadMapNmeaReceived.gsa.satellite[i++] = 0;
    }
 
-   RoadMapNmeaReceived.gpgsa.dilution_position   = (float) atof(argv[++index]);
-   RoadMapNmeaReceived.gpgsa.dilution_horizontal = (float) atof(argv[++index]);
-   RoadMapNmeaReceived.gpgsa.dilution_vertical   = (float) atof(argv[++index]);
+   RoadMapNmeaReceived.gsa.dilution_position   = (float) atof(argv[++index]);
+   RoadMapNmeaReceived.gsa.dilution_horizontal = (float) atof(argv[++index]);
+   RoadMapNmeaReceived.gsa.dilution_vertical   = (float) atof(argv[++index]);
 
    return 1;
 }
 
 
-static int roadmap_nmea_gpgll (int argc, char *argv[]) {
+static int roadmap_nmea_gll (int argc, char *argv[]) {
 
    char mode;
    int  valid_fix;
@@ -313,29 +313,29 @@ static int roadmap_nmea_gpgll (int argc, char *argv[]) {
 
    if (valid_fix) {
 
-      RoadMapNmeaReceived.gpgll.latitude =
+      RoadMapNmeaReceived.gll.latitude =
          roadmap_nmea_decode_coordinate  (argv[1], argv[2], 'N', 'S');
 
-      RoadMapNmeaReceived.gpgll.longitude =
+      RoadMapNmeaReceived.gll.longitude =
          roadmap_nmea_decode_coordinate (argv[3], argv[4], 'E', 'W');
 
       /* The UTC does not seem to be provided by all GPS vendors,
        * ignore it.
        */
 
-      RoadMapNmeaReceived.gpgll.status = 'A';
-      RoadMapNmeaReceived.gpgll.mode   = mode;
+      RoadMapNmeaReceived.gll.status = 'A';
+      RoadMapNmeaReceived.gll.mode   = mode;
 
    } else {
-       RoadMapNmeaReceived.gpgll.status = 'V'; /* bad. */
-       RoadMapNmeaReceived.gpgll.mode   = 'N';
+       RoadMapNmeaReceived.gll.status = 'V'; /* bad. */
+       RoadMapNmeaReceived.gll.mode   = 'N';
    }
 
    return 1;
 }
 
 
-static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
+static int roadmap_nmea_gsv (int argc, char *argv[]) {
 
    int i;
    int end;
@@ -346,26 +346,26 @@ static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
       return 0;
    }
 
-   RoadMapNmeaReceived.gpgsv.total = (char) atoi(argv[1]);
-   RoadMapNmeaReceived.gpgsv.index = (char) atoi(argv[2]);
-   RoadMapNmeaReceived.gpgsv.count = (char) atoi(argv[3]);
+   RoadMapNmeaReceived.gsv.total = (char) atoi(argv[1]);
+   RoadMapNmeaReceived.gsv.index = (char) atoi(argv[2]);
+   RoadMapNmeaReceived.gsv.count = (char) atoi(argv[3]);
 
-   if (RoadMapNmeaReceived.gpgsv.count < 0) {
+   if (RoadMapNmeaReceived.gsv.count < 0) {
       roadmap_log (ROADMAP_ERROR, "%d is an invalid number of satellites",
-                   RoadMapNmeaReceived.gpgsv.count);
+                   RoadMapNmeaReceived.gsv.count);
       return 0;
    }
 
-   if (RoadMapNmeaReceived.gpgsv.count > ROADMAP_NMEA_MAX_SATELLITE) {
+   if (RoadMapNmeaReceived.gsv.count > ROADMAP_NMEA_MAX_SATELLITE) {
 
       roadmap_log (ROADMAP_ERROR, "%d is too many satellite, %d max supported",
-                   RoadMapNmeaReceived.gpgsv.count,
+                   RoadMapNmeaReceived.gsv.count,
                    ROADMAP_NMEA_MAX_SATELLITE);
-      RoadMapNmeaReceived.gpgsv.count = ROADMAP_NMEA_MAX_SATELLITE;
+      RoadMapNmeaReceived.gsv.count = ROADMAP_NMEA_MAX_SATELLITE;
    }
 
-   end = RoadMapNmeaReceived.gpgsv.count
-            - ((RoadMapNmeaReceived.gpgsv.index - 1) * 4);
+   end = RoadMapNmeaReceived.gsv.count
+            - ((RoadMapNmeaReceived.gsv.index - 1) * 4);
 
    if (end > 4) end = 4;
 
@@ -375,17 +375,17 @@ static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
 
    for (index = 3, i = 0; i < end; ++i) {
 
-      RoadMapNmeaReceived.gpgsv.satellite[i] = atoi(argv[++index]);
-      RoadMapNmeaReceived.gpgsv.elevation[i] = atoi(argv[++index]);
-      RoadMapNmeaReceived.gpgsv.azimuth[i]   = atoi(argv[++index]);
-      RoadMapNmeaReceived.gpgsv.strength[i]  = atoi(argv[++index]);
+      RoadMapNmeaReceived.gsv.satellite[i] = atoi(argv[++index]);
+      RoadMapNmeaReceived.gsv.elevation[i] = atoi(argv[++index]);
+      RoadMapNmeaReceived.gsv.azimuth[i]   = atoi(argv[++index]);
+      RoadMapNmeaReceived.gsv.strength[i]  = atoi(argv[++index]);
    }
 
    for (i = end; i < 4; ++i) {
-      RoadMapNmeaReceived.gpgsv.satellite[i] = 0;
-      RoadMapNmeaReceived.gpgsv.elevation[i] = 0;
-      RoadMapNmeaReceived.gpgsv.azimuth[i]   = 0;
-      RoadMapNmeaReceived.gpgsv.strength[i]  = 0;
+      RoadMapNmeaReceived.gsv.satellite[i] = 0;
+      RoadMapNmeaReceived.gsv.elevation[i] = 0;
+      RoadMapNmeaReceived.gsv.azimuth[i]   = 0;
+      RoadMapNmeaReceived.gsv.strength[i]  = 0;
    }
 
    return 1;
@@ -442,12 +442,19 @@ static void roadmap_nmea_null_listener (void *context,
                                         const RoadMapNmeaFields *fields) {}
 
 
-#define ROADMAP_NMEA_PHRASE(n,d) \
-    {n,roadmap_nmea_null_decoder,d,roadmap_nmea_null_filter,roadmap_nmea_null_listener}
+#define ROADMAP_NMEA_PHRASE(t,s,d) \
+    {t,s,roadmap_nmea_null_decoder,d,roadmap_nmea_null_filter,roadmap_nmea_null_listener}
+
+static char *RoadMapNmeatalker[] = {
+   "GP", /* GPS receiver. */
+   "II", /* Integrated instrumentation. */
+   NULL
+};
 
 static struct {
 
-   char               *name;
+   char               *talker; /* NULL --> any. */
+   char               *sentence;
    RoadMapNmeaDecoder  active_decoder;
    RoadMapNmeaDecoder  decoder;
    RoadMapNmeaFilter   filter;
@@ -455,64 +462,110 @@ static struct {
 
 } RoadMapNmeaPhrase[] = {
 
-   ROADMAP_NMEA_PHRASE("GPRMC", roadmap_nmea_gprmc),
-   ROADMAP_NMEA_PHRASE("GPGGA", roadmap_nmea_gpgga),
-   ROADMAP_NMEA_PHRASE("GPGSA", roadmap_nmea_gpgsa),
-   ROADMAP_NMEA_PHRASE("GPGSV", roadmap_nmea_gpgsv),
-   ROADMAP_NMEA_PHRASE("GPGLL", roadmap_nmea_gpgll),
+   ROADMAP_NMEA_PHRASE(NULL, "RMC", roadmap_nmea_rmc),
+   ROADMAP_NMEA_PHRASE(NULL, "GGA", roadmap_nmea_gga),
+   ROADMAP_NMEA_PHRASE(NULL, "GSA", roadmap_nmea_gsa),
+   ROADMAP_NMEA_PHRASE(NULL, "GSV", roadmap_nmea_gsv),
+   ROADMAP_NMEA_PHRASE(NULL, "GLL", roadmap_nmea_gll),
 
    /* Garmin extensions: */
-   ROADMAP_NMEA_PHRASE("PGRME", roadmap_nmea_pgrme),
-   ROADMAP_NMEA_PHRASE("PGRMM", roadmap_nmea_pgrmm),
+   ROADMAP_NMEA_PHRASE("PG", "RME", roadmap_nmea_pgrme),
+   ROADMAP_NMEA_PHRASE("PG", "RMM", roadmap_nmea_pgrmm),
 
-   { "", NULL, NULL, NULL, NULL}
+   { NULL, "", NULL, NULL, NULL, NULL}
 };
 
 
-RoadMapNmeaFilter roadmap_nmea_add_filter (char *name,
+RoadMapNmeaFilter roadmap_nmea_add_filter (const char *talker,
+                                           const char *sentence,
                                            RoadMapNmeaFilter filter) {
 
    int i;
+   int found;
    RoadMapNmeaFilter previous;
+
 
    for (i = 0; RoadMapNmeaPhrase[i].decoder != NULL; ++i) {
 
-       if (strcmp (name, RoadMapNmeaPhrase[i].name) == 0) {
+       if (strcmp (sentence, RoadMapNmeaPhrase[i].sentence) == 0) {
 
-          previous = RoadMapNmeaPhrase[i].filter;
-          RoadMapNmeaPhrase[i].filter = filter;
+          if ((talker == NULL) && (RoadMapNmeaPhrase[i].talker == NULL)) {
+             found = 1;
+          }
+          else if ((talker != NULL) &&
+                   (RoadMapNmeaPhrase[i].talker != NULL) &&
+                   (strcmp (talker, RoadMapNmeaPhrase[i].talker) == 0)) {
+             found = 1;
+          } else {
+             found = 0;
+          }
 
-          return previous;
+          if (found) {
+             previous = RoadMapNmeaPhrase[i].filter;
+             RoadMapNmeaPhrase[i].filter = filter;
+
+             return previous;
+          }
        }
    }
 
-   roadmap_log (ROADMAP_ERROR, "invalid NMEA sentence '%s'", name);
+   if (talker == NULL) {
+      roadmap_log (ROADMAP_FATAL, "unsupported generic NMEA sentence '%s'",
+                   sentence);
+   } else {
+      roadmap_log (ROADMAP_FATAL,
+                   "unsupported NMEA sentence '%s' for talker '%s'",
+                   sentence);
+   }
    return roadmap_nmea_null_filter;
 }
 
 
-RoadMapNmeaListener roadmap_nmea_subscribe (char *name,
+RoadMapNmeaListener roadmap_nmea_subscribe (const char *talker,
+                                            const char *sentence,
                                             RoadMapNmeaListener listener) {
 
    int i;
+   int found;
    RoadMapNmeaListener previous;
+
 
    for (i = 0; RoadMapNmeaPhrase[i].decoder != NULL; ++i) {
 
-       if (strcmp (name, RoadMapNmeaPhrase[i].name) == 0) {
+       if (strcmp (sentence, RoadMapNmeaPhrase[i].sentence) == 0) {
 
-          previous = RoadMapNmeaPhrase[i].listener;
-          RoadMapNmeaPhrase[i].listener = listener;
+          if ((talker == NULL) && (RoadMapNmeaPhrase[i].talker == NULL)) {
+             found = 1;
+          }
+          else if ((talker != NULL) &&
+                   (RoadMapNmeaPhrase[i].talker != NULL) &&
+                   (strcmp (talker, RoadMapNmeaPhrase[i].talker) == 0)) {
+             found = 1;
+          } else {
+             found = 0;
+          }
 
-          /* Since someone want to listen to this sentence, it is time
-           * to activate the decoder.
-           */
-          RoadMapNmeaPhrase[i].active_decoder = RoadMapNmeaPhrase[i].decoder;
-          return previous;
+          if (found) {
+             previous = RoadMapNmeaPhrase[i].listener;
+             RoadMapNmeaPhrase[i].listener = listener;
+
+             /* Since someone want to listen to this sentence, it is time
+              * to activate the decoder.
+              */
+             RoadMapNmeaPhrase[i].active_decoder = RoadMapNmeaPhrase[i].decoder;
+             return previous;
+          }
        }
    }
 
-   roadmap_log (ROADMAP_ERROR, "invalid NMEA sentence '%s'", name);
+   if (talker == NULL) {
+      roadmap_log (ROADMAP_FATAL, "unsupported generic NMEA sentence '%s'",
+                   sentence);
+   } else {
+      roadmap_log (ROADMAP_FATAL,
+                   "unsupported NMEA sentence '%s' for talker '%s'",
+                   sentence);
+   }
    return roadmap_nmea_null_listener;
 }
 
@@ -549,8 +602,10 @@ int roadmap_nmea_decode (void *context, char *sentence) {
 
       if (mnea_checksum != checksum) {
          roadmap_log (ROADMAP_ERROR,
-                      "mnea checksum error: nmea: %02x, calculated: %02x",
-                      mnea_checksum, checksum);
+               "mnea checksum error for '%s' (nmea=%02x, calculated=%02x)",
+               sentence,
+               mnea_checksum,
+               checksum);
       }
    }
    *p = 0;
@@ -567,17 +622,21 @@ int roadmap_nmea_decode (void *context, char *sentence) {
     */
    for (i = 0; RoadMapNmeaPhrase[i].decoder != NULL; ++i) {
 
-       if (strcmp (RoadMapNmeaPhrase[i].name, field[0]) == 0) {
+      if (strcmp (RoadMapNmeaPhrase[i].sentence, field[0]+2) == 0) {
 
-          if ((*RoadMapNmeaPhrase[i].active_decoder) (count, field)) {
+         if ((RoadMapNmeaPhrase[i].talker == NULL) ||
+             (strncmp(RoadMapNmeaPhrase[i].talker, field[0], 2) == 0)) {
 
-             (*RoadMapNmeaPhrase[i].filter)   (&RoadMapNmeaReceived);
-             (*RoadMapNmeaPhrase[i].listener) (context, &RoadMapNmeaReceived);
+            if ((*RoadMapNmeaPhrase[i].active_decoder) (count, field)) {
 
-             return 1; /* GPS information was successfully made available. */
-          }
-          break;
-       }
+               (*RoadMapNmeaPhrase[i].filter)   (&RoadMapNmeaReceived);
+               (*RoadMapNmeaPhrase[i].listener) (context, &RoadMapNmeaReceived);
+
+               return 1; /* GPS information was successfully made available. */
+            }
+         }
+         break;
+      }
    }
 
    return 0; /* No GPS information was generated or used. */

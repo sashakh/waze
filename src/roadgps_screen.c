@@ -291,44 +291,44 @@ static void roadgps_screen_draw (void) {
 }
 
 
-static void roadgps_screen_gpgsa
+static void roadgps_screen_gsa
                (void *context, const RoadMapNmeaFields *fields) {
 
    int i;
 
    for (i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; i += 1) {
 
-      RoadGpsActiveSatellites[i] = fields->gpgsa.satellite[i];
+      RoadGpsActiveSatellites[i] = fields->gsa.satellite[i];
    }
 
    (*RoadGpsNextGpgsa) (context, fields);
 }
 
 
-static void roadgps_screen_gpgsv
+static void roadgps_screen_gsv
                (void *context, const RoadMapNmeaFields *fields) {
 
    int i;
    int index;
 
-   for (i = 0, index = (fields->gpgsv.index - 1) * 4;
-        i < 4 && index < fields->gpgsv.count;
+   for (i = 0, index = (fields->gsv.index - 1) * 4;
+        i < 4 && index < fields->gsv.count;
         i += 1, index += 1) {
 
       sprintf (RoadGpsSatellites[index].label,
-               "%02d", fields->gpgsv.satellite[i]);
+               "%02d", fields->gsv.satellite[i]);
 
-      RoadGpsSatellites[index].id        = fields->gpgsv.satellite[i];
-      RoadGpsSatellites[index].elevation = fields->gpgsv.elevation[i];
-      RoadGpsSatellites[index].azimuth   = fields->gpgsv.azimuth[i];
-      RoadGpsSatellites[index].strength  = fields->gpgsv.strength[i];
+      RoadGpsSatellites[index].id        = fields->gsv.satellite[i];
+      RoadGpsSatellites[index].elevation = fields->gsv.elevation[i];
+      RoadGpsSatellites[index].azimuth   = fields->gsv.azimuth[i];
+      RoadGpsSatellites[index].strength  = fields->gsv.strength[i];
 
       RoadGpsSatellites[index].status  = ROADGPS_STATUS_FIXING;
    }
 
-   if (fields->gpgsv.index == fields->gpgsv.total) {
+   if (fields->gsv.index == fields->gsv.total) {
 
-      RoadGpsSatelliteCount = fields->gpgsv.count;
+      RoadGpsSatelliteCount = fields->gsv.count;
 
       if (RoadGpsSatelliteCount > ROADMAP_NMEA_MAX_SATELLITE) {
          RoadGpsSatelliteCount = ROADMAP_NMEA_MAX_SATELLITE;
@@ -469,12 +469,12 @@ void roadgps_screen_initialize (void) {
 
    if (RoadGpsNextGpgsa == NULL) {
       RoadGpsNextGpgsa =
-         roadmap_nmea_subscribe ("GPGSA", roadgps_screen_gpgsa);
+         roadmap_nmea_subscribe (NULL, "GSA", roadgps_screen_gsa);
    }
 
    if (RoadGpsNextGpgsv == NULL) {
       RoadGpsNextGpgsv =
-         roadmap_nmea_subscribe ("GPGSV", roadgps_screen_gpgsv);
+         roadmap_nmea_subscribe (NULL, "GSV", roadgps_screen_gsv);
    }
 
    roadmap_canvas_register_configure_handler (&roadgps_screen_configure);

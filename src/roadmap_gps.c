@@ -146,9 +146,9 @@ static void roadmap_gps_process_position (void) {
 }
 
 
-static void roadmap_gps_gpgga (void *context, const RoadMapNmeaFields *fields) {
+static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
-   if (fields->gpgga.quality == ROADMAP_NMEA_QUALITY_INVALID) {
+   if (fields->gga.quality == ROADMAP_NMEA_QUALITY_INVALID) {
 
       roadmap_gps_update_status ('V');
 
@@ -156,12 +156,12 @@ static void roadmap_gps_gpgga (void *context, const RoadMapNmeaFields *fields) {
 
       roadmap_gps_update_status ('A');
 
-      RoadMapGpsReceivedPosition.latitude  = fields->gpgga.latitude;
-      RoadMapGpsReceivedPosition.longitude = fields->gpgga.longitude;
+      RoadMapGpsReceivedPosition.latitude  = fields->gga.latitude;
+      RoadMapGpsReceivedPosition.longitude = fields->gga.longitude;
       /* speed not available: keep previous value. */
       RoadMapGpsReceivedPosition.altitude  =
-         roadmap_math_to_current_unit (fields->gpgga.altitude,
-                                       fields->gpgga.altitude_unit);
+         roadmap_math_to_current_unit (fields->gga.altitude,
+                                       fields->gga.altitude_unit);
 
       roadmap_gps_process_position();
    }
@@ -170,14 +170,14 @@ static void roadmap_gps_gpgga (void *context, const RoadMapNmeaFields *fields) {
 }
 
 
-static void roadmap_gps_gpgll (void *context, const RoadMapNmeaFields *fields) {
+static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
-   roadmap_gps_update_status (fields->gpgll.status);
+   roadmap_gps_update_status (fields->gll.status);
 
-   if (fields->gpgll.status == 'A') {
+   if (fields->gll.status == 'A') {
 
-      RoadMapGpsReceivedPosition.latitude  = fields->gpgll.latitude;
-      RoadMapGpsReceivedPosition.longitude = fields->gpgll.longitude;
+      RoadMapGpsReceivedPosition.latitude  = fields->gll.latitude;
+      RoadMapGpsReceivedPosition.longitude = fields->gll.longitude;
       /* speed not available: keep previous value. */
       /* altitude not available: keep previous value. */
       /* steering not available: keep previous value. */
@@ -189,25 +189,25 @@ static void roadmap_gps_gpgll (void *context, const RoadMapNmeaFields *fields) {
 }
 
 
-static void roadmap_gps_gprmc (void *context, const RoadMapNmeaFields *fields) {
+static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
 
-   roadmap_gps_update_status (fields->gprmc.status);
+   roadmap_gps_update_status (fields->rmc.status);
 
-   if (fields->gprmc.status == 'A') {
+   if (fields->rmc.status == 'A') {
 
-      RoadMapGpsReceivedPosition.latitude  = fields->gprmc.latitude;
-      RoadMapGpsReceivedPosition.longitude = fields->gprmc.longitude;
-      RoadMapGpsReceivedPosition.speed     = fields->gprmc.speed;
+      RoadMapGpsReceivedPosition.latitude  = fields->rmc.latitude;
+      RoadMapGpsReceivedPosition.longitude = fields->rmc.longitude;
+      RoadMapGpsReceivedPosition.speed     = fields->rmc.speed;
       /* altitude not available: keep previous value. */
 
-      if (fields->gprmc.speed > roadmap_gps_speed_accuracy()) {
+      if (fields->rmc.speed > roadmap_gps_speed_accuracy()) {
 
          /* Update the steering only if the speed is significant:
           * when the speed is too low, the steering indicated by
           * the GPS device is not reliable; in that case the best
           * guess is that we did not turn.
           */
-         RoadMapGpsReceivedPosition.steering  = fields->gprmc.steering;
+         RoadMapGpsReceivedPosition.steering  = fields->rmc.steering;
       }
 
       roadmap_gps_process_position();
@@ -318,31 +318,31 @@ void roadmap_gps_open (void) {
    if (RoadMapGpsNextGprmc == NULL) {
 
       RoadMapGpsNextGprmc =
-         roadmap_nmea_subscribe ("GPRMC", roadmap_gps_gprmc);
+         roadmap_nmea_subscribe (NULL, "RMC", roadmap_gps_rmc);
    }
 
    if (RoadMapGpsNextGpgga == NULL) {
 
       RoadMapGpsNextGpgga =
-         roadmap_nmea_subscribe ("GPGGA", roadmap_gps_gpgga);
+         roadmap_nmea_subscribe (NULL, "GGA", roadmap_gps_gga);
    }
 
    if (RoadMapGpsNextGpgll == NULL) {
 
       RoadMapGpsNextGpgll =
-         roadmap_nmea_subscribe ("GPGLL", roadmap_gps_gpgll);
+         roadmap_nmea_subscribe (NULL, "GLL", roadmap_gps_gll);
    }
 
    if (RoadMapGpsNextPgrme == NULL) {
 
       RoadMapGpsNextPgrme =
-         roadmap_nmea_subscribe ("PGRME", roadmap_gps_pgrme);
+         roadmap_nmea_subscribe ("PG", "RME", roadmap_gps_pgrme);
    }
 
    if (RoadMapGpsNextPgrmm == NULL) {
 
       RoadMapGpsNextPgrmm =
-         roadmap_nmea_subscribe ("PGRMM", roadmap_gps_pgrmm);
+         roadmap_nmea_subscribe ("PG", "RMM", roadmap_gps_pgrmm);
    }
 }
 
