@@ -439,6 +439,7 @@ USING ROADMAP:
    +                    Zoom in: enlarge the central part of the map.
    -                    Zoom out: show a larger area.
    A                    Show a specified address.
+   B                    Start the trip back to the departure point.
    D                    Show the destination point.
    E                    Erase maps among those currently visible.
    F                    Toggle the full screen mode.
@@ -453,7 +454,7 @@ USING ROADMAP:
    Q                    Quit RoadMap.
    R                    Set the map back to the default zoom level.
    S                    Start tracking the current trip.
-   U                    Start the trip back to the departure point.
+   U                    Center the map on the GPS position (north up).
    W                    Set the selected street block as waypoint.
 
    The following bindings are somewhat specific to the iPAQ, but probably

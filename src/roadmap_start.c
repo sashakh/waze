@@ -460,7 +460,8 @@ static RoadMapFactory RoadMapStartKeyBinding[] = {
       "Zoom out: show a larger area", roadmap_screen_zoom_out},
    {"A", NULL,
       "Show a specified address", roadmap_address_location_by_city},
-   // B Unused.
+   {"B", NULL,
+      "Start the trip back to the departure point", roadmap_start_trip_reverse},
    // C Unused.
    {"D", NULL,
       "Show the destination point", roadmap_start_show_destination},
@@ -494,7 +495,8 @@ static RoadMapFactory RoadMapStartKeyBinding[] = {
       "Start tracking the current trip", roadmap_start_trip},
    // T Unused.
    {"U", NULL,
-      "Start the trip back to the departure point", roadmap_start_trip_reverse},
+      "Center the map on the GPS position (north up)",
+       roadmap_start_show_gps_north_up},
    // V Unused.
    {"W",  NULL,
       "Set the selected street block as waypoint", roadmap_start_set_waypoint},
