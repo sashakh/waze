@@ -31,6 +31,7 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
+#include "roadmap_time.h"
 #include "roadmap_file.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
@@ -38,9 +39,10 @@
 #include "roadmap_trip.h"
 #include "roadmap_dialog.h"
 #include "roadmap_fileselection.h"
+#include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
-#include "roadmap_canvas.h"
+#include "roadmap_display.h"
 
 
 /* Default location is: 1 market St, san Francisco, California. */
@@ -594,10 +596,15 @@ void roadmap_trip_reverse (int rotate) {
 }
 
 
-void roadmap_trip_display_points (void) {
+void roadmap_trip_display (void) {
     
-    RoadMapGuiPoint   point;
+    int azymuth;
+    int distance_to_destination;
+    char *unit;
+    RoadMapGuiPoint point;
+    RoadMapTripPoint *gps = roadmap_trip_search ("GPS");
     RoadMapTripPoint *waypoint;
+    RoadMapTripPoint *next_waypoint;
 
     
     for (waypoint = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
@@ -611,25 +618,11 @@ void roadmap_trip_display_points (void) {
             roadmap_sprite_draw (waypoint->sprite, &point, waypoint->direction);
         }
     }
-}
-
-
-void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background) {
     
-    int count;
-    int azymuth;
-    int width, ascent, descent;
-    int distance_to_destination;
-    char *unit;
-    char  text[128];
-    RoadMapGuiPoint frame[4];
-    RoadMapGuiPoint text_position;
-    RoadMapTripPoint *gps = roadmap_trip_search ("GPS");
-    RoadMapTripPoint *waypoint;
-    RoadMapTripPoint *next_waypoint;
-
     
     if (RoadMapTripFocus == gps && RoadMapTripDestination != NULL) {
+    
+        roadmap_display_set ('T', roadmap_time_get_hours_minutes());
         
         distance_to_destination =
             roadmap_math_distance
@@ -639,6 +632,11 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
                         "GPS: distance to destination = %d %s",
                         distance_to_destination,
                         roadmap_math_distance_unit());
+        
+        roadmap_display_set ('D', "%d %s",
+                             roadmap_math_to_trip_distance
+                                        (distance_to_destination),
+                             roadmap_math_trip_unit());
         
         next_waypoint = RoadMapTripDestination;
         
@@ -666,65 +664,31 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
                             next_waypoint->id,
                             distance_to_waypoint,
                             roadmap_math_distance_unit());
-            snprintf (text, sizeof(text), "(%d %s (%d %s)",
-                        roadmap_math_to_trip_distance(distance_to_destination),
-                        unit,
-                        roadmap_math_to_trip_distance(distance_to_waypoint),
-                        unit);
+            
+            roadmap_display_set ('W', "%d %s",
+                                 roadmap_math_to_trip_distance
+                                            (distance_to_waypoint),
+                                 roadmap_math_trip_unit());
             
         } else {
-            snprintf (text, sizeof(text), "(%d %s",
-                        roadmap_math_to_trip_distance(distance_to_destination),
-                        unit);
+            roadmap_display_unset ('W');
         }
         
-        roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
-                
-        frame[0].x = roadmap_canvas_width() - 5;
-        frame[0].y = roadmap_canvas_height () - ascent - descent - 5;
-        frame[1].x = frame[0].x;
-        frame[1].y = roadmap_canvas_height () - 3;
-        frame[2].x = frame[0].x - width - 8;
-        frame[2].y = frame[1].y;
-        frame[3].x = frame[2].x;
-        frame[3].y = frame[0].y;
+        roadmap_display_set ('S', "%3d %s",
+                             roadmap_math_to_speed_unit(gps->speed),
+                             roadmap_math_speed_unit());
         
-        count = 4;
-        roadmap_canvas_select_pen (background);
-        roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
-        roadmap_canvas_select_pen (foreground);
-        
-        text_position.x = roadmap_canvas_width() - 9;
-        text_position.y = frame[0].y + 2;
-        roadmap_canvas_draw_string (&text_position,
-                                    ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
-                                    text+1);
-        
-        snprintf (text, sizeof(text), "%3d %s",
-                        roadmap_math_to_speed_unit(gps->speed),
-                        roadmap_math_speed_unit());
-                        
-        roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
-                
-        frame[0].x = 5;
-        frame[1].x = frame[0].x;
-        frame[2].x = frame[0].x + width + 8;
-        frame[3].x = frame[2].x;
-        
-        count = 4;
-        roadmap_canvas_select_pen (background);
-        roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
-        roadmap_canvas_select_pen (foreground);
-        
-        text_position.x = frame[2].x - 4;
-        roadmap_canvas_draw_string (&text_position,
-                                    ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
-                                    text);
-                                    
         azymuth = roadmap_math_azymuth (&gps->position,
                                         &next_waypoint->position);
-        roadmap_math_coordinate (&gps->position, frame);
-        roadmap_sprite_draw ("Direction", frame, azymuth);
+        roadmap_math_coordinate (&gps->position, &point);
+        roadmap_sprite_draw ("Direction", &point, azymuth);
+        
+    } else {
+        roadmap_display_unset ('A');
+        roadmap_display_unset ('D');
+        roadmap_display_unset ('S');
+        roadmap_display_unset ('T');
+        roadmap_display_unset ('W');
     }
 }
 

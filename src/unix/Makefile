@@ -2,7 +2,8 @@
 
 OSLIBSRCS=roadmap_file.c \
           roadmap_net.c \
-          roadmap_spawn.c
+          roadmap_spawn.c \
+          roadmap_time.c
 
 OSLIBOBJS=$(OSLIBSRCS:.c=.o)
 

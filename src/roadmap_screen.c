@@ -50,6 +50,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_canvas.h"
+#include "roadmap_display.h"
 #include "roadmap_screen.h"
 
 
@@ -142,76 +143,6 @@ RoadMapPen RoadMapHighlightForeground = NULL;
 RoadMapPen RoadMapHighlightBackground = NULL;
 RoadMapPen RoadMapBackground = NULL;
 RoadMapPen RoadMapEdges = NULL;
-
-
-void roadmap_screen_draw_information (RoadMapPosition *position, char *text) {
-
-   int count;
-   int corner;
-   RoadMapGuiPoint points[7];
-   RoadMapGuiPoint text_position;
-
-
-   roadmap_math_coordinate (position, points);
-   roadmap_math_rotate_coordinates (1, points);
-
-   if (points[0].x < RoadMapScreenWidth / 2) {
-
-      points[1].x = 10;
-      points[2].x = 5;
-      points[3].x = 5;
-      points[4].x = RoadMapScreenWidth - 5;
-      points[5].x = RoadMapScreenWidth - 5;
-      points[6].x = 20;
-
-   } else {
-
-      points[1].x = RoadMapScreenWidth - 10;
-      points[2].x = RoadMapScreenWidth - 5;
-      points[3].x = RoadMapScreenWidth - 5;
-      points[4].x = 5;
-      points[5].x = 5;
-      points[6].x = RoadMapScreenWidth - 20;
-   }
-   corner = ROADMAP_CANVAS_LEFT;
-   text_position.x = 9;
-
-   if (points[0].y < RoadMapScreenHeight / 2) {
-
-      points[1].y = RoadMapScreenHeight - 25;
-      points[2].y = RoadMapScreenHeight - 25;
-      points[3].y = RoadMapScreenHeight - 5;
-      points[4].y = RoadMapScreenHeight - 5;
-      points[5].y = RoadMapScreenHeight - 25;
-      points[6].y = RoadMapScreenHeight - 25;
-
-      corner |= ROADMAP_CANVAS_BOTTOM;
-      text_position.y = RoadMapScreenHeight - 8;
-
-   } else {
-
-      points[1].y = 25;
-      points[2].y = 25;
-      points[3].y = 5;
-      points[4].y = 5;
-      points[5].y = 25;
-      points[6].y = 25;
-
-      corner |= ROADMAP_CANVAS_TOP;
-      text_position.y = 8;
-   }
-
-   roadmap_canvas_select_pen (RoadMapHighlightBackground);
-
-   count = 7;
-   roadmap_canvas_draw_multiple_polygons (1, &count, points, 1);
-
-   roadmap_canvas_select_pen (RoadMapHighlightForeground);
-
-   roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
-
-   roadmap_canvas_draw_string (&text_position, corner, text);
-}
 
 
 static void roadmap_screen_flush_points (void) {
@@ -812,13 +743,15 @@ static void roadmap_screen_repaint_sprites (void) {
 
     RoadMapGuiPoint point;
     
-    roadmap_trip_display_points ();
-
-    roadmap_trip_display_console (RoadMapHighlightForeground, RoadMapHighlightBackground);
-
     point.x = 20;
     point.y = 20;
     roadmap_sprite_draw ("Compass", &point, 0);
+    
+    roadmap_trip_display ();
+
+    roadmap_display_colors (RoadMapHighlightForeground,
+                            RoadMapHighlightBackground);
+    roadmap_display_show ();
 }
 
 
@@ -851,7 +784,9 @@ static void roadmap_screen_repaint_street_tip (void) {
       roadmap_math_rotate_coordinates (1, &point);
       roadmap_sprite_draw ("Highlight", &point, 0);
    }
-   roadmap_screen_draw_information
+   roadmap_display_colors (RoadMapHighlightForeground,
+                           RoadMapHighlightBackground);
+   roadmap_display_details
        (&RoadMapStreetTip.position, RoadMapStreetTip.name);
 }
 

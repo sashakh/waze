@@ -26,7 +26,6 @@
 
 #include "roadmap_types.h"
 #include "roadmap_list.h"
-#include "roadmap_canvas.h"
 
 
 void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
@@ -54,8 +53,7 @@ void  roadmap_trip_start   (int rotate);
 void  roadmap_trip_resume  (int rotate);
 void  roadmap_trip_reverse (int rotate);
 
-void  roadmap_trip_display_points  (void);
-void  roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background);
+void  roadmap_trip_display (void);
 
 void  roadmap_trip_clear (void);
 

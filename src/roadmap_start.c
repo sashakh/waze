@@ -358,6 +358,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_math_initialize   ();
    roadmap_trip_initialize   ();
    roadmap_screen_initialize ();
+   roadmap_display_initialize();
    roadmap_gps_initialize    (&roadmap_gps_update);
    roadmap_history_initialize();
    roadmap_config_initialize ();
