@@ -260,6 +260,10 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     
     if (sign->has_position) {
 
+        if (! roadmap_math_point_is_visible (&sign->position)) {
+            sign->deadline = 0;
+            return;
+        }
         roadmap_math_coordinate (&sign->position, points);
         roadmap_math_rotate_coordinates (1, points);
 

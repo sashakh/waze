@@ -93,7 +93,8 @@ int roadmap_navigate_retrieve_line
 
 
     roadmap_math_coordinate (position, &focus_point);
-    
+    roadmap_math_rotate_coordinates (1, &focus_point);
+
     focus_point.x += accuracy;
     focus_point.y += accuracy;
     roadmap_math_to_position (&focus_point, &focus_position);

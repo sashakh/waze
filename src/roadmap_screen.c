@@ -869,26 +869,21 @@ void roadmap_screen_move_left (void) {
 }
 
 
-static void roadmap_screen_after_zoom (void) {
-
-    /* Adjust the thickness of the drawing pen for all categories. */
-    roadmap_layer_adjust ();
-  
-    roadmap_screen_repaint (0);
-}
-
-
 void roadmap_screen_zoom_in  (void) {
 
-   roadmap_math_zoom_in ();
-   roadmap_screen_after_zoom ();
+    roadmap_math_zoom_in ();
+
+    roadmap_layer_adjust ();
+    roadmap_screen_repaint (0);
 }
 
 
 void roadmap_screen_zoom_out (void) {
 
-   roadmap_math_zoom_out ();
-   roadmap_screen_after_zoom ();
+    roadmap_math_zoom_out ();
+
+    roadmap_layer_adjust ();
+    roadmap_screen_repaint (0);
 }
 
 
