@@ -1,0 +1,20 @@
+Accuracy.GPS: 1000
+Accuracy.Mouse: 20
+Destination.Color: red
+General.Database: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
+General.Default Zoom: 20
+General.Keyboard: no
+General.Toolbar: yes
+General.Unit: imperial
+GPS.Background: LightYellow
+GPS.Color: red
+GPS.Foreground: black
+GPS.Source: gpsd://localhost
+GPS.Timeout: 10
+Highlight.Background: yellow
+Highlight.Duration: 10
+Highlight.Thickness: 4
+Location.Color: red
+Map.Background: LightYellow
+Polygons.Declutter: 1300
+Shapes.Declutter: 1300

@@ -1,0 +1,14 @@
+Package: roadmap-build
+Priority: optional
+Section: x11
+Version: _VERSION_
+Architecture: arm
+Maintainer: Pascal Martin <pascal.martin@iname.com>
+Depends: libc6 popt
+Description: Tools to build map files used by RoadMap.
+ RoadMap is a street navigation software that uses the US Census bureau's
+ Tiger files (thus only the US are covered). This package contains the tools
+ used to prepare the map files used by the roadmap package.
+ .
+ The maps do not need to be built on an iPAQ: it is possible to prepare them
+ on a desktop PC (running Linux).

@@ -1,0 +1,11 @@
+Package: roadmap-sfca
+Priority: optional
+Section: x11
+Version: _VERSION_
+Architecture: arm
+Maintainer: Pascal Martin <pascal.martin@iname.com>
+Depends: roadmap-gtk
+Description: The RoadMap map file for San Francisco County, California
+ RoadMap is a street navigation software that uses the US Census bureau's
+ Tiger files (thus only the US are covered). This package contains one map
+ file, provided as an example.

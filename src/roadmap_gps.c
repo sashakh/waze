@@ -1,0 +1,327 @@
+/* roadmap_gps.c - GPS interface for the RoadMap application.
+ *
+ * LICENSE:
+ *
+ *   Copyright 2002 Pascal F. Martin
+ *
+ *   This file is part of RoadMap.
+ *
+ *   RoadMap is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   RoadMap is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with RoadMap; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * SYNOPSYS:
+ *
+ *   See roadmap_gps.h
+ */
+
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <time.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include "roadmap.h"
+#include "roadmap_types.h"
+#include "roadmap_config.h"
+
+#include "roadmap_net.h"
+#include "roadmap_nmea.h"
+
+#include "roadmap_gps.h"
+
+
+static int RoadMapGpsLink = -1;
+
+static time_t RoadMapGpsConnectedSince = -1;
+
+#define ROADMAP_GPS_CLIENTS 16
+static roadmap_gps_listener RoadMapGpsListeners[ROADMAP_GPS_CLIENTS] = {NULL};
+static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
+
+static RoadMapNmeaListener RoadMapGpsNextGprmc = NULL;
+
+
+static char RoadMapLastKnownStatus = 'A';
+
+static time_t RoadMapGpsLatestData = 0;
+
+
+static void roadmap_gps_no_link_control (int fd) {}
+
+static roadmap_gps_link_control RoadMapGpsLinkAdd =
+                                    &roadmap_gps_no_link_control;
+
+static roadmap_gps_link_control RoadMapGpsLinkRemove =
+                                    &roadmap_gps_no_link_control;
+
+
+static void roadmap_gps_gprmc (void *context, const RoadMapNmeaFields *fields) {
+
+   int i;
+
+   if (fields->gprmc.status != RoadMapLastKnownStatus) {
+       if (RoadMapLastKnownStatus == 'A') {
+          roadmap_log (ROADMAP_ERROR, "GPS receiver lost satellite fix");
+       }
+   }
+   RoadMapLastKnownStatus = fields->gprmc.status;
+
+   if (fields->gprmc.status == 'A') {
+
+      RoadMapPosition position;
+
+      position.latitude = fields->gprmc.latitude;
+      position.longitude = fields->gprmc.longitude;
+
+      for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
+
+         if (RoadMapGpsListeners[i] == NULL) break;
+
+         (RoadMapGpsListeners[i])
+             (&position, fields->gprmc.speed, fields->gprmc.steering);
+      }
+   }
+
+   (*RoadMapGpsNextGprmc) (context, fields);
+}
+
+
+void roadmap_gps_initialize (roadmap_gps_listener listener) {
+
+   int i;
+
+   for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
+      if (RoadMapGpsListeners[i] == NULL) {
+         RoadMapGpsListeners[i] = listener;
+         break;
+      }
+   }
+
+   roadmap_config_declare ("preferences", "GPS", "Source", "gpsd://localhost");
+   roadmap_config_declare ("preferences", "GPS", "Timeout", "10");
+}
+
+
+void roadmap_gps_open (void) {
+
+   char *url;
+
+
+   /* Check if we have a gps interface defined: */
+
+   url = roadmap_gps_source ();
+
+   if (url == NULL) {
+
+      url = roadmap_config_get ("GPS", "Source");
+
+      if (url == NULL) {
+         return;
+      }
+      if (*url == 0) {
+         return;
+      }
+   }
+
+   /* We do have a gps interface: */
+
+   if (strncasecmp (url, "gpsd://", 7) == 0) {
+
+      RoadMapGpsLink = roadmap_net_connect (url+7, 2947);
+
+      if (RoadMapGpsLink > 0) {
+
+         if (write (RoadMapGpsLink, "r\n", 2) != 2) {
+            roadmap_log (ROADMAP_ERROR,
+                         "cannot subscribe to gpsd, errno = %d", errno);
+            close(RoadMapGpsLink);
+            RoadMapGpsLink = -1;
+         }
+      }
+
+   } else if (strncasecmp (url, "tty://", 6) == 0) {
+
+      roadmap_log (ROADMAP_ERROR, "tty GPS source not yet implemented");
+      return;
+
+   } else if (strncasecmp (url, "file://", 7) == 0) {
+
+      RoadMapGpsLink = open (url+7, O_RDONLY);
+
+   } else if (url[0] == '/') {
+
+      RoadMapGpsLink = open (url, O_RDONLY);
+
+   } else {
+      roadmap_log (ROADMAP_ERROR, "invalid protocol in url %s", url);
+      return;
+   }
+
+   if (RoadMapGpsLink < 0) {
+      roadmap_log (ROADMAP_ERROR, "cannot access GPS source %s", url);
+      return;
+   }
+
+   RoadMapGpsConnectedSince = time(NULL);
+
+   /* Declare this IO to the GUI toolkit so that we wake up on GPS data. */
+
+   (*RoadMapGpsLinkAdd) (RoadMapGpsLink);
+
+   if (RoadMapGpsNextGprmc == NULL) {
+
+      RoadMapGpsNextGprmc =
+         roadmap_nmea_subscribe ("GPRMC", roadmap_gps_gprmc);
+   }
+}
+
+
+void roadmap_gps_register_logger (roadmap_gps_logger logger) {
+
+   int i;
+
+   for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
+
+      if (RoadMapGpsLoggers[i] == logger) {
+         break;
+      }
+      if (RoadMapGpsLoggers[i] == NULL) {
+         RoadMapGpsLoggers[i] = logger;
+         break;
+      }
+   }
+}
+
+
+void roadmap_gps_register_link_control
+        (roadmap_gps_link_control add, roadmap_gps_link_control remove) {
+
+   RoadMapGpsLinkAdd    = add;
+   RoadMapGpsLinkRemove = remove;
+}
+
+
+void roadmap_gps_input (int fd) {
+
+   static char input_buffer[1024];
+   static int  input_cursor = 0;
+
+   int received;
+
+
+   if (input_cursor < sizeof(input_buffer) - 1) {
+
+      received = read (fd,
+                       input_buffer + input_cursor,
+                       sizeof(input_buffer) - input_cursor - 1);
+
+      if (received <= 0) {
+
+         if (errno != 0) {
+            roadmap_log (ROADMAP_ERROR,
+                         "lost GPS connection after %d seconds, errno = %d",
+                         time(NULL) - RoadMapGpsConnectedSince, errno);
+         } else {
+            roadmap_log (ROADMAP_INFO,
+                         "lost GPS connection after %d seconds",
+                         time(NULL) - RoadMapGpsConnectedSince);
+         }
+
+         /* We lost that connection. */
+
+         (*RoadMapGpsLinkRemove) (fd);
+         close (fd);
+
+         /* Try to establish a new connection: */
+
+         roadmap_gps_open();
+
+      } else {
+         input_cursor += received;
+      }
+   }
+
+   while (input_cursor > 0) {
+
+      int i;
+      int next;
+      int line_is_complete;
+
+      char *new_line;
+      char *carriage_return;
+
+
+      input_buffer[input_cursor] = 0;
+
+      line_is_complete = 0;
+      new_line = strchr (input_buffer, '\n');
+      carriage_return = strchr (input_buffer, '\r');
+
+      if (new_line != NULL) {
+         *new_line = 0;
+         line_is_complete = 1;
+      }
+      if (carriage_return != NULL) {
+         *carriage_return = 0;
+         line_is_complete = 1;
+      }
+
+      if (! line_is_complete) break;
+
+      next = strlen (input_buffer) + 1;
+
+
+      for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
+
+         if (RoadMapGpsLoggers[i] == NULL) break;
+
+         (RoadMapGpsLoggers[i]) (input_buffer);
+      }
+
+      if (roadmap_nmea_decode (NULL, input_buffer)) {
+         RoadMapGpsLatestData = time(NULL);
+      }
+
+      while ((input_buffer[next] < ' ') && (next < input_cursor)) next++;
+
+      input_cursor -= next;
+
+      for (i = 0; i < input_cursor; ++i) {
+         input_buffer[i] = input_buffer[next+i];
+      }
+   }
+}
+
+
+int roadmap_gps_active (void) {
+
+   int timeout;
+
+   if (RoadMapGpsLink < 0) {
+      return 0;
+   }
+
+   timeout = atoi(roadmap_config_get ("GPS", "Timeout"));
+
+   if (time(NULL) - RoadMapGpsLatestData >= timeout) {
+      return 0;
+   }
+
+   return 1;
+}
+

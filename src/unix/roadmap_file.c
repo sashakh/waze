@@ -1,0 +1,344 @@
+/* roadmap_file.c - a module to open/read/close a roadmap database file.
+ *
+ * LICENSE:
+ *
+ *   Copyright 2002 Pascal F. Martin
+ *
+ *   This file is part of RoadMap.
+ *
+ *   RoadMap is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ *   RoadMap is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with RoadMap; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * SYNOPSYS:
+ *
+ *   See roadmap_file.h.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
+#include "roadmap.h"
+#include "roadmap_file.h"
+
+#define ROADMAP_PATH_COUNT_MAX 16
+
+struct RoadMapFileContextStructure {
+
+   int   fd;
+   void *base;
+   int   size;
+
+};
+
+static char *RoadMapFilePathString = NULL;
+static char *RoadMapFilePath[ROADMAP_PATH_COUNT_MAX] = {NULL};
+static int   RoadMapFilePathCount = 0;
+static int   RoadMapFileMaxPath = 0;
+
+
+static const char *roadmap_file_home (void) {
+
+   static char *RoadMapFileHome = NULL;
+
+   if (RoadMapFileHome == NULL) {
+
+      RoadMapFileHome = getenv("HOME");
+
+      if (RoadMapFileHome == NULL) {
+         RoadMapFileHome = "";
+      }
+   }
+
+   return RoadMapFileHome;
+}
+
+
+const char *roadmap_file_default_path (void) {
+
+      return ".,/usr/local/share/roadmap,/usr/share/roadmap";
+}
+
+
+const char *roadmap_file_user (void) {
+
+   static char  RoadMapDirectory[] = "/.roadmap";
+   static char *RoadMapUser = NULL;
+
+   if (RoadMapUser == NULL) {
+
+      const char *home = roadmap_file_home();
+
+
+      RoadMapUser = malloc (strlen(home) + strlen(RoadMapDirectory) + 4);
+
+      if (RoadMapUser == NULL) {
+         roadmap_log (ROADMAP_FATAL, "no more memory");
+      }
+      strcpy (RoadMapUser, home);
+      strcat (RoadMapUser, RoadMapDirectory);
+   }
+
+   return RoadMapUser;
+}
+
+
+void roadmap_file_set_path (const char *path) {
+
+   int i;
+   int length;
+   char *p;
+
+
+   while (*path == ',') path += 1;
+   if (*path == 0) return; /* Ignore empty path: default is better. */
+
+
+   if (RoadMapFilePathString != NULL) {
+
+      free (RoadMapFilePathString);
+      RoadMapFilePathString = NULL;
+   }
+   for (i = 0; i < ROADMAP_PATH_COUNT_MAX; ++i) {
+      RoadMapFilePath[i] = NULL;
+   }
+   RoadMapFilePathCount = 0;
+
+
+   RoadMapFilePathString = strdup (path);
+
+   RoadMapFilePath[0] = RoadMapFilePathString;
+   i = 0;
+
+   for (p = strchr(RoadMapFilePathString, ',');
+        p != NULL;
+        p = strchr (p, ',')) {
+
+      *(p++) = 0;
+      if (*p == 0) break;
+
+      if (*p != ',') {
+         RoadMapFilePath[++i] = p;
+         if (i >= ROADMAP_PATH_COUNT_MAX - 1) break;
+      }
+   }
+   RoadMapFilePathCount = ++i;
+
+   RoadMapFileMaxPath = 0;
+
+   while (--i >= 0) {
+      length = strlen(RoadMapFilePath[i]);
+      if (length > RoadMapFileMaxPath) {
+         RoadMapFileMaxPath = length;
+      }
+   }
+}
+
+
+const char *roadmap_file_path_first (void) {
+
+   if (RoadMapFilePathString == NULL) {
+      roadmap_file_set_path (roadmap_file_default_path());
+   }
+
+   return RoadMapFilePath[0];
+}
+
+
+const char *roadmap_file_path_next  (const char *current) {
+
+   int i;
+
+   for (i = 0; RoadMapFilePath[i] != NULL; ++i) {
+
+      if (RoadMapFilePath[i] == current) {
+         return RoadMapFilePath[i+1];
+      }
+   }
+
+   return NULL;
+}
+
+
+const char *roadmap_file_path_last (void) {
+
+   if (RoadMapFilePathString == NULL) {
+      roadmap_file_set_path (roadmap_file_default_path());
+   }
+
+   if (RoadMapFilePathCount > 0) {
+      return RoadMapFilePath[RoadMapFilePathCount-1];
+   }
+   return NULL;
+}
+
+
+const char *roadmap_file_path_previous (const char *current) {
+
+   int i;
+
+   for (i = 1; RoadMapFilePath[i] != NULL; ++i) {
+
+      if (RoadMapFilePath[i] == current) {
+         return RoadMapFilePath[i-1];
+      }
+   }
+   return NULL;
+}
+
+
+void roadmap_file_unmap (RoadMapFileContext *file) {
+
+   RoadMapFileContext context = *file;
+
+   if (context->base != NULL) {
+      munmap (context->base, context->size);
+   }
+
+   if (context->fd >= 0) {
+      close (context->fd);
+   }
+   free(context);
+   *file = NULL;
+}
+
+
+char *roadmap_file_join (const char *path, const char *name) {
+
+   char *p;
+
+   if (path == NULL) {
+      return strdup (name);
+   }
+
+   p = malloc (strlen(path) + strlen(name) + 4);
+   if (p == NULL) {
+      roadmap_log (ROADMAP_FATAL, "no more memory");
+   }
+
+   strcpy (p, path);
+   strcat (p, "/");
+   strcat (p, name);
+
+   return p;
+}
+
+
+int roadmap_file_map (char *name, int sequence, RoadMapFileContext *file) {
+
+   int i;
+   char *path;
+   char *full_name;
+
+   RoadMapFileContext context;
+
+   struct stat state_result;
+
+
+   if (RoadMapFilePathString == NULL) {
+      roadmap_file_set_path (roadmap_file_default_path());
+   }
+
+   if (sequence >= RoadMapFilePathCount) {
+      return -1;
+   }
+
+   full_name = malloc (RoadMapFileMaxPath + strlen(name) + 4);
+   if (full_name == NULL) {
+      roadmap_log (ROADMAP_FATAL, "no more memory");
+   }
+
+   context = malloc (sizeof(*context));
+   if (context == NULL) {
+      roadmap_log (ROADMAP_FATAL, "no more memory");
+   }
+
+   context->fd = -1;
+   context->base = NULL;
+   context->size = 0;
+
+   for (i = sequence; RoadMapFilePath[i] != NULL; ++i) {
+
+      path = RoadMapFilePath[i];
+
+      if (path[0] == '~') {
+
+         strcpy (full_name, roadmap_file_home());
+         strcat (full_name, path+1);
+
+      } else {
+         strcpy (full_name, path);
+      }
+
+      strcat (full_name, "/");
+      strcat (full_name, name);
+
+      context->fd = open (full_name, O_RDONLY, 0666);
+
+      if (context->fd >= 0) break;
+   }
+   free (full_name);
+
+   if (context->fd < 0) {
+      if (sequence == 0) {
+         roadmap_log (ROADMAP_ERROR, "cannot open file %s", name);
+      }
+      return -1;
+   }
+
+   if (fstat (context->fd, &state_result) != 0) {
+      if (sequence == 0) {
+         roadmap_log (ROADMAP_ERROR, "cannot stat file %s", name);
+      }
+      roadmap_file_unmap (file);
+      return -1;
+   }
+   context->size = state_result.st_size;
+
+   context->base =
+      mmap (NULL, state_result.st_size, PROT_READ, MAP_PRIVATE, context->fd, 0);
+
+   if (context->base == NULL) {
+      roadmap_log (ROADMAP_ERROR, "cannot map file %s", name);
+      roadmap_file_unmap (file);
+      return -1;
+   }
+
+   *file = context;
+
+   return i + 1; /* Indicate the next directory in the path. */
+}
+
+void *roadmap_file_base (RoadMapFileContext file){
+
+   if (file == NULL) {
+      return NULL;
+   }
+   return file->base;
+}
+
+int   roadmap_file_size (RoadMapFileContext file){
+
+   if (file == NULL) {
+      return 0;
+   }
+   return file->size;
+}
+

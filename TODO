@@ -1,0 +1,81 @@
+RoadMap - a street navigation system using the US Census maps and GPS
+---------------------------------------------------------------------
+
+                              T O   D O
+
+
+Flexible tracking and waypoint handling
+
+   As of today, RoadMap can track one GPS source and memorize two predefined
+   waypoints (a position and a destination).
+
+   RoadMap should allow the user to define as many waypoints as he wants. It
+   should also make it possible to track as many GPS sources as defined by
+   the user.
+
+Submaps & Plugins
+
+   The RoadMap format is flexible (additional tables could be added), except
+   for that fact that it is monolythic: one single file per county, no plugins
+   to handle additional tables that not originally planned in RoadMap.
+
+   The result is that one must decide what is visible when generating the
+   1.7 Gbyte map set. Any change means regenerating the whole thing. This
+   is not friendly..
+
+   In addition, when zooming out to display several states, the RoadMap
+   performances go down in a linear fashion, until the Linux disk cache
+   is saturated. Then the performances are disk-bound (and dismal..).
+
+   The goal is to remove any hardcoded knowledge of line categories (street,
+   freeway, shore, river, lake, etc..), to make the code able to gather lines
+   from various extension map files and to allow the creation of plugins to
+   handle new kind of map tables.
+
+   This would also allow the physical isolation of features according to
+   their declutter level (for example one extension file type for freeways
+   and borders--load all the US freeway without taking too much space or
+   even saturating the disk cache).
+
+   Plugins should be flexible enough to allow for the gathering of data
+   from other sources (database, web servers, etc..). This would allow for
+   the mix of permanent features (roads, rivers, lakes, etc..) and dynamic
+   information (traffic jams ? :-).
+
+Address book:
+
+   Add an interface with a plugin program to gather addresses from an existing
+   address database. Make it a separate plugin to allow for the support of
+   different database formats (selectable as a preference).
+
+   The address database planned for support in the future is the one from
+   the GPE project.
+
+Routing:
+
+   Make a plugin program to compute a route from the current location to the
+   selected destination. make it a separate plugin to (1) keep the UI active
+   while the route is selected, (2) not loose everything if the route program
+   crashes or loop forever, and (3) allow people to implement their own
+   (I guess there will be a lot of arbitrary choices to be made there).
+
+Map Selection & Download:
+
+   Make a graphical tool to select and load on the PDA the subset of maps
+   required for a given trip. The idea is to first select counties using
+   city & state names, and then graphically select/deselect surrounding
+   counties using mouse clicks. The files representing the list of selected 
+   counties is then being downloaded onto the selected pda/computer (one
+   widget for selecting the pda, one button to start the download).
+
+   The download part would be made using HTTP, downloading maps compressed
+   using gzip. This way a standard web server can be used to serve maps.
+   The roadmap preferences should allow for a list of URLs, so that one might
+   imagine using one server for each section of the USA.
+
+   There is the need for the following user interface:
+
+   1- a dialog to select one county using a city/state combination.
+   2- preferences editor: enter the list of URLs for downloading maps.
+   3- a county limits map to select or remove counties graphically.
+

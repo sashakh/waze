@@ -1,0 +1,90 @@
+#!/bin/sh
+
+VERSION=$1
+
+cd ../../..
+
+MAPDIR=/usr/local/share/roadmap
+SRCDIR=roadmap/src
+ARMDIR=roadmap/arm
+IPKGDIR=$ARMDIR/ipkg
+
+rm -rf $IPKGDIR
+
+# --------------------------------------------------------------------------
+echo "Building package 'roadmap-gtk' .."
+
+mkdir -p $IPKGDIR/roadmap-gtk/CONTROL
+sed -e s/_VERSION_/$VERSION/ $SRCDIR/ipkg/roadmap.control >$IPKGDIR/roadmap-gtk/CONTROL/control
+cp $SRCDIR/ipkg/roadmap.postinst $IPKGDIR/roadmap-gtk/CONTROL/postinst
+cp $SRCDIR/ipkg/roadmap.postrm   $IPKGDIR/roadmap-gtk/CONTROL/postrm
+chmod a+x $IPKGDIR/roadmap-gtk/CONTROL/postinst $IPKGDIR/roadmap-gtk/CONTROL/postrm
+
+mkdir -p $IPKGDIR/roadmap-gtk/usr/bin
+cp $ARMDIR/gtkroadmap $IPKGDIR/roadmap-gtk/usr/bin/roadmap
+cp $ARMDIR/gtkroadgps $IPKGDIR/roadmap-gtk/usr/bin/roadgps
+
+mkdir -p $IPKGDIR/roadmap-gtk/usr/lib/menu
+cp $SRCDIR/roadmap.menu $IPKGDIR/roadmap-gtk/usr/lib/menu/roadmap
+
+mkdir -p $IPKGDIR/roadmap-gtk/usr/share/roadmap
+cp $MAPDIR/usdir.rdm   $IPKGDIR/roadmap-gtk/usr/share/roadmap/usdir.rdm
+cp $SRCDIR/preferences $IPKGDIR/roadmap-gtk/usr/share/roadmap/preferences
+cp $SRCDIR/schema      $IPKGDIR/roadmap-gtk/usr/share/roadmap/schema
+cp $SRCDIR/sprites     $IPKGDIR/roadmap-gtk/usr/share/roadmap/sprites
+cp roadmap/README      $IPKGDIR/roadmap-gtk/usr/share/roadmap/README
+
+bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/roadmap-gtk $IPKGDIR
+
+
+# --------------------------------------------------------------------------
+echo "Building package 'roadmap-sfca' .."
+
+mkdir -p $IPKGDIR/roadmap-sfca/CONTROL
+sed -e s/_VERSION_/$VERSION/ $SRCDIR/ipkg/roadmap-sfca.control >$IPKGDIR/roadmap-sfca/CONTROL/control
+
+mkdir -p $IPKGDIR/roadmap-sfca/usr/share/roadmap
+cp $MAPDIR/usc06075.rdm $IPKGDIR/roadmap-sfca/usr/share/roadmap/usc06075.rdm
+
+bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/roadmap-sfca $IPKGDIR
+
+
+# --------------------------------------------------------------------------
+if [ -e $ARMDIR/buildmap ] ; then
+
+  echo "Building package 'roadmap-build' .."
+
+  mkdir -p $IPKGDIR/roadmap-build/CONTROL
+  sed -e s/_VERSION_/$VERSION/ $SRCDIR/ipkg/roadmap-build.control >$IPKGDIR/roadmap-build/CONTROL/control
+
+  mkdir -p $IPKGDIR/roadmap-build/usr/bin
+  cp $ARMDIR/buildmap $IPKGDIR/roadmap-build/usr/bin/buildmap
+  cp $ARMDIR/buildus  $IPKGDIR/roadmap-build/usr/bin/buildus
+  cp $ARMDIR/dumpmap  $IPKGDIR/roadmap-build/usr/bin/dumpmap
+
+  bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/roadmap-build $IPKGDIR
+
+fi
+
+
+# --------------------------------------------------------------------------
+echo "Building the source tarball for package 'roadmap-gtk' .."
+
+sources="`find roadmap -name '*.[ch]'`
+         `find roadmap -name Makefile`
+         roadmap/src/schema
+         roadmap/src/sprites
+         roadmap/src/preferences
+         roadmap/src/roadmap.menu"
+tar czf $ARMDIR/roadmap-gtk-$VERSION.orig.tar.gz $sources
+
+
+# --------------------------------------------------------------------------
+echo "Building source tarball for package 'roadmap-build' .."
+
+sources="`find roadmap/src -name '*.[ch]'`
+         `find roadmap/src -name Makefile`
+         roadmap/src/app_a02.txt
+         roadmap/src/usstates.txt"
+tar czf $ARMDIR/roadmap-build-$VERSION.orig.tar.gz $sources
+
