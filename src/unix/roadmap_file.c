@@ -71,6 +71,21 @@ static const char *roadmap_file_home (void) {
 }
 
 
+static char *roadmap_file_cat (const char *s1, const char *s2) {
+    
+    char *result = malloc (strlen(s1) + strlen(s2) + 4);
+
+    if (result == NULL) {
+        roadmap_log (ROADMAP_FATAL, "no more memory");
+    }
+    strcpy (result, s1);
+    strcat (result, "/");
+    strcat (result, s2);
+    
+    return result;
+}
+
+
 const char *roadmap_file_default_path (void) {
 
       return ".,/usr/local/share/roadmap,/usr/share/roadmap";
@@ -79,26 +94,37 @@ const char *roadmap_file_default_path (void) {
 
 const char *roadmap_file_user (void) {
 
-   static char  RoadMapDirectory[] = "/.roadmap";
-   static char *RoadMapUser = NULL;
+    static char  RoadMapDirectory[] = ".roadmap";
+    static char *RoadMapUser = NULL;
 
-   if (RoadMapUser == NULL) {
+    if (RoadMapUser == NULL) {
+        RoadMapUser = roadmap_file_cat (roadmap_file_home(), RoadMapDirectory);
+        mkdir (RoadMapUser, 0770);
+    }
 
-      const char *home = roadmap_file_home();
-
-
-      RoadMapUser = malloc (strlen(home) + strlen(RoadMapDirectory) + 4);
-
-      if (RoadMapUser == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
-      strcpy (RoadMapUser, home);
-      strcat (RoadMapUser, RoadMapDirectory);
-   }
-
-   return RoadMapUser;
+    return RoadMapUser;
 }
 
+
+const char *roadmap_file_trips (void) {
+    
+    static char  RoadMapDefaultTrips[] = ".roadmap/trips";
+    static char *RoadMapTrips = NULL;
+    
+    if (RoadMapTrips == NULL) {
+        
+        RoadMapTrips = getenv("ROADMAP_TRIPS");
+        
+        if (RoadMapTrips == NULL) {
+            RoadMapTrips = roadmap_file_cat (roadmap_file_home(), RoadMapDefaultTrips);
+        }
+        
+        mkdir (RoadMapTrips, 0770);
+    }
+    
+    return RoadMapTrips;
+}
+            
 
 void roadmap_file_set_path (const char *path) {
 
@@ -222,22 +248,10 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
 
 char *roadmap_file_join (const char *path, const char *name) {
 
-   char *p;
-
    if (path == NULL) {
       return strdup (name);
    }
-
-   p = malloc (strlen(path) + strlen(name) + 4);
-   if (p == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
-
-   strcpy (p, path);
-   strcat (p, "/");
-   strcat (p, name);
-
-   return p;
+   return roadmap_file_cat (path, name);
 }
 
 

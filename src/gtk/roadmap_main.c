@@ -300,8 +300,7 @@ void roadmap_main_set_status (const char *text) {
 
 void roadmap_main_exit (void) {
 
-   roadmap_history_save();
-   roadmap_config_save(0);
+   roadmap_start_exit ();
    gtk_main_quit();
 }
 

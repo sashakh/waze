@@ -28,10 +28,15 @@ INTRODUCTION:
    10 Mbytes of flash space. RoadMap comes with a set of tools to convert
    the US Census bureau data into its own map format.
 
-   RoadMap is distributed with the map of San Francisco as an example of map.
-   Other maps will be made available as soon as I can identify a public web
-   site that is willing to accept them (these maps take some significant disk
-   space).
+   RoadMap is distributed with the map of San Francisco as an example of
+   map. The complete set of maps is available at the following URL:
+   
+           http://roadmap.saignon.net/maps.html
+   
+   Please refrain from downloading all the US states at once, as the map
+   files are huges and the bandwidth is expensive.
+   
+   If you do need the complete set, please drop an email to the author.
 
 
 INSTALLATION:
@@ -58,9 +63,9 @@ INSTALLATION:
 
    INSTALLING FROM THE BINARY TARBALL:
 
-   The binary distribution contains three sets of files: the directory src/gtk
-   contains the executable files for Debian GNU/Linux (kernel 2.4) and the
-   directory src contains the example map datafiles.
+   The binary distribution contains three sets of files: the directory
+   src/gtk contains the executable files for Debian GNU/Linux (kernel 2.4)
+   and the directory src contains the example map datafiles.
 
    The default RoadMap configuration is defined such that it is possible
    to run from the src subdirectory. For example, use: gtk/gtkroadmap

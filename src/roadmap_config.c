@@ -28,8 +28,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 #include "roadmap.h"
 #include "roadmap_file.h"
@@ -270,7 +268,7 @@ void roadmap_config_declare_color (const char *config,
 }
 
 
-void *roadmap_config_first (char *config) {
+void *roadmap_config_first (const char *config) {
 
    return roadmap_config_search_file(config)->first_item;
 }
@@ -349,24 +347,34 @@ void *roadmp_config_get_enumeration_next (void *enumeration) {
 }
 
 
-static void roadmap_config_set_item (RoadMapConfigItem *item, char *value) {
+static int roadmap_config_set_item (RoadMapConfigItem *item, const char *value) {
 
-   if (item->value != NULL) {
-      if (value != NULL) {
-         if (strcmp (item->value, value) == 0) {
+    /* First check that this new value actually changes something. */
+    
+    if (item->value != NULL) {
+        if (value != NULL) {
+            if (strcmp (item->value, value) == 0) {
 
-            return; /* Nothing was changed. */
-         }
-      }
-      free(item->value);
-   }
-   if (value != NULL) {
-      item->value = strdup(value);
-   } else {
-      item->value = NULL;
-   }
+                return 0; /* Nothing was changed. */
+            }
+        }
+        free(item->value);
+    } else {
+        if (value != NULL) {
+            if (strcmp (item->default_value, value) == 0) {
+                return 0; /* Still is the default. */
+            }
+        }
+    }
+   
+    if (value != NULL) {
+        item->value = strdup(value);
+    } else {
+        item->value = NULL;
+    }
 
-   item->state = ROADMAP_CONFIG_DIRTY;
+    item->state = ROADMAP_CONFIG_DIRTY;
+    return 1;
 }
 
 
@@ -388,9 +396,6 @@ static FILE *roadmap_config_open (const char *path, char *name, char *mode) {
    FILE *file;
    char *full_name;
 
-   if (*mode == 'w') {
-      mkdir  (path, 0755);
-   }
    full_name = roadmap_file_join (path, name);
 
    file = fopen (full_name, mode);
@@ -430,13 +435,11 @@ static void roadmap_config_load
 
       if (fgets (line, sizeof(line), file) == NULL) break;
 
-      p = roadmap_config_skip_spaces (line);
+      category = roadmap_config_extract_data (line, sizeof(line));
 
-      if (*p == '\n' || *p == '#') continue;
+      if (category == NULL) continue;
 
-      category = p;
-
-      p = roadmap_config_skip_until (p, '.');
+      p = roadmap_config_skip_until (category, '.');
       if (*p != '.') continue;
       *(p++) = 0;
 
@@ -495,6 +498,23 @@ static void roadmap_config_update
 }
 
 
+char *roadmap_config_extract_data (char *line, int size) {
+    
+    char *p;
+    
+    line[size-1] = 0;
+    
+    line = roadmap_config_skip_spaces (line);
+
+    if (*line == '\n' || *line == '#') return NULL;
+        
+    p = strchr (line, '\n');
+    if (p != NULL) *p = 0;
+        
+    return line;
+}
+
+
 void  roadmap_config_initialize (void) {
 
    const char *p;
@@ -527,7 +547,7 @@ void roadmap_config_save (int force) {
 }
 
 
-char *roadmap_config_get (char *category, char *name) {
+char *roadmap_config_get (const char *category, const char *name) {
 
    RoadMapConfig *file;
    RoadMapConfigItem *item;
@@ -548,13 +568,13 @@ char *roadmap_config_get (char *category, char *name) {
 }
 
 
-int roadmap_config_get_integer(char *category, char *name) {
+int roadmap_config_get_integer(const char *category, const char *name) {
 
    return atoi (roadmap_config_get (category, name));
 }
 
 
-void  roadmap_config_set (char *category, char *name, char *value) {
+void  roadmap_config_set (const char *category, const char *name, const char *value) {
 
    RoadMapConfig *file;
    RoadMapConfigItem *item;
@@ -565,9 +585,10 @@ void  roadmap_config_set (char *category, char *name, char *value) {
 
       if (item != NULL) {
 
-         roadmap_config_set_item (item, value);
+         if (roadmap_config_set_item (item, value)) {
 
-         file->state = ROADMAP_CONFIG_DIRTY;
+             file->state = ROADMAP_CONFIG_DIRTY;
+         }
          return;
       }
    }
@@ -578,7 +599,7 @@ void  roadmap_config_set (char *category, char *name, char *value) {
  * session items. The reason is only that I am anal: I don't see any reason
  * for having a position in the schema or preferences.
  */
-void roadmap_config_get_position (char *name, RoadMapPosition *position) {
+void roadmap_config_get_position (const char *name, RoadMapPosition *position) {
 
    char *center;
    RoadMapConfig *file;
@@ -615,7 +636,7 @@ void roadmap_config_get_position (char *name, RoadMapPosition *position) {
    }
 }
 
-void  roadmap_config_set_position (char *name, RoadMapPosition *position) {
+void  roadmap_config_set_position (const char *name, const RoadMapPosition *position) {
 
    char buffer[128];
    RoadMapConfig *file;
@@ -627,8 +648,9 @@ void  roadmap_config_set_position (char *name, RoadMapPosition *position) {
    if (item != NULL) {
 
       sprintf (buffer, "%d,%d", position->longitude, position->latitude);
-      roadmap_config_set_item (item, buffer);
-      file->state = ROADMAP_CONFIG_DIRTY;
+      if (roadmap_config_set_item (item, buffer)) {
+          file->state = ROADMAP_CONFIG_DIRTY;
+      }
    }
 }
 

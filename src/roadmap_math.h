@@ -51,13 +51,13 @@ int  roadmap_math_thickness (int base);
  * -1 (partially visible).
  */
 int  roadmap_math_is_visible       (int west, int east, int north, int south);
-int  roadmap_math_line_is_visible  (RoadMapPosition *point1,
-                                    RoadMapPosition *point2);
-int  roadmap_math_point_is_visible (RoadMapPosition *point);
+int  roadmap_math_line_is_visible  (const RoadMapPosition *point1,
+                                    const RoadMapPosition *point2);
+int  roadmap_math_point_is_visible (const RoadMapPosition *point);
 
-void roadmap_math_coordinate  (RoadMapPosition *position,
+void roadmap_math_coordinate  (const RoadMapPosition *position,
                                RoadMapGuiPoint *point);
-void roadmap_math_to_position (RoadMapGuiPoint *point,
+void roadmap_math_to_position (const RoadMapGuiPoint *point,
                                RoadMapPosition *position);
 
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points);

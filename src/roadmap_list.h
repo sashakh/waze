@@ -1,4 +1,4 @@
-/* roadmap_screen.h - draw the map on the screen.
+/* roadmap_list.h - Manage a list.
  *
  * LICENSE:
  *
@@ -19,28 +19,33 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 
-#ifndef INCLUDE__ROADMAP_SCREEN__H
-#define INCLUDE__ROADMAP_SCREEN__H
+#ifndef INCLUDE__ROADMAP_LIST__H
+#define INCLUDE__ROADMAP_LIST__H
 
-#include "roadmap_types.h"
+struct roadmap_list_link {
+    struct roadmap_list_link *next;
+    struct roadmap_list_link *previous;
+};
 
-void roadmap_screen_initialize (void);
+typedef struct roadmap_list_link RoadMapListItem;
+    
+struct roadmap_list_head {
+    struct roadmap_list_link *first;
+    struct roadmap_list_link *last;
+};
 
-void roadmap_screen_set_initial_position (void);
+typedef struct roadmap_list_head RoadMapList;
+    
+#define ROADMAP_LIST_EMPTY {NULL, NULL}
 
-void roadmap_screen_zoom_in    (void);
-void roadmap_screen_zoom_out   (void);
-void roadmap_screen_zoom_reset (void);
+#define ROADMAP_LIST_IS_EMPTY(l) ((l)->first == NULL)
 
-void roadmap_screen_move_up    (void);
-void roadmap_screen_move_down  (void);
-void roadmap_screen_move_right (void);
-void roadmap_screen_move_left  (void);
 
-void roadmap_screen_rotate (int delta);
+void roadmap_list_insert (RoadMapList *list, RoadMapListItem *item);
+void roadmap_list_append (RoadMapList *list, RoadMapListItem *item);
+void roadmap_list_remove (RoadMapList *list, RoadMapListItem *item);
 
-void roadmap_screen_refresh (void);
-
-#endif // INCLUDE__ROADMAP_SCREEN__H
+#endif // INCLUDE__ROADMAP_LIST__H

@@ -2,8 +2,8 @@
 GUICFLAGS=`gtk-config --cflags`
 GUILDFLAGS=`gtk-config --libs`
 
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
-# STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+# STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
+STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
 # STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
 
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
@@ -30,10 +30,14 @@ INSTALLDIR=/usr/local
 
 all: build runtime
 
+others:
+	cd ..; make CFLAGS="$(STDCFLAGS)" runtime
+	cd ../unix; make CFLAGS="$(STDCFLAGS) -I.." all
+
 build:
 	cd ..; make CFLAGS="$(STDCFLAGS)" build
 
-runtime: $(RUNTIME)
+runtime: others $(RUNTIME)
 
 clean:
 	rm -f *.o *.a *.da $(RUNTIME)
@@ -54,24 +58,12 @@ uninstall:
 
 # --- The real targets --------------------------------------------
 
-../libroadmap.a:
-	cd ..; make CFLAGS="$(STDCFLAGS)" runtime
-
-../libguiroadmap.a:
-	cd ..; make CFLAGS="$(STDCFLAGS)" runtime
-
-../libguiroadgps.a:
-	cd ..; make CFLAGS="$(STDCFLAGS)" runtime
-
-../unix/libosroadmap.a:
-	cd ../unix; make CFLAGS="$(STDCFLAGS) -I.." all
-
 libgtkroadmap.a: $(RMLIBOBJS)
 	ar rf libgtkroadmap.a $(RMLIBOBJS)
 
-gtkroadmap: roadmap_main.o $(RDMLIBS) ../libguiroadmap.a
+gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
 	$(CC) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
 
-gtkroadgps: roadmap_main.o $(RDMLIBS) ../libguiroadgps.a
+gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
 	$(CC) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
 

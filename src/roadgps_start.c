@@ -99,6 +99,12 @@ static void roadgps_start_window (void) {
 }
 
 
+void roadmap_start_exit (void) {
+    
+    roadmap_config_save (0);
+}
+
+
 void roadmap_start (int argc, char **argv) {
 
 #ifdef ROADMAP_DEBUG_HEAP

@@ -42,6 +42,7 @@
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
 #include "roadmap_sprite.h"
+#include "roadmap_trip.h"
 #include "roadmap_screen.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
@@ -59,37 +60,41 @@ static void roadmap_start_purge (void) {
 }
 
 static void roadmap_start_show_destination (void) {
-   roadmap_screen_show_location ("Destination");
+    roadmap_trip_set_focus ("Destination", 0);
+    roadmap_screen_refresh ();
 }
 
 static void roadmap_start_show_location (void) {
-   roadmap_screen_show_location ("Location");
+    roadmap_trip_set_focus ("Location", 0);
+    roadmap_screen_refresh ();
 }
 
 static void roadmap_start_show_gps (void) {
-   roadmap_screen_show_location ("GPS");
+    roadmap_trip_set_focus ("GPS", 1);
+    roadmap_screen_refresh ();
 }
 
 static void roadmap_start_show_gps_north_up (void) {
-   roadmap_screen_show_location ("GPS upright");
+    roadmap_trip_set_focus ("GPS", 0);
+    roadmap_screen_refresh ();
 }
 
 static void roadmap_start_rotate (void) {
-   roadmap_screen_rotate (10);
+    roadmap_screen_rotate (10);
 }
 
 static void roadmap_start_counter_rotate (void) {
-   roadmap_screen_rotate (-10);
+    roadmap_screen_rotate (-10);
 }
 
 static void roadmap_start_about (void) {
 
    roadmap_messagebox ("RoadMap About",
                        "RoadMap " ROADMAP_VERSION "\n"
-                           "(c) " ROADMAP_YEAR " Pascal Martin\n"
-                           "<pascal.martin@iname.com>\n"
-                           "A Street navigation system\n"
-                           "for Linux & UNIX");
+                       "(c) " ROADMAP_YEAR " Pascal Martin\n"
+                       "<pascal.martin@iname.com>\n"
+                       "A Street navigation system\n"
+                       "for Linux & UNIX");
 }
 
 
@@ -238,13 +243,8 @@ static void roadmap_start_set_unit (void) {
 static void roadmap_gps_update
                 (RoadMapPosition *position, int speed, int direction) {
 
-   roadmap_screen_set_location_and_speed
-          ("GPS", position, speed, direction, 1);
-
-   roadmap_screen_set_location_and_speed
-          ("GPS upright", position, speed, direction, 0);
-
-   roadmap_screen_refresh();
+    roadmap_trip_set_mobile ("GPS", position, speed, direction);
+    roadmap_screen_refresh();
 }
 
 
@@ -286,6 +286,7 @@ void roadmap_start (int argc, char **argv) {
       ("preferences", "General", "Keyboard", "yes", "no", NULL);
 
    roadmap_math_initialize   ();
+   roadmap_trip_initialize   ();
    roadmap_screen_initialize ();
    roadmap_start_window      ();
    roadmap_gps_initialize    (&roadmap_gps_update);
@@ -298,13 +299,21 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_start_set_unit ();
 
+   roadmap_history_load ();
+   roadmap_trip_load (NULL);
+   
    roadmap_sprite_initialize ();
    roadmap_screen_set_initial_position ();
 
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
-
-   roadmap_history_load ();
 }
 
+
+void roadmap_start_exit (void) {
+    
+    roadmap_history_save();
+    roadmap_config_save (0);
+    roadmap_trip_save   (NULL);
+}

@@ -33,7 +33,7 @@
 void roadmap_sprite_initialize (void);
 
 void roadmap_sprite_draw
-        (char *name, RoadMapGuiPoint *location, int orientation);
+        (const char *name, RoadMapGuiPoint *location, int orientation);
 
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

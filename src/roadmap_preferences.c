@@ -72,12 +72,12 @@ struct configuration_context {
 static ConfigurationContext *RoadMapConfigurationDialogs = NULL;
 
 
-static void roadmap_preferences_cancel (char *name, void *data) {
+static void roadmap_preferences_cancel (const char *name, void *data) {
 
    roadmap_dialog_hide (name);
 }
 
-static void roadmap_preferences_ok (char *name, void *data) {
+static void roadmap_preferences_ok (const char *name, void *data) {
 
    ConfigurationContext *context = (ConfigurationContext *) data;
    CategoryList *list;
@@ -99,7 +99,7 @@ static void roadmap_preferences_ok (char *name, void *data) {
    return roadmap_preferences_cancel (name, data);
 }
 
-static void roadmap_preferences_force (char *name, void *data) {
+static void roadmap_preferences_force (const char *name, void *data) {
 
    roadmap_preferences_ok (name, data);
    roadmap_config_save (1);

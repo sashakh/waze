@@ -33,6 +33,7 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
+#include "roadmap_list.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
 #include "roadmap_config.h"
@@ -47,54 +48,23 @@
 #include "roadmap_locator.h"
 
 #include "roadmap_sprite.h"
+#include "roadmap_trip.h"
 #include "roadmap_canvas.h"
 #include "roadmap_screen.h"
 
 
 static RoadMapPosition RoadMapScreenCenter;
 
+static int RoadMapScreenRotation;
 static int RoadMapScreenWidth;
 static int RoadMapScreenHeight;
-static int RoadMapRefreshNeeded = 0;
 static int RoadMapScreenShapesVisible = 0;
 
 
 static char *SquareOnScreen;
 static int   SquareOnScreenCount;
 
-/* Default location is: 1 market St, san Francisco, California. */
-#define ROADMAP_INITIAL_LOCATION "-122394181,37794928"
-
-
-/* MOBILES.
- * A mobile object is drawn on the map, but is not part of the map.
- * Each mobile is associated to a canvas sprite, which
- * defines the symbol that represents this mobile.
- */
-typedef struct roadmap_screen_mobile {
-
-   char *id;
-   char *initial_location;
-   char *sprite;
-   char *alias;
-
-   struct roadmap_screen_mobile *alias_p;
-   RoadMapPosition position;
-
-   int speed;
-   int direction;
-   int orientation;
-
-} RoadMapMobile;
-
-static RoadMapMobile RoadMapLocations[] = {
-   {"GPS",         ROADMAP_INITIAL_LOCATION, "GPS",         NULL},
-   {"GPS upright", ROADMAP_INITIAL_LOCATION, "GPS",         "GPS"},
-   {"Location",    ROADMAP_INITIAL_LOCATION, "Position",    NULL},
-   {"Destination", ROADMAP_INITIAL_LOCATION, "Destination", NULL},
-   {NULL, NULL, NULL}
-};
-static RoadMapMobile *RoadMapScreenReference = RoadMapLocations;
+static RoadMapListItem *RoadMapScreenReference = NULL;
 
 
 /* CATEGORIES.
@@ -337,9 +307,11 @@ static void roadmap_screen_draw_line_with_shape
        RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.cursor) {
 
       if (last_shape - first_shape + 3 >=
-          (RoadMapScreenLinePoints.data - RoadMapScreenLinePoints.cursor)) {
+          (RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.data)) {
 
-         roadmap_log (ROADMAP_ERROR, "cannot show all shape points.");
+         roadmap_log (ROADMAP_ERROR,
+                      "cannot show all shape points (%d entries needed).",
+                      last_shape - first_shape + 3);
 
          last_shape =
             first_shape
@@ -840,34 +812,27 @@ static void roadmap_screen_repaint_map (void) {
 
 static void roadmap_screen_repaint_sprites (void) {
 
-   RoadMapMobile *waypoint;
-   RoadMapGuiPoint point;
+    RoadMapGuiPoint point;
+    RoadMapListItem *waypoint;
+    const RoadMapPosition *position;
+    
+    for (waypoint = roadmap_trip_get_first (); waypoint != NULL; waypoint = waypoint->next) {
+        
+        position = roadmap_trip_get_position (waypoint);
+        
+        if (roadmap_math_point_is_visible (position)) {
 
-   if (roadmap_math_point_is_visible (&RoadMapScreenReference->position)) {
+            roadmap_math_coordinate (position, &point);
+            roadmap_math_rotate_coordinates (1, &point);
+            roadmap_sprite_draw (roadmap_trip_get_sprite(waypoint),
+                                 &point,
+                                 roadmap_trip_get_direction(waypoint));
+        }
+    }
 
-      roadmap_math_coordinate (&RoadMapScreenReference->position, &point);
-      roadmap_math_rotate_coordinates (1, &point);
-      roadmap_sprite_draw (RoadMapScreenReference->sprite,
-                           &point,
-                           RoadMapScreenReference->direction);
-   }
-
-   for (waypoint = RoadMapLocations; waypoint->id != NULL; ++waypoint) {
-
-      if (waypoint == RoadMapScreenReference ||
-          waypoint->alias_p == RoadMapScreenReference) continue;
-
-      if (roadmap_math_point_is_visible (&waypoint->position)) {
-
-         roadmap_math_coordinate (&waypoint->position, &point);
-         roadmap_math_rotate_coordinates (1, &point);
-         roadmap_sprite_draw (waypoint->sprite, &point, waypoint->direction);
-      }
-   }
-
-   point.x = 20;
-   point.y = 20;
-   roadmap_sprite_draw ("Compass", &point, 0);
+    point.x = 20;
+    point.y = 20;
+    roadmap_sprite_draw ("Compass", &point, 0);
 }
 
 
@@ -1074,189 +1039,51 @@ fflush(stdout);
 }
 
 
-static RoadMapMobile *roadmap_screen_search_waypoint (char *name) {
 
-   RoadMapMobile  *waypoint;
+void roadmap_screen_refresh (void) {
 
-   for (waypoint = RoadMapLocations; waypoint->id != NULL; ++waypoint) {
-
-      if (strcmp(waypoint->id, name) == 0) break;
-   }
-
-   if (waypoint->id == NULL) {
-      roadmap_log (ROADMAP_ERROR, "invalid position name '%s'", name);
-      return NULL;
-   }
-
-   return waypoint;
-}
-
-
-static int roadmap_screen_update_location
-               (RoadMapMobile *waypoint, RoadMapPosition *position) {
-
-   RoadMapGuiPoint point0;
-   RoadMapGuiPoint point1;
-
-
-   if (position == NULL) {
-      roadmap_log (ROADMAP_ERROR,
-                   "null position data for '%s'", waypoint->id);
-      return 0;
-   }
-
-   if ((position->latitude == waypoint->position.latitude) &&
-       (position->longitude == waypoint->position.longitude)) {
-
-      return 0; /* Position has not changed. */
-   }
-
-   roadmap_math_coordinate (&waypoint->position, &point0);
-   roadmap_math_coordinate (position, &point1);
-
-   /* Update the position in the session files, in the waypoint.
-    */
-   if (waypoint->alias != NULL) {
-      roadmap_config_set_position (waypoint->alias, position);
-   } else {
-      roadmap_config_set_position (waypoint->id, position);
-   }
-   waypoint->position = *position;
-   if (waypoint == RoadMapScreenReference) {
-      RoadMapScreenCenter = *position;
-   }
-
-   /* Do not force a redraw if the screen coordinates are the same
-    * as before.
-    */
-   if ((ROADMAP_POINT_GET_X(&point0) == ROADMAP_POINT_GET_X(&point1)) &&
-       (ROADMAP_POINT_GET_Y(&point0) == ROADMAP_POINT_GET_Y(&point1))) {
-      return 0;
-   }
-
-   if ((waypoint == RoadMapScreenReference) ||
-       roadmap_math_point_is_visible (position)) {
-      return 1;
-   }
-
-   return 0;
+    int refresh = 0;
+    RoadMapListItem *waypoint = roadmap_trip_get_focus();
+    
+    if (waypoint != NULL) {
+        
+        if (waypoint != RoadMapScreenReference) {
+            RoadMapScreenRotation = 0;
+            RoadMapScreenReference = waypoint;
+        }
+        refresh |=
+            roadmap_math_set_orientation
+                (roadmap_trip_get_orientation() + RoadMapScreenRotation);
+        
+        refresh |= roadmap_trip_refresh_needed();
+        
+        if (refresh) {
+            RoadMapScreenCenter = *roadmap_trip_get_position (waypoint);
+        }
+    }
+    
+    if (refresh) {
+        roadmap_screen_repaint ();
+    }
 }
 
 
 void roadmap_screen_rotate (int delta) {
 
-   int orientation;
+   int rotation = RoadMapScreenRotation + delta;
 
-   if (RoadMapScreenReference == NULL) {
-      return;
+   while (rotation >= 360) {
+      rotation -= 360;
+   }
+   while (rotation < 0) {
+      rotation += 360;
    }
 
-   orientation = RoadMapScreenReference->orientation + delta;
-
-   while (orientation >= 360) {
-      orientation -= 360;
-   }
-   while (orientation < 0) {
-      orientation += 360;
-   }
-
-   if (roadmap_math_set_orientation (orientation)) {
-      RoadMapScreenReference->orientation = orientation;
+   if (roadmap_math_set_orientation
+           (roadmap_trip_get_orientation() + rotation)) {
+      RoadMapScreenRotation = rotation;
       roadmap_screen_repaint ();
    }
-}
-
-
-void roadmap_screen_set_location (char *name, RoadMapPosition *position) {
-
-   RoadMapMobile *waypoint = roadmap_screen_search_waypoint (name);
-
-   if (waypoint != NULL) {
-      RoadMapRefreshNeeded |=
-         roadmap_screen_update_location (waypoint, position);
-   }
-}
-
-
-void roadmap_screen_set_location_and_speed
-        (char *name,
-         RoadMapPosition *position, int speed, int direction,
-         int follow_me) {
-
-   RoadMapMobile *waypoint = roadmap_screen_search_waypoint (name);
-
-   if (waypoint != NULL) {
-
-      RoadMapRefreshNeeded |=
-         roadmap_screen_update_location (waypoint, position);
-
-      if (speed > 5) {
-
-         if (follow_me) {
-
-            int ignored = direction % 10;
-            int rounded = direction - ignored;
-
-            waypoint->direction = direction;
-
-            direction -= ignored;
-
-            if (ignored >= 5) {
-               direction += 10;
-            }
-
-            /* We do not force a redraw for every small move. */
-
-            if ((abs(rounded - waypoint->orientation) > 5)) {
-               waypoint->orientation = 360 - rounded;
-            }
-
-         } else {
-            waypoint->direction = direction;
-         }
-      }
-      waypoint->speed = speed;
-
-      if (waypoint == RoadMapScreenReference) {
-         RoadMapRefreshNeeded |=
-            roadmap_math_set_orientation (waypoint->orientation);
-      }
-   }
-}
-
-
-void roadmap_screen_refresh (void) {
-
-   if (RoadMapRefreshNeeded) {
-
-      roadmap_screen_repaint ();
-      RoadMapRefreshNeeded = 0;
-   }
-}
-
-
-void roadmap_screen_show_location (char *name) {
-
-   RoadMapMobile *waypoint = roadmap_screen_search_waypoint (name);
-
-   if (waypoint != RoadMapScreenReference) {
-
-      if (waypoint != NULL) {
-
-         if (waypoint->orientation != RoadMapScreenReference->orientation) {
-
-            roadmap_math_set_orientation (0);
-
-            if (waypoint->orientation != 0) {
-               roadmap_math_set_orientation (waypoint->orientation);
-            }
-         }
-         RoadMapScreenReference = waypoint;
-         RoadMapScreenCenter    = waypoint->position;
-         RoadMapRefreshNeeded   = 1;
-      }
-   }
-   roadmap_screen_refresh ();
 }
 
 
@@ -1313,6 +1140,8 @@ static void roadmap_screen_after_zoom (void) {
 
    int i;
 
+   /* Adjust the thickness of the drawing pen for all categories. */
+    
    for (i = roadmap_locator_category_count(); i > 0; --i) {
 
       if (roadmap_math_declutter (RoadMapCategory[i].declutter)) {
@@ -1323,6 +1152,7 @@ static void roadmap_screen_after_zoom (void) {
             (roadmap_math_thickness (RoadMapCategory[i].thickness));
       }
    }
+   
    roadmap_screen_repaint ();
 }
 
@@ -1350,8 +1180,6 @@ void roadmap_screen_zoom_reset (void) {
 
 void roadmap_screen_initialize (void) {
 
-   RoadMapMobile *waypoint;
-
    roadmap_config_declare ("preferences", "Polygons", "Declutter", "1300");
    roadmap_config_declare ("preferences", "Shapes", "Declutter", "1300");
 
@@ -1363,20 +1191,6 @@ void roadmap_screen_initialize (void) {
    roadmap_config_declare ("preferences", "Highlight", "Background", "yellow");
    roadmap_config_declare ("preferences", "Highlight", "Thickness", "4");
    roadmap_config_declare ("preferences", "Highlight", "Duration", "10");
-
-   for (waypoint = RoadMapLocations; waypoint->id != NULL; ++waypoint) {
-
-      if (waypoint->alias != NULL) {
-         waypoint->alias_p = roadmap_screen_search_waypoint (waypoint->alias);
-         continue; /* Already declared. */
-      }
-
-      roadmap_config_declare_color
-         ("preferences", waypoint->id, "Color", "red");
-
-      roadmap_config_declare
-         ("session", "Locations", waypoint->id, waypoint->initial_location);
-   }
 
    roadmap_canvas_register_button_handler (&roadmap_screen_button_pressed);
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
@@ -1396,7 +1210,6 @@ void roadmap_screen_set_initial_position (void) {
 
    int i;
    int category_count;
-   RoadMapMobile *waypoint;
 
 
    category_count = roadmap_locator_category_count();
@@ -1465,27 +1278,6 @@ void roadmap_screen_set_initial_position (void) {
    RoadMapHighlightForeground =
       roadmap_canvas_create_pen ("Highlight.Foreground");
 
-
-   for (waypoint = RoadMapLocations; waypoint->id != NULL; ++waypoint) {
-
-      char *category = waypoint->alias;
-
-      if (category == NULL) {
-         category = waypoint->id;
-      }
-      roadmap_config_get_position (category, &waypoint->position);
-   }
-
-   for (waypoint = RoadMapLocations; waypoint->id != NULL; ++waypoint) {
-
-      if ((waypoint->position.latitude != 0) &&
-          (waypoint->position.longitude != 0)) {
-
-         RoadMapScreenReference = waypoint;
-         RoadMapScreenCenter    = waypoint->position;
-         break;
-      }
-   }
-   roadmap_screen_repaint ();
+   roadmap_screen_refresh ();
 }
 

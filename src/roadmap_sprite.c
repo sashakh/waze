@@ -368,7 +368,7 @@ static void roadmap_sprite_place (RoadmapSpriteDrawingSequence *sequence,
 }
 
 
-static RoadMapSprite roadmap_sprite_search (char *name) {
+static RoadMapSprite roadmap_sprite_search (const char *name) {
 
    RoadMapSprite cursor;
 
@@ -384,7 +384,7 @@ static RoadMapSprite roadmap_sprite_search (char *name) {
 
 
 void roadmap_sprite_draw
-        (char *name, RoadMapGuiPoint *location, int orientation) {
+        (const char *name, RoadMapGuiPoint *location, int orientation) {
 
    RoadMapSprite sprite = roadmap_sprite_search (name);
    RoadMapSpritePlane *plane;

@@ -213,14 +213,11 @@ void roadmap_history_load (void) {
 
          if (fgets (line, sizeof(line), file) == NULL) break;
 
-         line[sizeof(line)-1] = 0;
+         p = roadmap_config_extract_data (line, sizeof(line));
 
-         if (*line == '#') continue;
+         if (p == NULL) continue;
 
-         p = strchr (line, '\n');
-         if (p != NULL) *p = 0;
-
-         roadmap_history_add_entry (line);
+         roadmap_history_add_entry (p);
       }
 
       fclose (file);

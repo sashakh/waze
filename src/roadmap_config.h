@@ -52,8 +52,9 @@ void roadmap_config_declare_color
          const char *name,
          const char *default_value);
 
+char *roadmap_config_extract_data (char *line, int size);
 
-void *roadmap_config_first (char *config);
+void *roadmap_config_first (const char *config);
 int   roadmap_config_get_type (void *cursor);
 void *roadmap_config_scan
          (void *cursor, char **category, char **name, char **value);
@@ -65,12 +66,12 @@ void *roadmp_config_get_enumeration_next (void *enumeration);
 void  roadmap_config_initialize (void);
 void  roadmap_config_save       (int force);
 
-char *roadmap_config_get (char *category, char *name);
-void  roadmap_config_set (char *category, char *name, char *value);
+char *roadmap_config_get (const char *category, const char *name);
+void  roadmap_config_set (const char *category, const char *name, const char *value);
 
-int   roadmap_config_get_integer (char *category, char *name);
+int   roadmap_config_get_integer (const char *category, const char *name);
 
-void  roadmap_config_get_position (char *name, RoadMapPosition *position);
-void  roadmap_config_set_position (char *name, RoadMapPosition *position);
+void  roadmap_config_get_position (const char *name, RoadMapPosition *position);
+void  roadmap_config_set_position (const char *name, const RoadMapPosition *position);
 
 #endif // _ROADMAP_CONFIG__H_

@@ -24,7 +24,8 @@
 #ifndef INCLUDE__ROADMAP_START__H
 #define INCLUDE__ROADMAP_START__H
 
-void roadmap_start (int argc, char **argv);
+void roadmap_start      (int argc, char **argv);
+void roadmap_start_exit (void);
 
 #endif /* INCLUDE__ROADMAP_START__H */
 

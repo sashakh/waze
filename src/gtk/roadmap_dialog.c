@@ -93,7 +93,7 @@ static RoadMapDialogItem RoadMapDialogCurrent = NULL;
 
 
 static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
-                                             char *name) {
+                                             const char *name) {
 
    RoadMapDialogItem child;
 
@@ -233,8 +233,8 @@ static gint roadmap_dialog_chosen (gpointer data, GtkMenuItem *w) {
 }
 
 
-static RoadMapDialogItem roadmap_dialog_new_item (char *frame,
-                                                  char *name,
+static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
+                                                  const char *name,
                                                   GtkWidget *w) {
 
    RoadMapDialogItem parent;
@@ -273,7 +273,7 @@ static RoadMapDialogItem roadmap_dialog_new_item (char *frame,
 }
 
 
-int roadmap_dialog_activate (char *name, void *context) {
+int roadmap_dialog_activate (const char *name, void *context) {
 
    RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
 
@@ -302,13 +302,13 @@ int roadmap_dialog_activate (char *name, void *context) {
 }
 
 
-void roadmap_dialog_hide (char *name) {
+void roadmap_dialog_hide (const char *name) {
 
    roadmap_dialog_hide_window (roadmap_dialog_get (NULL, name));
 }
 
 
-void roadmap_dialog_new_entry (char *frame, char *name) {
+void roadmap_dialog_new_entry (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_entry_new ();
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w);
@@ -317,14 +317,14 @@ void roadmap_dialog_new_entry (char *frame, char *name) {
 }
 
 
-void roadmap_dialog_new_color (char *frame, char *name) {
+void roadmap_dialog_new_color (const char *frame, const char *name) {
 
    roadmap_dialog_new_entry (frame, name);
 }
 
 
-void roadmap_dialog_new_choice (char *frame,
-                                char *name,
+void roadmap_dialog_new_choice (const char *frame,
+                                const char *name,
                                 int count,
                                 char **labels,
                                 void **values,
@@ -374,7 +374,7 @@ void roadmap_dialog_new_choice (char *frame,
 }
 
 
-void roadmap_dialog_new_list (char  *frame, char  *name) {
+void roadmap_dialog_new_list (const char  *frame, const char  *name) {
 
    GtkWidget *listbox = gtk_list_new ();
    GtkWidget *scrollbox = gtk_scrolled_window_new (NULL, NULL);
@@ -391,8 +391,8 @@ void roadmap_dialog_new_list (char  *frame, char  *name) {
 }
 
 
-void roadmap_dialog_show_list (char  *frame,
-                               char  *name,
+void roadmap_dialog_show_list (const char  *frame,
+                               const char  *name,
                                int    count,
                                char **labels,
                                void **values,
@@ -587,13 +587,13 @@ void roadmap_dialog_complete (int use_keyboard) {
 }
 
 
-void roadmap_dialog_select (char *dialog) {
+void roadmap_dialog_select (const char *dialog) {
 
    RoadMapDialogCurrent = roadmap_dialog_get (NULL, dialog);
 }
 
 
-void *roadmap_dialog_get_data (char *frame, char *name) {
+void *roadmap_dialog_get_data (const char *frame, const char *name) {
 
    RoadMapDialogItem this_frame;
    RoadMapDialogItem this_item;
@@ -613,7 +613,7 @@ void *roadmap_dialog_get_data (char *frame, char *name) {
 }
 
 
-void  roadmap_dialog_set_data (char *frame, char *name, void *data) {
+void  roadmap_dialog_set_data (const char *frame, const char *name, void *data) {
 
    RoadMapDialogItem this_frame;
    RoadMapDialogItem this_item;

@@ -11,6 +11,7 @@ LIBS=$(RDMLIBS) -lpopt -lm
 
 
 RMLIBSRCS=roadmap_log.c \
+          roadmap_list.c \
           roadmap_config.c \
           roadmap_option.c \
           roadmap_county.c \
@@ -33,6 +34,7 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
 
 RMGUISRCS=roadmap_sprite.c \
+          roadmap_trip.c \
           roadmap_screen.c \
           roadmap_factory.c \
           roadmap_preferences.c \
@@ -93,7 +95,7 @@ INSTALLDIR=/usr/local
 
 # --- Conventional targets ----------------------------------------
 
-all: libroadmap.a libguiroadmap.a libguiroadgps.a build
+all: runtime build
 
 runtime: $(RUNTIME)
 

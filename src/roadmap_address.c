@@ -38,6 +38,7 @@
 #include "roadmap_street.h"
 #include "roadmap_history.h"
 #include "roadmap_locator.h"
+#include "roadmap_trip.h"
 #include "roadmap_screen.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
@@ -46,23 +47,30 @@
 #define ROADMAP_MAX_STREETS  256
 
 
-typedef void (*roadmap_process_address) (RoadMapPosition *position);
-
 typedef struct {
 
-   char *title;
-   int   use_zip;
-   roadmap_process_address when_done;
+    const char *title;
+    const char *name;
+    
+    int   use_zip;
 
-   RoadMapPosition *positions;
+    RoadMapPosition *positions;
 
-   void *history;
+    void *history;
 
 } RoadMapAddressDialog;
 
 
 
-static void roadmap_address_selected (char *name, void *data) {
+static void roadmap_address_done (const char *name, RoadMapPosition *position) {
+
+    roadmap_trip_set_point (name, position);
+    roadmap_trip_set_focus (name, 0);
+    roadmap_screen_refresh ();
+}
+
+
+static void roadmap_address_selected (const char *name, void *data) {
 
    RoadMapPosition *position;
    RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
@@ -70,12 +78,12 @@ static void roadmap_address_selected (char *name, void *data) {
    position = (RoadMapPosition *) roadmap_dialog_get_data ("List", ".Streets");
 
    if (position != NULL) {
-      context->when_done (position);
+      roadmap_address_done (context->name, position);
    }
 }
 
 
-static void roadmap_address_selection_ok (char *name, void *data) {
+static void roadmap_address_selection_ok (const char *name, void *data) {
 
    RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
 
@@ -115,7 +123,7 @@ static void roadmap_address_selection (void  *data,
 }
 
 
-static void roadmap_address_before (char *name, void *data) {
+static void roadmap_address_before (const char *name, void *data) {
 
    char *number;
    char *street;
@@ -134,7 +142,7 @@ static void roadmap_address_before (char *name, void *data) {
 }
 
 
-static void roadmap_address_after (char *name, void *data) {
+static void roadmap_address_after (const char *name, void *data) {
 
    char *number;
    char *street;
@@ -153,7 +161,7 @@ static void roadmap_address_after (char *name, void *data) {
 }
 
 
-static void roadmap_address_ok (char *name, void *data) {
+static void roadmap_address_ok (const char *name, void *data) {
 
    int i, j, k;
    int count;
@@ -335,7 +343,7 @@ static void roadmap_address_ok (char *name, void *data) {
 
    } else {
 
-      context->when_done (positions);
+      roadmap_address_done (context->name, positions);
 
       free (names[0]);
       free (positions);
@@ -343,7 +351,7 @@ static void roadmap_address_ok (char *name, void *data) {
 }
 
 
-static void roadmap_address_cancel (char *name, void *data) {
+static void roadmap_address_cancel (const char *name, void *data) {
 
    roadmap_dialog_hide (name);
 }
@@ -392,19 +400,12 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 }
 
 
-static void roadmap_address_destination_done
-               (RoadMapPosition *position) {
-
-   roadmap_screen_set_location ("Destination", position);
-   roadmap_screen_show_location ("Destination");
-}
-
 void roadmap_address_destination_by_city (void) {
 
    static RoadMapAddressDialog context = {
       "RoadMap Destination",
-      0,
-      roadmap_address_destination_done
+       "Destination",
+      0
    };
 
    roadmap_address_dialog (&context);
@@ -414,27 +415,21 @@ void roadmap_address_destination_by_city (void) {
 void roadmap_address_destination_by_zip (void) {
 
    static RoadMapAddressDialog context = {
-      "RoadMap Destination",
-      1,
-      roadmap_address_destination_done
+       "RoadMap Destination",
+       "Destination",
+       1
    };
 
    roadmap_address_dialog (&context);
 }
 
 
-static void roadmap_address_location_done (RoadMapPosition *position) {
-
-   roadmap_screen_set_location ("Location", position);
-   roadmap_screen_show_location ("Location");
-}
-
 void roadmap_address_location_by_city (void) {
 
    static RoadMapAddressDialog context = {
-      "RoadMap Location",
-      0,
-      roadmap_address_location_done
+       "RoadMap Location",
+       "Location",
+       0
    };
 
    roadmap_address_dialog (&context);
@@ -443,9 +438,9 @@ void roadmap_address_location_by_city (void) {
 void roadmap_address_location_by_zip (void) {
 
    static RoadMapAddressDialog context = {
-      "RoadMap Location",
-      1,
-      roadmap_address_location_done
+       "RoadMap Location",
+       "Location",
+       1
    };
 
    roadmap_address_dialog (&context);

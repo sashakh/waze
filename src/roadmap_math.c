@@ -361,8 +361,8 @@ int roadmap_math_is_visible (int west, int east, int north, int south) {
 }
 
 
-int roadmap_math_line_is_visible (RoadMapPosition *point1,
-                                  RoadMapPosition *point2) {
+int roadmap_math_line_is_visible (const RoadMapPosition *point1,
+                                  const RoadMapPosition *point2) {
 
    if ((point1->longitude > RoadMapContext.focus.east) &&
        (point2->longitude > RoadMapContext.focus.east)) {
@@ -388,7 +388,7 @@ int roadmap_math_line_is_visible (RoadMapPosition *point1,
 }
 
 
-int roadmap_math_point_is_visible (RoadMapPosition *point) {
+int roadmap_math_point_is_visible (const RoadMapPosition *point) {
 
    if ((point->longitude > RoadMapContext.focus.east) ||
        (point->longitude < RoadMapContext.focus.west) ||
@@ -542,7 +542,7 @@ int roadmap_math_set_orientation (int direction) {
 }
 
 
-void roadmap_math_to_position (RoadMapGuiPoint *point,
+void roadmap_math_to_position (const RoadMapGuiPoint *point,
                                RoadMapPosition *position) {
 
    RoadMapGuiPoint point2;
@@ -564,7 +564,7 @@ void roadmap_math_to_position (RoadMapGuiPoint *point,
 }
 
 
-void roadmap_math_coordinate (RoadMapPosition *position,
+void roadmap_math_coordinate (const RoadMapPosition *position,
                               RoadMapGuiPoint *point) {
 
    ROADMAP_POINT_SET_X(point,
