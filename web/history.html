@@ -15,6 +15,23 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mailing List</a>
 <HR> <BR>
+<P>Roadmap v1.0rc4 (May 11, 2003): 
+<UL>
+  <LI>Fixed a fatal error in the navigation code when driving not too
+      far from a county border.
+  <LI>Fixed a fatal error in the map activation code: the current map
+      was not updated correctly if it was already in the cache.
+  <LI>The RoadMap debug log messages are now saved to a file. A rough
+      stack information is displayed (quick and dirty). This is the
+      result of the bug hunt above.
+  <LI>The user can now disable and re-enable the navigation features
+      (this way it is possible to skip them when they crash RoadMap 8-).
+  <LI>The "trip stop" menu item now preserves the screen orientation
+      selected by the user when activating the trip.
+  <LI>Fixed a signal programming bug that hit the Zaurus port
+      (thanks to Latchesar Ionkov).
+  <LI>Makefile cleanups.
+</UL>
 <P>Roadmap v1.0rc3 (April 20, 2003): 
 <UL>
   <LI>Hopefully made street tracking more stable.
