@@ -473,7 +473,7 @@ static void roadmap_trip_activate (int rotate) {
     destination->distance = 0;
     
     roadmap_trip_set_focus ("GPS", rotate);
-    roadmap_screen_refresh ();
+    roadmap_screen_redraw ();
 }
 
 
@@ -761,7 +761,7 @@ void roadmap_trip_stop (void) {
 
     RoadMapTripDestination = NULL;
     RoadMapTripRefresh = 1;
-    roadmap_screen_refresh();
+    roadmap_screen_redraw();
 }
 
 

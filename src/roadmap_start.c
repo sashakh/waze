@@ -193,7 +193,7 @@ static void roadmap_start_delete_waypoint (void) {
     roadmap_trip_remove_point (NULL);
 }
 
-static void roadmap_start_set_download_mode (void) {
+static void roadmap_start_toggle_download_mode (void) {
 
    if (roadmap_download_enabled()) {
 
@@ -307,7 +307,7 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {RoadMapFactorySeparator, NULL, NULL},
 
    {"Map Download",
-       "Enable/Disable the map download mechanism", roadmap_start_set_download_mode},
+       "Enable/Disable the map download mode", roadmap_start_toggle_download_mode},
    {"Map Disk Space",
        "Show the amount of disk space occupied by the maps", roadmap_download_show_space},
    {"Delete Maps...",
@@ -418,13 +418,28 @@ static RoadMapFactory RoadMapStartKeyBinding[] = {
    /* These binding are for regular keyboards: */
    {"+", NULL, roadmap_screen_zoom_in},
    {"-", NULL, roadmap_screen_zoom_out},
+   {"D", NULL, roadmap_start_show_destination},
+   {"d", NULL, roadmap_start_show_destination},
+   {"L", NULL, roadmap_start_show_location},
+   {"l", NULL, roadmap_start_show_location},
+   {"G", NULL, roadmap_start_show_gps},
+   {"g", NULL, roadmap_start_show_gps},
+   {"M", NULL, roadmap_start_toggle_download_mode},
+   {"m", NULL, roadmap_start_toggle_download_mode},
+   {"E", NULL, roadmap_download_delete},
+   {"e", NULL, roadmap_download_delete},
+   {"H", NULL, roadmap_start_trip},
+   {"h", NULL, roadmap_start_trip},
+   {"P", NULL, roadmap_trip_stop},
+   {"p", NULL, roadmap_trip_stop},
+   {"U", NULL, roadmap_start_trip_reverse},
+   {"u", NULL, roadmap_start_trip_reverse},
    {"R", NULL, roadmap_screen_zoom_reset},
    {"r", NULL, roadmap_screen_zoom_reset},
    {"F", NULL, roadmap_main_toggle_full_screen},
    {"f", NULL, roadmap_main_toggle_full_screen},
    {"Q", NULL, roadmap_main_exit},
    {"q", NULL, roadmap_main_exit},
-
    {NULL, NULL, NULL}
 };
 

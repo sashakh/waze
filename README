@@ -398,32 +398,6 @@ USING ROADMAP:
    Enable Voice item.
 
 
-   ON-THE-FLY MAP DOWNLOAD:
-
-   If RoadMap does not find the map file for a specific county, it will
-   ask the user permission for downloading it from a configured source.
-   The destination can also be configured (see the preferences items
-   description for more details). Both parameters can be changed before
-   each download (the source and destination files can be edited in
-   the download confirmation dialog.
-
-   RoadMap is designed to support multiple download protocols. The protocol
-   is selected depending on the source identifier, as much as possible using
-   the well-known WEB's URL syntax.
-
-   If the user cancel the download of a specific map, RoadMap will not
-   request the same download again for the remainder of the session. This
-   means that RoadMap will request the same maps again if stopped and then
-   restarted. This was done because there is at this time no way for the
-   user to change his mind and re-request the download of a cancelled map.
-   This is a part of the user interface that is likely to change in the
-   future.
-
-   At this time there is no disk space management interface in RoadMap: the
-   user must check that enough disk space is available before downloading
-   a map.
-
-
    KEY BINDINGS:
 
    On the iPAQ the buttons are mapped as follow:
@@ -434,13 +408,76 @@ USING ROADMAP:
    arrow buttons:             scroll the map.
    Compaq ("menu") button:    quit roadmap.
 
-   On a desktop or laptop, the keyboard keys are mapped as follow:
+   On a desktop or laptop (or on the Zaurus), the keyboard keys are mapped
+   as follow:
 
    '+'           zoom in.
    '-'           zoom out.
    'r'           reset the zoom level.
    arrow keys:   scroll the map.
+   'd'           show the destination point.
+   'l'           show the location last searched.
+   'g'           show (and track) the current GPS position.
+   'm'           toggle the map download mode on and off.
+   'e'           delete maps (i.e. open the map delete dialog).
+   'h'           hit the road (a.k.a. start a trip).
+   'p'           pause (a.k.a. stop the current trip).
+   'u'           U-turn (a.k.a. restart the current trip in reverse).
    'q'           quit roadmap.
+
+
+   ON-THE-FLY MAP DOWNLOAD:
+
+   RoadMap comes with a map download mode, which can be activated and
+   deactivated using the Find / Map Download menu entry. On startup
+   the download mode is always deactivated. When this mode is active,
+   RoadMap shows a red "download" icone on the right top corner of the
+   map screen.
+
+   In download mode, if RoadMap does not find the map file for a specific
+   county, it will ask the user for the permission to download it from a
+   configured source (as defined in the preference item "Download.Source").
+   The destination can also be configured (using the preferences item
+   "Download.Destination"). Both parameters can be changed before each
+   download: the source and destination files for that download can be
+   edited in the download confirmation dialog.
+
+   RoadMap is designed to support multiple download protocols. The protocol
+   is selected depending on the source string, as much as possible using
+   the well-known URL syntax.
+
+   At that time, only one protocol has been implemented: a local file copy
+   (provides either a full path or a file:// URL as the source). While it
+   may seems that such a protocol is of little value, there are cases when
+   it can be useful. For example by mounting your desktop's disk on your
+   PDA using either nfs or smbfs.
+
+   If the user cancels the download of a specific map, RoadMap will not
+   request the same download again for the remainder of the session. This
+   means that RoadMap will request the same maps again if stopped and then
+   restarted. This was done because there is at this time no way for the
+   user to change his mind and re-request the download of a cancelled map.
+   This is a part of the user interface that is likely to change in the
+   future.
+
+   What makes this downloading feature of interest is today's PDA limited
+   storage space, usually much smaller than the size of the RoadMap map set.
+   This is why RoadMap also provides a dialog for deleting maps, activated
+   through the Find / Delete Maps.. menu entry. The dialog shows the number
+   of map files stored locally, the total size of the local maps and the
+   list of maps currently visible on the RoadMap screen. The proper way
+   for selecting the maps to delete is to view an area you do not need
+   anymore, hit the Find /Delete Maps.. entry, then select a specific
+   county and hit the Delete button. The county will immediately disappear
+   from the map screen and the dialog gets updated (i.e. the map statistics
+   and the map list will reflect the latest delete action). Several counties
+   can be deleted this way, before the dialog is closed (button "Done").
+
+   Note that a deleted map is automatically added to the "cancel download"
+   list, so that RoadMap will not request for this map again. As such it
+   is not a problem to delete maps while the download mode is active.
+   If you need to download again a map that was deleted, just restart
+   RoadMap.
 
 
    WAYPOINTS AND ADDRESSES:
@@ -654,6 +691,37 @@ USING ROADGPS:
    RoadGps uses a subset of the RoadMap preferences setup, but has no
    preferences editor of its own: configure RoadMap first, and then use
    RoadGps.
+
+
+PORTING ROADMAP:
+
+   The roadmap and roadgps applications have been designed so to facilitate
+   portability. Two sub-parts of RoadMap have been isolated for that purpose:
+   the graphic user interface and the OS interface.
+
+   The graphic user interface is all defined by the following header files:
+
+      roadmap_main.h           -- the application's main window.
+      roadmap_canvas.h         -- the canvas used to draw the map.
+      roadmap_dialog.h         -- the widget used to build dialogs.
+      roadmap_messagebox.h     -- pre-built warning/error dialogs.
+      roadmap_fileselection.h  -- a pre-built file selection dialog.
+
+   The OS interface is defined by the following header files:
+
+      roadmap_net.c            -- isolate socket interface oddities.
+      roadmap_path.c           -- hides the OS syntax for file path.
+      roadmap_file.c           -- primitives to access and map binary files.
+      roadmap_time.c           -- primitive to get the local time.
+      roadmap_spawn.c          -- hides the OS process control.
+      roadmap_library.c        -- load and link to dynamic libraries.
+
+   Implementations of the user interface for the Gtk, Gtk2 and Qt toolkits
+   are provided, as well as one implementation of the OS interface for UNIX.
+
+   Porting RoadMap to a new environment probably means to adapt the RoadMap
+   make files and write new implementations for the functions defined in
+   the header files listed above.
 
 
 CONFIGURATION:
@@ -1026,9 +1094,9 @@ CONFIGURATION:
      Download.Source:
 
          Description: the format used to generate the URL of the source.
-         Format: printf() format
+         Format: printf() format, which must include the sequence "%05d".
          Default: /usr/local/share/roadmap/usc%05d.rdm
-         Comment: this item is either a full path name (starting for a '/')
+         Comment: this item is either a full path name (starting with a '/')
                   or an URL (such as "file://[...]" or "http://[...]").
 
      Download.Destination:
