@@ -243,8 +243,8 @@ static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode)
 static void roadmap_trip_file_dialog (const char *mode) {
     
     roadmap_fileselection_new ("RoadMap Trip",
+                                NULL, /* no filter. */
                                 roadmap_file_trips(),
-                                NULL,
                                 mode,
                                 roadmap_trip_file_dialog_ok);
 }
