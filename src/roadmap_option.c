@@ -67,7 +67,7 @@ int roadmap_option_width (const char *name) {
     
     char *option = roadmap_config_get ("Geometry", name);
     
-    if (option == NULL) {
+    if (option == NULL || option[0] == 0) {
         return 300;
     }
     return atoi (option);
