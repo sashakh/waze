@@ -34,7 +34,7 @@
  */
 typedef int  (*RoadMapDownloadCallbackSize)     (int size);
 typedef void (*RoadMapDownloadCallbackProgress) (int loaded);
-typedef void (*RoadMapDownloadCallbackError)    (const char *message);
+typedef void (*RoadMapDownloadCallbackError)    (const char *format, ...);
 
 typedef struct {
    RoadMapDownloadCallbackSize     size;

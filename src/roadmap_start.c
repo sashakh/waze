@@ -55,6 +55,7 @@
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
 #include "roadmap_copy.h"
+#include "roadmap_httpcopy.h"
 #include "roadmap_download.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
@@ -212,6 +213,7 @@ static void roadmap_start_toggle_download_mode (void) {
          //      ("download", roadmap_download_subscribe_protocol);
 
          roadmap_copy_init (roadmap_download_subscribe_protocol);
+         roadmap_httpcopy_init (roadmap_download_subscribe_protocol);
 
          ProtocolInitialized = 1;
       }

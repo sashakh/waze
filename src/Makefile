@@ -1,6 +1,6 @@
 
 
-CFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall -DROADMAP_USES_SIGCHLD
+CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall -DROADMAP_USES_SIGCHLD
 # CFLAGS=-g -Wall
 
 # Memory leak detection using mtrace:
@@ -68,7 +68,7 @@ RGGUISRCS=roadgps_start.c \
 RGGUIOBJS=$(RGGUISRCS:.c=.o)
 
 
-RMPLUGINSRCS=roadmap_copy.c
+RMPLUGINSRCS=roadmap_copy.c roadmap_httpcopy.c
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 

@@ -141,3 +141,20 @@ connection_failure:
    return -1;
 }
 
+
+int roadmap_net_send (int socket, void *data, int length) {
+
+   return write (socket, data, length);
+}
+
+
+int roadmap_net_receive (int socket, void *data, int size) {
+
+   return read (socket, data, size);
+}
+
+
+void roadmap_net_close (int socket) {
+   close (socket);
+}
+

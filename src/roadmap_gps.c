@@ -311,9 +311,10 @@ void roadmap_gps_input (int fd) {
 
    if (input_cursor < sizeof(input_buffer) - 1) {
 
-      received = read (fd,
-                       input_buffer + input_cursor,
-                       sizeof(input_buffer) - input_cursor - 1);
+      received =
+         roadmap_net_receive
+            (fd, input_buffer + input_cursor,
+                 sizeof(input_buffer) - input_cursor - 1);
 
       if (received <= 0) {
 

@@ -287,6 +287,7 @@ void roadmap_config_declare_enumeration (const char *config,
    for (p = va_arg(ap, char *); p != NULL; p = va_arg(ap, char *)) {
       roadmap_config_add_enumeration_value (item, p);
    }
+   va_end(ap);
 }
 
 

@@ -1,8 +1,8 @@
-/* roadmap_gps.h - GPS interface for the RoadMap application.
+/* roadmap_httpcopy.h - Download RoadMap maps using the HTTP protocol.
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2003 Pascal Martin.
  *
  *   This file is part of RoadMap.
  *
@@ -21,15 +21,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_NET__H_
-#define _ROADMAP_NET__H_
+#ifndef INCLUDED__ROADMAP_HTTPCOPY__H
+#define INCLUDED__ROADMAP_HTTPCOPY__H
 
-int roadmap_net_connect (const char *name, int default_port);
+#include "roadmap_download.h"
 
-int roadmap_net_send    (int socket, void *data, int length);
-int roadmap_net_receive (int socket, void *data, int size);
+void roadmap_httpcopy_init (RoadMapDownloadSubscribe subscribe);
 
-void roadmap_net_close (int socket);
-
-#endif // _ROADMAP_NET__H_
-
+#endif // INCLUDED__ROADMAP_HTTPCOPY__H

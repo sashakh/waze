@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -107,7 +108,14 @@ static void roadmap_download_format_size (char *image, int value) {
 }
 
 
-static void roadmap_download_error (const char *message) {
+static void roadmap_download_error (const char *format, ...) {
+
+   va_list ap;
+   char message[2048];
+
+   va_start(ap, format);
+   vsnprintf (message, sizeof(message), format, ap);
+   va_end(ap);
 
    roadmap_messagebox ("Download Error", message);
 }
@@ -359,7 +367,9 @@ static void roadmap_download_ok (const char *name, void *context) {
       roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
    }
 
-   roadmap_download_progress (RoadMapDownloadCurrentFileSize);
+   if (RoadMapDownloadCurrentFileSize > 0) {
+      roadmap_download_progress (RoadMapDownloadCurrentFileSize);
+   }
 }
 
 
