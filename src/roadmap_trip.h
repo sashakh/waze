@@ -26,14 +26,13 @@
 
 #include "roadmap_types.h"
 #include "roadmap_list.h"
+#include "roadmap_gps.h"
 
 
 void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
 
 void  roadmap_trip_set_mobile (const char *name,
-                               RoadMapPosition *position,
-                               int speed,
-                               int direction);
+                               const RoadMapGpsPosition *gps_position);
 
 void  roadmap_trip_copy_focus (const char *name);
 

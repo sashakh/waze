@@ -24,11 +24,23 @@
 #ifndef _ROADMAP_GPS__H_
 #define _ROADMAP_GPS__H_
 
-/* The listener is a function to be called each time a valid GPS position
+typedef struct {
+
+   int longitude;
+   int latitude;
+   int altitude;
+   int speed;
+   int steering;
+
+} RoadMapGpsPosition;
+
+#define ROADMAP_GPS_NULL_POSITION {0, 0, 0, 0, 0}
+
+
+/* The listener is a function to be called each time a valid GPS coordinate
  * has been received. There can be more than one listener at a given time.
  */
-typedef void (*roadmap_gps_listener)
-                   (RoadMapPosition *position, int speed, int direction);
+typedef void (*roadmap_gps_listener) (const RoadMapGpsPosition *position);
 
 void roadmap_gps_initialize (roadmap_gps_listener listener);
 

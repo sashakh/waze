@@ -36,7 +36,6 @@
 #include "roadmap_file.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
-#include "roadmap_gps.h"
 #include "roadmap_config.h"
 #include "roadmap_dialog.h"
 #include "roadmap_fileselection.h"
@@ -47,6 +46,7 @@
 #include "roadmap_messagebox.h"
 #include "roadmap_preferences.h"
 #include "roadmap_display.h"
+#include "roadmap_adjust.h"
 
 #include "roadmap_trip.h"
 
@@ -84,13 +84,12 @@ typedef struct roadmap_trip_point {
     char in_trip;
     char has_value;
 
-    RoadMapPosition position;
+    RoadMapPosition    map;
+    RoadMapGpsPosition gps;
 
     RoadMapConfigDescriptor config_position;
     RoadMapConfigDescriptor config_direction;
 
-    int speed;
-    int direction;
     int distance;   /* .. from the destination point. */
 
 } RoadMapTripPoint;
@@ -99,9 +98,10 @@ typedef struct roadmap_trip_point {
 #define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip, has_value) \
     {{NULL, NULL}, id, sprite, 1, mobile, in_trip, has_value, \
      {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}, \
+     ROADMAP_GPS_NULL_POSITION, \
      ROADMAP_CONFIG_ITEM(id,"Position"), \
      ROADMAP_CONFIG_ITEM(id,"Direction"), \
-     0, 0, 0 \
+     0 \
     }
 
 RoadMapTripPoint RoadMapTripPredefined[] = {
@@ -130,7 +130,7 @@ static void roadmap_trip_unfocus (void) {
     
     if (RoadMapTripFocus != NULL) {
         
-        RoadMapTripLastPosition = RoadMapTripFocus->position;
+        RoadMapTripLastPosition = RoadMapTripFocus->map;
         RoadMapTripFocus = NULL;
     }
     RoadMapTripDeparture = NULL;
@@ -165,7 +165,11 @@ static void roadmap_trip_coordinate (const RoadMapPosition *position, RoadMapGui
 }
 
 
-static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPosition *position, const char *sprite) {
+static RoadMapTripPoint *roadmap_trip_update
+                            (const char *name,
+                             const RoadMapPosition *position,
+                             const RoadMapGpsPosition *gps_position,
+                             const char *sprite) {
 
     RoadMapTripPoint *result;
     
@@ -177,9 +181,9 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
          */
         char *to;
         char *from;
-        char *expurged = strdup (name);
+        char *cleaned = strdup (name);
             
-        for (from = expurged, to = expurged; *from != 0; ++from) {
+        for (from = cleaned, to = cleaned; *from != 0; ++from) {
             if (*from != ',') {
                 if (to != from) {
                     *to = *from;
@@ -189,8 +193,8 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
         }
         *to = 0;
             
-        result = roadmap_trip_update (expurged, position, sprite);
-        free (expurged);
+        result = roadmap_trip_update (cleaned, position, gps_position, sprite);
+        free (cleaned);
         
         return result;
     }
@@ -210,10 +214,8 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
         result->predefined = 0;
         result->in_trip = 1;
         result->sprite = sprite;
-        result->mobile = 0;
-        result->speed  = 0;
-        result->direction = 0;
-        
+        result->mobile = (gps_position != NULL);
+
         if (roadmap_math_point_is_visible (position)) {
             RoadMapTripRefresh = 1;
         }
@@ -228,11 +230,11 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
          */
         RoadMapGuiPoint point1;
         RoadMapGuiPoint point2;
-        
-        if (result->position.latitude != position->latitude ||
-            result->position.longitude != position->longitude) {
+
+        if (result->map.latitude != position->latitude ||
+            result->map.longitude != position->longitude) {
             roadmap_trip_coordinate (position, &point1);
-            roadmap_trip_coordinate (&result->position, &point2);
+            roadmap_trip_coordinate (&result->map, &point2);
             if (point1.x != point2.x || point1.y != point2.y) {
                 RoadMapTripRefresh = 1;
             }
@@ -245,13 +247,43 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
         }
     }
     
-    result->position = *position;
+    result->map = *position;
     result->has_value = 1;
 
-    if (result->predefined && (! result->in_trip)) {
-       roadmap_config_set_position
-           (&result->config_position, &result->position);
+    if (gps_position != NULL) {
+
+       result->gps = *gps_position;
+
+    } else {
+
+       result->gps.speed = 0;
+       result->gps.steering = 0;
     }
+
+    if (result->predefined && (! result->in_trip)) {
+
+       /* Save the new position in the session context. */
+
+       if (result->mobile) {
+
+          RoadMapPosition temporary;
+
+          temporary.longitude = result->gps.longitude;
+          temporary.latitude  = result->gps.latitude;
+
+          roadmap_config_set_position
+             (&result->config_position, &temporary);
+
+          roadmap_config_set_integer
+             (&result->config_direction, result->gps.steering);
+
+       } else {
+
+          roadmap_config_set_position
+             (&result->config_position, &result->map);
+       }
+    }
+
     return result;
 }
 
@@ -464,8 +496,7 @@ static void roadmap_trip_activate (int rotate) {
         if (! waypoint->predefined) {
             
             waypoint->distance =
-                roadmap_math_distance
-                    (&destination->position, &waypoint->position);
+                roadmap_math_distance (&destination->map, &waypoint->map);
             
             roadmap_log (ROADMAP_DEBUG,
                             "Waypoint %s: distance to destination = %d %s",
@@ -497,7 +528,7 @@ static void roadmap_trip_clear (void) {
             if (RoadMapTripFocus == point) {
                 roadmap_trip_unfocus ();
             }
-            if (roadmap_math_point_is_visible (&point->position)) {
+            if (roadmap_math_point_is_visible (&point->map)) {
                 RoadMapTripRefresh = 1;
             }
             roadmap_list_remove (&RoadMapTripWaypoints, &point->link);
@@ -522,7 +553,7 @@ void roadmap_trip_set_point (const char *name, RoadMapPosition *position) {
     if (name == NULL) {
         roadmap_trip_set_dialog (position);
     } else {
-        roadmap_trip_update (name, position, "Waypoint");
+        roadmap_trip_update (name, position, NULL, "Waypoint");
     }
 }
 
@@ -535,28 +566,18 @@ void roadmap_trip_set_selection_as (const char *name) {
       Selection = roadmap_trip_search ("Selection");
    }
 
-   roadmap_trip_update (name, &Selection->position, "Waypoint");
+   roadmap_trip_update (name, &Selection->map, NULL, "Waypoint");
 }
 
 
 void roadmap_trip_set_mobile (const char *name,
-                              RoadMapPosition *position,
-                              int speed,
-                              int direction) {
+                              const RoadMapGpsPosition *gps_position) {
 
-    RoadMapTripPoint *result = roadmap_trip_update (name, position, "Mobile");
+    RoadMapPosition position;
 
-    result->mobile = 1;
-    result->speed  = speed;
+    roadmap_adjust_position (gps_position, &position);
 
-    if (speed > roadmap_gps_speed_accuracy()) {
-
-       result->direction = direction;
-
-       if (result->predefined && (! result->in_trip)) {
-           roadmap_config_set_integer (&result->config_direction, direction);
-       }
-    }
+    roadmap_trip_update (name, &position, gps_position, "Mobile");
 }
 
 
@@ -569,17 +590,12 @@ void  roadmap_trip_copy_focus (const char *name) {
 
       to->has_value = RoadMapTripFocus->has_value;
 
-      if (RoadMapTripFocus->mobile) {
-         to->direction = RoadMapTripFocus->direction;
-      } else {
-         to->direction = 0;
-      }
-      to->position  = RoadMapTripFocus->position;
+      to->map = RoadMapTripFocus->map;
+      to->gps = RoadMapTripFocus->gps;
 
       if (to->predefined && (! to->in_trip)) {
-         roadmap_config_set_position
-            (&to->config_position, &to->position);
-         roadmap_config_set_integer (&to->config_direction, to->direction);
+         roadmap_config_set_position (&to->config_position, &to->map);
+         roadmap_config_set_integer (&to->config_direction, to->gps.steering);
       }
    }
 }
@@ -611,7 +627,7 @@ void roadmap_trip_remove_point (const char *name) {
         roadmap_trip_unfocus ();
     }
     
-    if (roadmap_math_point_is_visible (&result->position)) {
+    if (roadmap_math_point_is_visible (&result->map)) {
         RoadMapTripRefresh = 1;
     }
     
@@ -639,12 +655,25 @@ void  roadmap_trip_restore_focus (void) {
 
             roadmap_config_get_position
                 (&RoadMapTripPredefined[i].config_position,
-                 &RoadMapTripPredefined[i].position);
+                 &RoadMapTripPredefined[i].map);
 
             if (RoadMapTripPredefined[i].mobile) {
-                RoadMapTripPredefined[i].direction =
+
+                /* This is a mobile point: what was recorded was the GPS
+                 * position, not the adjusted map position.
+                 */
+                RoadMapTripPredefined[i].gps.longitude =
+                   RoadMapTripPredefined[i].map.longitude;
+
+                RoadMapTripPredefined[i].gps.latitude =
+                   RoadMapTripPredefined[i].map.latitude;
+
+                RoadMapTripPredefined[i].gps.steering =
                     roadmap_config_get_integer
                         (&RoadMapTripPredefined[i].config_direction);
+
+                roadmap_adjust_position (&RoadMapTripPredefined[i].gps,
+                                         &RoadMapTripPredefined[i].map);
             }
         }
     }
@@ -711,7 +740,7 @@ int roadmap_trip_is_refresh_needed (void) {
 int roadmap_trip_get_orientation (void) {
     
     if (RoadMapTripRotate && (RoadMapTripFocus != NULL)) {
-        return 360 - RoadMapTripFocus->direction;
+        return 360 - RoadMapTripFocus->gps.steering;
     }
     
     return 0;
@@ -731,7 +760,7 @@ const char *roadmap_trip_get_focus_name (void) {
 const RoadMapPosition *roadmap_trip_get_focus_position (void) {
     
     if (RoadMapTripFocus != NULL) {
-        return &RoadMapTripFocus->position;
+        return &RoadMapTripFocus->map;
     }
     
     return &RoadMapTripLastPosition;
@@ -744,7 +773,7 @@ void  roadmap_trip_start (int rotate) {
 
     if (RoadMapTripDestination != NULL) {
 
-       roadmap_trip_set_point ("Departure", &RoadMapTripGps->position);
+       roadmap_trip_set_point ("Departure", &RoadMapTripGps->map);
        RoadMapTripDeparture = roadmap_trip_search ("Departure");
 
        roadmap_trip_activate (rotate);
@@ -807,8 +836,7 @@ void roadmap_trip_format_messages (void) {
         roadmap_message_set ('T', roadmap_time_get_hours_minutes());
         
         distance_to_destination =
-            roadmap_math_distance
-                (&gps->position, &RoadMapTripDestination->position);
+            roadmap_math_distance (&gps->map, &RoadMapTripDestination->map);
     
         roadmap_log (ROADMAP_DEBUG,
                         "GPS: distance to destination = %d %s",
@@ -839,8 +867,8 @@ void roadmap_trip_format_messages (void) {
         if (RoadMapTripNextWaypoint != RoadMapTripDestination) {
             
             int distance_to_waypoint =
-                    roadmap_math_distance (&gps->position,
-                                           &RoadMapTripNextWaypoint->position);
+                    roadmap_math_distance (&gps->map,
+                                           &RoadMapTripNextWaypoint->map);
             
             roadmap_log (ROADMAP_DEBUG,
                             "GPS: distance to next waypoint %s = %d %s",
@@ -858,7 +886,7 @@ void roadmap_trip_format_messages (void) {
         }
         
         roadmap_message_set ('S', "%3d %s",
-                             roadmap_math_to_speed_unit(gps->speed),
+                             roadmap_math_to_speed_unit(gps->gps.speed),
                              roadmap_math_speed_unit());
         
     } else {
@@ -889,19 +917,20 @@ void roadmap_trip_display (void) {
         if (waypoint->sprite == NULL) continue;
         if (! waypoint->has_value) continue;
 
-        if (roadmap_math_point_is_visible (&waypoint->position)) {
+        if (roadmap_math_point_is_visible (&waypoint->map)) {
 
-            roadmap_math_coordinate (&waypoint->position, &point);
+            roadmap_math_coordinate (&waypoint->map, &point);
             roadmap_math_rotate_coordinates (1, &point);
-            roadmap_sprite_draw (waypoint->sprite, &point, waypoint->direction);
+            roadmap_sprite_draw
+               (waypoint->sprite, &point, waypoint->gps.steering);
         }
     }
 
     if (RoadMapTripNextWaypoint != NULL) {
     
-        azymuth = roadmap_math_azymuth (&gps->position,
-                                        &RoadMapTripNextWaypoint->position);
-        roadmap_math_coordinate (&gps->position, &point);
+        azymuth = roadmap_math_azymuth (&gps->map,
+                                        &RoadMapTripNextWaypoint->map);
+        roadmap_math_coordinate (&gps->map, &point);
         roadmap_math_rotate_coordinates (1, &point);
         roadmap_sprite_draw ("Direction", &point, azymuth);
     }
@@ -1003,7 +1032,7 @@ int roadmap_trip_load (const char *name) {
        }
        position.longitude = atoi(argv[2]);
        position.latitude  = atoi(argv[3]);
-       roadmap_trip_update (argv[1], &position, "Waypoint");
+       roadmap_trip_update (argv[1], &position, NULL, "Waypoint");
     }
       
     fclose (file);
@@ -1015,12 +1044,12 @@ int roadmap_trip_load (const char *name) {
 
 
 static void roadmap_trip_printf (FILE *file, const RoadMapTripPoint *point) {
-    
-    fprintf (file, "%s,%s,%d,%d\n",
-                point->sprite,
-                point->id,
-                point->position.longitude,
-                point->position.latitude);
+
+   fprintf (file, "%s,%s,%d,%d\n",
+         point->sprite,
+         point->id,
+         point->map.longitude,
+         point->map.latitude);
 }
 
 void roadmap_trip_save (const char *name) {
@@ -1048,7 +1077,7 @@ void roadmap_trip_save (const char *name) {
              point != NULL;
              point = (RoadMapTripPoint *)point->link.next) {
                   
-            if (point->in_trip && point->has_value) {
+            if (point->in_trip && point->has_value && (! point->mobile)) {
                 roadmap_trip_printf (file, point);
             }
         }

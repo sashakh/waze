@@ -49,6 +49,7 @@
 #include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
+#include "roadmap_adjust.h"
 #include "roadmap_screen.h"
 #include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
@@ -539,8 +540,7 @@ static void roadmap_start_set_unit (void) {
 
 static int RoadMapStartGpsRefresh = 0;
 
-static void roadmap_gps_update
-                (RoadMapPosition *position, int speed, int direction) {
+static void roadmap_gps_update (const RoadMapGpsPosition *gps_position) {
 
    static int RoadMapSynchronous = -1;
 
@@ -550,10 +550,10 @@ static void roadmap_gps_update
 
    } else {
 
-      roadmap_trip_set_mobile ("GPS", position, speed, direction);
+      roadmap_trip_set_mobile ("GPS", gps_position);
       roadmap_log_reset_stack ();
 
-      roadmap_navigate_locate (position, speed, direction);
+      roadmap_navigate_locate (gps_position);
       roadmap_log_reset_stack ();
 
       if (RoadMapSynchronous) {
@@ -713,6 +713,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_gps_initialize      (&roadmap_gps_update);
    roadmap_history_initialize  ();
    roadmap_download_initialize ();
+   roadmap_adjust_initialize   ();
    roadmap_config_initialize   ();
 
    roadmap_path_set(roadmap_config_get(&RoadMapConfigMapPath));

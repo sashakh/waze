@@ -38,6 +38,7 @@
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
 #include "roadmap_fuzzy.h"
+#include "roadmap_adjust.h"
 
 #include "roadmap_navigate.h"
 
@@ -55,7 +56,7 @@ static int RoadMapAccuracyMouse;
 static int RoadMapAccuracyStreet;
 
 /* Avoid doing navigation work when the position has not changed. */
-static RoadMapPosition RoadMapPreviousPosition;
+static RoadMapGpsPosition RoadMapPreviousGpsPosition;
 
 typedef struct {
 
@@ -484,23 +485,25 @@ invalidate:
 }
 
 
-void roadmap_navigate_locate
-         (const RoadMapPosition *position, int speed, int direction) {
+void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     int fips;
+    RoadMapPosition position;
 
 
     if (RoadMapNavigateDisable) return;
 
 
 
-    if ((position->latitude == RoadMapPreviousPosition.latitude) &&
-        (position->longitude == RoadMapPreviousPosition.longitude)) {
+    if ((gps_position->latitude == RoadMapPreviousGpsPosition.latitude) &&
+        (gps_position->longitude == RoadMapPreviousGpsPosition.longitude)) {
 
         /* The position has not changed, no reason to do any navigation. */
         return;
     }
-    RoadMapPreviousPosition = *position;
+    RoadMapPreviousGpsPosition = *gps_position;
+
+    roadmap_adjust_position (gps_position, &position);
 
 #ifdef DEBUG
     printf ("Locating position (long=%d, lat=%d)\n",
@@ -514,14 +517,14 @@ void roadmap_navigate_locate
         roadmap_config_get_integer (&RoadMapConfigAccuracyMouse);
 
     
-    roadmap_navigate_update (&RoadMapCandidateStreet, position);
-    
-    if (roadmap_navigate_update (&RoadMapConfirmedStreet, position)) {
+    roadmap_navigate_update (&RoadMapCandidateStreet, &position);
+
+    if (roadmap_navigate_update (&RoadMapConfirmedStreet, &position)) {
 
         int cfcc;
         const RoadMapPosition *crossing;
 
-        crossing = roadmap_navigate_next_crossing (position);
+        crossing = roadmap_navigate_next_crossing (&position);
 
         if (crossing == NULL) {
             roadmap_log_pop ();
@@ -530,7 +533,8 @@ void roadmap_navigate_locate
 
         for (cfcc = ROADMAP_ROAD_FIRST; cfcc <= ROADMAP_ROAD_LAST; ++cfcc) {
             
-            if (roadmap_navigate_next_intersection (crossing, cfcc, speed)) {
+            if (roadmap_navigate_next_intersection
+                               (crossing, cfcc, gps_position->speed)) {
                 break;
             }
         }
@@ -549,7 +553,7 @@ void roadmap_navigate_locate
         int distance = RoadMapAccuracyStreet + 1;
 
         int line = roadmap_navigate_retrieve_line
-                        (position, RoadMapAccuracyMouse, &distance);
+                        (&position, RoadMapAccuracyMouse, &distance);
 
 
         if ((line < 0) || (distance > RoadMapAccuracyStreet)){
@@ -613,7 +617,7 @@ void roadmap_navigate_locate
 
             RoadMapConfirmedStreet.crossing = NULL;
 
-            roadmap_navigate_next_crossing (position);
+            roadmap_navigate_next_crossing (&position);
             
             roadmap_display_hide ("Approach");
 

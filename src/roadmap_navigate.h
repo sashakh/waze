@@ -24,14 +24,15 @@
 #ifndef INCLUDE__ROADMAP_NAVIGATE__H
 #define INCLUDE__ROADMAP_NAVIGATE__H
 
+#include "roadmap_gps.h"
+
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
 int roadmap_navigate_retrieve_line
         (const RoadMapPosition *position, int accuracy, int *distance);
 
-void roadmap_navigate_locate
-        (const RoadMapPosition *position, int speed, int direction);
+void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position);
 
 void roadmap_navigate_initialize (void);
 

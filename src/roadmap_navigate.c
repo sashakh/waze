@@ -30,7 +30,6 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_message.h"
-#include "roadmap_gps.h"
 #include "roadmap_line.h"
 #include "roadmap_square.h"
 #include "roadmap_street.h"
@@ -38,6 +37,7 @@
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
 #include "roadmap_fuzzy.h"
+#include "roadmap_adjust.h"
 
 #include "roadmap_navigate.h"
 
@@ -52,7 +52,8 @@ typedef struct {
 static int RoadMapNavigateDisable = 0;
 
 /* Avoid doing navigation work when the position has not changed. */
-static RoadMapPosition RoadMapLatestPosition;
+static RoadMapGpsPosition RoadMapLatestGpsPosition;
+static RoadMapPosition    RoadMapLatestPosition;
 
 typedef struct {
 
@@ -284,13 +285,14 @@ static int roadmap_delta_direction (int direction1, int direction2) {
 }
 
 
-static int roadmap_navigate_confirm_intersection (int direction) {
+static int roadmap_navigate_confirm_intersection
+                             (const RoadMapGpsPosition *position) {
 
     int delta;
 
     if (RoadMapConfirmedStreet.intersection < 0) return 0;
 
-    delta = roadmap_delta_direction (direction,
+    delta = roadmap_delta_direction (position->steering,
                                      RoadMapConfirmedStreet.direction);
 
     return (delta < 90 && delta > -90);
@@ -340,7 +342,8 @@ static RoadMapFuzzy roadmap_navigate_is_intersection
  * Once we know where we are going, we select a street that intersects
  * this point and seems the best guess as an intersection.
  */
-static int roadmap_navigate_find_intersection (int speed, int direction) {
+static int roadmap_navigate_find_intersection
+                  (const RoadMapGpsPosition *position) {
 
     int cfcc;
     int square;
@@ -361,13 +364,13 @@ static int roadmap_navigate_find_intersection (int speed, int direction) {
 
     delta_from =
         roadmap_delta_direction
-            (direction,
+            (position->steering,
              roadmap_math_azymuth (&RoadMapLatestPosition,
                                    &RoadMapConfirmedLine.from));
 
     delta_to =
         roadmap_delta_direction
-            (direction,
+            (position->steering,
              roadmap_math_azymuth (&RoadMapLatestPosition,
                                    &RoadMapConfirmedLine.to));
 
@@ -399,7 +402,7 @@ static int roadmap_navigate_find_intersection (int speed, int direction) {
             for (line = first_line; line <= last_line; ++line) {
 
                 match = roadmap_navigate_is_intersection
-                                         (line, direction, &crossing);
+                                    (line, position->steering, &crossing);
                 if (best_match < match) {
 
                     roadmap_street_get_properties (line, &properties);
@@ -424,7 +427,7 @@ static int roadmap_navigate_find_intersection (int speed, int direction) {
                 line = roadmap_line_get_from_index2 (xline);
 
                 match = roadmap_navigate_is_intersection
-                                         (line, direction, &crossing);
+                                    (line, position->steering, &crossing);
                 if (best_match < match) {
 
                     roadmap_street_get_properties (line, &properties);
@@ -457,8 +460,7 @@ static int roadmap_navigate_find_intersection (int speed, int direction) {
 }
 
 
-void roadmap_navigate_locate
-         (const RoadMapPosition *position, int speed, int direction) {
+void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     int i;
     int found;
@@ -473,15 +475,17 @@ void roadmap_navigate_locate
 
     if (RoadMapNavigateDisable) return;
 
-    if ((RoadMapLatestPosition.latitude == position->latitude) &&
-        (RoadMapLatestPosition.longitude == position->longitude)) return;
+    if ((RoadMapLatestGpsPosition.latitude == gps_position->latitude) &&
+        (RoadMapLatestGpsPosition.longitude == gps_position->longitude)) return;
 
-    RoadMapLatestPosition = *position;
+    RoadMapLatestGpsPosition = *gps_position;
 
-    if (speed < roadmap_gps_speed_accuracy()) return;
+    if (gps_position->speed < roadmap_gps_speed_accuracy()) return;
 
 
     roadmap_fuzzy_start_cycle ();
+
+    roadmap_adjust_position (gps_position, &RoadMapLatestPosition);
 
     if (RoadMapConfirmedStreet.valid) {
 
@@ -494,14 +498,15 @@ void roadmap_navigate_locate
             return;
         }
         roadmap_street_get_distance
-            (position, RoadMapConfirmedLine.line, &RoadMapConfirmedLine);
+            (&RoadMapLatestPosition,
+             RoadMapConfirmedLine.line, &RoadMapConfirmedLine);
 
         if (roadmap_navigate_fuzzify
                 (&RoadMapConfirmedStreet,
-                 &RoadMapConfirmedLine, direction) >= before) {
+                 &RoadMapConfirmedLine, gps_position->steering) >= before) {
 
-            if (! roadmap_navigate_confirm_intersection (direction)) {
-                roadmap_navigate_find_intersection (speed, direction);
+            if (! roadmap_navigate_confirm_intersection (gps_position)) {
+                roadmap_navigate_find_intersection (gps_position);
             }
 
             return; /* We are on the same street. */
@@ -511,13 +516,14 @@ void roadmap_navigate_locate
     /* We must search again for the best street match. */
 
     count = roadmap_navigate_get_neighbours
-                (position, roadmap_fuzzy_max_distance(),
+                (&RoadMapLatestPosition, roadmap_fuzzy_max_distance(),
                  RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD);
 
     for (i = 0, best = roadmap_fuzzy_false(), found = 0; i < count; ++i) {
 
         result = roadmap_navigate_fuzzify
-                     (&candidate, RoadMapNeighbourhood+i, direction);
+                     (&candidate, RoadMapNeighbourhood+i,
+                      gps_position->steering);
 
         if (result > best) {
             found = i;
@@ -551,8 +557,8 @@ void roadmap_navigate_locate
             roadmap_display_activate
                 ("Current Street", RoadMapConfirmedLine.line, NULL);
 
-        if (speed > roadmap_gps_speed_accuracy()) {
-            roadmap_navigate_find_intersection (speed, direction);
+        if (gps_position->speed > roadmap_gps_speed_accuracy()) {
+            roadmap_navigate_find_intersection (gps_position);
         }
 
     } else {

@@ -38,7 +38,8 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_geocode.c \
           roadmap_history.c \
           roadmap_nmea.c \
-          roadmap_gps.c
+          roadmap_gps.c \
+          roadmap_adjust.c
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 

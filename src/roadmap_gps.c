@@ -131,17 +131,28 @@ static void roadmap_gps_gprmc (void *context, const RoadMapNmeaFields *fields) {
 
    if (fields->gprmc.status == 'A') {
 
-      RoadMapPosition position;
+      static RoadMapGpsPosition position;
 
-      position.latitude = fields->gprmc.latitude;
+      position.latitude  = fields->gprmc.latitude;
       position.longitude = fields->gprmc.longitude;
+      position.speed     = fields->gprmc.speed;
+      position.altitude  = 0; /* Not implemented yet (in gpgga). */
+
+      if (position.speed > roadmap_gps_speed_accuracy()) {
+
+         /* Update the steering only if the speed is significant:
+          * when the speed is too low, the steering indicated by
+          * the GPS device is not reliable; in that case the best
+          * guess is that we did not turn.
+          */
+         position.steering  = fields->gprmc.steering;
+      }
 
       for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
          if (RoadMapGpsListeners[i] == NULL) break;
 
-         (RoadMapGpsListeners[i])
-             (&position, fields->gprmc.speed, fields->gprmc.steering);
+         (RoadMapGpsListeners[i]) (&position);
       }
    }
 
