@@ -169,7 +169,7 @@ INSTALLATION
    that only one version can be installed at a time (the reason is to
    share one roadmap.menu file..).
 
-   A version of RoadMap for the Sharp Zaurus is available at
+   A version of RoadMap for the Sharp Zaurus was available at
    {{http://community.zaurus.com/projects/zroadmap/}}
 
 
@@ -965,9 +965,10 @@ USING ROADMAP
 
    When a trip is active, RoadMap tracks the GPS position in realtime and
    updates its map accordingly. The GPS position can be shown in two modes:
-   either North up, or GPS direction up. In the second case, the map is
-   rotated according to the direction information received from the GPS.
-   This dynamic rotation is in addition to the map manual rotation.
+   either North up or GPS direction up depending on the "Display.Rotate"
+   preference item. In the second case, the map is rotated according to
+   the direction information received from the GPS. This dynamic rotation
+   is in addition to the map manual rotation.
 
    A trip can be stopped at any time and then resumed. Resuming a trip
    does not modify the departure point. The trip can also be resumed in
@@ -976,16 +977,11 @@ USING ROADMAP
    way RoadMap uses the trip information. The reverse mode makes it
    possible to use the same RoadMap trip on the way back.
 
-   When starting a trip, the map will rotate to match the orientation
+   When starting a trip, the map can rotate to match the orientation
    of the vehicule. This display mode is the most convenient as it matches
    the driver's or passenger's view. It is however possible to switch the
-   display in the "North Up" mode by selecting the "Trips / Resume Trip
-   (North Up)" menu entry.
-
-   The reserve trip always works in the same mode as previously selected
-   the last time the trip was started or resumed: for example, if the "North
-   Up" mode was selected when the trip was resumed, then the reverse trip
-   will still use this "North Up" mode.
+   display in the "North Up" mode by changing the preference item
+   "Display.Rotate" to "no".
 
 
 * ROADMAP PREFERENCES
@@ -1262,6 +1258,12 @@ CONFIGURATION
          <<Default:>> 10
 
          <<Comment:>> the selection is only removed when the map is redrawn.
+
+    [Display.Rotate] Does the display rotate when tracking mobile objects?
+
+         <<Format:>> boolean
+
+         <<Default:>> "yes"
 
     [Help.Browser] The browser program used to show the help text.
 
@@ -1602,6 +1604,12 @@ CONFIGURATION
 
          <<Default:>> "Location"
 
+    [Navigation.Enable] Defines if the roadmap navigation function is enabled.
+
+         <<Format:>> boolean
+
+         <<Default:>> "yes"
+
     [Hold.Direction] An artefact of saving the context. Ignored.
 
     [Hold.Position] An artefact of saving the context. Ignored.
@@ -1769,6 +1777,7 @@ Display.Bottom Left: %S
 Display.Bottom Right: %D (%W)|%D
 Display.Top Right: ETA: %A|%T
 Display.Duration: 10
+Display.Rotate: yes
 General.Default Zoom: 20
 General.Keyboard: no
 General.Toolbar: yes
@@ -1805,6 +1814,20 @@ Voice.Selected Street: flite -t '%N'
 Locations.Location: -122394181,37794928
 Locations.GPS: -122394181,37794928
 Locations.Trip: default
+General.Zoom: 0
+Navigation.Enable: yes
+Delta.X: 0
+Delta.Y: 0
+Delta.Rotate: 0
+GPS.Position: 0,0
+GPS.Direction: 0
+Address.Position: 0,0
+Selection.Position: 0,0
+Hold.Position: 0,0
+Hold.Direction: 0
+Focus.Rotate: 1
+Focus.Name: GPS
+Trip.Name: default
 +-------------------------------------------------------
 
 
