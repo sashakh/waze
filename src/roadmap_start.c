@@ -52,6 +52,9 @@
 #include "roadmap_messagebox.h"
 
 
+/* Last trip orientation mode (1: follow GPS direction, 0: north up). */
+static int RoadMapStartTripOrientation = 1;
+
 static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
                         ROADMAP_CONFIG_ITEM("General", "Unit");
 
@@ -139,7 +142,7 @@ static void roadmap_start_save_trip_as (void) {
 
 static void roadmap_start_trip_end (void) {
     
-    roadmap_trip_set_focus ("GPS", 0);
+    roadmap_trip_set_focus ("GPS", RoadMapStartTripOrientation);
     roadmap_screen_refresh ();
 }
 
@@ -150,11 +153,13 @@ static void roadmap_start_trip (void) {
 
 static void roadmap_start_trip_resume (void) {
     
+    RoadMapStartTripOrientation = 1;
     roadmap_trip_resume (1);
 }
 
 static void roadmap_start_trip_resume_north_up (void) {
     
+    RoadMapStartTripOrientation = 0;
     roadmap_trip_resume (0);
 }
 
@@ -424,12 +429,12 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_set_initial_position ();
 
    roadmap_history_load ();
-   roadmap_trip_load (roadmap_trip_current());
    
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
 
+   roadmap_trip_load (roadmap_trip_current());
    roadmap_trip_set_focus ("GPS", 1);
    roadmap_screen_refresh ();
 }
