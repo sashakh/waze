@@ -80,16 +80,16 @@ ICONSRC= rm_clockwise.xpm \
 			rm_counterclockwise.xpm \
 			rm_destination.xpm \
 			rm_hold.xpm \
-			rm_down.xpm \
 			rm_full.xpm \
 			rm_gps.xpm \
-			rm_left.xpm \
 			rm_location.xpm \
-			rm_right.xpm \
-			rm_up.xpm \
 			rm_zoom1.xpm \
 			rm_zoomin.xpm \
-			rm_zoomout.xpm
+			rm_zoomout.xpm \
+			rm_down.xpm \
+			rm_left.xpm \
+			rm_right.xpm \
+			rm_up.xpm
 
 ICONS=$(ICONSRC:.xpm=.png)
 
@@ -153,8 +153,11 @@ clean: cleanone
 	make -C gtk2 cleanone
 	make -C unix cleanone
 
-cleanone:
+cleanone: cleanicons
 	rm -f *.o *.a *.da $(BUILD)
+
+cleanicons:
+	rm -f $(ICONS)
 
 install: build runtime icons
 	mkdir -p $(INSTALLDIR)/share/roadmap
@@ -211,5 +214,7 @@ buildus: $(BUOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BUOBJS) -o buildus $(LIBS)
 
 %.png : %.xpm
-	convert $< $@
+	convert -transparent yellow $< temp.png
+	convert -scale 16x16 temp.png $@
+	# rm -f temp.png
 
