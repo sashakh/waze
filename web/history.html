@@ -17,7 +17,32 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
-<P>Roadmap v1.0.2 (October 5, 2003, the Scot Wilcoxon version :-): 
+<P>Roadmap v1.0.3 (November 2, 2003):
+<UL>
+  <LI>Fix loading the sprite file twice if one directory earlier in
+      the path does not have a sprite file (contributed by Mathias
+      Kolehmainen).
+  <LI>Add preliminary support for GPE (tested with familiar v0.7.1).
+  <LI>Create a desktop environment: .desktop file and pixmaps. The
+      icons were produced using the (excellent) <a class="normal"
+      href="http://www.kurumi.com/roads/signmaker/sm220.html">SignMaker</a>
+      applet. The desktop environment was made according to the GPE
+      guidelines (icons size 48x48).
+  <LI>Cleanup the make files: use GNU make's conditional for handling
+      the GPE or QPE options and the DEBUG mode.
+  <LI>Make it possible to cross-compile RoadMap, for example by using:
+      <BR>
+      make CC=arm-linux-gcc AR=arm-linux-ar
+  <LI>Support 2 new general purpose signs, placed at the center of the map:
+      "Info" and "Error".
+  <LI>When the visible area do not match any available map, generate an
+      information sign on the screen, so that the user knows what's going on.
+  <LI>Reorganized the familiar packages: no more Gtk 1.2 and map packages.
+      The map files are now looked for on the MMC/SD or CompactFlash device
+      using the Familar standard mount point in the hope this makes RoadMap
+      better integrated in Familiar/GPE.
+</UL>
+<P>Roadmap v1.0.2 (October 5, 2003 -- the Scot Wilcoxon version :-): 
 <UL>
   <LI>Fix RoadMap crashes when ~/.roadmap does not exist (contributed by
       Scot Wilcoxon).
