@@ -108,6 +108,8 @@ static void roadmap_spawn_set_handler (void) {
       signal (SIGCHLD, roadmap_spawn_child_exit_handler);
 
    if ((RoadMapSpawnNextHandler == SIG_ERR) ||
+       (RoadMapSpawnNextHandler == SIG_DFL) ||
+       (RoadMapSpawnNextHandler == SIG_IGN) ||
        (RoadMapSpawnNextHandler == roadmap_spawn_child_exit_handler)) {
       RoadMapSpawnNextHandler = NULL;
    }
@@ -163,7 +165,11 @@ void roadmap_spawn_initialize (const char *argv0) {
 int roadmap_spawn (const char *name, const char *command_line) {
 
    char *argv[16];
-   pid_t child = fork();
+   pid_t child;
+
+   roadmap_spawn_set_handler ();
+
+   child = fork();
 
    if (child < 0) {
       roadmap_log (ROADMAP_ERROR, "cannot fork(), error %d", errno);
@@ -191,14 +197,6 @@ int roadmap_spawn (const char *name, const char *command_line) {
       execvp (name, argv);
       roadmap_log (ROADMAP_FATAL, "execvp(%s) failed", name);
    }
-
-#ifdef QWS
-   /* According to Latchesar Ionkov, roadmap_spawn_set_handler()
-    * crashes QPE on the Zaurus.
-    */
-#else
-   roadmap_spawn_set_handler ();
-#endif
 
    return child;
 }
