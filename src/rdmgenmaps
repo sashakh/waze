@@ -9,14 +9,14 @@
 # ------
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000|2002]
+#                         [format=2000|2002|2004]
 #                         [state=<state-id>]
 #                         [test]
 #
 #   or
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000|2002]
+#                         [format=2000|2002|2004]
 #                         [test]
 #                         county-fips ...
 #
@@ -53,6 +53,9 @@ case $1 in
    format=2002) OPTIONS="--format=2002"
                 shift
                 ;;
+   format=2004) OPTIONS="--format=2002"
+                shift
+                ;;
 esac
 
 case $1 in
@@ -65,6 +68,7 @@ case $1 in
    test) cleanup=N
          gendir=N
          verbose=Y
+         OPTIONS="$OPTIONS -v"
          shift
          ;;
 esac
@@ -79,16 +83,16 @@ fi
 function process_one_county {
 
    if [ -e $TIGERDIR/TGR$1.ZIP ] ; then
-      unzip $TIGERDIR/TGR$1.ZIP -d $TMPDIR/roadmap
+      unzip $TIGERDIR/TGR$1.ZIP -d $TMPDIR/roadmap > /dev/null
    elif [ -e $TIGERDIR/tgr$1.zip ] ; then
-      unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap
+      unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap > /dev/null
    fi
    rt1=$TMPDIR/roadmap/TGR$1.RT1
    if [ -e $rt1 ] ; then
       if [ $verbose = 'Y' ] ; then
-         echo "$BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1 $rt1"
+         echo "$BUILDMAP $OPTIONS --maps=$maps $1 $rt1"
       fi
-      $BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1 $rt1
+      $BUILDMAP $OPTIONS --maps=$maps $1 $rt1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
