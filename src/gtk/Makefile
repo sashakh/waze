@@ -8,7 +8,7 @@ STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
 
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
 LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
 
 # LDFLAGS=-pg $(LDFLAGS)

@@ -26,7 +26,7 @@ endif
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
 CPPFLAGS=-I.. $(GUICFLAGS) $(STDCFLAGS) -fno-rtti -fno-exceptions -pipe
 
-RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a
+RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a ../libroadmap.a
 LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
 STRIP=strip
 

@@ -5,7 +5,7 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0`
 GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
 GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
 
 ifeq ($(MODE),DEBUG)
    STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
