@@ -672,6 +672,15 @@ void  roadmap_config_set (RoadMapConfigDescriptor *descriptor, const char *value
 }
 
 
+void  roadmap_config_set_integer (RoadMapConfigDescriptor *descriptor, int x) {
+
+    char image[16];
+
+    sprintf (image, "%d", x);
+    roadmap_config_set (descriptor, image);
+}
+
+
 /* The following two functions are special because positions are always
  * session items. The reason is only that I am anal: I don't see any reason
  * for having a position in the schema or preferences.

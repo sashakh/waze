@@ -90,6 +90,7 @@ void        roadmap_config_set
                 (RoadMapConfigDescriptor *descriptor, const char *value);
 
 int   roadmap_config_get_integer (RoadMapConfigDescriptor *descriptor);
+void  roadmap_config_set_integer (RoadMapConfigDescriptor *descriptor, int x);
 
 void  roadmap_config_get_position
         (RoadMapConfigDescriptor *descriptor, RoadMapPosition *position);
