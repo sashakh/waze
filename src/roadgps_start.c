@@ -33,6 +33,7 @@
 #include "roadmap_config.h"
 #include "roadmap_gps.h"
 #include "roadmap_factory.h"
+#include "roadmap_math.h"
 #include "roadmap_main.h"
 
 #include "roadgps_logger.h"
@@ -84,6 +85,34 @@ static void roadgps_start_add_gps (int fd) {
 }
 
 
+static void roadgps_start_set_unit (void) {
+
+   static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
+                            ROADMAP_CONFIG_ITEM("General", "Unit");
+
+   const char *unit = roadmap_config_get (&RoadMapConfigGeneralUnit);
+
+   if (strcmp (unit, "imperial") == 0) {
+
+      roadmap_math_use_imperial();
+
+   } else if (strcmp (unit, "metric") == 0) {
+
+      roadmap_math_use_metric();
+
+   } else {
+      roadmap_log (ROADMAP_ERROR, "%s is not a supported unit", unit);
+      roadmap_math_use_imperial();
+   }
+}
+
+
+static void roadgps_start_set_timeout (RoadMapCallback callback) {
+
+   roadmap_main_set_periodic (3000, callback);
+}
+
+
 static void roadgps_start_window (void) {
 
    roadmap_main_new ("GPS Console", 300, 420);
@@ -99,6 +128,9 @@ static void roadgps_start_window (void) {
 
    roadmap_gps_register_link_control
       (roadgps_start_add_gps, roadmap_main_remove_input);
+
+   roadmap_gps_register_periodic_control
+      (roadgps_start_set_timeout, roadmap_main_remove_periodic);
 }
 
 
@@ -125,6 +157,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_option (argc, argv);
 
    roadgps_logger_initialize ();
+
+   roadgps_start_set_unit ();
 
    roadgps_start_window ();
 
