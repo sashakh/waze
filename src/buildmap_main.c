@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <dirent.h>
 #include <popt.h>
 
 #include "roadmap_types.h"
@@ -33,6 +32,7 @@
 
 #include "buildmap.h"
 #include "buildmap_tiger.h"
+#include "buildmap_shapefile.h"
 
 #include "buildmap_square.h"
 #include "buildmap_street.h"
@@ -46,32 +46,25 @@
 #include "buildmap_polygon.h"
 
 
+#define BUILDMAP_FORMAT_TIGER     1
+#define BUILDMAP_FORMAT_SHAPE     2
+
+static int   BuildMapFormatFamily = 0;
+
 static int   BuildMapCanals  = 0;
 static int   BuildMapRivers  = 0;
 static int   BuildMapVerbose = 0;
-static int   BuildMapFormat  = 2002;
-static char *BuildMapTiger  = ".";
-static char *BuildMapPrefix = "TGR";
-static char *BuildMapState  = NULL;
-static char *BuildMapPath   = "/usr/local/share/roadmap";
+static char *BuildMapFormat  = "2002";
+
+static char *BuildMapResult   = "/usr/local/share/roadmap";
 
 static struct poptOption BuildMapTigerOptions [] = {
 
-   {"path", 'd',
-      POPT_ARG_STRING, &BuildMapTiger, 0,
-      "Location of the tiger files (source files)", "PATH"},
-
-   {"prefix", 'p',
-      POPT_ARG_STRING, &BuildMapPrefix, 0, "Tiger files prefix", "XXX"},
-
-   {"state", 's',
-      POPT_ARG_STRING, &BuildMapState, 0,
-      "Process this state only (2 digits code)", "XX"},
-
    {"format", 'f',
-      POPT_ARG_INT, &BuildMapFormat, 0, "Tiger files format", "2000|2002"},
+      POPT_ARG_STRING, &BuildMapFormat, 0,
+      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE"},
 
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
+   POPT_TABLEEND
 };
 
 static struct poptOption BuildMapDataOptions [] = {
@@ -82,7 +75,7 @@ static struct poptOption BuildMapDataOptions [] = {
    {"rivers", 'r',
       POPT_ARG_NONE, &BuildMapRivers, 0, "Show rivers on maps", NULL},
 
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
+   POPT_TABLEEND
 };
 
 static struct poptOption BuildMapGeneralOptions [] = {
@@ -91,10 +84,10 @@ static struct poptOption BuildMapGeneralOptions [] = {
       POPT_ARG_NONE, &BuildMapVerbose, 0, "Show progress information", NULL},
 
    {"maps", 'm',
-      POPT_ARG_STRING, &BuildMapPath, 0,
+      POPT_ARG_STRING, &BuildMapResult, 0,
       "Location of the RoadMap maps (generated files)", "PATH"},
 
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
+   POPT_TABLEEND
 };
 
 static struct poptOption BuildMapOptionTable [] = {
@@ -110,9 +103,34 @@ static struct poptOption BuildMapOptionTable [] = {
    {NULL, 0,
         POPT_ARG_INCLUDE_TABLE, BuildMapGeneralOptions, 0, "BuildMap's general options", NULL},
 
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
+   POPT_TABLEEND
 };
 
+
+static void  buildmap_county_select_format (poptContext decoder) {
+
+   if (strcmp (BuildMapFormat, "2002") == 0) {
+
+      BuildMapFormatFamily = BUILDMAP_FORMAT_TIGER;
+
+      buildmap_tiger_set_format (2002);
+
+   } else if (strcmp (BuildMapFormat, "2000") == 0) {
+
+      BuildMapFormatFamily = BUILDMAP_FORMAT_TIGER;
+
+      buildmap_tiger_set_format (2000);
+
+   } else if (strcmp (BuildMapFormat, "SHAPE") == 0) {
+
+      BuildMapFormatFamily = BUILDMAP_FORMAT_SHAPE;
+
+   } else {
+      fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
+      poptPrintUsage (decoder, stderr, 0);
+      exit (1);
+   }
+}
 
 static void buildmap_county_initialize (void) {
 
@@ -128,7 +146,16 @@ static void buildmap_county_initialize (void) {
 }
 
 
-static void buildmap_county_save (char *name) {
+static void buildmap_county_sort (void) {
+
+   buildmap_line_sort ();
+   buildmap_street_sort ();
+   buildmap_range_sort ();
+   buildmap_shape_sort ();
+   buildmap_polygon_sort ();
+}
+
+static void buildmap_county_save (const char *name) {
 
    char *cursor;
    char db_name[128];
@@ -142,7 +169,7 @@ static void buildmap_county_save (char *name) {
       *cursor = 0;
    }
 
-   buildmap_db_open (BuildMapPath, db_name);
+   buildmap_db_open (BuildMapResult, db_name);
 
    buildmap_square_save ();
    buildmap_line_save ();
@@ -173,34 +200,40 @@ static void buildmap_county_reset (void) {
    roadmap_hash_reset ();
 }
 
-static void buildmap_county_process
-               (char *path, char *name, int verbose, int canals, int rivers) {
+static void buildmap_county_process (const char *source,
+                                     const char *county,
+                                     int verbose, int canals, int rivers) {
 
    buildmap_county_initialize ();
 
-   buildmap_tiger_initialize (verbose, canals, rivers);
+   switch (BuildMapFormatFamily) {
 
-   buildmap_tiger_read_rtc (path, name, verbose);
+      case BUILDMAP_FORMAT_TIGER:
+         buildmap_tiger_process (source, verbose, canals, rivers);
+         break;
 
-   buildmap_tiger_read_rt7 (path, name, verbose);
-
-   buildmap_tiger_read_rt8 (path, name, verbose);
-
-   buildmap_tiger_read_rti (path, name, verbose);
-
-   buildmap_tiger_read_rt1 (path, name, verbose);
-
-   buildmap_tiger_read_rt2 (path, name, verbose);
-
-   buildmap_tiger_sort();
-
-   if (verbose) {
-      roadmap_hash_summary ();
-      buildmap_dictionary_summary ();
-      buildmap_tiger_summary ();
+      case BUILDMAP_FORMAT_SHAPE:
+         buildmap_shapefile_process (source, verbose, canals, rivers);
+         break;
    }
 
-   buildmap_county_save (name);
+   buildmap_county_sort();
+
+   if (verbose) {
+
+      roadmap_hash_summary ();
+      buildmap_dictionary_summary ();
+
+      buildmap_zip_summary ();
+      buildmap_square_summary ();
+      buildmap_street_summary ();
+      buildmap_line_summary ();
+      buildmap_range_summary ();
+      buildmap_shape_summary ();
+      buildmap_polygon_summary ();
+   }
+
+   buildmap_county_save (county);
    buildmap_county_reset ();
 }
 
@@ -209,90 +242,27 @@ int main (int argc, const char **argv) {
 
    const char **leftovers;
 
-   char *extension;
-   DIR  *directory;
-   struct dirent *entry;
 
    poptContext decoder =
       poptGetContext ("buildmap", argc, argv, BuildMapOptionTable, 0);
 
    while (poptGetNextOpt(decoder) > 0) ;
 
-   if (BuildMapFormat != 2000 && BuildMapFormat != 2002) {
-
-      fprintf (stderr, "Bad TIGER format %d\n", BuildMapFormat);
-      poptPrintUsage (decoder, stderr, 0);
-      exit (1);
-   }
-
-   buildmap_tiger_set_format (BuildMapFormat);
-   buildmap_tiger_set_prefix (BuildMapPrefix);
-
-   directory = opendir (BuildMapTiger);
-
-   if (directory == NULL) {
-      fprintf (stderr, "cannot open directory %s\n", BuildMapTiger);
-   }
+   buildmap_county_select_format (decoder);
 
    leftovers = poptGetArgs(decoder);
 
-   if (leftovers != NULL && leftovers[0] != NULL)
+   if (leftovers == NULL || leftovers[0] == NULL || leftovers[1] == NULL)
    {
-      while (*leftovers != NULL) {
-
-         buildmap_county_process
-            (BuildMapTiger, (char *) (*leftovers),
-             BuildMapVerbose, BuildMapCanals, BuildMapRivers);
-
-         if (BuildMapVerbose) {
-            printf ("Done with county %s\n", *leftovers);
-         }
-         leftovers += 1;
-      }
-
-   } else {
-
-      int prefix_length = strlen(BuildMapPrefix);
-
-      for (entry = readdir (directory);
-           entry != NULL;
-           entry = readdir (directory)) {
-
-         extension = entry->d_name + strlen(entry->d_name) - 4;
-
-         if (extension == NULL) continue;
-
-         if (strncmp (entry->d_name, BuildMapPrefix, prefix_length) == 0 &&
-             strcmp (extension, ".RT1") == 0) {
-
-            char *from;
-            char *to;
-            char  county[8];
-
-            if ((BuildMapState != NULL) &&
-                (strncmp (entry->d_name + prefix_length,
-                          BuildMapState,
-                          strlen(BuildMapState)) != 0)) continue;
-
-            for (from = entry->d_name + 3, to = county;
-                 from < extension && to < county + 7;
-                 from++, to++) {
-               *to = *from;
-            }
-            *to = 0;
-
-            buildmap_county_process
-               (BuildMapTiger, county,
-                BuildMapVerbose, BuildMapCanals, BuildMapRivers);
-
-            if (BuildMapVerbose) {
-               printf ("Done with county %s\n", county);
-            }
-         }
-      }
+      fprintf (stderr, "invalid number of arguments, expected: fips source\n");
+      return 1;
    }
 
-   closedir (directory);
+   buildmap_county_process
+            ((char *) (leftovers[1]),
+             (char *) (leftovers[0]),
+             BuildMapVerbose, BuildMapCanals, BuildMapRivers);
+
    poptFreeContext (decoder);
 
    return 0;

@@ -1,8 +1,8 @@
-/* buildmap_tiger.h - Read the US Census bureau's TIGER files.
+/* buildmap_shapefile.h - Read shapefiles.
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2004 Stephen Woodbridge
  *
  *   This file is part of RoadMap.
  *
@@ -21,15 +21,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__BUILDMAP_TIGER__H
-#define INCLUDE__BUILDMAP_TIGER__H
+#ifndef INCLUDE__BUILDMAP_SHAPEFILE__H
+#define INCLUDE__BUILDMAP_SHAPEFILE__H
 
-void buildmap_tiger_set_format (int year);
+void buildmap_shapefile_process (const char *source,
+                                 int verbose, int canals, int rivers);
 
-void buildmap_tiger_process (const char *source,
-                             int verbose,
-                             int canals,
-                             int rivers);
-
-#endif // INCLUDE__BUILDMAP_TIGER__H
+#endif // INCLUDE__BUILDMAP_SHAPEFILE__H
 

@@ -22,15 +22,10 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_tiger_initialize (int verbose);
- *   void buildmap_tiger_read_rt1 (char *path, char *name, int verbose);
- *   void buildmap_tiger_read_rt2 (char *path, char *name, int verbose);
- *   void buildmap_tiger_read_rtc (char *path, char *name, int verbose);
- *   void buildmap_tiger_read_rt7 (char *path, char *name, int verbose);
- *   void buildmap_tiger_read_rt8 (char *path, char *name, int verbose);
- *   void buildmap_tiger_read_rti (char *path, char *name, int verbose);
- *   void buildmap_tiger_sort (void);
- *   void buildmap_tiger_summary (void);
+ *   This module decodes (and converts to the RoadMap format) the TIGER/Line
+ *   data.
+ *
+ *   See buildmap-tiger.h
  */
 
 #include <stdio.h>
@@ -44,8 +39,10 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
+#include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_math.h"
+#include "roadmap_path.h"
 
 #include "buildmap.h"
 #include "buildmap_zip.h"
@@ -71,7 +68,6 @@ static BuildMapDictionary DictionaryLandmark;
 static int BuildMapCanals = ROADMAP_WATER_RIVER;
 static int BuildMapRivers = ROADMAP_WATER_RIVER;
 
-static char *BuildMapPrefix = NULL; /* Must be initialized. */
 static int   BuildMapFormat = 2000;
 
 
@@ -240,7 +236,8 @@ static char tiger2type (char *line, int start, int end) {
 
 
 static char *buildmap_tiger_read
-                (char *path, char *name, char *extension,
+                (const char *source,
+                 const char *extension,
                  int verbose,
                  int *size) {
 
@@ -248,13 +245,12 @@ static char *buildmap_tiger_read
    char *data;
    struct stat state_result;
 
-   char full_name[1025];
+   char *full_name = malloc(strlen(source) + strlen(extension) + 4);
 
-   if (BuildMapPrefix == NULL) {
-      buildmap_fatal (0, "no Tiger file prefix defined");
-   }
-   snprintf (full_name, 1024,
-             "%s/%s%s%s", path, BuildMapPrefix, name, extension);
+   roadmap_check_allocated(full_name);
+
+   strcpy (full_name, source);
+   strcat (full_name, extension);
 
    buildmap_set_source (full_name);
 
@@ -280,6 +276,7 @@ static char *buildmap_tiger_read
    }
 
    close (file);
+   free  (full_name);
 
    *size = state_result.st_size;
    return data;
@@ -292,29 +289,7 @@ static void tiger_summary (int verbose, int count) {
 }
 
 
-void buildmap_tiger_set_format (int year) {
-   BuildMapFormat = year;
-}
-
-
-void buildmap_tiger_set_prefix (char *prefix) {
-   BuildMapPrefix = prefix;
-}
-
-
-void buildmap_tiger_initialize (int verbose, int canals, int rivers) {
-
-   if (! canals) {
-      BuildMapCanals = 0;
-   }
-
-   if (! rivers) {
-      BuildMapRivers = 0;
-   }
-}
-
-
-void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
+static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 
    int    size;
    int    estimated;
@@ -356,7 +331,7 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
    DictionaryType   = buildmap_dictionary_open ("type");
    DictionarySuffix = buildmap_dictionary_open ("suffix");
 
-   data = buildmap_tiger_read (path, name, ".RT1", verbose, &size);
+   data = buildmap_tiger_read (source, ".RT1", verbose, &size);
    if (data == NULL) return;
 
    estimated = size / 229;
@@ -554,7 +529,7 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
 }
 
 
-void buildmap_tiger_read_rt2 (char *path, char *name, int verbose) {
+static void buildmap_tiger_read_rt2 (const char *source, int verbose) {
 
    static int LocationOfPoint[] = {19, 38, 57, 76, 95, 114, 133, 152, 171, 190};
 
@@ -576,7 +551,7 @@ void buildmap_tiger_read_rt2 (char *path, char *name, int verbose) {
    int    line_index;
 
 
-   data = buildmap_tiger_read (path, name, ".RT2", verbose, &size);
+   data = buildmap_tiger_read (source, ".RT2", verbose, &size);
    if (data == NULL) return;
 
    estimated_lines = size / 209;
@@ -645,7 +620,7 @@ void buildmap_tiger_read_rt2 (char *path, char *name, int verbose) {
 }
 
 
-void buildmap_tiger_read_rtc (char *path, char *name, int verbose) {
+static void buildmap_tiger_read_rtc (const char *source, int verbose) {
 
    int    rtc_line_size;
 
@@ -664,7 +639,7 @@ void buildmap_tiger_read_rtc (char *path, char *name, int verbose) {
 
    DictionaryCity = buildmap_dictionary_open ("city");
 
-   data = buildmap_tiger_read (path, name, ".RTC", verbose, &size);
+   data = buildmap_tiger_read (source, ".RTC", verbose, &size);
    if (data == NULL) return;
 
    if (BuildMapFormat == 2002) {
@@ -732,7 +707,7 @@ void buildmap_tiger_read_rtc (char *path, char *name, int verbose) {
 }
 
 
-void buildmap_tiger_read_rt7 (char *path, char *name, int verbose) {
+static void buildmap_tiger_read_rt7 (const char *source, int verbose) {
 
    int    size;
    int    estimated_lines;
@@ -749,7 +724,7 @@ void buildmap_tiger_read_rt7 (char *path, char *name, int verbose) {
 
    DictionaryLandmark = buildmap_dictionary_open ("landmark");
 
-   data = buildmap_tiger_read (path, name, ".RT7", verbose, &size);
+   data = buildmap_tiger_read (source, ".RT7", verbose, &size);
    if (data == NULL) return;
 
    estimated_lines = size / 75;
@@ -801,7 +776,7 @@ void buildmap_tiger_read_rt7 (char *path, char *name, int verbose) {
 }
 
 
-void buildmap_tiger_read_rt8 (char *path, char *name, int verbose) {
+static void buildmap_tiger_read_rt8 (const char *source, int verbose) {
 
    int    size;
    int    estimated_lines;
@@ -818,7 +793,7 @@ void buildmap_tiger_read_rt8 (char *path, char *name, int verbose) {
    BuildMapDictionary dictionary_cenid = buildmap_dictionary_open (".cenid");
 
 
-   data = buildmap_tiger_read (path, name, ".RT8", verbose, &size);
+   data = buildmap_tiger_read (source, ".RT8", verbose, &size);
    if (data == NULL) return;
 
    estimated_lines = size / 37;
@@ -868,7 +843,7 @@ void buildmap_tiger_read_rt8 (char *path, char *name, int verbose) {
 }
 
 
-void buildmap_tiger_read_rti (char *path, char *name, int verbose) {
+static void buildmap_tiger_read_rti (const char *source, int verbose) {
 
    int    rti_line_size;
 
@@ -889,7 +864,7 @@ void buildmap_tiger_read_rti (char *path, char *name, int verbose) {
    BuildMapDictionary dictionary_cenid = buildmap_dictionary_open (".cenid");
 
 
-   data = buildmap_tiger_read (path, name, ".RTI", verbose, &size);
+   data = buildmap_tiger_read (source, ".RTI", verbose, &size);
    if (data == NULL) return;
 
    if (BuildMapFormat == 2002) {
@@ -971,24 +946,39 @@ void buildmap_tiger_read_rti (char *path, char *name, int verbose) {
 }
 
 
-void buildmap_tiger_sort (void) {
-
-   buildmap_line_sort ();
-   buildmap_street_sort ();
-   buildmap_range_sort ();
-   buildmap_shape_sort ();
-   buildmap_polygon_sort ();
+void buildmap_tiger_set_format (int year) {
+   BuildMapFormat = year;
 }
 
 
-void buildmap_tiger_summary (void) {
+void buildmap_tiger_process (const char *source,
+                             int verbose,
+                             int canals,
+                             int rivers) {
 
-   buildmap_zip_summary ();
-   buildmap_square_summary ();
-   buildmap_street_summary ();
-   buildmap_line_summary ();
-   buildmap_range_summary ();
-   buildmap_shape_summary ();
-   buildmap_polygon_summary ();
+   char *base = roadmap_path_remove_extension (source);
+
+
+   if (! canals) {
+      BuildMapCanals = 0;
+   }
+
+   if (! rivers) {
+      BuildMapRivers = 0;
+   }
+
+   buildmap_tiger_read_rtc (base, verbose);
+
+   buildmap_tiger_read_rt7 (base, verbose);
+
+   buildmap_tiger_read_rt8 (base, verbose);
+
+   buildmap_tiger_read_rti (base, verbose);
+
+   buildmap_tiger_read_rt1 (base, verbose);
+
+   buildmap_tiger_read_rt2 (base, verbose);
+
+   free(base);
 }
 

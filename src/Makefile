@@ -47,8 +47,16 @@ endif
 endif
 endif
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS)
-LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS)
+ifeq ($(SHAPEFILES),YES)
+   ROADMAP_USE_SHAPEFILES=1
+	SHAPELDFLAGS=-lshp
+else
+   ROADMAP_USE_SHAPEFILES=0
+   SHAPELDFLAGS=
+endif
+
+CFLAGS=-I/usr/local/include $(MODECFLAGS) $(SQLCFLAGS)
+LDFLAGS=-L/usr/local/lib $(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
 TOOLS=sunrise $(SQLTOOLS)
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
@@ -136,6 +144,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_range.c \
        buildmap_zip.c \
        buildmap_tiger.c \
+       buildmap_shapefile.c \
        buildmap_main.c
 
 BMOBJS=$(BMSRCS:.c=.o)
@@ -202,7 +211,9 @@ uninstall:
 	cd $(INSTALLDIR) ; rm -rf share/roadmap
 	rm -f /usr/lib/menu/roadmap
 
-everything: runtime build icons $(TOOLS)
+everything: modules runtime build icons $(TOOLS)
+
+modules:
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
