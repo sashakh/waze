@@ -2,7 +2,7 @@ Source: roadmap
 Section: utils
 Priority: optional
 Maintainer: Petter Reinholdtsen <pere@debian.org>
-Build-Depends: debhelper (>> 3.0.0), dpatch
+Build-Depends: debhelper (>> 3.0.0), dpatch, libqt3-mt-dev | libqt3-dev
 Standards-Version: 3.5.2
 
 Package: roadmap
@@ -15,7 +15,7 @@ Description: GPS based car navigation system
  displayed by selecting a street address (street number & name, city,
  and state). RoadMap can also run on iPAQ and Zaurus.
 
-Package: roadmap-map
+Package: roadmap-maps
 Architecture: all
 Description: Simple map for RoadMap car navigation system
  Initial map for RoadMap, making sure it works out of the box.
