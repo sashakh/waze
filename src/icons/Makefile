@@ -13,7 +13,9 @@ install: $(ICONS)
 	rm -f temp.png
 	cp rm_*.png $(ICONDIR)
 
+icons: $(ICONS)
+	rm -f temp.png
+
 %.png : %.xpm
 	convert -transparent yellow $< temp.png
 	convert -scale 16x16 temp.png $@
-	mv $@ $(ICONDIR)
