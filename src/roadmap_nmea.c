@@ -232,7 +232,7 @@ static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
    int index;
 
 
-   if (argc <= 9) {
+   if (argc <= 3) {
       return 0;
    }
 
@@ -244,6 +244,10 @@ static int roadmap_nmea_gpgsv (int argc, char *argv[]) {
             - ((RoadMapNmeaReceived.gpgsv.index - 1) * 4);
 
    if (end > 4) end = 4;
+
+   if (argc <= (end * 4) + 3) {
+      return 0;
+   }
 
    for (index = 3, i = 0; i < end; ++i) {
 
