@@ -46,6 +46,7 @@
 #include "roadmap_navigate.h"
 
 #include "roadmap_sprite.h"
+#include "roadmap_object.h"
 #include "roadmap_trip.h"
 #include "roadmap_canvas.h"
 #include "roadmap_display.h"
@@ -749,6 +750,8 @@ static void roadmap_screen_repaint (void) {
             }
         }
     }
+
+    roadmap_object_draw ();
 
     roadmap_trip_format_messages ();
     

@@ -48,6 +48,7 @@
 #include "roadmap_coord.h"
 #include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
+#include "roadmap_object.h"
 #include "roadmap_trip.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
@@ -764,6 +765,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
+   roadmap_object_initialize ();
 
    roadmap_screen_set_initial_position ();
 
