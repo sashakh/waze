@@ -1016,8 +1016,6 @@ void roadmap_trip_initialize (void) {
     roadmap_config_declare
         ("session", &RoadMapConfigFocusName, "GPS");
     roadmap_config_declare
-        ("session", &RoadMapConfigFocusName, "Hold");
-    roadmap_config_declare
         ("session", &RoadMapConfigFocusRotate, "1");
 }
 
