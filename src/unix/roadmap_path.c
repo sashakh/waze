@@ -196,7 +196,11 @@ const char *roadmap_path_first (void) {
       roadmap_path_set (roadmap_path_default());
    }
 
-   return RoadMapPathItem[0];
+   if (RoadMapPathCount > 0) {
+      return RoadMapPathItem[0];
+   }
+
+   return NULL;
 }
 
 
@@ -204,7 +208,7 @@ const char *roadmap_path_next  (const char *current) {
 
    int i;
 
-   for (i = 0; i < RoadMapPathCount; ++i) {
+   for (i = 0; i < RoadMapPathCount-1; ++i) {
 
       if (RoadMapPathItem[i] == current) {
          return RoadMapPathItem[i+1];
