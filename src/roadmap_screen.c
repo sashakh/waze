@@ -97,8 +97,8 @@ static int   SquareOnScreenCount;
 static struct roadmap_canvas_category {
 
    const char *name;
-   int   declutter;
-   int   thickness;
+   RoadMapConfigDescriptor declutter;
+   RoadMapConfigDescriptor thickness;
 
    RoadMapPen pen;
 
@@ -683,7 +683,9 @@ static int roadmap_screen_repaint_square (int square) {
 
          category = class->category[j];
 
-         if (roadmap_math_declutter (RoadMapCategory[category].declutter)) {
+         if (roadmap_math_declutter
+                 (roadmap_config_get_integer
+                     (&RoadMapCategory[category].declutter))) {
 
             roadmap_canvas_select_pen (RoadMapCategory[category].pen);
 
@@ -846,7 +848,9 @@ fflush(stdout);
 
       int category = RoadMapRoadClass->category[i];
 
-      if (roadmap_math_declutter (RoadMapCategory[category].declutter)) {
+      if (roadmap_math_declutter
+              (roadmap_config_get_integer
+                  (&RoadMapCategory[category].declutter))) {
 
          detail[count++] = category;
       }
@@ -1109,12 +1113,16 @@ static void roadmap_screen_after_zoom (void) {
     
    for (i = roadmap_locator_category_count(); i > 0; --i) {
 
-      if (roadmap_math_declutter (RoadMapCategory[i].declutter)) {
+      if (roadmap_math_declutter
+              (roadmap_config_get_integer
+                  (&RoadMapCategory[i].declutter))) {
 
          roadmap_canvas_select_pen (RoadMapCategory[i].pen);
 
          roadmap_canvas_set_thickness
-            (roadmap_math_thickness (RoadMapCategory[i].thickness));
+            (roadmap_math_thickness
+                  (roadmap_config_get_integer
+                        (&RoadMapCategory[i].thickness)));
       }
    }
    
@@ -1213,7 +1221,7 @@ void roadmap_screen_set_initial_position (void) {
     RoadMapCategory =
         calloc (category_count + 1, sizeof(*RoadMapCategory));
 
-    for (i = 1; i < category_count; ++i) {
+    for (i = 1; i <= category_count; ++i) {
 
         const char *name = strdup(roadmap_locator_category_name(i));
         const char *class;
@@ -1226,11 +1234,15 @@ void roadmap_screen_set_initial_position (void) {
         class = roadmap_screen_declare_item  (name, "Class", "");
         color = roadmap_screen_declare_color (name, "Color", "black");
         
-        RoadMapCategory[i].thickness =
-            atoi(roadmap_screen_declare_item (name, "Thickness", "1"));
-        RoadMapCategory[i].declutter =
-            atoi(roadmap_screen_declare_item
-                        (name, "Declutter", "20248000000"));
+        RoadMapCategory[i].thickness.category = name;
+        RoadMapCategory[i].thickness.name     = "Thickness";
+        roadmap_config_declare
+            ("schema", &RoadMapCategory[i].thickness, "1");
+        
+        RoadMapCategory[i].declutter.category = name;
+        RoadMapCategory[i].declutter.name     = "Declutter";
+        roadmap_config_declare
+            ("schema", &RoadMapCategory[i].declutter, "20248000000");
 
         for (p = RoadMapLineClass; p->name != NULL; ++p) {
 
@@ -1242,7 +1254,8 @@ void roadmap_screen_set_initial_position (void) {
 
         RoadMapCategory[i].pen = roadmap_canvas_create_pen (name);
 
-        roadmap_canvas_set_thickness (RoadMapCategory[i].thickness);
+        roadmap_canvas_set_thickness
+            (roadmap_config_get_integer (&RoadMapCategory[i].thickness));
 
         if (color != NULL && *color > ' ') {
             roadmap_canvas_set_foreground (color);
