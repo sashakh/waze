@@ -25,6 +25,9 @@
  *   see roadmap_start.h
  */
 
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef ROADMAP_DEBUG_HEAP
 #include <mcheck.h>
 #endif
