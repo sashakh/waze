@@ -95,20 +95,27 @@ static gint roadmap_keyboard_pressed (GtkWidget *w, gpointer data) {
 
 static GtkWidget *roadmap_keyboard_add_key (RoadMapKey *key, char character) {
 
-   char label[2];
+   char label[3]; /* Provision for UTF8 2-bytes sequences. */
 
    key->character = character;
 
-   if (character < ' ') {
-      if (character == '\r') {
-         character = 0xab;
-      }
-      if (character == '\b') {
-         character = '<';
-      }
-   }
    label[0] = character;
    label[1] = 0;
+
+   if (character < ' ') {
+      if (character == '\r') {
+         /* Note: we use the '<<' character, which is not a standard ASCII
+          * 7 bits character (it is part of the PC 8 bits extension set).
+          * Therefore we have to use the proper multibyte UTF8 sequence.
+          */
+         label[0] = 0xc2; /* The 2 high order bits. */
+         label[1] = 0xab; /* The 6 low order bits. */
+         label[2] = 0;
+      }
+      if (character == '\b') {
+         label[0] = '<';
+      }
+   }
 
    key->button = gtk_button_new_with_label (label);
 
@@ -125,7 +132,7 @@ RoadMapKeyboard roadmap_keyboard_new (void) {
    int i;
    int j;
    int k;
-   char keymap[40] = "1234567890qwertyuiopasdfghjkl\b zxcvbnm \r";
+   char keymap[40] = "1234567890qwertyuiopasdfghjkl\b-zxcvbnm \r";
 
    RoadMapKeyboard keyboard;
    GtkWidget *button;
