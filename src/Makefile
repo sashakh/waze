@@ -3,15 +3,31 @@ ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
 # then use the mtrace tool to analyze the output.
-   CFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+   MODECFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+   MODELDFLAGS=
 else
 ifeq ($(MODE),PROFILE)
-   CFLAGS=-g -Wall -pg -fprofile-arcs -g
-   LDFLAGS=-pg $(LDFLAGS)
+   MODECFLAGS=-g -Wall -pg -fprofile-arcs -g
+   MODELDFLAGS=-pg
 else
-   CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall $(OPTIONS)
+   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall $(OPTIONS)
+   MODELDFLAGS=
 endif
 endif
+
+ifeq ($(SQL),NONE)
+   SQLCFLAGS=
+	SQLLDFLAGS=
+	SQLTOOLS=
+else
+   SQLCFLAGS=-DROADMAP_USES_SQLITE
+	SQLLDFLAGS=-lsqlite
+	SQLTOOLS=sqliteload
+endif
+
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS)
+LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS)
+TOOLS=sunrise $(SQLTOOLS)
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
 LIBS=$(RDMLIBS) -lpopt -lm
@@ -158,7 +174,7 @@ uninstall:
 	cd $(INSTALLDIR) ; rm -rf share/roadmap
 	rm -f /usr/lib/menu/roadmap
 
-everything: runtime build icons
+everything: runtime build icons $(TOOLS)
 	cd gtk ; make STDCFLAGS="$(CFLAGS)" all
 	cd gtk2 ; make STDCFLAGS="$(CFLAGS)" all
 	cd qt ; make STDCFLAGS="$(CFLAGS)" all
@@ -173,6 +189,8 @@ rebuild: cleanall everything
 sunrise: roadmap_sunrise.c
 	$(CC) -g -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
 
+sqliteload: sqliteload.c
+	$(CC) -g sqliteload.c $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
 
 # --- The real targets --------------------------------------------
 
