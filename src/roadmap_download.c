@@ -169,11 +169,6 @@ static void roadmap_download_end (void) {
 }
 
 
-static void roadmap_download_progress_ok (const char *name, void *context) {
-   roadmap_dialog_hide (name);
-   roadmap_download_end ();
-}
-
 static void roadmap_download_progress (int loaded) {
 
    int  fips;
@@ -198,8 +193,6 @@ static void roadmap_download_progress (int loaded) {
       roadmap_dialog_new_label  (".file", "Size");
       roadmap_dialog_new_label  (".file", "Download");
 
-      roadmap_dialog_add_button ("OK", roadmap_download_progress_ok);
-
       roadmap_dialog_complete (0);
    }
    roadmap_dialog_set_data (".file", "County", roadmap_county_get_name (fips));
@@ -209,7 +202,8 @@ static void roadmap_download_progress (int loaded) {
    roadmap_dialog_set_data (".file", "Size", image);
 
    if (loaded == RoadMapDownloadCurrentFileSize) {
-      roadmap_dialog_set_data (".file", "Download", "Completed");
+      roadmap_dialog_hide (".file");
+      roadmap_download_end ();
    } else {
       roadmap_download_format_size (image, loaded);
       roadmap_dialog_set_data (".file", "Download", image);
