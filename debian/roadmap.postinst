@@ -16,9 +16,10 @@ update_map_index() {
     cd $indexdir
     # Fetch and unpack the new map index
     echo "info: Downloading $indexurl"
-    if wget -O - $indexurl 2> /dev/null |
+    if wget --user-agent="Debian package roadmap" -O - $indexurl 2> /dev/null |
 	tar zxf - usdir.rdm 2> /dev/null; then
 	chmod 644 usdir.rdm
+	chown root:root usdir.rdm
     else
 	echo "error: Unable to download map index."
     fi
