@@ -124,7 +124,9 @@ static void roadmap_gps_gprmc (void *context, const RoadMapNmeaFields *fields) {
 
    if (fields->gprmc.status != RoadMapLastKnownStatus) {
        if (RoadMapLastKnownStatus == 'A') {
-          roadmap_log (ROADMAP_ERROR, "GPS receiver lost satellite fix");
+          roadmap_log (ROADMAP_ERROR,
+                       "GPS receiver lost satellite fix (status: %c)",
+                       fields->gprmc.status);
        }
    }
    RoadMapLastKnownStatus = fields->gprmc.status;
