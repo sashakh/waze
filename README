@@ -1,7 +1,7 @@
                                ---------
     RoadMap - a street navigation system using the US Census maps and GPS
                                ---------
-                Pascal Martin (pascal.martin@iname.com)
+                Pascal Martin (pascal.martin@ponts.org)
                                ---------
                              November 2003
 
@@ -9,8 +9,19 @@
 
 INTRODUCTION
 
-   RoadMap is a program for Linux that displays street maps. The maps
+   RoadMap is a program for UNIX that displays street maps. The maps
    are provided by the US Census Bureau, and thus only cover the US.
+   When a GPS receiver is available RoadMap can track the current location
+   of the vehicule on the screen, continuously adjusting the position of the
+   map; it can also identify the name of the current street as well as the
+   name of the next intersection. RoadMap can be used without a GPS receiver,
+   as a static map viewer or address finder.
+
+   RoadMap uses a binary file format for representing the maps that is
+   compact enough to allow the storage of many maps on a Compact Flash or
+   MultiMedia card. The map of Los Angeles county takes a little more than
+   10 Mbytes of flash space. RoadMap comes with a set of tools to convert
+   the US Census bureau data into its own map format.
 
    RoadMap has been designed to be usable on both a desktop or laptop
    computer, or on a PDA such as the iPAQ from HP (formely from COMPAQ)
@@ -29,34 +40,46 @@ INTRODUCTION
    features have not been implemented yet. RoadMap can display the map
    around a specified street address, track a GPS position and identify
    the current street and the next intersection. A basic trip support is
-   provided (waypoints and destination). RoadMap will detect what is the
-   next waypoint, provide a direction indicator and show the distance to
-   the waypoint (and/or the destination).
+   provided (waypoints and destination). RoadMap detects what is the next
+   waypoint, provides a direction arrow and show the distance to this
+   waypoint (and/or to the destination).
    
    The plan for the future is to implement some navigation features similar
    to those found in commercial car navigation systems, and to port RoadMap
    to as many environment as possible.
 
-   RoadMap uses a binary file format for representing the maps that is
-   compact enough to allow the storage of many maps on a Compact Flash or
-   MultiMedia card. The map of Los Angeles county takes a little more than
-   10 Mbytes of flash space. RoadMap comes with a set of tools to convert
-   the US Census bureau data into its own map format.
 
+ABOUT THIS DOCUMENTATION
+
+   This documentation was written using vi (what else? :-) in the format
+   supported by aptconvert. The aptconvert tool was used to produce the HTML
+   version of this manual (file web/manual.html). The HTML file can be
+   regenerated using the following command:
+
+----
+      aptconvert web/manual.html README
+----
+   
+   The aptconvert tool is available at:
+
+   {{http://www.xmlmind.com/aptconvert.html}}
 
 
 INSTALLATION
 
 * DEPENDENCIES
 
-   RoadMap gets the current location from a GPS receiver, using the NMEA 0183
-   protocol. RoadMap is tested with a Garmin 38. The GPS receiver must be
+   RoadMap communicates with a GPS receiver using the NMEA 0183 protocol.
+   RoadMap has been tested with a Garmin 38. The GPS receiver must be
    configured with the datum set to either NAD83 or WGS 84.
 
-   RoadMap communicates with the GPS receiver using gpsd (a GPS communication
-   daemon for UNIX). Therefore gpsd is required when using RoadMap. However
-   gpsd is not required when building RoadMap, and it may run on a remote
-   computer accessible through a TCp/IP network.
+   RoadMap communicates with the GPS receiver through gpsd, a GPS
+   communication daemon for UNIX. Therefore gpsd is required for RoadMap
+   to take advantage of a GPS receiver. However gpsd is not required when
+   building RoadMap, and RoadMap can run without gpsd as a static map viewer
+   or address finder. In addition, gpsd may run on a remote computer
+   accessible through a TCP/IP network: in this case the remote computer
+   will be tacked by RoadMap, not the local one..
 
    RoadMap uses either GTK, GTK2 or QT for its user interface. One of these
    toolkits must be installed. RoadMap can be built for QT/QPE, but the
@@ -66,12 +89,13 @@ INSTALLATION
    icons of its toolbar. ImageMagick is only required for building RoadMap,
    it is not necessary when running RoadMap.
 
+   RoadMap uses aptconvert to produce the formatted documentation (see
+   previous section).
+
 
 * DOWNLOADING
 
    RoadMap can be downloaded from any of the RoadMap web sites:
-
-         * {{http://roadmap.saignon.net/download.html}}
 
          * {{http://roadmap.noscience.net/download.html}}
 
@@ -80,8 +104,6 @@ INSTALLATION
    RoadMap is distributed with the map of San Francisco as an example of
    map. The complete set of maps is available on the following web sites:
    
-         * {{http://roadmap.saignon.net/maps.html}}
-
          * {{http://roadmap.noscience.net/maps.html}}
 
          * {{http://roadmap.digitalomaha.net/maps.html}}
