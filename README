@@ -379,7 +379,7 @@ USING ROADMAP:
    sprite move away from the map's center. The hold mode make it easy to
    select streets and read street names while on the road. To come back to
    the original map view, this view must be reselected (for example by using
-   Find / GPS position or Trip / Resume Trip).
+   the menu command Find / GPS position or the "G" toolbar button).
 
    Clicking on the map screen displays the name of the closest street (with
    the selected street block's range of address), road or freeway (if any).
