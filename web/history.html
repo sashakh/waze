@@ -17,6 +17,23 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
+<P>Roadmap v1.0.2 (October 5, 2003, the Scot Wilcoxon version :-): 
+<UL>
+  <LI>Fix RoadMap crashes when ~/.roadmap does not exist (contributed by
+      Scot Wilcoxon).
+  <LI>Integrate a GPS position offset, as a work-around for map problems
+      (rework of a patch contributed by Scot Wilcoxon). Compare to the
+      original patch from Scot, this change uses different types for the
+      GPS and map positions, so that there is no confusion when to adjust.
+      The adjustment logic has also been isolated in its own module (likely
+      to be modified soon, as the current constant offset method is way too
+      simplistic). The adjustment is also performed as late as possible, so
+      that the original GPS position is the one saved in the session file.
+  <LI>The GPS steering is not reliable when the speed is too low (too close
+      to GPS error margins). This was taken care of wherever the steering was
+      used: the roadmap_gps module is now taking care of this at once so that
+      the rest of RoadMap can rely on stable data.
+</UL>
 <P>Roadmap v1.0.1 (September 14, 2003): 
 <UL>
   <LI>Added a "Hold Map" menu item (and toolbar button), to hold the map
