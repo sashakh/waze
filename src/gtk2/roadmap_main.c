@@ -197,7 +197,6 @@ void roadmap_main_toggle_full_screen (void) {
 
    static int RoadMapIsFullScreen = 0;
 
-#if 0
    if (RoadMapIsFullScreen) {
       gtk_window_unfullscreen (GTK_WINDOW(RoadMapMainWindow));
       RoadMapIsFullScreen = 0;
@@ -205,7 +204,6 @@ void roadmap_main_toggle_full_screen (void) {
       gtk_window_fullscreen (GTK_WINDOW(RoadMapMainWindow));
       RoadMapIsFullScreen = 1;
    }
-#endif
 }
 
 void roadmap_main_new (const char *title, int width, int height) {
