@@ -580,8 +580,7 @@ void  roadmap_config_initialize (void) {
 
     const char *p;
     RoadMapConfig *file;
-    RoadMapConfigDescriptor descriptor =
-        ROADMAP_CONFIG_ITEM ("General", "Database");
+    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM ("Map", "Path");
 
    roadmap_config_declare
       ("preferences", &descriptor, roadmap_file_default_path());

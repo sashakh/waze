@@ -48,14 +48,17 @@
 #include "roadmap_locator.h"
 
 
-#define ROADMAP_US_CACHE_SIZE 8
+#define ROADMAP_CACHE_SIZE 8
 
-static struct {
+struct roadmap_cache_entry {
 
    int          fips;
    unsigned int last_access;
+};
 
-} RoadMapCountyCache [ROADMAP_US_CACHE_SIZE] = {{0, 0}};
+static struct roadmap_cache_entry *RoadMapCountyCache = NULL;
+
+static int RoadMapCountyCacheSize = 0;
 
 static int RoadMapActiveCounty;
 
@@ -89,11 +92,9 @@ static char *RoadMapDefaultCategoryTable[] = {
    "Sea"
 };
 
-static void roadmap_locator_initialize (void) {
+static void roadmap_locator_configure (void) {
 
-   static int Initialized = 0;
-
-   if (! Initialized) {
+   if (RoadMapCountyCache == NULL) {
 
       RoadMapCountyModel =
          roadmap_db_register
@@ -139,7 +140,14 @@ static void roadmap_locator_initialize (void) {
       RoadMapUsStateDictionary  = roadmap_dictionary_open ("state");
       RoadMapUsCategoryDictionary  = roadmap_dictionary_open ("category");
 
-      Initialized = 1;
+
+      RoadMapCountyCacheSize = roadmap_option_cache ();
+      if (RoadMapCountyCacheSize < ROADMAP_CACHE_SIZE) {
+         RoadMapCountyCacheSize = ROADMAP_CACHE_SIZE;
+      }
+      RoadMapCountyCache = (struct roadmap_cache_entry *)
+         calloc (RoadMapCountyCacheSize, sizeof(struct roadmap_cache_entry));
+      roadmap_check_allocated (RoadMapCountyCache);
    }
 }
 
@@ -168,7 +176,7 @@ static unsigned int roadmap_locator_new_access (void) {
 
    if (RoadMapLocatorAccessCount == 0) { /* Rollover. */
 
-      for (i = 0; i < ROADMAP_US_CACHE_SIZE; i++) {
+      for (i = 0; i < RoadMapCountyCacheSize; i++) {
 
          if (RoadMapCountyCache[i].fips > 0) {
             roadmap_locator_close (i);
@@ -198,7 +206,7 @@ static int roadmap_locator_open (int fips) {
 
    /* Look for the oldest entry in the cache. */
 
-   for (i = ROADMAP_US_CACHE_SIZE-1; i >= 0; i--) {
+   for (i = RoadMapCountyCacheSize-1; i >= 0; i--) {
 
       if (RoadMapCountyCache[i].fips == fips) {
 
@@ -244,7 +252,7 @@ static int roadmap_locator_allocate (int **fips) {
 
    int count;
 
-   roadmap_locator_initialize();
+   roadmap_locator_configure();
 
    count = roadmap_county_count();
 
@@ -287,7 +295,7 @@ int roadmap_locator_by_city (char *city_name, char *state_symbol) {
    RoadMapString city;
    RoadMapString state;
 
-   roadmap_locator_initialize();
+   roadmap_locator_configure();
 
    state = roadmap_dictionary_locate (RoadMapUsStateDictionary, state_symbol);
    if (state <= 0) {
@@ -312,7 +320,7 @@ int roadmap_locator_activate (int fips) {
        return ROADMAP_US_OK;
    }
 
-   roadmap_locator_initialize();
+   roadmap_locator_configure();
 
    return roadmap_locator_open (fips);
 }
@@ -325,7 +333,7 @@ int roadmap_locator_active (void) {
 
 int roadmap_locator_category_count (void) {
 
-   roadmap_locator_initialize ();
+   roadmap_locator_configure ();
 
    if (RoadMapUsCategoryDictionary == NULL) {
       return sizeof(RoadMapDefaultCategoryTable) / sizeof(char *);

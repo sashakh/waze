@@ -69,8 +69,8 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
 static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
                         ROADMAP_CONFIG_ITEM("Geometry", "Main");
 
-static RoadMapConfigDescriptor RoadMapConfigGeneralDatabase =
-                        ROADMAP_CONFIG_ITEM("General", "Database");
+static RoadMapConfigDescriptor RoadMapConfigMapPath =
+                        ROADMAP_CONFIG_ITEM("Map", "Path");
 
 
 /* The menu and toolbar callbacks: --------------------------------------- */
@@ -433,7 +433,8 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
-    
+
+   roadmap_option_initialize   ();
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
    roadmap_screen_initialize   ();
@@ -445,7 +446,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_history_initialize  ();
    roadmap_config_initialize   ();
 
-   roadmap_file_set_path(roadmap_config_get(&RoadMapConfigGeneralDatabase));
+   roadmap_file_set_path(roadmap_config_get(&RoadMapConfigMapPath));
 
    roadmap_option (argc, argv);
 

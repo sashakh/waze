@@ -53,10 +53,15 @@ void roadmap_log_purge    (void);
 #define ROADMAP_SHOW_AREA        1
 #define ROADMAP_SHOW_SQUARE      2
 
+
+
+void roadmap_option_initialize (void);
+
 int   roadmap_verbosity  (void); /* return a minimum message level. */
 int   roadmap_is_visible (int category);
 char *roadmap_gps_source (void);
 
+int roadmap_option_cache  (void);
 int roadmap_option_width  (const char *name);
 int roadmap_option_height (const char *name);
 

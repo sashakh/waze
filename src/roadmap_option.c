@@ -44,10 +44,14 @@ static RoadMapConfigDescriptor RoadMapConfigLocationsLocation =
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
 
+static RoadMapConfigDescriptor RoadMapConfigMapCache =
+                        ROADMAP_CONFIG_ITEM("Map", "Cache");
+
 
 static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
 static int roadmap_option_no_area = 0;
 static int roadmap_option_square  = 0;
+static int roadmap_option_cache_size = 0;
 
 static char *roadmap_option_gps = NULL;
 
@@ -86,6 +90,15 @@ char *roadmap_gps_source (void) {
 int roadmap_verbosity (void) {
 
    return roadmap_option_verbose;
+}
+
+
+int roadmap_option_cache (void) {
+
+   if (roadmap_option_cache_size > 0) {
+      return roadmap_option_cache_size;
+   }
+   return roadmap_config_get_integer (&RoadMapConfigMapCache);
 }
 
 
@@ -192,6 +205,17 @@ static void roadmap_option_set_gps (const char *value) {
 }
 
 
+static void roadmap_option_set_cache (const char *value) {
+
+    roadmap_option_cache_size = atoi(value);
+
+    if (roadmap_option_cache_size <= 0) {
+       roadmap_log (ROADMAP_FATAL, "invalid cache size %s", value);
+    }
+    roadmap_config_set (&RoadMapConfigMapCache, value);
+}
+
+
 static void roadmap_option_set_debug (const char *value) {
 
     if (roadmap_option_verbose > ROADMAP_MESSAGE_DEBUG) {
@@ -255,6 +279,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     {"--gps=", "URL", roadmap_option_set_gps,
         "Use a specific GPS source (mainly for replay of a GPS log)"},
 
+    {"--cache=", "INTEGER", roadmap_option_set_cache,
+        "Set the number of entries in the RoadMap's map cache"},
+
     {"--debug", "", roadmap_option_set_debug,
         "Show all informational and debug traces"},
 
@@ -317,5 +344,11 @@ void roadmap_option (int argc, char **argv) {
             roadmap_log (ROADMAP_FATAL, "illegal option %s", argv[i]);
         }
     }
+}
+
+
+void roadmap_option_initialize (void) {
+
+   roadmap_config_declare ("preferences", &RoadMapConfigMapCache, "8");
 }
 
