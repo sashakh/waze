@@ -65,12 +65,6 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyGPS =
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
-static RoadMapConfigDescriptor RoadMapConfigAccuracyStreet =
-                        ROADMAP_CONFIG_ITEM("Accuracy", "Street");
-
-static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
-                        ROADMAP_CONFIG_ITEM("Accuracy", "Confirm");
-
 static RoadMapConfigDescriptor RoadMapConfigMapBackground =
                         ROADMAP_CONFIG_ITEM("Map", "Background");
 
@@ -658,72 +652,64 @@ static int roadmap_screen_repaint_square (int square) {
 }
 
 
-static void roadmap_screen_repaint_map (void) {
-
-   static int *fips = NULL;
-
-   int i;
-   int j;
-   int count;
-   int in_view[4096];
-
-
-   roadmap_canvas_select_pen (RoadMapBackground);
-   roadmap_canvas_erase ();
-
-
-   /* Repaint the drawing buffer. */
-
-   roadmap_math_set_center (&RoadMapScreenCenter);
-
-
-   /* - Identifies the candidate counties. */
-
-   count = roadmap_locator_by_position (&RoadMapScreenCenter, &fips);
-
-
-   /* - For each candidate county: */
-
-   for (i = count-1; i >= 0; --i) {
-
-      /* -- Access the county's database. */
-
-      if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
-
-      /* -- Look for the square that are currently visible. */
-
-      count = roadmap_square_view (in_view, 4096);
-
-      if (count > 0) {
-
-         roadmap_screen_draw_polygons ();
-         roadmap_screen_reset_square_mask();
-
-         for (j = count - 1; j >= 0; --j) {
-            roadmap_screen_repaint_square (in_view[j]);
-         }
-      }
-   }
-}
-
-
 static void roadmap_screen_repaint (int moved) {
 
     static RoadMapGuiPoint CompassPoint = {20, 20};
+    static int *fips = NULL;
+
+    int i;
+    int j;
+    int count;
+    int in_view[4096];
     
 
     roadmap_math_set_center (&RoadMapScreenCenter);
     
-    if (moved) {
-        roadmap_navigate_locate (&RoadMapScreenCenter);
-    }
-
     RoadMapScreenShapesVisible =
         roadmap_math_declutter
             (roadmap_config_get_integer(&RoadMapConfigShapesDeclutter));
 
-    roadmap_screen_repaint_map ();
+
+    if (moved) {
+        roadmap_navigate_locate (&RoadMapScreenCenter);
+    }
+
+
+    /* Clean the drawing buffer. */
+
+    roadmap_canvas_select_pen (RoadMapBackground);
+    roadmap_canvas_erase ();
+
+
+    /* Repaint the drawing buffer. */
     
+    /* - Identifies the candidate counties. */
+
+    count = roadmap_locator_by_position (&RoadMapScreenCenter, &fips);
+
+    /* - For each candidate county: */
+
+    for (i = count-1; i >= 0; --i) {
+
+        /* -- Access the county's database. */
+
+        if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
+
+        /* -- Look for the square that are currently visible. */
+
+        count = roadmap_square_view (in_view, 4096);
+
+        if (count > 0) {
+
+            roadmap_screen_draw_polygons ();
+            roadmap_screen_reset_square_mask();
+
+            for (j = count - 1; j >= 0; --j) {
+                roadmap_screen_repaint_square (in_view[j]);
+            }
+        }
+    }
+
     roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
     roadmap_trip_display ();
@@ -905,10 +891,6 @@ void roadmap_screen_initialize (void) {
         ("preferences", &RoadMapConfigAccuracyGPS,    "1000");
     roadmap_config_declare
         ("preferences", &RoadMapConfigAccuracyMouse,  "20");
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyStreet, "200");
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyConfirm, "4");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigMapBackground, "LightYellow");

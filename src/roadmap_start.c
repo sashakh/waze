@@ -45,6 +45,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_screen.h"
+#include "roadmap_navigate.h"
 #include "roadmap_display.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
@@ -387,14 +388,15 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
     
-   roadmap_math_initialize   ();
-   roadmap_trip_initialize   ();
-   roadmap_screen_initialize ();
-   roadmap_display_initialize();
-   roadmap_voice_initialize  ();
-   roadmap_gps_initialize    (&roadmap_gps_update);
-   roadmap_history_initialize();
-   roadmap_config_initialize ();
+   roadmap_math_initialize     ();
+   roadmap_trip_initialize     ();
+   roadmap_screen_initialize   ();
+   roadmap_navigate_initialize ();
+   roadmap_display_initialize  ();
+   roadmap_voice_initialize    ();
+   roadmap_gps_initialize      (&roadmap_gps_update);
+   roadmap_history_initialize  ();
+   roadmap_config_initialize   ();
 
    roadmap_file_set_path(roadmap_config_get(&RoadMapConfigGeneralDatabase));
 

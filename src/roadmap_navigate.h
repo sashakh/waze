@@ -29,4 +29,6 @@ int roadmap_navigate_retrieve_line
 
 void roadmap_navigate_locate (const RoadMapPosition *position);
 
+void roadmap_navigate_initialize (void);
+
 #endif // INCLUDE__ROADMAP_NAVIGATE__H

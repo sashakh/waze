@@ -33,6 +33,7 @@
 #include "roadmap_layer.h"
 #include "roadmap_street.h"
 #include "roadmap_display.h"
+#include "roadmap_locator.h"
 
 #include "roadmap_navigate.h"
 
@@ -45,6 +46,21 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
+
+/* Avoid asking these too often. */
+static int RoadMapAccuracyMouse;
+static int RoadMapAccuracyStreet;
+
+typedef struct {
+
+    int line;
+    int fips;
+    int detected;
+
+} RoadMapTracking;
+
+static RoadMapTracking RoadMapConfirmedStreet = {-1, 0, 0};
+static RoadMapTracking RoadMapCandidateStreet = {-1, 0, 0};
 
 
 struct roadmap_navigate_rectangle {
@@ -82,8 +98,8 @@ static void roadmap_navigate_adjust_focus
 int roadmap_navigate_retrieve_line
         (const RoadMapPosition *position, int accuracy, int *distance) {
 
-    int count = 0;
     int line;
+    int count = 0;
     int layers[128];
 
     struct roadmap_navigate_rectangle focus;
@@ -141,72 +157,115 @@ fflush(stdout);
 }
 
 
+static int roadmap_navigate_update (const RoadMapPosition *position) {
+
+    int distance;
+    RoadMapPosition position1, position2;
+
+
+    RoadMapAccuracyStreet =
+        roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
+    RoadMapAccuracyMouse =
+        roadmap_config_get_integer (&RoadMapConfigAccuracyMouse);
+
+
+    if (RoadMapConfirmedStreet.line < 0) {
+        return -1;
+    }
+    if (roadmap_locator_activate
+            (RoadMapConfirmedStreet.fips) != ROADMAP_US_OK) {
+        RoadMapConfirmedStreet.line = -1;
+        return -1;
+    }
+    
+    /* Confirm the current street if we are still at a "short"
+     * distance from it. This is to avoid switching streets
+     * randomly at the intersections.
+     */
+    roadmap_line_from (RoadMapConfirmedStreet.line, &position1);
+    roadmap_line_to   (RoadMapConfirmedStreet.line, &position2);
+                
+    distance =
+        roadmap_math_get_distance_from_segment
+                    (position, &position1, &position2);
+            
+    if (distance > RoadMapAccuracyStreet) {
+        RoadMapConfirmedStreet.line = -1; /* We left this line. */
+        return -1;
+    }
+
+    /* This line has been confirmed again. */
+    
+    RoadMapCandidateStreet.detected = 0; /* Candidate lost, whoever. */
+
+    return RoadMapConfirmedStreet.line;
+}
+
 void roadmap_navigate_locate (const RoadMapPosition *position) {
     
-    static int DetectCount = 0;
-    static int PreviousLine = -1;    
-
-    int line = PreviousLine;
-    int accuracy = roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
+    int line;
+    int fips;
     int distance;
 
 
-    if (line >= 0) {
+    if (roadmap_navigate_update (position) >= 0) {
+        return; /* No need to look for a new line. */
+    }
+            
+    /* The previous line, if any, is not a valid suitor anymore.
+     * Look around for another one. The closest line will be
+     * selected only if it is close enough.
+     */
+    line = roadmap_navigate_retrieve_line
+                (position, RoadMapAccuracyMouse, &distance);
 
-        /* Confirm the current street if we are still at a "short"
-         * distance from it. This is to avoid switching streets
-         * randomly at the intersections.
-         */
-        RoadMapPosition position1, position2;
-            
-        roadmap_line_from (line, &position1);
-        roadmap_line_to   (line, &position2);
-                
-        distance =
-            roadmap_math_get_distance_from_segment
-                    (position, &position1, &position2);
-            
-        if (distance > accuracy) {
-            line = -1; /* We left this line, search for another one. */
-        }
+    if ((line < 0) || (distance > RoadMapAccuracyStreet)){
+
+        /* There is no candidate line here. */
+        RoadMapCandidateStreet.line = -1;
+        RoadMapCandidateStreet.detected = 0;
+        return;
+    }
+    
+    fips = roadmap_locator_active ();
+    
+    if (line != RoadMapCandidateStreet.line ||
+        fips != RoadMapCandidateStreet.fips) {
+
+        /* This is a new candidate line: restart from scratch. */
+        RoadMapCandidateStreet.line = line;
+        RoadMapCandidateStreet.fips = fips;
+        RoadMapCandidateStreet.detected = 1;
     }
         
-    if (line < 0) {
             
-        /* The previous line, if any, is not a valid suitor anymore.
-         * Look around for another one. The closest line will be
-         * selected only if it is close enough.
-         */
-        line = roadmap_navigate_retrieve_line
-                    (position,
-                     roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
-                     &distance);
-
-        if (line > 0) {
-            if (distance < accuracy) {
-                PreviousLine = line; /* This line is close enough. */
-                DetectCount = 1;
-            } else {
-                line = -1; /* We are not close to any line. */
-            }
-        }
-    }
-        
-    if (line >= 0) {
-            
-        /* We have found a suitable line. Wait for a confirmation
-         * before we commit to an announcement.
-         */
-        if (DetectCount > 1) {
+    /* We have found a suitable line. Wait for a confirmation
+     * before we commit to an announcement.
+     */
+    if (RoadMapCandidateStreet.detected > 1) {
                 
-            int confirm =
+        int confirm =
                 roadmap_config_get_integer (&RoadMapConfigAccuracyConfirm);
             
-            if (DetectCount == confirm) {
-                roadmap_display_activate
-                    ("Current Street", line, distance, NULL);
-            }
+        if (RoadMapCandidateStreet.detected == confirm) {
+                
+            RoadMapConfirmedStreet = RoadMapCandidateStreet;
+                
+            roadmap_display_activate
+                ("Current Street", line, distance, NULL);
+            
+            RoadMapCandidateStreet.detected = 0; /* Not candidate anymore. */
+            return;
         }
-        DetectCount += 1;
     }
+    RoadMapCandidateStreet.detected += 1;
+}
+
+
+void roadmap_navigate_initialize (void) {
+    
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAccuracyStreet, "200");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAccuracyConfirm, "3");
 }

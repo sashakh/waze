@@ -57,6 +57,8 @@ static struct {
 
 } RoadMapCountyCache [ROADMAP_US_CACHE_SIZE] = {{0, 0}};
 
+static int RoadMapActiveCounty;
+
 
 static roadmap_db_model *RoadMapUsModel;
 static roadmap_db_model *RoadMapCountyModel;
@@ -229,6 +231,8 @@ static int roadmap_locator_open (int fips) {
    RoadMapCountyCache[oldest].fips = fips;
    RoadMapCountyCache[oldest].last_access = access;
 
+   RoadMapActiveCounty = fips;
+   
    return ROADMAP_US_OK;
 }
 
@@ -309,6 +313,11 @@ int roadmap_locator_activate (int fips) {
    roadmap_locator_initialize();
 
    return roadmap_locator_open (fips);
+}
+
+
+int roadmap_locator_active (void) {
+    return RoadMapActiveCounty;
 }
 
 
