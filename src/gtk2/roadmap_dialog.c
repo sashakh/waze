@@ -282,26 +282,31 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
 
       GtkWidget *label;
       int length = strlen(name);
-      char *title = malloc (length + 4);
+      char *title = malloc (length + 6);
 
       if (title != NULL) {
-         strcpy (title, name);
+
+         title[0] = ' ';
+         strcpy (title+1, name);
          if (name[length-1] != ':') {
-            strcat (title, ": ");
-         } else {
-            strcat (title, " ");
+            title[++length] = ':';
          }
+         title[++length] = ' ';
+         title[++length] = 0;
+
+         label = gtk_label_new (title);
+         free(title);
+
       } else {
-         title = (char *)name;
+
+         label = gtk_label_new (name);
       }
-      label = gtk_label_new (title);
-      free(title);
 
       gtk_misc_set_alignment (GTK_MISC(label), 1.0, 0.5);
 
       gtk_table_attach (GTK_TABLE(parent->w),
                         label, 0, 1, child->rank, child->rank+1,
-                        GTK_EXPAND+GTK_FILL, GTK_EXPAND+GTK_FILL, 2, 2);
+                        GTK_FILL, GTK_FILL, 2, 2);
    }
 
    gtk_table_attach (GTK_TABLE(parent->w),
