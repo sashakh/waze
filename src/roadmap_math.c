@@ -666,6 +666,12 @@ int roadmap_math_set_orientation (int direction) {
 }
 
 
+int  roadmap_math_get_orientation (void) {
+
+   return RoadMapContext.orientation;
+}
+
+
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
                                RoadMapPosition *position) {
 

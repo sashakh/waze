@@ -554,7 +554,8 @@ static void roadmap_start_after_refresh (void) {
       if (download_point.x < 0) {
          download_point.x = 0;
       }
-      roadmap_sprite_draw ("Download", &download_point, 0);
+      roadmap_sprite_draw
+         ("Download", &download_point, 0 - roadmap_math_get_orientation());
    }
 }
 
