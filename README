@@ -9,19 +9,25 @@
 
 INTRODUCTION
 
-   RoadMap is a program for UNIX that displays street maps. The maps
-   are provided by the US Census Bureau, and thus only cover the US.
-   RoadMap now includes a preliminary support for the Digital Charts of the
-   Words (DCW), a set of world-wide maps produced by the US Department of
-   Defense. The DCW contains only major highways and freeways, for some parts
-   or the world (mostly Europe and japan) and their accuracy does not allow
-   any reliable car navigation.
-
+   RoadMap is an open source program for UNIX that displays street maps.
    When a GPS receiver is available RoadMap can track the current location
    of the vehicule on the screen, continuously adjusting the position of the
    map; it can also identify the name of the current street as well as the
    name of the next intersection. RoadMap can be used without a GPS receiver,
-   as a static map viewer or address finder.
+   as a static map viewer and address finder.
+
+   Most of the maps are provided by the US Census Bureau, which only cover
+   the US. RoadMap now includes a preliminary support for the Digital Charts
+   of the Words (DCW), a set of world-wide maps produced by the US Department of
+   Defense. The DCW contains only major highways and freeways, for some parts
+   or the world (mostly Europe and japan) and their accuracy does not allow
+   any reliable car navigation.
+
+   RoadMap is released under the GPL (see the COPYING file). The US Census
+   Bureau's data is public domain. The DCW data is mostly public domain, but
+   some administrative boundary data is copyright of ESRI
+   ({{http://www.esri.com/}}). As no administrative data is incorporated in
+   the RoadMap map files, all the RoadMap map files are in the public domain.
 
    RoadMap uses a binary file format for representing the maps that is
    compact enough to allow the storage of many maps on a Compact Flash or
@@ -51,7 +57,7 @@ INTRODUCTION
    provided (waypoints and destination). RoadMap detects what is the next
    waypoint, provides a direction arrow and show the distance to this
    waypoint (and/or to the destination).
-   
+
    The plan for the future is to implement some navigation features similar
    to those found in commercial car navigation systems, and to port RoadMap
    to as many environment as possible.
@@ -108,17 +114,13 @@ INSTALLATION
 
 * DOWNLOADING
 
-   RoadMap can be downloaded from any of the RoadMap web sites:
-
-         * {{http://roadmap.noscience.net/download.html}}
+   RoadMap can be downloaded from the RoadMap web site:
 
          * {{http://roadmap.digitalomaha.net/download.html}}
 
    RoadMap is distributed with the map of San Francisco as an example of
-   map. The complete set of maps is available on the following web sites:
+   map. The complete set of maps is available on the following web site:
    
-         * {{http://roadmap.noscience.net/maps.html}}
-
          * {{http://roadmap.digitalomaha.net/maps.html}}
 
    The RoadMap directory file (usdir.rdm) must be downloaded first, as
@@ -714,7 +716,7 @@ USING ROADMAP
         server is named "desktop".
 
      2- Set the preference Download.Source to
-        {{http://desktop/maps/usc$05d.rdm.gz}}
+        {{http://desktop/maps/usc%05d.rdm.gz}}
 
      3- Set the preference Download.Destination to /var/lib/roadmap
 
@@ -1196,11 +1198,16 @@ CONFIGURATION
 
          <<Default:>> %s
 
-    [Map.Path] The map database path list.
+    [Map.Path] The map database search path.
 
          <<Format:>> a comma-separated list of directory paths.
 
-         <<Default:>> .,~/maps,/usr/share/roadmap/maps
+         <<Default:>> ~/.roadmap/maps,/var/lib/roadmap,/usr/lib/roadmap
+
+         <<Comment:>> the default also includes /usr/local/share/roadmap
+                      and /usr/share/roadmap, for compatibility purposes.
+                      These two directories were the standard locations
+                      for the maps in previous versions of RoadMap.
 
     [Map.Cache] The number of entries in RoadMap's mapping cache.
 
@@ -1539,47 +1546,59 @@ CONFIGURATION
 
      For each category, RoadMap use the following items:
 
-     <category>.Class:
+     [<category>.Class:] the class of object this category belongs to.
 
-         Description: the class of object this category belongs to.
          <<Format:>> Road, Feature or Area.
+
          <<Comment:>> Road and Feature categories are searched in the "line"
                   table of the map files and drawn as lines. The Road
                   category is searched when a street name is looked for.
                   The Area objects are drawn separatly, as polygons.
 
-     <category>.Color:
+     [<category>.Color:] the color used when drawing the objects.
 
-         Description: the color used when drawing the objects.
          <<Format:>> color
 
-     <category>.Declutter:
+     [<category>.Declutter:] the zoom level from which the objects are hidden
 
-         Description: the zoom level from which the objects are not drawn.
          <<Format:>> integer
+
          <<Comment:>> the definition of this item is rather obscure. To be fixed.
 
-     <category>.Thickness:
+     [<category>.Thickness:] the thickness used to draw lines.
 
-         Description: the thickness used to draw lines.
          <<Format:>> number of pixels
 
-     RoadMap uses the following categories:
 
-         Freeways
-         Ramps
-         Highways
-         Streets
-         Trails
-         Rivers
-         Shore
-         Hospitals
-         Malls
-         Airports
-         Stations
-         Lakes
-         Parks
-         Sea
+   RoadMap uses the following categories:
+
+         * Freeways
+
+         * Ramps
+
+         * Highways
+
+         * Streets
+
+         * Trails
+
+         * Rivers
+
+         * Shore
+
+         * Hospitals
+
+         * Malls
+
+         * Airports
+
+         * Stations
+
+         * Lakes
+
+         * Parks
+
+         * Sea
 
 
 * SPRITES FILE
@@ -1739,17 +1758,17 @@ IMPLEMENTATION DETAILS
 
    The OS interface is defined by the following header files:
 
-     [roadmap_net.c]           Isolate socket interface oddities.
+     [roadmap_net.h]           Isolate socket interface oddities.
 
-     [roadmap_path.c]          Hides the OS syntax for file path.
+     [roadmap_path.h]          Hides the OS syntax for file path.
 
-     [roadmap_file.c]          Primitives to access and map binary files.
+     [roadmap_file.h]          Primitives to access and map binary files.
 
-     [roadmap_time.c]          Primitive to get the local time.
+     [roadmap_time.h]          Primitive to get the local time.
 
-     [roadmap_spawn.c]         Hides the OS process control.
+     [roadmap_spawn.h]         Hides the OS process control.
 
-     [roadmap_library.c]       Load and link to dynamic libraries.
+     [roadmap_library.h]       Load and link to dynamic libraries (future).
 
    Implementations of the user interface for the GTK, GTK2 and Qt toolkits
    are provided, as well as one implementation of the OS interface for UNIX.
@@ -1819,7 +1838,7 @@ MAP FORMAT
    of counties (usdir.rdm). The name of a county file follows the format:
 
 ----
-   "usc<fips>.rdm
+   usc<fips>.rdm
 ----
 
    where "fips" is the federal identification number for that county, made
@@ -1829,15 +1848,15 @@ MAP FORMAT
    The rdm files are binary files and uses the local conventions for byte
    order and C structure layout.
 
-   The two types of files, usdir.rdm or usc*.rdm, contains very different
-   data but share the same general organization: these files contains
+   The two types of files, usdir.rdm or usc*.rdm, contain very different
+   data but share the same general organization: these files contain
    multiple data tables organized in a tree fashion.
 
 * TABLES
 
    Each table is identified by its path name (such as "string.data.data").
    RoadMap tables are organized into two levels, except for the string
-   stores that are organized into three levels.
+   storage tables that are organized into three levels.
    
    The dumpmap tool provides a view of the tree of tables.
 
@@ -1883,7 +1902,7 @@ MAP FORMAT
 
    In addition, the string section provides a search tree organized in
    an alphabetical fashion. This tree makes it possible to implement fast
-   name search and completion and was also designed to alow for a "smart"
+   name search and completion and was also designed to allow for a "smart"
    keyboard that grays out invalid characters (the "smart" keyboard was
    never implemented since RoadMap now uses the standard system keyboard).
 
