@@ -69,8 +69,7 @@ RDM_BIN="${ROADMAP}/src/usdir.rdm
 RDM_DOC="${ROADMAP}/AUTHORS
          ${ROADMAP}/BUGS
          ${ROADMAP}/COPYING
-         ${ROADMAP}/README
-         ${ROADMAP}/TODO"
+         ${ROADMAP}/README"
 
 RDM_HELP="${ROADMAP}/web/manual.html ${ROADMAP}/web/apt_toc.gif"
 
