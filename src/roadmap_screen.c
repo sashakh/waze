@@ -101,6 +101,13 @@ static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
 
 #define ROADMAP_SCREEN_BULK  4096
 
+/* This is a default definition, because we might want to set this smaller
+ * for some memory-starved targets.
+ */
+#ifndef ROADMAP_MAX_VISIBLE
+#define ROADMAP_MAX_VISIBLE  20000
+#endif
+
 static struct {
 
    int *cursor;
@@ -694,15 +701,20 @@ static void roadmap_screen_repaint (void) {
 
     static RoadMapGuiPoint CompassPoint = {20, 20};
     static int *fips = NULL;
+    static int *in_view = NULL;
 
     int i;
     int j;
     int count;
-    int in_view[4096];
     
 
     if (RoadMapScreenFrozen) return;
 
+
+    if (in_view == NULL) {
+       in_view = calloc (ROADMAP_MAX_VISIBLE, sizeof(int));
+       roadmap_check_allocated(in_view);
+    }
 
     roadmap_log_push ("roadmap_screen_repaint");
 
@@ -732,7 +744,7 @@ static void roadmap_screen_repaint (void) {
 
         /* -- Look for the square that are currently visible. */
 
-        count = roadmap_square_view (in_view, 4096);
+        count = roadmap_square_view (in_view, ROADMAP_MAX_VISIBLE);
 
         if (count > 0) {
 
