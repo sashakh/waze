@@ -202,7 +202,7 @@ strip:
 	strip -s $(BUILD)
 
 clean: cleanone
-	for module in $(RDMODULES) ; \
+	for module in icons $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
 			make -C $$module cleanone || exit 1; \
@@ -213,7 +213,7 @@ clean: cleanone
 cleanone:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS)
 
-install: build runtime icons
+install: everything
 	mkdir -p $(DESTDIR)$(pkgdatadir)
 	cd $(DESTDIR)$(pkgdatadir) && rm -f sprites preferences
 	cp sprites preferences schema $(DESTDIR)$(pkgdatadir)/.
@@ -235,10 +235,10 @@ uninstall:
 	cd $(DESTDIR)$(INSTALLDIR) && rm -rf share/roadmap
 	rm -f $(DESTDIR)$(menudir)/roadmap
 
-everything: modules runtime build icons $(TOOLS)
+everything: modules runtime build $(TOOLS)
 
 modules:
-	for module in $(RDMODULES) ; \
+	for module in icons $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
 			make -C $$module STDCFLAGS="$(CFLAGS)" all || exit 1; \
@@ -246,7 +246,7 @@ modules:
 	done
 
 cleanall:
-	for module in $(RDMODULES) ; \
+	for module in icons $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
 			make -C $$module clean ; \
