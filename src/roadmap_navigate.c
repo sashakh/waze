@@ -25,6 +25,8 @@
  *   See roadmap_navigate.h.
  */
 
+#include <string.h>
+
 #include "roadmap.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
@@ -49,7 +51,14 @@ typedef struct {
     RoadMapFuzzy connected;
 } RoadMapDebug;
 
-static int RoadMapNavigateDisable = 0;
+static RoadMapConfigDescriptor RoadMapNavigateFlag =
+                        ROADMAP_CONFIG_ITEM("Navigation", "Enable");
+
+/* The navigation flag will be set according to the session's content,
+ * so that the user selected state is kept from one session to
+ * the next.
+ */
+static int RoadMapNavigateEnabled = 0; /* Will be set according
 
 /* Avoid doing navigation work when the position has not changed. */
 static RoadMapGpsPosition RoadMapLatestGpsPosition;
@@ -185,15 +194,19 @@ static int roadmap_navigate_get_neighbours
 
 void roadmap_navigate_disable (void) {
     
-    RoadMapNavigateDisable = 1;
+    RoadMapNavigateEnabled = 0;
     roadmap_display_hide ("Approach");
     roadmap_display_hide ("Current Street");
+
+    roadmap_config_set (&RoadMapNavigateFlag, "no");
 }
 
 
 void roadmap_navigate_enable  (void) {
     
-    RoadMapNavigateDisable = 0;
+    RoadMapNavigateEnabled  = 1;
+
+    roadmap_config_set (&RoadMapNavigateFlag, "yes");
 }
 
 
@@ -462,7 +475,15 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     static RoadMapTracking nominated;
 
 
-    if (RoadMapNavigateDisable) return;
+    if (! RoadMapNavigateEnabled) {
+       
+       if (strcasecmp
+             (roadmap_config_get (&RoadMapNavigateFlag), "yes") == 0) {
+          RoadMapNavigateEnabled = 1;
+       } else {
+          return;
+       }
+    }
 
     if ((RoadMapLatestGpsPosition.latitude == gps_position->latitude) &&
         (RoadMapLatestGpsPosition.longitude == gps_position->longitude)) return;
@@ -574,5 +595,9 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 }
 
 
-void roadmap_navigate_initialize (void) {}
+void roadmap_navigate_initialize (void) {
+
+    roadmap_config_declare_enumeration
+        ("session", &RoadMapNavigateFlag, "yes", "no", NULL);
+}
 
