@@ -62,9 +62,6 @@ static RoadMapConfigDescriptor RoadMapConfigDeltaY =
 static RoadMapConfigDescriptor RoadMapConfigDeltaRotate =
                         ROADMAP_CONFIG_ITEM("Delta", "Rotate");
 
-static RoadMapConfigDescriptor RoadMapConfigPolygonsDeclutter =
-                        ROADMAP_CONFIG_ITEM("Polygons", "Declutter");
-
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
@@ -951,9 +948,6 @@ void roadmap_screen_initialize (void) {
     roadmap_config_declare ("session", &RoadMapConfigDeltaX, "0");
     roadmap_config_declare ("session", &RoadMapConfigDeltaY, "0");
     roadmap_config_declare ("session", &RoadMapConfigDeltaRotate, "0");
-
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigPolygonsDeclutter, "1300");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigAccuracyMouse,  "20");
