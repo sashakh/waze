@@ -101,8 +101,11 @@ INSTALLATION:
    INSTALLING FROM THE FAMILIAR PACKAGES:
 
    The packages are provided in a compressed tar file. The tar file contains
-   two package files: the first package contains the RoadMap executables and
-   configuration files, the second package contains the San Francisco map.
+   three package files: one package contains the San Francisco map, another
+   contains the RoadMap executables and configuration files for a Gtk 1.2
+   setup (such as Familiar 0.4) and the third package contains the RoadMap
+   executables and configuration files for a Gtk 2.0 setup (such as Familiar
+   0.7).
 
    I strongly recommend to install RoadMap on a CompactFlash card, and
    not on the iPAQ internal flash. The reason is that the maps are too
@@ -116,9 +119,19 @@ INSTALLATION:
       ipkg -d ext install roadmap-gtk
       ipkg -d ext install roadmap-sfca
 
+   or:
+
+      ipkg -d ext install roadmap-gtk2
+      ipkg -d ext install roadmap-sfca
+
    If you downloaded the ipk files on the iPAQ:
 
       ipkg -d ext install roadmap-gtk_X.X_arm.ipk
+      ipkg -d ext install roadmap-sfca_X.X_arm.ipk
+
+   or:
+
+      ipkg -d ext install roadmap-gtk2_X.X_arm.ipk
       ipkg -d ext install roadmap-sfca_X.X_arm.ipk
 
    Other maps must be generated from the US Census Bureau's files (see below)
