@@ -1,5 +1,5 @@
-RoadMap 0.12 - a street navigation system using the US Census maps and GPS
---------------------------------------------------------------------------
+RoadMap - a street navigation system using the US Census maps and GPS
+---------------------------------------------------------------------
 
                            R E A D M E
 
@@ -15,7 +15,7 @@ INTRODUCTION:
    computer, or on a PDA such as the iPAQ from HP (formely from COMPAQ).
    In its current version, it uses the X11 / Gtk+ 1.2 graphic environment.
 
-   RoadMap is at a very early stage of development. At this time there
+   RoadMap is at an early stage of development. At this time there
    are not much features implemented yet. RoadMap can merely display
    the map around a specified street address or follow a GPS device
    (using gpsd). The plan for the future is to implement some navigation
@@ -349,6 +349,7 @@ USAGE:
    when one is not sure of the city name, or only knows the name of a city
    nearby.
 
+
    Managing Trips
    
    A trip is made of one destination point and many user-defined waypoints.
@@ -375,12 +376,12 @@ USAGE:
    A trip that has been created or loaded can then be activated. Activating
    a trip defines the departure point (as the current GPS location) and
    enable the "trip display" mode, i.e. some trip information displayed on
-   top of the map. These trip displays are (1) an arrow beside the GPS
-   location symbol to indicate the direction of the destination or of the
-   next waypoint and (2) a distances information on the top right corner of
-   the map. If the arrow denotes a waypoint, the distance to the waypoint
-   is provided in parenthesis beside the distance to the destination.
-   
+   top of the map. These trip displays include an arrow beside the GPS
+   location symbol to indicate the direction of the next waypoint (if any)
+   or else of the destination, as well as user configurable messages, such
+   as distance information, at the corners of the map. (see CONFIGURATION
+   for more information about these user configurable messages).
+
    When a trip is active, RoadMap tracks the GPS position in realtime and
    updates its map accordingly. The GPS position can be shown in two modes:
    either North up, or GPS direction up. In the second case, the map is
@@ -393,7 +394,8 @@ USAGE:
    point switch roles. Note that this does not modify the trip, only the
    way RoadMap uses the trip information. The reverse mode makes it
    possible to use the same RoadMap trip on the way back.
-   
+
+
    RoadMap Preferences:
 
    It is possible to edit the roadmap's preferences (select File/Preferences
@@ -426,23 +428,31 @@ USAGE:
 
 CONFIGURATION:
 
+   Files.
+   
    The RoadMap configuration is stored in text files located in the following
    directories:
 
             /usr/share/roadmap
             /usr/local/share/roadmap
             ~/.roadmap
+            ~/.roadmap/trips
 
-   The last directory is the user configuration: any user change to the
+   The directory ~/.roadmap contains the user configuration: any user change to the
    configuration is written there. The items in the user configuration take
    precedence over the "default" configuration in the "shared" directories.
 
-   The user configuration directory is created when needed, if it does not
-   exist.
+   The directory ~/.roadmap/trips is used as the default location for the
+   trip files. Note that trip files can be stored anywhere, not only in
+   ~/.roadmap/trips.
+   
+   The user configuration directories are created when needed, if they do
+   not exist.
 
-   The syntax of the RoadMap configuration files is similar to X ressources.
-   Each configuration item is represented by one line of text, using the
-   following format:
+   The syntax of most RoadMap configuration files is similar to the X
+   ressources file format (the exceptions are the sprites file and the
+   trip files). Each configuration item is represented by one line of text,
+   using the following format:
 
             name ': ' value
 
@@ -462,6 +472,38 @@ CONFIGURATION:
    the compass, etc..
 
 
+   Configuring the RoadMap information display messages.
+   
+   RoadMap can display 3 messages at the following corners of the map:
+   bottom left, bottom right and top right (the top left corner is already
+   used to show the orientation of the map). These messages can be defined
+   by the user and contain static and dynamic parts. The dynamic parts
+   are specified using the character '%' followed by one character that
+   denotes a pre-defined RoadMap variable:
+   
+   A:   estimated time of arrival (not yet implemented).
+   B:   Route bearing (not yet implemented).
+   D:   Distance to the destination time (set only when a trip is active).
+   S:   Speed (set only when a trip is active).
+   T:   Current time, format HH:MM (set only when a trip is active).
+   W:   Distance to the next waypoint (set only when a trip is active).
+   
+   Example: "%D (%W)" shows the distance to the destination point, followed
+   by the distance to the next waypoint (in parenthesis).
+   
+   A message is evaluated, and displayed, only when all referenced macros
+   have a defined value. Therefore the example above will show nothing if
+   there is no trip active, or if there is no next waypoint. It is possible
+   to define several alternatives, separated by the character '|': the first
+   alternative that has been successfully evaluated will be displayed.
+   
+   Example: "%D (%W)|%D" shows both distances to the destination point and
+   to the next waypoint if both distances are defined, or else only the
+   distance to the destination point if this distance is defined. If none
+   of the two distance have been defined (for example when no trip is
+   active), then nothing is shown.
+   
+   
    RoadMap preferences items:
 
      General.Database:
@@ -492,6 +534,24 @@ CONFIGURATION:
          Description: show (yes) or hide (no) the roadmap toolbar.
          Format: boolean
          Default: yes
+
+     Display.Bottom Right:
+     
+         Description: define the message on the bottom right corner
+         Format: string
+         Default: %D (%W)|%D
+
+     Display.Bottom Left:
+     
+         Description: define the message on the bottom left corner
+         Format: string
+         Default: %S
+
+     Display.Top Right:
+     
+         Description: define the message on the top right corner
+         Format: string
+         Default: ETA: %A|%T
 
      Map.Background:
 
@@ -602,12 +662,6 @@ CONFIGURATION:
 
    RoadMap session items:
 
-     Locations.Destination
-
-         Description: the latest selected destination.
-         Format: longitude ',' latitude.
-         Default: -122394181,37794928
-
      Locations.Location
 
          Description: the latest selected position.
@@ -621,6 +675,12 @@ CONFIGURATION:
          Format: longitude ',' latitude.
          Default: -122394181,37794928
 
+     Locations.Trip
+     
+         Description: the name of the last used trip file.
+         Format: string
+         Default: default
+         
  (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
 
 
@@ -707,6 +767,25 @@ CONFIGURATION:
      The coordinates are pixel positions, relative to the sprites "hot point".
 
 
+   RoadMap trip files:
+   
+     Each trip file contains the information relative to one trip. A trip
+     file use a CSV format where each record describe a point and contains
+     four fields: type, name, longitude, latitude.
+     
+     The type field is either "Destination" or "Waypoint".
+     
+     The name field is the name of the waypoint (the name of the destination
+     is always "Destination").
+
+     The following trip file example defines a trip from the Golden Gate's
+     bridge to 1, Market St, in san Francisco, California:
+     
+     Destination,Destination,-122394181,37794928
+     Waypoint,1000 - 1098 The Embarcadero  San Francisco,-122401781,37803934
+     Waypoint,100 - 198 Richardson Ave  San Francisco,-122446481,37799826
+
+
 TOOLS:
 
    A RoadMap map file is a small database of C tables. The tables are organized
@@ -731,6 +810,9 @@ General.Database: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
 General.Default Zoom: 20
 General.Toolbar: yes
 General.Unit: imperial
+Display.Bottom Right: %D (%W)|%D
+Display.Bottom Left: %S
+Display.Top Right: ETA: %A|%T
 Map.Background: LightYellow
 GPS.Background: LightYellow
 GPS.Foreground: black
