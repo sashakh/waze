@@ -37,6 +37,7 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
+// #include "roadmap_math.h"
 #include "roadmap_config.h"
 
 #include "roadmap_net.h"
@@ -61,11 +62,15 @@ static roadmap_gps_listener RoadMapGpsListeners[ROADMAP_GPS_CLIENTS] = {NULL};
 static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 
 static RoadMapNmeaListener RoadMapGpsNextGprmc = NULL;
+static RoadMapNmeaListener RoadMapGpsNextPgrme = NULL;
+static RoadMapNmeaListener RoadMapGpsNextPgrmm = NULL;
 
 
 static char RoadMapLastKnownStatus = 'A';
 
 static time_t RoadMapGpsLatestData = 0;
+
+static int RoadMapGpsEstimatedError = 0;
 
 
 static void roadmap_gps_no_link_control (int fd) {}
@@ -75,6 +80,29 @@ static roadmap_gps_link_control RoadMapGpsLinkAdd =
 
 static roadmap_gps_link_control RoadMapGpsLinkRemove =
                                     &roadmap_gps_no_link_control;
+
+
+static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
+
+    if ((strcasecmp (fields->pgrmm.datum, "NAD83") != 0) &&
+        (strcasecmp (fields->pgrmm.datum, "WGS 84") != 0)) {
+        roadmap_log (ROADMAP_FATAL,
+                     "bad datum '%s': 'NAD83' or 'WGS 84' is required",
+                     fields->pgrmm.datum);
+    }
+
+    (*RoadMapGpsNextPgrmm) (context, fields);
+}
+
+
+static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
+
+    RoadMapGpsEstimatedError =
+        roadmap_math_to_current_unit (fields->pgrme.horizontal,
+                                      fields->pgrme.horizontal_unit);
+
+    (*RoadMapGpsNextPgrme) (context, fields);
+}
 
 
 static void roadmap_gps_gprmc (void *context, const RoadMapNmeaFields *fields) {
@@ -197,6 +225,18 @@ void roadmap_gps_open (void) {
 
       RoadMapGpsNextGprmc =
          roadmap_nmea_subscribe ("GPRMC", roadmap_gps_gprmc);
+   }
+
+   if (RoadMapGpsNextPgrme == NULL) {
+
+      RoadMapGpsNextPgrme =
+         roadmap_nmea_subscribe ("PGRME", roadmap_gps_pgrme);
+   }
+
+   if (RoadMapGpsNextPgrmm == NULL) {
+
+      RoadMapGpsNextPgrmm =
+         roadmap_nmea_subscribe ("PGRMM", roadmap_gps_pgrmm);
    }
 }
 
@@ -333,5 +373,11 @@ int roadmap_gps_active (void) {
    }
 
    return 1;
+}
+
+
+int roadmap_gps_estimated_error (void) {
+
+    return RoadMapGpsEstimatedError;
 }
 
