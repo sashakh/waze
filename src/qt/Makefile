@@ -7,6 +7,7 @@ INSTALLDIR=/usr/local
 ## QPE: GUICFLAGS=-I$(QTDIR)/include -DQWS
 ## QPE: GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
 ## QPE: MOC=$(QTDIR)/bin/moc
+## QPE: LDFLAGS=-L$(QTDIR)/lib
 ## INSTALLDIR=$(QTDIR)
 
 STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
@@ -18,7 +19,6 @@ CPPFLAGS=-I.. $(GUICFLAGS) $(STDCFLAGS) -fno-rtti -fno-exceptions -pipe
 
 RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a
 LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
-LDFLAGS=-L$(QTDIR)/lib
 STRIP=strip
 
 # LDFLAGS=-pg $(LDFLAGS)
