@@ -151,7 +151,11 @@ void roadmap_display_details (RoadMapPosition *position, char *format) {
     RoadMapGuiPoint points[7];
     RoadMapGuiPoint text_position;
     char text[256];
+    char *text_line;
     int width, height, ascent, descent;
+    int screen_width;
+    int sign_width, sign_height, text_height;
+    int lines;
 
 
     if (! roadmap_display_format (text, sizeof(text), format)) {
@@ -160,49 +164,63 @@ void roadmap_display_details (RoadMapPosition *position, char *format) {
 
     roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
 
+    width += 8; /* Keep some room around the text. */
+    
     roadmap_math_coordinate (position, points);
     roadmap_math_rotate_coordinates (1, points);
 
-    width = roadmap_canvas_width();
+    screen_width = roadmap_canvas_width();
     
-    if (points[0].x < width / 2) {
+    if (width + 10 < screen_width) {
+        sign_width = width;
+        lines = 1;
+    } else {
+        sign_width = screen_width - 10;
+        lines = 2;
+    }
+    
+    if (points[0].x < screen_width / 2) {
 
         points[1].x = 10;
         points[2].x = 5;
-        points[4].x = width - 5;
+        points[4].x = sign_width + 5;
         points[6].x = 20;
+        
+        text_position.x = 9;
 
     } else {
 
-        points[1].x = width - 10;
-        points[2].x = width - 5;
-        points[4].x = 5;
-        points[6].x = width - 20;
+        points[1].x = screen_width - 10;
+        points[2].x = screen_width - 5;
+        points[4].x = screen_width - sign_width - 5;
+        points[6].x = screen_width - 20;
+        
+        text_position.x = points[4].x + 4;
     }
     points[3].x = points[2].x;
     points[5].x = points[4].x;
     
-    corner = ROADMAP_CANVAS_LEFT;
-    text_position.x = 9;
 
     height = roadmap_canvas_height();
 
+    text_height = ascent + descent + 3;
+    sign_height = lines * text_height + 3;
+    
     if (points[0].y < height / 2) {
    
-        points[1].y = height - ascent - descent - 11;
+        points[1].y = height - sign_height - 5;
         points[3].y = height - 5;
 
-        corner |= ROADMAP_CANVAS_BOTTOM;
-        text_position.y = height - 8;
+        text_position.y = points[1].y + 3;
 
     } else {
 
-        points[1].y = ascent + descent + 11;
+        points[1].y = sign_height + 5;
         points[3].y = 5;
 
-        corner |= ROADMAP_CANVAS_TOP;
         text_position.y = 8;
     }
+    corner = ROADMAP_CANVAS_LEFT | ROADMAP_CANVAS_TOP;
     points[2].y = points[1].y;
     points[4].y = points[3].y;
     points[5].y = points[1].y;
@@ -217,7 +235,37 @@ void roadmap_display_details (RoadMapPosition *position, char *format) {
 
     roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
 
-    roadmap_canvas_draw_string (&text_position, corner, text+1);
+    text_line = text + 1;
+    if (lines > 1) {
+        char *text_end = text_line + strlen(text_line);
+        char *p1 = text_line + (strlen(text_line) / 2);
+        char *p2 = p1;
+        
+        while (p1 > text_line) {
+            if (*p1 == ' ') {
+                break;
+            }
+            p1 -= 1;
+        }
+        while (p2 < text_end) {
+            if (*p2 == ' ') {
+                break;
+            }
+            p2 += 1;
+        }
+        if (text_end - p1 > p2 - text_line) {
+            p1 = p2;
+        }
+        if (p1 > text_line) {
+            *p1 = 0;
+            roadmap_canvas_draw_string (&text_position, corner, text_line);
+            text_line = p1 + 1;
+            text_position.y += text_height;
+        }
+            
+    }
+
+    roadmap_canvas_draw_string (&text_position, corner, text_line);
 }
 
 
