@@ -62,9 +62,8 @@ ABOUT THIS DOCUMENTATION
       aptconvert -toc web/manual.html README
 ----
    
-   The aptconvert tool is available at:
-
-   {{http://www.xmlmind.com/aptconvert.html}}
+   The aptconvert tool is available at 
+   {{http://www.xmlmind.com/aptconvert.html}}.
 
 
 INSTALLATION
@@ -163,7 +162,7 @@ INSTALLATION
 
    The RoadMap familiar distribution contains one .ipk package file. This
    package contains the RoadMap executables (roadmap and roadgps) as well as
-   the configuration files for a GTK 2.0 setup (such as the Familiar 0.7.1 GPE
+   the configuration files for a GTK 2.0 setup (such as the Familiar 0.7.2 GPE
    image). This package does not contain the map files or the map index file.
 
    If RoadMap is available from your feed:
@@ -179,17 +178,19 @@ INSTALLATION
 ----
 
    RoadMap is useless without maps. The maps can be downloaded from the
-   web site ({{http://roadmap.saignon.net/maps.html}} or mirrors) or generated
-   from the US Census Bureau's files (see later).
+   web site ({{http://roadmap.digitalomaha.net/maps.html}} or mirrors) or
+   generated from the US Census Bureau's files (see later).
 
-   It is strongly recommended you install the RoadMap maps on a CompactFlash
-   or SD/MMC card, and not on the iPAQ internal flash. The reason is that
-   the maps are way too big to be installed on the iPAQ flash. As configured,
+   It is strongly recommended you install the maps on a CompactFlash or
+   SD/MMC card, and not on the iPAQ internal flash. The reason is that the
+   maps are way too big to be installed on the iPAQ flash. As configured,
    RoadMap will look for the maps either in
    
            * /mnt/hda/share/roadmap or
 
            * /mnt/card/share/roadmap.
+
+   (This can be changed using the RoadMap preferences dialog.)
 
    The set of maps for California represents more that 100 Mbyte of data,
    the whole US about 1.6 Gbyte. Unless you are the lucky owner of a large
@@ -217,7 +218,7 @@ INSTALLATION
    [[3]] Compile the map building tools:
 
 ----
-      cd roadmap/src
+      cd roadmap-<version>/src
       make build
 ----
 
@@ -389,17 +390,17 @@ ROADMAP APPLICATIONS
                      as input and produces the map files used by roadmap.
                      This application is to be run once on a desktop or
                      beefed-up laptop to prepare the map files and is not
-                     needed when using the maps.
+                     needed when using roadmap.
 
    [buildus]         A program that takes a set of roadmap map files and
                      produce a directory file that helps roadmap choose
                      the map(s) to display according to the location or
                      city. This application is to be run once on a desktop
-                     or laptop and is not needed when using the maps.
+                     or laptop and is not needed when using roadmap.
 
    [dumpmap]         Display the data tables from a map file. This application
                      is used for debug purposes only and is not needed when
-                     using the maps.
+                     using roadmap.
 
    [rdmgenmaps]      A script to simplify the generation of the maps.
 
