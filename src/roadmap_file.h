@@ -46,6 +46,7 @@ const char *roadmap_file_default_path (void);
 char *roadmap_file_join (const char *path, const char *name);
 FILE *roadmap_file_open (const char *path, const char *name, const char *mode);
 void  roadmap_file_remove (const char *path, const char *name);
+int   roadmap_file_exists (const char *path, const char *name);
 
 void  roadmap_file_save (const char *path, const char *name,
                          void *data, int length);

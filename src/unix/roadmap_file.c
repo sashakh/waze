@@ -289,6 +289,20 @@ void roadmap_file_remove (const char *path, const char *name) {
 }
 
 
+int roadmap_file_exists (const char *path, const char *name) {
+
+   int   status;
+   char *full_name = roadmap_file_join (path, name);
+   struct stat stat_buffer;
+
+   status = stat (full_name, &stat_buffer);
+
+   free (full_name);
+
+   return (status == 0);
+}
+
+
 void roadmap_file_save (const char *path, const char *name,
                         void *data, int length) {
 
