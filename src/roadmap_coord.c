@@ -50,21 +50,125 @@
 static void *RoadMapCoordHistory;
 
 
-static int roadmap_coord_to_binary (const char *image) {
+static int roadmap_coord_fraction (const char *image) {
+
+   char normalized[16];
+
+   if (image[0] == 0) return 0;
+
+   strncpy (normalized, image, 6);
+   normalized[6] = 0;
+
+   strncat (normalized, "000000", 7);
+   normalized[6] = 0;
+
+   return atoi(normalized);
+}
+
+static int roadmap_coord_to_binary (const char *image, int is_longitude) {
 
    int value;
-   char *s;
+   int sign = 1;
+   int length;
 
-   if (strchr (image, '.') != NULL) {
-      value = (int) (strtod(image, &s) * 1000000);
-      if (s != NULL) {
-         return 181000000; /* Invalid on purpose. */
-      }
-   } else {
-      value = atoi(image);
+   const char *p;
+
+
+   /* This function supports the following formats:
+    *
+    * Sdd[d].ddd     (ISO 6709-1983, decimal degree format).
+    * Sdd[d]mm.mmm   (ISO 6709-1983, degree/minute format).
+    * Sdd[d]mmss.sss (ISO 6709-1983, degree/minute/second format).
+    *
+    * RoadMap is more lenient than the ISO standard: the degrees
+    * do not need a leading zero and 'E', 'W', 'S' and 'N' can be
+    * used in addition to '+' and '-'.
+    */
+   switch (*image)
+   {
+      case '-':
+         sign = -1;
+         ++image;
+         break;
+      case '+':
+         ++image;
+         break;
+      case 'W':
+      case 'w':
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         sign = -1;
+         ++image;
+         break;
+      case 'E':
+      case 'e':
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         ++image;
+         break;
+      case 'S':
+      case 's':
+         if (is_longitude) return 181000000; /* Invalid on purpose. */
+         sign = -1;
+         ++image;
+         break;
+      case 'N':
+      case 'n':
+         if (is_longitude) return 181000000; /* Invalid on purpose. */
+         ++image;
+         break;
    }
 
-   return value;
+   p = strchr (image, '.');
+   if (p == NULL) {
+      length = strlen(image);
+      p = image + length;
+   } else {
+      length = p - image;
+      ++p;
+   }
+   value = atoi(image);
+
+   switch (length) {
+
+      case 3:
+
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         /* Otherwise same as 1 & 2.. */
+
+      case 1:
+      case 2:
+
+         value = (value * 1000000) + roadmap_coord_fraction(p+1);
+         break;
+
+      case 5:
+
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         /* Otherwise same as 4.. */
+
+      case 4:
+
+         value = ((value / 100) * 1000000)                     /* degrees */
+                    + (((value % 100) * 1000000) / 60)         /* minutes */
+                    + (roadmap_coord_fraction(p) / 60);
+         break;
+
+      case 7:
+
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         /* Otherwise same as 6.. */
+
+      case 6:
+
+         value = ((value / 10000) * 1000000)                   /* degrees */
+                    + ((((value / 100) % 100) * 1000000) / 60) /* minutes */
+                    + (((value % 100) * 1000000) / 3600)       /* Seconds */
+                    + (roadmap_coord_fraction(p) / 3600);
+         break;
+
+      default: return 181000000; /* Invalid on purpose. */
+   }
+
+   return sign * value;
 }
 
 
@@ -107,18 +211,18 @@ static void roadmap_coord_ok (const char *name, void *data) {
 
    argv[0] = (const char*) roadmap_dialog_get_data
                               ("Coordinates", "Longitude (decimal degrees):");
-   position.longitude = roadmap_coord_to_binary (argv[0]);
+   position.longitude = roadmap_coord_to_binary (argv[0], 1);
    if (position.longitude > 180000000 || position.longitude < -180000000) {
-	roadmap_messagebox("Warning", "Invalid longitude value");
-	return;
+      roadmap_messagebox("Warning", "Invalid longitude value");
+      return;
    }
 
    argv[1] = (const char*) roadmap_dialog_get_data
                               ("Coordinates", "Latitude (decimal degrees):");
-   position.latitude = roadmap_coord_to_binary (argv[1]);
+   position.latitude = roadmap_coord_to_binary (argv[1], 0);
    if (position.latitude > 90000000 || position.latitude < -90000000) {
-	roadmap_messagebox("Warning", "Invalid latitude value");
-	return;
+      roadmap_messagebox("Warning", "Invalid latitude value");
+      return;
    }
 
    roadmap_trip_set_point ("Selection", &position);
