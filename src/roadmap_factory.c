@@ -56,6 +56,8 @@ struct RoadMapFactoryKeyMap {
 
 static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 
+static int RoadMapFactoryKeyLength = 0;
+
 
 static void roadmap_factory_keyboard (char *key) {
 
@@ -118,8 +120,7 @@ static const char *roadmap_factory_terse (const RoadMapAction *action) {
 
 void roadmap_factory (const RoadMapAction  *actions,
                       const char           *menu[],
-                      const char           *toolbar[],
-                      const char           *shortcuts[]) {
+                      const char           *toolbar[]) {
 
    int i;
    int prefix = strlen(ROADMAP_MENU);
@@ -132,10 +133,6 @@ void roadmap_factory (const RoadMapAction  *actions,
             (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralIcons),
                          "yes") == 0);
 
-
-   if (RoadMapFactoryBindings != NULL) {
-      roadmap_log (ROADMAP_FATAL, "RoadMap factory was called twice");
-   }
 
    for (i = 0; menu[i] != NULL; ++i) {
 
@@ -191,6 +188,21 @@ void roadmap_factory (const RoadMapAction  *actions,
       }
    }
 
+   if (RoadMapFactoryBindings != NULL) {
+      roadmap_main_set_keyboard (roadmap_factory_keyboard);
+   }
+}
+
+
+void roadmap_factory_keymap (const RoadMapAction  *actions,
+                             const char           *shortcuts[]) {
+
+   int i;
+
+   if (RoadMapFactoryBindings != NULL) {
+      roadmap_log (ROADMAP_FATAL, "RoadMap factory was called twice");
+   }
+
    /* Count how many shortcuts we have to process. */
    for (i = 0; shortcuts[i] != NULL; ++i) ;
 
@@ -228,6 +240,12 @@ void roadmap_factory (const RoadMapAction  *actions,
             this_action = roadmap_factory_find_action (actions, p);
 
             if (this_action != NULL) {
+
+               int length = strlen(text);
+
+               if (length > RoadMapFactoryKeyLength) {
+                  RoadMapFactoryKeyLength = length;
+               }
                RoadMapFactoryBindings[j].key = text;
                RoadMapFactoryBindings[j].action = this_action;
                ++j;
@@ -252,7 +270,11 @@ void roadmap_factory_show_keymap (void) {
       const RoadMapAction *action = binding->action;
 
       if (action != NULL) {
-         printf ("  %-20.20s\t%s.\n", binding->key, action->tip);
+         printf ("  %-*.*s  %s.\n",
+                 RoadMapFactoryKeyLength,
+                 RoadMapFactoryKeyLength,
+                 binding->key,
+                 action->tip);
       }
    }
 }

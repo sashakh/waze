@@ -50,8 +50,10 @@ extern const char RoadMapFactoryHelpTopics[];
 
 void roadmap_factory (const RoadMapAction *actions,
                       const char          *menu[],
-                      const char          *toolbar[],
-                      const char          *shortcuts[]);
+                      const char          *toolbar[]);
+
+void roadmap_factory_keymap (const RoadMapAction *actions,
+                             const char          *shortcuts[]);
 
 void roadmap_factory_show_keymap (void);
 

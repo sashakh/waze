@@ -669,8 +669,7 @@ static void roadmap_start_window (void) {
 
    roadmap_factory (RoadMapStartActions,
                     RoadMapStartMenu,
-                    RoadMapStartToolbar,
-                    RoadMapStartKeyBinding);
+                    RoadMapStartToolbar);
 
    roadmap_main_add_canvas ();
 
@@ -776,6 +775,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_initialize   ();
 
    roadmap_path_set(roadmap_config_get(&RoadMapConfigMapPath));
+
+   roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 
    roadmap_option (argc, argv, roadmap_factory_show_keymap);
 
