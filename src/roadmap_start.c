@@ -391,9 +391,11 @@ static RoadMapFactory RoadMapStartToolbar[] = {
       "Center the map on the current location", roadmap_start_show_location},
    {"G", NULL,
       "Center the map on the GPS position", roadmap_start_show_gps},
+/* Remove for now, because the default GPE setup makes the toolbar too large.
    {"g", NULL,
       "Center the map on the GPS position (north up)",
        roadmap_start_show_gps_north_up},
+*/
 
    {"H", NULL,
        "Hold the map view in its current position", roadmap_start_hold_map},
