@@ -90,7 +90,10 @@ rm -f $RELEASE/roadmap_${version}_i686.tar*
 tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_INFO
 echo "Creating tar ball for section armv4l ..."
 rm -f $RELEASE/roadmap_${version}_armv4l.tar*
-tar cf $RELEASE/roadmap_${version}_armv4l.tar $RDM_IPK $RDM_INFO
+rm -f roadmap/*.ipk
+cp $RDM_IPK roadmap
+tar cf $RELEASE/roadmap_${version}_armv4l.tar roadmap/*.ipk $RDM_INFO
+rm -f roadmap/*.ipk
 
 rm -f roadmap/src/*.rdm 
 
