@@ -915,7 +915,7 @@ void roadmap_math_screen_edges (int *west, int *east, int *north, int *south) {
 }
 
 
-int  roadmap_math_street_address (char *image, int length) {
+int  roadmap_math_street_address (const char *image, int length) {
 
    int i;
    int digit;

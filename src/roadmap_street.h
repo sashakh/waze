@@ -87,9 +87,14 @@ typedef struct {
 #define ROADMAP_STREET_NOSTREET    -2
 
 int roadmap_street_blocks_by_city
-       (char *street_name, char *city_name, RoadMapBlocks *blocks, int size);
+       (const char *street_name, const char *city_name,
+        RoadMapBlocks *blocks,
+        int size);
+
 int roadmap_street_blocks_by_zip
-       (char *street_name, int zip, RoadMapBlocks *blocks, int size);
+       (const char *street_name, int zip,
+        RoadMapBlocks *blocks,
+        int size);
 
 int roadmap_street_get_ranges (RoadMapBlocks *blocks,
                                int count,

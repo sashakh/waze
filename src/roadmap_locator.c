@@ -24,7 +24,7 @@
  *
  *  int roadmap_locator_by_position
  *         (RoadMapPosition *position, int *fips, int count);
- *  int  roadmap_locator_by_city     (char *city, char *state);
+ *  int  roadmap_locator_by_city     (const char *city, const char *state);
  *  int  roadmap_locator_activate    (int fips);
  *
  * These functions are used to retrieve which map the given entity belongs to.
@@ -323,7 +323,7 @@ int roadmap_locator_by_state (const char *state_symbol, int **fips) {
 }
 
 
-int roadmap_locator_by_city (char *city_name, char *state_symbol) {
+int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
 
    RoadMapString city;
    RoadMapString state;

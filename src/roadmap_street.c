@@ -518,7 +518,9 @@ static int roadmap_street_block_by_county_subdivision
 
 
 int roadmap_street_blocks_by_city
-       (char *street_name, char *city_name, RoadMapBlocks *blocks, int size) {
+       (const char *street_name, const char *city_name,
+        RoadMapBlocks *blocks,
+        int size) {
 
    int i;
    int count;
@@ -592,7 +594,9 @@ int roadmap_street_blocks_by_city
 
 
 int roadmap_street_blocks_by_zip
-       (char *street_name, int zip, RoadMapBlocks *blocks, int size) {
+       (const char *street_name, int zip,
+        RoadMapBlocks *blocks,
+        int size) {
 
    int i;
    int j;
