@@ -157,7 +157,7 @@ void roadmap_gps_open (void) {
       if (RoadMapGpsLink > 0) {
 
          if (write (RoadMapGpsLink, "r\n", 2) != 2) {
-            roadmap_log (ROADMAP_ERROR,
+            roadmap_log (ROADMAP_WARNING,
                          "cannot subscribe to gpsd, errno = %d", errno);
             close(RoadMapGpsLink);
             RoadMapGpsLink = -1;
@@ -183,7 +183,7 @@ void roadmap_gps_open (void) {
    }
 
    if (RoadMapGpsLink < 0) {
-      roadmap_log (ROADMAP_ERROR, "cannot access GPS source %s", url);
+      roadmap_log (ROADMAP_WARNING, "cannot access GPS source %s", url);
       return;
    }
 
