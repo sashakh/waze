@@ -1,7 +1,7 @@
 Accuracy.GPS: 1000
 Accuracy.Mouse: 20
 Destination.Color: red
-Map.Path: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
+Map.Path: .,&/maps,/usr/share/roadmap,/usr/local/share/roadmap
 Map.Cache: 8
 Map.Background: LightYellow
 General.Default Zoom: 20

@@ -44,6 +44,7 @@
 #define ROADMAP_WIDGET_CHOICE    2
 #define ROADMAP_WIDGET_BUTTON    3
 #define ROADMAP_WIDGET_LIST      4
+#define ROADMAP_WIDGET_LABEL     5
 
 enum {
     RM_LIST_WAYPOINT_NAME,
@@ -308,12 +309,18 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
       gtk_table_attach (GTK_TABLE(parent->w),
                         label, 0, 1, child->rank, child->rank+1,
                         GTK_FILL, GTK_FILL, 2, 2);
-   }
 
-   gtk_table_attach (GTK_TABLE(parent->w),
-                     w, 1, 2, child->rank, child->rank+1,
-                     GTK_EXPAND+GTK_FILL+GTK_SHRINK,
-                     GTK_EXPAND+GTK_FILL+GTK_SHRINK, 2, 2);
+      gtk_table_attach (GTK_TABLE(parent->w),
+                        w, 1, 2, child->rank, child->rank+1,
+                        GTK_EXPAND+GTK_FILL+GTK_SHRINK,
+                        GTK_EXPAND+GTK_FILL+GTK_SHRINK, 2, 2);
+   } else {
+
+      gtk_table_attach (GTK_TABLE(parent->w),
+                        w, 0, 2, child->rank, child->rank+1,
+                        GTK_EXPAND+GTK_FILL+GTK_SHRINK,
+                        GTK_EXPAND+GTK_FILL+GTK_SHRINK, 2, 2);
+   }
 
    child->w = w;
 
@@ -361,6 +368,15 @@ void roadmap_dialog_new_entry (const char *frame, const char *name) {
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w);
 
    child->widget_type = ROADMAP_WIDGET_ENTRY;
+}
+
+
+void roadmap_dialog_new_label (const char *frame, const char *name) {
+
+   GtkWidget *w = gtk_label_new (name);
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w);
+
+   child->widget_type = ROADMAP_WIDGET_LABEL;
 }
 
 
@@ -678,7 +694,8 @@ void *roadmap_dialog_get_data (const char *frame, const char *name) {
 }
 
 
-void  roadmap_dialog_set_data (const char *frame, const char *name, void *data) {
+void  roadmap_dialog_set_data (const char *frame, const char *name,
+                               const void *data) {
 
    RoadMapDialogItem this_frame;
    RoadMapDialogItem this_item;
@@ -691,11 +708,14 @@ void  roadmap_dialog_set_data (const char *frame, const char *name, void *data) 
 
    case ROADMAP_WIDGET_ENTRY:
 
-      gtk_entry_set_text (GTK_ENTRY(this_item->w), (char *)data);
+      gtk_entry_set_text (GTK_ENTRY(this_item->w), (const char *)data);
+      break;
 
-   default:
+   case ROADMAP_WIDGET_LABEL:
 
-      this_item->value = data;
+      gtk_label_set_text (GTK_LABEL(this_item->w), (const char *)data);
+      break;
    }
+   this_item->value = (char *)data;
 }
 

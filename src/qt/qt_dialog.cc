@@ -175,7 +175,7 @@ void* RMapDialog::getEntryValue(const char* frame, const char* name) {
 	return entry->getValue();
 }
 
-void RMapDialog::setEntryValue(const char* frame, const char* name, void* data) {
+void RMapDialog::setEntryValue(const char* frame, const char* name, const void* data) {
 	Entry* entry = getEntry(frame, name);
 
 	if (entry == 0) {
@@ -312,7 +312,7 @@ void* Entry::getValue() {
 	return ret;
 }
 
-void Entry::setValue(void* val) {
+void Entry::setValue(const void* val) {
 	switch (type) {
 		case TextEntry:
 			((QLineEdit*) widget)->setText((char*) val);
@@ -323,11 +323,11 @@ void Entry::setValue(void* val) {
 			break;
 
 		case ChoiceEntry: 
-			items[((QComboBox*) widget)->currentItem()]->value = val;
+			items[((QComboBox*) widget)->currentItem()]->value = (char *)val;
 			break;
 
 		case ListEntry:
-			items[((QListBox*) widget)->currentItem()]->value = val;
+			items[((QListBox*) widget)->currentItem()]->value = (char *)val;
 			break;
 
 	}

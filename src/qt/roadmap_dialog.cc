@@ -65,6 +65,10 @@ void roadmap_dialog_new_entry (const char *frame, const char *name) {
 	currentDialog->addTextEntry(frame, name);
 }
 
+void roadmap_dialog_new_label (const char *frame, const char *name) {
+	// TBD.
+}
+
 void roadmap_dialog_new_color (const char *frame, const char *name) {
 	currentDialog->addColorEntry(frame, name);
 }
@@ -105,6 +109,7 @@ void *roadmap_dialog_get_data (const char *frame, const char *name) {
 	return currentDialog->getEntryValue(frame, name);
 }
 
-void roadmap_dialog_set_data (const char *frame, const char *name, void *data) {
+void roadmap_dialog_set_data (const char *frame, const char *name,
+                              const void *data) {
 	currentDialog->setEntryValue(frame, name, data);
 }

@@ -39,6 +39,7 @@
 
 #include "roadmap.h"
 #include "roadmap_math.h"
+#include "roadmap_hash.h"
 #include "roadmap_dbread.h"
 #include "roadmap_db_county.h"
 #include "roadmap_dictionary.h"
@@ -61,7 +62,10 @@ typedef struct {
    RoadMapCountyByState *state;
    int                   state_count;
 
+   RoadMapHash *hash;
+
    RoadMapDictionary names;
+   RoadMapDictionary states;
 
 } RoadMapCountyContext;
 
@@ -75,6 +79,7 @@ static void *roadmap_county_map (roadmap_db *root) {
    roadmap_db *city_table;
 
    RoadMapCountyContext *context;
+
 
    context = malloc (sizeof(RoadMapCountyContext));
    roadmap_check_allocated(context);
@@ -124,7 +129,11 @@ static void roadmap_county_activate (void *context) {
 
    if (county_context->names == NULL) {
       county_context->names = roadmap_dictionary_open ("county");
+      county_context->states = roadmap_dictionary_open ("state");
    }
+
+   county_context->hash =
+      roadmap_hash_new ("countyIndex", county_context->county_count);
 }
 
 static void roadmap_county_unmap (void *context) {
@@ -138,6 +147,8 @@ static void roadmap_county_unmap (void *context) {
    if (county_context == RoadMapCountyActive) {
       RoadMapCountyActive = NULL;
    }
+
+   roadmap_hash_free (county_context->hash);
 
    free (county_context);
 }
@@ -166,7 +177,7 @@ int roadmap_county_by_position
    /* First find the counties that might "cover" the given location.
     * these counties have priority.
     */
-   for (i = 1; i <= RoadMapCountyActive->state_count; i++) {
+   for (i = 1; i < RoadMapCountyActive->state_count; i++) {
 
       this_state = RoadMapCountyActive->state + i;
 
@@ -196,7 +207,7 @@ int roadmap_county_by_position
 
    /* Then find the counties that are merely visible.
     */
-   for (i = 1; i <= RoadMapCountyActive->state_count; i++) {
+   for (i = 1; i < RoadMapCountyActive->state_count; i++) {
 
       this_state = RoadMapCountyActive->state + i;
 
@@ -242,7 +253,7 @@ static RoadMapCountyByState *roadmap_county_search_state (RoadMapString state) {
    int i;
    RoadMapCountyByState *this_state;
 
-   for (i = 1; i <= RoadMapCountyActive->state_count; i++) {
+   for (i = 1; i < RoadMapCountyActive->state_count; i++) {
 
       this_state = RoadMapCountyActive->state + i;
 
@@ -328,6 +339,63 @@ const char *roadmap_county_name (RoadMapString state, int fips) {
       }
    }
 
+   return "";
+}
+
+
+static int roadmap_county_search_index (int fips) {
+
+   int i;
+
+   for (i = roadmap_hash_get_first (RoadMapCountyActive->hash, fips);
+        i >= 0;
+        i = roadmap_hash_get_next (RoadMapCountyActive->hash, i)) {
+
+      if (fips == RoadMapCountyActive->county[i].fips) return i;
+   }
+
+   for (i = 0; i < RoadMapCountyActive->county_count; ++i) {
+
+      if (fips == RoadMapCountyActive->county[i].fips) {
+         roadmap_hash_add (RoadMapCountyActive->hash, fips, i);
+         return i;
+      }
+   }
+
+   return -1;
+}
+
+
+const char *roadmap_county_get_name (int fips) {
+
+   int i = roadmap_county_search_index (fips);
+
+   if (i < 0) {
+      return "";
+   }
+   return roadmap_dictionary_get
+             (RoadMapCountyActive->names, RoadMapCountyActive->county[i].name);
+}
+
+
+const char *roadmap_county_get_state (int fips) {
+
+   RoadMapCountyByState *this_state;
+
+   int i;
+   int county = roadmap_county_search_index (fips);
+
+
+   for (i = 1; i < RoadMapCountyActive->state_count; ++i) {
+
+      this_state = RoadMapCountyActive->state + i;
+
+      if (county >= this_state->first_county &&
+          county <= this_state->last_county) {
+         return roadmap_dictionary_get
+                   (RoadMapCountyActive->states, this_state->name);
+      }
+   }
    return "";
 }
 

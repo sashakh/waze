@@ -208,7 +208,7 @@ static void roadmap_crossing_ok (const char *name, void *data) {
 
        sprintf (buffer, "%s (%s County)",
                 roadmap_street_get_city_name (&properties),
-                roadmap_county_name (state, intersection->fips));
+                roadmap_county_get_name (intersection->fips));
 
        list[i] = intersection;
        names[i] = strdup(buffer);

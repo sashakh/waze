@@ -78,7 +78,7 @@ public:
 	QString getName();
 
 	void* getValue();
-	void setValue(void*);
+	void setValue(const void*);
 
 	QWidget* getWidget() {
 		return widget;
@@ -111,7 +111,7 @@ public:
 	void complete(int use_keyboard);
 
 	void* getEntryValue(const char* frame, const char* name);
-	void setEntryValue(const char* frame, const char* name, void* data);
+	void setEntryValue(const char* frame, const char* name, const void* data);
 
 	void setContext(void*);
 	void* getContext() {

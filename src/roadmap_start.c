@@ -53,6 +53,8 @@
 #include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
 #include "roadmap_display.h"
+#include "roadmap_locator.h"
+#include "roadmap_download.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
@@ -517,17 +519,22 @@ void roadmap_start (int argc, char **argv) {
    roadmap_voice_initialize    ();
    roadmap_gps_initialize      (&roadmap_gps_update);
    roadmap_history_initialize  ();
+   roadmap_download_initialize ();
    roadmap_config_initialize   ();
 
    roadmap_file_set_path(roadmap_config_get(&RoadMapConfigMapPath));
 
    roadmap_option (argc, argv);
 
+   roadmap_locator_declare (roadmap_download_get_county);
+
    roadmap_start_set_unit ();
    
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
+
+   roadmap_download_subscribe_when_done (roadmap_screen_redraw);
    roadmap_screen_set_initial_position ();
 
    roadmap_history_load ();

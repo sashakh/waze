@@ -31,6 +31,11 @@
 #define ROADMAP_US_NOCITY  -2
 #define ROADMAP_US_NOMAP   -3
 
+typedef int (*RoadMapInstaller) (int fips);
+
+
+void roadmap_locator_declare (RoadMapInstaller download);
+
 int roadmap_locator_by_position
         (const RoadMapPosition *position, int **fips);
 int roadmap_locator_by_state (const char *state_symbol, int **fips);

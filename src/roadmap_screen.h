@@ -41,6 +41,11 @@ void roadmap_screen_move_left  (void);
 
 void roadmap_screen_rotate (int delta);
 
-void roadmap_screen_refresh (void);
+void roadmap_screen_refresh (void); /* Conditional: only if needed. */
+void roadmap_screen_redraw  (void); /* Force a screen redraw, no move. */
+
+typedef void (*RoadMapScreenSubscriber) (void);
+
+void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler);
 
 #endif // INCLUDE__ROADMAP_SCREEN__H

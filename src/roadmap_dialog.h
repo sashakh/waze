@@ -38,7 +38,8 @@
  *   Here is an example of a simple dialog asking for a name and an email
  *   address (with no keyboard attached):
  *
- *   if (roadmap_dialog_activate ("Email Address")) {
+ *   if (roadmap_dialog_activate ("Email Address", context)) {
+ *     roadmap_dialog_new_label  ("Address", "Please enter a valid address");
  *     roadmap_dialog_new_entry  ("Address", "Name");
  *     roadmap_dialog_new_entry  ("Address", "email");
  *     roadmap_dialog_add_button ("OK", add_this_address);
@@ -68,6 +69,9 @@ int roadmap_dialog_activate (const char *name, void *context);
 
 /* Hide the given dialog, if it exists. */
 void roadmap_dialog_hide (const char *name);
+
+/* Add one text label item to the current dialog. */
+void roadmap_dialog_new_label (const char *frame, const char *name);
 
 /* Add one text entry item to the current dialog. */
 void roadmap_dialog_new_entry (const char *frame, const char *name);
@@ -111,6 +115,8 @@ void roadmap_dialog_complete (int use_keyboard);
 
 void  roadmap_dialog_select   (const char *dialog);
 void *roadmap_dialog_get_data (const char *frame, const char *name);
-void  roadmap_dialog_set_data (const char *frame, const char *name, void *data);
+void  roadmap_dialog_set_data (const char *frame, const char *name,
+                               const void *data);
+void  roadmap_dialog_protect  (const char *frame, const char *name);
 
 #endif // INCLUDE__ROADMAP_DIALOG__H

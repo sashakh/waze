@@ -91,6 +91,12 @@ static char *SquareOnScreen;
 static int   SquareOnScreenCount;
 
 
+static void roadmap_screen_after_refresh (void) {}
+
+static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
+                                       roadmap_screen_after_refresh;
+
+
 /* Define the buffers used to group all actual drawings. */
 
 #define ROADMAP_SCREEN_BULK  4096
@@ -845,6 +851,15 @@ void roadmap_screen_refresh (void) {
     }
 
     roadmap_log_pop ();
+
+    RoadMapScreenAfterRefresh();
+}
+
+
+void roadmap_screen_redraw (void) {
+
+    roadmap_screen_repaint ();
+    RoadMapScreenAfterRefresh();
 }
 
 
@@ -973,3 +988,14 @@ void roadmap_screen_set_initial_position (void) {
 
     roadmap_layer_adjust ();
 }
+
+
+void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler) {
+
+   if (handler == NULL) {
+      RoadMapScreenAfterRefresh = roadmap_screen_after_refresh;
+   } else {
+      RoadMapScreenAfterRefresh = handler;
+   }
+}
+

@@ -43,8 +43,8 @@
 #include "roadmap_line.h"
 #include "roadmap_street.h"
 #include "roadmap_polygon.h"
-#include "roadmap_gui.h"
 #include "roadmap_county.h"
+
 #include "roadmap_locator.h"
 
 
@@ -70,6 +70,15 @@ static RoadMapDictionary RoadMapUsCityDictionary = NULL;
 static RoadMapDictionary RoadMapUsCountyDictionary = NULL;
 static RoadMapDictionary RoadMapUsStateDictionary = NULL;
 static RoadMapDictionary RoadMapUsCategoryDictionary = NULL;
+
+
+static int roadmap_locator_no_download (int fips) {
+
+    roadmap_log (ROADMAP_ERROR, "cannot open map database usc%05d", fips);
+    return 0;
+}
+
+static RoadMapInstaller  RoadMapDownload = roadmap_locator_no_download;
 
 
 /* The following table is a hardcoded default when the
@@ -167,7 +176,7 @@ static void roadmap_locator_close (int index) {
 
 static unsigned int roadmap_locator_new_access (void) {
 
-   static int RoadMapLocatorAccessCount = 0;
+   static unsigned int RoadMapLocatorAccessCount = 0;
 
    int i;
 
@@ -182,6 +191,7 @@ static unsigned int roadmap_locator_new_access (void) {
             roadmap_locator_close (i);
          }
       }
+      RoadMapActiveCounty = 0;
 
       RoadMapLocatorAccessCount += 1;
    }
@@ -232,11 +242,11 @@ static int roadmap_locator_open (int fips) {
 
    access = roadmap_locator_new_access ();
 
-   if (! roadmap_db_open (map_name, RoadMapCountyModel)) {
+   while (! roadmap_db_open (map_name, RoadMapCountyModel)) {
 
-      roadmap_log (ROADMAP_ERROR, "cannot open map database %s", map_name);
-
-      return ROADMAP_US_NOMAP;
+      if (! RoadMapDownload (fips)) {
+         return ROADMAP_US_NOMAP;
+      }
    }
 
    RoadMapCountyCache[oldest].fips = fips;
@@ -262,6 +272,16 @@ static int roadmap_locator_allocate (int **fips) {
    }
 
    return count;
+}
+
+
+void roadmap_locator_declare (RoadMapInstaller download) {
+
+   if (download == NULL) {
+       RoadMapDownload = roadmap_locator_no_download;
+   } else {
+       RoadMapDownload = download;
+   }
 }
 
 
