@@ -37,6 +37,8 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
 RMGUISRCS=roadmap_sprite.c \
           roadmap_trip.c \
+          roadmap_layer.c \
+          roadmap_navigate.c \
           roadmap_screen.c \
           roadmap_display.c \
           roadmap_factory.c \

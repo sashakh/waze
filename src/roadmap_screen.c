@@ -33,25 +33,23 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
-#include "roadmap_list.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
 #include "roadmap_config.h"
+#include "roadmap_layer.h"
 #include "roadmap_square.h"
-#include "roadmap_street.h"
 #include "roadmap_line.h"
 #include "roadmap_shape.h"
 #include "roadmap_point.h"
 #include "roadmap_polygon.h"
-#include "roadmap_dictionary.h"
-#include "roadmap_county.h"
 #include "roadmap_locator.h"
-#include "roadmap_voice.h"
+#include "roadmap_navigate.h"
 
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_canvas.h"
 #include "roadmap_display.h"
+
 #include "roadmap_screen.h"
 
 
@@ -77,6 +75,8 @@ static RoadMapConfigDescriptor RoadMapConfigMapBackground =
                         ROADMAP_CONFIG_ITEM("Map", "Background");
 
 
+static int RoadMapScreenInitialized = 0;
+
 static RoadMapPosition RoadMapScreenCenter;
 
 static int RoadMapScreenRotation;
@@ -87,45 +87,6 @@ static int RoadMapScreenShapesVisible = 0;
 
 static char *SquareOnScreen;
 static int   SquareOnScreenCount;
-
-
-/* CATEGORIES.
- * A category represents a group of map objects that are represented
- * using the same pen (i.e. same color, thickness) and the same
- * graphical primitive (line, polygon, etc..).
- */
-static struct roadmap_canvas_category {
-
-   const char *name;
-   RoadMapConfigDescriptor declutter;
-   RoadMapConfigDescriptor thickness;
-
-   RoadMapPen pen;
-
-} *RoadMapCategory;
-
-
-/* CLASSES.
- * A class represent a group of categories that have the same basic
- * properties. For example, the "Road" class can be searched for an
- * address.
- */
-typedef struct {
-
-   char *name;
-
-   int   count;
-   char  category[128];
-
-} RoadMapClass;
-
-static RoadMapClass RoadMapLineClass[] = {
-   {"Road", 0, {0}},
-   {"Feature", 0, {0}},
-   {NULL, 0, {0}}
-};
-
-static RoadMapClass *RoadMapRoadClass = &(RoadMapLineClass[0]);
 
 
 /* Define the buffers used to group all actual drawings. */
@@ -387,7 +348,7 @@ static void roadmap_screen_draw_polygons (void) {
 
       if (category != current_category) {
          roadmap_screen_flush_polygons ();
-         roadmap_canvas_select_pen (RoadMapCategory[category].pen);
+         roadmap_layer_select (category);
          current_category = category;
       }
 
@@ -642,7 +603,9 @@ static void roadmap_screen_reset_square_mask (void) {
 static int roadmap_screen_repaint_square (int square) {
 
    int i;
-   int j;
+   int count;
+   int layers[256];
+
    int west;
    int east;
    int north;
@@ -672,31 +635,23 @@ static int roadmap_screen_repaint_square (int square) {
 
    roadmap_screen_draw_square_edges (square);
 
-   for (i = 0; RoadMapLineClass[i].name != NULL; ++i) {
+   count = roadmap_layer_visible_lines (layers, 256);
+   
+   for (i = 0; i < count; ++i) {
 
-      RoadMapClass *class = RoadMapLineClass + i;
+        category = layers[i];
 
-      for (j = class->count - 1; j >= 0; --j) {
+        roadmap_layer_select (category);
 
-         category = class->category[j];
+        drawn += roadmap_screen_draw_square
+                    (square, category, fully_visible);
 
-         if (roadmap_math_declutter
-                 (roadmap_config_get_integer
-                     (&RoadMapCategory[category].declutter))) {
-
-            roadmap_canvas_select_pen (RoadMapCategory[category].pen);
-
-            drawn += roadmap_screen_draw_square
-                        (square, category, fully_visible);
-
-            if (RoadMapScreenObjects.cursor != RoadMapScreenObjects.data) {
-               roadmap_screen_flush_lines();
-            }
-            if (RoadMapScreenPoints.cursor != RoadMapScreenPoints.data) {
-               roadmap_screen_flush_points();
-            }
-         }
-      }
+        if (RoadMapScreenObjects.cursor != RoadMapScreenObjects.data) {
+            roadmap_screen_flush_lines();
+        }
+        if (RoadMapScreenPoints.cursor != RoadMapScreenPoints.data) {
+            roadmap_screen_flush_points();
+        }
    }
 
    return drawn;
@@ -752,202 +707,15 @@ static void roadmap_screen_repaint_map (void) {
 }
 
 
-static int roadmap_screen_retrieve_line
-                (const RoadMapGuiPoint *point,
-                 const RoadMapPosition *position,
-                 int accuracy,
-                 int *distance) {
-
-   int i;
-   int count = 0;
-   int detail[128];
-
-   int west, east, north, south;
-
-   int line;
-
-   RoadMapGuiPoint focus_point;
-   RoadMapPosition focus_position;
-
-   RoadMapPosition focus_topleft;
-   RoadMapPosition focus_bottomright;
-
-
-   focus_point.x = point->x + accuracy;
-   focus_point.y = point->y + accuracy;
-   roadmap_math_to_position (&focus_point, &focus_position);
-
-   west = focus_position.longitude;
-   east = focus_position.longitude;
-   north = focus_position.latitude;
-   south = focus_position.latitude;
-
-   focus_bottomright = focus_position;
-
-   focus_point.x = point->x - accuracy;
-   roadmap_math_to_position (&focus_point, &focus_position);
-
-   if (focus_position.longitude < west) {
-      west = focus_position.longitude;
-   }
-   if (focus_position.longitude > east) {
-      east = focus_position.longitude;
-   }
-   if (focus_position.latitude < south) {
-      south = focus_position.latitude;
-   }
-   if (focus_position.latitude > north) {
-      north = focus_position.latitude;
-   }
-
-   focus_point.y = point->y - accuracy;
-   roadmap_math_to_position (&focus_point, &focus_position);
-
-   if (focus_position.longitude < west) {
-      west = focus_position.longitude;
-   }
-   if (focus_position.longitude > east) {
-      east = focus_position.longitude;
-   }
-   if (focus_position.latitude < south) {
-      south = focus_position.latitude;
-   }
-   if (focus_position.latitude > north) {
-      north = focus_position.latitude;
-   }
-
-   focus_topleft = focus_position;
-
-   focus_point.x = point->x + accuracy;
-   roadmap_math_to_position (&focus_point, &focus_position);
-
-   if (focus_position.longitude < west) {
-      west = focus_position.longitude;
-   }
-   if (focus_position.longitude > east) {
-      east = focus_position.longitude;
-   }
-   if (focus_position.latitude < south) {
-      south = focus_position.latitude;
-   }
-   if (focus_position.latitude > north) {
-      north = focus_position.latitude;
-   }
-
-#ifdef DEBUG
-printf ("Position: %d longitude, %d latitude\n",
-        position.longitude,
-        position.latitude);
-fflush(stdout);
-#endif
-
-   for (i = RoadMapRoadClass->count - 1; i >= 0; --i) {
-
-      int category = RoadMapRoadClass->category[i];
-
-      if (roadmap_math_declutter
-              (roadmap_config_get_integer
-                  (&RoadMapCategory[category].declutter))) {
-
-         detail[count++] = category;
-      }
-   }
-
-   if (count > 0) {
-
-      roadmap_math_set_focus (west, east, north, south);
-
-      line = roadmap_street_get_closest (position, count, detail, distance);
-
-      roadmap_math_release_focus ();
-
-      return line;
-   }
-   
-   return -1;
-}
-
-
 static void roadmap_screen_repaint (int moved) {
 
-    static int DetectCount = 0;
-    static int PreviousLine = -1;    
     static RoadMapGuiPoint CompassPoint = {20, 20};
-    
-    int distance;
     
 
     roadmap_math_set_center (&RoadMapScreenCenter);
     
     if (moved) {
-
-        int line = PreviousLine;
-        int accuracy = roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
-
-        if (line >= 0) {
-
-            /* Confirm the current street if we are still at a "short"
-             * distance from it. This is to avoid switching streets
-             * randomly at the intersections.
-             */
-            RoadMapPosition position1, position2;
-            
-            roadmap_line_from (line, &position1);
-            roadmap_line_to   (line, &position2);
-                
-            distance =
-                roadmap_math_get_distance_from_segment
-                    (&RoadMapScreenCenter, &position1, &position2);
-            
-            if (distance > accuracy) {
-                line = -1; /* We left this line, search for another one. */
-            }
-        }
-        
-        if (line < 0) {
-            
-            /* The previous line, if any, is not a valid suitor anymore.
-             * Look around for another one. The closest line will be
-             * selected only if it is close enough.
-             */
-            RoadMapGuiPoint point;
-            
-            point.x = RoadMapScreenWidth/2;
-            point.y = RoadMapScreenHeight/2;
-            
-            line = roadmap_screen_retrieve_line
-                        (&point,
-                         &RoadMapScreenCenter,
-                         roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
-                         &distance);
-
-            if (line > 0) {
-                if (distance < accuracy) {
-                    PreviousLine = line; /* This line is close enough. */
-                    DetectCount = 1;
-                } else {
-                    line = -1; /* We are not close to any line. */
-                }
-            }
-        }
-        
-        if (line >= 0) {
-            
-            /* We have found a suitable line. Wait for a confirmation
-             * before we commit to an announcement.
-             */
-            if (DetectCount > 1) {
-                
-                int confirm =
-                    roadmap_config_get_integer (&RoadMapConfigAccuracyConfirm);
-            
-                if (DetectCount == confirm) {
-                    roadmap_display_activate
-                        ("Current Street", line, distance, NULL);
-                }
-            }
-            DetectCount += 1;
-        }
+        roadmap_navigate_locate (&RoadMapScreenCenter);
     }
 
     RoadMapScreenShapesVisible =
@@ -973,7 +741,7 @@ static void roadmap_screen_configure (void) {
    RoadMapScreenHeight = roadmap_canvas_height();
 
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
-   if (RoadMapCategory != NULL) {
+   if (RoadMapScreenInitialized) {
       roadmap_screen_repaint (0);
    }
 }
@@ -989,9 +757,8 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
     
     roadmap_math_to_position (point, &position);
    
-    line = roadmap_screen_retrieve_line
-                (point,
-                 &position,
+    line = roadmap_navigate_retrieve_line
+                (&position,
                  roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
                  &distance);
 
@@ -1104,26 +871,10 @@ void roadmap_screen_move_left (void) {
 
 static void roadmap_screen_after_zoom (void) {
 
-   int i;
-
-   /* Adjust the thickness of the drawing pen for all categories. */
-    
-   for (i = roadmap_locator_category_count(); i > 0; --i) {
-
-      if (roadmap_math_declutter
-              (roadmap_config_get_integer
-                  (&RoadMapCategory[i].declutter))) {
-
-         roadmap_canvas_select_pen (RoadMapCategory[i].pen);
-
-         roadmap_canvas_set_thickness
-            (roadmap_math_thickness
-                  (roadmap_config_get_integer
-                        (&RoadMapCategory[i].thickness)));
-      }
-   }
-   
-   roadmap_screen_repaint (0);
+    /* Adjust the thickness of the drawing pen for all categories. */
+    roadmap_layer_adjust ();
+  
+    roadmap_screen_repaint (0);
 }
 
 
@@ -1181,83 +932,11 @@ void roadmap_screen_initialize (void) {
 }
 
 
-static const char *roadmap_screen_declare_item
-                        (const char *category,
-                         const char *name, const char *default_value) {
-
-    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
-
-    descriptor.category = category;
-    descriptor.name = name;
-    roadmap_config_declare ("schema", &descriptor, default_value);
-
-    return roadmap_config_get (&descriptor);
-}
-
-static const char *roadmap_screen_declare_color
-                        (const char *category,
-                         const char *name, const char *default_value) {
-
-    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
-
-    descriptor.category = category;
-    descriptor.name = name;
-    roadmap_config_declare_color ("schema", &descriptor, default_value);
-
-    return roadmap_config_get (&descriptor);
-}
-
 void roadmap_screen_set_initial_position (void) {
 
-    int i;
-    int category_count;
-
-
-    category_count = roadmap_locator_category_count();
-
-    RoadMapCategory =
-        calloc (category_count + 1, sizeof(*RoadMapCategory));
-
-    for (i = 1; i <= category_count; ++i) {
-
-        const char *name = strdup(roadmap_locator_category_name(i));
-        const char *class;
-        const char *color;
-
-        RoadMapClass *p;
-
-
-        RoadMapCategory[i].name = name;
-        class = roadmap_screen_declare_item  (name, "Class", "");
-        color = roadmap_screen_declare_color (name, "Color", "black");
-        
-        RoadMapCategory[i].thickness.category = name;
-        RoadMapCategory[i].thickness.name     = "Thickness";
-        roadmap_config_declare
-            ("schema", &RoadMapCategory[i].thickness, "1");
-        
-        RoadMapCategory[i].declutter.category = name;
-        RoadMapCategory[i].declutter.name     = "Declutter";
-        roadmap_config_declare
-            ("schema", &RoadMapCategory[i].declutter, "20248000000");
-
-        for (p = RoadMapLineClass; p->name != NULL; ++p) {
-
-            if (strcasecmp (class, p->name) == 0) {
-                p->category[p->count++] = i;
-                break;
-            }
-        }
-
-        RoadMapCategory[i].pen = roadmap_canvas_create_pen (name);
-
-        roadmap_canvas_set_thickness
-            (roadmap_config_get_integer (&RoadMapCategory[i].thickness));
-
-        if (color != NULL && *color > ' ') {
-            roadmap_canvas_set_foreground (color);
-        }
-    }
+    RoadMapScreenInitialized = 1;
+    
+    roadmap_layer_initialize();
 
     RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
     roadmap_canvas_set_foreground
@@ -1267,4 +946,3 @@ void roadmap_screen_set_initial_position (void) {
     roadmap_canvas_set_thickness (4);
     roadmap_canvas_set_foreground ("grey");
 }
-
