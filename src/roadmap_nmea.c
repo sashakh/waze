@@ -208,13 +208,21 @@ static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
 
    int i;
    int index;
+   int last_satellite;
 
    RoadMapNmeaReceived.gpgsa.automatic = argv[1][0];
    RoadMapNmeaReceived.gpgsa.dimension = atoi(argv[2]);
 
-   for (index = 2, i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; ++i) {
+   /* The last 3 arguments (argc-3 .. argc-1) are not satellites. */
+   last_satellite = argc - 4;
+
+   for (index = 2, i = 0;
+        index < last_satellite && i < ROADMAP_NMEA_MAX_SATELLITE; ++i) {
 
       RoadMapNmeaReceived.gpgsa.satellite[i] = atoi(argv[++index]);
+   }
+   while (i < ROADMAP_NMEA_MAX_SATELLITE) {
+      RoadMapNmeaReceived.gpgsa.satellite[i++] = 0;
    }
 
    RoadMapNmeaReceived.gpgsa.dilution_position   = (float) atof(argv[++index]);
