@@ -649,6 +649,13 @@ int roadmap_math_set_orientation (int direction) {
    }
 
    roadmap_math_release_focus ();
+#ifdef DEBUG
+roadmap_log (ROADMAP_ERROR, "visibility: north=%d south=%d east=%d west=%d\n",
+        RoadMapContext.current_screen.north,
+        RoadMapContext.current_screen.south,
+        RoadMapContext.current_screen.east,
+        RoadMapContext.current_screen.east);
+#endif
    return status;
 }
 
