@@ -15,14 +15,14 @@ else
 endif
 endif
 
-ifeq ($(SQL),NONE)
-   SQLCFLAGS=
-	SQLLDFLAGS=
-	SQLTOOLS=
-else
+ifeq ($(SQL),SQLITE)
    SQLCFLAGS=-DROADMAP_USES_SQLITE
 	SQLLDFLAGS=-lsqlite
 	SQLTOOLS=sqliteload
+else
+   SQLCFLAGS=
+	SQLLDFLAGS=
+	SQLTOOLS=
 endif
 
 CFLAGS=$(MODECFLAGS) $(SQLCFLAGS)
