@@ -161,10 +161,14 @@ int roadmap_county_by_position
 
       this_state = RoadMapCountyActive->state + i;
 
+      if (this_state->symbol == 0) continue; /* Unused FIPS. */
+
       if (position->longitude > this_state->max_longitude) continue;
       if (position->longitude < this_state->min_longitude) continue;
       if (position->latitude  > this_state->max_latitude)  continue;
       if (position->latitude  < this_state->min_latitude)  continue;
+
+      if (this_state->min_latitude == this_state->max_latitude) continue;
 
       for (j = this_state->first_county; j <= this_state->last_county; j++) {
 
@@ -187,12 +191,16 @@ int roadmap_county_by_position
 
       this_state = RoadMapCountyActive->state + i;
 
+      if (this_state->symbol == 0) continue; /* Unused FIPS. */
+
       if (! roadmap_math_is_visible (this_state->min_longitude,
                                      this_state->max_longitude,
                                      this_state->max_latitude,
                                      this_state->min_latitude)) {
          continue;
       }
+
+      if (this_state->min_latitude == this_state->max_latitude) continue;
 
       for (j = this_state->first_county; j <= this_state->last_county; j++) {
 
