@@ -913,6 +913,20 @@ CONFIGURATION:
    parameters ("-f" and "On %N").
 
 
+   A NOTE REGARDING COLORS
+
+   Some RoadMap configuration items define colors to be used. As a general
+   rule a color must be described in a way that is suitable for the target
+   graphic system.
+   
+   In the case of X11, that means either a color name (as defined in the
+   /etc/X11/rgb.txt) or a color definition: #rrggbb where rr, gg and bb
+   are hexadecimal values (for example: #FFFFFF is white, #000000 is black).
+
+   Note that the #rrggbb format is broadly supported, even on target systems
+   that do not support named colors.
+
+
    PREFERENCES ITEMS:
 
      General.Unit:
@@ -990,20 +1004,20 @@ CONFIGURATION:
      Map.Background:
 
          Description: the color used for the background of the maps.
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: LightYellow
 
      GPS.Background:
 
          Description: the background color for the RoadGps screen.
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: LightYellow
          Comment: this color is used by RoadGps, not by RoadMap.
 
      GPS.Foreground:
 
          Description: the foreground color for the RoadGps screen.
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: Black
          Comment: this color is used by RoadGps, not by RoadMap.
 
@@ -1025,26 +1039,26 @@ CONFIGURATION:
      GPS.Color:
 
          Description: the color used for the current GPS position symbol
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: green
          Comment: this color is used by RoadMap, not by RoadGps.
 
      Destination.Color:
 
          Description: the color used for the destination symbol
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: red
 
      Selected Street.Background:
 
          Description: the color for the background of the selected street name.
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: yellow
 
      Selected Street.Foreground:
 
          Description: the color for the foreground of the selected street name.
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: black
 
      Selected Street.Text:
@@ -1056,31 +1070,31 @@ CONFIGURATION:
      Console.Background:
 
          Description: the color used for the background of the trip display
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: yellow
 
      Console.Foreground:
 
          Description: the color used for the foreground of the trip display
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: black
 
      Current Street.Background:
 
          Description: the color for the background of the current street's name
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: DarkSeaGreen4
 
      Current Street.Foreground:
 
          Description: the color for the foreground of the current street's name
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: white
 
      Current Street.Text: %N, %C|%N
 
          Description: the text used to display the current street's name
-         Format: color name (see file rgb.txt)
+         Format: color
          Default: black (I would recommend using white--see above)
 
      Voice.Current Street:
@@ -1243,7 +1257,7 @@ CONFIGURATION:
      <category>.Color:
 
          Description: the color used when drawing the objects.
-         Format: color name (see file rgb.txt)
+         Format: color
 
      <category>.Declutter:
 
