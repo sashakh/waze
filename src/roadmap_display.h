@@ -28,11 +28,10 @@
 
 void roadmap_display_initialize (void);
 
-void roadmap_display_activate
-        (const char *title,
-         int line,
-         int distance,
-         const RoadMapPosition *position);
+int roadmap_display_activate
+        (const char *title, int line, const RoadMapPosition *position);
+
+void roadmap_display_hide (const char *title);
 
 void roadmap_display_console    (void);
 void roadmap_display_signs      (void);

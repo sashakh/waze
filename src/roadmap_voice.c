@@ -78,6 +78,7 @@ struct voice_translation {
  */
 static struct voice_translation RoadMapVoiceTranslation[] = {
     {"Blvd", "boulevard"},
+    {"Hwy",  "Highway"},
     {"Cir",  "circle"},
     {"St",   "street"},
     {"Rd",   "road"},

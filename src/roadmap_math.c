@@ -696,7 +696,7 @@ int roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2) {
 
 
 int roadmap_math_distance
-       (RoadMapPosition *position1, RoadMapPosition *position2) {
+       (const RoadMapPosition *position1, const RoadMapPosition *position2) {
 
    double x;
    double y;

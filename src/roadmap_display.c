@@ -87,7 +87,6 @@ typedef struct {
     RoadMapPen foreground;
     
     int line;
-    int distance;
 
     RoadMapConfigDescriptor format_descriptor;
     RoadMapConfigDescriptor background_descriptor;
@@ -103,7 +102,7 @@ typedef struct {
 
 
 #define ROADMAP_SIGN(n,t,b,f) \
-    {n, NULL, NULL, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, 0, \
+    {n, NULL, NULL, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
@@ -355,11 +354,8 @@ static void roadmap_display_sign (RoadMapSign *sign) {
 }
 
 
-void roadmap_display_activate
-        (const char *title,
-         int line,
-         int distance,
-         const RoadMapPosition *position) {
+int roadmap_display_activate
+        (const char *title, int line, const RoadMapPosition *position) {
 
     int   message_has_changed;
     int   street;
@@ -369,7 +365,7 @@ void roadmap_display_activate
 
 
     sign = roadmap_display_search_sign (title);
-    if (sign == NULL) return;
+    if (sign == NULL) return -1;
 
     street = sign->properties.street;
     
@@ -400,7 +396,7 @@ void roadmap_display_activate
     format = roadmap_config_get (&sign->format_descriptor);
     
     if (! roadmap_message_format (text, sizeof(text), format)) {
-        return;
+        return sign->properties.street;
     }
     message_has_changed =
         (sign->content == NULL || strcmp (sign->content, text) != 0);
@@ -438,8 +434,20 @@ void roadmap_display_activate
         sign->has_position = 1;
         sign->position = *position;
     }
+    
+    return sign->properties.street;
 }
 
+
+void roadmap_display_hide (const char *title) {
+    
+    RoadMapSign *sign;
+
+    sign = roadmap_display_search_sign (title);
+    if (sign != NULL) {
+        sign->deadline = 0;
+    }
+}
 
 static void roadmap_display_console_box
                 (int corner, RoadMapConfigDescriptor *item) {

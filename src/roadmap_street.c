@@ -923,6 +923,49 @@ static int roadmap_street_get_closest_in_square
       }
    }
 
+   if (roadmap_line_in_square2 (square, cfcc, &first_line, &last_line) > 0) {
+
+      int previous_square  = -1;
+      int real_square;
+      int real_line;
+      int shape_count = 0;
+      RoadMapPosition position2;
+
+      for (line = first_line; line <= last_line; line++) {
+
+         real_line = roadmap_line_get_from_index2 (line);
+
+         roadmap_line_from (real_line, &position2);
+         real_square = roadmap_square_search (&position2);
+          
+         if (real_square != previous_square) {
+            shape_count =
+               roadmap_shape_in_square (square, &first_shape_line,
+                                        &last_shape_line);
+            previous_square = real_square;
+         }
+         
+         if (shape_count > 0 &&
+             roadmap_shape_of_line (line, first_shape_line,
+                                    last_shape_line,
+                                    &first_shape, &last_shape) > 0) {
+
+               this_distance =
+                  roadmap_street_get_distance_with_shape
+                     (position, line, first_shape, last_shape);
+
+         } else {
+             this_distance =
+                roadmap_street_get_distance_no_shape (position, line);
+         }
+
+         if (this_distance < *distance) {
+            closest = line;
+            *distance = this_distance;
+         }
+      }
+   }
+
    return closest;
 }
 

@@ -750,8 +750,7 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
 
     if (line >= 0) {
 
-        roadmap_display_activate
-            ("Selected Street", line, distance, &position);
+        roadmap_display_activate ("Selected Street", line, &position);
         roadmap_screen_repaint (0);
     }
 }
