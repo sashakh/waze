@@ -46,7 +46,7 @@
 static const char *RoadMapLogStack[ROADMAP_LOG_STACK_SIZE];
 static int         RoadMapLogStackCursor = 0;
 
-static struct {
+static struct roadmap_message_descriptor {
    int   level;
    int   show_stack;
    int   save_to_file;
@@ -91,45 +91,21 @@ void roadmap_log_save_all (void) {
 }
 
 
-void roadmap_log (int level, char *source, int line, char *format, ...) {
+static void roadmap_log_one (struct roadmap_message_descriptor *category,
+                             FILE *file,
+                             char  saved,
+                             char *source,
+                             int line,
+                             char *format,
+                             va_list ap) {
 
    int i;
-   FILE *file;
-   va_list ap;
 
-   if (level < roadmap_verbosity()) return;
-
-   for (i = 0; RoadMapMessageHead[i].level != 0; i++) {
-      if (RoadMapMessageHead[i].level == level) break;
-   }
-
-   if (RoadMapMessageHead[i].save_to_file) {
-
-      char *full_name;
-
-      full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
-      file = fopen (full_name, "a");
-
-      if (file == NULL) {
-         file = stderr;
-      } else {
-         fprintf (stderr, "%s %s, line %d: see postmortem info in %s\n",
-                  RoadMapMessageHead[i].prefix, source, line, full_name);
-      }
-   } else {
-      file = stderr;
-   }
-
-   fprintf (file, "%s %s, line %d: ",
-                  RoadMapMessageHead[i].prefix, source, line);
-
-   va_start(ap, format);
+   fprintf (file, "%c%s %s, line %d: ", saved, category->prefix, source, line);
    vfprintf(file, format, ap);
-   va_end(ap);
-
    fprintf (file, "\n");
 
-   if (RoadMapMessageHead[i].show_stack && RoadMapLogStackCursor > 0) {
+   if (category->show_stack && RoadMapLogStackCursor > 0) {
 
       int indent = 8;
 
@@ -140,24 +116,48 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
           indent += 3;
       }
    }
+}
 
-   if (file != NULL && file != stderr) {
-      fclose (file);
+void roadmap_log (int level, char *source, int line, char *format, ...) {
+
+   FILE *file;
+   va_list ap;
+   char saved = ' ';
+   struct roadmap_message_descriptor *category;
+
+   if (level < roadmap_verbosity()) return;
+
+   for (category = RoadMapMessageHead; category->level != 0; ++category) {
+      if (category->level == level) break;
    }
 
-   if (level == ROADMAP_MESSAGE_FATAL) {
-      exit(1);
+   va_start(ap, format);
+
+   if (category->save_to_file) {
+
+      file = roadmap_file_open (roadmap_file_user(), "postmortem", "sa");
+
+      if (file != NULL) {
+
+         roadmap_log_one (category, file, ' ', source, line, format, ap);
+         fclose (file);
+
+         va_end(ap);
+         va_start(ap, format);
+
+         saved = 's';
+      }
    }
+
+   roadmap_log_one (category, stderr, saved, source, line, format, ap);
+
+   va_end(ap);
 }
 
 
 void roadmap_log_purge (void) {
 
-    char *full_name;
-
-    full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
-    
-    remove(full_name);
+    roadmap_file_remove (roadmap_file_user(), "postmortem");
 }
 
 
