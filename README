@@ -436,15 +436,15 @@ USING ROADMAP:
 
    RoadMap comes with a map download mode, which can be activated and
    deactivated using the Find / Map Download menu entry. On startup
-   the download mode is always deactivated. When this mode is active,
-   RoadMap shows a red "download" icone on the right top corner of the
-   map screen.
+   the download mode is always deactivated. When the download mode is
+   activated, RoadMap shows a red "download" icone on the right top
+   corner of the map screen.
 
-   In download mode, if RoadMap does not find the map file for a specific
-   county, it will ask the user for the permission to download it from a
+   In download mode, if the map for a specific county is not found,
+   the user will be asked for the permission to download it from the
    configured source (as defined in the preference item "Download.Source").
-   The destination can also be configured (using the preferences item
-   "Download.Destination"). Both parameters can be changed before each
+   The destination directory can also be configured (using the preferences
+   item "Download.Destination"). Both parameters can be changed before each
    download: the source and destination files for that download can be
    edited in the download confirmation dialog.
 
@@ -452,11 +452,18 @@ USING ROADMAP:
    is selected depending on the source string, as much as possible using
    the well-known URL syntax.
 
-   At that time, only one protocol has been implemented: a local file copy
-   (provides either a full path or a file:// URL as the source). While it
-   may seems that such a protocol is of little value, there are cases when
-   it can be useful. For example by mounting your desktop's disk on your
-   PDA using either nfs or smbfs.
+   At that time, two protocols have been implemented: a local file copy
+   (provides either a full path or a "file://*" URL as source) and the HTTP
+   protocol (provides a "http://*" URL as source). The local file copy
+   protocol can be useful in some cases, for example when mounting the map
+   server's disk using nfs or smbfs.
+   
+   If the suffix of the downloaded file matches a well-known compressed files
+   suffix, RoadMap will invoke the appropriate tool to uncompress the file.
+   The compression tools supported are gzip (.gz suffix) and bzip2 (.bz2
+   suffix). This feature makes it possible to store compressed maps on the
+   server side. Using compressed files divides by a factor of 2 the download
+   time.
 
    If the user cancels the download of a specific map, RoadMap will not
    request the same download again for the remainder of the session. This
@@ -1107,9 +1114,10 @@ CONFIGURATION:
 
      Download.Destination:
 
-         Description: the format used to generate the path of the destination
-         Format: printf() format
-         Default: &/maps/usc%05d.rdm
+         Description: the path of the directory where to store the downloaded
+                      file.
+         Format: string
+         Default: &/maps
          Comment: this item must be either a full path name or start with
                   '~' (user home directory) or '&' (RoadMap user's directory).
 
