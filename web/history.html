@@ -17,6 +17,24 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
+<P>Roadmap v1.0rc9 (August 24, 2003): 
+<UL>
+  <LI>Added an on-the-fly map download mode. When this mode is enabled,
+      and if a map file is not found, RoadMap asks the user to confirm
+      downloading the map. It is also possible to remove maps, of course.
+  <LI>Changed the list management in the Qt code, so that a single click
+      is all what's needed to select an object, rather than a double click
+      that is always annoying on a PDA (and on X11 as well..).
+  <LI>Fixed some alignment problems in the Qt module.
+  <LI>Fixed the ever extending list box in Qt: clean the list before
+      updating (i.e. repopulating) it.
+  <LI>Refresh the screen periodically, not each time the GPS information is
+      received. This helps RoadMap catching up when it is too slow to process
+      the GPS information on time, and avoid RoadMap to become unresponsive
+      to user actions. A side visual effect is to make RoadMap seems to
+      "jump" from a position to the next, becoming not as smooth as before.
+  <LI>Do not stop a trip just because the map's focus has changed.
+</UL>
 <P>Roadmap v1.0rc8 (August 2, 2003): 
 <UL>
   <LI>Redesigned the navigation module. Navigation is now based on fuzzy
