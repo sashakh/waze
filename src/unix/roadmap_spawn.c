@@ -177,6 +177,14 @@ int roadmap_spawn (const char *name, const char *command_line) {
 
    if (child == 0) {
 
+      /* This is the child process.
+       * A few words of caution here: the GUI toolkit library might have
+       * registered an exit callback (see atexit(3)), which should not be
+       * called here (the child created no ressource that needs to be
+       * deallocated). This is why we call _exit(2) and do not use
+       * ROADMAP_FATAL or exit(3).
+       */
+
       argv[0] = (char *)name;
       roadmap_spawn_set_arguments (15, argv, command_line);
 
@@ -191,11 +199,13 @@ int roadmap_spawn (const char *name, const char *command_line) {
 
          if (stat (fullname, &stat_buffer) == 0) {
             execv  (fullname, argv);
-            roadmap_log (ROADMAP_FATAL, "execv(%s) failed", fullname);
+            roadmap_log (ROADMAP_ERROR, "execv(\"%s\") failed", fullname);
+            _exit(1);
          }
       }
       execvp (name, argv);
-      roadmap_log (ROADMAP_FATAL, "execvp(%s) failed", name);
+      roadmap_log (ROADMAP_ERROR, "execvp(%s) failed", name);
+      _exit(1);
    }
 
    return child;
