@@ -61,6 +61,15 @@ BEFORE THE INSTALL
    Once this has been done, the serial line must be configured for using gpsd
    (see the serial line configuration tool in the Settings folder).
 
+* Installing flite
+
+   RoadMap uses flite for generating the voice announcements. RoadMap
+   can be used without flite, but it will stay silent then.
+
+   Note that flite is a very big program: it should be installed on the
+   MMC, SD or CompactFlash (CF) card. Installing flite is easy: just copy
+   the executable file. The problem is more where to find the executable..
+
 
 INSTALLING ROADMAP
 
