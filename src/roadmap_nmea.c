@@ -296,7 +296,22 @@ static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
 
 static int roadmap_nmea_gpgll (int argc, char *argv[]) {
 
-   if ((strcmp (argv[6], "A") == 0) && (strcmp(argv[7], "N") != 0)) {
+   char mode;
+   int  valid_fix;
+
+
+   /* We have to be extra cautious, as some people report that GPGLL
+    * returns a mode field, but some GPS do not have this field at all.
+    */
+   valid_fix = (strcmp (argv[6], "A") == 0);
+   if (argc > 7) {
+      valid_fix = (valid_fix && (strcmp(argv[7], "N") != 0));
+      mode = *(argv[7]);
+   } else {
+      mode = 'A'; /* Sensible default. */
+   }
+
+   if (valid_fix) {
 
       RoadMapNmeaReceived.gpgll.latitude =
          roadmap_nmea_decode_coordinate  (argv[1], argv[2], 'N', 'S');
@@ -309,7 +324,7 @@ static int roadmap_nmea_gpgll (int argc, char *argv[]) {
        */
 
       RoadMapNmeaReceived.gpgll.status = 'A';
-      RoadMapNmeaReceived.gpgll.mode   = *(argv[7]);
+      RoadMapNmeaReceived.gpgll.mode   = mode;
 
    } else {
        RoadMapNmeaReceived.gpgll.status = 'V'; /* bad. */
