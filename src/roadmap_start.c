@@ -89,7 +89,16 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
 static void roadmap_start_periodic (void);
 
 static void roadmap_start_console (void) {
-   roadmap_spawn ("roadgps", "");
+
+   const char *url = roadmap_gps_source();
+
+   if (url == NULL) {
+      roadmap_spawn ("roadgps", "");
+   } else {
+      char arguments[1024];
+      snprintf (arguments, sizeof(arguments), "--gps=%s", url);
+      roadmap_spawn ("roadgps", arguments);
+   }
 }
 
 static void roadmap_start_purge (void) {
