@@ -1,4 +1,4 @@
-roadmap (1.0.8-1) unstable; urgency=low
+roadmap (1.0.8-0.2) unstable; urgency=low
 
   * Initial Release. (Closes: #276135)
   * Selected the Gtk version, as this is the version actively
@@ -8,4 +8,5 @@ roadmap (1.0.8-1) unstable; urgency=low
   * Set the default help browser to sensible-browser instead of dillo
     (40_help_browser.dpatch).
 
- -- Petter Reinholdtsen <pere@debian.org>  Sun, 14 Nov 2004 10:21:17 +0100
+ -- Petter Reinholdtsen <pere@debian.org>  Sat, 26 Feb 2005 15:44:09 +0100
+
