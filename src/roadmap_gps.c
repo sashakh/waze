@@ -46,6 +46,9 @@
 #include "roadmap_gps.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigGPSAccuracy =
+                        ROADMAP_CONFIG_ITEM("Accuracy", "GPS");
+
 static RoadMapConfigDescriptor RoadMapConfigGPSSource =
                         ROADMAP_CONFIG_ITEM("GPS", "Source");
 
@@ -402,6 +405,10 @@ int roadmap_gps_active (void) {
 
 
 int roadmap_gps_estimated_error (void) {
+
+    if (RoadMapGpsEstimatedError == 0) {
+        return roadmap_config_get_integer (&RoadMapConfigGPSAccuracy);
+    }
 
     return RoadMapGpsEstimatedError;
 }
