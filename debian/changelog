@@ -5,5 +5,7 @@ roadmap (1.0.8-1) unstable; urgency=low
     maintained by the author.  To build the Qt version, the
     build-dependencies should change to 'libqt3-compat-headers,
     libqt3-dev | libqt3-mt-dev'.
+  * Set the default help browser to sensible-browser instead of dillo
+    (40_help_browser.dpatch).
 
  -- Petter Reinholdtsen <pere@debian.org>  Sun, 14 Nov 2004 10:21:17 +0100

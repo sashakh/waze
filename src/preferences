@@ -1,5 +1,5 @@
 Destination.Color: red
-Map.Path: .,&/maps,/usr/share/roadmap,/usr/local/share/roadmap
+Map.Path: .,&/maps,/var/lib/roadmap/maps,/usr/share/roadmap/maps,/usr/local/share/roadmap/maps
 Map.Cache: 8
 Map.Background: LightYellow
 General.Default Zoom: 20
