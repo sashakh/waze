@@ -826,8 +826,9 @@ static int roadmap_screen_activate_street_tip (int line,
 
    name = roadmap_street_get_name_from_line (line);
 
-   if (name == NULL) return 0;
-   if (name[0] == 0) return 0;
+   if (name == NULL || name[0] == 0) {
+       name = "(this street has no name)";
+   }
 
    if (RoadMapStreetTip.name != NULL) {
       free (RoadMapStreetTip.name);
