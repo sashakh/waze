@@ -741,7 +741,8 @@ int roadmap_math_to_trip_distance (int distance) {
 int  roadmap_math_get_distance_from_segment
         (const RoadMapPosition *position,
          const RoadMapPosition *position1,
-         const RoadMapPosition *position2) {
+         const RoadMapPosition *position2,
+               RoadMapPosition *intersection) {
 
    int distance;
    int minimum;
@@ -754,6 +755,8 @@ int  roadmap_math_get_distance_from_segment
    double y3;
 
 
+   /* Compute the coordinates relative to the "position" point. */
+
    x1 = RoadMapContext.units->unit_per_longitude
            * (position->longitude - position1->longitude);
    y1 = RoadMapContext.units->unit_per_latitude
@@ -764,13 +767,19 @@ int  roadmap_math_get_distance_from_segment
    y2 = RoadMapContext.units->unit_per_latitude
            * (position->latitude  - position2->latitude);
 
+
    /* Compute the coordinates of the intersection with the perpendicular. */
 
    if ((x1 - x2 > -1.0) && (x1 - x2 < 1.0)) {
 
-      /* This approximation is good enough. */
+      /* The two points are very close, or the line is quasi vertical:
+       * approximating the line to a vertical one is good enough.
+       */
       x3 = (x1 + x2) / 2;
       y3 = 0.0;
+
+      intersection->longitude =
+         (position1->longitude + position2->longitude) / 2;
 
    } else {
       
@@ -783,6 +792,10 @@ int  roadmap_math_get_distance_from_segment
 
       x3 = 0.0 - (b / (a + (1.0 / a)));
       y3 = b / ((a * a) + 1.0);
+
+      intersection->longitude =
+         position1->longitude
+            + (((x1 - x3) * position2->longitude) / (x1 - x2));
    }
 
 
@@ -790,6 +803,18 @@ int  roadmap_math_get_distance_from_segment
        (((y1 >= y3) && (y3 >= y2)) || ((y1 <= y3) && (y3 <= y2)))) {
 
       /* The intersection point is in the segment. */
+
+      if ((y1 - y2 > -1.0) && (y1 - y2 < 1.0)) {
+
+         intersection->latitude =
+            (position1->latitude + position2->latitude) / 2;
+
+      } else {
+
+         intersection->latitude =
+            position1->latitude
+               + (((y1 - y3) * position2->latitude) / (y1 - y2));
+      }
 
       return (int) sqrt ((x3 * x3) + (y3 * y3));
    }
@@ -801,9 +826,11 @@ int  roadmap_math_get_distance_from_segment
    distance = (int) sqrt ((x2 * x2) + (y2 * y2));
 
    if (distance < minimum) {
+      *intersection = *position2;
       return distance;
    }
 
+   *intersection = *position1;
    return minimum;
 }
 

@@ -42,6 +42,9 @@
 #include "roadmap_navigate.h"
 
 
+#define ROADMAP_MINIMAL_VALID_SPEED   4    /* Knots. */
+
+
 static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Confirm");
 
@@ -69,12 +72,14 @@ typedef struct {
 
     RoadMapPosition from;
     RoadMapPosition to;
+    RoadMapPosition intersection;
 
     const RoadMapPosition *crossing;
     
 } RoadMapTracking;
 
-#define ROADMAP_TRACKING_NULL  {-1, 0, -1, 0, 0, 0, {0, 0}, {0, 0}, NULL};
+#define ROADMAP_TRACKING_NULL  \
+             {-1, 0, -1, 0, 0, 0, {0, 0}, {0, 0}, {0, 0}, NULL};
 
 static RoadMapTracking RoadMapConfirmedStreet = ROADMAP_TRACKING_NULL;
 static RoadMapTracking RoadMapCandidateStreet = ROADMAP_TRACKING_NULL;
@@ -137,25 +142,11 @@ static void roadmap_navigate_adjust_focus
 }
 
 
-void roadmap_navigate_disable (void) {
-    
-    RoadMapNavigateDisable = 1;
-    roadmap_display_hide ("Approach");
-    roadmap_display_hide ("Current Street");
-}
+static int roadmap_navigate_get_neighbours
+              (const RoadMapPosition *position, int accuracy,
+               RoadMapNeighbour *neighbours, int max) {
 
-
-void roadmap_navigate_enable  (void) {
-    
-    RoadMapNavigateDisable = 0;
-}
-
-
-int roadmap_navigate_retrieve_line
-        (const RoadMapPosition *position, int accuracy, int *distance) {
-
-    int line;
-    int count = 0;
+    int count;
     int layers[128];
 
     struct roadmap_navigate_rectangle focus;
@@ -196,18 +187,49 @@ int roadmap_navigate_retrieve_line
         roadmap_math_set_focus
             (focus.west, focus.east, focus.north, focus.south);
 
-        line = roadmap_street_get_closest
-                    (position, count, layers, distance);
+        count = roadmap_street_get_closest
+                    (position, layers, count, neighbours, max);
 
         roadmap_math_release_focus ();
-
-    } else {
-
-        line = -1;
     }
 
     roadmap_log_pop ();
-    return line;
+
+    return count;
+}
+
+
+void roadmap_navigate_disable (void) {
+    
+    RoadMapNavigateDisable = 1;
+    roadmap_display_hide ("Approach");
+    roadmap_display_hide ("Current Street");
+}
+
+
+void roadmap_navigate_enable  (void) {
+    
+    RoadMapNavigateDisable = 0;
+}
+
+
+int roadmap_navigate_retrieve_line
+        (const RoadMapPosition *position, int accuracy, int *distance) {
+
+    RoadMapNeighbour closest;
+
+    if (roadmap_navigate_get_neighbours
+           (position, accuracy, &closest, 1) <= 0) {
+
+       return -1;
+    }
+
+    *distance = closest.distance;
+
+    if (roadmap_locator_activate (closest.fips) != ROADMAP_US_OK) {
+       return -1;
+    }
+    return closest.line;
 }
 
 
@@ -275,7 +297,7 @@ static const RoadMapPosition *roadmap_navigate_next_crossing
 
 
 static int roadmap_navigate_next_intersection
-                (const RoadMapPosition *crossing, int cfcc) {
+                (const RoadMapPosition *crossing, int cfcc, int speed) {
 
     int i;
     int line;
@@ -296,6 +318,10 @@ static int roadmap_navigate_next_intersection
 
     RoadMapStreetProperties properties;
 
+
+    if (speed < ROADMAP_MINIMAL_VALID_SPEED) {
+       return 0;
+    }
 
     roadmap_log_push ("roadmap_navigate_next_intersection");
 
@@ -430,7 +456,7 @@ static int roadmap_navigate_update
      */
     distance =
         roadmap_math_get_distance_from_segment
-                    (position, &tracked->from, &tracked->to);
+           (position, &tracked->from, &tracked->to, &tracked->intersection);
             
     if (distance > RoadMapAccuracyStreet) {
         goto invalidate; /* We went far from this line. */
@@ -507,7 +533,7 @@ void roadmap_navigate_locate
 
         for (cfcc = ROADMAP_ROAD_FIRST; cfcc <= ROADMAP_ROAD_LAST; ++cfcc) {
             
-            if (roadmap_navigate_next_intersection (crossing, cfcc)) {
+            if (roadmap_navigate_next_intersection (crossing, cfcc, speed)) {
                 break;
             }
         }

@@ -83,7 +83,9 @@ int  roadmap_math_to_current_unit (int value, const char *unit);
 
 int  roadmap_math_get_distance_from_segment
         (const RoadMapPosition *position,
-         const RoadMapPosition *position1, const RoadMapPosition *position2);
+         const RoadMapPosition *position1,
+         const RoadMapPosition *position2,
+               RoadMapPosition *intersection);
 
 void roadmap_math_screen_edges
         (int *west, int *east, int *north, int *south);
