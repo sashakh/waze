@@ -29,12 +29,15 @@ href="sitestandard.css" type=text/css rel=stylesheet>
       to the configuration file is itself configured..) and is
       independent from the map search path. It also include /etc/roadmap
       to let sysadmin configure a local machine setup.
-  <LI>Change the map search path to become more compliant with the FHS:
-      use /var/lib/roadmap and /usr/lib/roadmap (all "share" files should
-      be arcitecture-independent, but the rdm files are C structures..)
-      /usr/share/roadmap & /usr/local/share/roadmap are still in the
-      default path to maintain compatibility, but these will disapear
-      in the future.
+  <LI>Change the default map search path to become more compliant with the
+      Linux FHS: use /var/lib/roadmap and /usr/lib/roadmap (all "share"
+      files should be architecture-independent, but the rdm files are C
+      structures..). The directories /usr/share/roadmap and
+      /usr/local/share/roadmap are still in the default path to maintain
+      compatibility, but these will be removed in a future release.
+      In addition the default preferences file has not been modified yet.
+  <LI>Remove an obsolete --path option (regression in 1.0.8).
+  <LI>Support the 2004 edition of the Tiger files.
 </UL>
 <P>Roadmap v1.0.8 (November 8, 2004)
 <UL>
