@@ -369,8 +369,9 @@ char *roadmap_path_skip_directories (const char *name) {
 
    char *result = strrchr (name, '/');
 
-   if (result == NULL) result = (char *)name;
-   return result;
+   if (result == NULL) return (char *)name;
+
+   return result + 1;
 }
 
 
