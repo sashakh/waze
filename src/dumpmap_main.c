@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <popt.h>
 
 #include "roadmap.h"
@@ -257,7 +258,7 @@ static struct poptOption DumpMapOptions[] = {
 };
 
 
-int main (int argc, char **argv) {
+int main (int argc, const char **argv) {
 
    const char **leftovers;
 

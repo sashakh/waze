@@ -180,7 +180,7 @@ static void buildus_scan_maps (void) {
 }
 
 
-int main (int argc, char **argv) {
+int main (int argc, const char **argv) {
 
    poptContext decoder =
       poptGetContext ("buildus", argc, argv, BuildUsOptions, 0);
