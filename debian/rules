@@ -42,9 +42,19 @@ configure-stamp: patch-stamp
 
 	touch configure-stamp
 
+manual.html: README
+# Generate help file, try to use aptconvert, and download it if that
+# fails.  aptconvert is missing in Debian at the moment, so I use wget
+# to fetch it for now.  It is used at run time to show the help text.
+	if aptconvert -toc manual.html README ; then \
+		: ; \
+	else \
+		wget http://roadmap.digitalomaha.net/manual.html ; \
+	fi
+
 
 build-arch: configure-stamp  build-arch-stamp
-build-arch-stamp:
+build-arch-stamp: manual.html
 	dh_testdir
 
 	# Add here command to compile/build the package.
@@ -84,6 +94,8 @@ install: build
 
 	# Add here commands to install the package into debian/roadmap.
 	$(MAKE) -C src/$(GUI) $(BUILDFLAGS) DESTDIR=$(DESTDIR) pkgbindir=/usr/lib/roadmap install
+
+	install -m644 manual.html $(DESTDIR)/usr/share/roadmap/manual.html
 
 	dh_movefiles --sourcedir=debian/roadmap
 
