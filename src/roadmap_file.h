@@ -24,6 +24,8 @@
 #ifndef INCLUDE__ROADMAP_FILE__H
 #define INCLUDE__ROADMAP_FILE__H
 
+#include <stdio.h>
+
 struct RoadMapFileContextStructure;
 typedef struct RoadMapFileContextStructure *RoadMapFileContext;
 
@@ -42,6 +44,8 @@ const char *roadmap_file_trips        (void);
 const char *roadmap_file_default_path (void);
 
 char *roadmap_file_join (const char *path, const char *name);
+FILE *roadmap_file_open (const char *path, const char *name, const char *mode);
+void  roadmap_file_remove (const char *path, const char *name);
 
 int  roadmap_file_map   (char *name, int sequence, RoadMapFileContext *file);
 void roadmap_file_unmap (RoadMapFileContext *file);

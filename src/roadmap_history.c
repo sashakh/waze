@@ -199,15 +199,12 @@ void roadmap_history_load (void) {
 
    FILE *file;
    char *p;
-   char *full_name;
    char  line[1024];
 
 
    if (loaded) return;
 
-   full_name = roadmap_file_join (roadmap_file_user(), "history");
-   file = fopen (full_name, "r");
-   free (full_name);
+   file = roadmap_file_open (roadmap_file_user(), "history", "sr");
 
    if (file != NULL) {
 
@@ -302,15 +299,12 @@ void roadmap_history_purge (int count) {
 void roadmap_history_save (void) {
 
    FILE *file;
-   char *full_name;
 
    if (RoadMapLatest == NULL) return; /* Nothing to save. */
 
    if (! RoadMapHistoryChanged) return; /* Nothing new to save. */
 
-   full_name = roadmap_file_join (roadmap_file_user(), "history");
-   file = fopen (full_name, "w");
-   free (full_name);
+   file = roadmap_file_open (roadmap_file_user(), "history", "w");
 
    if (file != NULL) {
 

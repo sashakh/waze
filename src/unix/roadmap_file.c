@@ -248,6 +248,51 @@ char *roadmap_file_join (const char *path, const char *name) {
 }
 
 
+FILE *roadmap_file_open (const char *path, const char *name, const char *mode) {
+
+   FILE *file;
+   char *full_name;
+   int   silent;
+
+   if (mode[0] == 's') {
+      /* This special mode is a "lenient" read: do not complain
+       * if the file does not exist.
+       */
+      silent = 1;
+      ++mode;
+   } else {
+      silent = 0;
+   }
+
+   if (path != NULL) {
+      full_name = roadmap_file_join (path, name);
+   } else {
+      full_name = (char *) name;
+   }
+   file = fopen (full_name, mode);
+
+   if ((file == NULL) && (! silent)) {
+      roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
+   }
+
+   if (path != NULL) {
+      free (full_name);
+   }
+   return file;
+}
+
+
+void roadmap_file_remove (const char *path, const char *name) {
+
+   char *full_name;
+
+   full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
+
+   remove(full_name);
+   free (full_name);
+}
+
+
 const char *roadmap_file_unique (const char *base) {
     
     static char *UniqueNameBuffer = NULL;

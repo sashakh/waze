@@ -431,27 +431,6 @@ static char *roadmap_config_skip_spaces (char *p) {
 }
 
 
-static FILE *roadmap_config_open (const char *path, char *name, char *mode) {
-
-   FILE *file;
-   char *full_name;
-
-   full_name = roadmap_file_join (path, name);
-
-   file = fopen (full_name, mode);
-
-   if (file == NULL) {
-      if (*mode == 'w') {
-         roadmap_log (ROADMAP_FATAL, "cannot open file %s", full_name);
-      }
-   }
-
-   free (full_name);
-
-   return file;
-}
-
-
 static void roadmap_config_load
                (const char *path, RoadMapConfig *config, int intended_state) {
 
@@ -467,7 +446,7 @@ static void roadmap_config_load
    RoadMapConfigDescriptor descriptor;
 
 
-   file = roadmap_config_open (path, config->name, "r");
+   file = roadmap_file_open (path, config->name, "sr");
 
    if (file == NULL) return;
 
@@ -539,7 +518,7 @@ static void roadmap_config_update
 
    if (force || (config->state == ROADMAP_CONFIG_DIRTY)) {
 
-      file = roadmap_config_open (roadmap_file_user(), config->name, "w");
+      file = roadmap_file_open (roadmap_file_user(), config->name, "w");
 
       for (item = config->first_item; item != NULL; item = item->next) {
 
