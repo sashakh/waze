@@ -426,6 +426,8 @@ GtkWidget *roadmap_canvas_new (void) {
 
    RoadMapDrawingArea = gtk_drawing_area_new ();
 
+   gtk_widget_set_double_buffered (RoadMapDrawingArea, FALSE);
+
    gtk_widget_set_events (RoadMapDrawingArea, GDK_BUTTON_PRESS_MASK);
 
    g_signal_connect (RoadMapDrawingArea,
