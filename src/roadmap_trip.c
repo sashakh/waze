@@ -51,6 +51,7 @@ static int RoadMapTripRotate   = 1;
 static int RoadMapTripModified = 0; /* List needs to be saved ? */
 static int RoadMapTripRefresh  = 1; /* Screen needs to be refreshed ? */
 static int RoadMapTripFocusChanged = 1;
+static int RoadMapTripFocusMoved   = 1;
 
 
 typedef struct roadmap_trip_point {
@@ -199,6 +200,10 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
                 RoadMapTripRefresh = 1;
             }
             RoadMapTripModified = 1;
+        
+            if (result == RoadMapTripFocus) {
+                RoadMapTripFocusMoved = 1;
+            }
         }
     }
     
@@ -419,8 +424,6 @@ void roadmap_trip_set_mobile (const char *name,
     result->speed  = speed;
     result->direction = direction;
 
-    roadmap_trip_set_point_focus (result, 0);
-
     roadmap_screen_refresh();
 }
 
@@ -485,6 +488,15 @@ int roadmap_trip_is_focus_changed (void) {
     return 0;
 }
 
+int roadmap_trip_is_focus_moved (void) {
+    
+    if (RoadMapTripFocusMoved) {
+        
+        RoadMapTripFocusMoved = 0;
+        return 1;
+    }
+    return 0;
+}
 
 int roadmap_trip_is_refresh_needed (void) {
     
@@ -500,7 +512,7 @@ int roadmap_trip_is_refresh_needed (void) {
 int roadmap_trip_get_orientation (void) {
     
     if (RoadMapTripRotate && (RoadMapTripFocus != NULL)) {
-        return RoadMapTripFocus->direction;
+        return 360 - RoadMapTripFocus->direction;
     }
     
     return 0;

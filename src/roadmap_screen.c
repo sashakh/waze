@@ -1048,8 +1048,14 @@ void roadmap_screen_refresh (void) {
     
     if (roadmap_trip_is_focus_changed()) {
         
+        RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         RoadMapScreenRotation = 0;
         refresh = 1;
+        
+    } else if (roadmap_trip_is_focus_moved()) {
+        
+        RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
+
     }
     
     refresh |=
@@ -1059,8 +1065,6 @@ void roadmap_screen_refresh (void) {
     refresh |= roadmap_trip_is_refresh_needed();
         
     if (refresh) {
-        
-        RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_screen_repaint ();
     }
 }
