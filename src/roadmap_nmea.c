@@ -45,6 +45,8 @@
 
 static RoadMapNmeaFields RoadMapNmeaReceived;
 
+static char RoadMapNmeaDate[16];
+
 
 static int hex2bin (char c) {
 
@@ -160,6 +162,16 @@ static int roadmap_nmea_decode_coordinate
 }
 
 
+static char *roadmap_nmea_decode_unit (const char *original) {
+
+    if (strcasecmp (original, "M") == 0) {
+        return "cm";
+    }
+
+    roadmap_log (ROADMAP_ERROR, "unknown distance unit '%s'", original);
+    return "??";
+}
+
 typedef int (*RoadMapNmeaDecoder) (int argc, char *argv[]);
 
 
@@ -172,9 +184,12 @@ static int roadmap_nmea_gprmc (int argc, char *argv[]) {
    RoadMapNmeaReceived.gprmc.status = *(argv[2]);
 
 
-   RoadMapNmeaReceived.gprmc.fix = roadmap_nmea_decode_time (argv[1], argv[9]);
+   RoadMapNmeaReceived.gprmc.fixtime =
+      roadmap_nmea_decode_time (argv[1], argv[9]);
 
-   if (RoadMapNmeaReceived.gprmc.fix < 0) return 0;
+   strncpy (RoadMapNmeaDate, argv[9], sizeof(RoadMapNmeaDate));
+
+   if (RoadMapNmeaReceived.gprmc.fixtime < 0) return 0;
 
 
    RoadMapNmeaReceived.gprmc.latitude =
@@ -200,7 +215,53 @@ static int roadmap_nmea_gprmc (int argc, char *argv[]) {
 
 static int roadmap_nmea_gpgga (int argc, char *argv[]) {
 
-   return 0; /* TBD. */
+   RoadMapNmeaReceived.gpgga.fixtime =
+      roadmap_nmea_decode_time (argv[1], RoadMapNmeaDate);
+
+   if (RoadMapNmeaReceived.gpgga.fixtime < 0) return 0;
+
+   RoadMapNmeaReceived.gpgga.latitude =
+      roadmap_nmea_decode_coordinate  (argv[2], argv[3], 'N', 'S');
+
+   RoadMapNmeaReceived.gpgga.longitude =
+      roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
+
+   switch (*argv[6]) {
+
+      case '0':
+         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_INVALID;
+         break;
+
+      case '1':
+         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_GPS;
+         break;
+
+      case '2':
+         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_DGPS;
+         break;
+
+      case '3':
+         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_PPS;
+         break;
+
+      default:
+         RoadMapNmeaReceived.gpgga.quality = ROADMAP_NMEA_QUALITY_OTHER;
+         break;
+   }
+
+   RoadMapNmeaReceived.gpgga.count =
+      roadmap_nmea_decode_numeric (argv[7], 1);
+
+   RoadMapNmeaReceived.gpgga.dilution =
+      roadmap_nmea_decode_numeric (argv[8], 100);
+
+   RoadMapNmeaReceived.gpgga.altitude =
+      roadmap_nmea_decode_numeric (argv[9], 100);
+
+   strcpy (RoadMapNmeaReceived.gpgga.altitude_unit,
+           roadmap_nmea_decode_unit (argv[10]));
+
+   return 1;
 }
 
 
@@ -303,16 +364,6 @@ static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
 }
 
 
-static char *roadmap_nmea_pgrme_unit (const char *original) {
-
-    if (strcasecmp (original, "M") == 0) {
-        return "cm";
-    }
-
-    roadmap_log (ROADMAP_ERROR, "unknown distance unit '%s'", original);
-    return "??";
-}
-
 static int roadmap_nmea_pgrme (int argc, char *argv[]) {
 
     if (argc <= 6) {
@@ -322,17 +373,17 @@ static int roadmap_nmea_pgrme (int argc, char *argv[]) {
     RoadMapNmeaReceived.pgrme.horizontal =
         roadmap_nmea_decode_numeric (argv[1], 100);
     strcpy (RoadMapNmeaReceived.pgrme.horizontal_unit,
-            roadmap_nmea_pgrme_unit (argv[2]));
+            roadmap_nmea_decode_unit (argv[2]));
 
     RoadMapNmeaReceived.pgrme.vertical =
         roadmap_nmea_decode_numeric (argv[3], 100);
     strcpy (RoadMapNmeaReceived.pgrme.vertical_unit,
-            roadmap_nmea_pgrme_unit (argv[4]));
+            roadmap_nmea_decode_unit (argv[4]));
 
     RoadMapNmeaReceived.pgrme.three_dimensions =
         roadmap_nmea_decode_numeric (argv[5], 100);
     strcpy (RoadMapNmeaReceived.pgrme.three_dimensions_unit,
-            roadmap_nmea_pgrme_unit (argv[6]));
+            roadmap_nmea_decode_unit (argv[6]));
 
     return 1;
 }

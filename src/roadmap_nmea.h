@@ -29,10 +29,16 @@
 
 #define ROADMAP_NMEA_MAX_SATELLITE   16
 
+#define ROADMAP_NMEA_QUALITY_INVALID   0
+#define ROADMAP_NMEA_QUALITY_GPS       1
+#define ROADMAP_NMEA_QUALITY_DGPS      2
+#define ROADMAP_NMEA_QUALITY_PPS       3
+#define ROADMAP_NMEA_QUALITY_OTHER     4
+
 typedef union {
 
    struct {
-      time_t fix;
+      time_t fixtime;
       int    status;
       int    latitude;
       int    longitude;
@@ -41,15 +47,14 @@ typedef union {
    } gprmc;
 
    struct {
-      time_t fix;
+      time_t fixtime;
       int    latitude;
       int    longitude;
       int    quality;
       int    count;
       int    dilution;
       int    altitude;
-      int    dgps_update;
-      char  *dgps_id;
+      char   altitude_unit[4];
    } gpgga;
 
    struct {
