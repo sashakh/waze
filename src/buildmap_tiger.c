@@ -320,6 +320,7 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
    int    estimated;
    int    line_count;
    int    record_count;
+   int    merged_range_count;
    char  *data;
    char  *cursor;
    char  *end_of_data;
@@ -362,6 +363,7 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
 
    line_count = 0;
    record_count = 0;
+   merged_range_count = 0;
    end_of_data = data + size;
 
    for (cursor = data; cursor < end_of_data; cursor += 229) {
@@ -419,9 +421,58 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
 
             if ((zipl > 0) || (zipr > 0)) {
 
-               if (zipl > 0) {
+               /* Check if the two sides of the street can be merged into
+                * a single range (same city/place, same zip, and same range
+                * beside the even/odd difference.
+                */
+               int merged_range = 0;
+               int diff_fr = fraddr - fraddl;
+               int diff_to = toaddr - toaddl;
 
-                  zip = buildmap_zip_add (zipl, frlong, frlat);
+               if ((zipl == zipr) &&
+                   (diff_fr > -10) && (diff_fr < 10) &&
+                   (diff_to > -10) && (diff_to < 10)) {
+
+                  RoadMapString cityl;
+                  RoadMapString cityr;
+
+                  cityl = buildmap_city_get_name (tiger2int (cursor, 141, 145));
+                  cityr = buildmap_city_get_name (tiger2int (cursor, 146, 150));
+
+                  if (cityl == cityr) {
+
+                     RoadMapString placel;
+                     RoadMapString placer;
+
+                     placel =
+                        buildmap_city_get_name (tiger2int (cursor, 161, 165));
+                     placer =
+                        buildmap_city_get_name (tiger2int (cursor, 166, 170));
+
+                     if (placel == placer) {
+
+                        int fradd = fraddr;
+                        int toadd = toaddr;
+
+                        if (fradd < toadd) {
+                           if (fradd > fraddl) fradd = fraddl;
+                           if (toadd < toaddl) toadd = toaddl;
+                        } else {
+                           if (fradd < fraddl) fradd = fraddl;
+                           if (toadd > toaddl) toadd = toaddl;
+                        }
+
+                        zip = buildmap_zip_add (zipl, frlong, frlat);
+                        buildmap_range_add
+                           (line, street, fradd, toadd, zip, cityl);
+
+                        merged_range = 1;
+                        merged_range_count += 1;
+                     }
+                  }
+               }
+
+               if (zipl > 0) {
 
                   city = buildmap_city_get_name (tiger2int (cursor, 141, 145));
 
@@ -432,15 +483,16 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
                      city = place;
                   }
 
-                  buildmap_range_add (line, street, fraddl, toaddl, zip, city);
+                  if (! merged_range) {
+
+                     zip = buildmap_zip_add (zipl, frlong, frlat);
+
+                     buildmap_range_add
+                        (line, street, fraddl, toaddl, zip, city);
+                  }
                }
 
                if (zipr > 0) {
-
-                  if (zipr != zipl) {
-
-                     zip = buildmap_zip_add (zipr, frlong, frlat);
-                  }
 
                   city = buildmap_city_get_name (tiger2int (cursor, 146, 150));
 
@@ -451,7 +503,14 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
                      city = place;
                   }
 
-                  buildmap_range_add (line, street, fraddr, toaddr, zip, city);
+                  if (! merged_range) {
+
+                     if (zipr != zipl) {
+                        zip = buildmap_zip_add (zipr, frlong, frlat);
+                     }
+                     buildmap_range_add
+                        (line, street, fraddr, toaddr, zip, city);
+                  }
                }
 
             } else {
@@ -484,6 +543,9 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
    munmap (data, size);
 
    tiger_summary (verbose, record_count);
+   if (merged_range_count > 0) {
+      buildmap_summary (verbose, "%d ranges merged", merged_range_count);
+   }
 }
 
 
