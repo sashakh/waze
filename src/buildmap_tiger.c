@@ -423,7 +423,7 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
 
                /* Check if the two sides of the street can be merged into
                 * a single range (same city/place, same zip, and same range
-                * beside the even/odd difference.
+                * beside the even/odd difference).
                 */
                int merged_range = 0;
                int diff_fr = fraddr - fraddl;
@@ -463,6 +463,11 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
                         }
 
                         zip = buildmap_zip_add (zipl, frlong, frlat);
+
+                        if (placel > 0) {
+                           buildmap_range_add_place (placel, cityl);
+                           cityl = placel;
+                        }
                         buildmap_range_add
                            (line, street, fradd, toadd, zip, cityl);
 
@@ -478,12 +483,12 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
 
                   place = buildmap_city_get_name (tiger2int (cursor, 161, 165));
 
-                  if (place > 0) {
-                     buildmap_range_add_place (place, city);
-                     city = place;
-                  }
-
                   if (! merged_range) {
+
+                     if (place > 0) {
+                        buildmap_range_add_place (place, city);
+                        city = place;
+                     }
 
                      zip = buildmap_zip_add (zipl, frlong, frlat);
 
@@ -498,12 +503,12 @@ void buildmap_tiger_read_rt1 (char *path, char *name, int verbose) {
 
                   place = buildmap_city_get_name (tiger2int (cursor, 166, 170));
 
-                  if (place > 0) {
-                     buildmap_range_add_place (place, city);
-                     city = place;
-                  }
-
                   if (! merged_range) {
+
+                     if (place > 0) {
+                        buildmap_range_add_place (place, city);
+                        city = place;
+                     }
 
                      if (zipr != zipl) {
                         zip = buildmap_zip_add (zipr, frlong, frlat);
