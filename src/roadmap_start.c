@@ -198,6 +198,7 @@ static void roadmap_start_set_download_mode (void) {
    if (roadmap_download_enabled()) {
 
       roadmap_download_subscribe_when_done (NULL);
+      roadmap_locator_declare (NULL);
 
    } else {
 
@@ -214,6 +215,7 @@ static void roadmap_start_set_download_mode (void) {
       }
 
       roadmap_download_subscribe_when_done (roadmap_screen_redraw);
+      roadmap_locator_declare (roadmap_download_get_county);
    }
 
    roadmap_screen_redraw ();
@@ -576,8 +578,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_path_set(roadmap_config_get(&RoadMapConfigMapPath));
 
    roadmap_option (argc, argv);
-
-   roadmap_locator_declare (roadmap_download_get_county);
 
    roadmap_start_set_unit ();
    
