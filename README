@@ -12,8 +12,13 @@ INTRODUCTION:
    are provided by the US Census Bureau, and thus only cover the US.
 
    RoadMap has been designed to be usable on both a desktop or laptop
-   computer, or on a PDA such as the iPAQ from HP (formely from COMPAQ).
-   In its current version, it uses the X11 / Gtk+ 1.2 graphic environment.
+   computer, or on a PDA such as the iPAQ from HP (formely from COMPAQ)
+   or the Sharp Zaurus.
+   
+   In its current version, RoadMap can work with either the Gtk+ 1.2,
+   Gtk 2.0, QT/X11 or QT/QPE graphic environments. The QT environment
+   --especially its QT/QPE version--is still experimental, the Gtk 1.2
+   environment being the most stable.
 
    RoadMap is at an early stage of development. At this time there
    are not much features implemented yet. RoadMap can merely display
@@ -24,7 +29,7 @@ INTRODUCTION:
 
    RoadMap uses a binary file format for representing the maps that is
    compact enough to allow the storage of many maps on a Compact Flash or
-   MultiMedia card. The map of Los Angeles county takes  alittle more than
+   MultiMedia card. The map of Los Angeles county takes a little more than
    10 Mbytes of flash space. RoadMap comes with a set of tools to convert
    the US Census bureau data into its own map format.
 
@@ -54,13 +59,19 @@ INSTALLATION:
    built on a Mac (PowerPC CPU) would not be compatible with an Intel or
    (small endian) ARM computer.
 
-   Note: the main RoadMap executables (roadmap and roadgps) are built
-   as "gtkroadmap" and "gtkroadgps" to avoid a clash when other GUI
-   toolkit will be used. These executables are installed under their
-   "standard" names, so that only one version can be installed at a time
-   (the reason is to share one roadmap.menu file..).
+   Note: the main Gtk RoadMap executables (roadmap and roadgps) are
+   built as "gtkroadmap" and "gtkroadgps", while the QT equivalent are
+   built as "qtroadmap" and qtroadgps" to avoid a clash. These executables
+   are installed under their "standard" names using symbolic links, so
+   that only one version can be installed at a time (the reason is to
+   share one roadmap.menu file..).
 
 
+   A version of RoadMap for the Sharp Zaurus is available at:
+   
+            http://moria.ionkov.net/zaurus/zroadmap/
+            
+            
    INSTALLING FROM THE BINARY TARBALL:
 
    The binary distribution contains three sets of files: the directory
@@ -114,14 +125,22 @@ INSTALLATION:
 
       tar xzvf <tarball>
 
-   3- Compile roadmap for the Gtk toolkit:
+   3- Compile roadmap for the Gtk, Gtk2 or the QT toolkit:
 
-      cd roadmap/src/gtk
+      cd roadmap/src/gtk     -- if using the Gtk 1.2 toolkit
       make
       cd ..
 
-      (If you want to build only the "runtime" programs--and skip the "build"
-      programs, use "make runtime" instead of "make").
+      cd roadmap/src/gtk2    -- if using the Gtk 2.0 toolkit
+      make
+      cd ..
+
+      cd roadmap/src/qt      -- if using the QT toolkit
+      make
+      cd ..
+
+      (If you want to build only the "runtime" programs--and skip the
+      "build" programs, use "make runtime" instead of "make").
 
    4- download some maps from the US Census bureau:
 
