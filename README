@@ -11,6 +11,12 @@ INTRODUCTION
 
    RoadMap is a program for UNIX that displays street maps. The maps
    are provided by the US Census Bureau, and thus only cover the US.
+   RoadMap now includes a preliminary support for the Digital Charts of the
+   Words (DCW), a set of world-wide maps produced by the US Department of
+   Defense. The DCW contains only major highways and freeways, for some parts
+   or the world (mostly Europe and japan) and their accuracy does not allow
+   any reliable car navigation.
+
    When a GPS receiver is available RoadMap can track the current location
    of the vehicule on the screen, continuously adjusting the position of the
    map; it can also identify the name of the current street as well as the
@@ -154,8 +160,10 @@ INSTALLATION
    src/gtk contains the executable files for Debian GNU/Linux (kernel 2.4)
    and the directory src contains the example map datafiles.
 
-   The default RoadMap configuration is defined such that it is possible
-   to run from the src subdirectory. For example, use: gtk/gtkroadmap
+   RoadMap can be installed by running the "make install" command from
+   one of the graphical toolkit directories (gtk2, gtk or qt). This
+   installs the associated set of RoadMap executables and all configuration
+   files (but not the maps!).
 
 
 * INSTALLING FROM THE FAMILIAR PACKAGE
@@ -497,12 +505,15 @@ USING ROADMAP
 
    RoadMap indicates the current street a few seconds after the GPS position
    reached the street. This display is also shown for a limited time. There
-   are several conditions for RoadMap to "lock" on a new current street: the
-   GPS location must have gone far enough from the previous street, if any
-   (see preference Accuracy.Street); The GPS location must be close to the
-   street (same preference as before); the same street must be "confirmed"
-   by multiple readings (The main reason for these conditions is to avoid
-   locking on streets at the intersections--see Accuracy.Confirm)
+   are several criteria used by RoadMap to "lock" on a street: the distance
+   to the street (the closest the better, not more than the value set with
+   Accuracy.Street), the direction of the street compare to the direction of
+   the vehicule or if the street is connected to the current "locked" street.
+   RoadMap uses fuzzy logic to combine these criteria into one single value.
+   None of the fuzzyfied values for the distance and direction may be below
+   the value set by Accuracy.Confidence, or else the street is not selected.
+   The final fuzzy value must also be above the same limit. RoadMap then
+   selects the street with the highest fuzzy value.
 
    RoadMap can also display 3 messages at the following corners of the map:
    bottom left, bottom right and top right (the top left corner is already
@@ -705,10 +716,10 @@ USING ROADMAP
      2- Set the preference Download.Source to
         {{http://desktop/maps/usc$05d.rdm.gz}}
 
-     3- Set the preference Download.Destination to /usr/local/share/roadmap
+     3- Set the preference Download.Destination to /var/lib/roadmap
 
      4- Make sure the preference Map.Path does include the directory
-        /usr/local/share/roadmap.
+        /var/lib/roadmap.
 
 
 * WAYPOINTS AND ADDRESSES
@@ -951,10 +962,24 @@ CONFIGURATION
 ----
             /usr/share/roadmap
             /usr/local/share/roadmap
+            /etc/roadmap
             ~/.roadmap (equivalent to "&" in RoadMap)
             ~/.roadmap/trips (equivalent to "&/trips" in RoadMap)
             ~/.roadmap/maps (equivalent to "&/maps" in RoadMap)
 ----
+
+   The first four directories are searched sequentially: any configuration
+   item found in one directory overrides all the same items found in the
+   directories listed before. In other words, the configuration is loaded in
+   the following order:
+
+      1- /usr/share/roadmap (installation defaults)
+
+      2- /usr/local/share/roadmap (local site defaults)
+
+      3- /etc/roadmap (local machine defaults)
+
+      4- ~/.roadmap (current user configuration)
 
    The directory <<~/.roadmap>> contains the user configuration: any user change
    to the configuration is written there. The items in the user configuration
@@ -1327,6 +1352,19 @@ CONFIGURATION
 
     [Voice.Approach] Reserved for future use (approaching waypoint).
 
+    [Accuracy.Confidence] The minimum rating for a street to be selected
+
+         <<Format:>> integer, range 0 .. 1024
+
+         <<Default:>> 25
+
+         <<Comment:>> RoadMap uses fuzzy logic to identify what street
+                  the vehicule is on. This value if a minimum fuzzy result
+                  for RoadMap to select any street. This helps not selecting
+                  whatever street is near by when off-road. This also speeds
+                  up the identification process by filtering out unlikely
+                  matches.
+
     [Accuracy.GPS Position] The GPS's estimated position error (worst case)
 
          <<Format:>> integer
@@ -1347,17 +1385,6 @@ CONFIGURATION
          <<Comment:>> the unit depends on the selected unit system (ft/s or
                   m/s).
 
-    [Accuracy.Confirm] Number of matches before assigning a current street.
-
-         <<Format:>> integer
-
-         <<Default:>> 3
-
-         <<Comment:>> the purpose of using multiple matches is to avoid
-                  assigning a crossing street as the current street because
-                  it was the best match once. This item is not used since
-                  fuzzy navigation has been implemented.
-
     [Accuracy.Mouse] The size of the street selection search area.
 
          <<Format:>> number of pixels
@@ -1374,12 +1401,12 @@ CONFIGURATION
 
          <<Format:>> integer (using the current unit system).
 
-         <<Default:>> 80
+         <<Default:>> 150
 
-         <<Comment:>> This distance is used when switching to a new street.
-                  The GPS position must be at a distance greater than the
-                  accuracy from the current street, and at a distance lower
-                  than the accuracy from the would be next current street.
+         <<Comment:>> This is the maximum distance to a street for the
+                  navigation logic. If a street is at a distance greater than
+                  this value, then RoadMap will never consider this street
+                  when searching which street the vehicule is on.
 
     [History.Depth] The maximum number of items in the <<find>> history.
 
@@ -1628,10 +1655,11 @@ CONFIGURATION EXAMPLES
    ~/.roadmap/preferences ("factory" defaults):
 
 +-------------------------------------------------------
-Accuracy.Confirm: 3
-Accuracy.GPS: 1000
+Accuracy.Confidence: 25
+Accuracy.GPS Position: 300
+Accuracy.GPS Speed: 4
 Accuracy.Mouse: 20
-Accuracy.Street: 200
+Accuracy.Street: 150
 Approach.Background: yellow
 Approach.Foreground: black
 Approach.Text: Approaching %N, %C|Approaching %N
@@ -1658,7 +1686,7 @@ GPS.Foreground: black
 GPS.Source: gpsd://localhost
 GPS.Timeout: 10
 History.Depth: 100
-Map.Path: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
+Map.Path: ~/.roadmap,/var/lib/roadmap,/usr/lib/roadmap
 Map.Cache: 8
 Map.Background: LightYellow
 Map.Refresh: normal
