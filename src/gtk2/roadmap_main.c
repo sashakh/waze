@@ -33,10 +33,12 @@
 
 #ifdef ROADMAP_USES_GPE
 #include <gpe/init.h>
+#include <gpe/pixmaps.h>
 #include <libdisplaymigration/displaymigration.h>
 #endif
 
 #include "roadmap.h"
+#include "roadmap_path.h"
 #include "roadmap_start.h"
 #include "roadmap_config.h"
 #include "roadmap_history.h"
@@ -65,6 +67,54 @@ static GtkWidget      *RoadMapMainMenuBar = NULL;
 static GtkWidget      *RoadMapCurrentMenu = NULL;
 static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
+
+
+#ifdef ROADMAP_USES_GPE
+
+static struct gpe_icon RoadMapGpeIcons[] = {
+   {"rm_destination", NULL},
+   {"rm_location", NULL},
+   {"rm_gps", NULL},
+   {"rm_hold", NULL},
+   {"rm_counterclockwise", NULL},
+   {"rm_clockwise", NULL},
+   {"rm_zoomin", NULL},
+   {"rm_zoomout", NULL},
+   {"rm_zoom1", NULL},
+   {"rm_up", NULL},
+   {"rm_left", NULL},
+   {"rm_right", NULL},
+   {"rm_down", NULL},
+   {"rm_full", NULL},
+   {NULL, NULL}
+};
+
+static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
+
+   static int GpeIconsInitialized = 0;
+
+   if (! GpeIconsInitialized) {
+      if (gpe_load_icons (RoadMapGpeIcons) == FALSE) return NULL;
+      GpeIconsInitialized = 1;
+   }
+   return gpe_render_icon (RoadMapMainWindow->style, gpe_find_icon (icon));
+}
+
+#else // Not GPE, i.e. standard GTK.
+
+static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
+
+   if (icon != NULL) {
+
+      const char *icon_file = roadmap_path_search_icon (icon);
+
+      if (icon_file != NULL) {
+         return gtk_image_new_from_file (icon_file);
+      }
+   }
+   return NULL;
+}
+#endif // ROADMAP_USES_GPE
 
 
 static void roadmap_main_close (GtkWidget *widget, gpointer data) {
@@ -261,7 +311,8 @@ void roadmap_main_add_tool (const char *label,
    }
 
    gtk_toolbar_append_item (GTK_TOOLBAR(RoadMapMainToolbar),
-                            label, tip, NULL, NULL,
+                            label, tip, NULL,
+                            roadmap_main_toolbar_icon (icon),
                             (GtkSignalFunc) roadmap_main_activate, callback);
 }
 

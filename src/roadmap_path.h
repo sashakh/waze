@@ -126,5 +126,7 @@ void   roadmap_path_list_free (char **list);
 
 void roadmap_path_free (const char *path);
 
+const char *roadmap_path_search_icon (const char *name);
+
 #endif // INCLUDE__ROADMAP_PATH__H
 

@@ -385,48 +385,48 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
 static RoadMapFactory RoadMapStartToolbar[] = {
 
-   {"D", NULL,
+   {"D", "destination",
       "Center the map on the destination", roadmap_start_show_destination},
-   {"L", NULL,
+   {"L", "location",
       "Center the map on the current location", roadmap_start_show_location},
-   {"G", NULL,
+   {"G", "gps",
       "Center the map on the GPS position", roadmap_start_show_gps},
 /* Remove for now, because the default GPE setup makes the toolbar too large.
-   {"g", NULL,
+   {"g", "gps",
       "Center the map on the GPS position (north up)",
        roadmap_start_show_gps_north_up},
 */
 
-   {"H", NULL,
+   {"H", "hold",
        "Hold the map view in its current position", roadmap_start_hold_map},
 
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"F", NULL,
-       "Toggle the window full screen (if the window manager agrees)",
-        roadmap_main_toggle_full_screen},
-
-   {RoadMapFactorySeparator, NULL, NULL, NULL},
-
-   {"R-", NULL,
+   {"R-", "counterclockwise",
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
-   {"R+", NULL,
+   {"R+", "clockwise",
        "Rotate the map view clockwise", roadmap_start_rotate},
 
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"+", NULL, "Zoom into the map", roadmap_screen_zoom_in},
-   {"-", NULL, "Zoom out from the map", roadmap_screen_zoom_out},
-   {"R", NULL,
+   {"+", "zoomin", "Zoom into the map", roadmap_screen_zoom_in},
+   {"-", "zoomout", "Zoom out from the map", roadmap_screen_zoom_out},
+   {"R", "zoom1",
        "Reset the map back to the default zoom level",
         roadmap_screen_zoom_reset},
 
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"N", NULL, "Move the map up", roadmap_screen_move_up},
-   {"W", NULL, "Move the map to the left", roadmap_screen_move_left},
-   {"E", NULL, "Move the map to the right", roadmap_screen_move_right},
-   {"S", NULL, "Move the map down", roadmap_screen_move_down},
+   {"N", "up", "Move the map up", roadmap_screen_move_up},
+   {"W", "left", "Move the map to the left", roadmap_screen_move_left},
+   {"E", "right", "Move the map to the right", roadmap_screen_move_right},
+   {"S", "down", "Move the map down", roadmap_screen_move_down},
+
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
+
+   {"F", "full",
+       "Toggle the window full screen (if the window manager agrees)",
+        roadmap_main_toggle_full_screen},
 
    {NULL, NULL, NULL, NULL}
 };

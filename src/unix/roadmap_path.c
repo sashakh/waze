@@ -347,3 +347,20 @@ void roadmap_path_free (const char *path) {
    free ((char *) path);
 }
 
+
+const char *roadmap_path_search_icon (const char *name) {
+
+   static char result[256];
+
+   sprintf (result, "%s/pixmaps/rm_%s.png", roadmap_path_home(), name);
+   if (roadmap_file_exists(NULL, result)) return result;
+
+   sprintf (result, "/usr/share/pixmaps/rm_%s.png", name);
+   if (roadmap_file_exists(NULL, result)) return result;
+
+   sprintf (result, "/usr/local/share/pixmaps/rm_%s.png", name);
+   if (roadmap_file_exists(NULL, result)) return result;
+
+   return NULL; /* Not found. */
+}
+
