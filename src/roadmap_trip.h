@@ -51,8 +51,8 @@ const RoadMapPosition *roadmap_trip_get_focus_position (void);
 
 void  roadmap_trip_start (int rotate);
 
-void  roadmap_trip_repaint (void);
-
+void  roadmap_trip_display_points  (void);
+void  roadmap_trip_display_console (void);
 
 void  roadmap_trip_clear (void);
 

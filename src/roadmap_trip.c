@@ -39,6 +39,7 @@
 #include "roadmap_dialog.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
+#include "roadmap_canvas.h"
 
 
 /* Default location is: 1 market St, san Francisco, California. */
@@ -69,6 +70,7 @@ typedef struct roadmap_trip_point {
 
     int speed;
     int direction;
+    int distance;   /* .. from the destination point. */
 
 } RoadMapTripPoint;
 
@@ -538,7 +540,7 @@ void  roadmap_trip_start (int rotate) {
 }
 
 
-void roadmap_trip_repaint (void) {
+void roadmap_trip_display_points (void) {
     
     RoadMapGuiPoint   point;
     RoadMapTripPoint *waypoint;
@@ -554,6 +556,34 @@ void roadmap_trip_repaint (void) {
             roadmap_math_rotate_coordinates (1, &point);
             roadmap_sprite_draw (waypoint->sprite, &point, waypoint->direction);
         }
+    }
+}
+
+
+void roadmap_trip_display_console (void) {
+    
+    int distance;
+    char text[128];
+    RoadMapGuiPoint text_position;
+    RoadMapTripPoint *current = roadmap_trip_search ("GPS");
+    RoadMapTripPoint *destination;
+    
+    if (RoadMapTripFocus == current) {
+        
+        destination = roadmap_trip_search ("Destination");
+        
+        distance = roadmap_math_distance
+                        (&current->position, &destination->position);
+        
+        snprintf (text, sizeof(text), "%d %s",
+                    roadmap_math_to_trip_distance(distance),
+                    roadmap_math_trip_unit());
+        
+        text_position.x = roadmap_canvas_width() - 9;
+        text_position.y = 8;
+        roadmap_canvas_draw_string (&text_position,
+                                    ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
+                                    text);
     }
 }
 

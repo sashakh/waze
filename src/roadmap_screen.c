@@ -812,7 +812,11 @@ static void roadmap_screen_repaint_sprites (void) {
 
     RoadMapGuiPoint point;
     
-    roadmap_trip_repaint ();
+    roadmap_trip_display_points ();
+
+    roadmap_canvas_select_pen (RoadMapHighlightForeground);
+    
+    roadmap_trip_display_console ();
 
     point.x = 20;
     point.y = 20;

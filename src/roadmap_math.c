@@ -100,6 +100,10 @@ static struct {
    int sin_orientation; /* Multiplied by 32768. */
    int cos_orientation; /* Multiplied by 32768. */
 
+   char *unit_symbol;
+   char *trip_symbol;
+   int to_trip_unit;
+
 } RoadMapContext;
 
 
@@ -302,25 +306,33 @@ void roadmap_math_initialize (void) {
 
    RoadMapContext.m_per_latitude  = (1.852 * 60.0) / 1000.0;
    RoadMapContext.ft_per_latitude = 3.2815 * RoadMapContext.m_per_latitude;
+    
+   roadmap_math_use_imperial ();
 }
 
 void roadmap_math_use_metric (void) {
 
-   roadmap_math_zoom_init ();
+    roadmap_math_zoom_init ();
 
-   RoadMapContext.unit_per_latitude = RoadMapContext.m_per_latitude;
+    RoadMapContext.unit_per_latitude = RoadMapContext.m_per_latitude;
+    RoadMapContext.unit_symbol = "m";
+    RoadMapContext.to_trip_unit = 1000;
+    RoadMapContext.trip_symbol = "Km";
 
-   roadmap_math_compute_scale ();
+    roadmap_math_compute_scale ();
 }
 
 
 void roadmap_math_use_imperial (void) {
 
-   roadmap_math_zoom_init ();
+    roadmap_math_zoom_init ();
 
-   RoadMapContext.unit_per_latitude = RoadMapContext.ft_per_latitude;
+    RoadMapContext.unit_per_latitude = RoadMapContext.ft_per_latitude;
+    RoadMapContext.unit_symbol = "ft";
+    RoadMapContext.to_trip_unit = 5280;
+    RoadMapContext.trip_symbol = "Mi";
 
-   roadmap_math_compute_scale ();
+    roadmap_math_compute_scale ();
 }
 
 
@@ -593,6 +605,24 @@ int roadmap_math_distance
 }
 
 
+char *roadmap_math_distance_unit (void) {
+    
+    return RoadMapContext.unit_symbol;
+}
+
+
+char *roadmap_math_trip_unit (void) {
+    
+    return RoadMapContext.trip_symbol;
+}
+
+
+int roadmap_math_to_trip_distance (int distance) {
+    
+    return distance / RoadMapContext.to_trip_unit;
+}
+
+
 int  roadmap_math_get_distance_from_segment
         (RoadMapPosition *position,
          RoadMapPosition *position1, RoadMapPosition *position2) {
@@ -655,7 +685,7 @@ int  roadmap_math_get_distance_from_segment
    distance = (int) sqrt ((x2 * x2) + (y2 * y2));
 
    if (distance < minimum) {
-      minimum = distance;
+      return distance;
    }
 
    return minimum;
