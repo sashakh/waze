@@ -12,7 +12,8 @@
 # This is the debhelper compatibility version to use.
 export DH_COMPAT=3
 
-DESTDIR = $(CURDIR)/debian/roadmap
+DESTDIR   = $(CURDIR)/debian/roadmap
+BUILDFLAGS = INSTALLDIR=/usr desktopdir=/usr/share/applnk/Applications
 
 include /usr/share/dpatch/dpatch.make
 
@@ -36,7 +37,7 @@ build-arch-stamp:
 	dh_testdir
 
 	# Add here command to compile/build the package.
-	$(MAKE) -C src INSTALLDIR=/usr DESKTOP=QT
+	$(MAKE) -C src $(BUILDFLAGS) DESKTOP=QT
 
 	touch build-arch-stamp
 
@@ -59,7 +60,7 @@ clean: unpatch
 	rm -f build-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
-	-$(MAKE) -C src INSTALLDIR=/usr DESKTOP=QT cleanone cleanall 
+	-$(MAKE) -C src $(BUILDFLAGS) DESKTOP=QT cleanone cleanall 
 
 	dh_clean
 
@@ -71,7 +72,7 @@ install: build
 	dh_installdirs
 
 	# Add here commands to install the package into debian/roadmap.
-	$(MAKE) -C src/qt INSTALLDIR=/usr DESKTOP=QT DESTDIR=$(DESTDIR) install
+	$(MAKE) -C src/qt $(BUILDFLAGS) DESKTOP=QT DESTDIR=$(DESTDIR) install
 
 	dh_movefiles --sourcedir=debian/roadmap
 
