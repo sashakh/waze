@@ -9,14 +9,14 @@
 # ------
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000]
+#                         [format=2000|2002]
 #                         [state=<state-id>]
 #                         [test]
 #
 #   or
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000]
+#                         [format=2000|2002]
 #                         [test]
 #                         county-fips ...
 #
@@ -50,6 +50,9 @@ case $1 in
    format=2000) OPTIONS="--format=2000"
                 shift
                 ;;
+   format=2002) OPTIONS="--format=2002"
+                shift
+                ;;
 esac
 
 case $1 in
@@ -80,11 +83,12 @@ function process_one_county {
    elif [ -e $TIGERDIR/tgr$1.zip ] ; then
       unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap
    fi
-   if [ -e $TMPDIR/roadmap/TGR$1.RT1 ] ; then
+   rt1=$TMPDIR/roadmap/TGR$1.RT1
+   if [ -e $rt1 ] ; then
       if [ $verbose = 'Y' ] ; then
-         echo "$BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1"
+         echo "$BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1 $rt1"
       fi
-      $BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1
+      $BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1 $rt1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
