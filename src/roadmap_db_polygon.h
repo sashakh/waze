@@ -4,7 +4,7 @@
  *
  * polygon.bysquare the list of polygons located in each square.
  * polygon.head     for each polygon, the category and list of lines.
- * polygon.lines    the list of lines making polygons.
+ * polygon.points   the list of points defining the polygons border.
  */
 
 #ifndef _ROADMAP_DB_POLYGON__H_

@@ -25,6 +25,7 @@
  *   The RoadMap shapes list all points used to draw the shape of non-straight
  *   lines. The shapes are stored in the following tables:
  *
+ *   shape.bysquare   for each square, the list of shape lines.
  *   shape.byline     for each line, the list of shape points.
  *   shape.data       the position of each shape point.
  */

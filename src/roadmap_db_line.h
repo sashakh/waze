@@ -25,6 +25,10 @@
  *   The RoadMap lines are described by the following table:
  *
  *   line          the ID of the line and its from and to points.
+ *                 The lines are sorted by square.
+ *   bysquare      an index of lines per square.
+ *   bysquare2     A given line may have one end in a different square:
+ *                 this other index covers this very case.
  */
 
 #ifndef _ROADMAP_DB_LINE__H_
