@@ -890,7 +890,7 @@ static void roadmap_screen_repaint (int moved) {
                             (&RoadMapScreenCenter, &position1, &position2);
                 }
                 
-                if (distance < accuracy / 2 &&
+                if (distance < accuracy &&
                     distance_to_previous > accuracy) {
                     PreviousLine = line;
                     DetectCount = 1;

@@ -73,15 +73,15 @@ typedef struct {
 } RoadMapSign;
 
 
-#define ROADMAP_SIGN_EMPTY(n,d) \
+#define ROADMAP_SIGN(n,d) \
     {n, d, NULL, NULL, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, 0}
 
 
 RoadMapSign RoadMapStreetSign[] = {
-    ROADMAP_SIGN_EMPTY("Current Street",  "%N, %C"),
-    ROADMAP_SIGN_EMPTY("Approach",        "Approaching %N, %C"),
-    ROADMAP_SIGN_EMPTY("Selected Street", "%F"),
-    ROADMAP_SIGN_EMPTY(NULL, NULL)
+    ROADMAP_SIGN("Current Street",  "%N, %C|%N"),
+    ROADMAP_SIGN("Approach",        "Approaching %N, %C|Approaching %N"),
+    ROADMAP_SIGN("Selected Street", "%F"),
+    ROADMAP_SIGN(NULL, NULL)
 };
 
 
@@ -405,7 +405,7 @@ static void roadmap_display_console_box (int corner, const char *format) {
     RoadMapGuiPoint frame[4];
 
 
-    format = roadmap_config_get ("Console", format);
+    format = roadmap_config_get ("Display", format);
     
     if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
