@@ -90,7 +90,6 @@ static int RangeAddCount = 0;
 static int *SortedRange = NULL;
 static int *SortedNoAddress = NULL;
 
-
 void buildmap_range_initialize (void) {
 
    RangeByLine       = roadmap_hash_new ("RangeByLine",       BUILDMAP_BLOCK);
@@ -246,7 +245,8 @@ void buildmap_range_add_no_address (int line, int street) {
           RangeNoAddress[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
 
        if ((this_noaddr->street == street) && (this_noaddr->line == line)) {
-          buildmap_fatal (0, "duplicated no-address line");
+          buildmap_error (0, "duplicated no-address line");
+          return;
        }
    }
 
