@@ -206,10 +206,10 @@ clean: cleanone
 	for module in icons $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			make -C $$module cleanone || exit 1; \
+			$(MAKE) -C $$module cleanone || exit 1; \
 		fi ; \
 	done
-	if [ -d unix ] ; then make -C unix cleanone ; fi
+	if [ -d unix ] ; then $(MAKE) -C unix cleanone ; fi
 
 cleanone:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS)
@@ -227,7 +227,7 @@ install: everything
 	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS)
 	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
 	mkdir -p $(DESTDIR)$(ICONDIR)
-	cd icons && make ICONDIR="$(DESTDIR)$(ICONDIR)" install
+	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" install
 	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
 	mkdir -p $(DESTDIR)$(desktopdir)
 	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
@@ -249,7 +249,7 @@ modules:
 	for module in icons $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			make -C $$module STDCFLAGS="$(CFLAGS)" all || exit 1; \
+			$(MAKE) -C $$module STDCFLAGS="$(CFLAGS)" all || exit 1; \
 		fi ; \
 	done
 
@@ -257,7 +257,7 @@ cleanall:
 	for module in icons $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			make -C $$module clean ; \
+			$(MAKE) -C $$module clean ; \
 		fi ; \
 	done
 
@@ -281,7 +281,7 @@ libguiroadgps.a: $(RGGUIOBJS)
 	$(AR) rf libguiroadgps.a $(RGGUIOBJS)
 
 unix/libosroadmap.a:
-	if [ -d unix ] ; then make -C unix "CFLAGS=$(CFLAGS) -I.." ; fi
+	if [ -d unix ] ; then $(MAKE) -C unix "CFLAGS=$(CFLAGS) -I.." ; fi
 
 dumpmap: $(DMOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)

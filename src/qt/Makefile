@@ -65,27 +65,28 @@ RUNTIME=qtroadmap qtroadgps
 all: runtime
 
 others:
-	make -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) runtime
-	make -C ../unix CFLAGS="$(STDCFLAGS) -I.." LDFLAGS=$(LDFLAGS) all
+	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) runtime
+	$(MAKE) -C ../unix CFLAGS="$(STDCFLAGS) -I.." LDFLAGS=$(LDFLAGS) all
 
 build:
-	make -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) build
+	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) build
 
 runtime: others $(RUNTIME)
 
 clean: cleanone
-	make -C .. cleanone
-	make -C .. -C unix cleanone
+	$(MAKE) -C .. cleanone
+	$(MAKE) -C .. -C unix cleanone
 
 cleanone:
 	rm -f *.o *.a *.da $(RUNTIME) moc_qt_*.cc
 
 install: all
-	make -C .. install INSTALLDIR=$(INSTALLDIR)
+	$(MAKE) -C .. install INSTALLDIR=$(INSTALLDIR)
 	$(STRIP) $(RUNTIME)
 	mkdir -p $(DESTDIR)$(bindir)
-	install qtroadmap $(DESTDIR)$(bindir)/roadmap
-	install qtroadgps $(DESTDIR)$(bindir)/roadgps
+	install $(RUNTIME) $(DESTDIR)$(bindir)/
+	ln -s qtroadmap $(DESTDIR)$(bindir)/roadmap
+	ln -s qtroadgps $(DESTDIR)$(bindir)/roadgps
 
 install-ipkg: install
 	mkdir -p $(DESTDIR)$(desktopdir)
@@ -100,7 +101,7 @@ install-ipkg: install
 
 uninstall:
 	cd $(bindir) && rm -f $(RUNTIME) roadmap roadgps
-	make -C .. uninstall
+	$(MAKE) -C .. uninstall
 
 # --- The real targets --------------------------------------------
 

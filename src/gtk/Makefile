@@ -36,23 +36,23 @@ bindir=$(INSTALLDIR)/bin
 all: runtime
 
 others:
-	make -C .. CFLAGS="$(STDCFLAGS)" runtime
-	make -C .. -C unix CFLAGS="$(STDCFLAGS) -I.." runtime
+	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" runtime
+	$(MAKE) -C .. -C unix CFLAGS="$(STDCFLAGS) -I.." runtime
 
 build:
-	make -C .. CFLAGS="$(STDCFLAGS)" build
+	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" build
 
 runtime: others $(RUNTIME)
 
 clean: cleanone
-	make -C .. cleanone
-	make -C .. -C unix cleanone
+	$(MAKE) -C .. cleanone
+	$(MAKE) -C .. -C unix cleanone
 
 cleanone:
 	rm -f *.o *.a *.da $(RUNTIME)
 
 install: all
-	make -C .. install
+	$(MAKE) -C .. install
 	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	install $(RUNTIME) $(DESTDIR)$(bindir)
 	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
@@ -60,7 +60,7 @@ install: all
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
-	make -C .. uninstall
+	$(MAKE) -C .. uninstall
 
 # --- The real targets --------------------------------------------
 

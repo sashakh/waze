@@ -8,6 +8,7 @@ ICONSRC= rm_hold.xpm \
 
 ICONS=$(ICONSRC:.xpm=.png)
 
+CONVERT=convert
 
 all: icons
 
@@ -26,5 +27,5 @@ cleanone:
 	$(RM) .#*
 
 %.png : %.xpm
-	convert -transparent yellow $< temp.png
-	convert -scale 16x16 temp.png $@
+	$(CONVERT) -transparent yellow $< temp.png
+	$(CONVERT) -scale 16x16 temp.png $@
