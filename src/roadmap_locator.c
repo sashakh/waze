@@ -204,6 +204,8 @@ static int roadmap_locator_open (int fips) {
       if (RoadMapCountyCache[i].fips == fips) {
 
          roadmap_db_activate (map_name);
+         RoadMapActiveCounty = fips;
+
          return ROADMAP_US_OK;
       }
 
@@ -215,7 +217,10 @@ static int roadmap_locator_open (int fips) {
    }
 
    if (RoadMapCountyCache[oldest].fips > 0) {
-      roadmap_locator_close (oldest);
+       roadmap_locator_close (oldest);
+       if (RoadMapCountyCache[oldest].fips == RoadMapActiveCounty) {
+           RoadMapActiveCounty = 0;
+       }
    }
 
    access = roadmap_locator_new_access ();
