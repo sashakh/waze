@@ -478,6 +478,8 @@ void roadmap_navigate_locate
 
     RoadMapLatestPosition = *position;
 
+    if (speed < roadmap_gps_speed_accuracy()) return;
+
 
     roadmap_fuzzy_start_cycle ();
 
@@ -498,8 +500,7 @@ void roadmap_navigate_locate
                 (&RoadMapConfirmedStreet,
                  &RoadMapConfirmedLine, direction) >= before) {
 
-            if (speed > roadmap_gps_speed_accuracy() &&
-                (! roadmap_navigate_confirm_intersection (direction))) {
+            if (! roadmap_navigate_confirm_intersection (direction)) {
                 roadmap_navigate_find_intersection (speed, direction);
             }
 
