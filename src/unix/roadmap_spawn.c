@@ -217,22 +217,29 @@ int  roadmap_spawn_with_feedback
 void roadmap_spawn_check (void) {
 
     int pid;
-    int status;
     RoadMapFeedback *item;
 
-    pid = waitpid (-1, &status, WNOHANG);
 
-    if (pid <= 0) return;
-        
-    for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
-         item != NULL;
-         item = (RoadMapFeedback *)item->link.next) {
+    pid = waitpid (-1, NULL, WNOHANG);
 
-        if (item->child == pid) {
-            item->handler (item->data);
-            roadmap_list_remove (&RoadMapSpawnActive, &item->link);
-            break;
-        }
+    while (pid > 0) {
+
+       roadmap_log (ROADMAP_DEBUG, "child %d exited", pid);
+
+       for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
+            item != NULL;
+            item = (RoadMapFeedback *)item->link.next) {
+
+          if (pid == item->child) {
+
+             roadmap_list_remove (&RoadMapSpawnActive, &item->link);
+
+             item->handler (item->data);
+             break;
+          }
+       }
+
+       pid = waitpid (-1, NULL, WNOHANG);
     }
 }
 
