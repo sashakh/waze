@@ -61,7 +61,7 @@ void  roadmap_trip_reverse (int rotate);
 void  roadmap_trip_format_messages (void);
 void  roadmap_trip_display (void);
 
-void  roadmap_trip_clear (void);
+void  roadmap_trip_new (void);
 
 void  roadmap_trip_initialize (void);
 
@@ -70,7 +70,7 @@ const char *roadmap_trip_current (void);
 /* In the two primitives that follow, the name is either NULL (i.e.
  * open a dialog to let the user enter one), or an explicit name.
  */
-void  roadmap_trip_load (const char *name);
+int   roadmap_trip_load (const char *name);
 void  roadmap_trip_save (const char *name);
 
 #endif // INCLUDE__ROADMAP_TRIP__H

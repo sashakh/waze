@@ -129,8 +129,7 @@ static void roadmap_start_about (void) {
 
 static void roadmap_start_create_trip (void) {
     
-    roadmap_trip_clear ();
-    roadmap_screen_refresh ();
+    roadmap_trip_new ();
 }
 
 static void roadmap_start_open_trip (void) {
@@ -533,7 +532,10 @@ void roadmap_start (int argc, char **argv) {
    roadmap_spawn_initialize (argv[0]);
 
    roadmap_trip_restore_focus ();
-   roadmap_trip_load (roadmap_trip_current());
+
+   if (! roadmap_trip_load (roadmap_trip_current())) {
+      roadmap_start_create_trip ();
+   }
 }
 
 

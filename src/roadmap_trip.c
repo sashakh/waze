@@ -43,6 +43,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
 #include "roadmap_message.h"
+#include "roadmap_messagebox.h"
 #include "roadmap_preferences.h"
 #include "roadmap_display.h"
 
@@ -341,27 +342,28 @@ static void roadmap_trip_remove_dialog_selected (const char *name, void *data) {
 
 
 static void roadmap_trip_remove_dialog_populate (int count) {
-    
+
+    static char **Names = NULL;
+
     int i;
-    char **names;
     RoadMapListItem *item;
     RoadMapTripPoint *point;
     
-    names = calloc (count, sizeof(*names));
-    
-    if (names == NULL) {
-        roadmap_log (ROADMAP_FATAL, "No more memory");
+    if (Names != NULL) {
+       free (Names);
     }
-    
+    Names = calloc (count, sizeof(*Names));
+    roadmap_check_allocated(Names);
+
     for (i = 0, item = RoadMapTripWaypoints.first; item != NULL; item = item->next) {
         point = (RoadMapTripPoint *)item;
         if (! point->predefined) {
-            names[i++] = point->id;
+            Names[i++] = point->id;
         }
     }
     
     roadmap_dialog_show_list
-        ("Names", ".Waypoints", count, names, (void **)names,
+        ("Names", ".Waypoints", count, Names, (void **)Names,
          roadmap_trip_remove_dialog_selected);
 }
 
@@ -390,26 +392,21 @@ static void roadmap_trip_remove_dialog (void) {
 
 static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
 
-    const char *full_name;
     FILE *file;
-    
+
     if (name == NULL) {
-        
         roadmap_trip_file_dialog (mode);
         return NULL;
     }
-        
-    roadmap_config_set (&RoadMapConfigTripName, name);
-    
-    if (name [0] != '/') {
-        full_name = roadmap_file_join (roadmap_file_trips(), name);
+
+    if (name [0] == '/') {
+        file = roadmap_file_open (NULL, name, mode);
     } else {
-        full_name = name;
+        file = roadmap_file_open (roadmap_file_trips(), name, mode);
     }
-    file = fopen (full_name, mode);
-    
-    if (file == NULL) {
-        roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
+
+    if (file != NULL) {
+        roadmap_config_set (&RoadMapConfigTripName, name);
     }
     return file;
 }
@@ -478,6 +475,41 @@ static void roadmap_trip_activate (int rotate) {
     roadmap_screen_refresh ();
 }
 
+
+static void roadmap_trip_clear (void) {
+    
+    RoadMapTripPoint *point;
+    RoadMapTripPoint *next;
+    
+    for (point = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
+         point != NULL;
+         point = next) {
+        
+        next = (RoadMapTripPoint *)point->link.next;
+        
+        if (! point->predefined) {
+        
+            if (RoadMapTripFocus == point) {
+                roadmap_trip_unfocus ();
+            }
+            if (roadmap_math_point_is_visible (&point->position)) {
+                RoadMapTripRefresh = 1;
+            }
+            roadmap_list_remove (&RoadMapTripWaypoints, &point->link);
+            free (point->id);
+            free(point);
+            RoadMapTripModified = 1;
+
+        } else {
+
+            point->has_value = 0;
+        }
+    }
+    
+    if (RoadMapTripModified) {
+        roadmap_config_set (&RoadMapConfigTripName, "default");
+    }
+}
 
 
 void roadmap_trip_set_point (const char *name, RoadMapPosition *position) {
@@ -847,44 +879,18 @@ void roadmap_trip_display (void) {
 }
 
     
-void roadmap_trip_clear (void) {
-    
-    RoadMapTripPoint *point;
-    RoadMapTripPoint *next;
-    
-    for (point = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
-         point != NULL;
-         point = next) {
-        
-        next = (RoadMapTripPoint *)point->link.next;
-        
-        if (! point->predefined) {
-        
-            if (RoadMapTripFocus == point) {
-                roadmap_trip_unfocus ();
-            }
-            if (roadmap_math_point_is_visible (&point->position)) {
-                RoadMapTripRefresh = 1;
-            }
-            roadmap_list_remove (&RoadMapTripWaypoints, &point->link);
-            free (point->id);
-            free(point);
-            RoadMapTripModified = 1;
-
-        } else {
-
-            point->has_value = 0;
-        }
-    }
-    
-    if (RoadMapTripModified) {
-        roadmap_config_set (&RoadMapConfigTripName, "default");
-    }
+const char *roadmap_trip_current (void) {
+    return roadmap_config_get (&RoadMapConfigTripName);
 }
 
 
-const char *roadmap_trip_current (void) {
-    return roadmap_config_get (&RoadMapConfigTripName);
+void roadmap_trip_new (void) {
+
+    roadmap_trip_clear ();
+    roadmap_config_set (&RoadMapConfigTripName, "default");
+    RoadMapTripModified = 1;
+
+    roadmap_screen_refresh();
 }
 
 
@@ -919,7 +925,7 @@ void roadmap_trip_initialize (void) {
 }
 
 
-void roadmap_trip_load (const char *name) {
+int roadmap_trip_load (const char *name) {
     
     FILE *file;
     int   i;
@@ -930,43 +936,50 @@ void roadmap_trip_load (const char *name) {
     RoadMapPosition position;
 
 
-    roadmap_trip_clear ();
-    
     /* Load waypoints from the user environment. */
     
     file = roadmap_trip_fopen (name, "r");
     
-    if (file != NULL) {
-        
-      while (! feof(file)) {
-
-         if (fgets (line, sizeof(line), file) == NULL) break;
-
-         p = roadmap_config_extract_data (line, sizeof(line));
-
-         if (p == NULL) continue;
-         
-         argv[0] = p; /* Not used at that time. */
-             
-         for (p = strchr (p, ','), i = 0; p != NULL && i < 8; p = strchr (p, ',')) {
-             *p = 0;
-             argv[++i] = ++p;
-         }
-         
-         if (i != 3) {
-             roadmap_log (ROADMAP_ERROR, "erroneous trip line (%d fields)", i);
-             continue;
-         }
-         position.longitude = atoi(argv[2]);
-         position.latitude  = atoi(argv[3]);
-         roadmap_trip_update (argv[1], &position, "Waypoint");
-      }
-      
-      fclose (file);
-      RoadMapTripModified = 0;
-      
-      roadmap_screen_refresh();
+    if (file == NULL) {
+       if (name == NULL) {
+          return 1; /* Delay the answer: file selection has been activated. */
+       }
+       roadmap_messagebox ("Warning",
+                           "An error occurred when opening the selected trip");
+       return 0;
     }
+
+    roadmap_trip_clear ();
+
+    while (! feof(file)) {
+
+       if (fgets (line, sizeof(line), file) == NULL) break;
+
+       p = roadmap_config_extract_data (line, sizeof(line));
+
+       if (p == NULL) continue;
+         
+       argv[0] = p; /* Not used at that time. */
+             
+       for (p = strchr (p, ','), i = 0; p != NULL && i < 8; p = strchr (p, ',')) {
+           *p = 0;
+           argv[++i] = ++p;
+       }
+         
+       if (i != 3) {
+           roadmap_log (ROADMAP_ERROR, "erroneous trip line (%d fields)", i);
+           continue;
+       }
+       position.longitude = atoi(argv[2]);
+       position.latitude  = atoi(argv[3]);
+       roadmap_trip_update (argv[1], &position, "Waypoint");
+    }
+      
+    fclose (file);
+    RoadMapTripModified = 0;
+      
+    roadmap_screen_refresh();
+    return 1;
 }
 
 
