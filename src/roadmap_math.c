@@ -413,7 +413,7 @@ void roadmap_math_set_focus (const RoadMapArea *focus) {
 }
 
 
-void roadmap_math_release_focus () {
+void roadmap_math_release_focus (void) {
 
    RoadMapContext.focus = RoadMapContext.current_screen;
 }
