@@ -9,7 +9,7 @@ ifeq ($(MODE),PROFILE)
    CFLAGS=-g -Wall -pg -fprofile-arcs -g
    LDFLAGS=-pg $(LDFLAGS)
 else
-   CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall -DROADMAP_USES_SIGCHLD
+   CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall $(OPTIONS)
 endif
 endif
 
