@@ -74,8 +74,18 @@ street are not indicated). The US Census Bureau has clearly indicated that
 it does not plan to add these information in the future (the USCB does
 not need them).
 
-<P>RoadMap uses <b>gpsd</b> for the GPS link and <b>flite</b> (festival lite)
-for the voice messages.
+<P>RoadMap uses <b>gpsd</b> for the GPS link and <a class="normal"
+href="http://www.speech.cs.cmu.edu/flite/">flite</a> (festival lite) for
+the voice messages. Note that flite can be rebuilt with better voices than
+the default one (such as a US voice instead of a british one--some may
+disagree :). See the flite README for more information. Here is an example,
+courtesy of Scot Wilcoxon:
+
+<listing>
+   cd flite
+   make clean    # to remove old executable files
+   ./configure --with-vox=cmu_us_kal16
+</listing>
 
 <P>RoadMap comes with its own GPS status screen, which provides an overview of 
 the satellites received and highlights those the GPS has a fix on. This status 
