@@ -364,6 +364,10 @@ int roadmap_dialog_activate (const char *name, void *context) {
 #endif
    gtk_window_set_title (GTK_WINDOW(dialog->w), roadmap_start_get_title(name));
 
+   gtk_button_box_set_layout
+      (GTK_BUTTON_BOX(GTK_DIALOG(dialog->w)->action_area),
+       GTK_BUTTONBOX_SPREAD);
+
    return 1; /* Tell the caller this is a new, undefined, dialog. */
 }
 
@@ -569,7 +573,7 @@ void roadmap_dialog_add_button (char *label, RoadMapDialogCallback callback) {
    GTK_WIDGET_SET_FLAGS (button, GTK_CAN_DEFAULT);
 
    gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dialog->w)->action_area),
-                       button, TRUE, TRUE, 0);
+                       button, TRUE, FALSE, 0);
 
    gtk_widget_grab_default (button);
 }
