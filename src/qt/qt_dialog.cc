@@ -279,7 +279,7 @@ QWidget* Entry::create(QWidget* parent) {
 			lb->setMinimumHeight(200);
 			lb->setMinimumWidth(150);
 
-			connect(widget, SIGNAL(selected(int)), this, SLOT(run()));
+			connect(widget, SIGNAL(highlighted(int)), this, SLOT(run()));
 			}
 			break;
 
