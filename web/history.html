@@ -18,6 +18,23 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
+<P>Roadmap v1.0.7 (July 5, 2004)
+<UL>
+  <LI>Fix some gcc warning against libpopt primitives.
+  <LI>Fix some potential overflow problems (no actual problem was reported).
+  <LI>Switch to gcc 3.3 and QT3. RoadMap compiles clean with QT3 as long
+      as the QT2 compatibility header are installed (qdialog.h, qlist.h
+      qvector.h, etc..).
+  <LI>Follow suggestion by Akkana Peck: tolerate spaces between the '?' and
+      the city name when using fuzzy searches.
+  <LI>Follow suggestion by Paul Fox: tar files to use a directory name made
+      with the version number (i.e. roadmap-1.0.7).
+  <LI>Fix a street selection problem: activate the proper county when
+      the user selects a street from a list (Find Address..). Bug reported
+      by Mark Whitis.
+  <LI>GTK2 only: set the first item as selected when opening a list.
+</UL>
+</UL>
 <P>Roadmap v1.0.6 (May 30, 2004):
 <UL>
   <LI>Fix by Paul Fox: RoadMap may crash at the intersection of counties
