@@ -74,8 +74,9 @@ static void roadmap_address_done (RoadMapAddressSelection *selected) {
 
     roadmap_display_activate
        ("Selected Street", selected->line, &selected->position);
-    roadmap_trip_set_point ("Location", &selected->position);
-    roadmap_trip_set_focus ("Location", 0);
+    roadmap_trip_set_point ("Selection", &selected->position);
+    roadmap_trip_set_point ("Address", &selected->position);
+    roadmap_trip_set_focus ("Address", 0);
     roadmap_screen_refresh ();
 }
 

@@ -28,6 +28,8 @@
 
 void roadmap_display_initialize (void);
 
+void roadmap_display_page (const char *name);
+
 int roadmap_display_activate
         (const char *title, int line, const RoadMapPosition *position);
 

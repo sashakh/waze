@@ -41,11 +41,12 @@
 #include "roadmap_canvas.h"
 #include "roadmap_message.h"
 #include "roadmap_sprite.h"
-#include "roadmap_trip.h"
 #include "roadmap_voice.h"
 
 #include "roadmap_display.h"
 
+
+static char *RoadMapDisplayPage = NULL;
 
 static RoadMapConfigDescriptor RoadMapConfigDisplayDuration =
                         ROADMAP_CONFIG_ITEM("Display", "Duration");
@@ -73,6 +74,7 @@ static RoadMapPen RoadMapConsoleForeground;
 
 typedef struct {
 
+    const char *page;
     const char *title;
     
     char *content;
@@ -103,8 +105,8 @@ typedef struct {
 } RoadMapSign;
 
 
-#define ROADMAP_SIGN(n,s,t,b,f) \
-    {n, NULL, NULL, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
+#define ROADMAP_SIGN(p,n,s,t,b,f) \
+    {p, n, NULL, NULL, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
@@ -112,10 +114,10 @@ typedef struct {
 
 
 RoadMapSign RoadMapStreetSign[] = {
-    ROADMAP_SIGN("Current Street",  0, "%N, %C|%N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN("Approach",        1, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN("Selected Street", 0, "%F", "yellow", "black"),
-    ROADMAP_SIGN(NULL, 0, NULL, NULL, NULL)
+    ROADMAP_SIGN("GPS", "Current Street",  0, "%N, %C|%N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN("GPS", "Approach",        1, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN(NULL, "Selected Street", 0, "%F", "yellow", "black"),
+    ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
 };
 
 
@@ -379,6 +381,15 @@ static void roadmap_display_sign (RoadMapSign *sign) {
 }
 
 
+void roadmap_display_page (const char *name) {
+
+    if (RoadMapDisplayPage != NULL) {
+        free (RoadMapDisplayPage);
+    }
+    RoadMapDisplayPage = strdup(name);
+}
+
+
 int roadmap_display_activate
         (const char *title, int line, const RoadMapPosition *position) {
 
@@ -568,8 +579,14 @@ void roadmap_display_signs (void) {
     roadmap_display_create_pens ();
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
-        if (sign->deadline > now && sign->content != NULL) {
-            roadmap_display_sign (sign);
+
+        if ((sign->page == NULL) ||
+            (RoadMapDisplayPage == NULL) ||
+            (! strcmp (sign->page, RoadMapDisplayPage))) {
+
+           if (sign->deadline > now && sign->content != NULL) {
+               roadmap_display_sign (sign);
+           }
         }
     }
 }

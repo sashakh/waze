@@ -53,6 +53,15 @@
 #include "roadmap_screen.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigDeltaX =
+                        ROADMAP_CONFIG_ITEM("Delta", "X");
+
+static RoadMapConfigDescriptor RoadMapConfigDeltaY =
+                        ROADMAP_CONFIG_ITEM("Delta", "Y");
+
+static RoadMapConfigDescriptor RoadMapConfigDeltaRotate =
+                        ROADMAP_CONFIG_ITEM("Delta", "Rotate");
+
 static RoadMapConfigDescriptor RoadMapConfigShapesDeclutter =
                         ROADMAP_CONFIG_ITEM("Shapes", "Declutter");
 
@@ -75,6 +84,8 @@ static int RoadMapScreenWidth;
 static int RoadMapScreenHeight;
 static int RoadMapScreenShapesVisible = 0;
 
+static int RoadMapScreenDeltaX;
+static int RoadMapScreenDeltaY;
 
 static char *SquareOnScreen;
 static int   SquareOnScreenCount;
@@ -669,8 +680,6 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_log_push ("roadmap_screen_repaint");
 
-    roadmap_math_set_center (&RoadMapScreenCenter);
-    
     RoadMapScreenShapesVisible =
         roadmap_math_declutter
             (roadmap_config_get_integer(&RoadMapConfigShapesDeclutter));
@@ -756,10 +765,40 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
 
     if (line >= 0) {
 
-        roadmap_trip_set_point ("Location", &position);
+        roadmap_trip_set_point ("Selection", &position);
         roadmap_display_activate ("Selected Street", line, &position);
         roadmap_screen_repaint ();
     }
+}
+
+
+static void roadmap_screen_reset_delta (void) {
+
+   RoadMapScreenDeltaX = 0;
+   RoadMapScreenDeltaY = 0;
+   RoadMapScreenRotation = 0;
+
+   roadmap_config_set_integer (&RoadMapConfigDeltaX, 0);
+   roadmap_config_set_integer (&RoadMapConfigDeltaY, 0);
+   roadmap_config_set_integer (&RoadMapConfigDeltaRotate, 0);
+}
+
+
+static void roadmap_screen_record_move (int dx, int dy) {
+
+   RoadMapGuiPoint center;
+
+   RoadMapScreenDeltaX += dx;
+   RoadMapScreenDeltaY += dy;
+
+   roadmap_config_set_integer (&RoadMapConfigDeltaX, RoadMapScreenDeltaX);
+   roadmap_config_set_integer (&RoadMapConfigDeltaY, RoadMapScreenDeltaY);
+
+   center.x = (RoadMapScreenWidth / 2) + dx;
+   center.y = (RoadMapScreenHeight / 2) + dy;
+
+   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_math_set_center (&RoadMapScreenCenter);
 }
 
 
@@ -771,14 +810,28 @@ void roadmap_screen_refresh (void) {
 
     if (roadmap_trip_is_focus_changed()) {
 
+        roadmap_screen_reset_delta ();
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
-        RoadMapScreenRotation = 0;
+        roadmap_math_set_center (&RoadMapScreenCenter);
         refresh = 1;
         
     } else if (roadmap_trip_is_focus_moved()) {
 
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
+        roadmap_math_set_center (&RoadMapScreenCenter);
 
+        if (RoadMapScreenDeltaX || RoadMapScreenDeltaY) {
+
+           int dx = RoadMapScreenDeltaX;
+           int dy = RoadMapScreenDeltaY;
+
+           refresh |=
+               roadmap_math_set_orientation
+                   (roadmap_trip_get_orientation() + RoadMapScreenRotation);
+
+           RoadMapScreenDeltaX = RoadMapScreenDeltaY = 0;
+           roadmap_screen_record_move (dx, dy);
+        }
     }
     
     refresh |=
@@ -809,6 +862,7 @@ void roadmap_screen_rotate (int delta) {
    if (roadmap_math_set_orientation
            (roadmap_trip_get_orientation() + rotation)) {
       RoadMapScreenRotation = rotation;
+      roadmap_config_set_integer (&RoadMapConfigDeltaRotate, rotation);
       roadmap_screen_repaint ();
    }
 }
@@ -816,49 +870,28 @@ void roadmap_screen_rotate (int delta) {
 
 void roadmap_screen_move_up (void) {
 
-   RoadMapGuiPoint center;
-
-   center.x = RoadMapScreenWidth / 2;
-   center.y = RoadMapScreenHeight / 4;
-
-   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / 4));
    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_move_down (void) {
 
-   RoadMapGuiPoint center;
-
-   center.x = RoadMapScreenWidth / 2;
-   center.y = (3 * RoadMapScreenHeight) / 4;
-
-   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_screen_record_move (0, RoadMapScreenHeight / 4);
    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_move_right (void) {
 
-   RoadMapGuiPoint center;
-
-   center.x = (3 * RoadMapScreenWidth) / 4;
-   center.y = RoadMapScreenHeight / 2;
-
-   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_screen_record_move (RoadMapScreenHeight / 4, 0);
    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_move_left (void) {
 
-
-   RoadMapGuiPoint center;
-
-   center.x = RoadMapScreenWidth / 4;
-   center.y = RoadMapScreenHeight / 2;
-
-   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_screen_record_move (0 - (RoadMapScreenHeight / 4), 0);
    roadmap_screen_repaint ();
 }
 
@@ -889,6 +922,10 @@ void roadmap_screen_zoom_reset (void) {
 
 
 void roadmap_screen_initialize (void) {
+
+    roadmap_config_declare ("session", &RoadMapConfigDeltaX, "0");
+    roadmap_config_declare ("session", &RoadMapConfigDeltaY, "0");
+    roadmap_config_declare ("session", &RoadMapConfigDeltaRotate, "0");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigPolygonsDeclutter, "1300");
@@ -921,6 +958,11 @@ void roadmap_screen_set_initial_position (void) {
     
     roadmap_layer_initialize();
 
+    RoadMapScreenDeltaX = roadmap_config_get_integer (&RoadMapConfigDeltaX);
+    RoadMapScreenDeltaY = roadmap_config_get_integer (&RoadMapConfigDeltaY);
+    RoadMapScreenRotation =
+       roadmap_config_get_integer (&RoadMapConfigDeltaRotate);
+
     RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
     roadmap_canvas_set_foreground
         (roadmap_config_get (&RoadMapConfigMapBackground));
@@ -928,4 +970,6 @@ void roadmap_screen_set_initial_position (void) {
     RoadMapEdges = roadmap_canvas_create_pen ("Map.Edges");
     roadmap_canvas_set_thickness (4);
     roadmap_canvas_set_foreground ("grey");
+
+    roadmap_layer_adjust ();
 }

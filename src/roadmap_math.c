@@ -47,6 +47,9 @@
 static RoadMapConfigDescriptor RoadMapConfigGeneralDefaultZoom =
                         ROADMAP_CONFIG_ITEM("General", "Default Zoom");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralZoom =
+                        ROADMAP_CONFIG_ITEM("General", "Zoom");
+
 
 #define ROADMAP_REFERENCE_ZOOM 20
 
@@ -259,8 +262,7 @@ static void roadmap_math_compute_scale (void) {
 
 
    if (RoadMapContext.zoom == 0) {
-        RoadMapContext.zoom =
-           roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
+       RoadMapContext.zoom = ROADMAP_REFERENCE_ZOOM;
    }
    
    RoadMapContext.center_x = RoadMapContext.width / 2;
@@ -396,6 +398,7 @@ void roadmap_math_rotate_object
 
 void roadmap_math_initialize (void) {
 
+    roadmap_config_declare ("session", &RoadMapConfigGeneralZoom, "0");
     roadmap_config_declare
         ("preferences", &RoadMapConfigGeneralDefaultZoom, "20");
     RoadMapContext.orientation = 0;
@@ -494,6 +497,20 @@ int roadmap_math_point_is_visible (const RoadMapPosition *point) {
 }
 
 
+void roadmap_math_restore_zoom (void) {
+
+    RoadMapContext.zoom =
+        roadmap_config_get_integer (&RoadMapConfigGeneralZoom);
+    if (RoadMapContext.zoom == 0) {
+         RoadMapContext.zoom =
+            roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
+        if (RoadMapContext.zoom == 0) {
+            RoadMapContext.zoom = ROADMAP_REFERENCE_ZOOM;
+        }
+    }
+    roadmap_math_compute_scale ();
+}
+
 void roadmap_math_zoom_out (void) {
 
    int zoom;
@@ -502,6 +519,7 @@ void roadmap_math_zoom_out (void) {
    if (zoom < 0x10000) {
       RoadMapContext.zoom = (unsigned short) zoom;
    }
+   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
    roadmap_math_compute_scale ();
 }
 
@@ -512,6 +530,7 @@ void roadmap_math_zoom_in (void) {
    if (RoadMapContext.zoom <= 1) {
       RoadMapContext.zoom = 2;
    }
+   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
    roadmap_math_compute_scale ();
 }
 
@@ -520,6 +539,8 @@ void roadmap_math_zoom_reset (void) {
 
    RoadMapContext.zoom =
         roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
+
+   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
 
    roadmap_math_compute_scale ();
 }
@@ -567,21 +588,35 @@ void roadmap_math_set_center (RoadMapPosition *position) {
 
 int roadmap_math_set_orientation (int direction) {
 
+   /* FIXME: this function, which primary purpose was to
+    * compute the span of the visible map area when rotated,
+    * has become THE way for setting the visible map area
+    * (i.e. RoadMapContext.current_screen). Therefore, one
+    * must execute it to the end.
+    */
+   int status = 1; /* Force a redraw by default. */
+
    direction = direction % 360;
    if (direction < 0) {
       direction += 360;
    }
 
-   if ((direction != 0) &&
-       (abs(direction - RoadMapContext.orientation) <= 5)) {
+   if (direction == RoadMapContext.orientation) {
+
+      status = 0; /* Not modified at all. */
+
+   } else if ((direction != 0) &&
+              (abs(direction - RoadMapContext.orientation) <= 5)) {
 
       /* We do not force a redraw for every small move, except
        * when it is a back-to-zero event, which might be a reset.
        */
-      return 0; /* Not modified enough. */
-   }
+      status = 0; /* Not modified enough. */
 
-   RoadMapContext.orientation = direction;
+   } else {
+
+      RoadMapContext.orientation = direction;
+   }
 
    roadmap_math_trigonometry (direction,
                               &RoadMapContext.sin_orientation,
@@ -630,7 +665,7 @@ int roadmap_math_set_orientation (int direction) {
    }
 
    roadmap_math_release_focus ();
-   return 1;
+   return status;
 }
 
 

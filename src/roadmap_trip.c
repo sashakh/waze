@@ -37,7 +37,6 @@
 #include "roadmap_math.h"
 #include "roadmap_gps.h"
 #include "roadmap_config.h"
-#include "roadmap_trip.h"
 #include "roadmap_dialog.h"
 #include "roadmap_fileselection.h"
 #include "roadmap_canvas.h"
@@ -45,16 +44,23 @@
 #include "roadmap_screen.h"
 #include "roadmap_message.h"
 #include "roadmap_preferences.h"
+#include "roadmap_display.h"
 
+#include "roadmap_trip.h"
 
-static RoadMapConfigDescriptor RoadMapConfigLocationsTrip =
-                        ROADMAP_CONFIG_ITEM("Locations", "Trip");
+static RoadMapConfigDescriptor RoadMapConfigTripName =
+                        ROADMAP_CONFIG_ITEM("Trip", "Name");
+
+static RoadMapConfigDescriptor RoadMapConfigFocusName =
+                        ROADMAP_CONFIG_ITEM("Focus", "Name");
+
+static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
+                        ROADMAP_CONFIG_ITEM("Focus", "Rotate");
 
 
 /* Default location is: 1 market St, san Francisco, California. */
 #define ROADMAP_INITIAL_LONGITUDE -122394181
 #define ROADMAP_INITIAL_LATITUDE    37794928
-#define ROADMAP_INITIAL_POSITION  "-122394181,37794928"
 
 
 static int RoadMapTripRotate   = 1;
@@ -78,7 +84,8 @@ typedef struct roadmap_trip_point {
 
     RoadMapPosition position;
 
-    RoadMapConfigDescriptor config;
+    RoadMapConfigDescriptor config_position;
+    RoadMapConfigDescriptor config_direction;
 
     int speed;
     int direction;
@@ -90,19 +97,23 @@ typedef struct roadmap_trip_point {
 #define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip, has_value) \
     {{NULL, NULL}, id, sprite, 1, mobile, in_trip, has_value, \
      {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}, \
-     ROADMAP_CONFIG_ITEM("Locations",id) \
+     ROADMAP_CONFIG_ITEM(id,"Position"), \
+     ROADMAP_CONFIG_ITEM(id,"Direction"), \
+     0, 0, 0 \
     }
 
 RoadMapTripPoint RoadMapTripPredefined[] = {
     ROADMAP_TRIP_ITEM("GPS",         "GPS",         1, 0, 1),
     ROADMAP_TRIP_ITEM("Destination", "Destination", 0, 1, 0),
-    ROADMAP_TRIP_ITEM("Location",    NULL,          0, 0, 1),
+    ROADMAP_TRIP_ITEM("Address",     NULL,          0, 0, 1),
+    ROADMAP_TRIP_ITEM("Selection",   NULL,          0, 0, 1),
     {{NULL, NULL}, NULL, NULL}
 };
 
 
 static RoadMapTripPoint *RoadMapTripGps = NULL;
 static RoadMapTripPoint *RoadMapTripFocus = NULL;
+static RoadMapTripPoint *RoadMapTripAddress = NULL;
 static RoadMapTripPoint *RoadMapTripDeparture = NULL;
 static RoadMapTripPoint *RoadMapTripDestination = NULL;
 static RoadMapTripPoint *RoadMapTripNextWaypoint = NULL;
@@ -233,7 +244,11 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
     
     result->position = *position;
     result->has_value = 1;
-    
+
+    if (result->predefined && (! result->in_trip)) {
+       roadmap_config_set_position
+           (&result->config_position, &result->position);
+    }
     return result;
 }
 
@@ -384,7 +399,7 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
         return NULL;
     }
         
-    roadmap_config_set (&RoadMapConfigLocationsTrip, name);
+    roadmap_config_set (&RoadMapConfigTripName, name);
     
     if (name [0] != '/') {
         full_name = roadmap_file_join (roadmap_file_trips(), name);
@@ -406,16 +421,21 @@ static void roadmap_trip_set_point_focus (RoadMapTripPoint *point, int rotate) {
         
     if (! point->mobile) {
         rotate = 0; /* Fixed point, no rotation. */
+        RoadMapTripRefresh = 1;
+        RoadMapTripFocusChanged = 1;
     }
     
     if (RoadMapTripRotate != rotate) {
+        roadmap_config_set_integer (&RoadMapConfigFocusRotate, rotate);
         RoadMapTripRotate = rotate;
         RoadMapTripRefresh = 1;
     }
     if (RoadMapTripFocus != point) {
+        roadmap_config_set (&RoadMapConfigFocusName, point->id);
         RoadMapTripFocus = point;
         RoadMapTripRefresh = 1;
         RoadMapTripFocusChanged = 1;
+        roadmap_display_page (point->id);
     }
     if (point != RoadMapTripGps && RoadMapTripDestination != NULL) {
         RoadMapTripRefresh = 1;
@@ -429,7 +449,7 @@ static void roadmap_trip_activate (int rotate) {
     RoadMapTripPoint *destination;
     RoadMapTripPoint *waypoint;
 
-    
+ 
     destination = RoadMapTripDestination;
     if (destination == NULL) return;
 
@@ -454,7 +474,7 @@ static void roadmap_trip_activate (int rotate) {
     }
     destination->distance = 0;
     
-    roadmap_trip_set_point_focus (RoadMapTripGps, rotate);
+    roadmap_trip_set_focus ("GPS", rotate);
     roadmap_screen_refresh ();
 }
 
@@ -470,15 +490,15 @@ void roadmap_trip_set_point (const char *name, RoadMapPosition *position) {
 }
 
 
-void roadmap_trip_set_location_as (const char *name) {
+void roadmap_trip_set_selection_as (const char *name) {
 
-   static RoadMapTripPoint *Location = NULL;
+   static RoadMapTripPoint *Selection = NULL;
 
-   if (Location == NULL) {
-      Location = roadmap_trip_search ("Location");
+   if (Selection == NULL) {
+      Selection = roadmap_trip_search ("Selection");
    }
 
-   roadmap_trip_update (name, &Location->position, "Waypoint");
+   roadmap_trip_update (name, &Selection->position, "Waypoint");
 }
 
 
@@ -493,7 +513,12 @@ void roadmap_trip_set_mobile (const char *name,
     result->speed  = speed;
 
     if (speed > roadmap_gps_speed_accuracy()) {
+
        result->direction = direction;
+
+       if (result->predefined && (! result->in_trip)) {
+           roadmap_config_set_integer (&result->config_direction, direction);
+       }
     }
 
     roadmap_screen_refresh();
@@ -540,15 +565,51 @@ void roadmap_trip_remove_point (const char *name) {
 }
 
 
+void  roadmap_trip_restore_focus (void) {
+
+    int i;
+    RoadMapTripPoint *focus;
+
+    for (i = 0; RoadMapTripPredefined[i].id != NULL; ++i) {
+
+        roadmap_list_append
+            (&RoadMapTripWaypoints, &RoadMapTripPredefined[i].link);
+
+        if (! RoadMapTripPredefined[i].in_trip) {
+
+            roadmap_config_get_position
+                (&RoadMapTripPredefined[i].config_position,
+                 &RoadMapTripPredefined[i].position);
+
+            if (RoadMapTripPredefined[i].mobile) {
+                RoadMapTripPredefined[i].direction =
+                    roadmap_config_get_integer
+                        (&RoadMapTripPredefined[i].config_direction);
+            }
+        }
+    }
+    RoadMapTripGps     = roadmap_trip_search ("GPS");
+    RoadMapTripAddress = roadmap_trip_search ("Address");
+
+    focus = roadmap_trip_search (roadmap_config_get (&RoadMapConfigFocusName));
+    if (focus == NULL) {
+        focus = RoadMapTripGps;
+    }
+    roadmap_trip_set_point_focus (focus, (focus->mobile) ? 1 : 0);
+    RoadMapTripFocusChanged = 0;
+}
+
+
 void roadmap_trip_set_focus (const char *name, int rotate) {
     
     RoadMapTripPoint *point = roadmap_trip_search (name);
     
     if (point == NULL) {
-        roadmap_log (ROADMAP_ERROR, "cannot activate: point %s not found", name);
+        roadmap_log
+            (ROADMAP_ERROR, "cannot activate: point %s not found", name);
         return;
     }
-    
+
     roadmap_trip_set_point_focus (point, rotate);
 }
 
@@ -594,6 +655,16 @@ int roadmap_trip_get_orientation (void) {
     }
     
     return 0;
+}
+
+
+const char *roadmap_trip_get_focus_name (void) {
+
+    if (RoadMapTripFocus != NULL) {
+        return RoadMapTripFocus->id;
+    }
+    
+    return NULL;
 }
 
 
@@ -807,13 +878,13 @@ void roadmap_trip_clear (void) {
     }
     
     if (RoadMapTripModified) {
-        roadmap_config_set (&RoadMapConfigLocationsTrip, "default");
+        roadmap_config_set (&RoadMapConfigTripName, "default");
     }
 }
 
 
 const char *roadmap_trip_current (void) {
-    return roadmap_config_get (&RoadMapConfigLocationsTrip);
+    return roadmap_config_get (&RoadMapConfigTripName);
 }
 
 
@@ -822,13 +893,29 @@ void roadmap_trip_initialize (void) {
     int i;
     
     for (i = 0; RoadMapTripPredefined[i].id != NULL; ++i) {
+
         if (! RoadMapTripPredefined[i].in_trip) {
+
             roadmap_config_declare
-                ("session", &RoadMapTripPredefined[i].config, ROADMAP_INITIAL_POSITION);
+                ("session",
+                 &RoadMapTripPredefined[i].config_position, "0,0");
+
+            if (RoadMapTripPredefined[i].mobile) {
+                roadmap_config_declare
+                    ("session",
+                     &RoadMapTripPredefined[i].config_direction, "0");
+            }
+        }
+        if (strcmp (RoadMapTripPredefined[i].id, "GPS") == 0) {
+            RoadMapTripGps = &(RoadMapTripPredefined[i]);
         }
     }
     roadmap_config_declare
-        ("session", &RoadMapConfigLocationsTrip, "default");
+        ("session", &RoadMapConfigTripName, "default");
+    roadmap_config_declare
+        ("session", &RoadMapConfigFocusName, "GPS");
+    roadmap_config_declare
+        ("session", &RoadMapConfigFocusRotate, "1");
 }
 
 
@@ -841,24 +928,9 @@ void roadmap_trip_load (const char *name) {
     char  line[1024];
     
     RoadMapPosition position;
-    
-    if (ROADMAP_LIST_IS_EMPTY (&RoadMapTripWaypoints)) {
-        
-        int i;
-        
-        for (i = 0; RoadMapTripPredefined[i].id != NULL; ++i) {
-            if (! RoadMapTripPredefined[i].in_trip) {
-                roadmap_config_get_position
-                    (&RoadMapTripPredefined[i].config,
-                     &RoadMapTripPredefined[i].position);
-            }
-            roadmap_list_append (&RoadMapTripWaypoints, &RoadMapTripPredefined[i].link);
-        }
-        
-    } else {
-        
-        roadmap_trip_clear ();
-    }
+
+
+    roadmap_trip_clear ();
     
     /* Load waypoints from the user environment. */
     
@@ -894,9 +966,6 @@ void roadmap_trip_load (const char *name) {
       RoadMapTripModified = 0;
       
       roadmap_screen_refresh();
-    }
-    if (RoadMapTripGps == NULL) {
-        RoadMapTripGps = roadmap_trip_search ("GPS");
     }
 }
 

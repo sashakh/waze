@@ -38,8 +38,8 @@ static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
 static RoadMapConfigDescriptor RoadMapConfigGeometryUnit =
                         ROADMAP_CONFIG_ITEM("Geometry", "Unit");
 
-static RoadMapConfigDescriptor RoadMapConfigLocationsLocation =
-                        ROADMAP_CONFIG_ITEM("Locations", "Location");
+static RoadMapConfigDescriptor RoadMapConfigAddressPosition =
+                        ROADMAP_CONFIG_ITEM("Address", "Position");
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
@@ -128,7 +128,7 @@ int roadmap_option_height (const char *name) {
 
 static void roadmap_option_set_location (const char *value) {
 
-    roadmap_config_set (&RoadMapConfigLocationsLocation, value);
+    roadmap_config_set (&RoadMapConfigAddressPosition, value);
 }
 
 

@@ -95,7 +95,7 @@ static void roadmap_start_show_destination (void) {
 }
 
 static void roadmap_start_show_location (void) {
-    roadmap_trip_set_focus ("Location", 0);
+    roadmap_trip_set_focus ("Address", 0);
     roadmap_screen_refresh ();
 }
 
@@ -172,7 +172,7 @@ static void roadmap_start_trip_reverse (void) {
 
 static void roadmap_start_set_destination (void) {
 
-    roadmap_trip_set_location_as ("Destination");
+    roadmap_trip_set_selection_as ("Destination");
     roadmap_screen_refresh();
 }
 
@@ -181,7 +181,7 @@ static void roadmap_start_set_waypoint (void) {
     const char *id = roadmap_display_get_id ("Selected Street");
 
     if (id != NULL) {
-       roadmap_trip_set_location_as (id);
+       roadmap_trip_set_selection_as (id);
        roadmap_screen_refresh();
     }
 }
@@ -234,17 +234,6 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
    {"View", NULL, NULL},
 
-   {"Show Location...",
-       "Show a specified address", roadmap_address_location_by_city},
-   {"Show Intersection...",
-       "Show a specified street intersection", roadmap_crossing_dialog},
-   {"Show Destination",
-       "Show the map around the destination point", roadmap_start_show_destination},
-   {"Show Position...",
-       "Show a position at the specified coordinates", roadmap_coord_dialog},
-
-   {RoadMapFactorySeparator, NULL, NULL},
-
    {"Zoom In",
        "Enlarge the central part of the map", roadmap_screen_zoom_in},
    {"Zoom Out",
@@ -271,7 +260,22 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
 
 
-   {"Trips", NULL, NULL},
+   {"Find", NULL, NULL},
+
+   {"Address...",
+       "Show a specified address", roadmap_address_location_by_city},
+   {"Intersection...",
+       "Show a specified street intersection", roadmap_crossing_dialog},
+   {"Position...",
+       "Show a position at the specified coordinates", roadmap_coord_dialog},
+
+   {RoadMapFactorySeparator, NULL, NULL},
+
+   {"Destination",
+       "Show the map around the destination point", roadmap_start_show_destination},
+
+
+   {"Trip", NULL, NULL},
 
    {"New Trip",
        "Create a new trip", roadmap_start_create_trip},
@@ -517,6 +521,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_start_set_unit ();
    
+   roadmap_math_restore_zoom ();
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
    roadmap_screen_set_initial_position ();
@@ -527,9 +532,8 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_spawn_initialize (argv[0]);
 
+   roadmap_trip_restore_focus ();
    roadmap_trip_load (roadmap_trip_current());
-   roadmap_trip_set_focus ("GPS", 1);
-   roadmap_screen_refresh ();
 }
 
 

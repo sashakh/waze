@@ -66,8 +66,9 @@ static void roadmap_crossing_done (RoadMapStreetIntersection *selected) {
 
         roadmap_display_activate
            ("Selected Street", selected->line1, &selected->position);
-        roadmap_trip_set_point ("Location", &selected->position);
-        roadmap_trip_set_focus ("Location", 0);
+        roadmap_trip_set_point ("Selection", &selected->position);
+        roadmap_trip_set_point ("Address", &selected->position);
+        roadmap_trip_set_focus ("Address", 0);
         roadmap_screen_refresh ();
     }
 }

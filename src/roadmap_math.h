@@ -33,6 +33,8 @@ void roadmap_math_initialize   (void);
 
 void roadmap_math_use_metric   (void);
 void roadmap_math_use_imperial (void);
+
+void roadmap_math_restore_zoom (void);
 void roadmap_math_zoom_in      (void);
 void roadmap_math_zoom_out     (void);
 void roadmap_math_zoom_reset   (void);

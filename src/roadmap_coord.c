@@ -72,8 +72,9 @@ static void roadmap_coord_ok (const char *name, void *data) {
 
    position.longitude = (int) (longitude * 1000000);
    position.latitude = (int) (latitude * 1000000);
-   roadmap_trip_set_point ("Location", &position);
-   roadmap_trip_set_focus ("Location", 0);
+   roadmap_trip_set_point ("Selection", &position);
+   roadmap_trip_set_point ("Address", &position);
+   roadmap_trip_set_focus ("Address", 0);
    roadmap_screen_refresh ();
    roadmap_dialog_hide (name);
 }
