@@ -76,6 +76,24 @@ RMPLUGINSRCS=roadmap_copy.c roadmap_httpcopy.c
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 
 
+ICONSRC= rm_clockwise.xpm \
+			rm_counterclockwise.xpm \
+			rm_destination.xpm \
+			rm_hold.xpm \
+			rm_down.xpm \
+			rm_full.xpm \
+			rm_gps.xpm \
+			rm_left.xpm \
+			rm_location.xpm \
+			rm_right.xpm \
+			rm_up.xpm \
+			rm_zoom1.xpm \
+			rm_zoomin.xpm \
+			rm_zoomout.xpm
+
+ICONS=$(ICONSRC:.xpm=.png)
+
+
 DMSRCS=dumpmap_main.c
 
 DMOBJS=$(DMSRCS:.c=.o)
@@ -138,7 +156,7 @@ clean: cleanone
 cleanone:
 	rm -f *.o *.a *.da $(BUILD)
 
-install: build runtime
+install: build runtime icons
 	mkdir -p $(INSTALLDIR)/share/roadmap
 	cd $(INSTALLDIR)/share/roadmap ; rm -f sprites preferences
 	cp sprites preferences schema $(INSTALLDIR)/share/roadmap
@@ -147,7 +165,7 @@ install: build runtime
 	cp $(BUILD) $(SCRIPTS) $(INSTALLDIR)/bin
 	cd $(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)
 	if [ -d /usr/lib/menu ] ; then cp roadmap.menu /usr/lib/menu/roadmap; fi
-	cp -f roadmap*.png $(INSTALLDIR)/share/pixmaps
+	cp -f roadmap*.png rm_*.png $(INSTALLDIR)/share/pixmaps
 	cp -f roadmap.desktop $(INSTALLDIR)/applications
 
 uninstall:
@@ -155,7 +173,7 @@ uninstall:
 	cd $(INSTALLDIR) ; rm -rf share/roadmap
 	rm -f /usr/lib/menu/roadmap
 
-everything: runtime build
+everything: runtime build icons
 	cd gtk ; make STDCFLAGS="$(CFLAGS)" all
 	cd gtk2 ; make STDCFLAGS="$(CFLAGS)" all
 	cd qt ; make STDCFLAGS="$(CFLAGS)" all
@@ -166,6 +184,8 @@ cleanall:
 	cd qt ; make clean
 
 rebuild: cleanall everything
+
+icons: $(ICONS)
 
 # --- The real targets --------------------------------------------
 
@@ -189,4 +209,7 @@ buildmap: $(BMOBJS) $(RDMLIBS)
 
 buildus: $(BUOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BUOBJS) -o buildus $(LIBS)
+
+%.png : %.xpm
+	convert $< $@
 
