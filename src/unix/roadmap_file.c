@@ -201,8 +201,6 @@ const char *roadmap_file_map (const char *name,
 
    } else {
 
-      const char *path;
-
       char *full_name;
 
       int full_name_size;
@@ -223,21 +221,27 @@ const char *roadmap_file_map (const char *name,
       full_name = malloc (full_name_size);
       roadmap_check_allocated(full_name);
 
-      for (path = sequence; path != NULL; path = roadmap_path_next(path)) {
+      do {
+         size = strlen(sequence) + name_size + 2;
 
-         size = strlen(path) + name_size + 2;
          if (size >= full_name_size) {
             full_name = realloc (full_name, size);
+            roadmap_check_allocated(full_name);
+            full_name_size = size;
          }
 
-         strcpy (full_name, path);
+         strcpy (full_name, sequence);
          strcat (full_name, "/");
          strcat (full_name, name);
 
          context->fd = open (full_name, O_RDONLY, 0666);
 
          if (context->fd >= 0) break;
-      }
+
+         sequence = roadmap_path_next(sequence);
+
+      } while (sequence != NULL);
+
       free (full_name);
    }
 
