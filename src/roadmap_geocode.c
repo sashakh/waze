@@ -53,6 +53,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
                              const char *state_name) {
 
    int i, j, k;
+   int fips;
    int count;
 
    int   street_number [ROADMAP_MAX_STREETS];
@@ -161,6 +162,8 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    results = (RoadMapGeocode *)
        calloc (count, sizeof(RoadMapGeocode));
 
+   fips = roadmap_locator_active();
+
    for (i = 0, j = 0; i< count; ++i) {
 
       int line;
@@ -180,6 +183,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
         RoadMapStreetProperties properties;
           
         roadmap_street_get_properties (line, &properties);
+        results[j].fips = fips;
         results[j].line = line;
         results[j].name = strdup (roadmap_street_get_full_name (&properties));
         j += 1;

@@ -49,9 +49,10 @@
 
 typedef struct {
 
-    int line;
-    char *name;
-    RoadMapPosition position;
+   int fips;
+   int line;
+   char *name;
+   RoadMapPosition position;
 
 } RoadMapGeocode;
 

@@ -35,7 +35,7 @@
 #include "roadmap_gui.h"
 // #include "roadmap_street.h"
 #include "roadmap_history.h"
-// #include "roadmap_locator.h"
+#include "roadmap_locator.h"
 #include "roadmap_trip.h"
 #include "roadmap_screen.h"
 #include "roadmap_messagebox.h"
@@ -61,6 +61,8 @@ typedef struct {
 
 
 static void roadmap_address_done (RoadMapGeocode *selected) {
+
+    roadmap_locator_activate (selected->fips);
 
     roadmap_display_activate
        ("Selected Street", selected->line, &selected->position);
