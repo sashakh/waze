@@ -57,7 +57,9 @@ static void usage (const char *object, int line, const char *error) {
       fprintf(stderr, "** %s, line %d: %s\n", object, line, error);
    }
 
-   fprintf(stderr, "Usage: %s database table csv-file ..\n", argv0);
+   fprintf(stderr,
+           "Usage: %s [--verbose[=N]] [--clean] database table csv-file..\n",
+           argv0);
 
    if (load_db != NULL) {
       sqlite_close(load_db);
@@ -225,6 +227,7 @@ int main (int argc, char *argv[]) {
       verbose = atoi(argv[start] + 10);
       ++start;
    }
+
    if (strcmp(argv[start], "--clean") == 0) {
       delete_existing_data = 1;
       ++start;
