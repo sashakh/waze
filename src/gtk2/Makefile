@@ -1,5 +1,5 @@
 
-GUICFLAGS=`pkg-config --cflags gtk+-2.0` -DGTK_DISABLE_DEPRECATED=1
+GUICFLAGS=`pkg-config --cflags gtk+-2.0`
 GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
