@@ -104,11 +104,14 @@ static void roadmap_voice_launch (const char *name, const char *arguments) {
         (strcmp (arguments, RoadMapVoiceCurrentArguments) == 0)) {
         
         /* Do not repeat the same message again. */
-            
+
         RoadMapVoiceInUse = 0;
+        roadmap_log(ROADMAP_DEBUG, "voice now idle");
         return;
     }
-    
+
+    roadmap_log(ROADMAP_DEBUG, "activating message %s", arguments);
+
     RoadMapVoiceInUse = 1;
     
     if (RoadMapVoiceCurrentCommand != NULL) {
@@ -127,7 +130,9 @@ static void roadmap_voice_launch (const char *name, const char *arguments) {
 static void roadmap_voice_queue (const char *name, const char *arguments) {
     
     if (RoadMapVoiceInUse) {
-        
+
+        roadmap_log(ROADMAP_DEBUG, "queuing message: %s", arguments);
+
         /* Replace the previously queued message (too old now). */
         
         if (RoadMapVoiceNextCommand != NULL) {
@@ -169,7 +174,9 @@ static void roadmap_voice_complete (void *data) {
     } else {
         
         /* The sound device is now available (as far as we know). */
-        
+
+        roadmap_log(ROADMAP_DEBUG, "voice now idle");
+
         RoadMapVoiceInUse = 0;
     }
 }
@@ -285,19 +292,19 @@ void roadmap_voice_announce (const char *title) {
     } else {
         final = text;
     }
-    
+
     arguments = strchr (final, ' ');
-    
+
     if (arguments == NULL) {
-        
+
         roadmap_voice_queue (final, "");
-        
+
     } else {
-        
+
         *arguments = 0;
         
         while (isspace(*(++arguments))) ;
-            
+
         roadmap_voice_queue (final, arguments);
     }
 }
