@@ -534,6 +534,10 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     if (roadmap_fuzzy_is_acceptable (best)) {
 
+        if (roadmap_locator_activate
+               (RoadMapNeighbourhood[found].fips) != ROADMAP_US_OK)
+            return;
+
         if (RoadMapConfirmedLine.line != RoadMapNeighbourhood[found].line) {
             if (RoadMapConfirmedLine.line > 0) {
                 roadmap_navigate_trace
@@ -564,6 +568,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     } else {
 
         if (RoadMapConfirmedLine.line > 0) {
+
+            if (roadmap_locator_activate
+                   (RoadMapConfirmedLine.fips) != ROADMAP_US_OK)
+                return;
+
             roadmap_navigate_trace ("Lost street %N",
                                     RoadMapConfirmedLine.line);
             roadmap_display_hide ("Current Street");
