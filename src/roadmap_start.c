@@ -425,6 +425,8 @@ static RoadMapFactory RoadMapStartToolbar[] = {
        "Toggle the window full screen (if the window manager agrees)",
         roadmap_main_toggle_full_screen},
 
+   {"Q", "quit", "Quit RoadMap", roadmap_main_exit},
+
    {NULL, NULL, NULL, NULL}
 };
 
