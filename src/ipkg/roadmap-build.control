@@ -5,6 +5,7 @@ Version: _VERSION_
 Architecture: arm
 Maintainer: Pascal Martin <pascal.martin@iname.com>
 Depends: libc6 popt
+Source: roadmap-_VERSION_.orig.tar.gz
 Description: Tools to build map files used by RoadMap.
  RoadMap is a street navigation software that uses the US Census bureau's
  Tiger files (thus only the US are covered). This package contains the tools
