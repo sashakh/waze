@@ -937,7 +937,7 @@ void  buildmap_range_save (void) {
          db_square[i].hole[j].excluded = 0;
       }
 
-      next_square:
+      next_square: continue;
    }
 
 
