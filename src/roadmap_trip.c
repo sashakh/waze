@@ -35,6 +35,7 @@
 #include "roadmap_file.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
+#include "roadmap_gps.h"
 #include "roadmap_config.h"
 #include "roadmap_trip.h"
 #include "roadmap_dialog.h"
@@ -487,10 +488,13 @@ void roadmap_trip_set_mobile (const char *name,
                               int direction) {
 
     RoadMapTripPoint *result = roadmap_trip_update (name, position, "Mobile");
-    
+
     result->mobile = 1;
     result->speed  = speed;
-    result->direction = direction;
+
+    if (speed > roadmap_gps_speed_accuracy()) {
+       result->direction = direction;
+    }
 
     roadmap_screen_refresh();
 }
