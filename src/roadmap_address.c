@@ -63,6 +63,14 @@ static void roadmap_address_done (RoadMapGeocode *selected) {
 
     roadmap_locator_activate (selected->fips);
 
+    roadmap_log (ROADMAP_DEBUG, "selected address at %d.%06d %c, %d.%06d %c",
+                 abs(selected->position.longitude)/1000000,
+                 abs(selected->position.longitude)%1000000,
+                 selected->position.longitude >= 0 ? 'E' : 'W',
+                 abs(selected->position.latitude)/1000000,
+                 abs(selected->position.latitude)%1000000,
+                 selected->position.latitude >= 0 ? 'N' : 'S');
+
     roadmap_display_activate
        ("Selected Street", selected->line, &selected->position);
 
