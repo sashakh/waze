@@ -235,6 +235,8 @@ static void roadmap_db_call_activate (roadmap_db_database *database) {
    }
 
    roadmap_db_call_activate_one (database->model, &database->root, "/");
+
+   RoadmapDatabaseActive = database;
 }
 
 
@@ -357,6 +359,8 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
         database = database->next) {
 
       if (strcmp (name, database->name) == 0) {
+
+         roadmap_db_call_activate (database);
          return 1; /* Already open. */
       }
    }
@@ -410,7 +414,6 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
    }
 
    roadmap_db_call_activate (database);
-   RoadmapDatabaseActive = database;
 
    return 1;
 }
@@ -429,8 +432,6 @@ void roadmap_db_activate (char *name) {
          roadmap_log (ROADMAP_DEBUG, "Activating database %s", name);
 
          roadmap_db_call_activate (database);
-         RoadmapDatabaseActive = database;
-
          return;
       }
    }
