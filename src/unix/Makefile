@@ -30,5 +30,5 @@ uninstall:
 # --- The real targets --------------------------------------------
 
 libosroadmap.a: $(OSLIBOBJS)
-	ar rf libosroadmap.a $(OSLIBOBJS)
+	$(AR) rf libosroadmap.a $(OSLIBOBJS)
 

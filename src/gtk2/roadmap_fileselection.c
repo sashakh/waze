@@ -38,6 +38,12 @@
 #include "roadmap_file.h"
 
 
+/* Some cross compiler environment don't define this ? */
+#ifndef PATH_MAX
+#define PATH_MAX 512
+#endif
+
+
 /* We maintain a list of dialogs that have been created. */
 
 struct roadmap_fileselection_item;

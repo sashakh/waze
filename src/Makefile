@@ -170,13 +170,13 @@ rebuild: cleanall everything
 # --- The real targets --------------------------------------------
 
 libroadmap.a: $(RMLIBOBJS)
-	ar rf libroadmap.a $(RMLIBOBJS)
+	$(AR) rf libroadmap.a $(RMLIBOBJS)
 
 libguiroadmap.a: $(RMGUIOBJS) $(RMPLUGINOBJS)
-	ar rf libguiroadmap.a $(RMGUIOBJS) $(RMPLUGINOBJS)
+	$(AR) rf libguiroadmap.a $(RMGUIOBJS) $(RMPLUGINOBJS)
 
 libguiroadgps.a: $(RGGUIOBJS)
-	ar rf libguiroadgps.a $(RGGUIOBJS)
+	$(AR) rf libguiroadgps.a $(RGGUIOBJS)
 
 unix/libosroadmap.a:
 	cd unix; make "CFLAGS=$(CFLAGS) -I.."

@@ -4,7 +4,7 @@ GUILDFLAGS=-lqt
 MOC=/usr/bin/moc
 INSTALLDIR=/usr/local
 
-ifeq ($(TARGET),QPE)
+ifeq ($(DEKSTOP),QPE)
    QPE: GUICFLAGS=-I$(QTDIR)/include -DQWS
    QPE: GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
    QPE: MOC=$(QTDIR)/bin/moc
@@ -91,7 +91,7 @@ uninstall:
 # --- The real targets --------------------------------------------
 
 libqtroadmap.a: $(RMLIBOBJS)
-	ar rf libqtroadmap.a $(RMLIBOBJS)
+	$(AR) rf libqtroadmap.a $(RMLIBOBJS)
 
 qtroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
 	$(CXX)  -o qtroadmap roadmap_main.o ../libguiroadmap.a $(LIBS)

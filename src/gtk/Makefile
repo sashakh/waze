@@ -62,7 +62,7 @@ uninstall:
 # --- The real targets --------------------------------------------
 
 libgtkroadmap.a: $(RMLIBOBJS)
-	ar rf libgtkroadmap.a $(RMLIBOBJS)
+	$(AR) rf libgtkroadmap.a $(RMLIBOBJS)
 
 gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
 	$(CC) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
