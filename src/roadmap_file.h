@@ -47,11 +47,19 @@ char *roadmap_file_join (const char *path, const char *name);
 FILE *roadmap_file_open (const char *path, const char *name, const char *mode);
 void  roadmap_file_remove (const char *path, const char *name);
 
-int  roadmap_file_map   (char *name, int sequence, RoadMapFileContext *file);
+void  roadmap_file_save (const char *path, const char *name,
+                         void *data, int length);
+
+int  roadmap_file_map   (const char *name,
+                         int sequence, RoadMapFileContext *file);
 void roadmap_file_unmap (RoadMapFileContext *file);
 
 void *roadmap_file_base (RoadMapFileContext file);
 int   roadmap_file_size (RoadMapFileContext file);
+
+const char *roadmap_file_parent_directory (const char *path, const char *name);
+void        roadmap_file_create_directory (const char *path);
+void        roadmap_file_release (const char *path);
 
 #endif // INCLUDE__ROADMAP_FILE__H
 
