@@ -60,7 +60,7 @@ build: build-arch build-indep
 clean: unpatch
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
+	rm -f build-arch-stamp build-indep-stamp configure-stamp
 
 	# Add here commands to clean up after the build process.
 	-$(MAKE) -C src $(BUILDFLAGS) cleanone cleanall 
