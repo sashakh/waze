@@ -147,6 +147,8 @@ install: build runtime
 	cp $(BUILD) $(SCRIPTS) $(INSTALLDIR)/bin
 	cd $(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)
 	if [ -d /usr/lib/menu ] ; then cp roadmap.menu /usr/lib/menu/roadmap; fi
+	cp -f roadmap*.png $(INSTALLDIR)/share/pixmaps
+	cp -f roadmap.desktop $(INSTALLDIR)/applications
 
 uninstall:
 	cd $(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
