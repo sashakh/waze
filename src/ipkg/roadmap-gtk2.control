@@ -1,0 +1,14 @@
+Package: roadmap-gtk2
+Priority: optional
+Section: x11
+Version: _VERSION_
+Architecture: arm
+Maintainer: Pascal Martin <pascal.martin@iname.com>
+Depends: libc6, libgtk2.0-0, gpsd
+Description: A Gtk2-based street navigation software.
+ RoadMap uses the US Census bureau's Tiger files to display a geographically
+ correct map of roads and streets. Only the US are covered.
+.
+ The map files must be prepared using the tools available in the package
+ roadmap-build. It is possible to prepare the maps on a desktop PC (running
+ Linux).
