@@ -277,9 +277,6 @@ static void roadmap_math_compute_scale (void) {
     * when getting close to the poles.
     */
 
-   roadmap_log (ROADMAP_DEBUG, "Center's latitude: %d",
-                               RoadMapContext.center.latitude);
-
    roadmap_math_trigonometry (RoadMapContext.center.latitude / 1000000,
                                 &sine,
                                 &cosine);
