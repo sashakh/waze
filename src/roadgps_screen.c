@@ -70,8 +70,8 @@ struct {
    int scale_line_counts[5];
    RoadMapGuiPoint scale_line_points[10];
 
-   int radius[2];
-   RoadMapGuiPoint centers[2];
+   int radius[3];
+   RoadMapGuiPoint centers[3];
 
    int position_scale;
 
@@ -124,51 +124,58 @@ static void roadgps_screen_set_rectangle
 static void roadgps_screen_draw_satellite_position
                (RoadMapObject *satellite, int reverse) {
 
-   RoadMapPen foreground;
-   RoadMapPen background;
-
    double   scale = 0.0;
    double   azimuth;
 
    RoadMapGuiPoint position;
 
    int count;
+   int strength;
    RoadMapGuiPoint points[4];
 
 
-   if (satellite->strength <= 0) return;
+   if (!satellite->elevation) return;
 
-   scale = RoadGpsFrame.position_scale
-                * sin((90 - satellite->elevation) * DEGRE2RADIAN);
+   /* transforme the strength into a relative value. */
+   strength = (satellite->strength * 10) / RoadGpsStrengthScale;
+
+   /* Transform the relative value into a rectangle width (linear
+    * transformation into the interval label_width to 2*label_width).
+    */
+   strength = (RoadGpsFrame.label_width * strength) / 10
+                   + RoadGpsFrame.label_width + 6;
+
+   scale = RoadGpsFrame.position_scale * (90 - satellite->elevation) / 90;
 
    azimuth = satellite->azimuth * DEGRE2RADIAN;
 
    position.x = RoadGpsFrame.centers[0].x + (short) (sin(azimuth) * scale);
    position.y = RoadGpsFrame.centers[0].y - (short) (cos(azimuth) * scale);
 
-   roadgps_screen_set_rectangle
-      (position.x - RoadGpsFrame.label_offset_x - 2,
-       position.y - RoadGpsFrame.label_offset_y - 3,
-       RoadGpsFrame.label_width + 4,
-       RoadGpsFrame.label_ascent + RoadGpsFrame.label_descent + 6,
-       points);
+   if (strength == 0) {
+
+      roadgps_screen_set_rectangle
+         (position.x - RoadGpsFrame.label_offset_x - 2,
+          position.y - RoadGpsFrame.label_offset_y - 3,
+          RoadGpsFrame.label_width + 4,
+          RoadGpsFrame.label_ascent + RoadGpsFrame.label_descent + 6,
+          points);
+   } else {
+      roadgps_screen_set_rectangle
+         (position.x - (strength / 2),
+          position.y - (strength / 2),
+          strength,
+          strength,
+          points);
+   }
    count = 4;
 
-   if (reverse) {
-
-      foreground = RoadGpsEraser;
-      background = RoadGpsForeground;
-
-   } else {
-
-      background = RoadGpsEraser;
-      foreground = RoadGpsForeground;
+   if (strength > 0) {
+      roadmap_canvas_select_pen (RoadGpsForeground);
+      roadmap_canvas_draw_multiple_polygons (1, &count, points, !!reverse);
    }
 
-   roadmap_canvas_select_pen (background);
-   roadmap_canvas_draw_multiple_polygons (1, &count, points, 1);
-
-   roadmap_canvas_select_pen (foreground);
+   roadmap_canvas_select_pen (reverse?RoadGpsEraser:RoadGpsForeground);
    roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
 
    roadmap_canvas_draw_string
@@ -223,7 +230,7 @@ static void roadgps_screen_draw_frame (void) {
    roadmap_canvas_select_pen (RoadGpsFramePen);
 
    roadmap_canvas_draw_multiple_circles
-      (2, RoadGpsFrame.centers, RoadGpsFrame.radius, 0);
+      (3, RoadGpsFrame.centers, RoadGpsFrame.radius, 0);
 
    roadmap_canvas_draw_multiple_lines
       (5, RoadGpsFrame.scale_line_counts, RoadGpsFrame.scale_line_points);
@@ -382,13 +389,18 @@ static void roadgps_screen_format_frame (void) {
 
    /* Format the two circles used as frame for the satellites' position. */
 
-   RoadGpsFrame.centers[0].x = RoadGpsFrame.centers[1].x = canvas_width / 2;
-   RoadGpsFrame.centers[0].y = RoadGpsFrame.centers[1].y = size / 2;
+   RoadGpsFrame.centers[0].x =
+      RoadGpsFrame.centers[1].x =
+      RoadGpsFrame.centers[2].x = canvas_width / 2;
+   RoadGpsFrame.centers[0].y =
+      RoadGpsFrame.centers[1].y =
+      RoadGpsFrame.centers[2].y = size / 2;
 
-   RoadGpsFrame.radius[0] = (size * 2) / 6;
-   RoadGpsFrame.radius[1] = size / 6;
+   RoadGpsFrame.radius[0] = (size * 3) / 6;
+   RoadGpsFrame.radius[1] = (size * 2) / 6;
+   RoadGpsFrame.radius[2] = size / 6;
 
-   RoadGpsFrame.position_scale = ((size * 3) / 8);
+   RoadGpsFrame.position_scale = ((size * 4) / 8);
 
 
    /* Pre-compute the size and position of the satellite labels. */
@@ -405,7 +417,7 @@ static void roadgps_screen_format_frame (void) {
       ((canvas_height * 2) / 3) + RoadGpsFrame.level_bar_height;
 
    RoadGpsFrame.label_offset_x = text_width / 2;
-   RoadGpsFrame.label_offset_y = text_ascent / 2;
+   RoadGpsFrame.label_offset_y = (text_descent + text_ascent) / 2;
 
 
    /* Format the signal strength scale lines. */
