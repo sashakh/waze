@@ -416,8 +416,10 @@ void roadmap_dialog_new_list (const char  *frame, const char  *name) {
    child->w = listbox;
    child->widget_type = ROADMAP_WIDGET_LIST;
 
+   if (name[0] == '.') name += 1;
+
    column = gtk_tree_view_column_new_with_attributes
-                ("Waypoint Name", gtk_cell_renderer_text_new (),
+                (name, gtk_cell_renderer_text_new (),
                  "text", RM_LIST_WAYPOINT_NAME,
                  NULL);
 
