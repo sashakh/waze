@@ -202,9 +202,14 @@ static void roadmap_display_string
             p1 = p2;
         }
         if (p1 > text_line) {
+
+            char saved = *p1;
             *p1 = 0;
+
             roadmap_canvas_draw_string
                 (position, ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP, text_line);
+
+            *p1 = saved;
             text_line = p1 + 1;
             position->y += height;
         }
@@ -377,6 +382,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
 int roadmap_display_activate
         (const char *title, int line, const RoadMapPosition *position) {
 
+    int   street_has_changed;
     int   message_has_changed;
     int   street;
     const char *format;
@@ -392,6 +398,7 @@ int roadmap_display_activate
         return -1;
     }
 
+    street_has_changed = 0;
     street = sign->properties.street;
     
     if (sign->line != line) {
@@ -407,7 +414,10 @@ int roadmap_display_activate
         sign->line = line;
         sign->was_visible = 0;
 
-        street = sign->properties.street;
+        if (street != sign->properties.street) {
+           street_has_changed = 1;
+           street = sign->properties.street;
+        }
     }
 
 
@@ -430,15 +440,15 @@ int roadmap_display_activate
     message_has_changed =
         (sign->content == NULL || strcmp (sign->content, text) != 0);
 
-
-    if (street != sign->properties.street) {
-        roadmap_voice_announce (sign->title);
-    }
-
     sign->deadline =
         time(NULL)
             + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
-    
+
+
+    if (street_has_changed) {
+        roadmap_voice_announce (sign->title);
+    }
+
     if (message_has_changed) {
 
         if (sign->content != NULL) {
