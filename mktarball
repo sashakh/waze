@@ -116,6 +116,8 @@ rm -f roadmap/*.ipk roadmap/INSTALL
 
 rm -f roadmap/src/*.rdm 
 
+rm -f ${ROADMAP}
+
 
 cd $RELEASE
 
@@ -124,6 +126,4 @@ do
   echo "Compressing tar ball for section $x ..."
   gzip -9 roadmap_${version}_$x.tar
 done
-
-rm -f ${ROADMAP}
 
