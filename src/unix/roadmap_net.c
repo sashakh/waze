@@ -44,7 +44,7 @@
 #include "roadmap_net.h"
 
 
-int roadmap_net_connect (char *name, int default_port) {
+int roadmap_net_connect (const char *name, int default_port) {
 
    int   fd;
    char *hostname;

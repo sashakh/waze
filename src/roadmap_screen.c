@@ -55,6 +55,28 @@
 #include "roadmap_screen.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigShapesDeclutter =
+                        ROADMAP_CONFIG_ITEM("Shapes", "Declutter");
+
+static RoadMapConfigDescriptor RoadMapConfigPolygonsDeclutter =
+                        ROADMAP_CONFIG_ITEM("Polygons", "Declutter");
+
+static RoadMapConfigDescriptor RoadMapConfigAccuracyGPS =
+                        ROADMAP_CONFIG_ITEM("Accuracy", "GPS");
+
+static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
+                        ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
+
+static RoadMapConfigDescriptor RoadMapConfigAccuracyStreet =
+                        ROADMAP_CONFIG_ITEM("Accuracy", "Street");
+
+static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
+                        ROADMAP_CONFIG_ITEM("Accuracy", "Confirm");
+
+static RoadMapConfigDescriptor RoadMapConfigMapBackground =
+                        ROADMAP_CONFIG_ITEM("Map", "Background");
+
+
 static RoadMapPosition RoadMapScreenCenter;
 
 static int RoadMapScreenRotation;
@@ -74,7 +96,7 @@ static int   SquareOnScreenCount;
  */
 static struct roadmap_canvas_category {
 
-   char *name;
+   const char *name;
    int   declutter;
    int   thickness;
 
@@ -351,7 +373,9 @@ static void roadmap_screen_draw_polygons (void) {
    if (! roadmap_is_visible (ROADMAP_SHOW_AREA)) return;
 
    if (! roadmap_math_declutter
-            (roadmap_config_get_integer("Polygons", "Declutter"))) return;
+            (roadmap_config_get_integer(&RoadMapConfigPolygonsDeclutter))) {
+        return;
+   }
 
 
    for (i = roadmap_polygon_count() - 1; i >= 0; --i) {
@@ -855,10 +879,10 @@ static void roadmap_screen_repaint (int moved) {
     roadmap_math_set_center (&RoadMapScreenCenter);
     
     if (moved) {
-        
+
         int line = PreviousLine;
-        int accuracy = roadmap_config_get_integer ("Accuracy", "Street");
-        
+        int accuracy = roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
+
         if (line >= 0) {
 
             /* Confirm the current street if we are still at a "short"
@@ -893,9 +917,9 @@ static void roadmap_screen_repaint (int moved) {
             line = roadmap_screen_retrieve_line
                         (&point,
                          &RoadMapScreenCenter,
-                         roadmap_config_get_integer ("Accuracy", "Mouse"),
+                         roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
                          &distance);
-            
+
             if (line > 0) {
                 if (distance < accuracy) {
                     PreviousLine = line; /* This line is close enough. */
@@ -914,7 +938,7 @@ static void roadmap_screen_repaint (int moved) {
             if (DetectCount > 1) {
                 
                 int confirm =
-                    roadmap_config_get_integer ("Accuracy", "Confirm");
+                    roadmap_config_get_integer (&RoadMapConfigAccuracyConfirm);
             
                 if (DetectCount == confirm) {
                     roadmap_display_activate
@@ -927,7 +951,7 @@ static void roadmap_screen_repaint (int moved) {
 
     RoadMapScreenShapesVisible =
         roadmap_math_declutter
-            (roadmap_config_get_integer("Shapes", "Declutter"));
+            (roadmap_config_get_integer(&RoadMapConfigShapesDeclutter));
 
     roadmap_screen_repaint_map ();
     
@@ -967,7 +991,7 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
     line = roadmap_screen_retrieve_line
                 (point,
                  &position,
-                 roadmap_config_get_integer ("Accuracy", "Mouse"),
+                 roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
                  &distance);
 
     if (line >= 0) {
@@ -1121,15 +1145,22 @@ void roadmap_screen_zoom_reset (void) {
 
 void roadmap_screen_initialize (void) {
 
-   roadmap_config_declare ("preferences", "Polygons", "Declutter", "1300");
-   roadmap_config_declare ("preferences", "Shapes", "Declutter", "1300");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigPolygonsDeclutter, "1300");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigShapesDeclutter, "1300");
 
-   roadmap_config_declare ("preferences", "Accuracy", "GPS",    "1000");
-   roadmap_config_declare ("preferences", "Accuracy", "Mouse",  "20");
-   roadmap_config_declare ("preferences", "Accuracy", "Street", "200");
-   roadmap_config_declare ("preferences", "Accuracy", "Confirm", "4");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAccuracyGPS,    "1000");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAccuracyMouse,  "20");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAccuracyStreet, "200");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAccuracyConfirm, "4");
 
-   roadmap_config_declare ("preferences", "Map", "Background", "LightYellow");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigMapBackground, "LightYellow");
 
    roadmap_canvas_register_button_handler (&roadmap_screen_button_pressed);
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
@@ -1145,63 +1176,85 @@ void roadmap_screen_initialize (void) {
 }
 
 
+static const char *roadmap_screen_declare_item
+                        (const char *category,
+                         const char *name, const char *default_value) {
+
+    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
+
+    descriptor.category = category;
+    descriptor.name = name;
+    roadmap_config_declare ("schema", &descriptor, default_value);
+
+    return roadmap_config_get (&descriptor);
+}
+
+static const char *roadmap_screen_declare_color
+                        (const char *category,
+                         const char *name, const char *default_value) {
+
+    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
+
+    descriptor.category = category;
+    descriptor.name = name;
+    roadmap_config_declare_color ("schema", &descriptor, default_value);
+
+    return roadmap_config_get (&descriptor);
+}
+
 void roadmap_screen_set_initial_position (void) {
 
-   int i;
-   int category_count;
+    int i;
+    int category_count;
 
 
-   category_count = roadmap_locator_category_count();
+    category_count = roadmap_locator_category_count();
 
-   RoadMapCategory =
-      calloc (category_count + 1, sizeof(*RoadMapCategory));
+    RoadMapCategory =
+        calloc (category_count + 1, sizeof(*RoadMapCategory));
 
-   for (i = 1; i < category_count; ++i) {
+    for (i = 1; i < category_count; ++i) {
 
-      char *name = roadmap_locator_category_name(i);
-      char *class;
-      char *color;
+        const char *name = strdup(roadmap_locator_category_name(i));
+        const char *class;
+        const char *color;
 
-      RoadMapClass *p;
+        RoadMapClass *p;
 
 
-      roadmap_config_declare ("schema", name, "Class", "");
+        RoadMapCategory[i].name = name;
+        class = roadmap_screen_declare_item  (name, "Class", "");
+        color = roadmap_screen_declare_color (name, "Color", "black");
+        
+        RoadMapCategory[i].thickness =
+            atoi(roadmap_screen_declare_item (name, "Thickness", "1"));
+        RoadMapCategory[i].declutter =
+            atoi(roadmap_screen_declare_item
+                        (name, "Declutter", "20248000000"));
 
-      roadmap_config_declare_color ("schema", name, "Color", "black");
-      roadmap_config_declare ("schema", name, "Thickness", "1");
-      roadmap_config_declare ("schema", name, "Declutter", "20248000000");
+        for (p = RoadMapLineClass; p->name != NULL; ++p) {
 
-      class = roadmap_config_get (name, "Class");
+            if (strcasecmp (class, p->name) == 0) {
+                p->category[p->count++] = i;
+                break;
+            }
+        }
 
-      for (p = RoadMapLineClass; p->name != NULL; ++p) {
+        RoadMapCategory[i].pen = roadmap_canvas_create_pen (name);
 
-         if (strcasecmp (class, p->name) == 0) {
-            p->category[p->count++] = i;
-            break;
-         }
-      }
+        roadmap_canvas_set_thickness (RoadMapCategory[i].thickness);
 
-      RoadMapCategory[i].name = name;
-      RoadMapCategory[i].declutter =
-         roadmap_config_get_integer (name, "Declutter");
-      RoadMapCategory[i].thickness =
-         roadmap_config_get_integer (name, "Thickness");
+        if (color != NULL && *color > ' ') {
+            roadmap_canvas_set_foreground (color);
+        }
+    }
 
-      RoadMapCategory[i].pen = roadmap_canvas_create_pen (name);
+    RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
+    roadmap_canvas_set_foreground
+        (roadmap_config_get (&RoadMapConfigMapBackground));
 
-      roadmap_canvas_set_thickness (RoadMapCategory[i].thickness);
-
-      color = roadmap_config_get (name, "Color");
-      if (color != NULL && *color > ' ') {
-         roadmap_canvas_set_foreground (color);
-      }
-   }
-
-   RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
-   roadmap_canvas_set_foreground (roadmap_config_get ("Map", "Background"));
-
-   RoadMapEdges = roadmap_canvas_create_pen ("Map.Edges");
-   roadmap_canvas_set_thickness (4);
-   roadmap_canvas_set_foreground ("grey");
+    RoadMapEdges = roadmap_canvas_create_pen ("Map.Edges");
+    roadmap_canvas_set_thickness (4);
+    roadmap_canvas_set_foreground ("grey");
 }
 

@@ -45,6 +45,13 @@
 #include "roadmap_gps.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigGPSSource =
+                        ROADMAP_CONFIG_ITEM("GPS", "Source");
+
+static RoadMapConfigDescriptor RoadMapConfigGPSTimeout =
+                        ROADMAP_CONFIG_ITEM("GPS", "Timeout");
+
+
 static int RoadMapGpsLink = -1;
 
 static time_t RoadMapGpsConnectedSince = -1;
@@ -105,6 +112,7 @@ void roadmap_gps_initialize (roadmap_gps_listener listener) {
 
    int i;
 
+
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
       if (RoadMapGpsListeners[i] == NULL) {
          RoadMapGpsListeners[i] = listener;
@@ -112,14 +120,16 @@ void roadmap_gps_initialize (roadmap_gps_listener listener) {
       }
    }
 
-   roadmap_config_declare ("preferences", "GPS", "Source", "gpsd://localhost");
-   roadmap_config_declare ("preferences", "GPS", "Timeout", "10");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGPSTimeout, "10");
 }
 
 
 void roadmap_gps_open (void) {
 
-   char *url;
+   const char *url;
 
 
    /* Check if we have a gps interface defined: */
@@ -128,7 +138,7 @@ void roadmap_gps_open (void) {
 
    if (url == NULL) {
 
-      url = roadmap_config_get ("GPS", "Source");
+      url = roadmap_config_get (&RoadMapConfigGPSSource);
 
       if (url == NULL) {
          return;
@@ -316,7 +326,7 @@ int roadmap_gps_active (void) {
       return 0;
    }
 
-   timeout = atoi(roadmap_config_get ("GPS", "Timeout"));
+   timeout = roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
 
    if (time(NULL) - RoadMapGpsLatestData >= timeout) {
       return 0;

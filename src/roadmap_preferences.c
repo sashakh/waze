@@ -42,9 +42,7 @@ typedef struct EditableItemRecord EditableItem;
 struct EditableItemRecord {
 
    EditableItem *next;
-
-   char *category;
-   char *name;
+   RoadMapConfigDescriptor config;
 };
 
 
@@ -55,7 +53,7 @@ struct category_list {
    CategoryList *next;
    EditableItem *children;
 
-   char *name;
+   const char *name;
 };
 
 
@@ -66,7 +64,7 @@ struct configuration_context {
    ConfigurationContext *next;
    CategoryList         *children;
 
-   char *name;
+   const char *name;
 };
 
 static ConfigurationContext *RoadMapConfigurationDialogs = NULL;
@@ -89,10 +87,10 @@ static void roadmap_preferences_ok (const char *name, void *data) {
 
       for (item = list->children; item != NULL; item = item->next) {
 
-         roadmap_config_set (item->category,
-                             item->name,
-                             (char *) roadmap_dialog_get_data (item->category,
-                                                               item->name));
+         roadmap_config_set
+              (&item->config,
+               (char *) roadmap_dialog_get_data
+                              (item->config.category, item->config.name));
       }
    }
 
@@ -108,19 +106,18 @@ static void roadmap_preferences_force (const char *name, void *data) {
 
 static EditableItem *roadmap_preferences_new_item
                         (ConfigurationContext *context,
-                         char *category,
-                         char *name) {
+                         RoadMapConfigDescriptor *cursor) {
 
    CategoryList *list;
    EditableItem *item;
 
    for (list = context->children; list != NULL; list = list->next) {
 
-      if (strcmp (category, list->name) == 0) {
+      if (strcmp (cursor->category, list->name) == 0) {
 
          for (item = list->children; item != NULL; item = item->next) {
 
-            if (strcmp (name, item->name) == 0) {
+            if (strcmp (cursor->name, item->config.name) == 0) {
                return item;
             }
          }
@@ -133,7 +130,7 @@ static EditableItem *roadmap_preferences_new_item
       if (list == NULL) {
          roadmap_log (ROADMAP_FATAL, "no more memory");
       }
-      list->name     = name;
+      list->name     = cursor->category;
       list->children = NULL;
 
       list->next = context->children;
@@ -145,8 +142,7 @@ static EditableItem *roadmap_preferences_new_item
       roadmap_log (ROADMAP_FATAL, "no more memory");
    }
 
-   item->category = category;
-   item->name     = name;
+   item->config = *cursor;
 
    item->next = list->children;
    list->children = item;
@@ -156,37 +152,30 @@ static EditableItem *roadmap_preferences_new_item
 
 
 static void roadmap_preferences_new_dialog
-               (ConfigurationContext *context, void *cursor) {
+               (ConfigurationContext *context,
+                RoadMapConfigDescriptor *cursor) {
 
-   void *next;
    void *enumeration;
 
-   int   type;
-   char *category;
-   char *name;
-   char *value;
+   const char *value;
 
    int   count;
    char *values[256];
 
    EditableItem *item;
 
-   int use_keyboard;
 
+   while (cursor->reference != NULL) {
 
-   while (cursor != NULL) {
+      value = roadmap_config_get (cursor);
+      item  = roadmap_preferences_new_item (context, cursor);
 
-      type = roadmap_config_get_type (cursor);
-      next = roadmap_config_scan (cursor, &category, &name, &value);
-
-      item = roadmap_preferences_new_item (context, category, name);
-
-      switch (type) {
+      switch (roadmap_config_get_type (cursor)) {
 
       case ROADMAP_CONFIG_ENUM:
 
          count = 1;
-         values[0] = value; /* Always make the original value appear first. */
+         values[0] = (char *)value; /* Always make the original value appear first. */
 
          for (enumeration = roadmp_config_get_enumeration (cursor);
               enumeration != NULL;
@@ -199,26 +188,28 @@ static void roadmap_preferences_new_dialog
                if (count >= 256) {
                   roadmap_log (ROADMAP_FATAL,
                                "too many values for item %s.%s",
-                               category, name);
+                               cursor->category, cursor->name);
                }
                count += 1;
             }
          }
          roadmap_dialog_new_choice
-            (category, name, count, values, (void **)values, NULL);
+            (cursor->category, cursor->name, count, values, (void **)values, NULL);
          break;
 
       case ROADMAP_CONFIG_COLOR:
       case ROADMAP_CONFIG_STRING:
 
-         roadmap_dialog_new_entry (category, name);
+         roadmap_dialog_new_entry (cursor->category, cursor->name);
          break;
 
       default:
-         roadmap_log (ROADMAP_FATAL, "invalid preference item type %d", type);
+         roadmap_log (ROADMAP_FATAL,
+                      "invalid preference item type %d",
+                      roadmap_config_get_type (cursor));
       }
 
-      cursor = next;
+      roadmap_config_next (cursor);
    }
 
    roadmap_dialog_add_button ("Ok", roadmap_preferences_ok);
@@ -226,15 +217,12 @@ static void roadmap_preferences_new_dialog
    roadmap_dialog_add_button ("Cancel", roadmap_preferences_cancel);
 
 
-   use_keyboard = (strcasecmp (roadmap_config_get ("General", "Keyboard"),
-                               "yes") == 0);
-
-   roadmap_dialog_complete (use_keyboard);
+   roadmap_dialog_complete (roadmap_preferences_use_keyboard ());
 }
 
 
 static void roadmap_preferences_reset_dialog
-               (ConfigurationContext *context, void *cursor) {
+                (ConfigurationContext *context) {
 
    CategoryList *list;
    EditableItem *item;
@@ -245,55 +233,68 @@ static void roadmap_preferences_reset_dialog
 
       for (item = list->children; item != NULL; item = item->next) {
 
-         roadmap_dialog_set_data (item->category,
-                                  item->name,
-                                  roadmap_config_get (item->category,
-                                                      item->name));
+         roadmap_dialog_set_data (item->config.category,
+                                  item->config.name,
+                                  (char *)roadmap_config_get (&item->config));
       }
    }
 }
 
 
-static void roadmap_preferences_show (char *title, void *cursor) {
+static void roadmap_preferences_show (const char *file, const char *title) {
 
-   ConfigurationContext *context;
+    ConfigurationContext *context;
 
-   if (cursor == NULL) {
-      roadmap_log (ROADMAP_ERROR, "no preference item found");
-      return;
-   }
+    RoadMapConfigDescriptor cursor;
 
-   for (context = RoadMapConfigurationDialogs;
-        context != NULL;
-        context = context->next) {
 
-      if (strcmp (context->name, title) == 0) break;
-   }
+    if (! roadmap_config_first (file, &cursor)) {
+        roadmap_log (ROADMAP_ERROR, "no item found for %s", title);
+        return;
+    }
 
-   if (context == NULL) {
+    for (context = RoadMapConfigurationDialogs;
+         context != NULL;
+         context = context->next) {
 
-      context = (ConfigurationContext *) malloc (sizeof(ConfigurationContext));
-      if (context == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+        if (strcmp (context->name, title) == 0) break;
+    }
 
-      context->name = strdup(title);
-      context->children = NULL;
+    if (context == NULL) {
 
-      context->next = RoadMapConfigurationDialogs;
-      RoadMapConfigurationDialogs = context;
-   }
+        context = (ConfigurationContext *)
+                        malloc (sizeof(ConfigurationContext));
+        if (context == NULL) {
+            roadmap_log (ROADMAP_FATAL, "no more memory");
+        }
 
-   if (roadmap_dialog_activate (title, context)) {
+        context->name = strdup(title);
+        context->children = NULL;
 
-      roadmap_preferences_new_dialog (context, cursor);
-   }
-   roadmap_preferences_reset_dialog (context, cursor);
+        context->next = RoadMapConfigurationDialogs;
+        RoadMapConfigurationDialogs = context;
+    }
+
+    if (roadmap_dialog_activate (title, context)) {
+
+        roadmap_preferences_new_dialog (context, &cursor);
+    }
+    roadmap_preferences_reset_dialog (context);
+}
+
+
+int roadmap_preferences_use_keyboard (void) {
+
+    static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
+                            ROADMAP_CONFIG_ITEM("General", "Keyboard");
+
+    return (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralKeyboard),
+                        "yes") == 0);
 }
 
 
 void roadmap_preferences_edit (void) {
-   roadmap_preferences_show
-      ("Preferences", roadmap_config_first ("preferences"));
+    
+    roadmap_preferences_show ("preferences", "Preferences");
 }
 

@@ -39,6 +39,12 @@
 #include "roadgps_screen.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigGPSBackground =
+                        ROADMAP_CONFIG_ITEM("GPS", "Background");
+
+static RoadMapConfigDescriptor RoadMapConfigGPSForeground =
+                        ROADMAP_CONFIG_ITEM("GPS", "Foreground");
+
 #define ROADGPS_STATUS_OFF    0
 #define ROADGPS_STATUS_FIXING 1
 #define ROADGPS_STATUS_OK     2
@@ -145,7 +151,7 @@ static void roadgps_screen_draw_satellite_position
       (position.x - RoadGpsFrame.label_offset_x - 2,
        position.y - RoadGpsFrame.label_offset_y - 3,
        RoadGpsFrame.label_width + 4,
-       RoadGpsFrame.label_ascent + 6,
+       RoadGpsFrame.label_ascent + RoadGpsFrame.label_descent + 6,
        points);
    count = 4;
 
@@ -422,11 +428,13 @@ static void roadgps_screen_configure (void) {
 
       RoadGpsEraser = roadmap_canvas_create_pen ("eraser");
       roadmap_canvas_set_thickness (2);
-      roadmap_canvas_set_foreground (roadmap_config_get ("GPS", "Background"));
+      roadmap_canvas_set_foreground
+          (roadmap_config_get (&RoadMapConfigGPSBackground));
 
       RoadGpsForeground = roadmap_canvas_create_pen ("gps/foreground");
       roadmap_canvas_set_thickness (2);
-      roadmap_canvas_set_foreground (roadmap_config_get ("GPS", "Foreground"));
+      roadmap_canvas_set_foreground
+          (roadmap_config_get (&RoadMapConfigGPSForeground));
 
       RoadGpsFramePen = roadmap_canvas_create_pen ("gps/frame");
       roadmap_canvas_set_thickness (2);
@@ -439,8 +447,10 @@ static void roadgps_screen_configure (void) {
 
 void roadgps_screen_initialize (void) {
 
-   roadmap_config_declare ("preferences", "GPS", "Background", "LightYellow");
-   roadmap_config_declare ("preferences", "GPS", "Foreground", "black");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGPSBackground, "LightYellow");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGPSForeground, "black");
 
    if (RoadGpsNextGpgsa == NULL) {
       RoadGpsNextGpgsa =

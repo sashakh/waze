@@ -51,6 +51,22 @@
 #include "roadmap_messagebox.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
+                        ROADMAP_CONFIG_ITEM("General", "Unit");
+
+static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
+                        ROADMAP_CONFIG_ITEM("General", "Toolbar");
+
+static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
+                        ROADMAP_CONFIG_ITEM("General", "Keyboard");
+
+static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
+                        ROADMAP_CONFIG_ITEM("Geometry", "Main");
+
+static RoadMapConfigDescriptor RoadMapConfigGeneralDatabase =
+                        ROADMAP_CONFIG_ITEM("General", "Database");
+
+
 /* The menu and toolbar callbacks: --------------------------------------- */
 
 static void roadmap_start_console (void) {
@@ -304,7 +320,7 @@ static RoadMapFactory RoadMapStartKeyBinding[] = {
 
 static void roadmap_start_set_unit (void) {
 
-   char *unit = roadmap_config_get ("General", "Unit");
+   const char *unit = roadmap_config_get (&RoadMapConfigGeneralUnit);
 
    if (strcmp (unit, "imperial") == 0) {
 
@@ -362,13 +378,14 @@ void roadmap_start (int argc, char **argv) {
 #endif
 
    roadmap_config_declare_enumeration
-      ("preferences", "General", "Unit", "imperial", "metric", NULL);
+      ("preferences", &RoadMapConfigGeneralUnit, "imperial", "metric", NULL);
    roadmap_config_declare_enumeration
-      ("preferences", "General", "Toolbar", "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
    roadmap_config_declare_enumeration
-      ("preferences", "General", "Keyboard", "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralKeyboard, "yes", "no", NULL);
 
-   roadmap_config_declare ("preferences", "Geometry", "Main", "800x600");
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigGeometryMain, "800x600");
     
    roadmap_math_initialize   ();
    roadmap_trip_initialize   ();
@@ -379,7 +396,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_history_initialize();
    roadmap_config_initialize ();
 
-   roadmap_file_set_path (roadmap_config_get ("General", "Database"));
+   roadmap_file_set_path(roadmap_config_get(&RoadMapConfigGeneralDatabase));
 
    roadmap_option (argc, argv);
 

@@ -42,6 +42,7 @@
 #include "roadmap_screen.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
+#include "roadmap_preferences.h"
 
 
 #define ROADMAP_MAX_STREETS  256
@@ -370,11 +371,6 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 
    if (roadmap_dialog_activate (context->title, context)) {
 
-      int use_keyboard;
-
-      use_keyboard = (strcasecmp (roadmap_config_get ("General", "Keyboard"),
-                                  "yes") == 0);
-
       roadmap_dialog_new_entry ("Address", "Number:");
       roadmap_dialog_new_entry ("Address", "Street:");
       if (context->use_zip) {
@@ -389,7 +385,7 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
       roadmap_dialog_add_button ("OK", roadmap_address_ok);
       roadmap_dialog_add_button ("Cancel", roadmap_address_cancel);
 
-      roadmap_dialog_complete (use_keyboard);
+      roadmap_dialog_complete (roadmap_preferences_use_keyboard());
    }
 
    context->history =

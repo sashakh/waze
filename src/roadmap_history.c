@@ -32,6 +32,10 @@
 #include "roadmap_config.h"
 #include "roadmap_file.h"
 
+
+static RoadMapConfigDescriptor RoadMapConfigHistoryDepth =
+                        ROADMAP_CONFIG_ITEM("History", "Depth");
+
 struct roadmap_history_log_entry {
 
    struct roadmap_history_log_entry *before;
@@ -118,7 +122,7 @@ static void roadmap_history_add_entry (const char *data) {
    RoadMapHistoryCount += 1;
 
    if (RoadMapHistoryCount >
-       roadmap_config_get_integer("History", "Depth")) {
+       roadmap_config_get_integer(&RoadMapConfigHistoryDepth)) {
            
       entry = RoadMapOldest;
       roadmap_history_remove_entry (entry);
@@ -187,7 +191,7 @@ static void roadmap_history_save_entry
 
 void roadmap_history_initialize (void) {
 
-   roadmap_config_declare ("preferences", "History", "Depth", "100");
+   roadmap_config_declare ("preferences", &RoadMapConfigHistoryDepth, "100");
 }
 
 

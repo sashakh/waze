@@ -41,6 +41,9 @@
 #include "roadmap_start.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
+                        ROADMAP_CONFIG_ITEM("General", "Toolbar");
+
 /* The RoadGps menu and toolbar items: ----------------------------------- */
 
 static RoadMapFactory RoadGpsStartMenu[] = {
@@ -113,7 +116,7 @@ void roadmap_start (int argc, char **argv) {
 #endif
 
    roadmap_config_declare_enumeration
-      ("preferences", "General", "Toolbar", "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
 
    roadmap_gps_initialize    (NULL);
    roadgps_screen_initialize ();

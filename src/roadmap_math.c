@@ -44,6 +44,10 @@
 #define ROADMAP_BASE_METRIC   1
 
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralDefaultZoom =
+                        ROADMAP_CONFIG_ITEM("General", "Default Zoom");
+
+
 #define ROADMAP_REFERENCE_ZOOM 20
 
 
@@ -130,12 +134,6 @@ static struct {
    
 } RoadMapContext;
 
-
-
-static int roadmap_math_default_zoom (void) {
-
-    return roadmap_config_get_integer ("General", "Default Zoom");
-}
 
 
 static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
@@ -258,7 +256,8 @@ static void roadmap_math_compute_scale (void) {
 
 
    if (RoadMapContext.zoom == 0) {
-        RoadMapContext.zoom = roadmap_math_default_zoom ();
+        RoadMapContext.zoom =
+           roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
    }
    
    RoadMapContext.center_x = RoadMapContext.width / 2;
@@ -394,7 +393,8 @@ void roadmap_math_rotate_object
 
 void roadmap_math_initialize (void) {
 
-    roadmap_config_declare ("preferences", "General", "Default Zoom", "20");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigGeneralDefaultZoom, "20");
     RoadMapContext.orientation = 0;
 
     roadmap_math_use_imperial ();
@@ -515,7 +515,8 @@ void roadmap_math_zoom_in (void) {
 
 void roadmap_math_zoom_reset (void) {
 
-   RoadMapContext.zoom = roadmap_math_default_zoom ();
+   RoadMapContext.zoom =
+        roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
 
    roadmap_math_compute_scale ();
 }

@@ -24,6 +24,8 @@
 #ifndef _ROADMAP_PREFERENCES__H_
 #define _ROADMAP_PREFERENCES__H_
 
+int roadmap_preferences_use_keyboard (void);
+
 void roadmap_preferences_edit (void);
 
 #endif // _ROADMAP_PREFERENCES__H_

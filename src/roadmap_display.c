@@ -46,6 +46,25 @@
 #include "roadmap_display.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigDisplayDuration =
+                        ROADMAP_CONFIG_ITEM("Display", "Duration");
+
+static RoadMapConfigDescriptor RoadMapConfigDisplayBottomRight =
+                        ROADMAP_CONFIG_ITEM("Display", "Bottom Right");
+
+static RoadMapConfigDescriptor RoadMapConfigDisplayBottomLeft =
+                        ROADMAP_CONFIG_ITEM("Display", "Bottom Left");
+
+static RoadMapConfigDescriptor RoadMapConfigDisplayTopRight =
+                        ROADMAP_CONFIG_ITEM("Display", "Top Right");
+
+static RoadMapConfigDescriptor RoadMapConfigConsoleBackground =
+                        ROADMAP_CONFIG_ITEM("Console", "Background");
+
+static RoadMapConfigDescriptor RoadMapConfigConsoleForeground =
+                        ROADMAP_CONFIG_ITEM("Console", "Foreground");
+
+
 static RoadMapPen RoadMapMessageContour;
 static RoadMapPen RoadMapConsoleBackground;
 static RoadMapPen RoadMapConsoleForeground;
@@ -53,8 +72,8 @@ static RoadMapPen RoadMapConsoleForeground;
 
 typedef struct {
 
-    char *title;
-    char *default_format;
+    const char *title;
+    
     char *content;
     char *id;
     
@@ -68,36 +87,49 @@ typedef struct {
     
     int line;
     int distance;
+
+    RoadMapConfigDescriptor format_descriptor;
+    RoadMapConfigDescriptor background_descriptor;
+    RoadMapConfigDescriptor foreground_descriptor;
+    
+    const char *default_format;
+    const char *default_background;
+    const char *default_foreground;
+    
     RoadMapStreetProperties properties;
 
 } RoadMapSign;
 
 
-#define ROADMAP_SIGN(n,d) \
-    {n, d, NULL, NULL, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, 0}
+#define ROADMAP_SIGN(n,t,b,f) \
+    {n, NULL, NULL, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, 0, \
+        {n, "Text", NULL}, \
+        {n, "Background", NULL}, \
+        {n, "Foreground", NULL}, \
+     t, b, f}
 
 
 RoadMapSign RoadMapStreetSign[] = {
-    ROADMAP_SIGN("Current Street",  "%N, %C|%N"),
-    ROADMAP_SIGN("Approach",        "Approaching %N, %C|Approaching %N"),
-    ROADMAP_SIGN("Selected Street", "%F"),
-    ROADMAP_SIGN(NULL, NULL)
+    ROADMAP_SIGN("Current Street",  "%N, %C|%N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN("Approach",        "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN("Selected Street", "%F", "yellow", "black"),
+    ROADMAP_SIGN(NULL, NULL, NULL, NULL)
 };
 
 
 static RoadMapPen roadmap_display_new_pen
-                        (const char *category, const char *name) {
+                        (RoadMapConfigDescriptor * descriptor) {
 
-    const char *color = roadmap_config_get (category, name);
+    const char *color = roadmap_config_get (descriptor);
                             
     if (strcasecmp (color, "black") != 0) {
         
         RoadMapPen pen;
         char pen_name[256];
         
-        strcpy (pen_name, category);
+        strcpy (pen_name, descriptor->category);
         strcat (pen_name, ".");
-        strcat (pen_name, name);
+        strcat (pen_name, descriptor->name);
         
         pen = roadmap_canvas_create_pen (pen_name);
         roadmap_canvas_set_foreground (color);
@@ -125,18 +157,18 @@ static void roadmap_display_create_pens (void) {
     roadmap_canvas_set_foreground ("black");
     
     RoadMapConsoleBackground =
-        roadmap_display_new_pen ("Console", "Background");
+        roadmap_display_new_pen (&RoadMapConfigConsoleBackground);
     
     RoadMapConsoleForeground =
-        roadmap_display_new_pen ("Console", "Foreground");
+        roadmap_display_new_pen (&RoadMapConfigConsoleForeground);
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
         
         sign->background =
-            roadmap_display_new_pen (sign->title, "Background");
+            roadmap_display_new_pen (&sign->background_descriptor);
 
         sign->foreground =
-            roadmap_display_new_pen (sign->title, "Foreground");
+            roadmap_display_new_pen (&sign->foreground_descriptor);
     }
 }
 
@@ -201,7 +233,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     RoadMapGuiPoint points[7];
     RoadMapGuiPoint text_position;
     char text[256];
-    char *format;
+    const char *format;
     int width, height, ascent, descent;
     int screen_width;
     int sign_width, sign_height, text_height;
@@ -209,7 +241,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     int lines;
 
 
-    format = roadmap_config_get (sign->title, "Text");
+    format = roadmap_config_get (&sign->format_descriptor);
     
     if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
@@ -319,7 +351,7 @@ void roadmap_display_activate
 
     int   message_has_changed;
     int   street;
-    char *format;
+    const char *format;
     char  text[256];
     RoadMapSign *sign;
 
@@ -353,7 +385,7 @@ void roadmap_display_activate
         ('C', roadmap_street_get_city_name (&sign->properties));
 
     
-    format = roadmap_config_get (title, "Text");
+    format = roadmap_config_get (&sign->format_descriptor);
     
     if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
@@ -369,7 +401,8 @@ void roadmap_display_activate
     if (message_has_changed || (position != NULL)) {
         sign->deadline =
             time(NULL)
-                + roadmap_config_get_integer ("Highlight", "Duration");
+                + roadmap_config_get_integer
+                        (&RoadMapConfigDisplayDuration);
     }
     
     if (message_has_changed) {
@@ -396,8 +429,10 @@ void roadmap_display_activate
 }
 
 
-static void roadmap_display_console_box (int corner, const char *format) {
+static void roadmap_display_console_box
+                (int corner, RoadMapConfigDescriptor *item) {
     
+    const char *format;
     char text[256];
     int count;
     int width, ascent, descent;
@@ -405,7 +440,7 @@ static void roadmap_display_console_box (int corner, const char *format) {
     RoadMapGuiPoint frame[4];
 
 
-    format = roadmap_config_get ("Display", format);
+    format = roadmap_config_get (item);
     
     if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
@@ -454,13 +489,16 @@ void roadmap_display_console (void) {
     roadmap_display_create_pens ();
     
     roadmap_display_console_box
-        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT, "Bottom Right");
+        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT,
+         &RoadMapConfigDisplayBottomRight);
     
     roadmap_display_console_box
-        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_LEFT, "Bottom Left");
+        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_LEFT,
+         &RoadMapConfigDisplayBottomLeft);
     
     roadmap_display_console_box
-        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT, "Top Right");
+        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
+         &RoadMapConfigDisplayTopRight);
 }
 
 
@@ -494,21 +532,32 @@ void roadmap_display_initialize (void) {
 
     RoadMapSign *sign;
     
-    roadmap_config_declare ("preferences", "Display", "Bottom Right", "%D (%W)|%D");
-    roadmap_config_declare ("preferences", "Display", "Bottom Left", "%S");
-    roadmap_config_declare ("preferences", "Display", "Top Right", "ETA: %A|%T");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigDisplayDuration, "10");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigDisplayBottomRight, "%D (%W)|%D");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigDisplayBottomLeft, "%S");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigDisplayTopRight, "ETA: %A|%T");
 
-    roadmap_config_declare ("preferences", "Console", "Background", "yellow");
-    roadmap_config_declare ("preferences", "Console", "Foreground", "black");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigConsoleBackground, "yellow");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigConsoleForeground, "black");
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
         
         roadmap_config_declare
-            ("preferences", sign->title, "Text", sign->default_format);
-        
+            ("preferences",
+             &sign->format_descriptor, sign->default_format);
+
         roadmap_config_declare
-            ("preferences", sign->title, "Background", "yellow");
+            ("preferences",
+             &sign->background_descriptor, sign->default_background);
+
         roadmap_config_declare
-            ("preferences", sign->title, "Foreground", "black");
+            ("preferences",
+             &sign->foreground_descriptor, sign->default_foreground);
     }
 }

@@ -24,7 +24,7 @@
 #ifndef _ROADMAP_NET__H_
 #define _ROADMAP_NET__H_
 
-int roadmap_net_connect (char *name, int default_port);
+int roadmap_net_connect (const char *name, int default_port);
 
 #endif // _ROADMAP_NET__H_
 

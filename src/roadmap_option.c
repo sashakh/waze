@@ -31,11 +31,37 @@
 #include "roadmap.h"
 #include "roadmap_config.h"
 
+
+static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
+                        ROADMAP_CONFIG_ITEM("Geometry", "Main");
+
+static RoadMapConfigDescriptor RoadMapConfigGeometryUnit =
+                        ROADMAP_CONFIG_ITEM("Geometry", "Unit");
+
+static RoadMapConfigDescriptor RoadMapConfigLocationsLocation =
+                        ROADMAP_CONFIG_ITEM("Locations", "Location");
+
+static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
+                        ROADMAP_CONFIG_ITEM("General", "Toolbar");
+
+
 static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
 static int roadmap_option_no_area = 0;
 static int roadmap_option_square  = 0;
 
 static char *roadmap_option_gps = NULL;
+
+
+static const char *roadmap_option_get_geometry (const char *name) {
+
+    RoadMapConfigDescriptor descriptor;
+    
+    descriptor.category = "Geometry";
+    descriptor.name = name;
+    descriptor.reference = NULL;
+
+    return roadmap_config_get (&descriptor);
+}
 
 
 int roadmap_is_visible (int category) {
@@ -64,8 +90,8 @@ int roadmap_verbosity (void) {
 
 
 int roadmap_option_width (const char *name) {
-    
-    char *option = roadmap_config_get ("Geometry", name);
+
+    const char *option = roadmap_option_get_geometry (name);
     
     if (option == NULL || option[0] == 0) {
         return 300;
@@ -76,31 +102,32 @@ int roadmap_option_width (const char *name) {
 
 int roadmap_option_height (const char *name) {
 
-    char *option = roadmap_config_get ("Geometry", name);
+    const char *option = roadmap_option_get_geometry (name);
+    char *separator;
 
-    option = strchr (option, 'x');
-    if (option == NULL) {
+    separator = strchr (option, 'x');
+    if (separator == NULL) {
         return 200;
     }
-    return atoi (option+1);
+    return atoi(separator+1);
 }
 
 
 static void roadmap_option_set_location (const char *value) {
 
-    roadmap_config_set ("Locations", "Location", value);
+    roadmap_config_set (&RoadMapConfigLocationsLocation, value);
 }
 
 
 static void roadmap_option_set_metric (const char *value) {
 
-    roadmap_config_set ("General", "Unit", "metric");
+    roadmap_config_set (&RoadMapConfigGeometryUnit, "metric");
 }
 
 
 static void roadmap_option_set_imperial (const char *value) {
 
-    roadmap_config_set ("General", "Unit", "imperial");
+    roadmap_config_set (&RoadMapConfigGeometryUnit, "imperial");
 }
 
 
@@ -112,7 +139,7 @@ static void roadmap_option_set_no_area (const char *value) {
 
 static void roadmap_option_set_geometry1 (const char *value) {
 
-    roadmap_config_set ("Geometry", "Main", value);
+    roadmap_config_set (&RoadMapConfigGeometryMain, value);
 }
 
 
@@ -121,7 +148,8 @@ static void roadmap_option_set_geometry2 (const char *value) {
     char *p;
     char *geometry;
     char buffer[256];
-          
+    RoadMapConfigDescriptor descriptor;
+
     strncpy (buffer, value, sizeof(buffer));
           
     geometry = strchr (buffer, '=');
@@ -134,15 +162,18 @@ static void roadmap_option_set_geometry2 (const char *value) {
     for (p = strchr(buffer, '-'); p != NULL; p =strchr(p, '-')) {
         *p = ' ';
     }
-         
-    roadmap_config_declare ("preferences", "Geometry", buffer, "300x200");
-    roadmap_config_set ("Geometry", buffer, geometry);
+
+    descriptor.category = "Geometry";
+    descriptor.name = strdup(buffer);
+    descriptor.reference = NULL;
+    roadmap_config_declare ("preferences", &descriptor, "300x200");
+    roadmap_config_set (&descriptor, geometry);
 }
 
 
 static void roadmap_option_set_no_toolbar (const char *value) {
 
-    roadmap_config_set ("General", "Toolbar", "no");
+    roadmap_config_set (&RoadMapConfigGeneralToolbar, "no");
 }
 
 

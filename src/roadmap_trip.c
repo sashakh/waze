@@ -43,6 +43,11 @@
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
 #include "roadmap_message.h"
+#include "roadmap_preferences.h"
+
+
+static RoadMapConfigDescriptor RoadMapConfigLocationsTrip =
+                        ROADMAP_CONFIG_ITEM("Locations", "Trip");
 
 
 /* Default location is: 1 market St, san Francisco, California. */
@@ -71,6 +76,8 @@ typedef struct roadmap_trip_point {
 
     RoadMapPosition position;
 
+    RoadMapConfigDescriptor config;
+
     int speed;
     int direction;
     int distance;   /* .. from the destination point. */
@@ -78,10 +85,16 @@ typedef struct roadmap_trip_point {
 } RoadMapTripPoint;
 
 
+#define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip) \
+    {{NULL, NULL}, id, sprite, 1, mobile, in_trip, \
+     {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}, \
+     ROADMAP_CONFIG_ITEM("Locations",id) \
+    }
+
 RoadMapTripPoint RoadMapTripPredefined[] = {
-    {{NULL, NULL}, "GPS",         "GPS",         1, 1, 0, {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}},
-    {{NULL, NULL}, "Destination", "Destination", 1, 0, 1, {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}},
-    {{NULL, NULL}, "Location",    "Position",    1, 0, 0, {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}},
+    ROADMAP_TRIP_ITEM("GPS",         "GPS",         1, 0),
+    ROADMAP_TRIP_ITEM("Destination", "Destination", 0, 1),
+    ROADMAP_TRIP_ITEM("Location",    "Position",    0, 0),
     {{NULL, NULL}, NULL, NULL}
 };
 
@@ -269,16 +282,11 @@ static void roadmap_trip_set_dialog (RoadMapPosition *position) {
     
     if (roadmap_dialog_activate ("Add Waypoint", &point_position)) {
 
-        int use_keyboard;
-
-        use_keyboard = (strcasecmp (roadmap_config_get ("General", "Keyboard"),
-                                    "yes") == 0);
-
         roadmap_dialog_new_entry  ("Name", "Name:");
         roadmap_dialog_add_button ("OK", roadmap_trip_set_dialog_ok);
         roadmap_dialog_add_button ("Cancel", roadmap_trip_dialog_cancel);
 
-        roadmap_dialog_complete (use_keyboard);
+        roadmap_dialog_complete (roadmap_preferences_use_keyboard());
     }
 }
 
@@ -339,16 +347,11 @@ static void roadmap_trip_remove_dialog (void) {
     
     if (roadmap_dialog_activate ("Delete Waypoints", NULL)) {
 
-        int use_keyboard;
-
-        use_keyboard = (strcasecmp (roadmap_config_get ("General", "Keyboard"),
-                                    "yes") == 0);
-
         roadmap_dialog_new_list   ("Names", ".Waypoints");
         roadmap_dialog_add_button ("Delete", roadmap_trip_remove_dialog_delete);
         roadmap_dialog_add_button ("Done", roadmap_trip_dialog_cancel);
 
-        roadmap_dialog_complete (use_keyboard);
+        roadmap_dialog_complete (roadmap_preferences_use_keyboard());
     }
 
     roadmap_trip_remove_dialog_populate (count);
@@ -366,7 +369,7 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
         return NULL;
     }
         
-    roadmap_config_set ("Locations", "Trip", name);
+    roadmap_config_set (&RoadMapConfigLocationsTrip, name);
     
     if (name [0] != '/') {
         full_name = roadmap_file_join (roadmap_file_trips(), name);
@@ -717,13 +720,13 @@ void roadmap_trip_clear (void) {
     }
     
     if (RoadMapTripModified) {
-        roadmap_config_set ("Locations", "Trip", "default");
+        roadmap_config_set (&RoadMapConfigLocationsTrip, "default");
     }
 }
 
 
 char *roadmap_trip_current (void) {
-    return roadmap_config_get ("Locations", "Trip");
+    return roadmap_config_get (&RoadMapConfigLocationsTrip);
 }
 
 
@@ -734,10 +737,11 @@ void roadmap_trip_initialize (void) {
     for (i = 0; RoadMapTripPredefined[i].id != NULL; ++i) {
         if (! RoadMapTripPredefined[i].in_trip) {
             roadmap_config_declare
-                ("session", "Locations", RoadMapTripPredefined[i].id, ROADMAP_INITIAL_POSITION);
+                ("session", &RoadMapTripPredefined[i].config, ROADMAP_INITIAL_POSITION);
         }
     }
-    roadmap_config_declare ("session", "Locations", "Trip", "default");
+    roadmap_config_declare
+        ("session", &RoadMapConfigLocationsTrip, "default");
 }
 
 
@@ -758,7 +762,8 @@ void roadmap_trip_load (const char *name) {
         for (i = 0; RoadMapTripPredefined[i].id != NULL; ++i) {
             if (! RoadMapTripPredefined[i].in_trip) {
                 roadmap_config_get_position
-                    (RoadMapTripPredefined[i].id, &RoadMapTripPredefined[i].position);
+                    (&RoadMapTripPredefined[i].config,
+                     &RoadMapTripPredefined[i].position);
             }
             roadmap_list_append (&RoadMapTripWaypoints, &RoadMapTripPredefined[i].link);
         }

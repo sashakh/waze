@@ -167,8 +167,7 @@ void RMapCanvas::drawMultiplePoints(int count, RoadMapGuiPoint* points) {
 
 	QPointArray pa(count);
 	for(int n = 0; n < count; n++) {
-		pa.setPoint(n, ROADMAP_POINT_GET_X(&points[n]), 
-			ROADMAP_POINT_GET_Y(&points[n]));
+		pa.setPoint(n, points[n].x, points[n].y);
 	}
 
 	p.drawPoints(pa);
@@ -184,8 +183,7 @@ void RMapCanvas::drawMultipleLines(int count, int* lines, RoadMapGuiPoint* point
 		int count_of_points = *lines;
 		QPointArray pa(count_of_points);
 		for(int n = 0; n < count_of_points; n++) {
-			pa.setPoint(n, ROADMAP_POINT_GET_X(&points[n]), 
-				ROADMAP_POINT_GET_Y(&points[n]));
+			pa.setPoint(n, points[n].x, points[n].y);
 		}
 
 		p.drawPolyline(pa);
@@ -215,8 +213,7 @@ void RMapCanvas::drawMultiplePolygons(int count, int* polygons,
 
 		QPointArray pa(count_of_points);
 		for(int n = 0; n < count_of_points; n++) {
-			pa.setPoint(n, ROADMAP_POINT_GET_X(&points[n]), 
-				ROADMAP_POINT_GET_Y(&points[n]));
+			pa.setPoint(n, points[n].x, points[n].y);
 		}
 
 		p.drawPolygon(pa);

@@ -32,6 +32,10 @@
 #include "roadmap_factory.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
+                        ROADMAP_CONFIG_ITEM("General", "Toolbar");
+
+
 const char RoadMapFactorySeparator[] = "--separator--";
 
 static const RoadMapFactory *RoadMapFactoryBindings = NULL;
@@ -59,7 +63,7 @@ void roadmap_factory (const RoadMapFactory *menu,
                       const RoadMapFactory *toolbar,
                       const RoadMapFactory *shortcuts) {
 
-   char *use_toolbar = roadmap_config_get ("General", "Toolbar");
+   char *use_toolbar = roadmap_config_get (&RoadMapConfigGeneralToolbar);
 
 
    while (menu->name != NULL) {

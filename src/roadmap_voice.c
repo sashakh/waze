@@ -42,6 +42,21 @@
 #include "roadmap_voice.h"
 
 
+struct roadmap_voice_config {
+    
+    RoadMapConfigDescriptor config;
+    const char *default_text;
+};
+
+static struct roadmap_voice_config RoadMapVoiceText[] = {
+    {ROADMAP_CONFIG_ITEM("Voice", "Approach"), "flite -t 'Approaching %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Current Street"), "flite -t 'On %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Next Intersection"), "flite -t 'Next intersection: %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Selected Street"), "flite -t 'Selected %N'"},
+    {ROADMAP_CONFIG_ITEM_EMPTY, NULL}
+};
+
+
 static int   RoadMapVoiceMuted = 0;
 static int   RoadMapVoiceInUse = 0;
 static char *RoadMapVoiceCurrentCommand = NULL;
@@ -230,6 +245,7 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
 
 void roadmap_voice_announce (const char *title) {
 
+    int   i;
     char  text[1024];
     char  expanded[1024];
     char *final;
@@ -240,8 +256,22 @@ void roadmap_voice_announce (const char *title) {
 
     RoadMapVoiceActive.handler = roadmap_voice_complete;
     
-    roadmap_message_format (text, sizeof(text),
-                            roadmap_config_get ("Voice", title));
+    
+    for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
+        
+        if (strcmp (title, RoadMapVoiceText[i].config.name) == 0) {
+            break;
+        }
+    }
+    
+    if (RoadMapVoiceText[i].default_text == NULL) {
+        roadmap_log (ROADMAP_ERROR, "invalid voice %s", title);
+        return;
+    }
+    
+    roadmap_message_format
+        (text, sizeof(text),
+         roadmap_config_get (&RoadMapVoiceText[i].config));
     
     if (roadmap_voice_expand (text, expanded, sizeof(expanded))) {
         final = expanded;
@@ -277,8 +307,11 @@ void roadmap_voice_enable (void) {
 
 void roadmap_voice_initialize (void) {
     
-    roadmap_config_declare ("preferences", "Voice", "Approach", "flite -t 'Approaching %N'");
-    roadmap_config_declare ("preferences", "Voice", "Current Street", "flite -t 'On %N'");
-    roadmap_config_declare ("preferences", "Voice", "Next Intersection", "flite -t 'Next intersection: %N'");
-    roadmap_config_declare ("preferences", "Voice", "Selected Street", "flite -t 'Selected %N'");
+    int i;
+    
+    for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
+        roadmap_config_declare
+            ("preferences",
+             &RoadMapVoiceText[i].config, RoadMapVoiceText[i].default_text);
+    }
 }

@@ -34,44 +34,66 @@
 #define ROADMAP_CONFIG_COLOR    2
 
 
+struct RoadMapConfigItemRecord;
+typedef struct RoadMapConfigItemRecord RoadMapConfigItem;
+
+typedef struct {
+    
+    const char *category;
+    const char *name;
+    
+    RoadMapConfigItem *reference;
+    
+} RoadMapConfigDescriptor;
+
+
+#define ROADMAP_CONFIG_ITEM_EMPTY  {NULL, NULL, NULL}
+#define ROADMAP_CONFIG_ITEM(c,n)   {c, n, NULL}
+#define ROADMAP_CONFIG_LOCATION(n) {"Locations", n, NULL}
+
+
 void roadmap_config_declare
-        (const char *config,
-         const char *category,
-         const char *name,
-         const char *default_value);
+        (const char *file,
+         RoadMapConfigDescriptor *descriptor, const char *default_value);
 
 void roadmap_config_declare_enumeration
-        (const char *config,
-         const char *category,
-         const char *name,
-         const char *enumeration_value, ...);
+        (const char *file,
+         RoadMapConfigDescriptor *descriptor, const char *enumeration_value, ...);
 
 void roadmap_config_declare_color
-        (const char *config,
-         const char *category,
-         const char *name,
-         const char *default_value);
+        (const char *file,
+         RoadMapConfigDescriptor *descriptor, const char *default_value);
 
+ 
 char *roadmap_config_extract_data (char *line, int size);
 
-void *roadmap_config_first (const char *config);
-int   roadmap_config_get_type (void *cursor);
-void *roadmap_config_scan
-         (void *cursor, char **category, char **name, char **value);
 
-void *roadmp_config_get_enumeration (void *cursor);
+int roadmap_config_first (const char *config,
+                          RoadMapConfigDescriptor *descriptor);
+ 
+int roadmap_config_next (RoadMapConfigDescriptor *descriptor);
+
+
+void *roadmp_config_get_enumeration (RoadMapConfigDescriptor *descriptor);
 char *roadmp_config_get_enumeration_value (void *enumeration);
 void *roadmp_config_get_enumeration_next (void *enumeration);
+
 
 void  roadmap_config_initialize (void);
 void  roadmap_config_save       (int force);
 
-char *roadmap_config_get (const char *category, const char *name);
-void  roadmap_config_set (const char *category, const char *name, const char *value);
 
-int   roadmap_config_get_integer (const char *category, const char *name);
+int   roadmap_config_get_type (RoadMapConfigDescriptor *descriptor);
 
-void  roadmap_config_get_position (const char *name, RoadMapPosition *position);
-void  roadmap_config_set_position (const char *name, const RoadMapPosition *position);
+const char *roadmap_config_get (RoadMapConfigDescriptor *descriptor);
+void        roadmap_config_set
+                (RoadMapConfigDescriptor *descriptor, const char *value);
+
+int   roadmap_config_get_integer (RoadMapConfigDescriptor *descriptor);
+
+void  roadmap_config_get_position
+        (RoadMapConfigDescriptor *descriptor, RoadMapPosition *position);
+void  roadmap_config_set_position
+        (RoadMapConfigDescriptor *descriptor, const RoadMapPosition *position);
 
 #endif // _ROADMAP_CONFIG__H_
