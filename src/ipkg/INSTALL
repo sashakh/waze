@@ -1,7 +1,7 @@
                           -----------
-            INSTALLING  RoaDmap On Familiar Linux / GPE
+            INSTALLING  RoadMap On Familiar Linux / GPE
                           -----------
-              Pascal Martin (pascal.martin@iname.com)
+              Pascal Martin (pascal.martin@ponts.org)
                           -----------
 
 INTRODUCTION
@@ -9,6 +9,23 @@ INTRODUCTION
    This document describes the installation of RoadMap, a car navigation
    system, on an ARM-powered PDA running Familiar Linux and the GPE
    graphic environment.
+
+
+ABOUT THIS DOCUMENTATION
+
+   This documentation was written using vi, in the format supported by
+   aptconvert. The aptconvert tool was used to produce the HTML version
+   of this document (file web/familiar.html). The HTML file can be
+   regenerated using the following command:
+
+----
+      aptconvert web/familiar.html src/ipkg/INSTALL
+----
+   
+   The aptconvert tool is available at:
+
+   {{http://www.xmlmind.com/aptconvert.html}}
+
 
 BEFORE THE INSTALL
 
