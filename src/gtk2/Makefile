@@ -14,7 +14,7 @@ ifeq ($(MODE),PROFILE)
    STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
    LDFLAGS=-pg $(LDFLAGS)
 else
-   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
+   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall $(OPTIONS)
 endif
 endif
 
