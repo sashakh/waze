@@ -21,15 +21,17 @@ PROJROOT=~/sourceforge
 RELEASE=releases
 ROADMAP=roadmap-${dotversion}
 
-RDM_SRC="${ROADMAP}/src/Makefile
-         ${ROADMAP}/src/app_a02.txt
+RDM_MAKE="${ROADMAP}/src/Makefile
+          ${ROADMAP}/src/gtk2/Makefile
+          ${ROADMAP}/src/qt/Makefile
+          ${ROADMAP}/src/icons/Makefile"
+
+RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/usstates.txt
          ${ROADMAP}/src/*.[ch]
          ${ROADMAP}/src/gtk/Makefile
          ${ROADMAP}/src/gtk/*.[ch]
-         ${ROADMAP}/src/gtk2/Makefile
          ${ROADMAP}/src/gtk2/*.[ch]
-         ${ROADMAP}/src/qt/Makefile
          ${ROADMAP}/src/qt/*.[ch]
          ${ROADMAP}/src/qt/*.cc
          ${ROADMAP}/src/qt/ipkg/zroad*
@@ -45,7 +47,6 @@ RDM_CFG="${ROADMAP}/src/preferences
          ${ROADMAP}/src/*.png
          ${ROADMAP}/src/roadmap.desktop
          ${ROADMAP}/src/roadmap.menu
-         ${ROADMAP}/src/icons/Makefile
          ${ROADMAP}/src/icons/rm_*.xpm
          ${ROADMAP}/src/icons/rm_*.png"
 
@@ -97,11 +98,11 @@ rm -f roadmap/INSTALL.familiar
 
 echo "Creating tar ball for section src ..."
 rm -f $RELEASE/roadmap_${version}_src.tar*
-tar cf $RELEASE/roadmap_${version}_src.tar  $RDM_SRC $RDM_SH $RDM_CFG $RDM_DOC
+tar cf $RELEASE/roadmap_${version}_src.tar $RDM_MAKE $RDM_SRC $RDM_SH $RDM_CFG $RDM_DOC
 
 echo "Creating tar ball for section i686 ..."
 rm -f $RELEASE/roadmap_${version}_i686.tar*
-tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_DOC $RDM_HELP
+tar cf $RELEASE/roadmap_${version}_i686.tar $RDN_MAKE $RDM_BIN $RDM_SH $RDM_CFG $RDM_DOC $RDM_HELP
 
 echo "Creating tar ball for section armv4l ..."
 roadmap/src/ipkg/mkipkg $dotversion
