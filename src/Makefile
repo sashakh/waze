@@ -184,6 +184,7 @@ INSTALLDIR=/usr/local
 desktopdir=$(INSTALLDIR)/applications
 pkgdatadir=$(INSTALLDIR)/share/roadmap
 bindir=$(INSTALLDIR)/bin
+pkgbindir=$(bindir)
 menudir=$(DESTDIR)/usr/lib/menu
 ICONDIR=$(INSTALLDIR)/share/pixmaps
 
@@ -218,10 +219,10 @@ install: build runtime icons
 	cp sprites preferences schema $(DESTDIR)$(pkgdatadir)/.
 	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r sprites preferences
 	# aptconvert -toc $(DESTDIR)$(pkgdatadir)/manual.html ../README
-	mkdir -p $(DESTDIR)$(bindir)
-	cd $(DESTDIR)$(bindir) && rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(bindir)/.
-	cd $(DESTDIR)$(bindir) && chmod a+x $(BUILD) $(SCRIPTS)
+	mkdir -p $(DESTDIR)$(pkgbindir)
+	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
+	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(pkgbindir)/.
+	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS)
 	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
 	mkdir -p $(DESTDIR)$(ICONDIR)
 	cd icons && make ICONDIR="$(DESTDIR)$(ICONDIR)" install
@@ -230,7 +231,7 @@ install: build runtime icons
 	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
 
 uninstall:
-	cd $(DESTDIR)$(bindir) && rm -f $(BUILD) $(SCRIPTS)
+	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
 	cd $(DESTDIR)$(INSTALLDIR) && rm -rf share/roadmap
 	rm -f $(DESTDIR)$(menudir)/roadmap
 
