@@ -220,6 +220,7 @@ INSTALLATION
       <<Note for QT users>>: the RoadMap QT module cannot be built with QT3.
       This is a problem with the linker: it seems that UNIX make cannot
       be used with QT3, the QT-specific "qmake" must be used instead..
+      This might actually be a problem with my version of gcc.
 
       <<Note for developpers>>: using MODE=DEBUG causes RoadMap to be
       compiled in debug mode.
@@ -864,6 +865,13 @@ USING ROADGPS
    RoadGps rotates through up to 127 log files. The log file are created
    in /var/tmp, with the name formatted as: "roadgps-%d.log" (where %d
    represents an integer in the range 1..127).
+
+   This log file can be replayed in RoadMap using the --gps option with
+   an absolute file name as an argument. For example:
+
+----
+       roadmap --gps=/var/tmp/roadgps-1.log
+----
 
    When RoadGps starts, the logging function is off. Whenever the logging
    function is turned on a new log file is created (if the logging function
