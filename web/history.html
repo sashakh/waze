@@ -23,6 +23,18 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   <LI>Fix a compilation problem with gcc 3.4 and possibly gcc 3.3.
   <LI>Almost completly clean the "north, south, west, east" thing.
   <LI>Fix some GCC "pedantic" warnings.
+  <LI>Get rid of the C++ comment style in plain C code (no "//").
+  <LI>Change the search path for configuration files: this search
+      path is now hardcoded (chicken and egg problem if the path
+      to the configuration file is itself configured..) and is
+      independent from the map search path. It also include /etc/roadmap
+      to let sysadmin configure a local machine setup.
+  <LI>Change the map search path to become more compliant with the FHS:
+      use /var/lib/roadmap and /usr/lib/roadmap (all "share" files should
+      be arcitecture-independent, but the rdm files are C structures..)
+      /usr/share/roadmap & /usr/local/share/roadmap are still in the
+      default path to maintain compatibility, but these will disapear
+      in the future.
 </UL>
 <P>Roadmap v1.0.8 (November 8, 2004)
 <UL>
