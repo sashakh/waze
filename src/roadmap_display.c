@@ -232,8 +232,6 @@ static void roadmap_display_sign (RoadMapSign *sign) {
 
     RoadMapGuiPoint points[7];
     RoadMapGuiPoint text_position;
-    char text[256];
-    const char *format;
     int width, height, ascent, descent;
     int screen_width;
     int sign_width, sign_height, text_height;
@@ -241,13 +239,8 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     int lines;
 
 
-    format = roadmap_config_get (&sign->format_descriptor);
-    
-    if (! roadmap_message_format (text, sizeof(text), format)) {
-        return;
-    }
-
-    roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
+    roadmap_canvas_get_text_extents
+        (sign->content, &width, &ascent, &descent);
 
     width += 8; /* Keep some room around the text. */
     
@@ -339,7 +332,8 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
     
     roadmap_canvas_select_pen (sign->foreground);
-    roadmap_display_string (text, lines, text_height, &text_position);
+    roadmap_display_string
+        (sign->content, lines, text_height, &text_position);
 }
 
 
@@ -511,7 +505,7 @@ void roadmap_display_signs (void) {
     roadmap_display_create_pens ();
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
-        if (sign->deadline > now) {
+        if (sign->deadline > now && sign->content != NULL) {
             roadmap_display_sign (sign);
         }
     }
