@@ -19,7 +19,7 @@ ABOUT THIS DOCUMENTATION
    regenerated using the following command:
 
 ----
-      aptconvert web/familiar.html src/ipkg/INSTALL
+      aptconvert -toc web/familiar.html src/ipkg/INSTALL
 ----
    
    The aptconvert tool is available at:
@@ -104,6 +104,13 @@ INSTALLING ROADMAP
    ipkg install roadmap                 (if your feed provides RoadMap)
    ipkg install roadmap_X.Y.Z_arm.ipk   (if you transfered the package)
 ----
+
+   If you have any problem with ipkg complaining of file conflicts between
+   packages "roadmap" and "roadmap", try the options -force-reinstall and
+   -force-overwrite. I agree this is somewhat heavy-handed: I still don't
+   know why ipkg is confused about the names, but it seems to happen when
+   trying to install over the same version of roadmap (of course I got hit
+   myself when testing the package install).
 
 
 * Installing maps
