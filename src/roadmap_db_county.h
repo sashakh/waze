@@ -24,9 +24,9 @@
  *
  *   The RoadMap counties are described by the following table:
  *
- *   county/data     the name, position and FIPS code of the county, by state.
- *   county/city     the name, position and FIPS code of each city, by state.
- *   county/bystate  pointers to the other tables for each state.
+ *   county/data        The name, position and FIPS code of the county.
+ *   county/city2county Links the name of a city with its associated county.
+ *   county/bystate     Pointers to the tables subset for each state.
  */
 
 #ifndef INCLUDE__ROADMAP_DB_COUNTY__H
@@ -50,9 +50,9 @@ typedef struct {  /* table county/data */
 
 } RoadMapCounty;
 
-typedef struct {  /* table county/city */
+typedef struct {  /* table county/city2county */
 
-   unsigned short fips;
+   unsigned short county;
    RoadMapString city;
 
 } RoadMapCountyCity;

@@ -87,8 +87,12 @@ static void *roadmap_county_map (roadmap_db *root) {
    context->type = RoadMapCountyType;
 
    state_table  = roadmap_db_get_subsection (root, "bystate");
-   city_table   = roadmap_db_get_subsection (root, "city");
+   city_table   = roadmap_db_get_subsection (root, "city2county");
    county_table = roadmap_db_get_subsection (root, "data");
+
+   if (city_table == NULL) {
+      roadmap_log (ROADMAP_FATAL, "Obsolete file usdir.rdm, please upgrade");
+   }
 
    context->county =
       (RoadMapCounty *) roadmap_db_get_data (county_table);
@@ -289,7 +293,7 @@ int roadmap_county_by_city (RoadMapString city, RoadMapString state) {
       this_city = RoadMapCountyActive->city + i;
 
       if (this_city->city == city) {
-            return this_city->fips;
+         return RoadMapCountyActive->county[this_city->county].fips;
       }
    }
 

@@ -53,11 +53,16 @@
 #include "buildus_county.h"
 
 
+struct RoadMapCity {
+   int fips;
+   RoadMapString name;
+};
+
 static int CountyCount = 0;
 static RoadMapCounty *County[BUILDMAP_BLOCK] = {NULL};
 
 static int CountyCityCount = 0;
-static RoadMapCountyCity *CountyCity[BUILDMAP_BLOCK] = {NULL};
+static struct RoadMapCity *CountyCity[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *CountyByFips = NULL;
 
@@ -224,7 +229,7 @@ void buildus_county_add_city (int fips, RoadMapString city) {
    int block;
    int offset;
    RoadMapCounty *this_county;
-   RoadMapCountyCity *this_city;
+   struct RoadMapCity *this_city;
 
 
    /* First retrieve the county. */
@@ -249,7 +254,7 @@ void buildus_county_add_city (int fips, RoadMapString city) {
 
       /* We need to add a new block to the table. */
 
-      CountyCity[block] = calloc (BUILDMAP_BLOCK, sizeof(RoadMapCountyCity));
+      CountyCity[block] = calloc (BUILDMAP_BLOCK, sizeof(struct RoadMapCity));
       if (CountyCity[block] == NULL) {
          buildmap_fatal (0, "no more memory");
       }
@@ -258,7 +263,7 @@ void buildus_county_add_city (int fips, RoadMapString city) {
    this_city = CountyCity[block] + offset;
 
    this_city->fips = fips;
-   this_city->city = city;
+   this_city->name = city;
 
    CountyCityCount += 1;
 }
@@ -343,8 +348,8 @@ static int buildmap_county_compare_city (const void *r1, const void *r2) {
    int index1 = *((int *)r1);
    int index2 = *((int *)r2);
 
-   RoadMapCountyCity *record1;
-   RoadMapCountyCity *record2;
+   struct RoadMapCity *record1;
+   struct RoadMapCity *record2;
 
    record1 = CountyCity[index1/BUILDMAP_BLOCK] + (index1 % BUILDMAP_BLOCK);
    record2 = CountyCity[index2/BUILDMAP_BLOCK] + (index2 % BUILDMAP_BLOCK);
@@ -359,7 +364,7 @@ static int buildmap_county_compare_city (const void *r1, const void *r2) {
       return state1 - state2;
    }
 
-   return record1->city - record2->city;
+   return record1->name - record2->name;
 }
 
 void buildus_county_sort (void) {
@@ -408,12 +413,13 @@ void buildus_county_save (void) {
 
    int i;
    int j;
+   int k;
    int state;
    int state_current;
    int state_max;
 
    RoadMapCounty *one_county;
-   RoadMapCountyCity *one_city;
+   struct RoadMapCity   *one_city;
 
    RoadMapCounty *db_county;
    RoadMapCountyCity *db_city;
@@ -442,7 +448,7 @@ void buildus_county_save (void) {
    data_table = buildmap_db_add_section (root, "data");
    buildmap_db_add_data (data_table, CountyCount, sizeof(RoadMapCounty));
 
-   city_table = buildmap_db_add_section (root, "city");
+   city_table = buildmap_db_add_section (root, "city2county");
    buildmap_db_add_data
       (city_table, CountyCityCount, sizeof(RoadMapCountyCity));
 
@@ -495,8 +501,6 @@ void buildus_county_save (void) {
 
       one_city = CountyCity[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
 
-      db_city[i] = *one_city;
-
       state = one_city->fips / 1000;
 
       if (state != state_current) {
@@ -516,6 +520,21 @@ void buildus_county_save (void) {
          state_current = state;
          db_state[state_current].first_city = (unsigned short) i;
       }
+
+      for (k = db_state[state].first_county;
+           k <= db_state[state].last_county; ++k) {
+         if (one_city->fips == db_county[k].fips) {
+            db_city[i].county = k;
+            break;
+         }
+      }
+      if (k > db_state[state].last_county) {
+         buildmap_fatal (0, "cannot find county with FIPS %d for city %d",
+                         one_city->fips, one_city->name);
+      }
+
+      db_city[i].city = one_city->name;
+
    }
    db_state[state_current].last_city = CountyCityCount - 1;
 
