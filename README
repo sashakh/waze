@@ -421,31 +421,51 @@ USING ROADMAP:
 
    KEY BINDINGS:
 
-   On the iPAQ the buttons are mapped as follow:
+   Most of the RoadMap commands are available from the keyboard (so to answer
+   requests from my loyal Zaurus fans :). In fact, the button and key bindings
+   are common to all ports, but some buttons might not exist on some platforms.
 
-   "calendar" button:         zoom out.
-   "telephone" button:        zoom in.
-   the button on the right:   reset the zoom level.
-   arrow buttons:             scroll the map.
-   Compaq ("menu") button:    quit roadmap.
+   Please note that all the button and key bindings are case insensitive, i.e.
+   the same binding applies to 'A' and 'a' (as well as to "Button-Left" and
+   "button-left"--whatever it means).
 
    On a desktop or laptop (or on the Zaurus), the keyboard keys are mapped
    as follow:
 
-   '+'           zoom in.
-   '-'           zoom out.
-   'r'           reset the zoom level.
-   arrow keys:   scroll the map.
-   'd'           show the destination point.
-   'l'           show the location last searched.
-   'g'           show (and track) the current GPS position.
-   'h'           Hold the map in its current position.
-   'm'           toggle the map download mode on and off.
-   'e'           delete maps (i.e. open the map delete dialog).
-   's'           Start a trip.
-   'p'           pause (a.k.a. stop the current trip).
-   'u'           U-turn (a.k.a. restart the current trip in reverse).
-   'q'           quit roadmap.
+   Button-Left          Move the map view to the left.
+   Button-Right         Move the map view to the right.
+   Button-Up            Move the map view up.
+   Button-Down          Move the map view down.
+   +                    Zoom in: enlarge the central part of the map.
+   -                    Zoom out: show a larger area.
+   A                    Show a specified address.
+   D                    Show the destination point.
+   E                    Erase maps among those currently visible.
+   F                    Toggle the full screen mode.
+   G                    Show the GPS position.
+   H                    Hold the map view in its current position.
+   I                    Show a specified street intersection.
+   L                    Show the last selected location.
+   M                    Enable/Disable map download.
+   N                    Create a new trip.
+   O                    Open an existing trip.
+   P                    Stop tracking the current trip.
+   Q                    Quit RoadMap.
+   R                    Set the map back to the default zoom level.
+   S                    Start tracking the current trip.
+   U                    Start the trip back to the departure point.
+   W                    Set the selected street block as waypoint.
+
+   The following bindings are somewhat specific to the iPAQ, but probably
+   have straightforward equivalents on most PDA (such as the Zaurus):
+
+   Button-Menu          Set the map back to the default zoom level.
+   Button-Contact       Zoom in: enlarge the central part of the map.
+   Button-Calendar      Zoom out: show a larger area.
+   Button-Start         Quit RoadMap (the "Compaq" button on the iPAQ).
+
+   The current bindings that are used by the application are printed after
+   the options help information when the --help option is used.
 
 
    ON-THE-FLY MAP DOWNLOAD:
