@@ -360,30 +360,6 @@ void roadmap_main_exit (void) {
 }
 
 
-const char *roadmap_main_get_title (const char *name) {
-
-   static char *RoadMapMainTitleBuffer = NULL;
-
-   if (RoadMapMainTitle != NULL) {
-
-      int length = strlen(RoadMapMainTitle) + strlen(name) + 4;
-
-      if (RoadMapMainTitleBuffer != NULL) {
-         free(RoadMapMainTitleBuffer);
-      }
-      RoadMapMainTitleBuffer = malloc (length);
-
-      if (RoadMapMainTitleBuffer != NULL) {
-         strcpy (RoadMapMainTitleBuffer, RoadMapMainTitle);
-         strcat (RoadMapMainTitleBuffer, " ");
-         strcat (RoadMapMainTitleBuffer, name);
-      }
-      return RoadMapMainTitleBuffer;
-   }
-   return name;
-}
-
-
 int main (int argc, char **argv) {
 
    gtk_init (&argc, &argv);

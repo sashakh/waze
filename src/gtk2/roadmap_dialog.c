@@ -32,6 +32,7 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
+#include "roadmap_start.h"
 #include "roadmap_gtkmain.h"
 #include "roadmap_keyboard.h"
 
@@ -342,7 +343,7 @@ int roadmap_dialog_activate (const char *name, void *context) {
    /* Create the dialog's window. */
 
    dialog->w = gtk_dialog_new();
-   gtk_window_set_title (GTK_WINDOW(dialog->w), roadmap_main_get_title(name));
+   gtk_window_set_title (GTK_WINDOW(dialog->w), roadmap_start_get_title(name));
 
    return 1; /* Tell the caller this is a new, undefined, dialog. */
 }

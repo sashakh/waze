@@ -27,6 +27,7 @@
 extern "C" {
 #include "roadmap.h"
 #include "roadmap_types.h"
+#include "roadmap_start.h"
 #include "roadmap_dialog.h"
 };
 
@@ -43,7 +44,7 @@ int roadmap_dialog_activate(const char* name, void* context) {
 		dialog->show();
 		ret = 0;
 	} else {
-		dialog = new RMapDialog(0, name);
+		dialog = new RMapDialog(0, roadmap_start_get_title(name));
 		ret = 1;
 	}
 

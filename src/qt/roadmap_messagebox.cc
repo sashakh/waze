@@ -27,9 +27,10 @@
 #include <qmessagebox.h>
 
 extern "C" {
+#include "roadmap_start.h"
 #include "roadmap_messagebox.h"
 }
 
 void roadmap_messagebox(const char* title, const char* message) {
-	QMessageBox::information(0, title, message);
+	QMessageBox::information(0, roadmap_start_get_title(title), message);
 }

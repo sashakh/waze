@@ -30,6 +30,7 @@
 
 // Implementation of RMapDialog class
 RMapDialog::RMapDialog(QWidget* parent, const char* name):QDialog(parent, name) {
+	setCaption(name);
 }
 
 RMapDialog::~RMapDialog() {

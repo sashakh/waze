@@ -28,7 +28,7 @@
 #include <gtk/gtk.h>
 
 #include "roadmap.h"
-// #include "roadmap_types.h"
+#include "roadmap_start.h"
 
 #include "roadmap_messagebox.h"
 
@@ -57,7 +57,7 @@ void roadmap_messagebox (const char *title, const char *text) {
 
    GTK_WIDGET_SET_FLAGS (ok, GTK_CAN_DEFAULT);
 
-   gtk_window_set_title (GTK_WINDOW(dialog), title);
+   gtk_window_set_title (GTK_WINDOW(dialog), roadmap_start_get_title(title));
 
    gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dialog)->vbox),
                        label, TRUE, TRUE, 0);
