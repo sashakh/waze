@@ -258,7 +258,7 @@ static void roadmap_coord_ok (const char *name, void *data) {
 
    roadmap_trip_set_point ("Selection", &position);
    roadmap_trip_set_point ("Address", &position);
-   roadmap_trip_set_focus ("Address", 0);
+   roadmap_trip_set_focus ("Address");
    roadmap_screen_refresh ();
 
    roadmap_history_add ('C', argv);

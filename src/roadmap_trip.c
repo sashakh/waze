@@ -54,6 +54,9 @@
 static RoadMapConfigDescriptor RoadMapConfigTripName =
                         ROADMAP_CONFIG_ITEM("Trip", "Name");
 
+static RoadMapConfigDescriptor RoadMapConfigTripRotate =
+                        ROADMAP_CONFIG_ITEM("Display", "Rotate");
+
 static RoadMapConfigDescriptor RoadMapConfigFocusName =
                         ROADMAP_CONFIG_ITEM("Focus", "Name");
 
@@ -369,7 +372,7 @@ static void roadmap_trip_remove_dialog_selected (const char *name, void *data) {
 
    if (point_name != NULL) {
 
-      roadmap_trip_set_focus (point_name, 0);
+      roadmap_trip_set_focus (point_name);
       roadmap_screen_refresh ();
    }
 }
@@ -446,15 +449,26 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
 }
 
 
-static void roadmap_trip_set_point_focus (RoadMapTripPoint *point, int rotate) {
-    
+static void roadmap_trip_set_point_focus (RoadMapTripPoint *point) {
+
+    int rotate;
+
     if (point == NULL) return;
-        
+
     if (! point->mobile) {
-        rotate = 0; /* Fixed point, no rotation. */
+
+        rotate = 0; /* Fixed point, no rotation no matter what. */
         RoadMapTripRefresh = 1;
         RoadMapTripFocusChanged = 1;
+
+    } else if (strcasecmp (roadmap_config_get (&RoadMapConfigTripRotate),
+                           "yes") == 0) {
+       rotate = 1;
+
+    } else {
+       rotate = 0;
     }
+
     
     if (RoadMapTripRotate != rotate) {
         roadmap_config_set_integer (&RoadMapConfigFocusRotate, rotate);
@@ -478,7 +492,7 @@ static void roadmap_trip_set_point_focus (RoadMapTripPoint *point, int rotate) {
 }
 
 
-static void roadmap_trip_activate (int rotate) {
+static void roadmap_trip_activate (void) {
 
     RoadMapTripPoint *destination;
     RoadMapTripPoint *waypoint;
@@ -507,7 +521,7 @@ static void roadmap_trip_activate (int rotate) {
     }
     destination->distance = 0;
     
-    roadmap_trip_set_focus ("GPS", rotate);
+    roadmap_trip_set_focus ("GPS");
     roadmap_screen_redraw ();
 }
 
@@ -683,12 +697,12 @@ void  roadmap_trip_restore_focus (void) {
     if (focus == NULL) {
         focus = RoadMapTripGps;
     }
-    roadmap_trip_set_point_focus (focus, (focus->mobile) ? 1 : 0);
+    roadmap_trip_set_point_focus (focus);
     RoadMapTripFocusChanged = 0;
 }
 
 
-void roadmap_trip_set_focus (const char *name, int rotate) {
+void roadmap_trip_set_focus (const char *name) {
     
     RoadMapTripPoint *point = roadmap_trip_search (name);
     
@@ -698,7 +712,7 @@ void roadmap_trip_set_focus (const char *name, int rotate) {
         return;
     }
 
-    roadmap_trip_set_point_focus (point, rotate);
+    roadmap_trip_set_point_focus (point);
 }
 
 int roadmap_trip_is_focus_changed (void) {
@@ -766,7 +780,7 @@ const RoadMapPosition *roadmap_trip_get_focus_position (void) {
 }
 
 
-void  roadmap_trip_start (int rotate) {
+void  roadmap_trip_start (void) {
 
     RoadMapTripDestination = roadmap_trip_search ("Destination");
 
@@ -775,12 +789,12 @@ void  roadmap_trip_start (int rotate) {
        roadmap_trip_set_point ("Departure", &RoadMapTripGps->map);
        RoadMapTripDeparture = roadmap_trip_search ("Departure");
 
-       roadmap_trip_activate (rotate);
+       roadmap_trip_activate ();
     }
 }
 
     
-void roadmap_trip_resume (int rotate) {
+void roadmap_trip_resume (void) {
 
     RoadMapTripDeparture = roadmap_trip_search ("Departure");
 
@@ -789,13 +803,13 @@ void roadmap_trip_resume (int rotate) {
        RoadMapTripDestination = roadmap_trip_search ("Destination");
 
        if (RoadMapTripDestination != NULL) {
-          roadmap_trip_activate (rotate);
+          roadmap_trip_activate ();
        }
     }
 }
 
 
-void roadmap_trip_reverse (int rotate) {
+void roadmap_trip_reverse (void) {
     
     RoadMapTripDestination = roadmap_trip_search ("Departure");
 
@@ -804,7 +818,7 @@ void roadmap_trip_reverse (int rotate) {
        RoadMapTripDeparture = roadmap_trip_search ("Destination");
 
        if (RoadMapTripDeparture != NULL) {
-          roadmap_trip_activate (rotate);
+          roadmap_trip_activate ();
        } else {
           RoadMapTripDestination = NULL;
        }
@@ -997,6 +1011,8 @@ void roadmap_trip_initialize (void) {
     }
     roadmap_config_declare
         ("session", &RoadMapConfigTripName, "default");
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
     roadmap_config_declare
         ("session", &RoadMapConfigFocusName, "GPS");
     roadmap_config_declare

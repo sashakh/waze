@@ -42,7 +42,7 @@ void  roadmap_trip_remove_point (const char *name);
 
 
 void  roadmap_trip_restore_focus (void);
-void  roadmap_trip_set_focus (const char *name, int rotate);
+void  roadmap_trip_set_focus (const char *name);
 
 int   roadmap_trip_is_focus_changed  (void);
 int   roadmap_trip_is_focus_moved    (void);
@@ -54,10 +54,10 @@ const char *roadmap_trip_get_focus_name (void);
 const RoadMapPosition *roadmap_trip_get_focus_position (void);
 
 
-void  roadmap_trip_start   (int rotate);
-void  roadmap_trip_resume  (int rotate);
+void  roadmap_trip_start   (void);
+void  roadmap_trip_resume  (void);
 void  roadmap_trip_stop    (void);
-void  roadmap_trip_reverse (int rotate);
+void  roadmap_trip_reverse (void);
 
 void  roadmap_trip_format_messages (void);
 void  roadmap_trip_display (void);

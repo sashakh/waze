@@ -68,8 +68,6 @@ static const char *RoadMapMainTitle = "RoadMap";
 
 static int RoadMapStartFrozen = 0;
 
-/* Last trip orientation mode (1: follow GPS direction, 0: north up). */
-static int RoadMapStartTripOrientation = 1;
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
                         ROADMAP_CONFIG_ITEM("General", "Unit");
@@ -106,35 +104,24 @@ static void roadmap_start_purge (void) {
 }
 
 static void roadmap_start_show_destination (void) {
-    roadmap_trip_set_focus ("Destination", 0);
+    roadmap_trip_set_focus ("Destination");
     roadmap_screen_refresh ();
 }
 
 static void roadmap_start_show_location (void) {
-    roadmap_trip_set_focus ("Address", 0);
+    roadmap_trip_set_focus ("Address");
     roadmap_screen_refresh ();
 }
 
 static void roadmap_start_show_gps (void) {
-    roadmap_trip_set_focus ("GPS", 1);
+    roadmap_trip_set_focus ("GPS");
     roadmap_screen_refresh ();
 }
-
-/* unused for now. Redefine as a preference?
-static void roadmap_start_show_gps_north_up (void) {
-    roadmap_trip_set_focus ("GPS", 0);
-    roadmap_screen_refresh ();
-}
-*/
 
 static void roadmap_start_hold_map (void) {
    roadmap_start_periodic (); /* To make sure the map is current. */
    roadmap_trip_copy_focus ("Hold");
-   if (roadmap_trip_get_orientation () != 0) {
-      roadmap_trip_set_focus ("Hold", 1);
-   } else {
-      roadmap_trip_set_focus ("Hold", 0);
-   }
+   roadmap_trip_set_focus ("Hold");
 }
 
 static void roadmap_start_rotate (void) {
@@ -177,24 +164,17 @@ static void roadmap_start_save_trip_as (void) {
 
 static void roadmap_start_trip (void) {
     
-    roadmap_trip_start (1);
+    roadmap_trip_start ();
 }
 
 static void roadmap_start_trip_resume (void) {
     
-    RoadMapStartTripOrientation = 1;
-    roadmap_trip_resume (1);
-}
-
-static void roadmap_start_trip_resume_north_up (void) {
-    
-    RoadMapStartTripOrientation = 0;
-    roadmap_trip_resume (0);
+    roadmap_trip_resume ();
 }
 
 static void roadmap_start_trip_reverse (void) {
     
-    roadmap_trip_reverse (RoadMapStartTripOrientation);
+    roadmap_trip_reverse ();
 }
 
 static void roadmap_start_set_destination (void) {
@@ -371,10 +351,6 @@ static RoadMapAction RoadMapStartActions[] = {
    {"resumetrip", "Resume Trip", "Resume", NULL,
       "Resume the trip (keep the existing departure point)",
       roadmap_start_trip_resume},
-
-   {"resumetripnorthup)", "Resume Trip (North Up)", "North Up", NULL,
-      "Resume the trip (keep the existing departure point)",
-      roadmap_start_trip_resume_north_up},
 
    {"returntrip", "Return Trip", "Return", NULL,
       "Start the trip back to the departure point",
