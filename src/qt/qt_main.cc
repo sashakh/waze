@@ -61,6 +61,9 @@ void RMapCallback::fire() {
 // Implementation of RMapMainWindow class
 RMapMainWindow::RMapMainWindow(const char* name) : QMainWindow(0, name) {
 	currentMenu = 0;
+	spacePressed = false;
+	tm = 0;
+	tcb = 0;
 	setCaption(name);
 	canvas = new RMapCanvas(this);
 	setCentralWidget(canvas);
@@ -169,18 +172,40 @@ void RMapMainWindow::setStatus(const char* text) {
 	statusBar()->message(text);
 }
 
+void RMapMainWindow::keyReleaseEvent(QKeyEvent* event) {
+	int k = event->key();
+
+	if (k == ' ') {
+		spacePressed = false;
+	}
+
+	event->accept();
+}
+
 void RMapMainWindow::keyPressEvent(QKeyEvent* event) {
 	char* key = 0;
 	char regular_key[2];
 	int k = event->key();
 
 	switch (k) {
+		case ' ':
+			spacePressed = true;
+			break;
+
 		case Key_Left:
-			key = "Button-Left";
+			if (spacePressed) {
+				key = "Button-Calendar";
+			} else {
+				key = "Button-Left";
+			}
 			break;
 
 		case Key_Right:
-			key = "Button-Right";
+			if (spacePressed) {
+				key = "Button-Contact";
+			} else {
+				key = "Button-Right";
+			}
 			break;
 
 		case Key_Up:
@@ -210,3 +235,30 @@ void RMapMainWindow::closeEvent(QCloseEvent* ev) {
 	roadmap_main_exit();
 	ev->accept();
 }
+
+void RMapMainWindow::setTimer(int interval, RoadMapCallback callback) {
+	if (tm != 0) {
+		roadmap_log (ROADMAP_ERROR, "no support for multiple timers");
+		return;
+	}
+
+	tm = new QTimer(this);
+	tcb = new RMapCallback(callback);
+	connect(tm, SIGNAL(timeout()), tcb, SLOT(fire()));
+	tm->start(interval, FALSE);
+}
+
+void RMapMainWindow::removeTimer(RoadMapCallback callback) {
+	if (tm == 0) {
+		roadmap_log (ROADMAP_ERROR, "no timer set");
+		return;
+	}
+
+	tm->stop();
+	delete tm;
+	delete tcb;
+
+	tm = 0;
+	tcb = 0;
+}
+

@@ -32,6 +32,7 @@
 #include <qsocketnotifier.h>
 #include <qpushbutton.h>
 #include <qstatusbar.h>
+#include <qtimer.h>
 
 extern "C" {
 
@@ -101,6 +102,9 @@ public:
 	void removeInput(int fd);
 	void setStatus(const char* text);
 
+	void setTimer(int interval, RoadMapCallback callback);
+	void removeTimer(RoadMapCallback callback);
+
 protected:
 	RoadMapKeyInput keyCallback;
 	QPopupMenu* currentMenu;
@@ -108,7 +112,12 @@ protected:
 	QToolBar* toolBar;
 	RMapCanvas* canvas;
 
+	QTimer* tm;
+	RMapCallback* tcb;
+	bool spacePressed;
+
 	virtual void keyPressEvent(QKeyEvent* event);
+	virtual void keyReleaseEvent(QKeyEvent* event);
 	virtual void closeEvent(QCloseEvent* ev);
 
 };

@@ -26,6 +26,8 @@
  */
 extern "C" {
 
+#include <stdlib.h>
+
 #include "roadmap.h"
 #include "roadmap_start.h"
 #include "roadmap_config.h"
@@ -129,13 +131,17 @@ void roadmap_main_remove_input(int fd) {
 
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
 
-   // TBD
+	if (mainWindow) {
+		mainWindow->setTimer(interval, callback);
+	}
 }
 
 
 void roadmap_main_remove_periodic (RoadMapCallback callback) {
 
-   // TBD
+	if (mainWindow) {
+		mainWindow->removeTimer(callback);
+	}
 }
 
 
