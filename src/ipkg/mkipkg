@@ -2,9 +2,11 @@
 
 VERSION=$1
 
-SRCDIR=roadmap
-ARMDIR=arm/familiar/roadmap/src
-IPKGDIR=arm/familiar/roadmap/ipkg
+ROOT=~/sourceforge
+
+SRCDIR=$ROOT/roadmap
+ARMDIR=$ROOT/arm/familiar/roadmap/src
+IPKGDIR=$ROOT/arm/familiar/roadmap/ipkg
 
 rm -rf $IPKGDIR
 
@@ -36,7 +38,7 @@ cp $SRCDIR/web/apt_toc.gif $IPKGDIR/roadmap/usr/share/roadmap/apt_toc.gif
 
 sed -e 's/Map.Path:.*$/Map.Path: \&\/maps,\/usr\/share\/roadmap,\/mnt\/hda\/share\/roadmap\/,\/mnt\/card\/share\/roadmap/' < $SRCDIR/src/preferences > $IPKGDIR/roadmap/usr/share/roadmap/preferences
 
-roadmap/ipkg-build -o root -g root `pwd`/$IPKGDIR/roadmap `pwd`/$IPKGDIR
+$ROOT/roadmap/ipkg-build -o root -g root $IPKGDIR/roadmap $IPKGDIR
 
 
 # --------------------------------------------------------------------------
