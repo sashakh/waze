@@ -22,9 +22,12 @@ to a handful of bugs. The list of counties not properly handled is as follow:
   <LI>The generation of the following RoadMap map files generate errors for the 
   following counties: 02110, 51095, 51830. This seems to be a problem with the 
   Tiger/Line 2002 data (duplicated records, most likely an erroneous TLID). The 
-  problem has been worked around more or less for now. </LI></UL>
+  problem has been worked around more or less for now. </LI>
+</UL>
 <P>RoadMap known bugs: 
 <UL>
+  <LI>Search of a city is broken: cities and places are confused. This make it difficult
+  to find some cities.
   <LI>The buildus tool does not use the map path: it assumes all the map files 
   are in the same directory. 
   <LI>The Tiger files define polygons as delineated by a list of lines. Any of 
