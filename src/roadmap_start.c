@@ -120,12 +120,12 @@ static void roadmap_start_save_trip_as (void) {
 
 static void roadmap_start_trip (void) {
     
-    // TBD: roadmap_trip_start(1)
+    roadmap_trip_start (1);
 }
 
 static void roadmap_start_trip_north_up (void) {
     
-    // TBD: roadmap_trip_start (0);
+    roadmap_trip_start (0);
 }
 
 static void roadmap_start_delete_waypoint (void) {
@@ -159,6 +159,7 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Save the current trip", roadmap_start_save_trip},
    {"Save Trip As..",
        "Save the current trip under a different name", roadmap_start_save_trip_as},
+   {RoadMapFactorySeparator, NULL, NULL},
    {"Start Trip",
        "Start tracking the current trip", roadmap_start_trip},
    {"Start Trip (North Up)",
@@ -166,8 +167,8 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {RoadMapFactorySeparator, NULL, NULL},
    {"Set Destination..",
        "Set the trip's destination point", roadmap_address_destination_by_city},
-   {"New Waypoint..", 
-       "Create or modify waypoint", roadmap_screen_set_waypoint},
+   {"Add as Waypoint", 
+       "Set the selected street block as waypoint", roadmap_screen_set_waypoint},
    {"Delete Waypoints..", 
        "Delete selected waypoints", roadmap_start_delete_waypoint},
 

@@ -74,3 +74,14 @@ void roadmap_list_remove (RoadMapList *list, RoadMapListItem *item) {
         item->next->previous = item->previous;
     }
 }
+
+int  roadmap_list_count  (const RoadMapList *list) {
+    
+    int count = 0;
+    RoadMapListItem *item;
+    
+    for (item = list->first; item != NULL; item = item->next) {
+        count +=1;
+    }
+    return count;
+}

@@ -48,6 +48,8 @@ int   roadmap_trip_get_orientation (void);
 const RoadMapPosition *roadmap_trip_get_focus_position (void);
 
 
+void  roadmap_trip_start (int rotate);
+
 void  roadmap_trip_repaint (void);
 
 

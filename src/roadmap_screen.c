@@ -1037,7 +1037,7 @@ fflush(stdout);
 void roadmap_screen_set_waypoint (void) {
     
     if (roadmap_screen_is_street_tip_active()) {
-        roadmap_trip_set_point (NULL, &RoadMapStreetTip.position);
+        roadmap_trip_set_point (RoadMapStreetTip.name, &RoadMapStreetTip.position);
     }
 }
 

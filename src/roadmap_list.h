@@ -48,4 +48,6 @@ void roadmap_list_insert (RoadMapList *list, RoadMapListItem *item);
 void roadmap_list_append (RoadMapList *list, RoadMapListItem *item);
 void roadmap_list_remove (RoadMapList *list, RoadMapListItem *item);
 
+int  roadmap_list_count  (RoadMapList *list);
+
 #endif // INCLUDE__ROADMAP_LIST__H
