@@ -58,6 +58,13 @@ typedef union {
    } gpgga;
 
    struct {
+      int    status;
+      int    mode;
+      int    latitude;
+      int    longitude;
+   } gpgll;
+
+   struct {
       char  automatic;
       char  dimension;
       short reserved0;

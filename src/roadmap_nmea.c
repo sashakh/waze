@@ -271,7 +271,7 @@ static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
    int index;
    int last_satellite;
 
-   RoadMapNmeaReceived.gpgsa.automatic = argv[1][0];
+   RoadMapNmeaReceived.gpgsa.automatic = *(argv[1]);
    RoadMapNmeaReceived.gpgsa.dimension = atoi(argv[2]);
 
    /* The last 3 arguments (argc-3 .. argc-1) are not satellites. */
@@ -289,6 +289,32 @@ static int roadmap_nmea_gpgsa (int argc, char *argv[]) {
    RoadMapNmeaReceived.gpgsa.dilution_position   = (float) atof(argv[++index]);
    RoadMapNmeaReceived.gpgsa.dilution_horizontal = (float) atof(argv[++index]);
    RoadMapNmeaReceived.gpgsa.dilution_vertical   = (float) atof(argv[++index]);
+
+   return 1;
+}
+
+
+static int roadmap_nmea_gpgll (int argc, char *argv[]) {
+
+   if ((strcmp (argv[6], "A") == 0) && (strcmp(argv[7], "N") != 0)) {
+
+      RoadMapNmeaReceived.gpgll.latitude =
+         roadmap_nmea_decode_coordinate  (argv[1], argv[2], 'N', 'S');
+
+      RoadMapNmeaReceived.gpgll.longitude =
+         roadmap_nmea_decode_coordinate (argv[3], argv[4], 'E', 'W');
+
+      /* The UTC does not seem to be provided by all GPS vendors,
+       * ignore it.
+       */
+
+      RoadMapNmeaReceived.gpgll.status = 'A';
+      RoadMapNmeaReceived.gpgll.mode   = *(argv[7]);
+
+   } else {
+       RoadMapNmeaReceived.gpgll.status = 'V'; /* bad. */
+       RoadMapNmeaReceived.gpgll.mode   = 'N';
+   }
 
    return 1;
 }
@@ -418,6 +444,7 @@ static struct {
    ROADMAP_NMEA_PHRASE("GPGGA", roadmap_nmea_gpgga),
    ROADMAP_NMEA_PHRASE("GPGSA", roadmap_nmea_gpgsa),
    ROADMAP_NMEA_PHRASE("GPGSV", roadmap_nmea_gpgsv),
+   ROADMAP_NMEA_PHRASE("GPGLL", roadmap_nmea_gpgll),
 
    /* Garmin extensions: */
    ROADMAP_NMEA_PHRASE("PGRME", roadmap_nmea_pgrme),

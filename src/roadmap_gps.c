@@ -69,6 +69,7 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 
 static RoadMapNmeaListener RoadMapGpsNextGprmc = NULL;
 static RoadMapNmeaListener RoadMapGpsNextGpgga = NULL;
+static RoadMapNmeaListener RoadMapGpsNextGpgll = NULL;
 static RoadMapNmeaListener RoadMapGpsNextPgrme = NULL;
 static RoadMapNmeaListener RoadMapGpsNextPgrmm = NULL;
 
@@ -166,6 +167,25 @@ static void roadmap_gps_gpgga (void *context, const RoadMapNmeaFields *fields) {
    }
 
    (*RoadMapGpsNextGpgga) (context, fields);
+}
+
+
+static void roadmap_gps_gpgll (void *context, const RoadMapNmeaFields *fields) {
+
+   roadmap_gps_update_status (fields->gpgll.status);
+
+   if (fields->gpgll.status == 'A') {
+
+      RoadMapGpsReceivedPosition.latitude  = fields->gpgll.latitude;
+      RoadMapGpsReceivedPosition.longitude = fields->gpgll.longitude;
+      /* speed not available: keep previous value. */
+      /* altitude not available: keep previous value. */
+      /* steering not available: keep previous value. */
+
+      roadmap_gps_process_position();
+   }
+
+   (*RoadMapGpsNextGprmc) (context, fields);
 }
 
 
@@ -305,6 +325,12 @@ void roadmap_gps_open (void) {
 
       RoadMapGpsNextGpgga =
          roadmap_nmea_subscribe ("GPGGA", roadmap_gps_gpgga);
+   }
+
+   if (RoadMapGpsNextGpgll == NULL) {
+
+      RoadMapGpsNextGpgll =
+         roadmap_nmea_subscribe ("GPGLL", roadmap_gps_gpgll);
    }
 
    if (RoadMapGpsNextPgrme == NULL) {
