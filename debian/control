@@ -7,7 +7,7 @@ Standards-Version: 3.6.1
 
 Package: roadmap
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Recommends: gpsdrive
 Description: GPS based car navigation system
  A navigation system that displays US street maps (from the US Census
