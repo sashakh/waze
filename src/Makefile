@@ -25,6 +25,28 @@ else
 	SQLTOOLS=
 endif
 
+ifeq ($(DESKTOP),GTK2)
+	RDMODULES=gtk2
+else
+ifeq ($(DESKTOP),GPE)
+	RDMODULES=gtk2
+else
+ifeq ($(DESKTOP),GTK)
+	RDMODULES=gtk
+else
+ifeq ($(DESKTOP),QT)
+	RDMODULES=qt
+else
+ifeq ($(DESKTOP),QPE)
+	RDMODULES=qt
+else
+	RDMODULES=gtk gtk2 qt
+endif
+endif
+endif
+endif
+endif
+
 CFLAGS=$(MODECFLAGS) $(SQLCFLAGS)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS)
 TOOLS=sunrise $(SQLTOOLS)
@@ -149,10 +171,13 @@ strip:
 	strip -s $(BUILD)
 
 clean: cleanone
-	make -C qt cleanone
-	make -C gtk cleanone
-	make -C gtk2 cleanone
-	make -C unix cleanone
+	for module in $(RDMODULES) ; \
+	do \
+		if [ -d $$module ] ; then \
+			make -C $$module cleanone ; \
+		fi ; \
+	done
+	if [ -d unix ] ; then make -C unix cleanone ; fi
 
 cleanone:
 	rm -f *.o *.a *.da $(BUILD)
@@ -178,14 +203,20 @@ uninstall:
 	rm -f /usr/lib/menu/roadmap
 
 everything: runtime build icons $(TOOLS)
-	cd gtk ; make STDCFLAGS="$(CFLAGS)" all
-	cd gtk2 ; make STDCFLAGS="$(CFLAGS)" all
-	cd qt ; make STDCFLAGS="$(CFLAGS)" all
+	for module in $(RDMODULES) ; \
+	do \
+		if [ -d $$module ] ; then \
+			make -C $$module STDCFLAGS="$(CFLAGS)" all ; \
+		fi ; \
+	done
 
 cleanall:
-	cd gtk ; make clean
-	cd gtk2 ; make clean
-	cd qt ; make clean
+	for module in $(RDMODULES) ; \
+	do \
+		if [ -d $$module ] ; then \
+			make -C $$module clean ; \
+		fi ; \
+	done
 
 rebuild: cleanall everything
 
@@ -207,7 +238,7 @@ libguiroadgps.a: $(RGGUIOBJS)
 	$(AR) rf libguiroadgps.a $(RGGUIOBJS)
 
 unix/libosroadmap.a:
-	cd unix; make "CFLAGS=$(CFLAGS) -I.."
+	if [ -d unix ] ; then make -C unix "CFLAGS=$(CFLAGS) -I.." ; fi
 
 dumpmap: $(DMOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)
