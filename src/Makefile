@@ -122,7 +122,7 @@ clean: cleanone
 cleanone:
 	rm -f *.o *.a *.da $(BUILD)
 
-install: all
+install: build runtime
 	mkdir -p $(INSTALLDIR)/share/roadmap
 	cd $(INSTALLDIR)/share/roadmap ; rm -f sprites preferences
 	cp sprites preferences schema $(INSTALLDIR)/share/roadmap
