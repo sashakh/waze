@@ -65,6 +65,9 @@ typedef void (*RoadMapDownloadEvent) (void);
 
 int roadmap_download_get_county (int fips);
 
+void roadmap_download_show_space (void);
+void roadmap_download_delete (void);
+
 void roadmap_download_subscribe_protocol  (const char *prefix,
                                            RoadMapDownloadProtocol handler);
 

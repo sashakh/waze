@@ -989,6 +989,14 @@ void roadmap_screen_set_initial_position (void) {
 }
 
 
+void roadmap_screen_get_center (RoadMapPosition *center) {
+
+   if (center != NULL) {
+      *center = RoadMapScreenCenter;
+   }
+}
+
+
 void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler) {
 
    if (handler == NULL) {

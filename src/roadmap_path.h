@@ -76,6 +76,27 @@
  *   The path returned by roadmap_path_join(), roadmap_path_parent() and
  *   roadmap_path_expand() must be deallocated using roadmap_path_free().
  *
+ *   The function roadmap_path_list() returns a list of file names, one
+ *   for each file found in the directory provided. Only file names that
+ *   match the provided extension are returned. The file names do not
+ *   include the path of the directory. The list is NULL terminated. If no
+ *   file was found, or if the path is invalid, an empty list is returned
+ *   (i.e. a list made of a NULL: the pointer returned by roadmap_path_list()
+ *   is never NULL itself).
+ *
+ *   The result returned by roadmap_path_list() must be deallocated using
+ *   roadmap_path_list_free(). For example:
+ *
+ *      char **cursor;
+ *      char **list = roadmap_path_list ("/usr/include", ".h");
+ *
+ *      for (cursor = list; *cursor != NULL; ++cursor) {
+ *          // process this file..
+ *      }
+ *      roadmap_path_list_free (list);
+ *
+ * BUGS:
+ *
  *   The result returned by roadmap_path_user(), roadmap_path_trips() and
  *   roadmap_path_default() must NOT be free()'d!
  */
@@ -99,6 +120,9 @@ char *roadmap_path_join (const char *path, const char *name);
 char *roadmap_path_parent (const char *path, const char *name);
 
 void roadmap_path_create (const char *path);
+
+char **roadmap_path_list (const char *path, const char *extension);
+void   roadmap_path_list_free (char **list);
 
 void roadmap_path_free (const char *path);
 

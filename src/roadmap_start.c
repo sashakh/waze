@@ -306,6 +306,10 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
    {"Map Download",
        "Enable/Disable the map download mechanism", roadmap_start_set_download_mode},
+   {"Map Disk Space",
+       "Show the amount of disk space occupied by the maps", roadmap_download_show_space},
+   {"Delete Maps...",
+       "Delete maps that are currently visible", roadmap_download_delete},
 
 
    {"Trip", NULL, NULL},

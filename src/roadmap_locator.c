@@ -161,7 +161,7 @@ static void roadmap_locator_configure (void) {
 }
 
 
-static void roadmap_locator_close (int index) {
+static void roadmap_locator_remove (int index) {
 
    char map_name[64];
 
@@ -188,7 +188,7 @@ static unsigned int roadmap_locator_new_access (void) {
       for (i = 0; i < RoadMapCountyCacheSize; i++) {
 
          if (RoadMapCountyCache[i].fips > 0) {
-            roadmap_locator_close (i);
+            roadmap_locator_remove (i);
          }
       }
       RoadMapActiveCounty = 0;
@@ -216,7 +216,7 @@ static int roadmap_locator_open (int fips) {
 
    /* Look for the oldest entry in the cache. */
 
-   for (i = RoadMapCountyCacheSize-1; i >= 0; i--) {
+   for (i = RoadMapCountyCacheSize-1; i >= 0; --i) {
 
       if (RoadMapCountyCache[i].fips == fips) {
 
@@ -234,7 +234,7 @@ static int roadmap_locator_open (int fips) {
    }
 
    if (RoadMapCountyCache[oldest].fips > 0) {
-       roadmap_locator_close (oldest);
+       roadmap_locator_remove (oldest);
        if (RoadMapCountyCache[oldest].fips == RoadMapActiveCounty) {
            RoadMapActiveCounty = 0;
        }
@@ -255,6 +255,19 @@ static int roadmap_locator_open (int fips) {
    RoadMapActiveCounty = fips;
    
    return ROADMAP_US_OK;
+}
+
+
+void roadmap_locator_close (int fips) {
+
+   int i;
+
+   for (i = RoadMapCountyCacheSize-1; i >= 0; --i) {
+
+      if (RoadMapCountyCache[i].fips == fips) {
+         roadmap_locator_remove (i);
+      }
+   }
 }
 
 

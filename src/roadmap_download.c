@@ -37,6 +37,8 @@
 #include "roadmap_config.h"
 #include "roadmap_gui.h"
 #include "roadmap_county.h"
+#include "roadmap_screen.h"
+#include "roadmap_locator.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 #include "roadmap_main.h"
@@ -94,9 +96,9 @@ static int roadmap_download_request (int size) {
 }
 
 
-static void roadmap_download_show_size (char *image, int value) {
+static void roadmap_download_format_size (char *image, int value) {
 
-   if (RoadMapDownloadCurrentFileSize > (1024 * 1024)) {
+   if (value > (1024 * 1024)) {
       sprintf (image, "%dMB", value / (1024 * 1024));
    } else {
       sprintf (image, "%dKB", value / 1024);
@@ -179,13 +181,13 @@ static void roadmap_download_progress (int loaded) {
    roadmap_dialog_set_data (".file", "County", roadmap_county_get_name (fips));
    roadmap_dialog_set_data (".file", "State", roadmap_county_get_state (fips));
 
-   roadmap_download_show_size (image, RoadMapDownloadCurrentFileSize);
+   roadmap_download_format_size (image, RoadMapDownloadCurrentFileSize);
    roadmap_dialog_set_data (".file", "Size", image);
 
    if (loaded == RoadMapDownloadCurrentFileSize) {
       roadmap_dialog_set_data (".file", "Download", "Completed");
    } else {
-      roadmap_download_show_size (image, loaded);
+      roadmap_download_format_size (image, loaded);
       roadmap_dialog_set_data (".file", "Download", image);
    }
 
@@ -348,6 +350,216 @@ int roadmap_download_get_county (int fips) {
 
    RoadMapDownloadQueueProducer = next;
    return 0;
+}
+
+
+static void roadmap_download_show_space_ok (const char *name, void *context) {
+   roadmap_dialog_hide (name);
+}
+
+
+void roadmap_download_compute_space (int *count, int *size) {
+
+   char *directory;
+   char **files;
+   char **cursor;
+
+   directory =
+      roadmap_path_parent
+         (NULL, roadmap_config_get (&RoadMapConfigDestination));
+
+   files = roadmap_path_list (directory, ".rdm");
+
+   for (cursor = files, *size = 0, *count = 0; *cursor != NULL; ++cursor) {
+      if (strcmp (*cursor, "usdir.rdm")) {
+         *size  += roadmap_file_length (directory, *cursor);
+         *count += 1;
+      }
+   }
+
+   roadmap_path_list_free (files);
+}
+
+
+void roadmap_download_show_space (void) {
+
+   int  size;
+   int  count;
+   char image[32];
+
+
+   if (roadmap_dialog_activate ("Disk Usage", NULL)) {
+
+      roadmap_dialog_new_label  (".file", "Files");
+      roadmap_dialog_new_label  (".file", "Space");
+
+      roadmap_dialog_add_button ("OK", roadmap_download_show_space_ok);
+
+      roadmap_dialog_complete (0);
+   }
+
+   roadmap_dialog_set_data   (".file", ".title", "Map statistics:");
+
+   roadmap_download_compute_space (&count, &size);
+
+   sprintf (image, "%d", count);
+   roadmap_dialog_set_data (".file", "Files", image);
+
+   roadmap_download_format_size (image, size);
+   roadmap_dialog_set_data (".file", "Space", image);
+}
+
+
+static int   *RoadMapDownloadDeleteFips = NULL;
+
+static char **RoadMapDownloadDeleteNames = NULL;
+static int    RoadMapDownloadDeleteCount = 0;
+static int    RoadMapDownloadDeleteSelected = 0;
+
+
+static void roadmap_download_delete_free (void) {
+
+   int i;
+
+   if (RoadMapDownloadDeleteNames != NULL) {
+
+      for (i = RoadMapDownloadDeleteCount-1; i >= 0; --i) {
+         free (RoadMapDownloadDeleteNames[i]);
+      }
+      free (RoadMapDownloadDeleteNames);
+   }
+
+   RoadMapDownloadDeleteNames = NULL;
+   RoadMapDownloadDeleteCount = 0;
+   RoadMapDownloadDeleteSelected = -1;
+}
+
+
+static void roadmap_download_delete_done (const char *name, void *context) {
+
+   roadmap_dialog_hide (name);
+   roadmap_download_delete_free ();
+}
+
+
+static void roadmap_download_delete_selected (const char *name, void *data) {
+
+   int i;
+
+   char *map_name = (char *) roadmap_dialog_get_data (".delete", ".maps");
+
+   for (i = RoadMapDownloadDeleteCount-1; i >= 0; --i) {
+      if (! strcmp (map_name, RoadMapDownloadDeleteNames[i])) {
+         RoadMapDownloadDeleteSelected = RoadMapDownloadDeleteFips[i];
+      }
+   }
+}
+
+
+static void roadmap_download_delete_populate (void) {
+
+   int i;
+   int size;
+   int count;
+   char name[1024];
+   RoadMapPosition center;
+
+
+   roadmap_download_delete_free ();
+
+   roadmap_download_compute_space (&count, &size);
+
+   sprintf (name, "%d", count);
+   roadmap_dialog_set_data (".delete", "Files", name);
+
+   roadmap_download_format_size (name, size);
+   roadmap_dialog_set_data (".delete", "Space", name);
+
+   roadmap_main_flush();
+
+
+   roadmap_screen_get_center (&center);
+   RoadMapDownloadDeleteCount =
+      roadmap_locator_by_position (&center, &RoadMapDownloadDeleteFips);
+
+    RoadMapDownloadDeleteNames =
+       calloc (RoadMapDownloadDeleteCount, sizeof(char *));
+    roadmap_check_allocated(RoadMapDownloadDeleteNames);
+
+    /* - List each candidate county: */
+
+    for (i = 0; i < RoadMapDownloadDeleteCount; ++i) {
+
+       snprintf (name, sizeof(name),
+                 roadmap_config_get (&RoadMapConfigDestination),
+                 RoadMapDownloadDeleteFips[i]);
+
+       if (! roadmap_file_exists (NULL, name)) {
+
+          /* The map for this county is not available: remove
+           * the county from the list.
+           */
+          RoadMapDownloadDeleteFips[i] =
+             RoadMapDownloadDeleteFips[--RoadMapDownloadDeleteCount];
+
+          if (RoadMapDownloadDeleteCount <= 0) break; /* Empty list. */
+
+          --i;
+          continue;
+       }
+
+       snprintf (name, sizeof(name), "%s, %s",
+                 roadmap_county_get_name (RoadMapDownloadDeleteFips[i]),
+                 roadmap_county_get_state (RoadMapDownloadDeleteFips[i]));
+
+       RoadMapDownloadDeleteNames[i] = strdup (name);
+       roadmap_check_allocated(RoadMapDownloadDeleteNames[i]);
+    }
+
+    roadmap_dialog_show_list
+        (".delete", ".maps",
+         RoadMapDownloadDeleteCount,
+         RoadMapDownloadDeleteNames, (void **)RoadMapDownloadDeleteNames,
+         roadmap_download_delete_selected);
+}
+
+
+static void roadmap_download_delete_doit (const char *name, void *context) {
+
+   char path[1024];
+
+   if (RoadMapDownloadDeleteSelected > 0) {
+
+      snprintf (path, sizeof(path),
+                roadmap_config_get (&RoadMapConfigDestination),
+                RoadMapDownloadDeleteSelected);
+
+      roadmap_locator_close (RoadMapDownloadDeleteSelected);
+      roadmap_file_remove (NULL, path);
+
+      roadmap_screen_redraw ();
+
+      roadmap_download_delete_populate ();
+   }
+}
+
+
+void roadmap_download_delete (void) {
+
+   if (roadmap_dialog_activate ("Delete Maps", NULL)) {
+
+      roadmap_dialog_new_label  (".delete", "Files");
+      roadmap_dialog_new_label  (".delete", "Space");
+
+      roadmap_dialog_new_list   (".delete", ".maps");
+
+      roadmap_dialog_add_button ("Delete", roadmap_download_delete_doit);
+      roadmap_dialog_add_button ("Done", roadmap_download_delete_done);
+
+      roadmap_dialog_complete (0); /* No need for a keyboard. */
+   }
+
+   roadmap_download_delete_populate ();
 }
 
 

@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include "roadmap.h"
 #include "roadmap_path.h"
@@ -272,6 +273,59 @@ void roadmap_path_create (const char *path) {
 
    snprintf (command, sizeof(command), "mkdir -p %s", path);
    system (command);
+}
+
+
+static char *RoadMapPathEmptyList = NULL;
+
+char **roadmap_path_list (const char *path, const char *extension) {
+
+   char *match;
+   int   length;
+   int   count;
+   char **result;
+   char **cursor;
+
+   DIR *directory;
+   struct dirent *entry;
+
+
+   directory = opendir (path);
+   if (directory == NULL) return &RoadMapPathEmptyList;
+
+   count = 0;
+   while ((entry = readdir(directory)) != NULL) ++count;
+
+   cursor = result = calloc (count+1, sizeof(char *));
+   roadmap_check_allocated (result);
+
+   rewinddir (directory);
+   length = strlen(extension);
+
+   while ((entry = readdir(directory)) != NULL) {
+
+      match = entry->d_name + strlen(entry->d_name) - length;
+
+      if (! strcmp (match, extension)) {
+         *(cursor++) = strdup (entry->d_name);
+      }
+   }
+   *cursor = NULL;
+
+   return result;
+}
+
+
+void   roadmap_path_list_free (char **list) {
+
+   char **cursor;
+
+   if ((list == NULL) || (list == &RoadMapPathEmptyList)) return;
+
+   for (cursor = list; *cursor != NULL; ++cursor) {
+      free (*cursor);
+   }
+   free (list);
 }
 
 
