@@ -278,7 +278,7 @@ ROADMAP APPLICATIONS:
 
 USING ROADMAP:
 
-   RoadMap's Command Line Options:
+   COMMAND LINE OPTIONS:
    
    The RoadMap application accepts the following command line options:
    
@@ -341,7 +341,7 @@ USING ROADMAP:
    is run. The use of the option actually changes the RoadMap preferences.
 
 
-   The RoadMap Display:
+   THE ROADMAP DISPLAY:
 
    The main RoadMap window shows the menu, the toolbar and the map's canvas.
    The toolbar is optional: all the commands are also available from the menu
@@ -391,7 +391,33 @@ USING ROADMAP:
    Enable Voice item.
 
 
-   Key Bindings:
+   ON-THE-FLY MAP DOWNLOAD:
+
+   If RoadMap does not find the map file for a specific county, it will
+   ask the user permission for downloading it from a configured source.
+   The destination can also be configured (see the preferences items
+   description for more details). Both parameters can be changed before
+   each download (the source and destination files can be edited in
+   the download confirmation dialog.
+
+   RoadMap is designed to support multiple download protocols. The protocol
+   is selected depending on the source identifier, as much as possible using
+   the well-known WEB's URL syntax.
+
+   If the user cancel the download of a specific map, RoadMap will not
+   request the same download again for the remainder of the session. This
+   means that RoadMap will request the same maps again if stopped and then
+   restarted. This was done because there is at this time no way for the
+   user to change his mind and re-request the download of a cancelled map.
+   This is a part of the user interface that is likely to change in the
+   future.
+
+   At this time there is no disk space management interface in RoadMap: the
+   user must check that enough disk space is available before downloading
+   a map.
+
+
+   KEY BINDINGS:
 
    On the iPAQ the buttons are mapped as follow:
 
@@ -410,7 +436,7 @@ USING ROADMAP:
    'q'           quit roadmap.
 
 
-   Waypoints and addresses:
+   WAYPOINTS AND ADDRESSES:
 
    RoadMap manages four types of points: a location point (selected using
    a street address or the mouse), the GPS position (updated automatically
@@ -437,7 +463,7 @@ USING ROADMAP:
    More details are provided in the following sections.
 
 
-   Street name options:
+   STREET NAME OPTIONS:
 
    Street names are used in the two dialogs used to select a specific location:
    the address and intersection dialogs. These dialogs follow the same rules
@@ -502,7 +528,7 @@ USING ROADMAP:
    with that name could be found".
 
 
-   Other Address options:
+   OTHER ADDRESS OPTIONS:
 
    It is possible not to specify the street number part of an address:
    in that case, all street blocks matching the street and city names will
@@ -518,7 +544,7 @@ USING ROADMAP:
    nearby.
 
 
-   Selecting an Intersection
+   SELECTING AN INTERSECTION:
 
    The "View / Show intersection.." menu entry activates a dialog that
    requires two street names and a state name. RoadMap will search within
@@ -532,7 +558,7 @@ USING ROADMAP:
    rules as the address selection list described in the previous sections.
 
 
-   Managing Trips
+   MANAGING TRIPS:
    
    A trip is made of one destination point and many user-defined waypoints.
    The purpose of a RoadMap trip is to describe a real-life trip and to
@@ -589,7 +615,7 @@ USING ROADMAP:
    will still use this "North Up" mode.
 
 
-   RoadMap Preferences:
+   ROADMAP PREFERENCES:
 
    It is possible to edit the roadmap's preferences (select File/Preferences
    from the menu bar). Most preference items take effect only when roadmap
@@ -625,15 +651,16 @@ USING ROADGPS:
 
 CONFIGURATION:
 
-   Files.
+   FILES:
    
    The RoadMap configuration is stored in text files located in the following
    directories:
 
             /usr/share/roadmap
             /usr/local/share/roadmap
-            ~/.roadmap
-            ~/.roadmap/trips
+            ~/.roadmap (equivalent to "&" in RoadMap)
+            ~/.roadmap/trips (equivalent to "&/trips" in RoadMap)
+            ~/.roadmap/maps (equivalent to "&/maps" in RoadMap)
 
    The directory ~/.roadmap contains the user configuration: any user change
    to the configuration is written there. The items in the user configuration
@@ -642,7 +669,18 @@ CONFIGURATION:
    The directory ~/.roadmap/trips is used as the default location for the
    trip files. Note that trip files can be stored anywhere, not only in
    ~/.roadmap/trips.
-   
+
+   The directory ~/.roadmap/maps contains map files specific for this user.
+   As a general rule, it is not recommended for each user to have their
+   own copy of the maps, as these maps take a lot of space. This directory
+   can be used however when maps are downloaded on the fly, as shared maps
+   are usually not writable for users. The local rules can be established so
+   that either all users download maps into the shared repository, or else
+   each user manages his own maps. On a PDA or on a personal desktop systems
+   the first solution makes the more sense, but for public access computers
+   (such as computers at an University) the second solution might be the most
+   convenient.
+
    The user configuration directories are created when needed, if they do
    not exist.
 
@@ -669,7 +707,7 @@ CONFIGURATION:
    the compass, etc..
 
 
-   Configuring the RoadMap text and voice messages.
+   CONFIGURING THE TEXT AND VOICE MESSAGES:
    
    The RoadMap text displays and voice messages can be configured by the
    user using format strings in the preferences. The format strings contain
@@ -716,7 +754,7 @@ CONFIGURATION:
    parameters ("-f" and "On %N").
 
 
-   RoadMap preferences items:
+   PREFERENCES ITEMS:
 
      General.Unit:
 
@@ -978,8 +1016,24 @@ CONFIGURATION:
 
          Description: reserved for future use (announcing next intersection).
 
+     Download.Source:
 
-   RoadMap session items:
+         Description: the format used to generate the URL of the source.
+         Format: printf() format
+         Default: /usr/local/share/roadmap/usc%05d.rdm
+         Comment: this item is either a full path name (starting for a '/')
+                  or an URL (such as "file://[...]" or "http://[...]").
+
+     Download.Destination:
+
+         Description: the format used to generate the path of the destination
+         Format: printf() format
+         Default: &/maps/usc%05d.rdm
+         Comment: this item must be either a full path name or start with
+                  '~' (user home directory) or '&' (RoadMap user's directory).
+
+
+   SESSION ITEMS:
 
      Locations.Location
 
@@ -1003,7 +1057,7 @@ CONFIGURATION:
  (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
 
 
-   RoadMap schema items:
+   SCHEMA ITEMS:
 
      The schema file uses the same format as the preference file. It defines
      the properties of the various categories of objects that make a map.
@@ -1060,9 +1114,9 @@ CONFIGURATION:
          Sea
 
 
-   RoadMap sprites file:
+   SPRITES FILE:
 
-     This file define the drawing commands used to draw the various symbols
+     This file defines the drawing commands used to draw the various symbols
      used by RoadMap:
 
          GPS (indicates the current GPS position and direction),
@@ -1086,11 +1140,11 @@ CONFIGURATION:
      The coordinates are pixel positions, relative to the sprites "hot point".
 
 
-   RoadMap trip files:
+   TRIP FILES:
    
-     Each trip file contains the information relative to one trip. A trip
-     file use a CSV format where each record describe a point and contains
-     four fields: type, name, longitude, latitude.
+     A trip file contains the information relative to one trip. it uses
+     a CSV format where each record describes a point and contains four
+     fields: type, name, longitude, latitude.
      
      The type field is either "Destination" or "Waypoint".
      
