@@ -197,7 +197,7 @@ int roadmap_fuzzy_is_certain (RoadMapFuzzy a) {
 void roadmap_fuzzy_initialize (void) {
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyStreet, "80");
+        ("preferences", &RoadMapConfigAccuracyStreet, "150");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigConfidence, "25");
