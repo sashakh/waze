@@ -314,7 +314,8 @@ int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
    }
 
    while (city_name[0] == '?') {
-      city_name += 1;
+      ++city_name;
+      while (city_name[0] == ' ') ++city_name;
    }
    city = roadmap_dictionary_locate (RoadMapUsCityDictionary, city_name);
    if (city <= 0) {
