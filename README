@@ -434,36 +434,44 @@ USING ROADMAP:
 
    ON-THE-FLY MAP DOWNLOAD:
 
-   RoadMap comes with a map download mode, which can be activated and
-   deactivated using the Find / Map Download menu entry. On startup
-   the download mode is always deactivated. When the download mode is
-   activated, RoadMap shows a red "download" icone on the right top
-   corner of the map screen.
+   Today's PDA have a limited storage space, which must be shared with MP3
+   and other files. As the RoadMap maps can take up to 1.6 GB, most PDA users
+   will want to install only the few maps they need. The on-the-fly download
+   feature of RoadMap helps the user to select visually which maps to download
+   or remove. RoadMap is capable of downloading compressed maps: gzip, bzip2
+   or lzop compressed files are automatically recognized and uncompressed
+   after transfer.
 
-   In download mode, if the map for a specific county is not found,
-   the user will be asked for the permission to download it from the
+   The map download is available in a special RoadMap mode, which can be
+   activated and deactivated using the Find / Map Download menu entry. On
+   startup the download mode is always deactivated. RoadMap shows a red
+   "download" icone on the right top corner of the map screen to indicate
+   that the download mode has been activated.
+
+   In the download mode, if a map is not found by the display engine, the
+   user will be asked for the permission to download the file from the
    configured source (as defined in the preference item "Download.Source").
    The destination directory can also be configured (using the preferences
-   item "Download.Destination"). Both parameters can be changed before each
-   download: the source and destination files for that download can be
-   edited in the download confirmation dialog.
+   item "Download.Destination"). Both the source and the destination file
+   name can be edited manually before each download.
 
    RoadMap is designed to support multiple download protocols. The protocol
    is selected depending on the source string, as much as possible using
-   the well-known URL syntax.
+   the well-known URL syntax. Two protocols are available: a local file
+   copy (the source is either a full path or a "file://*" URL) and the HTTP
+   protocol (the source is a "http://*" URL). The local file copy protocol
+   can be useful in some cases, for example when mounting the map server's
+   disk using nfs or smbfs.
 
-   At that time, two protocols have been implemented: a local file copy
-   (provides either a full path or a "file://*" URL as source) and the HTTP
-   protocol (provides a "http://*" URL as source). The local file copy
-   protocol can be useful in some cases, for example when mounting the map
-   server's disk using nfs or smbfs.
-   
    If the suffix of the downloaded file matches a well-known compressed files
    suffix, RoadMap will invoke the appropriate tool to uncompress the file.
-   The compression tools supported are gzip (.gz suffix) and bzip2 (.bz2
-   suffix). This feature makes it possible to store compressed maps on the
-   server side. Using compressed files divides by a factor of 2 the download
-   time.
+   The compression tools supported are gzip (.gz suffix), bzip2 (.bz2 suffix)
+   and lzop (.lzo suffix). This feature makes it possible to store compressed
+   maps on the server side. Using compressed files may reduce by a factor of
+   two the time it takes to download the map, depending on the compression
+   tool used, the specific map's content, etc.. Note that maps are always
+   stored uncompressed: because RoadMap maps the file in memory, compressed
+   file cannot be used by RoadMap.
 
    If the user cancels the download of a specific map, RoadMap will not
    request the same download again for the remainder of the session. This
@@ -473,24 +481,33 @@ USING ROADMAP:
    This is a part of the user interface that is likely to change in the
    future.
 
-   What makes this downloading feature of interest is today's PDA limited
-   storage space, usually much smaller than the size of the RoadMap map set.
-   This is why RoadMap also provides a dialog for deleting maps, activated
-   through the Find / Delete Maps.. menu entry. The dialog shows the number
-   of map files stored locally, the total size of the local maps and the
-   list of maps currently visible on the RoadMap screen. The proper way
-   for selecting the maps to delete is to view an area you do not need
-   anymore, hit the Find /Delete Maps.. entry, then select a specific
-   county and hit the Delete button. The county will immediately disappear
-   from the map screen and the dialog gets updated (i.e. the map statistics
-   and the map list will reflect the latest delete action). Several counties
-   can be deleted this way, before the dialog is closed (button "Done").
+   RoadMap also provides a dialog for deleting maps, activated through the
+   Find / Delete Maps.. menu entry. The dialog shows the number of map files
+   stored locally, the total size of the local maps and the list of maps
+   currently visible on the RoadMap screen. The proper way for selecting
+   maps to delete is to view an area you do not need anymore, hit the Find /
+   Delete Maps.. entry, then select a specific county and hit the Delete
+   button. The county will immediately disappear from the map screen and
+   the dialog gets updated (i.e. the map statistics and the map list will
+   reflect the latest delete action). Several counties can be deleted this
+   way before the dialog is closed (button "Done").
 
    Note that a deleted map is automatically added to the "cancel download"
-   list, so that RoadMap will not request for this map again. As such it
-   is not a problem to delete maps while the download mode is active.
-   If you need to download again a map that was deleted, just restart
-   RoadMap.
+   list, so that RoadMap will not request for this map again. As such, it
+   is not a problem to delete maps while the download mode is active. If
+   you need to download again a map that was deleted, just restart RoadMap.
+
+   A typical use of the download feature is to preload the maps you need
+   before you go on a trip. Activate the download mode and select the
+   destination address: RoadMap will request the download on the map that
+   covers this destination. Zoom out the display to force the download of
+   adjacent counties, if required. Repeat for each place you are likely to
+   go to. Use the arrow keys or buttons to "fly over" the roads you are
+   going to travel on. If you missed a map, and you did set a public map web
+   server, it should be possible to download maps from an hotel's Internet
+   access. Of course, if you are (rich and) lucky enough to have an Internet
+   connection while on the road, the download feature can also be used at
+   any time.
 
 
    WAYPOINTS AND ADDRESSES:
