@@ -23,6 +23,21 @@ Flexible tracking and waypoint handling
    Issue: when approaching a waypoint, we might switch back and forth
    between this waypoint and the next one. Oh well..
 
+user options for geometry.
+
+   RoadMap tries to choose a "smart" default geometry. It should rather
+   let the user decide, either with a --geometry=XXxXX option, and/or a
+   configuration item.
+   
+Show name of the closest street when in GPS tracking mode.
+
+   The code to retrieve the name already exists, but it would be nice
+   to activate it automatically, not only on mouse click.
+   
+   Problems: (1) not taking too much CPU, (2) improvement of accuracy
+   is needed (for example, streets without ranges...), (3) avoid covering
+   the screen with so much info.
+   
 Accurate local time
 
    The GPS receiver provides a reliable universal time and the current
