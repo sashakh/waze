@@ -12,8 +12,8 @@ if [ "x$1" = "x" ] ; then
    exit 1
 fi
 
-version=`expr $1 : '\([0-9][0-9]*\)'`_`expr $1 : '[0-9][0-9]*[._]\([0-9][0-9]*\)'`
-dotversion=`expr $1 : '\([0-9][0-9]*\)'`.`expr $1 : '[0-9][0-9]*[._]\([0-9][0-9]*\)'`
+version=`expr $1 : '\([0-9][0-9]*\)'`_`expr $1 : '[0-9][0-9]*[._]\([0-9][0-9rc]*\)'`
+dotversion=`expr $1 : '\([0-9][0-9]*\)'`.`expr $1 : '[0-9][0-9]*[._]\([0-9][0-9rc]*\)'`
 
 
 PROJROOT=~/sourceforge
@@ -26,6 +26,12 @@ RDM_SRC="roadmap/src/Makefile
          roadmap/src/*.[ch]
          roadmap/src/gtk/Makefile
          roadmap/src/gtk/*.[ch]
+         roadmap/src/gtk2/Makefile
+         roadmap/src/gtk2/*.[ch]
+         roadmap/src/qt/Makefile
+         roadmap/src/qt/*.[ch]
+         roadmap/src/qt/*.cc
+         roadmap/src/qt/ipkg/zroad*
          roadmap/src/unix/Makefile
          roadmap/src/unix/*.[ch]
          roadmap/src/ipkg/mkipkg
@@ -45,6 +51,10 @@ RDM_BIN="roadmap/src/usdir.rdm
          roadmap/src/usc06075.rdm
          roadmap/src/gtk/gtkroadmap
          roadmap/src/gtk/gtkroadgps
+         roadmap/src/gtk2/gtkroadmap
+         roadmap/src/gtk2/gtkroadgps
+         roadmap/src/qt/qtroadmap
+         roadmap/src/qt/qtroadgps
          roadmap/src/buildmap
          roadmap/src/buildus"
 
