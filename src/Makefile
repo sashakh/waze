@@ -179,6 +179,11 @@ RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 
 DESTDIR=
 INSTALLDIR=/usr/local
+desktopdir=$(INSTALLDIR)/applications
+pkgdatadir=$(INSTALLDIR)/share/roadmap
+bindir=$(INSTALLDIR)/bin
+menudir=$(DESTDIR)/usr/lib/menu
+ICONDIR=$(INSTALLDIR)/share/pixmaps
 
 
 # --- Conventional targets ----------------------------------------
@@ -203,27 +208,29 @@ clean: cleanone
 	if [ -d unix ] ; then make -C unix cleanone ; fi
 
 cleanone:
-	rm -f *.o *.a *.da $(BUILD)
+	rm -f *.o *.a *.da $(BUILD) $(TOOLS)
 
 install: build runtime icons
-	mkdir -p $(DESTDIR)$(INSTALLDIR)/share/roadmap
-	cd $(DESTDIR)$(INSTALLDIR)/share/roadmap ; rm -f sprites preferences
-	cp sprites preferences schema $(DESTDIR)$(INSTALLDIR)/share/roadmap
-	cd $(DESTDIR)$(INSTALLDIR)/share/roadmap ; chmod a+r sprites preferences
-	# aptconvert -toc $(DESTDIR)$(INSTALLDIR)/share/roadmap/manual.html ../README
-	cd $(DESTDIR)$(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(INSTALLDIR)/bin
-	cd $(DESTDIR)$(INSTALLDIR)/bin ; chmod a+x $(BUILD) $(SCRIPTS)
-	if [ -d /usr/lib/menu ] ; then cp roadmap.menu /usr/lib/menu/roadmap; fi
-	mkdir -p $(DESTDIR)$(INSTALLDIR)/share/pixmaps
-	cd icons ; make ICONDIR="$(DESTDIR)$(INSTALLDIR)/share/pixmaps" install
-	cp -f roadmap*.png $(DESTDIR)$(INSTALLDIR)/share/pixmaps
-	cp -f roadmap.desktop $(DESTDIR)$(INSTALLDIR)/applications
+	mkdir -p $(DESTDIR)$(pkgdatadir)
+	cd $(DESTDIR)$(pkgdatadir) && rm -f sprites preferences
+	cp sprites preferences schema $(DESTDIR)$(pkgdatadir)/.
+	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r sprites preferences
+	# aptconvert -toc $(DESTDIR)$(pkgdatadir)/manual.html ../README
+	mkdir -p $(DESTDIR)$(bindir)
+	cd $(DESTDIR)$(bindir) && rm -f $(BUILD) $(SCRIPTS)
+	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(bindir)/.
+	cd $(DESTDIR)$(bindir) && chmod a+x $(BUILD) $(SCRIPTS)
+	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
+	mkdir -p $(DESTDIR)$(ICONDIR)
+	cd icons && make ICONDIR="$(DESTDIR)$(ICONDIR)" install
+	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
+	mkdir -p $(DESTDIR)$(desktopdir)
+	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
 
 uninstall:
-	cd $(DESTDIR)$(INSTALLDIR)/bin ; rm -f $(BUILD) $(SCRIPTS)
-	cd $(DESTDIR)$(INSTALLDIR) ; rm -rf share/roadmap
-	rm -f /usr/lib/menu/roadmap
+	cd $(DESTDIR)$(bindir) && rm -f $(BUILD) $(SCRIPTS)
+	cd $(DESTDIR)$(INSTALLDIR) && rm -rf share/roadmap
+	rm -f $(DESTDIR)$(menudir)/roadmap
 
 everything: modules runtime build icons $(TOOLS)
 

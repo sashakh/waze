@@ -2,7 +2,12 @@
 GUICFLAGS=-I/usr/include/qt3
 GUILDFLAGS=-lqt
 MOC=/usr/bin/moc
+
+DESTDIR=
 INSTALLDIR=/usr/local
+bindir=$(INSTALLDIR)/bin
+desktopdir=$(INSTALLDIR)/apps/Applications
+pkgdatadir=$(INSTALLDIR)/share/roadmap
 
 ifeq ($(DESKTOP),QPE)
    GUICFLAGS=-I$(QTDIR)/include -DQWS
@@ -13,13 +18,13 @@ ifeq ($(DESKTOP),QPE)
 endif
 
 ifeq ($(MODE),DEBUG)
-   STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+   STDCFLAGS=-g -W -Wall -DROADMAP_DEBUG_HEAP
 else
 ifeq ($(MODE),PROFILE)
-   STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
+   STDCFLAGS=-g -W -Wall -pg -fprofile-arcs -g
    LDFLAGS=-pg $(LDFLAGS)
 else
-   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall $(OPTIONS)
+   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -W -Wall $(OPTIONS)
 endif
 endif
 
@@ -76,16 +81,23 @@ cleanone:
 install: all
 	make -C .. install INSTALLDIR=$(INSTALLDIR)
 	$(STRIP) $(RUNTIME)
-	install qtroadmap $(INSTALLDIR)/bin/roadmap
-	install qtroadgps $(INSTALLDIR)/bin/roadgps
-	install ipkg/zroadmap.desktop $(INSTALLDIR)/apps/Applications
-	install ipkg/zroadgps.desktop $(INSTALLDIR)/apps/Applications
-	install ipkg/zroadmap.png $(INSTALLDIR)/pics
-	install ipkg/zroadgps.png $(INSTALLDIR)/pics
-	install ipkg/preferences $(INSTALLDIR)/share/roadmap
+	mkdir -p $(DESTDIR)$(bindir)
+	install qtroadmap $(DESTDIR)$(bindir)/roadmap
+	install qtroadgps $(DESTDIR)$(bindir)/roadgps
+
+install-ipkg: install
+	mkdir -p $(DESTDIR)$(desktopdir)
+	install ipkg/zroadmap.desktop $(DESTDIR)$(desktopdir)
+	install ipkg/zroadgps.desktop $(DESTDIR)$(desktopdir)
+# These no longer exists.  Do not try to install them.  It will fail
+#	mkdir -p $(DESTDIR)$(INSTALLDIR)/pics
+	mkdir -p $(DESTDIR)$(pkgdatadir)
+#	install ipkg/zroadmap.png $(DESTDIR)$(INSTALLDIR)/pics
+#	install ipkg/zroadgps.png $(DESTDIR)$(INSTALLDIR)/pics
+#	install ipkg/preferences $(DESTDIR)$(pkgdatadir)
 
 uninstall:
-	cd $(INSTALLDIR)/bin ; rm -f $(RUNTIME) roadmap roadgps
+	cd $(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	make -C .. uninstall
 
 # --- The real targets --------------------------------------------
