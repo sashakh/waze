@@ -46,6 +46,7 @@
 #include "roadmap_dictionary.h"
 #include "roadmap_county.h"
 #include "roadmap_locator.h"
+#include "roadmap_voice.h"
 
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
@@ -830,6 +831,8 @@ static int roadmap_screen_activate_street_tip (int line,
        name = "(this street has no name)";
    }
 
+   roadmap_voice_selected (name);
+   
    if (RoadMapStreetTip.name != NULL) {
       free (RoadMapStreetTip.name);
    }

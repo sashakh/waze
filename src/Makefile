@@ -11,6 +11,8 @@ LIBS=$(RDMLIBS) -lpopt -lm
 
 
 RMLIBSRCS=roadmap_log.c \
+          roadmap_message.c \
+          roadmap_voice.c \
           roadmap_list.c \
           roadmap_config.c \
           roadmap_option.c \

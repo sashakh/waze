@@ -42,7 +42,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
-#include "roadmap_display.h"
+#include "roadmap_message.h"
 
 
 /* Default location is: 1 market St, san Francisco, California. */
@@ -621,7 +621,7 @@ void roadmap_trip_display (void) {
     
     if (RoadMapTripFocus == gps && RoadMapTripDestination != NULL) {
     
-        roadmap_display_set ('T', roadmap_time_get_hours_minutes());
+        roadmap_message_set ('T', roadmap_time_get_hours_minutes());
         
         distance_to_destination =
             roadmap_math_distance
@@ -632,7 +632,7 @@ void roadmap_trip_display (void) {
                         distance_to_destination,
                         roadmap_math_distance_unit());
         
-        roadmap_display_set ('D', "%d %s",
+        roadmap_message_set ('D', "%d %s",
                              roadmap_math_to_trip_distance
                                         (distance_to_destination),
                              roadmap_math_trip_unit());
@@ -664,16 +664,16 @@ void roadmap_trip_display (void) {
                             distance_to_waypoint,
                             roadmap_math_distance_unit());
             
-            roadmap_display_set ('W', "%d %s",
+            roadmap_message_set ('W', "%d %s",
                                  roadmap_math_to_trip_distance
                                             (distance_to_waypoint),
                                  roadmap_math_trip_unit());
             
         } else {
-            roadmap_display_unset ('W');
+            roadmap_message_unset ('W');
         }
         
-        roadmap_display_set ('S', "%3d %s",
+        roadmap_message_set ('S', "%3d %s",
                              roadmap_math_to_speed_unit(gps->speed),
                              roadmap_math_speed_unit());
         
@@ -683,11 +683,11 @@ void roadmap_trip_display (void) {
         roadmap_sprite_draw ("Direction", &point, azymuth);
         
     } else {
-        roadmap_display_unset ('A');
-        roadmap_display_unset ('D');
-        roadmap_display_unset ('S');
-        roadmap_display_unset ('T');
-        roadmap_display_unset ('W');
+        roadmap_message_unset ('A');
+        roadmap_message_unset ('D');
+        roadmap_message_unset ('S');
+        roadmap_message_unset ('T');
+        roadmap_message_unset ('W');
     }
 }
 

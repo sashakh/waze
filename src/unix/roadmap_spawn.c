@@ -37,10 +37,14 @@
 #include <signal.h>
 
 #include "roadmap.h"
+#include "roadmap_list.h"
 #include "roadmap_spawn.h"
 
 
 static char *RoadMapSpawnPath = NULL;
+
+static RoadMapList RoadMapSpawnActive = ROADMAP_LIST_EMPTY;
+
 
 static void (*RoadMapSpawnNextHandler) (int signal) = NULL;
 
@@ -48,26 +52,49 @@ static void (*RoadMapSpawnNextHandler) (int signal) = NULL;
 static void roadmap_spawn_set_arguments
                (int argc, char *argv[], const char *command_line) {
 
-   int   i = 0;
-   char *p = strdup (command_line);
+    int   i = 0;
+    char  quoted = 0;
+    char *p;
 
-   while ((i < argc) && (*p)) {
+    if (command_line == NULL || command_line[0] == 0) {
+        goto end_of_string;
+    }
+    
+    p = strdup (command_line);
 
-      while (isspace(*p)) ++p;
+    while ((i < argc) && (*p)) {
 
-      if (*p == 0) break;
+        while (isspace(*p)) ++p;
 
-      argv[++i] = p;
+        if (*p == 0) break;
 
-      while ((! isspace(*p)) && (*p)) ++p;
+        argv[++i] = p;
 
-      if (*p == 0) break;
+        while ((! isspace(*p)) || quoted) {
+            switch (*p)
+            {
+            case '"':
+            case '\'':
+                if (quoted == 0) {
+                    quoted = *p;
+                } else if (quoted == *p) {
+                    quoted = 0;
+                }
+                break;
+                
+            case 0: goto end_of_string;
+            }
+            ++p;
+        }
 
-      *p = 0;
+        if (*p == 0) break;
 
-      p += 1;
+        *p = 0;
+
+        p += 1;
    }
 
+end_of_string:
    argv[++i] = NULL;
 }
 
@@ -88,14 +115,29 @@ static void roadmap_spawn_set_handler (void) {
 
 static void roadmap_spawn_child_exit_handler (int signal) {
 
-   int status;
+    int pid;
+    int status;
+    RoadMapFeedback *item;
 
-   waitpid (-1, &status, WNOHANG);
+    pid = waitpid (-1, &status, WNOHANG);
 
-   if (RoadMapSpawnNextHandler != NULL) {
-      (*RoadMapSpawnNextHandler) (signal);
-   }
-   roadmap_spawn_set_handler ();
+    if (RoadMapSpawnNextHandler != NULL) {
+        (*RoadMapSpawnNextHandler) (signal);
+    }
+    roadmap_spawn_set_handler ();
+   
+    if (pid <= 0) return;
+        
+    for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
+         item != NULL;
+         item = (RoadMapFeedback *)item->link.next) {
+
+        if (item->child == pid) {
+            item->handler (item->data);
+            roadmap_list_remove (&RoadMapSpawnActive, &item->link);
+            break;
+        }
+    }
 }
 
 
@@ -118,7 +160,7 @@ void roadmap_spawn_initialize (const char *argv0) {
 }
 
 
-int  roadmap_spawn (const char *name, const char *command_line) {
+int roadmap_spawn (const char *name, const char *command_line) {
 
    char *argv[16];
    pid_t child = fork();
@@ -149,7 +191,9 @@ int  roadmap_spawn (const char *name, const char *command_line) {
    }
 
 #ifdef QWS
-   /* Why not using roadmap_spawn_set_handler()? Ask Latchesar Ionkov. */
+   /* According to Latchesar Ionkov, roadmap_spawn_set_handler()
+    * crashes QPE on the Zaurus.
+    */
 #else
    roadmap_spawn_set_handler ();
 #endif
@@ -157,3 +201,14 @@ int  roadmap_spawn (const char *name, const char *command_line) {
    return child;
 }
 
+
+int  roadmap_spawn_with_feedback
+         (const char *name,
+          const char *command_line,
+          RoadMapFeedback *feedback) {
+    
+    roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
+    feedback->child = roadmap_spawn (name, command_line);
+              
+    return feedback->child;
+}

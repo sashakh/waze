@@ -1,4 +1,4 @@
-/* roadmap_display.h - Manage screen signs.
+/* roadmap_message.h - Format RoadMap messages.
  *
  * LICENSE:
  *
@@ -21,19 +21,12 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__ROADMAP_DISPLAY__H
-#define INCLUDE__ROADMAP_DISPLAY__H
+#ifndef INCLUDE__ROADMAP_MESSAGE__H
+#define INCLUDE__ROADMAP_MESSAGE__H
 
-#include "roadmap_canvas.h"
+void roadmap_message_set    (char parameter, const char *format, ...);
+void roadmap_message_unset  (char parameter);
 
-void roadmap_display_initialize (void);
+int  roadmap_message_format (char *text, int length, const char *format);
 
-void roadmap_display_colors (RoadMapPen foreground, RoadMapPen background);
-
-void roadmap_display_details (RoadMapPosition *position, char *format);
-
-void roadmap_display_message (int corner, char *format);
-
-void roadmap_display_show (void);
-
-#endif // INCLUDE__ROADMAP_DISPLAY__H
+#endif // INCLUDE__ROADMAP_MESSAGE__H

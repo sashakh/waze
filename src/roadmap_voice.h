@@ -1,4 +1,4 @@
-/* roadmap_display.h - Manage screen signs.
+/* roadmap_voice.c - Manage voice announcements.
  *
  * LICENSE:
  *
@@ -21,19 +21,17 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__ROADMAP_DISPLAY__H
-#define INCLUDE__ROADMAP_DISPLAY__H
+#ifndef INCLUDE__ROADMAP_VOICE__H
+#define INCLUDE__ROADMAP_VOICE__H
 
-#include "roadmap_canvas.h"
+void roadmap_voice_approach       (const char *name);
+void roadmap_voice_current_street (const char *name);
+void roadmap_voice_intersection   (const char *name);
+void roadmap_voice_selected       (const char *name);
 
-void roadmap_display_initialize (void);
+void roadmap_voice_mute   (void);
+void roadmap_voice_enable (void);
 
-void roadmap_display_colors (RoadMapPen foreground, RoadMapPen background);
+void roadmap_voice_initialize (void);
 
-void roadmap_display_details (RoadMapPosition *position, char *format);
-
-void roadmap_display_message (int corner, char *format);
-
-void roadmap_display_show (void);
-
-#endif // INCLUDE__ROADMAP_DISPLAY__H
+#endif // INCLUDE__ROADMAP_VOICE__H

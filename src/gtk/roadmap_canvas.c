@@ -76,16 +76,36 @@ static RoadMapCanvasConfigureHandler RoadMapCanvasConfigure =
 void roadmap_canvas_get_text_extents 
         (const char *text, int *width, int *ascent, int *descent) {
 
-   int unused;
+    static int RoadMapCanvasAscent = 0;
+    static int RoadMapCanvasDescent = 0;
 
-   gdk_text_extents (RoadMapDrawingArea->style->font,
-                     text,
-                     strlen(text),
-                     &unused,
-                     &unused,
-                     width,
-                     ascent,
-                     descent);
+    int unused;
+
+    gdk_text_extents (RoadMapDrawingArea->style->font,
+                      text,
+                      strlen(text),
+                      &unused,
+                      &unused,
+                      width,
+                      &unused,
+                      &unused);
+
+    if (RoadMapCanvasDescent == 0) {
+        
+        char *pattern = "([,%!@#$]){}|;/?Wjlq";
+        
+        gdk_text_extents (RoadMapDrawingArea->style->font,
+                          pattern,
+                          strlen(pattern),
+                          &unused,
+                          &unused,
+                          &unused,
+                          &RoadMapCanvasAscent,
+                          &RoadMapCanvasDescent);
+    }
+    
+    *ascent  = RoadMapCanvasAscent;
+    *descent = RoadMapCanvasDescent;
 }
 
 

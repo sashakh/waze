@@ -24,9 +24,30 @@
 #ifndef INCLUDE__ROADMAP_SPAWN__H
 #define INCLUDE__ROADMAP_SPAWN__H
 
+#include "roadmap_list.h"
+
+typedef void (*RoadMapFeedbackHandler) (void *data);
+
+struct roadmap_spawn_feedback {
+    
+    RoadMapListItem link;
+    int child;
+
+    RoadMapFeedbackHandler handler;
+    void *data;
+};
+
+typedef struct roadmap_spawn_feedback RoadMapFeedback;
+    
+
 void roadmap_spawn_initialize (const char *argv0);
 
 int  roadmap_spawn (const char *name, const char *command_line);
+
+int  roadmap_spawn_with_feedback
+         (const char *name,
+          const char *command_line,
+          RoadMapFeedback *feedback);
 
 #endif // INCLUDE__ROADMAP_SPAWN__H
 

@@ -36,105 +36,14 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
+#include "roadmap_message.h"
 
 #include "roadmap_display.h"
 
 
-static char *RoadMapDisplayParameters[128] = {NULL};
-
 static RoadMapPen RoadMapDisplayForeground;
 static RoadMapPen RoadMapDisplayBackground;
 
-
-static int roadmap_display_format (char *text, int length, const char *format) {
-
-    char *f;
-    char *p = text+1;
-    char *end = text + length - 1;
-    
-    *text = '('; /* A hack to force a constant ascent/descent. */
-    
-    while (*format) {
-        
-        if (*format == '%') {
-            
-            format += 1;
-            if (*format <= 0) {
-                break;
-            }
-            
-            f = RoadMapDisplayParameters[(int)(*(format++))];
-            if (f != NULL) {
-                while (*f && p < end) {
-                    *(p++) = *(f++);
-                }
-            } else {
-                format = strchr (format, '|');
-                
-                if (format == NULL) {
-                    return 0; /* Cannot build the string. */
-                }
-                format += 1;
-                p = text + 1; /* Restart. */
-            }
-
-        } else if (*format == '|') {
-            
-            break; /* We completed this alternative successfully. */
-            
-        } else {
-
-            *(p++) = *(format++);
-        }
-        
-        if (p >= end) {
-            break;
-        }
-    }
-
-    *p = 0;
-
-    return p > text+1;
-}
-
-
-void roadmap_display_set (char parameter, const char *format, ...) {
-    
-    va_list ap;
-    char    value[256];
-    
-    if (parameter <= 0) {
-        roadmap_log (ROADMAP_ERROR,
-                     "invalid parameter code %d (value %s)",
-                     parameter, value);
-        return;
-    }
-    
-    va_start(ap, format);
-    vsnprintf(value, sizeof(value), format, ap);
-    va_end(ap);
-    
-    if (RoadMapDisplayParameters[(int)parameter] != NULL) {
-        free (RoadMapDisplayParameters[(int)parameter]);
-    }
-    RoadMapDisplayParameters[(int)parameter] = strdup (value);
-}
-
-
-void roadmap_display_unset (char parameter) {
-    
-    if (parameter <= 0) {
-        roadmap_log (ROADMAP_ERROR,
-                     "invalid parameter code %d",
-                     parameter);
-        return;
-    }
-    
-    if (RoadMapDisplayParameters[(int)parameter] != NULL) {
-        free (RoadMapDisplayParameters[(int)parameter]);
-        RoadMapDisplayParameters[(int)parameter] = NULL;
-    }
-}
 
 
 void roadmap_display_colors (RoadMapPen foreground, RoadMapPen background) {
@@ -158,7 +67,7 @@ void roadmap_display_details (RoadMapPosition *position, char *format) {
     int lines;
 
 
-    if (! roadmap_display_format (text, sizeof(text), format)) {
+    if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
     }
 
@@ -235,7 +144,8 @@ void roadmap_display_details (RoadMapPosition *position, char *format) {
 
     roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
 
-    text_line = text + 1;
+    text_line = text;
+    
     if (lines > 1) {
         char *text_end = text_line + strlen(text_line);
         char *p1 = text_line + (strlen(text_line) / 2);
@@ -278,7 +188,7 @@ void roadmap_display_message (int corner, char *format) {
     RoadMapGuiPoint frame[4];
 
 
-    if (! roadmap_display_format (text, sizeof(text), format)) {
+    if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
     }
     
@@ -316,7 +226,7 @@ void roadmap_display_message (int corner, char *format) {
     
     roadmap_canvas_draw_string (frame,
                                 ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
-                                text+1);
+                                text);
 }
 
 

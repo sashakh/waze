@@ -38,6 +38,7 @@
 #include "roadmap_history.h"
 #include "roadmap_file.h"
 #include "roadmap_gps.h"
+#include "roadmap_voice.h"
 
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
@@ -160,6 +161,11 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Open the preferences editor", roadmap_preferences_edit},
    {"GPS Console",
        "Start the GPS console application", roadmap_start_console},
+   {RoadMapFactorySeparator, NULL, NULL},
+   {"Mute voice",
+       "Mute all voice annoucements", roadmap_voice_mute},
+   {"Enable voice",
+       "Enable all voice annoucements", roadmap_voice_enable},
    {RoadMapFactorySeparator, NULL, NULL},
    {"Purge history",
        "Remove all but the 10 most recent addresses", roadmap_start_purge},
@@ -364,6 +370,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_trip_initialize   ();
    roadmap_screen_initialize ();
    roadmap_display_initialize();
+   roadmap_voice_initialize  ();
    roadmap_gps_initialize    (&roadmap_gps_update);
    roadmap_history_initialize();
    roadmap_config_initialize ();
