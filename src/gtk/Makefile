@@ -2,9 +2,11 @@
 GUICFLAGS=`gtk-config --cflags`
 GUILDFLAGS=`gtk-config --libs`
 
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
-# STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
-# STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
+WARNFLAGS = -W -Wall
+
+STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g $(WARNFLAGS)
+# STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
+# STDCFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
 
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
 
