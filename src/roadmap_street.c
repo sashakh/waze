@@ -761,15 +761,23 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
          roadmap_line_from (line, &from);
          roadmap_line_to   (line, &to);
 
-         position->longitude =
-            from.longitude -
-               ((from.longitude - to.longitude)
-                  * abs(fradd - number)) / (number_max - number_min);
+         if (number_max == number_min) {
 
-         position->latitude =
-            from.latitude -
-               ((from.latitude - to.latitude)
-                  * abs(fradd - number)) / (number_max - number_min);
+            position->longitude = (from.longitude + to.longitude) / 2;
+            position->latitude  = (from.latitude - to.latitude) / 2;
+
+         } else {
+
+            position->longitude =
+               from.longitude -
+                  ((from.longitude - to.longitude)
+                      * abs(fradd - number)) / (number_max - number_min);
+
+            position->latitude =
+               from.latitude -
+                  ((from.latitude - to.latitude)
+                     * abs(fradd - number)) / (number_max - number_min);
+         }
 
          return line;
       }
