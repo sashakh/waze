@@ -43,7 +43,7 @@
 #define ROADMAP_SUNSET -1
 
 
-// returns an angle in range of 0 to (2 * PI)
+/* returns an angle in range of 0 to (2 * PI) */
 
 static double roadmap_sunrise_getrange(double x) {
 
@@ -78,7 +78,7 @@ static time_t roadmap_sunrise_get_gmt(double decimaltime,
    temp2 = (int)(floor(temp1));
    temp1 = 60 * (temp1 - floor(temp1));
 
-   // fill in the tm structure
+   /* fill in the tm structure */
    curtime->tm_hour = temp2;
    curtime->tm_min = (int) temp1;
 
@@ -132,12 +132,12 @@ static time_t roadmap_sunrise_getriseorset
    double roadmap_long = LU_TO_DEG(position->longitude);
 	double roadmap_lat  = LU_TO_DEG(position->latitude);
 
-	// not accurate for places too close to the poles
+	/* not accurate for places too close to the poles */
 	if(abs(roadmap_lat) > 63) {
        return -1;
 	}
 
-	// check for valid riseorset parameter
+	/* check for valid riseorset parameter */
 	if((riseorset!=1)&&(riseorset!=-1)) {
        return -1;
    }
@@ -147,7 +147,7 @@ static time_t roadmap_sunrise_getriseorset
    curtime_gmt = *(gmtime(&gmt));
 
 
-	altitude = -0.833; //tbd: sets according to position->altitude.
+	altitude = -0.833; /* tbd: sets according to position->altitude. */
 
 	ephem2000day = 367.0 * (curtime.tm_year+1900)
                       - 7.0 * ((curtime.tm_year+1900)
@@ -192,7 +192,7 @@ static time_t roadmap_sunrise_getriseorset
                   (utold - (gha + longitude + riseorset * correction));
    }
 
-	// utnew must now be converted into gmt.
+	/* utnew must now be converted into gmt. */
 
    result = roadmap_sunrise_get_gmt (utnew * DEGREES / 15, &curtime_gmt);
    if (result < gmt) {
@@ -326,5 +326,5 @@ int main(int argc, char **argv) {
    printf("sunset:  %d:%d\n", realtime->tm_hour, realtime->tm_min);
    return 0;
 }
-#endif // SUNRISE_PROGRAM
+#endif /* SUNRISE_PROGRAM */
 

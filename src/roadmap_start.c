@@ -231,8 +231,10 @@ static void roadmap_start_toggle_download (void) {
 
       if (! ProtocolInitialized) {
 
-         // roadmap_plugin_load_all
-         //      ("download", roadmap_download_subscribe_protocol);
+         /* PLUGINS NOT SUPPORTED YET.
+          * roadmap_plugin_load_all
+          *      ("download", roadmap_download_subscribe_protocol);
+          */
 
          roadmap_copy_init (roadmap_download_subscribe_protocol);
          roadmap_httpcopy_init (roadmap_download_subscribe_protocol);
@@ -551,15 +553,15 @@ static char const *RoadMapStartKeyBinding[] = {
    "-"               ROADMAP_MAPPED_TO "zoomout",
    "A"               ROADMAP_MAPPED_TO "address",
    "B"               ROADMAP_MAPPED_TO "returntrip",
-   // C Unused.
+   /* C Unused. */
    "D"               ROADMAP_MAPPED_TO "destination",
    "E"               ROADMAP_MAPPED_TO "deletemaps",
    "F"               ROADMAP_MAPPED_TO "full",
    "G"               ROADMAP_MAPPED_TO "gps",
    "H"               ROADMAP_MAPPED_TO "hold",
    "I"               ROADMAP_MAPPED_TO "intersection",
-   // J Unused.
-   // K Unused.
+   /* J Unused. */
+   /* K Unused. */
    "L"               ROADMAP_MAPPED_TO "location",
    "M"               ROADMAP_MAPPED_TO "mapdownload",
    "N"               ROADMAP_MAPPED_TO "newtrip",
@@ -568,13 +570,13 @@ static char const *RoadMapStartKeyBinding[] = {
    "Q"               ROADMAP_MAPPED_TO "quit",
    "R"               ROADMAP_MAPPED_TO "zoom1",
    "S"               ROADMAP_MAPPED_TO "starttrip",
-   // T Unused.
+   /* T Unused. */
    "U"               ROADMAP_MAPPED_TO "gpsnorthup",
-   // V Unused.
+   /* V Unused. */
    "W"               ROADMAP_MAPPED_TO "addaswaypoint",
    "X"               ROADMAP_MAPPED_TO "intersection",
-   // Y Unused.
-   // Z Unused.
+   /* Y Unused. */
+   /* Z Unused. */
    NULL
 };
 
@@ -747,8 +749,9 @@ void roadmap_start_unfreeze (void) {
 void roadmap_start (int argc, char **argv) {
 
 #ifdef ROADMAP_DEBUG_HEAP
-   // Do not forget to set the trace file using the env. variable MALLOC_TRACE,
-   // then use the mtrace tool to analyze the output.
+   /* Do not forget to set the trace file using the env. variable MALLOC_TRACE,
+    * then use the mtrace tool to analyze the output.
+    */
    mtrace();
 #endif
 
