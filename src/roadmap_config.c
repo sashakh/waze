@@ -75,6 +75,7 @@ struct RoadMapConfigItemRecord {
 struct RoadMapConfigRecord {
 
    char              *name;
+   int                required;
    int                state; /* CLEAN, SHARED or DIRTY. */
    RoadMapConfigItem *first_item;
    RoadMapConfigItem *last_item;
@@ -82,10 +83,10 @@ struct RoadMapConfigRecord {
 
 
 static RoadMapConfig RoadMapConfigFiles[] = {
-   {"session",     ROADMAP_CONFIG_CLEAN, NULL},
-   {"preferences", ROADMAP_CONFIG_CLEAN, NULL},
-   {"schema",      ROADMAP_CONFIG_CLEAN, NULL},
-   {NULL, 0, NULL}
+   {"session",     0, ROADMAP_CONFIG_CLEAN, NULL},
+   {"preferences", 0, ROADMAP_CONFIG_CLEAN, NULL},
+   {"schema",      1, ROADMAP_CONFIG_CLEAN, NULL},
+   {NULL, 0, 0, NULL}
 };
 
 
@@ -433,7 +434,7 @@ static char *roadmap_config_skip_spaces (char *p) {
 }
 
 
-static void roadmap_config_load
+static int roadmap_config_load
                (const char *path, RoadMapConfig *config, int intended_state) {
 
    char *p;
@@ -450,7 +451,7 @@ static void roadmap_config_load
 
    file = roadmap_file_open (path, config->name, "sr");
 
-   if (file == NULL) return;
+   if (file == NULL) return 0;
 
 
     while (!feof(file)) {
@@ -507,6 +508,7 @@ static void roadmap_config_load
     fclose (file);
 
     config->state = ROADMAP_CONFIG_CLEAN;
+    return 1;
 }
 
 
@@ -571,14 +573,25 @@ void  roadmap_config_initialize (void) {
 
    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
 
+      int loaded = 0;
+
       for (p = roadmap_path_last();
            p != NULL;
            p = roadmap_path_previous(p)) {
 
-         roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
+         loaded |=
+            roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
       }
 
-      roadmap_config_load (roadmap_path_user(), file, ROADMAP_CONFIG_CLEAN);
+      loaded |=
+         roadmap_config_load (roadmap_path_user(), file, ROADMAP_CONFIG_CLEAN);
+
+      if (file->required && (!loaded)) {
+         roadmap_log
+            (ROADMAP_ERROR,
+             "found no '%s' config file, check RoadMap installation",
+             file->name);
+      }
    }
 }
 
