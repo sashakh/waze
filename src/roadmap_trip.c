@@ -206,6 +206,7 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
             if (result == RoadMapTripFocus) {
                 RoadMapTripFocusMoved = 1;
             }
+            result->distance = 0;
         }
     }
     
@@ -533,7 +534,30 @@ const RoadMapPosition *roadmap_trip_get_focus_position (void) {
 
 void  roadmap_trip_start (int rotate) {
 
-    // Sort waypoints, compute distances, etc..
+    RoadMapTripPoint *waypoint;
+    RoadMapTripPoint *destination = roadmap_trip_search ("Destination");
+
+    
+    /* Compute the distances to the destination. */
+    
+    for (waypoint = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
+         waypoint != NULL;
+         waypoint = (RoadMapTripPoint *)waypoint->link.next) {
+
+        if (! waypoint->predefined) {
+            
+            waypoint->distance =
+                roadmap_math_distance
+                    (&destination->position, &waypoint->position);
+            
+            roadmap_log (ROADMAP_DEBUG,
+                            "Waypoint %s: distance = %d %s",
+                            waypoint->id,
+                            roadmap_math_to_trip_distance(waypoint->distance),
+                            roadmap_math_trip_unit());
+        }
+    }
+    destination->distance = 0;
     
     roadmap_trip_set_focus ("GPS", rotate);
     roadmap_screen_refresh ();
@@ -560,24 +584,77 @@ void roadmap_trip_display_points (void) {
 }
 
 
-void roadmap_trip_display_console (void) {
+void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background) {
     
-    int distance;
-    char text[128];
+    int count;
+    int width, ascent, descent;
+    int distance_to_destination;
+    char *unit;
+    char  text[128];
+    RoadMapGuiPoint frame[4];
     RoadMapGuiPoint text_position;
-    RoadMapTripPoint *current = roadmap_trip_search ("GPS");
+    RoadMapTripPoint *gps = roadmap_trip_search ("GPS");
     RoadMapTripPoint *destination;
+    RoadMapTripPoint *waypoint;
+    RoadMapTripPoint *next_waypoint;
+
     
-    if (RoadMapTripFocus == current) {
+    if (RoadMapTripFocus == gps) {
         
         destination = roadmap_trip_search ("Destination");
         
-        distance = roadmap_math_distance
-                        (&current->position, &destination->position);
+        distance_to_destination =
+            roadmap_math_distance
+                (&gps->position, &destination->position);
+    
+        next_waypoint = gps;
         
-        snprintf (text, sizeof(text), "%d %s",
-                    roadmap_math_to_trip_distance(distance),
-                    roadmap_math_trip_unit());
+        for (waypoint = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
+             waypoint != NULL;
+             waypoint = (RoadMapTripPoint *)waypoint->link.next) {
+
+            if (! waypoint->predefined) {
+                if ((waypoint->distance <= distance_to_destination) &&
+                    (waypoint->distance > next_waypoint->distance)) {
+                    next_waypoint = waypoint;
+                }
+            }
+        }
+        
+        unit = roadmap_math_trip_unit();
+        
+        if (next_waypoint != gps) {
+            
+            int distance_to_waypoint =
+                    roadmap_math_distance (&gps->position, &next_waypoint->position);
+            
+            snprintf (text, sizeof(text), "%d %s (%d %s)",
+                        roadmap_math_to_trip_distance(distance_to_destination),
+                        unit,
+                        roadmap_math_to_trip_distance(distance_to_waypoint),
+                        unit);
+        } else {
+            snprintf (text, sizeof(text), "%d %s",
+                        roadmap_math_to_trip_distance(distance_to_destination),
+                        unit);
+        }
+        
+        roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
+        
+        frame[0].x = roadmap_canvas_width() - 5;
+        frame[0].y = 5;
+        frame[1].x = frame[0].x;
+        frame[1].y = frame[0].y + ascent + descent + 5;
+        frame[2].x = frame[0].x - width - 8;
+        frame[2].y = frame[1].y;
+        frame[3].x = frame[2].x;
+        frame[3].y = frame[0].y;
+        
+        count = 4;
+        roadmap_canvas_select_pen (background);
+        roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
+        roadmap_canvas_select_pen (foreground);
+        // roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0);
         
         text_position.x = roadmap_canvas_width() - 9;
         text_position.y = 8;
