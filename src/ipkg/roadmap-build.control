@@ -1,4 +1,4 @@
-Package: roadmap-build
+Package: buildmap
 Priority: optional
 Section: x11
 Version: _VERSION_

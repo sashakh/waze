@@ -4,7 +4,7 @@
 #
 #    mktarball <version>
 #
-# where <version> is either n.n or n_n
+# where <version> is either n.n[.n] or n_n[_n]
 #
 
 if [ "x$1" = "x" ] ; then
@@ -42,7 +42,10 @@ RDM_CFG="roadmap/src/preferences
          roadmap/src/sprites
          roadmap/src/*.png
          roadmap/src/roadmap.desktop
-         roadmap/src/roadmap.menu"
+         roadmap/src/roadmap.menu
+         roadmap/src/icons/Makefile
+         roadmap/src/icons/rm_*.xpm
+         roadmap/src/icons/rm_*.png"
 
 RDM_SH="roadmap/src/rdmdownload
         roadmap/src/rdmgetall
@@ -66,14 +69,14 @@ RDM_INFO="roadmap/AUTHORS
           roadmap/README
           roadmap/TODO"
 
-RDM_IPK="arm/roadmap/ipkg/roadmap-gtk2_${dotversion}_arm.ipk"
+RDM_IPK="arm/roadmap/ipkg/roadmap_${dotversion}_arm.ipk"
 
 
 cd $PROJROOT
 
 mkdir -p $RELEASE
 
-arm/roadmap/src/ipkg/mkipkg $dotversion
+roadmap/src/ipkg/mkipkg $dotversion
 echo "Done with ipkg"
 
 rm -f roadmap/src/*.rdm
@@ -85,14 +88,17 @@ done
 echo "Creating tar ball for section src ..."
 rm -f $RELEASE/roadmap_${version}_src.tar*
 tar cf $RELEASE/roadmap_${version}_src.tar  $RDM_SRC $RDM_SH $RDM_CFG $RDM_INFO
+
 echo "Creating tar ball for section i686 ..."
 rm -f $RELEASE/roadmap_${version}_i686.tar*
 tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_INFO
+
 echo "Creating tar ball for section armv4l ..."
 rm -f $RELEASE/roadmap_${version}_armv4l.tar*
 rm -f roadmap/*.ipk
 cp $RDM_IPK roadmap
-tar cf $RELEASE/roadmap_${version}_armv4l.tar roadmap/*.ipk $RDM_INFO
+cp roadmap/src/ipkg/INSTALL roadmap
+tar cf $RELEASE/roadmap_${version}_armv4l.tar roadmap/*.ipk $RDM_INFO roadmap/INSTALL
 rm -f roadmap/*.ipk
 
 rm -f roadmap/src/*.rdm 
