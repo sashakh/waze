@@ -401,6 +401,9 @@ USING ROADMAP:
    by the user using RoadMap's specific format strings (see section
    "Configuring the RoadMap text and voice messages").
 
+
+   VOICE INTERFACE:
+
    If the flite program has been installed, or if RoadMap was configured
    for an available speech application, RoadMap will complement the screen
    information with an audio one: Roadmap will "tell" the name of the street
@@ -417,6 +420,19 @@ USING ROADMAP:
    It is possible to mute the RoadMap's voice, using the File / Mute Voice
    item from the menu bar. The voice can be enabled later using the File /
    Enable Voice item.
+
+   Please note that it is possible to rebuild flite with a better voice than
+   the default one. The flite source is available at the CMU web site:
+
+                   http://www.speech.cs.cmu.edu/flite/
+
+   The flite README file describes how to regenerate flite using another
+   voice. Here is an example, courtesy of Scot Wilcoxon:
+
+     cd flite
+     make clean    # to remove old executable files
+     ./configure --with-vox=cmu_us_kal16
+     make
 
 
    KEY BINDINGS:
