@@ -62,6 +62,10 @@ INSTALLATION
    toolkits must be installed. RoadMap can be built for QT/QPE, but the
    RoadMap makefile for QT must be modified.
 
+   RoadMap uses the ImageMagick package to generate the PNG files for some
+   icons of its toolbar. ImageMagick is only required for building RoadMap,
+   it is not necessary when running RoadMap.
+
 
 * DOWNLOADING
 
@@ -313,6 +317,26 @@ INSTALLATION
    and the maps should have been generated at their proper location in
    steps 3 to 8. The install is not required for running RoadMap: the
    programs and build tools) can run from the local directory as well.
+
+
+* A NOTE ABOUT THE ROADMAP ICONS
+
+   The RoadMap toolbar uses road signs as icons. These icons come with
+   the application (in directory src/icons). The icon source set is made
+   of a mix of PNG and XPM files. The final icon files must all be PNG.
+
+   A make script builds all the necessary files using the ImageMagick
+   package. The icon files are built (or installed) when building (or
+   installing) RoadMap.
+
+   The PNG icon files must be installed in one of the following directories
+   (the order below reflects the search order):
+
+------
+      ~/pixmaps
+      /usr/local/share/pixmaps
+      /usr/share/pixmaps
+------
 
 
 ROADMAP APPLICATIONS
