@@ -161,7 +161,11 @@ void roadmap_screen_draw_one_line (int line,
                                    int first_shape_line,
                                    int last_shape_line) {
 
-   int has_shape;
+   int line_style;
+#define ROADMAP_LINE_STYLE_POINT   0
+#define ROADMAP_LINE_STYLE_SEGMENT 1
+#define ROADMAP_LINE_STYLE_SHAPE   2
+
    int first_shape;
    int last_shape;
 
@@ -171,37 +175,58 @@ void roadmap_screen_draw_one_line (int line,
    RoadMapGuiPoint point0;
    RoadMapGuiPoint point1;
 
+   int i;
+   RoadMapGuiPoint *points;
 
+
+   /* Retrieve the position and "size" of the line and decide
+    * what details to draw.
+    */
    roadmap_line_from (line, &position0);
    roadmap_line_to   (line, &position1);
 
    roadmap_math_coordinate (&position0, &point0);
    roadmap_math_coordinate (&position1, &point1);
 
-   if (first_shape_line < 0) {
+   if (abs(point0.x - point1.x) < 5 && abs(point0.y - point1.y) < 5) {
 
-      has_shape = 0;
+      /* Decluttering logic: show less details if the line is too small
+       * for these details to matter.
+       */
+      if ((point0.x == point1.x) && (point0.y == point1.y)) {
 
-   } else if (abs(point0.x - point1.x) < 5 &&
-              abs(point0.y - point1.y) < 5) {
+         line_style = ROADMAP_LINE_STYLE_POINT;
 
-      /* This line is too small for us to consider a shape. */
-      has_shape = 0;
+      } else {
+
+         /* This line is too small for us to consider a shape. */
+         line_style = ROADMAP_LINE_STYLE_SEGMENT;
+      }
+
+   } else if (first_shape_line < 0) {
+
+      line_style = ROADMAP_LINE_STYLE_SEGMENT;
 
    } else {
       
-      has_shape = roadmap_shape_of_line (line,
-                                         first_shape_line, last_shape_line,
-                                         &first_shape, &last_shape);
+      if (roadmap_shape_of_line (line,
+                                 first_shape_line, last_shape_line,
+                                 &first_shape, &last_shape) > 0) {
+
+         line_style = ROADMAP_LINE_STYLE_SHAPE;
+
+      } else {
+
+         line_style = ROADMAP_LINE_STYLE_SEGMENT;
+      }
    }
 
-   if (has_shape > 0) {
 
-      /* Draw a shaped line. */
+   /* Now that we know how much to draw, draw it. */
 
-      int i;
-      RoadMapGuiPoint *points;
+   switch (line_style) {
 
+   case ROADMAP_LINE_STYLE_SHAPE: /* Draw a shaped line. */
 
       if (last_shape - first_shape + 3 >=
             RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.cursor) {
@@ -241,41 +266,46 @@ void roadmap_screen_draw_one_line (int line,
       RoadMapScreenLinePoints.cursor   = points;
       RoadMapScreenObjects.cursor += 1;
 
-   } else {
+      break;
 
-      /* Draw a line with no shape. */
+   case ROADMAP_LINE_STYLE_SEGMENT: /* Draw a line with no shape. */
 
       /* Optimization: do not draw a line that is obviously not visible. */
-
       if (! fully_visible)
       {
          if (! roadmap_math_line_is_visible (&position0, &position1)) return;
       }
 
-      if ((point0.x == point1.x) && (point0.y == point1.y)) {
-
-         if (RoadMapScreenPoints.cursor >= RoadMapScreenPoints.end) {
-            roadmap_screen_flush_points ();
-         }
-         RoadMapScreenPoints.cursor[0] = point0;
-
-         RoadMapScreenPoints.cursor += 1;
-
-      } else {
-
-         if (RoadMapScreenLinePoints.cursor + 2 >=
-                              RoadMapScreenLinePoints.end) {
-            roadmap_screen_flush_lines ();
-         }
-
-         RoadMapScreenLinePoints.cursor[0] = point0;
-         RoadMapScreenLinePoints.cursor[1] = point1;
-
-         *RoadMapScreenObjects.cursor = 2;
-
-         RoadMapScreenLinePoints.cursor  += 2;
-         RoadMapScreenObjects.cursor += 1;
+      if (RoadMapScreenLinePoints.cursor + 2 >= RoadMapScreenLinePoints.end) {
+         roadmap_screen_flush_lines ();
       }
+
+      RoadMapScreenLinePoints.cursor[0] = point0;
+      RoadMapScreenLinePoints.cursor[1] = point1;
+
+      *RoadMapScreenObjects.cursor = 2;
+
+      RoadMapScreenLinePoints.cursor  += 2;
+      RoadMapScreenObjects.cursor += 1;
+
+      break;
+
+   case ROADMAP_LINE_STYLE_POINT: /* Draw a point. */
+
+      /* Optimization: do not draw a line that is obviously not visible. */
+      if (! fully_visible)
+      {
+         if (! roadmap_math_point_is_visible (&position0)) return;
+      }
+
+      if (RoadMapScreenPoints.cursor >= RoadMapScreenPoints.end) {
+         roadmap_screen_flush_points ();
+      }
+      RoadMapScreenPoints.cursor[0] = point0;
+
+      RoadMapScreenPoints.cursor += 1;
+
+      break;
    }
 }
 
