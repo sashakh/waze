@@ -718,12 +718,6 @@ CONFIGURATION:
 
    RoadMap preferences items:
 
-     General.Database:
-
-         Description: the database paths.
-         Format: a comma-separated list of directory paths.
-         Default: .,~/maps,/usr/share/roadmap/maps
-
      General.Unit:
 
          Description: the unit system used, either "imperial" or "metric"
@@ -783,6 +777,18 @@ CONFIGURATION:
          Format: number of seconds.
          Default: 10
          Comment: the selection is only removed when the map is redrawn.
+
+     Map.Path:
+
+         Description: the map database paths.
+         Format: a comma-separated list of directory paths.
+         Default: .,~/maps,/usr/share/roadmap/maps
+
+     Map.Cache:
+
+         Description: the number of entries in RoadMap's mapping cache.
+         Format: integer
+         Default: 8
 
      Map.Background:
 
@@ -1136,7 +1142,6 @@ Display.Bottom Left: %S
 Display.Bottom Right: %D (%W)|%D
 Display.Top Right: ETA: %A|%T
 Display.Duration: 10
-General.Database: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
 General.Default Zoom: 20
 General.Keyboard: no
 General.Toolbar: yes
@@ -1149,6 +1154,8 @@ GPS.Foreground: black
 GPS.Source: gpsd://localhost
 GPS.Timeout: 10
 History.Depth: 100
+Map.Path: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
+Map.Cache: 8
 Map.Background: LightYellow
 Polygons.Declutter: 1300
 Selected Street.Background: yellow
