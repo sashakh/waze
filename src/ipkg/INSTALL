@@ -1,0 +1,113 @@
+                          -----------
+            INSTALLING  RoaDmap On Familiar Linux / GPE
+                          -----------
+              Pascal Martin (pascal.martin@iname.com)
+                          -----------
+
+INTRODUCTION
+
+   This document describes the installation of RoadMap, a car navigation
+   system, on an ARM-powered PDA running Familiar Linux and the GPE
+   graphic environment.
+
+BEFORE THE INSTALL
+
+* Removing any prior installation of RoadMap
+
+   The path to the maps has changed. In addition there is no more package
+   for the maps (the maps are too big for that and there was only one example
+   map anyway). Therefore the roadmap-sfca package should be removed first
+
+----
+   ipkg remove roadmap-sfca
+----
+
+   The name of the RoadMap package has also changed from roadmap-gtk2 to
+   roadmap. Therefore the roadmap-gtk2 package should be removed:
+
+----
+   ipkg remove roadmap-gtk2
+----
+
+
+* Making room for RoadMap
+
+   On a PDA with 32Mb of RAM, GPE takes most of the available space and less
+   than 2Mb of RAM is left available. For RoadMap to work one need to make
+   some room. The author recommends removing xstroke and the GPE help from
+   the bottom panel.
+
+   Another problem is a bug in the Familiar X server that causes the file
+   ~/.xsession-errors to grow infinitely in the ramdisk, eating up all the
+   available RAM in a matter of days.
+   
+   The work-around is to not start the ipaq-sleep daemon. To do this,
+   comment out the line "/etc/init.d/ipaq-sleep start" in the file:
+
+----
+           /etc/X11/Xsession.d/69ipaq-sleep
+----
+
+
+* Installing gpsd
+
+   RoadMap depends on gpsd for receiving data from the GPS device. Therefore
+   the gpsd package must be installed:
+
+----
+   ipkg install gpsd
+----
+
+   Once this has been done, the serial line must be configured for using gpsd
+   (see the serial line configuration tool in the Settings folder).
+
+
+INSTALLING ROADMAP
+
+   There are three steps: first install the RoadMap package, then install
+   some maps and last setup your preferences if you installed RoadMap in
+   a custom way.
+
+
+* Installing the package
+
+   There is very little to say here. RoadMap takes less than 300Kb of space,
+   uncompressed. It installs itself in /usr/bin and /usr/share/pixmaps:
+
+----
+   ipkg install roadmap                 (if your feed provides RoadMap)
+   ipkg install roadmap_X.Y.Z_arm.ipk   (if you transfered the package)
+----
+
+
+* Installing maps
+
+   The RoadMap package is preconfigured for maps stored either in a MMC, SD or
+   CompactFlash (CF) card. The map files must be installed in a subdirectory
+   of the device's root directory named "share/roadmap". The reason for that
+   is to follow standard UNIX convention and make it easier to store other
+   types of data in the device (such as MP3 files).
+
+   The file system used for the device is indifferent (RoadMap maps complies
+   with the 8+3 limitation of the FAT file system) but VFAT is recommended
+   (if only because this is the factory default file system..).
+
+   The map files can be retrieved from any of the RoadMap sites:
+
+       * {{http://roadmap.saignon.net}}
+
+       * {{http://roadmap.noscience.net}}
+
+   The first file to install in the share/roadmap subdirectory is the file
+   named "usdir.rdm". This file is mandatory: this is the index used to
+   retrieve all other map files. All other files are optional: one can load
+   a limited subset of maps only. If a map is not available, RoadMap will
+   issue a warning message on the screen.
+
+
+* Setting the user preferences
+
+   Start Roadmap, select <<File / Preferences>>. The preferences dialog is
+   made of a (long) serie of tabbed screens. Most preferences do not need
+   to be modified.
+
