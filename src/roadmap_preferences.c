@@ -256,7 +256,6 @@ static void roadmap_preferences_reset_dialog
 
 static void roadmap_preferences_show (char *title, void *cursor) {
 
-   char full_title[256];
    ConfigurationContext *context;
 
    if (cursor == NULL) {
@@ -264,14 +263,11 @@ static void roadmap_preferences_show (char *title, void *cursor) {
       return;
    }
 
-   strcpy (full_title, "RoadMap ");
-   strcat (full_title, title);
-
    for (context = RoadMapConfigurationDialogs;
         context != NULL;
         context = context->next) {
 
-      if (strcmp (context->name, full_title) == 0) break;
+      if (strcmp (context->name, title) == 0) break;
    }
 
    if (context == NULL) {
@@ -281,14 +277,14 @@ static void roadmap_preferences_show (char *title, void *cursor) {
          roadmap_log (ROADMAP_FATAL, "no more memory");
       }
 
-      context->name = strdup(full_title);
+      context->name = strdup(title);
       context->children = NULL;
 
       context->next = RoadMapConfigurationDialogs;
       RoadMapConfigurationDialogs = context;
    }
 
-   if (roadmap_dialog_activate (full_title, context)) {
+   if (roadmap_dialog_activate (title, context)) {
 
       roadmap_preferences_new_dialog (context, cursor);
    }

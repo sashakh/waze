@@ -47,6 +47,9 @@ int   roadmap_verbosity  (void); /* return a minimum message level. */
 int   roadmap_is_visible (int category);
 char *roadmap_gps_source (void);
 
+int roadmap_option_width  (char *name);
+int roadmap_option_height (char *name);
+
 void roadmap_option (int argc, char **argv);
 
 #endif // INCLUDE__ROADMAP__H

@@ -104,13 +104,14 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
 
 void roadmap_main_set_window_size (GtkWidget *w, int width, int height) {
 
-   int screen_width = gdk_screen_width();
+   int screen_width  = gdk_screen_width();
+   int screen_height = gdk_screen_height();
 
-   if (screen_width <= width - 10) {
+   if (screen_width <= width - 10 || screen_height <= height - 40) {
 
       /* Small screen: take it all (almost: keep room for the wm). */
 
-      gtk_widget_set_usize (w, screen_width-10, gdk_screen_height()-40);
+      gtk_widget_set_usize (w, screen_width-10, screen_height-40);
 
    } else {
 

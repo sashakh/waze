@@ -26,6 +26,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "roadmap.h"
 #include "roadmap_config.h"
@@ -62,15 +63,38 @@ int roadmap_verbosity (void) {
 }
 
 
+int roadmap_option_width (char *name) {
+    
+    char *option = roadmap_config_get ("Geometry", name);
+    
+    if (option == NULL) {
+        return 300;
+    }
+    return atoi (option);
+}
+
+
+int roadmap_option_height (char *name) {
+
+    char *option = roadmap_config_get ("Geometry", name);
+
+    option = strchr (option, 'x');
+    if (option == NULL) {
+        return 200;
+    }
+    return atoi (option+1);
+}
+
+
 void roadmap_option (int argc, char **argv) {
 
    int i;
 
    for (i = 1; i < argc; i++) {
 
-      if (strncmp (argv[i], "--position=", 11) == 0) {
+      if (strncmp (argv[i], "--location=", 11) == 0) {
 
-         roadmap_config_set ("Locations", "Position", argv[i] + 11);
+         roadmap_config_set ("Locations", "Location", argv[i] + 11);
 
       } else if (strcmp (argv[i], "--metric") == 0) {
 
@@ -83,6 +107,31 @@ void roadmap_option (int argc, char **argv) {
       } else if (strcmp (argv[i], "--no-area") == 0) {
 
          roadmap_option_no_area = 1;
+
+      } else if (strncmp (argv[i], "--geometry=", 11) == 0) {
+
+         roadmap_config_set ("Geometry", "Main", argv[i]+11);
+
+      } else if (strncmp (argv[i], "--geometry:", 11) == 0) {
+
+         char *p;
+         char *value;
+         char buffer[256];
+          
+         strncpy (buffer, argv[i]+11, sizeof(buffer));
+          
+         value = strchr (buffer, '=');
+         if (value == NULL) {
+            roadmap_log (ROADMAP_FATAL, "%s: invalid option syntax", argv[i]);
+         }
+         *(value++) = 0;
+         
+         for (p = strchr(buffer, '-'); p != NULL; p =strchr(p, '-')) {
+             *p = ' ';
+         }
+         
+         roadmap_config_declare ("preferences", "Geometry", buffer, "300x200");
+         roadmap_config_set ("Geometry", buffer, value);
 
       } else if (strcmp (argv[i], "--no-toolbar") == 0) {
 

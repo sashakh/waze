@@ -326,7 +326,9 @@ static void roadmap_start_add_gps (int fd) {
 
 static void roadmap_start_window (void) {
 
-   roadmap_main_new ("RoadMap", 800, 600);
+   roadmap_main_new ("RoadMap",
+                     roadmap_option_width("Main"),
+                     roadmap_option_height("Main"));
 
    roadmap_factory (RoadMapStartMenu,
                     RoadMapStartToolbar,
@@ -355,6 +357,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare_enumeration
       ("preferences", "General", "Keyboard", "yes", "no", NULL);
 
+   roadmap_config_declare ("preferences", "Geometry", "Main", "800x600");
+    
    roadmap_math_initialize   ();
    roadmap_trip_initialize   ();
    roadmap_screen_initialize ();

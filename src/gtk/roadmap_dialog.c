@@ -296,7 +296,9 @@ int roadmap_dialog_activate (const char *name, void *context) {
 
    dialog->w = gtk_dialog_new();
    gtk_window_set_title (GTK_WINDOW(dialog->w), name);
-   roadmap_main_set_window_size (dialog->w, 300, 200);
+   roadmap_main_set_window_size (dialog->w,
+                                 roadmap_option_width(name),
+                                 roadmap_option_height(name));
 
    return 1; /* Tell the caller this is a new, undefined, dialog. */
 }

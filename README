@@ -231,6 +231,61 @@ USAGE:
    rdmgenmaps        A script to simplify the generation of the maps.
 
 
+   RoadMap's Command Line Options:
+   
+   The RoadMap application accepts the following command line options:
+   
+   --location=LONGITUDE,LATITUDE
+   
+       Set the location point (see menu entry Screen/Show Location..).
+       This option is sticky.
+
+   --metric
+   
+       Use the metric system for all units. This option is sticky.
+
+   --imperial
+   
+       Use the imperial system for all units. This option is sticky.
+
+   --no-area
+   
+       Do not show the polygons (parks, hospitals, malls, airports, etc..).
+
+   --geometry=WIDTHxHEIGHT
+   --geometry:WINDOW=WIDTHxHEIGHT
+   
+       Set the geometry of a specific RoadMap's window, according to its
+       title. The first form sets the size of the main windows (otherwise
+       called "Main"). If the window's title include spaces, dashes can be
+       used in place of the spaces (the goal is to be shell friendly). This
+       option is sticky.
+
+   --no-toolbar
+   
+       Do not show the toolbar. This option is sticky.
+
+   --square
+   
+       Show squares' boundaries using grey boxes. This option is for
+       debug purpose only.
+
+   --gps=URL
+   
+       Use a specific GPS source. This option is sticky.
+
+   --debug
+   
+       Print all informational and debug traces.
+
+   --verbose
+   
+       Print all informational traces.
+
+   The options marked as "sticky" remain in effect the next time RoadMap
+   is run. The use of the option actually changes the RoadMap preferences.
+
+
    Using RoadMap:
 
    The main RoadMap window shows the menu, the toolbar and the map's canvas.
@@ -534,6 +589,18 @@ CONFIGURATION:
          Description: show (yes) or hide (no) the roadmap toolbar.
          Format: boolean
          Default: yes
+
+     Geometry.Main:
+
+         Description: sets the size of the RoadMap main window.
+         Format: WIDTHxHEIGHT
+         Default: 800x600
+
+     Geometry.WINDOW:
+
+         Description: sets the size of the RoadMap window named WINDOW.
+         Format: WIDTHxHEIGHT
+         Default: 300x200
 
      Display.Bottom Right:
      
