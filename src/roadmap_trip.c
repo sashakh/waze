@@ -86,6 +86,7 @@ RoadMapTripPoint RoadMapTripPredefined[] = {
 };
 
 
+static RoadMapTripPoint *RoadMapTripGps = NULL;
 static RoadMapTripPoint *RoadMapTripFocus = NULL;
 static RoadMapTripPoint *RoadMapTripDeparture = NULL;
 static RoadMapTripPoint *RoadMapTripDestination = NULL;
@@ -573,9 +574,7 @@ const RoadMapPosition *roadmap_trip_get_focus_position (void) {
 
 void  roadmap_trip_start (int rotate) {
 
-    RoadMapTripPoint *gps = roadmap_trip_search ("GPS");
-    
-    roadmap_trip_set_point ("Departure", &gps->position);
+    roadmap_trip_set_point ("Departure", &RoadMapTripGps->position);
     RoadMapTripDeparture = roadmap_trip_search ("Departure");
     
     roadmap_trip_resume (rotate);
@@ -602,7 +601,7 @@ void roadmap_trip_display (void) {
     int distance_to_destination;
     char *unit;
     RoadMapGuiPoint point;
-    RoadMapTripPoint *gps = roadmap_trip_search ("GPS");
+    RoadMapTripPoint *gps = RoadMapTripGps;
     RoadMapTripPoint *waypoint;
     RoadMapTripPoint *next_waypoint;
 
@@ -752,7 +751,6 @@ void roadmap_trip_load (const char *name) {
     
     RoadMapPosition position;
     
-        
     if (ROADMAP_LIST_IS_EMPTY (&RoadMapTripWaypoints)) {
         
         int i;
@@ -804,6 +802,9 @@ void roadmap_trip_load (const char *name) {
       RoadMapTripModified = 0;
       
       roadmap_screen_refresh();
+    }
+    if (RoadMapTripGps == NULL) {
+        RoadMapTripGps = roadmap_trip_search ("GPS");
     }
 }
 

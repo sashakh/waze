@@ -63,7 +63,7 @@ int roadmap_verbosity (void) {
 }
 
 
-int roadmap_option_width (char *name) {
+int roadmap_option_width (const char *name) {
     
     char *option = roadmap_config_get ("Geometry", name);
     
@@ -74,7 +74,7 @@ int roadmap_option_width (char *name) {
 }
 
 
-int roadmap_option_height (char *name) {
+int roadmap_option_height (const char *name) {
 
     char *option = roadmap_config_get ("Geometry", name);
 

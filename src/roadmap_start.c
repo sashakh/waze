@@ -44,6 +44,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
 #include "roadmap_screen.h"
+#include "roadmap_display.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"

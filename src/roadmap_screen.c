@@ -749,8 +749,6 @@ static void roadmap_screen_repaint_sprites (void) {
     
     roadmap_trip_display ();
 
-    roadmap_display_colors (RoadMapHighlightForeground,
-                            RoadMapHighlightBackground);
     roadmap_display_show ();
 }
 
@@ -784,8 +782,6 @@ static void roadmap_screen_repaint_street_tip (void) {
       roadmap_math_rotate_coordinates (1, &point);
       roadmap_sprite_draw ("Highlight", &point, 0);
    }
-   roadmap_display_colors (RoadMapHighlightForeground,
-                           RoadMapHighlightBackground);
    roadmap_display_details
        (&RoadMapStreetTip.position, RoadMapStreetTip.name);
 }
@@ -1216,5 +1212,8 @@ void roadmap_screen_set_initial_position (void) {
 
    RoadMapHighlightForeground =
       roadmap_canvas_create_pen ("Highlight.Foreground");
+   
+   roadmap_display_colors (RoadMapHighlightForeground,
+                           RoadMapHighlightBackground);
 }
 
