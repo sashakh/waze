@@ -45,13 +45,6 @@ INTRODUCTION:
    If you do need the complete set, please drop an email to the author.
 
 
-WARNING:
-
-   Making the toolbar visible may crash the Qt version of RoadMap. For
-   those of you using Qt, I strongly recommend not activating the toolbar
-   (set "General.Toolbar" to "no" in the preferences file).
-
-
 DEPENDENCIES:
 
    RoadMap gets the current location from a GPS receiver, using the NMEA 0183
@@ -624,7 +617,7 @@ USING ROADMAP:
    the "Add as Waypoint" entry. Waypoints can be deleted by selecting the
    "Delete Waypoints.." entry, then selecting a specific waypoint and hitting
    the "Delete" button.
-   
+
    A trip that has been created or loaded can then be activated. Activating
    a trip defines the departure point (the current GPS location) and
    enable the "trip display" mode, i.e. some trip information displayed on

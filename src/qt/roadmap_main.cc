@@ -159,13 +159,9 @@ void roadmap_main_toggle_full_screen (void) {
 
 void roadmap_main_flush (void) {
 
-   // FIXME: inserting this code cause the RoadMap initialization
-   // to crash, even while this function is never called.
-   // The good news is: the flush does not seem to be required for
-   // the screen to be updated, at least on X11.
-   // if (app != NULL) {
-      // app->processEvents ();
-   // }
+   if (app != NULL) {
+      app->processEvents ();
+   }
 }
 
 

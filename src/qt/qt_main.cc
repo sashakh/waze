@@ -75,6 +75,7 @@ RMapMainWindow::RMapMainWindow(const char* name) : QMainWindow(0, name) {
 	setCentralWidget(canvas);
 	canvas->setFocus();
 	setToolBarsMovable(FALSE);
+   toolBar = 0;
 }
 
 RMapMainWindow::~RMapMainWindow() {
@@ -120,17 +121,13 @@ void RMapMainWindow::addTool(const char* label, const char* tip,
 
 #ifndef QWS
 	// For some unknown reason, this toolbar crashes RoadMap
-	// on the Sharp Zaurus. This should be fixed and the ifndef
-	// removed.
+	// on the Sharp Zaurus (and on Linux/x86 too--Pascal).
+   // This should be fixed and the ifndef removed.
 
 	if (toolBar == 0) {
-		toolBar = new QToolBar("toolbar", this, QMainWindow::Top);
+		toolBar = new QToolBar(this, "map view");
 		toolBar->setFocusPolicy(QWidget::NoFocus);
-      // For some reason, removing that line makes RoadMap to not
-      // crash on (my) Linux/x86. Seems to be some random behavior
-      // of Qt, which changes from one build to the other for no
-      // clear reason.. I hate Qt!
-		// toolBar->setHorizontalStretchable(TRUE);
+		toolBar->setHorizontalStretchable(TRUE);
 	}
 
    if (label != NULL) {
