@@ -67,7 +67,6 @@ typedef struct {
 
 
 static int PointCount = 0;
-static int PointTableSize = 0;
 static BuildMapPoint *Point[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *PointByPosition = NULL;
@@ -90,7 +89,6 @@ void buildmap_point_initialize (void) {
       buildmap_fatal (0, "no more memory");
    }
 
-   PointTableSize = 0;
    PointCount = 0;
 
    SortMaxLongitude = -0x7fffffff;
@@ -415,7 +413,6 @@ void buildmap_point_reset (void) {
    SortedPoint = NULL;
 
    PointCount = 0;
-   PointTableSize = 0;
 
    PointByPosition = NULL;
 

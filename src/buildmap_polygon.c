@@ -864,7 +864,6 @@ void buildmap_polygon_save (void) {
    int j;
    int square;
    int square_current;
-   int square_count;
    int polygon_current;
 
    BuildMapPolygon *one_polygon;
@@ -879,9 +878,6 @@ void buildmap_polygon_save (void) {
 
 
    buildmap_info ("saving polygons...");
-
-   square_count = buildmap_square_get_count();
-
 
    /* Create the database space */
 

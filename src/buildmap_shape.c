@@ -68,7 +68,6 @@ static int ShapeLineCount = 0;
 static int ShapeMaxLine = 0;
 static int ShapeMaxSequence = 0;
 
-static int ShapeTableSize = 0;
 static BuildMapShape *Shape[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *ShapeByLine   = NULL;
@@ -84,7 +83,6 @@ void buildmap_shape_initialize (void) {
 
    ShapeMaxLine = 0;
 
-   ShapeTableSize = 0;
    ShapeAddCount = 0;
    ShapeCount = 0;
    ShapeLineCount = 0;
@@ -483,8 +481,6 @@ void  buildmap_shape_reset (void) {
 
    ShapeMaxLine = 0;
    ShapeMaxSequence = 0;
-
-   ShapeTableSize = 0;
 
    ShapeByLine = NULL;
 

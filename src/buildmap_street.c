@@ -71,7 +71,6 @@ struct buildmap_street_struct {
 typedef struct buildmap_street_struct BuildMapStreet;
 
 static int StreetCount = 0;
-static int StreetTableSize = 0;
 static BuildMapStreet *Street[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *StreetByName = NULL;
@@ -85,7 +84,6 @@ void buildmap_street_initialize (void) {
 
    StreetByName = roadmap_hash_new ("StreetByName", BUILDMAP_BLOCK);
 
-   StreetTableSize = 0;
    StreetAddCount = 0;
    StreetCount = 0;
 }
@@ -323,7 +321,6 @@ void buildmap_street_reset (void) {
    }
 
    StreetCount = 0;
-   StreetTableSize = 0;
 
    StreetByName = NULL;
 

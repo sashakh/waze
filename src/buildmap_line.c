@@ -68,7 +68,6 @@ typedef struct {
 
 
 static int LineCount = 0;
-static int LineTableSize = 0;
 static int LineCrossingCount = 0;
 static BuildMapLine *Line[BUILDMAP_BLOCK] = {NULL};
 
@@ -87,7 +86,6 @@ void buildmap_line_initialize (void) {
       buildmap_fatal (0, "no more memory");
    }
 
-   LineTableSize = 0;
    LineCount = 0;
 }
 
@@ -568,7 +566,6 @@ void buildmap_line_reset (void) {
    SortedLine2 = NULL;
 
    LineCount = 0;
-   LineTableSize = 0;
    LineCrossingCount = 0;
 
    LineById = NULL;

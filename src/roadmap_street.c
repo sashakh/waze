@@ -526,18 +526,19 @@ int roadmap_street_blocks_by_city
         RoadMapBlocks *blocks,
         int size) {
 
+   /* FIXME: see below comment about city mapping.
    int i;
+   int place_count;
+   */
+
    int count;
    int total = 0;
-   int place_count;
 
    int city;
    RoadMapStreetIdentifier street;
 
 
    if (RoadMapRangeActive == NULL) return 0;
-
-   place_count = RoadMapRangeActive->RoadMapPlaceCount;
 
    roadmap_street_locate (street_name, &street);
    if (street.name <= 0) {
@@ -565,6 +566,8 @@ int roadmap_street_blocks_by_city
     * for places.
     *
     * START OF FILTERED CODE.
+   place_count = RoadMapRangeActive->RoadMapPlaceCount;
+
    for (i = 0; i < place_count; i++) {
 
       RoadMapRangePlace *this_place = RoadMapRangeActive->RoadMapPlace + i;
@@ -1637,7 +1640,6 @@ const char *roadmap_street_get_full_name
     
     static char RoadMapStreetName [512];
 
-    RoadMapStreet *this_street;
     const char *address;
     const char *city;
 
@@ -1646,9 +1648,6 @@ const char *roadmap_street_get_full_name
         return "";
     }
 
-    this_street =
-        RoadMapStreetActive->RoadMapStreets + properties->street;
-    
     address = roadmap_street_get_street_address (properties);
     city    = roadmap_street_get_city_name      (properties);
     

@@ -72,7 +72,6 @@ typedef struct {
 
 
 static int PlaceCount = 0;
-static int PlaceTableSize = 0;
 static BuildMapPlace *Place[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *PlaceByName = NULL;
@@ -89,7 +88,6 @@ void buildmap_place_initialize (void) {
       buildmap_fatal (0, "no more memory");
    }
 
-   PlaceTableSize = 0;
    PlaceCount = 0;
 }
 
@@ -431,8 +429,6 @@ void buildmap_place_reset (void) {
    SortedPlace = NULL;
 
    PlaceCount = 0;
-   PlaceTableSize = 0;
-
    PlaceByName = NULL;
 }
 

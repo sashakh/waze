@@ -117,7 +117,6 @@ RoadMapTripPoint RoadMapTripPredefined[] = {
 
 static RoadMapTripPoint *RoadMapTripGps = NULL;
 static RoadMapTripPoint *RoadMapTripFocus = NULL;
-static RoadMapTripPoint *RoadMapTripAddress = NULL;
 static RoadMapTripPoint *RoadMapTripDeparture = NULL;
 static RoadMapTripPoint *RoadMapTripDestination = NULL;
 static RoadMapTripPoint *RoadMapTripNextWaypoint = NULL;
@@ -678,8 +677,7 @@ void  roadmap_trip_restore_focus (void) {
             }
         }
     }
-    RoadMapTripGps     = roadmap_trip_search ("GPS");
-    RoadMapTripAddress = roadmap_trip_search ("Address");
+    RoadMapTripGps = roadmap_trip_search ("GPS");
 
     focus = roadmap_trip_search (roadmap_config_get (&RoadMapConfigFocusName));
     if (focus == NULL) {
@@ -825,7 +823,6 @@ void roadmap_trip_stop (void) {
 void roadmap_trip_format_messages (void) {
     
     int distance_to_destination;
-    char *unit;
     RoadMapTripPoint *gps = RoadMapTripGps;
     RoadMapTripPoint *waypoint;
 
@@ -865,8 +862,6 @@ void roadmap_trip_format_messages (void) {
                 }
             }
         }
-        
-        unit = roadmap_math_trip_unit();
         
         if (RoadMapTripNextWaypoint != RoadMapTripDestination) {
             

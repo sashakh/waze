@@ -74,7 +74,6 @@ static int RangeDuplicates = 0;
 
 static int RangeCount = 0;
 static int RangeMaxStreet = 0;
-static int RangeTableSize = 0;
 static BuildMapRange *Range[BUILDMAP_BLOCK] = {NULL};
 
 static int RangeNoAddressCount = 0;
@@ -100,7 +99,6 @@ void buildmap_range_initialize (void) {
       roadmap_hash_new ("RangeNoAddressByLine", BUILDMAP_BLOCK);
 
    RangeMaxStreet = 0;
-   RangeTableSize = 0;
    RangeAddCount = 0;
    RangeCount = 0;
 }
@@ -992,7 +990,6 @@ void buildmap_range_reset (void) {
    RangePlaceCount = 0;
    RangeNoAddressCount = 0;
    RangeMaxStreet = 0;
-   RangeTableSize = 0;
 
    for (i = 0; i < BUILDMAP_BLOCK; i++) {
       if (Range[i] != NULL) {

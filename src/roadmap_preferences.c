@@ -94,7 +94,7 @@ static void roadmap_preferences_ok (const char *name, void *data) {
       }
    }
 
-   return roadmap_preferences_cancel (name, data);
+   roadmap_preferences_cancel (name, data);
 }
 
 static void roadmap_preferences_force (const char *name, void *data) {
@@ -104,7 +104,7 @@ static void roadmap_preferences_force (const char *name, void *data) {
 }
 
 
-static EditableItem *roadmap_preferences_new_item
+static void roadmap_preferences_new_item
                         (ConfigurationContext *context,
                          RoadMapConfigDescriptor *cursor) {
 
@@ -118,7 +118,7 @@ static EditableItem *roadmap_preferences_new_item
          for (item = list->children; item != NULL; item = item->next) {
 
             if (strcmp (cursor->name, item->config.name) == 0) {
-               return item;
+               return;
             }
          }
       }
@@ -143,8 +143,6 @@ static EditableItem *roadmap_preferences_new_item
 
    item->next = list->children;
    list->children = item;
-
-   return item;
 }
 
 
@@ -159,13 +157,11 @@ static void roadmap_preferences_new_dialog
    int   count;
    char *values[256];
 
-   EditableItem *item;
-
 
    while (cursor->reference != NULL) {
 
       value = roadmap_config_get (cursor);
-      item  = roadmap_preferences_new_item (context, cursor);
+      roadmap_preferences_new_item (context, cursor);
 
       switch (roadmap_config_get_type (cursor)) {
 

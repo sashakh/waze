@@ -72,8 +72,6 @@ typedef struct roadmap_db_database_s {
 } roadmap_db_database;
 
 static roadmap_db_database *RoadmapDatabaseFirst  = NULL;
-static roadmap_db_database *RoadmapDatabaseLast   = NULL;
-static roadmap_db_database *RoadmapDatabaseActive = NULL;
 
 
 
@@ -254,8 +252,6 @@ static void roadmap_db_call_activate (roadmap_db_database *database) {
        */
       (* (registered->handler->activate)) (NULL);
    }
-
-   RoadmapDatabaseActive = database;
 }
 
 
@@ -306,9 +302,7 @@ static void roadmap_db_close_database (roadmap_db_database *database) {
       roadmap_file_unmap (&database->file);
    }
 
-   if (database->next == NULL) {
-      RoadmapDatabaseLast = database->previous;
-   } else {
+   if (database->next != NULL) {
       database->next->previous = database->previous;
    }
    if (database->previous == NULL) {
@@ -407,9 +401,7 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
    database->base = roadmap_file_base (file);
    database->size = roadmap_file_size (file);
 
-   if (RoadmapDatabaseFirst == NULL) {
-      RoadmapDatabaseLast = database;
-   } else {
+   if (RoadmapDatabaseFirst != NULL) {
       RoadmapDatabaseFirst->previous = database;
    }
    database->next       = RoadmapDatabaseFirst;
@@ -588,7 +580,7 @@ void roadmap_db_end (void) {
 
    for (database = RoadmapDatabaseFirst;
         database != NULL;
-        database = RoadmapDatabaseFirst) {
+        database = database->next) {
 
       roadmap_db_close_database (database);
    }

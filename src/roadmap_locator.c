@@ -67,7 +67,6 @@ static roadmap_db_model *RoadMapUsModel;
 static roadmap_db_model *RoadMapCountyModel;
 
 static RoadMapDictionary RoadMapUsCityDictionary = NULL;
-static RoadMapDictionary RoadMapUsCountyDictionary = NULL;
 static RoadMapDictionary RoadMapUsStateDictionary = NULL;
 
 
@@ -124,7 +123,6 @@ static void roadmap_locator_configure (void) {
       }
 
       RoadMapUsCityDictionary   = roadmap_dictionary_open ("city");
-      RoadMapUsCountyDictionary = roadmap_dictionary_open ("county");
       RoadMapUsStateDictionary  = roadmap_dictionary_open ("state");
 
 
