@@ -31,6 +31,11 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
+#ifdef ROADMAP_USES_GPE
+#include <gpe/init.h>
+#include <libdisplaymigration/displaymigration.h>
+#endif
+
 #include "roadmap.h"
 #include "roadmap_start.h"
 #include "roadmap_config.h"
@@ -151,6 +156,10 @@ void roadmap_main_new (const char *title, int width, int height) {
    if (RoadMapMainBox == NULL) {
 
       RoadMapMainWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+
+#ifdef ROADMAP_USES_GPE
+      displaymigration_mark_window (RoadMapMainWindow);
+#endif
 
       gtk_widget_set_events (RoadMapMainWindow, GDK_KEY_PRESS_MASK);
 
@@ -401,7 +410,14 @@ void roadmap_main_exit (void) {
 
 int main (int argc, char **argv) {
 
+#ifdef ROADMAP_USES_GPE
+   if (! gpe_application_init (&argc, &argv)) {
+      exit (1);
+   }
+   displaymigration_init ();
+#else
    gtk_init (&argc, &argv);
+#endif
 
    roadmap_start (argc, argv);
 

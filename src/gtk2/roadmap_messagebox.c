@@ -27,6 +27,10 @@
 
 #include <gtk/gtk.h>
 
+#ifdef ROADMAP_USES_GPE
+#include <libdisplaymigration/displaymigration.h>
+#endif
+
 #include "roadmap.h"
 #include "roadmap_start.h"
 
@@ -50,6 +54,9 @@ void roadmap_messagebox (const char *title, const char *text) {
    GtkWidget *dialog;
 
    dialog = gtk_dialog_new();
+#ifdef ROADMAP_USES_GPE
+   displaymigration_mark_window (dialog);
+#endif
 
    label = gtk_label_new(text);
 

@@ -16,17 +16,25 @@ INTRODUCTION:
    or the Sharp Zaurus.
    
    In its current version, RoadMap can work with either the Gtk+ 1.2,
-   Gtk 2.0, QT/X11 or QT/QPE graphic environments. The QT environment
-   --especially its QT/QPE version--is still experimental, the Gtk 1.2
-   environment is the most stable and the GTK 2.0 one has the most features.
+   Gtk 2.0, GPE, QT/X11 or QT/QPE graphic environments. The QT environment
+   --especially its QT/QPE version--is used for the Zaurus port (but
+   could probably be used with OPIE), the Gtk 1.2 environment is being
+   phased out (due to its old age). The most stable environment is the
+   Gtk 2.0 one (this is the one used by the author). The GPE support is
+   and optional extension of the Gtk 2.0 environment and is still very
+   experimental.
 
-   RoadMap is at an early stage of development. At this time there
-   are not much features implemented yet. RoadMap can merely display
-   the map around a specified street address, identify the current street
-   or follow a GPS device. The plan for the future is to implement some
-   navigation features similar to those found in commercial car navigation
-   systems, and to port RoadMap to as many environment as possible. In the
-   mean time a basic trip support is provided (waypoints and destination).
+   RoadMap is at an early stage of development. At this time all the
+   features have not been implemented yet. RoadMap can display the map
+   around a specified street address, track a GPS position and identify
+   the current street and the next intersection. A basic trip support is
+   provided (waypoints and destination). RoadMap will detect what is the
+   next waypoint, provide a direction indicator and show the distance to
+   the waypoint (and/or the destination).
+   
+   The plan for the future is to implement some navigation features similar
+   to those found in commercial car navigation systems, and to port RoadMap
+   to as many environment as possible.
 
    RoadMap uses a binary file format for representing the maps that is
    compact enough to allow the storage of many maps on a Compact Flash or
@@ -171,6 +179,10 @@ INSTALLATION:
 
       cd gtk2    -- if using the Gtk 2.0 toolkit
       make
+      cd ..
+
+      cd gtk2    -- if using GPE with the Gtk 2.0 toolkit
+      make TARGET=GPE
       cd ..
 
       cd qt      -- if using the QT toolkit

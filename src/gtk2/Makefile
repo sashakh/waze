@@ -2,14 +2,22 @@
 GUICFLAGS=`pkg-config --cflags gtk+-2.0` -DGTK_DISABLE_DEPRECATED=1
 GUILDFLAGS=`pkg-config --libs gtk+-2.0`
 
+GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
+GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
+
 STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
 # STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
 # STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
 
-CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
-
 RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a
-LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
+
+ifeq ($(TARGET),GPE)
+   CFLAGS=$(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I..
+   LIBS=$(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm
+else
+   CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
+   LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
+endif
 
 # LDFLAGS=-pg $(LDFLAGS)
 
@@ -26,8 +34,9 @@ RUNTIME=gtkroadgps gtkroadmap
 
 INSTALLDIR=/usr/local
 
-
 # --- Conventional targets ----------------------------------------
+
+.PHONY: all others build runtime clean cleanone install uninstall
 
 all: runtime
 

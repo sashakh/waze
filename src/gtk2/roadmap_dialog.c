@@ -30,6 +30,10 @@
 
 #include <gtk/gtk.h>
 
+#ifdef ROADMAP_USES_GPE
+#include <libdisplaymigration/displaymigration.h>
+#endif
+
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_start.h"
@@ -355,6 +359,9 @@ int roadmap_dialog_activate (const char *name, void *context) {
    /* Create the dialog's window. */
 
    dialog->w = gtk_dialog_new();
+#ifdef ROADMAP_USES_GPE
+   displaymigration_mark_window (dialog->w);
+#endif
    gtk_window_set_title (GTK_WINDOW(dialog->w), roadmap_start_get_title(name));
 
    return 1; /* Tell the caller this is a new, undefined, dialog. */
