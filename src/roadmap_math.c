@@ -419,20 +419,20 @@ void roadmap_math_release_focus () {
 }
 
 
-int roadmap_math_is_visible (int west, int east, int north, int south) {
+int roadmap_math_is_visible (const RoadMapArea *area) {
 
-   if (west > RoadMapContext.focus.east ||
-       east < RoadMapContext.focus.west ||
-       south > RoadMapContext.focus.north ||
-       north < RoadMapContext.focus.south)
+   if (area->west > RoadMapContext.focus.east ||
+       area->east < RoadMapContext.focus.west ||
+       area->south > RoadMapContext.focus.north ||
+       area->north < RoadMapContext.focus.south)
    {
        return 0;
    }
 
-   if (west >= RoadMapContext.focus.west &&
-       east < RoadMapContext.focus.east &&
-       south > RoadMapContext.focus.south &&
-       north <= RoadMapContext.focus.north)
+   if (area->west >= RoadMapContext.focus.west &&
+       area->east < RoadMapContext.focus.east &&
+       area->south > RoadMapContext.focus.south &&
+       area->north <= RoadMapContext.focus.north)
    {
        return 1;
    }

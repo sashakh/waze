@@ -44,11 +44,7 @@
 
 typedef struct {
 
-   int max_longitude;
-   int max_latitude;
-
-   int min_longitude;
-   int min_latitude;
+   RoadMapArea edges;
 
    int count_points;
    int position;
@@ -57,11 +53,7 @@ typedef struct {
 
 typedef struct {
 
-   int max_longitude;
-   int max_latitude;
-
-   int min_longitude;
-   int min_latitude;
+   RoadMapArea edges;
 
    int step_longitude;
    int step_latitude;

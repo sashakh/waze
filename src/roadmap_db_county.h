@@ -42,11 +42,7 @@ typedef struct {  /* table county/data */
 
    RoadMapString name;
 
-   int max_longitude;
-   int max_latitude;
-
-   int min_longitude;
-   int min_latitude;
+   RoadMapArea edges;
 
 } RoadMapCounty;
 
@@ -68,11 +64,7 @@ typedef struct {  /* table county/bystate */
    unsigned short first_city;
    unsigned short last_city;
 
-   int max_longitude;
-   int max_latitude;
-
-   int min_longitude;
-   int min_latitude;
+   RoadMapArea edges;
 
 } RoadMapCountyByState;
 

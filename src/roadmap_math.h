@@ -53,7 +53,7 @@ int  roadmap_math_thickness (int base);
 /* These 2 functions return: 0 (not visible), 1 (fully visible) or
  * -1 (partially visible).
  */
-int  roadmap_math_is_visible       (int west, int east, int north, int south);
+int  roadmap_math_is_visible       (const RoadMapArea *area);
 int  roadmap_math_line_is_visible  (const RoadMapPosition *point1,
                                     const RoadMapPosition *point2);
 int  roadmap_math_point_is_visible (const RoadMapPosition *point);

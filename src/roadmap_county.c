@@ -126,18 +126,21 @@ static void roadmap_county_activate (void *context) {
 
    RoadMapCountyContext *county_context = (RoadMapCountyContext *) context;
 
-   if (county_context->type != RoadMapCountyType) {
-      roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
+   if (county_context != NULL) {
+
+      if (county_context->type != RoadMapCountyType) {
+         roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
+      }
+
+      if (county_context->names == NULL) {
+         county_context->names = roadmap_dictionary_open ("county");
+         county_context->states = roadmap_dictionary_open ("state");
+      }
+
+      county_context->hash =
+         roadmap_hash_new ("countyIndex", county_context->county_count);
    }
    RoadMapCountyActive = county_context;
-
-   if (county_context->names == NULL) {
-      county_context->names = roadmap_dictionary_open ("county");
-      county_context->states = roadmap_dictionary_open ("state");
-   }
-
-   county_context->hash =
-      roadmap_hash_new ("countyIndex", county_context->county_count);
 }
 
 static void roadmap_county_unmap (void *context) {
@@ -193,21 +196,21 @@ int roadmap_county_by_position
 
       if (this_state->symbol == 0) continue; /* Unused FIPS. */
 
-      if (position->longitude > this_state->max_longitude) continue;
-      if (position->longitude < this_state->min_longitude) continue;
-      if (position->latitude  > this_state->max_latitude)  continue;
-      if (position->latitude  < this_state->min_latitude)  continue;
+      if (position->longitude > this_state->edges.east) continue;
+      if (position->longitude < this_state->edges.west) continue;
+      if (position->latitude  > this_state->edges.north)  continue;
+      if (position->latitude  < this_state->edges.south)  continue;
 
-      if (this_state->min_latitude == this_state->max_latitude) continue;
+      if (this_state->edges.south == this_state->edges.north) continue;
 
       for (j = this_state->first_county; j <= this_state->last_county; j++) {
 
          this_county = RoadMapCountyActive->county + j;
 
-         if (position->longitude > this_county->max_longitude) continue;
-         if (position->longitude < this_county->min_longitude) continue;
-         if (position->latitude  > this_county->max_latitude)  continue;
-         if (position->latitude  < this_county->min_latitude)  continue;
+         if (position->longitude > this_county->edges.east) continue;
+         if (position->longitude < this_county->edges.west) continue;
+         if (position->latitude  > this_county->edges.north)  continue;
+         if (position->latitude  < this_county->edges.south)  continue;
 
          fips[found++] = this_county->fips;
 
@@ -224,23 +227,15 @@ int roadmap_county_by_position
 
       if (this_state->symbol == 0) continue; /* Unused FIPS. */
 
-      if (! roadmap_math_is_visible (this_state->min_longitude,
-                                     this_state->max_longitude,
-                                     this_state->max_latitude,
-                                     this_state->min_latitude)) {
-         continue;
-      }
+      if (! roadmap_math_is_visible (&(this_state->edges))) continue;
 
-      if (this_state->min_latitude == this_state->max_latitude) continue;
+      if (this_state->edges.south == this_state->edges.north) continue;
 
       for (j = this_state->first_county; j <= this_state->last_county; j++) {
 
          this_county = RoadMapCountyActive->county + j;
 
-         if (roadmap_math_is_visible (this_county->min_longitude,
-                                      this_county->max_longitude,
-                                      this_county->max_latitude,
-                                      this_county->min_latitude)) {
+         if (roadmap_math_is_visible (&(this_county->edges))) {
 
             /* Do not register the same county more than once. */
             for (k = 0; k < found; k++) {
@@ -283,6 +278,8 @@ int roadmap_county_by_city (RoadMapString city, RoadMapString state) {
    RoadMapCountyCity *this_city;
    RoadMapCountyByState *this_state;
 
+   if (RoadMapCountyActive == NULL) return 0;
+
    this_state = roadmap_county_search_state (state);
    if (this_state == NULL) {
       return 0; /* State not in this map ??? */
@@ -307,6 +304,8 @@ int roadmap_county_by_state(RoadMapString state, int *fips, int count) {
    int found;
    int last_county;
    RoadMapCountyByState *this_state;
+
+   if (RoadMapCountyActive == NULL) return 0;
 
    this_state = roadmap_county_search_state (state);
    if (this_state == NULL) {
@@ -334,6 +333,8 @@ const char *roadmap_county_name (RoadMapString state, int fips) {
    int i;
    RoadMapCounty *this_county;
    RoadMapCountyByState *this_state;
+
+   if (RoadMapCountyActive == NULL) return "";
 
    this_state = roadmap_county_search_state (state);
    if (this_state == NULL) {
@@ -379,8 +380,11 @@ static int roadmap_county_search_index (int fips) {
 
 const char *roadmap_county_get_name (int fips) {
 
-   int i = roadmap_county_search_index (fips);
+   int i;
 
+   if (RoadMapCountyActive == NULL) return "";
+
+   i = roadmap_county_search_index (fips);
    if (i < 0) {
       return "";
    }
@@ -394,8 +398,12 @@ const char *roadmap_county_get_state (int fips) {
    RoadMapCountyByState *this_state;
 
    int i;
-   int county = roadmap_county_search_index (fips);
+   int county;
 
+
+   if (RoadMapCountyActive == NULL) return "";
+
+   county = roadmap_county_search_index (fips);
 
    for (i = 1; i < RoadMapCountyActive->state_count; ++i) {
 

@@ -24,13 +24,13 @@
 #ifndef _ROADMAP_POLYGON__H_
 #define _ROADMAP_POLYGON__H_
 
+#include "roadmap_types.h"
 #include "roadmap_dbread.h"
 
-int  roadmap_polygon_count (void);
+int  roadmap_polygon_count    (void);
 int  roadmap_polygon_category (int polygon);
-void roadmap_polygon_edges
-        (int polygon, int *west, int *east, int *north, int *south);
-int  roadmap_polygon_points (int polygon, int *list, int size);
+void roadmap_polygon_edges    (int polygon, RoadMapArea *edges);
+int  roadmap_polygon_points   (int polygon, int *list, int size);
 
 extern roadmap_db_handler RoadMapPolygonHandler;
 

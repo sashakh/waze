@@ -103,7 +103,8 @@ static void roadmap_square_activate (void *context) {
 
    RoadMapSquareContext *square_context = (RoadMapSquareContext *) context;
 
-   if (square_context->type != RoadMapSquareType) {
+   if ((square_context != NULL) &&
+       (square_context->type != RoadMapSquareType)) {
       roadmap_log(ROADMAP_FATAL, "cannot unmap (bad context type)");
    }
    RoadMapSquareActive = square_context;
@@ -144,6 +145,8 @@ static int roadmap_square_is_valid (square) {
 
 int roadmap_square_count (void) {
 
+   if (RoadMapSquareActive == NULL) return 0;
+
    return RoadMapSquareActive->SquareGridCount;
 }
 
@@ -156,12 +159,12 @@ static int roadmap_square_on_grid (const RoadMapPosition *position) {
    RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
 
 
-   x = (position->longitude - global->min_longitude) / global->step_longitude;
+   x = (position->longitude - global->edges.west) / global->step_longitude;
    if (x < 0 || x > global->count_longitude) {
       return -1;
    }
 
-   y = (position->latitude - global->min_latitude)  / global->step_latitude;
+   y = (position->latitude - global->edges.south)  / global->step_latitude;
    if (y < 0 || y > global->count_latitude) {
       return -1;
    }
@@ -194,34 +197,34 @@ static int roadmap_square_location (const RoadMapPosition *position) {
    this_square = base_square + grid[square];
 
    while (grid[square] < 0 ||
-          this_square->max_longitude <= position->longitude) {
+          this_square->edges.east <= position->longitude) {
 
       if (position->longitude ==
-          RoadMapSquareActive->SquareGlobal->max_longitude) break;
+          RoadMapSquareActive->SquareGlobal->edges.east) break;
 
       if (++square >= grid_count) return -1;
       this_square = base_square + grid[square];
    }
 
    while (grid[square] < 0 ||
-          this_square->min_longitude > position->longitude) {
+          this_square->edges.west > position->longitude) {
 
       if (--square < 0) return -1;
       this_square = base_square + grid[square];
    }
 
    while (grid[square] < 0 ||
-          this_square->max_latitude <= position->latitude) {
+          this_square->edges.north <= position->latitude) {
 
       if (position->latitude ==
-          RoadMapSquareActive->SquareGlobal->max_latitude) break;
+          RoadMapSquareActive->SquareGlobal->edges.north) break;
 
       if (++square >= grid_count) return -1;
       this_square = base_square + grid[square];
    }
 
    while (grid[square] < 0 ||
-          this_square->min_latitude > position->latitude) {
+          this_square->edges.south > position->latitude) {
 
       if (--square < 0) return -1;
       this_square = base_square + grid[square];
@@ -233,10 +236,15 @@ static int roadmap_square_location (const RoadMapPosition *position) {
 
 int roadmap_square_search (const RoadMapPosition *position) {
 
+   int *grid;
+   int square;
    RoadMapSquare *this_square;
-   int *grid = RoadMapSquareActive->SquareGrid;
 
-   int square = roadmap_square_location (position);
+
+   if (RoadMapSquareActive == NULL) return ROADMAP_SQUARE_OTHER;
+
+   grid = RoadMapSquareActive->SquareGrid;
+   square = roadmap_square_location (position);
 
    if (square < 0 || square >= RoadMapSquareActive->SquareGridCount) {
       return ROADMAP_SQUARE_OTHER;
@@ -247,10 +255,10 @@ int roadmap_square_search (const RoadMapPosition *position) {
 
    this_square = RoadMapSquareActive->Square + grid[square];
 
-   if ((this_square->min_longitude > position->longitude) ||
-       (this_square->max_longitude < position->longitude) ||
-       (this_square->min_latitude > position->latitude) ||
-       (this_square->max_latitude < position->latitude)) {
+   if ((this_square->edges.west > position->longitude) ||
+       (this_square->edges.east < position->longitude) ||
+       (this_square->edges.south > position->latitude) ||
+       (this_square->edges.north < position->latitude)) {
 
       return ROADMAP_SQUARE_GLOBAL;
    }
@@ -261,12 +269,11 @@ int roadmap_square_search (const RoadMapPosition *position) {
 
 void  roadmap_square_min (int square, RoadMapPosition *position) {
 
-   RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
-
+   if (RoadMapSquareActive == NULL) return;
 
    /* Default values. */
-   position->longitude = global->min_longitude;
-   position->latitude  = global->min_latitude;
+   position->longitude = RoadMapSquareActive->SquareGlobal->edges.west;
+   position->latitude  = RoadMapSquareActive->SquareGlobal->edges.south;
 
    if (square == ROADMAP_SQUARE_GLOBAL) {
       return;
@@ -280,21 +287,19 @@ void  roadmap_square_min (int square, RoadMapPosition *position) {
    if (square < 0) {
       return;
    }
-   position->longitude = RoadMapSquareActive->Square[square].min_longitude;
-   position->latitude  = RoadMapSquareActive->Square[square].min_latitude;
+   position->longitude = RoadMapSquareActive->Square[square].edges.west;
+   position->latitude  = RoadMapSquareActive->Square[square].edges.south;
 }
 
 
-void  roadmap_square_edges
-         (int square, int *west, int *east, int *north, int *south) {
-
+void  roadmap_square_edges (int square, RoadMapArea *edges) {
 
    if (RoadMapSquareActive == NULL) {
 
-      *west = 0;
-      *east = 0;
-      *north = 0;
-      *south = 0;
+      edges->west = 0;
+      edges->east = 0;
+      edges->north = 0;
+      edges->south = 0;
 
       return;
    }
@@ -303,10 +308,7 @@ void  roadmap_square_edges
 
       RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
 
-      *west = global->min_longitude;
-      *east = global->max_longitude;
-      *north = global->max_latitude;
-      *south = global->min_latitude;
+      *edges = global->edges;
 
       return;
    }
@@ -319,15 +321,14 @@ void  roadmap_square_edges
    {
       RoadMapSquare *square_item = RoadMapSquareActive->Square + square;
 
-      *west =  square_item->min_longitude;
-      *east =  square_item->max_longitude;
-      *north = square_item->max_latitude;
-      *south = square_item->min_latitude;
+      *edges = square_item->edges;
    }
 }
 
 
 int roadmap_square_index (int square) {
+
+   if (RoadMapSquareActive == NULL) return -1;
 
    if (! roadmap_square_is_valid (square)) {
       return -1;
@@ -339,9 +340,7 @@ int roadmap_square_index (int square) {
 
 int roadmap_square_from_index (int index) {
 
-   if (RoadMapSquareActive == NULL) {
-      return -1;
-   }
+   if (RoadMapSquareActive == NULL) return -1;
 
    if (index < 0 ||
        index >= RoadMapSquareActive->SquareGlobal->count_squares) {
@@ -354,8 +353,8 @@ int roadmap_square_from_index (int index) {
 
 int roadmap_square_view (int *square, int size) {
 
-   int *grid = RoadMapSquareActive->SquareGrid;
-   RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
+   int *grid;
+   RoadMapGlobal *global;
 
    RoadMapArea screen;
    int x0;
@@ -368,10 +367,15 @@ int roadmap_square_view (int *square, int size) {
    int grid_index;
 
 
+   if (RoadMapSquareActive == NULL) return 0;
+
+   grid   = RoadMapSquareActive->SquareGrid;
+   global = RoadMapSquareActive->SquareGlobal;
+
    roadmap_math_screen_edges (&screen);
 
-   x0 = (screen.west - global->min_longitude) / global->step_longitude;
-   x1 = (screen.east - global->min_longitude) / global->step_longitude;
+   x0 = (screen.west - global->edges.west) / global->step_longitude;
+   x1 = (screen.east - global->edges.west) / global->step_longitude;
    if ((x1 < 0) || (x0 >= global->count_longitude)) {
       return 0;
    }
@@ -382,8 +386,8 @@ int roadmap_square_view (int *square, int size) {
       x1 = global->count_longitude - 1;
    }
 
-   y0 = (screen.north  - global->min_latitude)  / global->step_latitude;
-   y1 = (screen.south  - global->min_latitude)  / global->step_latitude;
+   y0 = (screen.north  - global->edges.south)  / global->step_latitude;
+   y1 = (screen.south  - global->edges.south)  / global->step_latitude;
    if ((y0 < 0) || (y1 >= global->count_latitude)) {
       return 0;
    }

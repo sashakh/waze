@@ -28,8 +28,7 @@
  *   int  buildus_county_add_state (RoadMapString name, int code);
  *   void buildus_county_add_city (int fips, RoadMapString city);
  *   void buildus_county_set_position (int fips,
- *                                     int max_longitude, int max_latitude,
- *                                     int min_longitude, int min_latitude);
+ *                                     const RoadMapArea *bounding_box);
  *   void buildus_county_sort (void);
  *   void buildus_county_save (void);
  *   void buildus_county_summary (void);
@@ -78,11 +77,7 @@ typedef struct {
    RoadMapString name;
    RoadMapString symbol;
 
-   int max_longitude;
-   int max_latitude;
-
-   int min_longitude;
-   int min_latitude;
+   RoadMapArea edges;
 
 } BuildUsState;
 
@@ -196,6 +191,7 @@ int buildus_county_add
 void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
 
    int i;
+   RoadMapArea area_reset = {0, 0, 0, 0};
 
    /* Search if that state is not yet known. */
 
@@ -216,10 +212,7 @@ void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
    State[StateCount].name   = name;
    State[StateCount].symbol = symbol;
 
-   State[StateCount].max_longitude = 0;
-   State[StateCount].max_latitude  = 0;
-   State[StateCount].min_longitude = 0;
-   State[StateCount].min_latitude  = 0;
+   State[StateCount].edges = area_reset;
 }
 
 
@@ -270,8 +263,7 @@ void buildus_county_add_city (int fips, RoadMapString city) {
 
 
 void buildus_county_set_position (int fips,
-                                  int max_longitude, int max_latitude,
-                                  int min_longitude, int min_latitude) {
+                                  const RoadMapArea *bounding_box) {
 
    int index;
    RoadMapCounty *this_county;
@@ -285,10 +277,7 @@ void buildus_county_set_position (int fips,
 
       if (this_county->fips == fips) {
 
-         this_county->max_longitude = max_longitude;
-         this_county->max_latitude  = max_latitude;
-         this_county->min_longitude = min_longitude;
-         this_county->min_latitude  = min_latitude;
+         this_county->edges = *bounding_box;
 
          index = StateCode[fips / 1000];
 
@@ -296,21 +285,21 @@ void buildus_county_set_position (int fips,
             buildmap_fatal (0, "invalid state code");
          }
 
-         if ((State[index].max_longitude == 0) ||
-             (State[index].max_longitude < max_longitude)) {
-            State[index].max_longitude = max_longitude;
+         if ((State[index].edges.east == 0) ||
+             (State[index].edges.east < bounding_box->east)) {
+            State[index].edges.east = bounding_box->east;
          }
-         if ((State[index].min_longitude == 0) ||
-             (State[index].min_longitude > min_longitude)) {
-            State[index].min_longitude = min_longitude;
+         if ((State[index].edges.west == 0) ||
+             (State[index].edges.west > bounding_box->west)) {
+            State[index].edges.west = bounding_box->west;
          }
-         if ((State[index].max_latitude == 0) ||
-             (State[index].max_latitude < max_latitude)) {
-            State[index].max_latitude = max_latitude;
+         if ((State[index].edges.north == 0) ||
+             (State[index].edges.north < bounding_box->north)) {
+            State[index].edges.north = bounding_box->north;
          }
-         if ((State[index].min_latitude == 0) ||
-             (State[index].min_latitude > min_latitude)) {
-            State[index].min_latitude = min_latitude;
+         if ((State[index].edges.south == 0) ||
+             (State[index].edges.south >  bounding_box->south)) {
+            State[index].edges.south =  bounding_box->south;
          }
 
          return;
@@ -547,10 +536,7 @@ void buildus_county_save (void) {
           db_state[i].name   = State[state].name;
           db_state[i].symbol = State[state].symbol;
 
-          db_state[i].max_longitude = State[state].max_longitude;
-          db_state[i].min_longitude = State[state].min_longitude;
-          db_state[i].max_latitude  = State[state].max_latitude;
-          db_state[i].min_latitude  = State[state].min_latitude;
+          db_state[i].edges = State[state].edges;
       }
    }
 }

@@ -142,7 +142,8 @@ static void roadmap_line_activate (void *context) {
 
    RoadMapLineContext *line_context = (RoadMapLineContext *) context;
 
-   if (line_context->type != RoadMapLineType) {
+   if ((line_context != NULL) &&
+       (line_context->type != RoadMapLineType)) {
       roadmap_log (ROADMAP_FATAL, "invalid line context activated");
    }
    RoadMapLineActive = line_context;
@@ -170,6 +171,8 @@ int roadmap_line_in_square (int square, int cfcc, int *first, int *last) {
 
    int  next;
    int *index;
+
+   if (RoadMapLineActive == NULL) return 0; /* No line. */
 
    if (cfcc <= 0 || cfcc > ROADMAP_CATEGORY_RANGE) {
       roadmap_log (ROADMAP_FATAL, "illegal cfcc %d", cfcc);
@@ -204,6 +207,8 @@ int roadmap_line_in_square2 (int square, int cfcc, int *first, int *last) {
 
    int  next;
    int *index;
+
+   if (RoadMapLineActive == NULL) return 0; /* No line. */
 
    if (cfcc <= 0 || cfcc > ROADMAP_CATEGORY_RANGE) {
       roadmap_log (ROADMAP_FATAL, "illegal cfcc %d", cfcc);
@@ -279,6 +284,8 @@ void roadmap_line_to   (int line, RoadMapPosition *position) {
 
 
 int  roadmap_line_count (void) {
+
+   if (RoadMapLineActive == NULL) return 0; /* No line. */
 
    return RoadMapLineActive->LineCount;
 }

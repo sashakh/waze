@@ -24,6 +24,7 @@
 #ifndef _ROADMAP_SQUARE__H_
 #define _ROADMAP_SQUARE__H_
 
+#include "roadmap_types.h"
 #include "roadmap_dbread.h"
 
 #define ROADMAP_SQUARE_GLOBAL -1
@@ -33,8 +34,7 @@ int   roadmap_square_count  (void);
 int   roadmap_square_search (const RoadMapPosition *position);
 void  roadmap_square_min    (int square, RoadMapPosition *position);
 
-void  roadmap_square_edges
-         (int square, int *west, int *east, int *north, int *south);
+void  roadmap_square_edges  (int square, RoadMapArea *edges);
 
 int   roadmap_square_index (int square);
 int   roadmap_square_from_index (int index);

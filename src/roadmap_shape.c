@@ -129,19 +129,23 @@ static void roadmap_shape_activate (void *context) {
 
    RoadMapShapeContext *shape_context = (RoadMapShapeContext *) context;
 
-   if (shape_context->type != RoadMapShapeType) {
-      roadmap_log (ROADMAP_FATAL, "cannot activate shape (bad type)");
+   if (shape_context != NULL) {
+
+      if (shape_context->type != RoadMapShapeType) {
+         roadmap_log (ROADMAP_FATAL, "cannot activate shape (bad type)");
+      }
+
+      if (shape_context->shape_cache == NULL) {
+
+         shape_context->shape_cache_size = roadmap_line_count();
+         shape_context->shape_cache =
+            calloc ((shape_context->shape_cache_size / (8 * sizeof(int))) + 1,
+                  sizeof(int));
+         roadmap_check_allocated(shape_context->shape_cache);
+      }
    }
+
    RoadMapShapeActive = shape_context;
-
-   if (shape_context->shape_cache == NULL) {
-
-      shape_context->shape_cache_size = roadmap_line_count();
-      shape_context->shape_cache =
-         calloc ((shape_context->shape_cache_size / (8 * sizeof(int))) + 1,
-                 sizeof(int));
-      roadmap_check_allocated(shape_context->shape_cache);
-   }
 }
 
 static void roadmap_shape_unmap (void *context) {
@@ -173,6 +177,8 @@ int  roadmap_shape_in_square (int square, int *first, int *last) {
 
    RoadMapShapeBySquare *ShapeBySquare;
 
+   if (RoadMapShapeActive == NULL) return 0;
+
    square = roadmap_square_index(square);
 
    if (square >= 0 && square < RoadMapShapeActive->ShapeBySquareCount) {
@@ -194,6 +200,9 @@ int  roadmap_shape_of_line (int line, int begin, int end,
 
    int middle = 0;
    RoadMapShapeByLine *shape_by_line;
+
+
+   if (RoadMapShapeActive == NULL) return 0;
 
    if (line >= 0 && line < RoadMapShapeActive->shape_cache_size) {
 

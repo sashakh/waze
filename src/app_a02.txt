@@ -3234,6 +3234,7 @@ FIPS          County     State
 78     010     St. Croix     VI
 78     020     St. John     VI
 78     030     St. Thomas     VI
+82     001     Placenames     PN
 83     010     DCW Europe and North Asia     DW
 83     011     DCW Europe and North Asia     DW
 83     012     DCW Europe and North Asia     DW

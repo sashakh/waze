@@ -321,11 +321,11 @@ void buildmap_square_save (void) {
    db_square = (RoadMapSquare *) buildmap_db_get_data (table_data);
 
 
-   db_global->max_longitude = SortMaxLongitude;
-   db_global->max_latitude  = SortMaxLatitude;
+   db_global->edges.east = SortMaxLongitude;
+   db_global->edges.north  = SortMaxLatitude;
 
-   db_global->min_longitude = SortMinLongitude;
-   db_global->min_latitude  = SortMinLatitude;
+   db_global->edges.west = SortMinLongitude;
+   db_global->edges.south  = SortMinLatitude;
 
    db_global->step_longitude = SortStepLongitude;
    db_global->step_latitude  = SortStepLatitude;
@@ -339,11 +339,11 @@ void buildmap_square_save (void) {
 
       one_square = Square + SortedSquare[i];
 
-      db_square[i].min_longitude = one_square->minlongitude;
-      db_square[i].min_latitude  = one_square->minlatitude;
+      db_square[i].edges.east = one_square->maxlongitude;
+      db_square[i].edges.north  = one_square->maxlatitude;
 
-      db_square[i].max_longitude = one_square->maxlongitude;
-      db_square[i].max_latitude  = one_square->maxlatitude;
+      db_square[i].edges.west = one_square->minlongitude;
+      db_square[i].edges.south  = one_square->minlatitude;
 
       db_square[i].position      = SortedSquare[i];
       db_square[i].count_points  = one_square->count;

@@ -72,4 +72,4 @@ DW,DCW Europe and North Asia
 DX,DCW South Asia
 DY,DCW North America
 DZ,DCW South America and Africa
-
+PN,Placenames

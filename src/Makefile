@@ -80,6 +80,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_point.c \
           roadmap_line.c \
           roadmap_shape.c \
+          roadmap_place.c \
           roadmap_polygon.c \
           roadmap_street.c \
           roadmap_geocode.c \
@@ -145,9 +146,21 @@ BMSRCS=buildmap_messages.c \
        buildmap_zip.c \
        buildmap_tiger.c \
        buildmap_shapefile.c \
+	   buildmap_place.c \
        buildmap_main.c
 
 BMOBJS=$(BMSRCS:.c=.o)
+
+
+BPSRCS=buildmap_messages.c \
+       buildmap_dictionary.c \
+       buildmap_dbwrite.c \
+       buildmap_square.c \
+       buildmap_point.c \
+	   buildmap_place.c \
+       buildplace_main.c
+
+BPOBJS=$(BPSRCS:.c=.o)
 
 
 BUSRCS=buildus_main.c \
@@ -160,7 +173,7 @@ BUSRCS=buildus_main.c \
 BUOBJS=$(BUSRCS:.c=.o)
 
 
-BUILD=buildmap buildus dumpmap
+BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 
@@ -259,4 +272,7 @@ buildmap: $(BMOBJS) $(RDMLIBS)
 
 buildus: $(BUOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BUOBJS) -o buildus $(LIBS)
+
+buildplace: $(BPOBJS) $(RDMLIBS)
+	$(CC) $(LDFLAGS) $(BPOBJS) -o buildplace $(LIBS)
 

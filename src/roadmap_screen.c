@@ -130,7 +130,7 @@ static int RoadMapPolygonGeoPoints[ROADMAP_SCREEN_BULK];
 
 
 static RoadMapPen RoadMapBackground = NULL;
-static RoadMapPen RoadMapEdges = NULL;
+static RoadMapPen RoadMapPenEdges = NULL;
 
 
 static void roadmap_screen_flush_points (void) {
@@ -371,10 +371,6 @@ static void roadmap_screen_draw_polygons (void) {
    int size;
    int category;
    int current_category = -1;
-   int west;
-   int east;
-   int north;
-   int south;
    int *geo_point;
    RoadMapPosition position;
    RoadMapGuiPoint *graphic_point;
@@ -382,6 +378,8 @@ static void roadmap_screen_draw_polygons (void) {
 
    RoadMapGuiPoint upper_left;
    RoadMapGuiPoint lower_right;
+
+   RoadMapArea edges;
 
 
    if (! roadmap_is_visible (ROADMAP_SHOW_AREA)) return;
@@ -397,21 +395,19 @@ static void roadmap_screen_draw_polygons (void) {
          current_category = category;
       }
 
-      roadmap_polygon_edges (i, &west, &east, &north, &south);
+      roadmap_polygon_edges (i, &edges);
 
-      if (! roadmap_math_is_visible (west, east, north, south)) {
-         continue;
-      }
+      if (! roadmap_math_is_visible (&edges)) continue;
 
       /* Declutter logic: do not show the polygon when it has been
        * reduced (by the zoom) to a quasi-point.
        */
-      position.longitude = west;
-      position.latitude  = north;
+      position.longitude = edges.west;
+      position.latitude  = edges.north;
       roadmap_math_coordinate (&position, &upper_left);
 
-      position.longitude = east;
-      position.latitude  = south;
+      position.longitude = edges.east;
+      position.latitude  = edges.south;
       roadmap_math_coordinate (&position, &lower_right);
 
       if (abs(upper_left.x - lower_right.x) < 5 &&
@@ -474,6 +470,7 @@ static void roadmap_screen_draw_polygons (void) {
 static void roadmap_screen_draw_square_edges (int square) {
 
    int count;
+   RoadMapArea edges;
    RoadMapPosition topleft;
    RoadMapPosition bottomright;
    RoadMapPosition position;
@@ -483,10 +480,12 @@ static void roadmap_screen_draw_square_edges (int square) {
 
    if (! roadmap_is_visible (ROADMAP_SHOW_SQUARE)) return;
 
-   roadmap_square_edges (square, &(topleft.longitude),
-                                 &(bottomright.longitude),
-                                 &(topleft.latitude),
-                                 &(bottomright.latitude));
+   roadmap_square_edges (square, &edges);
+   
+   topleft.longitude     = edges.west;
+   topleft.latitude      = edges.north;
+   bottomright.longitude = edges.east;
+   bottomright.latitude  = edges.south;
 
    roadmap_math_coordinate (&topleft, points);
    points[4] = points[0];
@@ -502,7 +501,7 @@ static void roadmap_screen_draw_square_edges (int square) {
    position.latitude  = bottomright.latitude;
    roadmap_math_coordinate (&position, points+3);
 
-   roadmap_canvas_select_pen (RoadMapEdges);
+   roadmap_canvas_select_pen (RoadMapPenEdges);
    count = 6;
    roadmap_math_rotate_coordinates (count, points);
    roadmap_canvas_draw_multiple_lines (1, &count, points);
@@ -547,10 +546,7 @@ static int roadmap_screen_draw_square
 
       int last_real_square = -1;
       int real_square  = 0;
-      int west = 0;
-      int east = 0;
-      int north = 0;
-      int south = 0;
+      RoadMapArea edges = {0, 0, 0, 0};
 
       int real_line;
       int square_count = roadmap_square_count();
@@ -568,10 +564,10 @@ static int roadmap_screen_draw_square
          /* Optimization: search for the square only if the new line does not
           * belong to the same square as the line before.
           */
-         if ((position.longitude <  west) ||
-             (position.longitude >= east) ||
-             (position.latitude <  south) ||
-             (position.latitude >= north)) {
+         if ((position.longitude <  edges.west) ||
+             (position.longitude >= edges.east) ||
+             (position.latitude <  edges.south) ||
+             (position.latitude >= edges.north)) {
             real_square = roadmap_square_search (&position);
          }
 
@@ -583,7 +579,7 @@ static int roadmap_screen_draw_square
                continue;
             }
 
-            roadmap_square_edges (real_square, &west, &east, &north, &south);
+            roadmap_square_edges (real_square, &edges);
 
             last_real_square = real_square;
 
@@ -592,7 +588,7 @@ static int roadmap_screen_draw_square
                continue;
             }
 
-            if (roadmap_math_is_visible (west, east, north, south)) {
+            if (roadmap_math_is_visible (&edges)) {
 
                on_canvas[real_square] = 1;
                continue;
@@ -641,10 +637,7 @@ static int roadmap_screen_repaint_square (int square) {
    int count;
    int layers[256];
 
-   int west;
-   int east;
-   int north;
-   int south;
+   RoadMapArea edges;
 
    int drawn = 0;
    int category;
@@ -658,9 +651,9 @@ static int roadmap_screen_repaint_square (int square) {
 
    roadmap_log_push ("roadmap_screen_repaint_square");
 
-   roadmap_square_edges (square, &west, &east, &north, &south);
+   roadmap_square_edges (square, &edges);
 
-   switch (roadmap_math_is_visible (west, east, north, south)) {
+   switch (roadmap_math_is_visible (&edges)) {
    case 0:
       roadmap_log_pop ();
       return 0;
@@ -1030,7 +1023,7 @@ void roadmap_screen_set_initial_position (void) {
     roadmap_canvas_set_foreground
         (roadmap_config_get (&RoadMapConfigMapBackground));
 
-    RoadMapEdges = roadmap_canvas_create_pen ("Map.Edges");
+    RoadMapPenEdges = roadmap_canvas_create_pen ("Map.Edges");
     roadmap_canvas_set_thickness (4);
     roadmap_canvas_set_foreground ("grey");
 

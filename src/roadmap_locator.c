@@ -86,22 +86,7 @@ static void roadmap_locator_configure (void) {
 
       RoadMapCountyModel =
          roadmap_db_register
-            (RoadMapCountyModel, "string", &RoadMapDictionaryHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "point", &RoadMapPointHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "square", &RoadMapSquareHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "shape", &RoadMapShapeHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
             (RoadMapCountyModel, "zip", &RoadMapZipHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "line", &RoadMapLineHandler);
       RoadMapCountyModel =
          roadmap_db_register
             (RoadMapCountyModel, "street", &RoadMapStreetHandler);
@@ -111,6 +96,21 @@ static void roadmap_locator_configure (void) {
       RoadMapCountyModel =
          roadmap_db_register
             (RoadMapCountyModel, "polygon", &RoadMapPolygonHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "shape", &RoadMapShapeHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "line", &RoadMapLineHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "point", &RoadMapPointHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "square", &RoadMapSquareHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "string", &RoadMapDictionaryHandler);
 
       RoadMapUsModel =
          roadmap_db_register

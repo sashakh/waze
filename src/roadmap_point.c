@@ -99,7 +99,8 @@ static void roadmap_point_activate (void *context) {
 
    RoadMapPointContext *point_context = (RoadMapPointContext *) context;
 
-   if (strcmp (point_context->type, "RoadMapPointContext") != 0) {
+   if ((point_context != NULL) &&
+       (strcmp (point_context->type, "RoadMapPointContext") != 0)) {
       roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
    }
    RoadMapPointActive = point_context;
@@ -192,6 +193,8 @@ lot_of_squares:
 
 int roadmap_point_in_square (int square, int *first, int *last) {
 
+   if (RoadMapPointActive == NULL) return 0;
+
    if (square < 0 || square >= RoadMapPointActive->BySquareCount) {
       return 0;
    }
@@ -211,6 +214,7 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
 
    int point_square;
    RoadMapPoint *Point;
+
 
 #ifdef DEBUG
    if (point < 0 || point >= RoadMapPointActive->PointCount) {

@@ -94,6 +94,9 @@ static void buildus_scan_cities (int fips) {
 
 
    cities = roadmap_dictionary_open ("city");
+
+   if (! cities) return; // May not exist is all map files.
+
    us_cities = buildmap_dictionary_open ("city");
 
    for (i = 1, name = roadmap_dictionary_get (cities, 1);
@@ -117,10 +120,7 @@ static void buildus_scan_maps (void) {
    DIR *directory;
    struct dirent *entry;
 
-   int max_longitude;
-   int max_latitude;
-   int min_longitude;
-   int min_latitude;
+   RoadMapArea edges;
 
 
    RoadMapCountyModel =
@@ -169,13 +169,8 @@ static void buildus_scan_maps (void) {
 
       buildus_scan_cities (fips);
 
-      roadmap_square_edges (ROADMAP_SQUARE_GLOBAL,
-                            &min_longitude, &max_longitude,
-                            &max_latitude, &min_latitude);
-
-      buildus_county_set_position (fips,
-                                   max_longitude, max_latitude,
-                                   min_longitude, min_latitude);
+      roadmap_square_edges (ROADMAP_SQUARE_GLOBAL, &edges);
+      buildus_county_set_position (fips, &edges);
 
       roadmap_db_close (map_name);
    }

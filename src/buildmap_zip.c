@@ -59,10 +59,8 @@ struct zip_code_record {
 
    int zip_code;
    int county_code;
-   int max_longitude;
-   int min_longitude;
-   int max_latitude;
-   int min_latitude;
+
+   RoadMapArea bounding_box;
 };
 
 static int ThisMapCounty = 0;
@@ -95,18 +93,18 @@ RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
 
       if (ZipCode[i].zip_code == zip) {
 
-         if (ZipCode[i].max_longitude < longitude) {
-            ZipCode[i].max_longitude = longitude;
+         if (ZipCode[i].bounding_box.east < longitude) {
+            ZipCode[i].bounding_box.east = longitude;
          }
-         if (ZipCode[i].min_longitude >= longitude) {
-            ZipCode[i].min_longitude = longitude;
+         if (ZipCode[i].bounding_box.west >= longitude) {
+            ZipCode[i].bounding_box.west = longitude;
          }
 
-         if (ZipCode[i].max_latitude < latitude) {
-            ZipCode[i].max_latitude = latitude;
+         if (ZipCode[i].bounding_box.north < latitude) {
+            ZipCode[i].bounding_box.north = latitude;
          }
-         if (ZipCode[i].min_latitude >= latitude) {
-            ZipCode[i].min_latitude = latitude;
+         if (ZipCode[i].bounding_box.south >= latitude) {
+            ZipCode[i].bounding_box.south = latitude;
          }
          return (RoadMapZip)i;
       }
@@ -122,10 +120,10 @@ RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
 
    ZipCode[i].zip_code = zip;
    ZipCode[i].county_code = ThisMapCounty;
-   ZipCode[i].max_longitude = - 0x7fffffff;
-   ZipCode[i].min_longitude = + 0x7fffffff;
-   ZipCode[i].max_latitude  = - 0x7fffffff;
-   ZipCode[i].min_latitude  = + 0x7fffffff;
+   ZipCode[i].bounding_box.east = - 0x7fffffff;
+   ZipCode[i].bounding_box.west = + 0x7fffffff;
+   ZipCode[i].bounding_box.north  = - 0x7fffffff;
+   ZipCode[i].bounding_box.south  = + 0x7fffffff;
 
    return (RoadMapZip)i;
 }
@@ -147,7 +145,8 @@ int   buildmap_zip_get_longitude (RoadMapZip index) {
       buildmap_fatal (0, "invalid zip index");
    }
 
-   return (ZipCode[index].max_longitude + ZipCode[index].min_longitude) / 2;
+   return (ZipCode[index].bounding_box.east
+              + ZipCode[index].bounding_box.west) / 2;
 }
 
 
@@ -157,7 +156,8 @@ int   buildmap_zip_get_latitude  (RoadMapZip index) {
       buildmap_fatal (0, "invalid zip index");
    }
 
-   return (ZipCode[index].max_latitude + ZipCode[index].min_latitude) / 2;
+   return (ZipCode[index].bounding_box.north
+              + ZipCode[index].bounding_box.south) / 2;
 }
 
 
@@ -202,15 +202,13 @@ void buildmap_zip_summary (void) {
 void buildmap_zip_reset (void) {
 
    int i;
+   RoadMapArea area_reset = {0, 0, 0, 0};
 
    for (i = 0; i < BUILDMAP_MAX_ZIP; i++) {
 
       ZipCode[i].zip_code = 0;
       ZipCode[i].county_code = 0;
-      ZipCode[i].max_longitude = 0;
-      ZipCode[i].min_longitude = 0;
-      ZipCode[i].max_latitude = 0;
-      ZipCode[i].min_latitude = 0;
+      ZipCode[i].bounding_box = area_reset;
    }
 
    ThisMapCounty = 0;

@@ -21,6 +21,7 @@ typedef struct {  /* table polygon.head */
    char  cfcc;
    unsigned char filler;
 
+   /* TBD: replace these with a RoadMapArea (not compatible!). */
    int   north;
    int   west;
    int   east;

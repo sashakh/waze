@@ -639,8 +639,9 @@ RoadMapString buildmap_dictionary_add
 
       cursor = dictionary->cursor + length + 1;
 
-      if (cursor >= 0x100000) {
-         buildmap_fatal (0, "dictionary full (data)");
+      if (cursor >= 0x1000000) {
+         buildmap_fatal (0, "dictionary full (data, %d entries)",
+                            dictionary->string_count);
       }
 
       while (cursor >= dictionary->size) {

@@ -203,38 +203,57 @@ static int roadmap_db_call_map (roadmap_db_database *database) {
 }
 
 
-static void roadmap_db_call_activate_one
-               (roadmap_db_model *model, roadmap_db *this, char *section) {
+static void roadmap_db_call_activate (roadmap_db_database *database) {
 
+   int done;
+   char *section;
+   roadmap_db *child;
    roadmap_db_model *registered;
 
-   for (registered = model;
+
+   /* For each module declared in the model, search for the matching table
+    * and activate it. If no table has been found, de-activate the currently
+    * activated table (i.e. cleanup the previous context).
+    */
+   for (registered = database->model;
         registered != NULL;
         registered = registered->next) {
 
-      if (registered->section == NULL) continue;
+      section = registered->section;
 
-      if (strcasecmp (registered->section, section) == 0) {
+      if ((section == NULL) ||
+          (registered->handler->activate == NULL)) continue;
 
-         if ((this->handler_context != NULL) &&
-             (registered->handler->activate != NULL)) {
-            (* (registered->handler->activate)) (this->handler_context);
+      done = 0;
+
+      for (child = database->root.first; child != NULL; child = child->next) {
+
+         if (strcasecmp (section, child->head->name) == 0) {
+
+            (*(registered->handler->activate)) (child->handler_context);
+            done = 1;
+            break;
          }
-         break;
       }
+
+      if (done) continue; /* Process the next module. */
+
+
+      /* This module has no matching table. Maybe it's the root?
+       * Being able to "activate" the root may be useful when a global
+       * context is maintained for the map.
+       */
+      if ((section[0] == '/') && (section[1] == 0)) {
+
+         (*(registered->handler->activate)) (database->root.handler_context);
+         continue;
+      }
+
+      /* There is nothing matching this handler whatsoever:
+       * de-activate what had been activated before, if any.
+       */
+      (* (registered->handler->activate)) (NULL);
    }
-}
-
-static void roadmap_db_call_activate (roadmap_db_database *database) {
-
-   roadmap_db *child;
-
-   for (child = database->root.first; child != NULL; child = child->next) {
-
-      roadmap_db_call_activate_one (database->model, child, child->head->name);
-   }
-
-   roadmap_db_call_activate_one (database->model, &database->root, "/");
 
    RoadmapDatabaseActive = database;
 }

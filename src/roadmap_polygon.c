@@ -24,8 +24,7 @@
  *
  *   int  roadmap_polygon_count (void);
  *   int  roadmap_polygon_category (int polygon);
- *   void roadmap_polygon_edges
- *           (int polygon, int *west, int *east, int *north, int *south);
+ *   void roadmap_polygon_edges (int polygon, RoadMapArea *edges);
  *   int  roadmap_polygon_points (int polygon, int *list, int size);
  *
  * These functions are used to retrieve the polygons to draw.
@@ -98,7 +97,8 @@ static void roadmap_polygon_activate (void *context) {
 
    RoadMapPolygonContext *polygon_context = (RoadMapPolygonContext *) context;
 
-   if (polygon_context->type != RoadMapPolygonType) {
+   if ((polygon_context != NULL) &&
+       (polygon_context->type != RoadMapPolygonType)) {
       roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
    }
    RoadMapPolygonActive = polygon_context;
@@ -128,6 +128,8 @@ roadmap_db_handler RoadMapPolygonHandler = {
 
 int  roadmap_polygon_count (void) {
 
+   if (RoadMapPolygonActive == NULL) return 0;
+
    return RoadMapPolygonActive->PolygonCount;
 }
 
@@ -137,15 +139,14 @@ int  roadmap_polygon_category (int polygon) {
 }
 
 
-void roadmap_polygon_edges
-        (int polygon, int *west, int *east, int *north, int *south) {
+void roadmap_polygon_edges (int polygon, RoadMapArea *edges) {
 
    RoadMapPolygon *this_polygon = RoadMapPolygonActive->Polygon + polygon;
 
-   *west = this_polygon->west;
-   *east = this_polygon->east;
-   *north = this_polygon->north;
-   *south = this_polygon->south;
+   edges->west = this_polygon->west;
+   edges->east = this_polygon->east;
+   edges->north = this_polygon->north;
+   edges->south = this_polygon->south;
 }
 
 
