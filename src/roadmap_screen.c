@@ -731,7 +731,9 @@ static void roadmap_screen_repaint_map (void) {
 
 static int roadmap_screen_retrieve_line
                 (const RoadMapGuiPoint *point,
-                 const RoadMapPosition *position, int *distance) {
+                 const RoadMapPosition *position,
+                 int accuracy,
+                 int *distance) {
 
    int i;
    int count = 0;
@@ -740,7 +742,6 @@ static int roadmap_screen_retrieve_line
    int west, east, north, south;
 
    int line;
-   int accuracy = atoi (roadmap_config_get ("Accuracy", "Mouse"));
 
    RoadMapGuiPoint focus_point;
    RoadMapPosition focus_position;
@@ -749,8 +750,8 @@ static int roadmap_screen_retrieve_line
    RoadMapPosition focus_bottomright;
 
 
-   ROADMAP_POINT_SET_X(&focus_point, ROADMAP_POINT_GET_X(point) + accuracy);
-   ROADMAP_POINT_SET_Y(&focus_point, ROADMAP_POINT_GET_Y(point) + accuracy);
+   focus_point.x = point->x + accuracy;
+   focus_point.y = point->y + accuracy;
    roadmap_math_to_position (&focus_point, &focus_position);
 
    west = focus_position.longitude;
@@ -760,7 +761,7 @@ static int roadmap_screen_retrieve_line
 
    focus_bottomright = focus_position;
 
-   ROADMAP_POINT_SET_X(&focus_point, ROADMAP_POINT_GET_X(point) - accuracy);
+   focus_point.x = point->x - accuracy;
    roadmap_math_to_position (&focus_point, &focus_position);
 
    if (focus_position.longitude < west) {
@@ -776,7 +777,7 @@ static int roadmap_screen_retrieve_line
       north = focus_position.latitude;
    }
 
-   ROADMAP_POINT_SET_Y(&focus_point, ROADMAP_POINT_GET_Y(point) - accuracy);
+   focus_point.y = point->y - accuracy;
    roadmap_math_to_position (&focus_point, &focus_position);
 
    if (focus_position.longitude < west) {
@@ -794,7 +795,7 @@ static int roadmap_screen_retrieve_line
 
    focus_topleft = focus_position;
 
-   ROADMAP_POINT_SET_X(&focus_point, ROADMAP_POINT_GET_X(point) + accuracy);
+   focus_point.x = point->x + accuracy;
    roadmap_math_to_position (&focus_point, &focus_position);
 
    if (focus_position.longitude < west) {
@@ -862,7 +863,10 @@ static void roadmap_screen_repaint (int moved) {
         point.y = RoadMapScreenHeight/2;
             
         line = roadmap_screen_retrieve_line
-                    (&point, &RoadMapScreenCenter, &distance);
+                    (&point,
+                     &RoadMapScreenCenter,
+                     roadmap_config_get_integer ("Accuracy", "Mouse"),
+                     &distance);
         
         if (line >= 0) {
             
@@ -950,7 +954,11 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
     
     roadmap_math_to_position (point, &position);
    
-    line = roadmap_screen_retrieve_line (point, &position, &distance);
+    line = roadmap_screen_retrieve_line
+                (point,
+                 &position,
+                 roadmap_config_get_integer ("Accuracy", "Mouse"),
+                 &distance);
 
     if (line >= 0) {
 
@@ -1014,8 +1022,8 @@ void roadmap_screen_move_up (void) {
 
    RoadMapGuiPoint center;
 
-   ROADMAP_POINT_SET_X(&center, RoadMapScreenWidth / 2);
-   ROADMAP_POINT_SET_Y(&center, RoadMapScreenHeight / 4);
+   center.x = RoadMapScreenWidth / 2;
+   center.y = RoadMapScreenHeight / 4;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
    roadmap_screen_repaint (0);
@@ -1026,8 +1034,8 @@ void roadmap_screen_move_down (void) {
 
    RoadMapGuiPoint center;
 
-   ROADMAP_POINT_SET_X(&center, RoadMapScreenWidth / 2);
-   ROADMAP_POINT_SET_Y(&center, (3 * RoadMapScreenHeight) / 4);
+   center.x = RoadMapScreenWidth / 2;
+   center.y = (3 * RoadMapScreenHeight) / 4;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
    roadmap_screen_repaint (0);
@@ -1038,8 +1046,8 @@ void roadmap_screen_move_right (void) {
 
    RoadMapGuiPoint center;
 
-   ROADMAP_POINT_SET_X(&center, (3 * RoadMapScreenWidth) / 4);
-   ROADMAP_POINT_SET_Y(&center, RoadMapScreenHeight / 2);
+   center.x = (3 * RoadMapScreenWidth) / 4;
+   center.y = RoadMapScreenHeight / 2;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
    roadmap_screen_repaint (0);
@@ -1051,8 +1059,8 @@ void roadmap_screen_move_left (void) {
 
    RoadMapGuiPoint center;
 
-   ROADMAP_POINT_SET_X(&center, RoadMapScreenWidth / 4);
-   ROADMAP_POINT_SET_Y(&center, RoadMapScreenHeight / 2);
+   center.x = RoadMapScreenWidth / 4;
+   center.y = RoadMapScreenHeight / 2;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
    roadmap_screen_repaint (0);

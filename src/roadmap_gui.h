@@ -34,12 +34,5 @@ typedef struct {
 
 } RoadMapGuiPoint;
 
-
-#define ROADMAP_POINT_GET_X(p) ((p)->x)
-#define ROADMAP_POINT_GET_Y(p) ((p)->y)
-
-#define ROADMAP_POINT_SET_X(p,v) (p)->x = (v)
-#define ROADMAP_POINT_SET_Y(p,v) (p)->y = (v)
-
 #endif /* _ROADMAP_GUI__H_ */
 

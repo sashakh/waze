@@ -300,8 +300,8 @@ static void roadmap_math_compute_scale (void) {
    orientation = RoadMapContext.orientation;
    roadmap_math_set_orientation (0);
 
-   ROADMAP_POINT_SET_X(&point, RoadMapContext.width);
-   ROADMAP_POINT_SET_Y(&point, RoadMapContext.height);
+   point.x = RoadMapContext.width;
+   point.y = RoadMapContext.height;
    roadmap_math_to_position (&point, &position);
    RoadMapContext.upright_screen.south = position.latitude;
    RoadMapContext.upright_screen.east  = position.longitude;
@@ -312,20 +312,18 @@ static void roadmap_math_compute_scale (void) {
 
 static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
 
-   int x = ROADMAP_POINT_GET_X(point) - RoadMapContext.center_x;
-   int y = RoadMapContext.center_y - ROADMAP_POINT_GET_Y(point);
+   int x = point->x - RoadMapContext.center_x;
+   int y = RoadMapContext.center_y - point->y;
 
-   ROADMAP_POINT_SET_X
-      (point,
+   point->x =
        RoadMapContext.center_x +
            (((x * RoadMapContext.cos_orientation)
-                - (y * RoadMapContext.sin_orientation) + 16383) / 32768));
+                - (y * RoadMapContext.sin_orientation) + 16383) / 32768);
 
-   ROADMAP_POINT_SET_Y
-      (point,
+   point->y =
        RoadMapContext.center_y -
            (((x * RoadMapContext.sin_orientation)
-                + (y * RoadMapContext.cos_orientation) + 16383) / 32768));
+                + (y * RoadMapContext.cos_orientation) + 16383) / 32768);
 }
 
 /* Rotation of the screen:
@@ -593,17 +591,17 @@ int roadmap_math_set_orientation (int direction) {
       RoadMapGuiPoint point;
       RoadMapPosition position[4];
 
-      ROADMAP_POINT_SET_X(&point, 0);
-      ROADMAP_POINT_SET_Y(&point, 0);
+      point.x = 0;
+      point.y = 0;
       roadmap_math_to_position (&point, position);
 
-      ROADMAP_POINT_SET_X(&point, RoadMapContext.width);
+      point.x = RoadMapContext.width;
       roadmap_math_to_position (&point, position+1);
 
-      ROADMAP_POINT_SET_Y(&point, RoadMapContext.height);
+      point.y = RoadMapContext.height;
       roadmap_math_to_position (&point, position+2);
 
-      ROADMAP_POINT_SET_X(&point, 0);
+      point.x = 0;
       roadmap_math_to_position (&point, position+3);
 
       for (i = 0; i < 4; ++i) {
@@ -646,24 +644,24 @@ void roadmap_math_to_position (const RoadMapGuiPoint *point,
 
    position->longitude =
       RoadMapContext.upright_screen.west
-         + (ROADMAP_POINT_GET_X(point) * RoadMapContext.zoom_x);
+         + (point->x * RoadMapContext.zoom_x);
 
    position->latitude =
       RoadMapContext.upright_screen.north
-         - (ROADMAP_POINT_GET_Y(point) * RoadMapContext.zoom_y);
+         - (point->y * RoadMapContext.zoom_y);
 }
 
 
 void roadmap_math_coordinate (const RoadMapPosition *position,
                               RoadMapGuiPoint *point) {
 
-   ROADMAP_POINT_SET_X(point,
+   point->x =
       ((position->longitude - RoadMapContext.upright_screen.west)
-             / RoadMapContext.zoom_x));
+             / RoadMapContext.zoom_x);
 
-   ROADMAP_POINT_SET_Y(point,
+   point->y =
       ((RoadMapContext.upright_screen.north - position->latitude)
-             / RoadMapContext.zoom_y));
+             / RoadMapContext.zoom_y);
 }
 
 
