@@ -53,6 +53,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_preferences.c \
           roadmap_address.c \
           roadmap_crossing.c \
+          roadmap_coord.c \
           roadmap_start.c
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)

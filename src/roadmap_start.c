@@ -45,6 +45,7 @@
 
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
+#include "roadmap_coord.h"
 #include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
 #include "roadmap_trip.h"
@@ -196,11 +197,14 @@ static void roadmap_start_delete_waypoint (void) {
 static RoadMapFactory RoadMapStartMenu[] = {
 
    {"File", NULL, NULL},
+
    {"Preferences",
        "Open the preferences editor", roadmap_preferences_edit},
    {"GPS Console",
        "Start the GPS console application", roadmap_start_console},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Mute Voice",
        "Mute all voice annoucements", roadmap_voice_mute},
    {"Enable Voice",
@@ -211,7 +215,9 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Enable Navigation",
        "Enable all GPS-based navigation functions",
        roadmap_navigate_enable},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Enable Log to File",
        "Save future log messages to the postmortem log file",
        roadmap_log_save_all},
@@ -219,25 +225,35 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Delete the current postmortem log file", roadmap_log_purge},
    {"Purge History",
        "Remove all but the 10 most recent addresses", roadmap_start_purge},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Quit",
        "Quit RoadMap", roadmap_main_exit},
 
+
    {"View", NULL, NULL},
+
    {"Show Location...",
        "Show a specified address", roadmap_address_location_by_city},
    {"Show Intersection...",
        "Show a specified street intersection", roadmap_crossing_dialog},
    {"Show Destination",
        "Show the map around the destination point", roadmap_start_show_destination},
+   {"Show Position...",
+       "Show a position at the specified coordinates", roadmap_coord_dialog},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Zoom In",
        "Enlarge the central part of the map", roadmap_screen_zoom_in},
    {"Zoom Out",
        "Show a larger area", roadmap_screen_zoom_out},
    {"Normal Size",
        "Set the map back to the default zoom level", roadmap_screen_zoom_reset},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Up",
        "Move the map view upward", roadmap_screen_move_up},
    {"Left",
@@ -246,13 +262,17 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Move the map view to the right", roadmap_screen_move_right},
    {"Down",
        "Move the map view downward", roadmap_screen_move_down},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Rotate Clockwise",
        "Rotate the map view clockwise", roadmap_start_rotate},
    {"Rotate Counter-Clockwise",
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
 
+
    {"Trips", NULL, NULL},
+
    {"New Trip",
        "Create a new trip", roadmap_start_create_trip},
    {"Open Trip...",
@@ -261,7 +281,9 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Save the current trip", roadmap_start_save_trip},
    {"Save Trip As...",
        "Save the current trip under a different name", roadmap_start_save_trip_as},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Start Trip",
        "Start tracking the current trip", roadmap_start_trip},
    {"Stop Trip",
@@ -275,7 +297,9 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Return Trip",
        "Start the trip back to the departure point",
        roadmap_start_trip_reverse},
+
    {RoadMapFactorySeparator, NULL, NULL},
+
    {"Set as Destination",
        "Set the selected street block as the trip's destination",
        roadmap_start_set_destination
@@ -285,7 +309,9 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Delete Waypoints...", 
        "Delete selected waypoints", roadmap_start_delete_waypoint},
 
+
    {"Help", NULL, NULL},
+
    {"About",
        "Show information about RoadMap", roadmap_start_about},
 
