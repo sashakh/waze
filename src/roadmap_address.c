@@ -341,6 +341,7 @@ static void roadmap_address_ok (const char *name, void *data) {
    if (j <= 0) {
 
       roadmap_messagebox ("Warning", "No valid street was found");
+      free (selections);
       return;
    }
 
