@@ -1,14 +1,14 @@
 
-GUICFLAGS=-I/usr/include/qt
+GUICFLAGS=-I/usr/include/qt3
 GUILDFLAGS=-lqt
 MOC=/usr/bin/moc
 INSTALLDIR=/usr/local
 
 ifeq ($(DESKTOP),QPE)
-   QPE: GUICFLAGS=-I$(QTDIR)/include -DQWS
-   QPE: GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
-   QPE: MOC=$(QTDIR)/bin/moc
-   QPE: LDFLAGS=-L$(QTDIR)/lib
+   GUICFLAGS=-I$(QTDIR)/include -DQWS
+   GUILDFLAGS=-L$(QTDIR)/lib -lqte -lqpe
+   MOC=$(QTDIR)/bin/moc
+   LDFLAGS=-L$(QTDIR)/lib
    INSTALLDIR=$(QTDIR)
 endif
 
