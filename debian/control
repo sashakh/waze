@@ -7,9 +7,13 @@ Standards-Version: 3.5.2
 
 Package: roadmap
 Architecture: any
-Depends: ${shlibs:Depends}, gpsdrive
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${shlibs:Depends}
+Recommends: gpsdrive
+Description: GPS based Car Navigation System
+ A navigation system that displays US street maps (from the US Census
+ Bureau) and tracks a vehicule using GPS. Specific areas can be
+ displayed by selecting a street address (street number & name, city,
+ and state). RoadMap can run on iPAQ and Zaurus.
 
 Package: roadmap-doc
 Architecture: all
