@@ -200,6 +200,9 @@ INSTALLATION:
       This is a problem with the linker: it seems that UNIX make cannot
       be used with QT3, the QT-specific "qmake" must be used instead..
 
+      Note for developpers: using MODE=DEBUG causes RoadMap to be
+      compiled in debug mode.
+
    5- download some maps from the US Census bureau:
 
          http://www.census.gov/geo/www/tiger/tiger2002/tgr2002.html

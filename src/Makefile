@@ -1,20 +1,21 @@
 
-
-CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall -DROADMAP_USES_SIGCHLD
-# CFLAGS=-g -Wall
-
+ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
 # then use the mtrace tool to analyze the output.
-# CFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
-
-# Performance tuning:
-# CFLAGS=-g -Wall -pg -fprofile-arcs -g
+   CFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
+else
+ifeq ($(MODE),PROFILE)
+   CFLAGS=-g -Wall -pg -fprofile-arcs -g
+   LDFLAGS=-pg $(LDFLAGS)
+else
+   CFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall -DROADMAP_USES_SIGCHLD
+endif
+endif
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
 LIBS=$(RDMLIBS) -lpopt -lm
 
-# LDFLAGS=-pg $(LDFLAGS)
 
 
 RMLIBSRCS=roadmap_log.c \
