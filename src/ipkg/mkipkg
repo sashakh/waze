@@ -35,7 +35,7 @@ cp roadmap/README      $IPKGDIR/roadmap/usr/share/roadmap/README
 
 sed -e 's/Map.Path:.*$/Map.Path: \&\/maps,\/usr\/share\/roadmap,\/mnt\/hda\/share\/roadmap\/,\/mnt\/card\/share\/roadmap/' < $SRCDIR/preferences > $IPKGDIR/roadmap/usr/share/roadmap/preferences
 
-bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/roadmap $IPKGDIR
+roadmap/ipkg-build -o root -g root `pwd`/$IPKGDIR/roadmap `pwd`/$IPKGDIR
 
 
 # --------------------------------------------------------------------------
@@ -51,7 +51,7 @@ if [ -e $ARMDIR/buildmap ] ; then
   cp $ARMDIR/buildus  $IPKGDIR/buildmap/usr/bin/buildus
   cp $ARMDIR/dumpmap  $IPKGDIR/buildmap/usr/bin/dumpmap
 
-  bash roadmap/ipkg-build -c -o root -g root $IPKGDIR/buildmap $IPKGDIR
+  roadmap/ipkg-build -o root -g root `pwd`/$IPKGDIR/buildmap `pwd`/$IPKGDIR
 
 fi
 
