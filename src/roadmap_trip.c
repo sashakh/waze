@@ -37,6 +37,7 @@
 #include "roadmap_config.h"
 #include "roadmap_trip.h"
 #include "roadmap_dialog.h"
+#include "roadmap_fileselection.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
 #include "roadmap_canvas.h"
@@ -226,37 +227,23 @@ static void roadmap_trip_dialog_cancel (const char *name, void *data) {
 }
 
 
-static void roadmap_trip_file_dialog_ok (const char *name, void *data) {
+static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode) {
     
-    char *file_name = (char *) roadmap_dialog_get_data ("Name", "Name:");
-    
-    if (file_name[0] != 0) {
-        
-        if (((char *)data)[0] == 'w') {
-            roadmap_trip_save (file_name);
-        } else {
-            roadmap_trip_load (file_name);
-        }
-        roadmap_dialog_hide (name);
+    if (mode[0] == 'w') {
+        roadmap_trip_save (filename);
+    } else {
+        roadmap_trip_load (filename);
     }
 }
 
 
 static void roadmap_trip_file_dialog (const char *mode) {
-
-   if (roadmap_dialog_activate ("RoadMap Trip", (void *)mode)) {
-
-      int use_keyboard;
-
-      use_keyboard = (strcasecmp (roadmap_config_get ("General", "Keyboard"),
-                                  "yes") == 0);
-
-      roadmap_dialog_new_entry  ("Name", "Name:");
-      roadmap_dialog_add_button ("OK", roadmap_trip_file_dialog_ok);
-      roadmap_dialog_add_button ("Cancel", roadmap_trip_dialog_cancel);
-
-      roadmap_dialog_complete (use_keyboard);
-   }
+    
+    roadmap_fileselection_new ("RoadMap Trip",
+                                roadmap_file_trips(),
+                                NULL,
+                                mode,
+                                roadmap_trip_file_dialog_ok);
 }
 
 
@@ -367,7 +354,7 @@ static void roadmap_trip_remove_dialog (void) {
 
 static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
 
-    char *full_name;
+    const char *full_name;
     FILE *file;
     
     if (name == NULL) {
@@ -378,7 +365,11 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
         
     roadmap_config_set ("Locations", "Trip", name);
     
-    full_name = roadmap_file_join (roadmap_file_trips(), name);
+    if (name [0] != '/') {
+        full_name = roadmap_file_join (roadmap_file_trips(), name);
+    } else {
+        full_name = name;
+    }
     file = fopen (full_name, mode);
     
     if (file == NULL) {
@@ -846,7 +837,13 @@ void roadmap_trip_save (const char *name) {
     
     RoadMapTripPoint *point;
 
-    /* Save all existing points, if the list was ever modified. */
+    /* Save all existing points, if the list was ever modified, or if
+     * the user wants to specify another name.
+     */
+    if (name == NULL) {
+        RoadMapTripModified = 1;
+    }
+        
     if (RoadMapTripModified) {
         
         FILE *file;
