@@ -60,7 +60,7 @@ typedef struct {
    int                   ShapeBySquareCount;
 
    int *shape_cache;
-   int  shape_cache_size;
+   int  shape_cache_size;  /* This is the size in bits ! */
 
 } RoadMapShapeContext;
 
@@ -138,7 +138,8 @@ static void roadmap_shape_activate (void *context) {
 
       shape_context->shape_cache_size = roadmap_line_count();
       shape_context->shape_cache =
-         calloc (shape_context->shape_cache_size, sizeof(int));
+         calloc (shape_context->shape_cache_size / (8 * sizeof(int)),
+                 sizeof(int));
       roadmap_check_allocated(shape_context->shape_cache);
    }
 }
