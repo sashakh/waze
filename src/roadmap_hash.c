@@ -140,6 +140,16 @@ void roadmap_hash_resize (RoadMapHash *hash, int size) {
 }
 
 
+void roadmap_hash_free (RoadMapHash *hash) {
+
+   if (hash->values != NULL) {
+      free (hash->values);
+   }
+   free (hash->next);
+   free (hash);
+}
+
+
 void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value) {
 
    if ((index < 0) || (index > hash->size)) {
@@ -212,6 +222,9 @@ void roadmap_hash_reset (void) {
 
       next = hash->next_hash;
 
+      if (hash->values != NULL) {
+         free (hash->values);
+      }
       free (hash->next);
       free (hash);
    }
