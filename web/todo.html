@@ -21,18 +21,10 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 feel free to contact the author for more ideas.
 <P>
 <UL>
-  <LI><b>A tool to manage downloading maps on a PDA</b>. Most PDAs have a
-  limited amount of flash/RAM memory available. The naming convention used by
-  RoadMap makes it difficult to know what territory is covered by what map
-  file. It would be useful for RoadMap to provide a way for downloading maps
-  "on demand". What is planned is to have RoadMap to trigger the downloading
-  of a map when it needs to display it. Basically, failing to open a map file
-  will trigger a "download" dialog (to ask the user for confirmation). An
-  additional problem is to manage the available space on the PDA. Rather than
-  using up all the PDA's space (which would be quite rude), the plan is for
-  the user to setup a maximal amount of space available to RoadMap. Older maps
-  will then be deleted if the RoadMap quota is going to be reached (or close
-  to be reached).
+  <LI><b>Support for downloading maps from a web server</b>. The idea here is
+  to add HTTP to the list of protocols available in the download mechanism.
+  The protocol module should be smart enough to recognize .gz files and
+  uncompress them right after the download took place.
 
   <LI><b>More natural street naming</b>. RoadMap requires the street names to
   be entered using the US Census Bureau's own conventions (ST for streets, AVE
