@@ -38,6 +38,7 @@ shift
 
 cleanup=Y
 gendir=Y
+verbose=N
 
 case $1 in
    maps=*) maps=`expr $1 : 'maps=\(.*\)'`
@@ -60,10 +61,17 @@ esac
 case $1 in
    test) cleanup=N
          gendir=N
+         verbose=Y
          shift
          ;;
 esac
 
+
+if [ -e ./buildmap ] ; then
+   BUILDMAP=./buildmap
+else
+   BUILDMAP=buildmap
+fi
 
 function process_one_county {
 
@@ -73,11 +81,10 @@ function process_one_county {
       unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap
    fi
    if [ -e $TMPDIR/roadmap/TGR$1.RT1 ] ; then
-      if [ -e buildmap ] ; then
-         ./buildmap $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1
-      else
-         buildmap $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1
+      if [ $verbose = 'Y' ] ; then
+         echo "$BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1"
       fi
+      $BUILDMAP $OPTIONS --path=$TMPDIR/roadmap --maps=$maps -v $1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
