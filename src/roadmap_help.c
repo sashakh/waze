@@ -42,6 +42,9 @@
 #define RDM_URLHEAD "file://"
 #define RDM_MANUAL "manual.html"
 
+#ifndef ROADMAP_BROWSER
+#define ROADMAP_BROWSER "dillo"
+#endif
 
 static RoadMapConfigDescriptor RoadMapConfigBrowser =
                         ROADMAP_CONFIG_ITEM("Help", "Browser");
@@ -204,6 +207,6 @@ void roadmap_help_initialize (void) {
       ("preferences", &RoadMapConfigBrowserOptions, "%s");
 
    roadmap_config_declare
-      ("preferences", &RoadMapConfigBrowser, "dillo");
+      ("preferences", &RoadMapConfigBrowser, ROADMAP_BROWSER);
 }
 
