@@ -35,6 +35,7 @@ RDM_SRC="roadmap/src/Makefile
          roadmap/src/unix/Makefile
          roadmap/src/unix/*.[ch]
          roadmap/src/ipkg/mkipkg
+         roadmap/src/ipkg/INSTALL
          roadmap/src/ipkg/roadmap*"
 
 RDM_CFG="roadmap/src/preferences
@@ -63,11 +64,11 @@ RDM_BIN="roadmap/src/usdir.rdm
          roadmap/src/buildmap
          roadmap/src/buildus"
 
-RDM_INFO="roadmap/AUTHORS
-          roadmap/BUGS
-          roadmap/COPYING
-          roadmap/README
-          roadmap/TODO"
+RDM_DOC="roadmap/AUTHORS
+         roadmap/BUGS
+         roadmap/COPYING
+         roadmap/README
+         roadmap/TODO"
 
 RDM_IPK="arm/roadmap/ipkg/roadmap_${dotversion}_arm.ipk"
 
@@ -85,20 +86,26 @@ do
    cp /usr/local/share/roadmap/$i.rdm roadmap/src
 done
 
+echo "Creating tar ball for section doc ..."
+rm -f $RELEASE/roadmap_${version}_doc.tar*
+cp roadmap/src/ipkg/INSTALL roadmap/INSTALL.familiar
+tar cf $RELEASE/roadmap_${version}_doc.tar  $RDM_DOC roadmap/INSTALL.familiar
+rm -f roadmap/INSTALL.familiar
+
 echo "Creating tar ball for section src ..."
 rm -f $RELEASE/roadmap_${version}_src.tar*
-tar cf $RELEASE/roadmap_${version}_src.tar  $RDM_SRC $RDM_SH $RDM_CFG $RDM_INFO
+tar cf $RELEASE/roadmap_${version}_src.tar  $RDM_SRC $RDM_SH $RDM_CFG $RDM_DOC
 
 echo "Creating tar ball for section i686 ..."
 rm -f $RELEASE/roadmap_${version}_i686.tar*
-tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_INFO
+tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_BIN $RDM_SH $RDM_CFG $RDM_DOC
 
 echo "Creating tar ball for section armv4l ..."
 rm -f $RELEASE/roadmap_${version}_armv4l.tar*
 rm -f roadmap/*.ipk
 cp $RDM_IPK roadmap
 cp roadmap/src/ipkg/INSTALL roadmap
-tar cf $RELEASE/roadmap_${version}_armv4l.tar roadmap/*.ipk $RDM_INFO roadmap/INSTALL
+tar cf $RELEASE/roadmap_${version}_armv4l.tar roadmap/*.ipk $RDM_DOC roadmap/INSTALL
 rm -f roadmap/*.ipk
 
 rm -f roadmap/src/*.rdm 
@@ -106,7 +113,7 @@ rm -f roadmap/src/*.rdm
 
 cd $RELEASE
 
-for x in src i686 armv4l
+for x in doc src i686 armv4l
 do
   echo "Compressing tar ball for section $x ..."
   gzip -9 roadmap_${version}_$x.tar

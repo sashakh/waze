@@ -8,6 +8,7 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <H1>RoadMap: History</H1><BR></CENTER>
 <HR>
 <a class="normal" href="index.html">Home</a>
+<a class="normal" href="documentation.html">Documentation</a>
 <a class="normal" href="download.html">Download</a>
 <a class="normal" href="screenshots.html">Screenshots</a>
 <a class="normal" href="history.html">History</a>
@@ -17,6 +18,29 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
+<P>Roadmap v1.0.4 (November 22, 2003):
+<UL>
+  <LI>Changed the name of the familiar package to "roadmap" to
+      conform with Familiar's guidelines.
+  <LI>Repaired the voice problem with GPE (waitpid() does not work
+      when RoadMap started from the application manager--might be
+      caused by a process group not set?).
+  <LI>Use some official road signs (and a few hand-made icons) for the
+      toolbar, because the Gnome toolbar setting "Icon Only" has a weird
+      effect when there is no icon (thanks to Mathias Kolehmainen for
+      helping to solve this problem--my archives show the first sighting
+      was actually reported by Darrick Hartman long time ago).
+  <LI>Made the icon above optional with the preference item General.Icons,
+      so that one can avoid using them on small screens (such as the iPAQ).
+      For small screens, either the icons or the label will be shown, not
+      both.
+  <LI>Do not use SIGCHLD by default, since there are the above problems
+      with GPE.
+  <LI>Added a "documentation" package, for those downloading the Familiar
+      package through IpkgFind or a Familiar feed.
+  <LI>Made the documentation available as HTML on the RoadMap web sites
+      (RoadMap README--renamed "Manual"--and the Familiar INSTALL notes).
+</UL>
 <P>Roadmap v1.0.3 (November 2, 2003):
 <UL>
   <LI>Fix loading the sprite file twice if one directory earlier in
