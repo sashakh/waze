@@ -628,7 +628,7 @@ RoadMapString buildmap_dictionary_add
 
       struct dictionary_reference *reference;
 
-      if (dictionary->string_count >= DICTIONARY_INDEX_SIZE) {
+      if (dictionary->string_count >= DICTIONARY_INDEX_SIZE-1) {
          buildmap_dictionary_summary ();
          buildmap_fatal (0, "dictionary full (index)");
       }
