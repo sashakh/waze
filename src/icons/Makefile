@@ -9,12 +9,19 @@ ICONSRC= rm_hold.xpm \
 ICONS=$(ICONSRC:.xpm=.png)
 
 
+all: icons
+
 install: $(ICONS)
 	rm -f temp.png
 	cp rm_*.png $(ICONDIR)
 
 icons: $(ICONS)
 	rm -f temp.png
+
+clean: cleanone
+
+cleanone:
+	$(RM) $(ICONS)
 
 %.png : %.xpm
 	convert -transparent yellow $< temp.png
