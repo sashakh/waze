@@ -666,24 +666,24 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
                             next_waypoint->id,
                             distance_to_waypoint,
                             roadmap_math_distance_unit());
-            snprintf (text, sizeof(text), "%d %s (%d %s)",
+            snprintf (text, sizeof(text), "(%d %s (%d %s)",
                         roadmap_math_to_trip_distance(distance_to_destination),
                         unit,
                         roadmap_math_to_trip_distance(distance_to_waypoint),
                         unit);
             
         } else {
-            snprintf (text, sizeof(text), "%d %s",
+            snprintf (text, sizeof(text), "(%d %s",
                         roadmap_math_to_trip_distance(distance_to_destination),
                         unit);
         }
         
         roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
-        
+                
         frame[0].x = roadmap_canvas_width() - 5;
-        frame[0].y = 5;
+        frame[0].y = roadmap_canvas_height () - ascent - descent - 5;
         frame[1].x = frame[0].x;
-        frame[1].y = frame[0].y + ascent + descent + 5;
+        frame[1].y = roadmap_canvas_height () - 3;
         frame[2].x = frame[0].x - width - 8;
         frame[2].y = frame[1].y;
         frame[3].x = frame[2].x;
@@ -693,14 +693,34 @@ void roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background)
         roadmap_canvas_select_pen (background);
         roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
         roadmap_canvas_select_pen (foreground);
-        // roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0);
         
         text_position.x = roadmap_canvas_width() - 9;
-        text_position.y = 8;
+        text_position.y = frame[0].y + 2;
+        roadmap_canvas_draw_string (&text_position,
+                                    ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
+                                    text+1);
+        
+        snprintf (text, sizeof(text), "%3d %s",
+                        roadmap_math_to_speed_unit(gps->speed),
+                        roadmap_math_speed_unit());
+                        
+        roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
+                
+        frame[0].x = 5;
+        frame[1].x = frame[0].x;
+        frame[2].x = frame[0].x + width + 8;
+        frame[3].x = frame[2].x;
+        
+        count = 4;
+        roadmap_canvas_select_pen (background);
+        roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
+        roadmap_canvas_select_pen (foreground);
+        
+        text_position.x = frame[2].x - 4;
         roadmap_canvas_draw_string (&text_position,
                                     ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
                                     text);
-        
+                                    
         azymuth = roadmap_math_azymuth (&gps->position,
                                         &next_waypoint->position);
         roadmap_math_coordinate (&gps->position, frame);

@@ -70,11 +70,14 @@ int  roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2);
 
 char *roadmap_math_distance_unit (void);
 char *roadmap_math_trip_unit     (void);
+char *roadmap_math_speed_unit    (void);
 
 int  roadmap_math_distance
         (RoadMapPosition *position1, RoadMapPosition *position2);
 
 int roadmap_math_to_trip_distance (int distance);
+
+int roadmap_math_to_speed_unit (int knots);
 
 int  roadmap_math_get_distance_from_segment
         (RoadMapPosition *position,

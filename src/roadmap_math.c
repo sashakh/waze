@@ -57,6 +57,43 @@ typedef struct {
 } RoadMapArea;
 
 
+typedef struct {
+    
+    double unit_per_latitude;
+    double unit_per_longitude;
+    double speed_per_knot;
+    int    to_trip_unit;
+    
+    char  *length;
+    char  *trip_distance;
+    char  *speed;
+    
+} RoadMapUnits;
+
+
+static RoadMapUnits RoadMapMetricSystem = {
+
+    0.11112, /* Meters per latitude. */
+    0.0,     /* Meters per longitude (dynamic). */
+    1.852,   /* Kmh per knot. */
+    1000,    /* meters per kilometer. */
+    "m",
+    "Km",
+    "Kmh"
+};
+
+static RoadMapUnits RoadMapImperialSystem = {
+
+    0.36464, /* Feet per latitude. */
+    0.0,     /* Feet per longitude (dynamic). */
+    1.151,   /* Mph per knot. */
+    5280,    /* Feet per mile. */
+    "ft",
+    "Mi",
+    "Mph",
+};
+    
+
 static struct {
 
    unsigned short zoom;
@@ -77,17 +114,6 @@ static struct {
    int zoom_y;
 
 
-   /* The conversion ratio from position to distance: */
-
-   double unit_per_latitude;  /* Either imperial or metric. */
-   double unit_per_longitude;
-
-   double m_per_latitude;
-   double m_per_longitude;
-
-   double ft_per_latitude;
-   double ft_per_longitude;
-
    RoadMapArea focus;
    RoadMapArea upright_screen;
    RoadMapArea current_screen;
@@ -100,24 +126,15 @@ static struct {
    int sin_orientation; /* Multiplied by 32768. */
    int cos_orientation; /* Multiplied by 32768. */
 
-   char *unit_symbol;
-   char *trip_symbol;
-   int to_trip_unit;
-
+   RoadMapUnits *units;
+   
 } RoadMapContext;
 
 
-static int RoadmapDefaultZoom = 0;
 
+static int roadmap_math_default_zoom (void) {
 
-static void roadmap_math_zoom_init (void) {
-
-   RoadmapDefaultZoom =
-       roadmap_config_get_integer ("General", "Default Zoom");
-
-   if (RoadMapContext.zoom == 0) {
-      RoadMapContext.zoom = RoadmapDefaultZoom;
-   }
+    return roadmap_config_get_integer ("General", "Default Zoom");
 }
 
 
@@ -240,6 +257,10 @@ static void roadmap_math_compute_scale (void) {
    RoadMapPosition position;
 
 
+   if (RoadMapContext.zoom == 0) {
+        RoadMapContext.zoom = roadmap_math_default_zoom ();
+   }
+   
    RoadMapContext.center_x = RoadMapContext.width / 2;
    RoadMapContext.center_y = RoadMapContext.height / 2;
 
@@ -259,13 +280,12 @@ static void roadmap_math_compute_scale (void) {
                                 &sine,
                                 &cosine);
 
-   RoadMapContext.m_per_longitude =
-      (RoadMapContext.m_per_latitude * cosine) / 32768;
-   RoadMapContext.ft_per_longitude =
-      (RoadMapContext.ft_per_latitude * cosine) / 32768;
-   RoadMapContext.unit_per_longitude =
-      (RoadMapContext.unit_per_latitude * cosine) / 32768;
-
+   RoadMapMetricSystem.unit_per_longitude =
+      (RoadMapMetricSystem.unit_per_latitude * cosine) / 32768;
+      
+   RoadMapImperialSystem.unit_per_longitude =
+      (RoadMapImperialSystem.unit_per_latitude * cosine) / 32768;
+      
    RoadMapContext.zoom_y =
       (int) ((RoadMapContext.zoom_y * cosine / 32768) + 0.5);
 
@@ -376,38 +396,23 @@ void roadmap_math_rotate_object
 
 void roadmap_math_initialize (void) {
 
-   roadmap_config_declare ("preferences", "General", "Default Zoom", "20");
-   RoadMapContext.orientation = 0;
+    roadmap_config_declare ("preferences", "General", "Default Zoom", "20");
+    RoadMapContext.orientation = 0;
 
-   RoadMapContext.m_per_latitude  = (1.852 * 60.0) / 1000.0;
-   RoadMapContext.ft_per_latitude = 3.2815 * RoadMapContext.m_per_latitude;
-    
-   roadmap_math_use_imperial ();
+    roadmap_math_use_imperial ();
+    roadmap_math_compute_scale ();
 }
 
 void roadmap_math_use_metric (void) {
 
-    roadmap_math_zoom_init ();
+    RoadMapContext.units = &RoadMapMetricSystem;
 
-    RoadMapContext.unit_per_latitude = RoadMapContext.m_per_latitude;
-    RoadMapContext.unit_symbol = "m";
-    RoadMapContext.to_trip_unit = 1000;
-    RoadMapContext.trip_symbol = "Km";
-
-    roadmap_math_compute_scale ();
 }
 
 
 void roadmap_math_use_imperial (void) {
 
-    roadmap_math_zoom_init ();
-
-    RoadMapContext.unit_per_latitude = RoadMapContext.ft_per_latitude;
-    RoadMapContext.unit_symbol = "ft";
-    RoadMapContext.to_trip_unit = 5280;
-    RoadMapContext.trip_symbol = "Mi";
-
-    roadmap_math_compute_scale ();
+    RoadMapContext.units = &RoadMapImperialSystem;
 }
 
 
@@ -512,9 +517,7 @@ void roadmap_math_zoom_in (void) {
 
 void roadmap_math_zoom_reset (void) {
 
-   roadmap_math_zoom_init ();
-
-   RoadMapContext.zoom = RoadmapDefaultZoom;
+   RoadMapContext.zoom = roadmap_math_default_zoom ();
 
    roadmap_math_compute_scale ();
 }
@@ -672,9 +675,9 @@ int roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2) {
     double d;
 
 
-    x = RoadMapContext.unit_per_longitude
+    x = RoadMapContext.units->unit_per_longitude
             * (point2->longitude - point1->longitude);
-    y = RoadMapContext.unit_per_latitude
+    y = RoadMapContext.units->unit_per_latitude
             * (point2->latitude  - point1->latitude);
 
     d = sqrt ((x * x) + (y * y));
@@ -700,9 +703,9 @@ int roadmap_math_distance
    double y;
 
 
-   x = RoadMapContext.unit_per_longitude
+   x = RoadMapContext.units->unit_per_longitude
           * (position1->longitude - position2->longitude);
-   y = RoadMapContext.unit_per_latitude
+   y = RoadMapContext.units->unit_per_latitude
           * (position1->latitude  - position2->latitude);
 
    return (int) sqrt ((x * x) + (y * y));
@@ -711,19 +714,25 @@ int roadmap_math_distance
 
 char *roadmap_math_distance_unit (void) {
     
-    return RoadMapContext.unit_symbol;
+    return RoadMapContext.units->length;
 }
 
 
 char *roadmap_math_trip_unit (void) {
     
-    return RoadMapContext.trip_symbol;
+    return RoadMapContext.units->trip_distance;
+}
+
+
+char *roadmap_math_speed_unit (void) {
+    
+    return RoadMapContext.units->speed;
 }
 
 
 int roadmap_math_to_trip_distance (int distance) {
     
-    return distance / RoadMapContext.to_trip_unit;
+    return distance / RoadMapContext.units->to_trip_unit;
 }
 
 
@@ -742,14 +751,14 @@ int  roadmap_math_get_distance_from_segment
    double y3;
 
 
-   x1 = RoadMapContext.unit_per_longitude
+   x1 = RoadMapContext.units->unit_per_longitude
            * (position->longitude - position1->longitude);
-   y1 = RoadMapContext.unit_per_latitude
+   y1 = RoadMapContext.units->unit_per_latitude
            * (position->latitude  - position1->latitude);
 
-   x2 = RoadMapContext.unit_per_longitude
+   x2 = RoadMapContext.units->unit_per_longitude
            * (position->longitude - position2->longitude);
-   y2 = RoadMapContext.unit_per_latitude
+   y2 = RoadMapContext.units->unit_per_latitude
            * (position->latitude  - position2->latitude);
 
    /* Compute the coordinates of the intersection with the perpendicular. */
@@ -793,6 +802,12 @@ int  roadmap_math_get_distance_from_segment
    }
 
    return minimum;
+}
+
+
+int roadmap_math_to_speed_unit (int knots) {
+    
+    return (int) (knots * RoadMapContext.units->speed_per_knot);
 }
 
 
