@@ -856,62 +856,72 @@ static void roadmap_screen_repaint (int moved) {
     
     if (moved) {
         
-        int line;
-        RoadMapGuiPoint point;
+        int line = PreviousLine;
+        int accuracy = roadmap_config_get_integer ("Accuracy", "Street");
         
-        point.x = RoadMapScreenWidth/2;
-        point.y = RoadMapScreenHeight/2;
+        if (line >= 0) {
+
+            /* Confirm the current street if we are still at a "short"
+             * distance from it. This is to avoid switching streets
+             * randomly at the intersections.
+             */
+            RoadMapPosition position1, position2;
             
-        line = roadmap_screen_retrieve_line
-                    (&point,
-                     &RoadMapScreenCenter,
-                     roadmap_config_get_integer ("Accuracy", "Mouse"),
-                     &distance);
+            roadmap_line_from (line, &position1);
+            roadmap_line_to   (line, &position2);
+                
+            distance =
+                roadmap_math_get_distance_from_segment
+                    (&RoadMapScreenCenter, &position1, &position2);
+            
+            if (distance > accuracy) {
+                line = -1; /* We left this line, search for another one. */
+            }
+        }
+        
+        if (line < 0) {
+            
+            /* The previous line, if any, is not a valid suitor anymore.
+             * Look around for another one. The closest line will be
+             * selected only if it is close enough.
+             */
+            RoadMapGuiPoint point;
+            
+            point.x = RoadMapScreenWidth/2;
+            point.y = RoadMapScreenHeight/2;
+            
+            line = roadmap_screen_retrieve_line
+                        (&point,
+                         &RoadMapScreenCenter,
+                         roadmap_config_get_integer ("Accuracy", "Mouse"),
+                         &distance);
+            
+            if (line > 0) {
+                if (distance < accuracy) {
+                    PreviousLine = line; /* This line is close enough. */
+                    DetectCount = 1;
+                } else {
+                    line = -1; /* We are not close to any line. */
+                }
+            }
+        }
         
         if (line >= 0) {
             
-            /* Activate this street only if we are at a distance from
-             * the previous one. This is to avoid switching streets
-             * randomly at the intersections.
+            /* We have found a suitable line. Wait for a confirmation
+             * before we commit to an announcement.
              */
-            if (line != PreviousLine) {
-
-                int accuracy;
-                int distance_to_previous;
-            
-                accuracy = roadmap_config_get_integer ("Accuracy", "Street");
-                distance_to_previous = accuracy + 1;
-            
-                if (PreviousLine >= 0) {
+            if (DetectCount > 1) {
                 
-                    RoadMapPosition position1, position2;
+                int confirm =
+                    roadmap_config_get_integer ("Accuracy", "Confirm");
             
-                    roadmap_line_from (PreviousLine, &position1);
-                    roadmap_line_to   (PreviousLine, &position2);
-                
-                    distance_to_previous =
-                        roadmap_math_get_distance_from_segment
-                            (&RoadMapScreenCenter, &position1, &position2);
-                }
-                
-                if (distance < accuracy &&
-                    distance_to_previous > accuracy) {
-                    PreviousLine = line;
-                    DetectCount = 1;
-                }
-            }
-        
-            if (line == PreviousLine) {
-            
-                /* So we have validated this street. Make sure we wait
-                 * for a confirmation before we commit to an announcement.
-                 */
-                if (DetectCount == 2) {
+                if (DetectCount == confirm) {
                     roadmap_display_activate
                         ("Current Street", line, distance, NULL);
                 }
-                DetectCount += 1;
             }
+            DetectCount += 1;
         }
     }
 
@@ -1114,9 +1124,10 @@ void roadmap_screen_initialize (void) {
    roadmap_config_declare ("preferences", "Polygons", "Declutter", "1300");
    roadmap_config_declare ("preferences", "Shapes", "Declutter", "1300");
 
-   roadmap_config_declare ("preferences", "Accuracy", "Street", "200");
    roadmap_config_declare ("preferences", "Accuracy", "GPS",    "1000");
    roadmap_config_declare ("preferences", "Accuracy", "Mouse",  "20");
+   roadmap_config_declare ("preferences", "Accuracy", "Street", "200");
+   roadmap_config_declare ("preferences", "Accuracy", "Confirm", "4");
 
    roadmap_config_declare ("preferences", "Map", "Background", "LightYellow");
 

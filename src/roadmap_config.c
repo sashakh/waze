@@ -59,8 +59,10 @@ struct RoadMapConfigItemRecord {
    char *default_value;
    char *value;
 
-   int   type;
-   int   state; /* CLEAN, SHARED, DIRTY. */
+   unsigned char  type;
+   unsigned char  state; /* CLEAN, SHARED, DIRTY. */
+   unsigned char  cached_valid;
+   int            cached_value;
 
    union {
       RoadMapConfigEnum *enumeration_values;
@@ -120,12 +122,30 @@ static RoadMapConfigItem *roadmap_config_search_item (RoadMapConfig *config,
 }
 
 
+static RoadMapConfigItem *roadmap_config_retrieve
+                                (const char *category, const char *name) {
+
+   RoadMapConfig *file;
+   RoadMapConfigItem *item;
+
+   for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
+
+      item = roadmap_config_search_item (file, category, name);
+      if (item != NULL) {
+         return item;
+      }
+   }
+
+   return NULL;
+}
+
+
 static RoadMapConfigItem *roadmap_config_new_item
                              (RoadMapConfig *config,
                               const char    *category,
                               const char    *name,
                               const char    *default_value,
-                              int            item_type) {
+                              unsigned char  item_type) {
 
    RoadMapConfigItem *new_item;
 
@@ -143,7 +163,7 @@ static RoadMapConfigItem *roadmap_config_new_item
 
          if (new_item->type != ROADMAP_CONFIG_STRING) {
             roadmap_log (ROADMAP_ERROR,
-                         "type conflict for %s.%s: % replaced by %d",
+                         "type conflict for %s.%s: %d replaced by %d",
                          category, name, new_item->type, item_type);
          } else {
             new_item->type = item_type;
@@ -170,6 +190,8 @@ static RoadMapConfigItem *roadmap_config_new_item
    new_item->value = NULL;
    new_item->state = ROADMAP_CONFIG_CLEAN;
    new_item->type  = item_type;
+   
+   new_item->cached_valid = 0;
 
    new_item->next = config->first_item;
 
@@ -374,6 +396,8 @@ static int roadmap_config_set_item (RoadMapConfigItem *item, const char *value) 
     }
 
     item->state = ROADMAP_CONFIG_DIRTY;
+    item->cached_valid = 0;
+    
     return 1;
 }
 
@@ -462,6 +486,8 @@ static void roadmap_config_load
       }
       item->value = strdup(value);
       item->state = intended_state;
+      
+      item->cached_valid = 0;
    }
    fclose (file);
 
@@ -549,20 +575,15 @@ void roadmap_config_save (int force) {
 
 char *roadmap_config_get (const char *category, const char *name) {
 
-   RoadMapConfig *file;
-   RoadMapConfigItem *item;
+    RoadMapConfigItem *item = roadmap_config_retrieve (category, name);
 
-   for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
+    if (item != NULL) {
 
-      item = roadmap_config_search_item (file, category, name);
-      if (item != NULL) {
-
-         if (item->value != NULL) {
+        if (item->value != NULL) {
             return item->value;
-         }
-         return item->default_value;
-      }
-   }
+        }
+        return item->default_value;
+    }
 
    return "";
 }
@@ -570,28 +591,43 @@ char *roadmap_config_get (const char *category, const char *name) {
 
 int roadmap_config_get_integer(const char *category, const char *name) {
 
-   return atoi (roadmap_config_get (category, name));
+    char *actual;
+    RoadMapConfigItem *item = roadmap_config_retrieve (category, name);
+
+    if (item != NULL) {
+        
+        if (! item->cached_valid) {
+            
+            if (item->value != NULL) {
+                actual = item->value;
+            } else {
+                actual = item->default_value;
+            }
+            item->cached_value = atoi (actual);
+            item->cached_valid = 1;
+        }
+        return item->cached_value;
+    }
+    return 0;
 }
 
 
 void  roadmap_config_set (const char *category, const char *name, const char *value) {
 
-   RoadMapConfig *file;
-   RoadMapConfigItem *item;
+    RoadMapConfig *file;
+    RoadMapConfigItem *item;
 
-   for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
+    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
 
-      item = roadmap_config_search_item (file, category, name);
-
-      if (item != NULL) {
-
-         if (roadmap_config_set_item (item, value)) {
-
-             file->state = ROADMAP_CONFIG_DIRTY;
-         }
-         return;
-      }
-   }
+        item = roadmap_config_search_item (file, category, name);
+        
+        if (item != NULL) {
+            if (roadmap_config_set_item (item, value)) {
+                file->state = ROADMAP_CONFIG_DIRTY;
+            }
+            return;
+        }
+    }
 }
 
 
