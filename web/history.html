@@ -15,6 +15,15 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mailing List</a>
 <HR> <BR>
+<P>Roadmap v1.0rc3 (April 20, 2003): 
+<UL>
+  <LI>Hopefully made street tracking more stable.
+  <LI>Added detection of the next intersection.. with spotty results.
+  <LI>The navigation module is now called from the GPS event callback
+      and not anymore from the screen module. This avoids going through
+      screen-oriented filters.
+  <LI>Some type cleanups (i.e. use 'const' as much as possible).
+</UL>
 <P>Roadmap v1.0rc2 (April 13, 2003): 
 <UL>
   <LI>Fixed street tracking when more than one county is visible.
