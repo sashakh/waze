@@ -69,6 +69,7 @@ void roadmap_gps_input  (int fd);
 int  roadmap_gps_active (void);
 
 int  roadmap_gps_estimated_error (void);
+int  roadmap_gps_speed_accuracy  (void);
 
 #endif // _ROADMAP_GPS__H_
 

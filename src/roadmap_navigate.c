@@ -30,6 +30,7 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_message.h"
+#include "roadmap_gps.h"
 #include "roadmap_line.h"
 #include "roadmap_square.h"
 #include "roadmap_street.h"
@@ -40,9 +41,6 @@
 #include "roadmap_fuzzy.h"
 
 #include "roadmap_navigate.h"
-
-
-#define ROADMAP_MINIMAL_VALID_SPEED   4    /* Knots. */
 
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
@@ -319,7 +317,7 @@ static int roadmap_navigate_next_intersection
     RoadMapStreetProperties properties;
 
 
-    if (speed < ROADMAP_MINIMAL_VALID_SPEED) {
+    if (speed < roadmap_gps_speed_accuracy()) {
        return 0;
     }
 

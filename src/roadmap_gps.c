@@ -47,7 +47,10 @@
 
 
 static RoadMapConfigDescriptor RoadMapConfigGPSAccuracy =
-                        ROADMAP_CONFIG_ITEM("Accuracy", "GPS");
+                        ROADMAP_CONFIG_ITEM("Accuracy", "GPS Position");
+
+static RoadMapConfigDescriptor RoadMapConfigGPSSpeedAccuracy =
+                        ROADMAP_CONFIG_ITEM("Accuracy", "GPS Speed");
 
 static RoadMapConfigDescriptor RoadMapConfigGPSSource =
                         ROADMAP_CONFIG_ITEM("GPS", "Source");
@@ -158,6 +161,10 @@ void roadmap_gps_initialize (roadmap_gps_listener listener) {
       }
    }
 
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGPSSpeedAccuracy, "4");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGPSAccuracy, "30");
    roadmap_config_declare
        ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost");
    roadmap_config_declare
@@ -411,5 +418,10 @@ int roadmap_gps_estimated_error (void) {
     }
 
     return RoadMapGpsEstimatedError;
+}
+
+
+int  roadmap_gps_speed_accuracy (void) {
+    return roadmap_config_get_integer (&RoadMapConfigGPSSpeedAccuracy);
 }
 
