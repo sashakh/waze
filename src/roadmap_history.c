@@ -102,11 +102,9 @@ static void roadmap_history_add_entry (const char *data) {
        
        entry = malloc (strlen(data) +
                        sizeof(struct roadmap_history_log_entry));
-      if (entry == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+       roadmap_check_allocated(entry);
 
-      strcpy (entry->data, data);
+       strcpy (entry->data, data);
    }
 
    entry->before = RoadMapLatest;

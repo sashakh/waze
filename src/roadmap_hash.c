@@ -53,9 +53,7 @@ RoadMapHash *roadmap_hash_new (char *name, int size) {
    int i;
    RoadMapHash *hash = malloc (sizeof(RoadMapHash));
 
-   if (hash == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory for hash table %s", name);
-   }
+   roadmap_check_allocated(hash);
 
    hash->name = name;
 
@@ -66,9 +64,7 @@ RoadMapHash *roadmap_hash_new (char *name, int size) {
    hash->size = size;
    hash->next = malloc (size * sizeof(int));
 
-   if (hash->next == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory for hash table %s", name);
-   }
+   roadmap_check_allocated(hash->next);
 
    for (i = 0; i < size; i++) {
       hash->next[i] = -1;
@@ -130,12 +126,7 @@ void roadmap_hash_resize (RoadMapHash *hash, int size) {
 
    hash->next = realloc (hash->next, size * sizeof(int));
 
-   if (hash->next == NULL) {
-      roadmap_log
-          (ROADMAP_FATAL,
-           "no more memory for extending hash table %s (%d bytes)",
-           hash->name, size);
-   }
+   roadmap_check_allocated(hash->next);
 
    for (i = hash->size; i < size; i++) {
       hash->next[i] = -1;

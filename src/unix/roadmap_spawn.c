@@ -152,9 +152,8 @@ void roadmap_spawn_initialize (const char *argv0) {
           free (RoadMapSpawnPath);
        }
        RoadMapSpawnPath = strdup (argv0);
-       if (RoadMapSpawnPath == NULL) {
-          roadmap_log (ROADMAP_FATAL, "no more memory");
-       }
+       roadmap_check_allocated(RoadMapSpawnPath);
+
        last_slash = strrchr (RoadMapSpawnPath, '/');
        last_slash[1] = 0; /* remove the current's program name. */
    }

@@ -127,9 +127,8 @@ static EditableItem *roadmap_preferences_new_item
    if (list == NULL) {
 
       list = malloc (sizeof(CategoryList));
-      if (list == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+      roadmap_check_allocated(list);
+
       list->name     = cursor->category;
       list->children = NULL;
 
@@ -138,9 +137,7 @@ static EditableItem *roadmap_preferences_new_item
    }
 
    item = malloc (sizeof(EditableItem));
-   if (item == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(item);
 
    item->config = *cursor;
 
@@ -264,9 +261,7 @@ static void roadmap_preferences_show (const char *file, const char *title) {
 
         context = (ConfigurationContext *)
                         malloc (sizeof(ConfigurationContext));
-        if (context == NULL) {
-            roadmap_log (ROADMAP_FATAL, "no more memory");
-        }
+        roadmap_check_allocated(context);
 
         context->name = strdup(title);
         context->children = NULL;

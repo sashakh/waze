@@ -85,9 +85,8 @@ static void *roadmap_shape_map (roadmap_db *root) {
 
 
    context = malloc(sizeof(RoadMapShapeContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapShapeType;
 
    shape_table  = roadmap_db_get_subsection (root, "data");
@@ -140,9 +139,7 @@ static void roadmap_shape_activate (void *context) {
       shape_context->shape_cache_size = roadmap_line_count();
       shape_context->shape_cache =
          calloc (shape_context->shape_cache_size, sizeof(int));
-      if (shape_context->shape_cache == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+      roadmap_check_allocated(shape_context->shape_cache);
    }
 }
 

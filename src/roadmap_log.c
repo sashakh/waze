@@ -77,3 +77,11 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
    }
 }
 
+
+void roadmap_check_allocated_with_source_line
+                (char *source, int line, void *allocated) {
+
+    if (allocated == NULL) {
+        roadmap_log (ROADMAP_MESSAGE_FATAL, source, line, "no more memory");
+    }
+}

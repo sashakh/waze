@@ -111,10 +111,7 @@ void roadmap_fileselection_new (const char *title,
         }
         
         item = (RoadMapFileSelection *) malloc (sizeof (*item));
-
-        if (item == NULL) {
-            roadmap_log (ROADMAP_FATAL, "no more memory");
-        }
+        roadmap_check_allocated(item);
 
         item->title  = strdup(title);
         item->dialog = gtk_file_selection_new (item->title);

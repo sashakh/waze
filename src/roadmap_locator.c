@@ -250,9 +250,7 @@ int roadmap_locator_by_position
 
    if (*fips == NULL) {
       *fips = calloc (count, sizeof(int));
-      if (*fips == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+      roadmap_check_allocated(*fips);
    }
 
    counties = *fips;

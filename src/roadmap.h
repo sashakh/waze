@@ -40,6 +40,9 @@
 
 void roadmap_log (int level, char *source, int line, char *format, ...);
 
+#define roadmap_check_allocated(p) \
+            roadmap_check_allocated_with_source_line(__FILE__,__LINE__,p)
+
 #define ROADMAP_SHOW_AREA        1
 #define ROADMAP_SHOW_SQUARE      2
 
@@ -51,6 +54,11 @@ int roadmap_option_width  (const char *name);
 int roadmap_option_height (const char *name);
 
 void roadmap_option (int argc, char **argv);
+
+
+/* This function is hidden by a macro: */
+void roadmap_check_allocated_with_source_line
+                (char *source, int line, void *allocated);
 
 #endif // INCLUDE__ROADMAP__H
 

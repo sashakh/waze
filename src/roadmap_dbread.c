@@ -333,9 +333,7 @@ roadmap_db_model *roadmap_db_register
 
    registered = malloc (sizeof(roadmap_db_model));
 
-   if (registered == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(registered);
 
    registered->section = section;
    registered->handler = handler;
@@ -364,9 +362,7 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
    }
 
    full_name = malloc (strlen(name) + strlen(ROADMAP_DB_TYPE) + 4);
-   if (full_name == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(full_name);
 
    strcpy (full_name, name);
    strcat (full_name, ROADMAP_DB_TYPE);
@@ -383,9 +379,8 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
    free (full_name);
 
    database = malloc(sizeof(*database));
-   if (database == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(database);
+
    database->file = file;
    database->name = strdup(name);
    database->base = roadmap_file_base (file);

@@ -232,9 +232,7 @@ static struct dictionary_volume *
 
    dictionary = malloc (sizeof(struct dictionary_volume));
 
-   if (dictionary == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(dictionary);
 
    dictionary->name = roadmap_db_get_name (child);
 

@@ -75,9 +75,8 @@ static char *roadmap_file_cat (const char *s1, const char *s2) {
     
     char *result = malloc (strlen(s1) + strlen(s2) + 4);
 
-    if (result == NULL) {
-        roadmap_log (ROADMAP_FATAL, "no more memory");
-    }
+    roadmap_check_allocated (result);
+
     strcpy (result, s1);
     strcat (result, "/");
     strcat (result, s2);
@@ -285,14 +284,10 @@ int roadmap_file_map (char *name, int sequence, RoadMapFileContext *file) {
    }
 
    full_name = malloc (RoadMapFileMaxPath + strlen(name) + 4);
-   if (full_name == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(full_name);
 
    context = malloc (sizeof(*context));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
 
    context->fd = -1;
    context->base = NULL;

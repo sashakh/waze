@@ -186,9 +186,8 @@ static RoadMapConfigItem *roadmap_config_new_item
 
         new_item = calloc (1, sizeof(RoadMapConfigItem));
 
-        if (new_item == NULL) {
-            roadmap_log (ROADMAP_FATAL, "no more memory");
-        }
+        roadmap_check_allocated(new_item);
+
         new_item->name     = descriptor->name;
         new_item->category = descriptor->category;
         new_item->file     = file;
@@ -226,9 +225,8 @@ static void roadmap_config_add_enumeration_value (RoadMapConfigItem *item,
    RoadMapConfigEnum *last = item->detail.enumeration_values;
 
    new_value = malloc (sizeof(RoadMapConfigEnum));
-   if (new_value == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(new_value);
+
    new_value->next = NULL;
    new_value->value = strdup(value);
 

@@ -114,9 +114,7 @@ static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
 
    child = (RoadMapDialogItem) malloc (sizeof (*child));
 
-   if (child == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(child);
 
    child->typeid = "RoadMapDialogItem";
 
@@ -344,9 +342,7 @@ void roadmap_dialog_new_choice (const char *frame,
    menu = gtk_menu_new ();
 
    choice = (RoadMapDialogSelection *) calloc (count, sizeof(*choice));
-   if (choice == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(choice);
 
    for (i = 0; i < count; ++i) {
 
@@ -428,9 +424,7 @@ void roadmap_dialog_show_list (const char  *frame,
    }
 
    choice = (RoadMapDialogSelection *) calloc (count, sizeof(*choice));
-   if (choice == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(choice);
 
    for (i = 0; i < count; ++i) {
 

@@ -186,13 +186,11 @@ static RoadMapTripPoint *roadmap_trip_update (const char *name, const RoadMapPos
          * is visible.
          */
         result = malloc (sizeof(RoadMapTripPoint));
-        if (result == NULL) {
-            roadmap_log (ROADMAP_FATAL, "no more memory");
-        }
+        roadmap_check_allocated(result);
+
         result->id = strdup(name);
-        if (result->id == NULL) {
-            roadmap_log (ROADMAP_FATAL, "no more memory");
-        }
+        roadmap_check_allocated(result->id);
+
         result->predefined = 0;
         result->in_trip = 1;
         result->sprite = sprite;

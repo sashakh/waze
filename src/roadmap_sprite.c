@@ -85,11 +85,10 @@ RoadMapGuiPoint *RoadMapSpritePoints = NULL;
 
 static char *roadmap_sprite_string (const char *data, int length) {
 
-   char *p = malloc (length+1);
+    char *p = malloc (length+1);
 
-    if (p == NULL) {
-       roadmap_log (ROADMAP_FATAL, "no more memory");
-    }
+    roadmap_check_allocated(p);
+
     strncpy (p, data, length);
     p[length] = 0;
 
@@ -118,9 +117,8 @@ static void roadmap_sprite_decode_plane
    } else {
 
       sprite->last->next = calloc (1, sizeof(sprite->first));
-      if (sprite->last->next == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+      roadmap_check_allocated(sprite->last->next);
+
       sprite->last = sprite->last->next;
    }
 
@@ -205,15 +203,12 @@ static RoadMapSprite roadmap_sprite_new
 
    RoadMapSprite sprite = malloc(sizeof(*sprite));
 
-   if (sprite == NULL) {
-            roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(sprite);
+
    memset (sprite, 0, sizeof(*sprite));
 
    sprite->name = roadmap_sprite_string (argv[1], argl[1]);
-   if (sprite->name == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+
    sprite->first.pen = roadmap_canvas_create_pen ("Black");
 
    sprite->next = RoadMapSpriteList;

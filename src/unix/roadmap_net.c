@@ -57,9 +57,7 @@ int roadmap_net_connect (const char *name, int default_port) {
    addr.sin_family = AF_INET;
 
    hostname = strdup(name);
-   if (hostname == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(hostname);
 
    if (separator != NULL) {
 

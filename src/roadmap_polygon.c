@@ -67,9 +67,8 @@ static void *roadmap_polygon_map (roadmap_db *root) {
 
 
    context = malloc (sizeof(RoadMapPolygonContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapPolygonType;
 
    head_table  = roadmap_db_get_subsection (root, "head");

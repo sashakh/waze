@@ -336,15 +336,18 @@ void roadmap_screen_draw_line (int line) {
 
 static void roadmap_screen_flush_polygons (void) {
 
+   int count = RoadMapScreenObjects.cursor - RoadMapScreenObjects.data;
+    
+   if (count == 0) {
+       return;
+   }
+   
    roadmap_math_rotate_coordinates
        (RoadMapScreenLinePoints.cursor - RoadMapScreenLinePoints.data,
         RoadMapScreenLinePoints.data);
 
    roadmap_canvas_draw_multiple_polygons
-      (RoadMapScreenObjects.cursor - RoadMapScreenObjects.data,
-       RoadMapScreenObjects.data,
-       RoadMapScreenLinePoints.data,
-       1);
+      (count, RoadMapScreenObjects.data, RoadMapScreenLinePoints.data, 1);
 
    RoadMapScreenObjects.cursor = RoadMapScreenObjects.data;
    RoadMapScreenLinePoints.cursor  = RoadMapScreenLinePoints.data;
@@ -383,9 +386,7 @@ static void roadmap_screen_draw_polygons (void) {
       category = roadmap_polygon_category (i);
 
       if (category != current_category) {
-         if (RoadMapScreenObjects.cursor != RoadMapScreenObjects.data) {
-            roadmap_screen_flush_polygons ();
-         }
+         roadmap_screen_flush_polygons ();
          roadmap_canvas_select_pen (RoadMapCategory[category].pen);
          current_category = category;
       }
@@ -444,9 +445,7 @@ static void roadmap_screen_draw_polygons (void) {
       }
    }
 
-   if (RoadMapScreenObjects.cursor != RoadMapScreenObjects.data) {
-      roadmap_screen_flush_polygons ();
-   }
+   roadmap_screen_flush_polygons ();
 }
 
 
@@ -636,9 +635,7 @@ static void roadmap_screen_reset_square_mask (void) {
    }
    SquareOnScreenCount = roadmap_square_count();
    SquareOnScreen = calloc (SquareOnScreenCount, sizeof(char));
-   if (SquareOnScreen == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(SquareOnScreen);
 }
 
 

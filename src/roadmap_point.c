@@ -67,9 +67,7 @@ static void *roadmap_point_map (roadmap_db *root) {
    RoadMapPointContext *context;
 
    context = malloc (sizeof(RoadMapPointContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
    context->type = "RoadMapPointContext";
 
    bysquare_table  = roadmap_db_get_subsection (root, "bysquare");
@@ -145,9 +143,8 @@ static void roadmap_point_retrieve_square (void) {
 
       point2square2 =
          calloc (RoadMapPointActive->PointCount, sizeof(unsigned short));
-      if (point2square2 == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+      roadmap_check_allocated(point2square2);
+
       RoadMapPointActive->PointToSquare2 = point2square2;
    }
 
@@ -174,9 +171,8 @@ lot_of_squares:
    RoadMapPointActive->PointToSquare2 = NULL;
 
    point2square4 = calloc (RoadMapPointActive->PointCount, sizeof(int));
-   if (point2square4 == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(point2square4);
+
    RoadMapPointActive->PointToSquare4 = point2square4;
 
    for (i = 0; i < RoadMapPointActive->BySquareCount; i++) {

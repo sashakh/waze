@@ -76,9 +76,8 @@ static void *roadmap_square_map (roadmap_db *root) {
 
 
    context = malloc(sizeof(RoadMapSquareContext));
-   if (context == NULL) {
-      roadmap_log(ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapSquareType;
 
    global_table  = roadmap_db_get_subsection (root, "global");
@@ -92,9 +91,8 @@ static void *roadmap_square_map (roadmap_db *root) {
 
    context->SquareGrid =
       (RoadMapSquareGrid *) calloc (sizeof(RoadMapSquare), count);
-   if (context->SquareGrid == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context->SquareGrid);
+
    context->SquareGridCount = count;
 
    for (i = count - 1; i >= 0; i--) {

@@ -74,9 +74,8 @@ static void *roadmap_county_map (roadmap_db *root) {
    RoadMapCountyContext *context;
 
    context = malloc (sizeof(RoadMapCountyContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapCountyType;
 
    state_table  = roadmap_db_get_subsection (root, "bystate");

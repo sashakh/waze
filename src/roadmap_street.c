@@ -115,9 +115,8 @@ static void *roadmap_street_map (roadmap_db *root) {
 
 
    context = malloc (sizeof(RoadMapStreetContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapStreetType;
 
    table = roadmap_db_get_subsection (root, "name");
@@ -180,9 +179,8 @@ static void *roadmap_street_zip_map (roadmap_db *root) {
 
 
    context = malloc (sizeof(RoadMapZipContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapZipType;
 
    context->RoadMapZipCode = (int *) roadmap_db_get_data (root);
@@ -234,9 +232,8 @@ static void *roadmap_street_range_map (roadmap_db *root) {
 
 
    context = malloc (sizeof(RoadMapRangeContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(context);
+
    context->type = RoadMapRangeType;
    context->RoadMapStreetPrefix = NULL;
    context->RoadMapStreetNames  = NULL;

@@ -133,9 +133,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name) {
       gdk_gc_set_fill (gc, GDK_SOLID);
 
       pen = malloc (sizeof(*pen));
-      if (pen == NULL) {
-         roadmap_log (ROADMAP_FATAL, "no more memory");
-      }
+      roadmap_check_allocated(pen);
 
       pen->name = strdup (name);
       pen->gc   = gc;

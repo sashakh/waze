@@ -132,9 +132,8 @@ RoadMapKeyboard roadmap_keyboard_new (void) {
    GtkWidget *button;
 
    keyboard = (RoadMapKeyboard) malloc (sizeof(*keyboard));
-   if (keyboard == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no more memory");
-   }
+   roadmap_check_allocated(keyboard);
+
    keyboard->frame = gtk_table_new (4, 10, TRUE);
 
    for (i = 0; i < 4; i++) {
