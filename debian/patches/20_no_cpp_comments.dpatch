@@ -75,16 +75,6 @@ exit 0
     }
  
     city = (char *) roadmap_dialog_get_data ("Address", "City:");
---- src/roadmap_db_polygon.h
-+++ src/roadmap_db_polygon.h
-@@ -21,6 +21,7 @@
-    char  cfcc;
-    unsigned char filler;
- 
-+   /* TBD: replace these with a RoadMapArea (not compatible!). */
-    int   north;
-    int   west;
-    int   east;
 --- src/roadmap_download.c
 +++ src/roadmap_download.c
 @@ -105,7 +105,7 @@
