@@ -119,9 +119,16 @@ int roadmap_net_connect (const char *name, int default_port) {
       goto connection_failure;
    }
 
+   /* FIXME: this way of establishing the connection is kind of dangerous
+    * if the server process is not local: we might fail only after a long
+    * delay that will disable RoadMap for a while.
+    */
    if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+
+      /* This is not a local error: the remote application might be
+       * unavailable. This is not our fault, don't cry.
+       */
       close(fd);
-      roadmap_log (ROADMAP_WARNING, "cannot connect to '%s'", name);
       goto connection_failure;
    }
 
