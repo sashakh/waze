@@ -14,8 +14,21 @@ href="/sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="maps.html">Maps</a>
 <a class="normal" href="hardware.html">Hardware</a>
 <a class="normal" href="bugs.html">Bugs</a>     
-<a class="normal" href="list.html">Mailing List</a>
+<a class="normal" href="list.html">Mail</a>
+<a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
+<P>Roadmap v1.0rc8 (August 2, 2003): 
+<UL>
+  <LI>Redesigned the navigation module. Navigation is now based on fuzzy
+      logic and takes into account the position, direction and speed of
+      the car, as well as the street connectivity (to "promote" streets
+      connected to the current street).
+  <LI>Do not stop at the first street when searching for any city (i.e.
+      when prefixing the city name with '?').
+  <LI>Add history to the intersection and coordinates dialogs.
+  <LI>Improve debug trace to be able to filter per source file (i.e. enable
+      trace for a specific source file only), option syntax: --debug=source.
+</UL>
 <P>Roadmap v1.0rc7 (July 4, 2003): 
 <UL>
   <LI>Do not use SIGCHLD anymore, as it seems to crash in some cases on
