@@ -221,6 +221,10 @@ int roadmap_line_in_square2 (int square, int cfcc, int *first, int *last) {
    }
    *first = index[cfcc-1];
 
+   /* The last line for this category is the line before the first line
+    * for the next category that has lines, otherwise it is the last
+    * square's line.
+    */
    for (next = -1; next < 0 && cfcc < ROADMAP_CATEGORY_RANGE; cfcc++) {
       next  = index[cfcc];
    }
