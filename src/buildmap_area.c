@@ -63,7 +63,7 @@ int buildmap_area_add
          RoadMapString fedirs,
          int tlid) {
 
-   return 0; // TBD
+   return 0; /* TBD */
 }
 
 
