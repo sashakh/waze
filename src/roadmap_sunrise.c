@@ -120,6 +120,7 @@ static time_t roadmap_sunrise_getriseorset
                  (const RoadMapGpsPosition *position, int riseorset) {
 
    time_t gmt;
+   time_t result;
    struct tm curtime;
    struct tm curtime_gmt;
 
@@ -193,7 +194,12 @@ static time_t roadmap_sunrise_getriseorset
 
 	// utnew must now be converted into gmt.
 
-   return roadmap_sunrise_get_gmt (utnew * DEGREES / 15, &curtime_gmt);
+   result = roadmap_sunrise_get_gmt (utnew * DEGREES / 15, &curtime_gmt);
+   if (result < gmt) {
+      result += (24 * 3600);
+   }
+
+   return result;
 }
 
 
@@ -204,14 +210,20 @@ time_t roadmap_sunrise (const RoadMapGpsPosition *position) {
 
    time_t now = time(NULL);
 
-   if (now > validity) {
+   if (validity < now) {
 
       sunrise = roadmap_sunrise_getriseorset (position, ROADMAP_SUNRISE);
 
       if (sunrise < now) {
 
-         /* This is night time already: we care about the next sunrise. */
-         validity = roadmap_sunset (position);
+         /* This happened already: wait for the next sunrise. */
+
+         validity = roadmap_sunrise_getriseorset (position, ROADMAP_SUNSET);
+
+         if (validity < now) {
+            /* We want the next sunset, not the last one. */
+            validity += (24 * 3600);
+         }
 
       } else if (now + 3600 < sunrise) {
 
@@ -248,8 +260,14 @@ time_t roadmap_sunset (const RoadMapGpsPosition *position) {
 
       if (sunset < now) {
 
-         /* This is night time already: we care about the next sunset. */
-         validity = roadmap_sunrise (position);
+         /* This happened already: wait for the next sunset. */
+
+         validity = roadmap_sunrise_getriseorset (position, ROADMAP_SUNRISE);
+
+         if (validity < now) {
+            /* We want the next sunrise, not the last one. */
+            validity += (24 * 3600);
+         }
 
       } else if (now + 3600 < sunset) {
 
