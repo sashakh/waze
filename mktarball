@@ -40,6 +40,8 @@ RDM_SRC="roadmap/src/Makefile
 RDM_CFG="roadmap/src/preferences
          roadmap/src/schema
          roadmap/src/sprites
+         roadmap/src/*.png
+         roadmap/src/roadmap.desktop
          roadmap/src/roadmap.menu"
 
 RDM_SH="roadmap/src/rdmdownload
