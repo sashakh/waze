@@ -90,8 +90,8 @@ done
 echo "Creating tar ball for section doc ..."
 rm -f $RELEASE/roadmap_${version}_doc.tar*
 cp roadmap/src/ipkg/INSTALL roadmap/INSTALL.familiar
-aptconvert -toc roadmap/web/manual.html roadmap/README
-aptconvert -toc roadmap/web/familiar.html roadmap/src/ipkg/INSTALL
+aptconvert -enc ASCII -toc roadmap/web/manual.html roadmap/README
+aptconvert -enc ASCII -toc roadmap/web/familiar.html roadmap/src/ipkg/INSTALL
 tar cf $RELEASE/roadmap_${version}_doc.tar $RDM_DOC ${ROADMAP}/web ${ROADMAP}/INSTALL.familiar
 rm -f roadmap/INSTALL.familiar
 
