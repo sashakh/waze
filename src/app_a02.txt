@@ -3234,9 +3234,6 @@ FIPS          County     State
 78     010     St. Croix     VI
 78     020     St. John     VI
 78     030     St. Thomas     VI
-
-
-
 87     001     Alberta     AB
 88     001     British Columbia     BC
 89     001     Manitoba     MB
