@@ -59,6 +59,8 @@ int  roadmap_log_enabled (int level, char *source, int line);
 
 void roadmap_option_initialize (void);
 
+int  roadmap_option_is_synchronous (void);
+
 char *roadmap_debug (void);
 
 int   roadmap_verbosity  (void); /* return a minimum message level. */

@@ -436,8 +436,11 @@ static void roadmap_trip_set_point_focus (RoadMapTripPoint *point, int rotate) {
         roadmap_display_page (point->id);
     }
     if (point != RoadMapTripGps && RoadMapTripDestination != NULL) {
+
+        /* Force the refresh when we know the trip information
+         * must disappears from the screen.
+         */
         RoadMapTripRefresh = 1;
-        RoadMapTripDestination = NULL;
     }
 }
 
@@ -553,8 +556,6 @@ void roadmap_trip_set_mobile (const char *name,
            roadmap_config_set_integer (&result->config_direction, direction);
        }
     }
-
-    roadmap_screen_refresh();
 }
 
 

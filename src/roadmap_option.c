@@ -52,6 +52,7 @@ static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
 static int roadmap_option_no_area = 0;
 static int roadmap_option_square  = 0;
 static int roadmap_option_cache_size = 0;
+static int roadmap_option_synchronous = 0;
 
 static char *roadmap_option_debug = "";
 static char *roadmap_option_gps = NULL;
@@ -130,6 +131,12 @@ int roadmap_option_height (const char *name) {
         return 200;
     }
     return atoi(separator+1);
+}
+
+
+int roadmap_option_is_synchronous (void) {
+
+   return roadmap_option_synchronous;
 }
 
 
@@ -241,6 +248,10 @@ static void roadmap_option_set_verbose (const char *value) {
     }
 }
 
+static void roadmap_option_set_synchronous (const char *value) {
+
+    roadmap_option_synchronous = 1;
+}
 
 static void roadmap_option_usage (const char *value);
 
@@ -288,6 +299,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
 
     {"--gps=", "URL", roadmap_option_set_gps,
         "Use a specific GPS source (mainly for replay of a GPS log)"},
+
+    {"--gps-sync", "", roadmap_option_set_synchronous,
+        "Update the map synchronously when receiving each GPS position"},
 
     {"--cache=", "INTEGER", roadmap_option_set_cache,
         "Set the number of entries in the RoadMap's map cache"},
