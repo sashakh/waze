@@ -66,7 +66,7 @@ struct roadmap_download_tool {
 static struct roadmap_download_tool RoadMapDownloadCompressTools[] = {
    {".gz",  "gunzip -f"},
    {".bz2", "bunzip2 -f"},
-   {".lzo", "lzop -d -fU -p"},
+   {".lzo", "lzop -d -Uf"},
    {NULL, NULL}
 };
 
@@ -508,13 +508,9 @@ int roadmap_download_get_county (int fips) {
 
 static void roadmap_download_compute_space (int *count, int *size) {
 
-   char *directory;
    char **files;
    char **cursor;
-
-   directory =
-      roadmap_path_parent
-         (NULL, roadmap_config_get (&RoadMapConfigDestination));
+   const char *directory = roadmap_config_get (&RoadMapConfigDestination);
 
    files = roadmap_path_list (directory, ".rdm");
 
