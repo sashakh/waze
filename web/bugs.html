@@ -28,9 +28,13 @@ due to a handful of bugs. Here are the details:
   problem has been worked around more or less for now.
   <P><b>Latest News</b>:
   the US Census Bureau has fixed several duplicated line ID, making changes to
-  7 counties. My choice so far is to not update the RoadMap maps: the 2003
-  release of the TIGER map database has been announced and the RoadMap map
-  files will be regenerated in full then.</LI>
+  7 counties. My choice so far is to not update the RoadMap maps, since the
+  changes are quite minimal.
+  <LI>The RoadMap maps are getting old: they are based on the 2002 release
+  of the TIGER/line files. The truth is, 2003 provides very few updates.
+  The announced 2004 release (end of 2004..) is much more interesting. I plan
+  on updating the maps a few months after the 2004 release has been made
+  available.
   <LI>The maps for the state of Hawaii do not use the NAD83 datum. The offset
   can be significant (a few hundred feet), making these maps basically unusable
   for navigation. The USGS bureau has announced that their maps of hawaii are
@@ -42,9 +46,6 @@ due to a handful of bugs. Here are the details:
   <LI>It happenned once that a freeway was showing up without its normal
   shape. This cannot be reproduced consistently, through. More details are
   welcome.
-  <LI>It seems that RoadMap has some memory leaks problems: playing the
-  same trip log over and over causes the size of the RoadMap process to
-  grow. This might have been fixed since then, but one never know..
   <LI>Search of a city is broken: cities and places are confused. This makes
   it difficult to find some cities.
   <LI>The buildus tool does not use the map path: it assumes all the map files 
