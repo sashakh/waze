@@ -111,9 +111,10 @@ INSTALLATION:
 
    INSTALLING FROM THE FAMILIAR PACKAGE:
 
-   The RoadMap familiar package (.ipk) contains the RoadMap executables and
-   configuration files for a Gtk 2.0 setup (such as the Familiar 0.7.1 GPE
-   image). This package contains nor the map files nor the map index file.
+   The RoadMap familiar distribution contains one .ipk package file. This
+   package contains the RoadMap executables (roadmap and roadgps) as well as
+   the configuration files for a Gtk 2.0 setup (such as the Familiar 0.7.1 GPE
+   image). This package does not contain the map files or the map index file.
 
    If RoadMap is available from your feed:
 
@@ -123,17 +124,26 @@ INSTALLATION:
 
       ipkg install roadmap-gtk2_X.Y.Z_arm.ipk
 
-   The maps must be generated from the US Census Bureau's files (see below)
-   or downloaded from http://roadmap.saignon.net/maps.html
+   RoadMap is useless without maps. The maps can be downloaded from the
+   web site (http://roadmap.saignon.net/maps.html or mirrors) or generated
+   from the US Census Bureau's files (see later).
 
    It is strongly recommended you install the RoadMap maps on a CompactFlash
    or SD/MMC card, and not on the iPAQ internal flash. The reason is that
-   the maps are too big to be installed on the iPAQ flash. As configured,
-   RoadMap will look for the maps either in /mnt/hda/share/roadmap or
-   /mnt/card/share/roadmap.
+   the maps are way too big to be installed on the iPAQ flash. As configured,
+   RoadMap will look for the maps either in
+   
+             /mnt/hda/share/roadmap or
+             /mnt/card/share/roadmap.
+
+   The set of maps for California represents more that 100 Mbyte of data,
+   the whole US about 1.6 Gbyte. Unless you are the lucky owner of a large
+   capacity CompactFlash, you will have to install a subset. A capacity of
+   128 Mbyte is enough in most cases, 64 Mbyte might be enough if you do not
+   travel far from home.
 
    To build the maps yourself, you need the Linux/i686 binary or the source
-   tarball.
+   tarball. See the next section for more details.
 
 
    INSTALLING FROM THE SOURCE TARBALL:
@@ -483,6 +493,12 @@ USING ROADMAP:
 
    The current bindings that are used by the application are printed after
    the options help information when the --help option is used.
+
+   Note for Familiar 0.7.1 GPE users: the GPE environment has defined the
+   buttons bindings In a way that makes it impossible for RoadMap to use
+   them (the button are mapped to the GPE applications). In this environment
+   it is recommended to enable the toolbar to replace the buttons. the joypad
+   is still available.
 
 
    ON-THE-FLY MAP DOWNLOAD:
