@@ -229,8 +229,19 @@ int roadmap_line_in_square2 (int square, int cfcc, int *first, int *last) {
       next  = index[cfcc];
    }
 
-   if (next > 0) {
+   if (next >= 0) {
+
+      if (next <= *first) {
+
+         /* Due to a bug in buildmap, the value 0 may show up. */
+         if (next != 0) {
+            roadmap_log (ROADMAP_ERROR,
+                         "invalid LineBySquare2 index for square %d", square);
+         }
+         return 0;
+      }
       *last = next - 1;
+
    } else {
       *last = RoadMapLineActive->LineBySquare2[square].last;
    }
