@@ -127,9 +127,26 @@ INSTALLATION
    RoadMap will not work without it.
 
    Please refrain from downloading all the US states at once, as the map
-   files are huges and the bandwidth is expensive.
+   files are huges and the bandwidth is expensive. If you do need the
+   complete set, please drop an email to the author.
    
-   If you do need the complete set, please drop an email to the author.
+   It is recommended to install the maps in one of these directories:
+
+         * /var/lib/roadmap
+         * /usr/lib/roadmap
+         * ~/.roadmap/maps
+         * /usr/local/share/roadmap
+         * /usr/share/roadmap
+
+   The last two directories are not FHS-compliant, but they are in
+   RoadMap's default path as shipped. ~/.roadmap/maps is also in
+   the default path. The two first directories are FHS-compliant,
+   but you must change Map.Path in the RoadMap preferences if you
+   want to use them.
+
+   You may also install the maps in any directory, assumed you change
+   Map.Path accordingly in the RoadMap preferences.
+
    Roadmap comes either as a set of sources, or as a set of binary files,
    depending on which distribution you downloaded. RoadMap comes in three
    distribution formats:
@@ -162,10 +179,37 @@ INSTALLATION
    src/gtk contains the executable files for Debian GNU/Linux (kernel 2.4)
    and the directory src contains the example map datafiles.
 
-   RoadMap can be installed by running the "make install" command from
-   one of the graphical toolkit directories (gtk2, gtk or qt). This
+   RoadMap can be installed as follow (you will likely need to be logged
+   as root):
+   
+   mkdir /usr/share/local/roadmap
+   cd roadmap-<version>/src
+   cp sprites preferences schema session /usr/share/local/roadmap
+   cp roadmap.1 roadgps.1 /usr/local/share/map/man1
+	cp roadmap*.png icons/rm_*.png /usr/local/share/pixmap
+
+   You can then choose to install the GTK2 version:
+
+   cp gtk2/gtkroadmap /usr/local/bin/roadmap/roadmap
+   cp gtk2/gtkroadgps /usr/local/bin/roadmap/roadgps
+
+   or the QT version (requires QT3):
+
+   cp qt/qtroadmap /usr/local/bin/roadmap/roadmap
+   cp qt/qtroadgps /usr/local/bin/roadmap/roadgps
+
+   The "make install" command from one of the graphical toolkit directories
+   (gtk2, gtk or qt) will do the job for you (it must be run as root). This
    installs the associated set of RoadMap executables and all configuration
    files (but not the maps!).
+
+   RoadMap will not work without the maps, which can be downloaded from
+   the RoadMap web site:
+
+         * {{http://roadmap.digitalomaha.net/maps.html}}
+
+   Please install usdir.rdm first. See the DOWLOADING section for more
+   information.
 
 
 * INSTALLING FROM THE FAMILIAR PACKAGE
@@ -200,7 +244,8 @@ INSTALLATION
 
            * /mnt/card/share/roadmap.
 
-   (This can be changed using the RoadMap preferences dialog.)
+   (This can be changed using the Map.Path item in the RoadMap preferences
+   dialog.)
 
    The set of maps for California represents more that 100 Mbyte of data,
    the whole US about 1.6 Gbyte. Unless you are the lucky owner of a large
@@ -865,13 +910,13 @@ USING ROADMAP
    The format for longitude is:
 
 ----
-   [+-EW][d]dd[mm[ss]][.ffffff]
+   [+-EW][d]dd[mm[ss]][.ffffff][EW]
 ----
    
    The format for latitude is:
 
 ----
-   [+-NS]dd[mm[ss]][.ffffff]
+   [+-NS]dd[mm[ss]][.ffffff][NS]
 ----
 
    Where "[d]dd" or "dd" stands for the degrees, "mm" stands for the minutes,
@@ -881,7 +926,7 @@ USING ROADMAP
    The main extensions compare to ISO 6709 are as follow:
    
    * the letters 'E', 'W', 'N' and 'S' are recognized as a replacement
-     for '+' or '-'.
+     for '+' or '-', either as prefix or suffix.
 
    * the longitude may be expressed with 2 digits for the degrees.
 
@@ -1083,6 +1128,8 @@ CONFIGURATION
 |  E: | Next sunset time (evening), undefined in night time.
 *-----+-----------------------------------------------------------------+
 |  F: | the full name (number, name, city) of the selected or current street.
+*-----+-----------------------------------------------------------------+
+|  H: | Altitude (set only when a trip is active).
 *-----+-----------------------------------------------------------------+
 |  M: | Next sunrise time (morning), undefined in daylight time.
 *-----+-----------------------------------------------------------------+
