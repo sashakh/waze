@@ -1,16 +1,18 @@
 
+WARNFLAGS = -W -Wall
+
 ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
 # then use the mtrace tool to analyze the output.
-   MODECFLAGS=-g -W -Wall -DROADMAP_DEBUG_HEAP
+   MODECFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
    MODELDFLAGS=
 else
 ifeq ($(MODE),PROFILE)
-   MODECFLAGS=-g -W -Wall -pg -fprofile-arcs -g
+   MODECFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
    MODELDFLAGS=-pg
 else
-   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer -W -Wall $(OPTIONS)
+   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer $(WARNFLAGS) $(OPTIONS)
    MODELDFLAGS=
 endif
 endif

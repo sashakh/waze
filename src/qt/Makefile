@@ -17,14 +17,16 @@ ifeq ($(DESKTOP),QPE)
    INSTALLDIR=$(QTDIR)
 endif
 
+WARNFLAGS=-W -Wall
+
 ifeq ($(MODE),DEBUG)
-   STDCFLAGS=-g -W -Wall -DROADMAP_DEBUG_HEAP
+   STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
 else
 ifeq ($(MODE),PROFILE)
-   STDCFLAGS=-g -W -Wall -pg -fprofile-arcs -g
+   STDCFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
    LDFLAGS=-pg $(LDFLAGS)
 else
-   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -W -Wall $(OPTIONS)
+   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g $(WARNFLAGS) $(OPTIONS)
 endif
 endif
 
