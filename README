@@ -284,7 +284,7 @@ USING ROADMAP:
    
    --location=LONGITUDE,LATITUDE
    
-       Set the location point (see menu entry Screen/Show Location..).
+       Set the location point (see menu entry View/Show Location..).
        This option is sticky.
 
    --metric
@@ -374,7 +374,7 @@ USING ROADMAP:
    "Configuring the RoadMap text and voice messages").
 
    If the flite program has been installed, or if RoadMap was configured
-   for another speech application, RoadMap will complement the screen
+   for an available speech application, RoadMap will complement the screen
    information with an audio one: Roadmap will "tell" the name of the street
    on the audio output device. As a general rule, RoadMap tries not to repeat
    the same message again, as frequent audio messages tend to border on the
