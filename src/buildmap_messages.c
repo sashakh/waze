@@ -188,6 +188,7 @@ void buildmap_summary (int verbose, char *format, ...) {
          fprintf (stderr, "-- %s: 1 error", SourceFile);
       }
       verbose = 1;
+      ErrorCount = 0;
    } else if (verbose) {
      fprintf (stderr, "-- %s: %d lines, no error", SourceFile, SourceLine);
    }
