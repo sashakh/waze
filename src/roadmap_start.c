@@ -129,9 +129,19 @@ static void roadmap_start_trip (void) {
     roadmap_trip_start (1);
 }
 
-static void roadmap_start_trip_north_up (void) {
+static void roadmap_start_trip_resume (void) {
     
-    roadmap_trip_start (0);
+    roadmap_trip_resume (1);
+}
+
+static void roadmap_start_trip_resume_north_up (void) {
+    
+    roadmap_trip_resume (0);
+}
+
+static void roadmap_start_trip_reverse (void) {
+    
+    roadmap_trip_reverse (1);
 }
 
 static void roadmap_start_delete_waypoint (void) {
@@ -168,8 +178,15 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {RoadMapFactorySeparator, NULL, NULL},
    {"Start Trip",
        "Start tracking the current trip", roadmap_start_trip},
-   {"Start Trip (North Up)",
-       "Start tracking the current trip", roadmap_start_trip_north_up},
+   {"Resume Trip",
+       "Resume a trip (keep the existing departure point)",
+       roadmap_start_trip_resume},
+   {"Resume Trip (North Up)",
+       "Resume a trip (keep the existing departure point)",
+       roadmap_start_trip_resume_north_up},
+   {"Resume Trip in Reverse",
+       "Start tracking the current trip back to the departure",
+       roadmap_start_trip_reverse},
    {"Stop Trip",
        "Stop tracking the current trip", roadmap_start_trip_end},
    {RoadMapFactorySeparator, NULL, NULL},

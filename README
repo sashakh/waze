@@ -262,14 +262,12 @@ USAGE:
 
    Waypoints and addresses:
 
-   RoadMap manages three locations: a destination point (selected manually),
-   a location point (selected manually as well) and the GPS position (updated
-   automatically if a GPS fix is available). One can select which of the three
-   locations serves as the center of the map. If the GPS position has been
-   selected, roadmap will track the GPS position in realtime and update its
-   map accordingly. The GPS position can be shown in two modes: either North
-   up, or GPS direction up. In the scond case, the map is rotated according
-   to the direction information received from the GPS.
+   RoadMap manages four types of points: a destination point (selected using
+   a street address), a location point (same method), the GPS position
+   (updated automatically if a GPS fix is available) and user-defined
+   waypoints. One can select which of the first three locations serves as the
+   center of the map. The GPS and waypoints positions are special cases:
+   see the section on trip management.
 
    The destination and location waypoints can be entered manually as a valid
    street address by providing the street number, name, city and state names.
@@ -351,7 +349,51 @@ USAGE:
    when one is not sure of the city name, or only knows the name of a city
    nearby.
 
+   Managing Trips
+   
+   A trip is made of one destination point and many user-defined waypoints.
+   The purpose of a RoadMap trip is to describe a real-life trip and to
+   provide the user information about the trip progress.
+   
+   RoadMap supports an infinite number of trips: each trip context is saved
+   in a trip file. One trip at a time can be edited or activated. A saved
+   trip can be reloaded from the trip file, of course. each trip support an
+   infinite number of waypoints.
 
+   The last trip created or loaded will be reloaded the next time RoadMap
+   starts.
+   
+   A trip must have been loaded before it can be edited. There are three trip
+   edition actions available in the "Trips" menu: set the destination point,
+   add a waypoint or remove a waypoint. The destination point is defined
+   using a street address by selecting the "Set Destination.." entry. A
+   waypoint is added by highlighting a location on the map and then selecting
+   the "Add as Waypoint" entry. Waypoints can be deleted by selecting the
+   "Delete Waypoints.." entry, then selecting a specific waypoint and hitting
+   the "Delete" button.
+   
+   A trip that has been created or loaded can then be activated. Activating
+   a trip defines the departure point (as the current GPS location) and
+   enable the "trip display" mode, i.e. some trip information displayed on
+   top of the map. These trip displays are (1) an arrow beside the GPS
+   location symbol to indicate the direction of the destination or of the
+   next waypoint and (2) a distances information on the top right corner of
+   the map. If the arrow denotes a waypoint, the distance to the waypoint
+   is provided in parenthesis beside the distance to the destination.
+   
+   When a trip is active, RoadMap tracks the GPS position in realtime and
+   updates its map accordingly. The GPS position can be shown in two modes:
+   either North up, or GPS direction up. In the second case, the map is
+   rotated according to the direction information received from the GPS.
+   This dynamic rotation is in addition to the map manual rotation.
+
+   A trip can be stopped at any time and then resumed. Resuming a trip
+   does not modify the departure point. The trip can also be resumed in
+   reverse mode: in that case the departure point and the destination
+   point switch roles. Note that this does not modify the trip, only the
+   way RoadMap uses the trip information. The reverse mode makes it
+   possible to use the same RoadMap trip on the way back.
+   
    RoadMap Preferences:
 
    It is possible to edit the roadmap's preferences (select File/Preferences

@@ -50,7 +50,9 @@ int   roadmap_trip_get_orientation (void);
 const RoadMapPosition *roadmap_trip_get_focus_position (void);
 
 
-void  roadmap_trip_start (int rotate);
+void  roadmap_trip_start   (int rotate);
+void  roadmap_trip_resume  (int rotate);
+void  roadmap_trip_reverse (int rotate);
 
 void  roadmap_trip_display_points  (void);
 void  roadmap_trip_display_console (RoadMapPen foreground, RoadMapPen background);

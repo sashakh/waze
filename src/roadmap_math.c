@@ -140,6 +140,9 @@ static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
       cosine = RoadMapTrigonometricTable[i].x;
    }
 
+   if (angle < 0) {
+       angle += 360;
+   }
    i = (angle / 90) % 4;
    if (i < 0) {
       i += 4;
