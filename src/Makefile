@@ -148,7 +148,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_zip.c \
        buildmap_tiger.c \
        buildmap_shapefile.c \
-	   buildmap_place.c \
+       buildmap_place.c \
        buildmap_main.c
 
 BMOBJS=$(BMSRCS:.c=.o)
@@ -159,7 +159,7 @@ BPSRCS=buildmap_messages.c \
        buildmap_dbwrite.c \
        buildmap_square.c \
        buildmap_point.c \
-	   buildmap_place.c \
+       buildmap_place.c \
        buildplace_main.c
 
 BPOBJS=$(BPSRCS:.c=.o)
