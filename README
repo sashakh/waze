@@ -509,6 +509,23 @@ USING ROADMAP:
    connection while on the road, the download feature can also be used at
    any time.
 
+   Here is a typical setup using the HTTP protocol:
+
+     1- Install the individual map files, gzip-compressed, in a "maps"
+        subdirectory of the web server directory tree. Say the web
+        server is named "desktop".
+
+     2- Set the preference Download.Source to:
+     
+            http://desktop/maps/usc$05d.rdm.gz
+
+     3- Set the preference Download.Destination to:
+     
+            /usr/local/share/roadmap
+
+     4- Make sure the preference Map.Path does include the directory
+        /usr/local/share/roadmap.
+
 
    WAYPOINTS AND ADDRESSES:
 
