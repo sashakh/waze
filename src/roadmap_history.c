@@ -197,7 +197,6 @@ void roadmap_history_load (void) {
 
    static int loaded = 0;
 
-   int changed = 0;
    FILE *file;
    char *p;
    char  line[1024];
@@ -221,7 +220,6 @@ void roadmap_history_load (void) {
 
              /* Compatibility wih existing history files. */
              roadmap_history_add_entry ('A', p);
-             changed = 1;
 
          } else {
              roadmap_history_add_entry (p[0], p+2);
@@ -232,7 +230,6 @@ void roadmap_history_load (void) {
    }
 
    loaded = 1;
-   // RoadMapHistoryChanged = changed;
    RoadMapHistoryChanged = 0;
 }
 

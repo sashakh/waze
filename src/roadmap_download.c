@@ -105,7 +105,7 @@ static RoadMapDownloadEvent RoadMapDownloadWhenDone =
 
 static int roadmap_download_request (int size) {
 
-   // TBD: for the time being, answer everything is fine.
+   /* TBD: for the time being, answer everything is fine. */
 
    RoadMapDownloadCurrentFileSize = size;
    RoadMapDownloadDownloaded = 0;

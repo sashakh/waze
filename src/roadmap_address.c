@@ -33,7 +33,6 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_gui.h"
-// #include "roadmap_street.h"
 #include "roadmap_history.h"
 #include "roadmap_locator.h"
 #include "roadmap_trip.h"
@@ -193,7 +192,7 @@ static void roadmap_address_ok (const char *name, void *data) {
    state         = (char *) roadmap_dialog_get_data ("Address", "State:");
 
    if (context->use_zip) {
-      return; // TBD: how to select by ZIP ? Need one more table in usdir.
+      return; /* TBD: how to select by ZIP ? Need one more table in usdir. */
    }
 
    city = (char *) roadmap_dialog_get_data ("Address", "City:");

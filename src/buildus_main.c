@@ -95,7 +95,7 @@ static void buildus_scan_cities (int fips) {
 
    cities = roadmap_dictionary_open ("city");
 
-   if (! cities) return; // May not exist is all map files.
+   if (! cities) return; /* May not exist is all map files. */
 
    us_cities = buildmap_dictionary_open ("city");
 

@@ -200,7 +200,7 @@ static int roadmap_nmea_gprmc (int argc, char *argv[]) {
 
 static int roadmap_nmea_gpgga (int argc, char *argv[]) {
 
-   return 0; // TBD.
+   return 0; /* TBD. */
 }
 
 
