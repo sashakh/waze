@@ -48,6 +48,9 @@ struct roadmap_voice_config {
     const char *default_text;
 };
 
+static RoadMapConfigDescriptor RoadMapVoiceMute =
+                        ROADMAP_CONFIG_ITEM("Voice", "Mute");
+
 static struct roadmap_voice_config RoadMapVoiceText[] = {
     {ROADMAP_CONFIG_ITEM("Voice", "Approach"), "flite -t 'Approaching %N'"},
     {ROADMAP_CONFIG_ITEM("Voice", "Current Street"), "flite -t 'On %N'"},
@@ -57,7 +60,9 @@ static struct roadmap_voice_config RoadMapVoiceText[] = {
 };
 
 
-static int   RoadMapVoiceMuted = 0;
+/* This will be overwritten with the setting from the session context. */
+static int   RoadMapVoiceMuted = 1;
+
 static int   RoadMapVoiceInUse = 0;
 static char *RoadMapVoiceCurrentCommand = NULL;
 static char *RoadMapVoiceCurrentArguments = NULL;
@@ -96,7 +101,14 @@ static struct voice_translation RoadMapVoiceTranslation[] = {
 
 static void roadmap_voice_launch (const char *name, const char *arguments) {
 
-    if (RoadMapVoiceMuted) return;
+    if (RoadMapVoiceMuted) {
+       if (strcasecmp
+             (roadmap_config_get (&RoadMapVoiceMute), "no") == 0) {
+          RoadMapVoiceMuted = 0;
+       } else {
+          return;
+       }
+    }
 
     if ((RoadMapVoiceCurrentCommand != NULL) &&
         (RoadMapVoiceCurrentArguments != NULL) &&
@@ -264,7 +276,14 @@ void roadmap_voice_announce (const char *title) {
     char *arguments;
 
 
-    if (RoadMapVoiceMuted) return;
+    if (RoadMapVoiceMuted) {
+       if (strcasecmp
+             (roadmap_config_get (&RoadMapVoiceMute), "no") == 0) {
+          RoadMapVoiceMuted = 0;
+       } else {
+          return;
+       }
+    }
 
     RoadMapVoiceActive.handler = roadmap_voice_complete;
     
@@ -311,12 +330,18 @@ void roadmap_voice_announce (const char *title) {
 
 
 void roadmap_voice_mute (void) {
+
     RoadMapVoiceMuted = 1;
+    roadmap_config_set (&RoadMapVoiceMute, "yes");
+
     roadmap_spawn_check ();
 }
 
 void roadmap_voice_enable (void) {
+
     RoadMapVoiceMuted = 0;
+    roadmap_config_set (&RoadMapVoiceMute, "no");
+
     roadmap_spawn_check ();
 }
 
@@ -324,6 +349,9 @@ void roadmap_voice_enable (void) {
 void roadmap_voice_initialize (void) {
     
     int i;
+    
+    roadmap_config_declare_enumeration
+               ("session", &RoadMapVoiceMute, "no", "yes", NULL);
     
     for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
         roadmap_config_declare
