@@ -32,7 +32,8 @@ depending on how many bugs are discovered in the stable version.
 When 1.1 will become stable, a 1.2 stable branch will be created and
 an 1.3 development branch will be started anew, and so on.
 <P>
-(The changes believed to break compatibility with 1.0 are maked with "[1.1]".)
+(The changes believed to break compatibility with RoadMap 1.0 are marked
+with a "[1.1]" sign.)
 <P>
 Here is the detail description of the changes planned so far:
 <UL>
@@ -57,16 +58,18 @@ Here is the detail description of the changes planned so far:
   might be to implement a GPE version of RoadMap, as GPE is the standard
   GTK-based graphic environment for the iPAQ.
 
-  <LI><b>Use icons on the toolbar (at least)</b>. The RoadMap toolbar is
-  made of text labels only, mostly because I am too lazzy for anything more
-  complicated. Darrick Hartman has proposed to create some icons.
-
-  <LI><b>[1.1] Merge street number ranges</b>. The US Census Bureau database
+  <LI><b>Merge street number ranges</b>. The US Census Bureau database
   has separate street ranges for the left and right sides of each street
   block. When both sides have matching ranges (for example 1020 - 1090 and
   1021 - 1091), a lot of space could be saved by merging then in a single range
   (such as 1020 - 1091). At that time, RoadMap does not use the "side" info
-  anyway.
+  anyway. Not that this change would modify the data contained in the map
+  files, but not the organization, so the resulting maps should be compatible
+  with RoadMap 1.0.
+
+  <LI><b>Use icons on the toolbar (at least)</b>. The RoadMap toolbar is
+  made of text labels only, mostly because I was too lazzy for anything more
+  complicated. Darrick Hartman has proposed to create some icons.
 
   <LI><b>[1.1] Use GPS time and map's timezone</b>. The GPS receiver provides a
   reliable universal time as well as the current location. This is all what
