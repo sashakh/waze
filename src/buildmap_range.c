@@ -201,6 +201,7 @@ int buildmap_range_add
 
       this_range->line   = line;
       this_range->street = street;
+      this_range->city   = city;
       this_range->zip    = zip;
       this_range->fradd  = fradd;
       this_range->toadd  = toadd;

@@ -669,7 +669,7 @@ int roadmap_street_get_ranges
    int total = 0;
 
 
-   for (i = blocks->first, end = blocks->first + blocks->count; i < end; i++) {
+   for (i = blocks->first, end = blocks->first + blocks->count; i < end; ++i) {
 
       RoadMapRange *this_addr = RoadMapRangeActive->RoadMapAddr + i;
 
@@ -679,6 +679,8 @@ int roadmap_street_get_ranges
                     + (((int)(this_addr[1].fradd) & 0xffff) << 16);
          toadd = ((int)(this_addr->toadd) & 0xffff)
                     + (((int)(this_addr[1].toadd) & 0xffff) << 16);
+
+         ++i; /* Because this range occupies two entries. */
 
       } else {
 
@@ -1085,7 +1087,9 @@ static int roadmap_street_check_street (int street, int line) {
 
    for (i = by_street->first_range; i < range_end; i++) {
 
-      if (range[i].line == line) return i;
+      if ((range[i].line & (~CONTINUATION_FLAG)) == line) {
+         return i;
+      }
    }
 
    return -1;
@@ -1466,10 +1470,23 @@ void roadmap_street_get_properties
 found_street_with_address:
 
     {
-        properties->range.min =
-            RoadMapRangeActive->RoadMapAddr[range_index].fradd;
-        properties->range.max =
-            RoadMapRangeActive->RoadMapAddr[range_index].toadd;
+        RoadMapRange *this_address =
+           &(RoadMapRangeActive->RoadMapAddr[range_index]);
+
+        if (HAS_CONTINUATION(this_address)) {
+
+           properties->range.min =
+               ((int)(this_address->fradd) & 0xffff)
+                      + (((int)(this_address[1].fradd) & 0xffff) << 16);
+           properties->range.max =
+               ((int)(this_address->toadd) & 0xffff)
+                      + (((int)(this_address[1].toadd) & 0xffff) << 16);
+
+        } else {
+
+           properties->range.min = this_address->fradd;
+           properties->range.max = this_address->toadd;
+        }
 
         if (properties->range.min > properties->range.max) {
 
