@@ -52,7 +52,7 @@ static void roadmap_factory_keyboard (char *key) {
 
    for (binding = RoadMapFactoryBindings; binding->name != NULL; ++binding) {
 
-      if (strcmp (binding->name, key) == 0) {
+      if (strcasecmp (binding->name, key) == 0) {
          if (binding->callback != NULL) {
             (*binding->callback) ();
             break;
