@@ -35,8 +35,7 @@ int roadmap_display_activate
 
 void roadmap_display_hide (const char *title);
 
-void roadmap_display_console    (void);
-void roadmap_display_signs      (void);
+void roadmap_display_signs (void);
 
 const char *roadmap_display_get_id (const char *title);
 

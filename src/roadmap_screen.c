@@ -731,7 +731,6 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_trip_format_messages ();
     
-    roadmap_display_console ();
     roadmap_display_signs ();
 
     roadmap_trip_display ();

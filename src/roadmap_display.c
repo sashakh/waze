@@ -80,6 +80,7 @@ typedef struct {
     char *content;
     char *id;
     
+    int    on_current_page;
     int    has_position;
     int    was_visible;
     time_t deadline;
@@ -106,7 +107,7 @@ typedef struct {
 
 
 #define ROADMAP_SIGN(p,n,s,t,b,f) \
-    {p, n, NULL, NULL, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
+    {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
@@ -383,10 +384,34 @@ static void roadmap_display_sign (RoadMapSign *sign) {
 
 void roadmap_display_page (const char *name) {
 
-    if (RoadMapDisplayPage != NULL) {
-        free (RoadMapDisplayPage);
-    }
-    RoadMapDisplayPage = strdup(name);
+   RoadMapSign *sign;
+
+   if (RoadMapDisplayPage != NULL) {
+      free (RoadMapDisplayPage);
+   }
+
+   if (name == NULL) {
+
+      RoadMapDisplayPage = NULL;
+
+      for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
+         sign->on_current_page = 0;
+      }
+
+   } else {
+
+      RoadMapDisplayPage = strdup(name);
+
+      for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
+
+         if ((sign->page == NULL) ||
+             (! strcmp (sign->page, RoadMapDisplayPage))) {
+            sign->on_current_page = 1;
+         } else {
+            sign->on_current_page = 0;
+         }
+      }
+   }
 }
 
 
@@ -552,24 +577,6 @@ static void roadmap_display_console_box
 }
 
 
-void roadmap_display_console (void) {
-    
-    roadmap_display_create_pens ();
-    
-    roadmap_display_console_box
-        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT,
-         &RoadMapConfigDisplayBottomRight);
-    
-    roadmap_display_console_box
-        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_LEFT,
-         &RoadMapConfigDisplayBottomLeft);
-    
-    roadmap_display_console_box
-        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
-         &RoadMapConfigDisplayTopRight);
-}
-
-
 void roadmap_display_signs (void) {
 
     time_t now = time(NULL);
@@ -589,6 +596,18 @@ void roadmap_display_signs (void) {
            }
         }
     }
+
+    roadmap_display_console_box
+        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT,
+         &RoadMapConfigDisplayBottomRight);
+    
+    roadmap_display_console_box
+        (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_LEFT,
+         &RoadMapConfigDisplayBottomLeft);
+    
+    roadmap_display_console_box
+        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
+         &RoadMapConfigDisplayTopRight);
 }
 
 
