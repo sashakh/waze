@@ -39,7 +39,7 @@
 #include "roadmap_spawn.h"
 #include "roadmap_config.h"
 #include "roadmap_history.h"
-#include "roadmap_file.h"
+#include "roadmap_path.h"
 #include "roadmap_gps.h"
 #include "roadmap_voice.h"
 
@@ -54,6 +54,7 @@
 #include "roadmap_navigate.h"
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
+#include "roadmap_copy.h"
 #include "roadmap_download.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
@@ -194,7 +195,15 @@ static void roadmap_start_delete_waypoint (void) {
 
 static void roadmap_start_enable_download (void) {
 
-   roadmap_download_subscribe_when_done (roadmap_screen_redraw);
+   if (! roadmap_download_enabled()) {
+
+      // roadmap_plugin_load_all
+      //      ("download", roadmap_download_subscribe_protocol);
+
+      roadmap_copy_init (roadmap_download_subscribe_protocol);
+
+      roadmap_download_subscribe_when_done (roadmap_screen_redraw);
+   }
 }
 
 
@@ -532,7 +541,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_download_initialize ();
    roadmap_config_initialize   ();
 
-   roadmap_file_set_path(roadmap_config_get(&RoadMapConfigMapPath));
+   roadmap_path_set(roadmap_config_get(&RoadMapConfigMapPath));
 
    roadmap_option (argc, argv);
 

@@ -1,7 +1,7 @@
 
 
-CFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall -DROADMAP_USES_SIGCHLD
-# CFLAGS=-g -Wall
+# CFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall -DROADMAP_USES_SIGCHLD
+CFLAGS=-g -Wall
 
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
@@ -68,6 +68,11 @@ RGGUISRCS=roadgps_start.c \
 RGGUIOBJS=$(RGGUISRCS:.c=.o)
 
 
+RMPLUGINSRCS=roadmap_copy.c
+
+RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
+
+
 DMSRCS=dumpmap_main.c
 
 DMOBJS=$(DMSRCS:.c=.o)
@@ -104,7 +109,7 @@ BUOBJS=$(BUSRCS:.c=.o)
 
 BUILD=buildmap buildus dumpmap
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmcompare
-RUNTIME=libroadmap.a libguiroadgps.a libguiroadmap.a
+RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 
 INSTALLDIR=/usr/local
 
@@ -145,7 +150,7 @@ uninstall:
 	cd $(INSTALLDIR) ; rm -rf share/roadmap
 	rm -f /usr/lib/menu/roadmap
 
-everything: build
+everything: runtime build
 	cd gtk ; make STDCFLAGS="$(CFLAGS)" all
 	cd gtk2 ; make STDCFLAGS="$(CFLAGS)" all
 	cd qt ; make STDCFLAGS="$(CFLAGS)" all
@@ -162,8 +167,8 @@ rebuild: cleanall everything
 libroadmap.a: $(RMLIBOBJS)
 	ar rf libroadmap.a $(RMLIBOBJS)
 
-libguiroadmap.a: $(RMGUIOBJS)
-	ar rf libguiroadmap.a $(RMGUIOBJS)
+libguiroadmap.a: $(RMGUIOBJS) $(RMPLUGINOBJS)
+	ar rf libguiroadmap.a $(RMGUIOBJS) $(RMPLUGINOBJS)
 
 libguiroadgps.a: $(RGGUIOBJS)
 	ar rf libguiroadgps.a $(RGGUIOBJS)

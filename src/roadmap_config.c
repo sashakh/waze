@@ -30,6 +30,7 @@
 #include <stdarg.h>
 
 #include "roadmap.h"
+#include "roadmap_path.h"
 #include "roadmap_file.h"
 #include "roadmap_config.h"
 
@@ -518,7 +519,7 @@ static void roadmap_config_update
 
    if (force || (config->state == ROADMAP_CONFIG_DIRTY)) {
 
-      file = roadmap_file_open (roadmap_file_user(), config->name, "w");
+      file = roadmap_file_open (roadmap_path_user(), config->name, "w");
 
       for (item = config->first_item; item != NULL; item = item->next) {
 
@@ -562,18 +563,18 @@ void  roadmap_config_initialize (void) {
     RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM ("Map", "Path");
 
    roadmap_config_declare
-      ("preferences", &descriptor, roadmap_file_default_path());
+      ("preferences", &descriptor, roadmap_path_default());
 
    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
 
-      for (p = roadmap_file_path_last();
+      for (p = roadmap_path_last();
            p != NULL;
-           p = roadmap_file_path_previous(p)) {
+           p = roadmap_path_previous(p)) {
 
          roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
       }
 
-      roadmap_config_load (roadmap_file_user(), file, ROADMAP_CONFIG_CLEAN);
+      roadmap_config_load (roadmap_path_user(), file, ROADMAP_CONFIG_CLEAN);
    }
 }
 
@@ -583,7 +584,7 @@ void roadmap_config_save (int force) {
    RoadMapConfig *file;
 
    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
-      roadmap_config_update (roadmap_file_user(), file, force);
+      roadmap_config_update (roadmap_path_user(), file, force);
    }
 }
 

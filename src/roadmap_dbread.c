@@ -347,7 +347,6 @@ roadmap_db_model *roadmap_db_register
 
 int roadmap_db_open (char *name, roadmap_db_model *model) {
 
-   int   status;
    char *full_name;
    RoadMapFileContext file;
 
@@ -371,9 +370,8 @@ int roadmap_db_open (char *name, roadmap_db_model *model) {
    strcpy (full_name, name);
    strcat (full_name, ROADMAP_DB_TYPE);
 
-   status = roadmap_file_map (full_name, 0, &file);
+   if (roadmap_file_map (full_name, NULL, &file) == NULL) {
 
-   if (status < 0) {
       roadmap_log (ROADMAP_INFO, "cannot open database file %s", full_name);
       free (full_name);
       return 0;

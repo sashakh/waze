@@ -432,16 +432,16 @@ void roadmap_sprite_draw
 
 void roadmap_sprite_initialize (void) {
 
-   int i;
    int max_point_count;
+   const char *cursor;
 
    RoadMapSprite sprite;
    RoadMapFileContext file;
 
 
-   for (i = roadmap_file_map ("sprites", 0, &file);
-        i > 0;
-        i = roadmap_file_map ("sprites", i, &file)) {
+   for (cursor = roadmap_file_map ("sprites", NULL, &file);
+        cursor != NULL;
+        cursor = roadmap_file_map ("sprites", cursor, &file)) {
 
       roadmap_sprite_load (roadmap_file_base(file), roadmap_file_size(file));
 

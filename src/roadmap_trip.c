@@ -32,6 +32,7 @@
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_time.h"
+#include "roadmap_path.h"
 #include "roadmap_file.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
@@ -274,7 +275,7 @@ static void roadmap_trip_file_dialog (const char *mode) {
     
     roadmap_fileselection_new ("RoadMap Trip",
                                 NULL, /* no filter. */
-                                roadmap_file_trips(),
+                                roadmap_path_trips(),
                                 mode,
                                 roadmap_trip_file_dialog_ok);
 }
@@ -402,7 +403,7 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
     if (name [0] == '/') {
         file = roadmap_file_open (NULL, name, mode);
     } else {
-        file = roadmap_file_open (roadmap_file_trips(), name, mode);
+        file = roadmap_file_open (roadmap_path_trips(), name, mode);
     }
 
     if (file != NULL) {

@@ -38,6 +38,7 @@
 #include <stdarg.h>
 
 #include "roadmap.h"
+#include "roadmap_path.h"
 #include "roadmap_file.h"
 
 
@@ -145,7 +146,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    if (category->save_to_file) {
 
-      file = roadmap_file_open (roadmap_file_user(), "postmortem", "sa");
+      file = roadmap_file_open (roadmap_path_user(), "postmortem", "sa");
 
       if (file != NULL) {
 
@@ -167,7 +168,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
 void roadmap_log_purge (void) {
 
-    roadmap_file_remove (roadmap_file_user(), "postmortem");
+    roadmap_file_remove (roadmap_path_user(), "postmortem");
 }
 
 

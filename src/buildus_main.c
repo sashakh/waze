@@ -34,7 +34,7 @@
 #include "roadmap_hash.h"
 #include "roadmap_square.h"
 #include "roadmap_street.h"
-#include "roadmap_file.h"
+#include "roadmap_path.h"
 
 #include "buildmap.h"
 
@@ -129,7 +129,7 @@ static void buildus_scan_maps (void) {
       roadmap_db_register
          (RoadMapCountyModel, "zip", &RoadMapZipHandler);
 
-   roadmap_file_set_path (BuildMapPath);
+   roadmap_path_set (BuildMapPath);
 
    directory = opendir (BuildMapPath);
 

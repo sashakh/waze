@@ -30,6 +30,7 @@
 
 #include "roadmap.h"
 #include "roadmap_config.h"
+#include "roadmap_path.h"
 #include "roadmap_file.h"
 
 #include "roadmap_history.h"
@@ -204,7 +205,7 @@ void roadmap_history_load (void) {
 
    if (loaded) return;
 
-   file = roadmap_file_open (roadmap_file_user(), "history", "sr");
+   file = roadmap_file_open (roadmap_path_user(), "history", "sr");
 
    if (file != NULL) {
 
@@ -356,7 +357,7 @@ void roadmap_history_save (void) {
 
    if (! RoadMapHistoryChanged) return; /* Nothing new to save. */
 
-   file = roadmap_file_open (roadmap_file_user(), "history", "w");
+   file = roadmap_file_open (roadmap_path_user(), "history", "w");
 
    if (file != NULL) {
 
