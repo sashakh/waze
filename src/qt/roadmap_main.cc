@@ -127,6 +127,18 @@ void roadmap_main_remove_input(int fd) {
 	}
 }
 
+void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
+
+   // TBD
+}
+
+
+void roadmap_main_remove_periodic (RoadMapCallback callback) {
+
+   // TBD
+}
+
+
 void roadmap_main_set_status(const char *text) {
 	if (mainWindow) {
 		mainWindow->setStatus(text);
