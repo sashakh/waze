@@ -735,6 +735,10 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_trip_format_messages ();
     
+    if (count == 0) {
+       roadmap_display_text("Info", "No map available");
+    }
+
     roadmap_display_signs ();
 
     roadmap_trip_display ();

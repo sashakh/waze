@@ -36,6 +36,7 @@
 #include <dirent.h>
 
 #include "roadmap.h"
+#include "roadmap_file.h"
 #include "roadmap_path.h"
 
 
@@ -159,9 +160,10 @@ void roadmap_path_set (const char *path) {
    roadmap_check_allocated(RoadMapPathItem);
 
 
-   /* Extract and expand each item of the path. */
-
-   for (i = 0, item = path-1; item != NULL; ++i, item = next_item) {
+   /* Extract and expand each item of the path.
+    * Ignore directories that do not exist yet.
+    */
+   for (i = 0, item = path-1; item != NULL; item = next_item) {
 
       item += 1;
       next_item = strchr (item, ',');
@@ -179,13 +181,18 @@ void roadmap_path_set (const char *path) {
          length = next_item - item;
       }
 
-      RoadMapPathItem[i] = malloc (length + expand_length + 1);
-      roadmap_check_allocated(RoadMapPathItem[i]);
+      if (roadmap_file_exists(NULL, expand)) {
 
-      strcpy (RoadMapPathItem[i], expand);
-      strncat (RoadMapPathItem[i], item, length);
+         RoadMapPathItem[i] = malloc (length + expand_length + 1);
+         roadmap_check_allocated(RoadMapPathItem[i]);
 
-      (RoadMapPathItem[i])[length+expand_length] = 0;
+         strcpy (RoadMapPathItem[i], expand);
+         strncat (RoadMapPathItem[i], item, length);
+
+         (RoadMapPathItem[i])[length+expand_length] = 0;
+
+         ++i;
+      }
    }
 }
 

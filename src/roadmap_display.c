@@ -72,6 +72,10 @@ static RoadMapPen RoadMapConsoleBackground;
 static RoadMapPen RoadMapConsoleForeground;
 
 
+#define SIGN_BOTTOM   0
+#define SIGN_TOP      1
+#define SIGN_CENTER   2
+
 typedef struct {
 
     const char *page;
@@ -96,7 +100,7 @@ typedef struct {
     RoadMapConfigDescriptor background_descriptor;
     RoadMapConfigDescriptor foreground_descriptor;
     
-    int         top;
+    int         where;
     const char *default_format;
     const char *default_background;
     const char *default_foreground;
@@ -106,18 +110,20 @@ typedef struct {
 } RoadMapSign;
 
 
-#define ROADMAP_SIGN(p,n,s,t,b,f) \
+#define ROADMAP_SIGN(p,n,w,t,b,f) \
     {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
-     s, t, b, f}
+     w, t, b, f}
 
 
 RoadMapSign RoadMapStreetSign[] = {
-    ROADMAP_SIGN("GPS", "Current Street",  0, "%N, %C|%N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN("GPS", "Approach",        1, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN(NULL, "Selected Street", 0, "%F", "yellow", "black"),
+    ROADMAP_SIGN("GPS", "Current Street",  SIGN_BOTTOM, "%N, %C|%N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN("GPS", "Approach",        SIGN_TOP, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "yellow", "black"),
+    ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "yellow", "black"),
+    ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "red", "white"),
     ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
 };
 
@@ -274,7 +280,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         lines = 1;
     } else {
         sign_width = screen_width - 10;
-        lines = 2;
+        lines = 1 + ((width + 10) / screen_width);
     }
     
     text_height = ascent + descent + 3;
@@ -294,7 +300,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         roadmap_math_coordinate (&sign->position, points);
         roadmap_math_rotate_coordinates (1, points);
 
-        if (sign->top) {
+        if (sign->where == SIGN_TOP) {
         
             points[1].x = 5 + (screen_width - sign_width) / 2;
             points[2].x = points[1].x - 5;
@@ -325,7 +331,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         points[5].x = points[4].x;
     
 
-        if (sign->top || (points[0].y > height / 2)) {
+        if (sign->where == SIGN_TOP || (points[0].y > height / 2)) {
 
             points[1].y = sign_height + 5;
             points[3].y = 5;
@@ -356,11 +362,26 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         points[2].x = points[1].x;
         points[3].x = points[0].x;
     
-        points[0].y = height - sign_height - 5;
-        points[1].y = points[0].y;
-        points[2].y = height - 5;
-        points[3].y = points[2].y;
+        switch (sign->where)
+        {
+           case SIGN_BOTTOM:
+
+              points[0].y = height - sign_height - 5;
+              break;
     
+           case SIGN_TOP:
+    
+              points[0].y = 5;
+              break;
+    
+           case SIGN_CENTER:
+    
+              points[0].y = (height - sign_height) / 2;
+              break;
+        }
+        points[1].y = points[0].y;
+        points[2].y = points[0].y + sign_height;
+        points[3].y = points[2].y;
     
         text_position.x = points[0].x + 4;
         text_position.y = points[0].y + 3;
@@ -434,6 +455,11 @@ int roadmap_display_activate
         return -1;
     }
 
+    if (sign->format_descriptor.category == NULL) {
+       return -1; /* This is not a sign: this is a text. */
+    }
+    format = roadmap_config_get (&sign->format_descriptor);
+    
     street_has_changed = 0;
     street = sign->properties.street;
     
@@ -466,9 +492,7 @@ int roadmap_display_activate
     roadmap_message_set
         ('C', roadmap_street_get_city_name (&sign->properties));
 
-    
-    format = roadmap_config_get (&sign->format_descriptor);
-    
+
     if (! roadmap_message_format (text, sizeof(text), format)) {
         roadmap_log_pop ();
         return sign->properties.street;
@@ -577,6 +601,27 @@ static void roadmap_display_console_box
 }
 
 
+void roadmap_display_text (const char *title, const char *format, ...) {
+
+   RoadMapSign *sign = roadmap_display_search_sign (title);
+
+   char text[1024];
+   va_list parameters;
+
+   va_start(parameters, format);
+   vsnprintf (text, sizeof(text), format, parameters);
+   va_end(parameters);
+
+   if (sign->content != NULL) {
+      free (sign->content);
+   }
+   sign->content = strdup(text);
+
+   sign->deadline =
+      time(NULL) + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
+}
+
+
 void roadmap_display_signs (void) {
 
     time_t now = time(NULL);
@@ -641,9 +686,11 @@ void roadmap_display_initialize (void) {
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
         
-        roadmap_config_declare
-            ("preferences",
-             &sign->format_descriptor, sign->default_format);
+        if (sign->default_format != NULL) {
+           roadmap_config_declare
+              ("preferences",
+               &sign->format_descriptor, sign->default_format);
+        }
 
         roadmap_config_declare
             ("preferences",
