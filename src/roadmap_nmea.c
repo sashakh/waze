@@ -48,6 +48,13 @@ static RoadMapNmeaFields RoadMapNmeaReceived;
 static char RoadMapNmeaDate[16];
 
 
+static void safecpy (char *d, const char *s, int length) {
+
+   strncpy (d, s, length);
+   d[length-1] = 0;
+}
+
+
 static int hex2bin (char c) {
 
    if ((c >= '0') && (c <= '9')) {
@@ -126,7 +133,9 @@ static int roadmap_nmea_decode_numeric (char *value, int unit) {
 static int roadmap_nmea_decode_coordinate
               (char *value, char *side, char positive, char negative) {
 
-   /* decode longitude & latitude to the format used by the census bureau: */
+   /* decode longitude & latitude from the nmea format (ddmm.mmmmm)
+    * to the format used by the census bureau (dd.dddddd):
+    */
 
    int result;
    char *dot = strchr (value, '.');
@@ -187,7 +196,7 @@ static int roadmap_nmea_rmc (int argc, char *argv[]) {
    RoadMapNmeaReceived.rmc.fixtime =
       roadmap_nmea_decode_time (argv[1], argv[9]);
 
-   strncpy (RoadMapNmeaDate, argv[9], sizeof(RoadMapNmeaDate));
+   safecpy (RoadMapNmeaDate, argv[9], sizeof(RoadMapNmeaDate));
 
    if (RoadMapNmeaReceived.rmc.fixtime < 0) return 0;
 
@@ -392,33 +401,13 @@ static int roadmap_nmea_gsv (int argc, char *argv[]) {
 }
 
 
-static int roadmap_nmea_rte (int argc, char *argv[]) {
-
-   /* There is nothing we need from there (waypoints). */
-   return 0;
-}
-
-
-static int roadmap_nmea_rmb (int argc, char *argv[]) {
-
-   /* There is nothing we need from there (destination waypoint). */
-   return 0;
-}
-
-
-static int roadmap_nmea_bod (int argc, char *argv[]) {
-
-   /* There is nothing we need from there (waypoint to waypoint). */
-   return 0;
-}
-
 static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
 
     if (argc <= 1) {
         return 0;
     }
 
-    strncpy (RoadMapNmeaReceived.pgrmm.datum,
+    safecpy (RoadMapNmeaReceived.pgrmm.datum,
              argv[1], sizeof(RoadMapNmeaReceived.pgrmm.datum));
 
     return 1;
@@ -445,6 +434,56 @@ static int roadmap_nmea_pgrme (int argc, char *argv[]) {
         roadmap_nmea_decode_numeric (argv[5], 100);
     strcpy (RoadMapNmeaReceived.pgrme.three_dimensions_unit,
             roadmap_nmea_decode_unit (argv[6]));
+
+    return 1;
+}
+
+
+static int roadmap_nmea_pxrmadd (int argc, char *argv[]) {
+
+    safecpy (RoadMapNmeaReceived.pxrmadd.id,
+             argv[1],
+             sizeof(RoadMapNmeaReceived.pxrmadd.id));
+
+    safecpy (RoadMapNmeaReceived.pxrmadd.name,
+             argv[2],
+             sizeof(RoadMapNmeaReceived.pxrmadd.name));
+
+    safecpy (RoadMapNmeaReceived.pxrmadd.sprite,
+             argv[3],
+             sizeof(RoadMapNmeaReceived.pxrmadd.sprite));
+
+    RoadMapNmeaReceived.pxrmadd.latitude =
+        roadmap_nmea_decode_coordinate  (argv[4], argv[5], 'N', 'S');
+
+    RoadMapNmeaReceived.pxrmadd.longitude =
+        roadmap_nmea_decode_coordinate (argv[6], argv[7], 'E', 'W');
+
+    return 1;
+}
+
+
+static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
+
+    safecpy (RoadMapNmeaReceived.pxrmmov.id,
+             argv[1],
+             sizeof(RoadMapNmeaReceived.pxrmmov.id));
+
+    RoadMapNmeaReceived.pxrmmov.latitude =
+        roadmap_nmea_decode_coordinate  (argv[2], argv[3], 'N', 'S');
+
+    RoadMapNmeaReceived.pxrmmov.longitude =
+        roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
+
+    return 1;
+}
+
+
+static int roadmap_nmea_pxrmdel (int argc, char *argv[]) {
+
+    safecpy (RoadMapNmeaReceived.pxrmdel.id,
+             argv[1],
+             sizeof(RoadMapNmeaReceived.pxrmdel.id));
 
     return 1;
 }
@@ -488,14 +527,21 @@ static struct {
    ROADMAP_NMEA_PHRASE(NULL, "GSA", roadmap_nmea_gsa),
    ROADMAP_NMEA_PHRASE(NULL, "GSV", roadmap_nmea_gsv),
    ROADMAP_NMEA_PHRASE(NULL, "GLL", roadmap_nmea_gll),
-   ROADMAP_NMEA_PHRASE(NULL, "RTE", roadmap_nmea_rte),
-   ROADMAP_NMEA_PHRASE(NULL, "RMB", roadmap_nmea_rmb),
-   ROADMAP_NMEA_PHRASE(NULL, "BOD", roadmap_nmea_bod),
+
+   /* We don't care about these ones (waypoints). */
+   ROADMAP_NMEA_PHRASE(NULL, "RTE", roadmap_nmea_null_decoder),
+   ROADMAP_NMEA_PHRASE(NULL, "RMB", roadmap_nmea_null_decoder),
+   ROADMAP_NMEA_PHRASE(NULL, "BOD", roadmap_nmea_null_decoder),
 
    /* Garmin extensions: */
    ROADMAP_NMEA_PHRASE("GRM", "E", roadmap_nmea_pgrme),
    ROADMAP_NMEA_PHRASE("GRM", "M", roadmap_nmea_pgrmm),
    ROADMAP_NMEA_PHRASE("GRM", "Z", roadmap_nmea_pgrmz),
+
+   /* RoadMap's own extensions: */
+   ROADMAP_NMEA_PHRASE("XRM", "ADD", roadmap_nmea_pxrmadd),
+   ROADMAP_NMEA_PHRASE("XRM", "MOV", roadmap_nmea_pxrmmov),
+   ROADMAP_NMEA_PHRASE("XRM", "DEL", roadmap_nmea_pxrmdel),
 
    { NULL, "", NULL, NULL, NULL, NULL}
 };

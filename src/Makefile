@@ -277,8 +277,8 @@ sunrise: roadmap_sunrise.c
 sqliteload: sqliteload.c
 	$(CC) -g sqliteload.c $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
 
-rdmkismet: roadmap_kismet.c
-	$(CC) -g roadmap_kismet.c -o rdmkismet -lm
+rdmkismet: roadmap_kismet.c $(RDMLIBS)
+	$(CC) -g roadmap_kismet.c -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
 
 # --- The real targets --------------------------------------------
 

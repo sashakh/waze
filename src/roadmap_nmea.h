@@ -100,6 +100,26 @@ typedef union {
       char  three_dimensions_unit[4];
    } pgrme;
 
+   /* RoadMap's own extensions: */
+
+   struct {
+      char id[8];
+      char name[32];
+      char sprite[8];
+      int  latitude;
+      int  longitude;
+   } pxrmadd;
+
+   struct {
+      char id[8];
+      int  latitude;
+      int  longitude;
+   } pxrmmov;
+
+   struct {
+      char id[8];
+   } pxrmdel;
+
 } RoadMapNmeaFields;
 
 typedef void (*RoadMapNmeaFilter)   (RoadMapNmeaFields *fields);
