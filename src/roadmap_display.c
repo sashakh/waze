@@ -79,6 +79,7 @@ typedef struct {
     char *id;
     
     int    has_position;
+    int    was_visible;
     time_t deadline;
     RoadMapPosition position;
     RoadMapPosition endpoint[2];
@@ -92,6 +93,7 @@ typedef struct {
     RoadMapConfigDescriptor background_descriptor;
     RoadMapConfigDescriptor foreground_descriptor;
     
+    int         top;
     const char *default_format;
     const char *default_background;
     const char *default_foreground;
@@ -101,19 +103,19 @@ typedef struct {
 } RoadMapSign;
 
 
-#define ROADMAP_SIGN(n,t,b,f) \
-    {n, NULL, NULL, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
+#define ROADMAP_SIGN(n,s,t,b,f) \
+    {n, NULL, NULL, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
-     t, b, f}
+     s, t, b, f}
 
 
 RoadMapSign RoadMapStreetSign[] = {
-    ROADMAP_SIGN("Current Street",  "%N, %C|%N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN("Approach",        "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN("Selected Street", "%F", "yellow", "black"),
-    ROADMAP_SIGN(NULL, NULL, NULL, NULL)
+    ROADMAP_SIGN("Current Street",  0, "%N, %C|%N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN("Approach",        1, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
+    ROADMAP_SIGN("Selected Street", 0, "%F", "yellow", "black"),
+    ROADMAP_SIGN(NULL, 0, NULL, NULL, NULL)
 };
 
 
@@ -270,14 +272,27 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     
     if (sign->has_position) {
 
-        if (! roadmap_math_point_is_visible (&sign->position)) {
+        int visible = roadmap_math_point_is_visible (&sign->position);
+        
+        if (sign->was_visible && (! visible)) {
             sign->deadline = 0;
             return;
         }
+        sign->was_visible = visible;
+        
         roadmap_math_coordinate (&sign->position, points);
         roadmap_math_rotate_coordinates (1, points);
 
-        if (points[0].x < screen_width / 2) {
+        if (sign->top) {
+        
+            points[1].x = 5 + (screen_width - sign_width) / 2;
+            points[2].x = points[1].x - 5;
+            points[4].x = (screen_width + sign_width) / 2;
+            points[6].x = points[1].x + 10;
+
+            text_position.x = points[2].x + 4;
+            
+        } else if (points[0].x < screen_width / 2) {
 
             points[1].x = 10;
             points[2].x = 5;
@@ -299,19 +314,19 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         points[5].x = points[4].x;
     
 
-        if (points[0].y < height / 2) {
-   
-            points[1].y = height - sign_height - 5;
-            points[3].y = height - 5;
-
-            text_position.y = points[1].y + 3;
-
-        } else {
+        if (sign->top || (points[0].y > height / 2)) {
 
             points[1].y = sign_height + 5;
             points[3].y = 5;
 
             text_position.y = 8;
+
+        } else {
+   
+            points[1].y = height - sign_height - 5;
+            points[3].y = height - 5;
+
+            text_position.y = points[1].y + 3;
         }
         points[2].y = points[1].y;
         points[4].y = points[3].y;
@@ -380,6 +395,7 @@ int roadmap_display_activate
             strdup (roadmap_street_get_full_name (&sign->properties));
         
         sign->line = line;
+        sign->was_visible = 0;
     }
 
 

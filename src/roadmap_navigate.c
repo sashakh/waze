@@ -54,6 +54,9 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
 static int RoadMapAccuracyMouse;
 static int RoadMapAccuracyStreet;
 
+/* Avoid doing navigation work when the position has not changed. */
+static RoadMapPosition RoadMapPreviousPosition;
+
 typedef struct {
 
     int line;
@@ -67,9 +70,11 @@ typedef struct {
     RoadMapPosition from;
     RoadMapPosition to;
 
+    const RoadMapPosition *crossing;
+    
 } RoadMapTracking;
 
-#define ROADMAP_TRACKING_NULL  {-1, 0, -1, 0, 0, 0, {0, 0}, {0, 0}};
+#define ROADMAP_TRACKING_NULL  {-1, 0, -1, 0, 0, 0, {0, 0}, {0, 0}, NULL};
 
 static RoadMapTracking RoadMapConfirmedStreet = ROADMAP_TRACKING_NULL;
 static RoadMapTracking RoadMapCandidateStreet = ROADMAP_TRACKING_NULL;
@@ -104,7 +109,7 @@ static void roadmap_navigate_trace (const char *format, int line) {
     if (roadmap_message_format (text, sizeof(text), format)) {
         printf (text);
     }
-    printf ("(line %d, street %d)\n", line, properties.street);
+    printf (" (line %d, street %d)\n", line, properties.street);
 #endif
 }
 
@@ -168,13 +173,6 @@ int roadmap_navigate_retrieve_line
     focus_point.x += accuracy;
     roadmap_navigate_adjust_focus (&focus, &focus_point);
 
-#ifdef DEBUG
-printf ("Position: %d longitude, %d latitude\n",
-        position.longitude,
-        position.latitude);
-fflush(stdout);
-#endif
-
     count = roadmap_layer_visible_roads (layers, 128);
     
     if (count > 0) {
@@ -200,7 +198,7 @@ static const RoadMapPosition *roadmap_navigate_next_crossing
     const RoadMapPosition *crossing = NULL;
 
     int delta;
-    int minimum = RoadMapAccuracyStreet / 3;
+    int minimum = RoadMapAccuracyStreet / 5;
     int distance_from =
             roadmap_math_distance (position, &RoadMapConfirmedStreet.from);
     int distance_to =
@@ -228,7 +226,18 @@ static const RoadMapPosition *roadmap_navigate_next_crossing
     if (delta > minimum || delta < 0 - minimum) {
         RoadMapConfirmedStreet.distance_to = distance_to;
     }
+
+#ifdef DEBUG
+    if (crossing != NULL) {
+        printf ("Possible crossing ahead.\n");
+    }
+#endif
     
+    if (crossing == RoadMapConfirmedStreet.crossing) {
+        return NULL;
+    }
+    
+    RoadMapConfirmedStreet.crossing = crossing;
     return crossing;
 }
 
@@ -328,20 +337,27 @@ static int roadmap_navigate_next_intersection
 
     if (count <= 0) return 0;
     
-
-    if (found[0].street != RoadMapCrossingStreet.street) {
-
-        roadmap_navigate_trace
-            ("found crossing %N, %C|found street %N", found[0].line);
-
-        RoadMapCrossingStreet.street = found[0].street;
-        RoadMapCrossingStreet.detected = 1;
+    for (i = 0; i < count; ++i) {
+        roadmap_line_to   (found[i].line, &RoadMapCrossingStreet.to);
+        roadmap_line_from (found[i].line, &RoadMapCrossingStreet.from);
+        if (roadmap_math_line_is_visible
+                (&RoadMapCrossingStreet.to, &RoadMapCrossingStreet.from)) {
+            break;
+        }
     }
-    
-    if (RoadMapCrossingStreet.detected == 1) {
+    if (i >= count) {
+        RoadMapConfirmedStreet.crossing = NULL;
+        return 1; /* We found some, but they are not visible yet. */
+    }
+
+    if (found[i].street != RoadMapCrossingStreet.street) {
+
         roadmap_navigate_trace
-            ("announce crossing %N, %C|announce crossing %N", found[0].line);
-        roadmap_display_activate ("Approach", found[0].line, crossing);
+            ("Announce crossing %N, %C|Announce crossing %N", found[i].line);
+
+        RoadMapCrossingStreet.street = found[i].street;
+
+        roadmap_display_activate ("Approach", found[i].line, crossing);
         
         RoadMapCrossingStreet.detected += 1;
     }
@@ -380,7 +396,16 @@ static int roadmap_navigate_update
     return 1;
     
 invalidate:
-    
+
+#ifdef DEBUG
+    if (tracked == &RoadMapConfirmedStreet) {
+        roadmap_navigate_trace ("Lost confirmed street %N", tracked->line);
+    } else if (tracked == &RoadMapCandidateStreet) {
+        roadmap_navigate_trace ("Lost candidate street %N", tracked->line);
+    } else {
+        roadmap_navigate_trace ("Lost street %N", tracked->line);
+    }
+#endif
     tracked->line = -1;
     tracked->detected = 0;
     
@@ -388,17 +413,28 @@ invalidate:
 }
 
 void roadmap_navigate_locate (const RoadMapPosition *position) {
-    
+
     int fips;
     int distance = RoadMapAccuracyStreet + 1;
 
+
+    if ((position->latitude == RoadMapPreviousPosition.latitude) &&
+        (position->longitude == RoadMapPreviousPosition.longitude)) {
+        return; /* The position has not changed, no reason to do any navigation. */
+    }
+    RoadMapPreviousPosition = *position;
+
+#ifdef DEBUG
+    printf ("Locating position (long=%d, lat=%d)\n",
+            position->longitude, position->latitude);
+#endif
 
     RoadMapAccuracyStreet =
         roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
     RoadMapAccuracyMouse =
         roadmap_config_get_integer (&RoadMapConfigAccuracyMouse);
 
-
+    
     roadmap_navigate_update (&RoadMapCandidateStreet, position);
     
     if (roadmap_navigate_update (&RoadMapConfirmedStreet, position)) {
@@ -420,6 +456,7 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
         return; /* No need to look for a new line. */
     }
 
+
     if (RoadMapCandidateStreet.line < 0) {
 
         /* The previous lines, if any, are not valid suitors anymore.
@@ -431,10 +468,7 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
         if ((line < 0) || (distance > RoadMapAccuracyStreet)){
 
-            /* There is no candidate line here. */
-            RoadMapCandidateStreet.line = -1;
-            RoadMapCandidateStreet.detected = 0;
-            return;
+            return; /* There is no candidate line here. */
         }
     
         fips = roadmap_locator_active ();
@@ -444,6 +478,9 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
             /* This is a new candidate line: restart from scratch. */
     
+            roadmap_navigate_trace
+                ("Found candidate %N, %C|Found candidate %N", line);
+
             RoadMapCandidateStreet.line = line;
             RoadMapCandidateStreet.fips = fips;
 
@@ -470,16 +507,18 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
             RoadMapConfirmedStreet = RoadMapCandidateStreet;
             RoadMapConfirmedStreet.distance_to = 0;
             RoadMapConfirmedStreet.distance_from = 0;
-
+            
             RoadMapConfirmedStreet.street =
                 roadmap_display_activate
                     ("Current Street", RoadMapConfirmedStreet.line, NULL);
 
             roadmap_navigate_trace
-                ("confirmed street %N, %C|confirmed street %N",
+                ("Confirmed street %N, %C|Confirmed street %N",
                  RoadMapConfirmedStreet.line);
 
             /* Crossing street will be different, now. */
+
+            RoadMapConfirmedStreet.crossing = NULL;
 
             roadmap_navigate_next_crossing (position);
             
@@ -503,7 +542,7 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 void roadmap_navigate_initialize (void) {
     
     roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyStreet, "200");
+        ("preferences", &RoadMapConfigAccuracyStreet, "80");
     roadmap_config_declare
         ("preferences", &RoadMapConfigAccuracyConfirm, "3");
 }

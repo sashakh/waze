@@ -843,20 +843,12 @@ CONFIGURATION:
                   Limiting the search to this area speeds up the process,
                   compared to searching in the whole screen area.
 
-     Accuracy.GPS:
-
-         Description: the size of the street selection search area
-         Format: longitude and latitude delta
-         Default: 20
-         Comment: this defines the size of the area searched when retrieving
-                  the current street from the GPS position. Not used yet.
-
      Accuracy.Street:
 
          Description: the street selection accuracy.
                       one street to the other.
          Format: integer (using the current unit system).
-         Default: 200
+         Default: 80
          Comment: This distance is used when switching to a new street.
                   The GPS position must be at a distance greater than the
                   accuracy from the current street, and at a distance lower

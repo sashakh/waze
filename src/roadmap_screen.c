@@ -59,9 +59,6 @@ static RoadMapConfigDescriptor RoadMapConfigShapesDeclutter =
 static RoadMapConfigDescriptor RoadMapConfigPolygonsDeclutter =
                         ROADMAP_CONFIG_ITEM("Polygons", "Declutter");
 
-static RoadMapConfigDescriptor RoadMapConfigAccuracyGPS =
-                        ROADMAP_CONFIG_ITEM("Accuracy", "GPS");
-
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
@@ -652,7 +649,7 @@ static int roadmap_screen_repaint_square (int square) {
 }
 
 
-static void roadmap_screen_repaint (int moved) {
+static void roadmap_screen_repaint (void) {
 
     static RoadMapGuiPoint CompassPoint = {20, 20};
     static int *fips = NULL;
@@ -668,11 +665,6 @@ static void roadmap_screen_repaint (int moved) {
     RoadMapScreenShapesVisible =
         roadmap_math_declutter
             (roadmap_config_get_integer(&RoadMapConfigShapesDeclutter));
-
-
-    if (moved) {
-        roadmap_navigate_locate (&RoadMapScreenCenter);
-    }
 
 
     /* Clean the drawing buffer. */
@@ -728,7 +720,7 @@ static void roadmap_screen_configure (void) {
 
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
    if (RoadMapScreenInitialized) {
-      roadmap_screen_repaint (0);
+      roadmap_screen_repaint ();
    }
 }
 
@@ -751,7 +743,7 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
     if (line >= 0) {
 
         roadmap_display_activate ("Selected Street", line, &position);
-        roadmap_screen_repaint (0);
+        roadmap_screen_repaint ();
     }
 }
 
@@ -759,7 +751,6 @@ static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
-    int moved = 0;
     
     if (roadmap_trip_is_focus_changed()) {
         
@@ -769,7 +760,6 @@ void roadmap_screen_refresh (void) {
         
     } else if (roadmap_trip_is_focus_moved()) {
         
-        moved = 1;
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
 
     }
@@ -781,7 +771,7 @@ void roadmap_screen_refresh (void) {
     refresh |= roadmap_trip_is_refresh_needed();
         
     if (refresh) {
-        roadmap_screen_repaint (moved);
+        roadmap_screen_repaint ();
     }
 }
 
@@ -800,7 +790,7 @@ void roadmap_screen_rotate (int delta) {
    if (roadmap_math_set_orientation
            (roadmap_trip_get_orientation() + rotation)) {
       RoadMapScreenRotation = rotation;
-      roadmap_screen_repaint (0);
+      roadmap_screen_repaint ();
    }
 }
 
@@ -813,7 +803,7 @@ void roadmap_screen_move_up (void) {
    center.y = RoadMapScreenHeight / 4;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint (0);
+   roadmap_screen_repaint ();
 }
 
 
@@ -825,7 +815,7 @@ void roadmap_screen_move_down (void) {
    center.y = (3 * RoadMapScreenHeight) / 4;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint (0);
+   roadmap_screen_repaint ();
 }
 
 
@@ -837,7 +827,7 @@ void roadmap_screen_move_right (void) {
    center.y = RoadMapScreenHeight / 2;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint (0);
+   roadmap_screen_repaint ();
 }
 
 
@@ -850,7 +840,7 @@ void roadmap_screen_move_left (void) {
    center.y = RoadMapScreenHeight / 2;
 
    roadmap_math_to_position (&center, &RoadMapScreenCenter);
-   roadmap_screen_repaint (0);
+   roadmap_screen_repaint ();
 }
 
 
@@ -859,7 +849,7 @@ void roadmap_screen_zoom_in  (void) {
     roadmap_math_zoom_in ();
 
     roadmap_layer_adjust ();
-    roadmap_screen_repaint (0);
+    roadmap_screen_repaint ();
 }
 
 
@@ -868,14 +858,14 @@ void roadmap_screen_zoom_out (void) {
     roadmap_math_zoom_out ();
 
     roadmap_layer_adjust ();
-    roadmap_screen_repaint (0);
+    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_zoom_reset (void) {
 
    roadmap_math_zoom_reset ();
-   roadmap_screen_repaint (0);
+   roadmap_screen_repaint ();
 }
 
 
@@ -886,8 +876,6 @@ void roadmap_screen_initialize (void) {
     roadmap_config_declare
         ("preferences", &RoadMapConfigShapesDeclutter, "1300");
 
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyGPS,    "1000");
     roadmap_config_declare
         ("preferences", &RoadMapConfigAccuracyMouse,  "20");
 
