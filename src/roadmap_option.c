@@ -57,6 +57,8 @@ static int roadmap_option_synchronous = 0;
 static char *roadmap_option_debug = "";
 static char *roadmap_option_gps = NULL;
 
+static void (*RoadMapOptionUsage) (void) = NULL;
+
 
 static const char *roadmap_option_get_geometry (const char *name) {
 
@@ -331,11 +333,16 @@ static void roadmap_option_usage (const char *value) {
         printf ("  %s%s\n", option->name, option->format);
         printf ("        %s.\n", option->help);
     }
+
+    if (RoadMapOptionUsage != NULL) {
+       printf ("\n");
+       RoadMapOptionUsage ();
+    }
     exit(0);
 }
 
 
-void roadmap_option (int argc, char **argv) {
+void roadmap_option (int argc, char **argv, void (*usage) (void)) {
 
     int   i;
     int   length;
@@ -343,6 +350,8 @@ void roadmap_option (int argc, char **argv) {
     char *value;
     struct roadmap_option_descriptor *option;
 
+
+    RoadMapOptionUsage = usage;
 
     for (i = 1; i < argc; i++) {
 
@@ -371,6 +380,8 @@ void roadmap_option (int argc, char **argv) {
             roadmap_log (ROADMAP_FATAL, "illegal option %s", argv[i]);
         }
     }
+
+    RoadMapOptionUsage = NULL;
 }
 
 

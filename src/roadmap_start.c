@@ -256,11 +256,9 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {"Enable Voice", NULL,
        "Enable all voice annoucements", roadmap_voice_enable},
    {"Disable Navigation", NULL,
-       "Disable all GPS-based navigation functions",
-       roadmap_navigate_disable},
+      "Disable all GPS-based navigation functions", roadmap_navigate_disable},
    {"Enable Navigation", NULL,
-       "Enable all GPS-based navigation functions",
-       roadmap_navigate_enable},
+      "Enable all GPS-based navigation functions", roadmap_navigate_enable},
 
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
@@ -323,9 +321,9 @@ static RoadMapFactory RoadMapStartMenu[] = {
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
    {"Destination", NULL,
-       "Show the map around the destination point", roadmap_start_show_destination},
+       "Show the destination point", roadmap_start_show_destination},
    {"GPS Position", NULL,
-       "Show the map around the GPS position", roadmap_start_show_gps},
+       "Show the GPS position", roadmap_start_show_gps},
 
    {RoadMapFactorySeparator, NULL, NULL, NULL},
 
@@ -431,48 +429,91 @@ static RoadMapFactory RoadMapStartToolbar[] = {
 };
 
 
+/* The "tooltip" text specified here is only used for the --help option,
+ * to document the currently supported keyboard shortcuts.
+ */
 static RoadMapFactory RoadMapStartKeyBinding[] = {
 
-   {"Button-Left",  NULL, NULL, roadmap_screen_move_left},
-   {"Button-Right", NULL, NULL, roadmap_screen_move_right},
-   {"Button-Up",    NULL, NULL, roadmap_screen_move_up},
-   {"Button-Down",  NULL, NULL, roadmap_screen_move_down},
+   {"Button-Left",  NULL,
+      "Move the map view to the left", roadmap_screen_move_left},
+   {"Button-Right", NULL,
+      "Move the map view to the right", roadmap_screen_move_right},
+   {"Button-Up",    NULL,
+      "Move the map view up", roadmap_screen_move_up},
+   {"Button-Down",  NULL,
+      "Move the map view down", roadmap_screen_move_down},
 
    /* These binding are for the iPAQ buttons: */
-   {"Button-Menu",     NULL, NULL, roadmap_screen_zoom_reset},
-   {"Button-Contact",  NULL, NULL, roadmap_screen_zoom_in},
-   {"Button-Calendar", NULL, NULL, roadmap_screen_zoom_out},
-   {"Button-Start",    NULL, NULL, roadmap_main_exit},
+   {"Button-Menu",     NULL,
+      "Set the map back to the default zoom level", roadmap_screen_zoom_reset},
+   {"Button-Contact",  NULL,
+      "Zoom in: enlarge the central part of the map", roadmap_screen_zoom_in},
+   {"Button-Calendar", NULL,
+      "Zoom out: show a larger area", roadmap_screen_zoom_out},
+   {"Button-Start",    NULL,
+      "Quit RoadMap", roadmap_main_exit},
 
-   /* These binding are for regular keyboards: */
-   {"+", NULL, NULL, roadmap_screen_zoom_in},
-   {"-", NULL, NULL, roadmap_screen_zoom_out},
-   {"D", NULL, NULL, roadmap_start_show_destination},
-   {"d", NULL, NULL, roadmap_start_show_destination},
-   {"L", NULL, NULL, roadmap_start_show_location},
-   {"l", NULL, NULL, roadmap_start_show_location},
-   {"G", NULL, NULL, roadmap_start_show_gps},
-   {"g", NULL, NULL, roadmap_start_show_gps},
-   {"H", NULL, NULL, roadmap_start_hold_map},
-   {"h", NULL, NULL, roadmap_start_hold_map},
-   {"M", NULL, NULL, roadmap_start_toggle_download_mode},
-   {"m", NULL, NULL, roadmap_start_toggle_download_mode},
-   {"E", NULL, NULL, roadmap_download_delete},
-   {"e", NULL, NULL, roadmap_download_delete},
-   {"S", NULL, NULL, roadmap_start_trip},
-   {"s", NULL, NULL, roadmap_start_trip},
-   {"P", NULL, NULL, roadmap_trip_stop},
-   {"p", NULL, NULL, roadmap_trip_stop},
-   {"U", NULL, NULL, roadmap_start_trip_reverse},
-   {"u", NULL, NULL, roadmap_start_trip_reverse},
-   {"R", NULL, NULL, roadmap_screen_zoom_reset},
-   {"r", NULL, NULL, roadmap_screen_zoom_reset},
-   {"F", NULL, NULL, roadmap_main_toggle_full_screen},
-   {"f", NULL, NULL, roadmap_main_toggle_full_screen},
-   {"Q", NULL, NULL, roadmap_main_exit},
-   {"q", NULL, NULL, roadmap_main_exit},
+   /* These binding are for regular keyboards (case unsensitive !): */
+   {"+", NULL,
+      "Zoom in: enlarge the central part of the map", roadmap_screen_zoom_in},
+   {"-", NULL,
+      "Zoom out: show a larger area", roadmap_screen_zoom_out},
+   {"A", NULL,
+      "Show a specified address", roadmap_address_location_by_city},
+   // B Unused.
+   // C Unused.
+   {"D", NULL,
+      "Show the destination point", roadmap_start_show_destination},
+   {"E", NULL,
+      "Erase maps among those currently visible", roadmap_download_delete},
+   {"F", NULL,
+      "Toggle the full screen mode", roadmap_main_toggle_full_screen},
+   {"G", NULL,
+      "Show the GPS position", roadmap_start_show_gps},
+   {"H", NULL,
+      "Hold the map view in its current position", roadmap_start_hold_map},
+   {"I", NULL,
+      "Show a specified street intersection", roadmap_crossing_dialog},
+   // J Unused.
+   // K Unused.
+   {"L", NULL,
+      "Show the last selected location", roadmap_start_show_location},
+   {"M", NULL,
+      "Enable/Disable map download", roadmap_start_toggle_download_mode},
+   {"N", NULL,
+      "Create a new trip", roadmap_start_create_trip},
+   {"O", NULL,
+      "Open an existing trip", roadmap_start_open_trip},
+   {"P", NULL,
+      "Stop tracking the current trip", roadmap_trip_stop},
+   {"Q", NULL,
+      "Quit RoadMap", roadmap_main_exit},
+   {"R", NULL,
+      "Set the map back to the default zoom level", roadmap_screen_zoom_reset},
+   {"S", NULL,
+      "Start tracking the current trip", roadmap_start_trip},
+   // T Unused.
+   {"U", NULL,
+      "Start the trip back to the departure point", roadmap_start_trip_reverse},
+   // V Unused.
+   {"W",  NULL,
+      "Set the selected street block as waypoint", roadmap_start_set_waypoint},
+   // X Unused.
+   // Y Unused.
+   // Z Unused.
    {NULL, NULL, NULL, NULL}
 };
+
+
+static void roadmap_start_usage (void) {
+
+   RoadMapFactory *cursor;
+
+   printf ("RoadMap button & key bindings:\n\n");
+   for (cursor = RoadMapStartKeyBinding; cursor->name != NULL; ++cursor) {
+      printf ("  %-20.20s\t%s.\n", cursor->name, cursor->tip);
+   }
+}
 
 
 static void roadmap_start_set_unit (void) {
@@ -674,7 +715,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_path_set(roadmap_config_get(&RoadMapConfigMapPath));
 
-   roadmap_option (argc, argv);
+   roadmap_option (argc, argv, roadmap_start_usage);
 
    roadmap_start_set_unit ();
    

@@ -58,8 +58,8 @@ static RoadMapFactory RoadGpsStartMenu[] = {
    {"Quit", NULL, "Quit RoadMap", roadmap_main_exit},
 
    {"Log", NULL, NULL, NULL},
-   {"Start", NULL, "Start logging GPS messages", roadgps_logger_start},
-   {"Stop",  NULL, "Stop logging GPS messages", roadgps_logger_stop},
+   {"Start", NULL, "Start recording GPS messages", roadgps_logger_start},
+   {"Stop",  NULL, "Stop recording GPS messages",  roadgps_logger_stop},
 
    {NULL, NULL, NULL, NULL}   
 };
@@ -67,21 +67,33 @@ static RoadMapFactory RoadGpsStartMenu[] = {
 static RoadMapFactory RoadGpsStartToolbar[] = {
 
    {"Quit", NULL, "Quit RoadMap", roadmap_main_exit},
-   {"Start", NULL, "Start logging GPS messages", roadgps_logger_start},
-   {"Stop",  NULL, "Stop logging GPS messages", roadgps_logger_stop},
+   {"Start", NULL, "Start recording GPS messages", roadgps_logger_start},
+   {"Stop",  NULL, "Stop recording GPS messages",  roadgps_logger_stop},
 
    {NULL, NULL, NULL, NULL}   
 };
 
 static RoadMapFactory RoadGpsStartKeyBinding[] = {
 
-   {"Button-Start", NULL, NULL, roadmap_main_exit},
+   {"Button-Start", NULL, "Quit RoadGps", roadmap_main_exit},
 
-   {"Q", NULL, NULL, roadmap_main_exit},
-   {"q", NULL, NULL, roadmap_main_exit},
+   {"Q", NULL, "Quit RoadGps", roadmap_main_exit},
+   {"R", NULL, "Start recording GPS messages", roadgps_logger_start},
+   {"S", NULL, "Stop recording GPS messages",  roadgps_logger_stop},
 
    {NULL, NULL, NULL, NULL}
 };
+
+
+static void roadgps_start_usage (void) {
+
+   RoadMapFactory *cursor;
+
+   printf ("RoadGps button & key bindings:\n\n");
+   for (cursor = RoadGpsStartKeyBinding; cursor->name != NULL; ++cursor) {
+      printf ("  %-20.20s\t%s.\n", cursor->name, cursor->tip);
+   }
+}
 
 
 static void roadgps_start_add_gps (int fd) {
@@ -189,7 +201,7 @@ void roadmap_start (int argc, char **argv) {
    roadgps_screen_initialize ();
    roadmap_config_initialize ();
 
-   roadmap_option (argc, argv);
+   roadmap_option (argc, argv, roadgps_start_usage);
 
    roadgps_logger_initialize ();
 

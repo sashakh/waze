@@ -71,7 +71,7 @@ int roadmap_option_cache  (void);
 int roadmap_option_width  (const char *name);
 int roadmap_option_height (const char *name);
 
-void roadmap_option (int argc, char **argv);
+void roadmap_option (int argc, char **argv, void (*usage) (void));
 
 
 /* This function is hidden by a macro: */
