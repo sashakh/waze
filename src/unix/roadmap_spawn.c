@@ -33,6 +33,7 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -174,20 +175,22 @@ int roadmap_spawn (const char *name, const char *command_line) {
       argv[0] = (char *)name;
       roadmap_spawn_set_arguments (15, argv, command_line);
 
-      if (RoadMapSpawnPath == NULL) {
+      if (RoadMapSpawnPath != NULL) {
 
-         execvp (name, argv);
-         roadmap_log (ROADMAP_FATAL, "execvp(%s) failed", name);
+         struct stat stat_buffer;
+         char *fullname;
 
-      } else {
-
-         char *fullname = malloc (strlen(RoadMapSpawnPath) + strlen(name) + 4);
-
+         fullname = malloc (strlen(RoadMapSpawnPath) + strlen(name) + 4);
          strcpy (fullname, RoadMapSpawnPath);
          strcat (fullname, name);
-         execv  (fullname, argv);
-         roadmap_log (ROADMAP_FATAL, "execv(%s) failed", fullname);
+
+         if (stat (fullname, &stat_buffer) == 0) {
+            execv  (fullname, argv);
+            roadmap_log (ROADMAP_FATAL, "execv(%s) failed", fullname);
+         }
       }
+      execvp (name, argv);
+      roadmap_log (ROADMAP_FATAL, "execvp(%s) failed", name);
    }
 
 #ifdef QWS
