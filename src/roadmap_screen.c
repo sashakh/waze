@@ -736,6 +736,8 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_trip_display ();
 
+    RoadMapScreenAfterRefresh();
+
     roadmap_canvas_refresh ();
 
     roadmap_log_pop ();
@@ -851,15 +853,12 @@ void roadmap_screen_refresh (void) {
     }
 
     roadmap_log_pop ();
-
-    RoadMapScreenAfterRefresh();
 }
 
 
 void roadmap_screen_redraw (void) {
 
     roadmap_screen_repaint ();
-    RoadMapScreenAfterRefresh();
 }
 
 

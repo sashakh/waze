@@ -193,17 +193,30 @@ static void roadmap_start_delete_waypoint (void) {
     roadmap_trip_remove_point (NULL);
 }
 
-static void roadmap_start_enable_download (void) {
+static void roadmap_start_set_download_mode (void) {
 
-   if (! roadmap_download_enabled()) {
+   if (roadmap_download_enabled()) {
 
-      // roadmap_plugin_load_all
-      //      ("download", roadmap_download_subscribe_protocol);
+      roadmap_download_subscribe_when_done (NULL);
 
-      roadmap_copy_init (roadmap_download_subscribe_protocol);
+   } else {
+
+      static int ProtocolInitialized = 0;
+
+      if (! ProtocolInitialized) {
+
+         // roadmap_plugin_load_all
+         //      ("download", roadmap_download_subscribe_protocol);
+
+         roadmap_copy_init (roadmap_download_subscribe_protocol);
+
+         ProtocolInitialized = 1;
+      }
 
       roadmap_download_subscribe_when_done (roadmap_screen_redraw);
    }
+
+   roadmap_screen_redraw ();
 }
 
 
@@ -291,8 +304,8 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
    {RoadMapFactorySeparator, NULL, NULL},
 
-   {"Enable Map Download",
-       "Enable the map download mechanism", roadmap_start_enable_download},
+   {"Map Download",
+       "Enable/Disable the map download mechanism", roadmap_start_set_download_mode},
 
 
    {"Trip", NULL, NULL},
@@ -510,6 +523,21 @@ const char *roadmap_start_get_title (const char *name) {
 }
 
 
+static void roadmap_start_after_refresh (void) {
+
+   if (roadmap_download_enabled()) {
+
+      RoadMapGuiPoint download_point = {0, 20};
+
+      download_point.x = roadmap_canvas_width() - 20;
+      if (download_point.x < 0) {
+         download_point.x = 0;
+      }
+      roadmap_sprite_draw ("Download", &download_point, 0);
+   }
+}
+
+
 void roadmap_start (int argc, char **argv) {
 
 #ifdef ROADMAP_DEBUG_HEAP
@@ -560,6 +588,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
+
+   roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
    roadmap_trip_restore_focus ();
 

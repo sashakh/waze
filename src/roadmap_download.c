@@ -39,6 +39,7 @@
 #include "roadmap_county.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
+#include "roadmap_main.h"
 #include "roadmap_preferences.h"
 
 #include "roadmap_download.h"
@@ -61,6 +62,9 @@ static int  RoadMapDownloadQueueSize = 0;
 
 static int  RoadMapDownloadRefresh = 0;
 
+static int  RoadMapDownloadCurrentFileSize = 0;
+static int  RoadMapDownloadDownloaded = 0;
+
 
 struct roadmap_download_protocol {
 
@@ -81,17 +85,29 @@ static RoadMapDownloadEvent RoadMapDownloadWhenDone =
 
 
 static int roadmap_download_request (int size) {
+
    // TBD: for the time being, answer everything is fine.
+
+   RoadMapDownloadCurrentFileSize = size;
+   RoadMapDownloadDownloaded = 0;
    return 1;
 }
 
-static void roadmap_download_progress (int loaded) {
-   // TBD
+
+static void roadmap_download_show_size (char *image, int value) {
+
+   if (RoadMapDownloadCurrentFileSize > (1024 * 1024)) {
+      sprintf (image, "%dMB", value / (1024 * 1024));
+   } else {
+      sprintf (image, "%dKB", value / 1024);
+   }
 }
 
-static RoadMapDownloadCallbacks RoadMapDownloadCallbackFunctions = {
-   roadmap_download_request, roadmap_download_progress
-};
+
+static void roadmap_download_error (const char *message) {
+
+   roadmap_messagebox ("Download Error", message);
+}
 
 
 static int roadmap_download_increment (int cursor) {
@@ -127,6 +143,63 @@ static void roadmap_download_end (void) {
 }
 
 
+static void roadmap_download_progress_ok (const char *name, void *context) {
+   roadmap_dialog_hide (name);
+   roadmap_download_end ();
+}
+
+static void roadmap_download_progress (int loaded) {
+
+   int  fips;
+   char image[32];
+
+   int progress = (100 * loaded) / RoadMapDownloadCurrentFileSize;
+
+
+   /* Avoid updating the dialod too often: this may slowdown the download. */
+
+   if (progress == RoadMapDownloadDownloaded) return;
+
+   RoadMapDownloadDownloaded = progress;
+
+
+   fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
+
+   if (roadmap_dialog_activate ("Downloading", NULL)) {
+
+      roadmap_dialog_new_label  (".file", "County");
+      roadmap_dialog_new_label  (".file", "State");
+      roadmap_dialog_new_label  (".file", "Size");
+      roadmap_dialog_new_label  (".file", "Download");
+
+      roadmap_dialog_add_button ("OK", roadmap_download_progress_ok);
+
+      roadmap_dialog_complete (0);
+   }
+   roadmap_dialog_set_data (".file", "County", roadmap_county_get_name (fips));
+   roadmap_dialog_set_data (".file", "State", roadmap_county_get_state (fips));
+
+   roadmap_download_show_size (image, RoadMapDownloadCurrentFileSize);
+   roadmap_dialog_set_data (".file", "Size", image);
+
+   if (loaded == RoadMapDownloadCurrentFileSize) {
+      roadmap_dialog_set_data (".file", "Download", "Completed");
+   } else {
+      roadmap_download_show_size (image, loaded);
+      roadmap_dialog_set_data (".file", "Download", image);
+   }
+
+   roadmap_main_flush ();
+}
+
+
+static RoadMapDownloadCallbacks RoadMapDownloadCallbackFunctions = {
+   roadmap_download_request,
+   roadmap_download_progress,
+   roadmap_download_error
+};
+
+
 static void roadmap_download_ok (const char *name, void *context) {
 
    int  fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
@@ -157,6 +230,7 @@ static void roadmap_download_ok (const char *name, void *context) {
         protocol = protocol->next) {
 
       if (strncmp (source, protocol->prefix, strlen(protocol->prefix)) == 0) {
+
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
                                 source, destination)) {
             RoadMapDownloadRefresh = 1;
@@ -171,7 +245,7 @@ static void roadmap_download_ok (const char *name, void *context) {
       roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
    }
 
-   roadmap_download_end ();
+   roadmap_download_progress (RoadMapDownloadCurrentFileSize);
 }
 
 

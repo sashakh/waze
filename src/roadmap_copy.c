@@ -37,7 +37,15 @@
  *       --defsym roadmap_plugin_init=roadmap_copy_init
  *
  *   The intend of this module is to provide a small example for the
- *   implementation of a download protocol module.
+ *   implementation of a download protocol module. It can be useful
+ *   in case the server's disk was mounted using NFS or anything
+ *   similar.
+ *
+ * BUGS:
+ *
+ *   This module make explicit references to the roadmap_file module,
+ *   which prevents it from being built as a plugin. It is there only
+ *   as an example of a basic download protocol module..
  */
 
 #include <stdio.h>
@@ -47,9 +55,11 @@
 #include "roadmap.h"
 #include "roadmap_file.h"
 #include "roadmap_download.h"
-#include "roadmap_messagebox.h"
 
 #include "roadmap_copy.h"
+
+
+#define ROADMAP_COPY_MAX_CHUNK 10240
 
 
 static int roadmap_copy (RoadMapDownloadCallbacks *callbacks,
@@ -60,7 +70,7 @@ static int roadmap_copy (RoadMapDownloadCallbacks *callbacks,
    RoadMapFileContext input;
 
    if (roadmap_file_map (source, NULL, &input) == NULL) {
-      roadmap_messagebox ("Error", "Cannot find the download source file");
+      callbacks->error ("Cannot find the download source file");
       return 0;
    }
 
@@ -71,8 +81,39 @@ static int roadmap_copy (RoadMapDownloadCallbacks *callbacks,
       return 0;
    }
 
-   roadmap_file_save (NULL, destination,
-                      roadmap_file_base (input), roadmap_file_size (input));
+   if (size < ROADMAP_COPY_MAX_CHUNK) {
+
+      roadmap_file_save (NULL, destination, roadmap_file_base (input), size);
+
+   } else {
+
+      int loaded;
+      char *cursor = roadmap_file_base (input);
+
+      roadmap_file_save (NULL, destination, cursor, ROADMAP_COPY_MAX_CHUNK);
+
+      for (loaded = ROADMAP_COPY_MAX_CHUNK;
+           size - loaded > ROADMAP_COPY_MAX_CHUNK;
+           loaded += ROADMAP_COPY_MAX_CHUNK) {
+
+         callbacks->progress (loaded);
+
+         cursor += ROADMAP_COPY_MAX_CHUNK;
+
+         roadmap_file_append
+            (NULL, destination, cursor, ROADMAP_COPY_MAX_CHUNK);
+      }
+
+      if (loaded < size) {
+
+         callbacks->progress (loaded);
+
+         cursor += ROADMAP_COPY_MAX_CHUNK;
+
+         roadmap_file_append
+            (NULL, destination, cursor, size - loaded);
+      }
+   }
 
    roadmap_file_unmap (&input);
 

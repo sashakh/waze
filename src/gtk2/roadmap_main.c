@@ -383,6 +383,14 @@ void roadmap_main_set_status (const char *text) {
 }
 
 
+void roadmap_main_flush (void) {
+
+   while (gtk_events_pending ()) {
+      gtk_main_iteration ();
+   }
+}
+
+
 void roadmap_main_exit (void) {
 
    roadmap_start_exit ();

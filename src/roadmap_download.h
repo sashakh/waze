@@ -32,12 +32,14 @@
  * These callbacks are called through a pointer, because the protocol
  * modules are designed to be plugins, dynamically linked.
  */
-typedef int  (*RoadMapDownloadCallbackSize) (int size);
+typedef int  (*RoadMapDownloadCallbackSize)     (int size);
 typedef void (*RoadMapDownloadCallbackProgress) (int loaded);
+typedef void (*RoadMapDownloadCallbackError)    (const char *message);
 
 typedef struct {
    RoadMapDownloadCallbackSize     size;
    RoadMapDownloadCallbackProgress progress;
+   RoadMapDownloadCallbackError    error;
 } RoadMapDownloadCallbacks;
 
 /* This generic function is a protocol handler function, called once

@@ -45,6 +45,7 @@ int roadmap_dialog_activate(const char* name, void* context) {
 		ret = 0;
 	} else {
 		dialog = new RMapDialog(0, roadmap_start_get_title(name));
+      dialogs[name] = dialog;
 		ret = 1;
 	}
 
@@ -66,7 +67,8 @@ void roadmap_dialog_new_entry (const char *frame, const char *name) {
 }
 
 void roadmap_dialog_new_label (const char *frame, const char *name) {
-	// TBD.
+	// FIXME: made an entry as a temporary patch.
+	currentDialog->addTextEntry(frame, name);
 }
 
 void roadmap_dialog_new_color (const char *frame, const char *name) {
