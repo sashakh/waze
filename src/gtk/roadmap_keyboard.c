@@ -54,32 +54,58 @@ struct roadmap_keyboard_context {
 
 static gint roadmap_keyboard_pressed (GtkWidget *w, gpointer data) {
 
-   gint cursor;
-
    RoadMapKey *key = (RoadMapKey *) data;
    RoadMapKeyboard keyboard = (RoadMapKeyboard) key->keyboard;
 
 
    if (keyboard->focus != NULL) {
 
-      cursor = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+      gint cursor;
 
       if (key->character >= ' ') {
 
          char text[2];
 
+         gtk_editable_delete_selection (GTK_EDITABLE(keyboard->focus));
+
+         cursor = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+
          text[0] = key->character;
          text[1] = 0;
+
          gtk_editable_insert_text (GTK_EDITABLE(keyboard->focus),
                                    text, 1, &cursor);
+
          gtk_editable_set_position (GTK_EDITABLE(keyboard->focus), cursor);
 
       } else if (key->character == '\b') {
 
+         gint end1, end2;
+
+         /* Delete the selection first. If the position of the end of
+          * the text has not changed, this is because there was no selection.
+          * In that case we must delete the character before the cursor.
+          * (GTK2 is obviously better: there is a "get selection"..).
+          * Once we are done, we must restore the cursor.
+          */
+
          cursor = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
 
-         gtk_editable_delete_text
-            (GTK_EDITABLE(keyboard->focus), cursor-1, cursor);
+         gtk_editable_set_position (GTK_EDITABLE(keyboard->focus), -1);
+         end1 = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+
+         gtk_editable_delete_selection (GTK_EDITABLE(keyboard->focus));
+
+         end2 = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+
+         if (end1 == end2) {
+            gtk_editable_delete_text
+               (GTK_EDITABLE(keyboard->focus), cursor-1, cursor);
+            --cursor;
+         }
+         if (cursor < end2) {
+            gtk_editable_set_position (GTK_EDITABLE(keyboard->focus), cursor);
+         }
 
       } else if (key->character == '\r') {
 

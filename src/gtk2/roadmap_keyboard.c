@@ -58,15 +58,25 @@ struct roadmap_keyboard_context {
 
 static gint roadmap_keyboard_pressed (GtkWidget *w, gpointer data) {
 
-   gint cursor;
-
    RoadMapKey *key = (RoadMapKey *) data;
    RoadMapKeyboard keyboard = (RoadMapKeyboard) key->keyboard;
 
 
    if (keyboard->focus != NULL) {
 
-      cursor = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+      int  active_selection;
+      gint start, end;
+      gint cursor = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+
+      active_selection =
+         gtk_editable_get_selection_bounds
+            (GTK_EDITABLE(keyboard->focus), &start, &end);
+
+      if (active_selection) {
+         gtk_editable_delete_text
+            (GTK_EDITABLE(keyboard->focus), start, end);
+         cursor = start;
+      }
 
       if (key->character >= ' ') {
 
@@ -74,13 +84,12 @@ static gint roadmap_keyboard_pressed (GtkWidget *w, gpointer data) {
 
          text[0] = key->character;
          text[1] = 0;
+
          gtk_editable_insert_text (GTK_EDITABLE(keyboard->focus),
                                    text, 1, &cursor);
          gtk_editable_set_position (GTK_EDITABLE(keyboard->focus), cursor);
 
-      } else if (key->character == '\b') {
-
-         cursor = gtk_editable_get_position (GTK_EDITABLE(keyboard->focus));
+      } else if ((key->character == '\b') && (! active_selection)) {
 
          gtk_editable_delete_text
             (GTK_EDITABLE(keyboard->focus), cursor-1, cursor);
