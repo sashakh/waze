@@ -77,6 +77,14 @@ install: build
 	# Add here commands to install the package into debian/roadmap.
 	$(MAKE) -C src/qt $(BUILDFLAGS) DESTDIR=$(DESTDIR) pkgbindir=/usr/lib/roadmap install
 
+	@echo "Installing map file"
+	mkdir -p $(DESTDIR)/usr/lib/roadmap && \
+	cd $(DESTDIR)/usr/lib/roadmap && \
+	rm -f usdir.rdm.tgz && \
+	wget http://roadmap.digitalomaha.net/maps/usdir.rdm.tgz && \
+	tar zxf usdir.rdm.tgz usdir.rdm && \
+	rm -f usdir.rdm.tgz
+
 	dh_movefiles --sourcedir=debian/roadmap
 
 # Build architecture-independent files here.
