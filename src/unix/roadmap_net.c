@@ -121,7 +121,7 @@ int roadmap_net_connect (const char *name, int default_port) {
 
    if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
       close(fd);
-      roadmap_log (ROADMAP_ERROR, "cannot connect to '%s'", name);
+      roadmap_log (ROADMAP_WARNING, "cannot connect to '%s'", name);
       goto connection_failure;
    }
 
