@@ -57,7 +57,7 @@ ABOUT THIS DOCUMENTATION
    regenerated using the following command:
 
 ----
-      aptconvert web/manual.html README
+      aptconvert -toc web/manual.html README
 ----
    
    The aptconvert tool is available at:
@@ -89,8 +89,10 @@ INSTALLATION
    icons of its toolbar. ImageMagick is only required for building RoadMap,
    it is not necessary when running RoadMap.
 
-   RoadMap uses aptconvert to produce the formatted documentation (see
-   previous section).
+   RoadMap uses flite (festival lite) to generate voice messages. See
+   section "VOICE INTERFACE" for more information.
+
+   RoadMap uses aptconvert to format the documentation (see previous section).
 
 
 * DOWNLOADING
@@ -400,7 +402,7 @@ ROADMAP APPLICATIONS
 
 USING ROADMAP
 
-* COMMAND LINE OPTIONS
+* COMMAND LINE {OPTIONS}
    
    The options marked as "sticky" remain in effect the next time RoadMap
    is run. The use of the option actually changes the specified RoadMap
@@ -453,6 +455,15 @@ USING ROADMAP
    [--help] Show a description of all command line options.
 
 
+* GETTING HELP
+
+   The main RoadMap window includes a "Help" menu. This help can be used to
+   display various topics from this document. The help text is actually an
+   HTML version of this file, shown using a web brower. The default browser
+   is "dillo", but this default can be changed in the user's preferences
+   (see section PREFERENCE ITEMS).
+
+
 * THE ROADMAP DISPLAY
 
    The main RoadMap window shows the menu, the toolbar and the map's canvas.
@@ -498,7 +509,7 @@ USING ROADMAP
    "Configuring the RoadMap text and voice messages").
 
 
-* VOICE INTERFACE
+* {VOICE} INTERFACE
 
    If the flite program has been installed, or if RoadMap was configured
    for an available speech application, RoadMap will complement the screen
@@ -533,7 +544,7 @@ USING ROADMAP
 ----
 
 
-* KEY BINDINGS
+* {KEY} BINDINGS
 
    Most of the RoadMap commands are available from the keyboard (so to answer
    requests from my loyal Zaurus fans :). In fact, the button and key bindings
@@ -725,7 +736,7 @@ USING ROADMAP
    More details are provided in the following sections.
 
 
-* STREET NAME OPTIONS
+* {STREET} NAME OPTIONS
 
    Street names are used in the two dialogs used to select a specific location:
    the address and intersection dialogs. These dialogs follow the same rules
@@ -830,7 +841,7 @@ USING ROADMAP
    rules as the address selection list described in the previous sections.
 
 
-* MANAGING TRIPS
+* MANAGING {TRIPS}
    
    A trip is made of one destination point and many user-defined waypoints.
    The purpose of a RoadMap trip is to describe a real-life trip and to
@@ -1172,7 +1183,7 @@ CONFIGURATION
    that do not support named colors.
 
 
-* PREFERENCES ITEMS
+* PREFERENCE ITEMS
 
     [General.Unit] The unit system used, either "imperial" or "metric"
 
@@ -1243,6 +1254,18 @@ CONFIGURATION
          <<Default:>> 10
 
          <<Comment:>> the selection is only removed when the map is redrawn.
+
+    [Help.Browser] The browser program used to show the help text.
+
+         <<Format:>> a program name, with or without path.
+
+         <<Default:>> dillo
+
+    [Help.Arguments] The browser's command line arguments
+
+         <<Format:>> a format string, with one '%s' for the help URL.
+
+         <<Default:>> %s
 
     [Map.Path] The map database path list.
 

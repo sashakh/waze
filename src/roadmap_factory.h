@@ -37,6 +37,7 @@ typedef struct {
 } RoadMapFactory;
 
 extern const char RoadMapFactorySeparator[];
+extern const char RoadMapFactoryHelpTopics[];
 
 void roadmap_factory (const RoadMapFactory *menu,
                       const RoadMapFactory *toolbar,

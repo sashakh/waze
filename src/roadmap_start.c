@@ -61,6 +61,7 @@
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_help.h"
 
 
 static const char *RoadMapMainTitle = "RoadMap";
@@ -373,6 +374,10 @@ static RoadMapFactory RoadMapStartMenu[] = {
 
 
    {"Help", NULL, NULL, NULL},
+
+   {RoadMapFactoryHelpTopics, NULL, NULL, NULL},
+
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
    {"About", NULL,
        "Show information about RoadMap", roadmap_start_about},
@@ -732,6 +737,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
+
+   roadmap_help_initialize ();
 
    roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 

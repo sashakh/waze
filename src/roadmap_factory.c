@@ -31,6 +31,7 @@
 #include "roadmap_config.h"
 #include "roadmap_main.h"
 #include "roadmap_preferences.h"
+#include "roadmap_help.h"
 
 #include "roadmap_factory.h"
 
@@ -43,6 +44,7 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
 
 
 const char RoadMapFactorySeparator[] = "--separator--";
+const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
 static const RoadMapFactory *RoadMapFactoryBindings = NULL;
 
@@ -64,6 +66,21 @@ static void roadmap_factory_keyboard (char *key) {
    }
 }
 
+static void roadmap_factory_add_help (void) {
+
+   int ok;
+   const char *label;
+   RoadMapCallback callback;
+
+   for (ok = roadmap_help_first_topic(&label, &callback);
+        ok;
+        ok = roadmap_help_next_topic(&label, &callback)) {
+
+      roadmap_main_add_menu_item (label, label, callback);
+   }
+}
+
+
 void roadmap_factory (const RoadMapFactory *menu,
                       const RoadMapFactory *toolbar,
                       const RoadMapFactory *shortcuts) {
@@ -82,6 +99,8 @@ void roadmap_factory (const RoadMapFactory *menu,
       if (menu->callback == NULL) {
          if (menu->name == RoadMapFactorySeparator) {
             roadmap_main_add_separator ();
+         } else if (menu->name == RoadMapFactoryHelpTopics) {
+            roadmap_factory_add_help ();
          } else {
             roadmap_main_add_menu (menu->name);
          }
