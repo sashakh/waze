@@ -91,6 +91,11 @@ void roadmap_log_save_all (void) {
 }
 
 
+int  roadmap_log_enabled (int level, char *source, int line) {
+   return (level >= roadmap_verbosity());
+}
+
+
 static void roadmap_log_one (struct roadmap_message_descriptor *category,
                              FILE *file,
                              char  saved,
@@ -124,8 +129,13 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
    va_list ap;
    char saved = ' ';
    struct roadmap_message_descriptor *category;
+   char *debug;
 
    if (level < roadmap_verbosity()) return;
+
+   debug = roadmap_debug();
+
+   if ((debug[0] != 0) && (strcmp (debug, source) != 0)) return;
 
    for (category = RoadMapMessageHead; category->level != 0; ++category) {
       if (category->level == level) break;

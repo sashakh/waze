@@ -47,6 +47,8 @@ void roadmap_log (int level, char *source, int line, char *format, ...);
 void roadmap_log_save_all (void);
 void roadmap_log_purge    (void);
 
+int  roadmap_log_enabled (int level, char *source, int line);
+
 #define roadmap_check_allocated(p) \
             roadmap_check_allocated_with_source_line(__FILE__,__LINE__,p)
 
@@ -56,6 +58,8 @@ void roadmap_log_purge    (void);
 
 
 void roadmap_option_initialize (void);
+
+char *roadmap_debug (void);
 
 int   roadmap_verbosity  (void); /* return a minimum message level. */
 int   roadmap_is_visible (int category);

@@ -53,6 +53,7 @@ static int roadmap_option_no_area = 0;
 static int roadmap_option_square  = 0;
 static int roadmap_option_cache_size = 0;
 
+static char *roadmap_option_debug = "";
 static char *roadmap_option_gps = NULL;
 
 
@@ -90,6 +91,12 @@ char *roadmap_gps_source (void) {
 int roadmap_verbosity (void) {
 
    return roadmap_option_verbose;
+}
+
+
+char *roadmap_debug (void) {
+
+   return roadmap_option_debug;
 }
 
 
@@ -221,6 +228,9 @@ static void roadmap_option_set_debug (const char *value) {
     if (roadmap_option_verbose > ROADMAP_MESSAGE_DEBUG) {
         roadmap_option_verbose = ROADMAP_MESSAGE_DEBUG;
     }
+    if (value != NULL && value[0] != 0) {
+       roadmap_option_debug = strdup (value);
+    }
 }
 
 
@@ -284,6 +294,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
 
     {"--debug", "", roadmap_option_set_debug,
         "Show all informational and debug traces"},
+
+    {"--debug=", "SOURCE", roadmap_option_set_debug,
+        "Show the informational and debug traces for a specific source."},
 
     {"--verbose", "", roadmap_option_set_verbose,
         "Show all informational traces"},
