@@ -17,20 +17,20 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
-<P>Roadmap v1.0 (September XX, 2003): 
+<P>Roadmap v1.0 (September 1, 2003): 
 <UL>
   <LI>The "trip direction" red arrow sprite was acting weird when moving
       the map's view (pan and rotate). The cause was that the sprite's
       coordinates were not rotated as these should have been.
-  <LI>Fix the map download crashing when GPS data is received: this was
-      because RoadMap was mapping the file being downloaded, before it
-      was complete. The (temporary) solution is to freeze any RoadMap
-      GPS and screen update, but the long term solution should be to
-      transfer the map to a temporary file and then rename it.
+  <LI>Fix a RoadMap crash when GPS data is received while downloading: this
+      was because RoadMap was mapping the file being downloaded, before
+      it was complete. The (temporary) solution is to freeze any RoadMap
+      GPS and screen update. The long term solution should be to transfer
+      the map to a temporary file and then rename it.
   <LI>Implement download using the HTTP protocol.
-  <LI>Uncompress gzip and bzip2 files after download, detected using
+  <LI>Uncompress gzip, bzip2 and lzop files after download, detected using
       well known suffixes. Downloading compressed files helps cut the
-      download time by a factor of 2 in average.
+      download time by a factor of 2 in average (using gzip).
 </UL>
 <P>Roadmap v1.0rc9 (August 24, 2003): 
 <UL>

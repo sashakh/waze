@@ -4,21 +4,6 @@ RoadMap - a street navigation system using the US Census maps and GPS
                               T O   D O
 
 
-User options for geometry.
-
-   RoadMap tries to choose a "smart" default geometry. It should rather
-   let the user decide, either with a --geometry=XXxXX option, and/or a
-   configuration item.
-   
-Show name of the closest street when in GPS tracking mode.
-
-   The code to retrieve the name already exists, but it would be nice
-   to activate it automatically, not only on mouse click.
-   
-   Problems: (1) not taking too much CPU, (2) improvement of accuracy
-   is needed (for example, streets without ranges...), (3) avoid covering
-   the screen with so much info.
-   
 Accurate local time
 
    The GPS receiver provides a reliable universal time and the current
@@ -42,8 +27,8 @@ Multiple tracking
 
    As of today, RoadMap can track one GPS source.
 
-   RoadMap should allow the user to track as many GPS sources as defined by
-   the user.
+   RoadMap should allow the user to track alternate GPS sources as defined by
+   the user (like GpsDrive's friendsd ?).
    
 Submaps & Plugins
 
@@ -91,23 +76,7 @@ Routing:
    crashes or loop forever, and (3) allow people to implement their own
    (I guess there will be a lot of arbitrary choices to be made there).
 
-Map Selection & Download:
-
-   Make a graphical tool to select and load on the PDA the subset of maps
-   required for a given trip. The idea is to first select counties using
-   city & state names, and then graphically select/deselect surrounding
-   counties using mouse clicks. The files representing the list of selected 
-   counties is then being downloaded onto the selected pda/computer (one
-   widget for selecting the pda, one button to start the download).
-
-   The download part would be made using HTTP, downloading maps compressed
-   using gzip. This way a standard web server can be used to serve maps.
-   The roadmap preferences should allow for a list of URLs, so that one might
-   imagine using one server for each section of the USA.
-
-   There is the need for the following user interface:
-
-   1- a dialog to select one county using a city/state combination.
-   2- preferences editor: enter the list of URLs for downloading maps.
-   3- a county limits map to select or remove counties graphically.
-
+   The main issue with any routing logic is that the US Census Bureau's data
+   does not provide any one-way information. Considering the risk of taking
+   the wrong way, any routing based on the US Census Bureau TIGER files has
+   been postponed.
