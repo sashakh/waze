@@ -47,9 +47,6 @@ static char *RoadMapSpawnPath = NULL;
 static RoadMapList RoadMapSpawnActive = ROADMAP_LIST_EMPTY;
 
 
-static void (*RoadMapSpawnNextHandler) (int signal) = NULL;
-
-
 static void roadmap_spawn_set_arguments
                (int argc, char *argv[], const char *command_line) {
 
@@ -101,6 +98,10 @@ end_of_string:
 
 
 #ifdef ROADMAP_USES_SIGCHLD
+
+static void (*RoadMapSpawnNextHandler) (int signal) = NULL;
+
+
 static void roadmap_spawn_child_exit_handler (int signal);
 
 static void roadmap_spawn_set_handler (void) {
