@@ -29,24 +29,26 @@ INSTALLDIR=/usr/local
 
 # --- Conventional targets ----------------------------------------
 
-all: build runtime
+all: runtime
 
 others:
-	cd ..; make CFLAGS="$(STDCFLAGS)" runtime
-	cd ../unix; make CFLAGS="$(STDCFLAGS) -I.." all
+	make -C .. CFLAGS="$(STDCFLAGS)" runtime
+	make -C .. -C unix CFLAGS="$(STDCFLAGS) -I.." runtime
 
 build:
-	cd ..; make CFLAGS="$(STDCFLAGS)" build
+	make -C .. CFLAGS="$(STDCFLAGS)" build
 
 runtime: others $(RUNTIME)
 
-clean:
+clean: cleanone
+	make -C .. cleanone
+	make -C .. -C unix cleanone
+
+cleanone:
 	rm -f *.o *.a *.da $(RUNTIME)
-	cd ..; make clean
-	cd ../unix; make clean
 
 install: all
-	cd .. ; make install
+	make -C .. install
 	cd $(INSTALLDIR)/bin; rm -f $(RUNTIME) roadmap roadgps
 	cp $(RUNTIME) $(INSTALLDIR)/bin
 	ln -s $(INSTALLDIR)/bin/gtkroadmap $(INSTALLDIR)/bin/roadmap
@@ -55,7 +57,7 @@ install: all
 
 uninstall:
 	cd $(INSTALLDIR)/bin ; rm -f $(RUNTIME) roadmap roadgps
-	cd .. ; make uninstall
+	make -C .. uninstall
 
 # --- The real targets --------------------------------------------
 

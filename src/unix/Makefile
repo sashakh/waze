@@ -16,7 +16,9 @@ build:
 
 runtime: libosroadmap.a
 
-clean:
+clean: cleanone
+
+cleanone:
 	rm -f *.o *.a *.da
 
 install:

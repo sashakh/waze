@@ -100,7 +100,7 @@ INSTALLDIR=/usr/local
 
 # --- Conventional targets ----------------------------------------
 
-all: runtime build
+all: everything
 
 runtime: $(RUNTIME)
 
@@ -110,7 +110,13 @@ strip:
 	strip -s $(RUNTIME)
 	strip -s $(BUILD)
 
-clean:
+clean: cleanone
+	make -C qt cleanone
+	make -C gtk cleanone
+	make -C gtk2 cleanone
+	make -C unix cleanone
+
+cleanone:
 	rm -f *.o *.a *.da $(BUILD)
 
 install: all
@@ -128,6 +134,17 @@ uninstall:
 	cd $(INSTALLDIR) ; rm -rf share/roadmap
 	rm -f /usr/lib/menu/roadmap
 
+everything: build
+	cd gtk ; make STDCFLAGS="$(CFLAGS)" all
+	cd gtk2 ; make STDCFLAGS="$(CFLAGS)" all
+	cd qt ; make STDCFLAGS="$(CFLAGS)" all
+
+cleanall:
+	cd gtk ; make clean
+	cd gtk2 ; make clean
+	cd qt ; make clean
+
+rebuild: cleanall everything
 
 # --- The real targets --------------------------------------------
 

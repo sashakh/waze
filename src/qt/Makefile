@@ -47,21 +47,23 @@ RUNTIME=qtroadmap qtroadgps
 
 # --- Conventional targets ----------------------------------------
 
-all: runtime build
+all: runtime
 
 others:
 	make -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) runtime
 	make -C ../unix CFLAGS="$(STDCFLAGS) -I.." LDFLAGS=$(LDFLAGS) all
 
 build:
-	cd ..; make CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) build
+	make -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) build
 
 runtime: others $(RUNTIME)
 
-clean:
+clean: cleanone
+	make -C .. cleanone
+	make -C .. -C unix cleanone
+
+cleanone:
 	rm -f *.o *.a *.da $(RUNTIME) moc_qt_*.cc
-	cd ..; make clean
-	cd ../unix; make clean
 
 install: all
 	make -C .. install INSTALLDIR=$(INSTALLDIR)
@@ -76,7 +78,7 @@ install: all
 
 uninstall:
 	cd $(INSTALLDIR)/bin ; rm -f $(RUNTIME) roadmap roadgps
-	cd .. ; make uninstall
+	make -C .. uninstall
 
 # --- The real targets --------------------------------------------
 
