@@ -817,7 +817,14 @@ USING ROADGPS:
    RoadGps.
 
 
-PORTING ROADMAP:
+IMPLEMENTATION DETAILS:
+
+   This section contains additional information for developpers, knowledge
+   that is not required for using RoadMap. It is here to answer some usual
+   questions and help people who want to hack with the RoadMap code.
+
+
+   PORTING ROADMAP:
 
    The roadmap and roadgps applications have been designed so to facilitate
    portability. Two sub-parts of RoadMap have been isolated for that purpose:
@@ -848,6 +855,57 @@ PORTING ROADMAP:
    the header files listed above.
 
 
+   PROJECTION:
+
+   The maps used by RoadMap define all points using longitude/latitude
+   coordinates (WGS 84 datum). This means the coordinates describe the
+   position of the point on a reference elipsoid (as close to the Earth's
+   potatoe-like shape as scientifically possible). On the other side the
+   Computer (or PDA) screen is still a plane. Converting a longitude and
+   latitude coordinate into a plane X/Y coordinate is traditionally called
+   a "projection". There are several standard projection methods. RoadMap
+   uses none of them that I know of.
+
+   RoadMap first approximates the WGS 84 elipsoid to a sphere. Then it
+   considers the point at the center of the screen and compute the scale
+   at that point (i.e. delta(x)/longitude and delta(y)/latitude. After that
+   the local area is approximated to the plane that is tangent to the sphere
+   on that center point. Therefore a new projection is defined each time a
+   new screen is drawn. Also the distorsion is probably very significant
+   when zooming out. It is possible to zoom out to the point of seeing
+   the full continental US on the screen, and it is still recognizable.
+   This way of doing things seems to perturbate many people familiar with
+   map projections..
+
+   The RoadMap projection has one major advantage: after the scale has been
+   computed (once per screen refresh), the only transformation left is
+   a simple and fast "(center - position) * scale" conversion. There are
+   two scales: one for longitude and one for latitude (the longitude's
+   scale depends on the latitude). Most operations are performed using
+   integer operations, including the pre-computed sine and cosine tables,
+   so that RoadMap has decent performance on integer-only processors (such
+   as most of the ARM CPUs). In order to do so the (precomputed) sine and
+   cosine table has values that have been multiplied by 32768 and the final
+   scale is being divided by 32768.
+   
+   This projection was chosen because of its speed, not really for its
+   accuracy. As the Earth is not exactly a sphere, and certainly far from
+   a plane, the RoadMap projection is going to cause a measurable distorsion.
+   This is not a significant issue in RoadMap for several reasons:
+
+   - most users are concerned with very small areas (a few street blocks),
+   and the map distorsion is not going to be noticeable at this scale.
+
+   - the schematic representation of the streets and geographical features
+   is more important than a geometrically correct drawing.
+
+   - the GPS position is also provided using WGS 84 coordinates and the same
+   projection algorythm is used to represent the GPS position on the screen.
+   The same distorsion effect applies to the GPS position, and thus the GPS
+   position is correct relative to the street (at least when not considering
+   map accuracy problems..).
+
+   
 CONFIGURATION:
 
    FILES:
