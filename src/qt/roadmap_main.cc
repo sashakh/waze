@@ -87,11 +87,13 @@ void roadmap_main_add_separator(void) {
 	}
 }
                           
-void roadmap_main_add_tool(const char* label, const char* tip,
-	RoadMapCallback callback) {
+void roadmap_main_add_tool(const char* label,
+                           const char *icon,
+                           const char* tip,
+                           RoadMapCallback callback) {
 
 	if (mainWindow) {
-		mainWindow->addTool(label, tip, callback);
+		mainWindow->addTool(label, icon, tip, callback);
 	}
 }
 
@@ -102,6 +104,7 @@ void roadmap_main_add_tool_space(void) {
 }
 
 void roadmap_main_add_canvas(void) {
+// The canvas is implicitely added to the main window.
 //	if (mainWindow) {
 //		mainWindow->addCanvas();
 //	}

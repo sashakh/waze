@@ -54,33 +54,33 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
 
 static RoadMapFactory RoadGpsStartMenu[] = {
 
-   {"File", NULL, NULL},
-   {"Quit", "Quit RoadMap", roadmap_main_exit},
+   {"File", NULL, NULL, NULL},
+   {"Quit", NULL, "Quit RoadMap", roadmap_main_exit},
 
-   {"Log", NULL, NULL},
-   {"Start", "Start logging GPS messages", roadgps_logger_start},
-   {"Stop",  "Stop logging GPS messages", roadgps_logger_stop},
+   {"Log", NULL, NULL, NULL},
+   {"Start", NULL, "Start logging GPS messages", roadgps_logger_start},
+   {"Stop",  NULL, "Stop logging GPS messages", roadgps_logger_stop},
 
-   {NULL, NULL, NULL}   
+   {NULL, NULL, NULL, NULL}   
 };
 
 static RoadMapFactory RoadGpsStartToolbar[] = {
 
-   {"Quit", "Quit RoadMap", roadmap_main_exit},
-   {"Start", "Start logging GPS messages", roadgps_logger_start},
-   {"Stop",  "Stop logging GPS messages", roadgps_logger_stop},
+   {"Quit", NULL, "Quit RoadMap", roadmap_main_exit},
+   {"Start", NULL, "Start logging GPS messages", roadgps_logger_start},
+   {"Stop",  NULL, "Stop logging GPS messages", roadgps_logger_stop},
 
-   {NULL, NULL, NULL}   
+   {NULL, NULL, NULL, NULL}   
 };
 
 static RoadMapFactory RoadGpsStartKeyBinding[] = {
 
-   {"Button-Start",    NULL, roadmap_main_exit},
+   {"Button-Start", NULL, NULL, roadmap_main_exit},
 
-   {"Q", NULL, roadmap_main_exit},
-   {"q", NULL, roadmap_main_exit},
+   {"Q", NULL, NULL, roadmap_main_exit},
+   {"q", NULL, NULL, roadmap_main_exit},
 
-   {NULL, NULL, NULL}
+   {NULL, NULL, NULL, NULL}
 };
 
 

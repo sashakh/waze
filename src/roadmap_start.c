@@ -230,223 +230,226 @@ static void roadmap_start_toggle_download_mode (void) {
 
 static RoadMapFactory RoadMapStartMenu[] = {
 
-   {"File", NULL, NULL},
+   {"File", NULL, NULL, NULL},
 
-   {"Preferences",
+   {"Preferences", NULL,
        "Open the preferences editor", roadmap_preferences_edit},
-   {"GPS Console",
+   {"GPS Console", NULL,
        "Start the GPS console application", roadmap_start_console},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Mute Voice",
+   {"Mute Voice", NULL,
        "Mute all voice annoucements", roadmap_voice_mute},
-   {"Enable Voice",
+   {"Enable Voice", NULL,
        "Enable all voice annoucements", roadmap_voice_enable},
-   {"Disable Navigation",
+   {"Disable Navigation", NULL,
        "Disable all GPS-based navigation functions",
        roadmap_navigate_disable},
-   {"Enable Navigation",
+   {"Enable Navigation", NULL,
        "Enable all GPS-based navigation functions",
        roadmap_navigate_enable},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Enable Log to File",
+   {"Enable Log to File", NULL,
        "Save future log messages to the postmortem log file",
        roadmap_log_save_all},
-   {"Purge Log File",
+   {"Purge Log File", NULL,
        "Delete the current postmortem log file", roadmap_log_purge},
-   {"Purge History",
+   {"Purge History", NULL,
        "Remove all but the 10 most recent addresses", roadmap_start_purge},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Quit",
+   {"Quit", NULL,
        "Quit RoadMap", roadmap_main_exit},
 
 
-   {"View", NULL, NULL},
+   {"View", NULL, NULL, NULL},
 
-   {"Zoom In",
+   {"Zoom In", NULL,
        "Enlarge the central part of the map", roadmap_screen_zoom_in},
-   {"Zoom Out",
+   {"Zoom Out", NULL,
        "Show a larger area", roadmap_screen_zoom_out},
-   {"Normal Size",
+   {"Normal Size", NULL,
        "Set the map back to the default zoom level", roadmap_screen_zoom_reset},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Up",
+   {"Up", NULL,
        "Move the map view upward", roadmap_screen_move_up},
-   {"Left",
+   {"Left", NULL,
        "Move the map view to the left", roadmap_screen_move_left},
-   {"Right",
+   {"Right", NULL,
        "Move the map view to the right", roadmap_screen_move_right},
-   {"Down",
+   {"Down", NULL,
        "Move the map view downward", roadmap_screen_move_down},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Rotate Clockwise",
+   {"Rotate Clockwise", NULL,
        "Rotate the map view clockwise", roadmap_start_rotate},
-   {"Rotate Counter-Clockwise",
+   {"Rotate Counter-Clockwise", NULL,
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
 
 
-   {"Find", NULL, NULL},
+   {"Find", NULL, NULL, NULL},
 
-   {"Address...",
+   {"Address...", NULL,
        "Show a specified address", roadmap_address_location_by_city},
-   {"Intersection...",
+   {"Intersection...", NULL,
        "Show a specified street intersection", roadmap_crossing_dialog},
-   {"Position...",
+   {"Position...", NULL,
        "Show a position at the specified coordinates", roadmap_coord_dialog},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Destination",
+   {"Destination", NULL,
        "Show the map around the destination point", roadmap_start_show_destination},
-   {"GPS Position",
+   {"GPS Position", NULL,
        "Show the map around the GPS position", roadmap_start_show_gps},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Map Download",
+   {"Map Download", NULL,
        "Enable/Disable the map download mode", roadmap_start_toggle_download_mode},
-   {"Map Disk Space",
+   {"Map Disk Space", NULL,
        "Show the amount of disk space occupied by the maps", roadmap_download_show_space},
-   {"Delete Maps...",
+   {"Delete Maps...", NULL,
        "Delete maps that are currently visible", roadmap_download_delete},
 
 
-   {"Trip", NULL, NULL},
+   {"Trip", NULL, NULL, NULL},
 
-   {"New Trip",
+   {"New Trip", NULL,
        "Create a new trip", roadmap_start_create_trip},
-   {"Open Trip...",
+   {"Open Trip...", NULL,
        "Open an existing trip", roadmap_start_open_trip},
-   {"Save Trip",
+   {"Save Trip", NULL,
        "Save the current trip", roadmap_start_save_trip},
-   {"Save Trip As...",
+   {"Save Trip As...", NULL,
        "Save the current trip under a different name", roadmap_start_save_trip_as},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Start Trip",
+   {"Start Trip", NULL,
        "Start tracking the current trip", roadmap_start_trip},
-   {"Stop Trip",
+   {"Stop Trip", NULL,
        "Stop tracking the current trip", roadmap_trip_stop},
-   {"Resume Trip",
+   {"Resume Trip", NULL,
        "Resume the trip (keep the existing departure point)",
        roadmap_start_trip_resume},
-   {"Resume Trip (North Up)",
+   {"Resume Trip (North Up)", NULL,
        "Resume the trip (keep the existing departure point)",
        roadmap_start_trip_resume_north_up},
-   {"Return Trip",
+   {"Return Trip", NULL,
        "Start the trip back to the departure point",
        roadmap_start_trip_reverse},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"Set as Destination",
+   {"Set as Destination", NULL,
        "Set the selected street block as the trip's destination",
        roadmap_start_set_destination
    },
-   {"Add as Waypoint", 
+   {"Add as Waypoint",  NULL,
        "Set the selected street block as waypoint", roadmap_start_set_waypoint},
-   {"Delete Waypoints...", 
+   {"Delete Waypoints...",  NULL,
        "Delete selected waypoints", roadmap_start_delete_waypoint},
 
 
-   {"Help", NULL, NULL},
+   {"Help", NULL, NULL, NULL},
 
-   {"About",
+   {"About", NULL,
        "Show information about RoadMap", roadmap_start_about},
 
-   {NULL, NULL, NULL}
+   {NULL, NULL, NULL, NULL}
 };
 
 static RoadMapFactory RoadMapStartToolbar[] = {
 
-   {"D", "Center the map on the destination", roadmap_start_show_destination},
-   {"L", "Center the map on the current location", roadmap_start_show_location},
-   {"G", "Center the map on the GPS position", roadmap_start_show_gps},
-   {"g",
-       "Center the map on the GPS position (north up)",
+   {"D", NULL,
+      "Center the map on the destination", roadmap_start_show_destination},
+   {"L", NULL,
+      "Center the map on the current location", roadmap_start_show_location},
+   {"G", NULL,
+      "Center the map on the GPS position", roadmap_start_show_gps},
+   {"g", NULL,
+      "Center the map on the GPS position (north up)",
        roadmap_start_show_gps_north_up},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"F",
+   {"F", NULL,
        "Toggle the window full screen (if the window manager agrees)",
         roadmap_main_toggle_full_screen},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"R-",
+   {"R-", NULL,
        "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
-   {"R+",
+   {"R+", NULL,
        "Rotate the map view clockwise", roadmap_start_rotate},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"+", "Zoom into the map", roadmap_screen_zoom_in},
-   {"-", "Zoom out from the map", roadmap_screen_zoom_out},
-   {"R",
+   {"+", NULL, "Zoom into the map", roadmap_screen_zoom_in},
+   {"-", NULL, "Zoom out from the map", roadmap_screen_zoom_out},
+   {"R", NULL,
        "Reset the map back to the default zoom level",
         roadmap_screen_zoom_reset},
 
-   {RoadMapFactorySeparator, NULL, NULL},
+   {RoadMapFactorySeparator, NULL, NULL, NULL},
 
-   {"N", "Move the map up", roadmap_screen_move_up},
-   {"W", "Move the map to the left", roadmap_screen_move_left},
-   {"E", "Move the map to the right", roadmap_screen_move_right},
-   {"S", "Move the map down", roadmap_screen_move_down},
+   {"N", NULL, "Move the map up", roadmap_screen_move_up},
+   {"W", NULL, "Move the map to the left", roadmap_screen_move_left},
+   {"E", NULL, "Move the map to the right", roadmap_screen_move_right},
+   {"S", NULL, "Move the map down", roadmap_screen_move_down},
 
-   {NULL, NULL, NULL}
+   {NULL, NULL, NULL, NULL}
 };
 
 
 static RoadMapFactory RoadMapStartKeyBinding[] = {
 
-   {"Button-Left",  NULL, roadmap_screen_move_left},
-   {"Button-Right", NULL, roadmap_screen_move_right},
-   {"Button-Up",    NULL, roadmap_screen_move_up},
-   {"Button-Down",  NULL, roadmap_screen_move_down},
+   {"Button-Left",  NULL, NULL, roadmap_screen_move_left},
+   {"Button-Right", NULL, NULL, roadmap_screen_move_right},
+   {"Button-Up",    NULL, NULL, roadmap_screen_move_up},
+   {"Button-Down",  NULL, NULL, roadmap_screen_move_down},
 
    /* These binding are for the iPAQ buttons: */
-   {"Button-Menu",     NULL, roadmap_screen_zoom_reset},
-   {"Button-Contact",  NULL, roadmap_screen_zoom_in},
-   {"Button-Calendar", NULL, roadmap_screen_zoom_out},
-   {"Button-Start",    NULL, roadmap_main_exit},
+   {"Button-Menu",     NULL, NULL, roadmap_screen_zoom_reset},
+   {"Button-Contact",  NULL, NULL, roadmap_screen_zoom_in},
+   {"Button-Calendar", NULL, NULL, roadmap_screen_zoom_out},
+   {"Button-Start",    NULL, NULL, roadmap_main_exit},
 
    /* These binding are for regular keyboards: */
-   {"+", NULL, roadmap_screen_zoom_in},
-   {"-", NULL, roadmap_screen_zoom_out},
-   {"D", NULL, roadmap_start_show_destination},
-   {"d", NULL, roadmap_start_show_destination},
-   {"L", NULL, roadmap_start_show_location},
-   {"l", NULL, roadmap_start_show_location},
-   {"G", NULL, roadmap_start_show_gps},
-   {"g", NULL, roadmap_start_show_gps},
-   {"M", NULL, roadmap_start_toggle_download_mode},
-   {"m", NULL, roadmap_start_toggle_download_mode},
-   {"E", NULL, roadmap_download_delete},
-   {"e", NULL, roadmap_download_delete},
-   {"H", NULL, roadmap_start_trip},
-   {"h", NULL, roadmap_start_trip},
-   {"P", NULL, roadmap_trip_stop},
-   {"p", NULL, roadmap_trip_stop},
-   {"U", NULL, roadmap_start_trip_reverse},
-   {"u", NULL, roadmap_start_trip_reverse},
-   {"R", NULL, roadmap_screen_zoom_reset},
-   {"r", NULL, roadmap_screen_zoom_reset},
-   {"F", NULL, roadmap_main_toggle_full_screen},
-   {"f", NULL, roadmap_main_toggle_full_screen},
-   {"Q", NULL, roadmap_main_exit},
-   {"q", NULL, roadmap_main_exit},
-   {NULL, NULL, NULL}
+   {"+", NULL, NULL, roadmap_screen_zoom_in},
+   {"-", NULL, NULL, roadmap_screen_zoom_out},
+   {"D", NULL, NULL, roadmap_start_show_destination},
+   {"d", NULL, NULL, roadmap_start_show_destination},
+   {"L", NULL, NULL, roadmap_start_show_location},
+   {"l", NULL, NULL, roadmap_start_show_location},
+   {"G", NULL, NULL, roadmap_start_show_gps},
+   {"g", NULL, NULL, roadmap_start_show_gps},
+   {"M", NULL, NULL, roadmap_start_toggle_download_mode},
+   {"m", NULL, NULL, roadmap_start_toggle_download_mode},
+   {"E", NULL, NULL, roadmap_download_delete},
+   {"e", NULL, NULL, roadmap_download_delete},
+   {"H", NULL, NULL, roadmap_start_trip},
+   {"h", NULL, NULL, roadmap_start_trip},
+   {"P", NULL, NULL, roadmap_trip_stop},
+   {"p", NULL, NULL, roadmap_trip_stop},
+   {"U", NULL, NULL, roadmap_start_trip_reverse},
+   {"u", NULL, NULL, roadmap_start_trip_reverse},
+   {"R", NULL, NULL, roadmap_screen_zoom_reset},
+   {"r", NULL, NULL, roadmap_screen_zoom_reset},
+   {"F", NULL, NULL, roadmap_main_toggle_full_screen},
+   {"f", NULL, NULL, roadmap_main_toggle_full_screen},
+   {"Q", NULL, NULL, roadmap_main_exit},
+   {"q", NULL, NULL, roadmap_main_exit},
+   {NULL, NULL, NULL, NULL}
 };
 
 

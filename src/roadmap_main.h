@@ -41,6 +41,7 @@ void roadmap_main_add_menu_item  (const char *label,
 void roadmap_main_add_separator  (void);
 
 void roadmap_main_add_tool       (const char *label,
+                                  const char *icon,
                                   const char *tip,
                                   RoadMapCallback callback);
 void roadmap_main_add_tool_space (void);

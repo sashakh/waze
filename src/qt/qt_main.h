@@ -96,7 +96,7 @@ public:
 
 	void addMenuSeparator();
 
-	void addTool(const char* label, const char* tip,
+	void addTool(const char* label, const char *icon, const char* tip,
 		RoadMapCallback callback);
 
 	void addToolSpace(void);

@@ -116,13 +116,16 @@ void RMapMainWindow::addMenuSeparator() {
 	currentMenu->insertSeparator();
 }
 
-void RMapMainWindow::addTool(const char* label, const char* tip,
-	RoadMapCallback callback) {
+void RMapMainWindow::addTool(const char* label,
+                             const char *icon,
+                             const char* tip,
+                             RoadMapCallback callback) {
 
 #ifndef QWS
 	// For some unknown reason, this toolbar crashes RoadMap
-	// on the Sharp Zaurus (and on Linux/x86 too--Pascal).
+	// on the Sharp Zaurus.
    // This should be fixed and the ifndef removed.
+   // Pascal: I believe this has been fixed now.
 
 	if (toolBar == 0) {
 		toolBar = new QToolBar(this, "map view");
@@ -147,7 +150,7 @@ void RMapMainWindow::addToolSpace(void) {
 	// on the Sharp Zaurus. This should be fixed and the ifndef
 	// removed.
 
-   addTool (NULL, NULL, NULL);
+   addTool (NULL, NULL, NULL, NULL);
 
 	toolBar->addSeparator();
 #endif

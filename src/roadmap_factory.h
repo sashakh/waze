@@ -29,6 +29,7 @@
 typedef struct {
 
    const char *name;
+   const char *icon;
    const char *tip;
 
    RoadMapCallback callback;

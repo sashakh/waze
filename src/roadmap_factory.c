@@ -95,7 +95,7 @@ void roadmap_factory (const RoadMapFactory *menu,
             }
          } else {
             roadmap_main_add_tool
-               (toolbar->name, toolbar->tip, toolbar->callback);
+               (toolbar->name, toolbar->icon, toolbar->tip, toolbar->callback);
          }
 
          toolbar += 1;
