@@ -364,3 +364,29 @@ const char *roadmap_path_search_icon (const char *name) {
    return NULL; /* Not found. */
 }
 
+
+char *roadmap_path_skip_directories (const char *name) {
+
+   char *result = strrchr (name, '/');
+
+   if (result == NULL) result = (char *)name;
+   return result;
+}
+
+
+char *roadmap_path_remove_extension (const char *name) {
+
+   char *result;
+   char *p;
+
+
+   result = strdup(name);
+   roadmap_check_allocated(result);
+
+   p = roadmap_path_skip_directories (result);
+   p = strrchr (p, '.');
+   if (p != NULL) *p = 0;
+
+   return result;
+}
+
