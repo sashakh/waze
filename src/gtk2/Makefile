@@ -2,7 +2,7 @@
 GUICFLAGS=`pkg-config --cflags gtk+-2.0` -DGTK_DISABLE_DEPRECATED=1
 GUILDFLAGS=`pkg-config --libs gtk+-2.0`
 
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
+STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
 # STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
 # STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
 

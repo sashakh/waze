@@ -9,7 +9,7 @@ INSTALLDIR=/usr/local
 ## QPE: MOC=$(QTDIR)/bin/moc
 ## INSTALLDIR=$(QTDIR)
 
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -Wall
+STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g -Wall
 # STDCFLAGS=-g -Wall -DROADMAP_DEBUG_HEAP
 # STDCFLAGS=-g -Wall -pg -fprofile-arcs -g
 
