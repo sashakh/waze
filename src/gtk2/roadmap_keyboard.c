@@ -146,7 +146,7 @@ RoadMapKeyboard roadmap_keyboard_new (void) {
    int i;
    int j;
    int k;
-   char keymap[] = "1234567890qwertyuiopasdfghjkl\b-zxcvbnm \r";
+   char keymap[] = "1234567890qwertyuiopasdfghjkl\b-zxcvbnm ?";
 
    RoadMapKeyboard keyboard;
    GtkWidget *button;
