@@ -93,6 +93,8 @@ static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
 
    static int GpeIconsInitialized = 0;
 
+   if (icon == NULL) return NULL;
+
    if (! GpeIconsInitialized) {
       if (gpe_load_icons (RoadMapGpeIcons) == FALSE) return NULL;
       GpeIconsInitialized = 1;
