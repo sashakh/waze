@@ -138,7 +138,7 @@ static void roadmap_shape_activate (void *context) {
 
       shape_context->shape_cache_size = roadmap_line_count();
       shape_context->shape_cache =
-         calloc (shape_context->shape_cache_size / (8 * sizeof(int)),
+         calloc ((shape_context->shape_cache_size / (8 * sizeof(int))) + 1,
                  sizeof(int));
       roadmap_check_allocated(shape_context->shape_cache);
    }
