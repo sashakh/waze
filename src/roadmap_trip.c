@@ -876,6 +876,7 @@ void roadmap_trip_display (void) {
         azymuth = roadmap_math_azymuth (&gps->position,
                                         &RoadMapTripNextWaypoint->position);
         roadmap_math_coordinate (&gps->position, &point);
+        roadmap_math_rotate_coordinates (1, &point);
         roadmap_sprite_draw ("Direction", &point, azymuth);
     }
 }
