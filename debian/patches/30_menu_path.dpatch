@@ -5,7 +5,8 @@
 ##
 ## DP: Correct path to program in menu entry.
 ## DP: Debian meny entries need to use XPM icons to be compatible with
-## DP: all window managers in debian.
+## DP: all window managers in debian.  Changes menu icon to get an
+## DP: icon within 32x32 pixels.
 
 [ -f debian/patches/00patch-opts ] && . debian/patches/00patch-opts
 patch_opts="${patch_opts:--f --no-backup-if-mismatch}"
