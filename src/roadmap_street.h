@@ -75,6 +75,8 @@ typedef struct {
 
 } RoadMapNeighbour;
 
+#define ROADMAP_NEIGHBOUR_NULL {-1, -1, -1, {0,0}, {0,0}, {0,0}}
+
 
 /* The function roadmap_street_blocks either returns a positive count
  * of matching blocks on success, or else an error code (null or negative).

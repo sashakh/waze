@@ -28,6 +28,8 @@
 #ifndef INCLUDE__ROADMAP_FUZZY__H
 #define INCLUDE__ROADMAP_FUZZY__H
 
+#include "roadmap_street.h"
+
 typedef int RoadMapFuzzy;
 
 void roadmap_fuzzy_start_cycle (void);
@@ -36,11 +38,20 @@ int roadmap_fuzzy_max_distance (void);
 
 RoadMapFuzzy roadmap_fuzzy_direction (int direction, int reference);
 RoadMapFuzzy roadmap_fuzzy_distance  (int distance);
-RoadMapFuzzy roadmap_fuzzy_connected (int line, int reference);
+
+RoadMapFuzzy roadmap_fuzzy_connected
+                 (const RoadMapNeighbour *street,
+                  const RoadMapNeighbour *reference,
+                        RoadMapPosition  *connection);
 
 RoadMapFuzzy roadmap_fuzzy_and (RoadMapFuzzy a, RoadMapFuzzy b);
 RoadMapFuzzy roadmap_fuzzy_or  (RoadMapFuzzy a, RoadMapFuzzy b);
 RoadMapFuzzy roadmap_fuzzy_not (RoadMapFuzzy a);
+
+RoadMapFuzzy roadmap_fuzzy_false (void);
+int          roadmap_fuzzy_is_acceptable (RoadMapFuzzy a);
+int          roadmap_fuzzy_is_good       (RoadMapFuzzy a);
+int          roadmap_fuzzy_is_certain    (RoadMapFuzzy a);
 
 void roadmap_fuzzy_initialize (void);
 
