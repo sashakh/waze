@@ -1400,24 +1400,6 @@ CONFIGURATION
                   accuracy from the current street, and at a distance lower
                   than the accuracy from the would be next current street.
 
-    [Shapes.Declutter] The zoom level when the shapes are not drawn anymore.
-
-         <<Format:>> integer
-
-         <<Default:>> 1300
-
-         <<Comment:>> the definition of this item is rather obscure.
-                  To be fixed.
-
-    [Polygons.Declutter] The zoom level when the polygons are not drawn anymore.
-
-         <<Format:>> integer
-
-         <<Default:>> 1300
-
-         <<Comment:>> the definition of this item is rather obscure.
-                  To be fixed.
-
     [History.Depth] The maximum number of items in the <<find>> history.
 
          <<Format:>> integer
