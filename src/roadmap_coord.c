@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -49,15 +50,24 @@
 
 static void *RoadMapCoordHistory;
 
+static const char RoadMapLongitudeLabel[] = "Longitude (ISO 6709 format):";
+static const char RoadMapLatitudeLabel[]  = "Latitude (ISO 6709 format):";
+
 
 static int roadmap_coord_fraction (const char *image) {
 
+   int length;
    char normalized[16];
 
    if (image[0] == 0) return 0;
 
    strncpy (normalized, image, 6);
    normalized[6] = 0;
+
+   length = strlen(normalized);
+   if (isalpha(normalized[length-1])) {
+      normalized[length-1] = 0;
+   }
 
    strncat (normalized, "000000", 7);
    normalized[6] = 0;
@@ -82,7 +92,7 @@ static int roadmap_coord_to_binary (const char *image, int is_longitude) {
     *
     * RoadMap is more lenient than the ISO standard: the degrees
     * do not need a leading zero and 'E', 'W', 'S' and 'N' can be
-    * used in addition to '+' and '-'.
+    * used as a prefix or suffix in addition to '+' and '-'.
     */
    switch (*image)
    {
@@ -116,6 +126,29 @@ static int roadmap_coord_to_binary (const char *image, int is_longitude) {
          ++image;
          break;
    }
+   switch (image[strlen(image)-1])
+   {
+      case 'W':
+      case 'w':
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         sign = -1;
+         break;
+      case 'E':
+      case 'e':
+         if (! is_longitude) return 181000000; /* Invalid on purpose. */
+         sign = 1;
+         break;
+      case 'S':
+      case 's':
+         if (is_longitude) return 181000000; /* Invalid on purpose. */
+         sign = -1;
+         break;
+      case 'N':
+      case 'n':
+         if (is_longitude) return 181000000; /* Invalid on purpose. */
+         sign = 1;
+         break;
+   }
 
    p = strchr (image, '.');
    if (p == NULL) {
@@ -137,7 +170,7 @@ static int roadmap_coord_to_binary (const char *image, int is_longitude) {
       case 1:
       case 2:
 
-         value = (value * 1000000) + roadmap_coord_fraction(p+1);
+         value = (value * 1000000) + roadmap_coord_fraction(p);
          break;
 
       case 5:
@@ -178,10 +211,8 @@ static void roadmap_coord_set (void) {
 
    roadmap_history_get ('C', RoadMapCoordHistory, argv);
 
-   roadmap_dialog_set_data
-      ("Coordinates", "Longitude (decimal degrees):", argv[0]);
-   roadmap_dialog_set_data
-      ("Coordinates", "Latitude (decimal degrees):", argv[1]);
+   roadmap_dialog_set_data ("Coordinates", RoadMapLongitudeLabel, argv[0]);
+   roadmap_dialog_set_data ("Coordinates", RoadMapLatitudeLabel, argv[1]);
 }
 
 
@@ -210,7 +241,7 @@ static void roadmap_coord_ok (const char *name, void *data) {
 
 
    argv[0] = (const char*) roadmap_dialog_get_data
-                              ("Coordinates", "Longitude (decimal degrees):");
+                              ("Coordinates", RoadMapLongitudeLabel);
    position.longitude = roadmap_coord_to_binary (argv[0], 1);
    if (position.longitude > 180000000 || position.longitude < -180000000) {
       roadmap_messagebox("Warning", "Invalid longitude value");
@@ -218,7 +249,7 @@ static void roadmap_coord_ok (const char *name, void *data) {
    }
 
    argv[1] = (const char*) roadmap_dialog_get_data
-                              ("Coordinates", "Latitude (decimal degrees):");
+                              ("Coordinates", RoadMapLatitudeLabel);
    position.latitude = roadmap_coord_to_binary (argv[1], 0);
    if (position.latitude > 90000000 || position.latitude < -90000000) {
       roadmap_messagebox("Warning", "Invalid latitude value");
@@ -245,8 +276,8 @@ void roadmap_coord_dialog (void) {
 
    if (roadmap_dialog_activate ("Position", NULL)) {
 
-      roadmap_dialog_new_entry ("Coordinates", "Longitude (decimal degrees):");
-      roadmap_dialog_new_entry ("Coordinates", "Latitude (decimal degrees):");
+      roadmap_dialog_new_entry ("Coordinates", RoadMapLongitudeLabel);
+      roadmap_dialog_new_entry ("Coordinates", RoadMapLatitudeLabel);
 
       roadmap_dialog_add_button ("Back", roadmap_coord_before);
       roadmap_dialog_add_button ("Next", roadmap_coord_after);
