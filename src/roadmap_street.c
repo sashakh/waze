@@ -506,7 +506,7 @@ static int roadmap_street_block_by_county_subdivision
                if (++count >= size) {
                   return count;
                }
-               break;
+               if (city > 0) break;
             }
 
             range_index += by_city->count;
