@@ -336,13 +336,13 @@ void roadmap_gps_open (void) {
    if (RoadMapGpsNextPgrme == NULL) {
 
       RoadMapGpsNextPgrme =
-         roadmap_nmea_subscribe ("PG", "RME", roadmap_gps_pgrme);
+         roadmap_nmea_subscribe ("GRM", "E", roadmap_gps_pgrme);
    }
 
    if (RoadMapGpsNextPgrmm == NULL) {
 
       RoadMapGpsNextPgrmm =
-         roadmap_nmea_subscribe ("PG", "RMM", roadmap_gps_pgrmm);
+         roadmap_nmea_subscribe ("GRM", "M", roadmap_gps_pgrmm);
    }
 }
 

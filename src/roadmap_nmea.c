@@ -392,6 +392,26 @@ static int roadmap_nmea_gsv (int argc, char *argv[]) {
 }
 
 
+static int roadmap_nmea_rte (int argc, char *argv[]) {
+
+   /* There is nothing we need from there (waypoints). */
+   return 0;
+}
+
+
+static int roadmap_nmea_rmb (int argc, char *argv[]) {
+
+   /* There is nothing we need from there (destination waypoint). */
+   return 0;
+}
+
+
+static int roadmap_nmea_bod (int argc, char *argv[]) {
+
+   /* There is nothing we need from there (waypoint to waypoint). */
+   return 0;
+}
+
 static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
 
     if (argc <= 1) {
@@ -430,6 +450,13 @@ static int roadmap_nmea_pgrme (int argc, char *argv[]) {
 }
 
 
+static int roadmap_nmea_pgrmz (int argc, char *argv[]) {
+
+   /* Altitude, 'f' for feet, 2 (altimeter) or 3 (GPS). */
+   return 0; /* TBD */
+}
+
+
 /* Empty implementations: save from testing NULL. */
 
 static int roadmap_nmea_null_decoder (int argc, char *argv[]) {
@@ -445,15 +472,9 @@ static void roadmap_nmea_null_listener (void *context,
 #define ROADMAP_NMEA_PHRASE(t,s,d) \
     {t,s,roadmap_nmea_null_decoder,d,roadmap_nmea_null_filter,roadmap_nmea_null_listener}
 
-static char *RoadMapNmeatalker[] = {
-   "GP", /* GPS receiver. */
-   "II", /* Integrated instrumentation. */
-   NULL
-};
-
 static struct {
 
-   char               *talker; /* NULL --> any. */
+   char               *vendor; /* NULL --> NMEA standard sentence. */
    char               *sentence;
    RoadMapNmeaDecoder  active_decoder;
    RoadMapNmeaDecoder  decoder;
@@ -467,16 +488,20 @@ static struct {
    ROADMAP_NMEA_PHRASE(NULL, "GSA", roadmap_nmea_gsa),
    ROADMAP_NMEA_PHRASE(NULL, "GSV", roadmap_nmea_gsv),
    ROADMAP_NMEA_PHRASE(NULL, "GLL", roadmap_nmea_gll),
+   ROADMAP_NMEA_PHRASE(NULL, "RTE", roadmap_nmea_rte),
+   ROADMAP_NMEA_PHRASE(NULL, "RMB", roadmap_nmea_rmb),
+   ROADMAP_NMEA_PHRASE(NULL, "BOD", roadmap_nmea_bod),
 
    /* Garmin extensions: */
-   ROADMAP_NMEA_PHRASE("PG", "RME", roadmap_nmea_pgrme),
-   ROADMAP_NMEA_PHRASE("PG", "RMM", roadmap_nmea_pgrmm),
+   ROADMAP_NMEA_PHRASE("GRM", "E", roadmap_nmea_pgrme),
+   ROADMAP_NMEA_PHRASE("GRM", "M", roadmap_nmea_pgrmm),
+   ROADMAP_NMEA_PHRASE("GRM", "Z", roadmap_nmea_pgrmz),
 
    { NULL, "", NULL, NULL, NULL, NULL}
 };
 
 
-RoadMapNmeaFilter roadmap_nmea_add_filter (const char *talker,
+RoadMapNmeaFilter roadmap_nmea_add_filter (const char *vendor,
                                            const char *sentence,
                                            RoadMapNmeaFilter filter) {
 
@@ -489,12 +514,12 @@ RoadMapNmeaFilter roadmap_nmea_add_filter (const char *talker,
 
        if (strcmp (sentence, RoadMapNmeaPhrase[i].sentence) == 0) {
 
-          if ((talker == NULL) && (RoadMapNmeaPhrase[i].talker == NULL)) {
+          if ((vendor == NULL) && (RoadMapNmeaPhrase[i].vendor == NULL)) {
              found = 1;
           }
-          else if ((talker != NULL) &&
-                   (RoadMapNmeaPhrase[i].talker != NULL) &&
-                   (strcmp (talker, RoadMapNmeaPhrase[i].talker) == 0)) {
+          else if ((vendor != NULL) &&
+                   (RoadMapNmeaPhrase[i].vendor != NULL) &&
+                   (strcmp (vendor, RoadMapNmeaPhrase[i].vendor) == 0)) {
              found = 1;
           } else {
              found = 0;
@@ -509,19 +534,19 @@ RoadMapNmeaFilter roadmap_nmea_add_filter (const char *talker,
        }
    }
 
-   if (talker == NULL) {
-      roadmap_log (ROADMAP_FATAL, "unsupported generic NMEA sentence '%s'",
+   if (vendor == NULL) {
+      roadmap_log (ROADMAP_FATAL, "unsupported standard NMEA sentence '%s'",
                    sentence);
    } else {
       roadmap_log (ROADMAP_FATAL,
-                   "unsupported NMEA sentence '%s' for talker '%s'",
-                   sentence);
+                   "unsupported NMEA sentence '%s' from vendor '%s'",
+                   sentence, vendor);
    }
    return roadmap_nmea_null_filter;
 }
 
 
-RoadMapNmeaListener roadmap_nmea_subscribe (const char *talker,
+RoadMapNmeaListener roadmap_nmea_subscribe (const char *vendor,
                                             const char *sentence,
                                             RoadMapNmeaListener listener) {
 
@@ -534,12 +559,12 @@ RoadMapNmeaListener roadmap_nmea_subscribe (const char *talker,
 
        if (strcmp (sentence, RoadMapNmeaPhrase[i].sentence) == 0) {
 
-          if ((talker == NULL) && (RoadMapNmeaPhrase[i].talker == NULL)) {
+          if ((vendor == NULL) && (RoadMapNmeaPhrase[i].vendor == NULL)) {
              found = 1;
           }
-          else if ((talker != NULL) &&
-                   (RoadMapNmeaPhrase[i].talker != NULL) &&
-                   (strcmp (talker, RoadMapNmeaPhrase[i].talker) == 0)) {
+          else if ((vendor != NULL) &&
+                   (RoadMapNmeaPhrase[i].vendor != NULL) &&
+                   (strcmp (vendor, RoadMapNmeaPhrase[i].vendor) == 0)) {
              found = 1;
           } else {
              found = 0;
@@ -558,17 +583,30 @@ RoadMapNmeaListener roadmap_nmea_subscribe (const char *talker,
        }
    }
 
-   if (talker == NULL) {
-      roadmap_log (ROADMAP_FATAL, "unsupported generic NMEA sentence '%s'",
+   if (vendor == NULL) {
+      roadmap_log (ROADMAP_FATAL, "unsupported standard NMEA sentence '%s'",
                    sentence);
    } else {
       roadmap_log (ROADMAP_FATAL,
-                   "unsupported NMEA sentence '%s' for talker '%s'",
-                   sentence);
+                   "unsupported NMEA sentence '%s' for vendor '%s'",
+                   sentence, vendor);
    }
    return roadmap_nmea_null_listener;
 }
 
+
+static int roadmap_nmea_call (void *context,
+                              int index, int count, char *field[]) {
+
+   if ((*RoadMapNmeaPhrase[index].active_decoder) (count, field)) {
+
+      (*RoadMapNmeaPhrase[index].filter)   (&RoadMapNmeaReceived);
+      (*RoadMapNmeaPhrase[index].listener) (context, &RoadMapNmeaReceived);
+
+      return 1; /* GPS information was successfully made available. */
+   }
+   return 0; /* Could not decode it. */
+}
 
 int roadmap_nmea_decode (void *context, char *sentence) {
 
@@ -620,24 +658,38 @@ int roadmap_nmea_decode (void *context, char *sentence) {
    /* Now that we have separated each argument of the sentence, retrieve
     * the right decoder & listener functions and call them.
     */
-   for (i = 0; RoadMapNmeaPhrase[i].decoder != NULL; ++i) {
+   if (*(field[0]) == 'P') {
 
-      if (strcmp (RoadMapNmeaPhrase[i].sentence, field[0]+2) == 0) {
+      /* This is a proprietary sentence. */
 
-         if ((RoadMapNmeaPhrase[i].talker == NULL) ||
-             (strncmp(RoadMapNmeaPhrase[i].talker, field[0], 2) == 0)) {
+      for (i = 0; RoadMapNmeaPhrase[i].decoder != NULL; ++i) {
 
-            if ((*RoadMapNmeaPhrase[i].active_decoder) (count, field)) {
+         /* Skip standard sentences. */
+         if (RoadMapNmeaPhrase[i].vendor == NULL) continue;
 
-               (*RoadMapNmeaPhrase[i].filter)   (&RoadMapNmeaReceived);
-               (*RoadMapNmeaPhrase[i].listener) (context, &RoadMapNmeaReceived);
+         if ((strncmp(RoadMapNmeaPhrase[i].vendor, field[0]+1, 3) == 0) &&
+             (strcmp(RoadMapNmeaPhrase[i].sentence, field[0]+4) == 0)) {
 
-               return 1; /* GPS information was successfully made available. */
-            }
+            return roadmap_nmea_call (context, i, count, field);
          }
-         break;
+      }
+   } else {
+
+      /* This is a standard sentence. */
+
+      for (i = 0; RoadMapNmeaPhrase[i].decoder != NULL; ++i) {
+
+         /* Skip proprietary sentences. */
+         if (RoadMapNmeaPhrase[i].vendor != NULL) continue;
+
+         if (strcmp (RoadMapNmeaPhrase[i].sentence, field[0]+2) == 0) {
+
+            return roadmap_nmea_call (context, i, count, field);
+         }
       }
    }
+
+   roadmap_log (ROADMAP_DEBUG, "unknown nmea sentence %s\n", field[0]);
 
    return 0; /* No GPS information was generated or used. */
 }

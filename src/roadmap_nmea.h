@@ -108,12 +108,12 @@ typedef void (*RoadMapNmeaListener) (void *context,
 
 
 RoadMapNmeaFilter
-    roadmap_nmea_add_filter (const char *talker, /* NULL means any talker. */
+    roadmap_nmea_add_filter (const char *vendor, /* NULL means standard. */
                              const char *sentence,
                              RoadMapNmeaFilter filter);
 
 RoadMapNmeaListener
-    roadmap_nmea_subscribe (const char *talker, /* NULL means any talker. */
+    roadmap_nmea_subscribe (const char *vendor, /* NULL means standard. */
                             const char *sentence,
                             RoadMapNmeaListener listener);
 
