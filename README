@@ -1055,6 +1055,19 @@ CONFIGURATION:
          Format: color
          Default: LightYellow
 
+     Map.Signs:
+
+         Description: enable/disable the map sprites and street signs.
+         Format: boolean
+         Default: yes
+         Comment: use only in special cases (very small screens)
+
+     Map.Refresh:
+
+         Description: forces a screen refresh every time.
+         Format: enumeration (normal / forced)
+         Default: normal
+
      GPS.Background:
 
          Description: the background color for the RoadGps screen.
@@ -1422,6 +1435,7 @@ Display.Duration: 10
 General.Default Zoom: 20
 General.Keyboard: no
 General.Toolbar: yes
+General.Icons: yes
 General.Unit: imperial
 Geometry.Main: 800x600
 Geometry.Preferences: 800x300
@@ -1434,6 +1448,8 @@ History.Depth: 100
 Map.Path: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
 Map.Cache: 8
 Map.Background: LightYellow
+Map.Refresh: normal
+Map.Signs: yes
 Polygons.Declutter: 1300
 Selected Street.Background: yellow
 Selected Street.Foreground: black
