@@ -66,6 +66,7 @@ typedef struct {
     double unit_per_latitude;
     double unit_per_longitude;
     double speed_per_knot;
+    double cm_to_unit;
     int    to_trip_unit;
     
     char  *length;
@@ -80,6 +81,7 @@ static RoadMapUnits RoadMapMetricSystem = {
     0.11112, /* Meters per latitude. */
     0.0,     /* Meters per longitude (dynamic). */
     1.852,   /* Kmh per knot. */
+    0.01,    /* centimeters to meters. */
     1000,    /* meters per kilometer. */
     "m",
     "Km",
@@ -91,6 +93,7 @@ static RoadMapUnits RoadMapImperialSystem = {
     0.36464, /* Feet per latitude. */
     0.0,     /* Feet per longitude (dynamic). */
     1.151,   /* Mph per knot. */
+    0.03281, /* centimeters to feet. */
     5280,    /* Feet per mile. */
     "ft",
     "Mi",
@@ -808,6 +811,25 @@ int  roadmap_math_get_distance_from_segment
 int roadmap_math_to_speed_unit (int knots) {
     
     return (int) (knots * RoadMapContext.units->speed_per_knot);
+}
+
+
+int roadmap_math_to_current_unit (int value, const char *unit) {
+
+    if (strcasecmp (unit, "cm") == 0) {
+
+        static int PreviousValue = 0;
+        static int PreviousResult = 0;
+
+        if (value != PreviousValue) {
+            PreviousResult = (int) (RoadMapContext.units->cm_to_unit * value);
+            PreviousValue = value;
+        }
+        return PreviousResult;
+    }
+
+    roadmap_log (ROADMAP_ERROR, "unsupported unit '%s'", unit);
+    return value;
 }
 
 

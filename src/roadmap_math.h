@@ -79,6 +79,8 @@ int roadmap_math_to_trip_distance (int distance);
 
 int roadmap_math_to_speed_unit (int knots);
 
+int  roadmap_math_to_current_unit (int value, const char *unit);
+
 int  roadmap_math_get_distance_from_segment
         (const RoadMapPosition *position,
          const RoadMapPosition *position1, const RoadMapPosition *position2);
