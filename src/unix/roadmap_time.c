@@ -34,16 +34,14 @@
 #include "roadmap_time.h"
 
 
-char *roadmap_time_get_hours_minutes (void) {
+char *roadmap_time_get_hours_minutes (time_t gmt) {
     
     static char image[16];
     
-    time_t now;
     struct tm *tm;
     
-    now = time(NULL);
-    tm = localtime (&now);
+    tm = localtime (&gmt);
     snprintf (image, sizeof(image), "%2d:%02d", tm->tm_hour, tm->tm_min);
-    
+
     return image;
 }

@@ -24,6 +24,8 @@
 #ifndef INCLUDE__ROADMAP_TIME__H
 #define INCLUDE__ROADMAP_TIME__H
 
-char *roadmap_time_get_hours_minutes (void);
+#include <time.h>
+
+char *roadmap_time_get_hours_minutes (time_t gmt);
 
 #endif // INCLUDE__ROADMAP_DISPLAY__H

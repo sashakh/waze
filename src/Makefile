@@ -40,7 +40,8 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_history.c \
           roadmap_nmea.c \
           roadmap_gps.c \
-          roadmap_adjust.c
+          roadmap_adjust.c \
+          roadmap_sunrise.c
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
@@ -168,6 +169,9 @@ cleanall:
 	cd qt ; make clean
 
 rebuild: cleanall everything
+
+sunrise: roadmap_sunrise.c
+	$(CC) -g -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
 
 
 # --- The real targets --------------------------------------------

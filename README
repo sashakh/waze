@@ -1043,14 +1043,24 @@ CONFIGURATION
    user using format strings in the preferences. The format strings contain
    static and dynamic parts. The dynamic parts (or "macros") are specified
    using the character '%' followed by one character that denotes a predefined
-   RoadMap variable:
+   RoadMap variable.
 
 *-----+-----------------------------------------------------------------+
 |  A: | estimated time of arrival (not yet implemented).
 *-----+-----------------------------------------------------------------+
 |  B: | Route bearing (not yet implemented).
 *-----+-----------------------------------------------------------------+
+|  C: | the name of the city for the selected or current street.
+*-----+-----------------------------------------------------------------+
 |  D: | Distance to the destination time (set only when a trip is active).
+*-----+-----------------------------------------------------------------+
+|  E: | Next sunset time (evening), undefined in night time.
+*-----+-----------------------------------------------------------------+
+|  F: | the full name (number, name, city) of the selected or current street.
+*-----+-----------------------------------------------------------------+
+|  M: | Next sunrise time (morning), undefined in daylight time.
+*-----+-----------------------------------------------------------------+
+|  N: | the name of the selected or current street.
 *-----+-----------------------------------------------------------------+
 |  S: | Speed (set only when a trip is active).
 *-----+-----------------------------------------------------------------+
@@ -1060,13 +1070,9 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  #: | the street number range to the selected or current street block.
 *-----+-----------------------------------------------------------------+
-|  N: | the name of the selected or current street.
-*-----+-----------------------------------------------------------------+
-|  C: | the name of the city for the selected or current street.
-*-----+-----------------------------------------------------------------+
-|  F: | the full name (number, name, city) of the selected or current street.
-*-----+-----------------------------------------------------------------+
    
+   Note that the time is always shown using the military format: HH:MM.
+
    Example: "%D (%W)" shows the distance to the destination point, followed
    by the distance to the next waypoint (in parenthesis).
    
@@ -1081,6 +1087,9 @@ CONFIGURATION
    distance to the destination point if this distance is defined. If none
    of the two distance have been defined (for example when no trip is
    active), then no display is shown and/or no sound is produced.
+
+   Another typical example is "sunset: %E|sunrise: %M", which shows the
+   next sunset (in daylight time) or sunrise (in night time).
 
    It is possible to "link" together parts of a string using simple or
    double quotes. This is used when the string specifies an external command

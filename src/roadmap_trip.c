@@ -47,6 +47,7 @@
 #include "roadmap_preferences.h"
 #include "roadmap_display.h"
 #include "roadmap_adjust.h"
+#include "roadmap_sunrise.h"
 
 #include "roadmap_trip.h"
 
@@ -833,8 +834,11 @@ void roadmap_trip_format_messages (void) {
         RoadMapTripDestination != NULL &&
         RoadMapTripDestination->has_value) {
     
-        roadmap_message_set ('T', roadmap_time_get_hours_minutes());
-        
+        time_t now = time(NULL);
+        time_t sun;
+
+        roadmap_message_set ('T', roadmap_time_get_hours_minutes(now));
+
         distance_to_destination =
             roadmap_math_distance (&gps->map, &RoadMapTripDestination->map);
     
@@ -888,7 +892,22 @@ void roadmap_trip_format_messages (void) {
         roadmap_message_set ('S', "%3d %s",
                              roadmap_math_to_speed_unit(gps->gps.speed),
                              roadmap_math_speed_unit());
-        
+
+        sun = roadmap_sunset (&gps->gps);
+        if (sun > now) {
+
+           roadmap_message_unset ('M');
+
+           roadmap_message_set ('E', roadmap_time_get_hours_minutes(sun));
+
+        } else {
+
+           roadmap_message_unset ('E');
+
+           sun = roadmap_sunrise (&gps->gps);
+           roadmap_message_set ('M', roadmap_time_get_hours_minutes(sun));
+        }
+
     } else {
 
         RoadMapTripNextWaypoint = NULL;
@@ -898,6 +917,9 @@ void roadmap_trip_format_messages (void) {
         roadmap_message_unset ('S');
         roadmap_message_unset ('T');
         roadmap_message_unset ('W');
+
+        roadmap_message_unset ('M');
+        roadmap_message_unset ('E');
     }
 }
 
