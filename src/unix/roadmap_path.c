@@ -355,10 +355,10 @@ const char *roadmap_path_search_icon (const char *name) {
    sprintf (result, "%s/pixmaps/rm_%s.png", roadmap_path_home(), name);
    if (roadmap_file_exists(NULL, result)) return result;
 
-   sprintf (result, "/usr/share/pixmaps/rm_%s.png", name);
+   sprintf (result, "/usr/local/share/pixmaps/rm_%s.png", name);
    if (roadmap_file_exists(NULL, result)) return result;
 
-   sprintf (result, "/usr/local/share/pixmaps/rm_%s.png", name);
+   sprintf (result, "/usr/share/pixmaps/rm_%s.png", name);
    if (roadmap_file_exists(NULL, result)) return result;
 
    return NULL; /* Not found. */
