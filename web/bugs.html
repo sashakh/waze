@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>RoadMap: Bugs</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252"><LINK 
+href="/sitestandard.css" type=text/css rel=stylesheet>
+</HEAD>
+<BODY class=homeview>
+<CENTER>
+<H1>RoadMap: Bugs</H1><BR></CENTER>
+<HR>
+<a class="normal" href="http://roadmap.saignon.net">Home</a>
+<a class="normal" href="http://roadmap.saignon.net/download.html">Download</a>
+<a class="normal" href="http://roadmap.saignon.net/screenshots.html">Screenshots</a>
+<a class="normal" href="http://roadmap.saignon.net/history.html">History</a>
+<a class="normal" href="http://roadmap.saignon.net/maps.html">Maps</a>
+<a class="normal" href="http://roadmap.saignon.net/bugs.html">Bugs</a>     
+<a class="normal" href="http://roadmap.saignon.net/list.html">Mailing List</a>
+<HR> <BR>
+<P>WARNING: the Roadmap tool is not yet capable of handling all US counties, due 
+to a handful of bugs. The list of counties not properly handled is as follow: 
+<P>
+<UL>
+  <LI>The generation of the following RoadMap map files generate errors for the 
+  following counties: 02110, 51095, 51830. This seems to be a problem with the 
+  Tiger/Line 2002 data (duplicated records, most likely an erroneous TLID). The 
+  problem has been worked around more or less for now. </LI></UL>
+<P>RoadMap known bugs: 
+<UL>
+  <LI>The buildus tool does not use the map path: it assumes all the map files 
+  are in the same directory. 
+  <LI>The Tiger files define polygons as delineated by a list of lines. Any of 
+  these lines might be defined by a serie of shape points. RoadMap uses the 
+  shape points when drawing the lines, but not when filling the polygons. 
+  <LI>The "address by ZIP" method does not work anymore since the automatic 
+  selection of the map was implemented, because the file usdir.rdm does not have 
+  yet any ZIP code location information (TBD). This feature has been hidden from 
+  the user interface for now. 
+  <LI>Some street numbers include letters, which is not well supported by 
+  RoadMap: in such a case, roadmap generates a street number which is hoped to 
+  be unique enough by converting the letter into a "number", with a few twist to 
+  handle some "geoposition" address formats. This is a design problem that is 
+  not going to be solved any time soon. Current kludge is deemed good enough for 
+  the time being, until someone give a practical case where this does not work. 
+  <LI>A few street address conflicts appears when building maps. Some seems to 
+  be a TIGER map database problem. Others might be caused by the address range 
+  format issue (see below). A few still need to be investigated. NOTE: 3 of 
+  these addresses conflicts have been confirmed to be TIGER database errors by 
+  the census bureau. 
+  <LI>Some urban areas are missing. For example Woodland Hills (in Los Angeles 
+  county). This may be a TIGER file problem: the string "WOODLAND HILLS" never 
+  appears in the LA county files. </LI></UL>
+</BODY></HTML>
+

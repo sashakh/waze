@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>RoadMap: Changelog</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252"><LINK 
+href="/sitestandard.css" type=text/css rel=stylesheet>
+</HEAD>
+<BODY class=homeview>
+<CENTER>
+<H1>RoadMap: History</H1><BR></CENTER>
+<HR>
+<a class="normal" href="http://roadmap.saignon.net">Home</a>
+<a class="normal" href="http://roadmap.saignon.net/download.html">Download</a>
+<a class="normal" href="http://roadmap.saignon.net/screenshots.html">Screenshots</a>
+<a class="normal" href="http://roadmap.saignon.net/history.html">History</a>
+<a class="normal" href="http://roadmap.saignon.net/maps.html">Maps</a>
+<a class="normal" href="http://roadmap.saignon.net/bugs.html">Bugs</a>     
+<a class="normal" href="http://roadmap.saignon.net/list.html">Mailing List</a>
+<HR> <BR>
+<P>Roadmap v0.14 (March 4, 2003): 
+<UL>
+  <LI>New trip support: save trip, load trip, add & delete waypoints, start
+      trip (shows additional information), etc.. This comes with a new menu
+      organization.
+  <LI>Support for coming back from a trip: targets the departure point.
+  <LI>Fix toolbar enable/disable logic, which was broken in a previous change.
+  <LI>Cleanups: make more use of the C's "const" keyword.
+  <LI>Once again, better isolation of UNIX specific dependencies.
+  <LI>Improve makefiles, so that a source change is recompiled as expected.</LI>
+</UL>
+<P>Roadmap v0.13 (February 17, 2003): 
+<UL>
+  <LI>Added scrollbars to the street selection list window, to handle long 
+  lists. 
+  <LI>Add fuzzy city search and make the street number optional, both options 
+  are meant to allow broad searches. 
+  <LI>Add two options to define verbosity levels. Make the log INFO and DEBUG 
+  levels optional, so that they can be used. This adds the --verbose and --debug 
+  command line options to gtkroadmap. 
+  <LI>Add a configurable address history to the address dialog. This history can 
+  be purged from the RoadMap <STRONG>File</STRONG> menu. 
+  <LI>Fixed the missing rdmcompare. When will I stop forgetting new scripts each 
+  new release ? 
+  <LI>Cleaned up the Makefile and made libpopt dependency explicit (thanks to 
+  George MacDonald). </LI></UL>
+<P>Roadmap v0.12 (February 14, 2003): 
+<UL>
+  <LI>Fixed a floating point exception in buildmap due to a bad calculation of 
+  the grid required to cover a county (maps available for download are OK: this 
+  bug was found when building them). 
+  <LI>Added rdmcompare, a small tool to check that all counties have been 
+  translated into RoadMap map files. 
+  <LI>Fixed two bugs in the address retrieval logic, which caused spurious 
+  multiple matches (it matched the same block more than once..) 
+  <LI>In case of multiple matches, show the list of streets that match and help 
+  the user select one. 
+  <LI>As the county subdivisions and place areas collide, there are unintended 
+  consequences merging the two. For now, only use the place information if 
+  exists (if not, the county subdivision is used anyway). Longer term solution 
+  is to separate the two and search through one and the other separately (and 
+  join the result). 
+  <LI>Isolate the Unix dependencies better: the default directory path to be 
+  defined in one place only. This is still a work in progress. 
+  <LI>Handle the street prefix, suffix and type fields. These may be entered in 
+  the street name field. They are recognized automatically. </LI></UL>
+<P>Roadmap v0.11 (February 1st, 2003): 
+<UL>
+  <LI>Switched the default to the US Census Bureau's 2002 Tiger file format. 
+  <LI>Fixed a fatal error with 2002 city descriptions. 
+  <LI>Buildmap and buildus can now generate map files to an arbitrary directory 
+  (instead of the current directory). 
+  <LI>Renamed the scripts "makemap" and "downloadmap" in an attempt to avoid 
+  name conflicts with other software projects. 
+  <LI>Take the list of counties from the US Census Bureau's file app_a02.txt 
+  instead of AllSt.txt, because the later does not seem to be maintained (it 
+  does not match the 2002 list of counties anymore). 
+  <LI>Fixed problems with street numbers in Wisconsin (and some other states). 
+  All in all, the street number problem is still a sore point: these are not 
+  numerical, therefore street ranges are not really ranges anymore. The current 
+  code is a hack that attempt to extract a reasonable numerical number from the 
+  actual street "number". 
+  <LI>Fixed a bug with small counties that fit in a single "square": the map 
+  file was generated corrupted and RoadMap could not use it. </LI></UL>
+<P>Roadmap v0.10 (December 22nd, 2002): 
+<UL>
+  <LI>Fixed the Wyoming visibility problem. 
+  <LI>Fixed the missing unix subdirectory and map build scripts (oops..). 
+  <LI>Fixed the default zoom level logic. 
+  <LI>Optimization: draw points instead of lines when the object was reduced to 
+  a single display point (for example when zoomed out enough to show several 
+  states). 
+  <LI>Optimization: do not show polygons reduced to a single display point. 
+</LI></UL>
+<P>Please note that the content of the map files has slightly changed due to 
+these changes. The map files must be downloaded again, or regenerated, when 
+upgrading RoadMap to version 0.11. 
+<P>Roadmap v0.9 (December 15th, 2002): 
+<UL>
+  <LI>Fixed the trail declutter level setting. 
+  <LI>Fixed the state visibility problem. 
+  <LI>Fixed the island visibility problem (also known as the disapearing 
+  Catalina Island problem). 
+  <LI>The makefile now has a separate installation for the software (plus 
+  configuration files) and for the maps. This is because the maps are usually 
+  built later on, probably out of the RoadMap directories. 
+  <LI>Started to isolate UNIX API dependencies. 
+  <LI>The buildmap tool can now create maps one state at a time (option 
+  --state=XX). 
+  <LI>Created the makemap and downloadmap scripts to simplify the process of 
+  downloading and building maps. </LI></UL>
+<P>Roadmap v0.8 (December 1st, 2002): 
+<UL>
+  <LI>Show the Tiger files PLACE as a city: this happen to be more exact than 
+  the county subdivision. As this is a change to buildmap, this requires to 
+  rebuild the maps. 
+  <LI>Add the keyboard to all dialogs, i.e. to the Preferences dialog as well. 
+  <LI>Isolate the GUI toolkit code for the main window: the roadgps and roadmap 
+  programs now use an abstracted GUI API, for which a Gtk implementation is 
+  provided. 
+  <LI>Change the makefiles and the name of the RoadMap's ipk package to allow 
+  for other GUI toolkits support. </LI></UL>
+<P>Please note that the content of the map files has slightly changed due to 
+these changes. The map files must be regenerated when upgrading RoadMap to 
+version 0.8. 
+<P>Roadmap v0.7 (November 24th, 2002): 
+<UL>
+  <LI>Add cities which FIPS code was the same in 1990 and 2000. These cities was 
+  previously filtered out by mistake. 
+  <LI>Add the freeway ramps, which were also not included before. 
+  <LI>All symbols shown on the map (GPS position, destination, etc..) are now 
+  user-defined. A new configuration file, "sprites", defines the look of these 
+  symbols. 
+  <LI>The symbols have been redesigned, hopefully these are now more fancy. 
+  <LI>The GPS position symbol now indicates the direction of the movement. 
+  <LI>RoadMap shows a compass symbol that indicates the direction of the North 
+  pole. This is especially useful when the map was rotated. 
+  <LI>The configuration files have been reorganized, in part to avoid hardcoding 
+  the properties of the objects on the map (streets and others). 
+  <LI>The module roadmap_config.c has been reorganized to be more generic and 
+  flexible, and to handle the new configuration file organization. 
+  <LI>The canvas widget has been abstracted to make RoadMap more portable. This 
+  is only one step toward portability: the next steps are to abstract the main 
+  window, the dialogs, and then the OS API. 
+  <LI>The drawing commands have been buffered to improve performances and to 
+  minimize the overhead generated by the abstracted canvas layer. 
+  <LI>The trigonometry functions have been replaced with pre-computed tables. 
+  This makes it possible to use integers most of the time: only a handful of 
+  real values are still used. The rotation code has been reorganized to improve 
+  performances. 
+  <LI>As a result of the changes above, RoadMap is now faster than before (seems 
+  to be 30% faster on an iPAQ 35xx). </LI></UL>
+<P>Please note that the format of the map files has slightly changed due to 
+these changes. The map files must be regenerated when upgrading RoadMap to 
+version 0.7. 
+<P>Roadmap v0.6 (November 1st, 2002): 
+<UL>
+  <LI>This version has been tested on the road with a real GPS (a Garmin 38). 
+  <LI>Avoid redrawing the map twice when tracking the GPS position. 
+  <LI>Add an "install" target in the make file. 
+  <LI>Add a menu description file for Gnome and GPE. 
+  <LI>The street name now stays a minimum of 10 seconds on the screen (can be 
+  adjusted in the preferences dialog), even while tracking the current GPS 
+  position. The selected street block is now indicated by highlighting the two 
+  endpoints only (versus the entire line as before). 
+  <LI>Preliminary support for the 2002 release of the Tiger files. 
+  <LI>Use the popt library for the build tools' line arguments (buildmap, 
+  buildus, dumpmap). </LI></UL>
+<P>Roadmap v0.5.1 (October 23th, 2002): 
+<UL>
+  <LI>Provide the URL for AllSt.txt in the README file. </LI></UL>
+<P>Roadmap v0.5 (October 20th, 2002): 
+<UL>
+  <LI>Added support for map rotation. 
+  <LI>Defined four screen modes: show destination, fixed location, track GPS 
+  with map orientation, track GPS without map orientation. Each mode has its own 
+  independent orientation (the 3rd mode being dynamic). 
+  <LI>speedup the street search: focus on a limited area around the cursor. 
+  <LI>Added launcher for roadgps in roadmap's menus. 
+  <LI>A few minor bug fixes. </LI></UL>
+<P>Roadmap v0.4 (October 13th, 2002): 
+<UL>
+  <LI>Added a Gtk GPS console (roadgps) to help debug the GPS interface. 
+  <LI>Make roadmap really track the GPS position in realtime. 
+  <LI>Did I mention there is now a preference editor? (new in 0.3, actually). 
+  <LI>Significant cleanup of the Gtk dependencies, so a port to QT should be 
+  possible. 
+  <LI>A few more bug fixes. </LI></UL>
+<P>Roadmap v0.3 (September 29th, 2002): 
+<UL>
+  <LI>Added an interface with gpsd: RoadMap now shows the current GPS position 
+  when available. 
+  <LI>Change the default database path to include the current directory. 
+  <LI>A few more bug fixes. </LI></UL>
+<P>Roadmap v0.2 (September 2nd, 2002): 
+<UL>
+  <LI>Handle very large grids (more than 64k squares). 
+  <LI>Fixed the 32 bits street numbers bug. 
+  <LI>Create intermediate shape points when the existing ones are too far away 
+  for a 16 bit delta. 
+  <LI>Fix a crash when the current position is out of any known map. 
+  <LI>Fix a crash when the city name has a typo. 
+  <LI>Save the selected destination and current location in the roadmap session 
+  file, so we remember them on the next session. 
+  <LI>Changed the RoadMap defaults to make the demo map easy to use. </LI></UL>
+<P>Roadmap v0.1 (august, 2002): First release of RoadMap.
+</BODY></HTML>
+

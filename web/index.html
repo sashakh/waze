@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>RoadMap freeware: street maps on Linux</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252"><LINK 
+href="sitestandard.css" type=text/css rel=stylesheet>
+</HEAD>
+<BODY class=homeview>
+<CENTER>
+<H1>RoadMap freeware: street maps on Linux</H1><BR></CENTER>
+<HR>
+<a class="normal" href="http://roadmap.saignon.net">Home</a>
+<a class="normal" href="http://roadmap.saignon.net/download.html">Download</a>
+<a class="normal" href="http://roadmap.saignon.net/screenshots.html">Screenshots</a>
+<a class="normal" href="http://roadmap.saignon.net/history.html">History</a>
+<a class="normal" href="http://roadmap.saignon.net/maps.html">Maps</a>
+<a class="normal" href="http://roadmap.saignon.net/bugs.html">Bugs</a>
+<a class="normal" href="http://roadmap.saignon.net/list.html">Mailing List</a>
+<HR> <BR>
+<P>RoadMap is a program for Linux that displays street maps. The maps are 
+provided by the US Census Bureau, and thus only cover the US. 
+<P>RoadMap has been designed to be usable on both a desktop or laptop computer, 
+or on a PDA such as the iPAQ from HP (formely from COMPAQ). It uses the Gtk 1.2 
+graphic library for its user interface. A Qt interface is planned as well, so 
+that RoadMap could be used on the Sharp's Zaurus PDA. 
+<P>RoadMap is at an early stage of development. At this time there are no 
+routing features implemented yet. RoadMap can only display the map around a 
+specified street address or follow a GPS device (using gpsd). The plan for the 
+future is to implement some navigation features similar to those found in 
+commercial street navigation systems. 
+<P>RoadMap comes with its own GPS status screen, which provides an overview of 
+the satellites received and highlight those the GPS has a fix on. This status 
+screen allows for placing the GPS device in a position that optimizes satellite 
+reception, even if that means making the GPS device's screen not accessible. 
+<P>RoadMap uses a binary file format for representing the maps that is compact 
+enough to allow the storage of many maps on a Compact Flash or MultiMedia card. 
+For example, the map of Los Angeles county takes about 10 Mbytes of flash space. 
+RoadMap comes with a set of tools to convert the US Census bureau data (the 2000 
+and 2002 versions) into its own map format. 
+<P>RoadMap is distributed with the map of San Francisco as an example. Other 
+maps will be made available as soon as I can identify a public web site that is 
+willing to accept them (these maps take some significant disk space). 
+<P>Clicking on the map screen displays the name of the closest street, road or 
+freeway (if any). On the iPAQ the "calendar" button is used to zoom in, the 
+"telephone" button is used to zoom out, the arrow buttons are used to move the 
+map and the Compaq ("menu") button is used as "quit". The other features are 
+(IMHO) quite obvious. 
+<P>When entering a street name, the street prefix, suffix and type, if provided, 
+must be among the abbreviations listed by the US Census Bureau (N for north, E 
+for east, Blvd for boulevard, etc..). In almost all cases these conventions 
+follow the usual abbreviations, so there is no need to worry here. In addition, 
+any of these fields is optional: not providing them only makes the search less 
+selective. If several matches are found, RoadMap shows a list of all matching 
+streets and lets the user select the appropriate one. 
+<P>The exact format of the data expected by RoadMap as a complete street name is 
+as follow: 
+<P>
+<CENTER>[<I>prefix</I> ' '] <I>name</I> [[' ' <I>suffix</I>] ' ' 
+<I>type</I>]</CENTER>
+<P>It is also possible to omit the street number, or to search around a given 
+city (prefix the city name with character '?'). These options have the effect of 
+making the search broader. 
+<P>More information is available in the README file distributed with the sources 
+and binaries. 
+</BODY></HTML>
