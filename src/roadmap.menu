@@ -1,7 +1,7 @@
 ?package(roadmap):\
-needs=X11\
-section=Apps/Tools\
-title="RoadMap"\
-hints="Street navigation system"\
-command="/usr/local/bin/roadmap"\
-icon="/usr/share/pixmaps/gnome-globe.png"
+  needs="X11"\
+  section="Apps/Tools"\
+  title="RoadMap"\
+  hints="Street navigation system"\
+  command="/usr/local/bin/roadmap"\
+  icon="/usr/share/pixmaps/gnome-globe.png"
