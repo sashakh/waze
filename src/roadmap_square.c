@@ -133,7 +133,7 @@ roadmap_db_handler RoadMapSquareHandler = {
 
 
 
-static int roadmap_square_is_valid (square) {
+static int roadmap_square_is_valid (int square) {
 
    if (square < 0 || square >= RoadMapSquareActive->SquareGridCount) {
       roadmap_log (ROADMAP_ERROR, "invalid square index %d", square);

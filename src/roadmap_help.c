@@ -54,7 +54,7 @@ static char *RoadMapHelpManual = NULL;
 
 /* -- The help display functions. -------------------------------------- */
 
-static int roadmap_help_make_url (const char *path) {
+static void roadmap_help_make_url (const char *path) {
 
    int size;
 
@@ -84,10 +84,8 @@ static int roadmap_help_make_url (const char *path) {
 
 static int roadmap_help_prepare (void) {
 
-   int size;
    const char *path;
-   const char *options = roadmap_config_get(&RoadMapConfigBrowserOptions);
-   char *url;
+
 
    /* First look for the user directory. */
    path = roadmap_path_user();
