@@ -694,6 +694,10 @@ void roadmap_config_get_position
       char buffer[128];
 
 
+      if (strlen(center) >= sizeof(buffer)) {
+         roadmap_log (ROADMAP_FATAL,
+                      "position string '%s' is too long", center);
+      }
       strcpy (buffer, center);
       latitude_ascii = strchr (buffer, ',');
       if (latitude_ascii != NULL) {

@@ -256,14 +256,23 @@ void roadmap_history_add (char category, const char *argv[]) {
 
    char data[1024];
    int i;
+   int length;
    int argc = RoadMapHistoryCategories[(int)category];
 
    if (argc <= 0) {
       roadmap_log (ROADMAP_FATAL, "category '%c' was not declared", category);
    }
 
+   length = 1;
    data[0] = 0;
+
    for (i = 0; i < argc; ++i) {
+
+      length += (strlen(argv[i]) + 1);
+      if (length >= sizeof(data)) {
+         roadmap_log (ROADMAP_FATAL, "history entry is too long");
+      }
+
       strcat (data, ",");
       strcat (data, argv[i]);
    }

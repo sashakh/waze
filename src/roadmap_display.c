@@ -138,6 +138,13 @@ static RoadMapPen roadmap_display_new_pen
         RoadMapPen pen;
         char pen_name[256];
         
+        if (sizeof(pen_name) <
+              strlen(descriptor->category) + strlen(descriptor->name) + 2) {
+           roadmap_log(ROADMAP_FATAL,
+                       "not enough space for pen name %s.%s\n",
+                       descriptor->category,
+                       descriptor->name);
+        }
         strcpy (pen_name, descriptor->category);
         strcat (pen_name, ".");
         strcat (pen_name, descriptor->name);
