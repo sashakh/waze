@@ -33,9 +33,29 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
-#include "roadmap_locator.h"
 
 #include "roadmap_layer.h"
+
+
+/* The following table is a hardcoded default we use until the
+ * "category" tables are created.
+ */
+static char *RoadMapDefaultCategoryTable[] = {
+   "Freeways",
+   "Ramps",
+   "Highways",
+   "Streets",
+   "Trails",
+   "Parks",
+   "Hospitals",
+   "Airports",
+   "Stations",
+   "Malls",
+   "Shore",
+   "Rivers",
+   "Lakes",
+   "Sea"
+};
 
 
 /* CATEGORIES.
@@ -182,7 +202,8 @@ void roadmap_layer_initialize (void) {
     if (RoadMapCategory != NULL) return;
     
     
-    RoadMapCategoryCount = roadmap_locator_category_count();
+    RoadMapCategoryCount =
+       sizeof(RoadMapDefaultCategoryTable) / sizeof(char *);
 
     RoadMapCategory =
         calloc (RoadMapCategoryCount + 1, sizeof(*RoadMapCategory));
@@ -193,27 +214,26 @@ void roadmap_layer_initialize (void) {
 
         struct roadmap_canvas_category *category = RoadMapCategory + i;
 
-        const char *name = strdup(roadmap_locator_category_name(i));
+        const char *name = RoadMapDefaultCategoryTable[i-1];
         const char *class_name;
         const char *color;
 
         RoadMapClass *p;
 
 
-        roadmap_check_allocated(name);
-
         category->name = name;
         category->visible = 1;
         
         descriptor.category = name;
-        
         descriptor.name = "Class";
         descriptor.reference = NULL;
+
         roadmap_config_declare ("schema", &descriptor, "");
         class_name = roadmap_config_get (&descriptor);
 
         descriptor.name = "Color";
         descriptor.reference = NULL;
+
         roadmap_config_declare ("schema", &descriptor, "black");
         color = roadmap_config_get (&descriptor);
         
@@ -246,3 +266,4 @@ void roadmap_layer_initialize (void) {
         }
     }
 }
+

@@ -44,9 +44,6 @@ int  roadmap_locator_by_city     (const char *city, const char *state);
 int  roadmap_locator_activate    (int fips);
 int  roadmap_locator_active      (void);
 
-int   roadmap_locator_category_count (void);
-char *roadmap_locator_category_name (int index);
-
 void roadmap_locator_close (int fips);
 
 RoadMapString roadmap_locator_get_state (const char *state);

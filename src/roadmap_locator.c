@@ -69,7 +69,6 @@ static roadmap_db_model *RoadMapCountyModel;
 static RoadMapDictionary RoadMapUsCityDictionary = NULL;
 static RoadMapDictionary RoadMapUsCountyDictionary = NULL;
 static RoadMapDictionary RoadMapUsStateDictionary = NULL;
-static RoadMapDictionary RoadMapUsCategoryDictionary = NULL;
 
 
 static int roadmap_locator_no_download (int fips) {
@@ -80,26 +79,6 @@ static int roadmap_locator_no_download (int fips) {
 
 static RoadMapInstaller  RoadMapDownload = roadmap_locator_no_download;
 
-
-/* The following table is a hardcoded default when the
- * "category" dictionary is not found.
- */
-static char *RoadMapDefaultCategoryTable[] = {
-   "Freeways",
-   "Ramps",
-   "Highways",
-   "Streets",
-   "Trails",
-   "Parks",
-   "Hospitals",
-   "Airports",
-   "Stations",
-   "Malls",
-   "Shore",
-   "Rivers",
-   "Lakes",
-   "Sea"
-};
 
 static void roadmap_locator_configure (void) {
 
@@ -147,7 +126,6 @@ static void roadmap_locator_configure (void) {
       RoadMapUsCityDictionary   = roadmap_dictionary_open ("city");
       RoadMapUsCountyDictionary = roadmap_dictionary_open ("county");
       RoadMapUsStateDictionary  = roadmap_dictionary_open ("state");
-      RoadMapUsCategoryDictionary  = roadmap_dictionary_open ("category");
 
 
       RoadMapCountyCacheSize = roadmap_option_cache ();
@@ -361,25 +339,6 @@ int roadmap_locator_activate (int fips) {
 
 int roadmap_locator_active (void) {
     return RoadMapActiveCounty;
-}
-
-
-int roadmap_locator_category_count (void) {
-
-   roadmap_locator_configure ();
-
-   if (RoadMapUsCategoryDictionary == NULL) {
-      return sizeof(RoadMapDefaultCategoryTable) / sizeof(char *);
-   }
-   return roadmap_dictionary_count (RoadMapUsCategoryDictionary);
-}
-
-char *roadmap_locator_category_name (int index) {
-
-   if (RoadMapUsCategoryDictionary == NULL) {
-      return RoadMapDefaultCategoryTable[index-1];
-   }
-   return roadmap_dictionary_get (RoadMapUsCategoryDictionary, index);
 }
 
 
