@@ -35,6 +35,8 @@ const char *roadmap_file_path_next  (const char *current);
 const char *roadmap_file_path_last     (void);
 const char *roadmap_file_path_previous (const char *current);
 
+const char *roadmap_file_unique       (const char *base);
+
 const char *roadmap_file_user         (void);
 const char *roadmap_file_trips        (void);
 const char *roadmap_file_default_path (void);

@@ -239,28 +239,39 @@ const char *roadmap_file_path_previous (const char *current) {
 }
 
 
-void roadmap_file_unmap (RoadMapFileContext *file) {
-
-   RoadMapFileContext context = *file;
-
-   if (context->base != NULL) {
-      munmap (context->base, context->size);
-   }
-
-   if (context->fd >= 0) {
-      close (context->fd);
-   }
-   free(context);
-   *file = NULL;
-}
-
-
 char *roadmap_file_join (const char *path, const char *name) {
 
    if (path == NULL) {
       return strdup (name);
    }
    return roadmap_file_cat (path, name);
+}
+
+
+const char *roadmap_file_unique (const char *base) {
+    
+    static char *UniqueNameBuffer = NULL;
+    static int   UniqueNameBufferLength = 0;
+
+    int length;
+    
+    length = strlen(base + 16);
+    
+    if (length > UniqueNameBufferLength) {
+
+        if (UniqueNameBuffer != NULL) {
+            free(UniqueNameBuffer);
+        }
+        UniqueNameBuffer = malloc (length);
+        
+        roadmap_check_allocated(UniqueNameBuffer);
+        
+        UniqueNameBufferLength = length;
+    }
+    
+    sprintf (UniqueNameBuffer, "%s%d", base, getpid());
+    
+    return UniqueNameBuffer;
 }
 
 
@@ -345,6 +356,7 @@ int roadmap_file_map (char *name, int sequence, RoadMapFileContext *file) {
    return i + 1; /* Indicate the next directory in the path. */
 }
 
+
 void *roadmap_file_base (RoadMapFileContext file){
 
    if (file == NULL) {
@@ -352,6 +364,23 @@ void *roadmap_file_base (RoadMapFileContext file){
    }
    return file->base;
 }
+
+
+void roadmap_file_unmap (RoadMapFileContext *file) {
+
+   RoadMapFileContext context = *file;
+
+   if (context->base != NULL) {
+      munmap (context->base, context->size);
+   }
+
+   if (context->fd >= 0) {
+      close (context->fd);
+   }
+   free(context);
+   *file = NULL;
+}
+
 
 int   roadmap_file_size (RoadMapFileContext file){
 

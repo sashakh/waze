@@ -187,7 +187,18 @@ static RoadMapFactory RoadMapStartMenu[] = {
        "Mute all voice annoucements", roadmap_voice_mute},
    {"Enable voice",
        "Enable all voice annoucements", roadmap_voice_enable},
+   {"Disable navigation",
+       "Disable all GPS-based navigation functions",
+       roadmap_navigate_disable},
+   {"Enable navigation",
+       "Enable all GPS-based navigation functions",
+       roadmap_navigate_enable},
    {RoadMapFactorySeparator, NULL, NULL},
+   {"Save all log",
+       "Save all log messages to the postmortem file",
+       roadmap_log_save_all},
+   {"Purge log",
+       "Delete the current debug log file", roadmap_log_purge},
    {"Purge history",
        "Remove all but the 10 most recent addresses", roadmap_start_purge},
    {RoadMapFactorySeparator, NULL, NULL},
@@ -342,11 +353,11 @@ static void roadmap_gps_update
                 (RoadMapPosition *position, int speed, int direction) {
 
     roadmap_trip_set_mobile ("GPS", position, speed, direction);
-    roadmap_log_reset ();
+    roadmap_log_reset_stack ();
     roadmap_navigate_locate (position);
-    roadmap_log_reset ();
+    roadmap_log_reset_stack ();
     roadmap_screen_refresh();
-    roadmap_log_reset ();
+    roadmap_log_reset_stack ();
 }
 
 

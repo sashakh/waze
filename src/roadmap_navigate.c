@@ -50,6 +50,8 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyConfirm =
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
+static int RoadMapNavigateDisable = 0;
+
 /* Avoid asking these too often. */
 static int RoadMapAccuracyMouse;
 static int RoadMapAccuracyStreet;
@@ -134,6 +136,20 @@ static void roadmap_navigate_adjust_focus
     if (focus_position.latitude > focus->north) {
         focus->north = focus_position.latitude;
     }
+}
+
+
+void roadmap_navigate_disable (void) {
+    
+    RoadMapNavigateDisable = 1;
+    roadmap_display_hide ("Approach");
+    roadmap_display_hide ("Current Street");
+}
+
+
+void roadmap_navigate_enable  (void) {
+    
+    RoadMapNavigateDisable = 0;
 }
 
 
@@ -451,6 +467,9 @@ void roadmap_navigate_locate (const RoadMapPosition *position) {
 
     int fips;
     int distance = RoadMapAccuracyStreet + 1;
+
+
+    if (RoadMapNavigateDisable) return;
 
 
     if ((position->latitude == RoadMapPreviousPosition.latitude) &&

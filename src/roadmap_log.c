@@ -49,14 +49,15 @@ static int         RoadMapLogStackCursor = 0;
 static struct {
    int   level;
    int   show_stack;
+   int   save_to_file;
    char *prefix;
 } RoadMapMessageHead [] = {
-   {ROADMAP_MESSAGE_DEBUG,   0, "++"},
-   {ROADMAP_MESSAGE_INFO,    0, "--"},
-   {ROADMAP_MESSAGE_WARNING, 0, "=="},
-   {ROADMAP_MESSAGE_ERROR,   1, "**"},
-   {ROADMAP_MESSAGE_FATAL,   1, "##"},
-   {0,                       1, "??"}
+   {ROADMAP_MESSAGE_DEBUG,   0, 0, "++"},
+   {ROADMAP_MESSAGE_INFO,    0, 0, "--"},
+   {ROADMAP_MESSAGE_WARNING, 0, 0, "=="},
+   {ROADMAP_MESSAGE_ERROR,   1, 1, "**"},
+   {ROADMAP_MESSAGE_FATAL,   1, 1, "##"},
+   {0,                       1, 1, "??"}
 };
 
 
@@ -74,9 +75,19 @@ void roadmap_log_pop (void) {
    }
 }
 
-void roadmap_log_reset (void) {
+void roadmap_log_reset_stack (void) {
 
    RoadMapLogStackCursor = 0;
+}
+
+
+void roadmap_log_save_all (void) {
+    
+    int i;
+    
+    for (i = 0; RoadMapMessageHead[i].level > 0; ++i) {
+        RoadMapMessageHead[i].save_to_file = 1;
+    }
 }
 
 
@@ -92,10 +103,12 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
       if (RoadMapMessageHead[i].level == level) break;
    }
 
-   if (level == ROADMAP_MESSAGE_FATAL) {
+   if (RoadMapMessageHead[i].save_to_file) {
 
-      char *full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
-      file = fopen (full_name, "w");
+      char *full_name;
+
+      full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
+      file = fopen (full_name, "a");
 
       if (file == NULL) {
          file = stderr;
@@ -122,7 +135,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
       fprintf (file, "   Call stack:\n");
 
-      for (i = RoadMapLogStackCursor - 1; i >= 0; --i) {
+      for (i = 0; i < RoadMapLogStackCursor; ++i) {
           fprintf (file, "%*.*s %s\n", indent, indent, "", RoadMapLogStack[i]);
           indent += 3;
       }
@@ -135,6 +148,16 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
    if (level == ROADMAP_MESSAGE_FATAL) {
       exit(1);
    }
+}
+
+
+void roadmap_log_purge (void) {
+
+    char *full_name;
+
+    full_name = roadmap_file_join (roadmap_file_user(), "postmortem");
+    
+    remove(full_name);
 }
 
 
