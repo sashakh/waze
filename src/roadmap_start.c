@@ -333,10 +333,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_math_initialize   ();
    roadmap_trip_initialize   ();
    roadmap_screen_initialize ();
-   roadmap_start_window      ();
    roadmap_gps_initialize    (&roadmap_gps_update);
-   roadmap_config_initialize ();
    roadmap_history_initialize();
+   roadmap_config_initialize ();
 
    roadmap_file_set_path (roadmap_config_get ("General", "Database"));
 
@@ -344,6 +343,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_start_set_unit ();
    
+   roadmap_start_window      ();
    roadmap_sprite_initialize ();
    roadmap_screen_set_initial_position ();
 
