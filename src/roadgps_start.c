@@ -52,48 +52,59 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
 
 /* The RoadGps menu and toolbar items: ----------------------------------- */
 
-static RoadMapFactory RoadGpsStartMenu[] = {
+/* This table lists all the RoadMap actions that can be initiated
+ * fom the user interface (a sort of symbol table).
+ * Any other part of the user interface (menu, toolbar, etc..)
+ * will reference an action.
+ */
+static RoadMapAction RoadGpsStartActions[] = {
 
-   {"File", NULL, NULL, NULL},
-   {"Quit", NULL, "Quit RoadMap", roadmap_main_exit},
+   {"quit", "Quit", NULL, NULL, "Quit RoadGps", roadmap_main_exit},
 
-   {"Log", NULL, NULL, NULL},
-   {"Start", NULL, "Start recording GPS messages", roadgps_logger_start},
-   {"Stop",  NULL, "Stop recording GPS messages",  roadgps_logger_stop},
+   {"record", "Start Recording", "Start", NULL,
+      "Start recording GPS messages", roadgps_logger_start},
 
-   {NULL, NULL, NULL, NULL}   
+   {"stop", "Stop Recording", "Stop", NULL,
+      "Stop recording GPS messages", roadgps_logger_stop},
+
+   {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
-static RoadMapFactory RoadGpsStartToolbar[] = {
+static  const char *RoadGpsStartMenu[] = {
 
-   {"Quit", NULL, "Quit RoadMap", roadmap_main_exit},
-   {"Start", NULL, "Start recording GPS messages", roadgps_logger_start},
-   {"Stop",  NULL, "Stop recording GPS messages",  roadgps_logger_stop},
+   ROADMAP_MENU "File",
 
-   {NULL, NULL, NULL, NULL}   
+   "quit",
+
+   ROADMAP_MENU "Log",
+
+   "record",
+   "stop",
+
+   NULL
 };
 
-static RoadMapFactory RoadGpsStartKeyBinding[] = {
+static const char *RoadGpsStartToolbar[] = {
 
-   {"Button-Start", NULL, "Quit RoadGps", roadmap_main_exit},
+   "record",
+   "stop",
 
-   {"Q", NULL, "Quit RoadGps", roadmap_main_exit},
-   {"R", NULL, "Start recording GPS messages", roadgps_logger_start},
-   {"S", NULL, "Stop recording GPS messages",  roadgps_logger_stop},
+   RoadMapFactorySeparator,
 
-   {NULL, NULL, NULL, NULL}
+   "quit",
+
+   NULL
 };
 
+static const char *RoadGpsStartKeyBinding[] = {
 
-static void roadgps_start_usage (void) {
+   "Button-Start" ROADMAP_MAPPED_TO "quit",
+   "Q"            ROADMAP_MAPPED_TO "quit",
+   "R"            ROADMAP_MAPPED_TO "record",
+   "S"            ROADMAP_MAPPED_TO "stop",
 
-   RoadMapFactory *cursor;
-
-   printf ("RoadGps button & key bindings:\n\n");
-   for (cursor = RoadGpsStartKeyBinding; cursor->name != NULL; ++cursor) {
-      printf ("  %-20.20s\t%s.\n", cursor->name, cursor->tip);
-   }
-}
+   NULL
+};
 
 
 static void roadgps_start_add_gps (int fd) {
@@ -134,9 +145,9 @@ static void roadgps_start_window (void) {
 
    roadmap_main_new (RoadGpsMainTitle, 300, 420);
 
-   roadmap_factory (RoadGpsStartMenu,
-                    RoadGpsStartToolbar,
-                    RoadGpsStartKeyBinding);
+   roadmap_factory (RoadGpsStartActions,
+                    RoadGpsStartMenu,
+                    RoadGpsStartToolbar);
 
    roadmap_main_add_canvas ();
    roadmap_main_add_status ();
@@ -201,7 +212,9 @@ void roadmap_start (int argc, char **argv) {
    roadgps_screen_initialize ();
    roadmap_config_initialize ();
 
-   roadmap_option (argc, argv, roadgps_start_usage);
+   roadmap_factory_keymap (RoadGpsStartActions, RoadGpsStartKeyBinding);
+
+   roadmap_option (argc, argv, roadmap_factory_show_keymap);
 
    roadgps_logger_initialize ();
 
