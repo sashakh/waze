@@ -338,8 +338,8 @@ USING ROADMAP:
    GPS location must have gone far enough from the previous street, if any
    (see preference Accuracy.Street); The GPS location must be close to the
    street (same preference as before); the same street must be "confirmed"
-   by a second reading (The main reason for these conditions is to avoid
-   locking on streets at the intersections.)
+   by multiple readings (The main reason for these conditions is to avoid
+   locking on streets at the intersections--see Accuracy.Confirm)
 
    RoadMap can also display 3 messages at the following corners of the map:
    bottom left, bottom right and top right (the top left corner is already
@@ -708,6 +708,13 @@ CONFIGURATION:
          Format: RoadMap format string
          Default: ETA: %A|%T
 
+     Display.Duration:
+
+         Description: The time during which a selection or message is shown.
+         Format: number of seconds.
+         Default: 10
+         Comment: the selection is only removed when the map is redrawn.
+
      Map.Background:
 
          Description: the color used for the background of the maps.
@@ -756,19 +763,6 @@ CONFIGURATION:
          Format: color name (see file rgb.txt)
          Default: red
 
-     Location.Color:
-
-         Description: the color used for the selected location symbol
-         Format: color name (see file rgb.txt)
-         Default: red
-
-     Highlight.Duration:
-
-         Description: The time during which a selection or message is shown.
-         Format: number of seconds.
-         Default: 10
-         Comment: the selection is only removed when the map is redrawn.
-
      Selected Street.Background:
 
          Description: the color for the background of the selected street name.
@@ -787,6 +781,12 @@ CONFIGURATION:
          Format: RoadMap format string
          Default: %F
 
+     Console.Background:
+
+         Description: the color used for the background of the trip display
+         Format: color name (see file rgb.txt)
+         Default: yellow
+
      Console.Foreground:
 
          Description: the color used for the foreground of the trip display
@@ -797,13 +797,13 @@ CONFIGURATION:
 
          Description: the color for the background of the current street's name
          Format: color name (see file rgb.txt)
-         Default: yellow (I would recommend using DarkSeaGreen4)
+         Default: DarkSeaGreen4
 
      Current Street.Foreground:
 
          Description: the color for the foreground of the current street's name
          Format: color name (see file rgb.txt)
-         Default: black (I would recommend using white--see above)
+         Default: white
 
      Current Street.Text: %N, %C|%N
 
@@ -822,6 +822,15 @@ CONFIGURATION:
          Description: the command used to announce the selected street's name
          Format: RoadMap format string
          Default: flite -t '%N'
+
+     Accuracy.Confirm:
+
+         Description: number of matches before assigning a current street.
+         Format: integer
+         Default: 3
+         Comment: the purpose of using multiple matches is to avoid assigning
+                  a crossing street as the current street because it was the
+                  best match once.
 
      Accuracy.Mouse:
 
@@ -1031,6 +1040,7 @@ APPENDIX: Configuration examples
 
 ~/.roadmap/preferences ("factory" defaults):
 
+Accuracy.Confirm: 3
 Accuracy.GPS: 1000
 Accuracy.Mouse: 20
 Accuracy.Street: 200
@@ -1046,6 +1056,7 @@ Destination.Color: red
 Display.Bottom Left: %S
 Display.Bottom Right: %D (%W)|%D
 Display.Top Right: ETA: %A|%T
+Display.Duration: 10
 General.Database: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
 General.Default Zoom: 20
 General.Keyboard: no
@@ -1058,9 +1069,7 @@ GPS.Color: red
 GPS.Foreground: black
 GPS.Source: gpsd://localhost
 GPS.Timeout: 10
-Highlight.Duration: 10
 History.Depth: 100
-Location.Color: red
 Map.Background: LightYellow
 Polygons.Declutter: 1300
 Selected Street.Background: yellow
@@ -1075,7 +1084,7 @@ Voice.Selected Street: flite -t '%N'
 
 ~/.roadmap/session ("factory" defaults):
 
-Locations.Destination: -122394181,37794928
 Locations.Location: -122394181,37794928
 Locations.GPS: -122394181,37794928
+Locations.Trip: default
 
