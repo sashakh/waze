@@ -139,41 +139,36 @@ static void roadmap_address_selection (void  *data,
 }
 
 
+static void roadmap_address_set (RoadMapAddressDialog *context) {
+
+   char *argv[4];
+
+   roadmap_history_get ('A', context->history, argv);
+
+   roadmap_dialog_set_data ("Address", "Number:", argv[0]);
+   roadmap_dialog_set_data ("Address", "Street:", argv[1]);
+   roadmap_dialog_set_data ("Address", "City:",   argv[2]);
+   roadmap_dialog_set_data ("Address", "State:",  argv[3]);
+}
+
+
 static void roadmap_address_before (const char *name, void *data) {
 
-   char *number;
-   char *street;
-   char *city;
-   char *state;
    RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
 
-   context->history =
-      roadmap_history_get_before
-         (context->history, &number, &street, &city, &state);
+   context->history = roadmap_history_before ('A', context->history);
 
-   roadmap_dialog_set_data ("Address", "Number:", number);
-   roadmap_dialog_set_data ("Address", "Street:", street);
-   roadmap_dialog_set_data ("Address", "City:",   city);
-   roadmap_dialog_set_data ("Address", "State:",  state);
+   roadmap_address_set (context);
 }
 
 
 static void roadmap_address_after (const char *name, void *data) {
 
-   char *number;
-   char *street;
-   char *city;
-   char *state;
    RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
 
-   context->history =
-      roadmap_history_get_after
-         (context->history, &number, &street, &city, &state);
+   context->history = roadmap_history_after ('A', context->history);
 
-   roadmap_dialog_set_data ("Address", "Number:", number);
-   roadmap_dialog_set_data ("Address", "Street:", street);
-   roadmap_dialog_set_data ("Address", "City:",   city);
-   roadmap_dialog_set_data ("Address", "State:",  state);
+   roadmap_address_set (context);
 }
 
 
@@ -192,6 +187,8 @@ static void roadmap_address_ok (const char *name, void *data) {
    char *street_name;
    char *city;
    char *state;
+   const char *argv[4];
+
    RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
 
 
@@ -209,8 +206,6 @@ static void roadmap_address_ok (const char *name, void *data) {
    }
 
    city = (char *) roadmap_dialog_get_data ("Address", "City:");
-
-   roadmap_history_add (street_number_image, street_name, city, state);
 
    switch (roadmap_locator_by_city (city, state)) {
 
@@ -345,6 +340,13 @@ static void roadmap_address_ok (const char *name, void *data) {
       return;
    }
 
+   argv[0] = street_number_image;
+   argv[1] = street_name;
+   argv[2] = city;
+   argv[3] = state;
+
+   roadmap_history_add ('A', argv);
+
    roadmap_dialog_hide (name);
 
    if (j > 1) {
@@ -377,12 +379,6 @@ static void roadmap_address_cancel (const char *name, void *data) {
 
 static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 
-   char *street_number_image;
-   char *street_name;
-   char *city;
-   char *state;
-
-
    if (roadmap_dialog_activate (context->title, context)) {
 
       roadmap_dialog_new_entry ("Address", "Number:");
@@ -400,16 +396,13 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
       roadmap_dialog_add_button ("Cancel", roadmap_address_cancel);
 
       roadmap_dialog_complete (roadmap_preferences_use_keyboard());
+
+      roadmap_history_declare ('A', 4);
    }
 
-   context->history =
-      roadmap_history_get_latest
-         (&street_number_image, &street_name, &city, &state);
+   context->history = roadmap_history_latest ('A');
 
-   roadmap_dialog_set_data ("Address", "Number:", street_number_image);
-   roadmap_dialog_set_data ("Address", "Street:", street_name);
-   roadmap_dialog_set_data ("Address", "City:", city);
-   roadmap_dialog_set_data ("Address", "State:", state);
+   roadmap_address_set (context);
 }
 
 

@@ -32,6 +32,11 @@
 #include "roadmap_config.h"
 #include "roadmap_file.h"
 
+#include "roadmap_history.h"
+
+
+static int RoadMapHistoryCategories[128];
+
 
 static RoadMapConfigDescriptor RoadMapConfigHistoryDepth =
                         ROADMAP_CONFIG_ITEM("History", "Depth");
@@ -40,6 +45,8 @@ struct roadmap_history_log_entry {
 
    struct roadmap_history_log_entry *before;
    struct roadmap_history_log_entry *after;
+
+   char category;
    char data[1];
 };
 
@@ -76,13 +83,14 @@ static void roadmap_history_remove_entry
 }
 
 
-static void roadmap_history_add_entry (const char *data) {
+static void roadmap_history_add_entry (char category, const char *data) {
 
    struct roadmap_history_log_entry *entry = NULL;
 
    if (RoadMapLatest != NULL) {
        
-      if (strcasecmp (data, RoadMapLatest->data) == 0) {
+      if ((RoadMapLatest->category == category) &&
+          (strcasecmp (data, RoadMapLatest->data) == 0)) {
          return; /* Same entry as before. */
       }
       
@@ -90,7 +98,8 @@ static void roadmap_history_add_entry (const char *data) {
            entry != NULL;
            entry = entry->before) {
                
-        if (strcasecmp (data, entry->data) == 0) {
+        if ((entry->category == category) &&
+            (strcasecmp (data, entry->data) == 0)) {
             
             roadmap_history_remove_entry (entry);
             break;
@@ -103,6 +112,8 @@ static void roadmap_history_add_entry (const char *data) {
        entry = malloc (strlen(data) +
                        sizeof(struct roadmap_history_log_entry));
        roadmap_check_allocated(entry);
+
+       entry->category = category;
 
        strcpy (entry->data, data);
    }
@@ -133,57 +144,45 @@ static void roadmap_history_add_entry (const char *data) {
 
 static void roadmap_history_get_from_entry
                (struct roadmap_history_log_entry *entry,
-                char **number,
-                char **street,
-                char **city,
-                char **state) {
+                int argc,
+                char *argv[]) {
 
    static char data[1024];
+
+   int   i;
    char *p;
 
 
-   *number = "";
-   *street = "";
-   *city   = "";
-   *state  = "";
+   if (entry != NULL) {
 
-   if (entry == NULL) return;
+      strncpy (data, entry->data, sizeof(data));
 
+      argv[0] = data;
+      p = strchr (data, ',');
 
-   strncpy (data, entry->data, sizeof(data));
-
-   *number = data;
-   p = strchr (data, ',');
-
-   if (p != NULL) {
-
-      *p = 0;
-      *street = ++p;
-      p = strchr (p, ',');
-
-      if (p != NULL) {
+      for (i = 1; i < argc && p != NULL; ++i) {
 
          *p = 0;
-         *city = ++p;
+         argv[i] = ++p;
          p = strchr (p, ',');
-
-         if (p != NULL) {
-
-            *p = 0;
-            *state = ++p;
-         }
       }
+
+   } else {
+
+      i = 0;
    }
+
+   while (i < argc) argv[i++] = "";
 }
 
 
-static void roadmap_history_save_entry
+static void roadmap_history_save_entries
                (FILE *file, struct roadmap_history_log_entry *entry) {
 
    if (entry->before != NULL) {
-      roadmap_history_save_entry (file, entry->before);
+      roadmap_history_save_entries (file, entry->before);
    }
-   fprintf (file, "%s\n", entry->data);
+   fprintf (file, "%c,%s\n", entry->category, entry->data);
 }
 
 
@@ -197,6 +196,7 @@ void roadmap_history_load (void) {
 
    static int loaded = 0;
 
+   int changed = 0;
    FILE *file;
    char *p;
    char  line[1024];
@@ -216,70 +216,122 @@ void roadmap_history_load (void) {
 
          if (p == NULL) continue;
 
-         roadmap_history_add_entry (p);
+         if ((p[1] != ',') || (p[0] < 'A') || (p[0] > 'Z')) {
+
+             /* Compatibility wih existing history files. */
+             roadmap_history_add_entry ('A', p);
+             changed = 1;
+
+         } else {
+             roadmap_history_add_entry (p[0], p+2);
+         }
       }
 
       fclose (file);
    }
 
    loaded = 1;
+   // RoadMapHistoryChanged = changed;
+   RoadMapHistoryChanged = 0;
 }
 
 
-void roadmap_history_add
-        (char *number, char *street, char *city, char *state) {
+void roadmap_history_declare (char category, int argv) {
+
+   if (category < 'A' || category > 'Z') {
+      roadmap_log (ROADMAP_FATAL, "invalid category '%c'", category);
+   }
+   if (argv <= 0) {
+      roadmap_log (ROADMAP_FATAL, "invalid count for category '%c'", category);
+   }
+   if (RoadMapHistoryCategories[(int)category] > 0) {
+      roadmap_log (ROADMAP_FATAL, "category '%c' declared twice", category);
+   }
+   RoadMapHistoryCategories[(int)category] = argv;
+}
+
+
+void roadmap_history_add (char category, const char *argv[]) {
 
    char data[1024];
+   int i;
+   int argc = RoadMapHistoryCategories[(int)category];
 
-   snprintf (data, sizeof(data), "%s,%s,%s,%s", number, street, city, state);
+   if (argc <= 0) {
+      roadmap_log (ROADMAP_FATAL, "category '%c' was not declared", category);
+   }
 
-   roadmap_history_add_entry (data);
+   data[0] = 0;
+   for (i = 0; i < argc; ++i) {
+      strcat (data, ",");
+      strcat (data, argv[i]);
+   }
+   roadmap_history_add_entry (category, data+1);
 }
 
 
-void *roadmap_history_get_latest
-         (char **number, char **street, char **city, char **state) {
+void *roadmap_history_latest (char category) {
 
-   roadmap_history_get_from_entry
-             (RoadMapLatest, number, street, city, state);
-
-   return RoadMapLatest;
+   return roadmap_history_before (category, NULL);
 }
 
 
-void *roadmap_history_get_before
-         (void *reference,
-          char **number, char **street, char **city, char **state) {
+void *roadmap_history_before (char category, void *cursor) {
 
-   struct roadmap_history_log_entry *entry =
-             (struct roadmap_history_log_entry *)reference;
+   struct roadmap_history_log_entry fake;
+   struct roadmap_history_log_entry *entry;
 
-   if (entry != NULL) {
-      if (entry->before != NULL) {
-         entry = entry->before;
-      }
+   if (cursor == NULL) {
+      fake.before = RoadMapLatest;
+      entry = &fake;
    } else {
-     entry = RoadMapLatest;
+      entry = (struct roadmap_history_log_entry *)cursor;
    }
-   roadmap_history_get_from_entry (entry, number, street, city, state);
 
+   /* Move backward until we find an entry of the requested category.
+    * If we cannot find any, don't move.
+    */
+   while (entry != NULL) {
+
+      if (entry->before == NULL) {
+         return cursor; /* Nothing before this starting point. */
+      }
+      entry = entry->before;
+      if (entry->category == category) break;
+   }
+
+   if (entry == &fake) {
+      return NULL;
+   }
    return entry;
 }
 
 
-void *roadmap_history_get_after
-         (void *reference,
-          char **number, char **street, char **city, char **state) {
+void *roadmap_history_after  (char category, void *cursor) {
 
    struct roadmap_history_log_entry *entry =
-             (struct roadmap_history_log_entry *)reference;
+             (struct roadmap_history_log_entry *)cursor;
 
-   if (entry != NULL) {
+
+   /* We move forward until we found an entry of the same category.  */
+
+   while (entry != NULL) {
       entry = entry->after;
+      if (entry != NULL && entry->category == category) break;
    }
-   roadmap_history_get_from_entry (entry, number, street, city, state);
-
    return entry;
+}
+
+
+void roadmap_history_get (char category, void *cursor, char *argv[]) {
+
+   int argc = RoadMapHistoryCategories[(int)category];
+
+   if (argc <= 0) {
+      roadmap_log (ROADMAP_FATAL, "category '%c' was not declared", category);
+   }
+
+   roadmap_history_get_from_entry (cursor, argc, argv);
 }
 
 
@@ -308,9 +360,10 @@ void roadmap_history_save (void) {
 
    if (file != NULL) {
 
-      roadmap_history_save_entry (file, RoadMapLatest);
+      roadmap_history_save_entries (file, RoadMapLatest);
 
       fclose (file);
    }
+   RoadMapHistoryChanged = 0;
 }
 

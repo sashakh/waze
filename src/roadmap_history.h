@@ -27,22 +27,17 @@
 void roadmap_history_initialize (void);
 void roadmap_history_load (void);
 
-void roadmap_history_add
-        (char *number, char *street, char *city, char *state);
+void roadmap_history_declare (char category, int argv);
 
-void *roadmap_history_get_latest
-         (char **number, char **street, char **city, char **state);
+void roadmap_history_add (char category, const char *argv[]);
 
-void *roadmap_history_get_before
-         (void *reference,
-          char **number, char **street, char **city, char **state);
+void *roadmap_history_latest (char category);
+void *roadmap_history_before (char category, void *cursor);
+void *roadmap_history_after  (char category, void *cursor);
 
-void *roadmap_history_get_after
-         (void *reference,
-          char **number, char **street, char **city, char **state);
+void roadmap_history_get (char category, void *cursor, char *argv[]);
 
 void roadmap_history_purge (int count);
-
-void roadmap_history_save (void);
+void roadmap_history_save  (void);
 
 #endif // INCLUDE__ROADMAP_HISTORY__H

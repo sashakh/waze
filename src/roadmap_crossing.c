@@ -41,6 +41,7 @@
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 #include "roadmap_display.h"
+#include "roadmap_history.h"
 #include "roadmap_preferences.h"
 
 #include "roadmap_crossing.h"
@@ -58,6 +59,8 @@ typedef struct {
 } RoadMapCrossingSelection;
 
 static RoadMapStreetIntersection *RoadMapCrossingSelections = NULL;
+
+static void *RoadMapCrossingHistory;
 
 
 static void roadmap_crossing_done (RoadMapStreetIntersection *selected) {
@@ -100,6 +103,36 @@ static void roadmap_crossing_selection_ok (const char *name, void *data) {
 }
 
 
+static void roadmap_crossing_set (void) {
+
+   char *argv[3];
+
+   roadmap_history_get ('I', RoadMapCrossingHistory, argv);
+
+   roadmap_dialog_set_data ("Crossing", "Street 1:", argv[0]);
+   roadmap_dialog_set_data ("Crossing", "Street 2:", argv[1]);
+   roadmap_dialog_set_data ("Crossing", "State:", argv[2]);
+}
+
+
+static void roadmap_crossing_before (const char *name, void *data) {
+
+   RoadMapCrossingHistory =
+      roadmap_history_before ('I', RoadMapCrossingHistory);
+
+   roadmap_crossing_set ();
+}
+
+
+static void roadmap_crossing_after (const char *name, void *data) {
+
+   RoadMapCrossingHistory =
+      roadmap_history_after ('I', RoadMapCrossingHistory);
+
+   roadmap_crossing_set ();
+}
+
+
 static void roadmap_crossing_ok (const char *name, void *data) {
 
    int i;
@@ -111,6 +144,8 @@ static void roadmap_crossing_ok (const char *name, void *data) {
    char *street1_name;
    char *street2_name;
    char *state_name;
+
+   const char *argv[3];
 
    RoadMapString state;
 
@@ -139,6 +174,12 @@ static void roadmap_crossing_ok (const char *name, void *data) {
        roadmap_messagebox ("Warning", "Could not find any intersection");
        return;
    }
+
+   argv[0] = street1_name;
+   argv[1] = street2_name;
+   argv[2] = state_name;
+
+   roadmap_history_add ('I', argv);
 
    roadmap_dialog_hide (name);
 
@@ -205,10 +246,18 @@ void roadmap_crossing_dialog (void) {
       roadmap_dialog_new_entry ("Crossing", "Street 2:");
       roadmap_dialog_new_entry ("Crossing", "State:");
 
+      roadmap_dialog_add_button ("Back", roadmap_crossing_before);
+      roadmap_dialog_add_button ("Next", roadmap_crossing_after);
       roadmap_dialog_add_button ("OK", roadmap_crossing_ok);
       roadmap_dialog_add_button ("Cancel", roadmap_crossing_cancel);
 
       roadmap_dialog_complete (roadmap_preferences_use_keyboard());
+
+      roadmap_history_declare ('I', 3);
    }
+
+   RoadMapCrossingHistory = roadmap_history_latest ('I');
+
+   roadmap_crossing_set ();
 }
 
