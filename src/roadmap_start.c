@@ -73,9 +73,6 @@ static int RoadMapStartTripOrientation = 1;
 static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
                         ROADMAP_CONFIG_ITEM("General", "Unit");
 
-static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
-                        ROADMAP_CONFIG_ITEM("General", "Toolbar");
-
 static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
                         ROADMAP_CONFIG_ITEM("General", "Keyboard");
 
@@ -696,8 +693,6 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralUnit, "imperial", "metric", NULL);
-   roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralKeyboard, "yes", "no", NULL);
 

@@ -44,6 +44,9 @@ static RoadMapConfigDescriptor RoadMapConfigAddressPosition =
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
+                        ROADMAP_CONFIG_ITEM("General", "Icons");
+
 static RoadMapConfigDescriptor RoadMapConfigMapCache =
                         ROADMAP_CONFIG_ITEM("Map", "Cache");
 
@@ -206,6 +209,12 @@ static void roadmap_option_set_no_toolbar (const char *value) {
 }
 
 
+static void roadmap_option_set_no_icon (const char *value) {
+
+    roadmap_config_set (&RoadMapConfigGeneralIcons, "no");
+}
+
+
 static void roadmap_option_set_square (const char *value) {
 
     roadmap_option_square = 1;
@@ -295,6 +304,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
 
     {"--no-toolbar", "", roadmap_option_set_no_toolbar,
         "Hide the RoadMap main window's toolbar"},
+
+    {"--no-icon", "", roadmap_option_set_no_icon,
+        "Do not show icons on the toolbar"},
 
     {"--square", "", roadmap_option_set_square,
         "Show the square boundaries as grey lines (for debug purpose)"},
@@ -386,6 +398,12 @@ void roadmap_option (int argc, char **argv, void (*usage) (void)) {
 
 
 void roadmap_option_initialize (void) {
+
+   roadmap_config_declare_enumeration
+      ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
+
+   roadmap_config_declare_enumeration
+      ("preferences", &RoadMapConfigGeneralIcons, "yes", "no", NULL);
 
    roadmap_config_declare ("preferences", &RoadMapConfigMapCache, "8");
 }

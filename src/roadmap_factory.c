@@ -38,6 +38,9 @@
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
+                        ROADMAP_CONFIG_ITEM("General", "Icons");
+
 
 const char RoadMapFactorySeparator[] = "--separator--";
 
@@ -69,6 +72,10 @@ void roadmap_factory (const RoadMapFactory *menu,
             (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralToolbar),
                          "yes") == 0);
 
+   int use_icons =
+            (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralIcons),
+                         "yes") == 0);
+
 
    while (menu->name != NULL) {
 
@@ -93,9 +100,12 @@ void roadmap_factory (const RoadMapFactory *menu,
             if (toolbar->name == RoadMapFactorySeparator) {
                roadmap_main_add_tool_space ();
             }
-         } else {
+         } else if (use_icons) {
             roadmap_main_add_tool
                (toolbar->name, toolbar->icon, toolbar->tip, toolbar->callback);
+         } else {
+            roadmap_main_add_tool
+               (toolbar->name, NULL, toolbar->tip, toolbar->callback);
          }
 
          toolbar += 1;

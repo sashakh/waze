@@ -311,15 +311,17 @@ USING ROADMAP:
    --location=LONGITUDE,LATITUDE
    
        Set the location point (see menu entry View/Show Location..).
-       This option is sticky.
+       This option is sticky (Locations.Location=LONGITUDE,LATITUDE).
 
    --metric
    
-       Use the metric system for all units. This option is sticky.
+       Use the metric system for all units. This option is sticky
+       (General.Unit = "metric").
 
    --imperial
    
-       Use the imperial system for all units. This option is sticky.
+       Use the imperial system for all units. This option is sticky
+       (General.Unit = "imperial").
 
    --no-area
    
@@ -333,11 +335,16 @@ USING ROADMAP:
        title. The two first forms set the size of the main windows
        (otherwise called "Main"). If the window's title include spaces,
        dashes can be used in place of the spaces (the goal here is to be
-       shell friendly). This option is sticky.
+       shell friendly). This option is sticky (Geometry.WINDOW = WIDTHxHEIGHT).
 
    --no-toolbar
    
-       Do not show the toolbar. This option is sticky.
+       Do not show the toolbar. This option is sticky (General.Toolbar = "no").
+
+   --no-icon
+   
+       Do not show any icon, i.e. keep as much space as possible for the map.
+       This option is sticky (General.Icons = "no").
 
    --square
    
@@ -364,7 +371,8 @@ USING ROADMAP:
        Show a description of all command line options.
 
    The options marked as "sticky" remain in effect the next time RoadMap
-   is run. The use of the option actually changes the RoadMap preferences.
+   is run. The use of the option actually changes the specified RoadMap
+   preferences item.
 
 
    THE ROADMAP DISPLAY:
@@ -978,11 +986,19 @@ CONFIGURATION:
          Format: boolean
          Default: yes
 
+     General.Icons:
+
+         Description: show (yes) or hide (no) the roadmap icons.
+         Format: boolean
+         Default: yes
+         Command line option: --no-icon
+
      General.Toolbar:
 
          Description: show (yes) or hide (no) the roadmap toolbar.
          Format: boolean
          Default: yes
+         Command line option: --no-toolbar
 
      Geometry.Main:
 
@@ -1247,6 +1263,7 @@ CONFIGURATION:
          Format: longitude ',' latitude.
          Default: -122394181,37794928
          Comment: the name of this item is kind of silly, to be changed.
+         Command line option: --location=LONGITUDE,LATITUDE
 
      Locations.GPS
 
