@@ -28,7 +28,7 @@ case "$1" in
     configure)
         if [ -x /usr/bin/update-menus ] ; then update-menus ; fi
 
-	# Download map index if it was requested
+	# Ask if the map index file should be downloaded
 	if [ ! -f "$indexdir/usdir.rdm" ] ; then
 	    db_get roadmap/download_index
 	    if [ true = "$RET" ] ; then
