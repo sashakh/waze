@@ -219,7 +219,7 @@ INSTALLATION:
    tools) can run from the local directory as well.
 
 
-USAGE:
+ROADMAP APPLICATIONS:
 
    RoadMap includes the following applications:
 
@@ -249,6 +249,8 @@ USAGE:
 
    rdmgenmaps        A script to simplify the generation of the maps.
 
+
+USING ROADMAP:
 
    RoadMap's Command Line Options:
    
@@ -313,14 +315,54 @@ USAGE:
    is run. The use of the option actually changes the RoadMap preferences.
 
 
-   Using RoadMap:
+   The RoadMap Display:
 
    The main RoadMap window shows the menu, the toolbar and the map's canvas.
    The toolbar is optional: all the commands are also available from the menu
    bar or from the keyboard or iPAQ buttons.
 
+   When RoadMap starts, the map tracks the current GPS position. It is possible
+   to select another mode: show the current destination point (see the section
+   "Managing Trips" below), show a specific location, track the GPS position
+   with the north shown up, track the GPS position with the direction of
+   movement shown up.
+
    Clicking on the map screen displays the name of the closest street (with
    the selected street block's range of address), road or freeway (if any).
+   This display is shown for a limited amount of time (see preference
+   "Highlight.Duration").
+
+   RoadMap indicates the current street a few seconds after the GPS position
+   reached the street. This display is also shown for a limited time. There
+   are several conditions for RoadMap to "lock" on a new current street: the
+   GPS location must have gone far enough from the previous street, if any
+   (see preference Accuracy.Street); The GPS location must be close to the
+   street (same preference as before); the same street must be "confirmed"
+   by a second reading (The main reason for these conditions is to avoid
+   locking on streets at the intersections.)
+
+   RoadMap can also display 3 messages at the following corners of the map:
+   bottom left, bottom right and top right (the top left corner is already
+   used to show the orientation of the map). These messages can be defined
+   by the user using RoadMap's specific format strings (see section
+   "Configuring the RoadMap text and voice messages").
+
+   If the flite program has been installed, or if RoadMap was configured
+   for another speech application, RoadMap will complement the screen
+   information with an audio one: Roadmap will "tell" the name of the street
+   on the audio output device. As a general rule, RoadMap tries not to repeat
+   the same message again, as frequent audio messages tend to border on the
+   irritating side. Thus if the same street is selected more than once, the
+   screen information will be displayed each time, but the voice messge
+   will be provided only once. As voice messages tend to take a significant
+   time to be produced, RoadMap memorizes the latest message requested while
+   the current message was produced and will 'air" it after the current
+   message has been completed. Only one message is stored that way, the last
+   requested one: any message generated in between is ignored.
+
+   It is possible to mute the RoadMap's voice, using the File / Mute Voice
+   item from the menu bar. The voice can be enabled later using the File /
+   Enable Voice item.
 
 
    Key Bindings:
@@ -351,8 +393,8 @@ USAGE:
    center of the map. The GPS and waypoints positions are special cases:
    see the section on trip management.
 
-   The destination and location waypoints can be entered manually as a valid
-   street address by providing the street number, name, city and state names.
+   The destination and location waypoints can be entered manually by providing
+   a valid USPS address: street number, name, city and state names.
 
 
    Street name options:
@@ -488,7 +530,11 @@ USAGE:
    desktop's or laptop's X server.
 
 
-   Using RoadGps:
+USING ROADGPS:
+
+   The RoadGps tool can be started on its own (using command line options
+   similar to those of RoadMap), or from the RoadMap's File / GPS Console
+   menu item.
 
    The screen shows the list of satellites, their position in the sky
    (north up) and the strength of the signal. It marks in reverse video
@@ -520,9 +566,9 @@ CONFIGURATION:
             ~/.roadmap
             ~/.roadmap/trips
 
-   The directory ~/.roadmap contains the user configuration: any user change to the
-   configuration is written there. The items in the user configuration take
-   precedence over the "default" configuration in the "shared" directories.
+   The directory ~/.roadmap contains the user configuration: any user change
+   to the configuration is written there. The items in the user configuration
+   take precedence over the "default" configuration in the "shared" directories.
 
    The directory ~/.roadmap/trips is used as the default location for the
    trip files. Note that trip files can be stored anywhere, not only in
@@ -554,14 +600,13 @@ CONFIGURATION:
    the compass, etc..
 
 
-   Configuring the RoadMap information display messages.
+   Configuring the RoadMap text and voice messages.
    
-   RoadMap can display 3 messages at the following corners of the map:
-   bottom left, bottom right and top right (the top left corner is already
-   used to show the orientation of the map). These messages can be defined
-   by the user and contain static and dynamic parts. The dynamic parts
-   are specified using the character '%' followed by one character that
-   denotes a pre-defined RoadMap variable:
+   The RoadMap text displays and voice messages can be configured by the
+   user using format strings in the preferences. The format strings contain
+   static and dynamic parts. The dynamic parts (or "macros") are specified
+   using the character '%' followed by one character that denotes a predefined
+   RoadMap variable:
    
    A:   estimated time of arrival (not yet implemented).
    B:   Route bearing (not yet implemented).
@@ -569,10 +614,10 @@ CONFIGURATION:
    S:   Speed (set only when a trip is active).
    T:   Current time, format HH:MM (set only when a trip is active).
    W:   Distance to the next waypoint (set only when a trip is active).
-   #:   the street number range to the selected or current block.
+   #:   the street number range to the selected or current street block.
    N:   the name of the selected or current street.
    C:   the name of the city for the selected or current street.
-   F:   the full (number, name, city) name of the selected or current street.
+   F:   the full name (number, name, city) of the selected or current street.
    
    Example: "%D (%W)" shows the distance to the destination point, followed
    by the distance to the next waypoint (in parenthesis).
@@ -587,9 +632,21 @@ CONFIGURATION:
    to the next waypoint if both distances are defined, or else only the
    distance to the destination point if this distance is defined. If none
    of the two distance have been defined (for example when no trip is
-   active), then nothing is shown.
-   
-   
+   active), then no display is shown and/or no sound is produced.
+
+   It is possible to "link" together parts of a string using simple or
+   double quotes. This is used when the string specifies an external command
+   to execute. RoadMap does not use the shell to execute commands (so to stay
+   independent from the OS-specific shell syntax), but it does recognise the
+   use of quotes to specify a command parameter that includes spaces. Such
+   a parameter may be enclosed in single or double quotes. There is no
+   difference between one quote or another, except that the parameter must
+   be terminated with the same quote character it was started with.
+ 
+   Example: "flite -t 'On %N'" to specify the command flite with two
+   parameters ("-f" and "On %N").
+
+
    RoadMap preferences items:
 
      General.Database:
@@ -636,19 +693,19 @@ CONFIGURATION:
      Display.Bottom Right:
      
          Description: define the message on the bottom right corner
-         Format: string
+         Format: RoadMap format string
          Default: %D (%W)|%D
 
      Display.Bottom Left:
      
          Description: define the message on the bottom left corner
-         Format: string
+         Format: RoadMap format string
          Default: %S
 
      Display.Top Right:
      
          Description: define the message on the top right corner
-         Format: string
+         Format: RoadMap format string
          Default: ETA: %A|%T
 
      Map.Background:
@@ -707,22 +764,64 @@ CONFIGURATION:
 
      Highlight.Duration:
 
-         Description: The time during which the current selection is shown.
+         Description: The time during which a selection or message is shown.
          Format: number of seconds.
          Default: 10
          Comment: the selection is only removed when the map is redrawn.
 
-     Highlight.Thickness:
+     Selected Street.Background:
 
-         Description: the tickness used to highlight a selected street lines
-         Format: integer
-         Default: 4
-
-     Highlight.Background:
-
-         Description: the color used for the background of the highlight text
+         Description: the color for the background of the selected street name.
          Format: color name (see file rgb.txt)
          Default: yellow
+
+     Selected Street.Foreground:
+
+         Description: the color for the foreground of the selected street name.
+         Format: color name (see file rgb.txt)
+         Default: black
+
+     Selected Street.Text:
+
+         Description: the format used for the selected street's display.
+         Format: RoadMap format string
+         Default: %F
+
+     Console.Foreground:
+
+         Description: the color used for the foreground of the trip display
+         Format: color name (see file rgb.txt)
+         Default: black
+
+     Current Street.Background:
+
+         Description: the color for the background of the current street's name
+         Format: color name (see file rgb.txt)
+         Default: yellow (I would recommend using DarkSeaGreen4)
+
+     Current Street.Foreground:
+
+         Description: the color for the foreground of the current street's name
+         Format: color name (see file rgb.txt)
+         Default: black (I would recommend using white--see above)
+
+     Current Street.Text: %N, %C|%N
+
+         Description: the text used to display the current street's name
+         Format: color name (see file rgb.txt)
+         Default: black (I would recommend using white--see above)
+
+     Voice.Current Street:
+
+         Description: the command used to announce the current street's name
+         Format: RoadMap format string
+         Default: flite -t 'On %N'
+
+     Voice.Selected Street:
+
+         Description: the command used to announce the selected street's name
+         Format: RoadMap format string
+         Default: flite -t '%N'
 
      Accuracy.Mouse:
 
@@ -743,6 +842,17 @@ CONFIGURATION:
          Comment: this defines the size of the area searched when retrieving
                   the current street from the GPS position. Not used yet.
 
+     Accuracy.Street:
+
+         Description: the street selection accuracy.
+                      one street to the other.
+         Format: integer (using the current unit system).
+         Default: 200
+         Comment: This distance is used when switching to a new street.
+                  The GPS position must be at a distance greater than the
+                  accuracy from the current street, and at a distance lower
+                  than the accuracy from the would be next current street.
+
      Shapes.Declutter:
 
          Description: the zoom level when the shapes are not drawn anymore.
@@ -756,6 +866,23 @@ CONFIGURATION:
          Format: integer
          Default: 1300
          Comment: the definition of this item is rather obscure. To be fixed.
+
+     History.Depth: 100
+
+         Description: the maximum number of items in the address history
+         Format: integer
+         Default: 100
+
+     Approach.Background:
+     Approach.Foreground:
+     Approach.Text:
+     Voice.Approach:
+
+         Description: reserved for future use (approaching waypoint).
+
+     Voice.Next Intersection:
+
+         Description: reserved for future use (announcing next intersection).
 
 
    RoadMap session items:
@@ -904,28 +1031,46 @@ APPENDIX: Configuration examples
 
 ~/.roadmap/preferences ("factory" defaults):
 
+Accuracy.GPS: 1000
+Accuracy.Mouse: 20
+Accuracy.Street: 200
+Approach.Background: yellow
+Approach.Foreground: black
+Approach.Text: Approaching %N, %C|Approaching %N
+Console.Background: yellow
+Console.Foreground: black
+Current Street.Background: yellow
+Current Street.Foreground: black
+Current Street.Text: %N, %C|%N
+Destination.Color: red
+Display.Bottom Left: %S
+Display.Bottom Right: %D (%W)|%D
+Display.Top Right: ETA: %A|%T
 General.Database: .,~/.roadmap,/usr/share/roadmap,/usr/local/share/roadmap
 General.Default Zoom: 20
+General.Keyboard: no
 General.Toolbar: yes
 General.Unit: imperial
-Display.Bottom Right: %D (%W)|%D
-Display.Bottom Left: %S
-Display.Top Right: ETA: %A|%T
-Map.Background: LightYellow
+Geometry.Main: 800x600
+Geometry.Preferences: 800x300
 GPS.Background: LightYellow
-GPS.Foreground: black
 GPS.Color: red
+GPS.Foreground: black
 GPS.Source: gpsd://localhost
 GPS.Timeout: 10
-Destination.Color: red
-Location.Color: red
 Highlight.Duration: 10
-Highlight.Thickness: 4
-Highlight.Background: yellow
-Accuracy.Mouse: 20
-Accuracy.GPS: 1000
-Shapes.Declutter: 1300
+History.Depth: 100
+Location.Color: red
+Map.Background: LightYellow
 Polygons.Declutter: 1300
+Selected Street.Background: yellow
+Selected Street.Foreground: black
+Selected Street.Text: %F
+Shapes.Declutter: 1300
+Voice.Approach: flite -t 'Approaching %N'
+Voice.Current Street: flite -t 'On %N'
+Voice.Next Intersection: flite -t 'Next intersection: %N'
+Voice.Selected Street: flite -t '%N'
 
 
 ~/.roadmap/session ("factory" defaults):
