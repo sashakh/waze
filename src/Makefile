@@ -188,6 +188,11 @@ bindir=$(INSTALLDIR)/bin
 pkgbindir=$(bindir)
 menudir=$(DESTDIR)/usr/lib/menu
 ICONDIR=$(INSTALLDIR)/share/pixmaps
+mandir=$(INSTALLDIR)/share/man
+man1dir=$(mandir)/man1
+
+INSTALL      = install
+INSTALL_DATA = install -m644
 
 
 # --- Conventional targets ----------------------------------------
@@ -231,6 +236,8 @@ install: everything
 	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
 	mkdir -p $(DESTDIR)$(desktopdir)
 	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
+	mkdir -p $(DESTDIR)$(man1dir)
+	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
 
 installdoc:
 	aptconvert -toc -enc ASCII $(DESTDIR)$(pkgdatadir)/manual.html ../README
