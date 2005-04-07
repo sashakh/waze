@@ -36,20 +36,18 @@
 #include <unistd.h>
 #include <errno.h>
 
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
+#include <sys/select.h>
 
 #include "roadmap_net.h"
 
 
-#define MAX_WIRELESS_HOT_SPOTS   9999
+#define MAX_WIRELESS_STATIONS   9999
 
 struct knetlist {
     int btop, bbot;
 };
 
-static struct knetlist knl[MAX_WIRELESS_HOT_SPOTS];
+static struct knetlist knl[MAX_WIRELESS_STATIONS];
 static int knlmax = 0;
 
 static char kismet_data[256];
@@ -162,83 +160,112 @@ int main(int argc, char *argv[]) {
 
    for(;;) {
 
-      kismet_data[0] = 0;
-      fgets(kismet_data, sizeof(kismet_data)-1, sfp);
+      fd_set reads;
 
-      if (ferror(sfp)) {
+      FD_ZERO(&reads);
+      FD_SET(0, &reads);
+      FD_SET(knet, &reads);
 
-         /* The kismet connection went down. Try to re-establish it. */
-         fclose (sfp);
-         knet = connect_to_kismet (kismet_host);
-         sfp = fdopen(knet, "r");
+      if (select (knet+1, &reads, NULL, NULL, NULL) == 0) continue;
 
-         continue;
+      if (FD_ISSET(0, &reads)) {
+
+         char ignore[128];
+
+         read (0, ignore, sizeof(ignore));
       }
 
-      if(strncmp(kismet_data, "*NETWORK: ", 10))
-         continue;
+      if (FD_ISSET(knet, &reads)) {
 
-      sscanf(&kismet_data[28],
-             "%d %d %lf %lf %d", &chan, &sig, &la, &lo, &wep);
+         kismet_data[0] = 0;
+         fgets(kismet_data, sizeof(kismet_data)-1, sfp);
 
-      if(sig > 1 && sig < minsig - 1)
-         minsig = sig - 1;
-      if(sig > maxsig)
-         maxsig = sig;
+         if (ferror(sfp)) {
 
-      for(i = 0; i < 6; i++)
-         bssid[i] = strtoul(&kismet_data[10 + 3 * i], NULL, 16);
-      bsstop = (bssid[0] << 16) | (bssid[1] << 8) | bssid[2];
-      bssbot = (bssid[3] << 16) | (bssid[4] << 8) | bssid[5];
+            /* The kismet connection went down. Try to re-establish it. */
+            fclose (sfp);
+            knet = connect_to_kismet (kismet_host);
+            sfp = fdopen(knet, "r");
 
-      /* We must now convert the latitude & longitude into the standard
-       * NMEA format (since RoadMap uses the NMEA syntax).
-       */
-      la_hemi = (la < 0) ? 'S' : 'N';
-      convert_to_nmea (la, &la_ddmm, &la_mmmm);
+            continue;
+         }
 
-      lo_hemi = (lo < 0) ? 'W' : 'E';
-      convert_to_nmea (lo, &lo_ddmm, &lo_mmmm);
+         if(strncmp(kismet_data, "*NETWORK: ", 10))
+            continue;
 
-      if (la_ddmm == 0 && la_mmmm == 0 && lo_ddmm == 0 && lo_mmmm == 0)
-         continue;
+         sscanf(&kismet_data[28],
+               "%d %d %lf %lf %d", &chan, &sig, &la, &lo, &wep);
 
-      for (i = knlmax - 1; i >= 0; --i) {
-         if(bsstop == knl[i].btop && bssbot == knl[i].bbot)
-            break;
-      }
-      if(i == -1) {
-         if (knlmax >= MAX_WIRELESS_HOT_SPOTS) continue;
-         i = knlmax++;
-         knl[i].btop = bsstop;
-         knl[i].bbot = bssbot;
-         printf ("$PXRMADD,ksm%d,"    /* ID for this node. */
-                     "%02x:%02x:%02x:%02x:%02x:%02x,kismet," /* MAC address */
-                     "%d.%04d,%c,"    /* Latitude. */
-                     "%d.%04d,%c\n",  /* Longitude. */
-                 i,
-                 bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5],
-                 la_ddmm, la_mmmm, la_hemi,
-                 lo_ddmm, lo_mmmm, lo_hemi);
-      } else {
-         printf ("$PXRMMOV,ksm%d,%d.%04d,%c,%d.%04d,%c\n",
-                 i,
-                 la_ddmm, la_mmmm, la_hemi,
-                 lo_ddmm, lo_mmmm, lo_hemi);
-      }
+         if(sig > 1 && sig < minsig - 1)
+            minsig = sig - 1;
+         if(sig > maxsig)
+            maxsig = sig;
 
-      if (gps_mode) {
-         /* In this mode, there is no GPS, so we use the kismet data
-          * to regenerate some GPS information.
+         for(i = 0; i < 6; i++)
+            bssid[i] = strtoul(&kismet_data[10 + 3 * i], NULL, 16);
+         bsstop = (bssid[0] << 16) | (bssid[1] << 8) | bssid[2];
+         bssbot = (bssid[3] << 16) | (bssid[4] << 8) | bssid[5];
+
+
+         /* We must now convert the latitude & longitude into the standard
+          * NMEA format (since RoadMap uses the NMEA syntax).
           */
-         printf ("$GPGLL,%d.%04d,%c,%d.%04d,%c,,A\n",
-                 la_ddmm, la_mmmm, la_hemi,
-                 lo_ddmm, lo_mmmm, lo_hemi);
-      }
-      fflush (stdout);
+         la_hemi = (la < 0) ? 'S' : 'N';
+         convert_to_nmea (la, &la_ddmm, &la_mmmm);
 
-      if (ferror(stdout))
-         exit(0); /* RoadMap closed the pipe. */
+         lo_hemi = (lo < 0) ? 'W' : 'E';
+         convert_to_nmea (lo, &lo_ddmm, &lo_mmmm);
+
+         if (la_ddmm == 0 && la_mmmm == 0 && lo_ddmm == 0 && lo_mmmm == 0)
+            continue;
+
+
+         /* If this is a new station, we must first declare it. */
+
+         for (i = knlmax - 1; i >= 0; --i) {
+            if(bsstop == knl[i].btop && bssbot == knl[i].bbot)
+               break;
+         }
+
+         if(i == -1) {
+            if (knlmax >= MAX_WIRELESS_STATIONS) continue;
+            i = knlmax++;
+            knl[i].btop = bsstop;
+            knl[i].bbot = bssbot;
+
+            printf ("$PXRMADD,ksm%d,"    /* ID for this node. */
+                  "%02x:%02x:%02x:%02x:%02x:%02x,kismet\n", /* MAC address */
+                  i,
+                  bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);
+         }
+
+
+         /* Now provide the current position of this station.
+          * The "speed" is actually the station's signal strength
+          * and the "course" represents the channel.
+          */
+
+         printf ("$PXRMMOV,ksm%d,%d.%04d,%c,%d.%04d,%c,%d,0\n",
+                 i,
+                 la_ddmm, la_mmmm, la_hemi,
+                 lo_ddmm, lo_mmmm, lo_hemi,
+                 sig - 170,                  /* Why "170"? */
+                 chan + (wep << 8));
+
+         if (gps_mode) {
+            /* In this mode, there is no GPS, so we use the kismet data
+             * to regenerate some GPS information.
+             */
+            printf ("$GPGLL,%d.%04d,%c,%d.%04d,%c,,A\n",
+                    la_ddmm, la_mmmm, la_hemi,
+                    lo_ddmm, lo_mmmm, lo_hemi);
+         }
+         fflush (stdout);
+
+         if (ferror(stdout)) {
+            exit(0); /* RoadMap closed the pipe. */
+         }
+      }
    }
    return 0; /* Some compilers might not detect the forever loop. */
 }
