@@ -106,19 +106,27 @@ typedef union {
       char id[8];
       char name[32];
       char sprite[8];
-      int  latitude;
-      int  longitude;
    } pxrmadd;
 
    struct {
       char id[8];
       int  latitude;
       int  longitude;
+      int  speed;
+      int  steering;
    } pxrmmov;
 
    struct {
       char id[8];
    } pxrmdel;
+
+   struct {
+      char name[32];
+      int  count;
+      struct {
+         char item[8];
+      } subscribed[16];
+   } pxrmsub;
 
 } RoadMapNmeaFields;
 

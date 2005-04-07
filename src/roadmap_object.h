@@ -33,16 +33,15 @@
 #ifndef INCLUDE__ROADMAP_OBJECT__H
 #define INCLUDE__ROADMAP_OBJECT__H
 
-#include "roadmap_types.h"
+#include "roadmap_gps.h"
 
 
 void roadmap_object_add (const char *id,
                          const char *name,
-                         const char *sprite,
-                         const RoadMapPosition *position);
+                         const char *sprite);
 
 void roadmap_object_move (const char *id,
-                          const RoadMapPosition *position);
+                          const RoadMapGpsPosition *position);
 
 void roadmap_object_remove (const char *id);
 

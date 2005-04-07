@@ -186,9 +186,7 @@ typedef int (*RoadMapNmeaDecoder) (int argc, char *argv[]);
 
 static int roadmap_nmea_rmc (int argc, char *argv[]) {
 
-   if (argc <= 9) {
-      return 0;
-   }
+   if (argc <= 9) return 0;
 
    RoadMapNmeaReceived.rmc.status = *(argv[2]);
 
@@ -223,6 +221,8 @@ static int roadmap_nmea_rmc (int argc, char *argv[]) {
 
 
 static int roadmap_nmea_gga (int argc, char *argv[]) {
+
+   if (argc <= 10) return 0;
 
    RoadMapNmeaReceived.gga.fixtime =
       roadmap_nmea_decode_time (argv[1], RoadMapNmeaDate);
@@ -280,6 +280,8 @@ static int roadmap_nmea_gsa (int argc, char *argv[]) {
    int index;
    int last_satellite;
 
+   if (argc <= 2) return 0;
+
    RoadMapNmeaReceived.gsa.automatic = *(argv[1]);
    RoadMapNmeaReceived.gsa.dimension = atoi(argv[2]);
 
@@ -308,6 +310,8 @@ static int roadmap_nmea_gll (int argc, char *argv[]) {
    char mode;
    int  valid_fix;
 
+
+   if (argc <= 6) return 0;
 
    /* We have to be extra cautious, as some people report that GPGLL
     * returns a mode field, but some GPS do not have this field at all.
@@ -351,9 +355,7 @@ static int roadmap_nmea_gsv (int argc, char *argv[]) {
    int index;
 
 
-   if (argc <= 3) {
-      return 0;
-   }
+   if (argc <= 3) return 0;
 
    RoadMapNmeaReceived.gsv.total = (char) atoi(argv[1]);
    RoadMapNmeaReceived.gsv.index = (char) atoi(argv[2]);
@@ -403,9 +405,7 @@ static int roadmap_nmea_gsv (int argc, char *argv[]) {
 
 static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
 
-    if (argc <= 1) {
-        return 0;
-    }
+    if (argc <= 1) return 0;
 
     safecpy (RoadMapNmeaReceived.pgrmm.datum,
              argv[1], sizeof(RoadMapNmeaReceived.pgrmm.datum));
@@ -416,9 +416,7 @@ static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
 
 static int roadmap_nmea_pgrme (int argc, char *argv[]) {
 
-    if (argc <= 6) {
-       return 0;
-    }
+    if (argc <= 6) return 0;
 
     RoadMapNmeaReceived.pgrme.horizontal =
         roadmap_nmea_decode_numeric (argv[1], 100);
@@ -441,6 +439,8 @@ static int roadmap_nmea_pgrme (int argc, char *argv[]) {
 
 static int roadmap_nmea_pxrmadd (int argc, char *argv[]) {
 
+    if (argc <= 3) return 0;
+
     safecpy (RoadMapNmeaReceived.pxrmadd.id,
              argv[1],
              sizeof(RoadMapNmeaReceived.pxrmadd.id));
@@ -453,17 +453,13 @@ static int roadmap_nmea_pxrmadd (int argc, char *argv[]) {
              argv[3],
              sizeof(RoadMapNmeaReceived.pxrmadd.sprite));
 
-    RoadMapNmeaReceived.pxrmadd.latitude =
-        roadmap_nmea_decode_coordinate  (argv[4], argv[5], 'N', 'S');
-
-    RoadMapNmeaReceived.pxrmadd.longitude =
-        roadmap_nmea_decode_coordinate (argv[6], argv[7], 'E', 'W');
-
     return 1;
 }
 
 
 static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
+
+    if (argc <= 7) return 0;
 
     safecpy (RoadMapNmeaReceived.pxrmmov.id,
              argv[1],
@@ -475,15 +471,45 @@ static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
     RoadMapNmeaReceived.pxrmmov.longitude =
         roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
 
+    RoadMapNmeaReceived.pxrmmov.speed =
+       roadmap_nmea_decode_numeric (argv[6], 1);
+
+    RoadMapNmeaReceived.pxrmmov.steering =
+       roadmap_nmea_decode_numeric (argv[7], 1);
+
     return 1;
 }
 
 
 static int roadmap_nmea_pxrmdel (int argc, char *argv[]) {
 
+    if (argc <= 1) return 0;
+
     safecpy (RoadMapNmeaReceived.pxrmdel.id,
              argv[1],
              sizeof(RoadMapNmeaReceived.pxrmdel.id));
+
+    return 1;
+}
+
+
+static int roadmap_nmea_pxrmsub (int argc, char *argv[]) {
+
+    int i;
+
+    if (argc <= 2) return 0;
+
+    safecpy (RoadMapNmeaReceived.pxrmsub.name,
+             argv[1],
+             sizeof(RoadMapNmeaReceived.pxrmsub.name));
+
+    for (i = 2; i < argc; ++i) {
+       safecpy (RoadMapNmeaReceived.pxrmsub.subscribed[i].item,
+                argv[1],
+                sizeof(RoadMapNmeaReceived.pxrmsub.subscribed[i].item));
+    }
+
+    RoadMapNmeaReceived.pxrmsub.count = argc - 2;
 
     return 1;
 }
@@ -542,6 +568,7 @@ static struct {
    ROADMAP_NMEA_PHRASE("XRM", "ADD", roadmap_nmea_pxrmadd),
    ROADMAP_NMEA_PHRASE("XRM", "MOV", roadmap_nmea_pxrmmov),
    ROADMAP_NMEA_PHRASE("XRM", "DEL", roadmap_nmea_pxrmdel),
+   ROADMAP_NMEA_PHRASE("XRM", "SUB", roadmap_nmea_pxrmsub),
 
    { NULL, "", NULL, NULL, NULL, NULL}
 };

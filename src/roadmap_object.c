@@ -37,6 +37,7 @@
 #include <string.h>
 
 #include "roadmap.h"
+#include "roadmap_types.h"
 #include "roadmap_math.h"
 #include "roadmap_sprite.h"
 #include "roadmap_object.h"
@@ -49,7 +50,7 @@ struct RoadMapObjectDescriptor {
    char *name; /* What's shown on display, don't need to be unique. */
    char *sprite; /* .. that is used to represent the object on screen. */
 
-   RoadMapPosition position;
+   RoadMapGpsPosition position;
 
    struct RoadMapObjectDescriptor *next;
    struct RoadMapObjectDescriptor *previous;
@@ -75,8 +76,7 @@ RoadMapObject *roadmap_object_search (const char *id) {
 
 void roadmap_object_add (const char *id,
                          const char *name,
-                         const char *sprite,
-                         const RoadMapPosition *position) {
+                         const char *sprite) {
 
    RoadMapObject *cursor = roadmap_object_search (id);
 
@@ -99,12 +99,11 @@ void roadmap_object_add (const char *id,
          cursor->next->previous = cursor;
       }
    }
-   cursor->position = *position;
 }
 
 
 void roadmap_object_move (const char *id,
-                          const RoadMapPosition *position) {
+                          const RoadMapGpsPosition *position) {
 
    RoadMapObject *cursor = roadmap_object_search (id);
 
@@ -140,13 +139,17 @@ void roadmap_object_remove (const char *id) {
 void roadmap_object_draw (void) {
 
    RoadMapObject *cursor;
+   RoadMapPosition position;
    RoadMapGuiPoint screen_point;
 
    for (cursor = RoadmapObjectList; cursor != NULL; cursor = cursor->next) {
 
-      if (roadmap_math_point_is_visible(&cursor->position)) {
+      position.latitude = cursor->position.latitude;
+      position.longitude = cursor->position.longitude;
 
-         roadmap_math_coordinate (&cursor->position, &screen_point);
+      if (roadmap_math_point_is_visible(&position)) {
+
+         roadmap_math_coordinate (&position, &screen_point);
          roadmap_sprite_draw (cursor->sprite, &screen_point, 0);
       }
    }
