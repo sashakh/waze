@@ -177,37 +177,30 @@ static void roadmap_spawn_child_exit_handler (int signal) {
 #endif
 
 
-void roadmap_spawn_initialize (const char *argv0) {
-
-   if ((argv0[0] == '/') || (strncmp (argv0, "../", 3) == 0)) {
-
-       char *last_slash;
-
-       if (RoadMapSpawnPath != NULL) {
-          free (RoadMapSpawnPath);
-       }
-       RoadMapSpawnPath = strdup (argv0);
-       roadmap_check_allocated(RoadMapSpawnPath);
-
-       last_slash = strrchr (RoadMapSpawnPath, '/');
-       last_slash[1] = 0; /* remove the current's program name. */
-   }
-}
-
-
-int roadmap_spawn (const char *name, const char *command_line) {
+static int roadmap_spawn_child (const char *name,
+                                const char *command_line,
+                                int pipes[2]) {
 
    char *argv[16];
    pid_t child;
+
+   int reading[2];
+   int writing[2];
 
 #ifdef ROADMAP_USES_SIGCHLD
    roadmap_spawn_set_handler ();
 #endif
 
+   if (pipes != NULL) {
+      pipe (reading);
+      pipe (writing);
+   }
+
    child = fork();
 
    if (child < 0) {
       roadmap_log (ROADMAP_ERROR, "cannot fork(), error %d", errno);
+      return -1;
    }
 
    if (child == 0) {
@@ -219,6 +212,15 @@ int roadmap_spawn (const char *name, const char *command_line) {
        * deallocated). This is why we call _exit(2) and do not use
        * ROADMAP_FATAL or exit(3).
        */
+
+      if (pipes != NULL) {
+         close(0);
+         close(1);
+         dup2 (writing[0], 0); /* Child to read what the parent writes. */
+         dup2 (reading[1], 1); /* Child to write what the parent reads. */
+         close(writing[1]);
+         close(reading[0]);
+      }
 
       argv[0] = (char *)name;
       roadmap_spawn_set_arguments (15, argv, command_line);
@@ -243,7 +245,38 @@ int roadmap_spawn (const char *name, const char *command_line) {
       _exit(1);
    }
 
+   if (pipes != NULL) {
+      pipes[0] = reading[0];
+      pipes[1] = writing[1];
+      close(reading[1]);
+      close(writing[0]);
+   }
+
    return child;
+}
+
+void roadmap_spawn_initialize (const char *argv0) {
+
+   if ((argv0[0] == '/') || (strncmp (argv0, "../", 3) == 0)) {
+
+       char *last_slash;
+
+       if (RoadMapSpawnPath != NULL) {
+          free (RoadMapSpawnPath);
+       }
+       RoadMapSpawnPath = strdup (argv0);
+       roadmap_check_allocated(RoadMapSpawnPath);
+
+       last_slash = strrchr (RoadMapSpawnPath, '/');
+       last_slash[1] = 0; /* remove the current's program name. */
+   }
+}
+
+
+int roadmap_spawn (const char *name,
+                   const char *command_line) {
+
+   return roadmap_spawn_child (name, command_line, NULL);
 }
 
 
@@ -253,7 +286,20 @@ int  roadmap_spawn_with_feedback
           RoadMapFeedback *feedback) {
     
     roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
-    feedback->child = roadmap_spawn (name, command_line);
+    feedback->child = roadmap_spawn_child (name, command_line, NULL);
+              
+    return feedback->child;
+}
+
+
+int  roadmap_spawn_with_pipe
+         (const char *name,
+          const char *command_line,
+          int pipes[2],
+          RoadMapFeedback *feedback) {
+    
+    roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
+    feedback->child = roadmap_spawn_child (name, command_line, pipes);
               
     return feedback->child;
 }

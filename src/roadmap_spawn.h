@@ -49,6 +49,12 @@ int  roadmap_spawn_with_feedback
           const char *command_line,
           RoadMapFeedback *feedback);
 
+int  roadmap_spawn_with_pipe
+         (const char *name,
+          const char *command_line,
+          int pipes[2],             /* pipes[0] -> read, pipes[1] -> write */
+          RoadMapFeedback *feedback);
+
 void roadmap_spawn_check (void);
 
 #endif // INCLUDE__ROADMAP_SPAWN__H

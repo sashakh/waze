@@ -89,6 +89,8 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_history.c \
           roadmap_nmea.c \
           roadmap_gps.c \
+          roadmap_object.c \
+          roadmap_driver.c \
           roadmap_adjust.c \
           roadmap_sunrise.c
 
