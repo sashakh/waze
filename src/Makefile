@@ -59,7 +59,7 @@ endif
 
 CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
-TOOLS=sunrise $(SQLTOOLS) rdmkismet
+TOOLS=sunrise $(SQLTOOLS) rdmkismet rdmghost
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
 LIBS=$(RDMLIBS) -lpopt -lm
@@ -281,6 +281,9 @@ sqliteload: sqliteload.c
 
 rdmkismet: roadmap_kismet.c $(RDMLIBS)
 	$(CC) -g roadmap_kismet.c -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
+
+rdmghost: roadmap_ghost.c $(RDMLIBS)
+	$(CC) -g roadmap_ghost.c -o rdmghost $(RDMLIBS) -lm
 
 # --- The real targets --------------------------------------------
 
