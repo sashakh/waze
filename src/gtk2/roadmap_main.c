@@ -48,8 +48,6 @@
 #include "roadmap_main.h"
 
 
-static int RoadMapMainInputFile = -1;
-
 static char *RoadMapMainTitle = NULL;
 
 struct roadmap_main_timer {
@@ -68,6 +66,14 @@ static GtkWidget      *RoadMapCurrentMenu = NULL;
 static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
 
+
+struct roadmap_main_io {
+   int fd;
+   int id;
+};
+
+#define ROADMAP_MAX_IO 16
+static struct roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO];
 
 static int GtkIconsInitialized = 0;
 
@@ -380,19 +386,31 @@ static void roadmap_main_input
 
 void roadmap_main_set_input (int fd, RoadMapInput callback) {
 
-   if (RoadMapMainInputFile >= 0) {
-      roadmap_main_remove_input (RoadMapMainInputFile);
-   }
+   int i;
 
-   RoadMapMainInputFile =
-      gtk_input_add_full (fd, GDK_INPUT_READ, roadmap_main_input,
-                          NULL, callback, NULL);
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      if (RoadMapMainIo[i].fd < 0) {
+         RoadMapMainIo[i].fd = fd;
+         RoadMapMainIo[i].id =
+            gtk_input_add_full (fd, GDK_INPUT_READ, roadmap_main_input,
+                                NULL, callback, NULL);
+         break;
+      }
+   }
 }
 
 
 void roadmap_main_remove_input (int fd) {
 
-   gtk_input_remove (RoadMapMainInputFile);
+   int i;
+
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      if (RoadMapMainIo[i].fd == fd) {
+         gtk_input_remove (RoadMapMainIo[i].id);
+         RoadMapMainIo[i].fd = -1;
+         break;
+      }
+   }
 }
 
 
@@ -476,6 +494,8 @@ void roadmap_main_exit (void) {
 
 int main (int argc, char **argv) {
 
+   int i;
+
 #ifdef ROADMAP_USES_GPE
    if (! gpe_application_init (&argc, &argv)) {
       exit (1);
@@ -484,6 +504,10 @@ int main (int argc, char **argv) {
 #else
    gtk_init (&argc, &argv);
 #endif
+
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      RoadMapMainIo[i].fd = -1;
+   }
 
    roadmap_start (argc, argv);
 
