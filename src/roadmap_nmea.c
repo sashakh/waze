@@ -496,6 +496,7 @@ static int roadmap_nmea_pxrmdel (int argc, char *argv[]) {
 static int roadmap_nmea_pxrmsub (int argc, char *argv[]) {
 
     int i;
+    int j;
 
     if (argc <= 2) return 0;
 
@@ -503,13 +504,13 @@ static int roadmap_nmea_pxrmsub (int argc, char *argv[]) {
              argv[1],
              sizeof(RoadMapNmeaReceived.pxrmsub.name));
 
-    for (i = 2; i < argc; ++i) {
-       safecpy (RoadMapNmeaReceived.pxrmsub.subscribed[i].item,
-                argv[1],
-                sizeof(RoadMapNmeaReceived.pxrmsub.subscribed[i].item));
+    for (i = 2, j = 0; i < argc; ++i, ++j) {
+       safecpy (RoadMapNmeaReceived.pxrmsub.subscribed[j].item,
+                argv[i],
+                sizeof(RoadMapNmeaReceived.pxrmsub.subscribed[0].item));
     }
 
-    RoadMapNmeaReceived.pxrmsub.count = argc - 2;
+    RoadMapNmeaReceived.pxrmsub.count = j;
 
     return 1;
 }

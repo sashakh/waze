@@ -150,7 +150,9 @@ void roadmap_object_draw (void) {
       if (roadmap_math_point_is_visible(&position)) {
 
          roadmap_math_coordinate (&position, &screen_point);
-         roadmap_sprite_draw (cursor->sprite, &screen_point, 0);
+         roadmap_math_rotate_coordinates (1, &screen_point);
+         roadmap_sprite_draw (cursor->sprite,
+                              &screen_point, cursor->position.steering);
       }
    }
 }

@@ -56,6 +56,8 @@ static int delay_length = 0;
 
 int main(int argc, char *argv[]) {
 
+   int previous = -1;
+
    if (argc > 1 && strcmp(argv[1], "--help") == 0) {
       printf ("usage: %s [--help] [--delay=N]\n"
               "  --delay=N:    set the delay length (default is 10).\n");
@@ -75,7 +77,7 @@ int main(int argc, char *argv[]) {
       roadmap_log (ROADMAP_FATAL, "no memory");
    }
 
-   printf ("$PXRMADD,ghost,ghost,ghost\n");
+   printf ("$PXRMADD,ghost,ghost,Ghost\n");
    printf ("$PXRMSUB,ghost,RMC\n");
    fflush(stdout);
 
@@ -93,30 +95,36 @@ int main(int argc, char *argv[]) {
          int received =
             read (0, delay_line[delay_cursor].data, sizeof(delay_line[0].data));
 
-         if (received <= 0) exit(0); /* RoadMap cut the pipe. */
+         if (received <= 0) {
+            exit(0); /* RoadMap cut the pipe. */
+         }
 
          delay_line[delay_cursor].data[received] = 0;
 
-         delay_cursor += 1;
-         if (delay_cursor >= delay_length) delay_cursor = 0;
+         if (previous >= 0) {
+            if (strcmp (delay_line[delay_cursor].data,
+                        delay_line[previous].data) == 0) {
+
+               continue; /* ignore this repetition. */
+            }
+         }
+
+         previous = delay_cursor;
+         if (++delay_cursor >= delay_length) delay_cursor = 0;
 
 
-         /* Now provide the current position of this station.
-          * The "speed" is actually the station's signal strength
-          * and the "course" represents the channel.
-          */
          if (delay_line[delay_cursor].data[0] != 0) {
 
             /* retrieve the latitude from the RMC sentence (xx field). */
             char *p = strchr (delay_line[delay_cursor].data, ',');
 
             if (p == NULL) continue;
-            p = strchr (p, ',');
+            p = strchr (p+1, ',');    /* Skip the time. */
             if (p == NULL) continue;
-            p = strchr (p, ',');
+            p = strchr (p+1, ',');    /* Skip the status. */
             if (p == NULL) continue;
 
-            printf ("$PXRMMOV,ghost,%s", p);
+            printf ("$PXRMMOV,ghost%s", p);
             fflush (stdout);
          }
 

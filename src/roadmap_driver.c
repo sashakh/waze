@@ -101,20 +101,13 @@ static void roadmap_driver_pxrmmov (void *context,
 
    RoadMapGpsPosition position;
 
-   position.latitude = fields->pxrmmov.latitude;
+   position.latitude  = fields->pxrmmov.latitude;
    position.longitude = fields->pxrmmov.longitude;
 
-   position.speed = fields->pxrmmov.speed;
+   position.speed    = fields->pxrmmov.speed;
+   position.steering = fields->pxrmmov.steering;
+   position.altitude = 0;
 
-   if (position.speed > roadmap_gps_speed_accuracy()) {
-
-      /* Update the steering only if the speed is significant:
-       * when the speed is too low, the steering indicated by
-       * the GPS device is not reliable; in that case the best
-       * guess is that we did not turn.
-       */
-      position.steering  = fields->rmc.steering;
-   }
    roadmap_object_move (fields->pxrmadd.id, &position);
 
    (*RoadMapDriverNextPxrmmov) (context, fields);
@@ -146,6 +139,7 @@ static void roadmap_driver_pxrmsub (void *context,
          if (strcasecmp(fields->pxrmsub.subscribed[i].item, "RMC") == 0) {
 
             driver->subscription |= ROADMAP_DRIVER_RMC;
+            RoadMapDriverSubscription |= ROADMAP_DRIVER_RMC;
 
          } else {
 
@@ -166,11 +160,12 @@ static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
    int degrees;
    int minutes;
 
+   value = abs(value);
    degrees = value / 1000000;
    value = 60 * (value % 1000000);
    minutes = value / 1000000;
 
-   *ddmm = degrees * 10 + minutes;
+   *ddmm = degrees * 100 + minutes;
    *mmmm = (value % 1000000) / 100;
 }
 
@@ -237,6 +232,7 @@ void roadmap_driver_initialize (void) {
    char *p;
    char *name;
    char *command;
+   char *arguments;
    FILE *file;
    char  buffer[1024];
 
@@ -278,13 +274,24 @@ void roadmap_driver_initialize (void) {
             continue;
          }
          *command = 0; /* Separate the name from the value. */
-         for (++command; isspace(command); ++command) ;
+         for (++command; isspace(*command); ++command) ;
+
+         /* retrieve the arguments part of the driver command. */
+         arguments = strchr(command, ' ');
+         if (arguments == NULL) {
+            arguments = strchr(command, '\t');
+         }
+
+         if (arguments != NULL) {
+            *arguments = 0; /* Separate the name from the arguments. */
+            for (++arguments; isspace(*arguments); ++arguments) ;
+         }
 
          driver = calloc (1, sizeof(struct roadmap_driver_descriptor));
          if (driver == NULL) break;
 
          if (roadmap_spawn_with_pipe
-               (command, p, driver->pipes, &driver->process) > 0) {
+               (command, arguments, driver->pipes, &driver->process) > 0) {
 
             /* Declare this I/O to the GUI so that we can wake up
              * when the driver talks to us.
@@ -295,6 +302,9 @@ void roadmap_driver_initialize (void) {
 
             driver->name = strdup(name);
             driver->subscription = 0;
+
+            driver->next = RoadMapDriverList;
+            RoadMapDriverList = driver;
 
          } else {
             free (driver);
@@ -321,7 +331,13 @@ void roadmap_driver_initialize (void) {
 void roadmap_driver_register_link_control
         (roadmap_gps_link_control add, roadmap_gps_link_control remove) {
 
+   struct roadmap_driver_descriptor *driver;
+
    RoadMapDriverLinkAdd    = add;
    RoadMapDriverLinkRemove = remove;
+
+   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+      (*add) (driver->pipes[0]);
+   }
 }
 
