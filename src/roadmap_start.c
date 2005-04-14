@@ -59,6 +59,7 @@
 #include "roadmap_copy.h"
 #include "roadmap_httpcopy.h"
 #include "roadmap_download.h"
+#include "roadmap_driver.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
@@ -611,6 +612,8 @@ static void roadmap_gps_update (const RoadMapGpsPosition *gps_position) {
          RoadMapStartGpsRefresh = 1;
       }
    }
+
+   roadmap_driver_publish (gps_position);
 }
 
 
@@ -659,6 +662,9 @@ static void roadmap_start_window (void) {
 
    roadmap_gps_register_periodic_control
       (roadmap_start_set_timeout, roadmap_main_remove_periodic);
+
+   roadmap_driver_register_link_control
+      (roadmap_start_add_gps, roadmap_main_remove_input);
 }
 
 
@@ -766,6 +772,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
    roadmap_object_initialize ();
+   roadmap_driver_initialize ();
 
    roadmap_screen_set_initial_position ();
 
