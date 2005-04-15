@@ -137,6 +137,8 @@ static void roadmap_gps_process_position (void) {
 
    int i;
 
+   RoadMapGpsLatestData = time(NULL);
+
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
       if (RoadMapGpsListeners[i] == NULL) break;
@@ -381,95 +383,45 @@ void roadmap_gps_register_periodic_control
 }
 
 
+static int roadmap_gps_receive (void *context, char *data, int size) {
+
+   return roadmap_net_receive ((int)context, data, size);
+}
+
+
+static void roadmap_gps_call_logger (const char *data) {
+
+   int i;
+
+   for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
+      if (RoadMapGpsLoggers[i] == NULL) break;
+      (RoadMapGpsLoggers[i]) (data);
+   }
+}
+
+
 void roadmap_gps_input (int fd) {
 
-   static char input_buffer[1024];
-   static int  input_cursor = 0;
+   static RoadMapNmeaContext nmea;
 
-   int received;
-
-
-   if (input_cursor < (int)sizeof(input_buffer) - 1) {
-
-      received =
-         roadmap_net_receive
-            (fd, input_buffer + input_cursor,
-                 sizeof(input_buffer) - input_cursor - 1);
-
-      if (received <= 0) {
-
-         if (errno != 0) {
-            roadmap_log (ROADMAP_ERROR,
-                         "lost GPS connection after %d seconds, errno = %d",
-                         time(NULL) - RoadMapGpsConnectedSince, errno);
-         } else {
-            roadmap_log (ROADMAP_INFO,
-                         "lost GPS connection after %d seconds",
-                         time(NULL) - RoadMapGpsConnectedSince);
-         }
-
-         /* We lost that connection. */
-
-         (*RoadMapGpsLinkRemove) (fd);
-         close (fd);
-
-         /* Try to establish a new connection: */
-
-         roadmap_gps_open();
-
-      } else {
-         input_cursor += received;
-      }
+   if (nmea.title == NULL) {
+      nmea.title = "GPS receiver";
+      nmea.receive = roadmap_gps_receive;
+      nmea.logger  = roadmap_gps_call_logger;
    }
-
-   while (input_cursor > 0) {
-
-      int i;
-      int next;
-      int line_is_complete;
-
-      char *new_line;
-      char *carriage_return;
+   nmea.user_context = (void *)fd;
 
 
-      input_buffer[input_cursor] = 0;
+   if (roadmap_nmea_input (&nmea) < 0) {
 
-      line_is_complete = 0;
-      new_line = strchr (input_buffer, '\n');
-      carriage_return = strchr (input_buffer, '\r');
+      /* We lost that connection. */
 
-      if (new_line != NULL) {
-         *new_line = 0;
-         line_is_complete = 1;
-      }
-      if (carriage_return != NULL) {
-         *carriage_return = 0;
-         line_is_complete = 1;
-      }
+      (*RoadMapGpsLinkRemove) (fd);
+      close (fd);
 
-      if (! line_is_complete) break;
+      /* Try to establish a new connection: */
 
-      next = strlen (input_buffer) + 1;
-
-
-      for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
-
-         if (RoadMapGpsLoggers[i] == NULL) break;
-
-         (RoadMapGpsLoggers[i]) (input_buffer);
-      }
-
-      if (roadmap_nmea_decode (NULL, input_buffer)) {
-         RoadMapGpsLatestData = time(NULL);
-      }
-
-      while ((input_buffer[next] < ' ') && (next < input_cursor)) next++;
-
-      input_cursor -= next;
-
-      for (i = 0; i < input_cursor; ++i) {
-         input_buffer[i] = input_buffer[next+i];
-      }
+      roadmap_gps_open();
    }
 }
 

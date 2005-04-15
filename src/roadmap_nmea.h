@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _ROADMAP_NMEA__H_
-#define _ROADMAP_NMEA__H_
+#ifndef INCLUDED__ROADMAP_NMEA__H
+#define INCLUDED__ROADMAP_NMEA__H
 
 #include "sys/time.h"
 
@@ -130,6 +130,7 @@ typedef union {
 
 } RoadMapNmeaFields;
 
+
 typedef void (*RoadMapNmeaFilter)   (RoadMapNmeaFields *fields);
 typedef void (*RoadMapNmeaListener) (void *context,
                                      const RoadMapNmeaFields *fields);
@@ -146,7 +147,23 @@ RoadMapNmeaListener
                             RoadMapNmeaListener listener);
 
 
-int roadmap_nmea_decode (void *context, char *sentence);
+typedef void (*RoadMapNmeaLogger)  (const char *data);
+typedef int  (*RoadMapNmeaReceive) (void *context, char *data, int size);
 
-#endif // _ROADMAP_NMEA__H_
+typedef struct roadmap_nmea_context {
+
+   const char *title;
+   void       *user_context;
+
+   RoadMapNmeaLogger  logger;
+   RoadMapNmeaReceive receive;
+
+   char data[1024];
+   int  cursor;
+
+} RoadMapNmeaContext;
+
+int roadmap_nmea_input (RoadMapNmeaContext *context);
+
+#endif // INCLUDED__ROADMAP_NMEA__H
 

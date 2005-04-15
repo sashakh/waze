@@ -682,7 +682,8 @@ static int roadmap_nmea_call (void *context,
    return 0; /* Could not decode it. */
 }
 
-int roadmap_nmea_decode (void *context, char *sentence) {
+
+static int roadmap_nmea_decode (void *context, char *sentence) {
 
    int i;
    char *p = sentence;
@@ -765,6 +766,87 @@ int roadmap_nmea_decode (void *context, char *sentence) {
 
    roadmap_log (ROADMAP_DEBUG, "unknown nmea sentence %s\n", field[0]);
 
-   return 0; /* No GPS information was generated or used. */
+   return 0; /* Could not decode it. */
+}
+
+
+int roadmap_nmea_input (RoadMapNmeaContext *context) {
+
+   int result;
+   int received;
+
+
+   if (context->cursor < (int)sizeof(context->data) - 1) {
+
+      received =
+         context->receive (context->user_context,
+                           context->data + context->cursor,
+                           sizeof(context->data) - context->cursor - 1);
+
+      if (received <= 0) {
+
+         /* We lost that connection. */
+
+         if (errno != 0) {
+            roadmap_log (ROADMAP_ERROR,
+                         "lost %s, errno = %d", context->title, errno);
+         } else {
+            roadmap_log (ROADMAP_INFO, "lost %s", context->title);
+         }
+         return -1;
+
+      } else {
+         context->cursor += received;
+      }
+   }
+
+   result = 0;
+
+   while (context->cursor > 0) {
+
+      int i;
+      int next;
+      int line_is_complete;
+
+      char *new_line;
+      char *carriage_return;
+
+
+      context->data[context->cursor] = 0;
+
+      line_is_complete = 0;
+      new_line = strchr (context->data, '\n');
+      carriage_return = strchr (context->data, '\r');
+
+      if (new_line != NULL) {
+         *new_line = 0;
+         line_is_complete = 1;
+      }
+      if (carriage_return != NULL) {
+         *carriage_return = 0;
+         line_is_complete = 1;
+      }
+
+      if (! line_is_complete) break;
+
+      next = strlen (context->data) + 1;
+
+
+      if (context->logger != NULL) {
+         context->logger (context->data);
+      }
+
+      result |= roadmap_nmea_decode (context->user_context, context->data);
+
+      while ((context->data[next] < ' ') && (next < context->cursor)) next++;
+
+      context->cursor -= next;
+
+      for (i = 0; i < context->cursor; ++i) {
+         context->data[i] = context->data[next+i];
+      }
+   }
+
+   return result;
 }
 

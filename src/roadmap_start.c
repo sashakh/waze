@@ -636,6 +636,11 @@ static void roadmap_start_add_gps (int fd) {
    roadmap_main_set_input (fd, roadmap_gps_input);
 }
 
+static void roadmap_start_add_driver (int fd) {
+
+   roadmap_main_set_input (fd, roadmap_driver_input);
+}
+
 
 static void roadmap_start_set_timeout (RoadMapCallback callback) {
 
@@ -664,7 +669,7 @@ static void roadmap_start_window (void) {
       (roadmap_start_set_timeout, roadmap_main_remove_periodic);
 
    roadmap_driver_register_link_control
-      (roadmap_start_add_gps, roadmap_main_remove_input);
+      (roadmap_start_add_driver, roadmap_main_remove_input);
 }
 
 
