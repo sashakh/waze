@@ -763,6 +763,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_history_initialize  ();
    roadmap_download_initialize ();
    roadmap_adjust_initialize   ();
+   roadmap_driver_initialize   ();
    roadmap_config_initialize   ();
 
    roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
@@ -777,12 +778,12 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
    roadmap_object_initialize ();
-   roadmap_driver_initialize ();
 
    roadmap_screen_set_initial_position ();
 
    roadmap_history_load ();
    
+   roadmap_driver_activate ();
    roadmap_gps_open ();
 
    roadmap_spawn_initialize (argv[0]);
@@ -803,6 +804,7 @@ void roadmap_start (int argc, char **argv) {
 
 void roadmap_start_exit (void) {
     
+    roadmap_driver_shutdown ();
     roadmap_history_save();
     roadmap_config_save (0);
     roadmap_start_save_trip ();

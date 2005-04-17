@@ -57,6 +57,8 @@
 typedef struct roadmap_driver_descriptor {
 
    char *name;
+   char *command;
+   char *arguments;
 
    RoadMapFeedback process;
    int             pipes[2];
@@ -89,6 +91,14 @@ static RoadMapNmeaListener RoadMapDriverNextPxrmsub = NULL;
 
 
 
+static char *roadmap_driver_strdup (const char *text) {
+
+   if (text == NULL) return NULL;
+
+   return strdup(text);
+}
+
+
 static RoadMapDriver *roadmap_driver_find (const char *name) {
 
    RoadMapDriver *driver;
@@ -103,7 +113,10 @@ static RoadMapDriver *roadmap_driver_find (const char *name) {
 static void roadmap_driver_pxrmadd (void *context,
                                     const RoadMapNmeaFields *fields) {
 
-   roadmap_object_add (fields->pxrmadd.id,
+   RoadMapDriver *driver = (RoadMapDriver *)context;
+
+   roadmap_object_add (driver->name,
+                       fields->pxrmadd.id,
                        fields->pxrmadd.name,
                        fields->pxrmadd.sprite);
 
@@ -168,14 +181,22 @@ static void roadmap_driver_pxrmsub (void *context,
 }
 
 
-static void roadmap_driver_handler (void *context) {
+static void roadmap_driver_onexit (void *context) {
 
    RoadMapDriver *driver = (RoadMapDriver *) context;
 
-   (*RoadMapDriverLinkRemove) (driver->pipes[0]);
+   if (driver->pipes[0] > 0) {
 
-   close(driver->pipes[0]);
-   close(driver->pipes[1]);
+      roadmap_object_cleanup (driver->name);
+
+      (*RoadMapDriverLinkRemove) (driver->pipes[0]);
+
+      close(driver->pipes[0]);
+      close(driver->pipes[1]);
+
+      driver->pipes[0] = -1;
+      driver->pipes[1] = -1;
+   }
 }
 
 
@@ -253,35 +274,26 @@ static void roadmap_driver_configure (const char *path) {
          driver = calloc (1, sizeof(RoadMapDriver));
          if (driver == NULL) break;
 
-         driver->process.handler = roadmap_driver_handler;
+         driver->name      = roadmap_driver_strdup(name);
+         driver->command   = roadmap_driver_strdup(command);
+         driver->arguments = roadmap_driver_strdup(arguments);
+
+         driver->pipes[0] = -1;
+         driver->pipes[1] = -1;
+         driver->process.handler = roadmap_driver_onexit;
          driver->process.data    = (void *)driver;
 
-         if (roadmap_spawn_with_pipe
-               (command, arguments, driver->pipes, &driver->process) > 0) {
+         driver->subscription = 0;
 
-            /* Declare this I/O to the GUI so that we can wake up
-             * when the driver talks to us.
-             */
-            (*RoadMapDriverLinkAdd) (driver->pipes[0]);
+         /* Prepare the NMEA context. */
+         driver->nmea.title        = driver->name;
+         driver->nmea.user_context = driver;
+         driver->nmea.cursor       = 0;
+         driver->nmea.logger       = NULL;
+         driver->nmea.receive      = roadmap_driver_receive;
 
-            // TBD: any initialization message needed??
-
-            driver->name = strdup(name);
-            driver->subscription = 0;
-
-            driver->next = RoadMapDriverList;
-            RoadMapDriverList = driver;
-
-            /* Prepare the NMEA context. */
-            driver->nmea.title        = driver->name;
-            driver->nmea.user_context = driver;
-            driver->nmea.cursor       = 0;
-            driver->nmea.logger       = NULL;
-            driver->nmea.receive      = roadmap_driver_receive;
-
-         } else {
-            free (driver);
-         }
+         driver->next = RoadMapDriverList;
+         RoadMapDriverList = driver;
       }
 
       fclose(file);
@@ -354,7 +366,8 @@ void roadmap_driver_publish (const RoadMapGpsPosition *position) {
    length = strlen(buffer);
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      if (driver->subscription & ROADMAP_DRIVER_RMC) {
+      if ((driver->pipes[1] > 0) &&
+          (driver->subscription & ROADMAP_DRIVER_RMC)) {
          write (driver->pipes[1], buffer, length);
       }
    }
@@ -368,7 +381,9 @@ void roadmap_driver_input (int fd) {
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
 
       if (driver->pipes[0] == fd) {
-         roadmap_nmea_input (&driver->nmea);
+         if (roadmap_nmea_input (&driver->nmea) < 0) {
+            roadmap_driver_onexit (driver);
+         }
          break;
       }
    }
@@ -403,16 +418,43 @@ void roadmap_driver_initialize (void) {
 }
 
 
-void roadmap_driver_register_link_control
-        (roadmap_gps_link_control add, roadmap_gps_link_control remove) {
+void roadmap_driver_activate (void) {
 
    RoadMapDriver *driver;
 
+   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+
+      if (roadmap_spawn_with_pipe
+            (driver->command,
+             driver->arguments,
+             driver->pipes,
+             &driver->process) > 0) {
+
+         /* Declare this I/O to the GUI so that we can wake up
+          * when the driver talks to us.
+          */
+         (*RoadMapDriverLinkAdd) (driver->pipes[0]);
+
+         // TBD: any initialization message needed??
+      }
+   }
+}
+
+
+void roadmap_driver_register_link_control
+        (roadmap_gps_link_control add, roadmap_gps_link_control remove) {
+
    RoadMapDriverLinkAdd    = add;
    RoadMapDriverLinkRemove = remove;
+}
+
+
+void roadmap_driver_shutdown (void) {
+
+   RoadMapDriver *driver;
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      (*add) (driver->pipes[0]);
+      roadmap_driver_onexit (driver);
    }
 }
 
