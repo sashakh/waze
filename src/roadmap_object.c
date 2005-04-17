@@ -47,6 +47,8 @@ struct RoadMapObjectDescriptor {
 
    char *id; /* Must be unique. */
 
+   char *origin;
+
    char *name; /* What's shown on display, don't need to be unique. */
    char *sprite; /* .. that is used to represent the object on screen. */
 
@@ -74,7 +76,8 @@ RoadMapObject *roadmap_object_search (const char *id) {
 }
 
 
-void roadmap_object_add (const char *id,
+void roadmap_object_add (const char *origin,
+                         const char *id,
                          const char *name,
                          const char *sprite) {
 
@@ -87,8 +90,9 @@ void roadmap_object_add (const char *id,
          roadmap_log (ROADMAP_ERROR, "no more memory");
          return;
       }
-      cursor->id = strdup(id);
-      cursor->name = strdup(name);
+      cursor->id     = strdup(id);
+      cursor->origin = strdup(origin);
+      cursor->name   = strdup(name);
       cursor->sprite = strdup(sprite);
 
       cursor->previous  = NULL;
@@ -129,6 +133,7 @@ void roadmap_object_remove (const char *id) {
       }
 
       free (cursor->id);
+      free (cursor->origin);
       free (cursor->name);
       free (cursor->sprite);
       free (cursor);
@@ -153,6 +158,22 @@ void roadmap_object_draw (void) {
          roadmap_math_rotate_coordinates (1, &screen_point);
          roadmap_sprite_draw (cursor->sprite,
                               &screen_point, cursor->position.steering);
+      }
+   }
+}
+
+
+void roadmap_object_cleanup (const char *origin) {
+
+   RoadMapObject *cursor;
+   RoadMapObject *next;
+
+   for (cursor = RoadmapObjectList; cursor != NULL; cursor = next) {
+
+      next = cursor->next;
+
+      if (strcasecmp (origin, cursor->origin) == 0) {
+         roadmap_object_remove (cursor->id);
       }
    }
 }

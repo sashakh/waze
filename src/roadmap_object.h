@@ -36,7 +36,8 @@
 #include "roadmap_gps.h"
 
 
-void roadmap_object_add (const char *id,
+void roadmap_object_add (const char *origin,
+                         const char *id,
                          const char *name,
                          const char *sprite);
 
@@ -44,6 +45,7 @@ void roadmap_object_move (const char *id,
                           const RoadMapGpsPosition *position);
 
 void roadmap_object_remove (const char *id);
+void roadmap_object_cleanup (const char *origin);
 
 void roadmap_object_draw (void);
 
