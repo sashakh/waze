@@ -91,8 +91,8 @@ INSTALLATION
    to take advantage of a GPS receiver. However gpsd is not required when
    building RoadMap, and RoadMap can run without gpsd as a static map viewer
    or address finder. In addition, gpsd may run on a remote computer
-   accessible through a TCP/IP network: in this case the remote computer
-   will be tacked by RoadMap, not the local one..
+   accessible through a TCP/IP network: in this case gpsd must be installed
+   on the remote computer, but is not needed on the local computer.
 
    RoadMap uses either GTK, GTK2 or QT for its user interface. One of these
    toolkits must be installed. RoadMap can be built for QT/QPE, but the
@@ -111,6 +111,13 @@ INSTALLATION
    is to store the points in a SQLite database. RoadMap is not at this time
    dependent on SQLite, even while using SQLite will be an option in the
    future.
+
+   By default RoadMap use the shapelib library (to decode the shape file
+   format). The shape file format is only used for converting the Digital
+   Charts of the World. If only US maps from the census bureau are used,
+   or if only pre-built maps are used, then there is no need for shapelib:
+   build RoadMap with the make option: SHAPEFILES=NO.
+
 
 * DOWNLOADING
 
