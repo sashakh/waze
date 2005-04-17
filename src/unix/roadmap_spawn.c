@@ -257,6 +257,8 @@ static int roadmap_spawn_child (const char *name,
 
 void roadmap_spawn_initialize (const char *argv0) {
 
+   signal (SIGPIPE, SIG_IGN);
+
    if ((argv0[0] == '/') || (strncmp (argv0, "../", 3) == 0)) {
 
        char *last_slash;
