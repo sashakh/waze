@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
       roadmap_log (ROADMAP_FATAL, "no memory");
    }
 
-   printf ("$PXRMADD,ghost,ghost,Ghost\n");
+   printf ("$PXRMADD,ghost,ghost,Friend\n");
    printf ("$PXRMSUB,ghost,RMC\n");
    fflush(stdout);
 

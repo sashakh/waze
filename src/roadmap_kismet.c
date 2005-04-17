@@ -234,7 +234,7 @@ int main(int argc, char *argv[]) {
             knl[i].bbot = bssbot;
 
             printf ("$PXRMADD,ksm%d,"    /* ID for this node. */
-                  "%02x:%02x:%02x:%02x:%02x:%02x,kismet\n", /* MAC address */
+                  "%02x:%02x:%02x:%02x:%02x:%02x,Kismet\n", /* MAC address */
                   i,
                   bssid[0], bssid[1], bssid[2], bssid[3], bssid[4], bssid[5]);
          }
