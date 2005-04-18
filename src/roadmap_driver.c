@@ -51,6 +51,10 @@
 
 #include "roadmap_driver.h"
 
+
+static RoadMapConfigDescriptor RoadMapDriverTemplate =
+                         ROADMAP_CONFIG_ITEM("Drivers", "xxx");
+
 /* What the driver may subscribe to (a bit mask): */
 #define ROADMAP_DRIVER_RMC    1  /* Subscribed to GPRMC information. */
 
@@ -62,6 +66,8 @@ typedef struct roadmap_driver_descriptor {
 
    RoadMapFeedback process;
    int             pipes[2];
+
+   RoadMapConfigDescriptor enable;
 
    RoadMapNmeaContext nmea;
 
@@ -292,6 +298,13 @@ static void roadmap_driver_configure (const char *path) {
          driver->nmea.logger       = NULL;
          driver->nmea.receive      = roadmap_driver_receive;
 
+         /* Configuration item (enable/disable). */
+         driver->enable = RoadMapDriverTemplate;
+         driver->enable.name = driver->name;
+
+         roadmap_config_declare_enumeration
+            ("preferences", &driver->enable, "Disabled", "Enabled", NULL);
+
          driver->next = RoadMapDriverList;
          RoadMapDriverList = driver;
       }
@@ -423,6 +436,8 @@ void roadmap_driver_activate (void) {
    RoadMapDriver *driver;
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+
+      if (strcasecmp(roadmap_config_get (&driver->enable), "Enabled")) continue;
 
       if (roadmap_spawn_with_pipe
             (driver->command,
