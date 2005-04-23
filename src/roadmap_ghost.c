@@ -44,6 +44,8 @@
 #include "roadmap.h"
 
 
+#define ROADMAP_GHOST_ID   "ghst001"
+
 struct delay_buffer {
     char data[256];
 };
@@ -77,8 +79,8 @@ int main(int argc, char *argv[]) {
       roadmap_log (ROADMAP_FATAL, "no memory");
    }
 
-   printf ("$PXRMADD,ghost,ghost,Friend\n");
-   printf ("$PXRMSUB,ghost,RMC\n");
+   printf ("$PXRMADD," ROADMAP_GHOST_ID ",Ghost,Friend\n");
+   printf ("$PXRMSUB,RMC\n");
    fflush(stdout);
 
    for(;;) {
@@ -124,7 +126,7 @@ int main(int argc, char *argv[]) {
             p = strchr (p+1, ',');    /* Skip the status. */
             if (p == NULL) continue;
 
-            printf ("$PXRMMOV,ghost%s", p);
+            printf ("$PXRMMOV," ROADMAP_GHOST_ID "%s", p);
             fflush (stdout);
          }
 

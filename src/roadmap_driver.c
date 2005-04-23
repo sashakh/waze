@@ -161,9 +161,7 @@ static void roadmap_driver_pxrmsub (void *context,
                                     const RoadMapNmeaFields *fields) {
 
    int i;
-   RoadMapDriver *driver;
-
-   driver = roadmap_driver_find(fields->pxrmsub.name);
+   RoadMapDriver *driver = (RoadMapDriver *)context;
 
    if (driver != NULL) {
       for (i = 0; i < fields->pxrmsub.count; ++i) {

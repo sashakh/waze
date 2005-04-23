@@ -498,13 +498,9 @@ static int roadmap_nmea_pxrmsub (int argc, char *argv[]) {
     int i;
     int j;
 
-    if (argc <= 2) return 0;
+    if (argc <= 1) return 0;
 
-    safecpy (RoadMapNmeaReceived.pxrmsub.name,
-             argv[1],
-             sizeof(RoadMapNmeaReceived.pxrmsub.name));
-
-    for (i = 2, j = 0; i < argc; ++i, ++j) {
+    for (i = 1, j = 0; i < argc; ++i, ++j) {
        safecpy (RoadMapNmeaReceived.pxrmsub.subscribed[j].item,
                 argv[i],
                 sizeof(RoadMapNmeaReceived.pxrmsub.subscribed[0].item));

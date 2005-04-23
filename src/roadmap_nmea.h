@@ -121,7 +121,6 @@ typedef union {
    } pxrmdel;
 
    struct {
-      char name[32];
       int  count;
       struct {
          char item[8];
