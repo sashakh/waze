@@ -1,4 +1,16 @@
+# --- Tool specific options ------------------------------------------------
 
+RANLIB = ranlib
+
+HOST=`uname -s`
+ifeq ($(HOST),Darwin)
+	ARFLAGS="r"
+else
+	ARFLAGS="rf"
+endif
+
+
+# --- RoadMap sources & targets --------------------------------------------
 
 OSLIBSRCS=roadmap_file.c \
           roadmap_path.c \
@@ -27,8 +39,10 @@ install:
 
 uninstall:
 
+
 # --- The real targets --------------------------------------------
 
 libosroadmap.a: $(OSLIBOBJS)
-	$(AR) rf libosroadmap.a $(OSLIBOBJS)
+	$(AR) $(ARFLAGS) libosroadmap.a $(OSLIBOBJS)
+	$(RANLIB) libosroadmap.a
 

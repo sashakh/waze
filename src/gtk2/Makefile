@@ -1,3 +1,14 @@
+# --- Installation options -------------------------------------------------
+
+DESTDIR=
+INSTALLDIR=/usr/local
+bindir=$(INSTALLDIR)/bin
+
+
+# --- Tool specific options ------------------------------------------------
+
+RANLIB=ranlib
+STRIP=strip
 
 GUICFLAGS=`pkg-config --cflags gtk+-2.0`
 GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
@@ -5,10 +16,11 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
 GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
-STRIP=strip
 
 WARNFLAGS = -W -Wall
+
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
+
 
 ifeq ($(MODE),DEBUG)
    STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
@@ -30,6 +42,16 @@ else
 endif
 
 
+HOST=`uname -s`
+ifeq ($(HOST),Darwin)
+	ARFLAGS="r"
+else
+	ARFLAGS="rf"
+endif
+
+
+# --- RoadMap sources & targets -----------------------------------
+
 RMLIBSRCS=roadmap_keyboard.c \
           roadmap_messagebox.c \
           roadmap_dialog.c \
@@ -40,9 +62,6 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
 RUNTIME=gtkroadgps gtkroadmap
 
-DESTDIR=
-INSTALLDIR=/usr/local
-bindir=$(INSTALLDIR)/bin
 
 # --- Conventional targets ----------------------------------------
 
@@ -82,7 +101,8 @@ uninstall:
 # --- The real targets --------------------------------------------
 
 libgtkroadmap.a: $(RMLIBOBJS)
-	$(AR) rf libgtkroadmap.a $(RMLIBOBJS)
+	$(AR) $(ARFLAGS) libgtkroadmap.a $(RMLIBOBJS)
+	$(RANLIB) libgtkroadmap.a
 
 gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
 	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)

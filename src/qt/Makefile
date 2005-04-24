@@ -1,13 +1,23 @@
-
-GUICFLAGS=-I/usr/include/qt3
-GUILDFLAGS=-lqt
-MOC=/usr/bin/moc
+# --- Installation options -------------------------------------------------
 
 DESTDIR=
 INSTALLDIR=/usr/local
 bindir=$(INSTALLDIR)/bin
 desktopdir=$(INSTALLDIR)/apps/Applications
 pkgdatadir=$(INSTALLDIR)/share/roadmap
+
+
+# --- Tool specific options ------------------------------------------------
+
+RANLIB=ranlib
+STRIP=strip
+
+WARNFLAGS=-W -Wall
+
+GUICFLAGS=-I/usr/include/qt3
+GUILDFLAGS=-lqt
+MOC=/usr/bin/moc
+
 
 ifeq ($(DESKTOP),QPE)
    GUICFLAGS=-I$(QTDIR)/include -DQWS
@@ -16,8 +26,6 @@ ifeq ($(DESKTOP),QPE)
    LDFLAGS=-L$(QTDIR)/lib
    INSTALLDIR=$(QTDIR)
 endif
-
-WARNFLAGS=-W -Wall
 
 ifeq ($(MODE),DEBUG)
    STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
@@ -33,31 +41,36 @@ endif
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
 CPPFLAGS=-I.. $(GUICFLAGS) $(STDCFLAGS) -fno-rtti -fno-exceptions -pipe
 
+HOST=`uname -s`
+ifeq ($(HOST),Darwin)
+	ARFLAGS="r"
+else
+	ARFLAGS="rf"
+endif
+
 RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a ../libroadmap.a
 LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
-STRIP=strip
 
 
+# --- RoadMap sources & targets --------------------------------------------
 
-RMLIBSRCS= \
-	  qt_main.cc \
-	  moc_qt_main.cc \
-	  qt_canvas.cc \
-	  moc_qt_canvas.cc \
-          roadmap_canvas.cc \
-	  qt_dialog.cc \
-	  moc_qt_dialog.cc \
-          roadmap_dialog.cc \
-	  qt_fileselection.cc \
-	  moc_qt_fileselection.cc \
-	  roadmap_fileselection.cc \
-          roadmap_messagebox.c \
+RMLIBSRCS= qt_main.cc \
+           moc_qt_main.cc \
+           qt_canvas.cc \
+           moc_qt_canvas.cc \
+           roadmap_canvas.cc \
+           qt_dialog.cc \
+           moc_qt_dialog.cc \
+           roadmap_dialog.cc \
+           qt_fileselection.cc \
+           moc_qt_fileselection.cc \
+           roadmap_fileselection.cc \
+           roadmap_messagebox.c
 
 RMLIBOBJS1=$(RMLIBSRCS:.c=.o)
 RMLIBOBJS=$(RMLIBOBJS1:.cc=.o)
 
 RUNTIME=qtroadmap qtroadgps
-
 
 
 # --- Conventional targets ----------------------------------------
@@ -103,10 +116,12 @@ uninstall:
 	cd $(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	$(MAKE) -C .. uninstall
 
+
 # --- The real targets --------------------------------------------
 
 libqtroadmap.a: $(RMLIBOBJS)
-	$(AR) rf libqtroadmap.a $(RMLIBOBJS)
+	$(AR) $(ARFLAGS) libqtroadmap.a $(RMLIBOBJS)
+	$(RANLIB) libqtroadmap.a
 
 qtroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
 	$(CXX)  -o qtroadmap roadmap_main.o ../libguiroadmap.a $(LIBS)

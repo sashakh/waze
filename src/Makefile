@@ -1,5 +1,26 @@
+# --- Installation options -------------------------------------------------
+
+DESTDIR=
+INSTALLDIR=/usr/local
+desktopdir=$(INSTALLDIR)/applications
+pkgdatadir=$(INSTALLDIR)/share/roadmap
+bindir=$(INSTALLDIR)/bin
+pkgbindir=$(bindir)
+menudir=$(DESTDIR)/usr/lib/menu
+ICONDIR=$(INSTALLDIR)/share/pixmaps
+mandir=$(INSTALLDIR)/share/man
+man1dir=$(mandir)/man1
+
+INSTALL      = install
+INSTALL_DATA = install -m644
+
+
+# --- Tool specific options ------------------------------------------------
+
+RANLIB = ranlib
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
+
 
 ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
@@ -49,6 +70,13 @@ endif
 endif
 endif
 
+HOST=`uname -s`
+ifeq ($(HOST),Darwin)
+	ARFLAGS="r"
+else
+	ARFLAGS="rf"
+endif
+
 ifeq ($(SHAPEFILES),NO)
    ROADMAP_USE_SHAPEFILES=
    SHAPELDFLAGS=
@@ -59,12 +87,12 @@ endif
 
 CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
-TOOLS=sunrise $(SQLTOOLS) rdmkismet rdmghost
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
 LIBS=$(RDMLIBS) -lpopt -lm
 
 
+# --- RoadMap sources & targets --------------------------------------------
 
 RMLIBSRCS=roadmap_log.c \
           roadmap_message.c \
@@ -182,20 +210,7 @@ PKGDATAFILES=sprites preferences schema session
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
-
-DESTDIR=
-INSTALLDIR=/usr/local
-desktopdir=$(INSTALLDIR)/applications
-pkgdatadir=$(INSTALLDIR)/share/roadmap
-bindir=$(INSTALLDIR)/bin
-pkgbindir=$(bindir)
-menudir=$(DESTDIR)/usr/lib/menu
-ICONDIR=$(INSTALLDIR)/share/pixmaps
-mandir=$(INSTALLDIR)/share/man
-man1dir=$(mandir)/man1
-
-INSTALL      = install
-INSTALL_DATA = install -m644
+TOOLS=sunrise $(SQLTOOLS) rdmkismet rdmghost
 
 
 # --- Conventional targets ----------------------------------------
@@ -288,13 +303,16 @@ rdmghost: roadmap_ghost.c $(RDMLIBS)
 # --- The real targets --------------------------------------------
 
 libroadmap.a: $(RMLIBOBJS)
-	$(AR) rf libroadmap.a $(RMLIBOBJS)
+	$(AR) $(ARFLAGS) libroadmap.a $(RMLIBOBJS)
+	$(RANLIB) libroadmap.a
 
 libguiroadmap.a: $(RMGUIOBJS) $(RMPLUGINOBJS)
-	$(AR) rf libguiroadmap.a $(RMGUIOBJS) $(RMPLUGINOBJS)
+	$(AR) $(ARFLAGS) libguiroadmap.a $(RMGUIOBJS) $(RMPLUGINOBJS)
+	$(RANLIB) libguiroadmap.a
 
 libguiroadgps.a: $(RGGUIOBJS)
-	$(AR) rf libguiroadgps.a $(RGGUIOBJS)
+	$(AR) $(ARFLAGS) libguiroadgps.a $(RGGUIOBJS)
+	$(RANLIB) libguiroadgps.a
 
 unix/libosroadmap.a:
 	if [ -d unix ] ; then $(MAKE) -C unix "CFLAGS=$(CFLAGS) -I.." ; fi
