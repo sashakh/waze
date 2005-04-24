@@ -151,7 +151,7 @@ static void roadmap_start_create_trip (void) {
 
 static void roadmap_start_open_trip (void) {
     
-    roadmap_trip_load (NULL);
+    roadmap_trip_load (NULL, 0);
 }
 
 static void roadmap_start_save_trip (void) {
@@ -794,7 +794,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_trip_restore_focus ();
 
-   if (! roadmap_trip_load (roadmap_trip_current())) {
+   if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
       roadmap_start_create_trip ();
    }
 

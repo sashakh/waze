@@ -302,7 +302,7 @@ static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode)
     if (mode[0] == 'w') {
         roadmap_trip_save (filename);
     } else {
-        roadmap_trip_load (filename);
+        roadmap_trip_load (filename, 0);
     }
 }
 
@@ -1020,7 +1020,7 @@ void roadmap_trip_initialize (void) {
 }
 
 
-int roadmap_trip_load (const char *name) {
+int roadmap_trip_load (const char *name, int silent) {
     
     FILE *file;
     int   i;
@@ -1033,14 +1033,16 @@ int roadmap_trip_load (const char *name) {
 
     /* Load waypoints from the user environment. */
     
-    file = roadmap_trip_fopen (name, "r");
+    file = roadmap_trip_fopen (name, silent ? "sr" : "r");
     
     if (file == NULL) {
        if (name == NULL) {
           return 1; /* Delay the answer: file selection has been activated. */
        }
-       roadmap_messagebox ("Warning",
-                           "An error occurred when opening the selected trip");
+       if (!silent) {
+          roadmap_messagebox ("Warning",
+                "An error occurred when opening the selected trip");
+       }
        return 0;
     }
 

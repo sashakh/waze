@@ -71,7 +71,7 @@ const char *roadmap_trip_current (void);
 /* In the two primitives that follow, the name is either NULL (i.e.
  * open a dialog to let the user enter one), or an explicit name.
  */
-int   roadmap_trip_load (const char *name);
+int   roadmap_trip_load (const char *name, int silent);
 void  roadmap_trip_save (const char *name);
 
 #endif // INCLUDE__ROADMAP_TRIP__H
