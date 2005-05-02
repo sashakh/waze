@@ -119,6 +119,112 @@ INSTALLATION
    build RoadMap with the make option: SHAPEFILES=NO.
 
 
+* {DIRECTORIES}
+
+  RoadMap is to be installed in a few different directories, where each
+  directory contains a specific type of file: commands, configuration files,
+  icons and maps.
+
+  Before you install RoadMap, you must choose what installation directories
+  to use for these files. Some of these choices are already made for you when
+  you install a pre-built package (such as the Familiar ipk package), or are
+  assigned default values in the make files (source package). This section
+  describes the whole thing, regardless of how you install RoadMap. It also
+  provides some information about the standard locations in the most common
+  cases.
+
+  RoadMap supports lists of directories, instead of a single location, for
+  each type of files. That does not mean you must install the RoadMap files
+  in every of these directories, only that you can install the files in any
+  of these directories.
+  
+  One reason for RoadMap to support a list of directories is to define a
+  default system-wide configuration, and at the same time to allow a specific
+  user to install it's own setup. Another reason (for the map files on a PDA)
+  is to let the users choose the type of hardware storage that is convenient
+  for them.
+
+  The RoadMap commands must be installed in a bin directory. This is an
+  easy one: the only requirement is that this directory must appear in the
+  PATH variable (either you choose an existing directory or you add your own).
+
+  RoadMap comes with some critical configuration files (files sprites,
+  schema, preferences, etc..). RoadMap supports these files to be in a few
+  different places, which list cannot be changed in the user preferences
+  since it is used to load the preferences themselves. On most systems
+  this list is:
+  
+         * /etc/roadmap,
+
+         * /usr/local/share/roadmap,
+
+         * /usr/share/roadmap and
+
+         * ~/.roadmap.
+         
+  As an exception, the list on the Zaurus is:
+
+         * /opt/QtPalmtop/share/roadmap,
+
+         * /mnt/cf/QtPalmtop/share/roadmap,
+
+         * /mnt/card/QtPalmtop/share/roadmap and
+
+         * ~/.roadmap.
+
+  RoadMap (GTK version) needs some icons. These icons must be placed
+  in some standard location:
+  
+         * ~/pixmaps,
+
+         * /usr/local/share/pixmaps or
+
+         * /usr/share/pixmaps.
+
+  RoadMap needs some county maps to serve any useful purpose.
+  The location for these map files can be redefined in the user preferences
+  (item Map.Path). The maps are a problem of their own, since they may require
+  a huge space (up to 1.8 G Bytes for the full set). It is recommended to share
+  these maps between users. Because these maps are not architecture-independent
+  you should be careful, however, not to share them on a network (this could
+  also be very inefficient, both from a network and performances point of
+  view). By default, RoadMap is built to search for these directories on most
+  Unix systems:
+  
+         * ~/.roadmap/maps,
+
+         * /var/lib/roadmap and
+
+         * /usr/lib/roadmap
+
+  (RoadMap also searches in /usr/local/share/roadmap and /usr/share/roadmap,
+  but this is in violation of the FHS filesystem standard, since these maps
+  are not architecture-independent).
+  
+  The Zaurus is a special case again, as the default path on these systems is: 
+
+         * /opt/QtPalmtop/share/roadmap,
+
+         * /mnt/cf/QtPalmtop/share/roadmap and
+
+         * /mnt/card/QtPalmtop/share/roadmap
+         
+  (Note that the two last directories are located on a memory card, as this
+  would be the only reasonable place where to install the maps considering
+  their size.)
+
+  The Linux/familiar package is also an exception, for the same reasons
+  as the Zaurus (i.e. using memory cards):
+
+         * ~/.roadmap/maps,
+
+         * /usr/share/roadmap,
+
+         * /mnt/hda/share/roadmap and
+
+         * /mnt/card/share/roadmap
+
+
 * DOWNLOADING
 
    RoadMap can be downloaded from the RoadMap web site:
@@ -137,22 +243,9 @@ INSTALLATION
    files are huges and the bandwidth is expensive. If you do need the
    complete set, please drop an email to the author.
    
-   It is recommended to install the maps in one of these directories:
-
-         * /var/lib/roadmap
-         * /usr/lib/roadmap
-         * ~/.roadmap/maps
-         * /usr/local/share/roadmap
-         * /usr/share/roadmap
-
-   The last two directories are not FHS-compliant, but they are in
-   RoadMap's default path as shipped. ~/.roadmap/maps is also in
-   the default path. The two first directories are FHS-compliant,
-   but you must change Map.Path in the RoadMap preferences if you
-   want to use them.
-
-   You may also install the maps in any directory, assumed you change
-   Map.Path accordingly in the RoadMap preferences.
+   It is recommended to install the maps in one of the default directories
+   (see previous section). You may also install the maps in any directory,
+   assumed you change Map.Path accordingly in the RoadMap preferences.
 
    Roadmap comes either as a set of sources, or as a set of binary files,
    depending on which distribution you downloaded. RoadMap comes in three
@@ -319,14 +412,14 @@ INSTALLATION
    roadmap/src/rdmdownload:
 
 ----
-      rdmgenmaps <tiger-path> [<state-symbol> ..]
+      rdmdownload <tiger-path> [<state-symbol> ..]
 ----
 
    <<CAUTION>>: the command above downloads the tiger 2002 files. to download
    the tiger 2000 files, use the <<format>> option:
 
 ----
-      rdmgenmaps <tiger-path> format=2000 [<state-symbol> ..]
+      rdmdownload <tiger-path> format=2000 [<state-symbol> ..]
 ----
 
    [[6]] download the list of counties from the US Census bureau:
@@ -338,7 +431,7 @@ INSTALLATION
    [[7]] Build the maps:
 
 ----
-      rdmgenmaps <tiger-path> [maps=<map-path>]
+      rdmgenmaps <tiger-path> maps=<map-path>
 ----
 
    This command processes all the Census Bureau files found in <tiger-path>
@@ -359,11 +452,19 @@ INSTALLATION
       rdmgenmaps <tiger-path> format=2000 [maps=<map-path>]
 ----
 
+   The rdmgenmaps command can also process one full state at a time:
+
+----
+      rdmgenmaps <tiger-path> maps=<map-path> state=<state-id>
+----
+
+   where the state-id is the two first digit of the FIPS (such as 06 for
+   california).
 
    The rdmgemaps tool is a shell script that extract the TIGER files from
    the downloaded ZIP files, invokes the buildmap tool and then cleans
    up the TIGER files. Last, rdmgemaps invokes the buildus tool to generate
-   the US states & counties catalog. The main purpose of rdmgemaps is really
+   the US states & counties catalog. The main purpose of rdmgenmaps is really
    to keep the TIGER files in compressed form, considering their huge size..
 
 
