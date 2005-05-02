@@ -135,6 +135,7 @@ static void roadmap_help_show (const char *index) {
     free(arguments);
 }
 
+static void roadmap_help_install (void) {roadmap_help_show ("directories");}
 static void roadmap_help_options (void) {roadmap_help_show ("options");}
 static void roadmap_help_voice   (void) {roadmap_help_show ("voice");}
 static void roadmap_help_key     (void) {roadmap_help_show ("key");}
@@ -150,11 +151,12 @@ typedef struct {
 } RoadMapHelpList;
 
 static RoadMapHelpList RoadMapHelpTopics[] = {
-   {"Command line options",  roadmap_help_options},
-   {"Voice Messages",        roadmap_help_voice},
-   {"Keyboard bindings",     roadmap_help_key},
-   {"Entering street names", roadmap_help_street},
-   {"Managing trips",        roadmap_help_trips},
+   {"Installation directories",  roadmap_help_install},
+   {"Command line options",      roadmap_help_options},
+   {"Voice messages",            roadmap_help_voice},
+   {"Keyboard bindings",         roadmap_help_key},
+   {"Entering street names",     roadmap_help_street},
+   {"Managing trips",            roadmap_help_trips},
    {NULL, NULL}
 };
 static RoadMapHelpList *RoadMapHelpTopicsCursor = NULL;
