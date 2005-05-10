@@ -837,6 +837,7 @@ void roadmap_trip_stop (void) {
 void roadmap_trip_format_messages (void) {
     
     int distance_to_destination;
+    int distance_to_destination_far;
     RoadMapTripPoint *gps = RoadMapTripGps;
     RoadMapTripPoint *waypoint;
 
@@ -857,11 +858,20 @@ void roadmap_trip_format_messages (void) {
                         "GPS: distance to destination = %d %s",
                         distance_to_destination,
                         roadmap_math_distance_unit());
-        
-        roadmap_message_set ('D', "%d %s",
-                             roadmap_math_to_trip_distance
-                                        (distance_to_destination),
-                             roadmap_math_trip_unit());
+
+        distance_to_destination_far =
+           roadmap_math_to_trip_distance(distance_to_destination);
+
+        if (distance_to_destination_far > 0) {
+           roadmap_message_set ('D', "%d %s",
+                                distance_to_destination_far,
+                                roadmap_math_trip_unit());
+        } else {
+           roadmap_message_set ('D', "%d %s",
+                                distance_to_destination,
+                                roadmap_math_distance_unit());
+        };
+
         
         RoadMapTripNextWaypoint = RoadMapTripDestination;
         
