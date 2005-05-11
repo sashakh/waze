@@ -71,7 +71,7 @@ void roadmap_gps_register_periodic_control
  * received from the GPS link (good or bad). Its should record the data
  * for later analysis or replay.
  */
-typedef void (*roadmap_gps_logger)   (char *sentence);
+typedef void (*roadmap_gps_logger)   (const char *sentence);
 
 void roadmap_gps_register_logger (roadmap_gps_logger logger);
 

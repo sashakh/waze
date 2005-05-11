@@ -37,7 +37,7 @@
 static FILE *RoadGpsOutput = NULL;
 
 
-static void roadgps_logger (char *sentence) {
+static void roadgps_logger (const char *sentence) {
 
    if (RoadGpsOutput != NULL) {
       fprintf (RoadGpsOutput, "%s\n", sentence);
