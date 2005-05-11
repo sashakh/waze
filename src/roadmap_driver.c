@@ -94,6 +94,7 @@ static RoadMapNmeaListener RoadMapDriverNextPxrmadd = NULL;
 static RoadMapNmeaListener RoadMapDriverNextPxrmmov = NULL;
 static RoadMapNmeaListener RoadMapDriverNextPxrmdel = NULL;
 static RoadMapNmeaListener RoadMapDriverNextPxrmsub = NULL;
+static RoadMapNmeaListener RoadMapDriverNextPxrmcfg = NULL;
 
 
 
@@ -167,7 +168,6 @@ static void roadmap_driver_pxrmsub (void *context,
       for (i = 0; i < fields->pxrmsub.count; ++i) {
 
          if (strcasecmp(fields->pxrmsub.subscribed[i].item, "RMC") == 0) {
-
             driver->subscription |= ROADMAP_DRIVER_RMC;
             RoadMapDriverSubscription |= ROADMAP_DRIVER_RMC;
 
@@ -182,6 +182,38 @@ static void roadmap_driver_pxrmsub (void *context,
    }
 
    (*RoadMapDriverNextPxrmdel) (context, fields);
+}
+
+
+static void roadmap_driver_pxrmcfg (void *context,
+                                    const RoadMapNmeaFields *fields) {
+
+   RoadMapDriver *driver = (RoadMapDriver *)context;
+
+   const char *value;
+   char *default_value;
+   char  buffer[1024];
+   RoadMapConfigDescriptor descriptor;
+
+   descriptor.category  = strdup(fields->pxrmcfg.category);
+   descriptor.name      = strdup(fields->pxrmcfg.name);
+   descriptor.reference = NULL;
+
+   default_value = strdup(fields->pxrmcfg.value);
+
+   roadmap_config_declare ("preferences", &descriptor, default_value);
+
+   value = roadmap_config_get (&descriptor);
+
+   snprintf (buffer, sizeof(buffer), "$PXRMCFG,%s,%s,%s\n",
+             descriptor.category,
+             descriptor.name,
+             value);
+   write (driver->pipes[1], buffer, strlen(buffer));
+
+   /* We do not free() the category, name and default value strings,
+    * because these are still referenced in the configuration data.
+    */
 }
 
 
@@ -346,7 +378,6 @@ void roadmap_driver_publish (const RoadMapGpsPosition *position) {
 
    if (! (RoadMapDriverSubscription & ROADMAP_DRIVER_RMC)) return;
 
-
    roadmap_driver_to_nmea (position->latitude,
                            &latitude_ddmm, &latitude_mmmm);
 
@@ -357,14 +388,15 @@ void roadmap_driver_publish (const RoadMapGpsPosition *position) {
    gmt = gmtime (&now);
    if (gmt == NULL) return;
 
-   sprintf (buffer, "$GPRMC,"
-                    "%02d%02d%02d.000,A," /* Time (hhmmss) and status. */
-                    "%d.%04d,%c,"         /* Latitude. */
-                    "%d.%04d,%c,"         /* Longitude. */
-                    "%d,"                 /* Speed (knots). */
-                    "%d,"                 /* Course over ground. */
-                    "%02d%02d%02d,"       /* UTC date (DDMMYY). */
-                    "0,E\n",              /* Magnetic variation (none). */
+   snprintf (buffer, sizeof(buffer),
+             "$GPRMC,"
+                     "%02d%02d%02d.000,A," /* Time (hhmmss) and status. */
+                     "%d.%04d,%c,"         /* Latitude. */
+                     "%d.%04d,%c,"         /* Longitude. */
+                     "%d,"                 /* Speed (knots). */
+                     "%d,"                 /* Course over ground. */
+                     "%02d%02d%02d,"       /* UTC date (DDMMYY). */
+                     "0,E\n",              /* Magnetic variation (none). */
             gmt->tm_hour, gmt->tm_min, gmt->tm_sec,
             latitude_ddmm, latitude_mmmm, position->latitude > 0 ? 'N' : 'S',
             longitude_ddmm, longitude_mmmm, position->longitude > 0 ? 'E' : 'W',
@@ -426,6 +458,9 @@ void roadmap_driver_initialize (void) {
 
    RoadMapDriverNextPxrmsub =
       roadmap_nmea_subscribe ("XRM", "SUB", roadmap_driver_pxrmsub);
+
+   RoadMapDriverNextPxrmcfg =
+      roadmap_nmea_subscribe ("XRM", "CFG", roadmap_driver_pxrmcfg);
 }
 
 

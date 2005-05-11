@@ -512,6 +512,26 @@ static int roadmap_nmea_pxrmsub (int argc, char *argv[]) {
 }
 
 
+static int roadmap_nmea_pxrmcfg (int argc, char *argv[]) {
+
+    if (argc < 4) return 0;
+
+    safecpy (RoadMapNmeaReceived.pxrmcfg.category,
+             argv[1],
+             sizeof(RoadMapNmeaReceived.pxrmcfg.category));
+
+    safecpy (RoadMapNmeaReceived.pxrmcfg.name,
+             argv[2],
+             sizeof(RoadMapNmeaReceived.pxrmcfg.name));
+
+    safecpy (RoadMapNmeaReceived.pxrmcfg.value,
+             argv[3],
+             sizeof(RoadMapNmeaReceived.pxrmcfg.value));
+
+    return 1;
+}
+
+
 static int roadmap_nmea_pgrmz (int argc, char *argv[]) {
 
    /* Altitude, 'f' for feet, 2 (altimeter) or 3 (GPS). */
@@ -566,6 +586,7 @@ static struct {
    ROADMAP_NMEA_PHRASE("XRM", "MOV", roadmap_nmea_pxrmmov),
    ROADMAP_NMEA_PHRASE("XRM", "DEL", roadmap_nmea_pxrmdel),
    ROADMAP_NMEA_PHRASE("XRM", "SUB", roadmap_nmea_pxrmsub),
+   ROADMAP_NMEA_PHRASE("XRM", "CFG", roadmap_nmea_pxrmcfg),
 
    { NULL, "", NULL, NULL, NULL, NULL}
 };

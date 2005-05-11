@@ -127,6 +127,12 @@ typedef union {
       } subscribed[16];
    } pxrmsub;
 
+   struct {
+      char category[32];
+      char name[32];
+      char value[128];
+   } pxrmcfg;
+
 } RoadMapNmeaFields;
 
 

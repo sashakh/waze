@@ -50,37 +50,20 @@ struct delay_buffer {
     char data[256];
 };
 
-static struct delay_buffer *delay_line = NULL;
-static int delay_cursor = 0;
-static int delay_length = 0;
-
 
 
 int main(int argc, char *argv[]) {
 
    int previous = -1;
+   int delay_cursor = 0;
+   int delay_length = 0;
 
-   if (argc > 1 && strcmp(argv[1], "--help") == 0) {
-      printf ("usage: %s [--help] [--delay=N]\n"
-              "  --delay=N:    set the delay length (default is 10).\n");
-      exit(0);
-   }
+   struct delay_buffer *delay_line = NULL;
 
-   if (argc > 1 && strncmp(argv[1], "--delay=", 8) == 0) {
-      delay_length = atoi(argv[1] + 8);
-      argc -= 1;
-      argv += 1;
-   }
-
-   if (delay_length <= 1) delay_length = 10;
-
-   delay_line = calloc (delay_length, sizeof(struct delay_buffer));
-   if (delay_line == NULL) {
-      roadmap_log (ROADMAP_FATAL, "no memory");
-   }
 
    printf ("$PXRMADD," ROADMAP_GHOST_ID ",Ghost,Friend\n");
    printf ("$PXRMSUB,RMC\n");
+   printf ("$PXRMCFG,Ghost,Delay,10\n");
    fflush(stdout);
 
    for(;;) {
@@ -94,26 +77,64 @@ int main(int argc, char *argv[]) {
 
       if (FD_ISSET(0, &reads)) {
 
-         int received =
-            read (0, delay_line[delay_cursor].data, sizeof(delay_line[0].data));
+         /* Retrieve the data from RoadMap. ------------------------------- */
+
+         char buffer[256];
+         int received = read (0, buffer, sizeof(buffer));
 
          if (received <= 0) {
             exit(0); /* RoadMap cut the pipe. */
          }
 
-         delay_line[delay_cursor].data[received] = 0;
+         buffer[received] = 0;
+
+
+         /* Proces the configuration information. ------------------------- */
+
+         if (strncmp (buffer, "$PXRMCFG,Ghost,Delay,", 21) == 0) {
+
+            int configured = atoi (buffer + 21);
+
+            if (configured <= 0) configured = 10;
+
+            if (configured != delay_length) {
+
+               /* Reallocate and reset the delay line. */
+
+               delay_length = configured;
+
+               if (delay_line != NULL) free (delay_line);
+
+               delay_line = calloc (delay_length, sizeof(struct delay_buffer));
+               if (delay_line == NULL) {
+                  roadmap_log (ROADMAP_FATAL, "no more memory");
+               }
+               delay_cursor = 0;
+               previous = -1;
+            }
+            continue; /* Don't echo configuration information. */
+         }
+
+         if (delay_line == NULL) continue; /* Not configured yet. */
+
+
+         /* Store the latest position information. ------------------------ */
 
          if (previous >= 0) {
-            if (strcmp (delay_line[delay_cursor].data,
-                        delay_line[previous].data) == 0) {
+            if (strcmp (buffer, delay_line[previous].data) == 0) {
 
                continue; /* ignore this repetition. */
             }
          }
+         strncpy (delay_line[delay_cursor].data,
+                  buffer,
+                  sizeof(delay_line[delay_cursor].data));
 
          previous = delay_cursor;
          if (++delay_cursor >= delay_length) delay_cursor = 0;
 
+
+         /* Echoe the oldest position, if any. ---------------------------- */
 
          if (delay_line[delay_cursor].data[0] != 0) {
 

@@ -118,11 +118,12 @@ int main(int argc, char *argv[]) {
 
    int gps_mode = 0;
 
-   const char *kismet_host;
+   char *kismet_host;
 
    FILE *sfp;
    int knet = -1;
    int i, kfd;
+   int fdcount = 1;
 
    unsigned int chan, sig, wep, maxsig = 0, minsig = 255;
    unsigned char bssid[6];
@@ -135,10 +136,8 @@ int main(int argc, char *argv[]) {
 
 
    if (argc > 1 && strcmp(argv[1], "--help") == 0) {
-      printf ("usage: %s [--help] [--gps] [hostname]\n"
-              "  --gps:    simulate GPS position information.\n"
-              "  hostname: computer where kismet is running on (default is"
-              " the local computer).\n");
+      printf ("usage: %s [--help] [--gps]\n"
+              "  --gps:    simulate GPS position information.\n");
       exit(0);
    }
 
@@ -148,15 +147,9 @@ int main(int argc, char *argv[]) {
       argv += 1;
    }
 
-   if (argc > 1) {
-      kismet_host = argv[1];
-   } else {
-      kismet_host = "127.0.0.1";
-   }
-   knet = connect_to_kismet (kismet_host);
-
-   sfp = fdopen(knet, "r");
    wep = 0;
+
+   printf ("$PXRMCFG,Kismet,Host,\n"); /* Ask for the host to connect to. */
 
    for(;;) {
 
@@ -164,18 +157,39 @@ int main(int argc, char *argv[]) {
 
       FD_ZERO(&reads);
       FD_SET(0, &reads);
-      FD_SET(knet, &reads);
+      if (knet > 0) FD_SET(knet, &reads);
 
-      if (select (knet+1, &reads, NULL, NULL, NULL) == 0) continue;
+      if (select (fdcount, &reads, NULL, NULL, NULL) == 0) continue;
 
       if (FD_ISSET(0, &reads)) {
 
-         char ignore[128];
+         int  received;
+         char info[1024];
 
-         read (0, ignore, sizeof(ignore));
+         received = read (0, info, sizeof(info));
+
+         if (received <= 0) {
+            exit(0); /* RoadMap cut the pipe. */
+         }
+
+         if (strncmp (info, "$PXRMCFG,Kismet,Host,", 21) == 0) {
+
+            kismet_host = strdup(info+21);
+
+            if (kismet_host == NULL || kismet_host[0] == 0) {
+               free(kismet_host);
+               kismet_host = strdup("127.0.0.1");
+            }
+
+            knet = connect_to_kismet (kismet_host);
+            if (knet > 0) {
+               fdcount = knet + 1;
+               sfp = fdopen(knet, "r");
+            }
+         }
       }
 
-      if (FD_ISSET(knet, &reads)) {
+      if ((knet > 0) && FD_ISSET(knet, &reads)) {
 
          kismet_data[0] = 0;
          fgets(kismet_data, sizeof(kismet_data)-1, sfp);
@@ -267,6 +281,7 @@ int main(int argc, char *argv[]) {
          }
       }
    }
+
    return 0; /* Some compilers might not detect the forever loop. */
 }
 
