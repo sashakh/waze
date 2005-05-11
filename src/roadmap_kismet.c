@@ -59,7 +59,7 @@ static int connect_to_kismet (const char *host) {
    
    while (socket < 0) {
 
-      socket = roadmap_net_connect (host, 2501);
+      socket = roadmap_net_connect ("tcp", host, 2501);
       sleep (1);
    }
 

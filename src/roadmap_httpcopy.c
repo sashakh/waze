@@ -116,7 +116,7 @@ static int roadmap_http_send_request (const char *source,
    /* Connect to the server (roadmap_net understands the "host:port"
     * syntax).
     */
-   fd = roadmap_net_connect (host, 80);
+   fd = roadmap_net_connect ("tcp", host, 80);
    if (fd >= 0) {
 
       char *p = strchr(host, ':');

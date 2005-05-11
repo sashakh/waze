@@ -44,7 +44,8 @@
 #include "roadmap_net.h"
 
 
-int roadmap_net_connect (const char *name, int default_port) {
+int roadmap_net_connect (const char *protocol,
+                         const char *name, int default_port) {
 
    int   fd;
    char *hostname;
@@ -113,7 +114,15 @@ int roadmap_net_connect (const char *name, int default_port) {
    }
 
 
-   fd = socket (PF_INET, SOCK_STREAM, 0);
+   if (strcmp (protocol, "udp") == 0) {
+      fd = socket (PF_INET, SOCK_DGRAM, 0);
+   } else if (strcmp (protocol, "tcp") == 0) {
+      fd = socket (PF_INET, SOCK_STREAM, 0);
+   } else {
+      roadmap_log (ROADMAP_ERROR, "unknown protocol %s", protocol);
+      goto connection_failure;
+   }
+
    if (fd < 0) {
       roadmap_log (ROADMAP_ERROR, "cannot create socket, errno = %d", errno);
       goto connection_failure;

@@ -24,7 +24,8 @@
 #ifndef _ROADMAP_NET__H_
 #define _ROADMAP_NET__H_
 
-int roadmap_net_connect (const char *name, int default_port);
+int roadmap_net_connect (const char *protocol,
+                         const char *name, int default_port);
 
 int roadmap_net_send    (int socket, void *data, int length);
 int roadmap_net_receive (int socket, void *data, int size);

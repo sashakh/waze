@@ -267,7 +267,7 @@ void roadmap_gps_open (void) {
 
    if (strncasecmp (url, "gpsd://", 7) == 0) {
 
-      RoadMapGpsLink = roadmap_net_connect (url+7, 2947);
+      RoadMapGpsLink = roadmap_net_connect ("tcp", url+7, 2947);
 
       if (RoadMapGpsLink > 0) {
 
