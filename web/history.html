@@ -23,6 +23,48 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 a server upgrade, the RoadMap e-mail list has been lost. Please subscribe to
 the list again if you have not done so already. Sorry for the inconvenience.
 <HR> <BR>
+<P>Roadmap v1.0.10 (???, 2005)
+<UL>
+  <LI>Added a decoder for the NMEA sentence GPGGA  (provides the altitude).
+  <LI>Added the altitude to the information that can be shown on the
+      display (using the tag %H).
+  <LI>Fixed the Find / Position dialog, which now decode the ISO 6709-1983
+      format correctly, with extensions: the traditional W, E, N, and S
+      are accepted, either as prefix or suffix.
+  <LI>Fixed some packaging errors (the make files need to be in the binary
+      distribution so that "make install" can be used) and improve the
+      documentation in this regard.
+  <LI>Fixed the roadgps screen (GTK2 bug) and merged some of the ideas
+      from RoadMap/Kismet (satellite rectangle is proportional to signal
+      strength, but I keep the bargraph for now--more readable).
+  <LI>Don't require the user to acknowledge each map download (very
+      inconvenient when driving). Another (good) idea from Kismet users.
+  <LI>Accept NMEA sentences from any standard source. Correct interpretation
+      of proprietary NMEA sentences.
+  <LI>Fixed the QT map background problem (was always white). Does QPE
+      needs hardcoded colors?
+  <LI>Kismet users don't want the navigation enabled. Deal with all users
+      preferences by recording the navigation flag in the RoadMap session
+      (so that the user selection becomes persistent).
+  <LI>Kismet users don't want to hear any voice. Deal with all users
+      preferences by recording the voice mute flag in the RoadMap session
+      (so that the user selection becomes persistent).
+  <LI>Kismet users don't want the display to rotate. Make the rotation a
+      user preference instead of a menu choice. This simplifies the user
+      interface, the code and will (hopefully) make everyone happy.
+  <LI>Implement a driver architecture to allow interfacing to other
+      systems without modifying RoadMap. This also make it possible to
+      show other (fix or mobile) objects than the vehicule.
+  <LI>Implemented a (useless but fun) "ghost" driver to serve as a test
+      for the driver mechanism and as a small example of a RoadMap driver.
+  <LI>Integrated the Kismet interface as a RoadMap driver. Still untested.
+  <LI>Removed the spurious message that trip "default" does not exists when
+      starting RoadMap for the first time.
+  <LI>Modified the make files to solve problems on MAC OS X.
+  <LI>Expanded on the description of the installation directories and
+      added a related entry in the help menu.
+  <LI>Merge a patch by Horst Raap to show small distances in meter or feet.
+</UL>
 <P>Roadmap v1.0.9 (March 7, 2005)
 <UL>
   <LI>Fix a compilation problem with gcc 3.4 and possibly gcc 3.3.
