@@ -210,7 +210,7 @@ PKGDATAFILES=sprites preferences schema session
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
-TOOLS=sunrise $(SQLTOOLS) rdmkismet rdmghost
+TOOLS=sunrise $(SQLTOOLS) rdmkismet rdmghost rdmfriends
 
 
 # --- Conventional targets ----------------------------------------
@@ -299,6 +299,9 @@ rdmkismet: roadmap_kismet.c $(RDMLIBS)
 
 rdmghost: roadmap_ghost.c $(RDMLIBS)
 	$(CC) -g roadmap_ghost.c -o rdmghost $(RDMLIBS) -lm
+
+rdmfriends: roadmap_friends.c $(RDMLIBS)
+	$(CC) -g roadmap_friends.c -o rdmfriends $(RDMLIBS) $(RDMLIBS) -lm
 
 # --- The real targets --------------------------------------------
 
