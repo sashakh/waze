@@ -136,8 +136,9 @@ int main(int argc, char *argv[]) {
 
 
    if (argc > 1 && strcmp(argv[1], "--help") == 0) {
-      printf ("usage: %s [--help] [--gps]\n"
-              "  --gps:    simulate GPS position information.\n");
+      fprintf (stderr,
+               "usage: %s [--help] [--gps]\n"
+               "  --gps:    simulate GPS position information.\n");
       exit(0);
    }
 
@@ -150,6 +151,7 @@ int main(int argc, char *argv[]) {
    wep = 0;
 
    printf ("$PXRMCFG,Kismet,Host,\n"); /* Ask for the host to connect to. */
+   fflush (stdout);
 
    for(;;) {
 
@@ -242,6 +244,7 @@ int main(int argc, char *argv[]) {
          }
 
          if(i == -1) {
+
             if (knlmax >= MAX_WIRELESS_STATIONS) continue;
             i = knlmax++;
             knl[i].btop = bsstop;
