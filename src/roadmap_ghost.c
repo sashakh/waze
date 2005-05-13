@@ -27,7 +27,7 @@
  *   the RoadMap vehicle with a few cycle delay, so that it appears
  *   to be pursuing the RoadMap vehicle.
  *
- *   beside being entertaining, the purpose of that driver is to
+ *   Beside being entertaining, the purpose of that driver is to
  *   excercise and test the driver management code.
  *
  *   This program is normally launched by RoadMap.
@@ -44,15 +44,16 @@
 #include "roadmap.h"
 
 
-#define ROADMAP_GHOST_ID   "ghst001"
-
 struct delay_buffer {
     char data[256];
 };
 
 
-
 int main(int argc, char *argv[]) {
+
+   char *driver = "Ghost";
+   char  config[256];
+   int   config_length;
 
    int previous = -1;
    int delay_cursor = 0;
@@ -61,9 +62,15 @@ int main(int argc, char *argv[]) {
    struct delay_buffer *delay_line = NULL;
 
 
-   printf ("$PXRMADD," ROADMAP_GHOST_ID ",Ghost,Friend\n");
+   if (argc > 1 && strncmp (argv[1], "--driver=", 9) == 0) {
+      driver = argv[1] + 9;
+   }
+   snprintf (config, sizeof(config), "$PXRMCFG,%s,Delay,", driver);
+   config_length = strlen(config);
+
+   printf ("$PXRMADD,%s,%s,Friend\n", driver, driver);
    printf ("$PXRMSUB,RMC\n");
-   printf ("$PXRMCFG,Ghost,Delay,10\n");
+   printf ("%s10\n", config, driver);
    fflush(stdout);
 
    for(;;) {
@@ -91,9 +98,9 @@ int main(int argc, char *argv[]) {
 
          /* Proces the configuration information. ------------------------- */
 
-         if (strncmp (buffer, "$PXRMCFG,Ghost,Delay,", 21) == 0) {
+         if (strncmp (buffer, config, config_length) == 0) {
 
-            int configured = atoi (buffer + 21);
+            int configured = atoi (buffer + config_length);
 
             if (configured <= 0) configured = 10;
 
@@ -147,7 +154,7 @@ int main(int argc, char *argv[]) {
             p = strchr (p+1, ',');    /* Skip the status. */
             if (p == NULL) continue;
 
-            printf ("$PXRMMOV," ROADMAP_GHOST_ID "%s", p);
+            printf ("$PXRMMOV,%s%s", driver, p);
             fflush (stdout);
          }
 

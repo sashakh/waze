@@ -116,6 +116,11 @@ static void convert_to_nmea (double kismet, int *nmea_ddmm, int *nmea_mmmm) {
 
 int main(int argc, char *argv[]) {
 
+   char *driver = "Kismet";
+
+   char config_server[256];
+   int  config_server_length;
+
    int gps_mode = 0;
 
    char *kismet_host;
@@ -138,7 +143,8 @@ int main(int argc, char *argv[]) {
    if (argc > 1 && strcmp(argv[1], "--help") == 0) {
       fprintf (stderr,
                "usage: %s [--help] [--gps]\n"
-               "  --gps:    simulate GPS position information.\n");
+               "  --gps:         simulate GPS position information.\n"
+               "  --driver=name: use the specified driver name.\n");
       exit(0);
    }
 
@@ -148,9 +154,16 @@ int main(int argc, char *argv[]) {
       argv += 1;
    }
 
+   if (argc > 1 && strncmp (argv[1], "--driver=", 9) == 0) {
+      driver = argv[1] + 9;
+   }
+   snprintf (config_server,
+             sizeof(config_server), "$PXRMCFG,%s,Server,", driver);
+   config_server_length = strlen(config_server);
+
    wep = 0;
 
-   printf ("$PXRMCFG,Kismet,Host,\n"); /* Ask for the host to connect to. */
+   printf ("%s\n", config_server); /* Ask for the host to connect to. */
    fflush (stdout);
 
    for(;;) {
@@ -174,9 +187,9 @@ int main(int argc, char *argv[]) {
             exit(0); /* RoadMap cut the pipe. */
          }
 
-         if (strncmp (info, "$PXRMCFG,Kismet,Host,", 21) == 0) {
+         if (strncmp (info, config_server, config_server_length) == 0) {
 
-            kismet_host = strdup(info+21);
+            kismet_host = strdup(info+config_server_length);
 
             if (kismet_host == NULL || kismet_host[0] == 0) {
                free(kismet_host);

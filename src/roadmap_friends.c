@@ -358,12 +358,31 @@ static void remove_end_of_line (char *buffer) {
 
 int main(int argc, char *argv[]) {
 
+   char *driver = "Friends";
+
+   char config_name[256];
+   int  config_name_length;
+
+   char config_server[256];
+   int  config_server_length;
+
    int socket = -1;
    int fdcount = 1;
    int received;
 
    char host_name[128];
    char buffer[2048];   /* Probably larger than anything we might receive. */
+
+
+   if (argc > 1 && strncmp (argv[1], "--driver=", 9) == 0) {
+      driver = argv[1] + 9;
+   }
+   snprintf (config_name, sizeof(config_name), "$PXRMCFG,%s,Name,", driver);
+   config_name_length = strlen(config_name);
+
+   snprintf (config_server,
+             sizeof(config_server), "$PXRMCFG,%s,Server,", driver);
+   config_server_length = strlen(config_server);
 
 
    if (gethostname (host_name, sizeof(host_name)) < 0) {
@@ -376,7 +395,7 @@ int main(int argc, char *argv[]) {
     * this simplistic code does not handle.
     */
    printf ("$PXRMSUB,RMC\n");
-   printf ("$PXRMCFG,Friends,Name,%s\n", host_name);
+   printf ("%s%s\n", config_name, host_name);
    fflush(stdout);
 
 
@@ -411,18 +430,18 @@ int main(int argc, char *argv[]) {
                send_position_to_friends (buffer, socket);
             }
          }
-         else if (strncmp (buffer, "$PXRMCFG,Friends,Name,", 22) == 0) {
+         else if (strncmp (buffer, config_name, config_name_length) == 0) {
 
-            friends_local_name = strdup(buffer + 22);
+            friends_local_name = strdup(buffer + config_name_length);
 
             /* Send the next configuration inquiry now. */
 
-            printf ("$PXRMCFG,Friends,Server,%s\n", host_name);
+            printf ("%s%s\n", config_server, host_name);
             fflush(stdout);
          }
-         else if (strncmp (buffer, "$PXRMCFG,Friends,Server,", 24) == 0) {
+         else if (strncmp (buffer, config_server, config_server_length) == 0) {
 
-            char *servername = buffer + 24;
+            char *servername = buffer + config_server_length;
             char *p = strchr (buffer, '\n');
 
             if (p != NULL) *p = 0;
