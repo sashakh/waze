@@ -1092,6 +1092,91 @@ USING ROADMAP
    "Display.Rotate" to "no".
 
 
+* DRIVERS
+
+   RoadMap can interface with the outside world through separate driver
+   applications. A driver can:
+
+         * Receive the current GPS position from RoadMap.
+
+         * Access the RoadMap preferences database.
+
+         * Provide RoadMap with objects to track and update each
+           object's position, speed and steering (otherwise called
+           "position").
+
+         * Communicate with another application to export RoadMap's
+           position or import the position of objects as reported by
+           the other application.
+
+   The objects reported to RoadMap have the following attributes:
+
+         * An unique ID used to identify the object within RoadMap.
+
+         * A name used for (future) display.
+
+         * The name of a sprite used to represent the object on the screen.
+
+         * A position, speed and steering.
+
+   All drivers must be listed in the text file ~/.roadmap/drivers. This
+   file contains one line per driver, with the following syntax:
+
+----
+       <name> : <command>
+----
+
+   The command may have any number of parameters (or none). The program must
+   be specially designed to interact with RoadMap: do not just use any
+   program as a RoadMap driver.
+
+   Once a driver has been declared in the drivers file, it can be enabled
+   or disabled by changing the Drivers.<driver> preference item. By default,
+   all newly declared drivers are disabled. A disabled driver is known to
+   RoadMap, but is not started. Multiple drivers can be enabled at the same
+   time, however some drivers may not be designed to be started more than once.
+
+   RoadMap comes with 3 drivers:
+
+         * rdmghost is the driver test program. It is a silly small
+           application that echoes back a previous position of RoadMap.
+           It shows a green ghost vehicule that seems to chase the
+           RoadMap position. The rdmghost driver uses the Ghost.Delay
+           preferences items, which sets the delay for echoing the RoadMap
+           location (each delay unit generally match one second time).
+
+         * rdmfriends is the driver for the gpsdrive's friends protocol.
+           It can connect to a friends server (gpsdrive 2.0.9), advertise
+           the RoadMap location and provide RoadMap with the list and
+           location of all vehicules known to the friends server. The
+           rdmfriends driver use the Friends.Name and Friend.Server
+           preferences items. The first item provides the name that
+           rdmfriends must use to identify itself to the friends server.
+           The second item provides the network address of the friends
+           server.
+
+         * rdmkismet is the driver for the kismet wireless network scanner.
+           This driver connects to the kismet application and provide
+           RoadMap with the list and position of access points kismet is
+           detecting (the speed represent the signal strength and the
+           steering represents the channel). The rdmkismet driver uses
+           the Kismet.Server preferences items that specifies the network
+           address of the kismet application.
+
+   These three drivers were designed so each can be started more than once:
+   the option --driver=<name> replaces the default driver's name (repectively
+   Ghost, Friends and Kismet) with the specified name. This changes the
+   category of the driver's preferences items as well. It is thus possible
+   for RoadMap to interact with multiple friends servers or kismet scanners.
+
+   For example, the following drivers file declares 2 ghost drivers:
+
+----
+      Ghost1: rdmghost --driver=Ghost1
+      Ghost2: rdmghost --driver=Ghost2
+----
+
+
 * ROADMAP PREFERENCES
 
    It is possible to edit the roadmap's preferences (select File/Preferences
@@ -2042,7 +2127,12 @@ IMPLEMENTATION DETAILS
    position is correct relative to the street (at least when not considering
    map accuracy problems..).
 
-   
+
+WRITING A ROADMAP DRIVER
+
+   TBD
+
+
 MAP FORMAT
 
 * MAP FILES
