@@ -214,6 +214,8 @@ static void roadmap_driver_pxrmcfg (void *context,
    /* We do not free() the category, name and default value strings,
     * because these are still referenced in the configuration data.
     */
+
+   (*RoadMapDriverNextPxrmcfg) (context, fields);
 }
 
 
