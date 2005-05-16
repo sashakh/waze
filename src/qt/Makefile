@@ -12,7 +12,7 @@ pkgdatadir=$(INSTALLDIR)/share/roadmap
 RANLIB=ranlib
 STRIP=strip
 
-WARNFLAGS=-W -Wall
+WARNFLAGS=-W -Wall -Wno-unused-parameter
 
 GUICFLAGS=-I/usr/include/qt3
 GUILDFLAGS=-lqt

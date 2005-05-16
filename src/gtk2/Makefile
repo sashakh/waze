@@ -17,7 +17,7 @@ GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
 GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
 
 
-WARNFLAGS = -W -Wall
+WARNFLAGS = -W -Wall -Wno-unused-parameter
 
 RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
 
