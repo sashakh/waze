@@ -41,11 +41,6 @@ with a "[1.1]" sign.)
 <P>
 Here is the detail description of the changes planned so far:
 <UL>
-  <LI><b>Sane format for longitude/latitude</b>. The Find / Position
-  currently takes the US Census Bureau format, which has the unique
-  property of not following any existing standard. <b>(In CVS, will
-  be available in 1.0.9)</b>
-
   <LI><b>Error messages on screen</b>. The error messages are logged on
   the standard output. This is bad when RoadMap is started from a menu,
   since there is no way the user could read the message. Errors should
@@ -92,7 +87,8 @@ Here is the detail description of the changes planned so far:
   One might think of setting the UNIX time and system timezone, but that
   would be a bad idea: this would cause a whole mess when replaying GPS logs,
   RoadMap would need to be root or have the set UID bit set and managing
-  system setup is best left to system daemons.
+  system setup is best left to system daemons. In addition, gpsd is now
+  synchronizing the system time, so don't mess with that subject..
 
   <LI><b>[1.1] Modular map format</b>. RoadMap map format is such today that all
   the information must be contained in a single file. RoadMap should be
