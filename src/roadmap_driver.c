@@ -257,7 +257,6 @@ static void roadmap_driver_configure (const char *path) {
 
    RoadMapDriver *driver;
 
-
    file = roadmap_file_open (path, "drivers", "sr");
 
    if (file != NULL) {
@@ -292,7 +291,13 @@ static void roadmap_driver_configure (const char *path) {
             roadmap_log (ROADMAP_ERROR, "%s: invalid syntax", buffer);
             continue;
          }
+
+         /* Eliminate trailing blanks (all spaces before the separator). */
+         while (isspace(*(command-1))) --command;
+
          *command = 0; /* Separate the name from the value. */
+
+         /* Eliminate all spaces after the separator. */
          for (++command; isspace(*command); ++command) ;
 
          /* retrieve the arguments part of the driver command. */
