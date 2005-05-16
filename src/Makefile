@@ -206,18 +206,19 @@ BUSRCS=buildus_main.c \
 BUOBJS=$(BUSRCS:.c=.o)
 
 
-PKGDATAFILES=sprites preferences schema session
+PKGDATAFILES=sprites preferences schema session drivers
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
-TOOLS=sunrise $(SQLTOOLS) rdmkismet rdmghost rdmfriends
+DRIVERS=rdmkismet rdmghost rdmfriends
+TOOLS=sunrise $(SQLTOOLS)
 
 
 # --- Conventional targets ----------------------------------------
 
 all: everything
 
-runtime: $(RUNTIME)
+runtime: $(RUNTIME) $(DRIVERS)
 
 build: $(BUILD)
 
@@ -235,7 +236,7 @@ clean: cleanone
 	if [ -d unix ] ; then $(MAKE) -C unix cleanone ; fi
 
 cleanone:
-	rm -f *.o *.a *.da $(BUILD) $(TOOLS)
+	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
 	# Clean up CVS backup files as well.
 	$(RM) .#*
 
@@ -246,8 +247,8 @@ install: everything
 	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
 	mkdir -p $(DESTDIR)$(pkgbindir)
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(DESTDIR)$(pkgbindir)/.
-	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS)
+	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
+	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
 	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
 	mkdir -p $(DESTDIR)$(ICONDIR)
 	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" install

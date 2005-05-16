@@ -44,6 +44,7 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
 RDM_CFG="${ROADMAP}/src/preferences
          ${ROADMAP}/src/schema
          ${ROADMAP}/src/sprites
+         ${ROADMAP}/src/drivers
          ${ROADMAP}/src/*.png
          ${ROADMAP}/src/roadmap.desktop
          ${ROADMAP}/src/roadmap.menu
@@ -65,7 +66,10 @@ RDM_BIN="${ROADMAP}/src/usdir.rdm
          ${ROADMAP}/src/qt/qtroadmap
          ${ROADMAP}/src/qt/qtroadgps
          ${ROADMAP}/src/buildmap
-         ${ROADMAP}/src/buildus"
+         ${ROADMAP}/src/buildus
+         ${ROADMAP}/src/rdmghost
+         ${ROADMAP}/src/rdmfriends
+         ${ROADMAP}/src/rdmkismet"
 
 RDM_DOC="${ROADMAP}/AUTHORS
          ${ROADMAP}/BUGS
