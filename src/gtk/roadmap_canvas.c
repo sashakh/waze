@@ -413,3 +413,8 @@ GtkWidget *roadmap_canvas_new (void) {
    return RoadMapDrawingArea;
 }
 
+
+void roadmap_canvas_save_screenshot (const char* filename) {
+   // NOT IMPLEMENTED.
+}
+

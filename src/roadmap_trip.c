@@ -81,7 +81,7 @@ typedef struct roadmap_trip_point {
     RoadMapListItem link;
     
     char *id;
-    const char *sprite;
+    char *sprite;
     
     char predefined;
     char mobile;
@@ -216,7 +216,7 @@ static RoadMapTripPoint *roadmap_trip_update
 
         result->predefined = 0;
         result->in_trip = 1;
-        result->sprite = sprite;
+        result->sprite = strdup(sprite);
         result->mobile = (gps_position != NULL);
 
         if (roadmap_math_point_is_visible (position)) {
@@ -547,6 +547,7 @@ static void roadmap_trip_clear (void) {
             }
             roadmap_list_remove (&RoadMapTripWaypoints, &point->link);
             free (point->id);
+            free (point->sprite);
             free(point);
             RoadMapTripModified = 1;
 
@@ -647,6 +648,7 @@ void roadmap_trip_remove_point (const char *name) {
     
     roadmap_list_remove (&RoadMapTripWaypoints, &result->link);
     free (result->id);
+    free (result->sprite);
     free(result);
     
     RoadMapTripModified = 1;
@@ -1066,7 +1068,7 @@ int roadmap_trip_load (const char *name, int silent) {
 
        if (p == NULL) continue;
          
-       argv[0] = p; /* Not used at that time. */
+       argv[0] = p;
              
        for (p = strchr (p, ','), i = 0; p != NULL && i < 8; p = strchr (p, ',')) {
            *p = 0;
@@ -1079,7 +1081,7 @@ int roadmap_trip_load (const char *name, int silent) {
        }
        position.longitude = atoi(argv[2]);
        position.latitude  = atoi(argv[3]);
-       roadmap_trip_update (argv[1], &position, NULL, "Waypoint");
+       roadmap_trip_update (argv[1], &position, NULL, argv[0]);
     }
       
     fclose (file);
@@ -1133,3 +1135,38 @@ void roadmap_trip_save (const char *name) {
         RoadMapTripModified = 0;
     }
 }
+
+
+void roadmap_trip_save_screenshot (void) {
+
+   const char *extension = ".png";
+   const char *trip_path = roadmap_path_trips();
+   const char *trip_name = roadmap_trip_current();
+
+   unsigned int total_length;
+   unsigned int trip_length;
+   char *dot;
+   char *picture_name;
+
+   trip_length = strlen(trip_name); /* Shorten it later. */
+
+   dot = strrchr( trip_name, '.' );
+   if (dot != NULL) {
+      trip_length -= strlen(dot);
+   }
+
+   total_length = trip_length + strlen(trip_path) + strlen(extension) + 12;
+   picture_name = malloc (total_length);
+   roadmap_check_allocated(picture_name);
+
+   memcpy (picture_name, trip_name, trip_length);
+   sprintf (picture_name, "%s/%*.*s-%010d%s",
+            trip_path,
+            trip_length, trip_length, trip_name, 
+            (int)time(NULL),
+            extension);
+
+   roadmap_canvas_save_screenshot (picture_name);
+   free (picture_name);
+}
+

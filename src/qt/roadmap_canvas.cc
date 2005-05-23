@@ -121,3 +121,8 @@ void roadmap_canvas_refresh (void) {
 	roadMapCanvas->refresh();
 }
 
+
+void roadmap_canvas_save_screenshot (const char* filename) {
+   // NOT IMPLEMENTED.
+}
+

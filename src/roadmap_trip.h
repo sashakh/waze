@@ -74,4 +74,7 @@ const char *roadmap_trip_current (void);
 int   roadmap_trip_load (const char *name, int silent);
 void  roadmap_trip_save (const char *name);
 
+void roadmap_trip_save_screenshot (void);
+
 #endif // INCLUDE__ROADMAP_TRIP__H
+

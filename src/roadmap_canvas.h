@@ -122,5 +122,7 @@ int roadmap_canvas_height (void);
  */
 void roadmap_canvas_refresh (void);
 
+void roadmap_canvas_save_screenshot (const char* filename);
+
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

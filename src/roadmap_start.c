@@ -340,6 +340,10 @@ static RoadMapAction RoadMapStartActions[] = {
    {"savetrip", "Save Trip", "Save", "S",
       "Save the current trip", roadmap_start_save_trip},
 
+   {"savescreenshot", "Record a screenshot of the trip", "Save Image", "Y",
+      "Make a screenshot of the current map under the trip name",
+      roadmap_trip_save_screenshot},
+
    {"savetripas", "Save Trip As...", "Save As", "As",
       "Save the current trip under a different name",
       roadmap_start_save_trip_as},
@@ -451,6 +455,7 @@ static const char *RoadMapStartMenu[] = {
    "opentrip",
    "savetrip",
    "savetripas",
+   "savescreenshot",
 
    RoadMapFactorySeparator,
 
@@ -553,7 +558,7 @@ static char const *RoadMapStartKeyBinding[] = {
    /* V Unused. */
    "W"               ROADMAP_MAPPED_TO "addaswaypoint",
    "X"               ROADMAP_MAPPED_TO "intersection",
-   /* Y Unused. */
+   "Y"               ROADMAP_MAPPED_TO "savesscreenshot",
    /* Z Unused. */
    NULL
 };

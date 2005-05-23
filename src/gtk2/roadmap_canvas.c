@@ -451,3 +451,30 @@ GtkWidget *roadmap_canvas_new (void) {
    return RoadMapDrawingArea;
 }
 
+
+void roadmap_canvas_save_screenshot (const char* filename) {
+
+   gint width,height;
+   GdkColormap *colormap = gdk_colormap_get_system();
+   GdkPixbuf *pixbuf;
+   GError *error = NULL;
+
+
+   gdk_drawable_get_size(RoadMapDrawingBuffer, &width, &height);
+
+   pixbuf = gdk_pixbuf_get_from_drawable(NULL, // Create a new pixbuf.
+                                         RoadMapDrawingBuffer,
+                                         colormap,
+                                         0,0,         // source
+                                         0,0,         // destination
+                                         width, height);  // size
+
+
+   if (gdk_pixbuf_save(pixbuf, filename, "png", &error, NULL) == FALSE) {
+
+      roadmap_log(ROADMAP_ERROR, "Failed to save image %s\n",filename);
+   }
+
+   gdk_pixbuf_unref(pixbuf);
+}
+
