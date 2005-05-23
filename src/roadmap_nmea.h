@@ -27,6 +27,9 @@
 
 #include "sys/time.h"
 
+#include "roadmap_string.h"
+
+
 #define ROADMAP_NMEA_MAX_SATELLITE   16
 
 #define ROADMAP_NMEA_QUALITY_INVALID   0
@@ -103,13 +106,13 @@ typedef union {
    /* RoadMap's own extensions: */
 
    struct {
-      char id[8];
-      char name[32];
-      char sprite[8];
+      RoadMapDynamicString id;
+      RoadMapDynamicString name;
+      RoadMapDynamicString sprite;
    } pxrmadd;
 
    struct {
-      char id[8];
+      RoadMapDynamicString id;
       int  latitude;
       int  longitude;
       int  speed;
@@ -117,20 +120,20 @@ typedef union {
    } pxrmmov;
 
    struct {
-      char id[8];
+      RoadMapDynamicString id;
    } pxrmdel;
 
    struct {
       int  count;
       struct {
-         char item[8];
+         RoadMapDynamicString item;
       } subscribed[16];
    } pxrmsub;
 
    struct {
-      char category[32];
-      char name[32];
-      char value[128];
+      RoadMapDynamicString category;
+      RoadMapDynamicString name;
+      RoadMapDynamicString value;
    } pxrmcfg;
 
 } RoadMapNmeaFields;

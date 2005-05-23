@@ -33,19 +33,21 @@
 #ifndef INCLUDE__ROADMAP_OBJECT__H
 #define INCLUDE__ROADMAP_OBJECT__H
 
+#include "roadmap_string.h"
 #include "roadmap_gps.h"
 
 
-void roadmap_object_add (const char *origin,
-                         const char *id,
-                         const char *name,
-                         const char *sprite);
+void roadmap_object_add (RoadMapDynamicString origin,
+                         RoadMapDynamicString id,
+                         RoadMapDynamicString name,
+                         RoadMapDynamicString sprite);
 
-void roadmap_object_move (const char *id,
+void roadmap_object_move (RoadMapDynamicString id,
                           const RoadMapGpsPosition *position);
 
-void roadmap_object_remove (const char *id);
-void roadmap_object_cleanup (const char *origin);
+void roadmap_object_remove (RoadMapDynamicString id);
+
+void roadmap_object_cleanup (RoadMapDynamicString origin);
 
 void roadmap_object_draw (void);
 

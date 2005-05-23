@@ -60,7 +60,8 @@ static RoadMapConfigDescriptor RoadMapDriverTemplate =
 
 typedef struct roadmap_driver_descriptor {
 
-   char *name;
+   RoadMapDynamicString name;
+
    char *command;
    char *arguments;
 
@@ -106,14 +107,14 @@ static char *roadmap_driver_strdup (const char *text) {
 }
 
 
-static RoadMapDriver *roadmap_driver_find (const char *name) {
+static int roadmap_driver_exists (const char *name) {
 
    RoadMapDriver *driver;
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      if (strcasecmp(driver->name, name) == 0) return driver;
+      if (roadmap_string_match(driver->name, name)) return 1;
    }
-   return NULL;
+   return 0;
 }
 
 
@@ -167,7 +168,7 @@ static void roadmap_driver_pxrmsub (void *context,
    if (driver != NULL) {
       for (i = 0; i < fields->pxrmsub.count; ++i) {
 
-         if (strcasecmp(fields->pxrmsub.subscribed[i].item, "RMC") == 0) {
+         if (roadmap_string_match(fields->pxrmsub.subscribed[i].item, "RMC")) {
             driver->subscription |= ROADMAP_DRIVER_RMC;
             RoadMapDriverSubscription |= ROADMAP_DRIVER_RMC;
 
@@ -191,17 +192,20 @@ static void roadmap_driver_pxrmcfg (void *context,
    RoadMapDriver *driver = (RoadMapDriver *)context;
 
    const char *value;
-   char *default_value;
-   char  buffer[1024];
    RoadMapConfigDescriptor descriptor;
+   char  buffer[1024];
 
-   descriptor.category  = strdup(fields->pxrmcfg.category);
-   descriptor.name      = strdup(fields->pxrmcfg.name);
+   roadmap_string_lock (fields->pxrmcfg.category);
+   roadmap_string_lock (fields->pxrmcfg.name);
+   roadmap_string_lock (fields->pxrmcfg.value);
+
+   descriptor.category  = roadmap_string_get(fields->pxrmcfg.category);
+   descriptor.name      = roadmap_string_get(fields->pxrmcfg.name);
    descriptor.reference = NULL;
 
-   default_value = strdup(fields->pxrmcfg.value);
-
-   roadmap_config_declare ("preferences", &descriptor, default_value);
+   roadmap_config_declare ("preferences",
+                           &descriptor,
+                           roadmap_string_get(fields->pxrmcfg.value));
 
    value = roadmap_config_get (&descriptor);
 
@@ -211,7 +215,7 @@ static void roadmap_driver_pxrmcfg (void *context,
              value);
    write (driver->pipes[1], buffer, strlen(buffer));
 
-   /* We do not free() the category, name and default value strings,
+   /* We do not release the category, name and default value strings,
     * because these are still referenced in the configuration data.
     */
 
@@ -312,12 +316,12 @@ static void roadmap_driver_configure (const char *path) {
          }
 
          /* Ignore this new entry if that driver was already configured. */
-         if (roadmap_driver_find(name) != NULL) continue;
+         if (roadmap_driver_exists(name)) continue;
 
          driver = calloc (1, sizeof(RoadMapDriver));
          if (driver == NULL) break;
 
-         driver->name      = roadmap_driver_strdup(name);
+         driver->name      = roadmap_string_new(name);
          driver->command   = roadmap_driver_strdup(command);
          driver->arguments = roadmap_driver_strdup(arguments);
 
@@ -329,7 +333,7 @@ static void roadmap_driver_configure (const char *path) {
          driver->subscription = 0;
 
          /* Prepare the NMEA context. */
-         driver->nmea.title        = driver->name;
+         driver->nmea.title        = roadmap_string_get(driver->name);
          driver->nmea.user_context = driver;
          driver->nmea.cursor       = 0;
          driver->nmea.logger       = NULL;
@@ -337,7 +341,7 @@ static void roadmap_driver_configure (const char *path) {
 
          /* Configuration item (enable/disable). */
          driver->enable = RoadMapDriverTemplate;
-         driver->enable.name = driver->name;
+         driver->enable.name = driver->nmea.title;
 
          roadmap_config_declare_enumeration
             ("preferences", &driver->enable, "Disabled", "Enabled", NULL);

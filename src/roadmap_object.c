@@ -45,12 +45,13 @@
 
 struct RoadMapObjectDescriptor {
 
-   char *id; /* Must be unique. */
+   RoadMapDynamicString origin;
 
-   char *origin;
+   RoadMapDynamicString id; /* Must be unique. */
 
-   char *name; /* What's shown on display, don't need to be unique. */
-   char *sprite; /* .. that is used to represent the object on screen. */
+   RoadMapDynamicString name; /* Name displayed, need not be unique. */
+
+   RoadMapDynamicString sprite; /* Icon for the object on the map. */
 
    RoadMapGpsPosition position;
 
@@ -64,22 +65,22 @@ typedef struct RoadMapObjectDescriptor RoadMapObject;
 static RoadMapObject *RoadmapObjectList = NULL;
 
 
-RoadMapObject *roadmap_object_search (const char *id) {
+RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
 
    RoadMapObject *cursor;
 
    for (cursor = RoadmapObjectList; cursor != NULL; cursor = cursor->next) {
-      if (strcmp (id, cursor->id) == 0) return cursor;
+      if (cursor->id == id) return cursor;
    }
 
    return NULL;
 }
 
 
-void roadmap_object_add (const char *origin,
-                         const char *id,
-                         const char *name,
-                         const char *sprite) {
+void roadmap_object_add (RoadMapDynamicString origin,
+                         RoadMapDynamicString id,
+                         RoadMapDynamicString name,
+                         RoadMapDynamicString sprite) {
 
    RoadMapObject *cursor = roadmap_object_search (id);
 
@@ -90,10 +91,15 @@ void roadmap_object_add (const char *origin,
          roadmap_log (ROADMAP_ERROR, "no more memory");
          return;
       }
-      cursor->id     = strdup(id);
-      cursor->origin = strdup(origin);
-      cursor->name   = strdup(name);
-      cursor->sprite = strdup(sprite);
+      cursor->origin = origin;
+      cursor->id     = id;
+      cursor->name   = name;
+      cursor->sprite = sprite;
+
+      roadmap_string_lock(origin);
+      roadmap_string_lock(id);
+      roadmap_string_lock(name);
+      roadmap_string_lock(sprite);
 
       cursor->previous  = NULL;
       cursor->next      = RoadmapObjectList;
@@ -106,7 +112,7 @@ void roadmap_object_add (const char *origin,
 }
 
 
-void roadmap_object_move (const char *id,
+void roadmap_object_move (RoadMapDynamicString id,
                           const RoadMapGpsPosition *position) {
 
    RoadMapObject *cursor = roadmap_object_search (id);
@@ -117,7 +123,7 @@ void roadmap_object_move (const char *id,
 }
 
 
-void roadmap_object_remove (const char *id) {
+void roadmap_object_remove (RoadMapDynamicString id) {
 
    RoadMapObject *cursor = roadmap_object_search (id);
 
@@ -132,10 +138,10 @@ void roadmap_object_remove (const char *id) {
          RoadmapObjectList = cursor->next;
       }
 
-      free (cursor->id);
-      free (cursor->origin);
-      free (cursor->name);
-      free (cursor->sprite);
+      roadmap_string_release(cursor->origin);
+      roadmap_string_release(cursor->id);
+      roadmap_string_release(cursor->name);
+      roadmap_string_release(cursor->sprite);
       free (cursor);
    }
 }
@@ -156,14 +162,14 @@ void roadmap_object_draw (void) {
 
          roadmap_math_coordinate (&position, &screen_point);
          roadmap_math_rotate_coordinates (1, &screen_point);
-         roadmap_sprite_draw (cursor->sprite,
+         roadmap_sprite_draw (roadmap_string_get(cursor->sprite),
                               &screen_point, cursor->position.steering);
       }
    }
 }
 
 
-void roadmap_object_cleanup (const char *origin) {
+void roadmap_object_cleanup (RoadMapDynamicString origin) {
 
    RoadMapObject *cursor;
    RoadMapObject *next;
@@ -172,7 +178,7 @@ void roadmap_object_cleanup (const char *origin) {
 
       next = cursor->next;
 
-      if (strcasecmp (origin, cursor->origin) == 0) {
+      if (cursor->origin == origin) {
          roadmap_object_remove (cursor->id);
       }
    }

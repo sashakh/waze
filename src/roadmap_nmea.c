@@ -47,6 +47,8 @@ static RoadMapNmeaFields RoadMapNmeaReceived;
 
 static char RoadMapNmeaDate[16];
 
+static RoadMapDynamicStringCollection RoadMapNmeaCollection;
+
 
 static void safecpy (char *d, const char *s, int length) {
 
@@ -441,17 +443,14 @@ static int roadmap_nmea_pxrmadd (int argc, char *argv[]) {
 
     if (argc <= 3) return 0;
 
-    safecpy (RoadMapNmeaReceived.pxrmadd.id,
-             argv[1],
-             sizeof(RoadMapNmeaReceived.pxrmadd.id));
+    RoadMapNmeaReceived.pxrmadd.id =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
 
-    safecpy (RoadMapNmeaReceived.pxrmadd.name,
-             argv[2],
-             sizeof(RoadMapNmeaReceived.pxrmadd.name));
+    RoadMapNmeaReceived.pxrmadd.name =
+       roadmap_string_new_in_collection (argv[2], &RoadMapNmeaCollection);
 
-    safecpy (RoadMapNmeaReceived.pxrmadd.sprite,
-             argv[3],
-             sizeof(RoadMapNmeaReceived.pxrmadd.sprite));
+    RoadMapNmeaReceived.pxrmadd.sprite =
+       roadmap_string_new_in_collection (argv[3], &RoadMapNmeaCollection);
 
     return 1;
 }
@@ -461,9 +460,8 @@ static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
 
     if (argc <= 7) return 0;
 
-    safecpy (RoadMapNmeaReceived.pxrmmov.id,
-             argv[1],
-             sizeof(RoadMapNmeaReceived.pxrmmov.id));
+    RoadMapNmeaReceived.pxrmmov.id =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
 
     RoadMapNmeaReceived.pxrmmov.latitude =
         roadmap_nmea_decode_coordinate  (argv[2], argv[3], 'N', 'S');
@@ -485,9 +483,8 @@ static int roadmap_nmea_pxrmdel (int argc, char *argv[]) {
 
     if (argc <= 1) return 0;
 
-    safecpy (RoadMapNmeaReceived.pxrmdel.id,
-             argv[1],
-             sizeof(RoadMapNmeaReceived.pxrmdel.id));
+    RoadMapNmeaReceived.pxrmdel.id =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
 
     return 1;
 }
@@ -501,9 +498,8 @@ static int roadmap_nmea_pxrmsub (int argc, char *argv[]) {
     if (argc <= 1) return 0;
 
     for (i = 1, j = 0; i < argc; ++i, ++j) {
-       safecpy (RoadMapNmeaReceived.pxrmsub.subscribed[j].item,
-                argv[i],
-                sizeof(RoadMapNmeaReceived.pxrmsub.subscribed[0].item));
+       RoadMapNmeaReceived.pxrmsub.subscribed[j].item =
+          roadmap_string_new_in_collection (argv[i], &RoadMapNmeaCollection);
     }
 
     RoadMapNmeaReceived.pxrmsub.count = j;
@@ -516,17 +512,14 @@ static int roadmap_nmea_pxrmcfg (int argc, char *argv[]) {
 
     if (argc < 4) return 0;
 
-    safecpy (RoadMapNmeaReceived.pxrmcfg.category,
-             argv[1],
-             sizeof(RoadMapNmeaReceived.pxrmcfg.category));
+    RoadMapNmeaReceived.pxrmcfg.category =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
 
-    safecpy (RoadMapNmeaReceived.pxrmcfg.name,
-             argv[2],
-             sizeof(RoadMapNmeaReceived.pxrmcfg.name));
+    RoadMapNmeaReceived.pxrmcfg.name =
+       roadmap_string_new_in_collection (argv[2], &RoadMapNmeaCollection);
 
-    safecpy (RoadMapNmeaReceived.pxrmcfg.value,
-             argv[3],
-             sizeof(RoadMapNmeaReceived.pxrmcfg.value));
+    RoadMapNmeaReceived.pxrmcfg.value =
+       roadmap_string_new_in_collection (argv[3], &RoadMapNmeaCollection);
 
     return 1;
 }
@@ -693,6 +686,8 @@ static int roadmap_nmea_call (void *context,
 
       (*RoadMapNmeaPhrase[index].filter)   (&RoadMapNmeaReceived);
       (*RoadMapNmeaPhrase[index].listener) (context, &RoadMapNmeaReceived);
+
+      roadmap_string_release_all (&RoadMapNmeaCollection);
 
       return 1; /* GPS information was successfully made available. */
    }
