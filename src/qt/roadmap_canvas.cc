@@ -32,6 +32,7 @@ extern "C" {
 #include "roadmap_canvas.h"
 }
 
+#include "qimage.h"
 #include "qt_canvas.h"
 
 
@@ -123,6 +124,11 @@ void roadmap_canvas_refresh (void) {
 
 
 void roadmap_canvas_save_screenshot (const char* filename) {
-   // NOT IMPLEMENTED.
+
+   QPixmap pixmap;
+   QString *name = new QString(filename);
+
+   pixmap = QPixmap::grabWidget (roadMapCanvas);
+   pixmap.save (*name, "PNG");
 }
 
