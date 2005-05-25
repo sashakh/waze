@@ -126,9 +126,9 @@ void roadmap_canvas_refresh (void) {
 void roadmap_canvas_save_screenshot (const char* filename) {
 
    QPixmap pixmap;
-   QString *name = new QString(filename);
+   QString name (filename);
 
    pixmap = QPixmap::grabWidget (roadMapCanvas);
-   pixmap.save (*name, "PNG");
+   pixmap.save (name, "PNG");
 }
 
