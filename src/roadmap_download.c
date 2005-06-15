@@ -96,6 +96,8 @@ struct roadmap_download_protocol {
 static struct roadmap_download_protocol *RoadMapDownloadProtocolMap = NULL;
 
 
+static void roadmap_download_next_county (void);
+
 static void roadmap_download_no_handler (void) {}
 
 static RoadMapDownloadEvent RoadMapDownloadWhenDone =
@@ -146,8 +148,6 @@ static int roadmap_download_increment (int cursor) {
 
 
 static void roadmap_download_end (void) {
-
-   static void roadmap_download_next_county (void);
 
 
    RoadMapDownloadQueueConsumer =
