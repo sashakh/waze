@@ -43,6 +43,7 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
 
 RDM_CFG="${ROADMAP}/src/preferences
          ${ROADMAP}/src/schema
+         ${ROADMAP}/src/session
          ${ROADMAP}/src/sprites
          ${ROADMAP}/src/drivers
          ${ROADMAP}/src/*.png
@@ -74,7 +75,9 @@ RDM_BIN="${ROADMAP}/src/usdir.rdm
 RDM_DOC="${ROADMAP}/AUTHORS
          ${ROADMAP}/BUGS
          ${ROADMAP}/COPYING
-         ${ROADMAP}/README"
+         ${ROADMAP}/README
+         ${ROADMAP}/src/roadgps.1
+         ${ROADMAP}/src/roadmap.1"
 
 RDM_HELP="${ROADMAP}/web/manual.html ${ROADMAP}/web/apt_toc.gif"
 
