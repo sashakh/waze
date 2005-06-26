@@ -28,13 +28,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <errno.h>
-#include <time.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -213,7 +206,7 @@ static void roadmap_driver_pxrmcfg (void *context,
              descriptor.category,
              descriptor.name,
              value);
-   write (driver->pipes[1], buffer, strlen(buffer));
+   roadmap_file_write (driver->pipes[1], buffer, strlen(buffer));
 
    /* We do not release the category, name and default value strings,
     * because these are still referenced in the configuration data.
@@ -233,8 +226,8 @@ static void roadmap_driver_onexit (void *context) {
 
       (*RoadMapDriverLinkRemove) (driver->pipes[0]);
 
-      close(driver->pipes[0]);
-      close(driver->pipes[1]);
+      roadmap_file_close(driver->pipes[0]);
+      roadmap_file_close(driver->pipes[1]);
 
       driver->pipes[0] = -1;
       driver->pipes[1] = -1;
@@ -246,7 +239,7 @@ static int roadmap_driver_receive (void *context, char *data, int size) {
 
    RoadMapDriver *driver = (RoadMapDriver *)context;
 
-   return read (driver->pipes[0], data, size);
+   return roadmap_file_read (driver->pipes[0], data, size);
 }
 
 
@@ -261,7 +254,7 @@ static void roadmap_driver_configure (const char *path) {
 
    RoadMapDriver *driver;
 
-   file = roadmap_file_open (path, "drivers", "sr");
+   file = roadmap_file_fopen (path, "drivers", "sr");
 
    if (file != NULL) {
 
@@ -422,7 +415,7 @@ void roadmap_driver_publish (const RoadMapGpsPosition *position) {
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
       if ((driver->pipes[1] > 0) &&
           (driver->subscription & ROADMAP_DRIVER_RMC)) {
-         write (driver->pipes[1], buffer, length);
+         roadmap_file_write (driver->pipes[1], buffer, length);
       }
    }
 }

@@ -40,7 +40,12 @@ typedef struct RoadMapFileContextStructure *RoadMapFileContext;
 const char *roadmap_file_unique (const char *base);
 
 
-FILE *roadmap_file_open (const char *path, const char *name, const char *mode);
+FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
+
+int   roadmap_file_open  (const char *name, const char *mode);
+int   roadmap_file_read  (int file, void *data, int size);
+int   roadmap_file_write (int file, const void *data, int length);
+void  roadmap_file_close (int file);
 
 void  roadmap_file_remove (const char *path, const char *name);
 int   roadmap_file_exists (const char *path, const char *name);

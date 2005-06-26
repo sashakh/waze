@@ -48,7 +48,9 @@ struct RoadMapFileContextStructure {
 };
 
 
-FILE *roadmap_file_open (const char *path, const char *name, const char *mode) {
+FILE *roadmap_file_fopen (const char *path,
+                          const char *name,
+                          const char *mode) {
 
    int   silent;
    FILE *file;
@@ -310,5 +312,36 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
    }
    free(context);
    *file = NULL;
+}
+
+
+int roadmap_file_open  (const char *name, const char *mode) {
+
+   int unix_mode = 0;
+
+   if (strcmp(mode, "r") == 0) {
+      unix_mode = O_RDONLY;
+   } else if (strchr (mode, 'w') != NULL) {
+      unix_mode = O_RDWR;
+   } else {
+      roadmap_log (ROADMAP_ERROR,
+                   "%s: invalid file access mode %s", name, mode);
+      return -1;
+   }
+
+   return open (name, unix_mode);
+}
+
+
+int roadmap_file_read  (int file, void *data, int size) {
+   return read (file, data, size);
+}
+
+int roadmap_file_write (int file, const void *data, int length) {
+   return write (file, data, length);
+}
+
+void  roadmap_file_close (int file) {
+   close (file);
 }
 

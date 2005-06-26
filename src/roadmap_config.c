@@ -449,7 +449,7 @@ static int roadmap_config_load
    RoadMapConfigDescriptor descriptor;
 
 
-   file = roadmap_file_open (path, config->name, "sr");
+   file = roadmap_file_fopen (path, config->name, "sr");
    if (file == NULL) return 0;
 
    /* DEBUG: printf ("Loading %s from %s ..\n", config->name, path); */
@@ -521,7 +521,7 @@ static void roadmap_config_update (RoadMapConfig *config, int force) {
 
    if (force || (config->state == ROADMAP_CONFIG_DIRTY)) {
 
-      file = roadmap_file_open (roadmap_path_user(), config->name, "w");
+      file = roadmap_file_fopen (roadmap_path_user(), config->name, "w");
 
       if (file) {
 

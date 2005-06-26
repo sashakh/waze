@@ -436,10 +436,10 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
         return NULL;
     }
 
-    if (name [0] == '/') {
-        file = roadmap_file_open (NULL, name, mode);
+    if (roadmap_path_is_full_path (name)) {
+        file = roadmap_file_fopen (NULL, name, mode);
     } else {
-        file = roadmap_file_open (roadmap_path_trips(), name, mode);
+        file = roadmap_file_fopen (roadmap_path_trips(), name, mode);
     }
 
     if (file != NULL) {

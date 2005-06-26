@@ -147,7 +147,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    if (category->save_to_file) {
 
-      file = roadmap_file_open (roadmap_path_user(), "postmortem", "sa");
+      file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
 
       if (file != NULL) {
 
