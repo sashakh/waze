@@ -25,7 +25,7 @@
 #ifndef INCLUDED__ROADMAP_NMEA__H
 #define INCLUDED__ROADMAP_NMEA__H
 
-#include "sys/time.h"
+#include <time.h>
 
 #include "roadmap_string.h"
 
@@ -42,7 +42,7 @@ typedef union {
 
    struct {
       time_t fixtime;
-      int    status;
+      char   status;
       int    latitude;
       int    longitude;
       int    speed;
@@ -61,7 +61,7 @@ typedef union {
    } gga;
 
    struct {
-      int    status;
+      char   status;
       int    mode;
       int    latitude;
       int    longitude;
