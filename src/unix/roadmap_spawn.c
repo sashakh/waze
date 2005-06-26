@@ -334,3 +334,8 @@ void roadmap_spawn_check (void) {
     }
 }
 
+
+void roadmap_spawn_command (const char *command) {
+   system (command);
+}
+

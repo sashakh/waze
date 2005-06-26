@@ -57,5 +57,7 @@ int  roadmap_spawn_with_pipe
 
 void roadmap_spawn_check (void);
 
+void roadmap_spawn_command (const char *command);
+
 #endif // INCLUDE__ROADMAP_SPAWN__H
 

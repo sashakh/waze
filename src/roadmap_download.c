@@ -45,6 +45,7 @@
 #include "roadmap_start.h"
 #include "roadmap_main.h"
 #include "roadmap_preferences.h"
+#include "roadmap_spawn.h"
 
 #include "roadmap_download.h"
 
@@ -332,7 +333,7 @@ static void roadmap_download_uncompress (const char *destination) {
       if ((p != NULL) && (strcmp (p, tool->suffix) == 0)) {
 
          snprintf (command, sizeof(command), "%s %s", tool->name, destination);
-         system (command);
+         roadmap_spawn_command (command);
          break;
       }
    }
