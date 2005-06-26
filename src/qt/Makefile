@@ -14,7 +14,7 @@ STRIP=strip
 
 WARNFLAGS=-W -Wall -Wno-unused-parameter
 
-GUICFLAGS=-I/usr/include/qt3
+GUICFLAGS=-I/usr/include/qt3 -I/usr/local/include/qt3
 GUILDFLAGS=-lqt
 MOC=/usr/bin/moc
 
