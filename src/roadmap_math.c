@@ -538,7 +538,7 @@ int roadmap_math_declutter (int level) {
 
 int roadmap_math_thickness (int base) {
 
-   float ratio;
+   double ratio;
 
    ratio = ((1.0 * ROADMAP_REFERENCE_ZOOM) * base) / RoadMapContext.zoom;
 
@@ -716,7 +716,7 @@ int roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2) {
 
     d = sqrt ((x * x) + (y * y));
     
-    if (abs(d) > 0.0001) {
+    if (d > 0.0001 || d < -0.0001) {
         result = roadmap_math_arccosine
                     ((int) ((32768 * y) / d), (x > 0)?1:-1);
     } else {
@@ -827,7 +827,7 @@ int  roadmap_math_get_distance_from_segment
 
       intersection->longitude =
          position1->longitude
-            + (((x1 - x3) * position2->longitude) / (x1 - x2));
+            + (int)(((x1 - x3) * position2->longitude) / (x1 - x2));
    }
 
 
@@ -845,7 +845,7 @@ int  roadmap_math_get_distance_from_segment
 
          intersection->latitude =
             position1->latitude
-               + (((y1 - y3) * position2->latitude) / (y1 - y2));
+               + (int)(((y1 - y3) * position2->latitude) / (y1 - y2));
       }
 
       return (int) sqrt ((x3 * x3) + (y3 * y3));
