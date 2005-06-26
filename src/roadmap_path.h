@@ -125,5 +125,7 @@ const char *roadmap_path_search_icon (const char *name);
 char *roadmap_path_skip_directories (const char *name);
 char *roadmap_path_remove_extension (const char *name);
 
+int roadmap_path_is_full_path (const char *name);
+
 #endif // INCLUDE__ROADMAP_PATH__H
 
