@@ -27,13 +27,16 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <time.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#ifndef _WIN32
+// #include <unistd.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+// #include <fcntl.h>
+#else
+#include "wince_os/wince_serial.h"
+#endif
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -41,6 +44,7 @@
 #include "roadmap_config.h"
 
 #include "roadmap_net.h"
+#include "roadmap_file.h"
 #include "roadmap_nmea.h"
 
 #include "roadmap_gps.h"
@@ -54,6 +58,11 @@ static RoadMapConfigDescriptor RoadMapConfigGPSSpeedAccuracy =
 
 static RoadMapConfigDescriptor RoadMapConfigGPSSource =
                         ROADMAP_CONFIG_ITEM("GPS", "Source");
+
+#ifdef _WIN32
+static RoadMapConfigDescriptor RoadMapConfigGPSBaudRate =
+                        ROADMAP_CONFIG_ITEM("GPS", "Baud Rate");
+#endif
 
 static RoadMapConfigDescriptor RoadMapConfigGPSTimeout =
                         ROADMAP_CONFIG_ITEM("GPS", "Timeout");
@@ -235,10 +244,55 @@ void roadmap_gps_initialize (roadmap_gps_listener listener) {
        ("preferences", &RoadMapConfigGPSSpeedAccuracy, "4");
    roadmap_config_declare
        ("preferences", &RoadMapConfigGPSAccuracy, "30");
+#ifndef _WIN32
    roadmap_config_declare
        ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost");
+#else
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigGPSSource, "COM1:");
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigGPSBaudRate, "4800");
+#endif
    roadmap_config_declare
        ("preferences", &RoadMapConfigGPSTimeout, "10");
+}
+
+
+static int roadmap_gps_send (void *context, char *data, int size) {
+
+#ifndef _WIN32
+   return roadmap_net_send ((int)context, data, size);
+#else
+   return -1; /* Not implemented for WIN32. */
+#endif
+
+}
+
+
+static int roadmap_gps_receive (void *context, char *data, int size) {
+
+   /* ok this is ugly, but the fix is not simple. The assumption that every
+    * type of input has a fd, does not work on windows. A proper fix is to
+    * define types of inputs (file, network, serial) and receive data
+    * accordingly.
+    */
+#ifndef _WIN32
+   return roadmap_net_receive ((int)context, data, size);
+#else
+   DWORD dwBytesRead;
+
+   if(!ReadFile((HANDLE)context,
+                data,
+                size,
+                &dwBytesRead,
+                NULL))
+   {
+      return -1;
+   }
+
+   return dwBytesRead;
+#endif
+
 }
 
 
@@ -265,16 +319,16 @@ void roadmap_gps_open (void) {
 
    /* We do have a gps interface: */
 
+#ifndef _WIN32
    if (strncasecmp (url, "gpsd://", 7) == 0) {
 
       RoadMapGpsLink = roadmap_net_connect ("tcp", url+7, 2947);
 
-      if (RoadMapGpsLink > 0) {
+      if (RoadMapGpsLink != -1) {
 
-         if (write (RoadMapGpsLink, "r\n", 2) != 2) {
-            roadmap_log (ROADMAP_WARNING,
-                         "cannot subscribe to gpsd, errno = %d", errno);
-            close(RoadMapGpsLink);
+         if (roadmap_gps_send (RoadMapGpsLink, "r\n", 2) != 2) {
+            roadmap_log (ROADMAP_WARNING, "cannot subscribe to gpsd");
+            roadmap_net_close(RoadMapGpsLink);
             RoadMapGpsLink = -1;
          }
       }
@@ -286,18 +340,22 @@ void roadmap_gps_open (void) {
 
    } else if (strncasecmp (url, "file://", 7) == 0) {
 
-      RoadMapGpsLink = open (url+7, O_RDONLY);
+      RoadMapGpsLink = roadmap_file_open (url+7, "r");
 
    } else if (url[0] == '/') {
 
-      RoadMapGpsLink = open (url, O_RDONLY);
+      RoadMapGpsLink = roadmap_file_open (url, "r");
 
    } else {
       roadmap_log (ROADMAP_ERROR, "invalid protocol in url %s", url);
       return;
    }
+#else
+   RoadMapGpsLink = (int)
+      OpenGPSSerial(url, roadmap_config_get (&RoadMapConfigGPSBaudRate));
+#endif
 
-   if (RoadMapGpsLink < 0) {
+   if (RoadMapGpsLink == -1) {
       if (! RoadMapGpsRetryPending) {
          roadmap_log (ROADMAP_WARNING, "cannot access GPS source %s", url);
          (*RoadMapGpsPeriodicAdd) (roadmap_gps_open);
@@ -383,12 +441,6 @@ void roadmap_gps_register_periodic_control
 }
 
 
-static int roadmap_gps_receive (void *context, char *data, int size) {
-
-   return roadmap_net_receive ((int)context, data, size);
-}
-
-
 static void roadmap_gps_call_logger (const char *data) {
 
    int i;
@@ -417,7 +469,11 @@ void roadmap_gps_input (int fd) {
       /* We lost that connection. */
 
       (*RoadMapGpsLinkRemove) (fd);
-      close (fd);
+#ifndef _WIN32
+      roadmap_net_close (fd);
+#else
+      CloseHandle((HANDLE)fd);
+#endif
 
       /* Try to establish a new connection: */
 
@@ -430,7 +486,7 @@ int roadmap_gps_active (void) {
 
    int timeout;
 
-   if (RoadMapGpsLink < 0) {
+   if (RoadMapGpsLink == -1) {
       return 0;
    }
 
