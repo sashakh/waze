@@ -58,7 +58,7 @@ static RoadMapConfigDescriptor RoadMapNavigateFlag =
  * so that the user selected state is kept from one session to
  * the next.
  */
-static int RoadMapNavigateEnabled = 0; /* Will be set according
+static int RoadMapNavigateEnabled = 0;
 
 /* Avoid doing navigation work when the position has not changed. */
 static RoadMapGpsPosition RoadMapLatestGpsPosition;
