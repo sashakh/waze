@@ -29,12 +29,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#ifndef _WIN32
-// #include <unistd.h>
-// #include <sys/types.h>
-// #include <sys/stat.h>
-// #include <fcntl.h>
-#else
+#ifdef _WIN32
 #include "wince_os/wince_serial.h"
 #endif
 
@@ -326,7 +321,7 @@ void roadmap_gps_open (void) {
 
       if (RoadMapGpsLink != -1) {
 
-         if (roadmap_gps_send (RoadMapGpsLink, "r\n", 2) != 2) {
+         if (roadmap_gps_send ((void *)RoadMapGpsLink, "r\n", 2) != 2) {
             roadmap_log (ROADMAP_WARNING, "cannot subscribe to gpsd");
             roadmap_net_close(RoadMapGpsLink);
             RoadMapGpsLink = -1;
