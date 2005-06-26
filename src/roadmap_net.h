@@ -27,8 +27,8 @@
 int roadmap_net_connect (const char *protocol,
                          const char *name, int default_port);
 
-int roadmap_net_send    (int socket, void *data, int length);
 int roadmap_net_receive (int socket, void *data, int size);
+int roadmap_net_send    (int socket, const void *data, int length);
 
 void roadmap_net_close (int socket);
 

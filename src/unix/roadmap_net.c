@@ -151,7 +151,7 @@ connection_failure:
 }
 
 
-int roadmap_net_send (int socket, void *data, int length) {
+int roadmap_net_send (int socket, const void *data, int length) {
 
    return write (socket, data, length);
 }
