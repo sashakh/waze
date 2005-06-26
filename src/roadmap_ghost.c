@@ -36,10 +36,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-
-#include <sys/select.h>
 
 #include "roadmap.h"
 
@@ -51,9 +47,13 @@ struct delay_buffer {
 
 int main(int argc, char *argv[]) {
 
-   char *driver = "Ghost";
+   const char *driver = "Ghost";
+
    char  config[256];
    int   config_length;
+
+   char  buffer[256];
+   int   received;
 
    int previous = -1;
    int delay_cursor = 0;
@@ -75,94 +75,84 @@ int main(int argc, char *argv[]) {
 
    for(;;) {
 
-      fd_set reads;
+      /* Retrieve the data from RoadMap. ------------------------------- */
 
-      FD_ZERO(&reads);
-      FD_SET(0, &reads);
+      received = read (0, buffer, sizeof(buffer));
 
-      if (select (1, &reads, NULL, NULL, NULL) == 0) continue;
+      if (received <= 0) {
+         exit(0); /* RoadMap cut the pipe. */
+      }
 
-      if (FD_ISSET(0, &reads)) {
-
-         /* Retrieve the data from RoadMap. ------------------------------- */
-
-         char buffer[256];
-         int received = read (0, buffer, sizeof(buffer));
-
-         if (received <= 0) {
-            exit(0); /* RoadMap cut the pipe. */
-         }
-
-         buffer[received] = 0;
+      buffer[received] = 0;
 
 
-         /* Proces the configuration information. ------------------------- */
+      /* Proces the configuration information. ------------------------- */
 
-         if (strncmp (buffer, config, config_length) == 0) {
+      if (strncmp (buffer, config, config_length) == 0) {
 
-            int configured = atoi (buffer + config_length);
+         int configured = atoi (buffer + config_length);
 
-            if (configured <= 0) configured = 10;
+         if (configured <= 0) configured = 10;
 
-            if (configured != delay_length) {
+         if (configured != delay_length) {
 
-               /* Reallocate and reset the delay line. */
+            /* Reallocate and reset the delay line. */
 
-               delay_length = configured;
+            delay_length = configured;
 
-               if (delay_line != NULL) free (delay_line);
+            if (delay_line != NULL) free (delay_line);
 
-               delay_line = calloc (delay_length, sizeof(struct delay_buffer));
-               if (delay_line == NULL) {
-                  roadmap_log (ROADMAP_FATAL, "no more memory");
-               }
-               delay_cursor = 0;
-               previous = -1;
+            delay_line = calloc (delay_length, sizeof(struct delay_buffer));
+            if (delay_line == NULL) {
+               roadmap_log (ROADMAP_FATAL, "no more memory");
             }
-            continue; /* Don't echo configuration information. */
+            delay_cursor = 0;
+            previous = -1;
          }
+         continue; /* Don't echo configuration information. */
+      }
 
-         if (delay_line == NULL) continue; /* Not configured yet. */
-
-
-         /* Store the latest position information. ------------------------ */
-
-         if (previous >= 0) {
-            if (strcmp (buffer, delay_line[previous].data) == 0) {
-
-               continue; /* ignore this repetition. */
-            }
-         }
-         strncpy (delay_line[delay_cursor].data,
-                  buffer,
-                  sizeof(delay_line[delay_cursor].data));
-
-         previous = delay_cursor;
-         if (++delay_cursor >= delay_length) delay_cursor = 0;
+      if (delay_line == NULL) continue; /* Not configured yet. */
 
 
-         /* Echoe the oldest position, if any. ---------------------------- */
+      /* Store the latest position information. ------------------------ */
 
-         if (delay_line[delay_cursor].data[0] != 0) {
+      if (previous >= 0) {
+         if (strcmp (buffer, delay_line[previous].data) == 0) {
 
-            /* retrieve the latitude from the RMC sentence (xx field). */
-            char *p = strchr (delay_line[delay_cursor].data, ',');
-
-            if (p == NULL) continue;
-            p = strchr (p+1, ',');    /* Skip the time. */
-            if (p == NULL) continue;
-            p = strchr (p+1, ',');    /* Skip the status. */
-            if (p == NULL) continue;
-
-            printf ("$PXRMMOV,%s%s", driver, p);
-            fflush (stdout);
-         }
-
-         if (ferror(stdout)) {
-            exit(0); /* RoadMap closed the pipe. */
+            continue; /* ignore this repetition. */
          }
       }
+      strncpy (delay_line[delay_cursor].data,
+               buffer,
+               sizeof(delay_line[delay_cursor].data));
+
+      previous = delay_cursor;
+      if (++delay_cursor >= delay_length) delay_cursor = 0;
+
+
+      /* Echoe the oldest position, if any. ---------------------------- */
+
+      if (delay_line[delay_cursor].data[0] != 0) {
+
+         /* retrieve the latitude from the RMC sentence (xx field). */
+         char *p = strchr (delay_line[delay_cursor].data, ',');
+
+         if (p == NULL) continue;
+         p = strchr (p+1, ',');    /* Skip the time. */
+         if (p == NULL) continue;
+         p = strchr (p+1, ',');    /* Skip the status. */
+         if (p == NULL) continue;
+
+         printf ("$PXRMMOV,%s%s", driver, p);
+         fflush (stdout);
+      }
+
+      if (ferror(stdout)) {
+         exit(0); /* RoadMap closed the pipe. */
+      }
    }
+
    return 0; /* Some compilers might not detect the forever loop. */
 }
 
