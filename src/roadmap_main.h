@@ -54,6 +54,9 @@ void roadmap_main_show (void);
 void roadmap_main_set_input    (int fd, RoadMapInput callback);
 void roadmap_main_remove_input (int fd);
 
+void roadmap_main_set_serial_input    (int fd, RoadMapInput callback);
+void roadmap_main_remove_serial_input (int fd);
+
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback);
 void roadmap_main_remove_periodic (RoadMapCallback callback);
 

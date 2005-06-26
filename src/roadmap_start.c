@@ -638,7 +638,19 @@ static void roadmap_start_periodic (void) {
 
 static void roadmap_start_add_gps (int fd) {
 
+#ifndef _WIN32
    roadmap_main_set_input (fd, roadmap_gps_input);
+#else
+   roadmap_main_set_serial_input (fd, roadmap_gps_input);
+#endif
+}
+
+static void roadmap_start_remove_gps (int fd) {
+#ifndef _WIN32
+   roadmap_main_remove_input(fd);
+#else
+   roadmap_main_remove_serial_input(fd);
+#endif
 }
 
 static void roadmap_start_add_driver (int fd) {
@@ -668,7 +680,7 @@ static void roadmap_start_window (void) {
    roadmap_main_show ();
 
    roadmap_gps_register_link_control
-      (roadmap_start_add_gps, roadmap_main_remove_input);
+      (roadmap_start_add_gps, roadmap_start_remove_gps);
 
    roadmap_gps_register_periodic_control
       (roadmap_start_set_timeout, roadmap_main_remove_periodic);

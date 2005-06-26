@@ -26,13 +26,13 @@
  */
 
 #include <math.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
+
+#ifndef _WIN32
 #include <errno.h>
-#include <time.h>
-#include <string.h>
+#endif
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -626,7 +626,7 @@ RoadMapNmeaFilter roadmap_nmea_add_filter (const char *vendor,
                    "unsupported NMEA sentence '%s' from vendor '%s'",
                    sentence, vendor);
    }
-   return roadmap_nmea_null_filter;
+   return (RoadMapNmeaFilter)roadmap_nmea_null_filter;
 }
 
 
@@ -675,7 +675,7 @@ RoadMapNmeaListener roadmap_nmea_subscribe (const char *vendor,
                    "unsupported NMEA sentence '%s' for vendor '%s'",
                    sentence, vendor);
    }
-   return roadmap_nmea_null_listener;
+   return (RoadMapNmeaListener)roadmap_nmea_null_listener;
 }
 
 
@@ -799,13 +799,20 @@ int roadmap_nmea_input (RoadMapNmeaContext *context) {
 
          /* We lost that connection. */
 
+#ifndef _WIN32
          if (errno != 0) {
             roadmap_log (ROADMAP_ERROR,
                          "lost %s, errno = %d", context->title, errno);
          } else {
             roadmap_log (ROADMAP_INFO, "lost %s", context->title);
          }
+
          return -1;
+#else
+         /* On Windows, 0 doesn't mean close. */
+         if (received == 0) return 0;
+         roadmap_log (ROADMAP_INFO, "lost %s", context->title);
+#endif
 
       } else {
          context->cursor += received;

@@ -25,6 +25,10 @@
 #define INCLUDE__ROADMAP__H
 
 #include "roadmap_types.h"
+#ifdef _WIN32
+#include "wince_os/roadmap_win32.h"
+#endif
+
 
 #define ROADMAP_MESSAGE_DEBUG      1
 #define ROADMAP_MESSAGE_INFO       2

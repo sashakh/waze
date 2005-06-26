@@ -414,6 +414,15 @@ void roadmap_main_remove_input (int fd) {
 }
 
 
+void roadmap_main_set_serial_input    (int fd, RoadMapInput callback) {
+   roadmap_main_set_input (fd, callback); /* Same thing on UNIX. */
+}
+
+void roadmap_main_remove_serial_input (int fd) {
+   roadmap_main_remove_input (fd); /* Same thing on UNIX. */
+}
+
+
 static gboolean roadmap_main_timeout (gpointer data) {
 
    RoadMapCallback callback = (RoadMapCallback) data;

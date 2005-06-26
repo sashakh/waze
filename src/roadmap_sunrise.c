@@ -63,7 +63,9 @@ static time_t roadmap_sunrise_get_gmt(double decimaltime,
                                       struct tm *curtime) {
 
    time_t gmt;
+#ifndef _WIN32
    char   *tz;
+#endif
 
    double temp1;
    int temp2;
@@ -82,14 +84,17 @@ static time_t roadmap_sunrise_get_gmt(double decimaltime,
    curtime->tm_hour = temp2;
    curtime->tm_min = (int) temp1;
 
+#ifndef _WIN32
    tz = getenv("TZ");
    if (tz == NULL || tz[0] != 0) {
       setenv("TZ", "", 1);
       tzset();
    }
+#endif
 
    gmt = mktime(curtime);
 
+#ifndef _WIN32
    if (tz != NULL) {
       if (tz[0] != 0) {
          setenv("TZ", tz, 1);
@@ -98,6 +103,7 @@ static time_t roadmap_sunrise_get_gmt(double decimaltime,
       unsetenv("TZ");
    }
    tzset();
+#endif
 
    return gmt;
 }
@@ -133,7 +139,7 @@ static time_t roadmap_sunrise_getriseorset
 	double roadmap_lat  = LU_TO_DEG(position->latitude);
 
 	/* not accurate for places too close to the poles */
-	if(abs(roadmap_lat) > 63) {
+	if(roadmap_lat > 63 || roadmap_lat < -63) {
        return -1;
 	}
 
