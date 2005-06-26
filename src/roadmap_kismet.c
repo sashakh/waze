@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include <sys/select.h>
 
