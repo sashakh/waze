@@ -782,6 +782,32 @@ static int roadmap_nmea_decode (void *context, char *sentence) {
 }
 
 
+static void roadmap_nmea_shift_to_next_line (RoadMapNmeaContext *context,
+                                             int next) {
+
+   /* Skip the trailing end of line characters, if any. */
+   while ((context->data[next] < ' ') && (next < context->cursor)) ++next;
+
+   if (next > 0) {
+         
+      int i;
+
+      context->cursor -= next;
+
+      if (context->cursor <= 0) { /* Play it safe. */
+         context->cursor = 0;
+         return;
+      }
+
+      for (i = 0; i < context->cursor; ++i) {
+         context->data[i] = context->data[next+i];
+      }
+
+      context->data[context->cursor] = 0;
+   }
+}
+
+
 int roadmap_nmea_input (RoadMapNmeaContext *context) {
 
    int result;
@@ -819,51 +845,58 @@ int roadmap_nmea_input (RoadMapNmeaContext *context) {
       }
    }
 
+   context->data[context->cursor] = 0;
+
+   /* Remove the leading end of line characters, if any.
+    * The inital test is just an optimization: run minimal code
+    * if that is not the case.
+    * We do not need to do that inside the loop, since we
+    * do remove the trailing end of line characters at the end
+    * of the loop processing.
+    */
+   if (context->data[0] < ' ') {
+      roadmap_nmea_shift_to_next_line (context, 0); /* Skip the empty line. */
+   }
+
    result = 0;
 
    while (context->cursor > 0) {
 
-      int i;
       int next;
-      int line_is_complete;
 
       char *new_line;
       char *carriage_return;
+      char *eol;
 
 
-      context->data[context->cursor] = 0;
+      /* Find the first end of line character coming after the line. */
 
-      line_is_complete = 0;
       new_line = strchr (context->data, '\n');
       carriage_return = strchr (context->data, '\r');
 
-      if (new_line != NULL) {
-         *new_line = 0;
-         line_is_complete = 1;
-      }
-      if (carriage_return != NULL) {
-         *carriage_return = 0;
-         line_is_complete = 1;
+      if (new_line == NULL) {
+         eol = carriage_return;
+      } else if (carriage_return == NULL) {
+         eol = new_line;
+      } else if (new_line < carriage_return) {
+         eol = new_line;
+      } else {
+         eol = carriage_return;
       }
 
-      if (! line_is_complete) break;
+      if (eol == NULL) break; /* This line is not complete. */
 
-      next = strlen (context->data) + 1;
+      *eol = 0; /* Separate this line from the next. */
+
+      next = (int)(eol - context->data) + 1;
 
 
       if (context->logger != NULL) {
          context->logger (context->data);
       }
-
       result |= roadmap_nmea_decode (context->user_context, context->data);
 
-      while ((context->data[next] < ' ') && (next < context->cursor)) next++;
-
-      context->cursor -= next;
-
-      for (i = 0; i < context->cursor; ++i) {
-         context->data[i] = context->data[next+i];
-      }
+      roadmap_nmea_shift_to_next_line (context, next);
    }
 
    return result;
