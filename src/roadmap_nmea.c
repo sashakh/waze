@@ -783,26 +783,23 @@ static int roadmap_nmea_decode (void *context, char *sentence) {
 
 
 static void roadmap_nmea_shift_to_next_line (RoadMapNmeaContext *context,
-                                             int next) {
+                                             char *from) {
+
+   char *data_end = context->data + context->cursor;
 
    /* Skip the trailing end of line characters, if any. */
-   while ((context->data[next] < ' ') && (next < context->cursor)) ++next;
+   while ((*from < ' ') && (from < data_end)) ++from;
 
-   if (next > 0) {
+   if (from > context->data) {
          
-      int i;
+      context->cursor -= (int)(from - context->data);
 
-      context->cursor -= next;
-
-      if (context->cursor <= 0) { /* Play it safe. */
-         context->cursor = 0;
+      if (context->cursor <= 0) {
+         context->cursor = 0; /* Play it safe. */
          return;
       }
 
-      for (i = 0; i < context->cursor; ++i) {
-         context->data[i] = context->data[next+i];
-      }
-
+      memmove (context->data, from, context->cursor);
       context->data[context->cursor] = 0;
    }
 }
@@ -813,6 +810,11 @@ int roadmap_nmea_input (RoadMapNmeaContext *context) {
    int result;
    int received;
 
+   char *line_start;
+   char *data_end;
+
+
+   /* Receive more data if available. */
 
    if (context->cursor < (int)sizeof(context->data) - 1) {
 
@@ -844,61 +846,71 @@ int roadmap_nmea_input (RoadMapNmeaContext *context) {
          context->cursor += received;
       }
    }
-
    context->data[context->cursor] = 0;
 
+
    /* Remove the leading end of line characters, if any.
-    * The inital test is just an optimization: run minimal code
-    * if that is not the case.
-    * We do not need to do that inside the loop, since we
-    * do remove the trailing end of line characters at the end
-    * of the loop processing.
+    * We do the same in between lines (see end of loop).
     */
-   if (context->data[0] < ' ') {
-      roadmap_nmea_shift_to_next_line (context, 0); /* Skip the empty line. */
-   }
+   line_start = context->data;
+   data_end   = context->data + context->cursor;
+   while ((*line_start < ' ') && (line_start < data_end)) ++line_start;
+
+
+   /* process each complete line in this buffer. */
 
    result = 0;
 
-   while (context->cursor > 0) {
-
-      int next;
+   while (line_start < data_end) {
 
       char *new_line;
       char *carriage_return;
-      char *eol;
+      char *line_end;
 
 
-      /* Find the first end of line character coming after the line. */
+      /* Find the first end of line character coming after this line. */
 
-      new_line = strchr (context->data, '\n');
-      carriage_return = strchr (context->data, '\r');
+      new_line = strchr (line_start, '\n');
+      carriage_return = strchr (line_start, '\r');
 
       if (new_line == NULL) {
-         eol = carriage_return;
+         line_end = carriage_return;
       } else if (carriage_return == NULL) {
-         eol = new_line;
+         line_end = new_line;
       } else if (new_line < carriage_return) {
-         eol = new_line;
+         line_end = new_line;
       } else {
-         eol = carriage_return;
+         line_end = carriage_return;
       }
 
-      if (eol == NULL) break; /* This line is not complete. */
+      if (line_end == NULL) {
 
-      *eol = 0; /* Separate this line from the next. */
+         /* This line is not complete: shift the remaining data
+          * to the beginning of the buffer and then stop.
+          */
+         roadmap_nmea_shift_to_next_line (context, line_start);
+         return result;
+      }
 
-      next = (int)(eol - context->data) + 1;
 
+      /* Process this line. */
+
+      *line_end = 0; /* Separate this line from the next. */
 
       if (context->logger != NULL) {
-         context->logger (context->data);
+         context->logger (line_start);
       }
-      result |= roadmap_nmea_decode (context->user_context, context->data);
+      result |= roadmap_nmea_decode (context->user_context, line_start);
 
-      roadmap_nmea_shift_to_next_line (context, next);
+
+      /* Move to the next line. */
+
+      line_start = line_end + 1;
+      while ((*line_start < ' ') && (line_start < data_end)) ++line_start;
    }
 
+
+   context->cursor = 0; /* The buffer is now empty. */
    return result;
 }
 
