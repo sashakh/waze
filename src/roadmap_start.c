@@ -496,18 +496,18 @@ static char const *RoadMapStartToolbar[] = {
    "counterclockwise",
    "clockwise",
 
-   RoadMapFactorySeparator,
-
    "zoomin",
    "zoomout",
    "zoom1",
 
+#ifndef _WIN32
    RoadMapFactorySeparator,
 
    "up",
    "left",
    "right",
    "down",
+#endif
 
    RoadMapFactorySeparator,
 
