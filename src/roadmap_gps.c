@@ -479,13 +479,13 @@ void roadmap_gps_input (int fd) {
 
 int roadmap_gps_active (void) {
 
-   int timeout;
+   time_t timeout;
 
    if (RoadMapGpsLink == -1) {
       return 0;
    }
 
-   timeout = roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
+   timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
 
    if (time(NULL) - RoadMapGpsLatestData >= timeout) {
       return 0;
