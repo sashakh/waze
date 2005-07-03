@@ -528,6 +528,32 @@ INSTALLATION
 ------
 
 
+* TROUBLESHOOTING THE INSTALLATION
+
+   This section describes the most common problems encountered when installing
+   RoadMap:
+
+   * The display shows no street; lakes, parks, airport and hospitals
+     appear as block areas. This is typical of a missing "schema" file.
+     The "schema" file must be located in one of these directories:
+     /urs/local/share/roadmap, /usr/share/roadmap or /etc/roadmap.
+     It is likely the "make install" step was not performed.
+
+   * Waypoints, the compass and the vehicule's location all appear as small
+     black squares. This is typical of a missing "sprites" file. The "sprite"
+     file must be located in one of these directories:/urs/local/share/roadmap,
+     /usr/share/roadmap or /etc/roadmap.  It is likely the "make install"
+     step was not performed.
+
+   * When running "make build"  a compiler error message appears, complaining
+     that the file shapefil.h cannot be found. This is typillay happening if
+     the shapelib library was not installed. The shapelib library is only
+     used to create additional maps using the Digital Charts of the World.
+     If only the US maps are required, or if the prebuilt maps will be used,
+     it is possible to build RoadMap without the shapelib, using the option
+     "-SHAPEFILES=NO" in the make command.
+
+
 ROADMAP APPLICATIONS
 
    RoadMap includes the following applications:
@@ -773,6 +799,10 @@ USING ROADMAP
    U              |     Center the map on the GPS position (north up).
 *-----------------*-----------------------------------------------------*
    W              |     Set the selected street block as waypoint.
+*-----------------*-----------------------------------------------------*
+   X              |     Find an intersection.
+*-----------------*-----------------------------------------------------*
+   Y              |     Save a screenshot of the current map display.
 *-----------------*-----------------------------------------------------*
 
    The current bindings that are used by the application are printed after
