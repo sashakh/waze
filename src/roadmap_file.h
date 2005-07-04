@@ -33,19 +33,18 @@
 
 #include <stdio.h>
 
-struct RoadMapFileContextStructure;
-typedef struct RoadMapFileContextStructure *RoadMapFileContext;
-
-
-const char *roadmap_file_unique (const char *base);
-
 
 FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
 
-int   roadmap_file_open  (const char *name, const char *mode);
-int   roadmap_file_read  (int file, void *data, int size);
-int   roadmap_file_write (int file, const void *data, int length);
-void  roadmap_file_close (int file);
+
+typedef int RoadMapFile; /* UNIX style. */
+#define ROADMAP_FILE_IS_VALID(f) (f != (RoadMapFile)-1)
+
+
+RoadMapFile roadmap_file_open  (const char *name, const char *mode);
+int   roadmap_file_read  (RoadMapFile file, void *data, int size);
+int   roadmap_file_write (RoadMapFile file, const void *data, int length);
+void  roadmap_file_close (RoadMapFile file);
 
 void  roadmap_file_remove (const char *path, const char *name);
 int   roadmap_file_exists (const char *path, const char *name);
@@ -60,6 +59,9 @@ void roadmap_file_append (const char *path, const char *name,
 
 /* The following file operations hide the OS file mapping primitives. */
 
+struct RoadMapFileContextStructure;
+typedef struct RoadMapFileContextStructure *RoadMapFileContext;
+
 const char *roadmap_file_map (const char *set,
                               const char *name,
                               const char *sequence, RoadMapFileContext *file);
@@ -68,6 +70,8 @@ void *roadmap_file_base (RoadMapFileContext file);
 int   roadmap_file_size (RoadMapFileContext file);
 
 void roadmap_file_unmap (RoadMapFileContext *file);
+
+const char *roadmap_file_unique (const char *base);
 
 #endif // INCLUDE__ROADMAP_FILE__H
 

@@ -117,6 +117,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_geocode.c \
           roadmap_history.c \
           roadmap_nmea.c \
+          roadmap_io.c \
           roadmap_gps.c \
           roadmap_object.c \
           roadmap_driver.c \

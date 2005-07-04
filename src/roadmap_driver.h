@@ -37,6 +37,7 @@
 #ifndef INCLUDED__ROADMAP_DRIVER__H
 #define INCLUDED__ROADMAP_DRIVER__H
 
+#include "roadmap_io.h"
 #include "roadmap_gps.h"
 
 void roadmap_driver_initialize (void);
@@ -46,7 +47,7 @@ void roadmap_driver_register_link_control
 
 void roadmap_driver_activate (void);
 
-void roadmap_driver_input (int fd);
+void roadmap_driver_input (RoadMapIO *io);
 
 void roadmap_driver_publish (const RoadMapGpsPosition *position);
 

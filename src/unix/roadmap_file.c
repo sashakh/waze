@@ -315,7 +315,7 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
 }
 
 
-int roadmap_file_open  (const char *name, const char *mode) {
+RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
 
    int unix_mode = 0;
 
@@ -329,19 +329,19 @@ int roadmap_file_open  (const char *name, const char *mode) {
       return -1;
    }
 
-   return open (name, unix_mode);
+   return (RoadMapFile) open (name, unix_mode);
 }
 
 
-int roadmap_file_read  (int file, void *data, int size) {
-   return read (file, data, size);
+int roadmap_file_read  (RoadMapFile file, void *data, int size) {
+   return read ((int)file, data, size);
 }
 
-int roadmap_file_write (int file, const void *data, int length) {
-   return write (file, data, length);
+int roadmap_file_write (RoadMapFile file, const void *data, int length) {
+   return write ((int)file, data, length);
 }
 
-void  roadmap_file_close (int file) {
-   close (file);
+void  roadmap_file_close (RoadMapFile file) {
+   close ((int)file);
 }
 

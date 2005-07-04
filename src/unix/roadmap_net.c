@@ -44,10 +44,10 @@
 #include "roadmap_net.h"
 
 
-int roadmap_net_connect (const char *protocol,
-                         const char *name, int default_port) {
+RoadMapSocket roadmap_net_connect (const char *protocol,
+                                   const char *name, int default_port) {
 
-   int   fd;
+   int   s;
    char *hostname;
    char *separator = strchr (name, ':');
 
@@ -115,15 +115,15 @@ int roadmap_net_connect (const char *protocol,
 
 
    if (strcmp (protocol, "udp") == 0) {
-      fd = socket (PF_INET, SOCK_DGRAM, 0);
+      s = socket (PF_INET, SOCK_DGRAM, 0);
    } else if (strcmp (protocol, "tcp") == 0) {
-      fd = socket (PF_INET, SOCK_STREAM, 0);
+      s = socket (PF_INET, SOCK_STREAM, 0);
    } else {
       roadmap_log (ROADMAP_ERROR, "unknown protocol %s", protocol);
       goto connection_failure;
    }
 
-   if (fd < 0) {
+   if (s < 0) {
       roadmap_log (ROADMAP_ERROR, "cannot create socket, errno = %d", errno);
       goto connection_failure;
    }
@@ -132,38 +132,38 @@ int roadmap_net_connect (const char *protocol,
     * if the server process is not local: we might fail only after a long
     * delay that will disable RoadMap for a while.
     */
-   if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
+   if (connect (s, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 
       /* This is not a local error: the remote application might be
        * unavailable. This is not our fault, don't cry.
        */
-      close(fd);
+      close(s);
       goto connection_failure;
    }
 
-   return fd;
+   return (RoadMapSocket)s;
 
 
 connection_failure:
 
    free(hostname);
-   return -1;
+   return (RoadMapSocket)-1;
 }
 
 
-int roadmap_net_send (int socket, const void *data, int length) {
+int roadmap_net_send (RoadMapSocket s, const void *data, int length) {
 
-   return write (socket, data, length);
+   return write ((int)s, data, length);
 }
 
 
-int roadmap_net_receive (int socket, void *data, int size) {
+int roadmap_net_receive (RoadMapSocket s, void *data, int size) {
 
-   return read (socket, data, size);
+   return read ((int)s, data, size);
 }
 
 
-void roadmap_net_close (int socket) {
-   close (socket);
+void roadmap_net_close (RoadMapSocket s) {
+   close ((int)s);
 }
 

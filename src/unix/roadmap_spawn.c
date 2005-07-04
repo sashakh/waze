@@ -179,7 +179,7 @@ static void roadmap_spawn_child_exit_handler (int signal) {
 
 static int roadmap_spawn_child (const char *name,
                                 const char *command_line,
-                                int pipes[2]) {
+                                RoadMapPipe pipes[2]) {
 
    char *argv[16];
    pid_t child;
@@ -246,8 +246,8 @@ static int roadmap_spawn_child (const char *name,
    }
 
    if (pipes != NULL) {
-      pipes[0] = reading[0];
-      pipes[1] = writing[1];
+      pipes[0] = (RoadMapPipe) reading[0];
+      pipes[1] = (RoadMapPipe) writing[1];
       close(reading[1]);
       close(writing[0]);
    }
@@ -337,5 +337,22 @@ void roadmap_spawn_check (void) {
 
 void roadmap_spawn_command (const char *command) {
    system (command);
+}
+
+
+int roadmap_spawn_write_pipe (RoadMapPipe pipe, const void *data, int length) {
+
+   return write ((int)pipe, data, length);
+}
+
+
+int roadmap_spawn_read_pipe (RoadMapPipe pipe, void *data, int size) {
+
+   return read ((int)pipe, data, size);
+}
+
+
+void roadmap_spawn_close_pipe (RoadMapPipe pipe) {
+   close ((int)pipe);
 }
 
