@@ -33,6 +33,7 @@
 #endif
 
 #include "roadmap.h"
+#include "roadmap_io.h"
 #include "roadmap_config.h"
 #include "roadmap_gps.h"
 #include "roadmap_factory.h"
@@ -107,22 +108,16 @@ static const char *RoadGpsStartKeyBinding[] = {
 };
 
 
-static void roadgps_start_add_gps (int fd) {
-#ifndef _WIN32
-   roadmap_main_set_input (fd, roadmap_gps_input);
-#else
-   roadmap_main_set_serial_input (fd, roadmap_gps_input);
-#endif
+static void roadgps_start_add_gps (RoadMapIO *io) {
+
+   roadmap_main_set_input (io, roadmap_gps_input);
 }
 
+static void roadgps_start_remove_gps (RoadMapIO *io) {
 
-static void roadgps_start_remove_gps (int fd) {
-#ifndef _WIN32
-   roadmap_main_remove_input(fd);
-#else
-   roadmap_main_remove_serial_input(fd);
-#endif
-}  
+   roadmap_main_remove_input(io);
+}
+
 
 static void roadgps_start_set_unit (void) {
 

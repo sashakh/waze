@@ -36,12 +36,15 @@
 #include "roadmap_copyright.h"
 #include "roadmap_dbread.h"
 #include "roadmap_math.h"
-#include "roadmap_spawn.h"
 #include "roadmap_config.h"
 #include "roadmap_history.h"
+
+#include "roadmap_spawn.h"
 #include "roadmap_path.h"
-#include "roadmap_gps.h"
+#include "roadmap_io.h"
+
 #include "roadmap_voice.h"
+#include "roadmap_gps.h"
 
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
@@ -636,26 +639,25 @@ static void roadmap_start_periodic (void) {
 }
 
 
-static void roadmap_start_add_gps (int fd) {
+static void roadmap_start_add_gps (RoadMapIO *io) {
 
-#ifndef _WIN32
-   roadmap_main_set_input (fd, roadmap_gps_input);
-#else
-   roadmap_main_set_serial_input (fd, roadmap_gps_input);
-#endif
+   roadmap_main_set_input (io, roadmap_gps_input);
 }
 
-static void roadmap_start_remove_gps (int fd) {
-#ifndef _WIN32
-   roadmap_main_remove_input(fd);
-#else
-   roadmap_main_remove_serial_input(fd);
-#endif
+static void roadmap_start_remove_gps (RoadMapIO *io) {
+
+   roadmap_main_remove_input(io);
 }
 
-static void roadmap_start_add_driver (int fd) {
 
-   roadmap_main_set_input (fd, roadmap_driver_input);
+static void roadmap_start_add_driver (RoadMapIO *io) {
+
+   roadmap_main_set_input (io, roadmap_driver_input);
+}
+
+static void roadmap_start_remove_driver (RoadMapIO *io) {
+
+   roadmap_main_remove_input(io);
 }
 
 
@@ -686,7 +688,7 @@ static void roadmap_start_window (void) {
       (roadmap_start_set_timeout, roadmap_main_remove_periodic);
 
    roadmap_driver_register_link_control
-      (roadmap_start_add_driver, roadmap_main_remove_input);
+      (roadmap_start_add_driver, roadmap_start_remove_driver);
 }
 
 

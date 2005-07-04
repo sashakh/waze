@@ -26,6 +26,12 @@
 
 #include "roadmap_list.h"
 
+
+typedef int RoadMapPipe; /* UNIX style. */
+#define ROADMAP_SPAWN_INVALID_PIPE   -1
+#define ROADMAP_SPAWN_IS_VALID_PIPE(x) (x != ROADMAP_SPAWN_INVALID_PIPE)
+
+
 typedef void (*RoadMapFeedbackHandler) (void *data);
 
 struct roadmap_spawn_feedback {
@@ -52,8 +58,12 @@ int  roadmap_spawn_with_feedback
 int  roadmap_spawn_with_pipe
          (const char *name,
           const char *command_line,
-          int pipes[2],             /* pipes[0] -> read, pipes[1] -> write */
+          RoadMapPipe pipes[2],      /* pipes[0] -> read, pipes[1] -> write */
           RoadMapFeedback *feedback);
+
+int  roadmap_spawn_write_pipe (RoadMapPipe pipe, const void *data, int length);
+int  roadmap_spawn_read_pipe  (RoadMapPipe pipe, void *data, int size);
+void roadmap_spawn_close_pipe (RoadMapPipe pipe);
 
 void roadmap_spawn_check (void);
 

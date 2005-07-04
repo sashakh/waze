@@ -24,6 +24,8 @@
 #ifndef _ROADMAP_GPS__H_
 #define _ROADMAP_GPS__H_
 
+#include "roadmap_io.h"
+
 typedef struct {
 
    int longitude;
@@ -55,7 +57,7 @@ void roadmap_gps_initialize (roadmap_gps_listener listener);
  * The functions below provide this module with a way for managing these
  * callbacks in behalf of the application.
  */
-typedef void (*roadmap_gps_link_control) (int fd);
+typedef void (*roadmap_gps_link_control) (RoadMapIO *io);
 typedef void (*roadmap_gps_periodic_control) (RoadMapCallback handler);
 
 void roadmap_gps_register_link_control
@@ -77,7 +79,7 @@ void roadmap_gps_register_logger (roadmap_gps_logger logger);
 
 
 void roadmap_gps_open   (void);
-void roadmap_gps_input  (int fd);
+void roadmap_gps_input  (RoadMapIO *io);
 int  roadmap_gps_active (void);
 
 int  roadmap_gps_estimated_error (void);

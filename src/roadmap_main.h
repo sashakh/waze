@@ -27,8 +27,11 @@
 #include "roadmap.h"
 #include "roadmap_gui.h"
 
+#include "roadmap_io.h"
+#include "roadmap_spawn.h"
+
 typedef void (* RoadMapKeyInput) (char *key);
-typedef void (* RoadMapInput)    (int fd);
+typedef void (* RoadMapInput)    (RoadMapIO *io);
 
 void roadmap_main_new (const char *title, int width, int height);
 
@@ -51,11 +54,8 @@ void roadmap_main_add_status     (void);
 
 void roadmap_main_show (void);
 
-void roadmap_main_set_input    (int fd, RoadMapInput callback);
-void roadmap_main_remove_input (int fd);
-
-void roadmap_main_set_serial_input    (int fd, RoadMapInput callback);
-void roadmap_main_remove_serial_input (int fd);
+void roadmap_main_set_input    (RoadMapIO *io, RoadMapInput callback);
+void roadmap_main_remove_input (RoadMapIO *io);
 
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback);
 void roadmap_main_remove_periodic (RoadMapCallback callback);

@@ -44,6 +44,7 @@ extern "C" {
 #include "roadmap_history.h"
 #include "roadmap_main.h"
 
+   typedef void (*RoadMapQtInput) (int fd);
 };
 
 #include "qt_canvas.h"
@@ -53,12 +54,12 @@ class RMapInput : public QObject {
 Q_OBJECT
 
 public:
-	RMapInput(int fd1, RoadMapInput cb);
+	RMapInput(int fd1, RoadMapQtInput cb);
 	~RMapInput();
 
 protected:
 	int fd;
-	RoadMapInput callback;
+	RoadMapQtInput callback;
 	QSocketNotifier* nf;
 
 protected slots:
@@ -101,7 +102,7 @@ public:
 
 	void addToolSpace(void);
 	void addCanvas(void);
-	void addInput(int fd, RoadMapInput callback);
+	void addInput(int fd, RoadMapQtInput callback);
 	void removeInput(int fd);
 	void setStatus(const char* text);
 

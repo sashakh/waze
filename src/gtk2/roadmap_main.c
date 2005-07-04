@@ -48,7 +48,15 @@
 #include "roadmap_main.h"
 
 
-static char *RoadMapMainTitle = NULL;
+struct roadmap_main_io {
+   int id;
+   RoadMapIO io;
+   RoadMapInput callback;
+};
+
+#define ROADMAP_MAX_IO 16
+static struct roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO];
+
 
 struct roadmap_main_timer {
    guint id;
@@ -58,6 +66,9 @@ struct roadmap_main_timer {
 #define ROADMAP_MAX_TIMER 16
 static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
+
+static char *RoadMapMainTitle = NULL;
+
 static RoadMapKeyInput RoadMapMainInput = NULL;
 static GtkWidget      *RoadMapMainWindow  = NULL;
 static GtkWidget      *RoadMapMainBox     = NULL;
@@ -66,14 +77,6 @@ static GtkWidget      *RoadMapCurrentMenu = NULL;
 static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
 
-
-struct roadmap_main_io {
-   int fd;
-   int id;
-};
-
-#define ROADMAP_MAX_IO 16
-static struct roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO];
 
 static int GtkIconsInitialized = 0;
 
@@ -379,47 +382,43 @@ static void roadmap_main_input
                (gpointer data, gint source, GdkInputCondition conditions) {
 
    if (data != NULL) {
-      (* (RoadMapInput)data) (source);
+      struct roadmap_main_io *context = (struct roadmap_main_io *) data;
+      (* context->callback) (&context->io);
    }
 }
 
 
-void roadmap_main_set_input (int fd, RoadMapInput callback) {
+void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback) {
 
    int i;
+   int fd = io->os.file; /* All the same on UNIX. */
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      if (RoadMapMainIo[i].fd < 0) {
-         RoadMapMainIo[i].fd = fd;
+      if (RoadMapMainIo[i].io.subsystem == ROADMAP_IO_INVALID) {
+         RoadMapMainIo[i].io = *io;
+         RoadMapMainIo[i].callback = callback;
          RoadMapMainIo[i].id =
             gtk_input_add_full (fd, GDK_INPUT_READ, roadmap_main_input,
-                                NULL, callback, NULL);
+                                NULL, &RoadMapMainIo[i], NULL);
          break;
       }
    }
 }
 
 
-void roadmap_main_remove_input (int fd) {
+void roadmap_main_remove_input (RoadMapIO *io) {
 
    int i;
+   int fd = io->os.file; /* All the same on UNIX. */
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      if (RoadMapMainIo[i].fd == fd) {
+      if (RoadMapMainIo[i].io.os.file == fd) {
          gtk_input_remove (RoadMapMainIo[i].id);
-         RoadMapMainIo[i].fd = -1;
+         RoadMapMainIo[i].io.os.file = -1;
+         RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
          break;
       }
    }
-}
-
-
-void roadmap_main_set_serial_input    (int fd, RoadMapInput callback) {
-   roadmap_main_set_input (fd, callback); /* Same thing on UNIX. */
-}
-
-void roadmap_main_remove_serial_input (int fd) {
-   roadmap_main_remove_input (fd); /* Same thing on UNIX. */
 }
 
 
@@ -515,7 +514,8 @@ int main (int argc, char **argv) {
 #endif
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      RoadMapMainIo[i].fd = -1;
+      RoadMapMainIo[i].io.os.file = -1;
+      RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
    }
 
    roadmap_start (argc, argv);

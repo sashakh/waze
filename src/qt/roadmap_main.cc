@@ -50,6 +50,29 @@ static QApplication* app;
 #endif
 RMapMainWindow* mainWindow;
 
+
+struct roadmap_main_io {
+   RoadMapIO io;
+   RoadMapInput callback;
+};
+
+#define ROADMAP_MAX_IO 16
+static struct roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO];
+
+
+static void roadmap_main_input (int fd) {
+
+   int i;
+
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      if (RoadMapMainIo[i].io.os.file == fd) {
+         (*RoadMapMainIo[i].callback) (&RoadMapMainIo[i].io);
+         break;
+      }
+   }
+}
+
+
 void roadmap_main_new(const char* title, int width, int height) {
 
 	mainWindow = new RMapMainWindow(title);
@@ -120,24 +143,41 @@ void roadmap_main_show(void) {
 	}
 }
 
-void roadmap_main_set_input(int fd, RoadMapInput callback) {
+void roadmap_main_set_input(RoadMapIO *io, RoadMapInput callback) {
+
 	if (mainWindow) {
-		mainWindow->addInput(fd, callback);
+
+      int i;
+
+      /* All the same on UNIX. */
+      mainWindow->addInput(io->os.file, roadmap_main_input);
+
+      for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+         if (RoadMapMainIo[i].io.subsystem == ROADMAP_IO_INVALID) {
+            RoadMapMainIo[i].io = *io;
+            RoadMapMainIo[i].callback = callback;
+            break;
+         }
+      }
 	}
 }
 
-void roadmap_main_remove_input(int fd) {
+void roadmap_main_remove_input(RoadMapIO *io) {
+
+   int i;
+   int fd = io->os.file; /* All the same on UNIX. */
+
 	if (mainWindow) {
-		mainWindow->removeInput(fd);
+      mainWindow->removeInput(fd);
+   }
+
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      if (RoadMapMainIo[i].io.os.file == fd) {
+         RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
+         RoadMapMainIo[i].io.os.file = -1;
+         break;
+      }
 	}
-}
-
-void roadmap_main_set_serial_input    (int fd, RoadMapInput callback) {
-   roadmap_main_set_input (fd, callback); /* Same thing on UNIX. */
-}
-
-void roadmap_main_remove_serial_input (int fd) {
-   roadmap_main_remove_input (fd); /* Same thing on UNIX. */
 }
 
 
@@ -184,11 +224,20 @@ void roadmap_main_exit(void) {
 }
 
 int main(int argc, char* argv[]) {
+
+   int i;
+
 #ifdef QWS
 	app = new QPEApplication(argc, argv);
 #else
 	app = new QApplication(argc, argv);
 #endif
+
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
+      RoadMapMainIo[i].io.os.file = -1;
+	}
+
 	roadmap_start(argc, argv);
 
 	return app->exec();

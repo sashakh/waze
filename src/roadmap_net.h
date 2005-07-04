@@ -24,13 +24,16 @@
 #ifndef _ROADMAP_NET__H_
 #define _ROADMAP_NET__H_
 
-int roadmap_net_connect (const char *protocol,
-                         const char *name, int default_port);
+typedef int RoadMapSocket; /* UNIX style. */
+#define ROADMAP_NET_IS_VALID(s) (s != (RoadMapSocket)-1)
 
-int roadmap_net_receive (int socket, void *data, int size);
-int roadmap_net_send    (int socket, const void *data, int length);
+RoadMapSocket roadmap_net_connect (const char *protocol,
+                                   const char *name, int default_port);
 
-void roadmap_net_close (int socket);
+int roadmap_net_receive (RoadMapSocket s, void *data, int size);
+int roadmap_net_send    (RoadMapSocket s, const void *data, int length);
+
+void roadmap_net_close  (RoadMapSocket s);
 
 #endif // _ROADMAP_NET__H_
 

@@ -27,7 +27,7 @@
 #include "qt_main.h"
 
 // Implementation of RMapInput class
-RMapInput::RMapInput(int fd1, RoadMapInput cb) {
+RMapInput::RMapInput(int fd1, RoadMapQtInput cb) {
 	fd = fd1;
 	callback = cb;
 	nf = new QSocketNotifier(fd, QSocketNotifier::Read, 0);
@@ -162,7 +162,7 @@ void RMapMainWindow::addCanvas(void) {
 	adjustSize();
 }
 
-void RMapMainWindow::addInput(int fd, RoadMapInput callback) {
+void RMapMainWindow::addInput(int fd, RoadMapQtInput callback) {
 	RMapInput* rmi = new RMapInput(fd, callback);
 	inputMap.insert(fd, rmi);
 }
