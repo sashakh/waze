@@ -25,14 +25,17 @@
  *   See roadmap_factory.h
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "roadmap.h"
 #include "roadmap_config.h"
 #include "roadmap_main.h"
 #include "roadmap_preferences.h"
 #include "roadmap_help.h"
+#include "roadmap_path.h"
 
 #include "roadmap_factory.h"
 
@@ -118,6 +121,79 @@ static const char *roadmap_factory_terse (const RoadMapAction *action) {
 }
 
 
+static const char **roadmap_factory_load_toolbar (const RoadMapAction *actions,
+                                                  const char *path) {
+
+   static const char *usertoolbar[256];
+
+   int   count = 0;
+
+   char *p;
+   char buffer[256];
+   FILE *file = roadmap_file_fopen (path, "toolbar", "sr");
+
+   if (file == NULL) return NULL;
+
+   while (! feof(file)) {
+
+      fgets (buffer, sizeof(buffer), file);
+
+      if (feof(file) || ferror(file)) break;
+
+      buffer[sizeof(buffer)-1] = 0;
+
+      /* remove the end-of-line character. */
+      p = strchr (buffer, '\n');
+      if (p != NULL) *p = 0;
+
+      /* Remove any leading space. */
+      for (p = buffer; isspace(*p); ++p) ;
+
+      if ((*p == 0) || (*p == '#')) continue; /* Empty line. */
+
+      if (*p == '|' || *p == '-') {
+         usertoolbar[count++] = RoadMapFactorySeparator;
+      } else {
+         const RoadMapAction *this_action;
+
+         this_action = roadmap_factory_find_action (actions, p);
+         if (this_action == NULL) {
+            roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
+         } else {
+            usertoolbar[count++] = this_action->name;
+         }
+      }
+   }
+   fclose(file);
+
+   if (count <= 0) return NULL;
+
+   usertoolbar[count] = NULL;
+   return usertoolbar;
+}
+
+static const char **roadmap_factory_user_toolbar
+                                    (const RoadMapAction *actions) {
+
+   const char **toolbar;
+
+   toolbar = roadmap_factory_load_toolbar (actions, roadmap_path_user());
+
+   if (toolbar == NULL) {
+
+      const char *path;
+
+      for (path = roadmap_path_first("config");
+           path != NULL;
+           path = roadmap_path_next("config", path)) {
+
+         toolbar = roadmap_factory_load_toolbar (actions, path);
+         if (toolbar != NULL) break;
+      }
+   }
+   return toolbar;
+}
+
 void roadmap_factory (const RoadMapAction  *actions,
                       const char           *menu[],
                       const char           *toolbar[]) {
@@ -164,9 +240,13 @@ void roadmap_factory (const RoadMapAction  *actions,
 
    if (use_toolbar) {
 
-      for (i = 0; toolbar[i] != NULL; ++i) {
+      const char **usertoolbar = roadmap_factory_user_toolbar (actions);
 
-         const char *item = toolbar[i];
+      if (usertoolbar == NULL) usertoolbar = toolbar;
+
+      for (i = 0; usertoolbar[i] != NULL; ++i) {
+
+         const char *item = usertoolbar[i];
 
          if (item == RoadMapFactorySeparator) {
 
