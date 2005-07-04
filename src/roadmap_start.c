@@ -263,7 +263,11 @@ static RoadMapAction RoadMapStartActions[] = {
       "Enable all GPS-based navigation functions", roadmap_navigate_enable},
 
    {"logtofile", "Log to File", "Log", NULL,
-      "Save future log messages to the postmortem log file",
+      "Save future log messages to the postmortem file",
+      roadmap_log_save_all},
+
+   {"nolog", "Disable Log", "No Log", NULL,
+      "Do not save future log messages to the postmortem file",
       roadmap_log_save_all},
 
    {"purgelogfile", "Purge Log File", "Purge", NULL,
@@ -343,7 +347,7 @@ static RoadMapAction RoadMapStartActions[] = {
    {"savetrip", "Save Trip", "Save", "S",
       "Save the current trip", roadmap_start_save_trip},
 
-   {"savescreenshot", "Record a screenshot of the trip", "Save Image", "Y",
+   {"savescreenshot", "Make a screenshot of the map", "Screenshot", "Y",
       "Make a screenshot of the current map under the trip name",
       roadmap_trip_save_screenshot},
 
@@ -403,7 +407,7 @@ static const char *RoadMapStartMenu[] = {
    RoadMapFactorySeparator,
 
    "logtofile",
-   "purgelogfile",
+   "nolog",
    "purgehistory",
 
    RoadMapFactorySeparator,

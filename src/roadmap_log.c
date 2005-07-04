@@ -93,6 +93,17 @@ void roadmap_log_save_all (void) {
 }
 
 
+void roadmap_log_save_none (void) {
+    
+    int i;
+    
+    for (i = 0; RoadMapMessageHead[i].level > 0; ++i) {
+        RoadMapMessageHead[i].save_to_file = 0;
+    }
+    roadmap_log_purge();
+}
+
+
 int  roadmap_log_enabled (int level, char *source, int line) {
    return (level >= roadmap_verbosity());
 }
