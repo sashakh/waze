@@ -121,16 +121,17 @@ static const char *roadmap_factory_terse (const RoadMapAction *action) {
 }
 
 
-static const char **roadmap_factory_load_toolbar (const RoadMapAction *actions,
-                                                  const char *path) {
+static const char **roadmap_factory_load_config (const char *file_name,
+                                                 const RoadMapAction *actions,
+                                                 const char *path) {
 
-   static const char *usertoolbar[256];
+   static const char *loaded[256];
 
    int   count = 0;
 
    char *p;
    char buffer[256];
-   FILE *file = roadmap_file_fopen (path, "toolbar", "sr");
+   FILE *file = roadmap_file_fopen (path, file_name, "sr");
 
    if (file == NULL) return NULL;
 
@@ -152,7 +153,7 @@ static const char **roadmap_factory_load_toolbar (const RoadMapAction *actions,
       if ((*p == 0) || (*p == '#')) continue; /* Empty line. */
 
       if (*p == '|' || *p == '-') {
-         usertoolbar[count++] = RoadMapFactorySeparator;
+         loaded[count++] = RoadMapFactorySeparator;
       } else {
          const RoadMapAction *this_action;
 
@@ -160,7 +161,7 @@ static const char **roadmap_factory_load_toolbar (const RoadMapAction *actions,
          if (this_action == NULL) {
             roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
          } else {
-            usertoolbar[count++] = this_action->name;
+            loaded[count++] = this_action->name;
          }
       }
    }
@@ -168,18 +169,26 @@ static const char **roadmap_factory_load_toolbar (const RoadMapAction *actions,
 
    if (count <= 0) return NULL;
 
-   usertoolbar[count] = NULL;
-   return usertoolbar;
+   loaded[count] = NULL;
+   return loaded;
 }
 
-static const char **roadmap_factory_user_toolbar
-                                    (const RoadMapAction *actions) {
+static const char **roadmap_factory_user_config
+                                    (const char *name,
+                                     const char *category,
+                                     const RoadMapAction *actions) {
 
-   const char **toolbar;
+   const char **loaded;
 
-   toolbar = roadmap_factory_load_toolbar (actions, roadmap_path_user());
+   char file_name[256];
 
-   if (toolbar == NULL) {
+
+   snprintf (file_name, sizeof(file_name), "%s.%s", name, category);
+
+   loaded = roadmap_factory_load_config
+               (file_name, actions, roadmap_path_user());
+
+   if (loaded == NULL) {
 
       const char *path;
 
@@ -187,14 +196,15 @@ static const char **roadmap_factory_user_toolbar
            path != NULL;
            path = roadmap_path_next("config", path)) {
 
-         toolbar = roadmap_factory_load_toolbar (actions, path);
-         if (toolbar != NULL) break;
+         loaded = roadmap_factory_load_config (file_name, actions, path);
+         if (loaded != NULL) break;
       }
    }
-   return toolbar;
+   return loaded;
 }
 
-void roadmap_factory (const RoadMapAction  *actions,
+void roadmap_factory (const char           *name,
+                      const RoadMapAction  *actions,
                       const char           *menu[],
                       const char           *toolbar[]) {
 
@@ -240,7 +250,8 @@ void roadmap_factory (const RoadMapAction  *actions,
 
    if (use_toolbar) {
 
-      const char **usertoolbar = roadmap_factory_user_toolbar (actions);
+      const char **usertoolbar =
+         roadmap_factory_user_config (name, "toolbar", actions);
 
       if (usertoolbar == NULL) usertoolbar = toolbar;
 

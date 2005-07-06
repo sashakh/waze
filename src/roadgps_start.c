@@ -151,7 +151,8 @@ static void roadgps_start_window (void) {
 
    roadmap_main_new (RoadGpsMainTitle, 300, 420);
 
-   roadmap_factory (RoadGpsStartActions,
+   roadmap_factory ("roadgps",
+                    RoadGpsStartActions,
                     RoadGpsStartMenu,
                     RoadGpsStartToolbar);
 

@@ -48,7 +48,8 @@ typedef struct {
 extern const char RoadMapFactorySeparator[];
 extern const char RoadMapFactoryHelpTopics[];
 
-void roadmap_factory (const RoadMapAction *actions,
+void roadmap_factory (const char          *name,
+                      const RoadMapAction *actions,
                       const char          *menu[],
                       const char          *toolbar[]);
 

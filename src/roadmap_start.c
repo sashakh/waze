@@ -677,7 +677,8 @@ static void roadmap_start_window (void) {
                      roadmap_option_width("Main"),
                      roadmap_option_height("Main"));
 
-   roadmap_factory (RoadMapStartActions,
+   roadmap_factory ("roadmap",
+                    RoadMapStartActions,
                     RoadMapStartMenu,
                     RoadMapStartToolbar);
 
