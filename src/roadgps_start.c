@@ -169,6 +169,12 @@ static void roadgps_start_window (void) {
 }
 
 
+static void roadgps_start_usage (const char *section) {
+
+   roadmap_factory_usage (section, RoadGpsStartActions);
+}
+
+
 const char *roadmap_start_get_title (const char *name) {
 
    static char *RoadGpsMainTitleBuffer = NULL;
@@ -221,7 +227,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_factory_keymap (RoadGpsStartActions, RoadGpsStartKeyBinding);
 
-   roadmap_option (argc, argv, roadmap_factory_show_keymap);
+   roadmap_option (argc, argv, roadgps_start_usage);
 
    roadgps_logger_initialize ();
 

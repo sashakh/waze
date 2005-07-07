@@ -60,7 +60,7 @@ static int roadmap_option_synchronous = 0;
 static char *roadmap_option_debug = "";
 static char *roadmap_option_gps = NULL;
 
-static void (*RoadMapOptionUsage) (void) = NULL;
+static RoadMapUsage RoadMapOptionUsage = NULL;
 
 
 static const char *roadmap_option_get_geometry (const char *name) {
@@ -329,6 +329,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     {"--verbose", "", roadmap_option_set_verbose,
         "Show all informational traces"},
 
+    {"--help=", "SECTION", roadmap_option_usage,
+        "Show a section of the help message"},
+
     {"--help", "", roadmap_option_usage,
         "Show this help message"},
 
@@ -340,21 +343,26 @@ static void roadmap_option_usage (const char *value) {
 
     struct roadmap_option_descriptor *option;
 
-    for (option = RoadMapOptionMap; option->name != NULL; ++option) {
+    if ((value == NULL) || (strcasecmp (value, "options") == 0)) {
 
-        printf ("  %s%s\n", option->name, option->format);
-        printf ("        %s.\n", option->help);
+       printf ("OPTIONS:\n");
+
+       for (option = RoadMapOptionMap; option->name != NULL; ++option) {
+
+          printf ("  %s%s\n", option->name, option->format);
+          printf ("        %s.\n", option->help);
+       }
+       if (value != NULL) exit (0);
     }
 
     if (RoadMapOptionUsage != NULL) {
-       printf ("\n");
-       RoadMapOptionUsage ();
+       RoadMapOptionUsage (value);
     }
     exit(0);
 }
 
 
-void roadmap_option (int argc, char **argv, void (*usage) (void)) {
+void roadmap_option (int argc, char **argv, RoadMapUsage usage) {
 
     int   i;
     int   length;

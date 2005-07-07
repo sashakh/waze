@@ -350,11 +350,11 @@ void roadmap_factory_keymap (const RoadMapAction  *actions,
 }
 
 
-void roadmap_factory_show_keymap (void) {
+static void roadmap_factory_show_keymap (void) {
 
    const struct RoadMapFactoryKeyMap *binding;
 
-   printf ("RoadMap button & key bindings:\n\n");
+   printf ("\nKEYMAP:\n");
 
    for (binding = RoadMapFactoryBindings; binding->key != NULL; ++binding) {
 
@@ -367,6 +367,24 @@ void roadmap_factory_show_keymap (void) {
                  binding->key,
                  action->tip);
       }
+   }
+}
+
+void roadmap_factory_usage (const char *section, const RoadMapAction *action) {
+
+   if ((section == NULL) || (strcasecmp(section, "KEYMAP") == 0)) {
+      roadmap_factory_show_keymap();
+   }
+
+   if ((section == NULL) || (strcasecmp(section, "ACTIONS") == 0)) {
+
+       printf ("\nACTIONS:\n");
+
+       while (action->name != NULL) {
+
+          printf ("%-20.20s %s\n", action->name, action->tip);
+          action += 1;
+       }
    }
 }
 

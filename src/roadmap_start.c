@@ -743,6 +743,12 @@ static void roadmap_start_after_refresh (void) {
 }
 
 
+static void roadmap_start_usage (const char *section) {
+
+   roadmap_factory_usage (section, RoadMapStartActions);
+}
+
+
 void roadmap_start_freeze (void) {
 
    RoadMapStartFrozen = 1;
@@ -794,7 +800,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 
-   roadmap_option (argc, argv, roadmap_factory_show_keymap);
+   roadmap_option (argc, argv, roadmap_start_usage);
 
    roadmap_start_set_unit ();
    
