@@ -31,14 +31,22 @@
 #ifndef INCLUDE__ROADMAP_FILE__H
 #define INCLUDE__ROADMAP_FILE__H
 
+
+#ifdef _WIN32
+
+#include <windows.h>
+
+typedef HANDLE RoadMapFile; /* WIN32 style. */
+#define ROADMAP_FILE_IS_VALID(f) (f != INVALID_HANDLE_VALUE)
+
+#else
+
 #include <stdio.h>
-
-
-FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
-
 
 typedef int RoadMapFile; /* UNIX style. */
 #define ROADMAP_FILE_IS_VALID(f) (f != (RoadMapFile)-1)
+
+#endif
 
 
 RoadMapFile roadmap_file_open  (const char *name, const char *mode);
@@ -55,6 +63,9 @@ void  roadmap_file_save (const char *path, const char *name,
 
 void roadmap_file_append (const char *path, const char *name,
                           void *data, int length);
+
+
+FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
 
 
 /* The following file operations hide the OS file mapping primitives. */
