@@ -30,11 +30,24 @@
 #define INCLUDE__ROADMAP_SERIAL__H
 
 
+#ifdef _WIN32
+
+#include <windows.h>
+
+typedef HANDLE RoadMapSerial; /* WIN32 style. */
+#define ROADMAP_SERIAL_IS_VALID(f) (f != INVALID_HANDLE_VALUE)
+
+#else
+
 typedef int RoadMapSerial; /* UNIX style. */
 #define ROADMAP_SERIAL_IS_VALID(f) (f != (RoadMapSerial)-1)
 
+#endif
 
-RoadMapSerial roadmap_serial_open  (const char *name, const char *mode);
+
+RoadMapSerial roadmap_serial_open  (const char *name,
+                                    const char *mode,
+                                    int baud_rate);
 
 int   roadmap_serial_read  (RoadMapSerial serial, void *data, int size);
 int   roadmap_serial_write (RoadMapSerial serial, const void *data, int length);

@@ -24,8 +24,19 @@
 #ifndef _ROADMAP_NET__H_
 #define _ROADMAP_NET__H_
 
+#ifdef _WIN32
+
+#include <winsock.h>
+
+typedef SOCKET RoadMapSocket; /* WIN32 style. */
+#define ROADMAP_NET_IS_VALID(s) (s != INVALID_SOCKET)
+
+#else
+
 typedef int RoadMapSocket; /* UNIX style. */
 #define ROADMAP_NET_IS_VALID(s) (s != (RoadMapSocket)-1)
+
+#endif /* _WIN32 */
 
 RoadMapSocket roadmap_net_connect (const char *protocol,
                                    const char *name, int default_port);

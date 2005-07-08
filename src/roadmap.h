@@ -26,7 +26,7 @@
 
 #include "roadmap_types.h"
 #ifdef _WIN32
-#include "wince_os/roadmap_win32.h"
+#include "win32/roadmap_win32.h"
 #endif
 
 

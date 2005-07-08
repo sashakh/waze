@@ -282,7 +282,6 @@ void roadmap_gps_open (void) {
 
    RoadMapGpsLink.subsystem = ROADMAP_IO_INVALID;
 
-#ifndef _WIN32
    if (strncasecmp (url, "gpsd://", 7) == 0) {
 
       RoadMapGpsLink.os.socket = roadmap_net_connect ("tcp", url+7, 2947);
@@ -300,10 +299,36 @@ void roadmap_gps_open (void) {
          }
       }
 
+#ifndef _WIN32
    } else if (strncasecmp (url, "tty://", 6) == 0) {
 
-      roadmap_log (ROADMAP_ERROR, "tty GPS source not yet implemented");
-      return;
+      /* The syntax of the url is: tty://dev/ttyXXX[:speed] */
+
+      char *device = strdup (url + 5); /* url is a const (config data). */
+      char *speed  = strchr (device, ':');
+
+      if (speed == NULL) {
+         speed = "4800"; /* Hardcoded default matches NMEA standard. */
+      } else {
+         *(speed++) = 0;
+      }
+
+#else
+   } else if ((strncasecmp (url, "com", 3) == 0) && (url[4] == ':')) {
+
+      char *device = strdup(url); /* I do know this is not smart.. */
+      const char *speed = roadmap_config_get (&RoadMapConfigGPSBaudRate)));
+
+#endif
+
+      RoadMapGpsLink.os.serial =
+         roadmap_serial_open (device, "r", atoi(speed));
+
+      if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
+         RoadMapGpsLink.subsystem = ROADMAP_IO_SERIAL;
+      }
+
+      free(device);
 
    } else if (strncasecmp (url, "file://", 7) == 0) {
 
@@ -325,14 +350,6 @@ void roadmap_gps_open (void) {
       roadmap_log (ROADMAP_ERROR, "invalid protocol in url %s", url);
       return;
    }
-#else
-   RoadMapGpsLink.os.serial =
-      roadmap_serial_open (url, roadmap_config_get (&RoadMapConfigGPSBaudRate));
-
-   if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
-      RoadMapGpsLink.subsystem = ROADMAP_IO_SERIAL;
-   }
-#endif
 
    if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) {
       if (! RoadMapGpsRetryPending) {

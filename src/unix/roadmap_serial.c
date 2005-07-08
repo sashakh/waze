@@ -27,9 +27,14 @@
  *   NOT IMPLEMENTED YET.
  */
 
+#include "roadmap.h"
 #include "roadmap_serial.h"
 
-RoadMapSerial roadmap_serial_open  (const char *name, const char *mode) {
+RoadMapSerial roadmap_serial_open  (const char *name,
+                                    const char *mode,
+                                    int speed) {
+
+   roadmap_log (ROADMAP_ERROR, "tty support not yet implemented");
    return -1;
 }
 
