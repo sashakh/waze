@@ -79,16 +79,20 @@ void  roadmap_io_close (RoadMapIO *io) {
    switch (io->subsystem) {
 
       case ROADMAP_IO_FILE:
-         return roadmap_file_close (io->os.file);
+         roadmap_file_close (io->os.file);
+         break;
 
       case ROADMAP_IO_NET:
-         return roadmap_net_close (io->os.socket);
+         roadmap_net_close (io->os.socket);
+         break;
 
       case ROADMAP_IO_SERIAL:
-         return roadmap_serial_close (io->os.serial);
+         roadmap_serial_close (io->os.serial);
+         break;
 
       case ROADMAP_IO_PIPE:
-         return roadmap_spawn_close_pipe (io->os.pipe);
+         roadmap_spawn_close_pipe (io->os.pipe);
+         break;
    }
 }
 
