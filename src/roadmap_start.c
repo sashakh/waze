@@ -507,14 +507,12 @@ static char const *RoadMapStartToolbar[] = {
    "zoomout",
    "zoom1",
 
-#ifndef _WIN32
    RoadMapFactorySeparator,
 
    "up",
    "left",
    "right",
    "down",
-#endif
 
    RoadMapFactorySeparator,
 
