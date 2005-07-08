@@ -419,7 +419,7 @@ void roadmap_driver_publish (const RoadMapGpsPosition *position) {
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
       if (ROADMAP_SPAWN_IS_VALID_PIPE(driver->pipes[1]) &&
           (driver->subscription & ROADMAP_DRIVER_RMC)) {
-         roadmap_file_write (driver->pipes[1], buffer, length);
+         roadmap_spawn_write_pipe (driver->pipes[1], buffer, length);
       }
    }
 }
