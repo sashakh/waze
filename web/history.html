@@ -23,6 +23,28 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 a server upgrade, the RoadMap e-mail list has been lost. Please subscribe to
 the list again if you have not done so already. Sorry for the inconvenience.
 <HR> <BR>
+<P>Roadmap v1.0.11 (???, 2005)
+<UL>
+  <LI>Merged a patch from Gergely Molnar to make screenshots of the
+      RoadMap canvas. Only the first patch was merged (single screenshot).
+      Still trying to figure out how the 2nd patch works (record a "movie"
+      of the trip).
+  <LI>Removed arbitrary string size limits in the driver's protocol by using
+      dynamically allocated strings (garbage collected using reference count).
+  <LI>Fixed a gcc 4.0 complain.
+  <LI>Fixed some type errors in the math functions (max() is for int!).
+  <LI>Fixed a bug in the NMEA decoding (thanks to Ehud Shabtai). This bug
+      might explain several other issues people had.
+  <LI>Many changes to make RoadMap portable to Microsoft Windows CE
+      (port handled by Ehud Shabtai).
+  <LI>Added some missing files to the distribution: a default "session" and
+      the man pages.
+  <LI>The toolbars can now be configured by the user, to fit small screens
+      with the user's preferred controls.
+  <LI>RoadMap now supports the gpsd native protocol. The user can select
+      to use either the NMEA raw mode (gpsd://...) or the new native mode
+      (gpsd2://...).
+</UL>
 <P>Roadmap v1.0.10 (may 15, 2005)
 <UL>
   <LI>Added a decoder for the NMEA sentence GPGGA  (provides the altitude).
