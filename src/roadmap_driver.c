@@ -46,8 +46,15 @@
 #include "roadmap_driver.h"
 
 
+static RoadMapIO RoadMapDriverServer;
+
+
 static RoadMapConfigDescriptor RoadMapDriverTemplate =
                          ROADMAP_CONFIG_ITEM("Drivers", "xxx");
+
+static RoadMapConfigDescriptor RoadMapDriverConfigPort =
+                         ROADMAP_CONFIG_ITEM("Drivers", "Port");
+
 
 /* What the driver may subscribe to (a bit mask): */
 #define ROADMAP_DRIVER_RMC    1  /* Subscribed to GPRMC information. */
@@ -60,7 +67,8 @@ typedef struct roadmap_driver_descriptor {
    char *arguments;
 
    RoadMapFeedback process;
-   RoadMapPipe     pipes[2];
+   RoadMapIO       input;
+   RoadMapIO       output;
 
    RoadMapConfigDescriptor enable;
 
@@ -84,6 +92,9 @@ static roadmap_gps_link_control RoadMapDriverLinkAdd =
 
 static roadmap_gps_link_control RoadMapDriverLinkRemove =
                                     &roadmap_driver_no_link_control;
+
+static roadmap_gps_link_control RoadMapDriverServerAdd = NULL;
+
 
 static RoadMapNmeaListener RoadMapDriverNextPxrmadd = NULL;
 static RoadMapNmeaListener RoadMapDriverNextPxrmmov = NULL;
@@ -207,7 +218,7 @@ static void roadmap_driver_pxrmcfg (void *context,
              descriptor.category,
              descriptor.name,
              value);
-   roadmap_spawn_write_pipe (driver->pipes[1], buffer, strlen(buffer));
+   roadmap_io_write (&driver->output, buffer, strlen(buffer));
 
    /* We do not release the category, name and default value strings,
     * because these are still referenced in the configuration data.
@@ -221,21 +232,17 @@ static void roadmap_driver_onexit (void *context) {
 
    RoadMapDriver *driver = (RoadMapDriver *) context;
 
-   if (ROADMAP_SPAWN_IS_VALID_PIPE(driver->pipes[0])) {
-
-      RoadMapIO io;
+   if (driver->input.subsystem != ROADMAP_IO_INVALID) {
 
       roadmap_object_cleanup (driver->name);
 
-      io.subsystem = ROADMAP_IO_PIPE;
-      io.os.pipe = driver->pipes[0];
-      (*RoadMapDriverLinkRemove) (&io);
+      (*RoadMapDriverLinkRemove) (&driver->input);
 
-      roadmap_spawn_close_pipe (driver->pipes[0]);
-      roadmap_spawn_close_pipe (driver->pipes[1]);
+      roadmap_io_close (&driver->input);
+      roadmap_io_close (&driver->output);
 
-      driver->pipes[0] = ROADMAP_SPAWN_INVALID_PIPE;
-      driver->pipes[1] = ROADMAP_SPAWN_INVALID_PIPE;
+      driver->input.subsystem = ROADMAP_IO_INVALID;
+      driver->output.subsystem = ROADMAP_IO_INVALID;
    }
 }
 
@@ -244,7 +251,7 @@ static int roadmap_driver_receive (void *context, char *data, int size) {
 
    RoadMapDriver *driver = (RoadMapDriver *)context;
 
-   return roadmap_spawn_read_pipe (driver->pipes[0], data, size);
+   return roadmap_io_read (&driver->input, data, size);
 }
 
 
@@ -323,8 +330,8 @@ static void roadmap_driver_configure (const char *path) {
          driver->command   = roadmap_driver_strdup(command);
          driver->arguments = roadmap_driver_strdup(arguments);
 
-         driver->pipes[0] = ROADMAP_SPAWN_INVALID_PIPE;
-         driver->pipes[1] = ROADMAP_SPAWN_INVALID_PIPE;
+         driver->input.subsystem  = ROADMAP_IO_INVALID;
+         driver->output.subsystem = ROADMAP_IO_INVALID;
          driver->process.handler = roadmap_driver_onexit;
          driver->process.data    = (void *)driver;
 
@@ -367,6 +374,64 @@ static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
    *ddmm = degrees * 100 + minutes;
    *mmmm = (value % 1000000) / 100;
 }
+
+
+void roadmap_driver_accept (RoadMapIO *io) {
+
+   RoadMapDriver *driver;
+
+   RoadMapIO client;
+   
+   if (io->subsystem != ROADMAP_IO_NET) {
+      roadmap_log (ROADMAP_FATAL, "Driver server has invalid socket");
+      return;
+   }
+         
+   client.os.socket = roadmap_net_accept(io->os.socket);
+         
+   if (!ROADMAP_NET_IS_VALID(client.os.socket)) {
+      roadmap_log (ROADMAP_ERROR,
+                   "Can't accept a connection for driver server");
+      return;
+   }
+               
+   client.subsystem = ROADMAP_IO_NET;
+                  
+   driver = calloc (1, sizeof(RoadMapDriver));
+   if (driver == NULL) {
+      roadmap_io_close (&client);
+      return;
+   }
+                     
+   driver->name      = roadmap_string_new("network driver");
+   driver->command   = roadmap_driver_strdup("");
+   driver->arguments = roadmap_driver_strdup("");
+                     
+   driver->input = client;
+   driver->output = client;
+   driver->process.handler = roadmap_driver_onexit;
+   driver->process.data    = (void *)driver;
+                     
+   driver->subscription = 0;
+                     
+   /* Prepare the NMEA context. */
+   driver->nmea.title        = roadmap_string_get(driver->name);
+   driver->nmea.user_context = driver;
+   driver->nmea.cursor       = 0;
+   driver->nmea.logger       = NULL;
+   driver->nmea.receiver     = roadmap_driver_receive;
+   driver->nmea.decoder      = roadmap_nmea_decode;
+                     
+   /* Configuration item (enable/disable). */
+   driver->enable = RoadMapDriverTemplate;
+   driver->enable.name = driver->nmea.title;
+                        
+   driver->next = RoadMapDriverList;
+   RoadMapDriverList = driver;
+                     
+   (*RoadMapDriverLinkAdd) (&driver->input);
+}
+
 
 void roadmap_driver_publish (const RoadMapGpsPosition *position) {
 
@@ -419,9 +484,9 @@ void roadmap_driver_publish (const RoadMapGpsPosition *position) {
    length = strlen(buffer);
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      if (ROADMAP_SPAWN_IS_VALID_PIPE(driver->pipes[1]) &&
+      if ((driver->output.subsystem != ROADMAP_IO_INVALID) &&
           (driver->subscription & ROADMAP_DRIVER_RMC)) {
-         roadmap_spawn_write_pipe (driver->pipes[1], buffer, length);
+         roadmap_io_write (&driver->output, buffer, length);
       }
    }
 }
@@ -431,11 +496,11 @@ void roadmap_driver_input (RoadMapIO *io) {
 
    RoadMapDriver *driver;
 
-   if (io->subsystem != ROADMAP_IO_PIPE) return;
+   if (io->subsystem == ROADMAP_IO_INVALID) return;
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
 
-      if (driver->pipes[0] == io->os.pipe) {
+      if (roadmap_io_same (&driver->input, io)) {
          if (roadmap_input (&driver->nmea) < 0) {
             roadmap_driver_onexit (driver);
          }
@@ -473,12 +538,37 @@ void roadmap_driver_initialize (void) {
 
    RoadMapDriverNextPxrmcfg =
       roadmap_nmea_subscribe ("XRM", "CFG", roadmap_driver_pxrmcfg);
+
+   roadmap_config_declare
+      ("preferences", &RoadMapDriverConfigPort, "2007");
+
+   RoadMapDriverServer.subsystem = ROADMAP_IO_INVALID;
 }
 
 
 void roadmap_driver_activate (void) {
 
+   int port;
    RoadMapDriver *driver;
+   RoadMapPipe    pipes[2];
+
+
+   port = roadmap_config_get_integer (&RoadMapDriverConfigPort);
+
+   if (port > 0) {
+
+      RoadMapDriverServer.os.socket = roadmap_net_listen(port);
+
+      if (ROADMAP_NET_IS_VALID(RoadMapDriverServer.os.socket)) {
+
+         RoadMapDriverServer.subsystem = ROADMAP_IO_NET;
+
+         if (RoadMapDriverServerAdd != NULL) {
+            (*RoadMapDriverServerAdd) (&RoadMapDriverServer);
+         }
+      }
+   }
+
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
 
@@ -487,18 +577,17 @@ void roadmap_driver_activate (void) {
       if (roadmap_spawn_with_pipe
             (driver->command,
              driver->arguments,
-             driver->pipes,
+             pipes,
              &driver->process) > 0) {
 
          /* Declare this I/O to the GUI so that we can wake up
           * when the driver talks to us.
           */
-         RoadMapIO io;
+         driver->input.subsystem = driver->output.subsystem = ROADMAP_IO_PIPE;
+         driver->input.os.pipe = pipes[0];
+         driver->output.os.pipe = pipes[1];
 
-         io.subsystem = ROADMAP_IO_PIPE;
-         io.os.pipe = driver->pipes[0];
-
-         (*RoadMapDriverLinkAdd) (&io);
+         (*RoadMapDriverLinkAdd) (&driver->input);
 
          // TBD: any initialization message needed??
       }
@@ -514,12 +603,27 @@ void roadmap_driver_register_link_control
 }
 
 
+void roadmap_driver_register_server_control
+        (roadmap_gps_link_control add, roadmap_gps_link_control remove) {
+
+   if (RoadMapDriverServer.subsystem != ROADMAP_IO_INVALID) {
+      (*add)(&RoadMapDriverServer);
+   } else {
+      RoadMapDriverServerAdd = add;
+   }
+}
+
+
 void roadmap_driver_shutdown (void) {
 
    RoadMapDriver *driver;
 
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
       roadmap_driver_onexit (driver);
+   }
+
+   if (RoadMapDriverServer.subsystem != ROADMAP_IO_INVALID) {
+      RoadMapDriverLinkRemove (&RoadMapDriverServer);
    }
 }
 

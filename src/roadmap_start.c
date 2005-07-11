@@ -663,6 +663,17 @@ static void roadmap_start_remove_driver (RoadMapIO *io) {
 }
 
 
+static void roadmap_start_add_driver_server (RoadMapIO *io) {
+
+   roadmap_main_set_input (io, roadmap_driver_accept);
+}
+
+static void roadmap_start_remove_driver_server (RoadMapIO *io) {
+
+   roadmap_main_remove_input(io);
+}
+
+
 static void roadmap_start_set_timeout (RoadMapCallback callback) {
 
    roadmap_main_set_periodic (3000, callback);
@@ -692,6 +703,9 @@ static void roadmap_start_window (void) {
 
    roadmap_driver_register_link_control
       (roadmap_start_add_driver, roadmap_start_remove_driver);
+
+   roadmap_driver_register_server_control
+      (roadmap_start_add_driver_server, roadmap_start_remove_driver_server);
 }
 
 

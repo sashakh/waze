@@ -97,3 +97,33 @@ void  roadmap_io_close (RoadMapIO *io) {
    io->subsystem = ROADMAP_IO_INVALID;
 }
 
+
+int roadmap_io_same (RoadMapIO *io1, RoadMapIO *io2) {
+
+   /* We do not do a memcmp() here because some compilers might
+    * generate holes that are not initialized in RoadMapIO.
+    */
+   if (io1->subsystem != io2->subsystem) return 0;
+
+   switch (io1->subsystem) {
+
+      case ROADMAP_IO_FILE:
+         if (io1->os.file != io2->os.file) return 0;
+         break;
+
+      case ROADMAP_IO_NET:
+         if (io1->os.socket != io2->os.socket) return 0;
+         break;
+
+      case ROADMAP_IO_SERIAL:
+         if (io1->os.serial != io2->os.serial) return 0;
+         break;
+
+      case ROADMAP_IO_PIPE:
+         if (io1->os.pipe != io2->os.pipe) return 0;
+         break;
+   }
+
+   return 1; /* We did not find any difference. */
+}
+

@@ -175,6 +175,18 @@ int roadmap_net_receive (RoadMapSocket s, void *data, int size) {
 }
 
 
+RoadMapSocket roadmap_net_listen(int port) {
+
+   return -1; // Not yet implemented.
+}
+
+
+RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket) {
+
+   return -1; // Not yet implemented.
+}
+
+
 void roadmap_net_close (RoadMapSocket s) {
    close ((int)s);
 }

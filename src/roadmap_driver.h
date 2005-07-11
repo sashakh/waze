@@ -45,9 +45,14 @@ void roadmap_driver_initialize (void);
 void roadmap_driver_register_link_control
         (roadmap_gps_link_control add, roadmap_gps_link_control remove);
 
+void roadmap_driver_register_server_control
+        (roadmap_gps_link_control add, roadmap_gps_link_control remove);
+
 void roadmap_driver_activate (void);
 
 void roadmap_driver_input (RoadMapIO *io);
+
+void roadmap_driver_accept (RoadMapIO *io);
 
 void roadmap_driver_publish (const RoadMapGpsPosition *position);
 

@@ -50,6 +50,9 @@ RoadMapSocket roadmap_net_connect (const char *protocol,
 int roadmap_net_receive (RoadMapSocket s, void *data, int size);
 int roadmap_net_send    (RoadMapSocket s, const void *data, int length);
 
+RoadMapSocket roadmap_net_listen(int port);
+RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket);
+
 void roadmap_net_close  (RoadMapSocket s);
 
 #endif // _ROADMAP_NET__H_

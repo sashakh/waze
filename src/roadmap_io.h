@@ -65,5 +65,7 @@ int   roadmap_io_read  (RoadMapIO *io, void *data, int size);
 int   roadmap_io_write (RoadMapIO *io, const void *data, int length);
 void  roadmap_io_close (RoadMapIO *io);
 
+int roadmap_io_same (RoadMapIO *io1, RoadMapIO *io2);
+
 #endif // INCLUDE__ROADMAP_IO__H
 
