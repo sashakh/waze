@@ -379,7 +379,7 @@ void roadmap_gps_open (void) {
    } else if ((strncasecmp (url, "com", 3) == 0) && (url[4] == ':')) {
 
       char *device = strdup(url); /* I do know this is not smart.. */
-      const char *speed = roadmap_config_get (&RoadMapConfigGPSBaudRate)));
+      const char *speed = roadmap_config_get (&RoadMapConfigGPSBaudRate);
 
 #endif
 
