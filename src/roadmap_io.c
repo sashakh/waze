@@ -94,5 +94,6 @@ void  roadmap_io_close (RoadMapIO *io) {
          roadmap_spawn_close_pipe (io->os.pipe);
          break;
    }
+   io->subsystem = ROADMAP_IO_INVALID;
 }
 
