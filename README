@@ -1621,11 +1621,13 @@ CONFIGURATION
 
     [GPS.Source] The URL that gives the address of the GPS data source.
 
-         <<Format:>> gpsd://<hostname>[:<port>]
+         <<Format:>> gpsd://<hostname>[:<port>] or gpsd2://<hostname>[:<port>]
 
          <<Default:>> gpsd://localhost
 
-         <<Comment:>> the syntax "file://<path>" is also possible, for debug.
+         <<Comment:>> The syntax "file://<path>" is also possible, for debug.
+                  The gpsd protocol uses the NMEA raw mode of gpsd, while
+                  the gpsd2 protocol uses the gpsd native protocol.
 
     [GPS.Color] The color used for the current GPS position symbol.
 
