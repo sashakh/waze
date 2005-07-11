@@ -85,6 +85,7 @@ else
 	SHAPELDFLAGS=-lshp
 endif
 
+
 CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
 
@@ -116,7 +117,9 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_street.c \
           roadmap_geocode.c \
           roadmap_history.c \
+          roadmap_input.c \
           roadmap_nmea.c \
+          roadmap_gpsd2.c \
           roadmap_io.c \
           roadmap_gps.c \
           roadmap_object.c \
