@@ -38,6 +38,7 @@
 #include "roadmap_file.h"
 #include "roadmap_serial.h"
 #include "roadmap_nmea.h"
+#include "roadmap_gpsd2.h"
 
 #include "roadmap_gps.h"
 
@@ -68,11 +69,10 @@ static time_t RoadMapGpsConnectedSince = -1;
 static roadmap_gps_listener RoadMapGpsListeners[ROADMAP_GPS_CLIENTS] = {NULL};
 static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 
-static RoadMapNmeaListener RoadMapGpsNextGprmc = NULL;
-static RoadMapNmeaListener RoadMapGpsNextGpgga = NULL;
-static RoadMapNmeaListener RoadMapGpsNextGpgll = NULL;
-static RoadMapNmeaListener RoadMapGpsNextPgrme = NULL;
-static RoadMapNmeaListener RoadMapGpsNextPgrmm = NULL;
+#define ROADMAP_GPS_NONE     0
+#define ROADMAP_GPS_NMEA     1
+#define ROADMAP_GPS_GPSD2    2
+static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 
 
 static char   RoadMapLastKnownStatus = 'A';
@@ -99,29 +99,6 @@ static roadmap_gps_link_control RoadMapGpsLinkRemove =
                                     &roadmap_gps_no_link_control;
 
 
-static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
-
-    if ((strcasecmp (fields->pgrmm.datum, "NAD83") != 0) &&
-        (strcasecmp (fields->pgrmm.datum, "WGS 84") != 0)) {
-        roadmap_log (ROADMAP_FATAL,
-                     "bad datum '%s': 'NAD83' or 'WGS 84' is required",
-                     fields->pgrmm.datum);
-    }
-
-    (*RoadMapGpsNextPgrmm) (context, fields);
-}
-
-
-static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
-
-    RoadMapGpsEstimatedError =
-        roadmap_math_to_current_unit (fields->pgrme.horizontal,
-                                      fields->pgrme.horizontal_unit);
-
-    (*RoadMapGpsNextPgrme) (context, fields);
-}
-
-
 static void roadmap_gps_update_status (char status) {
 
    if (status != RoadMapLastKnownStatus) {
@@ -146,6 +123,38 @@ static void roadmap_gps_process_position (void) {
 
       (RoadMapGpsListeners[i]) (&RoadMapGpsReceivedPosition);
    }
+}
+
+
+/* NMEA protocol support ----------------------------------------------- */
+
+static RoadMapNmeaListener RoadMapGpsNextGprmc = NULL;
+static RoadMapNmeaListener RoadMapGpsNextGpgga = NULL;
+static RoadMapNmeaListener RoadMapGpsNextGpgll = NULL;
+static RoadMapNmeaListener RoadMapGpsNextPgrme = NULL;
+static RoadMapNmeaListener RoadMapGpsNextPgrmm = NULL;
+
+
+static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
+
+    if ((strcasecmp (fields->pgrmm.datum, "NAD83") != 0) &&
+        (strcasecmp (fields->pgrmm.datum, "WGS 84") != 0)) {
+        roadmap_log (ROADMAP_FATAL,
+                     "bad datum '%s': 'NAD83' or 'WGS 84' is required",
+                     fields->pgrmm.datum);
+    }
+
+    (*RoadMapGpsNextPgrmm) (context, fields);
+}
+
+
+static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
+
+    RoadMapGpsEstimatedError =
+        roadmap_math_to_current_unit (fields->pgrme.horizontal,
+                                      fields->pgrme.horizontal_unit);
+
+    (*RoadMapGpsNextPgrme) (context, fields);
 }
 
 
@@ -219,6 +228,48 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
    (*RoadMapGpsNextGprmc) (context, fields);
 }
 
+/* End of NMEA protocol support ---------------------------------------- */
+
+
+/* GPSD protocol support ----------------------------------------------- */
+
+static void roadmap_gps_gpsd2_navigation (char status,
+                                          int latitude,
+                                          int longitude,
+                                          int altitude,
+                                          int speed,
+                                          int steering) {
+
+   roadmap_gps_update_status (status);
+
+   if (status == 'A') {
+
+      if (latitude != ROADMAP_NO_VALID_DATA) {
+         RoadMapGpsReceivedPosition.latitude  = latitude;
+      }
+
+      if (longitude != ROADMAP_NO_VALID_DATA) {
+         RoadMapGpsReceivedPosition.longitude  = longitude;
+      }
+
+      if (altitude != ROADMAP_NO_VALID_DATA) {
+         RoadMapGpsReceivedPosition.altitude  = altitude;
+      }
+
+      if (speed != ROADMAP_NO_VALID_DATA) {
+         RoadMapGpsReceivedPosition.speed  = speed;
+      }
+
+      if (steering != ROADMAP_NO_VALID_DATA) {
+         RoadMapGpsReceivedPosition.steering  = steering;
+      }
+
+      roadmap_gps_process_position();
+   }
+}
+
+/* End of GPSD protocol support ---------------------------------------- */
+
 
 void roadmap_gps_initialize (roadmap_gps_listener listener) {
 
@@ -281,6 +332,7 @@ void roadmap_gps_open (void) {
    /* We do have a gps interface: */
 
    RoadMapGpsLink.subsystem = ROADMAP_IO_INVALID;
+   RoadMapGpsProtocol = ROADMAP_GPS_NMEA; /* This is the default. */
 
    if (strncasecmp (url, "gpsd://", 7) == 0) {
 
@@ -297,6 +349,16 @@ void roadmap_gps_open (void) {
             roadmap_log (ROADMAP_WARNING, "cannot subscribe to gpsd");
             roadmap_net_close(RoadMapGpsLink.os.socket);
          }
+      }
+
+   } else if (strncasecmp (url, "gpsd2://", 8) == 0) {
+
+      RoadMapGpsLink.os.socket = roadmap_gpsd2_connect (url+8);
+
+      if (ROADMAP_NET_IS_VALID(RoadMapGpsLink.os.socket)) {
+
+            RoadMapGpsLink.subsystem = ROADMAP_IO_NET;
+            RoadMapGpsProtocol = ROADMAP_GPS_GPSD2;
       }
 
 #ifndef _WIN32
@@ -371,34 +433,49 @@ void roadmap_gps_open (void) {
 
    (*RoadMapGpsLinkAdd) (&RoadMapGpsLink);
 
-   if (RoadMapGpsNextGprmc == NULL) {
+   switch (RoadMapGpsProtocol) {
+      
+      case ROADMAP_GPS_NMEA:
 
-      RoadMapGpsNextGprmc =
-         roadmap_nmea_subscribe (NULL, "RMC", roadmap_gps_rmc);
-   }
+         if (RoadMapGpsNextGprmc == NULL) {
 
-   if (RoadMapGpsNextGpgga == NULL) {
+            RoadMapGpsNextGprmc =
+               roadmap_nmea_subscribe (NULL, "RMC", roadmap_gps_rmc);
+         }
 
-      RoadMapGpsNextGpgga =
-         roadmap_nmea_subscribe (NULL, "GGA", roadmap_gps_gga);
-   }
+         if (RoadMapGpsNextGpgga == NULL) {
 
-   if (RoadMapGpsNextGpgll == NULL) {
+            RoadMapGpsNextGpgga =
+               roadmap_nmea_subscribe (NULL, "GGA", roadmap_gps_gga);
+         }
 
-      RoadMapGpsNextGpgll =
-         roadmap_nmea_subscribe (NULL, "GLL", roadmap_gps_gll);
-   }
+         if (RoadMapGpsNextGpgll == NULL) {
 
-   if (RoadMapGpsNextPgrme == NULL) {
+            RoadMapGpsNextGpgll =
+               roadmap_nmea_subscribe (NULL, "GLL", roadmap_gps_gll);
+         }
 
-      RoadMapGpsNextPgrme =
-         roadmap_nmea_subscribe ("GRM", "E", roadmap_gps_pgrme);
-   }
+         if (RoadMapGpsNextPgrme == NULL) {
 
-   if (RoadMapGpsNextPgrmm == NULL) {
+            RoadMapGpsNextPgrme =
+               roadmap_nmea_subscribe ("GRM", "E", roadmap_gps_pgrme);
+         }
 
-      RoadMapGpsNextPgrmm =
-         roadmap_nmea_subscribe ("GRM", "M", roadmap_gps_pgrmm);
+         if (RoadMapGpsNextPgrmm == NULL) {
+
+            RoadMapGpsNextPgrmm =
+               roadmap_nmea_subscribe ("GRM", "M", roadmap_gps_pgrmm);
+         }
+         break;
+
+      case ROADMAP_GPS_GPSD2:
+
+         roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_gpsd2_navigation);
+         break;
+
+      default:
+
+         roadmap_log (ROADMAP_FATAL, "internal error (unsupported protocol)");
    }
 }
 
@@ -450,16 +527,34 @@ static void roadmap_gps_call_logger (const char *data) {
 
 void roadmap_gps_input (RoadMapIO *io) {
 
-   static RoadMapNmeaContext nmea;
+   static RoadMapInputContext decode;
 
-   if (nmea.title == NULL) {
-      nmea.title = "GPS receiver";
-      nmea.receive = roadmap_gps_receive;
-      nmea.logger  = roadmap_gps_call_logger;
+
+   if (decode.title == NULL) {
+      decode.title    = "GPS receiver";
+      decode.receiver = roadmap_gps_receive;
+      decode.logger   = roadmap_gps_call_logger;
    }
-   nmea.user_context = (void *)io;
+   decode.user_context = (void *)io;
 
-   if (roadmap_nmea_input (&nmea) < 0) {
+   switch (RoadMapGpsProtocol) {
+
+      case ROADMAP_GPS_NMEA:
+
+         decode.decoder = roadmap_nmea_decode;
+         break;
+
+      case ROADMAP_GPS_GPSD2:
+
+         decode.decoder = roadmap_gpsd2_decode;
+         break;
+
+      default:
+
+         roadmap_log (ROADMAP_FATAL, "internal error (unsupported protocol)");
+   }
+
+   if (roadmap_input (&decode) < 0) {
 
       (*RoadMapGpsLinkRemove) (io);
 
