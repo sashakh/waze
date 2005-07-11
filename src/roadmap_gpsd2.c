@@ -226,9 +226,3 @@ end_of_decoding:
    return 0;
 }
 
-
-void roadmap_gpsd2_close (RoadMapSocket socket) {
-
-   roadmap_net_close (socket);
-}
-
