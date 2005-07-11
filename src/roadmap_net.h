@@ -29,18 +29,24 @@
 #include <winsock.h>
 
 typedef SOCKET RoadMapSocket; /* WIN32 style. */
-#define ROADMAP_NET_IS_VALID(s) (s != INVALID_SOCKET)
+#define ROADMAP_INVALID_SOCKET INVALID_SOCKET
 
 #else
 
 typedef int RoadMapSocket; /* UNIX style. */
-#define ROADMAP_NET_IS_VALID(s) (s != (RoadMapSocket)-1)
+#define ROADMAP_INVALID_SOCKET ((RoadMapSocket)-1)
 
 #endif /* _WIN32 */
+
+#define ROADMAP_NET_IS_VALID(s) (s != ROADMAP_INVALID_SOCKET)
+
 
 RoadMapSocket roadmap_net_connect (const char *protocol,
                                    const char *name, int default_port);
 
+/* If there is any problem detected, the 2 functions below MUST return
+ * a negative value (never 0).
+ */
 int roadmap_net_receive (RoadMapSocket s, void *data, int size);
 int roadmap_net_send    (RoadMapSocket s, const void *data, int length);
 
