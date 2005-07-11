@@ -13,9 +13,6 @@ STRIP=strip
 GUICFLAGS=`pkg-config --cflags gtk+-2.0`
 GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
-GPECFLAGS=-DROADMAP_USES_GPE -I/usr/local/include
-GPELDFLAGS=-L/usr/local/lib -lgpewidget -ldisplaymigration
-
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
 
@@ -34,11 +31,11 @@ endif
 endif
 
 ifeq ($(DESKTOP),GPE)
-   CFLAGS=$(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I..
-   LIBS=$(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm
+	GPECFLAGS=-DROADMAP_USES_GPE
+	GPELDFLAGS=-lgpewidget -ldisplaymigration
 else
-   CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I..
-   LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
+	GPECFLAGS=
+	GPELDFLAGS=
 endif
 
 
@@ -49,6 +46,9 @@ else
 	ARFLAGS="rf"
 endif
 
+
+CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm
 
 # --- RoadMap sources & targets -----------------------------------
 
