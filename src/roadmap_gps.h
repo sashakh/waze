@@ -28,11 +28,11 @@
 
 typedef struct {
 
-   int longitude;
+   int longitude;  /* TIGER format (decimal degrees multiplied by 1000000) */
    int latitude;
-   int altitude;
-   int speed;
-   int steering;
+   int altitude;   /* Using the selected unit system (metric or imperial) */
+   int speed;      /* knots */
+   int steering;   /* Degrees */
 
 } RoadMapGpsPosition;
 
