@@ -155,23 +155,7 @@ RoadMapNmeaListener
                             RoadMapNmeaListener listener);
 
 
-typedef void (*RoadMapNmeaLogger)  (const char *data);
-typedef int  (*RoadMapNmeaReceive) (void *context, char *data, int size);
-
-typedef struct roadmap_nmea_context {
-
-   const char *title;
-   void       *user_context;
-
-   RoadMapNmeaLogger  logger;
-   RoadMapNmeaReceive receive;
-
-   char data[1024];
-   int  cursor;
-
-} RoadMapNmeaContext;
-
-int roadmap_nmea_input (RoadMapNmeaContext *context);
+int roadmap_nmea_decode (void *context, char *sentence);
 
 #endif // INCLUDED__ROADMAP_NMEA__H
 

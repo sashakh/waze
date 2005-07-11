@@ -38,6 +38,7 @@
 #include "roadmap_path.h"
 #include "roadmap_spawn.h"
 
+#include "roadmap_input.h"
 #include "roadmap_nmea.h"
 #include "roadmap_gps.h"
 #include "roadmap_object.h"
@@ -63,7 +64,7 @@ typedef struct roadmap_driver_descriptor {
 
    RoadMapConfigDescriptor enable;
 
-   RoadMapNmeaContext nmea;
+   RoadMapInputContext nmea;
 
    int             subscription;
 
@@ -334,7 +335,8 @@ static void roadmap_driver_configure (const char *path) {
          driver->nmea.user_context = driver;
          driver->nmea.cursor       = 0;
          driver->nmea.logger       = NULL;
-         driver->nmea.receive      = roadmap_driver_receive;
+         driver->nmea.receiver     = roadmap_driver_receive;
+         driver->nmea.decoder      = roadmap_nmea_decode;
 
          /* Configuration item (enable/disable). */
          driver->enable = RoadMapDriverTemplate;
@@ -434,7 +436,7 @@ void roadmap_driver_input (RoadMapIO *io) {
    for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
 
       if (driver->pipes[0] == io->os.pipe) {
-         if (roadmap_nmea_input (&driver->nmea) < 0) {
+         if (roadmap_input (&driver->nmea) < 0) {
             roadmap_driver_onexit (driver);
          }
          break;
