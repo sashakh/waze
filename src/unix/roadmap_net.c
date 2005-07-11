@@ -153,13 +153,25 @@ connection_failure:
 
 int roadmap_net_send (RoadMapSocket s, const void *data, int length) {
 
-   return write ((int)s, data, length);
+   int sent = write ((int)s, data, length);
+
+   if (sent != length) {
+      return -1;
+   }
+
+   return sent;
 }
 
 
 int roadmap_net_receive (RoadMapSocket s, void *data, int size) {
 
-   return read ((int)s, data, size);
+   int received = read ((int)s, data, size);
+
+   if (received == 0) {
+      return -1; /* On UNIX, this is sign of an error. */
+   }
+
+   return received;
 }
 
 
