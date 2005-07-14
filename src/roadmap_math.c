@@ -701,7 +701,8 @@ void roadmap_math_coordinate (const RoadMapPosition *position,
 }
 
 
-int roadmap_math_azymuth (RoadMapPosition *point1, RoadMapPosition *point2) {
+int roadmap_math_azymuth
+       (const RoadMapPosition *point1, const RoadMapPosition *point2) {
 
     int result;
     double x;
@@ -827,7 +828,8 @@ int  roadmap_math_get_distance_from_segment
 
       intersection->longitude =
          position1->longitude
-            + (int)(((x1 - x3) * position2->longitude) / (x1 - x2));
+            + (int)(((x1 - x3)
+                 * (position2->longitude - position1->longitude)) / (x1 - x2));
    }
 
 
@@ -845,7 +847,8 @@ int  roadmap_math_get_distance_from_segment
 
          intersection->latitude =
             position1->latitude
-               + (int)(((y1 - y3) * position2->latitude) / (y1 - y2));
+               + (int)(((y1 - y3)
+                   * (position2->latitude - position1->latitude)) / (y1 - y2));
       }
 
       return (int) sqrt ((x3 * x3) + (y3 * y3));
