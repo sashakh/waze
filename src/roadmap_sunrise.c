@@ -301,6 +301,13 @@ time_t roadmap_sunset (const RoadMapGpsPosition *position) {
 
 #ifdef SUNRISE_PROGRAM
 
+/* To test this:
+ * ./sunrise 0 51500000 :Europe/London
+ * ./sunrise 2000000 49000000 :Europe/Paris
+ * ./sunrise -118352033 33810550 :America/Los_Angeles
+ *
+ * and compare to http://www.sunrisesunset.com/
+ */
 int main(int argc, char **argv) {
 
    time_t rawtime;
