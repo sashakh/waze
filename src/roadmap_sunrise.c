@@ -166,7 +166,7 @@ static time_t roadmap_sunrise_getriseorset
    roadmap_lat  = LU_TO_DEG(position->latitude);
    sinphi = sin(roadmap_lat * RADIANS);
    cosphi = cos(roadmap_lat * RADIANS);
-   longitude = LU_TO_DEG(position->longitude) * RADIANS;
+   longitude = LU_TO_DEG(position->longitude+180000000) * RADIANS;
 
    while((fabs(utold-utnew) > 0.001) && (count < 35))  {
 
@@ -201,11 +201,6 @@ static time_t roadmap_sunrise_getriseorset
    /* utnew must now be converted into gmt. */
 
    result = roadmap_sunrise_get_gmt (utnew * DEGREES / 15, &curtime_gmt);
-
-   /* I don't know why, but the time seems shifted by 12 hours.
-    * This is not a fix: this is a quick & dirty hack.
-    */
-   result -= (12 * 3600);
 
    if (result < gmt) {
       result += (24 * 3600);
