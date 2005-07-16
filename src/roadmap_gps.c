@@ -461,14 +461,26 @@ static void roadmap_gps_satellites  (int sequence,
          if (RoadMapGpsQuality.dimension < 2) {
             RoadMapGpsQuality.dimension = 2;
          }
-         RoadMapGpsDetected[sequence].status  = 'A';
+         RoadMapGpsDetected[index].status  = 'A';
 
       } else {
-         RoadMapGpsDetected[sequence].status  = 'F';
+         RoadMapGpsDetected[index].status  = 'F';
       }
    }
 
    RoadMapGpsSatelliteCount = sequence;
+}
+
+
+static void roadmap_gps_dilution (int dimension,
+                                  double position,
+                                  double horizontal,
+                                  double vertical) {
+
+   RoadMapGpsQuality.dimension = dimension;
+   RoadMapGpsQuality.dilution_position   = position;
+   RoadMapGpsQuality.dilution_horizontal = horizontal;
+   RoadMapGpsQuality.dilution_vertical   = vertical;
 }
 
 /* End of GPSD protocol support ---------------------------------------- */
@@ -664,6 +676,7 @@ void roadmap_gps_open (void) {
 
          roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_navigation);
          roadmap_gpsd2_subscribe_to_satellites (roadmap_gps_satellites);
+         roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
          break;
 
       default:

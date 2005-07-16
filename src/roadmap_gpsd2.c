@@ -43,7 +43,18 @@ static int roadmap_gpsd2_decode_numeric (const char *input) {
 
    if (input[0] == '?') return ROADMAP_NO_VALID_DATA;
 
+   while (*input == '0') ++input;
+   if (*input == 0) return 0;
+
    return atoi(input);
+}
+
+
+static double roadmap_gpsd2_decode_float (const char *input) {
+
+   if (input[0] == '?') return 0.0;
+
+   return atof(input);
 }
 
 
@@ -129,7 +140,8 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
    int got_navigation_data;
 
-   int has_o = 0;
+   int got_o = 0;
+   int got_q = 0;
 
    int status;
    int latitude;
@@ -145,6 +157,11 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
    int   s;
    int   count;
    int   satellite_count;
+
+   int    dimension_of_fix = -1;
+   double pdop = 0.0;
+   double hdop = 0.0;
+   double vdop = 0.0;
 
 
    reply_count = roadmap_input_split (sentence, ',', reply, 256);
@@ -180,19 +197,29 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
          case 'A':
 
-            if (has_o) continue; /* Consider the 'O' answer only. */
+            if (got_o) continue; /* Consider the 'O' answer only. */
 
             altitude = roadmap_gpsd2_decode_numeric (value);
             break;
 
          case 'M':
 
-            if (atoi(value) > 0) {
+            dimension_of_fix = roadmap_gpsd2_decode_numeric(value);
+
+            if (dimension_of_fix > 1) {
                status = 'A';
             } else {
                status = 'V';
                got_navigation_data = 1;
                goto end_of_decoding;
+            }
+
+            if (got_q) {
+
+               RoadmapGpsd2DilutionListener
+                  (dimension_of_fix, pdop, hdop, vdop);
+
+               got_q = 0; /* We already "used" it. */
             }
             break;
 
@@ -202,7 +229,7 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
                continue;
             }
 
-            has_o = 1;
+            got_o = 1;
             got_navigation_data = 1;
 
             latitude  = roadmap_gpsd2_decode_coordinate (argument[3]);
@@ -215,7 +242,7 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
          case 'P':
 
-            if (has_o) continue; /* Consider the 'O' answer only. */
+            if (got_o) continue; /* Consider the 'O' answer only. */
 
             if (roadmap_input_split (value, ' ', argument, 2) != 2) {
                continue;
@@ -233,21 +260,39 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
          case 'Q':
 
-            if (roadmap_input_split (value, ' ', argument, 6) != 6) {
+            if (RoadmapGpsd2DilutionListener == NULL) continue;
+
+            if (roadmap_input_split (value, ' ', argument, 6) < 4) {
                continue;
+            }
+
+            pdop = roadmap_gpsd2_decode_float (argument[1]);
+            hdop = roadmap_gpsd2_decode_float (argument[2]);
+            vdop = roadmap_gpsd2_decode_float (argument[3]);
+
+            if (dimension_of_fix > 0) {
+
+               RoadmapGpsd2DilutionListener
+                  (dimension_of_fix, pdop, hdop, vdop);
+
+            } else if ((dimension_of_fix < 0) &&
+                (roadmap_gpsd2_decode_numeric(argument[0]) > 0)) {
+
+               dimension_of_fix = 2;
+               got_q = 1;
             }
             break;
 
          case 'T':
 
-            if (has_o) continue; /* Consider the 'O' answer only. */
+            if (got_o) continue; /* Consider the 'O' answer only. */
 
             steering = roadmap_gpsd2_decode_numeric (value);
             break;
 
          case 'V':
 
-            if (has_o) continue; /* Consider the 'O' answer only. */
+            if (got_o) continue; /* Consider the 'O' answer only. */
 
             speed = roadmap_gpsd2_decode_numeric (value);
             break;
@@ -261,8 +306,15 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
             switch (roadmap_input_split (argument[0], ' ', tuple, 5)) {
 
-               case 1: satellite_count = atoi(tuple[0]); break;
-               case 3: satellite_count = atoi(tuple[2]); break;
+               case 1:
+                  
+                  satellite_count = roadmap_gpsd2_decode_numeric(tuple[0]);
+                  break;
+
+               case 3:
+
+                  satellite_count = roadmap_gpsd2_decode_numeric(tuple[2]);
+                  break;
 
                default: continue; /* Invalid. */
             }
@@ -279,12 +331,13 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
                if (roadmap_input_split (argument[s], ' ', tuple, 5) != 5) {
                   continue;
                }
-               (*RoadmapGpsd2SatelliteListener) (s,
-                                                  atoi(tuple[0]),
-                                                  atoi(tuple[1]),
-                                                  atoi(tuple[2]),
-                                                  atoi(tuple[3]),
-                                                  atoi(tuple[4]));
+               (*RoadmapGpsd2SatelliteListener)
+                    (s,
+                     roadmap_gpsd2_decode_numeric(tuple[0]),
+                     roadmap_gpsd2_decode_numeric(tuple[1]),
+                     roadmap_gpsd2_decode_numeric(tuple[2]),
+                     roadmap_gpsd2_decode_numeric(tuple[3]),
+                     roadmap_gpsd2_decode_numeric(tuple[4]));
             }
             (*RoadmapGpsd2SatelliteListener) (0, 0, 0, 0, 0, 0);
 
@@ -294,6 +347,10 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
 end_of_decoding:
 
+   if (dimension_of_fix >= 0 && got_q) {
+      RoadmapGpsd2DilutionListener (dimension_of_fix, pdop, hdop, vdop);
+   }
+
    if (got_navigation_data) {
 
       RoadmapGpsd2NavigationListener
@@ -301,6 +358,7 @@ end_of_decoding:
 
       return 1;
    }
+
    return 0;
 }
 
