@@ -54,8 +54,6 @@ void roadmap_driver_input (RoadMapIO *io);
 
 void roadmap_driver_accept (RoadMapIO *io);
 
-void roadmap_driver_publish (const RoadMapGpsPosition *position);
-
 void roadmap_driver_shutdown (void);
 
 #endif // INCLUDED__ROADMAP_DRIVER__H

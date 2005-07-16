@@ -58,6 +58,7 @@ static RoadMapConfigDescriptor RoadMapDriverConfigPort =
 
 /* What the driver may subscribe to (a bit mask): */
 #define ROADMAP_DRIVER_RMC    1  /* Subscribed to GPRMC information. */
+#define ROADMAP_DRIVER_NMEA   2  /* Subscribed to all NMEA information. */
 
 typedef struct roadmap_driver_descriptor {
 
@@ -104,24 +105,214 @@ static RoadMapNmeaListener RoadMapDriverNextPxrmcfg = NULL;
 
 
 
-static char *roadmap_driver_strdup (const char *text) {
+/* Publishing functions. ------------------------------------------------ */
 
-   if (text == NULL) return NULL;
+static void roadmap_driver_send (const char *data, int mask);
 
-   return strdup(text);
+static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
+
+   int degrees;
+   int minutes;
+
+   value = abs(value);
+   degrees = value / 1000000;
+   value = 60 * (value % 1000000);
+   minutes = value / 1000000;
+
+   *ddmm = degrees * 100 + minutes;
+   *mmmm = (value % 1000000) / 100;
 }
 
 
-static int roadmap_driver_exists (const char *name) {
+static void roadmap_driver_publish_position
+                (const RoadMapGpsPosition *position, int mask) {
 
-   RoadMapDriver *driver;
+   /* Format the GPRMC sentence that is used to publish our position. */
 
-   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      if (roadmap_string_match(driver->name, name)) return 1;
+   int latitude_ddmm;
+   int latitude_mmmm;
+   int longitude_ddmm;
+   int longitude_mmmm;
+
+   time_t now;
+   struct tm *gmt;
+
+   char buffer[128];  /* large enough and more. */
+
+
+   roadmap_driver_to_nmea (position->latitude,
+                           &latitude_ddmm, &latitude_mmmm);
+
+   roadmap_driver_to_nmea (position->longitude,
+                           &longitude_ddmm, &longitude_mmmm);
+
+   time(&now);
+   gmt = gmtime (&now);
+   if (gmt == NULL) return;
+
+   snprintf (buffer, sizeof(buffer),
+             "$GPRMC,"
+                     "%02d%02d%02d.000,A," /* Time (hhmmss) and status. */
+                     "%d.%04d,%c,"         /* Latitude. */
+                     "%d.%04d,%c,"         /* Longitude. */
+                     "%d,"                 /* Speed (knots). */
+                     "%d,"                 /* Course over ground. */
+                     "%02d%02d%02d,"       /* UTC date (DDMMYY). */
+                     "0,E\n",              /* Magnetic variation (none). */
+            gmt->tm_hour, gmt->tm_min, gmt->tm_sec,
+            latitude_ddmm, latitude_mmmm, position->latitude > 0 ? 'N' : 'S',
+            longitude_ddmm, longitude_mmmm, position->longitude > 0 ? 'E' : 'W',
+            position->speed,
+            position->steering,
+            gmt->tm_mday, gmt->tm_mon+1, gmt->tm_year%100);
+
+   /* Send that data to all concerned drivers. */
+   roadmap_driver_send (buffer, mask);
+}
+
+
+static void roadmap_driver_publish_satellites
+                (const RoadMapGpsPrecision *precision,
+                 const RoadMapGpsSatellite *satellites, int count, int mask) {
+
+   int i;
+   int j;
+   int active;
+   int gsv_count;
+
+   char buffer[1024];  /* large enough and more. */
+   char buffer2[128];  /* large enough and more. */
+
+
+   snprintf (buffer, sizeof(buffer),
+             "$GPGSA,"
+                     "A,"    /* Force automatic mode. */
+                     "%d",   /* Dimension of fix. */
+             precision->dimension);
+
+   active = 0;
+
+   for (i = 0; i < count; ++i) {
+
+      if (satellites[i].status == 'A') {
+
+         char id[4];
+
+         snprintf (id, sizeof(id), ",%02d", satellites[i].id);
+         strcat (buffer, id);
+
+         if (++active >= 12) break;
+      }
    }
-   return 0;
+
+   /* The other satellites are not actively used for the fix. */
+   if (active < 12) {
+      strcat (buffer, ",,,,,,,,,,,," + active);
+   }
+
+   if (precision->dimension >= 2) {
+      snprintf (buffer2, sizeof(buffer2), ",%04.1f,%04.1f,%04.1f\r\n",
+                precision->dilution_position,
+                precision->dilution_horizontal,
+                precision->dilution_vertical);
+      strcat (buffer, buffer2);
+   } else {
+      strcat (buffer, ",,,\r\n");
+   }
+
+   roadmap_driver_send (buffer, mask);
+
+
+   gsv_count = count / 4;
+   if (count % 4) gsv_count += 1;
+
+   for (i = 1; i <= gsv_count; ++i) {
+
+      snprintf (buffer, sizeof(buffer),
+                "$GPGSV,"
+                     "%d,"   /* Number of messages. */
+                     "%d,"   /* Sequence number for this message. */
+                     "%d",   /* Number of satellites in view. */
+                gsv_count, i, count);
+
+      for (j = (i-1) * 4; j < count && j < i*4; ++j) {
+
+         snprintf (buffer2, sizeof(buffer2), ",%02d,%d,%d,%d",
+                   satellites[j].id,
+                   satellites[j].elevation,
+                   satellites[j].azimuth,
+                   satellites[j].strength);
+
+         strcat (buffer, buffer2);
+      }
+
+      if (j < i*4) {
+         strcat (buffer, ",,,,,,,,,,,,,,,," + (j*4));
+      }
+      strcat (buffer, "\r\n");
+
+      roadmap_driver_send (buffer, mask);
+   }
 }
 
+
+static void roadmap_driver_listener (const RoadMapGpsPosition *position) {
+
+   static RoadMapGpsPosition RoadMapDriverLastPosition;
+
+
+   if (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA) {
+
+      if (! roadmap_gps_is_nmea()) {
+         roadmap_driver_publish_position (position, ROADMAP_DRIVER_NMEA);
+      }
+   }
+   
+   if (RoadMapDriverSubscription & ROADMAP_DRIVER_RMC) {
+
+      if ((RoadMapDriverLastPosition.latitude  != position->latitude) ||
+          (RoadMapDriverLastPosition.longitude != position->longitude) ||
+          (RoadMapDriverLastPosition.speed     != position->speed) ||
+          (RoadMapDriverLastPosition.steering  != position->steering)) {
+
+         RoadMapDriverLastPosition = *position;
+
+         roadmap_driver_publish_position (position, ROADMAP_DRIVER_RMC);
+      }
+   }
+}
+
+
+static void roadmap_driver_monitor (const RoadMapGpsPrecision *precision,
+                                    const RoadMapGpsSatellite *satellites,
+                                    int count) {
+
+   if (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA) {
+
+      if (! roadmap_gps_is_nmea()) {
+
+         roadmap_driver_publish_satellites
+            (precision, satellites, count, ROADMAP_DRIVER_NMEA);
+      }
+   }
+}
+
+static void roadmap_driver_nmea_logger (const char *line) {
+
+   if (! (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA)) return;
+
+   if (roadmap_gps_is_nmea()) {
+
+      char buffer[1024];
+
+      snprintf(buffer, sizeof(buffer), "%s\r\n", line);
+      roadmap_driver_send (buffer, ROADMAP_DRIVER_NMEA);
+   }
+}
+
+
+
+/* NMEA processing functions. ------------------------------------------- */
 
 static void roadmap_driver_pxrmadd (void *context,
                                     const RoadMapNmeaFields *fields) {
@@ -174,8 +365,21 @@ static void roadmap_driver_pxrmsub (void *context,
       for (i = 0; i < fields->pxrmsub.count; ++i) {
 
          if (roadmap_string_match(fields->pxrmsub.subscribed[i].item, "RMC")) {
+
             driver->subscription |= ROADMAP_DRIVER_RMC;
             RoadMapDriverSubscription |= ROADMAP_DRIVER_RMC;
+
+         } else if (roadmap_string_match
+                       (fields->pxrmsub.subscribed[i].item, "NMEA")) {
+
+            if (! (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA)) {
+
+               roadmap_gps_register_monitor  (roadmap_driver_monitor);
+               roadmap_gps_register_logger   (roadmap_driver_nmea_logger);
+            }
+
+            driver->subscription |= ROADMAP_DRIVER_NMEA;
+            RoadMapDriverSubscription |= ROADMAP_DRIVER_NMEA;
 
          } else {
 
@@ -227,6 +431,27 @@ static void roadmap_driver_pxrmcfg (void *context,
    (*RoadMapDriverNextPxrmcfg) (context, fields);
 }
 
+/* End of NMEA processing. ---------------------------------------------- */
+
+
+static char *roadmap_driver_strdup (const char *text) {
+
+   if (text == NULL) return NULL;
+
+   return strdup(text);
+}
+
+
+static int roadmap_driver_exists (const char *name) {
+
+   RoadMapDriver *driver;
+
+   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+      if (roadmap_string_match(driver->name, name)) return 1;
+   }
+   return 0;
+}
+
 
 static void roadmap_driver_onexit (void *context) {
 
@@ -252,6 +477,20 @@ static int roadmap_driver_receive (void *context, char *data, int size) {
    RoadMapDriver *driver = (RoadMapDriver *)context;
 
    return roadmap_io_read (&driver->input, data, size);
+}
+
+
+static void roadmap_driver_send (const char *data, int mask) {
+
+   RoadMapDriver *driver;
+   int length = strlen(data);
+
+   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+      if ((driver->output.subsystem != ROADMAP_IO_INVALID) &&
+          (driver->subscription & mask)) {
+         roadmap_io_write (&driver->output, data, length);
+      }
+   }
 }
 
 
@@ -361,21 +600,6 @@ static void roadmap_driver_configure (const char *path) {
 }
 
 
-static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
-
-   int degrees;
-   int minutes;
-
-   value = abs(value);
-   degrees = value / 1000000;
-   value = 60 * (value % 1000000);
-   minutes = value / 1000000;
-
-   *ddmm = degrees * 100 + minutes;
-   *mmmm = (value % 1000000) / 100;
-}
-
-
 void roadmap_driver_accept (RoadMapIO *io) {
 
    RoadMapDriver *driver;
@@ -430,65 +654,6 @@ void roadmap_driver_accept (RoadMapIO *io) {
    RoadMapDriverList = driver;
                      
    (*RoadMapDriverLinkAdd) (&driver->input);
-}
-
-
-void roadmap_driver_publish (const RoadMapGpsPosition *position) {
-
-   /* Format the GPRMC sentence that is used to publish our position. */
-
-   int latitude_ddmm;
-   int latitude_mmmm;
-   int longitude_ddmm;
-   int longitude_mmmm;
-
-   time_t now;
-   struct tm *gmt;
-
-   int length;
-   char buffer[128];  /* large enough and more. */
-
-   RoadMapDriver *driver;
-
-
-   if (! (RoadMapDriverSubscription & ROADMAP_DRIVER_RMC)) return;
-
-   roadmap_driver_to_nmea (position->latitude,
-                           &latitude_ddmm, &latitude_mmmm);
-
-   roadmap_driver_to_nmea (position->longitude,
-                           &longitude_ddmm, &longitude_mmmm);
-
-   time(&now);
-   gmt = gmtime (&now);
-   if (gmt == NULL) return;
-
-   snprintf (buffer, sizeof(buffer),
-             "$GPRMC,"
-                     "%02d%02d%02d.000,A," /* Time (hhmmss) and status. */
-                     "%d.%04d,%c,"         /* Latitude. */
-                     "%d.%04d,%c,"         /* Longitude. */
-                     "%d,"                 /* Speed (knots). */
-                     "%d,"                 /* Course over ground. */
-                     "%02d%02d%02d,"       /* UTC date (DDMMYY). */
-                     "0,E\n",              /* Magnetic variation (none). */
-            gmt->tm_hour, gmt->tm_min, gmt->tm_sec,
-            latitude_ddmm, latitude_mmmm, position->latitude > 0 ? 'N' : 'S',
-            longitude_ddmm, longitude_mmmm, position->longitude > 0 ? 'E' : 'W',
-            position->speed,
-            position->steering,
-            gmt->tm_mday, gmt->tm_mon+1, gmt->tm_year%100);
-
-   /* Send that data to all drivers. */
-
-   length = strlen(buffer);
-
-   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      if ((driver->output.subsystem != ROADMAP_IO_INVALID) &&
-          (driver->subscription & ROADMAP_DRIVER_RMC)) {
-         roadmap_io_write (&driver->output, buffer, length);
-      }
-   }
 }
 
 
@@ -552,6 +717,8 @@ void roadmap_driver_activate (void) {
    RoadMapDriver *driver;
    RoadMapPipe    pipes[2];
 
+
+   roadmap_gps_register_listener (roadmap_driver_listener);
 
    port = roadmap_config_get_integer (&RoadMapDriverConfigPort);
 

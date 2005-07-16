@@ -35,6 +35,8 @@
 
 
 static RoadMapGpsdNavigation RoadmapGpsd2NavigationListener = NULL;
+static RoadMapGpsdSatellite  RoadmapGpsd2SatelliteListener = NULL;
+static RoadMapGpsdDilution   RoadmapGpsd2DilutionListener = NULL;
 
 
 static int roadmap_gpsd2_decode_numeric (const char *input) {
@@ -111,23 +113,23 @@ void roadmap_gpsd2_subscribe_to_navigation (RoadMapGpsdNavigation navigation) {
 }
 
 
-int roadmap_gpsd2_query_navigation (RoadMapSocket socket) {
+void roadmap_gpsd2_subscribe_to_satellites (RoadMapGpsdSatellite satellite) {
 
-   static const char request[] = "w+\n"; // "mpavt\n";
+   RoadmapGpsd2SatelliteListener = satellite;
+}
 
-   if (roadmap_net_send
-         (socket, request, sizeof(request)-1) != sizeof(request)-1) {
 
-      roadmap_log (ROADMAP_WARNING, "Lost gpsd server session");
-      return 0;
-   }
-   return 1;
+void roadmap_gpsd2_subscribe_to_dilution (RoadMapGpsdDilution dilution) {
+
+   RoadmapGpsd2DilutionListener = dilution;
 }
 
 
 int roadmap_gpsd2_decode (void *context, char *sentence) {
 
    int got_navigation_data;
+
+   int has_o = 0;
 
    int status;
    int latitude;
@@ -139,6 +141,11 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
    char *reply[256];
    int   reply_count;
    int   i;
+
+   int   s;
+   int   count;
+   int   satellite_count;
+
 
    reply_count = roadmap_input_split (sentence, ',', reply, 256);
 
@@ -161,7 +168,8 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
       char *item = reply[i];
       char *value = item + 2;
-      char *argument[2];
+      char *argument[32];
+      char *tuple[5];
 
 
       if (item[1] != '=') {
@@ -169,6 +177,13 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
       }
 
       switch (item[0]) {
+
+         case 'A':
+
+            if (has_o) continue; /* Consider the 'O' answer only. */
+
+            altitude = roadmap_gpsd2_decode_numeric (value);
+            break;
 
          case 'M':
 
@@ -181,7 +196,26 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
             }
             break;
 
+         case 'O':
+
+            if (roadmap_input_split (value, ' ', argument, 14) != 14) {
+               continue;
+            }
+
+            has_o = 1;
+            got_navigation_data = 1;
+
+            latitude  = roadmap_gpsd2_decode_coordinate (argument[3]);
+            longitude = roadmap_gpsd2_decode_coordinate (argument[4]);
+            altitude  = roadmap_gpsd2_decode_numeric    (argument[5]);
+            steering  = roadmap_gpsd2_decode_numeric    (argument[8]);
+            speed     = roadmap_gpsd2_decode_numeric    (argument[9]);
+
+            break;
+
          case 'P':
+
+            if (has_o) continue; /* Consider the 'O' answer only. */
 
             if (roadmap_input_split (value, ' ', argument, 2) != 2) {
                continue;
@@ -197,19 +231,63 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
             }
             break;
 
-         case 'A':
+         case 'Q':
 
-            altitude = roadmap_gpsd2_decode_numeric (value);
-            break;
-
-         case 'V':
-
-            speed = roadmap_gpsd2_decode_numeric (value);
+            if (roadmap_input_split (value, ' ', argument, 6) != 6) {
+               continue;
+            }
             break;
 
          case 'T':
 
+            if (has_o) continue; /* Consider the 'O' answer only. */
+
             steering = roadmap_gpsd2_decode_numeric (value);
+            break;
+
+         case 'V':
+
+            if (has_o) continue; /* Consider the 'O' answer only. */
+
+            speed = roadmap_gpsd2_decode_numeric (value);
+            break;
+
+         case 'Y':
+
+            if (RoadmapGpsd2SatelliteListener == NULL) continue;
+
+            count = roadmap_input_split (value, ':', argument, 32);
+            if (count <= 0) continue;
+
+            switch (roadmap_input_split (argument[0], ' ', tuple, 5)) {
+
+               case 1: satellite_count = atoi(tuple[0]); break;
+               case 3: satellite_count = atoi(tuple[2]); break;
+
+               default: continue; /* Invalid. */
+            }
+
+            if (satellite_count != count - 2) {
+               roadmap_log (ROADMAP_WARNING,
+                     "invalid gpsd 'Y' answer: count = %d, but %d satellites",
+                     count, satellite_count);
+               continue;
+            }
+
+            for (s = 1; s <= satellite_count; ++s) {
+
+               if (roadmap_input_split (argument[s], ' ', tuple, 5) != 5) {
+                  continue;
+               }
+               (*RoadmapGpsd2SatelliteListener) (s,
+                                                  atoi(tuple[0]),
+                                                  atoi(tuple[1]),
+                                                  atoi(tuple[2]),
+                                                  atoi(tuple[3]),
+                                                  atoi(tuple[4]));
+            }
+            (*RoadmapGpsd2SatelliteListener) (0, 0, 0, 0, 0, 0);
+
             break;
       }
    }

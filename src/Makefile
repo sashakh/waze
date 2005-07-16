@@ -215,7 +215,7 @@ PKGDATAFILES=sprites preferences schema session drivers
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
-DRIVERS=rdmkismet rdmghost rdmfriends
+DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace
 TOOLS=sunrise $(SQLTOOLS)
 
 
@@ -308,6 +308,9 @@ rdmghost: roadmap_ghost.c $(RDMLIBS)
 
 rdmfriends: roadmap_friends.c $(RDMLIBS)
 	$(CC) -g roadmap_friends.c -o rdmfriends $(RDMLIBS) $(RDMLIBS) -lm
+
+rdmtrace: roadmap_trace.c $(RDMLIBS)
+	$(CC) -g roadmap_trace.c -o rdmtrace $(RDMLIBS) -lm
 
 # --- The real targets --------------------------------------------
 

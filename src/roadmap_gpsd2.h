@@ -42,7 +42,23 @@ typedef void (*RoadMapGpsdNavigation) (char status,
                                        int speed,
                                        int steering);
 
+typedef void (*RoadMapGpsdSatellite)  (int sequence,
+                                       int id,
+                                       int elevation,
+                                       int azimuth,
+                                       int strength,
+                                       int active);
+
+typedef void (*RoadMapGpsdDilution )  (int dimension,
+                                       double position,
+                                       double horizontal,
+                                       double vertical);
+
 void roadmap_gpsd2_subscribe_to_navigation (RoadMapGpsdNavigation navigation);
+
+void roadmap_gpsd2_subscribe_to_satellites (RoadMapGpsdSatellite satellite);
+
+void roadmap_gpsd2_subscribe_to_dilution   (RoadMapGpsdDilution dilution);
 
 
 RoadMapSocket roadmap_gpsd2_connect (const char *name);

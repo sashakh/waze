@@ -21,11 +21,18 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_GPS__H_
-#define _ROADMAP_GPS__H_
+#ifndef INCLUDE__ROADMAP_GPS__H
+#define INCLUDE__ROADMAP_GPS__H
 
 #include "roadmap_io.h"
 
+
+void roadmap_gps_initialize (void);
+
+
+/* The listener is a function to be called each time a valid GPS coordinate
+ * has been received. There can be more than one listener at a given time.
+ */
 typedef struct {
 
    int longitude;  /* TIGER format (decimal degrees multiplied by 1000000) */
@@ -38,13 +45,40 @@ typedef struct {
 
 #define ROADMAP_GPS_NULL_POSITION {0, 0, 0, 0, 0}
 
-
-/* The listener is a function to be called each time a valid GPS coordinate
- * has been received. There can be more than one listener at a given time.
- */
 typedef void (*roadmap_gps_listener) (const RoadMapGpsPosition *position);
 
-void roadmap_gps_initialize (roadmap_gps_listener listener);
+void roadmap_gps_register_listener (roadmap_gps_listener listener);
+
+
+/* The monitor is a function to be called each time a valid GPS satellite
+ * status has been received. There can be more than one monitor at a given
+ * time.
+ */
+typedef struct {
+
+   char  id;
+   char  status;     /* 0: not detected, 'F': fixing, 'A': active. */
+   char  elevation;
+   char  reserved;
+   short azimuth;
+   short strength;
+
+} RoadMapGpsSatellite;
+
+typedef struct {
+
+   int    dimension;        /* <2: none, 2: 2D fix, 3: 3D fix. */
+   double dilution_position;
+   double dilution_horizontal;
+   double dilution_vertical;
+
+} RoadMapGpsPrecision;
+
+typedef void (*roadmap_gps_monitor) (const RoadMapGpsPrecision *precision,
+                                     const RoadMapGpsSatellite *satellites,
+                                     int count);
+
+void roadmap_gps_register_monitor (roadmap_gps_monitor monitor);
 
 
 /* The link and periodic control functions are hooks designed to let the GPS
@@ -85,5 +119,7 @@ int  roadmap_gps_active (void);
 int  roadmap_gps_estimated_error (void);
 int  roadmap_gps_speed_accuracy  (void);
 
-#endif // _ROADMAP_GPS__H_
+int  roadmap_gps_is_nmea (void);
+
+#endif // INCLUDE__ROADMAP_GPS__H
 

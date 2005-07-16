@@ -622,8 +622,6 @@ static void roadmap_gps_update (const RoadMapGpsPosition *gps_position) {
          RoadMapStartGpsRefresh = 1;
       }
    }
-
-   roadmap_driver_publish (gps_position);
 }
 
 
@@ -801,12 +799,14 @@ void roadmap_start (int argc, char **argv) {
    roadmap_navigate_initialize ();
    roadmap_display_initialize  ();
    roadmap_voice_initialize    ();
-   roadmap_gps_initialize      (&roadmap_gps_update);
+   roadmap_gps_initialize      ();
    roadmap_history_initialize  ();
    roadmap_download_initialize ();
    roadmap_adjust_initialize   ();
    roadmap_driver_initialize   ();
    roadmap_config_initialize   ();
+
+   roadmap_gps_register_listener (&roadmap_gps_update);
 
    roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
 

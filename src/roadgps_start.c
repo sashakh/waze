@@ -221,7 +221,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
 
-   roadmap_gps_initialize    (NULL);
+   roadmap_gps_initialize    ();
    roadgps_screen_initialize ();
    roadmap_config_initialize ();
 
