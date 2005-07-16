@@ -36,6 +36,7 @@
 #define ROADMAP_NO_VALID_DATA    -512000000
 
 typedef void (*RoadMapGpsdNavigation) (char status,
+                                       int gps_time,
                                        int latitude,
                                        int longitude,
                                        int altitude,

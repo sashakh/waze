@@ -26,6 +26,7 @@
  *   This module hides the gpsd library API (version 2).
  */
 
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -163,6 +164,8 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
    double hdop = 0.0;
    double vdop = 0.0;
 
+   int  gps_time = 0;
+
 
    reply_count = roadmap_input_split (sentence, ',', reply, 256);
 
@@ -232,6 +235,7 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
             got_o = 1;
             got_navigation_data = 1;
 
+            gps_time  = roadmap_gpsd2_decode_numeric    (argument[1]);
             latitude  = roadmap_gpsd2_decode_coordinate (argument[3]);
             longitude = roadmap_gpsd2_decode_coordinate (argument[4]);
             altitude  = roadmap_gpsd2_decode_numeric    (argument[5]);
@@ -313,6 +317,7 @@ int roadmap_gpsd2_decode (void *context, char *sentence) {
 
                case 3:
 
+                  gps_time = roadmap_gpsd2_decode_numeric(tuple[1]);
                   satellite_count = roadmap_gpsd2_decode_numeric(tuple[2]);
                   break;
 
@@ -354,7 +359,7 @@ end_of_decoding:
    if (got_navigation_data) {
 
       RoadmapGpsd2NavigationListener
-         (status, latitude, longitude, altitude, speed, steering);
+         (status, gps_time, latitude, longitude, altitude, speed, steering);
 
       return 1;
    }

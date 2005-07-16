@@ -82,6 +82,7 @@ static char   RoadMapLastKnownStatus = 'A';
 static time_t RoadMapGpsLatestPositionData = 0;
 static int    RoadMapGpsEstimatedError = 0;
 static int    RoadMapGpsRetryPending = 0;
+static int    RoadMapGpsReceivedTime = 0;
 
 static RoadMapGpsPosition RoadMapGpsReceivedPosition;
 
@@ -138,7 +139,8 @@ static void roadmap_gps_process_position (void) {
 
       if (RoadMapGpsListeners[i] == NULL) break;
 
-      (RoadMapGpsListeners[i]) (&RoadMapGpsReceivedPosition);
+      (RoadMapGpsListeners[i])
+           (RoadMapGpsReceivedTime, &RoadMapGpsReceivedPosition);
    }
 }
 
@@ -218,6 +220,8 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
       roadmap_gps_update_status ('A');
 
+      RoadMapGpsReceivedTime = fields->gga.fixtime;
+
       RoadMapGpsReceivedPosition.latitude  = fields->gga.latitude;
       RoadMapGpsReceivedPosition.longitude = fields->gga.longitude;
       /* speed not available: keep previous value. */
@@ -256,6 +260,8 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
    roadmap_gps_update_status (fields->rmc.status);
 
    if (fields->rmc.status == 'A') {
+
+      RoadMapGpsReceivedTime = fields->rmc.fixtime;
 
       RoadMapGpsReceivedPosition.latitude  = fields->rmc.latitude;
       RoadMapGpsReceivedPosition.longitude = fields->rmc.longitude;
@@ -399,6 +405,7 @@ static void roadmap_gps_nmea (void) {
 /* GPSD (or other) protocol support ------------------------------------ */
 
 static void roadmap_gps_navigation (char status,
+                                    int gmt_time,
                                     int latitude,
                                     int longitude,
                                     int altitude,
@@ -408,6 +415,8 @@ static void roadmap_gps_navigation (char status,
    roadmap_gps_update_status (status);
 
    if (status == 'A') {
+
+      RoadMapGpsReceivedTime = gmt_time;
 
       if (latitude != ROADMAP_NO_VALID_DATA) {
          RoadMapGpsReceivedPosition.latitude  = latitude;

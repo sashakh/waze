@@ -45,7 +45,8 @@ typedef struct {
 
 #define ROADMAP_GPS_NULL_POSITION {0, 0, 0, 0, 0}
 
-typedef void (*roadmap_gps_listener) (const RoadMapGpsPosition *position);
+typedef void (*roadmap_gps_listener)
+                  (int gps_time, const RoadMapGpsPosition *position);
 
 void roadmap_gps_register_listener (roadmap_gps_listener listener);
 

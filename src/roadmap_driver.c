@@ -125,7 +125,7 @@ static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
 
 
 static void roadmap_driver_publish_position
-                (const RoadMapGpsPosition *position, int mask) {
+                (int gps_time, const RoadMapGpsPosition *position, int mask) {
 
    /* Format the GPRMC sentence that is used to publish our position. */
 
@@ -134,8 +134,8 @@ static void roadmap_driver_publish_position
    int longitude_ddmm;
    int longitude_mmmm;
 
-   time_t now;
    struct tm *gmt;
+   time_t now = (time_t)gps_time;
 
    char buffer[128];  /* large enough and more. */
 
@@ -146,7 +146,7 @@ static void roadmap_driver_publish_position
    roadmap_driver_to_nmea (position->longitude,
                            &longitude_ddmm, &longitude_mmmm);
 
-   time(&now);
+   if (now == 0) now = time(NULL); /* Fallback. */
    gmt = gmtime (&now);
    if (gmt == NULL) return;
 
@@ -256,7 +256,8 @@ static void roadmap_driver_publish_satellites
 }
 
 
-static void roadmap_driver_listener (const RoadMapGpsPosition *position) {
+static void roadmap_driver_listener
+               (int gps_time, const RoadMapGpsPosition *position) {
 
    static RoadMapGpsPosition RoadMapDriverLastPosition;
 
@@ -264,7 +265,8 @@ static void roadmap_driver_listener (const RoadMapGpsPosition *position) {
    if (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA) {
 
       if (! roadmap_gps_is_nmea()) {
-         roadmap_driver_publish_position (position, ROADMAP_DRIVER_NMEA);
+         roadmap_driver_publish_position
+            (gps_time, position, ROADMAP_DRIVER_NMEA);
       }
    }
    
@@ -277,7 +279,8 @@ static void roadmap_driver_listener (const RoadMapGpsPosition *position) {
 
          RoadMapDriverLastPosition = *position;
 
-         roadmap_driver_publish_position (position, ROADMAP_DRIVER_RMC);
+         roadmap_driver_publish_position
+            (gps_time, position, ROADMAP_DRIVER_RMC);
       }
    }
 }

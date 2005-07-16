@@ -590,7 +590,8 @@ static void roadmap_start_set_unit (void) {
 
 static int RoadMapStartGpsRefresh = 0;
 
-static void roadmap_gps_update (const RoadMapGpsPosition *gps_position) {
+static void roadmap_gps_update
+               (int gps_time, const RoadMapGpsPosition *gps_position) {
 
    static int RoadMapSynchronous = -1;
 
