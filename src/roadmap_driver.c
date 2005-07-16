@@ -211,7 +211,7 @@ static void roadmap_driver_publish_satellites
    }
 
    if (precision->dimension >= 2) {
-      snprintf (buffer2, sizeof(buffer2), ",%04.1f,%04.1f,%04.1f\r\n",
+      snprintf (buffer2, sizeof(buffer2), ",%.1f,%.1f,%.1f\r\n",
                 precision->dilution_position,
                 precision->dilution_horizontal,
                 precision->dilution_vertical);
@@ -237,7 +237,7 @@ static void roadmap_driver_publish_satellites
 
       for (j = (i-1) * 4; j < count && j < i*4; ++j) {
 
-         snprintf (buffer2, sizeof(buffer2), ",%02d,%d,%d,%d",
+         snprintf (buffer2, sizeof(buffer2), ",%02d,%d,%d,%03d",
                    satellites[j].id,
                    satellites[j].elevation,
                    satellites[j].azimuth,
