@@ -333,6 +333,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			POINT point;
 			point.x = LOWORD(lParam);
 			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
 			roadmap_canvas_button_pressed(&point);
 		}
 		break;
