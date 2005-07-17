@@ -64,10 +64,11 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 		return (HANDLE)-1;
 	}
 
+	dcb.fBinary			   = TRUE;
 	dcb.BaudRate	       = baud_rate;
 	dcb.fOutxCtsFlow       = TRUE;
-	dcb.fRtsControl        = RTS_CONTROL_HANDSHAKE;
-	dcb.fDtrControl        = DTR_CONTROL_ENABLE;
+	dcb.fRtsControl        = RTS_CONTROL_DISABLE;
+	dcb.fDtrControl        = DTR_CONTROL_DISABLE;
 	dcb.fOutxDsrFlow       = FALSE;
 	dcb.fOutX              = FALSE;
 	dcb.fInX               = FALSE;
