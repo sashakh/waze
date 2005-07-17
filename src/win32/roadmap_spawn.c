@@ -73,6 +73,12 @@ static int roadmap_spawn_child (const char *name,
 	}
 
 	CloseHandle(pi.hThread);
+
+	if (pipes != NULL) {
+		pipes[0] = ROADMAP_SPAWN_INVALID_PIPE;
+		pipes[1] = ROADMAP_SPAWN_INVALID_PIPE;
+	}
+
 	return (int)pi.hProcess;
 }
 
