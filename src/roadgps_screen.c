@@ -33,7 +33,6 @@
 #include "roadmap_config.h"
 #include "roadmap_gui.h"
 #include "roadmap_gps.h"
-#include "roadmap_nmea.h"
 
 #include "roadmap_canvas.h"
 #include "roadgps_screen.h"
@@ -45,25 +44,23 @@ static RoadMapConfigDescriptor RoadMapConfigGPSBackground =
 static RoadMapConfigDescriptor RoadMapConfigGPSForeground =
                         ROADMAP_CONFIG_ITEM("GPS", "Foreground");
 
-#define ROADGPS_STATUS_OFF    0
-#define ROADGPS_STATUS_FIXING 1
-#define ROADGPS_STATUS_OK     2
 
 typedef struct {
 
-   char label[4];
-   int  id;
-   int  azimuth;
-   int  elevation;
-   int  strength;
-   int  status;
+   char  label[4];
+   char  id;
+   char  status;
+   short azimuth;
+   short elevation;
+   short strength;
 
-} RoadMapObject;
+} RoadGpsObject;
 
 
-static RoadMapObject RoadGpsSatellites[ROADMAP_NMEA_MAX_SATELLITE];
-static char          RoadGpsActiveSatellites[ROADMAP_NMEA_MAX_SATELLITE];
-static int           RoadGpsSatelliteCount = 0;
+static RoadGpsObject *RoadGpsSatellites = NULL;
+static int            RoadGpsSatelliteSize  = 0;
+static int            RoadGpsSatelliteCount = 0;
+
 
 struct {
 
@@ -103,10 +100,6 @@ RoadMapPen RoadGpsForeground;
 static int RoadGpsStrengthScale;
 
 
-static RoadMapNmeaListener RoadGpsNextGpgsv = NULL;
-static RoadMapNmeaListener RoadGpsNextGpgsa = NULL;
-
-
 static void roadgps_screen_set_rectangle
                (int x, int y, int width, int height, RoadMapGuiPoint *points) {
 
@@ -122,7 +115,7 @@ static void roadgps_screen_set_rectangle
 
 
 static void roadgps_screen_draw_satellite_position
-               (RoadMapObject *satellite, int reverse) {
+               (RoadGpsObject *satellite, int reverse) {
 
    double   scale = 0.0;
    double   azimuth;
@@ -268,13 +261,13 @@ static void roadgps_screen_draw (void) {
 
       switch (RoadGpsSatellites[i].status) {
 
-      case ROADGPS_STATUS_FIXING:
+      case 'F':
 
          roadgps_screen_draw_satellite_position (RoadGpsSatellites+i, 0);
          roadgps_screen_draw_satellite_signal (i, 0);
          break;
 
-      case ROADGPS_STATUS_OK:
+      case 'A':
 
          roadgps_screen_draw_satellite_position (RoadGpsSatellites+i, 1);
          roadgps_screen_draw_satellite_signal (i, 1);
@@ -291,70 +284,36 @@ static void roadgps_screen_draw (void) {
 }
 
 
-static void roadgps_screen_gsa
-               (void *context, const RoadMapNmeaFields *fields) {
+static void roadgps_screen_monitor
+               (const RoadMapGpsPrecision *precision,
+                const RoadMapGpsSatellite *satellites,
+                int count) {
 
    int i;
 
-   for (i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; i += 1) {
+   if (RoadGpsSatelliteSize < count) {
 
-      RoadGpsActiveSatellites[i] = fields->gsa.satellite[i];
+      RoadGpsSatellites = (RoadGpsObject *)
+         realloc (RoadGpsSatellites, sizeof(RoadGpsObject) * count);
+      roadmap_check_allocated(RoadGpsSatellites);
+
+      RoadGpsSatelliteSize = count;
    }
 
-   (*RoadGpsNextGpgsa) (context, fields);
-}
+   for (i = 0; i < count; ++i) {
 
+      sprintf (RoadGpsSatellites[i].label, "%02d", satellites[i].id);
 
-static void roadgps_screen_gsv
-               (void *context, const RoadMapNmeaFields *fields) {
-
-   int i;
-   int index;
-
-   for (i = 0, index = (fields->gsv.index - 1) * 4;
-        i < 4 && index < fields->gsv.count;
-        i += 1, index += 1) {
-
-      sprintf (RoadGpsSatellites[index].label,
-               "%02d", fields->gsv.satellite[i]);
-
-      RoadGpsSatellites[index].id        = fields->gsv.satellite[i];
-      RoadGpsSatellites[index].elevation = fields->gsv.elevation[i];
-      RoadGpsSatellites[index].azimuth   = fields->gsv.azimuth[i];
-      RoadGpsSatellites[index].strength  = fields->gsv.strength[i];
-
-      RoadGpsSatellites[index].status  = ROADGPS_STATUS_FIXING;
+      RoadGpsSatellites[i].id        = satellites[i].id;
+      RoadGpsSatellites[i].elevation = satellites[i].elevation;
+      RoadGpsSatellites[i].azimuth   = satellites[i].azimuth;
+      RoadGpsSatellites[i].strength  = satellites[i].strength;
+      RoadGpsSatellites[i].status    = satellites[i].status;
    }
 
-   if (fields->gsv.index == fields->gsv.total) {
+   RoadGpsSatelliteCount = count;
 
-      RoadGpsSatelliteCount = fields->gsv.count;
-
-      if (RoadGpsSatelliteCount > ROADMAP_NMEA_MAX_SATELLITE) {
-         RoadGpsSatelliteCount = ROADMAP_NMEA_MAX_SATELLITE;
-      }
-
-      for (index = 0; index < RoadGpsSatelliteCount; index += 1) {
-
-         for (i = 0; i < ROADMAP_NMEA_MAX_SATELLITE; i += 1) {
-
-            if (RoadGpsActiveSatellites[i] == RoadGpsSatellites[index].id) {
-               RoadGpsSatellites[index].status = ROADGPS_STATUS_OK;
-               break;
-            }
-         }
-      }
-
-      for (index = RoadGpsSatelliteCount;
-           index < ROADMAP_NMEA_MAX_SATELLITE;
-           index += 1) {
-         RoadGpsSatellites[index].status = ROADGPS_STATUS_OFF;
-      }
-
-      roadgps_screen_draw ();
-   }
-
-   (*RoadGpsNextGpgsv) (context, fields);
+   roadgps_screen_draw ();
 }
 
 
@@ -467,15 +426,7 @@ void roadgps_screen_initialize (void) {
    roadmap_config_declare
        ("preferences", &RoadMapConfigGPSForeground, "black");
 
-   if (RoadGpsNextGpgsa == NULL) {
-      RoadGpsNextGpgsa =
-         roadmap_nmea_subscribe (NULL, "GSA", roadgps_screen_gsa);
-   }
-
-   if (RoadGpsNextGpgsv == NULL) {
-      RoadGpsNextGpgsv =
-         roadmap_nmea_subscribe (NULL, "GSV", roadgps_screen_gsv);
-   }
+   roadmap_gps_register_monitor (roadgps_screen_monitor);
 
    roadmap_canvas_register_configure_handler (&roadgps_screen_configure);
 }
