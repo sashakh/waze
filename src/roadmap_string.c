@@ -49,10 +49,10 @@ static RoadMapDynamicString RoadMapStringHeads[ROADMAP_STRING_MODULO];
 static int roadmap_string_hash (const char *value, int length) {
 
    int i;
-   int hash = value[0];
+   unsigned hash = (unsigned)(value[0]);
 
    for (i = length - 1; i > 0; --i) {
-      hash = (9 * hash) + value[i];
+      hash = (9 * hash) + (unsigned)(value[i]);
    }
 
    return hash % ROADMAP_STRING_MODULO;
