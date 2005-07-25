@@ -50,6 +50,10 @@ INTRODUCTION
    developping RoadMap). The GPE support is and optional extension of the
    GTK 2.0 environment and is still very experimental (i.e. untested).
 
+   RoadMap is also available on Windows CE (i.e. Pocket PC). As gpsd does
+   not exist on Windows, the Windows version directly listens to the GPS
+   serial port.
+
    RoadMap is at an early stage of development. At this time all the
    features have not been implemented yet. RoadMap can display the map
    around a specified street address, track a GPS position and identify
@@ -86,7 +90,7 @@ INSTALLATION
    RoadMap has been tested with a Garmin 38. The GPS receiver must be
    configured with the datum set to either NAD83 or WGS 84.
 
-   RoadMap communicates with the GPS receiver through gpsd, a GPS
+   On UNIX, RoadMap communicates with the GPS receiver through gpsd, a GPS
    communication daemon for UNIX. Therefore gpsd is required for RoadMap
    to take advantage of a GPS receiver. However gpsd is not required when
    building RoadMap, and RoadMap can run without gpsd as a static map viewer
@@ -94,9 +98,18 @@ INSTALLATION
    accessible through a TCP/IP network: in this case gpsd must be installed
    on the remote computer, but is not needed on the local computer.
 
-   RoadMap uses either GTK, GTK2 or QT for its user interface. One of these
-   toolkits must be installed. RoadMap can be built for QT/QPE, but the
-   RoadMap makefile for QT must be modified.
+   On Windows, RoadMap accesses the GPS serial port, since gpsd is not
+   avalable, and only NMEA-capable GPS devices are supported at this time.
+   Note that network access to a remote gpsd is still possible (the remote
+   computer must run UNIX).
+
+   On UNIX, RoadMap uses either GTK, GTK2 or QT for its user interface. One
+   of these toolkits must be installed. RoadMap can be built for QT/QPE, but
+   the RoadMap makefile for QT must be modified.
+
+   On Windows, RoadMap use the WIN32 API exclusively. Note that the WIN32
+   API is not totally the same for all Windows version: at this time RoadMap
+   only works on Windows CE, not on Windows XP, 2000 or 2003.
 
    RoadMap uses the ImageMagick package to generate the PNG files for some
    icons of its toolbar. ImageMagick is only required for building RoadMap,
@@ -151,8 +164,9 @@ INSTALLATION
   RoadMap comes with some critical configuration files (files sprites,
   schema, preferences, etc..). RoadMap supports these files to be in a few
   different places, which list cannot be changed in the user preferences
-  since it is used to load the preferences themselves. On most systems
-  this list is:
+  since it is used to load the preferences themselves.
+  
+  On most UNIX systems this list is:
   
          * /etc/roadmap,
 
@@ -172,6 +186,12 @@ INSTALLATION
 
          * ~/.roadmap.
 
+  On Windows CE this list is:
+
+         * \Program Files\roadmap
+
+         * \Storage Card\roadmap
+
   RoadMap (GTK version) needs some icons. These icons must be placed
   in some standard location:
   
@@ -188,8 +208,10 @@ INSTALLATION
   these maps between users. Because these maps are not architecture-independent
   you should be careful, however, not to share them on a network (this could
   also be very inefficient, both from a network and performances point of
-  view). By default, RoadMap is built to search for these directories on most
-  Unix systems:
+  view).
+  
+  By default, RoadMap is built to search for these directories on most
+  UNIX systems:
   
          * ~/.roadmap/maps,
 
@@ -223,6 +245,12 @@ INSTALLATION
          * /mnt/hda/share/roadmap and
 
          * /mnt/card/share/roadmap
+
+  On Windows CE the default map search path is:
+
+         * \Program Files\roadmap\maps
+
+         * \Storage Card\roadmap\maps
 
 
 * DOWNLOADING
@@ -357,7 +385,7 @@ INSTALLATION
    tarball. See the next section for more details.
 
 
-* INSTALLING FROM THE SOURCE TARBALL
+* INSTALLING FROM THE SOURCE TARBALL (UNIX)
 
    It is also possible to rebuild RoadMap and the map files from scratch
    from the source distribution:
@@ -506,6 +534,23 @@ INSTALLATION
    and the maps should have been generated at their proper location in
    steps 3 to 8. The install is not required for running RoadMap: the
    programs and build tools) can run from the local directory as well.
+
+
+* INSTALLING FROM THE SOURCE TARBALL (WINDOWS CE)
+
+   RoadMap can be built from sources for Windows CE on a Windows XP or
+   2000 computer. The Embedded Visual C++ tool version 3 or 4 is required.
+   These tools can be downloaded for free from the Microsoft web site, see:
+   
+           {{http://msdn.microsoft.com/embedded}}
+
+   Note that not all RoadMap programs can be built on Windows. More
+   specifically, the tools used to build the maps are available only on UNIX.
+   However the maps available from the RoadMap web site do work with the
+   Windows version of RoadMap.
+
+   The directory src/win32/wince_env contains a workspace file (Roadmap.vcw)
+   that must be used to build roadmap and roadgps.
 
 
 * A NOTE ABOUT THE ROADMAP ICONS
@@ -1621,13 +1666,17 @@ CONFIGURATION
 
     [GPS.Source] The URL that gives the address of the GPS data source.
 
-         <<Format:>> gpsd://<hostname>[:<port>] or gpsd2://<hostname>[:<port>]
+         <<Format:>> <protocol>:<description>
 
          <<Default:>> gpsd://localhost
 
-         <<Comment:>> The syntax "file://<path>" is also possible, for debug.
-                  The gpsd protocol uses the NMEA raw mode of gpsd, while
-                  the gpsd2 protocol uses the gpsd native protocol.
+         <<Comment:>> The gpsd protocol (gpsd://<hostname>[:<port>]) uses
+                  the NMEA raw mode of gpsd, while the gpsd2 protocol
+                  (gpsd2://<hostname>[:<port>]) uses the gpsd native protocol.
+                  The object protocol (object:<id>) makes it possible to use
+                  an internal RoadMap object as GPS source (so that a driver
+                  can feed the GPS position to RoadMap).
+                  The file protocol (file://<path>) is also possible, for debug.
 
     [GPS.Color] The color used for the current GPS position symbol.
 
