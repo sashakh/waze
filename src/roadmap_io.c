@@ -49,6 +49,9 @@ int roadmap_io_read  (RoadMapIO *io, void *data, int size) {
 
       case ROADMAP_IO_PIPE:
          return roadmap_spawn_read_pipe (io->os.pipe, data, size);
+
+      case ROADMAP_IO_NULL:
+         return 0; /* Cannot receive anything from there. */
    }
    return -1;
 }
@@ -69,6 +72,9 @@ int roadmap_io_write (RoadMapIO *io, const void *data, int length) {
 
       case ROADMAP_IO_PIPE:
          return roadmap_spawn_write_pipe (io->os.pipe, data, length);
+
+      case ROADMAP_IO_NULL:
+         return length; /* It's all done, since there is nothing to do. */
    }
    return -1;
 }
@@ -92,6 +98,9 @@ void  roadmap_io_close (RoadMapIO *io) {
 
       case ROADMAP_IO_PIPE:
          roadmap_spawn_close_pipe (io->os.pipe);
+         break;
+
+      case ROADMAP_IO_NULL:
          break;
    }
    io->subsystem = ROADMAP_IO_INVALID;
@@ -122,6 +131,9 @@ int roadmap_io_same (RoadMapIO *io1, RoadMapIO *io2) {
       case ROADMAP_IO_PIPE:
          if (io1->os.pipe != io2->os.pipe) return 0;
          break;
+
+      case ROADMAP_IO_NULL:
+         break; /* No reason to be any different from each other. */
    }
 
    return 1; /* We did not find any difference. */

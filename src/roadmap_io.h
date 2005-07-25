@@ -47,6 +47,7 @@
 #define ROADMAP_IO_NET     2
 #define ROADMAP_IO_SERIAL  3
 #define ROADMAP_IO_PIPE    4
+#define ROADMAP_IO_NULL    5 /* Bottomless pitt (i.e., no IO). */
 
 typedef struct {
 

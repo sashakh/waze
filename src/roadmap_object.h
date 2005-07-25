@@ -67,7 +67,12 @@ void roadmap_object_remove (RoadMapDynamicString id);
 
 void roadmap_object_cleanup (RoadMapDynamicString origin);
 
-void roadmap_object_draw (void);
+
+typedef void (*RoadMapObjectAction) (const char *name,
+                                     const char *sprite,
+                                     const RoadMapGpsPosition *gps_position);
+
+void roadmap_object_iterate (RoadMapObjectAction action);
 
 
 typedef void (*RoadMapObjectListener) (RoadMapDynamicString id,
@@ -76,6 +81,7 @@ typedef void (*RoadMapObjectListener) (RoadMapDynamicString id,
 RoadMapObjectListener roadmap_object_register_listener
                            (RoadMapDynamicString id,
                             RoadMapObjectListener listener);
+
 
 typedef void (*RoadMapObjectMonitor) (RoadMapDynamicString id);
 

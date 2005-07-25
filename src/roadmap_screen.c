@@ -621,6 +621,29 @@ static int roadmap_screen_draw_square
 }
 
 
+static void roadmap_screen_draw_object
+               (const char *name,
+                const char *sprite,
+                const RoadMapGpsPosition *gps_position) {
+
+   RoadMapPosition position;
+   RoadMapGuiPoint screen_point;
+
+
+   if (sprite == NULL) return; /* Not a visible object. */
+
+   position.latitude = gps_position->latitude;
+   position.longitude = gps_position->longitude;
+
+   if (roadmap_math_point_is_visible(&position)) {
+
+      roadmap_math_coordinate (&position, &screen_point);
+      roadmap_math_rotate_coordinates (1, &screen_point);
+      roadmap_sprite_draw (sprite, &screen_point, gps_position->steering);
+   }
+}
+
+
 static void roadmap_screen_reset_square_mask (void) {
 
    if (SquareOnScreen != NULL) {
@@ -751,7 +774,7 @@ static void roadmap_screen_repaint (void) {
         }
     }
 
-    roadmap_object_draw ();
+    roadmap_object_iterate (roadmap_screen_draw_object);
 
     roadmap_trip_format_messages ();
     

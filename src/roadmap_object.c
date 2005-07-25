@@ -38,8 +38,7 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
-#include "roadmap_math.h"
-#include "roadmap_sprite.h"
+
 #include "roadmap_object.h"
 
 
@@ -172,26 +171,15 @@ void roadmap_object_remove (RoadMapDynamicString id) {
 }
 
 
-void roadmap_object_draw (void) {
+void roadmap_object_iterate (RoadMapObjectAction action) {
 
    RoadMapObject *cursor;
-   RoadMapPosition position;
-   RoadMapGuiPoint screen_point;
 
    for (cursor = RoadmapObjectList; cursor != NULL; cursor = cursor->next) {
 
-      if (cursor->sprite == NULL) continue; /* Not a visible object. */
-
-      position.latitude = cursor->position.latitude;
-      position.longitude = cursor->position.longitude;
-
-      if (roadmap_math_point_is_visible(&position)) {
-
-         roadmap_math_coordinate (&position, &screen_point);
-         roadmap_math_rotate_coordinates (1, &screen_point);
-         roadmap_sprite_draw (roadmap_string_get(cursor->sprite),
-                              &screen_point, cursor->position.steering);
-      }
+      (*action) (roadmap_string_get(cursor->name),
+                 roadmap_string_get(cursor->sprite),
+                 &(cursor->position));
    }
 }
 
