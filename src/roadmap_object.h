@@ -28,6 +28,24 @@
  *
  *   These objects are dynamic and not persistent (i.e. these are not points
  *   of interest).
+ *
+ *   It is possible for a module to register a listener function for
+ *   a specific object, i.e. to get a listener function to be called
+ *   each time the object has moved. The registration will fail (return
+ *   NULL) if the object could not be found. A valid listener address is
+ *   always returned if the registration is successful.
+ *
+ *   It is also possible to monitor the creation and deletion of objects.
+ *   Combined with the listener registration, this makes it possible for
+ *   a module to listen to a specific object when it is created, or register
+ *   again when it is deleted and then re-created.
+ *
+ *   Listeners and monitors must be linked to each other in a daisy-chain
+ *   fashion, i.e. each listener (monitor) must call the listener (monitor)
+ *   that was declared before itself.
+ *
+ *   This module is self-initializing and can be used at any time during
+ *   the initialization of RoadMap.
  */
 
 #ifndef INCLUDE__ROADMAP_OBJECT__H
@@ -51,7 +69,18 @@ void roadmap_object_cleanup (RoadMapDynamicString origin);
 
 void roadmap_object_draw (void);
 
-void roadmap_object_initialize (void);
+
+typedef void (*RoadMapObjectListener) (RoadMapDynamicString id,
+                                       const RoadMapGpsPosition *position);
+
+RoadMapObjectListener roadmap_object_register_listener
+                           (RoadMapDynamicString id,
+                            RoadMapObjectListener listener);
+
+typedef void (*RoadMapObjectMonitor) (RoadMapDynamicString id);
+
+RoadMapObjectMonitor roadmap_object_register_monitor
+                           (RoadMapObjectMonitor monitor);
 
 #endif // INCLUDE__ROADMAP_OBJECT__H
 

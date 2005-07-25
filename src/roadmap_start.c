@@ -36,6 +36,7 @@
 #include "roadmap_copyright.h"
 #include "roadmap_dbread.h"
 #include "roadmap_math.h"
+#include "roadmap_string.h"
 #include "roadmap_config.h"
 #include "roadmap_history.h"
 
@@ -43,6 +44,7 @@
 #include "roadmap_path.h"
 #include "roadmap_io.h"
 
+#include "roadmap_object.h"
 #include "roadmap_voice.h"
 #include "roadmap_gps.h"
 
@@ -51,7 +53,6 @@
 #include "roadmap_coord.h"
 #include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
-#include "roadmap_object.h"
 #include "roadmap_trip.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
@@ -73,6 +74,7 @@ static const char *RoadMapMainTitle = "RoadMap";
 
 static int RoadMapStartFrozen = 0;
 
+static RoadMapDynamicString RoadMapStartGpsID;
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
                         ROADMAP_CONFIG_ITEM("General", "Unit");
@@ -601,6 +603,8 @@ static void roadmap_gps_update
 
    } else {
 
+      roadmap_object_move (RoadMapStartGpsID, gps_position);
+
       roadmap_trip_set_mobile ("GPS", gps_position);
       roadmap_log_reset_stack ();
 
@@ -809,6 +813,13 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_gps_register_listener (&roadmap_gps_update);
 
+   RoadMapStartGpsID = roadmap_string_new("GPS");
+
+   roadmap_object_add (roadmap_string_new("RoadMap"),
+                       RoadMapStartGpsID,
+                       NULL,
+                       NULL);
+
    roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
 
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
@@ -820,7 +831,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
-   roadmap_object_initialize ();
 
    roadmap_screen_set_initial_position ();
 

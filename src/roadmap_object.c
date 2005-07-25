@@ -55,6 +55,8 @@ struct RoadMapObjectDescriptor {
 
    RoadMapGpsPosition position;
 
+   RoadMapObjectListener listener;
+
    struct RoadMapObjectDescriptor *next;
    struct RoadMapObjectDescriptor *previous;
 };
@@ -63,6 +65,16 @@ typedef struct RoadMapObjectDescriptor RoadMapObject;
 
 
 static RoadMapObject *RoadmapObjectList = NULL;
+
+
+
+void roadmap_object_null_listener (RoadMapDynamicString id,
+                                   const RoadMapGpsPosition *position) {}
+
+void roadmap_object_null_monitor (RoadMapDynamicString id) {}
+
+static RoadMapObjectMonitor RoadMapObjectFirstMonitor =
+                                      roadmap_object_null_monitor;
 
 
 RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
@@ -96,6 +108,8 @@ void roadmap_object_add (RoadMapDynamicString origin,
       cursor->name   = name;
       cursor->sprite = sprite;
 
+      cursor->listener = roadmap_object_null_listener;
+
       roadmap_string_lock(origin);
       roadmap_string_lock(id);
       roadmap_string_lock(name);
@@ -108,6 +122,8 @@ void roadmap_object_add (RoadMapDynamicString origin,
       if (cursor->next != NULL) {
          cursor->next->previous = cursor;
       }
+
+      (*RoadMapObjectFirstMonitor) (id);
    }
 }
 
@@ -118,7 +134,16 @@ void roadmap_object_move (RoadMapDynamicString id,
    RoadMapObject *cursor = roadmap_object_search (id);
 
    if (cursor != NULL) {
-      cursor->position = *position;
+
+      if ((cursor->position.longitude != position->longitude) ||
+          (cursor->position.latitude  != position->latitude)  ||
+          (cursor->position.altitude  != position->altitude)  ||
+          (cursor->position.steering  != position->steering)  ||
+          (cursor->position.speed     != position->speed)) {
+
+         cursor->position = *position;
+         (*cursor->listener) (id, position);
+      }
    }
 }
 
@@ -155,6 +180,8 @@ void roadmap_object_draw (void) {
 
    for (cursor = RoadmapObjectList; cursor != NULL; cursor = cursor->next) {
 
+      if (cursor->sprite == NULL) continue; /* Not a visible object. */
+
       position.latitude = cursor->position.latitude;
       position.longitude = cursor->position.longitude;
 
@@ -185,5 +212,28 @@ void roadmap_object_cleanup (RoadMapDynamicString origin) {
 }
 
 
-void roadmap_object_initialize (void) { }
+RoadMapObjectListener roadmap_object_register_listener
+                           (RoadMapDynamicString id,
+                            RoadMapObjectListener listener) {
+
+   RoadMapObjectListener previous;
+   RoadMapObject *cursor = roadmap_object_search (id);
+
+   if (cursor == NULL) return NULL;
+
+   previous = cursor->listener;
+   cursor->listener = listener;
+
+   return previous;
+}
+
+
+RoadMapObjectMonitor roadmap_object_register_monitor
+                           (RoadMapObjectMonitor monitor) {
+
+   RoadMapObjectMonitor previous = RoadMapObjectFirstMonitor;
+
+   RoadMapObjectFirstMonitor = monitor;
+   return previous;
+}
 
