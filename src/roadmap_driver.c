@@ -62,6 +62,11 @@ static RoadMapConfigDescriptor RoadMapDriverConfigPort =
 #define ROADMAP_DRIVER_RMC    1  /* Subscribed to GPRMC information. */
 #define ROADMAP_DRIVER_NMEA   2  /* Subscribed to all NMEA information. */
 
+/* Driver flags (a bit mask): */
+#define ROADMAP_DRIVER_STATIC 1  /* Static driver (allocated when roadmap
+                                  * loads and should not be deleted)
+                                  */
+
 typedef struct roadmap_driver_descriptor {
 
    RoadMapDynamicString name;
@@ -78,6 +83,7 @@ typedef struct roadmap_driver_descriptor {
    RoadMapInputContext nmea;
 
    int             subscription;
+   int             flags;
 
    struct roadmap_driver_descriptor *next;
 
@@ -451,11 +457,44 @@ static void roadmap_driver_onexit (void *context) {
 
       (*RoadMapDriverLinkRemove) (&driver->input);
 
+      /* Only pipes really have two different IOs, so we should check
+       * if we need to close both or only one (as they are the same)
+       */
+      if (! roadmap_io_same (&driver->input, &driver->output)) {
+         roadmap_io_close (&driver->output);
+      }
       roadmap_io_close (&driver->input);
-      roadmap_io_close (&driver->output);
 
       driver->input.subsystem = ROADMAP_IO_INVALID;
       driver->output.subsystem = ROADMAP_IO_INVALID;
+   }
+
+   if ( ! (driver->flags && ROADMAP_DRIVER_STATIC)) {
+
+      /* We need to free the structure */
+      RoadMapDriver *cursor;
+      RoadMapDriver *previous = NULL;
+      
+      for (cursor = RoadMapDriverList; cursor != NULL; cursor = cursor->next) {
+         if (cursor == driver) break;
+         previous = cursor;
+      }
+            
+      if (cursor == NULL) {
+         roadmap_log (ROADMAP_ERROR,
+                      "Can't find driver(%s) in RoadMapDriverList",
+                      driver->name);
+      } else if (previous == NULL) {
+         RoadMapDriverList = RoadMapDriverList->next;
+      } else {
+         previous->next = driver->next;
+      }
+
+      roadmap_string_release (driver->name);
+      free (driver->command);
+      free (driver->arguments);
+                        
+      free (driver);
    }
 }
 
@@ -463,14 +502,46 @@ static void roadmap_driver_onexit (void *context) {
 static void roadmap_driver_send (const char *data, int mask) {
 
    RoadMapDriver *driver;
+   RoadMapDriver *next;
    int length = strlen(data);
 
-   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
-      if ((driver->output.subsystem != ROADMAP_IO_INVALID) &&
-          (driver->subscription & mask)) {
-         roadmap_io_write (&driver->output, data, length);
+   for (driver = RoadMapDriverList; driver != NULL; driver = next) {
+
+      next = driver->next;
+
+      if ((driver->subscription & mask) &&
+          (driver->output.subsystem != ROADMAP_IO_INVALID)) {
+          
+         if (roadmap_io_write (&driver->output, data, length) < 0) {
+            roadmap_driver_onexit (driver);
+         }
       }
    }
+}
+
+
+static void roadmap_driver_install (RoadMapDriver *driver) {
+
+   driver->process.handler = roadmap_driver_onexit;
+   driver->process.data    = (void *)driver;
+
+   driver->subscription = 0;
+
+   /* Prepare the NMEA context. */
+   driver->nmea.title        = roadmap_string_get(driver->name);
+   driver->nmea.io           = &(driver->input);
+   driver->nmea.user_context = driver;
+   driver->nmea.cursor       = 0;
+   driver->nmea.logger       = NULL;
+   driver->nmea.decoder      = roadmap_nmea_decode;
+   driver->nmea.decoder_context = RoadMapDriverAccount;
+
+   /* Configuration item (enable/disable). */
+   driver->enable = RoadMapDriverTemplate;
+   driver->enable.name = driver->nmea.title;
+
+   driver->next = RoadMapDriverList;
+   RoadMapDriverList = driver;
 }
 
 
@@ -551,29 +622,13 @@ static void roadmap_driver_configure (const char *path) {
 
          driver->input.subsystem  = ROADMAP_IO_INVALID;
          driver->output.subsystem = ROADMAP_IO_INVALID;
-         driver->process.handler = roadmap_driver_onexit;
-         driver->process.data    = (void *)driver;
 
-         driver->subscription = 0;
+         driver->flags = ROADMAP_DRIVER_STATIC;
 
-         /* Prepare the NMEA context. */
-         driver->nmea.title        = roadmap_string_get(driver->name);
-         driver->nmea.io           = &(driver->input);
-         driver->nmea.user_context = driver;
-         driver->nmea.cursor       = 0;
-         driver->nmea.logger       = NULL;
-         driver->nmea.decoder      = roadmap_nmea_decode;
-         driver->nmea.decoder_context = RoadMapDriverAccount;
-
-         /* Configuration item (enable/disable). */
-         driver->enable = RoadMapDriverTemplate;
-         driver->enable.name = driver->nmea.title;
+         roadmap_driver_install (driver);
 
          roadmap_config_declare_enumeration
             ("preferences", &driver->enable, "Disabled", "Enabled", NULL);
-
-         driver->next = RoadMapDriverList;
-         RoadMapDriverList = driver;
       }
 
       fclose(file);
@@ -583,6 +638,9 @@ static void roadmap_driver_configure (const char *path) {
 
 void roadmap_driver_accept (RoadMapIO *io) {
 
+   static int name_id = 0;
+
+   char name[100];
    RoadMapDriver *driver;
 
    RoadMapIO client;
@@ -608,33 +666,17 @@ void roadmap_driver_accept (RoadMapIO *io) {
       return;
    }
                      
-   driver->name      = roadmap_string_new("network driver");
+   snprintf(name, sizeof(name), "Network driver %d", ++name_id);
+   driver->name      = roadmap_string_new(name);
    driver->command   = roadmap_driver_strdup("");
    driver->arguments = roadmap_driver_strdup("");
                      
-   driver->input = client;
+   driver->input  = client;
    driver->output = client;
-   driver->process.handler = roadmap_driver_onexit;
-   driver->process.data    = (void *)driver;
-                     
-   driver->subscription = 0;
-                     
-   /* Prepare the NMEA context. */
-   driver->nmea.title        = roadmap_string_get(driver->name);
-   driver->nmea.io           = &(driver->input);
-   driver->nmea.user_context = driver;
-   driver->nmea.cursor       = 0;
-   driver->nmea.logger       = NULL;
-   driver->nmea.decoder      = roadmap_nmea_decode;
-   driver->nmea.decoder_context = RoadMapDriverAccount;
-                     
-   /* Configuration item (enable/disable). */
-   driver->enable = RoadMapDriverTemplate;
-   driver->enable.name = driver->nmea.title;
-                        
-   driver->next = RoadMapDriverList;
-   RoadMapDriverList = driver;
-                     
+   driver->flags  = 0;
+
+   roadmap_driver_install (driver);
+
    (*RoadMapDriverLinkAdd) (&driver->input);
 }
 
@@ -642,10 +684,13 @@ void roadmap_driver_accept (RoadMapIO *io) {
 void roadmap_driver_input (RoadMapIO *io) {
 
    RoadMapDriver *driver;
+   RoadMapDriver *next;
 
    if (io->subsystem == ROADMAP_IO_INVALID) return;
 
-   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+   for (driver = RoadMapDriverList; driver != NULL; driver = next) {
+
+      next = driver->next;
 
       if (roadmap_io_same (&driver->input, io)) {
          if (roadmap_input (&driver->nmea) < 0) {
@@ -770,8 +815,10 @@ void roadmap_driver_register_server_control
 void roadmap_driver_shutdown (void) {
 
    RoadMapDriver *driver;
+   RoadMapDriver *next;
 
-   for (driver = RoadMapDriverList; driver != NULL; driver = driver->next) {
+   for (driver = RoadMapDriverList; driver != NULL; driver = next) {
+      next = driver->next;
       roadmap_driver_onexit (driver);
    }
 
