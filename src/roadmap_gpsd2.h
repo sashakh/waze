@@ -64,7 +64,8 @@ void roadmap_gpsd2_subscribe_to_dilution   (RoadMapGpsdDilution dilution);
 
 RoadMapSocket roadmap_gpsd2_connect (const char *name);
 
-int roadmap_gpsd2_decode (void *context, char *sentence);
+int roadmap_gpsd2_decode (void *user_context,
+                          void *decoder_context, char *sentence);
 
 #endif // INCLUDE__ROADMAP_GPSD2__H
 

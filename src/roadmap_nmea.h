@@ -20,6 +20,15 @@
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * SYNOPSYS:
+ *
+ *   Each module that wishes to receive NMEA information must first create
+ *   a NMEA account (roadmap_nmea_create), then subscribe to as many sentences
+ *   as it wishes (roadmap_nmea_subscribe).
+ *
+ *   The processing of the NMEA data is handled within the roadmap_nmea_decode
+ *   function, which is designed to be used as a roadmap_input decoder (see
+ *   roadmap_input.h).
  */
 
 #ifndef INCLUDED__ROADMAP_NMEA__H
@@ -139,23 +148,23 @@ typedef union {
 } RoadMapNmeaFields;
 
 
-typedef void (*RoadMapNmeaFilter)   (RoadMapNmeaFields *fields);
+struct RoadMapNmeaAccountRecord;
+typedef struct RoadMapNmeaAccountRecord *RoadMapNmeaAccount;
+
+RoadMapNmeaAccount roadmap_nmea_create (const char *name);
+
+
 typedef void (*RoadMapNmeaListener) (void *context,
                                      const RoadMapNmeaFields *fields);
 
-
-RoadMapNmeaFilter
-    roadmap_nmea_add_filter (const char *vendor, /* NULL means standard. */
+void roadmap_nmea_subscribe (const char *vendor, /* NULL means standard. */
                              const char *sentence,
-                             RoadMapNmeaFilter filter);
-
-RoadMapNmeaListener
-    roadmap_nmea_subscribe (const char *vendor, /* NULL means standard. */
-                            const char *sentence,
-                            RoadMapNmeaListener listener);
+                             RoadMapNmeaListener listener,
+                             RoadMapNmeaAccount  account);
 
 
-int roadmap_nmea_decode (void *context, char *sentence);
+int roadmap_nmea_decode (void *user_context,
+                         void *decoder_context, char *sentence);
 
 #endif // INCLUDED__ROADMAP_NMEA__H
 

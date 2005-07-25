@@ -61,6 +61,8 @@ static RoadMapConfigDescriptor RoadMapConfigGPSTimeout =
                         ROADMAP_CONFIG_ITEM("GPS", "Timeout");
 
 
+static char RoadMapGpsTitle[] = "GPS receiver";
+
 static RoadMapIO RoadMapGpsLink;
 
 static time_t RoadMapGpsConnectedSince = -1;
@@ -170,21 +172,9 @@ static void roadmap_gps_call_loggers (const char *data) {
 }
 
 
-static int roadmap_gps_receive (void *context, char *data, int size) {
-
-   return roadmap_io_read ((RoadMapIO *)context, data, size);
-}
-
-
 /* NMEA protocol support ----------------------------------------------- */
 
-static RoadMapNmeaListener RoadMapGpsNextGprmc = NULL;
-static RoadMapNmeaListener RoadMapGpsNextGpgga = NULL;
-static RoadMapNmeaListener RoadMapGpsNextGpgll = NULL;
-static RoadMapNmeaListener RoadMapGpsNextPgrme = NULL;
-static RoadMapNmeaListener RoadMapGpsNextPgrmm = NULL;
-static RoadMapNmeaListener RoadMapGpsNextGpgsv = NULL;
-static RoadMapNmeaListener RoadMapGpsNextGpgsa = NULL;
+static RoadMapNmeaAccount RoadMapGpsNmeaAccount;
 
 
 static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
@@ -195,8 +185,6 @@ static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
                      "bad datum '%s': 'NAD83' or 'WGS 84' is required",
                      fields->pgrmm.datum);
     }
-
-    (*RoadMapGpsNextPgrmm) (context, fields);
 }
 
 
@@ -205,8 +193,6 @@ static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
     RoadMapGpsEstimatedError =
         roadmap_math_to_current_unit (fields->pgrme.horizontal,
                                       fields->pgrme.horizontal_unit);
-
-    (*RoadMapGpsNextPgrme) (context, fields);
 }
 
 
@@ -231,8 +217,6 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
       roadmap_gps_process_position();
    }
-
-   (*RoadMapGpsNextGpgga) (context, fields);
 }
 
 
@@ -250,8 +234,6 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
       roadmap_gps_process_position();
    }
-
-   (*RoadMapGpsNextGprmc) (context, fields);
 }
 
 
@@ -280,8 +262,6 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
 
       roadmap_gps_process_position();
    }
-
-   (*RoadMapGpsNextGprmc) (context, fields);
 }
 
 
@@ -303,8 +283,6 @@ static void roadmap_gps_gsa
    RoadMapGpsQuality.dilution_position   = fields->gsa.dilution_position;
    RoadMapGpsQuality.dilution_horizontal = fields->gsa.dilution_horizontal;
    RoadMapGpsQuality.dilution_vertical   = fields->gsa.dilution_vertical;
-
-   (*RoadMapGpsNextGpgsa) (context, fields);
 }
 
 
@@ -353,49 +331,38 @@ static void roadmap_gps_gsv
 
       roadmap_gps_call_monitors ();
    }
-
-   (*RoadMapGpsNextGpgsv) (context, fields);
 }
 
 
 static void roadmap_gps_nmea (void) {
 
-   if (RoadMapGpsNextGprmc == NULL) {
-      RoadMapGpsNextGprmc =
-         roadmap_nmea_subscribe (NULL, "RMC", roadmap_gps_rmc);
-   }
+   if (RoadMapGpsNmeaAccount == NULL) {
 
-   if (RoadMapGpsNextGpgga == NULL) {
-      RoadMapGpsNextGpgga =
-         roadmap_nmea_subscribe (NULL, "GGA", roadmap_gps_gga);
-   }
+      RoadMapGpsNmeaAccount = roadmap_nmea_create (RoadMapGpsTitle);
 
-   if (RoadMapGpsNextGpgll == NULL) {
-      RoadMapGpsNextGpgll =
-         roadmap_nmea_subscribe (NULL, "GLL", roadmap_gps_gll);
-   }
+      roadmap_nmea_subscribe
+         (NULL, "RMC", roadmap_gps_rmc, RoadMapGpsNmeaAccount);
 
-   if (RoadMapGpsNextPgrme == NULL) {
-      RoadMapGpsNextPgrme =
-         roadmap_nmea_subscribe ("GRM", "E", roadmap_gps_pgrme);
-   }
+      roadmap_nmea_subscribe
+         (NULL, "GGA", roadmap_gps_gga, RoadMapGpsNmeaAccount);
 
-   if (RoadMapGpsNextPgrmm == NULL) {
-      RoadMapGpsNextPgrmm =
-         roadmap_nmea_subscribe ("GRM", "M", roadmap_gps_pgrmm);
+      roadmap_nmea_subscribe
+         (NULL, "GLL", roadmap_gps_gll, RoadMapGpsNmeaAccount);
+
+      roadmap_nmea_subscribe
+         ("GRM", "E", roadmap_gps_pgrme, RoadMapGpsNmeaAccount);
+
+      roadmap_nmea_subscribe
+         ("GRM", "M", roadmap_gps_pgrmm, RoadMapGpsNmeaAccount);
    }
 
    if (RoadMapGpsMonitors[0] != NULL) {
 
-      if (RoadMapGpsNextGpgsa == NULL) {
-         RoadMapGpsNextGpgsa =
-            roadmap_nmea_subscribe (NULL, "GSA", roadmap_gps_gsa);
-      }
+      roadmap_nmea_subscribe
+         (NULL, "GSA", roadmap_gps_gsa, RoadMapGpsNmeaAccount);
 
-      if (RoadMapGpsNextGpgsv == NULL) {
-         RoadMapGpsNextGpgsv =
-            roadmap_nmea_subscribe (NULL, "GSV", roadmap_gps_gsv);
-      }
+      roadmap_nmea_subscribe
+         (NULL, "GSV", roadmap_gps_gsv, RoadMapGpsNmeaAccount);
    }
 }
 
@@ -735,22 +702,26 @@ void roadmap_gps_input (RoadMapIO *io) {
 
 
    if (decode.title == NULL) {
-      decode.title    = "GPS receiver";
-      decode.receiver = roadmap_gps_receive;
+
+      decode.title    = RoadMapGpsTitle;
       decode.logger   = roadmap_gps_call_loggers;
    }
-   decode.user_context = (void *)io;
+
+   decode.io = io;
 
    switch (RoadMapGpsProtocol) {
 
       case ROADMAP_GPS_NMEA:
 
          decode.decoder = roadmap_nmea_decode;
+         decode.decoder_context = (void *)RoadMapGpsNmeaAccount;
+
          break;
 
       case ROADMAP_GPS_GPSD2:
 
          decode.decoder = roadmap_gpsd2_decode;
+         decode.decoder_context = NULL;
          break;
 
       default:

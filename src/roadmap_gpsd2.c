@@ -137,7 +137,8 @@ void roadmap_gpsd2_subscribe_to_dilution (RoadMapGpsdDilution dilution) {
 }
 
 
-int roadmap_gpsd2_decode (void *context, char *sentence) {
+int roadmap_gpsd2_decode (void *user_context,
+                          void *decoder_context, char *sentence) {
 
    int got_navigation_data;
 

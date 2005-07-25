@@ -48,6 +48,8 @@
 
 static RoadMapIO RoadMapDriverServer;
 
+static RoadMapNmeaAccount RoadMapDriverAccount;
+
 
 static RoadMapConfigDescriptor RoadMapDriverTemplate =
                          ROADMAP_CONFIG_ITEM("Drivers", "xxx");
@@ -95,13 +97,6 @@ static roadmap_gps_link_control RoadMapDriverLinkRemove =
                                     &roadmap_driver_no_link_control;
 
 static roadmap_gps_link_control RoadMapDriverServerAdd = NULL;
-
-
-static RoadMapNmeaListener RoadMapDriverNextPxrmadd = NULL;
-static RoadMapNmeaListener RoadMapDriverNextPxrmmov = NULL;
-static RoadMapNmeaListener RoadMapDriverNextPxrmdel = NULL;
-static RoadMapNmeaListener RoadMapDriverNextPxrmsub = NULL;
-static RoadMapNmeaListener RoadMapDriverNextPxrmcfg = NULL;
 
 
 
@@ -326,8 +321,6 @@ static void roadmap_driver_pxrmadd (void *context,
                        fields->pxrmadd.id,
                        fields->pxrmadd.name,
                        fields->pxrmadd.sprite);
-
-   (*RoadMapDriverNextPxrmadd) (context, fields);
 }
 
 
@@ -344,8 +337,6 @@ static void roadmap_driver_pxrmmov (void *context,
    position.altitude = 0;
 
    roadmap_object_move (fields->pxrmadd.id, &position);
-
-   (*RoadMapDriverNextPxrmmov) (context, fields);
 }
 
 
@@ -353,8 +344,6 @@ static void roadmap_driver_pxrmdel (void *context,
                                     const RoadMapNmeaFields *fields) {
 
    roadmap_object_remove (fields->pxrmdel.id);
-
-   (*RoadMapDriverNextPxrmdel) (context, fields);
 }
 
 
@@ -393,8 +382,6 @@ static void roadmap_driver_pxrmsub (void *context,
          }
       }
    }
-
-   (*RoadMapDriverNextPxrmdel) (context, fields);
 }
 
 
@@ -430,8 +417,6 @@ static void roadmap_driver_pxrmcfg (void *context,
    /* We do not release the category, name and default value strings,
     * because these are still referenced in the configuration data.
     */
-
-   (*RoadMapDriverNextPxrmcfg) (context, fields);
 }
 
 /* End of NMEA processing. ---------------------------------------------- */
@@ -472,14 +457,6 @@ static void roadmap_driver_onexit (void *context) {
       driver->input.subsystem = ROADMAP_IO_INVALID;
       driver->output.subsystem = ROADMAP_IO_INVALID;
    }
-}
-
-
-static int roadmap_driver_receive (void *context, char *data, int size) {
-
-   RoadMapDriver *driver = (RoadMapDriver *)context;
-
-   return roadmap_io_read (&driver->input, data, size);
 }
 
 
@@ -581,11 +558,12 @@ static void roadmap_driver_configure (const char *path) {
 
          /* Prepare the NMEA context. */
          driver->nmea.title        = roadmap_string_get(driver->name);
+         driver->nmea.io           = &(driver->input);
          driver->nmea.user_context = driver;
          driver->nmea.cursor       = 0;
          driver->nmea.logger       = NULL;
-         driver->nmea.receiver     = roadmap_driver_receive;
          driver->nmea.decoder      = roadmap_nmea_decode;
+         driver->nmea.decoder_context = RoadMapDriverAccount;
 
          /* Configuration item (enable/disable). */
          driver->enable = RoadMapDriverTemplate;
@@ -643,11 +621,12 @@ void roadmap_driver_accept (RoadMapIO *io) {
                      
    /* Prepare the NMEA context. */
    driver->nmea.title        = roadmap_string_get(driver->name);
+   driver->nmea.io           = &(driver->input);
    driver->nmea.user_context = driver;
    driver->nmea.cursor       = 0;
    driver->nmea.logger       = NULL;
-   driver->nmea.receiver     = roadmap_driver_receive;
    driver->nmea.decoder      = roadmap_nmea_decode;
+   driver->nmea.decoder_context = RoadMapDriverAccount;
                      
    /* Configuration item (enable/disable). */
    driver->enable = RoadMapDriverTemplate;
@@ -683,6 +662,27 @@ void roadmap_driver_initialize (void) {
    const char *path;
 
 
+   RoadMapDriverAccount = roadmap_nmea_create ("Drivers");
+
+   roadmap_nmea_subscribe
+      ("XRM", "ADD", roadmap_driver_pxrmadd, RoadMapDriverAccount);
+
+   roadmap_nmea_subscribe
+      ("XRM", "MOV", roadmap_driver_pxrmmov, RoadMapDriverAccount);
+
+   roadmap_nmea_subscribe
+      ("XRM", "DEL", roadmap_driver_pxrmdel, RoadMapDriverAccount);
+
+   roadmap_nmea_subscribe
+      ("XRM", "SUB", roadmap_driver_pxrmsub, RoadMapDriverAccount);
+
+   roadmap_nmea_subscribe
+      ("XRM", "CFG", roadmap_driver_pxrmcfg, RoadMapDriverAccount);
+
+   roadmap_config_declare
+      ("preferences", &RoadMapDriverConfigPort, "2007");
+
+
    roadmap_driver_configure (roadmap_path_user());
 
    for (path = roadmap_path_first("config");
@@ -692,23 +692,6 @@ void roadmap_driver_initialize (void) {
       roadmap_driver_configure (path);
    }
 
-   RoadMapDriverNextPxrmadd =
-      roadmap_nmea_subscribe ("XRM", "ADD", roadmap_driver_pxrmadd);
-
-   RoadMapDriverNextPxrmmov =
-      roadmap_nmea_subscribe ("XRM", "MOV", roadmap_driver_pxrmmov);
-
-   RoadMapDriverNextPxrmdel =
-      roadmap_nmea_subscribe ("XRM", "DEL", roadmap_driver_pxrmdel);
-
-   RoadMapDriverNextPxrmsub =
-      roadmap_nmea_subscribe ("XRM", "SUB", roadmap_driver_pxrmsub);
-
-   RoadMapDriverNextPxrmcfg =
-      roadmap_nmea_subscribe ("XRM", "CFG", roadmap_driver_pxrmcfg);
-
-   roadmap_config_declare
-      ("preferences", &RoadMapDriverConfigPort, "2007");
 
    RoadMapDriverServer.subsystem = ROADMAP_IO_INVALID;
 }
