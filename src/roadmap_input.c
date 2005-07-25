@@ -80,6 +80,7 @@ int roadmap_input_split (char *text, char separator, char *field[], int max) {
    return i;
 }
 
+
 int roadmap_input (RoadMapInputContext *context) {
 
    int result;
@@ -94,9 +95,9 @@ int roadmap_input (RoadMapInputContext *context) {
    if (context->cursor < (int)sizeof(context->data) - 1) {
 
       received =
-         context->receiver (context->user_context,
-                            context->data + context->cursor,
-                            sizeof(context->data) - context->cursor - 1);
+         roadmap_io_read (context->io,
+                          context->data + context->cursor,
+                          sizeof(context->data) - context->cursor - 1);
 
       if (received < 0) {
 
@@ -162,7 +163,8 @@ int roadmap_input (RoadMapInputContext *context) {
       if (context->logger != NULL) {
          context->logger (line_start);
       }
-      result |= context->decoder (context->user_context, line_start);
+      result |= context->decoder (context->user_context,
+                                  context->decoder_context, line_start);
 
 
       /* Move to the next line. */

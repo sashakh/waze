@@ -25,22 +25,44 @@
  *   This module is used when decoding line-oriented ASCII data input.
  *   The caller's decoder is called for each line received, except for
  *   empty lines and comments (if enabled).
+ *
+ *   All inputs come through a roadmap_io "channel". Each received line can
+ *   be logged (optional) and will be decoded using the specified decoder
+ *   function. This decoder is assumed to be calling back the user modules
+ *   when relevant data has been detected (the mechanism used by the
+ *   decoder is ot defined here).
+ *
+ *   In order to make things simple for the users of this module, there
+ *   are two distinct contexts to be specified:
+ *
+ *   - the decoder context should be used by the decoder module to implement
+ *     it's callback mechanism. The content of this context is not known by
+ *     roadmap_input, it is only propagated to the decoder function.
+ *
+ *   - the user context should be passed to the user callback by the
+ *     decoder function. It represents the context of the caller module.
  */
 
 #ifndef INCLUDED__ROADMAP_INPUT__H
 #define INCLUDED__ROADMAP_INPUT__H
 
+#include "roadmap_io.h"
+
+
 typedef void (*RoadMapInputLogger)  (const char *data);
-typedef int  (*RoadMapInputReceive) (void *context, char *data, int size);
-typedef int  (*RoadMapInputDecode)  (void *context, char *line);
+typedef int  (*RoadMapInputDecode)  (void *user_context,
+                                     void *decoder_context, char *line);
 
 typedef struct roadmap_input_context {
 
    const char *title;
+
+   RoadMapIO  *io;
+
    void       *user_context;
+   void       *decoder_context;
 
    RoadMapInputLogger  logger;
-   RoadMapInputReceive receiver;
    RoadMapInputDecode  decoder;
 
    char data[1024];
