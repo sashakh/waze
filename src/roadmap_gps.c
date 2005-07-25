@@ -32,6 +32,8 @@
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_math.h"
+#include "roadmap_string.h"
+#include "roadmap_object.h"
 #include "roadmap_config.h"
 
 #include "roadmap_net.h"
@@ -75,6 +77,7 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 #define ROADMAP_GPS_NONE     0
 #define ROADMAP_GPS_NMEA     1
 #define ROADMAP_GPS_GPSD2    2
+#define ROADMAP_GPS_OBJECT   3
 static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 
 
@@ -462,6 +465,33 @@ static void roadmap_gps_dilution (int dimension,
 /* End of GPSD protocol support ---------------------------------------- */
 
 
+/* OBJECTS pseudo protocol support ------------------------------------- */
+
+static RoadMapObjectListener RoadMapGpsNextObjectListener;
+static RoadMapDynamicString  RoadmapGpsObjectId;
+
+static void roadmap_gps_object_listener (RoadMapDynamicString id,
+                                         const RoadMapGpsPosition *position) {
+
+   RoadMapGpsReceivedPosition = *position;
+
+   roadmap_gps_update_status ('A');
+   roadmap_gps_process_position();
+
+   (*RoadMapGpsNextObjectListener) (id, position);
+}
+
+
+static void roadmap_gps_object_monitor (RoadMapDynamicString id) {
+
+   if (id == RoadmapGpsObjectId) {
+      roadmap_gps_open();
+   }
+}
+
+/* End of OBJECT protocol support -------------------------------------- */
+
+
 void roadmap_gps_initialize (void) {
 
    static int RoadMapGpsInitialized = 0;
@@ -608,6 +638,28 @@ void roadmap_gps_open (void) {
          RoadMapGpsLink.subsystem = ROADMAP_IO_FILE;
       }
 
+   } else if (strncasecmp (url, "object:", 7) == 0) {
+
+      if (strcmp (url+7, "GPS") == 0) {
+
+         roadmap_log (ROADMAP_ERROR, "cannot resolve self-reference to GPS");
+
+      } else {
+         RoadMapGpsLink.subsystem = ROADMAP_IO_NULL;
+         RoadMapGpsProtocol = ROADMAP_GPS_OBJECT;
+
+         RoadmapGpsObjectId = roadmap_string_new(url+7);
+
+         RoadMapGpsNextObjectListener =
+            roadmap_object_register_listener (RoadmapGpsObjectId,
+                                              roadmap_gps_object_listener);
+
+         if (RoadMapGpsNextObjectListener == NULL) {
+            RoadMapGpsLink.subsystem = ROADMAP_IO_INVALID;
+            roadmap_object_register_monitor (roadmap_gps_object_monitor);
+         }
+      }
+
    } else if (url[0] == '/') {
 
       RoadMapGpsLink.os.file = roadmap_file_open (url, "r");
@@ -639,7 +691,9 @@ void roadmap_gps_open (void) {
 
    /* Declare this IO to the GUI toolkit so that we wake up on GPS data. */
 
-   (*RoadMapGpsLinkAdd) (&RoadMapGpsLink);
+   if (RoadMapGpsLink.subsystem != ROADMAP_IO_NULL) {
+      (*RoadMapGpsLinkAdd) (&RoadMapGpsLink);
+   }
 
    switch (RoadMapGpsProtocol) {
       
@@ -653,6 +707,9 @@ void roadmap_gps_open (void) {
          roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_navigation);
          roadmap_gpsd2_subscribe_to_satellites (roadmap_gps_satellites);
          roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
+         break;
+
+      case ROADMAP_GPS_OBJECT:
          break;
 
       default:
@@ -724,6 +781,10 @@ void roadmap_gps_input (RoadMapIO *io) {
          decode.decoder_context = NULL;
          break;
 
+      case ROADMAP_GPS_OBJECT:
+
+         return;
+
       default:
 
          roadmap_log (ROADMAP_FATAL, "internal error (unsupported protocol)");
@@ -781,6 +842,7 @@ int  roadmap_gps_is_nmea (void) {
 
       case ROADMAP_GPS_NMEA:              return 1;
       case ROADMAP_GPS_GPSD2:             return 0;
+      case ROADMAP_GPS_OBJECT:            return 0;
    }
 
    return 0; /* safe bet in case of something wrong. */
