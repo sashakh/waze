@@ -82,6 +82,8 @@ protected:
 	RoadMapCanvasConfigureHandler configureHandler;
 	RoadMapCanvasButtonHandler buttonHandler;
 
+   void initColors();
+
 	QColor getColor(const char* color);
 	virtual void mousePressEvent(QMouseEvent*);
 	virtual void resizeEvent(QResizeEvent*);

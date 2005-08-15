@@ -40,6 +40,8 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
 	currentPen = 0;
 	roadMapCanvas = this;
 
+   initColors();
+
 	registerButtonHandler(bhandler);
 	registerConfigureHandler(chandler);
 	setBackgroundMode(QWidget::NoBackground);
@@ -306,5 +308,26 @@ QColor RMapCanvas::getColor(const char* color) {
 	}
 
 	return *c;
+}
+
+void RMapCanvas::initColors() {
+#ifdef QWS
+// It seems that QPE does not have predefined named colors.
+// Temporary fix is to hard-code some. Better solution
+// is to read rgb.txt??
+
+   colors.insert("black", new QColor(0, 0, 0));
+   colors.insert("blue", new QColor(0, 0, 255));
+   colors.insert("DarkGrey", new QColor(169, 169, 169));
+   colors.insert("green", new QColor(0, 255, 0));
+   colors.insert("grey", new QColor(190, 190, 190));
+   colors.insert("IndianRed", new QColor(205, 92, 92));
+   colors.insert("LightBlue", new QColor(173, 216, 230));
+   colors.insert("LightSlateBlue", new QColor(132, 112, 255));
+   colors.insert("LightYellow", new QColor(255, 255, 224));
+   colors.insert("red", new QColor(255, 0, 0));
+   colors.insert("white", new QColor(255, 255, 255));
+   colors.insert("yellow", new QColor(255, 255, 0));
+#endif
 }
 
