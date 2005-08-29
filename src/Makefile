@@ -263,8 +263,8 @@ install: everything
 	mkdir -p $(DESTDIR)$(man1dir)
 	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
 
-installdoc:
-	aptconvert -toc -enc ASCII $(DESTDIR)$(pkgdatadir)/manual.html ../README
+installdoc: webdoc
+	copy ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
 webdoc:
 	aptconvert -toc -enc ASCII ../web/manual.html ../README
