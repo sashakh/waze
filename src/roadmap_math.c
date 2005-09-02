@@ -536,17 +536,24 @@ int roadmap_math_declutter (int level) {
 }
 
 
-int roadmap_math_thickness (int base) {
+int roadmap_math_thickness (int base, int declutter) {
 
    double ratio;
 
-   ratio = ((1.0 * ROADMAP_REFERENCE_ZOOM) * base) / RoadMapContext.zoom;
+   ratio = ((2.5 * ROADMAP_REFERENCE_ZOOM) * base) / RoadMapContext.zoom;
 
    if (ratio < 0.1 / base) {
       return 1;
    }
    if (ratio < 1.0 * base) {
-      return base;
+      if (declutter > (ROADMAP_REFERENCE_ZOOM*100)) {
+         declutter = ROADMAP_REFERENCE_ZOOM*100;
+      }
+
+      ratio += (base-ratio) * (0.20*declutter/RoadMapContext.zoom);
+      if (ratio > base) {
+         return base;
+      }
    }
 
    return (int) ratio;

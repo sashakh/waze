@@ -24,12 +24,14 @@
 #ifndef INCLUDE__ROADMAP_LAYER__H
 #define INCLUDE__ROADMAP_LAYER__H
 
+int  roadmap_layer_max_pen(void);
+
 int  roadmap_layer_visible_roads (int *layers, int size);
-int  roadmap_layer_visible_lines (int *layers, int size);
+int  roadmap_layer_visible_lines (int *layers, int size, int pen_type);
 
 int  roadmap_layer_is_visible (int layer);
 
-void roadmap_layer_select (int layer);
+void roadmap_layer_select (int layer, int pen_type);
 
 void roadmap_layer_adjust (void);
 
