@@ -315,7 +315,9 @@ void roadmap_layer_initialize (void) {
         category->thickness.name     = "Thickness";
         roadmap_config_declare
             ("schema", &category->thickness, "1");
-        
+
+        thickness = roadmap_config_get_integer (&category->thickness);
+
         category->declutter.category = name;
         category->declutter.name     = "Declutter";
         roadmap_config_declare
