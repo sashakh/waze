@@ -233,6 +233,14 @@ void roadmap_layer_adjust (void) {
                   }
 
                } else {
+                  /* Don't end with a road mostly drawn with the latter
+                   * pen.
+                   */
+                  if (category->delta_thickness[j] >= thickness / 2) {
+                     category->in_use[j] = 0;
+                     thickness = 1;
+                     continue;
+                  }
                   thickness = category->delta_thickness[j];
                }
 
