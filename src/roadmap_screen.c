@@ -392,7 +392,7 @@ static void roadmap_screen_draw_polygons (void) {
 
       if (category != current_category) {
          roadmap_screen_flush_polygons ();
-         roadmap_layer_select (category);
+         roadmap_layer_select (category, 0);
          current_category = category;
       }
 
@@ -655,7 +655,7 @@ static void roadmap_screen_reset_square_mask (void) {
 }
 
 
-static int roadmap_screen_repaint_square (int square) {
+static int roadmap_screen_repaint_square (int square, int pen_type) {
 
    int i;
    int count;
@@ -688,15 +688,15 @@ static int roadmap_screen_repaint_square (int square) {
       fully_visible = 0;
    }
 
-   roadmap_screen_draw_square_edges (square);
+   if (pen_type == 0) roadmap_screen_draw_square_edges (square);
 
-   count = roadmap_layer_visible_lines (layers, 256);
+   count = roadmap_layer_visible_lines (layers, 256, pen_type);
    
    for (i = 0; i < count; ++i) {
 
         category = layers[i];
 
-        roadmap_layer_select (category);
+        roadmap_layer_select (category, pen_type);
 
         drawn += roadmap_screen_draw_square
                     (square, category, fully_visible);
@@ -722,7 +722,9 @@ static void roadmap_screen_repaint (void) {
 
     int i;
     int j;
+    int k;
     int count;
+    int max_pen = roadmap_layer_max_pen();
     
 
     if (RoadMapScreenFrozen) return;
@@ -766,10 +768,12 @@ static void roadmap_screen_repaint (void) {
         if (count > 0) {
 
             roadmap_screen_draw_polygons ();
-            roadmap_screen_reset_square_mask();
 
-            for (j = count - 1; j >= 0; --j) {
-                roadmap_screen_repaint_square (in_view[j]);
+            for (k = 0; k < max_pen; ++k) {
+               roadmap_screen_reset_square_mask();
+               for (j = count - 1; j >= 0; --j) {
+                  roadmap_screen_repaint_square (in_view[j], k);
+               }
             }
         }
     }
@@ -874,10 +878,16 @@ void roadmap_screen_refresh (void) {
         roadmap_math_set_center (&RoadMapScreenCenter);
         refresh = 1;
         
+        roadmap_math_set_orientation (roadmap_trip_get_orientation());
+
     } else if (roadmap_trip_is_focus_moved()) {
 
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_math_set_center (&RoadMapScreenCenter);
+
+        refresh |=
+           roadmap_math_set_orientation
+              (roadmap_trip_get_orientation() + RoadMapScreenRotation);
 
         if (RoadMapScreenDeltaX || RoadMapScreenDeltaY) {
 
@@ -890,10 +900,6 @@ void roadmap_screen_refresh (void) {
            roadmap_screen_record_move (dx, dy);
         }
     }
-    
-    refresh |=
-        roadmap_math_set_orientation
-            (roadmap_trip_get_orientation() + RoadMapScreenRotation);
 
     if (strcasecmp
            (roadmap_config_get (&RoadMapConfigMapRefresh), "forced") == 0) {
