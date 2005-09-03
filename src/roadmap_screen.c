@@ -1002,6 +1002,8 @@ void roadmap_screen_zoom_out (void) {
 void roadmap_screen_zoom_reset (void) {
 
    roadmap_math_zoom_reset ();
+
+   roadmap_layer_adjust ();
    roadmap_screen_repaint ();
 }
 
