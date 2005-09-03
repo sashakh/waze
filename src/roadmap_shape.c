@@ -215,32 +215,35 @@ int  roadmap_shape_of_line (int line, int begin, int end,
 
    shape_by_line = RoadMapShapeActive->ShapeByLine;
 
-   while (begin < end) {
+   begin--;
+   end++;
+
+   while (end - begin > 1) {
 
       middle = (begin + end) / 2;
 
       if (line < shape_by_line[middle].line) {
 
-         if (middle == end) break;
          end = middle;
 
       } else if (line > shape_by_line[middle].line) {
 
-         if (middle == begin) break;
          begin = middle;
 
       } else {
+
+         end = middle;
 
          break;
       }
    }
 
-   if (shape_by_line[middle].line == line) {
+   if (shape_by_line[end].line == line) {
 
-      *first = shape_by_line[middle].first;
-      *last  = shape_by_line[middle].first + shape_by_line[middle].count - 1;
+      *first = shape_by_line[end].first;
+      *last  = shape_by_line[end].first + shape_by_line[end].count - 1;
 
-      return shape_by_line[middle].count;
+      return shape_by_line[end].count;
    }
 
    RoadMapShapeActive->shape_cache[line / (8 * sizeof(int))] |=
