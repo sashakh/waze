@@ -19,7 +19,7 @@
 TIGERDIR=$1
 shift
 
-TIGERURL=http://www2.census.gov/geo/tiger/tiger2004fe
+TIGERURL=http://www2.census.gov/geo/tiger/tiger2004se
 TIGEROPT1="-nd -np -r -N -P $TIGERDIR -A.zip"
 TIGEROPT2="-nd -np -r -N -P $TIGERDIR -A.ZIP"
 
