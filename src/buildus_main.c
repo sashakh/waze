@@ -48,7 +48,7 @@ static roadmap_db_model *RoadMapCountyModel;
 static int   BuildMapVerbose = 0;
 static int   BuildMapSilent = 0;
 static char *BuildMapTiger  = ".";
-static char *BuildMapPath   = "/usr/local/share/roadmap";
+static char *BuildMapPath;
 
 static struct poptOption BuildUsOptions[] = {
 
@@ -181,8 +181,11 @@ static void buildus_scan_maps (void) {
 
 int main (int argc, const char **argv) {
 
-   poptContext decoder =
-      poptGetContext ("buildus", argc, argv, BuildUsOptions, 0);
+   poptContext decoder;
+
+   BuildMapPath = strdup(roadmap_path_preferred("maps"));
+
+   decoder = poptGetContext ("buildus", argc, argv, BuildUsOptions, 0);
 
 
    while (poptGetNextOpt(decoder) > 0) ;

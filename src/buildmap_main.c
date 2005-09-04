@@ -29,6 +29,7 @@
 
 #include "roadmap_types.h"
 #include "roadmap_hash.h"
+#include "roadmap_path.h"
 
 #include "buildmap.h"
 #include "buildmap_tiger.h"
@@ -57,7 +58,7 @@ static int   BuildMapRivers  = 0;
 static int   BuildMapVerbose = 0;
 static char *BuildMapFormat  = "2002";
 
-static char *BuildMapResult   = "/usr/local/share/roadmap";
+static char *BuildMapResult;
 
 static struct poptOption BuildMapTigerOptions [] = {
 
@@ -251,6 +252,8 @@ int main (int argc, const char **argv) {
 
    const char **leftovers;
 
+
+   BuildMapResult = strdup(roadmap_path_preferred("maps")); /* default. */
 
    poptContext decoder =
       poptGetContext ("buildmap", argc, argv, BuildMapOptionTable, 0);

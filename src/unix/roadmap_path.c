@@ -49,6 +49,7 @@ struct RoadMapPathRecord {
    char  *name;
    int    count;
    char **items;
+   char  *preferred;
 };
 
 static RoadMapPathList RoadMapPaths = NULL;
@@ -61,6 +62,7 @@ static const char *RoadMapPathUser[] = {
    "~/.roadmap",
    NULL
 };
+static const char *RoadMapPathUserPreferred = "~/.roadmap";
 
 
 /* The hardcoded path for configuration files (the "config" path).
@@ -81,6 +83,12 @@ static const char *RoadMapPathConfig[] = {
 #endif
    NULL
 };
+static const char *RoadMapPathConfigPreferred =
+#ifdef QWS
+                      "/usr/local/share/roadmap";
+#else
+                      "/mnt/cf/QtPalmtop/share/roadmap";
+#endif
 
 
 /* The default path for the map files (the "maps" path): */
@@ -104,9 +112,17 @@ static const char *RoadMapPathMaps[] = {
 #endif
    NULL
 };
+static const char *RoadMapPathMapsPreferred =
+#ifdef QWS
+                      "/mnt/cf/QtPalmtop/share/roadmap";
+#else
+                      "/var/lib/roadmap";
+#endif
 
 
-static void roadmap_path_list_create(const char *name, const char *items[]) {
+static void roadmap_path_list_create(const char *name,
+                                     const char *items[],
+                                     const char *preferred) {
 
 
    int i;
@@ -128,6 +144,7 @@ static void roadmap_path_list_create(const char *name, const char *items[]) {
    for (i = 0; i < count; ++i) {
       new_path->items[i] = strdup(items[i]);
    }
+   new_path->preferred  = strdup(preferred);
 
    RoadMapPaths = new_path;
 }
@@ -140,9 +157,14 @@ static RoadMapPathList roadmap_path_find (const char *name) {
 
       /* Add the hardcoded configuration. */
 
-      roadmap_path_list_create ("user", RoadMapPathUser);
-      roadmap_path_list_create ("config", RoadMapPathConfig);
-      roadmap_path_list_create ("maps", RoadMapPathMaps);
+      roadmap_path_list_create ("user",   RoadMapPathUser,
+                                          RoadMapPathUserPreferred);
+
+      roadmap_path_list_create ("config", RoadMapPathConfig,
+                                          RoadMapPathConfigPreferred);
+
+      roadmap_path_list_create ("maps",   RoadMapPathMaps,
+                                          RoadMapPathMapsPreferred);
    }
 
    for (cursor = RoadMapPaths; cursor != NULL; cursor = cursor->next) {
@@ -416,6 +438,21 @@ const char *roadmap_path_previous (const char *name, const char *current) {
       }
    }
    return NULL;
+}
+
+
+/* This function always return a hardcoded default location,
+ * which is the recommended location for these objects.
+ */
+const char *roadmap_path_preferred (const char *name) {
+
+   RoadMapPathList path_list = roadmap_path_find (name);
+
+   if (path_list == NULL) {
+      roadmap_log (ROADMAP_FATAL, "invalid path set '%s'", name);
+   }
+
+   return path_list->preferred;
 }
 
 

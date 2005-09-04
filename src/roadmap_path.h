@@ -46,7 +46,7 @@
  *
  *   The functions roadmap_path_first()/roadmap_path_next() and
  *   roadmap_path_last()/roadmap_path_previous() can be used to
- *   parse a directory search list. each set is used to parse the
+ *   parse a directory search list. Each set is used to parse the
  *   list in a specific order. For example:
  *
  *      for (path = roadmap_path_first("maps");
@@ -54,6 +54,11 @@
  *           path = roadmap_path_next("maps", path)) {
  *         // do something with path.
  *      }
+ *
+ *   The function roadmap_path_preferred() returns the recommended path
+ *   for the given path list. This value will be used as a default when
+ *   the user did not specify a path explicitely. This preferred path
+ *   cannot be changed.
  *
  *   The function roadmap_path_join() returns a new string that concatenates
  *   path and name in a way that is compatible with the OS conventions. The
@@ -106,6 +111,8 @@ const char *roadmap_path_next  (const char *name, const char *current);
 
 const char *roadmap_path_last     (const char *name);
 const char *roadmap_path_previous (const char *name, const char *current);
+
+const char *roadmap_path_preferred (const char *name);
 
 const char *roadmap_path_user    (void);
 const char *roadmap_path_trips   (void);

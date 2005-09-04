@@ -21,13 +21,12 @@
 #                         county-fips ...
 #
 #    Example: rdmgenmaps /var/tmp/maps state=06
-
-
-# Default setup: maps are shared, no default state.
+#
+#
+# Default setup: preferred map path is used, latest format, all states.
 
 OPTIONS=""
 TMPDIR=/var/tmp
-maps=/usr/local/share/roadmap
 state=''
 
 
@@ -41,19 +40,20 @@ gendir=Y
 verbose=N
 
 case $1 in
-   maps=*) maps=`expr $1 : 'maps=\(.*\)'`
+   maps=*) BUILDMAPOPTIONS="--maps=`expr $1 : 'maps=\(.*\)'`"
+           BUILDUSOPTIONS=$BUILDMAPOPTIONS
            shift
            ;;
 esac
 
 case $1 in
-   format=2000) OPTIONS="--format=2000"
+   format=2000) BUILDMAPOPTIONS="--format=2000 $OPTIONS"
                 shift
                 ;;
-   format=2002) OPTIONS="--format=2002"
+   format=2002) BUILDMAPOPTIONS="--format=2002 $OPTIONS"
                 shift
                 ;;
-   format=2004) OPTIONS="--format=2002"
+   format=2004) BUILDMAPOPTIONS="--format=2002 $OPTIONS"
                 shift
                 ;;
 esac
@@ -68,7 +68,7 @@ case $1 in
    test) cleanup=N
          gendir=N
          verbose=Y
-         OPTIONS="$OPTIONS -v"
+         OPTIONS="-v $OPTIONS"
          shift
          ;;
 esac
@@ -90,9 +90,9 @@ function process_one_county {
    rt1=$TMPDIR/roadmap/TGR$1.RT1
    if [ -e $rt1 ] ; then
       if [ $verbose = 'Y' ] ; then
-         echo "$BUILDMAP $OPTIONS --maps=$maps $1 $rt1"
+         echo "$BUILDMAP $BUILDMAPOPTIONS $1 $rt1"
       fi
-      $BUILDMAP $OPTIONS --maps=$maps $1 $rt1
+      $BUILDMAP $BUILDMAPOPTIONS $1 $rt1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
@@ -102,8 +102,6 @@ function process_one_county {
 
 rm -rf $TMPDIR/roadmap
 mkdir $TMPDIR/roadmap
-
-CURRENTDIR=`pwd`
 
 if [ $# -gt 0 ] ; then
 
@@ -135,9 +133,9 @@ if [ $gendir = 'Y' ] ; then
    echo "Generating usdir.rdm, please wait.."
 
    if [ -e buildus ] ; then
-      ./buildus -s --maps=$maps
+      ./buildus -s $BUILDUSOPTIONS
    else
-      buildus -s --maps=$maps
+      buildus -s $BUILDUSOPTIONS
    fi
 fi
 
