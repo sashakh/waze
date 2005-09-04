@@ -536,7 +536,7 @@ int roadmap_math_declutter (int level) {
 }
 
 
-int roadmap_math_thickness (int base, int declutter) {
+int roadmap_math_thickness (int base, int declutter, int use_multiple_pens) {
 
    double ratio;
 
@@ -545,14 +545,30 @@ int roadmap_math_thickness (int base, int declutter) {
    if (ratio < 0.1 / base) {
       return 1;
    }
-   if (ratio < 1.0 * base) {
-      if (declutter > (ROADMAP_REFERENCE_ZOOM*100)) {
-         declutter = ROADMAP_REFERENCE_ZOOM*100;
-      }
 
-      ratio += (base-ratio) * (0.20*declutter/RoadMapContext.zoom);
+   if (declutter > (ROADMAP_REFERENCE_ZOOM*100)) {
+      declutter = ROADMAP_REFERENCE_ZOOM*100;
+   }
+
+   if (ratio < 1.0 * base) {
+
+      /* Use the declutter value to decide how fast should a line shrink.
+       * This way, a street shrinks faster than a freeway when we zoom out.
+       */
+      ratio += (base-ratio) * (0.30*declutter/RoadMapContext.zoom);
       if (ratio > base) {
-         return base;
+         ratio = base;
+      }
+   }
+
+   /* if this is a multi-pen object, try to force a minimum thickness of 3
+    * so we'll get a pretty drawing. Otherwise set it to 1.
+    */
+   if (use_multiple_pens && (ratio < 3)) {
+      if ((1.0 * RoadMapContext.zoom / declutter) < 0.50) {
+         ratio = 3;
+      } else {
+         ratio = 1;
       }
    }
 

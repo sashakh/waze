@@ -48,7 +48,7 @@ void roadmap_math_set_focus     (const RoadMapArea *focus);
 void roadmap_math_release_focus (void);
 
 int  roadmap_math_declutter (int level);
-int  roadmap_math_thickness (int base, int declutter);
+int  roadmap_math_thickness (int base, int declutter, int use_multiple_pens);
 
 /* These 2 functions return: 0 (not visible), 1 (fully visible) or
  * -1 (partially visible).
