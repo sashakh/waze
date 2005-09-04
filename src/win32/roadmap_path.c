@@ -41,6 +41,7 @@ struct RoadMapPathRecord {
 	char  *name;
 	int    count;
 	char **items;
+	char  *preferred;
 };
 
 static RoadMapPathList RoadMapPaths = NULL;
@@ -53,6 +54,7 @@ static const char *RoadMapPathConfig[] = {
 	NULL
 };
 
+static const char *RoadMapPathConfigPreferred = "\\Storage Card\\roadmap";
 
 /* The default path for the map files (the "maps" path): */
 static const char *RoadMapPathMaps[] = {
@@ -61,13 +63,17 @@ static const char *RoadMapPathMaps[] = {
 	NULL
 };
 
+static const char *RoadMapPathMapsPreferred = "\\Storage Card\\roadmap\\maps";
+
 /* We don't have a user directory in wince so we'll leave this one empty */
 static const char *RoadMapPathUser[] = {
 	NULL
 };
 
 
-static void roadmap_path_list_create(const char *name, const char *items[])
+static void roadmap_path_list_create(const char *name,
+									 const char *items[],
+									 const char *preferred)
 {
 	int i;
 	int count;
@@ -88,10 +94,10 @@ static void roadmap_path_list_create(const char *name, const char *items[])
 	for (i = 0; i < count; ++i) {
 		new_path->items[i] = strdup(items[i]);
 	}
+	new_path->preferred  = strdup(preferred);
 
 	RoadMapPaths = new_path;
 }
-
 
 static RoadMapPathList roadmap_path_find (const char *name)
 {
@@ -100,9 +106,11 @@ static RoadMapPathList roadmap_path_find (const char *name)
 	if (RoadMapPaths == NULL) {
 
 		/* Add the hardcoded configuration. */
-		roadmap_path_list_create ("config", RoadMapPathConfig);
-		roadmap_path_list_create ("maps", RoadMapPathMaps);
-		roadmap_path_list_create ("user", RoadMapPathUser);
+		roadmap_path_list_create ("config", RoadMapPathConfig,
+											RoadMapPathConfigPreferred);
+		roadmap_path_list_create ("maps", RoadMapPathMaps,
+										  RoadMapPathMapsPreferred);
+		roadmap_path_list_create ("user", RoadMapPathUser, "\\");
 	}
 
 	for (cursor = RoadMapPaths; cursor != NULL; cursor = cursor->next) {
@@ -361,6 +369,19 @@ const char *roadmap_path_previous (const char *name, const char *current)
 	return NULL;
 }
 
+/* This function always return a hardcoded default location,
+ * which is the recommended location for these objects.
+ */
+const char *roadmap_path_preferred (const char *name)
+{
+   RoadMapPathList path_list = roadmap_path_find (name);
+
+   if (path_list == NULL) {
+      roadmap_log (ROADMAP_FATAL, "invalid path set '%s'", name);
+   }
+
+   return path_list->preferred;
+}
 
 void roadmap_path_create (const char *path)
 {
