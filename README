@@ -169,7 +169,7 @@ INSTALLATION
   
          * /etc/roadmap,
 
-         * /usr/local/share/roadmap,
+         * /usr/local/share/roadmap (preferred path),
 
          * /usr/share/roadmap and
 
@@ -179,7 +179,7 @@ INSTALLATION
 
          * /opt/QtPalmtop/share/roadmap,
 
-         * /mnt/cf/QtPalmtop/share/roadmap,
+         * /mnt/cf/QtPalmtop/share/roadmap (preferred path),
 
          * /mnt/card/QtPalmtop/share/roadmap and
 
@@ -189,7 +189,7 @@ INSTALLATION
 
          * \Program Files\roadmap
 
-         * \Storage Card\roadmap
+         * \Storage Card\roadmap (preferred path)
 
   RoadMap (GTK version) needs some icons. These icons must be placed
   in some standard location:
@@ -214,7 +214,7 @@ INSTALLATION
   
          * ~/.roadmap/maps,
 
-         * /var/lib/roadmap and
+         * /var/lib/roadmap (preferred path) and
 
          * /usr/lib/roadmap
 
@@ -226,7 +226,7 @@ INSTALLATION
 
          * /opt/QtPalmtop/share/roadmap,
 
-         * /mnt/cf/QtPalmtop/share/roadmap and
+         * /mnt/cf/QtPalmtop/share/roadmap (preferred path) and
 
          * /mnt/card/QtPalmtop/share/roadmap
          
@@ -249,7 +249,7 @@ INSTALLATION
 
          * \Program Files\roadmap\maps
 
-         * \Storage Card\roadmap\maps
+         * \Storage Card\roadmap\maps (preferred path)
 
 
 * DOWNLOADING
@@ -433,7 +433,7 @@ INSTALLATION
 
    [[5]] download some maps from the US Census bureau:
 
-         {{http://www.census.gov/geo/www/tiger/tiger2002/tgr2002.html}}
+         {{http://www.census.gov/geo/www/tiger/tiger2004se/tgr2004se.html}}
 
    This download can be automated by using the shell script
    roadmap/src/rdmdownload:
@@ -453,7 +453,7 @@ INSTALLATION
 
          {{http://www.census.gov/geo/tigerline/app_a02.txt}}
 
-      (A version of app_a02.txt is also provided in directory src.)
+      (A world-extended version of app_a02.txt is provided in directory src.)
 
    [[7]] Build the maps:
 
