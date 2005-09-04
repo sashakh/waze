@@ -37,6 +37,9 @@
 #include "roadmap_layer.h"
 
 
+static RoadMapConfigDescriptor RoadMapConfigStylePretty =
+                        ROADMAP_CONFIG_ITEM("Style", "Use Pretty Lines");
+
 /* The following table is a hardcoded default we use until the
  * "category" tables are created.
  */
@@ -115,6 +118,9 @@ static RoadMapClass *RoadMapRoadClass = &(RoadMapClasses[1]);
 
 
 int roadmap_layer_max_pen(void) {
+   if (! roadmap_config_match (&RoadMapConfigStylePretty, "yes")) {
+      return 1;
+   }
    return RoadMapMaxUsedPen;
 }
 
@@ -193,6 +199,7 @@ void roadmap_layer_adjust (void) {
     int i;
     int j;
     int thickness;
+    int future_thickness;
     struct roadmap_canvas_category *category;
     
     for (i = RoadMapCategoryCount; i > 0; --i) {
@@ -204,7 +211,24 @@ void roadmap_layer_adjust (void) {
             thickness =
                roadmap_math_thickness
                   (roadmap_config_get_integer (&category->thickness),
-                   roadmap_config_get_integer (&category->declutter));
+                   roadmap_config_get_integer (&category->declutter),
+                   category->pen_count > 1);
+
+            /* As a matter of taste, I do dislike roads with a filler
+             * of 1 pixel. Lets force at least a filler of 2.
+             */
+            future_thickness = thickness;
+
+            for (j = 1; j < category->pen_count; ++j) {
+
+               if (category->delta_thickness[j] > 0) break;
+
+               future_thickness =
+                  future_thickness + category->delta_thickness[j];
+               if (future_thickness == 1) {
+                  thickness += 1;
+               }
+            }
 
             roadmap_canvas_select_pen (category->pen[0]);
             roadmap_canvas_set_thickness (thickness);
@@ -224,14 +248,6 @@ void roadmap_layer_adjust (void) {
 
                   thickness += category->delta_thickness[j];
 
-                  /* With a "delta" thickness, we don't want a core
-                   * of 1 (difficult to see).
-                   */
-                  if (thickness <= 1) {
-                     category->in_use[j] = 0;
-                     continue;
-                  }
-
                } else {
                   /* Don't end with a road mostly drawn with the latter
                    * pen.
@@ -242,6 +258,14 @@ void roadmap_layer_adjust (void) {
                      continue;
                   }
                   thickness = category->delta_thickness[j];
+               }
+
+               /* If this pen is not visible, there is no reason
+                * to draw it.
+                */
+               if (thickness < 1) {
+                  category->in_use[j] = 0;
+                  continue;
                }
 
                roadmap_canvas_select_pen (category->pen[j]);
@@ -262,7 +286,7 @@ void roadmap_layer_initialize (void) {
 
     if (RoadMapCategory != NULL) return;
     
-    
+
     RoadMapCategoryCount =
        sizeof(RoadMapDefaultCategoryTable) / sizeof(char *);
 
@@ -270,6 +294,9 @@ void roadmap_layer_initialize (void) {
         calloc (RoadMapCategoryCount + 1, sizeof(*RoadMapCategory));
 
     roadmap_check_allocated(RoadMapCategory);
+
+    roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigStylePretty, "yes", "no", NULL);
 
     for (i = 1; i <= RoadMapCategoryCount; ++i) {
 
