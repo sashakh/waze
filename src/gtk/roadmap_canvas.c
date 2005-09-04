@@ -61,10 +61,16 @@ static GdkGC      *RoadMapGc;
 /* The canvas callbacks: all callbacks are initialized to do-nothing
  * functions, so that we don't care checking if one has been setup.
  */
-static void roadmap_canvas_ignore_button (RoadMapGuiPoint *point) {}
+static void roadmap_canvas_ignore_mouse (RoadMapGuiPoint *point) {}
 
-static RoadMapCanvasButtonHandler RoadMapCanvasMouseButton =
-                                     roadmap_canvas_ignore_button;
+static RoadMapCanvasMouseHandler
+         RoadMapCanvasMouseButtonPressed = roadmap_canvas_ignore_mouse;
+
+static RoadMapCanvasMouseHandler
+         RoadMapCanvasMouseButtonReleased = roadmap_canvas_ignore_mouse;
+
+static RoadMapCanvasMouseHandler
+         RoadMapCanvasMouseMoved = roadmap_canvas_ignore_mouse;
 
 
 static void roadmap_canvas_ignore_configure (void) {}
@@ -336,7 +342,7 @@ static gint roadmap_canvas_expose (GtkWidget *widget, GdkEventExpose *event) {
 }
 
 
-static gint roadmap_canvas_button_pressed
+static gint roadmap_canvas_mouse_event
                (GtkWidget *w, GdkEventButton *event, gpointer data) {
 
    RoadMapGuiPoint point;
@@ -344,16 +350,34 @@ static gint roadmap_canvas_button_pressed
    point.x = event->x;
    point.y = event->y;
 
-   (*RoadMapCanvasMouseButton) (&point);
+   switch ((int) data) {
+      case 1: (*RoadMapCanvasMouseButtonPressed) (&point);  break;
+      case 2: (*RoadMapCanvasMouseButtonReleased) (&point); break;
+      case 3: (*RoadMapCanvasMouseMoved) (&point);          break;
+   }
 
    return FALSE;
 }
 
 
-void roadmap_canvas_register_button_handler
-                    (RoadMapCanvasButtonHandler handler) {
+void roadmap_canvas_register_button_pressed_handler
+                    (RoadMapCanvasMouseHandler handler) {
 
-   RoadMapCanvasMouseButton = handler;
+   RoadMapCanvasMouseButtonPressed = handler;
+}
+
+
+void roadmap_canvas_register_button_released_handler
+                    (RoadMapCanvasMouseHandler handler) {
+       
+   RoadMapCanvasMouseButtonReleased = handler;
+}
+
+
+void roadmap_canvas_register_mouse_move_handler
+                    (RoadMapCanvasMouseHandler handler) {
+
+   RoadMapCanvasMouseMoved = handler;
 }
 
 
@@ -391,7 +415,9 @@ GtkWidget *roadmap_canvas_new (void) {
 
    RoadMapDrawingArea = gtk_drawing_area_new ();
 
-   gtk_widget_set_events (RoadMapDrawingArea, GDK_BUTTON_PRESS_MASK);
+   gtk_widget_set_events
+      (RoadMapDrawingArea,
+       GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK|GDK_POINTER_MOTION_MASK);
 
    gtk_signal_connect (GTK_OBJECT(RoadMapDrawingArea),
                        "expose_event",
@@ -405,8 +431,18 @@ GtkWidget *roadmap_canvas_new (void) {
 
    gtk_signal_connect (GTK_OBJECT(RoadMapDrawingArea),
                        "button_press_event",
-                       GTK_SIGNAL_FUNC(roadmap_canvas_button_pressed),
-                       NULL);
+                       (GtkSignalFunc) roadmap_canvas_mouse_event,
+                       (gpointer)1);
+
+   gtk_signal_connect (GTK_OBJECT(RoadMapDrawingArea),
+                       "button_release_event",
+                       (GtkSignalFunc) roadmap_canvas_mouse_event,
+                       (gpointer)2);
+
+   gtk_signal_connect (GTK_OBJECT(RoadMapDrawingArea),
+                       "motion_notify_event",
+                       (GtkSignalFunc) roadmap_canvas_mouse_event,
+                       (gpointer)3);
 
    RoadMapGc = RoadMapDrawingArea->style->black_gc;
 

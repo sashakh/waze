@@ -31,7 +31,9 @@
 
 
 RMapCanvas *roadMapCanvas = 0;
-RoadMapCanvasButtonHandler bhandler = 0;
+RoadMapCanvasMouseHandler phandler = 0;
+RoadMapCanvasMouseHandler rhandler = 0;
+RoadMapCanvasMouseHandler mhandler = 0;
 RoadMapCanvasConfigureHandler chandler = 0;
 
 // Implementation of RMapCanvas class
@@ -42,7 +44,10 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
 
    initColors();
 
-	registerButtonHandler(bhandler);
+   registerButtonPressedHandler(phandler);
+   registerButtonReleasedHandler(rhandler);
+   registerMouseMoveHandler(mhandler);
+
 	registerConfigureHandler(chandler);
 	setBackgroundMode(QWidget::NoBackground);
 }
@@ -247,9 +252,18 @@ void RMapCanvas::drawMultipleCircles(int count, RoadMapGuiPoint* centers,
 	}
 }
 
-void RMapCanvas::registerButtonHandler(RoadMapCanvasButtonHandler handler) {
-	buttonHandler = handler;
+void RMapCanvas::registerButtonPressedHandler(RoadMapCanvasMouseHandler handler) {
+  buttonPressedHandler = handler;
 }
+
+void RMapCanvas::registerButtonReleasedHandler(RoadMapCanvasMouseHandler handler) {
+  buttonReleasedHandler = handler;
+}
+
+void RMapCanvas::registerMouseMoveHandler(RoadMapCanvasMouseHandler handler) {
+  mouseMoveHandler = handler;
+}
+
 
 void RMapCanvas::registerConfigureHandler(RoadMapCanvasConfigureHandler handler) {
 	configureHandler = handler;
@@ -268,14 +282,36 @@ void RMapCanvas::refresh(void) {
 }
 
 void RMapCanvas::mousePressEvent(QMouseEvent* ev) {
-	RoadMapGuiPoint pt;
+   RoadMapGuiPoint pt;
 
-	pt.x = ev->x();
-	pt.y = ev->y();
+   pt.x = ev->x();
+   pt.y = ev->y();
 
-	if (buttonHandler != 0) {
-		buttonHandler(&pt);
-	}
+   if (buttonPressedHandler != 0) {
+      buttonPressedHandler(&pt);
+   }
+}
+
+void RMapCanvas::mouseReleaseEvent(QMouseEvent* ev) {
+   RoadMapGuiPoint pt;
+
+   pt.x = ev->x();
+   pt.y = ev->y();
+
+   if (buttonReleasedHandler != 0) {
+      buttonReleasedHandler(&pt);
+   }
+}
+
+void RMapCanvas::mouseMoveEvent(QMouseEvent* ev) {
+   RoadMapGuiPoint pt;
+
+   pt.x = ev->x();
+   pt.y = ev->y();
+
+   if (mouseMoveHandler != 0) {
+      mouseMoveHandler(&pt);
+   }
 }
 
 void RMapCanvas::resizeEvent(QResizeEvent* ev) {

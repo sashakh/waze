@@ -63,7 +63,10 @@ public:
 		RoadMapGuiPoint* points, int filled);
 	void drawMultipleCircles(int count, RoadMapGuiPoint* centers, 
 		int* radius, int filled);
-	void registerButtonHandler(RoadMapCanvasButtonHandler handler);
+   void registerButtonPressedHandler(RoadMapCanvasMouseHandler handler);
+   void registerButtonReleasedHandler(RoadMapCanvasMouseHandler handler);
+   void registerMouseMoveHandler(RoadMapCanvasMouseHandler handler);
+
 	void registerConfigureHandler(RoadMapCanvasConfigureHandler handler);
 	void getTextExtents(const char* text, int* width, int* ascent, 
 		int* descent);
@@ -80,18 +83,26 @@ protected:
 	QPen* currentPen;
 	QPixmap* pixmap;
 	RoadMapCanvasConfigureHandler configureHandler;
-	RoadMapCanvasButtonHandler buttonHandler;
+   RoadMapCanvasMouseHandler buttonPressedHandler;
+   RoadMapCanvasMouseHandler buttonReleasedHandler;
+   RoadMapCanvasMouseHandler mouseMoveHandler;
+
 
    void initColors();
 
 	QColor getColor(const char* color);
 	virtual void mousePressEvent(QMouseEvent*);
+   virtual void mouseReleaseEvent(QMouseEvent*);
+   virtual void mouseMoveEvent(QMouseEvent*);
 	virtual void resizeEvent(QResizeEvent*);
 	virtual void paintEvent(QPaintEvent*);
 };
 
 extern RMapCanvas *roadMapCanvas;
-extern RoadMapCanvasButtonHandler bhandler;
+extern RoadMapCanvasMouseHandler phandler;
+extern RoadMapCanvasMouseHandler rhandler;
+extern RoadMapCanvasMouseHandler mhandler;
+
 extern RoadMapCanvasConfigureHandler chandler;
 
 #endif

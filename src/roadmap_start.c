@@ -68,6 +68,7 @@
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_help.h"
+#include "roadmap_pointer.h"
 
 
 static const char *RoadMapMainTitle = "RoadMap";
@@ -127,8 +128,7 @@ static void roadmap_start_show_gps (void) {
 
 static void roadmap_start_hold_map (void) {
    roadmap_start_periodic (); /* To make sure the map is current. */
-   roadmap_trip_copy_focus ("Hold");
-   roadmap_trip_set_focus ("Hold");
+   roadmap_screen_hold ();
 }
 
 static void roadmap_start_rotate (void) {
@@ -799,6 +799,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
+   roadmap_pointer_initialize  ();
    roadmap_screen_initialize   ();
    roadmap_fuzzy_initialize    ();
    roadmap_navigate_initialize ();

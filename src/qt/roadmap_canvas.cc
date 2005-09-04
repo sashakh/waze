@@ -37,11 +37,27 @@ extern "C" {
 
 
 
-void roadmap_canvas_register_button_handler(RoadMapCanvasButtonHandler handler) {
-	if (roadMapCanvas) {
-		roadMapCanvas->registerButtonHandler(handler);
-	} else {
-		bhandler = handler;
+void roadmap_canvas_register_button_pressed_handler(RoadMapCanvasMouseHandler handler) {
+   if (roadMapCanvas) {
+      roadMapCanvas->registerButtonPressedHandler(handler);
+   } else {
+      phandler = handler;
+   }
+}
+
+void roadmap_canvas_register_button_released_handler(RoadMapCanvasMouseHandler handler) {
+   if (roadMapCanvas) {
+      roadMapCanvas->registerButtonReleasedHandler(handler);
+   } else {
+      rhandler = handler;
+   }
+}
+
+void roadmap_canvas_register_mouse_move_handler(RoadMapCanvasMouseHandler handler) {
+   if (roadMapCanvas) {
+      roadMapCanvas->registerMouseMoveHandler(handler);
+   } else {
+      mhandler = handler;
 	}
 }
 

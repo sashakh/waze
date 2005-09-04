@@ -49,6 +49,7 @@
 #include "roadmap_object.h"
 #include "roadmap_trip.h"
 #include "roadmap_canvas.h"
+#include "roadmap_pointer.h"
 #include "roadmap_display.h"
 
 #include "roadmap_screen.h"
@@ -75,10 +76,18 @@ static RoadMapConfigDescriptor RoadMapConfigMapSigns =
 static RoadMapConfigDescriptor RoadMapConfigMapRefresh =
                         ROADMAP_CONFIG_ITEM("Map", "Refresh");
 
+static RoadMapConfigDescriptor RoadMapConfigStylePrettyDrag =
+                  ROADMAP_CONFIG_ITEM("Style", "Pretty Lines when Dragging");
+
+static RoadMapConfigDescriptor RoadMapConfigStyleObjects =
+                  ROADMAP_CONFIG_ITEM("Style", "Show Objects when Dragging");
+
 
 static int RoadMapScreenInitialized = 0;
 static int RoadMapScreenFrozen = 0;
+static int RoadMapScreenDragging = 0;
 
+static RoadMapGuiPoint RoadMapScreenPointerLocation;
 static RoadMapPosition RoadMapScreenCenter;
 
 static int RoadMapScreenRotation;
@@ -727,8 +736,12 @@ static void roadmap_screen_repaint (void) {
     int max_pen = roadmap_layer_max_pen();
     
 
-    if (RoadMapScreenFrozen) return;
+    if (!RoadMapScreenDragging && RoadMapScreenFrozen) return;
 
+    if (RoadMapScreenDragging &&
+        (! roadmap_config_match(&RoadMapConfigStylePrettyDrag, "yes"))) {
+       max_pen = 1;
+    }
 
     if (in_view == NULL) {
        in_view = calloc (ROADMAP_MAX_VISIBLE, sizeof(int));
@@ -778,17 +791,20 @@ static void roadmap_screen_repaint (void) {
         }
     }
 
-    roadmap_object_iterate (roadmap_screen_draw_object);
+    if (!RoadMapScreenDragging ||
+        roadmap_config_match(&RoadMapConfigStyleObjects, "yes")) {
 
-    roadmap_trip_format_messages ();
+       roadmap_object_iterate (roadmap_screen_draw_object);
+
+       roadmap_trip_format_messages ();
     
-    if (strcasecmp
-           (roadmap_config_get (&RoadMapConfigMapSigns), "yes") == 0) {
+       if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
 
-       roadmap_sprite_draw ("Compass", &CompassPoint, 0);
+          roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
-       roadmap_trip_display ();
-       roadmap_display_signs ();
+          roadmap_trip_display ();
+          roadmap_display_signs ();
+       }
     }
 
     RoadMapScreenAfterRefresh();
@@ -812,7 +828,7 @@ static void roadmap_screen_configure (void) {
 
 
 
-static void roadmap_screen_button_pressed (RoadMapGuiPoint *point) {
+static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
     
     int line;
     int distance;
@@ -865,6 +881,30 @@ static void roadmap_screen_record_move (int dx, int dy) {
 }
 
 
+static void roadmap_screen_drag_start (RoadMapGuiPoint *point) {
+
+   RoadMapScreenDragging = 1;
+   RoadMapScreenPointerLocation = *point;
+   roadmap_screen_hold (); /* We don't want to move with the GPS position. */
+}
+
+static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
+
+   RoadMapScreenDragging = 0;
+   RoadMapScreenPointerLocation = *point;
+   roadmap_screen_repaint ();
+}
+
+static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
+
+   roadmap_screen_record_move
+      (RoadMapScreenPointerLocation.x - point->x,
+       RoadMapScreenPointerLocation.y - point->y);
+   roadmap_screen_repaint ();
+   RoadMapScreenPointerLocation = *point;
+}
+
+
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
@@ -901,8 +941,7 @@ void roadmap_screen_refresh (void) {
         }
     }
 
-    if (strcasecmp
-           (roadmap_config_get (&RoadMapConfigMapRefresh), "forced") == 0) {
+    if (roadmap_config_match (&RoadMapConfigMapRefresh, "forced")) {
 
         roadmap_screen_repaint ();
 
@@ -930,6 +969,13 @@ void roadmap_screen_unfreeze (void) {
 
    RoadMapScreenFrozen = 0;
    roadmap_screen_repaint ();
+}
+
+
+void roadmap_screen_hold (void) {
+
+   roadmap_trip_copy_focus ("Hold");
+   roadmap_trip_set_focus ("Hold");
 }
 
 
@@ -1010,23 +1056,33 @@ void roadmap_screen_zoom_reset (void) {
 
 void roadmap_screen_initialize (void) {
 
-    roadmap_config_declare ("session", &RoadMapConfigDeltaX, "0");
-    roadmap_config_declare ("session", &RoadMapConfigDeltaY, "0");
-    roadmap_config_declare ("session", &RoadMapConfigDeltaRotate, "0");
+   roadmap_config_declare ("session", &RoadMapConfigDeltaX, "0");
+   roadmap_config_declare ("session", &RoadMapConfigDeltaY, "0");
+   roadmap_config_declare ("session", &RoadMapConfigDeltaRotate, "0");
 
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyMouse,  "20");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigAccuracyMouse,  "20");
 
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigMapBackground, "LightYellow");
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigMapBackground, "LightYellow");
 
-    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
+   roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
 
-    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigMapRefresh, "normal", "forced", NULL);
+   roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigMapRefresh, "normal", "forced", NULL);
 
-   roadmap_canvas_register_button_handler (&roadmap_screen_button_pressed);
+   roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigStylePrettyDrag, "yes", "no", NULL);
+
+   roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigStyleObjects, "yes", "no", NULL);
+
+   roadmap_pointer_register_short_click (&roadmap_screen_short_click);
+   roadmap_pointer_register_drag_start (&roadmap_screen_drag_start);
+   roadmap_pointer_register_drag_end (&roadmap_screen_drag_end);
+   roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion);
+
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
 
    RoadMapScreenObjects.cursor = RoadMapScreenObjects.data;
