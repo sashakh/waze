@@ -765,14 +765,18 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			RoadMapDialogItem frame;
 			int num_buttons;
 
-			/* Create a Done button and size it. */
 			shidi.dwMask = SHIDIM_FLAGS;
-			shidi.dwFlags = SHIDIF_DONEBUTTON | SHIDIF_SIPDOWN |
+			shidi.dwFlags = SHIDIF_SIPDOWN |
 					SHIDIF_SIZEDLGFULLSCREEN | SHIDIF_EMPTYMENU;
 			shidi.hDlg = hDlg;
 			SHInitDialog(&shidi);
 			dialog = (RoadMapDialogItem)lParam;
 			SetWindowLong(hDlg, GWL_USERDATA, (LONG)dialog);
+
+			SetWindowLong(hDlg, GWL_STYLE,
+				GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
+
+            SHDoneButton(hDlg, SHDB_HIDE);
 
 			/* create buttons */
 			num_buttons = 0;
@@ -879,8 +883,6 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			sid.hDlg = hDlg; 
 
 			SHInitDialog(&sid);
-			SetWindowLong(hDlg, GWL_STYLE,
-				GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
 
 			psp = (PROPSHEETPAGE*) lParam;
 			frame = (RoadMapDialogItem)psp->lParam;
