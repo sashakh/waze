@@ -16,6 +16,9 @@ install: $(ICONS)
 	rm -f temp.png
 	cp rm_*.png $(ICONDIR)
 
+uninstall:
+	cd $(ICONDIR) && rm -f rm_*.png
+
 icons: $(ICONS)
 	rm -f temp.png
 
