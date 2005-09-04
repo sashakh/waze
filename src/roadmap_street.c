@@ -937,10 +937,12 @@ int roadmap_street_get_distance
    int last_shape_line;
    int first_shape;
    int last_shape;
+   RoadMapPosition line_from_position;
 
    if (RoadMapRangeActive == NULL) return 0;
 
-   square = roadmap_square_search (position);
+   roadmap_line_from (line, &line_from_position);
+   square = roadmap_square_search (&line_from_position);
 
    if (roadmap_shape_in_square (square, &first_shape_line,
                                         &last_shape_line) > 0) {
