@@ -4,6 +4,7 @@ DESTDIR=
 INSTALLDIR=/usr/local
 desktopdir=$(INSTALLDIR)/applications
 pkgdatadir=$(INSTALLDIR)/share/roadmap
+pkgmapsdir=/var/lib/roadmap
 bindir=$(INSTALLDIR)/bin
 pkgbindir=$(bindir)
 menudir=$(DESTDIR)/usr/lib/menu
@@ -136,6 +137,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_layer.c \
           roadmap_fuzzy.c \
           roadmap_navigate.c \
+			 roadmap_pointer.c \
           roadmap_screen.c \
           roadmap_display.c \
           roadmap_factory.c \
@@ -246,7 +248,10 @@ cleanone:
 	$(RM) .#*
 
 install: everything
+	mkdir -p $(DESTDIR)$(pkgmapsdir)
+	chmod a+rx $(DESTDIR)$(pkgmapsdir)
 	mkdir -p $(DESTDIR)$(pkgdatadir)
+	chmod a+rx $(DESTDIR)$(pkgdatadir)
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
 	cp $(PKGDATAFILES) $(DESTDIR)$(pkgdatadir)/.
 	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
@@ -270,9 +275,13 @@ webdoc:
 	aptconvert -toc -enc ASCII ../web/manual.html ../README
 
 uninstall:
-	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
-	cd $(DESTDIR)$(INSTALLDIR) && rm -rf share/roadmap
-	rm -f $(DESTDIR)$(menudir)/roadmap
+	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
+	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS) $(DRIVERS)
+	if [ -d $(menudir) ] ; then rm -f $(menudir)/roadmap; fi
+	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" uninstall
+	cd $(DESTDIR)$(ICONDIR) && rm -f roadmap*.png
+	cd $(DESTDIR)$(desktopdir) && rm -f roadmap.desktop
+	cd $(DESTDIR)$(man1dir) && rm -f roadgps.1 roadmap.1
 
 everything: modules runtime build $(TOOLS)
 
