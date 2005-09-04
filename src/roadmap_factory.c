@@ -212,12 +212,10 @@ void roadmap_factory (const char           *name,
    int prefix = strlen(ROADMAP_MENU);
 
    int use_toolbar =
-            (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralToolbar),
-                         "yes") == 0);
+            roadmap_config_match (&RoadMapConfigGeneralToolbar, "yes");
 
    int use_icons =
-            (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralIcons),
-                         "yes") == 0);
+            roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
 
    for (i = 0; menu[i] != NULL; ++i) {

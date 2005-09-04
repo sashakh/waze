@@ -347,7 +347,7 @@ int roadmap_config_next (RoadMapConfigDescriptor *descriptor) {
 }
 
 
-void *roadmp_config_get_enumeration (RoadMapConfigDescriptor *descriptor) {
+void *roadmap_config_get_enumeration (RoadMapConfigDescriptor *descriptor) {
 
    RoadMapConfigItem *item = roadmap_config_retrieve (descriptor);
 
@@ -363,7 +363,7 @@ void *roadmp_config_get_enumeration (RoadMapConfigDescriptor *descriptor) {
 }
 
 
-char *roadmp_config_get_enumeration_value (void *enumeration) {
+char *roadmap_config_get_enumeration_value (void *enumeration) {
 
    RoadMapConfigEnum *item = (RoadMapConfigEnum *)enumeration;
 
@@ -375,7 +375,7 @@ char *roadmp_config_get_enumeration_value (void *enumeration) {
 }
 
 
-void *roadmp_config_get_enumeration_next (void *enumeration) {
+void *roadmap_config_get_enumeration_next (void *enumeration) {
 
    RoadMapConfigEnum *item = (RoadMapConfigEnum *)enumeration;
 
@@ -671,6 +671,15 @@ void  roadmap_config_set_integer (RoadMapConfigDescriptor *descriptor, int x) {
 
     sprintf (image, "%d", x);
     roadmap_config_set (descriptor, image);
+}
+
+
+/* This function compares the current item's value with the given text.
+ * This is very useful for enumerations.
+ */
+int   roadmap_config_match
+        (RoadMapConfigDescriptor *descriptor, const char *text) {
+   return (strcasecmp (roadmap_config_get(descriptor), text) == 0);
 }
 
 

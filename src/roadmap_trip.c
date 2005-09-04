@@ -461,12 +461,9 @@ static void roadmap_trip_set_point_focus (RoadMapTripPoint *point) {
         RoadMapTripRefresh = 1;
         RoadMapTripFocusChanged = 1;
 
-    } else if (strcasecmp (roadmap_config_get (&RoadMapConfigTripRotate),
-                           "yes") == 0) {
-       rotate = 1;
-
     } else {
-       rotate = 0;
+
+       rotate = roadmap_config_match (&RoadMapConfigTripRotate, "yes");
     }
 
     

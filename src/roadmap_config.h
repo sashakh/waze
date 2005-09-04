@@ -74,9 +74,9 @@ int roadmap_config_first (const char *config,
 int roadmap_config_next (RoadMapConfigDescriptor *descriptor);
 
 
-void *roadmp_config_get_enumeration (RoadMapConfigDescriptor *descriptor);
-char *roadmp_config_get_enumeration_value (void *enumeration);
-void *roadmp_config_get_enumeration_next (void *enumeration);
+void *roadmap_config_get_enumeration (RoadMapConfigDescriptor *descriptor);
+char *roadmap_config_get_enumeration_value (void *enumeration);
+void *roadmap_config_get_enumeration_next (void *enumeration);
 
 
 void  roadmap_config_initialize (void);
@@ -92,6 +92,8 @@ void        roadmap_config_set
 int   roadmap_config_get_integer (RoadMapConfigDescriptor *descriptor);
 void  roadmap_config_set_integer (RoadMapConfigDescriptor *descriptor, int x);
 
+int   roadmap_config_match
+        (RoadMapConfigDescriptor *descriptor, const char *text);
 void  roadmap_config_get_position
         (RoadMapConfigDescriptor *descriptor, RoadMapPosition *position);
 void  roadmap_config_set_position

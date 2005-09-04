@@ -170,11 +170,11 @@ static void roadmap_preferences_new_dialog
          count = 1;
          values[0] = (char *)value; /* Always make the original value appear first. */
 
-         for (enumeration = roadmp_config_get_enumeration (cursor);
+         for (enumeration = roadmap_config_get_enumeration (cursor);
               enumeration != NULL;
-              enumeration = roadmp_config_get_enumeration_next (enumeration)) {
+              enumeration = roadmap_config_get_enumeration_next (enumeration)) {
 
-            values[count] = roadmp_config_get_enumeration_value (enumeration);
+            values[count] = roadmap_config_get_enumeration_value (enumeration);
 
             if (strcmp (values[count], value) != 0) {
 
@@ -279,8 +279,7 @@ int roadmap_preferences_use_keyboard (void) {
     static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
                             ROADMAP_CONFIG_ITEM("General", "Keyboard");
 
-    return (strcasecmp (roadmap_config_get (&RoadMapConfigGeneralKeyboard),
-                        "yes") == 0);
+    return roadmap_config_match (&RoadMapConfigGeneralKeyboard, "yes");
 }
 
 
