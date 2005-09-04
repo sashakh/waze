@@ -324,7 +324,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_DESTROY:
-		CommandBar_Destroy(RoadMapMainMenuBar);
+		if (RoadMapMainMenuBar != NULL) {
+			DestroyWindow(RoadMapMainMenuBar);
+		}
+		
+		if (RoadMapMainToolbar != NULL) {
+			CommandBar_Destroy(RoadMapMainToolbar);
+		}
 		PostQuitMessage(0);
 		break;
 		
@@ -339,7 +345,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			roadmap_canvas_button_pressed(&point);
 		}
 		break;
-		
+
+	case WM_LBUTTONUP:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_button_released(&point);
+		}
+		break;
+
+	case WM_MOUSEMOVE:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_mouse_move(&point);
+		}
+		break;
+				
 	case WM_KEYDOWN:
 		if (roadmap_main_vkey_pressed(hWnd, wParam, lParam)) return 0;
 		else return DefWindowProc(hWnd, message, wParam, lParam);

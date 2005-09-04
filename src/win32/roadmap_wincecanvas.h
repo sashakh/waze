@@ -35,6 +35,8 @@
  */
 HWND roadmap_canvas_new (HWND main, HWND tool_bar);
 void roadmap_canvas_button_pressed(POINT *data);
+void roadmap_canvas_button_released(POINT *data);
+void roadmap_canvas_mouse_move(POINT *data);
 
 #endif // INCLUDE__ROADMAP_WINCE_CANVAS__H
 

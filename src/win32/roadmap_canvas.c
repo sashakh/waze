@@ -54,7 +54,11 @@ static HPEN			OldHPen = NULL;
 static HBITMAP		OldBitmap = NULL;
 
 static void roadmap_canvas_ignore_button (RoadMapGuiPoint *point) {}
-static RoadMapCanvasButtonHandler RoadMapCanvasMouseButton =
+static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonPressed =
+	roadmap_canvas_ignore_button;
+static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonReleased =
+	roadmap_canvas_ignore_button;
+static RoadMapCanvasMouseHandler RoadMapCanvasMouseMove =
 	roadmap_canvas_ignore_button;
 
 static void roadmap_canvas_ignore_configure (void) {}
@@ -363,15 +367,53 @@ void roadmap_canvas_button_pressed(POINT *data)
 	point.x = (short)data->x;
 	point.y = (short)data->y;
 	
-	(*RoadMapCanvasMouseButton) (&point);
+	(*RoadMapCanvasMouseButtonPressed) (&point);
 	
 }
 
 
-void roadmap_canvas_register_button_handler (
-				RoadMapCanvasButtonHandler handler)
+void roadmap_canvas_button_released(POINT *data)
 {
-	RoadMapCanvasMouseButton = handler;
+	RoadMapGuiPoint point;
+	
+	point.x = (short)data->x;
+	point.y = (short)data->y;
+	
+	(*RoadMapCanvasMouseButtonReleased) (&point);
+	
+}
+
+
+void roadmap_canvas_mouse_move(POINT *data)
+{
+	RoadMapGuiPoint point;
+	
+	point.x = (short)data->x;
+	point.y = (short)data->y;
+	
+	(*RoadMapCanvasMouseMove) (&point);
+	
+}
+
+
+void roadmap_canvas_register_button_pressed_handler (
+				RoadMapCanvasMouseHandler handler)
+{
+	RoadMapCanvasMouseButtonPressed = handler;
+}
+
+
+void roadmap_canvas_register_button_released_handler (
+				RoadMapCanvasMouseHandler handler)
+{
+	RoadMapCanvasMouseButtonReleased = handler;
+}
+
+
+void roadmap_canvas_register_mouse_move_handler (
+				RoadMapCanvasMouseHandler handler)
+{
+	RoadMapCanvasMouseMove = handler;
 }
 
 
