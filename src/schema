@@ -4,7 +4,7 @@ Freeways.Color1: IndianRed
 Freeways.Delta1: -2
 Freeways.Color2: black
 Freeways.Delta2: 1
-Freeways.Declutter: 20248000000
+Freeways.Declutter: 2147483647
 Freeways.Thickness: 4
 Ramps.Class: Road
 Ramps.Color: black
@@ -34,7 +34,7 @@ Rivers.Declutter: 300
 Rivers.Thickness: 3
 Shore.Class: Feature
 Shore.Color: LightSlateBlue
-Shore.Declutter: 20248000000
+Shore.Declutter: 2147483647
 Shore.Thickness: 2
 Hospitals.Class: Area
 Hospitals.Color: red
@@ -62,5 +62,5 @@ Parks.Declutter: 4096
 Parks.Thickness: 1
 Sea.Class: Area
 Sea.Color: SlateBlue
-Sea.Declutter: 20248000000
+Sea.Declutter: 2147483647
 Sea.Thickness: 1
