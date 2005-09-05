@@ -215,10 +215,10 @@ static int roadmap_main_vkey_pressed(HWND w, WPARAM wParam, LPARAM lParam)
 	
 	switch (wParam)
 	{
-	case VK_LEFT:	key = "Button-Left";	break;
-	case VK_RIGHT:	key = "Button-Right";	break;
-	case VK_UP:		key = "Button-Up";		break;
-	case VK_DOWN:	key = "Button-Down";	break;
+	case VK_LEFT:	key = "J";	break;
+	case VK_RIGHT:	key = "K";	break;
+	case VK_UP:		key = "+";	break;
+	case VK_DOWN:	key = "-";	break;
 #if 0
 		/* These binding are for the iPAQ buttons: */
 	case 0x1008ff1a: key = "Button-Menu";           break;
