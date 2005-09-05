@@ -282,21 +282,6 @@ void roadmap_screen_draw_one_line (int line,
 
          roadmap_math_coordinate (&position0, &tmp);
 
-         /* Flush now if there is not enough space for the next
-          * two points.
-          * We must keep the previous points, at it may well
-          * be the start of the next segment to show.
-          */
-         if (RoadMapScreenLinePoints.end <=
-               RoadMapScreenLinePoints.cursor + 2) {
-
-            RoadMapGuiPoint previous = *points;
-
-            roadmap_screen_flush_lines ();
-            points = RoadMapScreenLinePoints.cursor;
-            *points = previous;
-         }
-
          if (roadmap_math_point_is_visible (&position0)) {
 
             if (!last_shape_point_drawn) {
@@ -309,15 +294,20 @@ void roadmap_screen_draw_one_line (int line,
 
             if (last_shape_point_drawn) {
 
-               *(points++) = tmp; /* Show the end of the previous segment. */
+               /* Show the end of the previous segment as the end
+                * of a complete line. The remaining part of the
+                * shaped line, if any, will be drawn as a new
+                * complete line.
+                */
+               *(points++) = tmp;
 
                *RoadMapScreenObjects.cursor =
                   points - RoadMapScreenLinePoints.cursor;
                RoadMapScreenLinePoints.cursor = points;
                RoadMapScreenObjects.cursor += 1;
 
-               if (RoadMapScreenLinePoints.end <=
-                     RoadMapScreenLinePoints.cursor + 2) {
+               if (last_shape - i + 3 >=
+                  RoadMapScreenLinePoints.end - RoadMapScreenLinePoints.cursor) {
                   roadmap_screen_flush_lines ();
                   points = RoadMapScreenLinePoints.cursor;
                }
@@ -338,7 +328,7 @@ void roadmap_screen_draw_one_line (int line,
          *RoadMapScreenObjects.cursor =
             points - RoadMapScreenLinePoints.cursor;
 
-         RoadMapScreenLinePoints.cursor   = points;
+         RoadMapScreenLinePoints.cursor = points;
          RoadMapScreenObjects.cursor += 1;
       }
       break;
