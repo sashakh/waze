@@ -35,8 +35,7 @@ the list again if you have not done so already. Sorry for the inconvenience.
   <LI>Fixed some type errors in the math functions (max() is for int!).
   <LI>Fixed a bug in the NMEA decoding (thanks to Ehud Shabtai). This bug
       might explain several other issues people had.
-  <LI>Many changes to make RoadMap portable to Microsoft Windows CE
-      (port handled by Ehud Shabtai).
+  <LI>Many changes to make RoadMap more portable to other OSes.
   <LI>Added some missing files to the distribution: a default "session" and
       the man pages.
   <LI>The toolbars can now be configured by the user, to fit small screens
@@ -44,6 +43,20 @@ the list again if you have not done so already. Sorry for the inconvenience.
   <LI>RoadMap now supports the gpsd native protocol. The user can select
       to use either the NMEA raw mode (gpsd://...) or the new native mode
       (gpsd2://...).
+  <LI>RoadMap is now available on Microsoft Windows CE.
+      (port implemented and maintained by Ehud Shabtai).
+  <LI>Drivers can now "link" to RoadMap using a TCP connection (required
+      for WinCE, which does not provide pipes).
+  <LI>RoadMap can now redistribute the NMEA data to the drivers (it simulates
+      the NMEA data if the feed protocol is not NMEA).
+  <LI>Fixed the sunset/sunrise calculation (tested against LA, London, Paris).
+  <LI>Added the object pseudo-protocol: Roadmap to use one driver's object
+      as GPS source. This makes it possible for a driver to supply the GPS
+      position. Configuration syntax: object:<id>.
+  <LI>Merged a patch by Ehud Shabtai, plus some improvements: when zooming
+      in, the streets now have a border and look more professional.
+  <LI>Merged a patch by Ehud Shabtai: the map view follows a mouse drag.
+  <LI>Updated RoadMap for the US Census Bureau 2004 Second Edition.
 </UL>
 <P>Roadmap v1.0.10 (may 15, 2005)
 <UL>
