@@ -143,18 +143,24 @@ void roadmap_canvas_set_foreground (const char *color)
 	int high, i, low;
 	COLORREF c;
 	
-	/* Do binary search on color table */
-    for (low=(-1), high=sizeof(color_table)/sizeof(color_table[0]);
-	high-low > 1;) {
-		i = (high+low) / 2;
-		if (strcmp(color, color_table[i].name) <= 0) high = i;
-		else low = i;
-    }
-	
-	if (!strcmp(color, color_table[high].name)) {
-		c = RGB(color_table[high].r, color_table[high].g, color_table[high].b);
+	if (*color == '#') {
+		int r, g, b;
+		sscanf(color, "#%2x%2x%2x", &r, &g, &b);
+		c = RGB(r, g, b);
 	} else {
-		c = RGB(0, 0, 0);
+		/* Do binary search on color table */
+		for (low=(-1), high=sizeof(color_table)/sizeof(color_table[0]);
+		high-low > 1;) {
+			i = (high+low) / 2;
+			if (strcmp(color, color_table[i].name) <= 0) high = i;
+			else low = i;
+		}
+		
+		if (!strcmp(color, color_table[high].name)) {
+			c = RGB(color_table[high].r, color_table[high].g, color_table[high].b);
+		} else {
+			c = RGB(0, 0, 0);
+		}
 	}
 	
 	CurrentPen->color = c;
