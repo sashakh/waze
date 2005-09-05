@@ -63,7 +63,7 @@ static RoadMapPointerHandler RoadMapPointerDragEnd =
                                      roadmap_pointer_ignore_event;
 
 
-static void roadmap_pointer_button_timeout() {
+static void roadmap_pointer_button_timeout(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
    RoadMapPointerLongClick(&last_pointer_point);
@@ -75,7 +75,7 @@ static void roadmap_pointer_button_timeout() {
  * application to finish the task of drawing the screen and we don't
  * want to lag.
  */
-static void roadmap_pointer_drag_flow_control() {
+static void roadmap_pointer_drag_flow_control(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
    RoadMapPointerDragMotion(&last_pointer_point);
@@ -112,6 +112,11 @@ static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
    if (!is_button_down && !is_dragging) return;
 
    if (!is_dragging) {
+
+      /* Less sensitive, since a car is not a quiet environment... */
+      if ((abs(point->x - last_pointer_point.x) <= 3) &&
+          (abs(point->y - last_pointer_point.y) <= 3)) return;
+
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
       RoadMapPointerDragStart(point);
       last_pointer_point = *point;
