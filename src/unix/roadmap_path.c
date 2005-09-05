@@ -85,9 +85,9 @@ static const char *RoadMapPathConfig[] = {
 };
 static const char *RoadMapPathConfigPreferred =
 #ifdef QWS
-                      "/usr/local/share/roadmap";
-#else
                       "/mnt/cf/QtPalmtop/share/roadmap";
+#else
+                      "/usr/local/share/roadmap";
 #endif
 
 
