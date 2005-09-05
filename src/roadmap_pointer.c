@@ -26,6 +26,7 @@
  */
 
 #include <time.h>
+#include <stdlib.h>
 
 #include "roadmap.h"
 #include "roadmap_pointer.h"
@@ -118,7 +119,7 @@ static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
           (abs(point->y - last_pointer_point.y) <= 3)) return;
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      RoadMapPointerDragStart(point);
+      RoadMapPointerDragStart(&last_pointer_point);
       last_pointer_point = *point;
       is_drag_flow_control_on = 1;
       roadmap_main_set_periodic
