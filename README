@@ -730,17 +730,12 @@ USING ROADMAP
    movement of the car so that the GPS sprite will remains at the predefined
    position (usually the center, but it is possible to move the position of
    the GPS sprite using the arrow keys). The map can be held to its current
-   position: the hold command "freezes" the map view to its current location,
+   position: the "hold" button freezes the map view to its current location,
    but updates will continue, so that, for example, one should see the GPS
    sprite move away from the map's center. The hold mode make it easy to
    select streets and read street names while on the road. To come back to
-   the original map view, this view must be reselected (for example by using
-   the menu command Find / GPS position or the "G" toolbar button).
-
-   Clicking on the map screen displays the name of the closest street (with
-   the selected street block's range of address), road or freeway (if any).
-   This display is shown for a limited amount of time (see preference
-   "Highlight.Duration").
+   the original map view, this view must be re-selected (for example by
+   using the menu command Find / GPS position or the "G" toolbar button).
 
    RoadMap indicates the current street a few seconds after the GPS position
    reached the street. This display is also shown for a limited time. There
@@ -759,6 +754,27 @@ USING ROADMAP
    used to show the orientation of the map). These messages can be defined
    by the user using RoadMap's specific format strings (see section
    "Configuring the RoadMap text and voice messages").
+
+
+* USING THE {MOUSE} OR PEN
+
+   RoadMap use only one mouse button (the left button on a 3 buttons mouse).
+   This is because RoadMap is designed for a PDA, where pens are used.
+
+   A short mouse Click or pen tap on the map screen displays the name of the
+   closest street (with the selected street block's range of address), road
+   or freeway (if any). This display is shown for a limited amount of time
+   (see preference "Highlight.Duration").
+
+   A long mouse click or pen tap is reserved for future use (popup menu).
+
+   Dragging the mouse with the button down, or dragging the pen on the
+   screen, moves the map display according to the movements of the mouse
+   or pen.
+
+   Dragging a map display is a CPU-intensive action, so a few "Style"
+   preference items can be used to limit the amount of drawing to be
+   performed while doing it.
 
 
 * {VOICE} INTERFACE
@@ -837,6 +853,10 @@ USING ROADMAP
    H              |     Hold the map view in its current position.
 *-----------------*-----------------------------------------------------*
    I              |     Show a specified street intersection.
+*-----------------*-----------------------------------------------------*
+   J              |     Rotate the map counterclockwise.
+*-----------------*-----------------------------------------------------*
+   K              |     Rotate the map clockwise.
 *-----------------*-----------------------------------------------------*
    L              |     Show the last selected location.
 *-----------------*-----------------------------------------------------*
@@ -1863,6 +1883,29 @@ CONFIGURATION
 
          <<Comment:>> this item must be either a full path name or start with
                   '~' (user home directory) or '&' (RoadMap user's directory).
+
+    [Style.Use Pretty Lines] If "yes", roads are shown with all the defined
+          pens (see schema). If "no", roads are shown with the first pen only.
+
+         <<Format:>> boolean
+
+         <<Default:>> "yes"
+
+    [Style.Pretty Lines when Dragging] If "yes", roads are shown with all the
+          defined pens when dragging (if enabled--see above). If "no", roads
+          are shown with the first pen only while dragging.
+
+         <<Format:>> boolean
+
+         <<Default:>> "yes"
+
+    [Style.Show Objects when Dragging] If "yes", objects are shown when
+          dragging. If "no", objects are not shown while dragging. Objects
+          are the sprites, text messages, etc..
+
+         <<Format:>> boolean
+
+         <<Default:>> "yes"
 
 
 * SESSION ITEMS
