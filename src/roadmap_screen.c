@@ -195,6 +195,8 @@ void roadmap_screen_draw_one_line (int line,
    int i;
    RoadMapGuiPoint *points;
 
+   int last_shape_point_drawn = 0;
+
 
    /* Retrieve the position and "size" of the line and decide
     * what details to draw.
@@ -266,23 +268,79 @@ void roadmap_screen_draw_one_line (int line,
 
       points = RoadMapScreenLinePoints.cursor;
 
-      *(points++) = point0;
+      *points = point0;
+      if (roadmap_math_point_is_visible (&position0)) {
+         last_shape_point_drawn = 1;
+         points++;
+      }
 
       for (i = first_shape; i <= last_shape; ++i) {
 
+         RoadMapGuiPoint tmp;
+
          roadmap_shape_get_position (i, &position0);
 
-         roadmap_math_coordinate (&position0, points);
-         points += 1;
+         roadmap_math_coordinate (&position0, &tmp);
+
+         /* Flush now if there is not enough space for the next
+          * two points.
+          * We must keep the previous points, at it may well
+          * be the start of the next segment to show.
+          */
+         if (RoadMapScreenLinePoints.end <=
+               RoadMapScreenLinePoints.cursor + 2) {
+
+            RoadMapGuiPoint previous = *points;
+
+            roadmap_screen_flush_lines ();
+            points = RoadMapScreenLinePoints.cursor;
+            *points = previous;
+         }
+
+         if (roadmap_math_point_is_visible (&position0)) {
+
+            if (!last_shape_point_drawn) {
+               points++; /* We must show the start of this segment. */
+            }
+            *(points++) = tmp;
+            last_shape_point_drawn = 1;
+
+         } else {
+
+            if (last_shape_point_drawn) {
+
+               *(points++) = tmp; /* Show the end of the previous segment. */
+
+               *RoadMapScreenObjects.cursor =
+                  points - RoadMapScreenLinePoints.cursor;
+               RoadMapScreenLinePoints.cursor = points;
+               RoadMapScreenObjects.cursor += 1;
+
+               if (RoadMapScreenLinePoints.end <=
+                     RoadMapScreenLinePoints.cursor + 2) {
+                  roadmap_screen_flush_lines ();
+                  points = RoadMapScreenLinePoints.cursor;
+               }
+            }
+            *points = tmp; /* Restart from that point, if necessary. */
+            last_shape_point_drawn = 0;
+         }
       }
 
-      *(points++) = point1;
+      if (last_shape_point_drawn ||
+          roadmap_math_point_is_visible (&position1)) {
 
-      *RoadMapScreenObjects.cursor = points - RoadMapScreenLinePoints.cursor;
+         if (!last_shape_point_drawn) {
+             points++; /* We must show the start of this segment. */
+         }
+         *(points++) = point1;
 
-      RoadMapScreenLinePoints.cursor   = points;
-      RoadMapScreenObjects.cursor += 1;
+         *RoadMapScreenObjects.cursor =
+            points - RoadMapScreenLinePoints.cursor;
 
+         RoadMapScreenLinePoints.cursor   = points;
+         RoadMapScreenObjects.cursor += 1;
+      }
       break;
 
    case ROADMAP_LINE_STYLE_SEGMENT: /* Draw a line with no shape. */
