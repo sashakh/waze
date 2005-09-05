@@ -1,6 +1,8 @@
 #ifndef _TIME_H_
 #define _TIME_H_
 
+#include <windows.h>
+
 struct tm {
 	int tm_sec;		/* seconds after the minute - [0,59] */
 	int tm_min;		/* minutes after the hour - [0,59] */
