@@ -550,8 +550,8 @@ static char const *RoadMapStartKeyBinding[] = {
    "G"               ROADMAP_MAPPED_TO "gps",
    "H"               ROADMAP_MAPPED_TO "hold",
    "I"               ROADMAP_MAPPED_TO "intersection",
-   /* J Unused. */
-   /* K Unused. */
+   "J"               ROADMAP_MAPPED_TO "counterclockwise",
+   "K"               ROADMAP_MAPPED_TO "clockwise",
    "L"               ROADMAP_MAPPED_TO "location",
    "M"               ROADMAP_MAPPED_TO "mapdownload",
    "N"               ROADMAP_MAPPED_TO "newtrip",
