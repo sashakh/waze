@@ -24,7 +24,8 @@ ROADMAP=roadmap-${dotversion}
 RDM_MAKE="${ROADMAP}/src/Makefile
           ${ROADMAP}/src/gtk2/Makefile
           ${ROADMAP}/src/qt/Makefile
-          ${ROADMAP}/src/icons/Makefile"
+          ${ROADMAP}/src/icons/Makefile
+          ${ROADMAP}/src/win32/wince_env/Roadmap.vcw"
 
 RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/usstates.txt
@@ -37,6 +38,7 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/qt/ipkg/zroad*
          ${ROADMAP}/src/unix/Makefile
          ${ROADMAP}/src/unix/*.[ch]
+         ${ROADMAP}/src/win32/*.[ch]
          ${ROADMAP}/src/ipkg/mkipkg
          ${ROADMAP}/src/ipkg/INSTALL
          ${ROADMAP}/src/ipkg/roadmap*"
@@ -50,7 +52,8 @@ RDM_CFG="${ROADMAP}/src/preferences
          ${ROADMAP}/src/roadmap.desktop
          ${ROADMAP}/src/roadmap.menu
          ${ROADMAP}/src/icons/rm_*.xpm
-         ${ROADMAP}/src/icons/rm_*.png"
+         ${ROADMAP}/src/icons/rm_*.png
+         ${ROADMAP}/src/win32/icons/rm_*.bmp"
 
 RDM_SH="${ROADMAP}/src/rdmdownload
         ${ROADMAP}/src/rdmgetall
@@ -109,7 +112,7 @@ tar cf $RELEASE/roadmap_${version}_src.tar $RDM_MAKE $RDM_SRC $RDM_SH $RDM_CFG $
 
 echo "Creating tar ball for section i686 ..."
 rm -f $RELEASE/roadmap_${version}_i686.tar*
-tar cf $RELEASE/roadmap_${version}_i686.tar $RDN_MAKE $RDM_BIN $RDM_SH $RDM_CFG $RDM_DOC $RDM_HELP
+tar cf $RELEASE/roadmap_${version}_i686.tar $RDM_MAKE $RDM_BIN $RDM_SH $RDM_CFG $RDM_DOC $RDM_HELP
 
 echo "Creating tar ball for section armv4l ..."
 roadmap/src/ipkg/mkipkg $dotversion
