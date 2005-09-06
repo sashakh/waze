@@ -48,9 +48,13 @@ static int roadmap_spawn_child (const char *name,
 
 	memset(&pi, 0, sizeof(pi));
 
-	snprintf(full_name, MAX_PATH, "%s\\%s", RoadMapSpawnPath, name);
+	if (*name != '\\') {
+		snprintf(full_name, MAX_PATH, "%s\\%s", RoadMapSpawnPath, name);
+		full_path_unicode = ConvertToUNICODE(full_name);
+	} else {
+		full_path_unicode = ConvertToUNICODE(name);
+	}
 
-	full_path_unicode = ConvertToUNICODE(full_name);
 	if (command_line != NULL) {
 		command_line_unicode = ConvertToUNICODE(command_line);
 	} else {
