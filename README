@@ -89,26 +89,19 @@ INSTALLATION
    RoadMap has been tested with a Garmin 38. The GPS receiver must be
    configured with the datum set to either NAD83 or WGS 84.
 
-   On UNIX, RoadMap communicates with the GPS receiver through gpsd, a GPS
+   RoadMap communicates with the GPS receiver through gpsd, a GPS
    communication daemon for UNIX. Therefore gpsd is required for RoadMap
    to take advantage of a GPS receiver. However gpsd is not required when
    building RoadMap, and RoadMap can run without gpsd as a static map viewer
    or address finder. In addition, gpsd may run on a remote computer
    accessible through a TCP/IP network: in this case gpsd must be installed
-   on the remote computer, but is not needed on the local computer.
+   on the remote computer, but is not needed on the local computer. A
+   typical setup is to have gpsd on the same computer, in which case
+   the GPS source should be set as "gpsd://localhost".
 
-   On Windows, RoadMap accesses the GPS serial port, since gpsd is not
-   avalable, and only NMEA-capable GPS devices are supported at this time.
-   Note that network access to a remote gpsd is still possible (the remote
-   computer must run UNIX).
-
-   On UNIX, RoadMap uses either GTK, GTK2 or QT for its user interface. One
-   of these toolkits must be installed. RoadMap can be built for QT/QPE, but
-   the RoadMap makefile for QT must be modified.
-
-   On Windows, RoadMap use the WIN32 API exclusively. Note that the WIN32
-   API is not totally the same for all Windows version: at this time RoadMap
-   only works on Windows CE, not on Windows XP, 2000 or 2003.
+   RoadMap uses either GTK, GTK2 or QT for its user interface. One of these
+   toolkits must be installed. RoadMap can be built for QT/QPE, but the
+   RoadMap makefile for QT must be modified.
 
    RoadMap uses the ImageMagick package to generate the PNG files for some
    icons of its toolbar. ImageMagick is only required for building RoadMap,
@@ -129,6 +122,50 @@ INSTALLATION
    Charts of the World. If only US maps from the census bureau are used,
    or if only pre-built maps are used, then there is no need for shapelib:
    build RoadMap with the make option: SHAPEFILES=NO.
+
+
+* WINDOWS SPECIFIC DEPENDENCIES AND LIMITATIONS
+
+   The port of RoadMap on Windows is recent, not fully complete and has
+   not been tested thoroughly, so problems are to be expected. Thank you
+   for your understanding.
+
+   RoadMap is only available for PocketPC 2002 and later at that time.
+   There is no support yet for Windows XP, 2000 or 2003. This is because
+   the WIN32 API is not the same on all Windows platforms: to the extend
+   of our knowledge, RoadMap might not compile, and should not run, on
+   Windows XP.
+
+   RoadMap use the WIN32 API exclusively, and no specific graphic library
+   is required.
+
+   Maps cannot be built under Windows (buildmap and buildus have not been
+   ported yet). Maps built under Linux can be used on PocketPC systems,
+   however.
+
+   The flite software is available under Windows: a PocketPC 2002 (ARM)
+   binary is available on the RoadMap project's SourceForge web site. The
+   flite.exe binary must be installed in the same folder as the roadmap.exe
+   binary.
+
+   The gpsd software is not available on Windows. Note that network access
+   to a remote gpsd is possible (the remote computer must run UNIX).
+
+   Instead of a local gpsd, RoadMap can uses a Windows serial port and the
+   GPS source should then be specified as "COM1:", "COM2":, etc...
+   
+   The roadmap and roadgps programs cannot run simultaneously when configured
+   for the serial port. The "GPS Console" menu item of roadmap does not work
+   in that configuration.
+
+   Only NMEA-capable GPS devices are supported, unless a remote gpsd is used.
+
+   Downloading maps on the fly is not available on Windows, due to the lack
+   of gzip and tar tools on PocketPC.
+
+   The screenshots feature of RoadMap is not available on Windows.
+
+   The full-screen mode of RoadMap is not available on Windows.
 
 
 * {DIRECTORIES}
