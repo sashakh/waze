@@ -240,7 +240,7 @@ static void roadmap_download_allocate (void) {
 }
 
 
-static void roadmap_download_block (int fips) {
+void roadmap_download_block (int fips) {
 
    int i;
    int candidate = -1;
@@ -285,11 +285,11 @@ static void roadmap_download_block (int fips) {
 }
 
 
-static void roadmap_download_unblock (int fips) {
+void roadmap_download_unblock (int fips) {
 
    int i;
 
-   roadmap_download_allocate ();
+   if (RoadMapDownloadQueue == NULL)  return;
 
    for (i = roadmap_hash_get_first (RoadMapDownloadBlock, fips);
         i >= 0;
@@ -302,7 +302,19 @@ static void roadmap_download_unblock (int fips) {
 }
 
 
-static int roadmap_download_blocked (int fips) {
+void roadmap_download_unblock_all (void) {
+
+   int i;
+
+   if (RoadMapDownloadQueue == NULL)  return;
+
+   for (i = RoadMapDownloadQueueSize - 1; i >= 0; --i) {
+      RoadMapDownloadBlockList[i] = 0;
+   }
+}
+
+
+int roadmap_download_blocked (int fips) {
 
    int i;
 

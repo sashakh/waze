@@ -77,5 +77,14 @@ int  roadmap_download_enabled (void);
 
 void roadmap_download_initialize (void);
 
+
+/* The following functions make it possible to selectively disable or enable
+ * the download of a specific county.
+ */
+void roadmap_download_block       (int fips);
+void roadmap_download_unblock     (int fips);
+void roadmap_download_unblock_all (void);
+int  roadmap_download_blocked     (int fips);
+
 #endif // INCLUDE__ROADMAP_DOWNLOAD__H
 

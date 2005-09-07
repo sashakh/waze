@@ -205,12 +205,21 @@ static void roadmap_start_delete_waypoint (void) {
     roadmap_trip_remove_point (NULL);
 }
 
+static int roadmap_start_no_download (int fips) {
+
+   if (! roadmap_download_blocked (fips)) {
+      roadmap_log (ROADMAP_WARNING, "cannot open map database usc%05d", fips);
+      roadmap_download_block (fips);
+   }
+   return 0;
+}
+
 static void roadmap_start_toggle_download (void) {
 
    if (roadmap_download_enabled()) {
 
       roadmap_download_subscribe_when_done (NULL);
-      roadmap_locator_declare (NULL);
+      roadmap_locator_declare (&roadmap_start_no_download);
 
    } else {
 
@@ -231,6 +240,7 @@ static void roadmap_start_toggle_download (void) {
 
       roadmap_download_subscribe_when_done (roadmap_screen_redraw);
       roadmap_locator_declare (roadmap_download_get_county);
+      roadmap_download_unblock_all ();
    }
 
    roadmap_screen_redraw ();
@@ -852,6 +862,7 @@ void roadmap_start (int argc, char **argv) {
       roadmap_start_create_trip ();
    }
 
+   roadmap_locator_declare (&roadmap_start_no_download);
    roadmap_main_set_periodic (200, roadmap_start_periodic);
 }
 
