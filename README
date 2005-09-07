@@ -1944,6 +1944,12 @@ CONFIGURATION
 
          <<Default:>> "yes"
 
+    [Log.Path] The path of the directory where to store the RoadGps log files.
+
+         <<Format:>> a directory path.
+
+         <<Default:>> /var/tmp
+
 
 * SESSION ITEMS
 
