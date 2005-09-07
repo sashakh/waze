@@ -474,3 +474,8 @@ int roadmap_path_is_full_path (const char *name)
    return name[0] == '\\';
 }
 
+
+const char *roadmap_path_temporary (void) {
+
+   return roadmap_path_user();
+}
