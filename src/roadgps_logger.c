@@ -29,6 +29,7 @@
 
 #include "roadmap.h"
 #include "roadmap_gps.h"
+#include "roadmap_path.h"
 #include "roadmap_main.h"
 
 #include "roadgps_logger.h"
@@ -59,9 +60,10 @@ void roadgps_logger_stop (void) {
 void roadgps_logger_start (void) {
 
    static unsigned char RoadGpsCounter = 1;
-   static char *RoadGpsName = "/var/tmp/roadgps-%d.log";
+   static char *RoadGpsName = "roadgps-%d.log";
 
    char name[80];
+   char *fullname = NULL; /* Avoid spurious warning. */
 
 
    roadgps_logger_stop ();
@@ -73,19 +75,24 @@ void roadgps_logger_start (void) {
          break;
       }
       snprintf (name, sizeof(name), RoadGpsName, RoadGpsCounter);
-      RoadGpsOutput = fopen (name, "r");
+      fullname = roadmap_path_join (roadmap_path_temporary(), name);
+
+      RoadGpsOutput = fopen (fullname, "r");
 
       if (RoadGpsOutput == NULL) break;
 
       fclose (RoadGpsOutput);
       RoadGpsCounter += 1;
+      roadmap_path_free (fullname);
    }
-   snprintf (name, sizeof(name), RoadGpsName, RoadGpsCounter);
-   RoadGpsOutput = fopen (name, "w");
+
+   snprintf (name, sizeof(fullname), RoadGpsName, RoadGpsCounter);
+   RoadGpsOutput = fopen (fullname, "w");
 
    if (RoadGpsOutput == NULL) {
-      roadmap_log (ROADMAP_ERROR, "cannot open log file %s", name);
+      roadmap_log (ROADMAP_ERROR, "cannot open log file %s", fullname);
    }
+   roadmap_path_free (fullname);
 }
 
 
