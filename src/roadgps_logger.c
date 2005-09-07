@@ -28,6 +28,7 @@
 #include <stdio.h>
 
 #include "roadmap.h"
+#include "roadmap_config.h"
 #include "roadmap_gps.h"
 #include "roadmap_path.h"
 #include "roadmap_main.h"
@@ -36,6 +37,9 @@
 
 
 static FILE *RoadGpsOutput = NULL;
+
+static RoadMapConfigDescriptor RoadMapConfigLogPath =
+                      ROADMAP_CONFIG_ITEM("Log", "Path");
 
 
 static void roadgps_logger (const char *sentence) {
@@ -65,6 +69,8 @@ void roadgps_logger_start (void) {
    char name[80];
    char *fullname = NULL; /* Avoid spurious warning. */
 
+   const char *path = roadmap_config_get (&RoadMapConfigLogPath);
+
 
    roadgps_logger_stop ();
 
@@ -75,7 +81,7 @@ void roadgps_logger_start (void) {
          break;
       }
       snprintf (name, sizeof(name), RoadGpsName, RoadGpsCounter);
-      fullname = roadmap_path_join (roadmap_path_temporary(), name);
+      fullname = roadmap_path_join (path, name);
 
       RoadGpsOutput = fopen (fullname, "r");
 
@@ -97,6 +103,10 @@ void roadgps_logger_start (void) {
 
 
 void roadgps_logger_initialize (void) {
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigLogPath, roadmap_path_temporary());
+
    roadmap_gps_register_logger (roadgps_logger);
 }
 
