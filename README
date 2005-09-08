@@ -130,6 +130,8 @@ INSTALLATION
    not been tested thoroughly, so problems are to be expected. Thank you
    for your understanding.
 
+   The port to Windows was implemented by Ehud Shabtai (eshabtai@gmail.com).
+
    RoadMap is only available for PocketPC 2002 and later at that time.
    There is no support yet for Windows XP, 2000 or 2003. This is because
    the WIN32 API is not the same on all Windows platforms: to the extend
