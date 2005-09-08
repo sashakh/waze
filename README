@@ -1944,12 +1944,6 @@ CONFIGURATION
 
          <<Default:>> "yes"
 
-    [Log.Path] The path of the directory where to store the RoadGps log files.
-
-         <<Format:>> a directory path.
-
-         <<Default:>> /var/tmp
-
 
 * SESSION ITEMS
 
@@ -2044,6 +2038,12 @@ CONFIGURATION
     [Hold.Direction] An artefact of saving the context. Ignored.
 
     [Hold.Position] An artefact of saving the context. Ignored.
+
+    [Log.Path] Last selected path for the RoadGps log files.
+
+         <<Format:>> a directory path.
+
+         <<Default:>> /var/tmp
 
  (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
 

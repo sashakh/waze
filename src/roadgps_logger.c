@@ -39,6 +39,8 @@
 
 static FILE *RoadGpsOutput = NULL;
 
+static RoadMapConfigDescriptor RoadMapConfigLogPath =
+                       ROADMAP_CONFIG_ITEM("Log", "Path");
 
 static void roadgps_logger (const char *sentence) {
 
@@ -62,6 +64,8 @@ void roadgps_logger_stop (void) {
 static void roadgps_logger_file_dialog_ok
                            (const char *filename, const char *mode) {
 
+   const char *path;
+
    roadgps_logger_stop ();
 
    RoadGpsOutput = fopen (filename, "w");
@@ -69,6 +73,10 @@ static void roadgps_logger_file_dialog_ok
    if (RoadGpsOutput == NULL) {
       roadmap_log (ROADMAP_ERROR, "cannot open log file %s", filename);
    }
+
+   path = roadmap_path_parent(NULL, filename);
+   roadmap_config_set (&RoadMapConfigLogPath, path);
+   roadmap_path_free(path);
 }
 
 
@@ -76,13 +84,16 @@ void roadgps_logger_start (void) {
                                 
    roadmap_fileselection_new ("RoadGps Log",
                               NULL, /* no filter. */
-                              roadmap_path_temporary(),
+                              roadmap_config_get(&RoadMapConfigLogPath),
                               "w",
                               roadgps_logger_file_dialog_ok);
 }
 
 
 void roadgps_logger_initialize (void) {
+
+   roadmap_config_declare
+      ("session", &RoadMapConfigLogPath, roadmap_path_temporary());
 
    roadmap_gps_register_logger (roadgps_logger);
 }
