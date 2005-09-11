@@ -192,10 +192,14 @@ void roadmap_screen_draw_one_line (int line,
    RoadMapGuiPoint point0;
    RoadMapGuiPoint point1;
 
+   /* These are used when the line has a shape: */
+   RoadMapPosition midposition;
+   RoadMapGuiPoint midpoint;
+
    int i;
    RoadMapGuiPoint *points;
 
-   int last_shape_point_drawn = 0;
+   int last_shape_drawn = 0;
 
 
    /* Retrieve the position and "size" of the line and decide
@@ -268,39 +272,40 @@ void roadmap_screen_draw_one_line (int line,
 
       points = RoadMapScreenLinePoints.cursor;
 
-      *points = point0;
-      if (roadmap_math_point_is_visible (&position0)) {
-         last_shape_point_drawn = 1;
-         points++;
-      }
+      /* All the shape positions are relative: we need an absolute position
+       * to start with.
+       */
+      midposition = position0;
+
+      last_shape_drawn = 0; /* We have drawn nothing yet. */
 
       for (i = first_shape; i <= last_shape; ++i) {
 
-         RoadMapGuiPoint tmp;
+         roadmap_shape_get_position (i, &midposition);
 
-         roadmap_shape_get_position (i, &position0);
+         roadmap_math_coordinate (&midposition, &midpoint);
 
-         roadmap_math_coordinate (&position0, &tmp);
+         if (roadmap_math_line_is_visible (&position0, &midposition)) {
 
-         if (roadmap_math_point_is_visible (&position0)) {
-
-            if (!last_shape_point_drawn) {
-               points++; /* We must show the start of this segment. */
+            /* Show this line: add 2 points if this is the start of a new
+             * complete line (i.e. the first visible line), or just add
+             * one more point to the current complete line.
+             */
+            if (!last_shape_drawn) {
+               *(points++) = point0; /* Show the start of this segment. */
+               last_shape_drawn = 1;
             }
-            *(points++) = tmp;
-            last_shape_point_drawn = 1;
+            *(points++) = midpoint;
 
          } else {
 
-            if (last_shape_point_drawn) {
+            if (last_shape_drawn) {
 
-               /* Show the end of the previous segment as the end
+               /* Show the previous segment as the end
                 * of a complete line. The remaining part of the
                 * shaped line, if any, will be drawn as a new
                 * complete line.
                 */
-               *(points++) = tmp;
-
                *RoadMapScreenObjects.cursor =
                   points - RoadMapScreenLinePoints.cursor;
                RoadMapScreenLinePoints.cursor = points;
@@ -311,19 +316,25 @@ void roadmap_screen_draw_one_line (int line,
                   roadmap_screen_flush_lines ();
                   points = RoadMapScreenLinePoints.cursor;
                }
+               last_shape_drawn = 0;
             }
-            *points = tmp; /* Restart from that point, if necessary. */
-            last_shape_point_drawn = 0;
          }
+         position0 = midposition; /* The latest position is our new start. */
+         point0 = midpoint;
       }
 
-      if (last_shape_point_drawn ||
-          roadmap_math_point_is_visible (&position1)) {
+      if (roadmap_math_line_is_visible (&position0, &position1)) {
 
-         if (!last_shape_point_drawn) {
-             points++; /* We must show the start of this segment. */
+         if (!last_shape_drawn) {
+             *(points++) = point0; /* Show the start of this segment. */
+             last_shape_drawn = 1;
          }
          *(points++) = point1;
+      }
+
+      if (last_shape_drawn) {
+
+         /* End the current complete line. */
 
          *RoadMapScreenObjects.cursor =
             points - RoadMapScreenLinePoints.cursor;
