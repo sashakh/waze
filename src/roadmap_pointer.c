@@ -33,9 +33,13 @@
 #include "roadmap_gui.h"
 #include "roadmap_canvas.h"
 #include "roadmap_main.h"
+#include "roadmap_config.h"
 
 #define LONG_CLICK_TIMEOUT 2000
 #define DRAG_FLOW_CONTROL_TIMEOUT 30
+
+static RoadMapConfigDescriptor RoadMapConfigAccuracyMinDrag =
+                            ROADMAP_CONFIG_ITEM("Accuracy", "Minimum Drag");
 
 static int is_button_down = 0;
 static int is_dragging = 0;
@@ -110,13 +114,16 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
 }
 
 static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
+
    if (!is_button_down && !is_dragging) return;
 
    if (!is_dragging) {
 
+      int mindrag = roadmap_config_get_integer (&RoadMapConfigAccuracyMinDrag);
+
       /* Less sensitive, since a car is not a quiet environment... */
-      if ((abs(point->x - last_pointer_point.x) <= 3) &&
-          (abs(point->y - last_pointer_point.y) <= 3)) return;
+      if ((abs(point->x - last_pointer_point.x) <= mindrag) &&
+          (abs(point->y - last_pointer_point.y) <= mindrag)) return;
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
       RoadMapPointerDragStart(&last_pointer_point);
@@ -138,6 +145,9 @@ static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
 
 
 void roadmap_pointer_initialize (void) {
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigAccuracyMinDrag, "5");
 
    roadmap_canvas_register_button_pressed_handler
       (&roadmap_pointer_button_pressed);
