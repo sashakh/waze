@@ -949,6 +949,10 @@ static void roadmap_screen_drag_start (RoadMapGuiPoint *point) {
 
 static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
+   roadmap_screen_record_move
+      (RoadMapScreenPointerLocation.x - point->x,
+       RoadMapScreenPointerLocation.y - point->y);
+
    RoadMapScreenDragging = 0;
    RoadMapScreenPointerLocation = *point;
    roadmap_screen_repaint ();
