@@ -395,8 +395,13 @@ void roadmap_factory (const char           *name,
             roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
 
-   roadmap_config_declare ("preferences",
-                           &RoadMapConfigGeneralToolbarOrientation, "");
+   roadmap_config_declare_enumeration ("preferences",
+                                       &RoadMapConfigGeneralToolbarOrientation,
+                                       "Top",
+                                       "Bottom",
+                                       "Left",
+                                       "Right",
+                                       NULL);
 
 
    roadmap_factory_user_action_labels (name, "actionlabels", actions);
