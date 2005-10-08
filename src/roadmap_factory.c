@@ -44,6 +44,9 @@
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralToolbarOrientation =
+                        ROADMAP_CONFIG_ITEM("General", "Toolbar Orientation");
+
 static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
                         ROADMAP_CONFIG_ITEM("General", "Icons");
 
@@ -392,6 +395,10 @@ void roadmap_factory (const char           *name,
             roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
 
+   roadmap_config_declare ("preferences",
+                           &RoadMapConfigGeneralToolbarOrientation, "");
+
+
    roadmap_factory_user_action_labels (name, "actionlabels", actions);
 
    for (i = 0; menu[i] != NULL; ++i) {
@@ -428,6 +435,9 @@ void roadmap_factory (const char           *name,
          roadmap_factory_user_config (name, "toolbar", actions);
 
       if (usertoolbar == NULL) usertoolbar = toolbar;
+
+      roadmap_main_add_toolbar
+         (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
 
       for (i = 0; usertoolbar[i] != NULL; ++i) {
 

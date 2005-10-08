@@ -72,6 +72,7 @@ static char *RoadMapMainTitle = NULL;
 static RoadMapKeyInput RoadMapMainInput = NULL;
 static GtkWidget      *RoadMapMainWindow  = NULL;
 static GtkWidget      *RoadMapMainBox     = NULL;
+static GtkWidget      *RoadMapCanvasBox   = NULL;
 static GtkWidget      *RoadMapMainMenuBar = NULL;
 static GtkWidget      *RoadMapCurrentMenu = NULL;
 static GtkWidget      *RoadMapMainToolbar = NULL;
@@ -241,7 +242,7 @@ void roadmap_main_new (const char *title, int width, int height) {
                         (GCallback)roadmap_main_key_pressed,
                         NULL);
 
-      RoadMapMainBox = gtk_vbox_new (FALSE, 0);
+      RoadMapCanvasBox = RoadMapMainBox = gtk_vbox_new (FALSE, 0);
       gtk_container_add (GTK_CONTAINER(RoadMapMainWindow), RoadMapMainBox);
    }
 
@@ -312,16 +313,64 @@ void roadmap_main_add_separator (void) {
 }
 
 
+void roadmap_main_add_toolbar (const char *orientation) {
+
+   if (RoadMapMainToolbar == NULL) {
+
+      int on_top = 1;
+      GtkOrientation gtk_orientation = GTK_ORIENTATION_HORIZONTAL;
+
+      RoadMapMainToolbar = gtk_toolbar_new ();
+
+      switch (orientation[0]) {
+         case 't':
+         case 'T': on_top = 1; break;
+
+         case 'b':
+         case 'B': on_top = 0; break;
+
+         case 'l':
+         case 'L': on_top = 1;
+                   gtk_orientation = GTK_ORIENTATION_VERTICAL;
+                   break;
+
+         case 'r':
+         case 'R': on_top = 0;
+                   gtk_orientation = GTK_ORIENTATION_VERTICAL;
+                   break;
+
+         default: roadmap_log (ROADMAP_FATAL,
+                       "Invalid toolbar orientation %s", orientation);
+      }
+      gtk_toolbar_set_orientation (GTK_TOOLBAR(RoadMapMainToolbar),
+                                   gtk_orientation);
+
+      if (gtk_orientation == GTK_ORIENTATION_VERTICAL) {
+         /* In this case we need a new box, since the "normal" box
+          * is a vertical one and we need an horizontal one.
+          */
+         RoadMapCanvasBox = gtk_hbox_new (FALSE, 0);
+         gtk_container_add (GTK_CONTAINER(RoadMapMainBox), RoadMapCanvasBox);
+      }
+
+      if (on_top) {
+         gtk_box_pack_start (GTK_BOX(RoadMapCanvasBox),
+                             RoadMapMainToolbar, FALSE, FALSE, 0);
+      } else {
+         gtk_box_pack_end   (GTK_BOX(RoadMapCanvasBox),
+                             RoadMapMainToolbar, FALSE, FALSE, 0);
+      }
+   }
+
+}
+
 void roadmap_main_add_tool (const char *label,
                             const char *icon,
                             const char *tip,
                             RoadMapCallback callback) {
 
    if (RoadMapMainToolbar == NULL) {
-
-      RoadMapMainToolbar = gtk_toolbar_new ();
-      gtk_box_pack_start (GTK_BOX(RoadMapMainBox),
-                          RoadMapMainToolbar, FALSE, FALSE, 0);
+      roadmap_main_add_toolbar ("");
    }
 
    gtk_toolbar_append_item (GTK_TOOLBAR(RoadMapMainToolbar),
@@ -353,7 +402,7 @@ void roadmap_main_add_tool_space (void) {
 
 void roadmap_main_add_canvas (void) {
 
-   gtk_box_pack_start (GTK_BOX(RoadMapMainBox),
+   gtk_box_pack_start (GTK_BOX(RoadMapCanvasBox),
                        roadmap_canvas_new (), TRUE, TRUE, 2);
 }
 

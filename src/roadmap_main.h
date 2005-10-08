@@ -43,12 +43,18 @@ void roadmap_main_add_menu_item  (const char *label,
                                   RoadMapCallback callback);
 void roadmap_main_add_separator  (void);
 
+/* The orientation must be either "top", "bottom", "left", "right" or ""
+ * ("" means the default orientation).
+ */
+void roadmap_main_add_toolbar    (const char *orientation);
+
 void roadmap_main_add_tool       (const char *label,
                                   const char *icon,
                                   const char *tip,
                                   RoadMapCallback callback);
 void roadmap_main_add_tool_space (void);
 
+/* The canvas must be created after the menu and the toolbar. */
 void roadmap_main_add_canvas     (void);
 void roadmap_main_add_status     (void);
 

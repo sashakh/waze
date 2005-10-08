@@ -97,6 +97,8 @@ public:
 
 	void addMenuSeparator();
 
+	void addToolbar(const char* orientation);
+
 	void addTool(const char* label, const char *icon, const char* tip,
 		RoadMapCallback callback);
 

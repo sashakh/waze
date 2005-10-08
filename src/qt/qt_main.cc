@@ -116,6 +116,31 @@ void RMapMainWindow::addMenuSeparator() {
 	currentMenu->insertSeparator();
 }
 
+void RMapMainWindow::addToolbar(const char* orientation) {
+
+	if (toolBar == 0) {
+		toolBar = new QToolBar(this, "map view");
+      switch (orientation[0]) {
+         case 't':
+         case 'T': break;
+
+         case 'b':
+         case 'B': moveDockWindow (toolBar, DockBottom); break;
+
+         case 'l':
+         case 'L': moveDockWindow (toolBar, DockLeft); break;
+
+         case 'r':
+         case 'R': moveDockWindow (toolBar, DockRight); break;
+
+         default: roadmap_log (ROADMAP_FATAL,
+                        "Invalid toolbar orientation %s", orientation);
+      }
+		toolBar->setFocusPolicy(QWidget::NoFocus);
+		toolBar->setHorizontalStretchable(TRUE);
+	}
+}
+
 void RMapMainWindow::addTool(const char* label,
                              const char *icon,
                              const char* tip,
@@ -128,9 +153,7 @@ void RMapMainWindow::addTool(const char* label,
    // Pascal: I believe this has been fixed now.
 
 	if (toolBar == 0) {
-		toolBar = new QToolBar(this, "map view");
-		toolBar->setFocusPolicy(QWidget::NoFocus);
-		toolBar->setHorizontalStretchable(TRUE);
+		addToolbar("");
 	}
 
    if (label != NULL) {

@@ -110,6 +110,13 @@ void roadmap_main_add_separator(void) {
 	}
 }
                           
+void roadmap_main_add_toolbar (const char *orientation) {
+
+	if (mainWindow) {
+		mainWindow->addToolbar(orientation);
+	}
+}
+
 void roadmap_main_add_tool(const char* label,
                            const char *icon,
                            const char* tip,

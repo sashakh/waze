@@ -549,6 +549,15 @@ extern "C" {
 		roadmap_main_add_menu_item (NULL, NULL, NULL);
 	}
 	
+   void roadmap_main_add_toolbar (const char *orientation) {
+		if (RoadMapMainToolbar == NULL) {
+         // TBD: consider the orientation.
+			RoadMapMainToolbar = CommandBar_Create (g_hInst,
+				RoadMapMainWindow, 1);
+			LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
+		}
+   }
+
 	void roadmap_main_add_tool (const char *label,
 		const char *icon,
 		const char *tip,
@@ -557,9 +566,7 @@ extern "C" {
 		static int tool_id = 0;
 		
 		if (RoadMapMainToolbar == NULL) {
-			RoadMapMainToolbar = CommandBar_Create (g_hInst,
-				RoadMapMainWindow, 1);
-			LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
+         roadmap_main_add_toolbar ();
 		}
 		
 		int icon_res_id = roadmap_main_toolbar_icon(icon);
