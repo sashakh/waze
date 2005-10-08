@@ -1613,6 +1613,10 @@ CONFIGURATION
    Remember that the toolbar label should be very short, since the toolbar
    has a limited size.
 
+   Please note that this is a very crude translation mechanism that is
+   fairly incomplete (for example, dialogs are not translated). This
+   is likely to evolve in the future.
+
 
 * A NOTE REGARDING COLORS
 
@@ -1661,6 +1665,12 @@ CONFIGURATION
          <<Default:>> yes
 
          <<Command line option:>> --no-toolbar
+
+    [General.Toolbar Orientation] Choose where to position the toolbar
+
+         <<Format:>> "Top", "Bottom", "Left" or "Right"
+
+         <<Default:>> system default toolbar position (usually on top).
 
     [Geometry.Main] Sets the size of the RoadMap main window.
 
@@ -1911,12 +1921,15 @@ CONFIGURATION
 
     [Accuracy.GPS Speed] GPS's speed accuracy.
 
-         <<Format:>> integer
+         <<Format:>> integer (ft/s or m/s depending on the current unit system).
 
          <<Default:>> 4
 
-         <<Comment:>> the unit depends on the selected unit system (ft/s or
-                  m/s).
+    [Accuracy.Minimum drag] The minimum movement required to initiate a drag.
+
+         <<Format:>> integer (pixels)
+
+         <<Default:>> 5
 
     [Accuracy.Mouse] The size of the street selection search area.
 
