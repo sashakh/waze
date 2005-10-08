@@ -36,6 +36,7 @@
 #include "roadmap_preferences.h"
 #include "roadmap_help.h"
 #include "roadmap_path.h"
+#include "roadmap_input.h"
 
 #include "roadmap_factory.h"
 
@@ -51,6 +52,12 @@ const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
 
+struct RoadMapfactoryTranslate {
+   struct RoadMapfactoryTranslate *next;
+   const char *english;
+   const char *translated;
+};
+
 struct RoadMapFactoryKeyMap {
 
    const char          *key;
@@ -60,6 +67,8 @@ struct RoadMapFactoryKeyMap {
 static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 
 static int RoadMapFactoryKeyLength = 0;
+
+static struct RoadMapfactoryTranslate *RoadMapFactoryTranslation = NULL;
 
 
 static void roadmap_factory_keyboard (char *key) {
@@ -97,8 +106,8 @@ static void roadmap_factory_add_help (void) {
 }
 
 
-static const RoadMapAction *roadmap_factory_find_action
-                              (const RoadMapAction *actions, const char *item) {
+static RoadMapAction *roadmap_factory_find_action
+                          (RoadMapAction *actions, const char *item) {
 
    while (actions->name != NULL) {
       if (strcmp (actions->name, item) == 0) return actions;
@@ -122,7 +131,7 @@ static const char *roadmap_factory_terse (const RoadMapAction *action) {
 
 
 static const char **roadmap_factory_load_config (const char *file_name,
-                                                 const RoadMapAction *actions,
+                                                 RoadMapAction *actions,
                                                  const char *path) {
 
    static const char *loaded[256];
@@ -176,7 +185,7 @@ static const char **roadmap_factory_load_config (const char *file_name,
 static const char **roadmap_factory_user_config
                                     (const char *name,
                                      const char *category,
-                                     const RoadMapAction *actions) {
+                                     RoadMapAction *actions) {
 
    const char **loaded;
 
@@ -203,8 +212,173 @@ static const char **roadmap_factory_user_config
    return loaded;
 }
 
+
+static void roadmap_factory_add_translation (const char *english,
+                                             const char *translated) {
+
+   struct RoadMapfactoryTranslate *translation;
+
+   translation = malloc (sizeof(struct RoadMapfactoryTranslate));
+   roadmap_check_allocated(translation);
+
+   translation->english = strdup(english);
+   roadmap_check_allocated(translation->english);
+
+   translation->translated = strdup(translated);
+   roadmap_check_allocated(translation->translated);
+
+   translation->next = RoadMapFactoryTranslation;
+   RoadMapFactoryTranslation = translation;
+}
+
+
+static const char *roadmap_factory_translate (const char *english) {
+
+   struct RoadMapfactoryTranslate *translation;
+
+   for (translation = RoadMapFactoryTranslation;
+        translation != NULL;
+        translation = translation->next) {
+      if (strcmp(translation->english, english) == 0) {
+         return translation->translated;
+      }
+   }
+
+   return english + sizeof(ROADMAP_MENU) - 1;
+}
+
+
+static int roadmap_factory_load_action_labels (const char *file_name,
+                                               RoadMapAction *actions,
+                                               const char *path) {
+
+
+   /* let the user define new long and terse labels for actions.  lines
+    * in the file will usually look like:
+    *    starttrip,,TripBeg
+    * or
+    *    gps,Focus on GPS location...,ToGPS
+    * but any punctuation character can be used as the separator,
+    * as long as it doesn't appear in the labels.
+    */
+
+   int n;
+   int i;
+   char *p;
+   RoadMapAction *this_action;
+
+   char  separator;
+   char *fields[4];
+   char  buffer[1024];
+   FILE *file = roadmap_file_fopen (path, file_name, "sr");
+
+   if (file == NULL) return 0;
+
+   while (! feof(file)) {
+
+      fgets (buffer, sizeof(buffer), file);
+
+      if (feof(file) || ferror(file)) break;
+
+      buffer[sizeof(buffer)-1] = 0;
+
+      /* remove the end-of-line character. */
+      p = strchr (buffer, '\n');
+      if (p != NULL) *p = 0;
+
+      /* Remove any leading space. */
+      for (p = buffer; isspace(*p); ++p) ;
+
+      if ((*p == 0) || (*p == '#')) continue; /* Comment or empty line. */
+
+      /* Retrieve what separator character is used in this line. */
+      n = strspn (p, ROADMAP_MENU
+                     "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM");
+      if (n == 0) continue; /* Ignore invalid lines. */
+      separator = p[n];
+
+
+      n = roadmap_input_split (p, separator, fields, 4);
+      if (n <= 1) continue; /* No label was provided. */
+
+      this_action = roadmap_factory_find_action (actions, fields[0]);
+      if (this_action == NULL) {
+         /* This might be a translation for a menu title. */
+         if (fields[0][0] == ROADMAP_MENU[0]) {
+            roadmap_factory_add_translation (fields[0], fields[1]);
+         } else {
+            roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
+         }
+         continue;
+      }
+
+      /* Reallocate all strings to disconnect them from the input buffer. */
+      for (i = 1; i < n; ++i) {
+         if (fields[i][0] == 0) {
+            fields[i] = NULL; /* No value. */
+         } else {
+            fields[i] = strdup(fields[i]);
+            roadmap_check_allocated(fields[i]);
+         }
+      }
+      for (i = n; i < 4; ++i) fields[i] = NULL;
+
+      if (fields[1] != NULL) {
+         roadmap_log (ROADMAP_DEBUG, "assigning long label '%s' to %s\n",
+                     fields[1], this_action->name);
+         this_action->label_long = fields[1];
+      }
+
+      if (fields[2] != NULL) {
+         roadmap_log (ROADMAP_DEBUG, "assigning terse label '%s' to %s\n",
+                     fields[2], this_action->name);
+         this_action->label_terse = fields[2];
+      }
+
+      if (fields[3] != NULL) {
+         roadmap_log (ROADMAP_DEBUG, "assigning tip '%s' to %s\n",
+                     fields[3], this_action->name);
+         this_action->tip = fields[3];
+      }
+   }
+   fclose(file);
+
+   return 1;
+}
+
+static int roadmap_factory_user_action_labels
+                                    (const char *name,
+                                     const char *category,
+                                     RoadMapAction *actions) {
+
+   int loaded;
+
+   char file_name[256];
+
+
+   snprintf (file_name, sizeof(file_name), "%s.%s", name, category);
+
+   loaded = roadmap_factory_load_action_labels
+               (file_name, actions, roadmap_path_user());
+
+   if (!loaded) {
+
+      const char *path;
+
+      for (path = roadmap_path_first("config");
+           path != NULL;
+           path = roadmap_path_next("config", path)) {
+
+         loaded = roadmap_factory_load_action_labels
+                              (file_name, actions, path);
+         if (loaded) break;
+      }
+   }
+   return loaded;
+}
+
 void roadmap_factory (const char           *name,
-                      const RoadMapAction  *actions,
+                            RoadMapAction  *actions,
                       const char           *menu[],
                       const char           *toolbar[]) {
 
@@ -217,6 +391,8 @@ void roadmap_factory (const char           *name,
    int use_icons =
             roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
+
+   roadmap_factory_user_action_labels (name, "actionlabels", actions);
 
    for (i = 0; menu[i] != NULL; ++i) {
 
@@ -232,7 +408,7 @@ void roadmap_factory (const char           *name,
 
       } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
 
-         roadmap_main_add_menu (item + prefix);
+         roadmap_main_add_menu (roadmap_factory_translate(item));
 
       } else {
          const RoadMapAction *this_action;
@@ -283,8 +459,8 @@ void roadmap_factory (const char           *name,
 }
 
 
-void roadmap_factory_keymap (const RoadMapAction  *actions,
-                             const char           *shortcuts[]) {
+void roadmap_factory_keymap (RoadMapAction  *actions,
+                             const char     *shortcuts[]) {
 
    int i;
 

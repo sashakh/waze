@@ -30,9 +30,9 @@
 typedef struct {
 
    const char *name;
-   const char *label_long;
+         char *label_long;
    const char *label_short;
-   const char *label_terse;
+         char *label_terse;
    const char *tip;
 
    RoadMapCallback callback;
@@ -49,12 +49,12 @@ extern const char RoadMapFactorySeparator[];
 extern const char RoadMapFactoryHelpTopics[];
 
 void roadmap_factory (const char          *name,
-                      const RoadMapAction *actions,
+                            RoadMapAction *actions,
                       const char          *menu[],
                       const char          *toolbar[]);
 
-void roadmap_factory_keymap (const RoadMapAction *actions,
-                             const char          *shortcuts[]);
+void roadmap_factory_keymap (RoadMapAction *actions,
+                             const char    *shortcuts[]);
 
 void roadmap_factory_usage (const char *section, const RoadMapAction *action);
 

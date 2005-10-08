@@ -1565,6 +1565,55 @@ CONFIGURATION
 ----
 
 
+* TRANSLATING THE MENUS AND TOOLBAR
+
+   It is possible to translate the RoadMap menus and toolbar. One might
+   wonder why such an US-centric program would ever care about translation?
+   Well, there is serious hope of getting some maps of Canada and efforts
+   are ongoing to produce maps for other countries. Add to that some poor
+   souls who disapprove of this author choices when it comes to labels...
+   More seriously, some small screens do require short labels, while
+   longer labels are better on large screens. Since one size does not
+   fit all, we let you, the user, have the last say on this matter.
+
+   It must be realized that translation comes at a price, however. This
+   documentation was written using the standard labels. Replacing the
+   labels is likely to make this documentation even more confusing than
+   it originally is.
+
+   The translation mechanism is based on the same actions as the toolbar
+   customization (see previous section). In addition, menus titles can be
+   translated as well.
+
+   The translations are described in text files, one text file per program:
+   roadmap.actionlabels for roadmap and roadgps.actionlabels for roadgps.
+   This file should be located in the usual RoadMap configuration places.
+
+   Each action or menu title is described with one line of text that contains
+   the action or title name, its menu label, its toolbar label and its tip
+   label, in that order. Each of these items is separated by one special
+   character. This separator can be any character except a letter (upper case
+   or lower case) or the character '/'. different separators can be used on
+   different lines, but the separator must stay the same until the end of
+   the line.
+
+   The name of a menu title is it's standard label, prefixed with the character
+   '/'.  For example, the "File" menu is named "/File".
+
+   The following are examples of valid translation lines (from English to
+   French, to please our Canadian friends):
+
+----
+      /File,Fichier
+      mutevoice;Silencieux;S;Desactive la synthese vocale
+      enablevoice+Volubile+V+Active la synthese vocale
+      quit,Quitter,Q,Quitter l'application
+----
+
+   Remember that the toolbar label should be very short, since the toolbar
+   has a limited size.
+
+
 * A NOTE REGARDING COLORS
 
    Some RoadMap configuration items define colors to be used. As a general
