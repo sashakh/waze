@@ -55,12 +55,6 @@ const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
 
-struct RoadMapfactoryTranslate {
-   struct RoadMapfactoryTranslate *next;
-   const char *english;
-   const char *translated;
-};
-
 struct RoadMapFactoryKeyMap {
 
    const char          *key;
@@ -70,8 +64,6 @@ struct RoadMapFactoryKeyMap {
 static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 
 static int RoadMapFactoryKeyLength = 0;
-
-static struct RoadMapfactoryTranslate *RoadMapFactoryTranslation = NULL;
 
 
 static void roadmap_factory_keyboard (char *key) {
@@ -164,9 +156,18 @@ static const char **roadmap_factory_load_config (const char *file_name,
 
       if ((*p == 0) || (*p == '#')) continue; /* Empty line. */
 
-      if (*p == '|' || *p == '-') {
+      if (strncmp (p, ROADMAP_MENU, sizeof(ROADMAP_MENU)-1) == 0) {
+
+         p = strdup(p);
+         roadmap_check_allocated(p);
+         loaded[count++] = p;
+
+      } else if (*p == '|' || *p == '-') {
+
          loaded[count++] = RoadMapFactorySeparator;
+
       } else {
+
          const RoadMapAction *this_action;
 
          this_action = roadmap_factory_find_action (actions, p);
@@ -216,41 +217,6 @@ static const char **roadmap_factory_user_config
 }
 
 
-static void roadmap_factory_add_translation (const char *english,
-                                             const char *translated) {
-
-   struct RoadMapfactoryTranslate *translation;
-
-   translation = malloc (sizeof(struct RoadMapfactoryTranslate));
-   roadmap_check_allocated(translation);
-
-   translation->english = strdup(english);
-   roadmap_check_allocated(translation->english);
-
-   translation->translated = strdup(translated);
-   roadmap_check_allocated(translation->translated);
-
-   translation->next = RoadMapFactoryTranslation;
-   RoadMapFactoryTranslation = translation;
-}
-
-
-static const char *roadmap_factory_translate (const char *english) {
-
-   struct RoadMapfactoryTranslate *translation;
-
-   for (translation = RoadMapFactoryTranslation;
-        translation != NULL;
-        translation = translation->next) {
-      if (strcmp(translation->english, english) == 0) {
-         return translation->translated;
-      }
-   }
-
-   return english + sizeof(ROADMAP_MENU) - 1;
-}
-
-
 static int roadmap_factory_load_action_labels (const char *file_name,
                                                RoadMapAction *actions,
                                                const char *path) {
@@ -295,8 +261,9 @@ static int roadmap_factory_load_action_labels (const char *file_name,
       if ((*p == 0) || (*p == '#')) continue; /* Comment or empty line. */
 
       /* Retrieve what separator character is used in this line. */
-      n = strspn (p, ROADMAP_MENU
-                     "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM");
+      n = strspn (p, "qwertyuiopasdfghjklzxcvbnm"
+                     "QWERTYUIOPASDFGHJKLZXCVBNM"
+                     "1234567890");
       if (n == 0) continue; /* Ignore invalid lines. */
       separator = p[n];
 
@@ -306,12 +273,7 @@ static int roadmap_factory_load_action_labels (const char *file_name,
 
       this_action = roadmap_factory_find_action (actions, fields[0]);
       if (this_action == NULL) {
-         /* This might be a translation for a menu title. */
-         if (fields[0][0] == ROADMAP_MENU[0]) {
-            roadmap_factory_add_translation (fields[0], fields[1]);
-         } else {
-            roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
-         }
+         roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
          continue;
       }
 
@@ -394,6 +356,8 @@ void roadmap_factory (const char           *name,
    int use_icons =
             roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
+   const char **userconfig;
+
 
    roadmap_config_declare_enumeration ("preferences",
                                        &RoadMapConfigGeneralToolbarOrientation,
@@ -406,9 +370,13 @@ void roadmap_factory (const char           *name,
 
    roadmap_factory_user_action_labels (name, "actionlabels", actions);
 
-   for (i = 0; menu[i] != NULL; ++i) {
+   userconfig = roadmap_factory_user_config (name, "menus", actions);
 
-      const char *item = menu[i];
+   if (userconfig == NULL) userconfig = menu;
+
+   for (i = 0; userconfig[i] != NULL; ++i) {
+
+      const char *item = userconfig[i];
 
       if (item == RoadMapFactorySeparator) {
 
@@ -420,7 +388,7 @@ void roadmap_factory (const char           *name,
 
       } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
 
-         roadmap_main_add_menu (roadmap_factory_translate(item));
+         roadmap_main_add_menu (item + prefix);
 
       } else {
          const RoadMapAction *this_action;
@@ -436,23 +404,23 @@ void roadmap_factory (const char           *name,
 
    if (use_toolbar) {
 
-      const char **usertoolbar =
+      userconfig =
          roadmap_factory_user_config (name, "toolbar", actions);
 
-      if (usertoolbar == NULL) usertoolbar = toolbar;
+      if (userconfig == NULL) userconfig = toolbar;
 
       roadmap_main_add_toolbar
          (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
 
-      for (i = 0; usertoolbar[i] != NULL; ++i) {
+      for (i = 0; userconfig[i] != NULL; ++i) {
 
-         const char *item = usertoolbar[i];
+         const char *item = userconfig[i];
 
          if (item == RoadMapFactorySeparator) {
 
             roadmap_main_add_tool_space ();
 
-         } else {
+         } else if (strncmp (item, ROADMAP_MENU, prefix) != 0) {
 
             const RoadMapAction *this_action;
 

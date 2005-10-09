@@ -736,7 +736,7 @@ USING ROADMAP
    [--verbose] Print all informational traces.
 
    [--help] Show a description of all command line options, key bindings
-      and actions (see the section CONFIGURING THE TOOLBAR).
+      and actions (see the section CONFIGURING THE MENUS AND TOOLBAR).
 
    [--help=SECTION] Show a description of either the command line options
       (--help=options), the key bindings (--help=keymap) or the actions
@@ -1448,7 +1448,7 @@ CONFIGURATION
    the compass, etc..
 
    The toolbar files define the content of the RoadMap and RoadGps toolbars.
-   See the section CONFIGURING THE TOOLBAR for more information.
+   See the section CONFIGURING THE MENUS AND TOOLBAR for more information.
 
 
 * CONFIGURING THE TEXT AND VOICE MESSAGES
@@ -1520,24 +1520,46 @@ CONFIGURATION
    parameters ("-f" and "On %N").
 
 
-* CONFIGURING THE TOOLBAR
+* CONFIGURING THE MENUS AND TOOLBAR
 
-   The items shown in the RoadMap and RoadGps toolbars can be redefined by
-   the user in a toolbar configuration file. Note that each program comes
-   with a built-in toolbar configuration that serves as the default, so no
-   toolbar file is required to be present for RoadMap or RoadGps to work.
+   The items shown in the RoadMap and RoadGps menus and toolbars can be
+   redefined by the user in text configuration files. Note that each
+   program comes with a built-in menus and toolbar configuration that
+   serves as the default, so none of these configuration files is required
+   to be present for RoadMap or RoadGps to work. In fact, RoadMap is
+   distributed with none of the configuration files described in this section.
 
-   The major reason for customizing a toolbar is to let the user tailor
-   the toolbar to fill small screens (such as a PDA) with his preferred
-   controls.
+   It must be realized that making any change to the menus and the toolbar
+   comes at a price: this documentation was written using the standard
+   user interface. Modifying the user interface is likely to make this
+   documentation even more confusing than it originally is.
 
-   Each toolbar item is described by its action name. A separator is
-   described by the character '-'. There must be only one item (action name
-   or separator) per line. Empty and comment lines are authorized, comment
-   lines start with the '#' character.
+   The major reason for customizing the menus or the toolbar is to let
+   the user tailor the toolbar to fill small screens (such as a PDA) with
+   his preferred controls at the most convenient place. Using a GUI in
+   a car or on a bike is challenging enough.
 
-   The toolbar configuration file for RoadMap is named "roadmap.toolbar"
-   and the one for RoadGps is named "roadgps.toolbar".
+   The configuration files are organized with one entity per line. An
+   entity is either the title of a menu, the name of an action, a separator
+   or a comment.
+
+   Each menu is described by it's title (prefixed with character '/'),
+   followed by the list of items in that menu. The title of a menu is
+   a user-defined string with a maximum length of 254 characters (it is
+   recommended to select short titles made of a single word, however).
+   There is no such title line for toolbars: all menu title lines will be
+   silently ignored. The toolbar is organized as a single, anonymous, menu.
+   
+   Each menu or toolbar item is described by its action name. A separator is
+   described by the character '-'. There must be only one item (title, action
+   name or separator) per line. Empty lines are authorized  and lines starting
+   with the '#' character are treated as comments.
+
+   The menus and toolbar configuration files for roadmap are named
+   "roadmap.menus" and "roadmap.toolbar", respectively. The same configuration
+   files for roadgps are named "roadgps.menus" and "roadgps.toolbar". These
+   files must be stored in the same places as other RoadMap configuration
+   files.
 
    There is a different list of possible actions for RoadMap and RoadGps.
    The list of valid action names can be obtained using the command line
@@ -1546,6 +1568,18 @@ CONFIGURATION
 ----
         roadmap --help=actions
         roadgps --help=actions
+----
+
+   The following is an example of a menus definition file for RoadMap:
+
+----
+       /File
+       preferences
+       gpsconsole
+       -
+       quit
+       /Help
+       about
 ----
 
    The following is an example of a toolbar definition file for RoadMap:
@@ -1564,58 +1598,47 @@ CONFIGURATION
         zoom1
 ----
 
-
-* TRANSLATING THE MENUS AND TOOLBAR
-
-   It is possible to translate the RoadMap menus and toolbar. One might
-   wonder why such an US-centric program would ever care about translation?
-   Well, there is serious hope of getting some maps of Canada and efforts
-   are ongoing to produce maps for other countries. Add to that some poor
-   souls who disapprove of this author choices when it comes to labels...
+   It is also possible to rename the RoadMap actions, with the effect of
+   changing the labels used in the menus and the text of the tooltips.
+   Why one would want to rename actions? Some poor souls have expressed
+   their disapproval of this author's choice of labels and help texts.
    More seriously, some small screens do require short labels, while
    longer labels are better on large screens. Since one size does not
    fit all, we let you, the user, have the last say on this matter.
 
-   It must be realized that translation comes at a price, however. This
-   documentation was written using the standard labels. Replacing the
-   labels is likely to make this documentation even more confusing than
-   it originally is.
-
-   The translation mechanism is based on the same actions as the toolbar
-   customization (see previous section). In addition, menus titles can be
-   translated as well.
+   The renaming mechanism is based on the same actions as the menus and
+   toolbar customization (see above).
 
    The translations are described in text files, one text file per program:
-   roadmap.actionlabels for roadmap and roadgps.actionlabels for roadgps.
-   This file should be located in the usual RoadMap configuration places.
+   "roadmap.actionlabels" for roadmap and "roadgps.actionlabels" for roadgps.
+   These files should be located in the usual RoadMap configuration places.
 
-   Each action or menu title is described with one line of text that contains
-   the action or title name, its menu label, its toolbar label and its tip
-   label, in that order. Each of these items is separated by one special
-   character. This separator can be any character except a letter (upper case
-   or lower case) or the character '/'. different separators can be used on
-   different lines, but the separator must stay the same until the end of
-   the line.
+   Each action is renamed using one line of text that contains the action
+   name, its menu label, its toolbar label and its tip label (in that order).
+   Each of these items is separated by one special character. This separator
+   can be any character except a letter (upper case or lower case) or a digit
+   ('0' to '9'). Different separators can be used on different lines, but
+   the separator must stay the same until the end of the line.
 
-   The name of a menu title is it's standard label, prefixed with the character
-   '/'.  For example, the "File" menu is named "/File".
-
-   The following are examples of valid translation lines (from English to
+   The following are examples of valid action renaming lines (from English to
    French, to please our Canadian friends):
 
 ----
-      /File,Fichier
       mutevoice;Silencieux;S;Desactive la synthese vocale
       enablevoice+Volubile+V+Active la synthese vocale
       quit,Quitter,Q,Quitter l'application
 ----
 
-   Remember that the toolbar label should be very short, since the toolbar
+   Remember that the toolbar labels should be very short, since the toolbar
    has a limited size.
 
-   Please note that this is a very crude translation mechanism that is
-   fairly incomplete (for example, dialogs are not translated). This
-   is likely to evolve in the future.
+   Please note that, contrary to the example above, this renaming is not
+   intended to provide a mechanism for the internationalization of RoadMap.
+   This would be a very crude translation mechanism, as it is very incomplete.
+   For example, dialogs are not translated.
+
+   In fact, this renaming mechanism is likely to conflict with a future
+   internationalization effort, and might be removed in later releases.
 
 
 * A NOTE REGARDING COLORS
