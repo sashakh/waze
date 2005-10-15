@@ -1,0 +1,84 @@
+#!/bin/sh
+#
+# make CD-ROM disks of tar files from the RoadMap US files, one tar file
+# per state. One CD is for the west side of the US, the other one is for
+# the east side.
+#
+MAPDIR=/usr/local/share/roadmap
+TARDIR=/cdspace/roadmap
+
+
+function tar1state {
+
+   echo -n "$1  "
+
+   tar cf - usc$2*.rdm | gzip -c -9 > $TARDIR/Disk$3/us$1.tar.gz
+   (cd $TARDIR/Disk$3 ; ls -lh us$1.tar.gz)
+}
+
+rm -rf $TARDIR
+mkdir -p $TARDIR/DiskE
+mkdir -p $TARDIR/DiskW
+
+cd $MAPDIR
+
+cp usdir.rdm $TARDIR/DiskE
+cp usdir.rdm $TARDIR/DiskW
+
+tar1state AL 01 E
+tar1state AK 02 W
+tar1state AZ 04 W
+tar1state AR 05 E
+tar1state CA 06 W
+tar1state CO 08 W
+tar1state CT 09 E
+tar1state DE 10 E
+tar1state DC 11 E
+tar1state FL 12 E
+tar1state GA 13 E
+tar1state HI 15 W
+tar1state ID 16 W
+tar1state IL 17 E
+tar1state IN 18 E
+tar1state IA 19 W
+tar1state KS 20 W
+tar1state KY 21 E
+tar1state LA 22 E
+tar1state ME 23 E
+tar1state MD 24 E
+tar1state MA 25 E
+tar1state MI 26 E
+tar1state MN 27 E
+tar1state MS 28 E
+tar1state MO 29 E
+tar1state MT 30 E
+tar1state NE 31 W
+tar1state NV 32 W
+tar1state NH 33 E
+tar1state NJ 34 E
+tar1state NM 35 W
+tar1state NY 36 E
+tar1state NC 37 E
+tar1state ND 38 W
+tar1state OH 39 E
+tar1state OK 40 W
+tar1state OR 41 W
+tar1state PA 42 E
+tar1state RI 44 E
+tar1state SC 45 E
+tar1state SD 46 W
+tar1state TN 47 E
+tar1state TX 48 W
+tar1state UT 49 W
+tar1state VT 50 E
+tar1state VA 51 E
+tar1state WA 53 W
+tar1state WV 54 E
+tar1state WI 55 E
+tar1state WY 56 W
+tar1state AS 60 W
+tar1state GU 66 W
+tar1state MP 69 W
+tar1state PR 72 E
+tar1state VI 78 E
+

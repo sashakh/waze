@@ -1,0 +1,8 @@
+Template: roadmap/download_index
+Type: boolean
+Default: false
+Description: Download map index from Internet now?
+ The Roadmap application can download maps from Internet on the fly.
+ To know which maps to download, it need a map index.  This is also
+ downloaded from Internet.
+

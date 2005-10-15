@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>RoadMap: Todo List</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252"><LINK 
+href="sitestandard.css" type=text/css rel=stylesheet>
+</HEAD>
+<BODY class=homeview>
+<CENTER>
+<H1>RoadMap: Todo List</H1><BR></CENTER>
+<HR>
+<a class="normal" href="index.html">Home</a>
+<a class="normal" href="documentation.html">Documentation</a>
+<a class="normal" href="download.html">Download</a>
+<a class="normal" href="screenshots.html">Screenshots</a>
+<a class="normal" href="history.html">History</a>
+<a class="normal" href="maps.html">Maps</a>
+<a class="normal" href="hardware.html">Hardware</a>
+<a class="normal" href="bugs.html">Bugs</a>     
+<a class="normal" href="list.html">Mail</a>
+<a class="normal" href="todo.html">Todo</a>
+<HR> <BR>
+<P>This page lists the changes planned for the future versions of RoadMap.
+Please feel free to contact the author for more ideas.
+<P>
+When the developments on RoadMap 1.0 are complete, a 1.1 development branch
+will be started, with the highest priority given to some needed changes to
+the map format. The criteria for starting the 1.1 branch is actually the
+compatibility with the existing maps: RoadMap will stay at the 1.0 level as
+long as the format of the maps has not changed.
+<P>
+This means there will be no map provided for the 1.1 branch, considering
+their unstable nature. The 1.0 branch will be maintained as the "stable"
+branch. Some of the changes above may still find their way in the stable
+branch, as long as the map compatibility is maintained. It may take some
+time before the development branch appears on the web site.
+<P>
+When the 1.1 code will stabilize, a new 1.2 stable branch will be created and
+a 1.3 development branch will be started anew, and so on.
+<P>
+(The changes believed to break compatibility with RoadMap 1.0 are marked
+with a "[1.1]" sign.)
+<P>
+Here is the detail description of the changes planned so far:
+<UL>
+  <LI><b>Error messages on screen</b>. The error messages are logged on
+  the standard output. This is bad when RoadMap is started from a menu,
+  since there is no way the user could read the message. Errors should
+  be shown on the screen. It would be nice to have a log window for all
+  messages, error or not.
+
+  One issue is fonts: should be big enough to be readable in a car.
+
+  <LI><b>Use checkbox widget in the menus and toolbars</b>. Some menu and
+  toolbar entries are of the "start & stop" kind. Instead of having 2 entries
+  it would be nice to use a single checkbox one.
+
+  <LI><b>Show GPS location and speed</b>. The speed shows on RoadMap, but
+  not on RoadGps. The location shows on none. There should be a way to show
+  the location, at least in RoadGps.
+
+  <LI><b>Show when the GPS source is not available</b>. RoadMap gives no
+  feedback regarding its connection to the GPS source. The feedback should
+  be somewhat graphical (an icon?) and not a dialog (in a car?).
+
+  <LI><b>Show the waypoints names on the screen</b> (next to the waypoint).
+  This would be controlled by an on/off button and key (Z?).
+
+  <LI><b>Show the X and Y scales</b> of the map in a way that does not
+  obscure the map.
+
+  <LI><b>More natural street naming</b>. RoadMap requires the street names to
+  be entered using the US Census Bureau's own conventions (ST for streets, AVE
+  for avenues and so on..). It would be more friendly to authorize some
+  alternate conventions (such as AV for avenues), or even plain words. The
+  idea would be to let the user set a list of aliases for each USCB acronym.
+  These aliases would be stored in a text file loaded either from the user's
+  environment, or else from the shared one.
+
+  <LI><b>[1.1] Use GPS time and map's timezone</b>. The GPS receiver provides a
+  reliable universal time as well as the current location. This is all what
+  RoadMap needs to show the correct local time:
+  <UL>
+    <LI>Associate a timezone to each county.
+    <LI>When showing a particular location on the map, display the local time
+    for this location.
+    <LI>Show estimated time of arrival in the destination's timezone.
+  </UL>
+  One might think of setting the UNIX time and system timezone, but that
+  would be a bad idea: this would cause a whole mess when replaying GPS logs,
+  RoadMap would need to be root or have the set UID bit set and managing
+  system setup is best left to system daemons. In addition, gpsd is now
+  synchronizing the system time, so don't mess with that subject..
+
+  <LI><b>[1.1] Modular map format</b>. RoadMap map format is such today that all
+  the information must be contained in a single file. RoadMap should be
+  able to display, and use, data from multiple county files. The benefits
+  are that one can come with his own additional information (such as
+  railroad tracks) without modifying the existing maps or making them larger.
+  In addition the current set of maps could be cut in two (separating the
+  street shapes from the street names) to lower the amount of data mapped by
+  RoadMap when displaying the map on the screen (especially when zoomed out).
+
+  <LI><b>[1.1] Modular map rendering</b>. the RoadMap map rendering code
+  should be made more modular so that a new type of data can be defined,
+  associated with a plugin to implement the rendering code.
+
+  <LI><b>Track more than one GPS source</b>. RoadMap should allow the user
+  to track alternate GPS sources as defined by the user (like GpsDrive's
+  friendsd).
+
+  <LI><b>Interface with address book applications</b>. RoadMap should be
+  able to interface with address book databases to get street addresses
+  from there. Instead of specifying a destination address, one would
+  provide the name of a person.
+</UL>
+</BODY></HTML>
+

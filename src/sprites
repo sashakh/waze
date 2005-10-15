@@ -1,0 +1,85 @@
+# Syntax of the sprite description:
+# S <name>:              start a sprite.
+# F <color> <thickness>: start a new color plane.
+# L <x>,<y> ...:         defines a line.
+# P <x>,<y> ...:         defines a (filled) polygon.
+# C <x>,<y> <radius>:    defines a circle.
+# D <x>,<y> <radius>:    defines a disk (i.e. a filled circle).
+# the coordinates x and y are relative to the sprite's hot point.
+#
+S GPS
+F white 2
+L 0,0 7,14 0,8 -7,14
+F blue 1
+P 0,1 6,13 0,10 -6,13
+L 8,11 0,-3 -8,11
+
+S Friend
+F white 2
+L 0,0 7,14 0,8 -7,14
+F DarkGreen 2
+L 0,1 6,13 0,10 -6,13 0,1
+
+S Position
+F white 3
+L 0,-10 0,-20
+L 0,10 0,20
+L 10,0 20,0
+L -10,0 -20,0
+C 0,0 15
+F black 1
+L 0,-10 0,-20
+L 0,10 0,20
+L 10,0 20,0
+L -10,0 -20,0
+C 0,0 15
+
+S Direction
+F red 1
+P -5,-20 0,-35 5,-20
+F black 1
+L -5,-20 0,-35 5,-20 -5,-20
+
+S Destination
+F red 1
+D 0,0 5
+F black 1
+C 0,0 5
+
+S Waypoint
+F green 1
+D 0,0 5
+F black 1
+C 0,0 5
+
+S Highlight
+F yellow 1
+D 0,0 5
+F black 1
+C 0,0 5
+
+S Compass
+F white 1
+D 0,0 13
+F black 1
+C 0,0 13
+P -4,0 0,-13 4,0
+L -4,0 0,-13 4,0
+L -4,0 0,13 4,0
+L -17,0 -7,0
+L 7,0 17,0
+L 0,-13 0,-17
+L 0,13 0,17
+
+S Download
+F white 1
+D 0,0 8
+F red 3
+C 0,0 8
+P -7,-6 -15,4 1,4
+P 7,6 15,-4 -1,-4
+
+S Kismet
+F red 1
+D 0,0 10
+

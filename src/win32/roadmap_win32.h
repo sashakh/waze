@@ -1,0 +1,15 @@
+#ifndef _ROADMAP_WIN32_H_
+#define _ROADMAP_WIN32_H_
+
+#include <windows.h>
+#define snprintf _snprintf
+#define strdup _strdup
+#define strcasecmp _stricmp
+#define strncasecmp _strnicmp
+#define vsnprintf _vsnprintf
+#define trunc(X) (X)
+
+LPWSTR ConvertToWideChar(LPCSTR string, UINT nCodePage);
+char* ConvertToMultiByte(const LPWSTR s, UINT nCodePage);
+
+#endif /* _ROADMAP_WIN32_H_ */

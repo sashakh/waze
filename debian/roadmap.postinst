@@ -1,0 +1,53 @@
+#! /bin/sh
+# postinst script for roadmap
+
+set -e
+
+. /usr/share/debconf/confmodule
+
+indexdir=/var/lib/roadmap
+indexurl=http://roadmap.digitalomaha.net/maps/usdir.rdm.tgz
+
+
+# Fetch usdir.rdm and make it available for all users
+update_map_index() {
+    umask 022
+    mkdir -p $indexdir
+    cd $indexdir
+    # Fetch and unpack the new map index
+    echo "info: Downloading $indexurl"
+    if wget --user-agent="Debian package roadmap" -O - $indexurl 2> /dev/null |
+	tar zxf - usdir.rdm 2> /dev/null; then
+	chmod 644 usdir.rdm
+	chown root:root usdir.rdm
+    else
+	echo "error: Unable to download map index."
+    fi
+}
+
+case "$1" in
+    configure)
+        if [ -x /usr/bin/update-menus ] ; then update-menus ; fi
+
+	# Ask if the map index file should be downloaded
+	if [ ! -f "$indexdir/usdir.rdm" ] ; then
+	    db_get roadmap/download_index
+	    if [ true = "$RET" ] ; then
+		update_map_index
+	    fi
+	fi
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

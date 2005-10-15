@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>RoadMap: Bugs</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252"><LINK 
+href="sitestandard.css" type=text/css rel=stylesheet>
+</HEAD>
+<BODY class=homeview>
+<CENTER>
+<H1>RoadMap: Bugs</H1><BR></CENTER>
+<HR>
+<a class="normal" href="index.html">Home</a>
+<a class="normal" href="documentation.html">Documentation</a>
+<a class="normal" href="download.html">Download</a>
+<a class="normal" href="screenshots.html">Screenshots</a>
+<a class="normal" href="history.html">History</a>
+<a class="normal" href="maps.html">Maps</a>
+<a class="normal" href="hardware.html">Hardware</a>
+<a class="normal" href="bugs.html">Bugs</a>     
+<a class="normal" href="list.html">Mail</a>
+<a class="normal" href="todo.html">Todo</a>
+<HR> <BR>
+<P>WARNING: RoadMap is not yet capable of handling all US counties,
+due to a handful of bugs. Here are the details:
+<P>
+<UL>
+  <LI>The generation of the following RoadMap map files generate errors for the 
+  following counties: 02110, 51095, 51830. This seems to be a problem with the 
+  Tiger/Line 2002 data (duplicated records, most likely an erroneous TLID). The 
+  problem has been worked around more or less for now.
+  <P><b>Latest News</b>:
+  the US Census Bureau has fixed several duplicated line ID, making changes to
+  7 counties. My choice so far is to not update the RoadMap maps, since the
+  changes are quite minimal.
+  <LI>The RoadMap maps are getting old: they are based on the 2002 release
+  of the TIGER/line files. The truth is, 2003 provides very few updates.
+  The announced 2004 release (end of 2004..) is much more interesting. I plan
+  on updating the maps a few months after the 2004 release has been made
+  available.
+  <LI>The maps for the state of Hawaii do not use the NAD83 datum. The offset
+  can be significant (a few hundred feet), making these maps basically unusable
+  for navigation. The USGS bureau has announced that their maps of hawaii are
+  being redone using the NAD83 datum, lets hope the US Census Bureau will do
+  the same.
+</UL>
+<P>RoadMap known bugs: 
+<UL>
+  <LI>It happenned once that a freeway was showing up without its normal
+  shape. This cannot be reproduced consistently, through. More details are
+  welcome.
+  <LI>Search of a city is broken: cities and places are confused. This makes
+  it difficult to find some cities.
+  <LI>The buildus tool does not use the map path: it assumes all the map files 
+  are in the same directory. 
+  <LI>The Tiger files define polygons as delineated by a list of lines. Any of 
+  these lines might be defined by a serie of shape points. RoadMap uses the 
+  shape points when drawing the lines, but not when filling the polygons. 
+  <LI>The "address by ZIP" method does not work anymore since the automatic 
+  selection of the map was implemented, because the file usdir.rdm does not
+  have any ZIP code location information (TBD) yet. This feature has been
+  hidden from the user interface for now. 
+  <LI>Some street numbers include letters, which is not well supported by 
+  RoadMap: in such a case, roadmap generates a street number which is hoped to 
+  be unique enough by converting the letter into a "number", with a few twist
+  to handle some "geoposition" address formats. This is a design problem that
+  is not going to be solved any time soon. Current kludge is deemed good enough
+  for the time being, until someone give a practical case where this does not
+  work. 
+  <LI>Street address conflicts appear when building maps. Some seems to 
+  be a TIGER map database problem (see above). Others might be caused by the
+  address range format issue (see below). A few still need to be investigated.
+  <LI>Some urban areas are missing. For example Woodland Hills (in Los Angeles 
+  county). This may be a TIGER file problem: the string "WOODLAND HILLS" never 
+  appears in the LA county files. </LI></UL>
+</BODY></HTML>
+
