@@ -65,6 +65,13 @@ case $1 in
 esac
 
 case $1 in
+   verbose) verbose=Y
+         OPTIONS="-v $OPTIONS"
+         shift
+         ;;
+esac
+
+case $1 in
    test) cleanup=N
          gendir=N
          verbose=Y
