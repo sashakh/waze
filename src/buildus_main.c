@@ -211,3 +211,16 @@ int main (int argc, const char **argv) {
    return 0;
 }
 
+/* Temporary until we implement the plug-in registration interface */
+int editor_override_line_get_flags (int line) { return 0; }
+
+int editor_street_get_closest (const RoadMapPosition *position,
+	                       int fips,
+	                       int *categories,
+	                       int categories_count,
+	                       RoadMapNeighbour *neighbours,
+	                       int distance,
+	                       int count,
+	                       int max)
+{ return count; }
+

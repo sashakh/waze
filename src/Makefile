@@ -231,7 +231,7 @@ BUOBJS=$(BUSRCS:.c=.o)
 
 
 PKGDATAFILES=sprites preferences schema session drivers
-BUILD=buildmap dumpmap buildplace
+BUILD=buildmap dumpmap buildplace buildus
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace
