@@ -92,7 +92,7 @@ static int buildmap_db_extend (int size) {
       }
 
       if (roadmap_file_map
-                  ("",
+                  ("maps",
                    BuildmapCurrentDbName,
                    NULL,
                    "rw",

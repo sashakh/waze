@@ -148,12 +148,14 @@ static RoadMapPen RoadMapPenEdges = NULL;
 #define GetTickCount() 0
 #endif
 
+#ifdef __DEBUG
 static FILE* dbg_file;
+#endif
 
 static void dbg_log (const char *msg, int id, unsigned long st1, unsigned long st2) {
    
+#ifdef __DEBUG
    char str[100];
-
    if (dbg_file == NULL) {
       dbg_file = fopen("\\test.log", "w");
    }
@@ -166,6 +168,7 @@ static void dbg_log (const char *msg, int id, unsigned long st1, unsigned long s
 
    
    fwrite(str, strlen(str), 1, dbg_file);
+#endif
 }
 
 static void roadmap_screen_flush_points (void) {
@@ -971,8 +974,9 @@ static void roadmap_screen_repaint (void) {
    st2 = GetTickCount();
    dbg_log("roadmap_screen_repaint", id++, st1, st2);
 
+#ifdef __DEBUG
    fflush (dbg_file);
-
+#endif
     roadmap_log_pop ();
 }
 

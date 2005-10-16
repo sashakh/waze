@@ -65,9 +65,7 @@ static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
 
 
 /* Default location is: 1 market St, san Francisco, California. */
-#define ROADMAP_INITIAL_LONGITUDE -122394181
-#define ROADMAP_INITIAL_LATITUDE    37794928
-
+#define ROADMAP_DEFAULT_POSITION "34788881, 32087849"
 
 static int RoadMapTripRotate   = 1;
 static int RoadMapTripModified = 0; /* List needs to be saved ? */
@@ -101,7 +99,7 @@ typedef struct roadmap_trip_point {
 
 #define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip, has_value) \
     {{NULL, NULL}, id, sprite, 1, mobile, in_trip, has_value, \
-     {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}, \
+     {0, 0}, \
      ROADMAP_GPS_NULL_POSITION, \
      ROADMAP_CONFIG_ITEM(id,"Position"), \
      ROADMAP_CONFIG_ITEM(id,"Direction"), \
@@ -1006,7 +1004,8 @@ void roadmap_trip_initialize (void) {
 
             roadmap_config_declare
                 ("session",
-                 &RoadMapTripPredefined[i].config_position, "0,0");
+                 &RoadMapTripPredefined[i].config_position,
+		 ROADMAP_DEFAULT_POSITION);
 
             if (RoadMapTripPredefined[i].mobile) {
                 roadmap_config_declare
