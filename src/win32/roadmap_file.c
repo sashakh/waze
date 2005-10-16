@@ -432,7 +432,9 @@ int roadmap_file_read(RoadMapFile file, void *data, int size)
 	
 	if (!ReadFile((HANDLE)file, data, size, &num_bytes, NULL)) {
 		return -1;
-	} else {
+	} else if (num_bytes == 0) {
+      return -1;
+   } else {
 		return num_bytes;
 	}
 }

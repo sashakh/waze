@@ -26,6 +26,11 @@
  *   The roadmap_file_unique() function returns a unique file name.
  *   The name is built so that two processes generate different names
  *   and the same process never generates the same name twice.
+ *
+ *   The functions roadmap_file_open, roadmap_file_read, roadmap_file_write
+ *   and roadmap_file_close do what one would assume from their names.
+ *   Please note however that roadmap_file_read must return an error when
+ *   trying to read beyond the end of the file.
  */
 
 #ifndef INCLUDE__ROADMAP_FILE__H

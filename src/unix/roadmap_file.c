@@ -334,7 +334,9 @@ RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
 
 
 int roadmap_file_read  (RoadMapFile file, void *data, int size) {
-   return read ((int)file, data, size);
+   int count = read ((int)file, data, size);
+   if (count <= 0) return -1;
+   return count;
 }
 
 int roadmap_file_write (RoadMapFile file, const void *data, int length) {
