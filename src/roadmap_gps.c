@@ -792,9 +792,15 @@ void roadmap_gps_input (RoadMapIO *io) {
 
    if (roadmap_input (&decode) < 0) {
 
+      /* This io context is "owned" by the GUI module that manage
+       * the background inputs. It will be destroyed when removed,
+       * so we must keep a copy before that.
+       */
+      RoadMapIO context = *io;
+
       (*RoadMapGpsLinkRemove) (io);
 
-      roadmap_io_close (io);
+      roadmap_io_close (&context);
 
       /* Try to establish a new IO channel: */
 
