@@ -291,6 +291,8 @@ int editor_db_create (int fips) {
    buildmap_db_add_data (root, 1, sizeof(editor_db_header));
    header = (editor_db_header *) buildmap_db_get_data (root);
 
+   memset (header, 0, sizeof (editor_db_header));
+
    header->fips = fips;
    header->edges = *edges;
    header->block_size = DB_DEFAULT_BLOCK_SIZE;
