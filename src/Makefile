@@ -203,6 +203,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_zip.c \
        buildmap_tiger.c \
        buildmap_shapefile.c \
+       buildmap_empty.c \
        buildmap_place.c \
        buildmap_main.c
 

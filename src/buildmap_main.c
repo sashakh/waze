@@ -34,6 +34,7 @@
 #include "buildmap.h"
 #include "buildmap_tiger.h"
 #include "buildmap_shapefile.h"
+#include "buildmap_empty.h"
 
 #include "buildmap_square.h"
 #include "buildmap_street.h"
@@ -50,6 +51,7 @@
 #define BUILDMAP_FORMAT_TIGER     1
 #define BUILDMAP_FORMAT_SHAPE     2
 #define BUILDMAP_FORMAT_DCW       3
+#define BUILDMAP_FORMAT_EMPTY     4
 
 static int   BuildMapFormatFamily = 0;
 
@@ -64,7 +66,7 @@ static struct poptOption BuildMapTigerOptions [] = {
 
    {"format", 'f',
       POPT_ARG_STRING, &BuildMapFormat, 0,
-      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW"},
+      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW|EMPTY"},
 
    POPT_TABLEEND
 };
@@ -130,6 +132,10 @@ static void  buildmap_county_select_format (poptContext decoder) {
    } else if (strcmp (BuildMapFormat, "DCW") == 0) {
 
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
+         
+   } else if (strcmp (BuildMapFormat, "EMPTY") == 0) {
+
+      BuildMapFormatFamily = BUILDMAP_FORMAT_EMPTY;
          
    } else {
       fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
@@ -224,6 +230,10 @@ static void buildmap_county_process (const char *source,
 
       case BUILDMAP_FORMAT_DCW:
          buildmap_shapefile_dcw_process (source, verbose, canals, rivers);
+         break;
+
+      case BUILDMAP_FORMAT_EMPTY:
+         buildmap_empty_process (source);
          break;
    }
 
