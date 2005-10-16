@@ -54,6 +54,9 @@ typedef struct {
    short elevation;
    short strength;
 
+   RoadMapGuiPoint position;
+   RoadMapGuiPoint points[4];
+
 } RoadGpsObject;
 
 
@@ -120,11 +123,8 @@ static void roadgps_screen_draw_satellite_position
    double   scale = 0.0;
    double   azimuth;
 
-   RoadMapGuiPoint position;
-
    int count;
    int strength;
-   RoadMapGuiPoint points[4];
 
 
    if (!satellite->elevation) return;
@@ -142,37 +142,46 @@ static void roadgps_screen_draw_satellite_position
 
    azimuth = satellite->azimuth * DEGRE2RADIAN;
 
-   position.x = RoadGpsFrame.centers[0].x + (short) (sin(azimuth) * scale);
-   position.y = RoadGpsFrame.centers[0].y - (short) (cos(azimuth) * scale);
+   satellite->position.x =
+      RoadGpsFrame.centers[0].x + (short) (sin(azimuth) * scale);
+   satellite->position.y =
+      RoadGpsFrame.centers[0].y - (short) (cos(azimuth) * scale);
 
    if (strength == 0) {
 
       roadgps_screen_set_rectangle
-         (position.x - RoadGpsFrame.label_offset_x - 2,
-          position.y - RoadGpsFrame.label_offset_y - 3,
+         (satellite->position.x - RoadGpsFrame.label_offset_x - 2,
+          satellite->position.y - RoadGpsFrame.label_offset_y - 3,
           RoadGpsFrame.label_width + 4,
           RoadGpsFrame.label_ascent + RoadGpsFrame.label_descent + 6,
-          points);
+          satellite->points);
    } else {
       roadgps_screen_set_rectangle
-         (position.x - (strength / 2),
-          position.y - (strength / 2),
+         (satellite->position.x - (strength / 2),
+          satellite->position.y - (strength / 2),
           strength,
           strength,
-          points);
+          satellite->points);
    }
    count = 4;
 
    if (strength > 0) {
       roadmap_canvas_select_pen (RoadGpsForeground);
-      roadmap_canvas_draw_multiple_polygons (1, &count, points, !!reverse);
+      roadmap_canvas_draw_multiple_polygons
+         (1, &count, satellite->points, !!reverse);
    }
+}
+
+
+static void roadgps_screen_draw_satellite_label
+               (RoadGpsObject *satellite, int reverse) {
+
+   int count = 4;
 
    roadmap_canvas_select_pen (reverse?RoadGpsEraser:RoadGpsForeground);
-   roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
 
    roadmap_canvas_draw_string
-      (&position, ROADMAP_CANVAS_CENTER, satellite->label);
+      (&satellite->position, ROADMAP_CANVAS_CENTER, satellite->label);
 }
 
 
@@ -257,6 +266,9 @@ static void roadgps_screen_draw (void) {
       }
    }
 
+   /* First show all the polygons (background of the satellites),
+    * then all the labels (foreground of the satellites).
+    */
    for (i = 0; i < RoadGpsSatelliteCount; ++i) {
 
       switch (RoadGpsSatellites[i].status) {
@@ -271,6 +283,27 @@ static void roadgps_screen_draw (void) {
 
          roadgps_screen_draw_satellite_position (RoadGpsSatellites+i, 1);
          roadgps_screen_draw_satellite_signal (i, 1);
+         break;
+
+      default:
+
+         break; /* Do not show. */
+
+      }
+   }
+
+   for (i = 0; i < RoadGpsSatelliteCount; ++i) {
+
+      switch (RoadGpsSatellites[i].status) {
+
+      case 'F':
+
+         roadgps_screen_draw_satellite_label (RoadGpsSatellites+i, 0);
+         break;
+
+      case 'A':
+
+         roadgps_screen_draw_satellite_label (RoadGpsSatellites+i, 1);
          break;
 
       default:
