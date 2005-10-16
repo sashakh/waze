@@ -98,11 +98,11 @@ void roadmap_canvas_get_text_extents (const char *text, int *width,
 void roadmap_canvas_select_pen (RoadMapPen pen)
 {
 	HPEN old;
-	
 	CurrentPen = pen;
-	
+
+
 	old = SelectObject(RoadMapDrawingBuffer, CreatePen(PS_SOLID,
-		CurrentPen->thinkness, CurrentPen->color));
+		CurrentPen->thinkness, CurrentPen->color));  
 	
 	if (OldHPen == NULL) OldHPen = old;
 	else DeleteObject(old);
@@ -267,27 +267,68 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
 {
 	int i;
 	int count_of_points;
+
 	POINT winpoints[1024];
+
+	HBRUSH oldBrush = SelectObject(RoadMapDrawingBuffer, 
+	                     CreateSolidBrush(CurrentPen->color));
 	
 	for (i = 0; i < count; ++i) {
+
+      RoadMapGuiPoint end_points[2];
+      int first = 1;
 		
 		count_of_points = *lines;
 		
+      if (count_of_points < 2) continue;
+
 		while (count_of_points > 1024) {
+
+         if (first) {
+            first = 0;
+            end_points[0] = *points;
+         }
 			roadmap_canvas_convert_points (winpoints, points, 1024);
 			Polyline(RoadMapDrawingBuffer, winpoints, 1024);
 			/* We shift by 1023 only, because we must link the lines. */
 			points += 1023;
 			count_of_points -= 1023;
 		}
-		
+
+      if (first) {
+         first = 0;
+         end_points[0] = *points;
+      }
+
+      end_points[1] = points[count_of_points - 1];
 		roadmap_canvas_convert_points (winpoints, points, count_of_points);
 		Polyline(RoadMapDrawingBuffer, winpoints, count_of_points);
+
+      if (CurrentPen->thinkness > 5) {
+
+         HPEN oldPen = SelectObject(RoadMapDrawingBuffer,
+            GetStockObject(NULL_PEN));
+
+         int radius = CurrentPen->thinkness / 2;
+
+         Ellipse(RoadMapDrawingBuffer,
+			   end_points[0].x - radius, end_points[0].y - radius,
+			   radius + end_points[0].x + 1,
+			   radius + end_points[0].y + 1);
+
+         Ellipse(RoadMapDrawingBuffer,
+			   end_points[1].x - radius, end_points[1].y - radius,
+			   radius + end_points[1].x + 1,
+			   radius + end_points[1].y + 1);
+
+         SelectObject(RoadMapDrawingBuffer, oldPen);
+	   }
 		
 		points += count_of_points;
 		lines += 1;
 	}
-	
+
+   DeleteObject(SelectObject(RoadMapDrawingBuffer, oldBrush));
 }
 
 
@@ -349,7 +390,8 @@ void roadmap_canvas_draw_multiple_circles (int count,
 		
 		int x = centers[i].x - r;
 		int y = centers[i].y - r;
-		Ellipse(RoadMapDrawingBuffer,
+
+      Ellipse(RoadMapDrawingBuffer,
 			x, y,
 			2 * r + x,
 			2 * r + y);
