@@ -991,8 +991,8 @@ void editor_street_distribute_range
       
       if (!line_length[i]) continue;
 
-      this_l_to = delta_left * line_length[i] / total_length + l_from;
-      this_r_to = delta_right * line_length[i] / total_length + r_from;
+      this_l_to = (int) (delta_left * line_length[i] / total_length + l_from);
+      this_r_to = (int) (delta_right * line_length[i] / total_length + r_from);
 
       if (this_l_to > l_to) this_l_to = l_to;
       if (this_r_to > r_to) this_r_to = r_to;
