@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -551,6 +552,20 @@ const char *roadmap_path_search_icon (const char *name) {
 
 int roadmap_path_is_full_path (const char *name) {
    return name[0] == '/';
+}
+
+
+int roadmap_path_is_directory (const char *name) {
+
+   struct stat file_attributes;
+
+   if (stat (name, &file_attributes) != 0) {
+      roadmap_log (ROADMAP_ERROR, "stat(%s) failed, error %d",
+                   name, errno);
+      return 0;
+   }
+
+   return S_ISDIR(file_attributes.st_mode);
 }
 
 

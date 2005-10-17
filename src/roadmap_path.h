@@ -134,6 +134,8 @@ char *roadmap_path_remove_extension (const char *name);
 
 int roadmap_path_is_full_path (const char *name);
 
+int roadmap_path_is_directory (const char *name);
+
 const char *roadmap_path_temporary (void);
 
 #endif // INCLUDE__ROADMAP_PATH__H
