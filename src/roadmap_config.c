@@ -75,20 +75,19 @@ struct RoadMapConfigItemRecord {
 struct RoadMapConfigRecord {
 
    char              *name;
-   int                required;
-   int                state; /* CLEAN, SHARED or DIRTY. */
+   char               required;
+   char               state; /* CLEAN, SHARED or DIRTY. */
+   unsigned short     count;
    RoadMapConfigItem *first_item;
-   RoadMapConfigItem *last_item;
 };
 
 
 static RoadMapConfig RoadMapConfigFiles[] = {
-   {"session",     0, ROADMAP_CONFIG_CLEAN, NULL, NULL},
-   {"preferences", 0, ROADMAP_CONFIG_CLEAN, NULL, NULL},
-   {"schema",      1, ROADMAP_CONFIG_CLEAN, NULL, NULL},
-   {NULL, 0, 0, NULL, NULL}
+   {"session",     0, ROADMAP_CONFIG_CLEAN, 0, NULL},
+   {"preferences", 0, ROADMAP_CONFIG_CLEAN, 0, NULL},
+   {"schema",      1, ROADMAP_CONFIG_CLEAN, 0, NULL},
+   {NULL, 0, 0, 0, NULL}
 };
-
 
 
 static RoadMapConfig *roadmap_config_search_file (const char *name) {
@@ -207,11 +206,8 @@ static RoadMapConfigItem *roadmap_config_new_item
         new_item->cached_valid = 0;
 
         new_item->next = file->first_item;
-
-        if (file->last_item == NULL) {
-            file->last_item = new_item;
-        }
         file->first_item = new_item;
+        file->count += 1;
     }
 
    descriptor->reference = new_item;
@@ -303,10 +299,21 @@ void roadmap_config_declare_color (const char *config,
 }
 
 
+static int roadmap_config_compare (const void *e1, const void *e2) {
+
+   RoadMapConfigItem **item1 = (RoadMapConfigItem **)e1;
+   RoadMapConfigItem **item2 = (RoadMapConfigItem **)e2;
+
+   return strcmp ((*item2)->category, (*item1)->category);
+}
+
 int roadmap_config_first (const char *config,
                           RoadMapConfigDescriptor *descriptor) {
 
+    int i;
     RoadMapConfig *file = roadmap_config_search_file(config);
+    RoadMapConfigItem *item;
+    RoadMapConfigItem **sorted;
 
 
     if (file == NULL || file->first_item == NULL) {
@@ -316,6 +323,32 @@ int roadmap_config_first (const char *config,
         descriptor->reference = NULL;
         return 0;
     }
+
+    /* Sort all the items before we show them. */
+
+    sorted = (RoadMapConfigItem **)
+       malloc (sizeof(RoadMapConfigItem *) * file->count);
+
+    for (i = 0, item = file->first_item; item != NULL; ++i, item = item->next) {
+       if (i >= file->count) {
+          roadmap_log (ROADMAP_FATAL, "invalid config item count");
+       }
+       sorted[i] = item;
+    }
+
+    qsort (sorted, file->count, sizeof(RoadMapConfigItem *),
+           roadmap_config_compare);
+
+    for (item = NULL, i = file->count -1; i >= 0; --i) {
+       sorted[i]->next = item;
+       item = sorted[i];
+    }
+    file->first_item = sorted[0];
+
+    free (sorted);
+
+
+    /* Now we can start scanning the list. */
 
     descriptor->category = file->first_item->category;
     descriptor->name = file->first_item->name;
@@ -435,7 +468,7 @@ static char *roadmap_config_skip_spaces (char *p) {
 
 
 static int roadmap_config_load
-               (const char *path, RoadMapConfig *config, int intended_state) {
+               (const char *path, RoadMapConfig *config, char intended_state) {
 
    char *p;
    FILE *file;
