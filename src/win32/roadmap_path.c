@@ -474,8 +474,11 @@ int roadmap_path_is_full_path (const char *name)
    return name[0] == '\\';
 }
 
+int roadmap_path_is_directory (const char *name) {
+   return 0; /* FIXME: win32 implementation needed here. */
+}
 
 const char *roadmap_path_temporary (void) {
-
    return roadmap_path_user();
 }
+
