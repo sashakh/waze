@@ -35,8 +35,8 @@
 static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
                         ROADMAP_CONFIG_ITEM("Geometry", "Main");
 
-static RoadMapConfigDescriptor RoadMapConfigGeometryUnit =
-                        ROADMAP_CONFIG_ITEM("Geometry", "Unit");
+static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
+                        ROADMAP_CONFIG_ITEM("General", "Unit");
 
 static RoadMapConfigDescriptor RoadMapConfigAddressPosition =
                         ROADMAP_CONFIG_ITEM("Address", "Position");
@@ -153,13 +153,13 @@ static void roadmap_option_set_location (const char *value) {
 
 static void roadmap_option_set_metric (const char *value) {
 
-    roadmap_config_set (&RoadMapConfigGeometryUnit, "metric");
+    roadmap_config_set (&RoadMapConfigGeneralUnit, "metric");
 }
 
 
 static void roadmap_option_set_imperial (const char *value) {
 
-    roadmap_config_set (&RoadMapConfigGeometryUnit, "imperial");
+    roadmap_config_set (&RoadMapConfigGeneralUnit, "imperial");
 }
 
 
