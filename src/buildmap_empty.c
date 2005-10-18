@@ -48,13 +48,13 @@ static int decode_points (const char *str, int *points) {
    for (j=0; j<4; j++) {
       int i = 0;
       
-      while (*itr && !isdigit(*itr)) itr++;
+      while (*itr && !isdigit(*itr) && (*itr != '-')) itr++;
 
       if (!*itr) {
          buildmap_fatal (0, "Can't decode parameter: '%s'", str);
       }
    
-      while (*itr && (isdigit(*itr) || (*itr == '.'))) {
+      while (*itr && (isdigit(*itr) || (*itr == '.') || (*itr == '-'))) {
          num[i++] = *itr;
          
          if (i==sizeof(num)) {
