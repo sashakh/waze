@@ -760,7 +760,11 @@ extern "C" {
 	void roadmap_main_set_status (const char *text) {}
 	
 	void roadmap_main_flush (void) {}
-   int roadmap_main_flush_synchronous (int deadline) {}
+
+   int roadmap_main_flush_synchronous (int deadline)
+   {
+      return 1; /* Nothing to do. */
+   }
 	
 	
 	void roadmap_main_exit (void)
