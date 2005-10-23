@@ -1,5 +1,7 @@
 # Syntax of the sprite description:
 # S <name>:              start a sprite.
+# A <name>:              defines this sprite as an alias of another sprite
+#                        (an alias cannot have drawing directives).
 # F <color> <thickness>: start a new color plane.
 # L <x>,<y> ...:         defines a line.
 # P <x>,<y> ...:         defines a (filled) polygon.
@@ -7,6 +9,53 @@
 # D <x>,<y> <radius>:    defines a disk (i.e. a filled circle).
 # the coordinates x and y are relative to the sprite's hot point.
 #
+
+# We use aliases to separate what sprites represent from the actual drawing.
+# This way it should be easier to change the representation of a specific
+# object.
+
+S GPS
+A BlueDart
+
+S Friend
+A GreenTriangle
+
+S Position
+A CrossHair
+
+S Direction
+A RedArrow
+
+S Destination
+A RedDot
+
+S Waypoint
+A GreenDot
+
+S Start
+A GreenTriangle
+
+S Highlight
+A YellowDot
+
+S Kismet
+A RedDisk
+
+S Anonymous
+A GreenDot
+
+S Track
+A PurpleDot
+
+S RouteMarker
+A Circle
+
+S Departure
+A DottedSquare
+
+# The actual drawing sprites:
+
+S BlueDart
 S GPS
 F white 2
 L 0,0 7,14 0,8 -7,14
@@ -14,13 +63,13 @@ F blue 1
 P 0,1 6,13 0,10 -6,13
 L 8,11 0,-3 -8,11
 
-S Friend
+S GreenTriangle
 F white 2
 L 0,0 7,14 0,8 -7,14
 F DarkGreen 2
 L 0,1 6,13 0,10 -6,13 0,1
 
-S Position
+S CrossHair
 F white 3
 L 0,-10 0,-20
 L 0,10 0,20
@@ -34,29 +83,58 @@ L 10,0 20,0
 L -10,0 -20,0
 C 0,0 15
 
-S Direction
+S RedArrow
 F red 1
 P -5,-20 0,-35 5,-20
 F black 1
 L -5,-20 0,-35 5,-20 -5,-20
 
-S Destination
+S RedDot
 F red 1
 D 0,0 5
 F black 1
 C 0,0 5
 
-S Waypoint
+S GreenDot
 F green 1
 D 0,0 5
 F black 1
 C 0,0 5
 
-S Highlight
+S PurpleDot
+F purple 2
+L -4,0 4,0
+F white 2
+F purple 2
+L 0,-4 0,4
+
+S GreenTriangle
+F green 2
+P 0,-9 -8,4 8,4 0,-9
+F black 1
+L 0,-9 -8,4 8,4 0,-9
+
+S YellowDot
 F yellow 1
 D 0,0 5
 F black 1
 C 0,0 5
+
+S RedDisk
+F red 1
+D 0,0 10
+
+S Circle
+F black 1
+C 0,0 7
+
+S DottedSquare
+F black 1
+L 9,9 9,-9 -9,-9 -9,9 9,9
+C 0,0 1
+
+
+# These are very specific sprites we do not expect to change much.
 
 S Compass
 F white 1
@@ -78,8 +156,4 @@ F red 3
 C 0,0 8
 P -7,-6 -15,4 1,4
 P 7,6 15,-4 -1,-4
-
-S Kismet
-F red 1
-D 0,0 10
 
