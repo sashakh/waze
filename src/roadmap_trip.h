@@ -30,9 +30,9 @@
 
 
 void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
+void  roadmap_trip_set_waypoint (const char *name, RoadMapPosition *position);
 
-void  roadmap_trip_set_mobile (const char *name,
-                               const RoadMapGpsPosition *gps_position);
+void  roadmap_trip_set_gps (const RoadMapGpsPosition *gps_position);
 
 void  roadmap_trip_copy_focus (const char *name);
 
@@ -43,6 +43,7 @@ void  roadmap_trip_remove_point (const char *name);
 
 void  roadmap_trip_restore_focus (void);
 void  roadmap_trip_set_focus (const char *name);
+void  roadmap_trip_set_focus_waypoint (const char *name);
 
 int   roadmap_trip_is_focus_changed  (void);
 int   roadmap_trip_is_focus_moved    (void);
@@ -58,6 +59,7 @@ void  roadmap_trip_start   (void);
 void  roadmap_trip_resume  (void);
 void  roadmap_trip_stop    (void);
 void  roadmap_trip_reverse (void);
+void  roadmap_trip_return  (void);
 
 void  roadmap_trip_format_messages (void);
 void  roadmap_trip_display (void);
@@ -72,9 +74,11 @@ const char *roadmap_trip_current (void);
  * open a dialog to let the user enter one), or an explicit name.
  */
 int   roadmap_trip_load (const char *name, int silent);
-void  roadmap_trip_save (const char *name);
+void  roadmap_trip_save (const char *name, int force);
 
 void roadmap_trip_save_screenshot (void);
+
+void roadmap_trip_route_manage_dialog (void);
 
 #endif // INCLUDE__ROADMAP_TRIP__H
 
