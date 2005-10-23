@@ -300,7 +300,7 @@ static void roadmap_trip_dialog_cancel (const char *name, void *data) {
 static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode) {
     
     if (mode[0] == 'w') {
-        roadmap_trip_save (filename);
+        roadmap_trip_save (filename, 1);
     } else {
         roadmap_trip_load (filename, 0);
     }
@@ -424,6 +424,10 @@ static void roadmap_trip_remove_dialog (void) {
     }
 
     roadmap_trip_remove_dialog_populate (count);
+}
+
+
+void roadmap_trip_route_manage_dialog (void) {
 }
 
 
@@ -582,14 +586,13 @@ void roadmap_trip_set_selection_as (const char *name) {
 }
 
 
-void roadmap_trip_set_mobile (const char *name,
-                              const RoadMapGpsPosition *gps_position) {
+void roadmap_trip_set_gps (const RoadMapGpsPosition *gps_position) {
 
     RoadMapPosition position;
 
     roadmap_adjust_position (gps_position, &position);
 
-    roadmap_trip_update (name, &position, gps_position, "Mobile");
+    roadmap_trip_update ("GPS", &position, gps_position, "Mobile");
 }
 
 
@@ -654,6 +657,12 @@ void roadmap_trip_remove_point (const char *name) {
 }
 
 
+void roadmap_trip_set_waypoint (const char *name, RoadMapPosition * position) {
+
+   roadmap_trip_set_point (name, position);
+}
+
+
 void  roadmap_trip_restore_focus (void) {
 
     int i;
@@ -712,6 +721,11 @@ void roadmap_trip_set_focus (const char *name) {
     }
 
     roadmap_trip_set_point_focus (point);
+}
+
+void roadmap_trip_set_focus_waypoint (const char *name) {
+
+   roadmap_trip_set_focus (name);
 }
 
 int roadmap_trip_is_focus_changed (void) {
@@ -822,6 +836,12 @@ void roadmap_trip_reverse (void) {
           RoadMapTripDestination = NULL;
        }
     }
+}
+
+
+void roadmap_trip_return (void) {
+   
+   roadmap_trip_reverse();
 }
 
 
@@ -1098,7 +1118,7 @@ static void roadmap_trip_printf (FILE *file, const RoadMapTripPoint *point) {
          point->map.latitude);
 }
 
-void roadmap_trip_save (const char *name) {
+void roadmap_trip_save (const char *name, int force) {
     
     RoadMapTripPoint *point;
 
