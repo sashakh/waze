@@ -38,8 +38,27 @@
 #include "roadmap_input.h"
 
 
+static char *roadmap_input_end_of_line (RoadMapInputContext *context,
+                                        char *from) {
+
+   char *data_end = context->data + context->cursor;
+
+   for (; from < data_end; ++from) {
+
+      if (*from < ' ') {
+
+         if (*from == '\n' || *from == '\r') {
+            return from;
+         }
+      }
+   }
+
+   return NULL;
+}
+
+
 static void roadmap_input_shift_to_next_line (RoadMapInputContext *context,
-                                             char *from) {
+                                              char *from) {
 
    char *data_end = context->data + context->cursor;
 
@@ -92,6 +111,13 @@ int roadmap_input (RoadMapInputContext *context) {
 
    /* Receive more data if available. */
 
+   if (context->cursor >= (int)sizeof(context->data) - 1) {
+      /* This buffer is full. As a stop-gap measure, let
+       * empty it now.
+       */
+      context->cursor = 0;
+   }
+
    if (context->cursor < (int)sizeof(context->data) - 1) {
 
       received =
@@ -126,25 +152,12 @@ int roadmap_input (RoadMapInputContext *context) {
 
    while (line_start < data_end) {
 
-      char *new_line;
-      char *carriage_return;
       char *line_end;
 
 
       /* Find the first end of line character coming after this line. */
 
-      new_line = strchr (line_start, '\n');
-      carriage_return = strchr (line_start, '\r');
-
-      if (new_line == NULL) {
-         line_end = carriage_return;
-      } else if (carriage_return == NULL) {
-         line_end = new_line;
-      } else if (new_line < carriage_return) {
-         line_end = new_line;
-      } else {
-         line_end = carriage_return;
-      }
+      line_end = roadmap_input_end_of_line (context, line_start);
 
       if (line_end == NULL) {
 
