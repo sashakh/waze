@@ -89,8 +89,11 @@ static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
 static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
+static RoadMapConfigDescriptor RoadMapConfigDisplayRefresh =
+                        ROADMAP_CONFIG_ITEM("Display", "Refresh Period");
 
-#define ROADMAP_REFRESH_INTERVAL 200
+
+#define ROADMAP_DEFAULT_REFRESH_INTERVAL 200
 
 
 /* The menu and toolbar callbacks: --------------------------------------- */
@@ -677,7 +680,7 @@ static void roadmap_start_periodic (void) {
 
    if (RoadMapStartGpsRefresh) {
 
-      if (roadmap_main_flush_synchronous (ROADMAP_REFRESH_INTERVAL)) {
+      if (roadmap_main_flush_synchronous (ROADMAP_DEFAULT_REFRESH_INTERVAL)) {
 
          RoadMapStartGpsRefresh = 0;
 
@@ -825,6 +828,8 @@ void roadmap_start_unfreeze (void) {
 
 void roadmap_start (int argc, char **argv) {
 
+   int period;
+
 #ifdef ROADMAP_DEBUG_HEAP
    /* Do not forget to set the trace file using the env. variable MALLOC_TRACE,
     * then use the mtrace tool to analyze the output.
@@ -839,6 +844,9 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigDisplayRefresh, "");
 
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
@@ -898,8 +906,12 @@ void roadmap_start (int argc, char **argv) {
    }
 
    roadmap_locator_declare (&roadmap_start_no_download);
-   roadmap_main_set_periodic
-      (ROADMAP_REFRESH_INTERVAL, roadmap_start_periodic);
+
+   period = atoi(roadmap_config_get(&RoadMapConfigDisplayRefresh));
+   if (period <= 10) {
+      period = ROADMAP_DEFAULT_REFRESH_INTERVAL;
+   }
+   roadmap_main_set_periodic (period, roadmap_start_periodic);
 }
 
 
