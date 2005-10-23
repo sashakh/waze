@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -539,6 +540,33 @@ void roadmap_main_flush (void) {
    while (gtk_events_pending ()) {
       gtk_main_iteration ();
    }
+}
+
+
+int roadmap_main_flush_synchronous (int deadline) {
+
+   long start_time, duration;
+   struct timeval now;
+
+   gettimeofday(&now, 0);
+   start_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
+
+   while (gtk_events_pending ()) {
+      gtk_main_iteration ();
+   }
+   gdk_flush();
+
+   gettimeofday(&now, 0);
+   duration = ((now.tv_sec % 100000) * 1000 + now.tv_usec / 1000) - start_time;
+
+   if (duration > deadline) {
+
+      roadmap_log (ROADMAP_DEBUG, "processing flush took %d", duration);
+
+      return 0; /* Busy. */
+   }
+
+   return 1; /* Not so busy. */
 }
 
 

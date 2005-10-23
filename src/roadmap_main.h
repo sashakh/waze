@@ -71,6 +71,7 @@ void roadmap_main_set_status (const char *text);
 void roadmap_main_toggle_full_screen (void);
 
 void roadmap_main_flush (void);
+int  roadmap_main_flush_synchronous (int deadline);
 
 void roadmap_main_exit (void);
 

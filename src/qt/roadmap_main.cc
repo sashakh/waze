@@ -224,6 +224,14 @@ void roadmap_main_flush (void) {
 }
 
 
+int roadmap_main_flush_synchronous (int deadline) {
+
+   /* TBD: synchronous graphic update. */
+   roadmap_main_flush();
+   return 1;
+}
+
+
 void roadmap_main_exit(void) {
 
 	roadmap_start_exit();
