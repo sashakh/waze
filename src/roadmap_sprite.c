@@ -236,7 +236,6 @@ static RoadMapSprite roadmap_sprite_new
    memset (sprite, 0, sizeof(*sprite));
 
    sprite->name = roadmap_sprite_string (argv[1], argl[1]);
-   sprite->alias_name = NULL;
 
    sprite->drawing.planes.first.pen = roadmap_canvas_create_pen ("Black");
 
@@ -438,6 +437,7 @@ static void roadmap_sprite_load (const char *data, int size) {
 static void roadmap_sprite_resolve_aliases (void) {
 
    RoadMapSprite sprite;
+   RoadMapSprite cursor;
 
    /* First retrieve the sprite referenced in each alias. */
 
@@ -445,14 +445,26 @@ static void roadmap_sprite_resolve_aliases (void) {
 
       if (sprite->alias_name == NULL) continue;
 
-      sprite->drawing.alias = roadmap_sprite_search (sprite->alias_name);
+      /* We don't use roadmap_sprite_search because we don't want
+       * to follow the alias link (not fully initialized yet).
+       */
+      for (cursor = RoadMapSpriteList; cursor != NULL; cursor = cursor->next) {
+         if (strcasecmp(sprite->alias_name, cursor->name) == 0) break;
+      }
 
-      if (sprite->drawing.alias == RoadMapSpriteDefault) {
+      if (cursor == sprite) {
+         roadmap_log (ROADMAP_ERROR,
+               "self alias reference for sprite %s", sprite->name);
+         cursor = RoadMapSpriteDefault; /* Break the death spiral. */
+      }
+      else if (cursor == NULL) {
          roadmap_log (ROADMAP_ERROR,
                       "cannot resolve alias %s for sprite %s",
                       sprite->alias_name,
                       sprite->name);
+         cursor = RoadMapSpriteDefault;
       }
+      sprite->drawing.alias = cursor;
    }
 
    /* Now resolve the multiple levels of aliases. */
@@ -462,6 +474,14 @@ static void roadmap_sprite_resolve_aliases (void) {
       if (sprite->alias_name == NULL) continue;
 
       while (sprite->drawing.alias->alias_name != NULL) {
+
+         if (sprite->drawing.alias == sprite) {
+            roadmap_log (ROADMAP_ERROR,
+                         "circular alias link for sprite %s", sprite->name);
+            sprite->drawing.alias = RoadMapSpriteDefault;
+            break;
+         }
+
          sprite->drawing.alias = sprite->drawing.alias->drawing.alias;
       }
    }
