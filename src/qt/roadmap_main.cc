@@ -27,6 +27,7 @@
 extern "C" {
 
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include "roadmap.h"
 #include "roadmap_start.h"
@@ -226,8 +227,29 @@ void roadmap_main_flush (void) {
 
 int roadmap_main_flush_synchronous (int deadline) {
 
-   /* TBD: synchronous graphic update. */
-   roadmap_main_flush();
+   if (app != NULL) {
+
+      long start_time, end_time, duration;
+      struct timeval now;
+
+      gettimeofday(&now, 0);
+      start_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
+
+      app->processEvents ();
+      app->syncX();
+
+      gettimeofday(&now, 0);
+      end_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
+
+      duration = end_time - start_time;
+
+      if (duration > deadline) {
+
+         roadmap_log (ROADMAP_DEBUG, "processing flush took %d", duration);
+
+         return 0; /* Busy. */
+      }
+   }
    return 1;
 }
 
