@@ -90,6 +90,9 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
 
+#define ROADMAP_REFRESH_INTERVAL 200
+
+
 /* The menu and toolbar callbacks: --------------------------------------- */
 
 static void roadmap_start_periodic (void);
@@ -109,6 +112,16 @@ static void roadmap_start_console (void) {
 
 static void roadmap_start_purge (void) {
    roadmap_history_purge (10);
+}
+
+static void roadmap_start_show_start (void) {
+    roadmap_trip_set_focus ("Start");
+    roadmap_screen_refresh ();
+}
+
+static void roadmap_start_show_departure (void) {
+    roadmap_trip_set_focus ("Departure");
+    roadmap_screen_refresh ();
 }
 
 static void roadmap_start_show_destination (void) {
@@ -161,12 +174,12 @@ static void roadmap_start_open_trip (void) {
 
 static void roadmap_start_save_trip (void) {
     
-    roadmap_trip_save (roadmap_trip_current());
+    roadmap_trip_save (roadmap_trip_current(), 1);
 }
 
 static void roadmap_start_save_trip_as (void) {
     
-    roadmap_trip_save (NULL);
+    roadmap_trip_save (NULL, 1);
 }
 
 static void roadmap_start_trip (void) {
@@ -182,6 +195,11 @@ static void roadmap_start_trip_resume (void) {
 static void roadmap_start_trip_reverse (void) {
     
     roadmap_trip_reverse ();
+}
+
+static void roadmap_start_trip_return (void) {
+
+   roadmap_trip_return ();
 }
 
 static void roadmap_start_set_destination (void) {
@@ -333,6 +351,12 @@ static RoadMapAction RoadMapStartActions[] = {
    {"destination", "Destination", "D", NULL,
       "Show the current destination point", roadmap_start_show_destination},
 
+   {"startpoint", "Start", "Start", NULL,
+      "Show the current route starting point", roadmap_start_show_start},
+
+   {"departure", "Departure", "Dep", NULL,
+      "Show the trips' departure point", roadmap_start_show_departure},
+
    {"gps", "GPS Position", "GPS", "G",
       "Center the map on the current GPS position", roadmap_start_show_gps},
 
@@ -374,16 +398,22 @@ static RoadMapAction RoadMapStartActions[] = {
       "Stop tracking the current trip", roadmap_trip_stop},
 
    {"resumetrip", "Resume Trip", "Resume", NULL,
-      "Resume the trip (keep the existing departure point)",
-      roadmap_start_trip_resume},
+      "Resume the trip", roadmap_start_trip_resume},
 
    {"returntrip", "Return Trip", "Return", NULL,
       "Start the trip back to the departure point",
-      roadmap_start_trip_reverse},
+      roadmap_start_trip_return},
+
+   {"reversetrip", "Reverse Trip", "Reverse", NULL,
+      "Reverse the route and resume the trip",
+       roadmap_start_trip_reverse},
 
    {"setasdestination", "Set as Destination", NULL, NULL,
       "Set the selected street block as the trip's destination",
       roadmap_start_set_destination},
+
+   {"manageroutes", "Manage Routes...", "Manage", NULL,
+      "Select or delete routes", roadmap_trip_route_manage_dialog},
 
    {"addaswaypoint", "Add as Waypoint", "Waypoint", "W",
       "Set the selected street block as waypoint", roadmap_start_set_waypoint},
@@ -550,6 +580,7 @@ static char const *RoadMapStartKeyBinding[] = {
 
    /* These binding are for regular keyboards (case unsensitive !): */
    "+"               ROADMAP_MAPPED_TO "zoomin",
+   "="               ROADMAP_MAPPED_TO "zoomin",
    "-"               ROADMAP_MAPPED_TO "zoomout",
    "A"               ROADMAP_MAPPED_TO "address",
    "B"               ROADMAP_MAPPED_TO "returntrip",
@@ -615,7 +646,7 @@ static void roadmap_gps_update
 
       roadmap_object_move (RoadMapStartGpsID, gps_position);
 
-      roadmap_trip_set_mobile ("GPS", gps_position);
+      roadmap_trip_set_gps (gps_position);
       roadmap_log_reset_stack ();
 
       roadmap_navigate_locate (gps_position);
@@ -646,10 +677,13 @@ static void roadmap_start_periodic (void) {
 
    if (RoadMapStartGpsRefresh) {
 
-      RoadMapStartGpsRefresh = 0;
+      if (roadmap_main_flush_synchronous (ROADMAP_REFRESH_INTERVAL)) {
 
-      roadmap_screen_refresh();
-      roadmap_log_reset_stack ();
+         RoadMapStartGpsRefresh = 0;
+
+         roadmap_screen_refresh();
+         roadmap_log_reset_stack ();
+      }
    }
 }
 
@@ -858,12 +892,14 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_trip_restore_focus ();
 
-   if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
+   if ((roadmap_trip_current() == NULL) ||
+       (! roadmap_trip_load (roadmap_trip_current(), 1))) {
       roadmap_start_create_trip ();
    }
 
    roadmap_locator_declare (&roadmap_start_no_download);
-   roadmap_main_set_periodic (200, roadmap_start_periodic);
+   roadmap_main_set_periodic
+      (ROADMAP_REFRESH_INTERVAL, roadmap_start_periodic);
 }
 
 
