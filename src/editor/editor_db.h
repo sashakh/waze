@@ -27,10 +27,10 @@
 #include "../roadmap_types.h"
 #include "../roadmap_dbread.h"
 
-#define EDITOR_MAX_POINTS 2000
-#define EDITOR_MAX_SHAPES 10000
+#define EDITOR_MAX_POINTS 10000
+#define EDITOR_MAX_SHAPES 100000
 #define EDITOR_MAX_STREETS 500
-#define EDITOR_MAX_LINES 1000
+#define EDITOR_MAX_LINES 5000
 #define EDITOR_MAX_LINES_DEL 1000
 
 #define DB_DEFAULT_INITIAL_BLOCKS 1000
