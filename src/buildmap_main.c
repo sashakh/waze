@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <popt.h>
 
+#include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_hash.h"
 #include "roadmap_path.h"
@@ -64,7 +65,11 @@ static struct poptOption BuildMapTigerOptions [] = {
 
    {"format", 'f',
       POPT_ARG_STRING, &BuildMapFormat, 0,
+#ifdef ROADMAP_USE_SHAPEFILES
       "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW"},
+#else
+      "Tiger file format (ShapeFile was not enabled)", "2000|2002"},
+#endif
 
    POPT_TABLEEND
 };
@@ -123,6 +128,7 @@ static void  buildmap_county_select_format (poptContext decoder) {
 
       buildmap_tiger_set_format (2000);
 
+#ifdef ROADMAP_USE_SHAPEFILES
    } else if (strcmp (BuildMapFormat, "SHAPE") == 0) {
 
       BuildMapFormatFamily = BUILDMAP_FORMAT_SHAPE;
@@ -130,6 +136,7 @@ static void  buildmap_county_select_format (poptContext decoder) {
    } else if (strcmp (BuildMapFormat, "DCW") == 0) {
 
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
+#endif
          
    } else {
       fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
@@ -218,6 +225,7 @@ static void buildmap_county_process (const char *source,
          buildmap_tiger_process (source, verbose, canals, rivers);
          break;
 
+#ifdef ROADMAP_USE_SHAPEFILES
       case BUILDMAP_FORMAT_SHAPE:
          buildmap_shapefile_process (source, verbose, canals, rivers);
          break;
@@ -225,6 +233,11 @@ static void buildmap_county_process (const char *source,
       case BUILDMAP_FORMAT_DCW:
          buildmap_shapefile_dcw_process (source, verbose, canals, rivers);
          break;
+#endif
+
+      default:
+         roadmap_log (ROADMAP_ERROR, "unsupported format");
+         return;
    }
 
    buildmap_county_sort();
