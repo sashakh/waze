@@ -1,4 +1,4 @@
-roadmap (1.0.8-0.2) unstable; urgency=low
+roadmap (1.0.12-0.1) UNRELEASED; urgency=low
 
   * Initial Release. (Closes: #276135)
   * Selected the Gtk version, as this is the version actively
