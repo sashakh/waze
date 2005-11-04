@@ -10,6 +10,8 @@ ICONS=$(ICONSRC:.xpm=.png)
 
 CONVERT=convert
 
+.PHONY: all install uninstall icons clean
+
 all: icons
 
 install: $(ICONS)
@@ -22,9 +24,7 @@ uninstall:
 icons: $(ICONS)
 	rm -f temp.png
 
-clean: cleanone
-
-cleanone:
+clean:
 	$(RM) $(ICONS)
 	# Clean up CVS backup files as well.
 	$(RM) .#*

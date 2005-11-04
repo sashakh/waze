@@ -25,15 +25,15 @@ OSLIBOBJS=$(OSLIBSRCS:.c=.o)
 
 # --- Conventional targets ----------------------------------------
 
+.PHONY: all build runtime clean install uninstall
+
 all: runtime
 
 build:
 
 runtime: libosroadmap.a
 
-clean: cleanone
-
-cleanone:
+clean:
 	rm -f *.o *.a *.da
 
 install:

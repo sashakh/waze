@@ -75,28 +75,21 @@ RUNTIME=qtroadmap qtroadgps
 
 # --- Conventional targets ----------------------------------------
 
+.PHONY: all runtime clean strip install install-ipkg uninstall
+
 all: runtime
 
-others:
-	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) runtime
-	$(MAKE) -C ../unix CFLAGS="$(STDCFLAGS) -I.." LDFLAGS=$(LDFLAGS) all
+runtime: $(RUNTIME)
 
-build:
-	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" LDFLAGS=$(LDFLAGS) build
-
-runtime: others $(RUNTIME)
-
-clean: cleanone
-	$(MAKE) -C .. cleanone
-	$(MAKE) -C .. -C unix cleanone
-
-cleanone:
+clean:
 	rm -f *.o *.a *.da $(RUNTIME) moc_qt_*.cc
 
-install: all
-	$(MAKE) -C .. install INSTALLDIR=$(INSTALLDIR)
+strip:
 	$(STRIP) $(RUNTIME)
+
+install: all strip
 	mkdir -p $(DESTDIR)$(bindir)
+	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	install $(RUNTIME) $(DESTDIR)$(bindir)/
 	ln -s qtroadmap $(DESTDIR)$(bindir)/roadmap
 	ln -s qtroadgps $(DESTDIR)$(bindir)/roadgps
@@ -114,7 +107,6 @@ install-ipkg: install
 
 uninstall:
 	cd $(bindir) && rm -f $(RUNTIME) roadmap roadgps
-	$(MAKE) -C .. uninstall
 
 
 # --- The real targets --------------------------------------------

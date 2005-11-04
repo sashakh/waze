@@ -46,26 +46,20 @@ RUNTIME=gtkroadgps gtkroadmap
 
 # --- Conventional targets -------------------------------------------------
 
+.PHONY: all runtime clean strip install uninstall strip
+
 all: runtime
 
-others:
-	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" runtime
-	$(MAKE) -C .. -C unix CFLAGS="$(STDCFLAGS) -I.." runtime
+runtime: $(RUNTIME)
 
-build:
-	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" build
-
-runtime: others $(RUNTIME)
-
-clean: cleanone
-	$(MAKE) -C .. cleanone
-	$(MAKE) -C .. -C unix cleanone
-
-cleanone:
+clean:
 	rm -f *.o *.a *.da $(RUNTIME)
 
-install: all
-	$(MAKE) -C .. install
+strip:
+	$(STRIP) $(RUNTIME)
+
+install: all strip
+	mkdir -p $(DESTDIR)$(bindir)
 	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
 	install $(RUNTIME) $(DESTDIR)$(bindir)
 	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
@@ -73,7 +67,6 @@ install: all
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
-	$(MAKE) -C .. uninstall
 
 # --- The real targets --------------------------------------------
 

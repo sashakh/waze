@@ -223,29 +223,55 @@ TOOLS=sunrise $(SQLTOOLS)
 
 # --- Conventional targets ----------------------------------------
 
+.PHONY: all gtk gtk2 qt rebuild build everything clean strip install uninstall
+
 all: everything
 
+gtk:
+	$(MAKE) DESKTOP=GTK
+
+gtk2:
+	$(MAKE) DESKTOP=GTK2
+
+qt:
+	$(MAKE) DESKTOP=QT
+
+rebuild: clean everything
+
+everything: runtime build $(TOOLS) icons
+
 runtime: $(RUNTIME) $(DRIVERS)
+	for module in $(RDMODULES) ; \
+	do \
+		if [ -d $$module ] ; then \
+			$(MAKE) -C $$module STDCFLAGS="$(CFLAGS)" runtime || exit 1; \
+		fi ; \
+	done
 
 build: $(BUILD)
 
 strip:
 	strip -s $(RUNTIME)
 	strip -s $(BUILD)
-
-clean: cleanone
-	for module in icons $(RDMODULES) ; \
+	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module cleanone || exit 1; \
+			$(MAKE) -C $$module strip || exit 1; \
 		fi ; \
 	done
-	if [ -d unix ] ; then $(MAKE) -C unix cleanone ; fi
 
-cleanone:
+clean:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
 	# Clean up CVS backup files as well.
 	$(RM) .#*
+	for module in icons $(RDMODULES) ; \
+	do \
+		if [ -d $$module ] ; then \
+			$(MAKE) -C $$module clean || exit 1; \
+		fi ; \
+	done
+	if [ -d unix ] ; then $(MAKE) -C unix clean ; fi
+
 
 install: everything
 	mkdir -p $(DESTDIR)$(pkgmapsdir)
@@ -267,6 +293,12 @@ install: everything
 	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
 	mkdir -p $(DESTDIR)$(man1dir)
 	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
+	for module in $(RDMODULES) ; \
+	do \
+		if [ -d $$module ] ; then \
+			$(MAKE) -C $$module install || exit 1; \
+		fi ; \
+	done
 
 installdoc: webdoc
 	copy ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
@@ -282,26 +314,15 @@ uninstall:
 	cd $(DESTDIR)$(ICONDIR) && rm -f roadmap*.png
 	cd $(DESTDIR)$(desktopdir) && rm -f roadmap.desktop
 	cd $(DESTDIR)$(man1dir) && rm -f roadgps.1 roadmap.1
-
-everything: modules runtime build $(TOOLS)
-
-modules:
-	for module in icons $(RDMODULES) ; \
+	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module STDCFLAGS="$(CFLAGS)" all || exit 1; \
+			$(MAKE) -C $$module uninstall || exit 1; \
 		fi ; \
 	done
 
-cleanall:
-	for module in icons $(RDMODULES) ; \
-	do \
-		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module clean ; \
-		fi ; \
-	done
-
-rebuild: cleanall everything
+icons:
+	$(MAKE) -C icons STDCFLAGS="$(CFLAGS)" all
 
 sunrise: roadmap_sunrise.c
 	$(CC) -g -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
