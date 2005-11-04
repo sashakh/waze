@@ -116,6 +116,7 @@ int roadmap_input (RoadMapInputContext *context) {
        * empty it now.
        */
       context->cursor = 0;
+      context->data[0] = 0;
    }
 
    if (context->cursor < (int)sizeof(context->data) - 1) {
@@ -132,10 +133,14 @@ int roadmap_input (RoadMapInputContext *context) {
          return -1;
 
       } else {
+
+         context->data[context->cursor + received] = 0;
+         roadmap_log (ROADMAP_DEBUG,
+                      "received: '%s'", context->data + context->cursor);
+
          context->cursor += received;
       }
    }
-   context->data[context->cursor] = 0;
 
 
    /* Remove the leading end of line characters, if any.
@@ -165,6 +170,7 @@ int roadmap_input (RoadMapInputContext *context) {
           * to the beginning of the buffer and then stop.
           */
          roadmap_input_shift_to_next_line (context, line_start);
+         roadmap_log (ROADMAP_DEBUG, "data left: '%s'", context->data);
          return result;
       }
 
@@ -172,6 +178,8 @@ int roadmap_input (RoadMapInputContext *context) {
       /* Process this line. */
 
       *line_end = 0; /* Separate this line from the next. */
+
+      roadmap_log (ROADMAP_DEBUG, "processing: '%s'", line_start);
 
       if (context->logger != NULL) {
          context->logger (line_start);
@@ -188,6 +196,9 @@ int roadmap_input (RoadMapInputContext *context) {
 
 
    context->cursor = 0; /* The buffer is now empty. */
+   context->data[0] = 0;
+
+   roadmap_log (ROADMAP_DEBUG, "buffer empty");
    return result;
 }
 
