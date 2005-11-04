@@ -7,8 +7,6 @@ bindir=$(INSTALLDIR)/bin
 
 # --- Tool specific options ------------------------------------------------
 
-RANLIB=ranlib
-
 GUICFLAGS=`gtk-config --cflags`
 GUILDFLAGS=`gtk-config --libs`
 
@@ -56,7 +54,7 @@ clean:
 	rm -f *.o *.a *.da $(RUNTIME)
 
 strip:
-	$(STRIP) $(RUNTIME)
+	$(STRIP) -s $(RUNTIME)
 
 install: all strip
 	mkdir -p $(DESTDIR)$(bindir)

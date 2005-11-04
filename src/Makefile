@@ -19,6 +19,7 @@ INSTALL_DATA = install -m644
 # --- Tool specific options ------------------------------------------------
 
 RANLIB = ranlib
+STRIP = strip
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
 
@@ -244,19 +245,19 @@ runtime: $(RUNTIME) $(DRIVERS)
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module STDCFLAGS="$(CFLAGS)" runtime || exit 1; \
+			$(MAKE) -C $$module RANLIB=$(RANLIB) STDCFLAGS="$(CFLAGS)" runtime || exit 1; \
 		fi ; \
 	done
 
 build: $(BUILD)
 
 strip:
-	strip -s $(RUNTIME)
-	strip -s $(BUILD)
+	$(STRIP) -s $(RUNTIME)
+	$(STRIP) -s $(BUILD)
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module strip || exit 1; \
+			$(MAKE) -C $$module STRIP=$(STRIP) strip || exit 1; \
 		fi ; \
 	done
 
@@ -296,7 +297,7 @@ install: everything
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module install || exit 1; \
+			$(MAKE) -C $$module RANLIB=$(RANLIB) STDCFLAGS="$(CFLAGS)" STRIP=$(STRIP) install || exit 1; \
 		fi ; \
 	done
 
@@ -357,7 +358,7 @@ libguiroadgps.a: $(RGGUIOBJS)
 	$(RANLIB) libguiroadgps.a
 
 unix/libosroadmap.a:
-	if [ -d unix ] ; then $(MAKE) -C unix "CFLAGS=$(CFLAGS) -I.." ; fi
+	if [ -d unix ] ; then $(MAKE) -C unix RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; fi
 
 dumpmap: $(DMOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)

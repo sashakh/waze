@@ -9,9 +9,6 @@ pkgdatadir=$(INSTALLDIR)/share/roadmap
 
 # --- Tool specific options ------------------------------------------------
 
-RANLIB=ranlib
-STRIP=strip
-
 WARNFLAGS=-W -Wall -Wno-unused-parameter
 
 GUICFLAGS=-I/usr/include/qt3 -I/usr/local/include/qt3
@@ -85,7 +82,7 @@ clean:
 	rm -f *.o *.a *.da $(RUNTIME) moc_qt_*.cc
 
 strip:
-	$(STRIP) $(RUNTIME)
+	$(STRIP) -s $(RUNTIME)
 
 install: all strip
 	mkdir -p $(DESTDIR)$(bindir)

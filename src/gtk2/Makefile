@@ -7,9 +7,6 @@ bindir=$(INSTALLDIR)/bin
 
 # --- Tool specific options ------------------------------------------------
 
-RANLIB=ranlib
-STRIP=strip -s
-
 GUICFLAGS=`pkg-config --cflags gtk+-2.0`
 GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
@@ -75,7 +72,7 @@ clean:
 	rm -f *.o *.a *.da $(RUNTIME)
 
 strip:
-	$(STRIP) $(RUNTIME)
+	$(STRIP) -s $(RUNTIME)
 
 install: all strip
 	mkdir -p $(DESTDIR)$(bindir)

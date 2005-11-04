@@ -1,7 +1,5 @@
 # --- Tool specific options ------------------------------------------------
 
-RANLIB = ranlib
-
 HOST=`uname -s`
 ifeq ($(HOST),Darwin)
 	ARFLAGS="r"
