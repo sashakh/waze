@@ -23,21 +23,29 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 a server upgrade, the RoadMap e-mail list has been lost. Please subscribe to
 the list again if you have not done so already. Sorry for the inconvenience.
 <HR> <BR>
-<P>Roadmap v1.0.12 (???)
+<P>Roadmap v1.0.12 (november 4, 2005)
 <UL>
+  <LI>Makefile cleanup: everything must now be built in src. If only
+      one toolkit support is to be built, use the DESKTOP option. Please
+      read the README file for more information.
+  <LI>Small addition to the README file, section "troubleshooting".
+  <LI>RoadMap uses a minimum refresh period to avoid recomputing the screen
+      too often. This period is now a preference. Not that you normally would
+      want to change this, but this helps on some very specific setups.
+  <LI>The --debug option now accepts a list of source files as parameters.
   <LI>Reworked the roadmap_trip.c API, to have a common API between the
       current trip module and the upcoming one from Paul.
   <LI>Make RoadMap resynchronize with the graphic engine (X11) before drawing
       a new map. Don't redraw if the graphic engine is busy. This is intended
       as an attempt to avoid overloading the X server on a PDA (Paul Fox).
   <LI>Support defining a sprite as an alias of another sprite (Paul Fox).
-  <LI>Show the preference categories sorted in alphabetucal order, to
+  <LI>Show the preference categories sorted in alphabetical order, to
       makes it easier to retrieve a category tab.
   <LI>Expand all paths, including the hard-coded ones (Ehud Shabtai).
   <LI>Fix the handling of the end-of-file when the GPS source is a NMEA log
       file.
-  <LI>User preference to decide where is the toolbar: top (default), right,
-      bottom or left. (Not yet available on Windows CE.)
+  <LI>User preference to decide what side to draw the toolbar on: top
+      (default), right, bottom or left. (Not yet available on Windows CE.)
   <LI>A fix for the shape gap filler code in buildmap. buildmap generated
       wrong shapes for long lines (Ehud Shabtai).
   <LI>The menus are now user configurable, in a way similar to the toolbar.
