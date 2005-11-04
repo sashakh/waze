@@ -57,7 +57,7 @@ static int roadmap_option_square  = 0;
 static int roadmap_option_cache_size = 0;
 static int roadmap_option_synchronous = 0;
 
-static char *roadmap_option_debug = "";
+static char **roadmap_option_debug = NULL;
 static char *roadmap_option_gps = NULL;
 
 static RoadMapUsage RoadMapOptionUsage = NULL;
@@ -100,7 +100,7 @@ int roadmap_verbosity (void) {
 }
 
 
-char *roadmap_debug (void) {
+char **roadmap_debug (void) {
 
    return roadmap_option_debug;
 }
@@ -247,7 +247,25 @@ static void roadmap_option_set_debug (const char *value) {
         roadmap_option_verbose = ROADMAP_MESSAGE_DEBUG;
     }
     if (value != NULL && value[0] != 0) {
-       roadmap_option_debug = strdup (value);
+
+       int i;
+       int j;
+       int count;
+       char *debug = strdup (value);
+
+       for (count = 1, i = 0; debug[i] > 0; ++i) if (debug[i] == ',') ++count;
+
+       roadmap_option_debug = (char **) calloc (count+1, sizeof(char *));
+
+       roadmap_option_debug[0] = debug;
+
+       for (j = 0, i = 0; debug[i] > 0 && j < count; ++i) {
+          if (debug[i] == ',') {
+             roadmap_option_debug[++j] = debug + i + 1;
+             debug[i] = 0;
+          }
+       }
+       roadmap_option_debug[j+1] = NULL;
     }
 }
 
@@ -323,8 +341,8 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     {"--debug", "", roadmap_option_set_debug,
         "Show all informational and debug traces"},
 
-    {"--debug=", "SOURCE", roadmap_option_set_debug,
-        "Show the informational and debug traces for a specific source."},
+    {"--debug=", "SOURCE[,SOURCE...]", roadmap_option_set_debug,
+        "Show the informational and debug traces for the specified sources"},
 
     {"--verbose", "", roadmap_option_set_verbose,
         "Show all informational traces"},

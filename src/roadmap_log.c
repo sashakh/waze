@@ -140,21 +140,33 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    FILE *file;
    va_list ap;
-   char saved = ' ';
+   char saved;
    struct roadmap_message_descriptor *category;
-   char *debug;
+   char **enabled;
 
    if (level < roadmap_verbosity()) return;
 
-   debug = roadmap_debug();
+   enabled = roadmap_debug();
 
-   if ((debug[0] != 0) && (strcmp (debug, source) != 0)) return;
+   if (enabled != NULL) {
+
+      int i;
+      char *debug;
+
+      for (i = 0, debug = enabled[0]; debug != NULL; debug = enabled[++i]) {
+         if (strcmp (debug, source) == 0) break;
+      }
+
+      if (debug == NULL) return;
+   }
 
    for (category = RoadMapMessageHead; category->level != 0; ++category) {
       if (category->level == level) break;
    }
 
    va_start(ap, format);
+
+   saved = ' ';
 
    if (category->save_to_file) {
 
