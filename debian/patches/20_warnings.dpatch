@@ -1,34 +1,18 @@
-#! /bin/sh -e
+#! /bin/sh /usr/share/dpatch/dpatch-run
 ## 20_warnings.dpatch by Petter Reinholdtsen <pere@hungry.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ##
 ## DP: Enable more compile warnings
 
-[ -f debian/patches/00patch-opts ] && . debian/patches/00patch-opts
-patch_opts="${patch_opts:--f --no-backup-if-mismatch}"
-
-if [ $# -ne 1 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-       -patch) patch $patch_opts -p0 < $0;;
-       -unpatch) patch $patch_opts -p0 -R < $0;;
-        *)
-                echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-                exit 1;;
-esac
-
-exit 0
 @DPATCH@
-Index: src/Makefile
+Index: roadmap/src/Makefile
 ===================================================================
 RCS file: /cvsroot/roadmap/roadmap/src/Makefile,v
 retrieving revision 1.47
 diff -u -3 -p -u -r1.47 Makefile
---- src/Makefile	6 Dec 2004 23:15:38 -0000	1.47
-+++ src/Makefile	31 Jan 2005 21:50:21 -0000
+--- roadmap/src/Makefile	6 Dec 2004 23:15:38 -0000	1.47
++++ roadmap/src/Makefile	31 Jan 2005 21:50:21 -0000
 @@ -1,5 +1,5 @@
  
 -WARNFLAGS = -W -Wall -Wno-unused-parameter

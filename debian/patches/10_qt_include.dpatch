@@ -1,34 +1,18 @@
-#! /bin/sh -e
+#! /bin/sh /usr/share/dpatch/dpatch-run
 ## 10_qt_include.dpatch by Petter Reinholdtsen <pere@hungry.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ##
 ## DP: Make Qt include path usable in Debian Woody and Sid
 
-[ -f debian/patches/00patch-opts ] && . debian/patches/00patch-opts
-patch_opts="${patch_opts:--f --no-backup-if-mismatch}"
-
-if [ $# -ne 1 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-       -patch) patch $patch_opts -p0 < $0;;
-       -unpatch) patch $patch_opts -p0 -R < $0;;
-        *)
-                echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-                exit 1;;
-esac
-
-exit 0
 @DPATCH@
-Index: src/qt/Makefile
+Index: roadmap/src/qt/Makefile
 ===================================================================
 RCS file: /cvsroot/roadmap/roadmap/src/qt/Makefile,v
 retrieving revision 1.10
 diff -u -3 -p -u -r1.10 Makefile
---- src/qt/Makefile	13 Jun 2004 18:25:47 -0000	1.10
-+++ src/qt/Makefile	14 Nov 2004 09:29:19 -0000
+--- roadmap/src/qt/Makefile	13 Jun 2004 18:25:47 -0000	1.10
++++ roadmap/src/qt/Makefile	14 Nov 2004 09:29:19 -0000
 @@ -1,5 +1,5 @@
  
 -GUICFLAGS=-I/usr/include/qt3
