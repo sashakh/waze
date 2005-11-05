@@ -16,7 +16,7 @@ function tar1state {
    (cd $TARDIR/Disk$3 ; ls -lh us$1.tar.gz)
 }
 
-rm -rf $TARDIR
+rm -rf $TARDIR/Disk*
 mkdir -p $TARDIR/DiskE
 mkdir -p $TARDIR/DiskW
 
@@ -81,4 +81,9 @@ tar1state GU 66 W
 tar1state MP 69 W
 tar1state PR 72 E
 tar1state VI 78 E
+
+tar1state DW 83 W
+tar1state DX 84 E
+tar1state DY 85 W
+tar1state DZ 86 W
 
