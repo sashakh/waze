@@ -4,7 +4,7 @@
 roadmap \- Street navigation system using vector maps and a GPS receiver
 .SH "SYNTAX"
 .LP 
-\fBroadmap\fR [\fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR] [\fB\-\-metric\fR] [\fB\-\-imperial\fR] [\fB\-\-no\-area\fR] [\fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR] [\fB\-\-no\-toolbar\fR] [\fB\-\-no\-icon\fR] [\fB\-\-square\fR] [\fB\-\-gps=\fIurl\fR] [\fB\-\-cache=\fInumber\fR\fR] [\fB\-\-debug\fR[\fB=\fIsource\fR\fR]] [\fB\-\-verbose\fR] [\fB\-\-help\fR]
+\fBroadmap\fR [\fB\-\-location=\fIlongitude\fR,\fIlatitude\fR\fR] [\fB\-\-metric\fR] [\fB\-\-imperial\fR] [\fB\-\-no\-area\fR] [\fB\-\-geometry\fR[\fB:\fIwindow\fR\fR]\fB=\fIwidth\fRx\fIheight\fR\fR] [\fB\-\-no\-toolbar\fR] [\fB\-\-no\-icon\fR] [\fB\-\-square\fR] [\fB\-\-gps=\fIurl\fR] [\fB\-\-cache=\fInumber\fR\fR] [\fB\-\-debug\fR[\fB=\fIsource\fR,...\fR]] [\fB\-\-verbose\fR] [\fB\-\-help\fR]
 .SH "DESCRIPTION"
 .LP 
 RoadMap is a program for UNIX that displays street maps. The maps
@@ -96,9 +96,9 @@ the more system ressources (virtual memory page descriptors) roadmap will use.
 Preference item: \fBMap.Cache\R.
 
 .TP
-\fB\-\-debug\fR[\fB=\fIsource\fR\fR]
-Print debug messages. If a source file is provided, only debug messages
-generated from that source file are printed.
+\fB\-\-debug\fR[\fB=\fIsource\fR,...\fR]
+Print debug messages. If a list of source files is provided, only messages
+generated from within these source files are printed.
 
 .TP
 \fB\-\-verbose\fR
