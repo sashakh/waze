@@ -252,8 +252,12 @@ runtime: $(RUNTIME) $(DRIVERS)
 build: $(BUILD)
 
 strip:
-	$(STRIP) -s $(RUNTIME)
-	$(STRIP) -s $(BUILD)
+	for b in $(BUILD) $(DRIVERS) ; \
+	do \
+		if [ -f $$b ] ; then \
+			$(STRIP) -s $$b ; \
+		fi ; \
+	done
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
