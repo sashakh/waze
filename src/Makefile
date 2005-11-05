@@ -278,7 +278,7 @@ clean:
 	if [ -d unix ] ; then $(MAKE) -C unix clean ; fi
 
 
-install: everything
+install:
 	mkdir -p $(DESTDIR)$(pkgmapsdir)
 	chmod a+rx $(DESTDIR)$(pkgmapsdir)
 	mkdir -p $(DESTDIR)$(pkgdatadir)
