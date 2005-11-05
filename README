@@ -364,10 +364,9 @@ INSTALLATION
    cp qt/qtroadmap /usr/local/bin/roadmap/roadmap
    cp qt/qtroadgps /usr/local/bin/roadmap/roadgps
 
-   The "make install" command from one of the graphical toolkit directories
-   (gtk2, gtk or qt) will do the job for you (it must be run as root). This
-   installs the associated set of RoadMap executables and all configuration
-   files (but not the maps!).
+   The "make install" command (with the DESKTOP option) will do the job for
+   you (it must be run as root). This installs the associated set of RoadMap
+   executables and all configuration files (but not the maps!).
 
    RoadMap will not work without the maps, which can be downloaded from
    the RoadMap web site:
@@ -457,18 +456,43 @@ INSTALLATION
       make DESKTOP=QPE    -- if using the QT/QPE toolkit
 ----
 
+      The following commands are convenient shortcuts that cover the most
+      frequent cases:
+
+----
+      make gtk    -- if using the GTK 1.2 toolkit
+      make gtk2   -- if using the GTK 2.0 toolkit
+      make qt     -- if using the QT toolkit
+----
+
       If you want to build all three versions of RoadMap (GTK, GTK2
       and QT), just type:
 
 ----
-      make       -- This replaces steps 3 and 4.
+      make       -- This actually replaces steps 3 and 4.
 ----
 
       <<Note for QT users>>: the RoadMap QT module is built with QT3 by
-      default, but requires the QT2 compatibility headers.
+      default, but requires the QT2 compatibility headers. RoadMap has not
+      been tested with QT4.
 
-      <<Note for developpers>>: using the option MODE=DEBUG causes RoadMap
-      to be compiled in debug mode.
+      The complete list of options for building RoadMap is as follow:
+
+      [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
+      aslo generate the necessary information & code for profiling.
+
+      [SQL=SQLITE] Use the sqlite library. This option has no practical effect
+      at this time.
+
+      [DESKTOP=GTK2|GPE|GTK|QT|QPE] Compiles RoadMap for a specific GUI
+      environment. By default GTK, GTK2 and QT are built. The GPE environment
+      is a PDA variant of GTK2 and the QPE environment is a PDA variant of QT.
+
+      [HOST=Darwin] Assume the compiler tools accept the Mac OS X (Darwin)
+      command line options.
+
+----
+----
 
    [[5]] download some maps from the US Census bureau:
 
@@ -481,8 +505,8 @@ INSTALLATION
       rdmdownload <tiger-path> [<state-symbol> ..]
 ----
 
-   <<CAUTION>>: the command above downloads the tiger 2002 files. to download
-   the tiger 2000 files, use the <<format>> option:
+   <<CAUTION>>: the command above downloads the tiger 2004 second edition
+   files. To download the tiger 2000 files, use the <<format>> option:
 
 ----
       rdmdownload <tiger-path> format=2000 [<state-symbol> ..]
@@ -511,7 +535,8 @@ INSTALLATION
    This other command processes only the listed counties. The county
    shall be identified by its FIPS (e.g. 06075 for San francisco, CA).
 
-   <<CAUTION>>: the description above assumes the tiger 2002 format. use
+   <<CAUTION>>: the description above assumes the tiger 2002 format (which
+   is used for the 2002, 2003 and 2004 versions of the tiger files). Use
    the option <<format=2000>> to convert tiger 2000 files. For example:
 
 ----
@@ -563,9 +588,15 @@ INSTALLATION
    [[8]] run make to install roadmap:
 
 ------
-      cd gtk        -- or gtk2 or qt, depending on your preferences.
-      make install
-      cd ..
+      make DESKTOP=GTK install   -- If using the GTK 1.2 toolkit.
+
+      make DESKTOP=GTK2 install  -- If using the GTK 2.0 toolkit.
+
+      make DESKTOP=GPE install   -- if using GPE with the GTK 2.0 toolkit
+
+      make DESKTOP=QT install    -- if using the QT toolkit
+
+      make DESKTOP=QPE install   -- if using the QT/QPE toolkit
 ------
 
    This last step installs the RoadMap executables. These executables
@@ -623,6 +654,12 @@ INSTALLATION
      If only the US maps are required, or if the pre-built maps will be used,
      it is possible to build RoadMap without the shapelib, using the option
      "-SHAPEFILES=NO" in the make command.
+
+   * After RoadMap has been installed, the display only shows the message
+     "No map available" or a blank screen. RoadMap must be provided with
+     a position before it can show something meaningful. It is recommended
+     to enter a known address to setup a position. Another way to feed a
+     position is to install a GPS device RoadMap can talk to.
 
    * The display shows no street; lakes, parks, airport and hospitals
      appear as block areas. This is typical of a missing "schema" file.
@@ -732,6 +769,9 @@ USING ROADMAP
        logs created using roadgps.
 
    [--debug] Print all informational and debug traces.
+
+   [--debug=<source>,...] Print all informational and debug traces for the
+      specified source files only (a comma-separated list of source files).
 
    [--verbose] Print all informational traces.
 
@@ -2220,6 +2260,9 @@ CONFIGURATION
 *------------------------------+---------------------------------------------+
 |        S <name>              | Starts a sprite.
 *------------------------------+---------------------------------------------+
+|        A <name>              | Defines the current sprite as an alias of
+|                              | the specified sprite.
+*------------------------------+---------------------------------------------+
 |        F <color> <thickness> | Define the pen to be used by the subsequent
 |                              | drawing commands.
 *------------------------------+---------------------------------------------+
@@ -2233,6 +2276,36 @@ CONFIGURATION
 *------------------------------+---------------------------------------------+
 
      The coordinates are pixel positions, relative to the sprites "hot point".
+
+     A S command must appear before any alias or drawing command.
+
+     A sprite cannot contain both an alias command and drawing commands. In
+     addition, if an alias command is present, it is the only command defining
+     this sprite (i.e. an alias sprite is only made of the two S and A
+     commands). For example:
+
+----
+     S Friend
+     A GreenTriangle
+
+     S GreenTriangle
+     F white 2
+     L 0,0 7,14 0,8 -7,14
+     F DarkGreen 2
+     L 0,1 6,13 0,10 -6,13 0,1
+----
+
+     A sprite alias is just another name for the referenced sprite: an alias
+     will be visually identical to the sprite it references. An alias command
+     can reference a sprite that is itself an alias. There is no limit to
+     the depth of the alias chain, but circular references are illegal, and
+     detected. Forward references are legal, i.e. the sprite referenced in
+     an alias command can be defined later in the file.
+
+     One reason for using alias sprites is to make it simpler to redefine
+     sprites known to RoadMap (such as "Direction" or "Destination"). The
+     alias mechanism has a neglictible fix cost at runtime: using multiple
+     alias levels will have no practical impact on RoadMap performances.
 
 
 * TRIP FILES
