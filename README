@@ -488,6 +488,11 @@ INSTALLATION
       environment. By default GTK, GTK2 and QT are built. The GPE environment
       is a PDA variant of GTK2 and the QPE environment is a PDA variant of QT.
 
+      [SHAPEFILES=NO] Do not link build with the shapelib. The side effect
+      of this option is that the Digital Charts of the World cannot be
+      converted to RoadMap files. This option is to be used only when
+      the shapelib library is not available.
+
       [HOST=Darwin] Assume the compiler tools accept the Mac OS X (Darwin)
       command line options.
 
@@ -620,6 +625,21 @@ INSTALLATION
 
    The directory src/win32/wince_env contains a workspace file (Roadmap.vcw)
    that must be used to build roadmap and roadgps.
+
+
+* CROSS COMPILING FOR THE FAMILIAR TARGET
+
+   The cross compiler for the Familiar/Linux target requires some
+   additional make options: LDFLAGS, OPTIONS, CC, AR, STRIP and X11LDFLAGS.
+   For example:
+
+   LDFLAGS="-Xlinker -rpath-link -Xlinker /usr/local/arm/3.3.2/arm-linux/lib:/usr/local/arm/3.3.2/lib -L/usr/local/arm/3.3.2/lib" STRIP=arm-linux-strip CC=arm-linux-gcc AR=arm-linux-ar CC=arm-linux-gcc AR=arm-linux-ar STRIP=arm-linux-strip OPTIONS="-march=armv4 -mtune=xscale" X11LDFLAGS="-lXinerama"
+
+   In addition a few environment variables must be defined or modified:
+
+   PKG_CONFIG_PATH must be set to the right tool (for example: /usr/local/arm/3.3.2/lib/pkgconfig).
+
+   The PATH variable must contains the cross compiler directory (for example: /usr/local/arm/3.3.2/bin).
 
 
 * A NOTE ABOUT THE ROADMAP ICONS
