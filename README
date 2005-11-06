@@ -348,13 +348,14 @@ INSTALLATION
    RoadMap can be installed as follow (you will likely need to be logged
    as root, the shell is assumed to be bash):
    
+----
    mkdir -p /usr/local/share/roadmap
    cd roadmap-<version>/src
    cp sprites preferences schema session /usr/local/share/roadmap
    (cd /usr/local/share/roadmap ; chmod a+r sprites preferences schema session)
    cp roadmap.1 roadgps.1 /usr/local/share/man/man1
    (cd  /usr/local/share/man/man1 ; chmod a+r roadmap.1 roadgps.1)
-	cp roadmap*.png icons/rm_*.png /usr/local/share/pixmaps
+   cp roadmap*.png icons/rm_*.png /usr/local/share/pixmaps
    (cd /usr/local/share/pixmaps ; chmod a+r roadmap*.png rm_*.png)
 
    cp buildmap buildus dumpmap buildplace /usr/local/bin
@@ -365,18 +366,23 @@ INSTALLATION
    (cd /usr/local/bin ; chmod a+rx rdmgenmaps rdmgendcwmaps)
    cp rdmkismet rdmghost rdmfriends rdmtrace /usr/local/bin
    (cd /usr/local/bin ; chmod a+rx rdmkismet rdmghost rdmfriends rdmtrace)
+----
 
    You can then choose to install the GTK2 version:
 
+----
    cp gtk2/gtkroadmap /usr/local/bin/roadmap
    cp gtk2/gtkroadgps /usr/local/bin/roadgps
    chmod a+rx /usr/local/bin/roadmap /usr/local/bin/roadgps
+----
 
    or the QT version (requires QT3):
 
+----
    cp qt/qtroadmap /usr/local/bin/roadmap/roadmap
    cp qt/qtroadgps /usr/local/bin/roadmap/roadgps
    chmod a+rx /usr/local/bin/roadmap/roadmap /usr/local/bin/roadmap/roadgps
+----
 
    As an alternative, the "make install" command (with the DESKTOP option)
    will execute the commands described above for you (it must be run as root).
