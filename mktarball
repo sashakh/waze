@@ -71,7 +71,10 @@ RDM_BIN="${ROADMAP}/src/usdir.rdm
          ${ROADMAP}/src/qt/qtroadgps
          ${ROADMAP}/src/buildmap
          ${ROADMAP}/src/buildus
+         ${ROADMAP}/src/dumpmap
+         ${ROADMAP}/src/buildplace
          ${ROADMAP}/src/rdmghost
+         ${ROADMAP}/src/rdmtrace
          ${ROADMAP}/src/rdmfriends
          ${ROADMAP}/src/rdmkismet"
 

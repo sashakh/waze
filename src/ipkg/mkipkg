@@ -23,6 +23,7 @@ mkdir -p $IPKGDIR/roadmap/usr/bin
 cp $ARMDIR/gtk2/gtkroadmap $IPKGDIR/roadmap/usr/bin/roadmap
 cp $ARMDIR/gtk2/gtkroadgps $IPKGDIR/roadmap/usr/bin/roadgps
 cp $ARMDIR/rdmghost   $IPKGDIR/roadmap/usr/bin/rdmghost
+cp $ARMDIR/rdmtrace   $IPKGDIR/roadmap/usr/bin/rdmtrace
 cp $ARMDIR/rdmfriends $IPKGDIR/roadmap/usr/bin/rdmfriends
 cp $ARMDIR/rdmkismet  $IPKGDIR/roadmap/usr/bin/rdmkismet
 
@@ -35,6 +36,7 @@ cp $SRCDIR/src/icons/rm_*.png $IPKGDIR/roadmap/usr/share/pixmaps
 
 mkdir -p $IPKGDIR/roadmap/usr/share/roadmap
 cp $SRCDIR/src/schema      $IPKGDIR/roadmap/usr/share/roadmap/schema
+cp $SRCDIR/src/session     $IPKGDIR/roadmap/usr/share/roadmap/session
 cp $SRCDIR/src/sprites     $IPKGDIR/roadmap/usr/share/roadmap/sprites
 cp $SRCDIR/src/drivers     $IPKGDIR/roadmap/usr/share/roadmap/drivers
 cp $SRCDIR/web/manual.html $IPKGDIR/roadmap/usr/share/roadmap/manual.html
