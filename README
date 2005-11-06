@@ -311,7 +311,7 @@ INSTALLATION
    
    It is recommended to install the maps in one of the default directories
    (see previous section). You may also install the maps in any directory,
-   assumed you change Map.Path accordingly in the RoadMap preferences.
+   assumed you set Map.Path accordingly in the RoadMap preferences.
 
    Roadmap comes either as a set of sources, or as a set of binary files,
    depending on which distribution you downloaded. RoadMap comes in three
@@ -1834,12 +1834,13 @@ CONFIGURATION
 
          <<Format:>> a comma-separated list of directory paths.
 
-         <<Default:>> ~/.roadmap/maps,/var/lib/roadmap,/usr/lib/roadmap
+         <<Default:>> empty string (i.e. RoadMap uses the hardcoded default)
 
-         <<Comment:>> the default also includes /usr/local/share/roadmap
-                      and /usr/share/roadmap, for compatibility purposes.
-                      These two directories were the standard locations
-                      for the maps in previous versions of RoadMap.
+         <<Comment:>> the hardcoded default also includes the directories
+                      /usr/local/share/roadmap and /usr/share/roadmap, for
+                      compatibility purposes. These two directories were
+                      the standard locations for the maps in previous
+                      versions of RoadMap.
 
     [Map.Cache] The number of entries in RoadMap's mapping cache.
 

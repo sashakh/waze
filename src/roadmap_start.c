@@ -848,6 +848,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare
       ("preferences", &RoadMapConfigDisplayRefresh, "");
 
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigMapPath, "");
+
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
@@ -873,7 +876,9 @@ void roadmap_start (int argc, char **argv) {
                        NULL,
                        NULL);
 
-   roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
+   if (roadmap_config_get(&RoadMapConfigMapPath)[0] != 0) {
+      roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
+   }
 
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 

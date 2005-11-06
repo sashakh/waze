@@ -42,7 +42,8 @@ cp $SRCDIR/src/drivers     $IPKGDIR/roadmap/usr/share/roadmap/drivers
 cp $SRCDIR/web/manual.html $IPKGDIR/roadmap/usr/share/roadmap/manual.html
 cp $SRCDIR/web/apt_toc.gif $IPKGDIR/roadmap/usr/share/roadmap/apt_toc.gif
 
-sed -e 's/Map.Path:.*$/Map.Path: \&\/maps,\/usr\/share\/roadmap,\/mnt\/hda\/share\/roadmap\/,\/mnt\/card\/share\/roadmap/' < $SRCDIR/src/preferences > $IPKGDIR/roadmap/usr/share/roadmap/preferences
+cp $SRCDIR/src/preferences $IPKGDIR/roadmap/usr/share/roadmap/preferences
+cat 'Map.Path: &/maps,/usr/share/roadmap,/var/lib/roadmap,/mnt/hda/share/roadmap/,/mnt/card/share/roadmap/' >> $IPKGDIR/roadmap/usr/share/roadmap/preferences
 
 $ROOT/roadmap/ipkg-build -o root -g root $IPKGDIR/roadmap $IPKGDIR
 
