@@ -178,6 +178,7 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/editor_track.c \
              editor/editor_override.c \
              editor/editor_trkseg.c \
+             editor/editor_export.c \
              editor/editor_db.c
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)

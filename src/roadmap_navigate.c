@@ -444,7 +444,7 @@ static int roadmap_navigate_find_intersection
                for (line = first_line; line <= last_line; ++line) {
 
                    if (editor_override_line_get_flags (line) &
-                        EDITOR_LINE_DELETED) {
+                        ED_LINE_DELETED) {
                       continue;
                    }
 
@@ -476,7 +476,7 @@ static int roadmap_navigate_find_intersection
                    line = roadmap_line_get_from_index2 (xline);
 
                    if (editor_override_line_get_flags (line) &
-                        EDITOR_LINE_DELETED) {
+                        ED_LINE_DELETED) {
                       continue;
                    }
 

@@ -96,31 +96,49 @@ void editor_trkseg_get_time (int trkseg,
 }
 
 
-int editor_trkseg_add (int p_from,
+int editor_trkseg_add (int line_id,
+                       int p_from,
                        int p_to,
                        int first_shape,
                        int last_shape,
                        int gps_start_time,
                        int gps_end_time,
-                       int flags) {
+                       int flags,
+                       int connect) {
 
    editor_db_trkseg track;
    int id;
 
-   track.point_from     = p_from;
-   track.point_to       = p_to;
-   track.first_shape    = first_shape;
-   track.last_shape     = last_shape;
-   track.gps_start_time = gps_start_time;
-   track.gps_end_time   = gps_end_time;
-   track.flags          = flags;
-   track.next_trkseg    = -1;
+   track.line_id            = line_id;
+   track.point_from         = p_from;
+   track.point_to           = p_to;
+   track.first_shape        = first_shape;
+   track.last_shape         = last_shape;
+   track.gps_start_time     = gps_start_time;
+   track.gps_end_time       = gps_end_time;
+   track.flags              = flags;
+   track.next_road_trkseg   = -1;
+   track.next_global_trkseg = -1;
 
    id = editor_db_add_item (ActiveTrksegDB, &track);
 
    if (id == -1) {
       editor_db_grow ();
       id = editor_db_add_item (ActiveTrksegDB, &track);
+   }
+
+   if (id == -1) return -1;
+
+   if (connect == ED_TRKSEG_CONNECT_GLOBAL) {
+
+      int last_global_trkseg = editor_db_get_current_trkseg();
+      
+      if (last_global_trkseg != -1) {
+         editor_trkseg_connect_global (last_global_trkseg, id);
+
+      } else {
+         editor_db_update_current_trkseg (id);
+      }
    }
 
    return id;
@@ -147,18 +165,34 @@ void editor_trkseg_get (int trkseg,
 }
 
 
-void editor_trkseg_connect (int previous, int next) {
+void editor_trkseg_connect_roads (int previous, int next) {
 
    editor_db_trkseg *prev_track;
 
    prev_track = (editor_db_trkseg *) editor_db_get_item
                               (ActiveTrksegDB, previous, 0, NULL);
 
-   prev_track->next_trkseg = next;
+   prev_track->next_road_trkseg = next;
 }
 
 
-int editor_trkseg_next (int trkseg) {
+void editor_trkseg_connect_global (int previous, int next) {
+
+   editor_db_trkseg *prev_track;
+
+   prev_track = (editor_db_trkseg *) editor_db_get_item
+                              (ActiveTrksegDB, previous, 0, NULL);
+
+   prev_track->next_global_trkseg = next;
+   
+   if ((next != -1) && (editor_db_get_current_trkseg() == previous)) {
+
+      editor_db_update_current_trkseg (next);
+   }
+}
+
+
+int editor_trkseg_next_in_road (int trkseg) {
 
    editor_db_trkseg *track;
 
@@ -168,7 +202,21 @@ int editor_trkseg_next (int trkseg) {
 
    if (track == NULL) return -1;
 
-   return track->next_trkseg;
+   return track->next_road_trkseg;
+}
+
+
+int editor_trkseg_next_in_global (int trkseg) {
+
+   editor_db_trkseg *track;
+
+   track = (editor_db_trkseg *) editor_db_get_item
+                              (ActiveTrksegDB, trkseg, 0, NULL);
+   assert (track != NULL);
+
+   if (track == NULL) return -1;
+
+   return track->next_global_trkseg;
 }
 
 
@@ -202,36 +250,34 @@ int editor_trkseg_split (int trkseg, RoadMapPosition *split_position) {
 
    if (first_shape == -1) {
       int p;
+      int trk_middle_time;
+
+      flags |= ED_TRKSEG_FAKE;
 
       editor_point_position (trk_from, &from);
       editor_point_position (trk_to, &to);
 
-      if (roadmap_math_distance (&from, split_position) <
-          roadmap_math_distance (&to, split_position)) {
+      trk_middle_time =
+         (trk_start_time + trk_end_time) / 2;
 
-         editor_trkseg_set
-            (trkseg, trk_from,
+      p = editor_point_add (split_position, 0, 0);
+
+      editor_trkseg_set
+            (trkseg,
              trk_from,
+             p,
              -1,
              -1,
              trk_start_time,
-             trk_start_time,
+             trk_middle_time,
              flags);
 
-         p = editor_point_add (&from, 0, 0);
+      p = editor_point_add (split_position, 0, 0);
 
-         return 
-            editor_trkseg_add
-               (p, trk_to, -1, -1, trk_start_time, trk_end_time, flags);
-         
-      } else {
-         p = editor_point_add (&to, 0, 0);
-
-         return
-            editor_trkseg_add
-               (p, p, -1, -1, trk_end_time, trk_end_time, flags);
-      } 
-   }   
+      return
+         editor_trkseg_add
+            (-1, p, trk_to, -1, -1, trk_middle_time, trk_end_time, flags, 0);
+   }
 
    focus.west = split_position->longitude - 1000;
    focus.east = split_position->longitude + 1000; 
@@ -249,21 +295,18 @@ int editor_trkseg_split (int trkseg, RoadMapPosition *split_position) {
          
       editor_shape_position (i, &to);
       
-      if (roadmap_math_line_is_visible (&from, &to)) {
+      distance =
+         roadmap_math_get_distance_from_segment
+            (split_position, &from, &to, &intersection);
 
-         distance =
-            roadmap_math_get_distance_from_segment
-               (split_position, &from, &to, &intersection);
-
-         if (distance < smallest_distance) {
-            smallest_distance = distance;
-            result.from = from;
-            result.to = to;
-            result.intersection = intersection;
-            split_shape_point = i;
-            /* split_time is the time of the previous shape */
-            split_time = shape_time;
-         }
+      if (distance < smallest_distance) {
+         smallest_distance = distance;
+         result.from = from;
+         result.to = to;
+         result.intersection = intersection;
+         split_shape_point = i;
+         /* split_time is the time of the previous shape */
+         split_time = shape_time;
       }
 
       editor_shape_time (i, &shape_time);
@@ -300,7 +343,7 @@ int editor_trkseg_split (int trkseg, RoadMapPosition *split_position) {
       p = editor_point_add (&result.from, 0, 0);
       new_trkseg_id =
          editor_trkseg_add
-            (p, trk_to, -1, -1, split_time, trk_end_time, flags);
+            (-1, p, trk_to, -1, -1, split_time, trk_end_time, flags, 0);
 
       p = editor_point_add (&result.from, 0, 0);
       editor_trkseg_set
@@ -321,6 +364,7 @@ int editor_trkseg_split (int trkseg, RoadMapPosition *split_position) {
       int time_diff;
       int p;
 
+/*
       if (roadmap_math_distance (&result.from, &result.intersection) <
           roadmap_math_distance (&result.to, &result.intersection)) {
 
@@ -339,17 +383,41 @@ int editor_trkseg_split (int trkseg, RoadMapPosition *split_position) {
          editor_shape_time (split_shape_point, &split_time);
          time_diff -= split_time;
       }
+*/
+      pos = &result.to;
+
+      lon_diff = result.from.longitude - pos->longitude;
+      lat_diff = result.from.latitude - pos->latitude;
+      time_diff = split_time;
+      editor_shape_time (split_shape_point, &split_time);
+
+      if (!lon_diff && !lat_diff) {
+         /* from point equals to first shape point. */
+         split_shape_point++;
+
+         lon_diff = result.to.longitude - pos->longitude;
+         lat_diff = result.to.latitude - pos->latitude;
+         editor_shape_time (split_shape_point, &split_time);
+      }
+
+      time_diff -= split_time;
+
+      if (split_shape_point > last_shape) {
+         split_shape_point = last_shape = -1;
+      }
 
       p = editor_point_add (pos, 0, 0);
       new_trkseg_id =
          editor_trkseg_add
-            (p,
+            (-1,
+             p,
              trk_to,
              split_shape_point,
              last_shape,
              split_time,
              trk_end_time,
-             flags);
+             flags,
+             0);
 
       editor_shape_adjust_point
          (split_shape_point, lon_diff, lat_diff, time_diff);
@@ -370,5 +438,36 @@ int editor_trkseg_split (int trkseg, RoadMapPosition *split_position) {
    }
 
    return new_trkseg_id;
+}
+
+
+void editor_trkseg_set_line (int trkseg, int line_id) {
+   
+   editor_db_trkseg *track;
+
+   while (trkseg != -1) {
+      track = (editor_db_trkseg *) editor_db_get_item
+                                 (ActiveTrksegDB, trkseg, 0, NULL);
+
+      assert (track != NULL);
+      if (track == NULL) return;
+
+      track->line_id = line_id;
+
+      trkseg = track->next_road_trkseg;
+   }
+}
+
+
+int editor_trkseg_get_line (int trkseg) {
+
+   editor_db_trkseg *track;
+
+   track = (editor_db_trkseg *) editor_db_get_item
+                                 (ActiveTrksegDB, trkseg, 0, NULL);
+
+   assert (track != NULL);
+
+   return track->line_id;
 }
 

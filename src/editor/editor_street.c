@@ -301,7 +301,7 @@ int editor_street_get_closest (const RoadMapPosition *position,
          line = editor_square_get_line (square[j], i);
          editor_line_get (line, &from, &to, NULL, &cfcc, &flag);
 
-         if (flag & EDITOR_LINE_DELETED) continue;
+         if (flag & ED_LINE_DELETED) continue;
          if (cfcc < min_category) continue;
 
             found = editor_street_get_distance_with_shape
@@ -349,7 +349,7 @@ int editor_street_get_connected_lines (RoadMapPosition *crossing,
       editor_line_get
          (line, &line_from, &line_to, NULL, &cfcc, &flag);
 
-      if (flag & EDITOR_LINE_DELETED) continue;
+      if (flag & ED_LINE_DELETED) continue;
       //if (cfcc < ROADMAP_ROAD_FIRST) continue;
 
       if ((line_from.latitude != crossing->latitude) ||

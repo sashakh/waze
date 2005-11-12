@@ -28,7 +28,9 @@
 #include "../roadmap_dbread.h"
 #include "../roadmap_street.h"
 
-#define EDITOR_LINE_DELETED 1 /* flag */
+#define ED_LINE_DELETED         0x1 /* flag */
+#define ED_LINE_EXPLICIT_SPLIT  0x2 /* flag */
+#define ED_LINE_DIRTY           0x4 /* flag */
 
 typedef struct editor_db_line_s {
    int point_from;
@@ -67,6 +69,8 @@ int editor_line_length (int line);
 void editor_line_modify_properties (int line,
                                     int cfcc,
                                     int flags);
+
+int editor_line_get_count (void);
 
 int editor_line_copy (int line, int cfcc, int fips);
 

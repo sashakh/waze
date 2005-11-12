@@ -1,4 +1,4 @@
-/* editor_route.c - line databse layer
+/* editor_route.c - route databse layer
  *
  * LICENSE:
  *

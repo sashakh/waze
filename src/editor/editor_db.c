@@ -297,6 +297,7 @@ int editor_db_create (int fips) {
    header->edges = *edges;
    header->block_size = DB_DEFAULT_BLOCK_SIZE;
    header->num_total_blocks = DB_DEFAULT_INITIAL_BLOCKS;
+   header->current_trkseg = -1;
 
    add_db_section (NULL, "points", sizeof(editor_db_point), EDITOR_MAX_POINTS);
    add_db_section (NULL, "points_del", sizeof(editor_db_del_point), EDITOR_MAX_POINTS);
@@ -631,6 +632,16 @@ int editor_db_grow (void) {
    }
 
    return editor_db_open (fips);
+}
+
+
+void editor_db_update_current_trkseg (int trkseg) {
+   ActiveDBHeader->current_trkseg = trkseg;
+}
+
+
+int editor_db_get_current_trkseg (void) {
+   return ActiveDBHeader->current_trkseg;
 }
 
 

@@ -71,6 +71,7 @@
 #include "roadmap_pointer.h"
 
 #include "editor/editor_main.h"
+#include "editor/editor_export.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 
@@ -105,6 +106,16 @@ static void roadmap_start_disable_editor (void) {
 
    editor_main_set (0);
    roadmap_screen_redraw ();
+}
+
+static void roadmap_start_editor_export (void) {
+
+   editor_export_data ("test.gpx");
+}
+
+static void roadmap_start_editor_reset_export (void) {
+
+   editor_export_reset_dirty ();
 }
 
 static void roadmap_start_console (void) {
@@ -417,6 +428,12 @@ static RoadMapAction RoadMapStartActions[] = {
    {"editordisable", "Disable editor", NULL, NULL,
       "Disable editor", roadmap_start_disable_editor},
 
+   {"editorexport", "Export editor data", NULL, NULL,
+      "Export editor data", roadmap_start_editor_export},
+
+   {"editorexportreset", "Unset dirty", NULL, NULL,
+      "Unset dirty", roadmap_start_editor_reset_export},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -432,6 +449,8 @@ static const char *RoadMapStartMenu[] = {
 
    "editorenable",
    "editordisable",
+   "editorexport",
+   "editorexportreset",
 
    RoadMapFactorySeparator,
 

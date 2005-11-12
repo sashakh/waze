@@ -999,7 +999,7 @@ static int roadmap_street_get_closest_in_square
          for (line = first_line; line <= last_line; line++) {
 
             if (editor_override_line_get_flags (line) &
-                  EDITOR_LINE_DELETED) continue;
+                  ED_LINE_DELETED) continue;
 
             if (roadmap_shape_of_line (line, first_shape_line,
                                              last_shape_line,

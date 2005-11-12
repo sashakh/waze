@@ -145,7 +145,7 @@ int editor_line_add
    line.first_trkseg = line.last_trkseg = trkseg;
 
    line.cfcc = cfcc;
-   line.flags = flags;
+   line.flags = flags|ED_LINE_DIRTY;
 
    line.street = -1;
    line.range = -1;
@@ -248,7 +248,7 @@ int editor_line_copy (int line, int cfcc, int fips) {
    roadmap_locator_activate (fips);
 
    if (editor_override_line_set_flags (line,
-            editor_override_line_get_flags (line)|EDITOR_LINE_DELETED)) {
+            editor_override_line_get_flags (line)|ED_LINE_DELETED)) {
       editor_log (ROADMAP_ERROR, "Can't override roadmap line.");
       editor_log_pop ();
       return -1;
@@ -312,13 +312,15 @@ int editor_line_copy (int line, int cfcc, int fips) {
    }
          
    j = editor_trkseg_add
-            (trkseg_from,
+            (-1,
+	     trkseg_from,
              trkseg_to,
              editor_first_shape,
              editor_last_shape,
              -1,
              -1,
-             ED_TRKSEG_FAKE);
+             ED_TRKSEG_FAKE,
+	     ED_TRKSEG_CONNECT_GLOBAL);
 
    if (j == -1) {
       editor_log_pop ();
@@ -333,7 +335,6 @@ int editor_line_copy (int line, int cfcc, int fips) {
       return -1;
    }
 
-   
    line_db = (editor_db_line *) editor_db_get_item
                            (ActiveLinesDB, line_id, 0, NULL);
 
@@ -342,8 +343,10 @@ int editor_line_copy (int line, int cfcc, int fips) {
 
    if (first != -1) {
       line_db->last_trkseg = last;
-      editor_trkseg_connect (line_db->first_trkseg, first);
+      editor_trkseg_connect_roads (line_db->first_trkseg, first);
    }
+   
+   editor_trkseg_set_line (line_db->first_trkseg, line_id);
    
    editor_route_segment_copy (line, 0, line_id);
    editor_street_copy_street (line, 0, line_id);
@@ -414,18 +417,23 @@ int editor_line_split (RoadMapNeighbour *line,
 
    while (trkseg != -1) {
       int new_trkseg_prev = new_trkseg_curr;
+      int global_next;
 
       new_trkseg_curr = editor_trkseg_split (trkseg, split_position);
 
       if (new_trkseg_first == -1) {
          new_trkseg_first = new_trkseg_curr;
       } else {
-         editor_trkseg_connect (new_trkseg_prev, new_trkseg_curr);
+         editor_trkseg_connect_roads (new_trkseg_prev, new_trkseg_curr);
       }
 
-      trkseg = editor_trkseg_next (trkseg);
+      global_next = editor_trkseg_next_in_global (trkseg);
+      editor_trkseg_connect_global (trkseg, new_trkseg_curr);
+      editor_trkseg_connect_global (new_trkseg_curr, global_next);
+
+      trkseg = editor_trkseg_next_in_road (trkseg);
    }
-      
+    
    new_line_id =
       editor_line_add
          (new_point, line_db->point_to, 
@@ -439,6 +447,9 @@ int editor_line_split (RoadMapNeighbour *line,
    }
 
    line_db->point_to = new_point;
+   line_db->flags |= ED_LINE_EXPLICIT_SPLIT;
+
+   editor_trkseg_set_line (new_trkseg_first, new_line_id);
 
    editor_route_segment_copy (line->line, 1, new_line_id);
    editor_street_copy_street (line->line, 1, new_line_id);
@@ -634,4 +645,12 @@ double editor_line_get_avg_speed (int line, int direction) {
 
    return  1.0 * length / (end_time - start_time);
 }
+
+
+int editor_line_get_count (void) {
+   
+   return ActiveLinesDB->num_items;
+}
+
+
 

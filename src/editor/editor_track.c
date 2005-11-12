@@ -80,6 +80,7 @@ static RoadMapGpsPosition RoadMapLatestGpsPosition;
 static RoadMapPosition RoadMapLatestPosition;
 static int RoadMapLastGpsTime = -1;
 static int cur_active_line = 0;
+int last_global_trkseg = -1;
 
 
 typedef struct {
@@ -138,12 +139,13 @@ static int editor_track_add_point(RoadMapGpsPosition *point, int time) {
 
 
 static int editor_track_create_trkseg
-            (int first_point, int last_point, int flags) {
+            (int line_id, int first_point, int last_point, int flags) {
 
    int trk_from;
    int trk_to;
    int first_shape = -1;
    int last_shape = -1;
+   int trkseg_id;
    int i;
    int gps_time = track_point_time (first_point);
    RoadMapPosition *pos = track_point_pos (first_point);
@@ -173,21 +175,32 @@ static int editor_track_create_trkseg
       gps_time = track_point_time (i);
    }
 
-   return
-      editor_trkseg_add (trk_from,
+   if (last_global_trkseg == -1) {
+      flags |= ED_TRKSEG_NEW_TRACK;
+   }
+
+   trkseg_id = editor_trkseg_add (line_id,
+                         trk_from,
                          trk_to,
                          first_shape,
                          last_shape,
                          track_point_time (first_point),
                          track_point_time (last_point),
-                         flags);
+                         flags,
+                         ED_TRKSEG_CONNECT_GLOBAL);
+
+   if (trkseg_id == -1) return -1;
+
+   last_global_trkseg = trkseg_id;
+
+   return trkseg_id;
 }
 
 
-void editor_track_add_trkseg (RoadMapNeighbour *line,
-                              int trkseg,
-                              int direction,
-                              int who) {
+static void editor_track_add_trkseg (RoadMapNeighbour *line,
+                                     int trkseg,
+                                     int direction,
+                                     int who) {
    
    int first;
    int last;
@@ -232,7 +245,7 @@ void editor_track_add_trkseg (RoadMapNeighbour *line,
       if (first == -1) {
          first = last = trkseg;
       } else {
-         editor_trkseg_connect (last, trkseg);
+         editor_trkseg_connect_roads (last, trkseg);
          last = trkseg;
       }
       editor_override_line_set_trksegs (line->line, first, last);
@@ -244,7 +257,7 @@ void editor_track_add_trkseg (RoadMapNeighbour *line,
       if (first == -1) {
          first = last = trkseg;
       } else {
-         editor_trkseg_connect (last, trkseg);
+         editor_trkseg_connect_roads (last, trkseg);
          last = trkseg;
       }
 
@@ -456,11 +469,15 @@ static int editor_track_end_known_segment (
    RoadMapPosition to;
    RoadMapPosition *current;
    int trkseg;
+   int trkseg_line_id;
    int line_length;
    int segment_length;
    int percentage;
 
    editor_log_push ("editor_track_end_known_segment");
+
+   assert (last_point_id != 0);
+   if (!last_point_id) return 0;
 
    if (editor_db_activate (line->fips) == -1) {
       editor_db_create (line->fips);
@@ -476,11 +493,13 @@ static int editor_track_end_known_segment (
       roadmap_line_from (line->line, &from);
       roadmap_line_to (line->line, &to);
       line_length = roadmap_line_length (line->line);
+      trkseg_line_id = -1;
    } else {
 
       editor_line_get (line->line,
             &from, &to, NULL, NULL, NULL);
       line_length = editor_line_length (line->line);
+      trkseg_line_id = line->line;
    }
 
    segment_length = editor_track_length (0, last_point_id);
@@ -505,7 +524,8 @@ static int editor_track_end_known_segment (
    if (percentage < 80) {
       editor_log (ROADMAP_INFO, "segment is too small to consider: %d%%",
             percentage);
-      trkseg = editor_track_create_trkseg (0, last_point_id, ED_TRKSEG_IGNORE);
+      trkseg = editor_track_create_trkseg
+                  (trkseg_line_id, 0, last_point_id, ED_TRKSEG_IGNORE);
       editor_track_add_trkseg (line, trkseg, 0, ED_ROUTE_CAR);
       editor_log_pop ();
       if (segment_length > (GPS_POINTS_DISTANCE*1.5)) {
@@ -516,7 +536,7 @@ static int editor_track_end_known_segment (
    }
 
    current = track_point_pos (last_point_id);
-   trkseg = editor_track_create_trkseg (0, last_point_id, 0);
+   trkseg = editor_track_create_trkseg (trkseg_line_id, 0, last_point_id, 0);
 
    if (roadmap_math_distance (current, &to) >
        roadmap_math_distance (current, &from)) {
@@ -759,12 +779,41 @@ editor_track_find_split_point (RoadMapNeighbour *line,
       connect_point->plugin_id = EditorPluginID;
    }
 
-   if (start_point_id == -1) {
+   //if (start_point_id == -1) {
+   if (1==1) {
 
       int min_distance = 1000000;
       int distance;
+      RoadMapPosition intersection;
       int i;
 
+      for (i=points_count-1;
+            (i > (points_count-MAX_RECENT_POINTS)) && (i > 0);
+            i--) {
+         
+         distance =
+            roadmap_math_get_distance_from_segment
+                  (&split_pos,
+                   track_point_pos (i),
+                   track_point_pos (i-1),
+                   &intersection);
+
+         if (distance >= min_distance) break;
+         min_distance = distance;
+         start_point_id = i;
+      }
+
+      if (start_point_id > 1) {
+         
+         if (roadmap_math_distance
+               (track_point_pos (start_point_id-1), &intersection) <=
+               roadmap_math_distance
+               (track_point_pos (start_point_id), &intersection)) {
+
+            start_point_id--;
+         }
+      }
+#if 0      
       for (i=points_count-1;
             (i > (points_count-MAX_RECENT_POINTS)) && (i > 0);
             i--) {
@@ -775,8 +824,15 @@ editor_track_find_split_point (RoadMapNeighbour *line,
          min_distance = distance;
          start_point_id = i;
       }
+#endif      
    }
+#if 0   
+   } else if (split_type & SPLIT_END) {
 
+      /* the real split point is one point after the current */
+      start_point_id++;
+   }
+#endif
    editor_log_pop ();
    return start_point_id;
 }
@@ -1095,7 +1151,7 @@ static int editor_track_create_line (int fips,
 
    trkseg =
       editor_track_create_trkseg
-         (gps_first_point, gps_last_point, 0);
+         (-1, gps_first_point, gps_last_point, 0);
 
    if (trkseg == -1) {
       editor_log (ROADMAP_ERROR, "Can't create new trkseg.");
@@ -1111,6 +1167,8 @@ static int editor_track_create_line (int fips,
       editor_log_pop ();
       return -1;
    }
+
+   editor_trkseg_set_line (trkseg, i);
 
    route = editor_route_segment_add (ED_ROUTE_CAR, 0);
    editor_line_set_route (i, route);
@@ -1676,6 +1734,7 @@ static void track_rec_locate(int gps_time,
       RoadMapLastGpsTime = gps_time;
       normalized_gps_point = *gps_position;
       cur_node.id = -1;
+      last_global_trkseg = -1;
       return;
    }
 

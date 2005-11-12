@@ -168,12 +168,12 @@ static void editor_screen_delete_segments (void) {
 
          editor_override_line_set_flags (line->line,
             editor_override_line_get_flags (line->line) |
-            EDITOR_LINE_DELETED);
+            ED_LINE_DELETED);
       } else {
 
         //TODO: The flag should be added and nor reset other flags
          editor_line_modify_properties
-            (line->line, line->cfcc, EDITOR_LINE_DELETED);
+            (line->line, line->cfcc, ED_LINE_DELETED);
       }
    }
 
@@ -373,7 +373,7 @@ int editor_override_line (int line, int first_shape, int last_shape,
    ActiveDB = editor_db_activate (ActiveFips);
 
    if ((ActiveDB != -1) &&
-         (editor_override_line_get_flags (line) & EDITOR_LINE_DELETED)) {
+         (editor_override_line_get_flags (line) & ED_LINE_DELETED)) {
       return 1;
    }
 
@@ -545,7 +545,7 @@ static void editor_screen_draw_square
 
       if (!should_draw_line (line)) continue; 
 
-      if (flag & EDITOR_LINE_DELETED) continue;
+      if (flag & ED_LINE_DELETED) continue;
 
       if (editor_is_enabled () ) {
          
