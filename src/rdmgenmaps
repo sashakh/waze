@@ -11,13 +11,13 @@
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
 #                         [format=2000|2002|2004]
 #                         [state=<state-id>]
-#                         [test]
+#                         [verbose|test]
 #
 #   or
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
 #                         [format=2000|2002|2004]
-#                         [test]
+#                         [verbose|test]
 #                         county-fips ...
 #
 #    Example: rdmgenmaps /var/tmp/maps state=06
@@ -69,9 +69,7 @@ case $1 in
          OPTIONS="-v $OPTIONS"
          shift
          ;;
-esac
 
-case $1 in
    test) cleanup=N
          gendir=N
          verbose=Y
