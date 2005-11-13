@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -242,10 +243,17 @@ const char *roadmap_file_map (const char *set,
 
          if (context->fd >= 0) break;
 
+         roadmap_log (ROADMAP_DEBUG, "could not open file %s: %s",
+                      full_name,
+                      strerror(errno));
+
          sequence = roadmap_path_next(set, sequence);
 
       } while (sequence != NULL);
 
+      if (context->fd >= 0) {
+         roadmap_log (ROADMAP_DEBUG, "opened file %s", full_name);
+      }
       free (full_name);
    }
 
