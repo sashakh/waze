@@ -46,9 +46,9 @@ struct roadmap_string_descriptor {
 static RoadMapDynamicString RoadMapStringHeads[ROADMAP_STRING_MODULO];
 
 
-static int roadmap_string_hash (const char *value, int length) {
+static int roadmap_string_hash (const char *value, size_t length) {
 
-   int i;
+   size_t i;
    unsigned hash = (unsigned)(value[0]);
 
    for (i = length - 1; i > 0; --i) {
@@ -61,7 +61,7 @@ static int roadmap_string_hash (const char *value, int length) {
 
 RoadMapDynamicString roadmap_string_new (const char *value) {
 
-   int length = strlen(value);
+   size_t length = strlen(value);
    int hash   = roadmap_string_hash(value, length);
 
    RoadMapDynamicString item = RoadMapStringHeads[hash];
@@ -77,8 +77,6 @@ RoadMapDynamicString roadmap_string_new (const char *value) {
       if (item->lock < 0xffff) item->lock += 1;
 
    } else {
-
-      int length = strlen(value);
 
       item = malloc (sizeof(struct roadmap_string_descriptor) + length);
       roadmap_check_allocated(item);
