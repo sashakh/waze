@@ -32,6 +32,7 @@
 #define ROADMAP_CONFIG_STRING   0
 #define ROADMAP_CONFIG_ENUM     1
 #define ROADMAP_CONFIG_COLOR    2
+#define ROADMAP_CONFIG_DISTANCE 3
 
 
 struct RoadMapConfigItemRecord;
@@ -64,6 +65,10 @@ void roadmap_config_declare_color
         (const char *file,
          RoadMapConfigDescriptor *descriptor, const char *default_value);
 
+void roadmap_config_declare_distance
+        (const char *config,
+         RoadMapConfigDescriptor *descriptor, const char *default_value);
+
  
 char *roadmap_config_extract_data (char *line, int size);
 
@@ -80,6 +85,7 @@ void *roadmap_config_get_enumeration_next (void *enumeration);
 
 
 void  roadmap_config_initialize (void);
+void  roadmap_config_load       (void);
 void  roadmap_config_save       (int force);
 
 
@@ -98,5 +104,17 @@ void  roadmap_config_get_position
         (RoadMapConfigDescriptor *descriptor, RoadMapPosition *position);
 void  roadmap_config_set_position
         (RoadMapConfigDescriptor *descriptor, const RoadMapPosition *position);
+
+
+/* The two following functions are used for non-predefined preferences,
+ * where you cannot declare the preference items in advance.
+ */
+const char *roadmap_config_new (const char *file, int writable);
+
+const char *roadmap_config_file (const char *name);
+
+const char *roadmap_config_get_from (const char *config,
+                                     const char *category,
+                                     const char *name);
 
 #endif // _ROADMAP_CONFIG__H_
