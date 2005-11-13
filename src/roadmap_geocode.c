@@ -85,7 +85,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
    default:
 
-      RoadMapGeocodeError = "No related map could not be found";
+      RoadMapGeocodeError = "No related map could be found";
       return 0;
    }
 
@@ -100,6 +100,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
          break;
       case ROADMAP_STREET_NOSTREET:
          RoadMapGeocodeError = "No street with that name could be found";
+         break;
       default:
          RoadMapGeocodeError = "The address could not be found";
       }
