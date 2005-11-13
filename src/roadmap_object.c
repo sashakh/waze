@@ -67,16 +67,17 @@ static RoadMapObject *RoadmapObjectList = NULL;
 
 
 
-void roadmap_object_null_listener (RoadMapDynamicString id,
-                                   const RoadMapGpsPosition *position) {}
+static void roadmap_object_null_listener (RoadMapDynamicString id,
+                                          const RoadMapGpsPosition *position) {}
 
-void roadmap_object_null_monitor (RoadMapDynamicString id) {}
+static void roadmap_object_null_monitor (RoadMapDynamicString id) {}
+
 
 static RoadMapObjectMonitor RoadMapObjectFirstMonitor =
                                       roadmap_object_null_monitor;
 
 
-RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
+static RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
 
    RoadMapObject *cursor;
 

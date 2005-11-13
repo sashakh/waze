@@ -121,15 +121,15 @@ static const char *RoadMapPathMapsPreferred =
 #endif
 
 
-static char *roadmap_path_expand (const char *item, int length);
+static char *roadmap_path_expand (const char *item, size_t length);
 
 static void roadmap_path_list_create(const char *name,
                                      const char *items[],
                                      const char *preferred) {
 
 
-   int i;
-   int count;
+   size_t i;
+   size_t count;
    RoadMapPathList new_path;
 
    for (count = 0; items[count] != NULL; ++count) ;
@@ -139,7 +139,7 @@ static void roadmap_path_list_create(const char *name,
 
    new_path->next  = RoadMapPaths;
    new_path->name  = strdup(name);
-   new_path->count = count;
+   new_path->count = (int)count;
 
    new_path->items = calloc (count, sizeof(char *));
    roadmap_check_allocated(new_path->items);
@@ -296,10 +296,10 @@ const char *roadmap_path_trips (void) {
 }
             
 
-static char *roadmap_path_expand (const char *item, int length) {
+static char *roadmap_path_expand (const char *item, size_t length) {
 
    const char *expansion;
-   int expansion_length;
+   size_t expansion_length;
    char *expanded;
 
    switch (item[0]) {
@@ -326,7 +326,7 @@ static char *roadmap_path_expand (const char *item, int length) {
 void roadmap_path_set (const char *name, const char *path) {
 
    int i;
-   int count;
+   size_t count;
    const char *item;
    const char *next_item;
 
@@ -374,7 +374,8 @@ void roadmap_path_set (const char *name, const char *path) {
       if (next_item == NULL) {
          path_list->items[i] = roadmap_path_expand (item, strlen(item));
       } else {
-         path_list->items[i] = roadmap_path_expand (item, next_item - item);
+         path_list->items[i] =
+            roadmap_path_expand (item, (size_t)(next_item - item));
       }
 
       if (roadmap_file_exists(NULL, path_list->items[i])) {
@@ -479,11 +480,11 @@ static char *RoadMapPathEmptyList = NULL;
 
 char **roadmap_path_list (const char *path, const char *extension) {
 
-   char *match;
-   int   length;
-   int   count;
-   char **result;
-   char **cursor;
+   char  *match;
+   int    length;
+   size_t count;
+   char  **result;
+   char  **cursor;
 
    DIR *directory;
    struct dirent *entry;

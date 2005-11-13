@@ -176,8 +176,6 @@ static void roadgps_screen_draw_satellite_position
 static void roadgps_screen_draw_satellite_label
                (RoadGpsObject *satellite, int reverse) {
 
-   int count = 4;
-
    roadmap_canvas_select_pen (reverse?RoadGpsEraser:RoadGpsForeground);
 
    roadmap_canvas_draw_string

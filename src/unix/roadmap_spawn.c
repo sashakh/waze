@@ -342,13 +342,13 @@ void roadmap_spawn_command (const char *command) {
 
 int roadmap_spawn_write_pipe (RoadMapPipe pipe, const void *data, int length) {
 
-   return write ((int)pipe, data, length);
+   return write ((int)pipe, data, (size_t)length);
 }
 
 
 int roadmap_spawn_read_pipe (RoadMapPipe pipe, void *data, int size) {
 
-   return read ((int)pipe, data, size);
+   return read ((int)pipe, data, (size_t)size);
 }
 
 

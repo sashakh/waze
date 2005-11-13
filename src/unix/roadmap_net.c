@@ -110,7 +110,7 @@ RoadMapSocket roadmap_net_connect (const char *protocol,
       }
 
    } else {
-      memcpy (&addr.sin_addr, host->h_addr, host->h_length);
+      memcpy (&addr.sin_addr, host->h_addr, (size_t)host->h_length);
    }
 
 
@@ -153,7 +153,7 @@ connection_failure:
 
 int roadmap_net_send (RoadMapSocket s, const void *data, int length) {
 
-   int sent = write ((int)s, data, length);
+   int sent = write ((int)s, data, (size_t)length);
 
    if (sent != length) {
       return -1;
@@ -165,7 +165,7 @@ int roadmap_net_send (RoadMapSocket s, const void *data, int length) {
 
 int roadmap_net_receive (RoadMapSocket s, void *data, int size) {
 
-   int received = read ((int)s, data, size);
+   int received = read ((int)s, data, (size_t)size);
 
    if (received == 0) {
       return -1; /* On UNIX, this is sign of an error. */

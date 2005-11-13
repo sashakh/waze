@@ -290,10 +290,12 @@ void roadmap_address_location_by_city (void) {
    roadmap_address_dialog (&context);
 }
 
+/* Disabled for now.
 void roadmap_address_location_by_zip (void) {
 
    static RoadMapAddressDialog context = {"Location by ZIP", 1, NULL, NULL};
 
    roadmap_address_dialog (&context);
 }
+*/
 

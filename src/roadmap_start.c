@@ -71,6 +71,7 @@
 #include "roadmap_pointer.h"
 #include "roadmap_layer.h"
 
+#include "roadmap_start.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 
