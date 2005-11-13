@@ -79,11 +79,14 @@ char *roadmap_math_speed_unit    (void);
 int  roadmap_math_distance
         (const RoadMapPosition *position1, const RoadMapPosition *position2);
 
+int roadmap_math_distance_convert (const char *string, int *explicit);
 int roadmap_math_to_trip_distance (int distance);
 
 int roadmap_math_to_speed_unit (int knots);
 
+
 int  roadmap_math_to_current_unit (int value, const char *unit);
+int  roadmap_math_to_cm (int value);
 
 int  roadmap_math_get_distance_from_segment
         (const RoadMapPosition *position,

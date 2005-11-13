@@ -192,6 +192,7 @@ static void roadmap_preferences_new_dialog
 
       case ROADMAP_CONFIG_COLOR:
       case ROADMAP_CONFIG_STRING:
+      case ROADMAP_CONFIG_DISTANCE:
 
          roadmap_dialog_new_entry (cursor->category, cursor->name);
          break;

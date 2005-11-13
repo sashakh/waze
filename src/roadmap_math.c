@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -770,6 +771,51 @@ int roadmap_math_distance
 }
 
 
+/* Take a number followed by ft/mi/m/km, and converts it to current units. */
+int roadmap_math_distance_convert(const char *string, int *explicit)
+{
+    char *suffix;
+    double distance;
+    RoadMapUnits *my_units, *other_units;
+    int had_units = 1;
+
+    my_units = RoadMapContext.units;
+    if (my_units == &RoadMapMetricSystem) {
+        other_units = &RoadMapImperialSystem;
+    } else {
+        other_units = &RoadMapMetricSystem;
+    }
+
+    distance = strtol (string, &suffix, 10);
+
+    while (*suffix && isspace(*suffix)) suffix++;
+
+    if (*suffix) {
+        if (0 == strcasecmp(suffix, my_units->length)) {
+            /* Nothing to do, hopefully this is the usual case. */
+        } else if (0 == strcasecmp(suffix, my_units->trip_distance)) {
+            distance *= my_units->to_trip_unit;
+        } else if (0 == strcasecmp(suffix, other_units->length)) {
+            distance /= other_units->cm_to_unit;
+            distance *= my_units->cm_to_unit;
+        } else if (0 == strcasecmp(suffix, other_units->trip_distance)) {
+            distance *= other_units->to_trip_unit;
+            distance /= other_units->cm_to_unit;
+            distance *= my_units->cm_to_unit;
+        } else {
+            roadmap_log (ROADMAP_WARNING, 
+                "dropping unknown units '%s' from '%s'", suffix, string);
+            had_units = 0;
+        }
+    } else {
+        had_units = 0;
+    }
+
+    if (explicit) *explicit = had_units;
+
+    return (int)distance;
+}
+
 char *roadmap_math_distance_unit (void) {
     
     return RoadMapContext.units->length;
@@ -915,6 +961,20 @@ int roadmap_math_to_current_unit (int value, const char *unit) {
 
     roadmap_log (ROADMAP_ERROR, "unsupported unit '%s'", unit);
     return value;
+}
+
+
+int roadmap_math_to_cm (int value) {
+
+    static int PreviousValue = 0;
+    static int PreviousResult = 0;
+
+    if (value != PreviousValue) {
+        PreviousResult = (int) (value / RoadMapContext.units->cm_to_unit);
+        PreviousValue = value;
+    }
+
+    return PreviousResult;
 }
 
 

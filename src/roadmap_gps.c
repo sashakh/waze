@@ -500,8 +500,8 @@ void roadmap_gps_initialize (void) {
 
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSSpeedAccuracy, "4");
-      roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSAccuracy, "30");
+      roadmap_config_declare_distance
+         ("preferences", &RoadMapConfigGPSAccuracy, "30m");
 #ifndef _WIN32
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost");
