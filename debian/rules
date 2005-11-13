@@ -82,7 +82,7 @@ clean: unpatch
 	rm -f build-arch-stamp build-indep-stamp configure-stamp
 
 	# Don't use $(BUILDFLAGS) to clean up all modules at once
-	-$(MAKE) -C src cleanone cleanall 
+	-$(MAKE) -C src clean
 
 	dh_clean
 
