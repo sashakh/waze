@@ -499,13 +499,24 @@ char **roadmap_path_list (const char *path, const char *extension) {
    roadmap_check_allocated (result);
 
    rewinddir (directory);
-   length = strlen(extension);
+   if (extension != NULL) {
+      length = strlen(extension);
+   } else {
+      length = 0;
+   }
 
    while ((entry = readdir(directory)) != NULL) {
 
-      match = entry->d_name + strlen(entry->d_name) - length;
+      if (entry->d_name[0] == '.') continue;
 
-      if (! strcmp (match, extension)) {
+      if (length > 0) {
+         
+         match = entry->d_name + strlen(entry->d_name) - length;
+
+         if (! strcmp (match, extension)) {
+            *(cursor++) = strdup (entry->d_name);
+         }
+      } else {
          *(cursor++) = strdup (entry->d_name);
       }
    }
@@ -560,8 +571,6 @@ int roadmap_path_is_directory (const char *name) {
    struct stat file_attributes;
 
    if (stat (name, &file_attributes) != 0) {
-      roadmap_log (ROADMAP_ERROR, "stat(%s) failed, error %d",
-                   name, errno);
       return 0;
    }
 
