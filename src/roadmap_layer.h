@@ -26,14 +26,28 @@
 
 int  roadmap_layer_max_pen(void);
 
+void roadmap_layer_adjust (void);
+
+/* DEPRECATED, use: roadmap_layer_select_class ("Roads") */
 int  roadmap_layer_visible_roads (int *layers, int size);
+
 int  roadmap_layer_visible_lines (int *layers, int size, int pen_type);
 
-int  roadmap_layer_is_visible (int layer);
+int  roadmap_layer_line_is_visible (int layer);
 
-void roadmap_layer_select (int layer, int pen_type);
+void roadmap_layer_polygon_select_pen (int layer, int pen_type);
+void roadmap_layer_line_select_pen    (int layer, int pen_type);
 
-void roadmap_layer_adjust (void);
+void roadmap_layer_class_first (void);
+void roadmap_layer_class_next (void);
+
+const char *roadmap_layer_class_name (void);
+
+int  roadmap_layer_select_class (const char *name);
+
+void roadmap_layer_select_set (const char *set); /* Either "day" or "night". */
+
+void roadmap_layer_load (void);
 
 void roadmap_layer_initialize (void);
 

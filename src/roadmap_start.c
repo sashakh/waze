@@ -69,6 +69,7 @@
 #include "roadmap_messagebox.h"
 #include "roadmap_help.h"
 #include "roadmap_pointer.h"
+#include "roadmap_layer.h"
 
 
 static const char *RoadMapMainTitle = "RoadMap";
@@ -837,6 +838,8 @@ void roadmap_start (int argc, char **argv) {
    mtrace();
 #endif
 
+   roadmap_config_initialize ();
+
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralUnit, "imperial", "metric", NULL);
    roadmap_config_declare_enumeration
@@ -865,7 +868,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_download_initialize ();
    roadmap_adjust_initialize   ();
    roadmap_driver_initialize   ();
-   roadmap_config_initialize   ();
+   roadmap_layer_initialize    ();
+
+   roadmap_config_load ();
 
    roadmap_gps_register_listener (&roadmap_gps_update);
 
@@ -888,7 +893,8 @@ void roadmap_start (int argc, char **argv) {
    
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
-   roadmap_sprite_initialize ();
+   roadmap_sprite_load       ();
+   roadmap_layer_load        ();
 
    roadmap_screen_set_initial_position ();
 

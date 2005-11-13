@@ -30,7 +30,7 @@
 
 #include "roadmap_gui.h"
 
-void roadmap_sprite_initialize (void);
+void roadmap_sprite_load (void);
 
 void roadmap_sprite_draw
         (const char *name, RoadMapGuiPoint *location, int orientation);

@@ -460,7 +460,7 @@ static void roadmap_screen_draw_polygons (void) {
 
       if (category != current_category) {
          roadmap_screen_flush_polygons ();
-         roadmap_layer_select (category, 0);
+         roadmap_layer_select_pen (category, 0);
          current_category = category;
       }
 
@@ -578,7 +578,7 @@ static void roadmap_screen_draw_square_edges (int square) {
 
 
 static int roadmap_screen_draw_square
-              (int square, int cfcc, int fully_visible) {
+              (int square, int layer, int fully_visible) {
 
    int line;
    int first_line;
@@ -593,7 +593,7 @@ static int roadmap_screen_draw_square
 
    /* Draw each line that belongs to this square. */
 
-   if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
+   if (roadmap_line_in_square (square, layer, &first_line, &last_line) > 0) {
 
       if (roadmap_shape_in_square (square, &first_shape_line,
                                             &last_shape_line) <= 0) {
@@ -611,7 +611,7 @@ static int roadmap_screen_draw_square
    /* Draw each line that intersects with this square (but belongs
     * to another square--the crossing lines).
     */
-   if (roadmap_line_in_square2 (square, cfcc, &first_line, &last_line) > 0) {
+   if (roadmap_line_in_square2 (square, layer, &first_line, &last_line) > 0) {
 
       int last_real_square = -1;
       int real_square  = 0;
@@ -727,7 +727,7 @@ static int roadmap_screen_repaint_square (int square, int pen_type) {
 
    int i;
    int count;
-   int layers[256];
+   int layers[1024];
 
    RoadMapArea edges;
 
@@ -758,13 +758,13 @@ static int roadmap_screen_repaint_square (int square, int pen_type) {
 
    if (pen_type == 0) roadmap_screen_draw_square_edges (square);
 
-   count = roadmap_layer_visible_lines (layers, 256, pen_type);
+   count = roadmap_layer_visible_lines (layers, 1024, pen_type);
    
    for (i = 0; i < count; ++i) {
 
         category = layers[i];
 
-        roadmap_layer_select (category, pen_type);
+        roadmap_layer_select_pen (category, pen_type);
 
         drawn += roadmap_screen_draw_square
                     (square, category, fully_visible);
@@ -1163,8 +1163,6 @@ void roadmap_screen_set_initial_position (void) {
 
     RoadMapScreenInitialized = 1;
     
-    roadmap_layer_initialize();
-
     RoadMapScreenDeltaX = roadmap_config_get_integer (&RoadMapConfigDeltaX);
     RoadMapScreenDeltaY = roadmap_config_get_integer (&RoadMapConfigDeltaY);
     RoadMapScreenRotation =

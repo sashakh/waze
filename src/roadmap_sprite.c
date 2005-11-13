@@ -310,7 +310,7 @@ static int roadmap_sprite_drawing_is_valid (RoadMapSprite sprite) {
 }
 
 
-static void roadmap_sprite_load (const char *data, int size) {
+static void roadmap_sprite_load_file (const char *data, int size) {
 
    int argc;
    int argl[256];
@@ -565,7 +565,7 @@ void roadmap_sprite_draw
 }
 
 
-void roadmap_sprite_initialize (void) {
+void roadmap_sprite_load (void) {
 
    int max_point_count;
    const char *cursor;
@@ -578,7 +578,8 @@ void roadmap_sprite_initialize (void) {
         cursor != NULL;
         cursor = roadmap_file_map ("config", "sprites", cursor, &file)) {
 
-      roadmap_sprite_load (roadmap_file_base(file), roadmap_file_size(file));
+      roadmap_sprite_load_file
+         (roadmap_file_base(file), roadmap_file_size(file));
 
       roadmap_file_unmap (&file);
    }
@@ -587,7 +588,8 @@ void roadmap_sprite_initialize (void) {
         cursor != NULL;
         cursor = roadmap_file_map ("user", "sprites", cursor, &file)) {
 
-      roadmap_sprite_load (roadmap_file_base(file), roadmap_file_size(file));
+      roadmap_sprite_load_file
+         (roadmap_file_base(file), roadmap_file_size(file));
 
       roadmap_file_unmap (&file);
    }
@@ -598,7 +600,7 @@ void roadmap_sprite_initialize (void) {
 
       const char *hardcoded = "S Default\nF black 1\nP -4,-4 4,-4 4,4 -4,4\n";
 
-      roadmap_sprite_load (hardcoded, strlen(hardcoded));
+      roadmap_sprite_load_file (hardcoded, strlen(hardcoded));
 
       RoadMapSpriteDefault = roadmap_sprite_search ("Default");
    }

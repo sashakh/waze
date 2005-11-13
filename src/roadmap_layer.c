@@ -31,54 +31,69 @@
 #include "roadmap.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
+#include "roadmap_path.h"
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
+#include "roadmap_input.h"
 
 #include "roadmap_layer.h"
 
 
+#define ROADMAP_MAX_LAYERS  1024
+
 static RoadMapConfigDescriptor RoadMapConfigStylePretty =
                         ROADMAP_CONFIG_ITEM("Style", "Use Pretty Lines");
 
-/* The following table is a hardcoded default we use until the
- * "category" tables are created.
+static RoadMapConfigDescriptor RoadMapConfigSkin =
+                        ROADMAP_CONFIG_ITEM("Display", "Skin");
+
+/* CLASSES. -----------------------------------------------------------
+ * A class represent a group of categories that have the same basic
+ * properties. For example, the "Road" class can be searched for an
+ * address.
+ * The lines and the polygons arrays are consecutive to each other,
+ * i.e. a single array where the lines are listed first, so that we
+ * can manage them as a single list, using a single index.
  */
-static char *RoadMapDefaultCategoryTable[] = {
-   "Freeways",
-   "Ramps",
-   "Highways",
-   "Streets",
-   "Trails",
-   "Parks",
-   "Hospitals",
-   "Airports",
-   "Stations",
-   "Malls",
-   "Shore",
-   "Rivers",
-   "Lakes",
-   "Sea"
-};
+typedef struct roadmap_layer_class {
+
+   const char *name;
+   struct roadmap_layer_class *next;
+
+   const char *before;
+   const char *after;
+
+   short lines_count;
+   short polygons_count;
+   struct roadmap_layer_record *layers;
+
+   int predecessor_count;
+   struct roadmap_layer_class **predecessor;
+
+} RoadMapClass;
+
+static RoadMapClass *RoadMapLayerCurrentClass;
 
 
-/* CATEGORIES.
- * A category represents a group of map objects that are represented
+/* LAYERS. ------------------------------------------------------------
+ * A layer represents a group of map objects that are represented
  * using the same pen (i.e. same color, thickness) and the same
  * graphical primitive (line, polygon, etc..).
- * Some categories may be displayed using more than one pen.
+ * Some layers may be displayed using more than one pen.
  * For example, a freeway could be displayed using 3 pens:
  * border, fill, center divider.
  */
 #define ROADMAP_LAYER_PENS    4
 
-static struct roadmap_canvas_category {
+typedef struct roadmap_layer_record {
 
     const char *name;
     
-    int class_index;
-    int visible;
-    int pen_count;
-    
+    RoadMapClass *class;
+
+    short visible;
+    short pen_count;
+
     RoadMapConfigDescriptor declutter;
     RoadMapConfigDescriptor thickness;
 
@@ -86,70 +101,100 @@ static struct roadmap_canvas_category {
     int delta_thickness[ROADMAP_LAYER_PENS];
     int in_use[ROADMAP_LAYER_PENS];
 
-} *RoadMapCategory;
+} RoadMapLayer;
 
-static int RoadMapCategoryCount = 0;
 static int RoadMapMaxUsedPen = 1;
 
 
-/* CLASSES.
- * A class represent a group of categories that have the same basic
- * properties. For example, the "Road" class can be searched for an
- * address.
+/* SETS. --------------------------------------------------------------
+ * A set represent a full configuration of classes. One set only is
+ * active at any given time. The sets are always predefined (for now?).
  */
 typedef struct {
 
    char *name;
 
-   int   count;
-   char  category[128];
+   int class_count;
+   RoadMapClass *classes;
 
-} RoadMapClass;
+} RoadMapSet;
 
-static RoadMapClass RoadMapClasses[] = {
-    {"Area",    0, {0}},
-    {"Road",    0, {0}},
-    {"Feature", 0, {0}},
-    {NULL,      0, {0}}
+static RoadMapSet RoadMapLayerSet[] = {
+   {"default", 0, NULL},
+   {"day",     0, NULL},
+   {"night",   0, NULL},
+   {NULL,      0, NULL}
 };
+static RoadMapSet *RoadMapLayerActiveSet = NULL;
 
-static RoadMapClass *RoadMapLineClass = &(RoadMapClasses[1]);
-static RoadMapClass *RoadMapRoadClass = &(RoadMapClasses[1]);
+
+static RoadMapSet *roadmap_layer_find_set (const char *set) {
+
+   RoadMapSet *config;
+
+
+   if (set == NULL) return NULL;
+
+   for (config = RoadMapLayerSet; config->name != NULL; ++config) {
+      if (strcasecmp(set, config->name) == 0) return config;
+   }
+
+   return NULL;
+}
+
+
+static RoadMapClass *roadmap_layer_find_class(RoadMapClass *list,
+                                              const char *name) {
+
+   RoadMapClass *class;
+
+   for (class = list; class != NULL; class = class->next) {
+      if (strcasecmp (name, class->name) == 0) break;
+   }
+
+   return class;
+}
+
+
+static int roadmap_layer_is_visible (RoadMapLayer *layer) {
+    
+    if (! layer->visible) {
+        return 0;
+    }
+    return roadmap_math_declutter
+                (roadmap_config_get_integer (&layer->declutter));
+}
 
 
 int roadmap_layer_max_pen(void) {
+
    if (! roadmap_config_match (&RoadMapConfigStylePretty, "yes")) {
       return 1;
    }
    return RoadMapMaxUsedPen;
 }
 
-int roadmap_layer_is_visible (int layer) {
-    
-    struct roadmap_canvas_category *category = RoadMapCategory + layer;
 
-    if (! category->visible) {
-        return 0;
-    }
-    return roadmap_math_declutter
-                (roadmap_config_get_integer (&category->declutter));
-}
-
-
+/* THIS FUNCTION IS A TEMPORARY COMPATIBILITY HACK. */
 int roadmap_layer_visible_roads (int *layers, int size) {
     
     int i;
     int count = -1;
+
+    RoadMapLayer *layer;
     
+
     --size; /* To match our boundary check. */
-    
-    for (i = RoadMapRoadClass->count - 1; i >= 0; --i) {
 
-        int category = RoadMapRoadClass->category[i];
+    for (i = 0; i < RoadMapLayerCurrentClass->lines_count; ++i) {
 
-        if (roadmap_layer_is_visible (category)) {
+        layer = RoadMapLayerCurrentClass->layers + i;
+
+        if (strcasecmp(layer->name, "Rivers") == 0) break;
+
+        if (roadmap_layer_is_visible (layer)) {
             if (count >= size) break;
-            layers[++count] = category;
+            layers[++count] = i + 1;
         }
     }
     
@@ -160,37 +205,28 @@ int roadmap_layer_visible_roads (int *layers, int size) {
 int roadmap_layer_visible_lines (int *layers, int size, int pen_type) {
 
     int i;
-    int j;
     int count = -1;
-    
+
+    RoadMapLayer *layer;
+
+
     --size; /* To match our boundary check. */
     
-    for (i = 0; RoadMapLineClass[i].name != NULL; ++i) {
+    for (i = RoadMapLayerCurrentClass->lines_count - 1; i >= 0; --i) {
 
-        RoadMapClass *this_class = RoadMapLineClass + i;
+        layer = RoadMapLayerCurrentClass->layers + i;
 
-        for (j = this_class->count - 1; j >= 0; --j) {
+        if (pen_type >= layer->pen_count) continue;
+        if (! layer->in_use[pen_type]) continue;
 
-            int category = this_class->category[j];
-
-            if (pen_type >= RoadMapCategory[category].pen_count) continue;
-            if (! RoadMapCategory[category].in_use[pen_type]) continue;
-
-            if (roadmap_layer_is_visible (category)) {
-                if (count >= size) goto done;
-                layers[++count] = category;
-            }
+        if (roadmap_layer_is_visible (layer)) {
+           if (count >= size) goto done;
+           layers[++count] = i + 1;
         }
     }
     
 done:
     return count + 1;
-}
-
-
-void roadmap_layer_select (int layer, int pen_type) {
-
-    roadmap_canvas_select_pen (RoadMapCategory[layer].pen[pen_type]);
 }
 
 
@@ -200,220 +236,560 @@ void roadmap_layer_adjust (void) {
     int j;
     int thickness;
     int future_thickness;
-    struct roadmap_canvas_category *category;
+    RoadMapLayer *layer;
     
-    for (i = RoadMapCategoryCount; i > 0; --i) {
-        
-        if (roadmap_layer_is_visible(i)) {
+    for (i = RoadMapLayerCurrentClass->lines_count - 1; i >= 0; --i) {
 
-            category = RoadMapCategory + i;
+       layer = RoadMapLayerCurrentClass->layers + i;
+
+       if (roadmap_layer_is_visible(layer)) {
 
             thickness =
                roadmap_math_thickness
-                  (roadmap_config_get_integer (&category->thickness),
-                   roadmap_config_get_integer (&category->declutter),
-                   category->pen_count > 1);
+                  (roadmap_config_get_integer (&layer->thickness),
+                   roadmap_config_get_integer (&layer->declutter),
+                   layer->pen_count > 1);
 
             /* As a matter of taste, I do dislike roads with a filler
              * of 1 pixel. Lets force at least a filler of 2.
              */
             future_thickness = thickness;
 
-            for (j = 1; j < category->pen_count; ++j) {
+            for (j = 1; j < layer->pen_count; ++j) {
 
-               if (category->delta_thickness[j] > 0) break;
+               if (layer->delta_thickness[j] > 0) break;
 
                future_thickness =
-                  future_thickness + category->delta_thickness[j];
+                  future_thickness + layer->delta_thickness[j];
                if (future_thickness == 1) {
                   thickness += 1;
                }
             }
 
-            roadmap_canvas_select_pen (category->pen[0]);
+            roadmap_canvas_select_pen (layer->pen[0]);
             roadmap_canvas_set_thickness (thickness);
-            category->in_use[0] = 1;
+            layer->in_use[0] = 1;
 
-            for (j = 1; j < category->pen_count; ++j) {
+            for (j = 1; j < layer->pen_count; ++j) {
 
                /* The previous thickness was already the minimum:
                 * the pens that follow should not be used.
                 */
                if (thickness <= 1) {
-                  category->in_use[j] = 0;
+                  layer->in_use[j] = 0;
                   continue;
                }
 
-               if (category->delta_thickness[j] < 0) {
+               if (layer->delta_thickness[j] < 0) {
 
-                  thickness += category->delta_thickness[j];
+                  thickness += layer->delta_thickness[j];
 
                } else {
                   /* Don't end with a road mostly drawn with the latter
                    * pen.
                    */
-                  if (category->delta_thickness[j] >= thickness / 2) {
-                     category->in_use[j] = 0;
+                  if (layer->delta_thickness[j] >= thickness / 2) {
+                     layer->in_use[j] = 0;
                      thickness = 1;
                      continue;
                   }
-                  thickness = category->delta_thickness[j];
+                  thickness = layer->delta_thickness[j];
                }
 
                /* If this pen is not visible, there is no reason
                 * to draw it.
                 */
                if (thickness < 1) {
-                  category->in_use[j] = 0;
+                  layer->in_use[j] = 0;
                   continue;
                }
 
-               roadmap_canvas_select_pen (category->pen[j]);
+               roadmap_canvas_select_pen (layer->pen[j]);
                roadmap_canvas_set_thickness (thickness);
-               category->in_use[j] = 1;
+               layer->in_use[j] = 1;
             }
         }
     }
 }
 
 
-void roadmap_layer_initialize (void) {
-    
+void roadmap_layer_select_pen (int layer, int pen_type) {
+
+   int total = RoadMapLayerCurrentClass->polygons_count
+                  + RoadMapLayerCurrentClass->lines_count;
+
+   if (layer >= 1 && layer <= total) {
+      roadmap_canvas_select_pen
+         (RoadMapLayerCurrentClass->layers[layer-1].pen[pen_type]);
+   }
+}
+
+
+void roadmap_layer_class_first (void) {
+
+   RoadMapLayerCurrentClass = RoadMapLayerActiveSet->classes;
+}
+
+void roadmap_layer_class_next (void) {
+
+   if (RoadMapLayerCurrentClass != NULL) {
+      RoadMapLayerCurrentClass = RoadMapLayerCurrentClass->next;
+   }
+}
+
+const char *roadmap_layer_class_name (void) {
+
+   if (RoadMapLayerCurrentClass == NULL) {
+      return NULL;
+   }
+   return RoadMapLayerCurrentClass->name;
+}
+
+
+int  roadmap_layer_select_class (const char *name) {
+
+   RoadMapClass *selected =
+      roadmap_layer_find_class (RoadMapLayerActiveSet->classes, name);
+
+   if (selected == NULL) return 0;
+
+   RoadMapLayerCurrentClass = selected;
+   return 1;
+}
+
+
+void roadmap_layer_select_set (const char *name) {
+
+   static RoadMapSet *default_set = NULL;
+
+   RoadMapSet *set;
+
+
+   if (default_set == NULL) {
+      default_set = roadmap_layer_find_set ("default");
+   }
+
+   set = roadmap_layer_find_set (name);
+   if (set == NULL) {
+
+      roadmap_log (ROADMAP_ERROR, "invalid class set '%s'", name);
+      set = default_set;
+
+   } else if (set->classes == NULL) {
+
+      set = default_set;
+   }
+
+   RoadMapLayerActiveSet = set;
+   RoadMapLayerCurrentClass = set->classes;
+}
+
+
+/* Initialization code. ------------------------------------------- */
+
+static int roadmap_layer_decode (const char *config,
+                                 const char *id, char**args, int max) {
+
+   int   count;
+   char *buffer;
+
+   if (max <= 0) {
+      roadmap_log (ROADMAP_FATAL,
+                   "too many layers in class file %s",
+                   roadmap_config_file(config));
+   }
+
+   /* We must allocate a new storage because we are going to split
+    * the string, thus modify it.
+    */
+   buffer = strdup(roadmap_config_get_from (config, "Class", id));
+   roadmap_check_allocated(buffer);
+
+   count = roadmap_input_split (buffer, ' ', args, max);
+   if (count <= 0) {
+      roadmap_log (ROADMAP_FATAL,
+                   "invalid layer list %s in class file %s",
+                   id, roadmap_config_file(config));
+   }
+
+   return count;
+}
+
+
+/* This function converts each "after" string into a predecessor list. */
+
+static void roadmap_layer_convert_after (RoadMapSet *set) {
+
+   RoadMapClass *class;
+
+   char *copy;
+   int   i, j;
+   int   cursor;
+   int   count;
+   char *list[ROADMAP_MAX_LAYERS];
+
+
+   for (class = set->classes; class!= NULL; class = class->next) {
+
+      class->predecessor = calloc (set->class_count, sizeof(RoadMapClass *));
+      roadmap_check_allocated(class->predecessor);
+
+      if (class->after == NULL || class->after[0] == 0) {
+         class->predecessor_count = 0;
+         continue;
+      }
+
+      copy = strdup(class->after);
+      count = roadmap_input_split (copy, ' ', list, ROADMAP_MAX_LAYERS);
+
+      for (cursor = 0, i = 0; cursor < count && i < count; ++i) {
+         class->predecessor[cursor] =
+            roadmap_layer_find_class (set->classes, list[i]);
+         for (j = cursor - 1; j >= 0; --j) {
+            if (class->predecessor[j] == class->predecessor[cursor]) {
+               roadmap_log (ROADMAP_ERROR,
+                            "duplicated 'after' class %s in class %s",
+                            list[i], class->name);
+               class->predecessor[cursor] = NULL;
+               break;
+            }
+         }
+         if (class->predecessor[cursor] != NULL) ++cursor;
+      }
+      class->predecessor_count = cursor;
+      free(copy);
+   }
+}
+
+
+/* This function converts each "before" string into the matching 'after'
+ * conditions. The rule implemented here is that if A is before B,
+ * then B is after A, so A must be added to B's predecessor list.
+ */
+static void roadmap_layer_convert_before (RoadMapSet *set) {
+
+   RoadMapClass *class;
+   RoadMapClass *after;
+
+   char *copy;
+   int   i, j;
+   int   count;
+   char *list[ROADMAP_MAX_LAYERS];
+
+   for (class = set->classes; class!= NULL; class = class->next) {
+
+      if (class->before == NULL || class->before[0] == 0) continue;
+
+      copy = strdup(class->before);
+      count = roadmap_input_split (copy, ' ', list, ROADMAP_MAX_LAYERS);
+
+      for (i = 0; i < count; ++i) {
+
+         after = roadmap_layer_find_class (set->classes, list[i]);
+         if (after != NULL) {
+
+            /* The before item is a valid class: check if this other
+             * class does not already list the current class.
+             */
+            for (j = after->predecessor_count - 1; j >= 0; --j) {
+               if (after->predecessor[j] == class) break;
+            }
+            if (j < 0) {
+               after->predecessor[after->predecessor_count++] = class;
+            }
+         }
+      }
+   }
+}
+
+
+static void roadmap_layer_sort (RoadMapSet *set) {
+
+   int i, j;
+   int loop = 0;
+   int count = 0;
+   RoadMapClass *sorted[ROADMAP_MAX_LAYERS];
+
+
+   roadmap_check_allocated(sorted);
+
+   roadmap_layer_convert_after (set);
+   roadmap_layer_convert_before (set);
+
+
+   while (count < set->class_count) {
+
+      RoadMapClass *class;
+
+      if (loop++ > ROADMAP_MAX_LAYERS) {
+         roadmap_log (ROADMAP_FATAL,
+                      "infinite loop detected in "
+                         "the classes 'before' and 'after' conditions");
+      }
+
+      for (class = set->classes; class != NULL; class = class->next) {
+
+         /* Search if any predecessor has not been sorted yet. */
+
+         for (i = class->predecessor_count - 1; i >= 0; --i) {
+
+            for (j = count - 1; j >= 0; --j) {
+               if (class->predecessor[i] == sorted[j]) {
+                  break;
+               }
+            }
+            if (j < 0) {
+               /* This class has one predecessor that is not yet sorted.
+                * We need to sort it later on.
+                */
+               break;
+            }
+         }
+
+         if (i < 0) {
+            /* All the predecessors of this class have been sorted already,
+             * so we can now add this one to the sorted list too.
+             */
+            sorted[count++] = class;
+         }
+      }
+   }
+
+   /* Rebuild the class list according to the sorted order. */
+
+   set->classes = NULL;
+   for (i = count - 1; i >= 0; --i) {
+      sorted[i]->next = set->classes;
+      set->classes = sorted[i];
+   }
+}
+
+
+static void roadmap_layer_load_file (const char *class_file) {
+
     int i;
     int j;
-    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
+
+    int lines_count;
+    int polygons_count;
+    char *layers[ROADMAP_MAX_LAYERS];
+
+    RoadMapSet   *set;
+    RoadMapClass *new_class;
+
+    const char *class_config = roadmap_config_new (class_file, 0);
+    const char *class_name;
 
 
-    if (RoadMapCategory != NULL) return;
-    
+    if (class_config == NULL) {
+       roadmap_log (ROADMAP_FATAL, "cannot access class file %s", class_file);
+    }
 
-    RoadMapCategoryCount =
-       sizeof(RoadMapDefaultCategoryTable) / sizeof(char *);
+    set = roadmap_layer_find_set
+             (roadmap_config_get_from (class_config, "Class", "Set"));
+    if (set == NULL) {
+       set = roadmap_layer_find_set ("default");
+    }
 
-    RoadMapCategory =
-        calloc (RoadMapCategoryCount + 1, sizeof(*RoadMapCategory));
+    class_name = roadmap_config_get_from (class_config, "Class", "Name");
+    if (class_name[0] == 0) {
+       roadmap_log (ROADMAP_FATAL, "invalid class file %s", class_file);
+    }
 
-    roadmap_check_allocated(RoadMapCategory);
+    if (roadmap_layer_find_class(set->classes, class_name) != NULL) {
+       roadmap_log (ROADMAP_FATAL,
+                    "class %s (set %s) redefined in %s",
+                    class_name, set->name, class_file);
+    }
 
-    roadmap_config_declare_enumeration
-       ("preferences", &RoadMapConfigStylePretty, "yes", "no", NULL);
 
-    for (i = 1; i <= RoadMapCategoryCount; ++i) {
+    /* We allocate the lines (first) and the polygons (then) consecutive
+     * to each other, so that we can manage them as a single list.
+     */
+    lines_count =
+       roadmap_layer_decode
+          (class_config, "Lines", layers, ROADMAP_MAX_LAYERS);
+    if (lines_count <= 0) return;
 
-        struct roadmap_canvas_category *category = RoadMapCategory + i;
+    polygons_count =
+       roadmap_layer_decode
+          (class_config, "Polygons",
+           layers + lines_count, ROADMAP_MAX_LAYERS - lines_count);
+    if (polygons_count <= 0) return;
 
-        const char *name = RoadMapDefaultCategoryTable[i-1];
-        const char *class_name;
+
+    /* Create the new class. */
+
+    new_class =
+       malloc (sizeof(RoadMapClass) + 
+                  ((polygons_count + lines_count) * sizeof(RoadMapLayer)));
+    roadmap_check_allocated(new_class);
+
+    new_class->name = class_name;
+    new_class->lines_count = lines_count;
+    new_class->polygons_count = polygons_count;
+
+    new_class->layers = (RoadMapLayer *) (new_class + 1);
+
+    new_class->before = 
+       roadmap_config_get_from (class_config, "Class", "Before");
+
+    new_class->after = 
+       roadmap_config_get_from (class_config, "Class", "After");
+
+
+    new_class->next = set->classes;
+    set->classes = new_class;
+
+    set->class_count += 1;
+
+
+    for (i = lines_count + polygons_count - 1; i >= 0; --i) {
+
+        RoadMapLayer *layer = new_class->layers + i;
+
         const char *color[ROADMAP_LAYER_PENS];
 
         int  thickness;
-        int  other_pens_length = strlen(name) + 64;
-        char *other_pens = malloc(other_pens_length);
-
-        RoadMapClass *p;
+        int  other_pen_length = strlen(layers[i]) + 64;
+        char *other_pen = malloc(other_pen_length);
 
 
-        category->name = name;
-        category->visible = 1;
+        layer->name = layers[i];
+        layer->visible = 1;
+        layer->class = new_class;
 
 
-        /* Retrieve the class of the category. */
+        /* Retrieve the layer's thickness & declutter. */
 
-        descriptor.category = name;
-        descriptor.name = "Class";
-        descriptor.reference = NULL;
+        layer->thickness.category = layers[i];
+        layer->thickness.name     = "Thickness";
+        roadmap_config_declare (class_config, &layer->thickness, "1");
 
-        roadmap_config_declare ("schema", &descriptor, "");
-        class_name = roadmap_config_get (&descriptor);
+        thickness = roadmap_config_get_integer (&layer->thickness);
 
-        for (p = RoadMapClasses; p->name != NULL; ++p) {
-
-            if (strcasecmp (class_name, p->name) == 0) {
-                p->category[p->count++] = i;
-                category->class_index = (int) (p - RoadMapClasses);
-                break;
-            }
-        }
-
-
-        /* Retrieve the category thickness & declutter. */
-
-        category->thickness.category = name;
-        category->thickness.name     = "Thickness";
-        roadmap_config_declare
-            ("schema", &category->thickness, "1");
-
-        thickness = roadmap_config_get_integer (&category->thickness);
-
-        category->declutter.category = name;
-        category->declutter.name     = "Declutter";
-        roadmap_config_declare
-            ("schema", &category->declutter, "20248000000");
+        layer->declutter.category = layers[i];
+        layer->declutter.name     = "Declutter";
+        roadmap_config_declare (class_config, &layer->declutter, "20248000000");
 
 
         /* Retrieve the first pen's color (mandatory). */
 
-        descriptor.name = "Color";
-        descriptor.reference = NULL;
-
-        roadmap_config_declare ("schema", &descriptor, "black");
-        color[0] = roadmap_config_get (&descriptor);
+        color[0] = roadmap_config_get_from (class_config, layers[i], "Color");
 
 
-        /* Retrieve the category's other colors (optional). */
+        /* Retrieve the layer's other colors (optional). */
 
         for (j = 1; j < ROADMAP_LAYER_PENS; ++j) {
 
-           snprintf (other_pens, other_pens_length, "Delta%d", j);
+           const char *image;
 
-           descriptor.name = other_pens;
-           descriptor.reference = NULL;
+           snprintf (other_pen, other_pen_length, "Delta%d", j);
 
-           roadmap_config_declare ("schema", &descriptor, "0");
-           category->delta_thickness[j] =
-              roadmap_config_get_integer (&descriptor);
+           image =
+              roadmap_config_get_from (class_config, layers[i], other_pen);
+           if (image == NULL || image[0] == 0) break;
 
-           if (category->delta_thickness[j] == 0) break;
+           layer->delta_thickness[j] = atoi(image);
 
-           snprintf (other_pens, other_pens_length, "Color%d", j);
 
-           descriptor.name = other_pens;
-           descriptor.reference = NULL;
+           snprintf (other_pen, other_pen_length, "Color%d", j);
 
-           roadmap_config_declare ("schema", &descriptor, "");
-           color[j] = roadmap_config_get (&descriptor);
+           color[j] =
+              roadmap_config_get_from (class_config, layers[i], other_pen);
 
-           if (*color[j] == 0) break;
+           if (color[j] == NULL || *color[j] == 0) break;
         }
-        category->pen_count = j;
+        layer->pen_count = j;
         if (j > RoadMapMaxUsedPen) RoadMapMaxUsedPen = j;
 
 
         /* Create all necessary pens. */
 
-        category->pen[0] = roadmap_canvas_create_pen (name);
+        layer->pen[0] = roadmap_canvas_create_pen (layers[i]);
 
-        roadmap_canvas_set_thickness
-            (roadmap_config_get_integer (&category->thickness));
+        thickness = roadmap_config_get_integer (&layer->thickness);
+        roadmap_canvas_set_thickness (thickness);
 
         if (color[0] != NULL && *(color[0]) > ' ') {
             roadmap_canvas_set_foreground (color[0]);
         }
 
-        for (j = 1; j < category->pen_count; ++j) {
+        for (j = 1; j < layer->pen_count; ++j) {
 
-           snprintf (other_pens, other_pens_length, "%s%d", name, j);
+           snprintf (other_pen, other_pen_length, "%s%d", layers[i], j);
 
-           category->pen[j] = roadmap_canvas_create_pen (other_pens);
+           layer->pen[j] = roadmap_canvas_create_pen (other_pen);
 
-           if (category->delta_thickness[j] < 0) {
-              thickness += category->delta_thickness[j];
+           if (layer->delta_thickness[j] < 0) {
+              thickness += layer->delta_thickness[j];
            } else {
-              thickness = category->delta_thickness[j];
+              thickness = layer->delta_thickness[j];
            }
            roadmap_canvas_set_thickness (thickness);
            roadmap_canvas_set_foreground (color[j]);
         }
     }
+}
+
+
+void roadmap_layer_load (void) {
+
+    char  *class_path;
+    char **classes;
+    char **cursor;
+    int    count;
+
+    const char *path;
+    const char *skin;
+    RoadMapSet *set;
+
+
+    if (RoadMapLayerActiveSet != NULL) return;
+    
+
+    /* Load all the class files from all the possible class directories. */
+
+    skin = roadmap_config_get (&RoadMapConfigSkin);
+
+    for (path = roadmap_path_first("config");
+         path != NULL;
+         path = roadmap_path_next("config", path)) {
+       
+       class_path = roadmap_path_join (path, skin);
+
+       if (roadmap_path_is_directory(class_path)) {
+    
+           classes = roadmap_path_list(class_path, NULL);
+
+           for (cursor = classes; *cursor != NULL; ++cursor) {
+              char *file = roadmap_path_join (class_path, *cursor);
+              roadmap_layer_load_file (file);
+           }
+           roadmap_path_list_free (classes);
+       }
+
+       roadmap_path_free(class_path);
+    }
+
+    for (count = 0, set = RoadMapLayerSet; set->name != NULL; ++set) {
+       roadmap_layer_sort(set);
+       count += set->class_count;
+    }
+
+    if (count <= 0) {
+       roadmap_log (ROADMAP_FATAL, "could not load any class");
+    }
+
+    roadmap_layer_select_set ("default");
+}
+
+
+void roadmap_layer_initialize (void) {
+
+    roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigStylePretty, "yes", "no", NULL);
+
+    roadmap_config_declare ("preferences", &RoadMapConfigSkin, "default");
 }
 
