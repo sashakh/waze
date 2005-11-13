@@ -39,6 +39,7 @@
 #include "roadmap_dbread.h"
 #include "roadmap_db_polygon.h"
 
+#include "roadmap_polygon.h"
 
 static char *RoadMapPolygonType = "RoadMapPolygonContext";
 
