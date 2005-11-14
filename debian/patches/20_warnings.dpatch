@@ -15,7 +15,7 @@ diff -u -3 -p -u -r1.47 Makefile
 +++ roadmap/src/Makefile	31 Jan 2005 21:50:21 -0000
 @@ -1,5 +1,5 @@
  
--WARNFLAGS = -W -Wall -Wno-unused-parameter
+-WARNFLAGS = -W -Wall -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wreturn-type -Wsign-compare
 +WARNFLAGS = -W -Wall -Wcast-align -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wconversion -Wsign-compare -Wcast-qual -Wmissing-declarations
  
  ifeq ($(MODE),DEBUG)
