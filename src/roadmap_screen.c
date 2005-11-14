@@ -438,8 +438,8 @@ static void roadmap_screen_draw_polygons (void) {
    int i;
    int j;
    int size;
-   int category;
-   int current_category = -1;
+   int layer;
+   int current_layer = -1;
    int *geo_point;
    RoadMapPosition position;
    RoadMapGuiPoint *graphic_point;
@@ -456,12 +456,12 @@ static void roadmap_screen_draw_polygons (void) {
 
    for (i = roadmap_polygon_count() - 1; i >= 0; --i) {
 
-      category = roadmap_polygon_category (i);
+      layer = roadmap_polygon_category (i);
 
-      if (category != current_category) {
+      if (layer != current_layer) {
          roadmap_screen_flush_polygons ();
-         roadmap_layer_select_pen (category, 0);
-         current_category = category;
+         roadmap_canvas_select_pen (roadmap_layer_get_pen (layer, 0));
+         current_layer = layer;
       }
 
       roadmap_polygon_edges (i, &edges);
@@ -723,7 +723,7 @@ static void roadmap_screen_reset_square_mask (void) {
 }
 
 
-static int roadmap_screen_repaint_square (int square, int pen_type) {
+static int roadmap_screen_repaint_square (int square, unsigned int pen_index) {
 
    int i;
    int count;
@@ -732,7 +732,7 @@ static int roadmap_screen_repaint_square (int square, int pen_type) {
    RoadMapArea edges;
 
    int drawn = 0;
-   int category;
+   int layer;
    int fully_visible;
 
 
@@ -756,18 +756,18 @@ static int roadmap_screen_repaint_square (int square, int pen_type) {
       fully_visible = 0;
    }
 
-   if (pen_type == 0) roadmap_screen_draw_square_edges (square);
+   if (pen_index == 0) roadmap_screen_draw_square_edges (square);
 
-   count = roadmap_layer_visible_lines (layers, 1024, pen_type);
+   count = roadmap_layer_visible_lines (layers, 1024, pen_index);
    
    for (i = 0; i < count; ++i) {
 
-        category = layers[i];
+        layer = layers[i];
 
-        roadmap_layer_select_pen (category, pen_type);
+        roadmap_canvas_select_pen (roadmap_layer_get_pen (layer, pen_index));
 
         drawn += roadmap_screen_draw_square
-                    (square, category, fully_visible);
+                    (square, layer, fully_visible);
 
         if (RoadMapScreenObjects.cursor != RoadMapScreenObjects.data) {
             roadmap_screen_flush_lines();
@@ -790,9 +790,8 @@ static void roadmap_screen_repaint (void) {
 
     int i;
     int j;
-    int k;
     int count;
-    int max_pen = roadmap_layer_max_pen();
+    unsigned int max_pen = roadmap_layer_max_pen();
     
 
     if (!RoadMapScreenDragging && RoadMapScreenFrozen) return;
@@ -839,12 +838,14 @@ static void roadmap_screen_repaint (void) {
 
         if (count > 0) {
 
+            unsigned int pen_index;
+
             roadmap_screen_draw_polygons ();
 
-            for (k = 0; k < max_pen; ++k) {
+            for (pen_index = 0; pen_index < max_pen; ++pen_index) {
                roadmap_screen_reset_square_mask();
                for (j = count - 1; j >= 0; --j) {
-                  roadmap_screen_repaint_square (in_view[j], k);
+                  roadmap_screen_repaint_square (in_view[j], pen_index);
                }
             }
         }

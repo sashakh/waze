@@ -39,8 +39,6 @@
 #include "roadmap_layer.h"
 
 
-#define ROADMAP_MAX_LAYERS  1024
-
 static RoadMapConfigDescriptor RoadMapConfigStylePretty =
                         ROADMAP_CONFIG_ITEM("Style", "Use Pretty Lines");
 
@@ -91,19 +89,18 @@ typedef struct roadmap_layer_record {
     
     RoadMapClass *class;
 
-    short visible;
-    short pen_count;
+    char in_use[ROADMAP_LAYER_PENS];
 
     RoadMapConfigDescriptor declutter;
     RoadMapConfigDescriptor thickness;
 
+    unsigned int pen_count;
     RoadMapPen pen[ROADMAP_LAYER_PENS];
     int delta_thickness[ROADMAP_LAYER_PENS];
-    int in_use[ROADMAP_LAYER_PENS];
 
 } RoadMapLayer;
 
-static int RoadMapMaxUsedPen = 1;
+static unsigned int RoadMapMaxUsedPen = 1;
 
 
 /* SETS. --------------------------------------------------------------
@@ -158,15 +155,12 @@ static RoadMapClass *roadmap_layer_find_class(RoadMapClass *list,
 
 static int roadmap_layer_is_visible (RoadMapLayer *layer) {
     
-    if (! layer->visible) {
-        return 0;
-    }
     return roadmap_math_declutter
                 (roadmap_config_get_integer (&layer->declutter));
 }
 
 
-int roadmap_layer_max_pen(void) {
+unsigned int roadmap_layer_max_pen(void) {
 
    if (! roadmap_config_match (&RoadMapConfigStylePretty, "yes")) {
       return 1;
@@ -202,7 +196,8 @@ int roadmap_layer_visible_roads (int *layers, int size) {
 }
 
 
-int roadmap_layer_visible_lines (int *layers, int size, int pen_type) {
+int roadmap_layer_visible_lines
+       (int *layers, int size, unsigned int pen_index) {
 
     int i;
     int count = -1;
@@ -216,8 +211,8 @@ int roadmap_layer_visible_lines (int *layers, int size, int pen_type) {
 
         layer = RoadMapLayerCurrentClass->layers + i;
 
-        if (pen_type >= layer->pen_count) continue;
-        if (! layer->in_use[pen_type]) continue;
+        if (pen_index >= layer->pen_count) continue;
+        if (! layer->in_use[pen_index]) continue;
 
         if (roadmap_layer_is_visible (layer)) {
            if (count >= size) goto done;
@@ -233,9 +228,9 @@ done:
 void roadmap_layer_adjust (void) {
     
     int i;
-    int j;
     int thickness;
     int future_thickness;
+    unsigned int pen_index;
     RoadMapLayer *layer;
     
     for (i = RoadMapLayerCurrentClass->lines_count - 1; i >= 0; --i) {
@@ -255,12 +250,12 @@ void roadmap_layer_adjust (void) {
              */
             future_thickness = thickness;
 
-            for (j = 1; j < layer->pen_count; ++j) {
+            for (pen_index = 1; pen_index < layer->pen_count; ++pen_index) {
 
-               if (layer->delta_thickness[j] > 0) break;
+               if (layer->delta_thickness[pen_index] > 0) break;
 
                future_thickness =
-                  future_thickness + layer->delta_thickness[j];
+                  future_thickness + layer->delta_thickness[pen_index];
                if (future_thickness == 1) {
                   thickness += 1;
                }
@@ -270,58 +265,66 @@ void roadmap_layer_adjust (void) {
             roadmap_canvas_set_thickness (thickness);
             layer->in_use[0] = 1;
 
-            for (j = 1; j < layer->pen_count; ++j) {
+            for (pen_index = 1; pen_index < layer->pen_count; ++pen_index) {
 
                /* The previous thickness was already the minimum:
                 * the pens that follow should not be used.
                 */
                if (thickness <= 1) {
-                  layer->in_use[j] = 0;
+                  layer->in_use[pen_index] = 0;
                   continue;
                }
 
-               if (layer->delta_thickness[j] < 0) {
+               if (layer->delta_thickness[pen_index] < 0) {
 
-                  thickness += layer->delta_thickness[j];
+                  thickness += layer->delta_thickness[pen_index];
 
                } else {
                   /* Don't end with a road mostly drawn with the latter
                    * pen.
                    */
-                  if (layer->delta_thickness[j] >= thickness / 2) {
-                     layer->in_use[j] = 0;
+                  if (layer->delta_thickness[pen_index] >= thickness / 2) {
+                     layer->in_use[pen_index] = 0;
                      thickness = 1;
                      continue;
                   }
-                  thickness = layer->delta_thickness[j];
+                  thickness = layer->delta_thickness[pen_index];
                }
 
                /* If this pen is not visible, there is no reason
                 * to draw it.
                 */
                if (thickness < 1) {
-                  layer->in_use[j] = 0;
+                  layer->in_use[pen_index] = 0;
                   continue;
                }
 
-               roadmap_canvas_select_pen (layer->pen[j]);
+               roadmap_canvas_select_pen (layer->pen[pen_index]);
                roadmap_canvas_set_thickness (thickness);
-               layer->in_use[j] = 1;
+               layer->in_use[pen_index] = 1;
             }
         }
     }
 }
 
 
-void roadmap_layer_select_pen (int layer, int pen_type) {
+RoadMapPen roadmap_layer_get_pen (int layer, unsigned int pen_index) {
 
    int total = RoadMapLayerCurrentClass->polygons_count
                   + RoadMapLayerCurrentClass->lines_count;
 
-   if (layer >= 1 && layer <= total) {
-      roadmap_canvas_select_pen
-         (RoadMapLayerCurrentClass->layers[layer-1].pen[pen_type]);
+   if (layer >= 1 && layer <= total && pen_index < RoadMapMaxUsedPen) {
+
+      RoadMapLayer *this_layer = RoadMapLayerCurrentClass->layers + layer - 1;
+
+      if (!roadmap_layer_is_visible (this_layer)) return NULL;
+
+      if (!this_layer->in_use[pen_index]) return NULL;
+
+      return this_layer->pen[pen_index];
    }
+
+   return NULL;
 }
 
 
@@ -337,15 +340,6 @@ void roadmap_layer_class_next (void) {
    }
 }
 
-const char *roadmap_layer_class_name (void) {
-
-   if (RoadMapLayerCurrentClass == NULL) {
-      return NULL;
-   }
-   return RoadMapLayerCurrentClass->name;
-}
-
-
 int  roadmap_layer_select_class (const char *name) {
 
    RoadMapClass *selected =
@@ -355,6 +349,34 @@ int  roadmap_layer_select_class (const char *name) {
 
    RoadMapLayerCurrentClass = selected;
    return 1;
+}
+
+
+const char *roadmap_layer_class_name (void) {
+
+   if (RoadMapLayerCurrentClass == NULL) {
+      return NULL;
+   }
+   return RoadMapLayerCurrentClass->name;
+}
+
+
+int roadmap_layer_names (const char *names[], int max) {
+
+   short i;
+   short total = RoadMapLayerCurrentClass->lines_count
+                    + RoadMapLayerCurrentClass->polygons_count;
+
+
+   if (total > max) {
+      roadmap_log (ROADMAP_FATAL, "unsufficient space");
+   }
+
+   for (i = total - 1; i >= 0; --i) {
+      names[i] = RoadMapLayerCurrentClass->layers[i].name;
+   }
+
+   return total;
 }
 
 
@@ -568,7 +590,7 @@ static void roadmap_layer_sort (RoadMapSet *set) {
 static void roadmap_layer_load_file (const char *class_file) {
 
     int i;
-    int j;
+    unsigned int pen_index;
 
     int lines_count;
     int polygons_count;
@@ -656,7 +678,6 @@ static void roadmap_layer_load_file (const char *class_file) {
 
 
         layer->name = layers[i];
-        layer->visible = 1;
         layer->class = new_class;
 
 
@@ -680,28 +701,28 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         /* Retrieve the layer's other colors (optional). */
 
-        for (j = 1; j < ROADMAP_LAYER_PENS; ++j) {
+        for (pen_index = 1; pen_index < ROADMAP_LAYER_PENS; ++pen_index) {
 
            const char *image;
 
-           snprintf (other_pen, other_pen_length, "Delta%d", j);
+           snprintf (other_pen, other_pen_length, "Delta%d", pen_index);
 
            image =
               roadmap_config_get_from (class_config, layers[i], other_pen);
            if (image == NULL || image[0] == 0) break;
 
-           layer->delta_thickness[j] = atoi(image);
+           layer->delta_thickness[pen_index] = atoi(image);
 
 
-           snprintf (other_pen, other_pen_length, "Color%d", j);
+           snprintf (other_pen, other_pen_length, "Color%d", pen_index);
 
-           color[j] =
+           color[pen_index] =
               roadmap_config_get_from (class_config, layers[i], other_pen);
 
-           if (color[j] == NULL || *color[j] == 0) break;
+           if (color[pen_index] == NULL || *color[pen_index] == 0) break;
         }
-        layer->pen_count = j;
-        if (j > RoadMapMaxUsedPen) RoadMapMaxUsedPen = j;
+        layer->pen_count = pen_index;
+        if (pen_index > RoadMapMaxUsedPen) RoadMapMaxUsedPen = pen_index;
 
 
         /* Create all necessary pens. */
@@ -715,19 +736,19 @@ static void roadmap_layer_load_file (const char *class_file) {
             roadmap_canvas_set_foreground (color[0]);
         }
 
-        for (j = 1; j < layer->pen_count; ++j) {
+        for (pen_index = 1; pen_index < layer->pen_count; ++pen_index) {
 
-           snprintf (other_pen, other_pen_length, "%s%d", layers[i], j);
+           snprintf (other_pen, other_pen_length, "%s%d", layers[i], pen_index);
 
-           layer->pen[j] = roadmap_canvas_create_pen (other_pen);
+           layer->pen[pen_index] = roadmap_canvas_create_pen (other_pen);
 
-           if (layer->delta_thickness[j] < 0) {
-              thickness += layer->delta_thickness[j];
+           if (layer->delta_thickness[pen_index] < 0) {
+              thickness += layer->delta_thickness[pen_index];
            } else {
-              thickness = layer->delta_thickness[j];
+              thickness = layer->delta_thickness[pen_index];
            }
            roadmap_canvas_set_thickness (thickness);
-           roadmap_canvas_set_foreground (color[j]);
+           roadmap_canvas_set_foreground (color[pen_index]);
         }
     }
 }
