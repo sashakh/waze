@@ -4,4 +4,4 @@
   title="RoadMap"\
   hints="Street navigation system"\
   command="/usr/local/bin/roadmap"\
-  icon="/usr/share/pixmaps/gnome-globe.png"
+  icon="/usr/share/pixmaps/roadmap-32.xpm"
