@@ -114,7 +114,7 @@ static void roadmap_locator_configure (void) {
          roadmap_db_register
             (RoadMapUsModel, "string", &RoadMapDictionaryHandler);
 
-      if (! roadmap_db_open ("usdir", RoadMapUsModel)) {
+      if (! roadmap_db_open ("usdir", RoadMapUsModel, "r")) {
          roadmap_log (ROADMAP_FATAL, "cannot open directory database (usdir)");
       }
 
@@ -214,7 +214,7 @@ static int roadmap_locator_open (int fips) {
 
    access = roadmap_locator_new_access ();
 
-   while (! roadmap_db_open (map_name, RoadMapCountyModel)) {
+   while (! roadmap_db_open (map_name, RoadMapCountyModel, "r")) {
 
       if (! RoadMapDownload (fips)) {
          return ROADMAP_US_NOMAP;

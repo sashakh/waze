@@ -258,7 +258,9 @@ static void roadmap_driver_publish_satellites
 
 
 static void roadmap_driver_listener
-               (int gps_time, const RoadMapGpsPosition *position) {
+               (int gps_time,
+                const RoadMapGpsPrecision *dilution,
+                const RoadMapGpsPosition  *position) {
 
    static RoadMapGpsPosition RoadMapDriverLastPosition;
 

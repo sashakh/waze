@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP__H_
-#define _BUILDMAP__H_
+#ifndef INCLUDED__ROADMAP_BUILDMAP__H
+#define INCLUDED__ROADMAP_BUILDMAP__H
 
 #include "roadmap_types.h"
 #include "roadmap_db.h"
@@ -46,10 +46,10 @@ typedef struct dictionary_volume *BuildMapDictionary;
 
 BuildMapDictionary buildmap_dictionary_open (char *name);
 RoadMapString buildmap_dictionary_add
-                (BuildMapDictionary dictionary, char *string, int length);
+                (BuildMapDictionary dictionary, const char *string, int length);
 
 RoadMapString buildmap_dictionary_locate
-                (BuildMapDictionary dictionary, char *string);
+                (BuildMapDictionary dictionary, const char *string);
 char *buildmap_dictionary_get
          (BuildMapDictionary dictionary, RoadMapString index);
 
@@ -71,13 +71,18 @@ struct buildmap_db_section {
 typedef struct buildmap_db_section buildmap_db;
 
 
-void buildmap_db_open (char *path, char *name);
+int buildmap_db_open (const char *path, const char *name);
 
-buildmap_db *buildmap_db_add_section (buildmap_db *parent, char *name);
-void         buildmap_db_add_data (buildmap_db *section, int count, int size);
+buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name);
+int          buildmap_db_add_data (buildmap_db *section, int count, int size);
 char        *buildmap_db_get_data (buildmap_db *section);
+
+buildmap_db *buildmap_db_add_child (buildmap_db *parent,
+                                    char *name,
+                                    int count,
+                                    int size);
 
 void buildmap_db_close (void);
 
-#endif // _BUILDMAP__H_
+#endif // INCLUDED__ROADMAP_BUILDMAP__H
 

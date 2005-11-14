@@ -340,11 +340,14 @@ void buildmap_place_save (void) {
    /* Create the database space */
 
    root = buildmap_db_add_section (NULL, "place");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    data_table = buildmap_db_add_section (root, "data");
+   if (data_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (data_table, PlaceCount, sizeof(RoadMapPlace));
 
    square_table = buildmap_db_add_section (root, "bysquare");
+   if (square_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (square_table,
                          square_count, sizeof(RoadMapPlaceBySquare));
 

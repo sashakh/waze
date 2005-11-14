@@ -25,8 +25,8 @@
  * integer operations only.
  */
 
-#ifndef INCLUDE__ROADMAP_FUZZY__H
-#define INCLUDE__ROADMAP_FUZZY__H
+#ifndef INCLUDED__ROADMAP_FUZZY__H
+#define INCLUDED__ROADMAP_FUZZY__H
 
 #include "roadmap_street.h"
 
@@ -36,7 +36,8 @@ void roadmap_fuzzy_start_cycle (void);
 
 int roadmap_fuzzy_max_distance (void);
 
-RoadMapFuzzy roadmap_fuzzy_direction (int direction, int reference);
+RoadMapFuzzy roadmap_fuzzy_direction
+                (int direction, int reference, int symetric);
 RoadMapFuzzy roadmap_fuzzy_distance  (int distance);
 
 RoadMapFuzzy roadmap_fuzzy_connected
@@ -55,4 +56,4 @@ int          roadmap_fuzzy_is_certain    (RoadMapFuzzy a);
 
 void roadmap_fuzzy_initialize (void);
 
-#endif // INCLUDE__ROADMAP_FUZZY__H
+#endif // INCLUDED__ROADMAP_FUZZY__H

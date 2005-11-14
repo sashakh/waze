@@ -584,7 +584,7 @@ void  buildmap_range_save (void) {
    RoadMapRangePlace     *db_place;
    RoadMapRangeBySquare  *db_square;
 
-   buildmap_db *root  = buildmap_db_add_section (NULL, "range");
+   buildmap_db *root;
    buildmap_db *table_street;
    buildmap_db *table_addr;
    buildmap_db *table_noaddr;
@@ -738,29 +738,39 @@ void  buildmap_range_save (void) {
 
    /* Create the database space. */
 
+   root  = buildmap_db_add_section (NULL, "range");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+
    table_street = buildmap_db_add_section (root, "bystreet");
+   if (table_street == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
       (table_street, buildmap_street_count(), sizeof(RoadMapRangeByStreet));
 
    table_city = buildmap_db_add_section (root, "bycity");
+   if (table_city == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
       (table_city, city_count, sizeof(RoadMapRangeByCity));
 
    table_place = buildmap_db_add_section (root, "place");
+   if (table_place == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
       (table_place, RangePlaceCount, sizeof(RoadMapRangePlace));
 
    table_zip = buildmap_db_add_section (root, "byzip");
+   if (table_zip == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_zip, zip_count, sizeof(RoadMapRangeByZip));
 
    table_addr = buildmap_db_add_section (root, "addr");
+   if (table_addr == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_addr, RangeCount, sizeof(RoadMapRange));
 
    table_noaddr = buildmap_db_add_section (root, "noaddr");
+   if (table_noaddr == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_noaddr,
                          RangeNoAddressCount, sizeof(RoadMapRangeNoAddress));
 
    table_square = buildmap_db_add_section (root, "bysquare");
+   if (table_square == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
       (table_square, square_count, sizeof(RoadMapRangeBySquare));
 

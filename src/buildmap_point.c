@@ -352,11 +352,14 @@ void buildmap_point_save (void) {
    buildmap_info ("saving points...");
 
    root = buildmap_db_add_section (NULL, "point");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    table_data = buildmap_db_add_section (root, "data");
+   if (table_data == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_data, PointCount, sizeof(RoadMapPoint));
 
    table_bysquare = buildmap_db_add_section (root, "bysquare");
+   if (table_bysquare == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
       (table_bysquare, buildmap_square_get_count(), sizeof(RoadMapSortedList));
 

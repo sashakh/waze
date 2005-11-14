@@ -427,3 +427,18 @@ int  roadmap_county_count (void) {
    return RoadMapCountyActive->county_count;
 }
 
+
+const RoadMapArea *roadmap_county_get_edges (int fips) {
+
+   int i;
+
+   if (RoadMapCountyActive == NULL) return NULL;
+
+   i = roadmap_county_search_index (fips);
+   if (i < 0) {
+      return NULL;
+   }
+
+   return &RoadMapCountyActive->county[i].edges;
+}
+

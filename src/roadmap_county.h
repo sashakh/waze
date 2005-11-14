@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_COUNTY__H_
-#define _ROADMAP_COUNTY__H_
+#ifndef INCLUDED__ROADMAP_COUNTY__H
+#define INCLUDED__ROADMAP_COUNTY__H
 
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
@@ -39,8 +39,9 @@ const char *roadmap_county_get_state (int fips);
 
 int  roadmap_county_count (void);
 
+const RoadMapArea *roadmap_county_get_edges (int fips);
 
 extern roadmap_db_handler RoadMapCountyHandler;
 
-#endif // _ROADMAP_COUNTY__H_
+#endif // INCLUDED__ROADMAP_COUNTY__H
 

@@ -310,11 +310,14 @@ void buildmap_square_save (void) {
    buildmap_info ("saving squares...");
 
    root = buildmap_db_add_section (NULL, "square");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    table_global = buildmap_db_add_section (root, "global");
+   if (table_global == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_global, 1, sizeof(RoadMapGlobal));
 
    table_data = buildmap_db_add_section (root, "data");
+   if (table_data == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_data, SquareCount, sizeof(RoadMapSquare));
 
    db_global = (RoadMapGlobal *) buildmap_db_get_data (table_global);

@@ -42,8 +42,10 @@
 #include "roadmap_dbread.h"
 #include "roadmap_db_line.h"
 
+#include "roadmap_math.h"
 #include "roadmap_point.h"
 #include "roadmap_line.h"
+#include "roadmap_shape.h"
 #include "roadmap_square.h"
 
 
@@ -288,5 +290,58 @@ int  roadmap_line_count (void) {
    if (RoadMapLineActive == NULL) return 0; /* No line. */
 
    return RoadMapLineActive->LineCount;
+}
+
+
+int roadmap_line_length (int line) {
+
+   RoadMapPosition p1;
+   RoadMapPosition p2;
+   int length = 0;
+
+   int square;
+   int first_shape_line;
+   int last_shape_line;
+   int first_shape;
+   int last_shape;
+   int i;
+
+   roadmap_point_position (RoadMapLineActive->Line[line].from, &p1);
+   square = roadmap_square_search (&p1);
+
+   if (roadmap_shape_in_square (square, &first_shape_line,
+                                        &last_shape_line) > 0) {
+
+      if (roadmap_shape_of_line (line, first_shape_line,
+                                       last_shape_line,
+                                       &first_shape, &last_shape) > 0) {
+
+         p2 = p1;
+         for (i = first_shape; i <= last_shape; i++) {
+
+            roadmap_shape_get_position (i, &p2);
+            length += roadmap_math_distance (&p1, &p2);
+            p1 = p2;
+         }
+      }
+   }
+
+   roadmap_point_position (RoadMapLineActive->Line[line].to, &p2);
+   length += roadmap_math_distance (&p1, &p2);
+
+   return length;
+}
+
+
+void roadmap_line_points (int line, int *from, int *to) {
+
+#ifdef DEBUG
+   if (line < 0 || line >= RoadMapLineActive->LineCount) {
+      roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+   }
+#endif
+
+   *from = RoadMapLineActive->Line[line].from;
+   *to = RoadMapLineActive->Line[line].to;
 }
 

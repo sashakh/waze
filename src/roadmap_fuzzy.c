@@ -73,16 +73,30 @@ int roadmap_fuzzy_max_distance (void) {
  * max fuzzy value if same angle as reference, 0 if 90 degree difference,
  * constant slope in between.
  */
-RoadMapFuzzy roadmap_fuzzy_direction (int direction, int reference) {
+RoadMapFuzzy roadmap_fuzzy_direction
+                (int direction, int reference, int symetric) {
 
-    int delta = (direction - reference) % 180;
+    int delta = (direction - reference);
 
-    /* The membership function is symetrical around the zero point,
-     * and each side is symetrical around the 90 point: use these
-     * properties to fold the delta.
-     */
-    if (delta < 0) delta += 180;
-    if (delta > 90) delta = 180 - delta;
+    if (symetric) {
+       
+       delta = delta % 180;
+
+       /* The membership function is symetrical around the zero point,
+        * and each side is symetrical around the 90 point: use these
+        * properties to fold the delta.
+        */
+       if (delta < 0) delta += 180;
+       if (delta > 90) delta = 180 - delta;
+
+    } else {
+
+       delta = delta % 360;
+       if (delta < 0) delta += 360;
+       if (delta > 180) delta = 360 - delta;
+    }
+
+    if (delta >= 90) return 0;
 
     return (FUZZY_TRUTH_MAX * (90 - delta)) / 90;
 }

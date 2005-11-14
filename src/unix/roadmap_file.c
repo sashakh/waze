@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <errno.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -128,9 +128,21 @@ void roadmap_file_save (const char *path, const char *name,
 
    if (fd >= 0) {
 
-      write (fd, data, length);
+      write (fd, data, (size_t)length);
       close(fd);
    }
+}
+
+
+int roadmap_file_truncate (const char *path, const char *name, int length) {
+
+   int   res;
+   const char *full_name = roadmap_path_join (path, name);
+
+   res = truncate (full_name, length);
+   roadmap_path_free (full_name);
+
+   return res;
 }
 
 
@@ -145,7 +157,7 @@ void roadmap_file_append (const char *path, const char *name,
 
    if (fd >= 0) {
 
-      write (fd, data, length);
+      write (fd, data, (size_t)length);
       close(fd);
    }
 }
@@ -153,11 +165,11 @@ void roadmap_file_append (const char *path, const char *name,
 
 const char *roadmap_file_unique (const char *base) {
 
-    static int   UniqueNameCounter = 0;
-    static char *UniqueNameBuffer = NULL;
-    static int   UniqueNameBufferLength = 0;
+    static int    UniqueNameCounter = 0;
+    static char  *UniqueNameBuffer = NULL;
+    static size_t UniqueNameBufferLength = 0;
 
-    int length;
+    size_t length;
     
     length = strlen(base + 16);
     
@@ -185,11 +197,15 @@ const char *roadmap_file_unique (const char *base) {
 const char *roadmap_file_map (const char *set,
                               const char *name,
                               const char *sequence,
+                              const char *mode,
                               RoadMapFileContext *file) {
 
    RoadMapFileContext context;
 
    struct stat state_result;
+   int open_mode;
+   int map_mode;
+   int map_flags;
 
 
    context = malloc (sizeof(*context));
@@ -199,18 +215,32 @@ const char *roadmap_file_map (const char *set,
    context->base = NULL;
    context->size = 0;
 
+   if (strcmp(mode, "r") == 0) {
+      open_mode = O_RDONLY;
+      map_mode = PROT_READ;
+      map_flags = MAP_PRIVATE;
+   } else if (strchr (mode, 'w') != NULL) {
+      open_mode = O_RDWR;
+      map_mode = PROT_READ|PROT_WRITE;
+      map_flags = MAP_SHARED;
+   } else {
+      roadmap_log (ROADMAP_ERROR,
+                   "%s: invalid file access mode %s", name, mode);
+      return NULL;
+   }
+
    if (name[0] == '/') {
 
-      context->fd = open (name, O_RDONLY, 0666);
+      context->fd = open (name, open_mode, 0666);
       sequence = ""; /* Whatever, but NULL. */
 
    } else {
 
       char *full_name;
 
-      int full_name_size;
-      int name_size = strlen(name);
-      int size;
+      size_t full_name_size;
+      size_t name_size = strlen(name);
+      size_t size;
 
 
       if (sequence == NULL) {
@@ -239,7 +269,7 @@ const char *roadmap_file_map (const char *set,
          strcat (full_name, "/");
          strcat (full_name, name);
 
-         context->fd = open (full_name, O_RDONLY, 0666);
+         context->fd = open (full_name, open_mode, 0666);
 
          if (context->fd >= 0) break;
 
@@ -274,8 +304,12 @@ const char *roadmap_file_map (const char *set,
    }
    context->size = state_result.st_size;
 
-   context->base =
-      mmap (NULL, state_result.st_size, PROT_READ, MAP_PRIVATE, context->fd, 0);
+   context->base = mmap (NULL,
+                         (size_t)state_result.st_size,
+                         map_mode,
+                         map_flags,
+                         context->fd,
+                         0);
 
    if (context->base == NULL) {
       roadmap_log (ROADMAP_ERROR, "cannot map file %s", name);
@@ -312,7 +346,7 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
    RoadMapFileContext context = *file;
 
    if (context->base != NULL) {
-      munmap (context->base, context->size);
+      munmap (context->base, (size_t)context->size);
    }
 
    if (context->fd >= 0) {
@@ -342,13 +376,13 @@ RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
 
 
 int roadmap_file_read  (RoadMapFile file, void *data, int size) {
-   int count = read ((int)file, data, size);
+   int count = read ((int)file, data, (size_t)size);
    if (count <= 0) return -1;
    return count;
 }
 
 int roadmap_file_write (RoadMapFile file, const void *data, int length) {
-   return write ((int)file, data, length);
+   return write ((int)file, data, (size_t)length);
 }
 
 void  roadmap_file_close (RoadMapFile file) {

@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__ROADMAP_GPS__H
-#define INCLUDE__ROADMAP_GPS__H
+#ifndef INCLUDED__ROADMAP_GPS__H
+#define INCLUDED__ROADMAP_GPS__H
 
 #include "roadmap_io.h"
 
@@ -45,8 +45,18 @@ typedef struct {
 
 #define ROADMAP_GPS_NULL_POSITION {0, 0, 0, 0, 0}
 
-typedef void (*roadmap_gps_listener)
-                  (int gps_time, const RoadMapGpsPosition *position);
+typedef struct {
+
+   int    dimension;        /* <2: none, 2: 2D fix, 3: 3D fix. */
+   double dilution_position;
+   double dilution_horizontal;
+   double dilution_vertical;
+
+} RoadMapGpsPrecision;
+
+typedef void (*roadmap_gps_listener) (int gps_time,
+                                      const RoadMapGpsPrecision *dilution,
+                                      const RoadMapGpsPosition  *position);
 
 void roadmap_gps_register_listener (roadmap_gps_listener listener);
 
@@ -65,15 +75,6 @@ typedef struct {
    short strength;
 
 } RoadMapGpsSatellite;
-
-typedef struct {
-
-   int    dimension;        /* <2: none, 2: 2D fix, 3: 3D fix. */
-   double dilution_position;
-   double dilution_horizontal;
-   double dilution_vertical;
-
-} RoadMapGpsPrecision;
 
 typedef void (*roadmap_gps_monitor) (const RoadMapGpsPrecision *precision,
                                      const RoadMapGpsSatellite *satellites,
@@ -122,5 +123,5 @@ int  roadmap_gps_speed_accuracy  (void);
 
 int  roadmap_gps_is_nmea (void);
 
-#endif // INCLUDE__ROADMAP_GPS__H
+#endif // INCLUDED__ROADMAP_GPS__H
 

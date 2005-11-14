@@ -413,18 +413,23 @@ void buildmap_line_save (void) {
    /* Create the database space */
 
    root = buildmap_db_add_section (NULL, "line");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    data_table = buildmap_db_add_section (root, "data");
+   if (data_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (data_table, LineCount, sizeof(RoadMapLine));
 
    square1_table = buildmap_db_add_section (root, "bysquare1");
+   if (square1_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (square1_table,
                          square_count, sizeof(RoadMapLineBySquare));
 
    index2_table = buildmap_db_add_section (root, "index2");
+   if (index2_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (index2_table, LineCrossingCount, sizeof(int));
 
    square2_table = buildmap_db_add_section (root, "bysquare2");
+   if (square2_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (square2_table,
                          square_count, sizeof(RoadMapLineBySquare));
 

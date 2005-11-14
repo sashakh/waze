@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_MATH__H_
-#define _ROADMAP_MATH__H_
+#ifndef INCLUDED__ROADMAP_MATH__H
+#define INCLUDED__ROADMAP_MATH__H
 
 
 #include "roadmap_types.h"
@@ -57,6 +57,12 @@ int  roadmap_math_is_visible       (const RoadMapArea *area);
 int  roadmap_math_line_is_visible  (const RoadMapPosition *point1,
                                     const RoadMapPosition *point2);
 int  roadmap_math_point_is_visible (const RoadMapPosition *point);
+
+int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
+                                          const RoadMapPosition *to,
+                                          RoadMapGuiPoint *point0,
+                                          RoadMapGuiPoint *point1);
+
 
 void roadmap_math_coordinate  (const RoadMapPosition *position,
                                RoadMapGuiPoint *point);
@@ -94,8 +100,17 @@ int  roadmap_math_get_distance_from_segment
          const RoadMapPosition *position2,
                RoadMapPosition *intersection);
 
+int roadmap_math_intersection (RoadMapPosition *from1,
+                               RoadMapPosition *to1,
+                               RoadMapPosition *from2,
+                               RoadMapPosition *to2,
+                               RoadMapPosition *intersection);
+
 void roadmap_math_screen_edges (RoadMapArea *area);
 
 int  roadmap_math_street_address (const char *image, int length);
 
-#endif // _ROADMAP_MATH__H_
+int roadmap_math_compare_points (const RoadMapPosition *p1,
+                                 const RoadMapPosition *p2);
+
+#endif // INCLUDED__ROADMAP_MATH__H

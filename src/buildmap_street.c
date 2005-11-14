@@ -279,11 +279,14 @@ void  buildmap_street_save (void) {
    buildmap_info ("saving street...");
 
    root = buildmap_db_add_section (NULL, "street");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    table_name = buildmap_db_add_section (root, "name");
+   if (table_name == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_name, StreetCount, sizeof(RoadMapStreet));
 
    table_cfcc = buildmap_db_add_section (root, "type");
+   if (table_cfcc == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (table_cfcc, StreetCount, sizeof(char));
 
    db_streets  = (RoadMapStreet *) buildmap_db_get_data (table_name);

@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_LINE__H_
-#define _ROADMAP_LINE__H_
+#ifndef INCLUDED__ROADMAP_LINE__H
+#define INCLUDED__ROADMAP_LINE__H
 
 #include "roadmap_dbread.h"
 
@@ -30,11 +30,13 @@ int  roadmap_line_in_square (int square, int cfcc, int *first, int *last);
 int  roadmap_line_in_square2 (int square, int cfcc, int *first, int *last);
 int  roadmap_line_get_from_index2 (int index);
 
+void roadmap_line_points (int line, int *from, int *to);
 void roadmap_line_from (int line, RoadMapPosition *position);
 void roadmap_line_to   (int line, RoadMapPosition *position);
 
+int  roadmap_line_length (int line);
 int  roadmap_line_count (void);
 
 extern roadmap_db_handler RoadMapLineHandler;
 
-#endif // _ROADMAP_LINE__H_
+#endif // INCLUDED__ROADMAP_LINE__H

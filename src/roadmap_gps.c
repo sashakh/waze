@@ -144,8 +144,9 @@ static void roadmap_gps_process_position (void) {
 
       if (RoadMapGpsListeners[i] == NULL) break;
 
-      (RoadMapGpsListeners[i])
-           (RoadMapGpsReceivedTime, &RoadMapGpsReceivedPosition);
+      (RoadMapGpsListeners[i]) (RoadMapGpsReceivedTime,
+                                &RoadMapGpsQuality,
+                                &RoadMapGpsReceivedPosition);
    }
 }
 

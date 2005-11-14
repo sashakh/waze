@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_DBREAD__H_
-#define _ROADMAP_DBREAD__H_
+#ifndef INCLUDED__ROADMAP_DBREAD__H
+#define INCLUDED__ROADMAP_DBREAD__H
 
 #include "roadmap_db.h"
 
@@ -67,7 +67,7 @@ roadmap_db_model *roadmap_db_register
      (roadmap_db_model *model, char *section, roadmap_db_handler *handler);
 
 
-int  roadmap_db_open (char *name, roadmap_db_model *model);
+int  roadmap_db_open (char *name, roadmap_db_model *model, const char *mode);
 
 void roadmap_db_activate (char *name);
 
@@ -84,5 +84,5 @@ roadmap_db *roadmap_db_get_next  (roadmap_db *section);
 void roadmap_db_close (char *name);
 void roadmap_db_end   (void);
 
-#endif // _ROADMAP_DBREAD__H_
+#endif // INCLUDED__ROADMAP_DBREAD__H
 

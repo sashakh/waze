@@ -2,7 +2,8 @@
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2002, 2005 Pascal F. Martin
+ *   Copyright 2005 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -25,7 +26,7 @@
  *   See roadmap_math.h.
  *
  * These functions are used to compute the position of points on the map,
- * or the distance between two points, given their Tiger position.
+ * or the distance between two points, given their position.
  */
 
 #include <stdio.h>
@@ -139,9 +140,7 @@ static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
    int sine;
    int cosine;
 
-   if (i < 0) {
-      i += 90;
-   }
+   while (i < 0) i += 90;
 
    if (i <= 45) {
       sine   = RoadMapTrigonometricTable[i].x;
@@ -152,9 +151,8 @@ static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
       cosine = RoadMapTrigonometricTable[i].x;
    }
 
-   if (angle < 0) {
-       angle += 360;
-   }
+   while (angle < 0) angle += 360;
+
    i = (angle / 90) % 4;
    if (i < 0) {
       i += 4;
@@ -300,6 +298,122 @@ static void roadmap_math_compute_scale (void) {
 
    roadmap_math_set_orientation (orientation);
 }
+
+
+static int roadmap_math_check_point_in_segment (const RoadMapPosition *from,
+                                                const RoadMapPosition *to,
+                                                const RoadMapPosition *point,
+                                                int count,
+                                                RoadMapPosition intersections[]) {
+
+   if (!roadmap_math_point_is_visible (point)) return count;
+
+   if ( (((from->longitude >= point->longitude) &&
+           (point->longitude >= to->longitude))    ||
+         ((from->longitude <= point->longitude) &&
+          (point->longitude <= to->longitude)))       &&
+        (((from->latitude >= point->latitude)   &&
+          (point->latitude >= to->latitude))       ||
+         ((from->latitude <= point->latitude)   &&
+          (point->latitude <= to->latitude))) ) {
+
+      intersections[count] = *point;
+      count++;
+   }
+
+   return count;
+}
+
+
+static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
+                                                  const RoadMapPosition *to,
+                                                  double a,
+                                                  double b,
+                                                  RoadMapPosition intersections[],
+                                                  int max_intersections) {
+
+   int count = 0;
+   RoadMapPosition point;
+
+
+   if ((from->longitude - to->longitude > -1.0) &&
+         (from->longitude - to->longitude < 1.0)) {
+
+      /* The two points are very close, or the line is quasi vertical:
+       * approximating the line to a vertical one is good enough.
+       */
+      point.longitude = from->longitude;
+      point.latitude = RoadMapContext.upright_screen.north;
+      count =
+         roadmap_math_check_point_in_segment
+               (from, to, &point, count, intersections);
+
+      if (count == max_intersections) return count;
+
+      point.latitude = RoadMapContext.upright_screen.south;
+      count =
+         roadmap_math_check_point_in_segment
+               (from, to, &point, count, intersections);
+
+      return count;
+
+   } else if ((from->latitude - to->latitude > -1.0) &&
+               (from->latitude - to->latitude < 1.0)) {
+
+      /* The two points are very close, or the line is quasi horizontal:
+       * approximating the line to a horizontal one is good enough.
+       */
+
+      point.latitude = from->latitude;
+      point.longitude = RoadMapContext.upright_screen.west;
+      count =
+         roadmap_math_check_point_in_segment
+             (from, to, &point, count, intersections);
+
+      if (count == max_intersections) return count;
+
+      point.longitude = RoadMapContext.upright_screen.east;
+      count =
+         roadmap_math_check_point_in_segment
+             (from, to, &point, count, intersections);
+
+      return count;
+
+   } else {
+      
+      point.latitude = RoadMapContext.upright_screen.north;
+      point.longitude = (int) ((point.latitude - b) / a);
+      count =
+         roadmap_math_check_point_in_segment
+               (from, to, &point, count, intersections);
+      if (count == max_intersections) return count;
+
+      point.latitude = RoadMapContext.upright_screen.south;
+      point.longitude = (int) ((point.latitude - b) / a);
+      count =
+         roadmap_math_check_point_in_segment
+               (from, to, &point, count, intersections);
+      if (count == max_intersections) return count;
+
+      point.longitude = RoadMapContext.upright_screen.west;
+      point.latitude = (int) (b + a * point.longitude);
+      count =
+         roadmap_math_check_point_in_segment
+               (from, to, &point, count, intersections);
+      if (count == max_intersections) return count;
+
+      point.longitude = RoadMapContext.upright_screen.east;
+      point.latitude = (int) (b + a * point.longitude);
+      count =
+         roadmap_math_check_point_in_segment
+               (from, to, &point, count, intersections);
+      if (count == max_intersections) return count;
+
+   }
+
+   return count;
+}
+
 
 
 static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
@@ -482,6 +596,76 @@ int roadmap_math_point_is_visible (const RoadMapPosition *point) {
 }
 
 
+int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
+                                          const RoadMapPosition *to,
+                                          RoadMapGuiPoint *point0,
+                                          RoadMapGuiPoint *point1) {
+
+   int from_visible = roadmap_math_point_is_visible (from);
+   int to_visible = roadmap_math_point_is_visible (to);
+   int count;
+   RoadMapPosition intersections[2];
+   int max_intersections = 0;
+
+   if (!from_visible || !to_visible) {
+
+      double a;
+      double b;
+
+      if (from_visible || to_visible) {
+         max_intersections = 1;
+      } else {
+         max_intersections = 2;
+      }
+
+
+      /* Equation of the line: */
+
+      if ((from->longitude - to->longitude) == 0) {
+         a = b = 0;
+      } else {
+         a = 1.0 * (from->latitude - to->latitude) /
+                   (from->longitude - to->longitude);
+         b = from->latitude - 1.0 * a * from->longitude;
+      }
+
+      if (roadmap_math_find_screen_intersection
+            (from, to, a, b, intersections, max_intersections) !=
+             max_intersections) {
+         return 0;
+      }
+   }
+
+   if (max_intersections == 2) {
+      /* Make sure we didn't swap the from/to points */
+      if (roadmap_math_distance (from, &intersections[0]) >
+          roadmap_math_distance (from, &intersections[1])) {
+
+         RoadMapPosition tmp = intersections[1];
+         intersections[1] = intersections[0];
+         intersections[0] = tmp;
+      }
+   }
+
+   count = 0;
+
+   if (from_visible) {
+      roadmap_math_coordinate (from, point0);
+   } else {
+      roadmap_math_coordinate (&intersections[count], point0);
+      count++;
+   }
+
+   if (to_visible) {
+      roadmap_math_coordinate (to, point1);
+   } else {
+      roadmap_math_coordinate (&intersections[count], point1);
+   }
+
+   return 1;
+}
+
+
 void roadmap_math_restore_zoom (void) {
 
     RoadMapContext.zoom =
@@ -605,9 +789,7 @@ int roadmap_math_set_orientation (int direction) {
    int status = 1; /* Force a redraw by default. */
 
    direction = direction % 360;
-   if (direction < 0) {
-      direction += 360;
-   }
+   while (direction < 0) direction += 360;
 
    if (direction == RoadMapContext.orientation) {
 
@@ -981,6 +1163,62 @@ int roadmap_math_to_cm (int value) {
 void roadmap_math_screen_edges (RoadMapArea *area) {
 
    *area = RoadMapContext.current_screen;
+}
+
+
+int roadmap_math_intersection (RoadMapPosition *from1,
+                               RoadMapPosition *to1,
+                               RoadMapPosition *from2,
+                               RoadMapPosition *to2,
+                               RoadMapPosition *intersection) {
+
+   double a1,b1;
+   double a2,b2;
+
+   if (from1->longitude == to1->longitude) {
+
+      a1 = 0;
+      b1 = from1->latitude;
+   } else {
+      a1 = 1.0 * (from1->latitude - to1->latitude) /
+         (from1->longitude - to1->longitude);
+      b1 = from1->latitude - 1.0 * a1 * from1->longitude;
+   }
+
+   if ((from2->longitude - to2->longitude) == 0) {
+
+      a2 = 0;
+      b2 = from2->latitude;
+   } else {
+      a2 = 1.0 * (from2->latitude - to2->latitude) /
+         (from2->longitude - to2->longitude);
+      b2 = from2->latitude - 1.0 * a2 * from2->longitude;
+   }
+
+   if (a1 == a2) return 0;
+
+   intersection->longitude = (int) ((b1 - b2) / (a2 - a1));
+   intersection->latitude = (int) (b1 + intersection->longitude * a1);
+
+   return 1;
+}
+
+
+int roadmap_math_compare_points (const RoadMapPosition *p1,
+                                 const RoadMapPosition *p2) {
+
+   if ((p1->longitude == p2->longitude) &&
+         (p1->latitude == p2->latitude))
+      return 0;
+
+   if (p1->longitude < p2->longitude) return -1;
+   if (p2->longitude > p1->longitude) return 1;
+
+   if (p1->latitude < p2->latitude) {
+      return -1;
+   } else {
+      return 1;
+   }
 }
 
 

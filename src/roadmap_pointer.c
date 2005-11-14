@@ -35,7 +35,7 @@
 #include "roadmap_main.h"
 #include "roadmap_config.h"
 
-#define LONG_CLICK_TIMEOUT 2000
+#define LONG_CLICK_TIMEOUT 1000
 #define DRAG_FLOW_CONTROL_TIMEOUT 30
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMinDrag =
@@ -158,38 +158,47 @@ void roadmap_pointer_initialize (void) {
 }
 
 
-void roadmap_pointer_register_short_click
-                    (RoadMapPointerHandler handler) {
+RoadMapPointerHandler roadmap_pointer_register_short_click
+                                (RoadMapPointerHandler handler) {
 
+   RoadMapPointerHandler old = RoadMapPointerShortClick;
    RoadMapPointerShortClick = handler;
+   return old;
 }
 
 
-void roadmap_pointer_register_long_click
-                    (RoadMapPointerHandler handler) {
+RoadMapPointerHandler roadmap_pointer_register_long_click
+                                (RoadMapPointerHandler handler) {
 
+   RoadMapPointerHandler old = RoadMapPointerLongClick;
    RoadMapPointerLongClick = handler;
+   return old;
 }
 
 
-void roadmap_pointer_register_drag_start
-                    (RoadMapPointerHandler handler) {
+RoadMapPointerHandler roadmap_pointer_register_drag_start
+                                (RoadMapPointerHandler handler) {
 
+   RoadMapPointerHandler old = RoadMapPointerDragStart;
    RoadMapPointerDragStart = handler;
+   return old;
 }
 
 
-void roadmap_pointer_register_drag_motion
-                    (RoadMapPointerHandler handler) {
+RoadMapPointerHandler roadmap_pointer_register_drag_motion
+                                (RoadMapPointerHandler handler) {
 
+   RoadMapPointerHandler old = RoadMapPointerDragMotion;
    RoadMapPointerDragMotion = handler;
+   return old;
 }
 
 
-void roadmap_pointer_register_drag_end
-                    (RoadMapPointerHandler handler) {
+RoadMapPointerHandler roadmap_pointer_register_drag_end
+                                (RoadMapPointerHandler handler) {
 
+   RoadMapPointerHandler old = RoadMapPointerDragEnd;
    RoadMapPointerDragEnd = handler;
+   return old;
 }
-
 

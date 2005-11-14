@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_STREET__H_
-#define _ROADMAP_STREET__H_
+#ifndef INCLUDED__ROADMAP_STREET__H
+#define INCLUDED__ROADMAP_STREET__H
 
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
@@ -87,6 +87,9 @@ typedef struct {
 #define ROADMAP_STREET_NOCITY      -1
 #define ROADMAP_STREET_NOSTREET    -2
 
+#define ROADMAP_STREET_LEFT_SIDE    1
+#define ROADMAP_STREET_RIGHT_SIDE   2
+
 int roadmap_street_blocks_by_city
        (const char *street_name, const char *city_name,
         RoadMapBlocks *blocks,
@@ -134,8 +137,32 @@ const char *roadmap_street_get_city_name
 const char *roadmap_street_get_full_name
                 (const RoadMapStreetProperties *properties);
 
+const char *roadmap_street_get_street_fename
+                (const RoadMapStreetProperties *properties);
+const char *roadmap_street_get_street_fetype
+                (const RoadMapStreetProperties *properties);
+const char *roadmap_street_get_street_fedirs
+                (const RoadMapStreetProperties *properties);
+const char *roadmap_street_get_street_fedirp
+                (const RoadMapStreetProperties *properties);
+const char *roadmap_street_get_street_t2s
+                (const RoadMapStreetProperties *properties);
+
+const char *roadmap_street_get_street_city
+                (const RoadMapStreetProperties *properties, int side);
+
+const char *roadmap_street_get_street_zip
+                (const RoadMapStreetProperties *properties, int side);
+
+void roadmap_street_get_street_range
+    (const RoadMapStreetProperties *properties, int side, int *from, int *to);
+
+int roadmap_street_replace
+              (RoadMapNeighbour *neighbours, int count, int max,
+               const RoadMapNeighbour *this);
+
 extern roadmap_db_handler RoadMapStreetHandler;
 extern roadmap_db_handler RoadMapZipHandler;
 extern roadmap_db_handler RoadMapRangeHandler;
 
-#endif // _ROADMAP_STREET__H_
+#endif // INCLUDED__ROADMAP_STREET__H

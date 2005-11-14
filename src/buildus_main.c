@@ -75,7 +75,10 @@ static struct poptOption BuildUsOptions[] = {
 static void buildus_save (void) {
 
    buildmap_set_source ("usdir");
-   buildmap_db_open (BuildMapPath, "usdir");
+
+   if (buildmap_db_open (BuildMapPath, "usdir") < 0) {
+      buildmap_fatal (0, "cannot create database 'usdir'");
+   }
 
    buildmap_dictionary_save ();
    buildus_county_save ();
@@ -162,7 +165,7 @@ static void buildus_scan_maps (void) {
       buildmap_set_source (map_name);
       if (! BuildMapSilent) buildmap_info ("scanning the county file...");
 
-      if (! roadmap_db_open (map_name, RoadMapCountyModel)) {
+      if (! roadmap_db_open (map_name, RoadMapCountyModel, "r")) {
          buildmap_fatal (0, "cannot open map database %s", map_name);
       }
       roadmap_db_activate (map_name);

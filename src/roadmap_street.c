@@ -888,7 +888,7 @@ static int roadmap_street_get_distance_no_shape
 }
 
 
-static int roadmap_street_replace
+int roadmap_street_replace
               (RoadMapNeighbour *neighbours, int count, int max,
                const RoadMapNeighbour *this) {
 
@@ -1662,5 +1662,114 @@ const char *roadmap_street_get_full_name
               city);
     
     return RoadMapStreetName;
+}
+
+
+const char *roadmap_street_get_street_fename
+                (const RoadMapStreetProperties *properties) {
+
+    RoadMapStreet *this_street;
+
+    if (properties->street < 0) {
+
+        return "";
+    }
+    
+    this_street =
+        RoadMapStreetActive->RoadMapStreets + properties->street;
+    
+    return
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetNames, this_street->fename);
+}
+
+
+const char *roadmap_street_get_street_fetype
+                (const RoadMapStreetProperties *properties) {
+
+    RoadMapStreet *this_street;
+
+    if (properties->street < 0) {
+
+        return "";
+    }
+    
+    this_street =
+        RoadMapStreetActive->RoadMapStreets + properties->street;
+    
+    return
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetType, this_street->fetype);
+}
+
+
+const char *roadmap_street_get_street_fedirs
+                (const RoadMapStreetProperties *properties) {
+                
+    RoadMapStreet *this_street;
+
+    if (properties->street < 0) {
+
+        return "";
+    }
+    
+    this_street =
+        RoadMapStreetActive->RoadMapStreets + properties->street;
+    
+    return
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetType, this_street->fedirs);
+}
+
+
+const char *roadmap_street_get_street_fedirp
+                (const RoadMapStreetProperties *properties) {
+                
+    RoadMapStreet *this_street;
+
+    if (properties->street < 0) {
+
+        return "";
+    }
+    
+    this_street =
+        RoadMapStreetActive->RoadMapStreets + properties->street;
+    
+    return
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetType, this_street->fedirp);
+}
+
+
+const char *roadmap_street_get_street_t2s
+                (const RoadMapStreetProperties *properties) {
+
+//TODO add t2s into roadmap DB                   
+   return "";
+}
+
+
+const char *roadmap_street_get_street_city
+                (const RoadMapStreetProperties *properties, int side) {
+
+//TODO add street sides search
+
+    return roadmap_street_get_city_name (properties);
+}
+
+
+const char *roadmap_street_get_street_zip
+                (const RoadMapStreetProperties *properties, int side) {
+//TODO add implement get_street_zip
+   return "";
+}
+
+
+void roadmap_street_get_street_range
+   (const RoadMapStreetProperties *properties, int side, int *from, int *to) {
+
+//FIXME find real street range numbers according to requested side
+   *from = properties->range.min;
+   *to = properties->range.max;
 }
 

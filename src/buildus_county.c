@@ -433,15 +433,19 @@ void buildus_county_save (void) {
    }
 
    root = buildmap_db_add_section (NULL, "county");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    data_table = buildmap_db_add_section (root, "data");
+   if (data_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (data_table, CountyCount, sizeof(RoadMapCounty));
 
    city_table = buildmap_db_add_section (root, "city2county");
+   if (city_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
       (city_table, CountyCityCount, sizeof(RoadMapCountyCity));
 
    bystate_table = buildmap_db_add_section (root, "bystate");
+   if (bystate_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (bystate_table,
                          state_max + 1, sizeof(RoadMapCountyByState));
 

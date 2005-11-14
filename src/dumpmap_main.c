@@ -320,7 +320,7 @@ int main (int argc, const char **argv) {
          *p = 0;
       }
 
-      if (! roadmap_db_open (path, RoadMapCountyModel)) {
+      if (! roadmap_db_open (path, RoadMapCountyModel, "r")) {
          roadmap_log (ROADMAP_FATAL, "cannot open the map database");
       }
 

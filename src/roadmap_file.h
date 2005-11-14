@@ -33,8 +33,8 @@
  *   trying to read beyond the end of the file.
  */
 
-#ifndef INCLUDE__ROADMAP_FILE__H
-#define INCLUDE__ROADMAP_FILE__H
+#ifndef INCLUDED__ROADMAP_FILE__H
+#define INCLUDED__ROADMAP_FILE__H
 
 
 #ifdef _WIN32
@@ -69,6 +69,8 @@ void  roadmap_file_save (const char *path, const char *name,
 void roadmap_file_append (const char *path, const char *name,
                           void *data, int length);
 
+int roadmap_file_truncate (const char *path, const char *name, int length);
+
 
 FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
 
@@ -80,7 +82,9 @@ typedef struct RoadMapFileContextStructure *RoadMapFileContext;
 
 const char *roadmap_file_map (const char *set,
                               const char *name,
-                              const char *sequence, RoadMapFileContext *file);
+                              const char *sequence,
+                              const char *mode,
+                              RoadMapFileContext *file);
 
 void *roadmap_file_base (RoadMapFileContext file);
 int   roadmap_file_size (RoadMapFileContext file);
@@ -89,5 +93,5 @@ void roadmap_file_unmap (RoadMapFileContext *file);
 
 const char *roadmap_file_unique (const char *base);
 
-#endif // INCLUDE__ROADMAP_FILE__H
+#endif // INCLUDED__ROADMAP_FILE__H
 

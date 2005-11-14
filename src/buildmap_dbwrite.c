@@ -24,10 +24,10 @@
  *
  *   #include "buildmap.h"
  *
- *   void buildmap_db_open (char *path, char *name);
+ *   int buildmap_db_open (char *path, char *name);
  *
  *   buildmap_db *buildmap_db_add_section (buildmap_db *parent, char *name);
- *   void   buildmap_db_add_data (buildmap_db *section, int count, int size);
+ *   int    buildmap_db_add_data (buildmap_db *section, int count, int size);
  *   char  *buildmap_db_get_data (buildmap_db *section);
  *
  *   void buildmap_db_close (void);
@@ -36,15 +36,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
 
 #include "roadmap_types.h"
+#include "roadmap_file.h"
 #include "roadmap_db.h"
 
 #include "buildmap.h"
@@ -53,12 +47,11 @@
 #define BUILDMAP_DB_BLOCK_SIZE 0x100000
 
 
-static char *BuildmapCurrentDbName = NULL;
-static int   BuildmapCurrentDbFile = -1;
-static char *BuildmapCurrentDbBase = NULL;
-static int   BuildmapCurrentDbSize = 0;
-
-static buildmap_db BuildmapDbRoot;
+static char         *BuildmapCurrentDbName = NULL;
+static char         *BuildmapCurrentDbBase = NULL;
+static int           BuildmapCurrentDbSize = 0;
+RoadMapFileContext   BuildmapCurrentDbBaseMapContext = NULL;
+static buildmap_db   BuildmapDbRoot;
 
 static buildmap_db *BuildmapCurrentDbSection = NULL;
 
@@ -77,44 +70,47 @@ static void buildmap_db_repair_tree (buildmap_db *section) {
 }
 
 
-static void buildmap_db_extend (int size) {
+static int buildmap_db_extend (int size) {
 
    if (size >= BuildmapCurrentDbSize) {
 
-      char *old_base = BuildmapCurrentDbBase;
+      const char *old_base = BuildmapCurrentDbBase;
 
       if (BuildmapCurrentDbBase != NULL) {
-         msync  (BuildmapCurrentDbBase, BuildmapCurrentDbSize, MS_SYNC);
-         munmap (BuildmapCurrentDbBase, BuildmapCurrentDbSize);
+         roadmap_file_unmap (&BuildmapCurrentDbBaseMapContext);
+         BuildmapCurrentDbBaseMapContext = NULL;
       }
 
       BuildmapCurrentDbSize =
          (((size + (BUILDMAP_DB_BLOCK_SIZE / 2)) / BUILDMAP_DB_BLOCK_SIZE) + 1)
             * BUILDMAP_DB_BLOCK_SIZE;
 
-      BuildmapCurrentDbFile = open (BuildmapCurrentDbName, O_RDWR, 0666);
-      if (BuildmapCurrentDbFile < 0) {
-         buildmap_fatal (0, "cannot open database %s", BuildmapCurrentDbFile);
+      if (roadmap_file_truncate
+            (NULL, BuildmapCurrentDbName, BuildmapCurrentDbSize-1) < 0) {
+         buildmap_error (0, "cannot resize database %s", BuildmapCurrentDbName);
+         return -1;
       }
-      lseek (BuildmapCurrentDbFile, BuildmapCurrentDbSize-1, SEEK_SET);
-      write (BuildmapCurrentDbFile, "\0", 1);
+
+      if (roadmap_file_map
+                  ("maps",
+                   BuildmapCurrentDbName,
+                   NULL,
+                   "rw",
+                   &BuildmapCurrentDbBaseMapContext) == NULL) {
+         buildmap_error (0, "cannot remap database %s", BuildmapCurrentDbName);
+         return -1;
+      }
 
       BuildmapCurrentDbBase =
-         mmap (NULL, BuildmapCurrentDbSize,
-               PROT_READ+PROT_WRITE, MAP_SHARED, BuildmapCurrentDbFile, 0);
-
-      if (BuildmapCurrentDbBase == NULL) {
-         buildmap_fatal (0, "cannot expand the current database");
-      }
-
-      close (BuildmapCurrentDbFile);
-      BuildmapCurrentDbFile = -1;
+         roadmap_file_base (BuildmapCurrentDbBaseMapContext);
 
       if ((BuildmapCurrentDbBase != old_base) && (old_base != NULL)) {
 
          buildmap_db_repair_tree (&BuildmapDbRoot);
       }
    }
+
+   return 0;
 }
 
 
@@ -151,7 +147,7 @@ static void buildmap_db_update_tree
 }
 
 
-void buildmap_db_open (char *path, char *name) {
+int buildmap_db_open (const char *path, const char *name) {
 
    struct roadmap_db_section *root;
 
@@ -159,15 +155,12 @@ void buildmap_db_open (char *path, char *name) {
       path = ".";
    }
 
-   if (BuildmapCurrentDbFile >= 0) {
-      buildmap_db_close ();
-   }
-
    BuildmapCurrentDbName =
       malloc (strlen(path) + strlen(name) + strlen(ROADMAP_DB_TYPE) + 4);
 
    if (BuildmapCurrentDbName == NULL) {
-      buildmap_fatal (0, "no more memory");
+      buildmap_error (0, "no more memory");
+      return -1;
    }
 
    strcpy (BuildmapCurrentDbName, path);
@@ -175,16 +168,12 @@ void buildmap_db_open (char *path, char *name) {
    strcat (BuildmapCurrentDbName, name);
    strcat (BuildmapCurrentDbName, ROADMAP_DB_TYPE);
 
-   BuildmapCurrentDbFile =
-      open (BuildmapCurrentDbName, O_CREAT+O_RDWR+O_TRUNC, 0666);
-   if (BuildmapCurrentDbFile < 0) {
-      buildmap_fatal (0, "cannot create database %s", name);
-   }
-   close(BuildmapCurrentDbFile);
-   BuildmapCurrentDbFile = -1;
+   roadmap_file_save (NULL, BuildmapCurrentDbName, "", 1);
 
    BuildmapCurrentDbSize = 0;
-   buildmap_db_extend (0); /* Set the size to its minimum. */
+   if (buildmap_db_extend (0) < 0) { /* Set the size to its minimum. */
+      return -1;
+   }
 
    root = (struct roadmap_db_section *) BuildmapCurrentDbBase;
    strcpy (root->name, "roadmap");
@@ -194,10 +183,12 @@ void buildmap_db_open (char *path, char *name) {
    BuildmapDbRoot.head_offset = 0;
    BuildmapDbRoot.data = sizeof(struct roadmap_db_section);
    BuildmapDbRoot.parent = NULL;
+
+   return 0;
 }
 
 
-buildmap_db *buildmap_db_add_section (buildmap_db *parent, char *name) {
+buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name) {
 
    int offset;
    int aligned;
@@ -209,18 +200,21 @@ buildmap_db *buildmap_db_add_section (buildmap_db *parent, char *name) {
    }
 
    if (strlen(name) >= sizeof(parent->head->name)) {
-      buildmap_fatal (0, "invalid section name %s (too long)", name);
+      buildmap_error (0, "invalid section name %s (too long)", name);
+      return NULL;
    }
 
    offset = parent->data + parent->head->size;
    aligned = (offset + 3) & (~3);
 
-fflush(stdout);
-   buildmap_db_extend (aligned + sizeof(struct roadmap_db_section));
+   if (buildmap_db_extend (aligned + sizeof(struct roadmap_db_section)) < 0) {
+      return NULL;
+   }
 
    new = malloc (sizeof(buildmap_db));
    if (new == NULL) {
-      buildmap_fatal (0, "no more memory");
+      buildmap_error (0, "no more memory");
+      return NULL;
    }
 
    new->parent = parent;
@@ -249,14 +243,15 @@ fflush(stdout);
 }
 
 
-void buildmap_db_add_data (buildmap_db *section, int count, int size) {
+int buildmap_db_add_data (buildmap_db *section, int count, int size) {
 
    int offset;
    int total_size;
    int aligned_size;
 
    if (section != BuildmapCurrentDbSection) {
-      buildmap_fatal (0, "invalid database write sequence");
+      buildmap_error (0, "invalid database write sequence");
+      return -1;
    }
 
    offset = section->data + section->head->size;
@@ -269,10 +264,15 @@ void buildmap_db_add_data (buildmap_db *section, int count, int size) {
 
    section->head->size += total_size;
 
-   buildmap_db_extend (offset + aligned_size);
+   if (buildmap_db_extend (offset + aligned_size) < 0) {
+      return -1;
+   }
    buildmap_db_propagate (section->parent, aligned_size);
 
    section->head->count = count;
+
+   /* return the actual size of the DB after the data addition */
+   return sizeof(*BuildmapDbRoot.head) + BuildmapDbRoot.head->size;
 }
 
 
@@ -308,20 +308,15 @@ void buildmap_db_close (void) {
 
       buildmap_db_update_tree (NULL, &BuildmapDbRoot);
 
-      msync  (BuildmapCurrentDbBase, BuildmapCurrentDbSize, MS_SYNC);
-      munmap (BuildmapCurrentDbBase, BuildmapCurrentDbSize);
+      roadmap_file_unmap (&BuildmapCurrentDbBaseMapContext);
+      BuildmapCurrentDbBaseMapContext = NULL;
 
       BuildmapCurrentDbBase = NULL;
       BuildmapCurrentDbSize = 0;
    }
 
-   if (BuildmapCurrentDbFile >= 0) {
-      close (BuildmapCurrentDbFile);
-      BuildmapCurrentDbFile = -1;
-   }
-
    if (BuildmapCurrentDbName != NULL) {
-      truncate (BuildmapCurrentDbName, actual_size);
+      roadmap_file_truncate (NULL, BuildmapCurrentDbName, actual_size);
       free (BuildmapCurrentDbName);
       BuildmapCurrentDbName = NULL;
    }
@@ -334,5 +329,26 @@ void buildmap_db_close (void) {
    BuildmapDbRoot.data = 0;
 
    BuildmapCurrentDbSection = NULL;
+}
+
+
+buildmap_db *buildmap_db_add_child (buildmap_db *parent,
+                                    char *name,
+                                    int count,
+                                    int size) {
+
+   buildmap_db *table;
+   
+   table = buildmap_db_add_section (parent, name);
+
+   if (table == NULL) {
+      buildmap_fatal (0, "Cannot add new section %s", name);
+   }
+
+   if (buildmap_db_add_data (table, count, size) < 0) {
+      buildmap_fatal (0, "Can't add data into section %s", name);
+   }
+
+   return table;
 }
 

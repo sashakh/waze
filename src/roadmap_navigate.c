@@ -248,7 +248,7 @@ static int roadmap_navigate_fuzzify
     tracked->direction = roadmap_math_azymuth (&line->from, &line->to);
 
     fuzzyfied_direction =
-        roadmap_fuzzy_direction (tracked->direction, direction);
+        roadmap_fuzzy_direction (tracked->direction, direction, 1);
 
     if (! roadmap_fuzzy_is_acceptable (fuzzyfied_direction)) {
        return roadmap_fuzzy_false ();
@@ -331,7 +331,9 @@ static RoadMapFuzzy roadmap_navigate_is_intersection
 
     return roadmap_fuzzy_not
                (roadmap_fuzzy_direction
-                    (roadmap_math_azymuth (&line_from, &line_to), direction));
+                    (roadmap_math_azymuth (&line_from, &line_to),
+                     direction,
+                     1));
 }
 
 
