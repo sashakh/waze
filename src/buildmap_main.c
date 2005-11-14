@@ -35,6 +35,7 @@
 #include "buildmap.h"
 #include "buildmap_tiger.h"
 #include "buildmap_shapefile.h"
+#include "buildmap_empty.h"
 
 #include "buildmap_square.h"
 #include "buildmap_street.h"
@@ -46,11 +47,13 @@
 #include "buildmap_zip.h"
 #include "buildmap_area.h"
 #include "buildmap_polygon.h"
+#include "buildmap_metadata.h"
 
 
 #define BUILDMAP_FORMAT_TIGER     1
 #define BUILDMAP_FORMAT_SHAPE     2
 #define BUILDMAP_FORMAT_DCW       3
+#define BUILDMAP_FORMAT_EMPTY     4
 
 static int   BuildMapFormatFamily = 0;
 
@@ -66,9 +69,9 @@ static struct poptOption BuildMapTigerOptions [] = {
    {"format", 'f',
       POPT_ARG_STRING, &BuildMapFormat, 0,
 #ifdef ROADMAP_USE_SHAPEFILES
-      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW"},
+      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW|EMPTY"},
 #else
-      "Tiger file format (ShapeFile was not enabled)", "2000|2002"},
+      "Tiger file format (ShapeFile was not enabled)", "2000|2002|EMPTY"},
 #endif
 
    POPT_TABLEEND
@@ -137,7 +140,11 @@ static void  buildmap_county_select_format (poptContext decoder) {
 
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
 #endif
-         
+
+   } else if (strcmp (BuildMapFormat, "EMPTY") == 0) {
+
+      BuildMapFormatFamily = BUILDMAP_FORMAT_EMPTY;
+
    } else {
       fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
       poptPrintUsage (decoder, stderr, 0);
@@ -156,6 +163,7 @@ static void buildmap_county_initialize (void) {
    buildmap_shape_initialize();
    buildmap_street_initialize();
    buildmap_area_initialize();
+   buildmap_metadata_initialize();
 }
 
 
@@ -166,6 +174,7 @@ static void buildmap_county_sort (void) {
    buildmap_range_sort ();
    buildmap_shape_sort ();
    buildmap_polygon_sort ();
+   buildmap_metadata_sort ();
 }
 
 static void buildmap_county_save (const char *name) {
@@ -182,7 +191,9 @@ static void buildmap_county_save (const char *name) {
       *cursor = 0;
    }
 
-   buildmap_db_open (BuildMapResult, db_name);
+   if (buildmap_db_open (BuildMapResult, db_name) < 0) {
+      buildmap_fatal (0, "cannot create database %s", db_name);
+   }
 
    buildmap_square_save ();
    buildmap_line_save ();
@@ -194,6 +205,7 @@ static void buildmap_county_save (const char *name) {
    buildmap_range_save ();
    buildmap_polygon_save ();
    buildmap_zip_save ();
+   buildmap_metadata_save ();
 
    buildmap_db_close ();
 }
@@ -207,6 +219,7 @@ static void buildmap_county_reset (void) {
    buildmap_dictionary_reset ();
    buildmap_city_reset ();
    buildmap_street_reset ();
+   buildmap_metadata_reset ();
    buildmap_range_reset ();
    buildmap_polygon_reset ();
    buildmap_zip_reset ();
@@ -222,18 +235,25 @@ static void buildmap_county_process (const char *source,
    switch (BuildMapFormatFamily) {
 
       case BUILDMAP_FORMAT_TIGER:
-         buildmap_tiger_process (source, verbose, canals, rivers);
+         buildmap_tiger_process
+            (source, county, verbose, canals, rivers);
          break;
 
 #ifdef ROADMAP_USE_SHAPEFILES
       case BUILDMAP_FORMAT_SHAPE:
-         buildmap_shapefile_process (source, verbose, canals, rivers);
+         buildmap_shapefile_process
+            (source, county, verbose, canals, rivers);
          break;
 
       case BUILDMAP_FORMAT_DCW:
-         buildmap_shapefile_dcw_process (source, verbose, canals, rivers);
+         buildmap_shapefile_dcw_process
+            (source, county, verbose, canals, rivers);
          break;
 #endif
+
+      case BUILDMAP_FORMAT_EMPTY:
+         buildmap_empty_process (source);
+         break;
 
       default:
          roadmap_log (ROADMAP_ERROR, "unsupported format");
@@ -254,6 +274,7 @@ static void buildmap_county_process (const char *source,
       buildmap_range_summary ();
       buildmap_shape_summary ();
       buildmap_polygon_summary ();
+      buildmap_metadata_summary ();
    }
 
    buildmap_county_save (county);
