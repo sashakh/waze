@@ -21,15 +21,16 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__BUILDMAP_TIGER__H
-#define INCLUDE__BUILDMAP_TIGER__H
+#ifndef INCLUDED__BUILDMAP_TIGER__H
+#define INCLUDED__BUILDMAP_TIGER__H
 
 void buildmap_tiger_set_format (int year);
 
 void buildmap_tiger_process (const char *source,
+                             const char *county,
                              int verbose,
                              int canals,
                              int rivers);
 
-#endif // INCLUDE__BUILDMAP_TIGER__H
+#endif // INCLUDED__BUILDMAP_TIGER__H
 

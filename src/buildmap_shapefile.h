@@ -21,14 +21,16 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__BUILDMAP_SHAPEFILE__H
-#define INCLUDE__BUILDMAP_SHAPEFILE__H
+#ifndef INCLUDED__BUILDMAP_SHAPEFILE__H
+#define INCLUDED__BUILDMAP_SHAPEFILE__H
 
 void buildmap_shapefile_process (const char *source,
+                                 const char *county,
                                  int verbose, int canals, int rivers);
 
 void buildmap_shapefile_dcw_process (const char *source,
+                                     const char *county,
                                      int verbose, int canals, int rivers);
 
-#endif // INCLUDE__BUILDMAP_SHAPEFILE__H
+#endif // INCLUDED__BUILDMAP_SHAPEFILE__H
 

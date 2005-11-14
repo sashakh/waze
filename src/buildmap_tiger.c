@@ -56,6 +56,7 @@
 #include "buildmap_area.h"
 #include "buildmap_shape.h"
 #include "buildmap_polygon.h"
+#include "buildmap_metadata.h"
 
 
 static BuildMapDictionary DictionaryPrefix;
@@ -948,6 +949,7 @@ void buildmap_tiger_set_format (int year) {
 
 
 void buildmap_tiger_process (const char *source,
+                             const char *county,
                              int verbose,
                              int canals,
                              int rivers) {
@@ -974,6 +976,11 @@ void buildmap_tiger_process (const char *source,
    buildmap_tiger_read_rt1 (base, verbose);
 
    buildmap_tiger_read_rt2 (base, verbose);
+
+   buildmap_metadata_add_attribute ("Territory", "Id", county);
+   buildmap_metadata_add_attribute ("Territory", "Parent", "us"); /* for now. */
+
+   buildmap_metadata_add_attribute ("Class", "Name", "Road");
 
    free(base);
 }

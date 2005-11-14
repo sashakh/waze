@@ -707,6 +707,7 @@ static void buildmap_shapefile_read_dcw_hyr (const char *source, int verbose) {
 
 
 void buildmap_shapefile_process (const char *source,
+                                 const char *county,
                                  int verbose, int canals, int rivers) {
 
 #if ROADMAP_USE_SHAPEFILES
@@ -742,6 +743,7 @@ void buildmap_shapefile_process (const char *source,
 
 
 void buildmap_shapefile_dcw_process (const char *source,
+                                     const char *county,
                                      int verbose, int canals, int rivers) {
 
 #if ROADMAP_USE_SHAPEFILES
