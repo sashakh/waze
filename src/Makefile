@@ -21,7 +21,7 @@ INSTALL_DATA = install -m644
 RANLIB = ranlib
 STRIP = strip
 
-WARNFLAGS = -W -Wall -Wno-unused-parameter
+WARNFLAGS = -W -Wall -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wreturn-type -Wsign-compare
 
 
 ifeq ($(MODE),DEBUG)
@@ -104,6 +104,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_list.c \
           roadmap_config.c \
           roadmap_option.c \
+          roadmap_metadata.c \
           roadmap_county.c \
           roadmap_locator.c \
           roadmap_math.c \
@@ -175,6 +176,7 @@ DMOBJS=$(DMSRCS:.c=.o)
 BMSRCS=buildmap_messages.c \
        buildmap_dictionary.c \
        buildmap_dbwrite.c \
+       buildmap_metadata.c \
        buildmap_city.c \
        buildmap_square.c \
        buildmap_point.c \
@@ -187,6 +189,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_zip.c \
        buildmap_tiger.c \
        buildmap_shapefile.c \
+		 buildmap_empty.c \
        buildmap_place.c \
        buildmap_main.c
 
@@ -224,7 +227,7 @@ TOOLS=sunrise $(SQLTOOLS)
 
 # --- Conventional targets ----------------------------------------
 
-.PHONY: all gtk gtk2 qt rebuild build everything clean strip install uninstall
+.PHONY: all gtk gtk2 qt rebuild build everything clean strip install uninstall unix
 
 all: everything
 
@@ -241,7 +244,12 @@ rebuild: clean everything
 
 everything: runtime build $(TOOLS) icons
 
-runtime: $(RUNTIME) $(DRIVERS)
+unix:
+	if [ -d unix ] ; then \
+		$(MAKE) -C unix RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
+	fi
+
+runtime: unix $(RUNTIME) $(DRIVERS)
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
@@ -267,6 +275,7 @@ strip:
 
 clean:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
+	rm -f roadmap-32.xpm roadmap.xpm
 	# Clean up CVS backup files as well.
 	$(RM) .#*
 	for module in icons $(RDMODULES) ; \
@@ -278,26 +287,7 @@ clean:
 	if [ -d unix ] ; then $(MAKE) -C unix clean ; fi
 
 
-install:
-	mkdir -p $(DESTDIR)$(pkgmapsdir)
-	chmod a+rx $(DESTDIR)$(pkgmapsdir)
-	mkdir -p $(DESTDIR)$(pkgdatadir)
-	chmod a+rx $(DESTDIR)$(pkgdatadir)
-	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
-	cp $(PKGDATAFILES) $(DESTDIR)$(pkgdatadir)/.
-	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
-	mkdir -p $(DESTDIR)$(pkgbindir)
-	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
-	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
-	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
-	mkdir -p $(DESTDIR)$(ICONDIR)
-	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" install
-	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
-	mkdir -p $(DESTDIR)$(desktopdir)
-	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
-	mkdir -p $(DESTDIR)$(man1dir)
-	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
+install: installdata installbin installicons installdesktop
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
@@ -305,7 +295,43 @@ install:
 		fi ; \
 	done
 
-installdoc: webdoc
+installdata:
+	mkdir -p $(DESTDIR)$(pkgmapsdir)
+	chmod a+rx $(DESTDIR)$(pkgmapsdir)
+	mkdir -p $(DESTDIR)$(pkgdatadir)
+	chmod a+rx $(DESTDIR)$(pkgdatadir)
+	mkdir -p $(DESTDIR)$(pkgdatadir)/default
+	chmod a+rx $(DESTDIR)$(pkgdatadir)/default
+	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
+	cp $(PKGDATAFILES) $(DESTDIR)$(pkgdatadir)/.
+	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
+	cp default/All $(DESTDIR)$(pkgdatadir)/default/.
+	chmod a+r $(DESTDIR)$(pkgdatadir)/default/All
+
+installbin:
+	mkdir -p $(DESTDIR)$(pkgbindir)
+	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
+	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
+	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
+	mkdir -p $(DESTDIR)$(man1dir)
+	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
+
+installdesktop:
+	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
+	mkdir -p $(DESTDIR)$(desktopdir)
+	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
+
+installicons:
+	mkdir -p $(DESTDIR)$(ICONDIR)
+	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" install
+	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
+	for icon in roadmap*.png ; \
+	do \
+		convert $icon $(icon:.png=.xpm) \
+		cp -f $(icon:.png=.xpm) $(DESTDIR)$(ICONDIR)/. \
+	done
+
+installdoc:
 	copy ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
 webdoc:
@@ -360,9 +386,6 @@ libguiroadmap.a: $(RMGUIOBJS) $(RMPLUGINOBJS)
 libguiroadgps.a: $(RGGUIOBJS)
 	$(AR) $(ARFLAGS) libguiroadgps.a $(RGGUIOBJS)
 	$(RANLIB) libguiroadgps.a
-
-unix/libosroadmap.a:
-	if [ -d unix ] ; then $(MAKE) -C unix RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; fi
 
 dumpmap: $(DMOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)
