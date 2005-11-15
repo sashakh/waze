@@ -1,0 +1,72 @@
+#list of territories: code name, full name
+us/al,Alabama
+us/ak,Alaska
+us/az,Arizona
+us/ar,Arkansas
+us/ca,California
+us/co,Colorado
+us/ct,Connecticut
+us/de,Delaware
+us/dc,Washington DC
+us/fl,Florida
+us/ga,Georgia
+us/hi,Hawaii
+us/id,Idaho
+us/il,Illinois
+us/in,Indiana
+us/ia,Iowa
+us/ks,Kansas
+us/ky,Kentuky
+us/la,Louisiana
+us/ma,Massachusset
+us/md,Maryland
+us/me,Maine
+us/mi,Michigan
+us/mn,Minnesota
+us/mo,Missouri
+us/ms,Mississippi
+us/mt,Montana
+us/nc,North Carolina
+us/nd,North Dakota
+us/ne,Nebraska
+us/nh,New Hampshire
+us/nj,New Jersey
+us/nm,New Mexico
+us/nv,Nevada
+us/ny,New York
+us/oh,Ohio
+us/ok,Oklahoma
+us/or,Oregon
+us/pa,Pennsylvania
+us/ri,Rhode Island
+us/sc,South Carolina
+us/sd,South Dakota
+us/tn,Tennessee
+us/tx,Texas
+us/ut,Utah
+us/va,Virginia
+us/vt,Vermont
+us/wa,Washington
+us/wi,Wisconsin
+us/wv,West Virginia
+us/wy,Wyoming
+us/as,American Samoa
+us/gu,Guam
+us/mp,Northern Mariana Islands
+us/pr,Porto Rico
+us/um,Midway Islands
+us/vi,Virgin Islands
+ca/ab,Alberta
+ca/bc,British Columbia
+ca/mb,Manitoba
+ca/nb,New Brunswick
+ca/nl,Newfoundland and Labrador
+ca/ns,Nova Scotia
+ca/nt,Northwest Territories
+ca/nu,Nunavut
+ca/on,Ontario
+ca/pe,Prince Edward Island
+ca/qc,Quebec
+ca/sk,Saskatchewan
+ca/yt,Yukon Territory
+
