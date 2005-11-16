@@ -1,4 +1,4 @@
-#list of territories: code name, full name
+#list of territories: code name, full name (English)
 us/al,Alabama
 us/ak,Alaska
 us/az,Arizona

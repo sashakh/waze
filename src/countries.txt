@@ -1,4 +1,4 @@
-# List of countries, format: iso 3166-1, itu E.164A, english name
+# List of countries, format: iso 3166-1, itu E.164A (except USA), english name
 us,0,USA
 ca,1,Canada
 eg,20,Egypt
