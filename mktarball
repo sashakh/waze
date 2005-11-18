@@ -25,7 +25,8 @@ RDM_MAKE="${ROADMAP}/src/Makefile
           ${ROADMAP}/src/gtk2/Makefile
           ${ROADMAP}/src/qt/Makefile
           ${ROADMAP}/src/icons/Makefile
-          ${ROADMAP}/src/win32/wince_env/Roadmap.vcw"
+          ${ROADMAP}/src/win32/wince_env/Roadmap.vcw
+          ${ROADMAP}/src/win32/wince_env/*/*.vcp"
 
 RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/usstates.txt
@@ -39,6 +40,7 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/unix/Makefile
          ${ROADMAP}/src/unix/*.[ch]
          ${ROADMAP}/src/win32/*.[ch]
+         ${ROADMAP}/src/win32/roadmap.rc
          ${ROADMAP}/src/ipkg/mkipkg
          ${ROADMAP}/src/ipkg/INSTALL
          ${ROADMAP}/src/ipkg/roadmap*"
