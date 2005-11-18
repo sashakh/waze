@@ -64,7 +64,6 @@ int  RMapCallback::same(RoadMapCallback cb) {
 
 // Implementation of RMapMainWindow class
 RMapMainWindow::RMapMainWindow(const char* name) : QMainWindow(0, name) {
-	currentMenu = 0;
 	spacePressed = false;
 	for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
 		tm[i] = 0;
@@ -91,29 +90,41 @@ void RMapMainWindow::setKeyboardCallback(RoadMapKeyInput c) {
 	keyCallback = c;
 }
 
-void RMapMainWindow::addMenu(const char* label) {
-	currentMenu = new QPopupMenu(this);
 
-	menuBar()->insertItem(label, currentMenu);
+QPopupMenu *RMapMainWindow::newMenu(const char *title) {
+
+  return new QPopupMenu(this, title);
 }
 
-void RMapMainWindow::addMenuItem(const char* label, const char* tip,
-	RoadMapCallback callback) {
+void RMapMainWindow::freeMenu(QPopupMenu *menu) {
 
-	if (currentMenu == 0) {
-		roadmap_log (ROADMAP_FATAL, "No menu defined for menu item %s", label);
-	}
+   delete (menu);
+}
+
+void RMapMainWindow::addMenu(QPopupMenu *menu, const char* label) {
+
+	menuBar()->insertItem(label, menu);
+}
+
+
+void RMapMainWindow::popupMenu(QPopupMenu *menu, int x, int y) {
+
+   if (menu != NULL) menu->popup (mapToGlobal(QPoint (x, y)));
+}
+
+
+void RMapMainWindow::addMenuItem(QPopupMenu *menu,
+                                 const char* label,
+                                 const char* tip,
+                                 RoadMapCallback callback) {
 
 	RMapCallback* cb = new RMapCallback(callback);
-	currentMenu->insertItem(label, cb, SLOT(fire()));
+	menu->insertItem(label, cb, SLOT(fire()));
 }
 
-void RMapMainWindow::addMenuSeparator() {
-	if (currentMenu == 0) {
-		roadmap_log (ROADMAP_FATAL, "No menu defined for menu separator");
-	}
+void RMapMainWindow::addMenuSeparator(QPopupMenu *menu) {
 
-	currentMenu->insertSeparator();
+	menu->insertSeparator();
 }
 
 void RMapMainWindow::addToolbar(const char* orientation) {
@@ -301,10 +312,7 @@ void RMapMainWindow::removeTimer(RoadMapCallback callback) {
 			}
 		}
 	}
-	if (found < 0) {
-		roadmap_log (ROADMAP_ERROR, "no timer set");
-		return;
-	}
+	if (found < 0) return;
 
 	tm[found]->stop();
 	delete tm[found];

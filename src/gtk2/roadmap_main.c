@@ -75,7 +75,6 @@ static GtkWidget      *RoadMapMainWindow  = NULL;
 static GtkWidget      *RoadMapMainBox     = NULL;
 static GtkWidget      *RoadMapCanvasBox   = NULL;
 static GtkWidget      *RoadMapMainMenuBar = NULL;
-static GtkWidget      *RoadMapCurrentMenu = NULL;
 static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
 
@@ -261,7 +260,19 @@ void roadmap_main_set_keyboard (RoadMapKeyInput callback) {
 }
 
 
-void roadmap_main_add_menu (const char *label) {
+RoadMapMenu roadmap_main_new_menu (const char *title) {
+
+   return (RoadMapMenu) gtk_menu_new ();
+}
+
+
+void roadmap_main_free_menu (RoadMapMenu menu) {
+
+   gtk_widget_destroy ((GtkWidget *)menu);
+}
+
+
+void roadmap_main_add_menu (RoadMapMenu menu, const char *label) {
 
    GtkWidget *menu_item;
 
@@ -276,20 +287,31 @@ void roadmap_main_add_menu (const char *label) {
    menu_item = gtk_menu_item_new_with_label (label);
    gtk_menu_shell_append (GTK_MENU_SHELL(RoadMapMainMenuBar), menu_item);
 
-   RoadMapCurrentMenu = gtk_menu_new ();
-   gtk_menu_item_set_submenu (GTK_MENU_ITEM(menu_item), RoadMapCurrentMenu);
+   gtk_menu_item_set_submenu (GTK_MENU_ITEM(menu_item), (GtkWidget *) menu);
 }
 
 
-void roadmap_main_add_menu_item (const char *label,
+void roadmap_main_popup_menu (RoadMapMenu menu,
+                              const RoadMapGuiPoint *position) {
+
+   if (menu != NULL) {
+      gtk_menu_popup (GTK_MENU(menu),
+                      NULL,
+                      NULL,
+                      NULL,
+                      NULL,
+                      0,
+                      gtk_get_current_event_time());
+   }
+}
+
+
+void roadmap_main_add_menu_item (RoadMapMenu menu,
+                                 const char *label,
                                  const char *tip,
                                  RoadMapCallback callback) {
 
    GtkWidget *menu_item;
-
-   if (RoadMapCurrentMenu == NULL) {
-      roadmap_log (ROADMAP_FATAL, "No menu defined for menu item %s", label);
-   }
 
    if (label != NULL) {
 
@@ -300,7 +322,8 @@ void roadmap_main_add_menu_item (const char *label,
    } else {
       menu_item = gtk_menu_item_new ();
    }
-   gtk_menu_shell_append (GTK_MENU_SHELL(RoadMapCurrentMenu), menu_item);
+   gtk_menu_shell_append (GTK_MENU_SHELL(menu), menu_item);
+   gtk_widget_show(menu_item);
 
    if (tip != NULL) {
       gtk_tooltips_set_tip (gtk_tooltips_new (), menu_item, tip, NULL);
@@ -308,9 +331,9 @@ void roadmap_main_add_menu_item (const char *label,
 }
 
 
-void roadmap_main_add_separator (void) {
+void roadmap_main_add_separator (RoadMapMenu menu) {
 
-   roadmap_main_add_menu_item (NULL, NULL, NULL);
+   roadmap_main_add_menu_item (menu, NULL, NULL, NULL);
 }
 
 
@@ -522,8 +545,6 @@ void roadmap_main_remove_periodic (RoadMapCallback callback) {
          return;
       }
    }
-
-   roadmap_log (ROADMAP_ERROR, "timer 0x%08x not found", callback);
 }
 
 

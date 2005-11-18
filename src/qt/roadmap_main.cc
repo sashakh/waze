@@ -91,23 +91,49 @@ void roadmap_main_set_keyboard(RoadMapKeyInput callback) {
 	}
 }
 
-void roadmap_main_add_menu(const char* label) {
+RoadMapMenu roadmap_main_new_menu (const char *title) {
+
+  if (mainWindow) {
+     return (RoadMapMenu) mainWindow->newMenu(title);
+  } else {
+      return (RoadMapMenu) NULL;
+   }
+}
+
+void roadmap_main_free_menu (RoadMapMenu menu) {
+
+  if (mainWindow) {
+     mainWindow->freeMenu((QPopupMenu *)menu);
+  }
+}
+
+void roadmap_main_popup_menu (RoadMapMenu menu,
+                              const RoadMapGuiPoint *position) {
+
+  if (mainWindow) {
+     mainWindow->popupMenu((QPopupMenu *)menu, position->x, position->y);
+  }
+}
+
+void roadmap_main_add_menu(RoadMapMenu menu, const char* label) {
 	if (mainWindow) {
-		mainWindow->addMenu(label);
+		mainWindow->addMenu((QPopupMenu *)menu, label);
 	}
 }
 
-void roadmap_main_add_menu_item(const char* label, const char* tip,
-	RoadMapCallback callback) {
+void roadmap_main_add_menu_item(RoadMapMenu menu,
+                                const char* label,
+                                const char* tip,
+                                RoadMapCallback callback) {
 
 	if (mainWindow) {
-		mainWindow->addMenuItem(label, tip, callback);
+		mainWindow->addMenuItem((QPopupMenu *)menu, label, tip, callback);
 	}
 }
 
-void roadmap_main_add_separator(void) {
+void roadmap_main_add_separator(RoadMapMenu menu) {
 	if (mainWindow) {
-		mainWindow->addMenuSeparator();
+		mainWindow->addMenuSeparator((QPopupMenu *)menu);
 	}
 }
                           
