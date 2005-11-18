@@ -34,5 +34,8 @@ typedef struct {
 
 } RoadMapGuiPoint;
 
+struct roadmap_menu_descriptor;
+typedef struct roadmap_menu_descriptor *RoadMapMenu;
+
 #endif /* _ROADMAP_GUI__H_ */
 
