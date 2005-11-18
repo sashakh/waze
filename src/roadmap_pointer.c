@@ -67,6 +67,12 @@ static RoadMapPointerHandler RoadMapPointerDragMotion =
 static RoadMapPointerHandler RoadMapPointerDragEnd =
                                      roadmap_pointer_ignore_event;
 
+static RoadMapPointerHandler RoadMapPointerMiddleClick =
+                                     roadmap_pointer_ignore_event;
+
+static RoadMapPointerHandler RoadMapPointerRightClick =
+                                     roadmap_pointer_ignore_event;
+
 
 static void roadmap_pointer_button_timeout(void) {
 
@@ -88,17 +94,22 @@ static void roadmap_pointer_drag_flow_control(void) {
 }
    
 
-static void roadmap_pointer_button_pressed (RoadMapGuiPoint *point) {
+static void roadmap_pointer_button_pressed
+                            (int button, RoadMapGuiPoint *point) {
    is_button_down = 1;    
    last_pointer_point = *point;
-   roadmap_main_set_periodic
-      (LONG_CLICK_TIMEOUT, roadmap_pointer_button_timeout);
+   if (button == 1) {
+      roadmap_main_set_periodic
+         (LONG_CLICK_TIMEOUT, roadmap_pointer_button_timeout);
+   }
 }
 
 
-static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
+static void roadmap_pointer_button_released
+                            (int button, RoadMapGuiPoint *point) {
     
    if (is_dragging) {
+
       if (is_drag_flow_control_on) {
          roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
          is_drag_flow_control_on = 0;
@@ -106,14 +117,20 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
       RoadMapPointerDragEnd(point);
       is_dragging = 0;
       is_button_down = 0;
+
    } else if (is_button_down) {
+
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      RoadMapPointerShortClick(point);
+      switch (button) {
+         case 1: RoadMapPointerShortClick(point);  break;
+         case 2: RoadMapPointerMiddleClick(point); break;
+         case 3: RoadMapPointerRightClick(point);  break;
+      }
       is_button_down = 0;
    }
 }
 
-static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
+static void roadmap_pointer_moved (int button, RoadMapGuiPoint *point) {
 
    if (!is_button_down && !is_dragging) return;
 
@@ -199,6 +216,22 @@ RoadMapPointerHandler roadmap_pointer_register_drag_end
 
    RoadMapPointerHandler old = RoadMapPointerDragEnd;
    RoadMapPointerDragEnd = handler;
+   return old;
+}
+
+RoadMapPointerHandler roadmap_pointer_register_middle_click
+                                (RoadMapPointerHandler handler) {
+
+   RoadMapPointerHandler old = RoadMapPointerMiddleClick;
+   RoadMapPointerMiddleClick = handler;
+   return old;
+}
+
+RoadMapPointerHandler roadmap_pointer_register_right_click
+                                (RoadMapPointerHandler handler) {
+
+   RoadMapPointerHandler old = RoadMapPointerRightClick;
+   RoadMapPointerRightClick = handler;
    return old;
 }
 

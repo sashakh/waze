@@ -56,6 +56,8 @@ void roadmap_factory (const char          *name,
 void roadmap_factory_keymap (RoadMapAction *actions,
                              const char    *shortcuts[]);
 
+RoadMapMenu roadmap_factory_popup (const char *title);
+
 void roadmap_factory_usage (const char *section, const RoadMapAction *action);
 
 #endif /* INCLUDE__ROADMAP_FACTORY__H */

@@ -63,7 +63,7 @@ static PangoLayout  *RoadMapLayout = NULL;
 /* The canvas callbacks: all callbacks are initialized to do-nothing
  * functions, so that we don't care checking if one has been setup.
  */
-static void roadmap_canvas_ignore_mouse (RoadMapGuiPoint *point) {}
+static void roadmap_canvas_ignore_mouse (int button, RoadMapGuiPoint *point) {}
 
 static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonPressed =
                                      roadmap_canvas_ignore_mouse;
@@ -384,9 +384,15 @@ static gint roadmap_canvas_mouse_event
    point.y = event->y;
 
    switch ((int) data) {
-      case 1: (*RoadMapCanvasMouseButtonPressed) (&point);  break;
-      case 2: (*RoadMapCanvasMouseButtonReleased) (&point); break;
-      case 3: (*RoadMapCanvasMouseMoved) (&point);          break;
+      case 1:
+         (*RoadMapCanvasMouseButtonPressed) (event->button, &point);
+         break;
+      case 2:
+         (*RoadMapCanvasMouseButtonReleased) (event->button, &point);
+         break;
+      case 3:
+         (*RoadMapCanvasMouseMoved) (0, &point);
+         break;
    }
 
    return FALSE;

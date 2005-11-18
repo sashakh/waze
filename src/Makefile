@@ -217,7 +217,7 @@ BUSRCS=buildus_main.c \
 BUOBJS=$(BUSRCS:.c=.o)
 
 
-PKGDATAFILES=sprites preferences schema session drivers
+PKGDATAFILES=sprites preferences schema session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a

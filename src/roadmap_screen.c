@@ -51,6 +51,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
+#include "roadmap_factory.h"
 
 #include "roadmap_screen.h"
 
@@ -911,6 +912,16 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
 }
 
 
+static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
+
+   RoadMapMenu popup = roadmap_factory_popup ("Map Menu");
+
+   if (popup != NULL) {
+      roadmap_main_popup_menu (popup, point);
+   }
+}
+
+
 static void roadmap_screen_reset_delta (void) {
 
    RoadMapScreenDeltaX = 0;
@@ -1146,6 +1157,8 @@ void roadmap_screen_initialize (void) {
    roadmap_pointer_register_drag_start (&roadmap_screen_drag_start);
    roadmap_pointer_register_drag_end (&roadmap_screen_drag_end);
    roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion);
+
+   roadmap_pointer_register_right_click (&roadmap_screen_right_click);
 
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
 

@@ -282,24 +282,40 @@ void RMapCanvas::refresh(void) {
 }
 
 void RMapCanvas::mousePressEvent(QMouseEvent* ev) {
+
+   int button;
    RoadMapGuiPoint pt;
 
+   switch (ev->button()) {
+      case LeftButton:  button = 1; break;
+      case MidButton:   button = 2; break;
+      case RightButton: button = 3; break;
+      default:          button = 0; break;
+   }
    pt.x = ev->x();
    pt.y = ev->y();
 
    if (buttonPressedHandler != 0) {
-      buttonPressedHandler(&pt);
+      buttonPressedHandler(button, &pt);
    }
 }
 
 void RMapCanvas::mouseReleaseEvent(QMouseEvent* ev) {
+
+   int button;
    RoadMapGuiPoint pt;
 
+   switch (ev->button()) {
+      case LeftButton:  button = 1; break;
+      case MidButton:   button = 2; break;
+      case RightButton: button = 3; break;
+      default:          button = 0; break;
+   }
    pt.x = ev->x();
    pt.y = ev->y();
 
    if (buttonReleasedHandler != 0) {
-      buttonReleasedHandler(&pt);
+      buttonReleasedHandler(button, &pt);
    }
 }
 
@@ -310,7 +326,7 @@ void RMapCanvas::mouseMoveEvent(QMouseEvent* ev) {
    pt.y = ev->y();
 
    if (mouseMoveHandler != 0) {
-      mouseMoveHandler(&pt);
+      mouseMoveHandler(0, &pt);
    }
 }
 

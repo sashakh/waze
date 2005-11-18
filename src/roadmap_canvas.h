@@ -36,7 +36,7 @@
 struct roadmap_canvas_pen;
 typedef struct roadmap_canvas_pen *RoadMapPen;
 
-typedef void (*RoadMapCanvasMouseHandler)     (RoadMapGuiPoint *point);
+typedef void (*RoadMapCanvasMouseHandler) (int button, RoadMapGuiPoint *point);
 typedef void (*RoadMapCanvasConfigureHandler) (void);
 
 void roadmap_canvas_register_button_pressed_handler

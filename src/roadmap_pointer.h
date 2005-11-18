@@ -45,5 +45,13 @@ RoadMapPointerHandler
 RoadMapPointerHandler
    roadmap_pointer_register_drag_end (RoadMapPointerHandler handler);
 
+/* These events are available only on desktops (mouse). */
+
+RoadMapPointerHandler
+   roadmap_pointer_register_middle_click (RoadMapPointerHandler handler);
+
+RoadMapPointerHandler
+   roadmap_pointer_register_right_click (RoadMapPointerHandler handler);
+
 #endif // INCLUDED__ROADMAP_POINTER__H
 
