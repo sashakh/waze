@@ -66,6 +66,17 @@ static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 static int RoadMapFactoryKeyLength = 0;
 
 
+struct RoadMapFactoryPopup {
+
+   const char *title;
+   RoadMapMenu menu;
+
+   struct RoadMapFactoryPopup *next;
+};
+
+static struct RoadMapFactoryPopup *RoadMapFactoryPopupList = NULL;
+
+
 static void roadmap_factory_keyboard (char *key) {
 
    const struct RoadMapFactoryKeyMap *binding;
@@ -86,17 +97,19 @@ static void roadmap_factory_keyboard (char *key) {
    }
 }
 
-static void roadmap_factory_add_help (void) {
+static void roadmap_factory_add_help (RoadMapMenu menu) {
 
    int ok;
    const char *label;
    RoadMapCallback callback;
 
+   if (menu == NULL) return;
+
    for (ok = roadmap_help_first_topic(&label, &callback);
         ok;
         ok = roadmap_help_next_topic(&label, &callback)) {
 
-      roadmap_main_add_menu_item (label, label, callback);
+      roadmap_main_add_menu_item (menu, label, label, callback);
    }
 }
 
@@ -342,6 +355,23 @@ static int roadmap_factory_user_action_labels
    return loaded;
 }
 
+static void roadmap_factory_add_popup (RoadMapMenu menu, const char *title) {
+
+   struct RoadMapFactoryPopup *popup;
+
+   popup = (struct RoadMapFactoryPopup *)
+      malloc (sizeof(struct RoadMapFactoryPopup));
+
+   roadmap_check_allocated(popup);
+
+   popup->title = title;
+   popup->menu  = menu;
+
+   popup->next = RoadMapFactoryPopupList;
+   RoadMapFactoryPopupList = popup;
+}
+
+
 void roadmap_factory (const char           *name,
                             RoadMapAction  *actions,
                       const char           *menu[],
@@ -357,6 +387,7 @@ void roadmap_factory (const char           *name,
             roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
    const char **userconfig;
+   RoadMapMenu gui_menu = NULL;
 
 
    roadmap_config_declare_enumeration ("preferences",
@@ -380,22 +411,30 @@ void roadmap_factory (const char           *name,
 
       if (item == RoadMapFactorySeparator) {
 
-         roadmap_main_add_separator ();
+         if (gui_menu != NULL) {
+            roadmap_main_add_separator (gui_menu);
+         }
 
       } else if (item == RoadMapFactoryHelpTopics) {
 
-         roadmap_factory_add_help ();
+         if (gui_menu != NULL) {
+            roadmap_factory_add_help (gui_menu);
+         }
 
       } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
 
-         roadmap_main_add_menu (item + prefix);
+         const char *title = item + prefix;
+
+         gui_menu = roadmap_main_new_menu (title);
+         roadmap_main_add_menu (gui_menu, title);
 
       } else {
          const RoadMapAction *this_action;
 
          this_action = roadmap_factory_find_action (actions, item);
-         if (this_action != NULL) {
-            roadmap_main_add_menu_item (this_action->label_long,
+         if (gui_menu != NULL && this_action != NULL) {
+            roadmap_main_add_menu_item (gui_menu,
+                                        this_action->label_long,
                                         this_action->tip,
                                         this_action->callback);
          }
@@ -431,6 +470,47 @@ void roadmap_factory (const char           *name,
                                       (use_icons) ? this_action->name : NULL,
                                       this_action->tip,
                                       this_action->callback);
+            }
+         }
+      }
+   }
+
+   userconfig = roadmap_factory_user_config (name, "popup", actions);
+
+   if (userconfig != NULL) {
+
+      for (i = 0; userconfig[i] != NULL; ++i) {
+
+         const char *item = userconfig[i];
+
+         if (item == RoadMapFactorySeparator) {
+
+            if (gui_menu != NULL) {
+               roadmap_main_add_separator (gui_menu);
+            }
+
+         } else if (item == RoadMapFactoryHelpTopics) {
+
+            if (gui_menu != NULL) {
+               roadmap_factory_add_help (gui_menu);
+            }
+
+         } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
+
+            const char *title = item + prefix;
+
+            gui_menu = roadmap_main_new_menu (title);
+            roadmap_factory_add_popup (gui_menu, title);
+
+         } else {
+            const RoadMapAction *this_action;
+
+            this_action = roadmap_factory_find_action (actions, item);
+            if (gui_menu != NULL && this_action != NULL) {
+               roadmap_main_add_menu_item (gui_menu,
+                     this_action->label_long,
+                     this_action->tip,
+                     this_action->callback);
             }
          }
       }
@@ -526,6 +606,22 @@ static void roadmap_factory_show_keymap (void) {
       }
    }
 }
+
+
+RoadMapMenu roadmap_factory_popup (const char *title) {
+
+   struct RoadMapFactoryPopup *popup;
+
+   for (popup = RoadMapFactoryPopupList; popup != NULL; popup = popup->next) {
+
+      if (strcmp (popup->title, title) == 0) {
+         return popup->menu;
+      }
+   }
+
+   return NULL;
+}
+
 
 void roadmap_factory_usage (const char *section, const RoadMapAction *action) {
 
