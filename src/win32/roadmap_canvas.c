@@ -53,7 +53,7 @@ static RECT			ClientRect;
 static HPEN			OldHPen = NULL;
 static HBITMAP		OldBitmap = NULL;
 
-static void roadmap_canvas_ignore_button (RoadMapGuiPoint *point) {}
+static void roadmap_canvas_ignore_button (int button, RoadMapGuiPoint *point) {}
 static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonPressed =
 	roadmap_canvas_ignore_button;
 static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonReleased =
@@ -366,26 +366,26 @@ void roadmap_canvas_register_configure_handler (
 }
 
 
-void roadmap_canvas_button_pressed(POINT *data)
+void roadmap_canvas_button_pressed(int button, POINT *data)
 {
 	RoadMapGuiPoint point;
 	
 	point.x = (short)data->x;
 	point.y = (short)data->y;
 	
-	(*RoadMapCanvasMouseButtonPressed) (&point);
+	(*RoadMapCanvasMouseButtonPressed) (button, &point);
 	
 }
 
 
-void roadmap_canvas_button_released(POINT *data)
+void roadmap_canvas_button_released(int button, POINT *data)
 {
 	RoadMapGuiPoint point;
 	
 	point.x = (short)data->x;
 	point.y = (short)data->y;
 	
-	(*RoadMapCanvasMouseButtonReleased) (&point);
+	(*RoadMapCanvasMouseButtonReleased) (button, &point);
 	
 }
 
@@ -397,7 +397,7 @@ void roadmap_canvas_mouse_move(POINT *data)
 	point.x = (short)data->x;
 	point.y = (short)data->y;
 	
-	(*RoadMapCanvasMouseMove) (&point);
+	(*RoadMapCanvasMouseMove) (0, &point);
 	
 }
 

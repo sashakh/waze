@@ -342,7 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (RoadMapMainToolbar != NULL) {
 				point.y -= 26;
 			}
-			roadmap_canvas_button_pressed(&point);
+			roadmap_canvas_button_pressed(1, &point);
 		}
 		break;
 
@@ -354,7 +354,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (RoadMapMainToolbar != NULL) {
 				point.y -= 26;
 			}
-			roadmap_canvas_button_released(&point);
+			roadmap_canvas_button_released(1, &point);
+		}
+		break;
+
+	case WM_MBUTTONDOWN:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_button_pressed(2, &point);
+		}
+		break;
+
+	case WM_MBUTTONUP:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_button_released(2, &point);
+		}
+		break;
+
+	case WM_RBUTTONDOWN:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_button_pressed(3, &point);
+		}
+		break;
+
+	case WM_RBUTTONUP:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_button_released(3, &point);
 		}
 		break;
 
