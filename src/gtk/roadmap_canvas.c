@@ -387,6 +387,13 @@ void roadmap_canvas_register_mouse_move_handler
 }
 
 
+void roadmap_canvas_register_mouse_scroll_handler
+                    (RoadMapCanvasMouseHandler handler) {
+
+   // TBD.
+}
+
+
 int roadmap_canvas_width (void) {
 
    if (RoadMapDrawingArea == NULL) {
