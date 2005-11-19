@@ -74,6 +74,9 @@ static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonReleased =
 static RoadMapCanvasMouseHandler RoadMapCanvasMouseMoved =
                                      roadmap_canvas_ignore_mouse;
 
+static RoadMapCanvasMouseHandler RoadMapCanvasMouseScroll =
+                                     roadmap_canvas_ignore_mouse;
+
 
 static void roadmap_canvas_ignore_configure (void) {}
 
@@ -399,6 +402,28 @@ static gint roadmap_canvas_mouse_event
 }
 
 
+static gboolean roadmap_canvas_scroll_event
+               (GtkWidget *w, GdkEventScroll *event, gpointer data) {
+
+   int direction = 0;
+   RoadMapGuiPoint point;
+
+   point.x = event->x;
+   point.y = event->y;
+
+   switch (event->direction) {
+      case GDK_SCROLL_UP:    direction = 1;  break;
+      case GDK_SCROLL_DOWN:  direction = -1; break;
+      case GDK_SCROLL_LEFT:  direction = 2;  break;
+      case GDK_SCROLL_RIGHT: direction = -2; break;
+   }
+
+   (*RoadMapCanvasMouseScroll) (direction, &point);
+
+   return FALSE;
+}
+
+
 void roadmap_canvas_register_button_pressed_handler
                     (RoadMapCanvasMouseHandler handler) {
 
@@ -417,6 +442,13 @@ void roadmap_canvas_register_mouse_move_handler
                     (RoadMapCanvasMouseHandler handler) {
 
    RoadMapCanvasMouseMoved = handler;
+}
+
+
+void roadmap_canvas_register_mouse_scroll_handler
+                    (RoadMapCanvasMouseHandler handler) {
+
+   RoadMapCanvasMouseScroll = handler;
 }
 
 
@@ -459,9 +491,11 @@ GtkWidget *roadmap_canvas_new (void) {
 
    gtk_widget_set_double_buffered (RoadMapDrawingArea, FALSE);
 
-   gtk_widget_set_events
-      (RoadMapDrawingArea,
-       GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK|GDK_POINTER_MOTION_MASK);
+   gtk_widget_set_events (RoadMapDrawingArea,
+                          GDK_BUTTON_PRESS_MASK |
+                          GDK_BUTTON_RELEASE_MASK |
+                          GDK_POINTER_MOTION_MASK |
+                          GDK_SCROLL_MASK);
 
 
    g_signal_connect (RoadMapDrawingArea,
@@ -488,6 +522,11 @@ GtkWidget *roadmap_canvas_new (void) {
                      "motion_notify_event",
                      (GCallback) roadmap_canvas_mouse_event,
                      (gpointer)3);
+
+   g_signal_connect (RoadMapDrawingArea,
+                     "scroll_event",
+                     (GCallback) roadmap_canvas_scroll_event,
+                     (gpointer)0);
 
    RoadMapGc = RoadMapDrawingArea->style->black_gc;
 
