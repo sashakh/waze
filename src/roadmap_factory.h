@@ -25,6 +25,8 @@
 #define INCLUDE__ROADMAP_FACTORY__H
 
 #include "roadmap_main.h"
+#include "roadmap_gui.h"
+#include "roadmap_config.h"
 
 
 typedef struct {
@@ -56,7 +58,8 @@ void roadmap_factory (const char          *name,
 void roadmap_factory_keymap (RoadMapAction *actions,
                              const char    *shortcuts[]);
 
-RoadMapMenu roadmap_factory_popup (const char *title);
+void roadmap_factory_popup (RoadMapConfigDescriptor *descriptor,
+                            const RoadMapGuiPoint *position);
 
 void roadmap_factory_usage (const char *section, const RoadMapAction *action);
 

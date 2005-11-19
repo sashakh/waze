@@ -608,18 +608,22 @@ static void roadmap_factory_show_keymap (void) {
 }
 
 
-RoadMapMenu roadmap_factory_popup (const char *title) {
+void roadmap_factory_popup (RoadMapConfigDescriptor *descriptor,
+                            const RoadMapGuiPoint *position) {
 
    struct RoadMapFactoryPopup *popup;
+
+   const char *title = roadmap_config_get (descriptor);
+
+   if (title == NULL || title[0] == 0) return; /* No menu attached. */
+
 
    for (popup = RoadMapFactoryPopupList; popup != NULL; popup = popup->next) {
 
       if (strcmp (popup->title, title) == 0) {
-         return popup->menu;
+         roadmap_main_popup_menu (popup->menu, position);
       }
    }
-
-   return NULL;
 }
 
 

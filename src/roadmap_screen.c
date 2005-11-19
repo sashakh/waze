@@ -77,6 +77,9 @@ static RoadMapConfigDescriptor RoadMapConfigMapSigns =
 static RoadMapConfigDescriptor RoadMapConfigMapRefresh =
                         ROADMAP_CONFIG_ITEM("Map", "Refresh");
 
+static RoadMapConfigDescriptor RoadMapConfigEventRightClick =
+                        ROADMAP_CONFIG_ITEM("Events", "Right Click");
+
 static RoadMapConfigDescriptor RoadMapConfigStylePrettyDrag =
                   ROADMAP_CONFIG_ITEM("Style", "Pretty Lines when Dragging");
 
@@ -1062,11 +1065,7 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
 
 static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
 
-   RoadMapMenu popup = roadmap_factory_popup ("Map Menu");
-
-   if (popup != NULL) {
-      roadmap_main_popup_menu (popup, point);
-   }
+   roadmap_factory_popup (&RoadMapConfigEventRightClick, point);
 }
 
 
@@ -1288,6 +1287,9 @@ void roadmap_screen_initialize (void) {
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigMapBackground, "LightYellow");
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigEventRightClick,  "Map Menu");
 
    roadmap_config_declare_enumeration
        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
