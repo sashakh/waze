@@ -25,6 +25,7 @@
 #define INCLUDE__ROADMAP_SCREEN__H
 
 #include "roadmap_types.h"
+#include "roadmap_canvas.h"
 
 void roadmap_screen_initialize (void);
 
@@ -51,7 +52,26 @@ void roadmap_screen_unfreeze (void); /* Enable screen refresh. */
 void roadmap_screen_get_center (RoadMapPosition *center);
 
 typedef void (*RoadMapScreenSubscriber) (void);
+typedef void (*RoadMapShapeIterator) (int shape, RoadMapPosition *position);
 
 void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler);
+
+void roadmap_screen_draw_line (const RoadMapPosition *from,
+                               const RoadMapPosition *to,
+                               int fully_visible,
+                               const RoadMapPosition *shape_start,
+                               int first_shape,
+                               int last_shape,
+                               RoadMapShapeIterator shape_next,
+                               RoadMapPen pen);
+
+void roadmap_screen_draw_line_direction (const RoadMapPosition *from,
+                                         const RoadMapPosition *to,
+                                         const RoadMapPosition *shape_start,
+                                         int first_shape,
+                                         int last_shape,
+                                         RoadMapShapeIterator shape_next,
+                                         int width,
+                                         int direction);
 
 #endif // INCLUDE__ROADMAP_SCREEN__H
