@@ -577,6 +577,8 @@ static void roadmap_screen_draw_polygons (void) {
 
       pen = roadmap_layer_get_pen (roadmap_polygon_category (i), 0);
 
+      if (pen == NULL) continue;
+
       if (RoadMapScreenLastPen != pen) {
          roadmap_screen_flush_polygons ();
          roadmap_canvas_select_pen (pen);
@@ -715,6 +717,9 @@ static int roadmap_screen_draw_square
    roadmap_log_push ("roadmap_screen_draw_square");
 
    layer_pen = roadmap_layer_get_pen (layer, pen_index);
+
+   if (layer_pen == NULL) return;
+
 
    /* Draw each line that belongs to this square. */
 
@@ -1127,6 +1132,16 @@ static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 }
 
 
+static void roadmap_screen_scroll_up (RoadMapGuiPoint *point) {
+   roadmap_screen_zoom_in ();
+}
+
+
+static void roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
+   roadmap_screen_zoom_out ();
+}
+
+
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
@@ -1309,6 +1324,8 @@ void roadmap_screen_initialize (void) {
    roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion);
 
    roadmap_pointer_register_right_click (&roadmap_screen_right_click);
+   roadmap_pointer_register_scroll_up (&roadmap_screen_scroll_up);
+   roadmap_pointer_register_scroll_down (&roadmap_screen_scroll_down);
 
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
 

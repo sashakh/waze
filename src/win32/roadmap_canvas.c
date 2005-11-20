@@ -60,6 +60,8 @@ static RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonReleased =
 	roadmap_canvas_ignore_button;
 static RoadMapCanvasMouseHandler RoadMapCanvasMouseMove =
 	roadmap_canvas_ignore_button;
+static RoadMapCanvasMouseHandler RoadMapCanvasMouseScroll =
+	roadmap_canvas_ignore_button;
 
 static void roadmap_canvas_ignore_configure (void) {}
 
@@ -402,6 +404,20 @@ void roadmap_canvas_mouse_move(POINT *data)
 }
 
 
+void roadmap_canvas_mouse_scroll(int direction, POINT *data)
+{
+	RoadMapGuiPoint point;
+	
+	point.x = (short)data->x;
+	point.y = (short)data->y;
+	
+   direction = (direction > 0) ? 1 : ((direction < 0) ? -1 : 0);
+
+	(*RoadMapCanvasMouseScroll) (direction, &point);
+	
+}
+
+
 void roadmap_canvas_register_button_pressed_handler (
 				RoadMapCanvasMouseHandler handler)
 {
@@ -420,6 +436,13 @@ void roadmap_canvas_register_mouse_move_handler (
 				RoadMapCanvasMouseHandler handler)
 {
 	RoadMapCanvasMouseMove = handler;
+}
+
+
+void roadmap_canvas_register_mouse_scroll_handler
+                    (RoadMapCanvasMouseHandler handler) {
+
+   RoadMapCanvasMouseScroll = handler;
 }
 
 

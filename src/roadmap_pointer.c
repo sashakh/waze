@@ -73,6 +73,11 @@ static RoadMapPointerHandler RoadMapPointerMiddleClick =
 static RoadMapPointerHandler RoadMapPointerRightClick =
                                      roadmap_pointer_ignore_event;
 
+static RoadMapPointerHandler RoadMapPointerScrollUp =
+                                     roadmap_pointer_ignore_event;
+
+static RoadMapPointerHandler RoadMapPointerScrollDown =
+                                     roadmap_pointer_ignore_event;
 
 static void roadmap_pointer_button_timeout(void) {
 
@@ -161,6 +166,16 @@ static void roadmap_pointer_moved (int button, RoadMapGuiPoint *point) {
 }
 
 
+static void roadmap_pointer_scroll (int button, RoadMapGuiPoint *point) {
+
+   if (button > 0) {
+      RoadMapPointerScrollUp(point);
+   } else if (button < 0) {
+      RoadMapPointerScrollDown(point);
+   }
+}
+
+
 void roadmap_pointer_initialize (void) {
 
    roadmap_config_declare
@@ -172,6 +187,8 @@ void roadmap_pointer_initialize (void) {
       (&roadmap_pointer_button_released);
    roadmap_canvas_register_mouse_move_handler
       (&roadmap_pointer_moved);
+   roadmap_canvas_register_mouse_scroll_handler
+      (&roadmap_pointer_scroll);
 }
 
 
@@ -232,6 +249,22 @@ RoadMapPointerHandler roadmap_pointer_register_right_click
 
    RoadMapPointerHandler old = RoadMapPointerRightClick;
    RoadMapPointerRightClick = handler;
+   return old;
+}
+
+RoadMapPointerHandler
+   roadmap_pointer_register_scroll_up (RoadMapPointerHandler handler) {
+
+   RoadMapPointerHandler old = RoadMapPointerScrollUp;
+   RoadMapPointerScrollUp = handler;
+   return old;
+}
+
+RoadMapPointerHandler
+   roadmap_pointer_register_scroll_down (RoadMapPointerHandler handler) {
+
+   RoadMapPointerHandler old = RoadMapPointerScrollDown;
+   RoadMapPointerScrollDown = handler;
    return old;
 }
 

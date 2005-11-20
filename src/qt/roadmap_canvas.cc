@@ -61,6 +61,17 @@ void roadmap_canvas_register_mouse_move_handler(RoadMapCanvasMouseHandler handle
 	}
 }
 
+void roadmap_canvas_register_mouse_scroll_handler
+                    (RoadMapCanvasMouseHandler handler) {
+
+   if (roadMapCanvas) {
+      roadMapCanvas->registerMouseWheelHandler(handler);
+   } else {
+      whandler = handler;
+	}
+}
+
+
 void roadmap_canvas_register_configure_handler(
 	RoadMapCanvasConfigureHandler handler) {
 

@@ -48,6 +48,9 @@ void roadmap_canvas_register_button_released_handler
 void roadmap_canvas_register_mouse_move_handler
                     (RoadMapCanvasMouseHandler handler);
 
+void roadmap_canvas_register_mouse_scroll_handler
+                    (RoadMapCanvasMouseHandler handler);
+
 void roadmap_canvas_register_configure_handler
                     (RoadMapCanvasConfigureHandler handler);
 

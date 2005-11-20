@@ -53,5 +53,11 @@ RoadMapPointerHandler
 RoadMapPointerHandler
    roadmap_pointer_register_right_click (RoadMapPointerHandler handler);
 
+RoadMapPointerHandler
+   roadmap_pointer_register_scroll_up (RoadMapPointerHandler handler);
+
+RoadMapPointerHandler
+   roadmap_pointer_register_scroll_down (RoadMapPointerHandler handler);
+
 #endif // INCLUDED__ROADMAP_POINTER__H
 

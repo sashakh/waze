@@ -418,6 +418,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 				
+	case WM_MOUSEWHEEL:
+		{
+			POINT point;
+			point.x = LOWORD(lParam);
+			point.y = HIWORD(lParam);
+			if (RoadMapMainToolbar != NULL) {
+				point.y -= 26;
+			}
+			roadmap_canvas_mouse_scroll(HIWORD(lParam), &point);
+		}
+		break;
+				
 	case WM_KEYDOWN:
 		if (roadmap_main_vkey_pressed(hWnd, wParam, lParam)) return 0;
 		else return DefWindowProc(hWnd, message, wParam, lParam);

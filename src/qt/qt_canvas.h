@@ -66,6 +66,7 @@ public:
    void registerButtonPressedHandler(RoadMapCanvasMouseHandler handler);
    void registerButtonReleasedHandler(RoadMapCanvasMouseHandler handler);
    void registerMouseMoveHandler(RoadMapCanvasMouseHandler handler);
+   void registerMouseWheelHandler(RoadMapCanvasMouseHandler handler);
 
 	void registerConfigureHandler(RoadMapCanvasConfigureHandler handler);
 	void getTextExtents(const char* text, int* width, int* ascent, 
@@ -86,6 +87,7 @@ protected:
    RoadMapCanvasMouseHandler buttonPressedHandler;
    RoadMapCanvasMouseHandler buttonReleasedHandler;
    RoadMapCanvasMouseHandler mouseMoveHandler;
+   RoadMapCanvasMouseHandler mouseWheelHandler;
 
 
    void initColors();
@@ -94,6 +96,7 @@ protected:
 	virtual void mousePressEvent(QMouseEvent*);
    virtual void mouseReleaseEvent(QMouseEvent*);
    virtual void mouseMoveEvent(QMouseEvent*);
+   virtual void wheelEvent(QWheelEvent*);
 	virtual void resizeEvent(QResizeEvent*);
 	virtual void paintEvent(QPaintEvent*);
 };
@@ -102,6 +105,7 @@ extern RMapCanvas *roadMapCanvas;
 extern RoadMapCanvasMouseHandler phandler;
 extern RoadMapCanvasMouseHandler rhandler;
 extern RoadMapCanvasMouseHandler mhandler;
+extern RoadMapCanvasMouseHandler whandler;
 
 extern RoadMapCanvasConfigureHandler chandler;
 

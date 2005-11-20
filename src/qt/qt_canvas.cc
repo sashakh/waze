@@ -34,6 +34,7 @@ RMapCanvas *roadMapCanvas = 0;
 RoadMapCanvasMouseHandler phandler = 0;
 RoadMapCanvasMouseHandler rhandler = 0;
 RoadMapCanvasMouseHandler mhandler = 0;
+RoadMapCanvasMouseHandler whandler = 0;
 RoadMapCanvasConfigureHandler chandler = 0;
 
 // Implementation of RMapCanvas class
@@ -47,6 +48,7 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
    registerButtonPressedHandler(phandler);
    registerButtonReleasedHandler(rhandler);
    registerMouseMoveHandler(mhandler);
+   registerMouseWheelHandler(whandler);
 
 	registerConfigureHandler(chandler);
 	setBackgroundMode(QWidget::NoBackground);
@@ -264,6 +266,10 @@ void RMapCanvas::registerMouseMoveHandler(RoadMapCanvasMouseHandler handler) {
   mouseMoveHandler = handler;
 }
 
+void RMapCanvas::registerMouseWheelHandler(RoadMapCanvasMouseHandler handler) {
+  mouseWheelHandler = handler;
+}
+
 
 void RMapCanvas::registerConfigureHandler(RoadMapCanvasConfigureHandler handler) {
 	configureHandler = handler;
@@ -320,6 +326,7 @@ void RMapCanvas::mouseReleaseEvent(QMouseEvent* ev) {
 }
 
 void RMapCanvas::mouseMoveEvent(QMouseEvent* ev) {
+
    RoadMapGuiPoint pt;
 
    pt.x = ev->x();
@@ -327,6 +334,23 @@ void RMapCanvas::mouseMoveEvent(QMouseEvent* ev) {
 
    if (mouseMoveHandler != 0) {
       mouseMoveHandler(0, &pt);
+   }
+}
+
+void RMapCanvas::wheelEvent (QWheelEvent* ev) {
+
+   int direction;
+
+   RoadMapGuiPoint pt;
+
+   pt.x = ev->x();
+   pt.y = ev->y();
+
+   direction = ev->delta();
+   direction = (direction > 0) ? 1 : ((direction < 0) ? -1 : 0);
+
+   if (mouseWheelHandler != 0) {
+      mouseWheelHandler(direction, &pt);
    }
 }
 
