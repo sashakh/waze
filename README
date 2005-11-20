@@ -876,7 +876,7 @@ USING ROADMAP
 
 * USING THE {MOUSE} OR PEN
 
-   RoadMap use only one mouse button (the left button on a 3 buttons mouse).
+   RoadMap use mostly one mouse button (the left button on a 3 buttons mouse).
    This is because RoadMap is designed for a PDA, where pens are used.
 
    A short mouse Click or pen tap on the map screen displays the name of the
@@ -893,6 +893,16 @@ USING ROADMAP
    Dragging a map display is a CPU-intensive action, so a few "Style"
    preference items can be used to limit the amount of drawing to be
    performed while doing it.
+
+   A few additional actions are specific to the mouse devices, with no pen
+   equivalent: the mouse's right button and wheel.
+   
+   A popup menu can be attached to the mouse's right button (see preference
+   item "Events.Right Click"). The menu iteself must be defined in the file
+   roadmap.popup (see section CONFIGURING THE MENUS AND TOOLBAR).
+   
+   Mouse wheel actions will trigger a zoom in and out of the map display,
+   depending on the direction of the wheel movement.
 
 
 * {VOICE} INTERFACE
@@ -1628,17 +1638,21 @@ CONFIGURATION
    recommended to select short titles made of a single word, however).
    There is no such title line for toolbars: all menu title lines will be
    silently ignored. The toolbar is organized as a single, anonymous, menu.
-   
+
    Each menu or toolbar item is described by its action name. A separator is
    described by the character '-'. There must be only one item (title, action
    name or separator) per line. Empty lines are authorized  and lines starting
    with the '#' character are treated as comments.
 
-   The menus and toolbar configuration files for roadmap are named
-   "roadmap.menus" and "roadmap.toolbar", respectively. The same configuration
-   files for roadgps are named "roadgps.menus" and "roadgps.toolbar". These
-   files must be stored in the same places as other RoadMap configuration
-   files.
+   There are two sorts of menus: the menus accessed through the menu bar
+   and the popup menus. The popup menus will be trigerred by events, as
+   specified in the preferences' "Events" section.
+
+   The menus, popup and toolbar configuration files for roadmap are named
+   "roadmap.menus", "roadmap.popup" and "roadmap.toolbar", respectively.
+   The same configuration files for roadgps are named "roadgps.menus",
+   "roadgps.popup" and "roadgps.toolbar". These files must be stored in
+   the same places as other RoadMap configuration files.
 
    There is a different list of possible actions for RoadMap and RoadGps.
    The list of valid action names can be obtained using the command line
@@ -2212,6 +2226,12 @@ CONFIGURATION
 
          <<Default:>> /var/tmp
 
+    [Events.Right Click] The name of the menu to open on a mouse right click.
+
+         <<Format:>> string
+
+         <<Default:>> Map Menu
+         
  (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
 
 
