@@ -819,7 +819,7 @@ static int roadmap_street_get_distance_with_shape
 
 
    roadmap_plugin_set_line
-      (&current.line, ROADMAP_PLUGIN_ID, line, fips, layer);
+      (&current.line, ROADMAP_PLUGIN_ID, line, layer, fips);
 
    /* Note: the position of a shape point is relative to the position
     * of the previous point, starting with the from point.
