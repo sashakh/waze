@@ -52,20 +52,26 @@ endif
 
 ifeq ($(DESKTOP),GTK2)
 	RDMODULES=gtk2
+	DTCFLAGS=
 else
 ifeq ($(DESKTOP),GPE)
 	RDMODULES=gtk2
+	DTCFLAGS=
 else
 ifeq ($(DESKTOP),GTK)
 	RDMODULES=gtk
+	DTCFLAGS=
 else
 ifeq ($(DESKTOP),QT)
 	RDMODULES=qt
+	DTCFLAGS=
 else
 ifeq ($(DESKTOP),QPE)
 	RDMODULES=qt
+	DTCFLAGS=-DQWS
 else
 	RDMODULES=gtk gtk2 qt
+	DTCFLAGS=
 endif
 endif
 endif
@@ -88,7 +94,7 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include
+CFLAGS=$(MODECFLAGS) $(DTCFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
@@ -118,6 +124,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_place.c \
           roadmap_polygon.c \
           roadmap_street.c \
+          roadmap_plugin.c \
           roadmap_geocode.c \
           roadmap_history.c \
           roadmap_input.c \
@@ -139,7 +146,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_layer.c \
           roadmap_fuzzy.c \
           roadmap_navigate.c \
-			 roadmap_pointer.c \
+          roadmap_pointer.c \
           roadmap_screen.c \
           roadmap_display.c \
           roadmap_factory.c \
