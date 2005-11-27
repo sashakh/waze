@@ -65,8 +65,7 @@ static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
 
 
 /* Default location is: 1 market St, san Francisco, California. */
-#define ROADMAP_INITIAL_LONGITUDE -122394181
-#define ROADMAP_INITIAL_LATITUDE    37794928
+#define ROADMAP_DEFAULT_POSITION "-122394181, 37794928"
 
 
 static int RoadMapTripRotate   = 1;
@@ -101,7 +100,7 @@ typedef struct roadmap_trip_point {
 
 #define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip, has_value) \
     {{NULL, NULL}, id, sprite, 1, mobile, in_trip, has_value, \
-     {ROADMAP_INITIAL_LONGITUDE, ROADMAP_INITIAL_LATITUDE}, \
+     {0, 0}, \
      ROADMAP_GPS_NULL_POSITION, \
      ROADMAP_CONFIG_ITEM(id,"Position"), \
      ROADMAP_CONFIG_ITEM(id,"Direction"), \
@@ -352,7 +351,7 @@ static void roadmap_trip_remove_dialog_delete (const char *name, void *data) {
     int count;
     char *point_name = (char *) roadmap_dialog_get_data ("Names", ".Waypoints");
     
-    if (point_name[0] != 0) {
+    if (point_name && point_name[0] != 0) {
         
         roadmap_trip_remove_point (point_name);
         
@@ -1026,7 +1025,8 @@ void roadmap_trip_initialize (void) {
 
             roadmap_config_declare
                 ("session",
-                 &RoadMapTripPredefined[i].config_position, "0,0");
+                 &RoadMapTripPredefined[i].config_position,
+                 ROADMAP_DEFAULT_POSITION);
 
             if (RoadMapTripPredefined[i].mobile) {
                 roadmap_config_declare
