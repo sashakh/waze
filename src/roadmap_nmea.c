@@ -568,6 +568,7 @@ static struct {
    {NULL, "RTE", roadmap_nmea_null_decoder},
    {NULL, "RMB", roadmap_nmea_null_decoder},
    {NULL, "BOD", roadmap_nmea_null_decoder},
+   {NULL, "VTG", roadmap_nmea_null_decoder},
 
    /* Garmin extensions: */
    {"GRM", "E", roadmap_nmea_pgrme},
