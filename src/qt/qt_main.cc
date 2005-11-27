@@ -131,6 +131,8 @@ void RMapMainWindow::addToolbar(const char* orientation) {
 
 	if (toolBar == 0) {
 		toolBar = new QToolBar(this, "map view");
+#ifndef QWS
+      // moveDockWindow not available on QtE v2.3.10.
       switch (orientation[0]) {
          case 't':
          case 'T': break;
@@ -147,6 +149,7 @@ void RMapMainWindow::addToolbar(const char* orientation) {
          default: roadmap_log (ROADMAP_FATAL,
                         "Invalid toolbar orientation %s", orientation);
       }
+#endif
 		toolBar->setFocusPolicy(QWidget::NoFocus);
 		toolBar->setHorizontalStretchable(TRUE);
 	}
