@@ -1296,3 +1296,18 @@ int  roadmap_math_street_address (const char *image, int length) {
    return result;
 }
 
+
+int roadmap_math_delta_direction (int direction1, int direction2) {
+
+    int delta = direction2 - direction1;
+
+    while (delta > 180)  delta -= 360;
+    while (delta < -180) delta += 360;
+
+    if (delta < 0) delta = 0 - delta;
+
+    while (delta >= 360) delta -= 360;
+
+    return delta;
+}
+

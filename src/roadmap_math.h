@@ -85,10 +85,10 @@ char *roadmap_math_speed_unit    (void);
 int  roadmap_math_distance
         (const RoadMapPosition *position1, const RoadMapPosition *position2);
 
-int roadmap_math_distance_convert (const char *string, int *explicit);
-int roadmap_math_to_trip_distance (int distance);
+int  roadmap_math_distance_convert (const char *string, int *explicit);
+int  roadmap_math_to_trip_distance (int distance);
 
-int roadmap_math_to_speed_unit (int knots);
+int  roadmap_math_to_speed_unit (int knots);
 
 
 int  roadmap_math_to_current_unit (int value, const char *unit);
@@ -100,17 +100,20 @@ int  roadmap_math_get_distance_from_segment
          const RoadMapPosition *position2,
                RoadMapPosition *intersection);
 
-int roadmap_math_intersection (RoadMapPosition *from1,
-                               RoadMapPosition *to1,
-                               RoadMapPosition *from2,
-                               RoadMapPosition *to2,
-                               RoadMapPosition *intersection);
+int  roadmap_math_intersection (RoadMapPosition *from1,
+                                RoadMapPosition *to1,
+                                RoadMapPosition *from2,
+                                RoadMapPosition *to2,
+                                RoadMapPosition *intersection);
 
 void roadmap_math_screen_edges (RoadMapArea *area);
 
 int  roadmap_math_street_address (const char *image, int length);
 
-int roadmap_math_compare_points (const RoadMapPosition *p1,
-                                 const RoadMapPosition *p2);
+int  roadmap_math_compare_points (const RoadMapPosition *p1,
+                                  const RoadMapPosition *p2);
+
+int  roadmap_math_delta_direction (int direction1, int direction2);
 
 #endif // INCLUDED__ROADMAP_MATH__H
+

@@ -35,6 +35,7 @@
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
 #include "roadmap_input.h"
+#include "roadmap_plugin.h"
 
 #include "roadmap_layer.h"
 
@@ -232,7 +233,7 @@ void roadmap_layer_adjust (void) {
     int future_thickness;
     unsigned int pen_index;
     RoadMapLayer *layer;
-    
+
     for (i = RoadMapLayerCurrentClass->lines_count - 1; i >= 0; --i) {
 
        layer = RoadMapLayerCurrentClass->layers + i;
@@ -244,6 +245,8 @@ void roadmap_layer_adjust (void) {
                   (roadmap_config_get_integer (&layer->thickness),
                    roadmap_config_get_integer (&layer->declutter),
                    layer->pen_count > 1);
+
+            roadmap_plugin_adjust_layer (i, thickness, layer->pen_count);
 
             /* As a matter of taste, I do dislike roads with a filler
              * of 1 pixel. Lets force at least a filler of 2.

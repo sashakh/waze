@@ -61,24 +61,30 @@ typedef struct {
 
 static void roadmap_address_done (RoadMapGeocode *selected) {
 
-    roadmap_locator_activate (selected->fips);
+   PluginStreet street;
+   PluginLine line;
 
-    roadmap_log (ROADMAP_DEBUG, "selected address at %d.%06d %c, %d.%06d %c",
-                 abs(selected->position.longitude)/1000000,
-                 abs(selected->position.longitude)%1000000,
-                 selected->position.longitude >= 0 ? 'E' : 'W',
-                 abs(selected->position.latitude)/1000000,
-                 abs(selected->position.latitude)%1000000,
-                 selected->position.latitude >= 0 ? 'N' : 'S');
+   roadmap_locator_activate (selected->fips);
 
-    roadmap_display_activate
-       ("Selected Street", selected->line, &selected->position);
+   roadmap_log (ROADMAP_DEBUG, "selected address at %d.%06d %c, %d.%06d %c",
+                abs(selected->position.longitude)/1000000,
+                abs(selected->position.longitude)%1000000,
+                selected->position.longitude >= 0 ? 'E' : 'W',
+                abs(selected->position.latitude)/1000000,
+                abs(selected->position.latitude)%1000000,
+                selected->position.latitude >= 0 ? 'N' : 'S');
 
-    roadmap_trip_set_point ("Selection", &selected->position);
-    roadmap_trip_set_point ("Address", &selected->position);
-    roadmap_trip_set_focus ("Address");
+   roadmap_plugin_set_line
+      (&line, ROADMAP_PLUGIN_ID, selected->line, -1, selected->fips);
 
-    roadmap_screen_refresh ();
+   roadmap_display_activate
+      ("Selected Street", &line, &selected->position, &street);
+
+   roadmap_trip_set_point ("Selection", &selected->position);
+   roadmap_trip_set_point ("Address", &selected->position);
+   roadmap_trip_set_focus ("Address");
+
+   roadmap_screen_refresh ();
 }
 
 

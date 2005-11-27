@@ -21,17 +21,20 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__ROADMAP_DISPLAY__H
-#define INCLUDE__ROADMAP_DISPLAY__H
+#ifndef INCLUDED__ROADMAP_DISPLAY__H
+#define INCLUDED__ROADMAP_DISPLAY__H
 
 #include "roadmap_canvas.h"
+#include "roadmap_plugin.h"
 
 void roadmap_display_initialize (void);
 
 void roadmap_display_page (const char *name);
 
-int roadmap_display_activate
-        (const char *title, int line, const RoadMapPosition *position);
+int roadmap_display_activate (const char *title,
+                              PluginLine *line,
+                              const RoadMapPosition *position,
+                              PluginStreet *street);
 
 void roadmap_display_text (const char *title, const char *format, ...);
 
@@ -41,4 +44,4 @@ void roadmap_display_signs (void);
 
 const char *roadmap_display_get_id (const char *title);
 
-#endif // INCLUDE__ROADMAP_DISPLAY__H
+#endif // INCLUDED__ROADMAP_DISPLAY__H

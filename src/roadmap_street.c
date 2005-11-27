@@ -809,15 +809,17 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
 static int roadmap_street_get_distance_with_shape
               (const RoadMapPosition *position,
-               int  line, int first_shape, int last_shape,
+               int  line, int layer, int first_shape, int last_shape,
                RoadMapNeighbour *neighbour) {
 
    int i;
    int smallest_distance;
    RoadMapNeighbour current;
+   int fips = roadmap_locator_active();
 
 
-   current.line = line;
+   roadmap_plugin_set_line
+      (&current.line, ROADMAP_PLUGIN_ID, line, fips, layer);
 
    /* Note: the position of a shape point is relative to the position
     * of the previous point, starting with the from point.
@@ -866,7 +868,7 @@ static int roadmap_street_get_distance_with_shape
 
 
 static int roadmap_street_get_distance_no_shape
-              (const RoadMapPosition *position, int line,
+              (const RoadMapPosition *position, int line, int layer,
                RoadMapNeighbour *neighbour) {
 
    roadmap_line_from (line, &neighbour->from);
@@ -879,7 +881,11 @@ static int roadmap_street_get_distance_no_shape
             (position, &neighbour->from, &neighbour->to,
              &neighbour->intersection);
 
-      neighbour->line = line;
+      roadmap_plugin_set_line (&neighbour->line,
+                               ROADMAP_PLUGIN_ID,
+                               line,
+                               layer,
+                               roadmap_locator_active ());
 
       return 1;
    }
@@ -901,7 +907,6 @@ int roadmap_street_replace
       /* The list is not yet saturated: take the next available spot. */
 
       neighbours[count] = *this;
-      neighbours[count].fips = roadmap_locator_active();
 
       return count + 1;
    }
@@ -922,14 +927,15 @@ int roadmap_street_replace
 
    if (farthest >= 0) {
       neighbours[farthest] = *this;
-      neighbours[farthest].fips = roadmap_locator_active();
    }
    return max;
 }
 
 
-int roadmap_street_get_distance
-        (const RoadMapPosition *position, int line, RoadMapNeighbour *result) {
+int roadmap_street_get_distance (const RoadMapPosition *position,
+                                 int line,
+                                 int layer,
+                                 RoadMapNeighbour *result) {
 
    int found = 0;
    int square;
@@ -952,20 +958,20 @@ int roadmap_street_get_distance
                                        &first_shape, &last_shape) > 0) {
 
          found = roadmap_street_get_distance_with_shape
-                    (position, line, first_shape, last_shape, result);
+                    (position, line, layer, first_shape, last_shape, result);
       }
    }
-   found = roadmap_street_get_distance_no_shape (position, line, result);
 
-   if (found) {
-      result->fips =  roadmap_locator_active();
+   if (!found) {
+      found = roadmap_street_get_distance_no_shape (position,
+                                                    line, layer, result);
    }
    return found;
 }
 
 
 static int roadmap_street_get_closest_in_square
-              (const RoadMapPosition *position, int square, int cfcc,
+              (const RoadMapPosition *position, int square, int layer,
                RoadMapNeighbour *neighbours, int count, int max) {
 
    int line;
@@ -979,13 +985,17 @@ static int roadmap_street_get_closest_in_square
 
    RoadMapNeighbour this;
 
+   int fips = roadmap_locator_active ();
 
-   if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
+
+   if (roadmap_line_in_square (square, layer, &first_line, &last_line) > 0) {
 
       if (roadmap_shape_in_square (square, &first_shape_line,
                                            &last_shape_line) > 0) {
 
          for (line = first_line; line <= last_line; line++) {
+
+            if (roadmap_plugin_override_line (line, layer, fips)) continue;
 
             if (roadmap_shape_of_line (line, first_shape_line,
                                              last_shape_line,
@@ -993,14 +1003,14 @@ static int roadmap_street_get_closest_in_square
 
                found =
                   roadmap_street_get_distance_with_shape
-                     (position, line, first_shape, last_shape, &this);
+                     (position, line, layer, first_shape, last_shape, &this);
 
             } else {
                found =
-                   roadmap_street_get_distance_no_shape (position, line, &this);
+                   roadmap_street_get_distance_no_shape (position,
+                                                         line, layer, &this);
             }
             if (found) {
-               this.line = line;
                count = roadmap_street_replace (neighbours, count, max, &this);
             }
          }
@@ -1009,15 +1019,15 @@ static int roadmap_street_get_closest_in_square
 
          for (line = first_line; line <= last_line; line++) {
 
-            if (roadmap_street_get_distance_no_shape (position, line, &this)) {
-               this.line = line;
+            if (roadmap_street_get_distance_no_shape (position,
+                                                      line, layer, &this)) {
                count = roadmap_street_replace (neighbours, count, max, &this);
             }
          }
       }
    }
 
-   if (roadmap_line_in_square2 (square, cfcc, &first_line, &last_line) > 0) {
+   if (roadmap_line_in_square2 (square, layer, &first_line, &last_line) > 0) {
 
       int previous_square  = -1;
       int real_square;
@@ -1039,6 +1049,8 @@ static int roadmap_street_get_closest_in_square
             previous_square = real_square;
          }
          
+         if (roadmap_plugin_override_line (line, layer, fips)) continue;
+
          if (shape_count > 0 &&
              roadmap_shape_of_line (line, first_shape_line,
                                     last_shape_line,
@@ -1046,15 +1058,15 @@ static int roadmap_street_get_closest_in_square
 
                found =
                   roadmap_street_get_distance_with_shape
-                     (position, line, first_shape, last_shape, &this);
+                     (position, line, layer, first_shape, last_shape, &this);
 
          } else {
              found =
-                roadmap_street_get_distance_no_shape (position, line, &this);
+                roadmap_street_get_distance_no_shape (position,
+                                                      line, layer, &this);
          }
 
          if (found) {
-            this.line = line;
             count = roadmap_street_replace (neighbours, count, max, &this);
          }
       }

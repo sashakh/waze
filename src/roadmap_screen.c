@@ -51,6 +51,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
+#include "roadmap_plugin.h"
 #include "roadmap_factory.h"
 
 #include "roadmap_screen.h"
@@ -710,6 +711,7 @@ static int roadmap_screen_draw_square
    int first_shape;
    int last_shape;
    RoadMapPen layer_pen;
+   int fips = roadmap_locator_active ();
 
    int drawn = 0;
 
@@ -718,7 +720,7 @@ static int roadmap_screen_draw_square
 
    layer_pen = roadmap_layer_get_pen (layer, pen_index);
 
-   if (layer_pen == NULL) return;
+   if (layer_pen == NULL) return 0;
 
 
    /* Draw each line that belongs to this square. */
@@ -733,23 +735,39 @@ static int roadmap_screen_draw_square
 
       for (line = first_line; line <= last_line; ++line) {
 
-         RoadMapPosition from;
-         RoadMapPosition to;
+         /* A plugin may override a line: it can change the pen or
+          * decide not to draw the line.
+          */
+         if (!roadmap_plugin_override_line (line, layer, fips)) {
 
-         roadmap_line_from (line, &from);
-         roadmap_line_to (line, &to);
+            RoadMapPosition from;
+            RoadMapPosition to;
+            RoadMapPen pen;
 
-         if (first_shape_line >= 0) {
-            if (roadmap_shape_of_line (line,
-                                       first_shape_line, last_shape_line,
-                                       &first_shape, &last_shape) == 0) {
-               first_shape = -1;
+            if (first_shape_line >= 0) {
+               if (roadmap_shape_of_line (line,
+                                          first_shape_line, last_shape_line,
+                                          &first_shape, &last_shape) == 0) {
+                  first_shape = -1;
+               }
             }
+
+            /* Check if the plugin wants to override the pen. */
+            if (! roadmap_plugin_override_pen
+                     (line, layer, fips, pen_index, &pen)) {
+               pen = layer_pen;
+            }
+
+            if (pen == NULL) continue;
+
+            roadmap_line_from (line, &from);
+            roadmap_line_to (line, &to);
+
+            roadmap_screen_draw_line
+               (&from, &to, fully_visible, &from, first_shape, last_shape,
+                roadmap_shape_get_position, layer_pen);
+            drawn += 1;
          }
-         roadmap_screen_draw_line
-            (&from, &to, fully_visible, &from, first_shape, last_shape,
-             roadmap_shape_get_position, layer_pen);
-         drawn += 1;
       }
    }
 
@@ -768,8 +786,6 @@ static int roadmap_screen_draw_square
 
       for (line = first_line; line <= last_line; ++line) {
 
-         RoadMapPosition from;
-         RoadMapPosition to;
          RoadMapPosition position;
 
 
@@ -824,22 +840,36 @@ static int roadmap_screen_draw_square
             continue;
          }
 
-         if (first_shape_line >= 0) {
-            roadmap_shape_of_line (real_line,
-                                   first_shape_line, last_shape_line,
-                                   &first_shape, &last_shape);
-         } else {
-            first_shape = last_shape = -1;
+         if (! roadmap_plugin_override_line (real_line, layer, fips)) {
+
+            RoadMapPosition from;
+            RoadMapPosition to;
+            RoadMapPen pen;
+
+            if (first_shape_line >= 0) {
+               roadmap_shape_of_line (real_line,
+                                      first_shape_line, last_shape_line,
+                                      &first_shape, &last_shape);
+            } else {
+               first_shape = last_shape = -1;
+            }
+
+            /* Check if a plugin wants to override the pen */
+            if (! roadmap_plugin_override_pen
+                      (real_line, layer, fips, pen_index, &pen)) {
+               pen = layer_pen;
+            }
+            if (pen == NULL) continue;
+
+            roadmap_line_from (real_line, &from);
+            roadmap_line_to (real_line, &to);
+
+            roadmap_screen_draw_line
+               (&from, &to, fully_visible, &from, first_shape, last_shape,
+                roadmap_shape_get_position, layer_pen);
+
+            drawn += 1;
          }
-
-         roadmap_line_from (real_line, &from);
-         roadmap_line_to (real_line, &to);
-
-         roadmap_screen_draw_line
-            (&from, &to, fully_visible, &from, first_shape, last_shape,
-             roadmap_shape_get_position, layer_pen);
-
-         drawn += 1;
       }
 
       free (on_canvas);
@@ -1006,6 +1036,10 @@ static void roadmap_screen_repaint (void) {
                }
             }
         }
+
+        roadmap_plugin_screen_repaint (max_pen);
+        roadmap_screen_flush_lines ();
+        roadmap_screen_flush_points ();
     }
 
     if (!RoadMapScreenDragging ||
@@ -1047,24 +1081,25 @@ static void roadmap_screen_configure (void) {
 
 static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
     
-    int line;
-    int distance;
-    RoadMapPosition position;
+   PluginLine line;
+   int distance;
+   RoadMapPosition position;
 
     
-    roadmap_math_to_position (point, &position);
+   roadmap_math_to_position (point, &position);
    
-    line = roadmap_navigate_retrieve_line
-                (&position,
-                 roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
-                 &distance);
+   if (roadmap_navigate_retrieve_line
+               (&position,
+                roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
+                &line,
+                &distance) != -1) {
 
-    if (line >= 0) {
+       PluginStreet street;
 
-        roadmap_trip_set_point ("Selection", &position);
-        roadmap_display_activate ("Selected Street", line, &position);
-        roadmap_screen_repaint ();
-    }
+       roadmap_trip_set_point ("Selection", &position);
+       roadmap_display_activate ("Selected Street", &line, &position, &street);
+       roadmap_screen_repaint ();
+   }
 }
 
 

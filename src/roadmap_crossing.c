@@ -65,10 +65,17 @@ static void *RoadMapCrossingHistory;
 
 static void roadmap_crossing_done (RoadMapStreetIntersection *selected) {
 
+   PluginLine line;
+   PluginStreet street;
+
+   roadmap_plugin_set_line
+      (&line, ROADMAP_PLUGIN_ID, selected->line1, -1, selected->fips);
+
     if (roadmap_locator_activate (selected->fips) == ROADMAP_US_OK) {
 
         roadmap_display_activate
-           ("Selected Street", selected->line1, &selected->position);
+           ("Selected Street", &line, &selected->position, &street);
+
         roadmap_trip_set_point ("Selection", &selected->position);
         roadmap_trip_set_point ("Address", &selected->position);
         roadmap_trip_set_focus ("Address");

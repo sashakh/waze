@@ -21,19 +21,22 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__ROADMAP_NAVIGATE__H
-#define INCLUDE__ROADMAP_NAVIGATE__H
+#ifndef INCLUDED__ROADMAP_NAVIGATE__H
+#define INCLUDED__ROADMAP_NAVIGATE__H
 
 #include "roadmap_gps.h"
+#include "roadmap_plugin.h"
 
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
-int roadmap_navigate_retrieve_line
-        (const RoadMapPosition *position, int accuracy, int *distance);
+int roadmap_navigate_retrieve_line (const RoadMapPosition *position,
+                                    int accuracy, 
+                                    PluginLine *line,
+                                    int *distance);
 
 void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position);
 
 void roadmap_navigate_initialize (void);
 
-#endif // INCLUDE__ROADMAP_NAVIGATE__H
+#endif // INCLUDED__ROADMAP_NAVIGATE__H

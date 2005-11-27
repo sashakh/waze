@@ -25,6 +25,7 @@
 #define INCLUDED__ROADMAP_STREET__H
 
 #include "roadmap_types.h"
+#include "roadmap_plugin.h"
 #include "roadmap_dbread.h"
 
 typedef struct {
@@ -65,20 +66,6 @@ typedef struct {
 } RoadMapStreetIntersection;
 
 
-typedef struct {
-
-    int fips;
-    int line;
-    int distance;
-    RoadMapPosition from;
-    RoadMapPosition to;
-    RoadMapPosition intersection;
-
-} RoadMapNeighbour;
-
-#define ROADMAP_NEIGHBOUR_NULL {-1, -1, -1, {0,0}, {0,0}, {0,0}}
-
-
 /* The function roadmap_street_blocks either returns a positive count
  * of matching blocks on success, or else an error code (null or negative).
  * The values below are the possible error codes:
@@ -108,8 +95,10 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
                                  int number,
                                  RoadMapPosition *position);
 
-int roadmap_street_get_distance
-       (const RoadMapPosition *position, int line, RoadMapNeighbour *result);
+int roadmap_street_get_distance (const RoadMapPosition *position,
+                                 int line,
+                                 int layer,
+                                 RoadMapNeighbour *result);
 
 int roadmap_street_get_closest
        (const RoadMapPosition *position, int *categories, int categories_count,

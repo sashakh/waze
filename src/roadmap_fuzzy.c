@@ -34,6 +34,7 @@
 #include "roadmap_config.h"
 #include "roadmap_line.h"
 #include "roadmap_locator.h"
+#include "roadmap_plugin.h"
 
 #include "roadmap_fuzzy.h"
 
@@ -134,21 +135,21 @@ RoadMapFuzzy roadmap_fuzzy_connected
     int i, j;
 
 
-    if ((street->fips == reference->fips) &&
-        (street->line == reference->line)) return FUZZY_TRUTH_MAX;
+    if (roadmap_plugin_same_line (&street->line, &reference->line))
+       return FUZZY_TRUTH_MAX;
 
 
-    if (roadmap_locator_activate (street->fips) != ROADMAP_US_OK) {
+    if (roadmap_plugin_activate_db (&street->line) == -1) {
        return 0;
     }
-    roadmap_line_from (street->line, &(line_point[0]));
-    roadmap_line_to   (street->line, &(line_point[1]));
+    roadmap_plugin_line_from (&street->line, &(line_point[0]));
+    roadmap_plugin_line_to   (&street->line, &(line_point[1]));
 
-    if (roadmap_locator_activate (reference->fips) != ROADMAP_US_OK) {
+    if (roadmap_plugin_activate_db (&reference->line) == -1) {
        return 0;
     }
-    roadmap_line_from (reference->line, &(reference_point[0]));
-    roadmap_line_to   (reference->line, &(reference_point[1]));
+    roadmap_plugin_line_from (&reference->line, &(reference_point[0]));
+    roadmap_plugin_line_to   (&reference->line, &(reference_point[1]));
 
     for (i = 0; i <= 1; ++i) {
         for (j = 0; j <= 1; ++j) {

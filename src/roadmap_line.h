@@ -24,6 +24,7 @@
 #ifndef INCLUDED__ROADMAP_LINE__H
 #define INCLUDED__ROADMAP_LINE__H
 
+#include "roadmap_types.h"
 #include "roadmap_dbread.h"
 
 int  roadmap_line_in_square (int square, int cfcc, int *first, int *last);

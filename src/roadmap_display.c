@@ -42,6 +42,7 @@
 #include "roadmap_message.h"
 #include "roadmap_sprite.h"
 #include "roadmap_voice.h"
+#include "roadmap_plugin.h"
 
 #include "roadmap_display.h"
 
@@ -94,7 +95,7 @@ typedef struct {
     RoadMapPen background;
     RoadMapPen foreground;
     
-    int line;
+    PluginLine line;
 
     RoadMapConfigDescriptor format_descriptor;
     RoadMapConfigDescriptor background_descriptor;
@@ -105,17 +106,18 @@ typedef struct {
     const char *default_background;
     const char *default_foreground;
     
-    RoadMapStreetProperties properties;
+    PluginStreet street;
 
 } RoadMapSign;
 
 
 #define ROADMAP_SIGN(p,n,w,t,b,f) \
-    {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
+    {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, \
+     PLUGIN_LINE_NULL, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
-     w, t, b, f, ROADMAP_STREET_NOPROPERTY}
+     w, t, b, f, PLUGIN_STREET_NULL}
 
 
 RoadMapSign RoadMapStreetSign[] = {
@@ -451,15 +453,18 @@ void roadmap_display_page (const char *name) {
 }
 
 
-int roadmap_display_activate
-        (const char *title, int line, const RoadMapPosition *position) {
+int roadmap_display_activate (const char *title,
+                              PluginLine *line,
+                              const RoadMapPosition *position,
+                              PluginStreet *street) {
 
     int   street_has_changed;
     int   message_has_changed;
-    int   street;
     const char *format;
     char  text[256];
     RoadMapSign *sign;
+
+    PluginStreetProperties properties;
 
 
     roadmap_log_push ("roadmap_display_activate");
@@ -476,22 +481,21 @@ int roadmap_display_activate
     format = roadmap_config_get (&sign->format_descriptor);
     
     street_has_changed = 0;
-    street = sign->properties.street;
     
-    if (sign->line != line) {
+    if (! roadmap_plugin_same_line (&sign->line, line)) {
         
-       roadmap_street_get_properties (line, &sign->properties);
+       roadmap_plugin_get_street (line, street);
         
         if (sign->id != NULL) {
             free (sign->id);
         }
-        sign->id =
-            strdup (roadmap_street_get_full_name (&sign->properties));
+        sign->id = strdup (roadmap_plugin_street_full_name (line));
         
-        sign->line = line;
+        sign->line = *line;
         sign->was_visible = 0;
 
-        if (street != sign->properties.street) {
+        if (! roadmap_plugin_same_street (street, &sign->street)) {
+           sign->street = *street;
            street_has_changed = 1;
         }
     }
@@ -499,17 +503,16 @@ int roadmap_display_activate
 
     roadmap_message_set ('F', sign->id);
     
-    roadmap_message_set
-        ('#', roadmap_street_get_street_address (&sign->properties));
-    roadmap_message_set
-        ('N', roadmap_street_get_street_name (&sign->properties));
-    roadmap_message_set
-        ('C', roadmap_street_get_city_name (&sign->properties));
+    roadmap_plugin_get_street_properties (line, &properties);
+    roadmap_message_set ('#', properties.address);
+    roadmap_message_set ('N', properties.street);
+    roadmap_message_set ('C', properties.city);
 
 
     if (! roadmap_message_format (text, sizeof(text), format)) {
         roadmap_log_pop ();
-        return sign->properties.street;
+        *street = sign->street;
+        return 0;
     }
     message_has_changed =
         (sign->content == NULL || strcmp (sign->content, text) != 0);
@@ -535,8 +538,8 @@ int roadmap_display_activate
         }
     }
 
-    roadmap_line_from (line, &sign->endpoint[0]);
-    roadmap_line_to   (line, &sign->endpoint[1]);
+    roadmap_plugin_line_from (line, &sign->endpoint[0]);
+    roadmap_plugin_line_to   (line, &sign->endpoint[1]);
     
     if (position == NULL) {
         sign->has_position = 0;
@@ -546,7 +549,8 @@ int roadmap_display_activate
     }
  
     roadmap_log_pop ();
-    return sign->properties.street;
+    *street = sign->street;
+    return 0;
 }
 
 
