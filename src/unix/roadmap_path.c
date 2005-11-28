@@ -120,8 +120,6 @@ static const char *RoadMapPathMapsPreferred =
 #endif
 
 
-static char *roadmap_path_expand (const char *item, int length);
-
 static void roadmap_path_list_create(const char *name,
                                      const char *items[],
                                      const char *preferred) {
@@ -144,9 +142,9 @@ static void roadmap_path_list_create(const char *name,
    roadmap_check_allocated(new_path->items);
 
    for (i = 0; i < count; ++i) {
-      new_path->items[i] = roadmap_path_expand (items[i], strlen(items[i]));
+      new_path->items[i] = strdup(items[i]);
    }
-   new_path->preferred  = roadmap_path_expand (preferred, strlen(preferred));
+   new_path->preferred  = strdup(preferred);
 
    RoadMapPaths = new_path;
 }
@@ -295,38 +293,16 @@ const char *roadmap_path_trips (void) {
 }
             
 
-char *roadmap_path_expand (const char *item, int length) {
-
-   const char *expand;
-   int expand_length;
-   char *res;
-
-   switch (item[0]) {
-      case '~': expand = roadmap_path_home(); item += 1; break;
-      case '&': expand = roadmap_path_user(); item += 1; break;
-      default:  expand = "";
-   }
-   expand_length = strlen(expand);
-
-   res = malloc (length + expand_length + 1);
-   roadmap_check_allocated(res);
-
-   strcpy (res, expand);
-   strncat (res, item, length);
-
-   res[length+expand_length] = 0;
-
-   return res;
-}
-
-
 /* Path lists operations. -------------------------------------------------- */
 
 void roadmap_path_set (const char *name, const char *path) {
 
    int i;
    int count;
+   int length;
+   int expand_length;
    const char *item;
+   const char *expand;
    const char *next_item;
 
    RoadMapPathList path_list = roadmap_path_find (name);
@@ -370,11 +346,26 @@ void roadmap_path_set (const char *name, const char *path) {
       item += 1;
       next_item = strchr (item, ',');
 
-      if (next_item == NULL) {
-         path_list->items[i] = roadmap_path_expand (item, strlen(item));
-      } else {
-         path_list->items[i] = roadmap_path_expand (item, next_item - item);
+      switch (item[0]) {
+         case '~': expand = roadmap_path_home(); item += 1; break;
+         case '&': expand = roadmap_path_user(); item += 1; break;
+         default:  expand = "";
       }
+      expand_length = strlen(expand);
+
+      if (next_item == NULL) {
+         length = strlen(item);
+      } else {
+         length = next_item - item;
+      }
+
+      path_list->items[i] = malloc (length + expand_length + 1);
+      roadmap_check_allocated(path_list->items[i]);
+
+      strcpy (path_list->items[i], expand);
+      strncat (path_list->items[i], item, length);
+
+      (path_list->items[i])[length+expand_length] = 0;
 
       if (roadmap_file_exists(NULL, path_list->items[i])) {
          ++i;

@@ -43,10 +43,7 @@
 #include "roadmap_shape.h"
 #include "roadmap_line.h"
 #include "roadmap_dictionary.h"
-#include "editor/editor_line.h"
-#include "editor/editor_override.h"
 
-#include "editor/editor_street.h"
 
 static char *RoadMapStreetType = "RoadMapStreetContext";
 static char *RoadMapZipType    = "RoadMapZipContext";
@@ -818,11 +815,10 @@ static int roadmap_street_get_distance_with_shape
    int i;
    int smallest_distance;
    RoadMapNeighbour current;
+   int fips = roadmap_locator_active();
 
-   current.line = line;
-   current.plugin_id = 0;
-   current.fips = roadmap_locator_active();
-   current.cfcc = cfcc;
+   roadmap_plugin_set_line
+      (&current.line, ROADMAP_PLUGIN_ID, line, cfcc, fips);
 
    /* Note: the position of a shape point is relative to the position
     * of the previous point, starting with the from point.
@@ -884,10 +880,12 @@ static int roadmap_street_get_distance_no_shape
             (position, &neighbour->from, &neighbour->to,
              &neighbour->intersection);
 
-      neighbour->line = line;
-      neighbour->plugin_id = 0;
-      neighbour->fips = roadmap_locator_active();
-      neighbour->cfcc = cfcc;
+      roadmap_plugin_set_line
+         (&neighbour->line,
+          ROADMAP_PLUGIN_ID,
+          line,
+          cfcc,
+          roadmap_locator_active ());
 
       return 1;
    }
@@ -909,7 +907,6 @@ int roadmap_street_replace
       /* The list is not yet saturated: take the next available spot. */
 
       neighbours[count] = *this;
-      neighbours[count].fips = roadmap_locator_active();
 
       return count + 1;
    }
@@ -930,7 +927,6 @@ int roadmap_street_replace
 
    if (farthest >= 0) {
       neighbours[farthest] = *this;
-      neighbours[farthest].fips = roadmap_locator_active();
    }
    return max;
 }
@@ -970,7 +966,6 @@ int roadmap_street_get_distance
          roadmap_street_get_distance_no_shape
                      (position, line, cfcc, result);
    }
-
    return found;
 }
 
@@ -990,6 +985,8 @@ static int roadmap_street_get_closest_in_square
 
    RoadMapNeighbour this;
 
+   int fips = roadmap_locator_active ();
+
 
    if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
 
@@ -997,9 +994,8 @@ static int roadmap_street_get_closest_in_square
                                            &last_shape_line) > 0) {
 
          for (line = first_line; line <= last_line; line++) {
-
-            if (editor_override_line_get_flags (line) &
-                  ED_LINE_DELETED) continue;
+            
+            if (roadmap_plugin_override_line (line, cfcc, fips)) continue;
 
             if (roadmap_shape_of_line (line, first_shape_line,
                                              last_shape_line,
@@ -1053,6 +1049,8 @@ static int roadmap_street_get_closest_in_square
             previous_square = real_square;
          }
          
+         if (roadmap_plugin_override_line (line, cfcc, fips)) continue;
+
          if (shape_count > 0 &&
              roadmap_shape_of_line (line, first_shape_line,
                                     last_shape_line,
@@ -1088,10 +1086,7 @@ int roadmap_street_get_closest
    int i;
    int county;
    int county_count;
-
-   int j;
-   int square[4];
-   int square_count;
+   int square;
 
    int count = 0;
 
@@ -1110,31 +1105,20 @@ int roadmap_street_get_closest
 
       /* -- Look for the square the current location fits in. */
 
-      square_count =
-         roadmap_square_search_near (position, square, 4);
+      square = roadmap_square_search (position);
 
-      for (j=0; j<square_count; j++) {
-         
-            /* The current location fits in one of the county's squares.
-             * We might be in that county, search for the closest streets.
-             */
-            for (i = 0; i < categories_count; ++i) {
+      if (square >= 0) {
 
-               count =
-                  roadmap_street_get_closest_in_square
-                     (position,
-                      square[j],
-                      categories[i],
-                      neighbours,
-                      count,
-                      max);
-            }
+         /* The current location fits in one of the county's squares.
+          * We might be in that county, search for the closest streets.
+          */
+         for (i = 0; i < categories_count; ++i) {
+
+            count =
+               roadmap_street_get_closest_in_square
+                  (position, square, categories[i], neighbours, count, max);
+         }
       }
-      
-      count =
-         editor_street_get_closest
-               (position, fips[county], categories,
-                categories_count, neighbours, ED_SQUARE_NEAR, count, max);
    }
 
    return count;

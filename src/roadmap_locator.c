@@ -48,7 +48,7 @@
 #include "roadmap_locator.h"
 
 
-#define ROADMAP_CACHE_SIZE 80
+#define ROADMAP_CACHE_SIZE 8
 
 struct roadmap_cache_entry {
 

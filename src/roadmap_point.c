@@ -253,3 +253,9 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
    position->latitude  = square_position.latitude  + Point->latitude;
 }
 
+
+int roadmap_point_db_id (int point) {
+
+   return -1;
+}
+

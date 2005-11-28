@@ -80,7 +80,7 @@ const char *roadmap_file_map (const char *set,
                               const char *name,
                               const char *sequence,
                               const char *mode,
-               			      RoadMapFileContext *file);
+                              RoadMapFileContext *file);
 
 void *roadmap_file_base (RoadMapFileContext file);
 int   roadmap_file_size (RoadMapFileContext file);

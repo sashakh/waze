@@ -24,8 +24,7 @@
 #ifndef INCLUDE__ROADMAP_DISPLAY__H
 #define INCLUDE__ROADMAP_DISPLAY__H
 
-#include "roadmap_canvas.h"
-#include "roadmap_street.h"
+#include "roadmap_plugin.h"
 
 void roadmap_display_initialize (void);
 
@@ -33,8 +32,9 @@ void roadmap_display_page (const char *name);
 
 int roadmap_display_activate
         (const char *title,
-         RoadMapNeighbour *line,
-         const RoadMapPosition *position);
+         PluginLine *line,
+         const RoadMapPosition *position,
+         PluginStreet *street);
 
 void roadmap_display_text (const char *title, const char *format, ...);
 

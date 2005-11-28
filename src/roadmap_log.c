@@ -119,10 +119,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
    int i;
 
-   fprintf (file, "%c%s %s, line %d ", saved, category->prefix, source, line);
-   if (!category->show_stack && (RoadMapLogStackCursor > 0)) {
-      fprintf (file, "(%s): ", RoadMapLogStack[RoadMapLogStackCursor-1]);
-   }
+   fprintf (file, "%c%s %s, line %d: ", saved, category->prefix, source, line);
    vfprintf(file, format, ap);
    fprintf (file, "\n");
 
@@ -141,7 +138,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
 void roadmap_log (int level, char *source, int line, char *format, ...) {
 
-   static FILE *file;
+   FILE *file;
    va_list ap;
    char saved = ' ';
    struct roadmap_message_descriptor *category;
@@ -161,16 +158,12 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    if (category->save_to_file) {
 
-      if (file == NULL) {
-
-         file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
-      }
+      file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
 
       if (file != NULL) {
 
          roadmap_log_one (category, file, ' ', source, line, format, ap);
-         fflush (file);
-         //fclose (file);
+         fclose (file);
 
          va_end(ap);
          va_start(ap, format);

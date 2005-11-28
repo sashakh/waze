@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <ctype.h>
 
 #include "roadmap.h"
 #include "roadmap_math.h"
@@ -348,6 +349,7 @@ static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
       count =
          roadmap_math_check_point_in_segment
                (from, to, &point, count, intersections);
+
       if (count == max_intersections) return count;
 
       point.latitude = RoadMapContext.upright_screen.south;
@@ -369,6 +371,7 @@ static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
       count =
          roadmap_math_check_point_in_segment
              (from, to, &point, count, intersections);
+
       if (count == max_intersections) return count;
 
       point.longitude = RoadMapContext.upright_screen.east;
@@ -622,7 +625,8 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
       if ((from->longitude - to->longitude) == 0) {
          a = b = 0;
       } else {
-         a = 1.0 * (from->latitude - to->latitude) / (from->longitude - to->longitude);
+         a = 1.0 * (from->latitude - to->latitude) /
+                   (from->longitude - to->longitude);
          b = from->latitude - 1.0 * a * from->longitude;
       }
 
@@ -1234,3 +1238,65 @@ int roadmap_math_compare_points (const RoadMapPosition *p1,
       return 1;
    }
 }
+
+
+int roadmap_math_delta_direction (int direction1, int direction2) {
+
+    int delta = direction2 - direction1;
+
+    while (delta > 180)  delta -= 360;
+    while (delta < -180) delta += 360;
+
+    if (delta < 0) delta = 0 - delta;
+
+    while (delta >= 360) delta -= 360;
+
+    return delta;
+}
+
+
+/* Take a number followed by ft/mi/m/km, and converts it to current units. */
+int roadmap_math_distance_convert(const char *string, int *explicit)
+{
+    char *suffix;
+    double distance;
+    RoadMapUnits *my_units, *other_units;
+    int had_units = 1;
+
+    my_units = RoadMapContext.units;
+    if (my_units == &RoadMapMetricSystem) {
+        other_units = &RoadMapImperialSystem;
+    } else {
+        other_units = &RoadMapMetricSystem;
+    }
+
+    distance = strtol (string, &suffix, 10);
+
+    while (*suffix && isspace(*suffix)) suffix++;
+
+    if (*suffix) {
+        if (0 == strcasecmp(suffix, my_units->length)) {
+            /* Nothing to do, hopefully this is the usual case. */
+        } else if (0 == strcasecmp(suffix, my_units->trip_distance)) {
+            distance *= my_units->to_trip_unit;
+        } else if (0 == strcasecmp(suffix, other_units->length)) {
+            distance /= other_units->cm_to_unit;
+            distance *= my_units->cm_to_unit;
+        } else if (0 == strcasecmp(suffix, other_units->trip_distance)) {
+            distance *= other_units->to_trip_unit;
+            distance /= other_units->cm_to_unit;
+            distance *= my_units->cm_to_unit;
+        } else {
+            roadmap_log (ROADMAP_WARNING, 
+                "dropping unknown units '%s' from '%s'", suffix, string);
+            had_units = 0;
+        }
+    } else {
+        had_units = 0;
+    }
+
+    if (explicit) *explicit = had_units;
+
+    return (int)distance;
+}
+

@@ -25,6 +25,7 @@
 #define _ROADMAP_STREET__H_
 
 #include "roadmap_types.h"
+#include "roadmap_plugin.h"
 #include "roadmap_dbread.h"
 
 typedef struct {
@@ -65,12 +66,9 @@ typedef struct {
 } RoadMapStreetIntersection;
 
 
-typedef struct {
+typedef struct RoadMapNeighbour_t {
 
-    int fips;
-    int line;
-    int cfcc;
-    int plugin_id;
+    PluginLine line;
     int distance;
     RoadMapPosition from;
     RoadMapPosition to;
@@ -78,7 +76,7 @@ typedef struct {
 
 } RoadMapNeighbour;
 
-#define ROADMAP_NEIGHBOUR_NULL {-1, -1, -1, 0, -1, {0,0}, {0,0}, {0,0}}
+#define ROADMAP_NEIGHBOUR_NULL {PLUGIN_LINE_NULL, -1, {0,0}, {0,0}, {0,0}}
 
 
 /* The function roadmap_street_blocks either returns a positive count

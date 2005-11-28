@@ -42,11 +42,10 @@
 #include "roadmap_message.h"
 #include "roadmap_sprite.h"
 #include "roadmap_voice.h"
+#include "roadmap_plugin.h"
 
 #include "roadmap_display.h"
 
-#include "editor/editor_line.h"
-#include "editor/editor_street.h"
 
 static char *RoadMapDisplayPage = NULL;
 
@@ -96,7 +95,7 @@ typedef struct {
     RoadMapPen background;
     RoadMapPen foreground;
     
-    int line;
+    PluginLine line;
 
     RoadMapConfigDescriptor format_descriptor;
     RoadMapConfigDescriptor background_descriptor;
@@ -107,19 +106,17 @@ typedef struct {
     const char *default_background;
     const char *default_foreground;
     
-    int last_line_id;
-    int last_plugin_id;
-    int last_street_id;
-
+    PluginStreet street;
 } RoadMapSign;
 
 
 #define ROADMAP_SIGN(p,n,w,t,b,f) \
-    {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, -1, \
+    {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, \
+   PLUGIN_LINE_NULL, \
         {n, "Text", NULL}, \
         {n, "Background", NULL}, \
         {n, "Foreground", NULL}, \
-     w, t, b, f, -1, -1, -1}
+     w, t, b, f, PLUGIN_STREET_NULL}
 
 
 RoadMapSign RoadMapStreetSign[] = {
@@ -457,15 +454,16 @@ void roadmap_display_page (const char *name) {
 
 int roadmap_display_activate
         (const char *title,
-         RoadMapNeighbour *line,
-         const RoadMapPosition *position) {
+         PluginLine *line,
+         const RoadMapPosition *position,
+         PluginStreet *street) {
 
     int   street_has_changed;
     int   message_has_changed;
     const char *format;
     char  text[256];
     RoadMapSign *sign;
-
+    PluginStreetProperties properties;
 
     roadmap_log_push ("roadmap_display_activate");
 
@@ -482,85 +480,39 @@ int roadmap_display_activate
     
     street_has_changed = 0;
     
-    if ((line->plugin_id != sign->last_plugin_id) ||
-        (line->line != sign->last_line_id)) {
-
-       if (!line->plugin_id) {
-
-          RoadMapStreetProperties properties;
+    if (!roadmap_plugin_same_line (&sign->line, line)) {
         
-          roadmap_street_get_properties (line->line, &properties);
-        
-          if (sign->last_street_id != properties.street) {
-
-             sign->was_visible = 0;
-             street_has_changed = 1;
-          }
-
-          if (sign->id != NULL) {
-             free (sign->id);
-          }
-
-          sign->id =
-            strdup (roadmap_street_get_full_name (&properties));
-        
-          roadmap_message_set ('F', sign->id);
-    
-          roadmap_message_set
-              ('#', roadmap_street_get_street_address (&properties));
-          roadmap_message_set
-              ('N', roadmap_street_get_street_name (&properties));
-          roadmap_message_set
-              ('C', roadmap_street_get_city_name (&properties));
-
-          sign->last_street_id = properties.street;
-          sign->last_plugin_id = 0;
-
-          roadmap_line_from (line->line, &sign->endpoint[0]);
-          roadmap_line_to   (line->line, &sign->endpoint[1]);
-
-       } else {
+       roadmap_plugin_get_street (line, street);
        
-          EditorStreetProperties properties;
+        if (sign->id != NULL) {
+            free (sign->id);
+        }
+
+        sign->id =
+            strdup (roadmap_plugin_street_full_name (line));
         
-          editor_street_get_properties (line->line, &properties);
-        
-          if (sign->last_street_id != properties.street) {
+        sign->line = *line;
+        sign->was_visible = 0;
 
-             sign->was_visible = 0;
-             street_has_changed = 1;
-          }
-
-          if (sign->id != NULL) {
-             free (sign->id);
-          }
-
-          sign->id =
-             strdup (editor_street_get_full_name (&properties));
-        
-          roadmap_message_set ('F', sign->id);
-    
-          roadmap_message_set
-              ('#', editor_street_get_street_address (&properties));
-          roadmap_message_set
-              ('N', editor_street_get_street_t2s (&properties));
-          roadmap_message_set
-              ('C', editor_street_get_street_city
-                     (&properties, ED_STREET_LEFT_SIDE));
-
-          sign->last_street_id = properties.street;
-          sign->last_plugin_id = 1;
-
-          editor_line_get (line->line,
-                        &sign->endpoint[0],
-                        &sign->endpoint[1],
-                        NULL, NULL, NULL);
-       }
+        if (!roadmap_plugin_same_street (street, &sign->street)) {
+           sign->street = *street;
+           street_has_changed = 1;
+        }
     }
+
+
+    roadmap_message_set ('F', sign->id);
+    
+    roadmap_plugin_get_street_properties (line, &properties);
+
+    roadmap_message_set ('#', properties.address);
+    roadmap_message_set ('N', properties.street);
+    roadmap_message_set ('C', properties.city);
 
     if (! roadmap_message_format (text, sizeof(text), format)) {
         roadmap_log_pop ();
-        return sign->last_street_id;
+        *street = sign->street;
+        return 0;
     }
     message_has_changed =
         (sign->content == NULL || strcmp (sign->content, text) != 0);
@@ -586,6 +538,9 @@ int roadmap_display_activate
         }
     }
 
+    roadmap_plugin_line_from (line, &sign->endpoint[0]);
+    roadmap_plugin_line_to (line, &sign->endpoint[1]);
+    
     if (position == NULL) {
         sign->has_position = 0;
     } else {
@@ -594,7 +549,8 @@ int roadmap_display_activate
     }
  
     roadmap_log_pop ();
-    return sign->last_street_id;
+    *street = sign->street;
+    return 0;
 }
 
 

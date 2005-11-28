@@ -413,20 +413,23 @@ void buildmap_line_save (void) {
    /* Create the database space */
 
    root = buildmap_db_add_section (NULL, "line");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
-   data_table = buildmap_db_add_section (root, "data");
-   buildmap_db_add_data (data_table, LineCount, sizeof(RoadMapLine));
+   data_table = buildmap_db_add_child
+                  (root, "data", LineCount, sizeof(RoadMapLine));
 
-   square1_table = buildmap_db_add_section (root, "bysquare1");
-   buildmap_db_add_data (square1_table,
-                         square_count, sizeof(RoadMapLineBySquare));
+   square1_table =
+      buildmap_db_add_child
+                     (root,
+                      "bysquare1",
+                      square_count,
+                      sizeof(RoadMapLineBySquare));
 
-   index2_table = buildmap_db_add_section (root, "index2");
-   buildmap_db_add_data (index2_table, LineCrossingCount, sizeof(int));
+   index2_table = buildmap_db_add_child
+                     (root, "index2", LineCrossingCount, sizeof(int));
 
-   square2_table = buildmap_db_add_section (root, "bysquare2");
-   buildmap_db_add_data (square2_table,
-                         square_count, sizeof(RoadMapLineBySquare));
+   square2_table = buildmap_db_add_child
+            (root, "bysquare2", square_count, sizeof(RoadMapLineBySquare));
 
    db_lines   = (RoadMapLine *) buildmap_db_get_data (data_table);
    db_square1 = (RoadMapLineBySquare *) buildmap_db_get_data (square1_table);

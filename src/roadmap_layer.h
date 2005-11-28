@@ -34,8 +34,6 @@ int  roadmap_layer_visible_lines (int *layers, int size, int pen_type);
 
 int  roadmap_layer_is_visible (int layer);
 
-void roadmap_layer_select (int layer, int pen_type);
-
 RoadMapPen roadmap_layer_get_pen (int layer, int pen_type);
 
 void roadmap_layer_adjust (void);

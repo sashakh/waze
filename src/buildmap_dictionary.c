@@ -468,23 +468,21 @@ static void  buildmap_dictionary_save_one
    /* Allocate all the database space: */
 
    child = buildmap_db_add_section (parent, dictionary->name);
+   if (child == NULL) buildmap_fatal (0, "Can't add a new section");
 
-   table_tree = buildmap_db_add_section (child, "tree");
-   buildmap_db_add_data
-      (table_tree, tree_count, sizeof(struct roadmap_dictionary_tree));
+   table_tree = buildmap_db_add_child
+         (child, "tree", tree_count, sizeof(struct roadmap_dictionary_tree));
 
-   table_node = buildmap_db_add_section (child, "node");
-   buildmap_db_add_data
-      (table_node,
-       reference_count, sizeof(struct roadmap_dictionary_reference));
+   table_node =
+      buildmap_db_add_child (child,
+                             "node", 
+                             reference_count,
+                             sizeof(struct roadmap_dictionary_reference));
 
-   table_index = buildmap_db_add_section (child, "index");
-   buildmap_db_add_data
-      (table_index, dictionary->string_count, sizeof(unsigned int));
+   table_index = buildmap_db_add_child
+         (child, "index", dictionary->string_count, sizeof(unsigned int));
 
-   table_data = buildmap_db_add_section (child, "data");
-   buildmap_db_add_data (table_data, dictionary->cursor, 1);
-
+   table_data = buildmap_db_add_child (child, "data", dictionary->cursor, 1);
 
    db_tree =
       (struct roadmap_dictionary_tree *) buildmap_db_get_data (table_tree);
@@ -805,6 +803,7 @@ void  buildmap_dictionary_save (void) {
    int i;
 
    buildmap_db *names = buildmap_db_add_section (NULL, "string");
+   if (names == NULL) buildmap_fatal (0, "Can't add a new section");
 
    buildmap_info ("saving dictionary...");
 

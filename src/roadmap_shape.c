@@ -201,7 +201,6 @@ int  roadmap_shape_of_line (int line, int begin, int end,
    int middle = 0;
    RoadMapShapeByLine *shape_by_line;
 
-   *first = *last = -1;
 
    if (RoadMapShapeActive == NULL) return 0;
 

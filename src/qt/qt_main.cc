@@ -64,7 +64,6 @@ int  RMapCallback::same(RoadMapCallback cb) {
 
 // Implementation of RMapMainWindow class
 RMapMainWindow::RMapMainWindow(const char* name) : QMainWindow(0, name) {
-	currentMenu = 0;
 	spacePressed = false;
 	for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
 		tm[i] = 0;
@@ -91,29 +90,48 @@ void RMapMainWindow::setKeyboardCallback(RoadMapKeyInput c) {
 	keyCallback = c;
 }
 
-void RMapMainWindow::addMenu(const char* label) {
-	currentMenu = new QPopupMenu(this);
-
-	menuBar()->insertItem(label, currentMenu);
+QPopupMenu *RMapMainWindow::newMenu() {
+	
+	return new QPopupMenu(this);
 }
 
-void RMapMainWindow::addMenuItem(const char* label, const char* tip,
-	RoadMapCallback callback) {
+void RMapMainWindow::freeMenu(QPopupMenu *menu) {
 
-	if (currentMenu == 0) {
+   delete (menu);
+}
+
+void RMapMainWindow::addMenu(QPopupMenu *menu, const char* label) {
+
+	menuBar()->insertItem(label, menu);
+}
+
+void RMapMainWindow::addMenuItem(QPopupMenu *menu, const char* label,
+      const char* tip, RoadMapCallback callback) {
+
+	if (menu == 0) {
 		roadmap_log (ROADMAP_FATAL, "No menu defined for menu item %s", label);
 	}
 
 	RMapCallback* cb = new RMapCallback(callback);
-	currentMenu->insertItem(label, cb, SLOT(fire()));
+	menu->insertItem(label, cb, SLOT(fire()));
 }
 
-void RMapMainWindow::addMenuSeparator() {
-	if (currentMenu == 0) {
+void RMapMainWindow::popupMenu(QPopupMenu *menu, int x, int y) {
+
+	if (menu == 0) {
+		roadmap_log (ROADMAP_FATAL, "No menu defined for menu popup");
+	}
+   
+   menu->popup (QPoint (x, y));
+}
+
+void RMapMainWindow::addMenuSeparator(QPopupMenu *menu) {
+
+	if (menu == 0) {
 		roadmap_log (ROADMAP_FATAL, "No menu defined for menu separator");
 	}
 
-	currentMenu->insertSeparator();
+	menu->insertSeparator();
 }
 
 void RMapMainWindow::addTool(const char* label,

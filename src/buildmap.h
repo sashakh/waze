@@ -77,6 +77,10 @@ buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name);
 int          buildmap_db_add_data (buildmap_db *section, int count, int size);
 char        *buildmap_db_get_data (buildmap_db *section);
 
+buildmap_db *buildmap_db_add_child (buildmap_db *parent,
+                                    char *name,
+                                    int count,
+                                    int size);
 void buildmap_db_close (void);
 
 #endif // _BUILDMAP__H_

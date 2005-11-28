@@ -24,6 +24,7 @@
 #ifndef INCLUDE__ROADMAP_GPS__H
 #define INCLUDE__ROADMAP_GPS__H
 
+#include <time.h>
 #include "roadmap_io.h"
 
 
@@ -55,7 +56,7 @@ typedef struct {
 #define ROADMAP_GPS_NULL_POSITION {0, 0, 0, 0, 0}
 
 typedef void (*roadmap_gps_listener)
-                  (int gps_time,
+                  (time_t gps_time,
                    const RoadMapGpsPrecision *dilution,
                    const RoadMapGpsPosition *position);
 

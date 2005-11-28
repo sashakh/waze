@@ -66,7 +66,7 @@ static struct poptOption BuildMapTigerOptions [] = {
 
    {"format", 'f',
       POPT_ARG_STRING, &BuildMapFormat, 0,
-      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW|EMPTY"},
+      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW"},
 
    POPT_TABLEEND
 };
@@ -133,10 +133,6 @@ static void  buildmap_county_select_format (poptContext decoder) {
 
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
          
-   } else if (strcmp (BuildMapFormat, "EMPTY") == 0) {
-
-      BuildMapFormatFamily = BUILDMAP_FORMAT_EMPTY;
-         
    } else {
       fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
       poptPrintUsage (decoder, stderr, 0);
@@ -181,7 +177,9 @@ static void buildmap_county_save (const char *name) {
       *cursor = 0;
    }
 
-   buildmap_db_open (BuildMapResult, db_name);
+   if (buildmap_db_open (BuildMapResult, db_name) < 0) {
+      buildmap_fatal (0, "cannot create database %s", db_name);
+   }
 
    buildmap_square_save ();
    buildmap_line_save ();
@@ -230,10 +228,6 @@ static void buildmap_county_process (const char *source,
 
       case BUILDMAP_FORMAT_DCW:
          buildmap_shapefile_dcw_process (source, verbose, canals, rivers);
-         break;
-
-      case BUILDMAP_FORMAT_EMPTY:
-         buildmap_empty_process (source);
          break;
    }
 

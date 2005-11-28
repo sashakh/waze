@@ -91,11 +91,14 @@ public:
 
 	void setKeyboardCallback(RoadMapKeyInput c);
 
-	void addMenu(const char* label);
-	void addMenuItem(const char* label, const char* tip, 
+	QPopupMenu *newMenu();
+	void freeMenu(QPopupMenu *menu);
+	void addMenu(QPopupMenu *menu, const char* label);
+	void addMenuItem(QPopupMenu *menu, const char* label, const char* tip, 
 		RoadMapCallback callback);
+	void popupMenu(QPopupMenu *menu, int x, int y);
 
-	void addMenuSeparator();
+	void addMenuSeparator(QPopupMenu *menu);
 
 	void addTool(const char* label, const char *icon, const char* tip,
 		RoadMapCallback callback);
@@ -111,7 +114,6 @@ public:
 
 protected:
 	RoadMapKeyInput keyCallback;
-	QPopupMenu* currentMenu;
 	QMap<int, RMapInput*> inputMap;
 	QToolBar* toolBar;
 	RMapCanvas* canvas;

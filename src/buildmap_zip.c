@@ -181,8 +181,11 @@ void buildmap_zip_save (void) {
    int i;
    int *db_zip;
    buildmap_db *root  = buildmap_db_add_section (NULL, "zip");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
-   buildmap_db_add_data (root, ZipCodeCount, sizeof(int));
+   if (buildmap_db_add_data (root, ZipCodeCount, sizeof(int)) < 0) {
+      buildmap_fatal (0, "Can't add data");
+   }
 
    db_zip = (int *) buildmap_db_get_data (root);
 

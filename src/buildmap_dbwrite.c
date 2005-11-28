@@ -77,7 +77,6 @@ static int buildmap_db_extend (int size) {
       const char *old_base = BuildmapCurrentDbBase;
 
       if (BuildmapCurrentDbBase != NULL) {
-         //msync  (BuildmapCurrentDbBase, BuildmapCurrentDbSize, MS_SYNC);
          roadmap_file_unmap (&BuildmapCurrentDbBaseMapContext);
          BuildmapCurrentDbBaseMapContext = NULL;
       }
@@ -87,7 +86,7 @@ static int buildmap_db_extend (int size) {
             * BUILDMAP_DB_BLOCK_SIZE;
 
       if (roadmap_file_truncate (NULL, BuildmapCurrentDbName, BuildmapCurrentDbSize-1) < 0) {
-         //buildmap_fatal (0, "cannot resize database %s", BuildmapCurrentDbName);
+         buildmap_error (0, "cannot resize database %s", BuildmapCurrentDbName);
          return -1;
       }
 
@@ -97,6 +96,7 @@ static int buildmap_db_extend (int size) {
                    NULL,
                    "rw",
                    &BuildmapCurrentDbBaseMapContext) == NULL) {
+         buildmap_error (0, "cannot remap database %s", BuildmapCurrentDbName);
          return -1;
       }
 
@@ -157,7 +157,7 @@ int buildmap_db_open (const char *path, const char *name) {
       malloc (strlen(path) + strlen(name) + strlen(ROADMAP_DB_TYPE) + 4);
 
    if (BuildmapCurrentDbName == NULL) {
-      //buildmap_error (0, "no more memory");
+      buildmap_error (0, "no more memory");
       return -1;
    }
 
@@ -198,21 +198,20 @@ buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name) {
    }
 
    if (strlen(name) >= sizeof(parent->head->name)) {
-      //buildmap_fatal (0, "invalid section name %s (too long)", name);
+      buildmap_error (0, "invalid section name %s (too long)", name);
       return NULL;
    }
 
    offset = parent->data + parent->head->size;
    aligned = (offset + 3) & (~3);
 
-   //fflush(stdout);
    if (buildmap_db_extend (aligned + sizeof(struct roadmap_db_section)) < 0) {
       return NULL;
    }
 
    new = malloc (sizeof(buildmap_db));
    if (new == NULL) {
-      //buildmap_fatal (0, "no more memory");
+      buildmap_error (0, "no more memory");
       return NULL;
    }
 
@@ -249,7 +248,7 @@ int buildmap_db_add_data (buildmap_db *section, int count, int size) {
    int aligned_size;
 
    if (section != BuildmapCurrentDbSection) {
-      //buildmap_fatal (0, "invalid database write sequence");
+      buildmap_error (0, "invalid database write sequence");
       return -1;
    }
 
@@ -330,4 +329,26 @@ void buildmap_db_close (void) {
 
    BuildmapCurrentDbSection = NULL;
 }
+
+
+buildmap_db *buildmap_db_add_child (buildmap_db *parent,
+                                    char *name,
+                                    int count,
+                                    int size) {
+
+   buildmap_db *table;
+   
+   table = buildmap_db_add_section (parent, name);
+
+   if (table == NULL) {
+      buildmap_fatal (0, "Can't add a new section %s", name);
+   }
+
+   if (buildmap_db_add_data (table, count, size) < 0) {
+      buildmap_fatal (0, "Can't add data into section %s", name);
+   }
+
+   return table;
+}
+
 

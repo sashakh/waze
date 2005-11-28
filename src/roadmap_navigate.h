@@ -24,20 +24,52 @@
 #ifndef INCLUDE__ROADMAP_NAVIGATE__H
 #define INCLUDE__ROADMAP_NAVIGATE__H
 
-#include "roadmap_street.h"
 #include "roadmap_gps.h"
+#include "roadmap_fuzzy.h"
+#include "roadmap_plugin.h"
+
+typedef struct {
+    RoadMapFuzzy direction;
+    RoadMapFuzzy distance;
+    RoadMapFuzzy connected;
+} RoadMapDebug;
+
+typedef struct {
+
+    int valid;
+    PluginStreet street;
+
+    int direction;
+    int opposite_street_direction;
+
+    RoadMapFuzzy fuzzyfied;
+
+    PluginLine intersection;
+
+    RoadMapPosition entry;
+
+    RoadMapDebug debug;
+
+} RoadMapTracking;
+
+#define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
 
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
 int roadmap_navigate_retrieve_line
-        (const RoadMapPosition *position, int accuracy,
-         RoadMapNeighbour *closest);
+        (const RoadMapPosition *position,
+         int accuracy,
+         PluginLine *line,
+         int *distance);
 
 void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position);
 
 void roadmap_navigate_initialize (void);
 
-int roadmap_delta_direction (int direction1, int direction2);
+int roadmap_navigate_fuzzify
+                (RoadMapTracking *tracked,
+                 RoadMapNeighbour *previous_line,
+                 RoadMapNeighbour *line, int direction);
 
 #endif // INCLUDE__ROADMAP_NAVIGATE__H

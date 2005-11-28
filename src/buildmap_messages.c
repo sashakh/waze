@@ -44,7 +44,7 @@
 #include <stdarg.h>
 
 #include "buildmap.h"
-
+#include "roadmap.h"
 
 static char *SourceFile = NULL;
 static int   SourceLine = 0;

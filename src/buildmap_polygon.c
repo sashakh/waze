@@ -886,13 +886,13 @@ void buildmap_polygon_save (void) {
    }
 
    root = buildmap_db_add_section (NULL, "polygon");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
-   head_table = buildmap_db_add_section (root, "head");
-   buildmap_db_add_data (head_table, PolygonCount, sizeof(RoadMapPolygon));
+   head_table = buildmap_db_add_child
+      (root, "head", PolygonCount, sizeof(RoadMapPolygon));
 
-   point_table = buildmap_db_add_section (root, "point");
-   buildmap_db_add_data (point_table,
-                         PolygonLineCount, sizeof(RoadMapPolygonPoint));
+   point_table = buildmap_db_add_child
+               (root, "point", PolygonLineCount, sizeof(RoadMapPolygonPoint));
 
    db_head   = (RoadMapPolygon *)         buildmap_db_get_data (head_table);
    db_point  = (RoadMapPolygonPoint *)    buildmap_db_get_data (point_table);

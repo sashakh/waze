@@ -317,9 +317,6 @@ void roadmap_main_add_menu_item (RoadMapMenu menu,
 
 void roadmap_main_popup_menu (RoadMapMenu menu, int x, int y) {
 
-   //g_signal_connect (GTK_MENU(menu), "deactivate", 
-   //                 G_CALLBACK (gtk_widget_destroy), NULL);
-
    gtk_menu_popup (GTK_MENU(menu),
                    NULL,
                    NULL,

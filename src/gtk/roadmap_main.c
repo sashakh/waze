@@ -61,7 +61,6 @@ static RoadMapKeyInput RoadMapMainInput = NULL;
 static GtkWidget      *RoadMapMainWindow  = NULL;
 static GtkWidget      *RoadMapMainBox     = NULL;
 static GtkWidget      *RoadMapMainMenuBar = NULL;
-static GtkWidget      *RoadMapCurrentMenu = NULL;
 static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
 
@@ -177,7 +176,19 @@ void roadmap_main_set_keyboard (RoadMapKeyInput callback) {
 }
 
 
-void roadmap_main_add_menu (const char *label) {
+RoadMapMenu roadmap_main_new_menu (void) {
+
+   return (RoadMapMenu) gtk_menu_new ();
+}
+
+
+void roadmap_main_free_menu (RoadMapMenu menu) {
+
+   gtk_widget_destroy ((GtkWidget *)menu);
+}
+
+
+void roadmap_main_add_menu (RoadMapMenu menu, const char *label) {
 
    GtkWidget *menu_item;
 
@@ -192,18 +203,18 @@ void roadmap_main_add_menu (const char *label) {
    menu_item = gtk_menu_item_new_with_label (label);
    gtk_menu_bar_append (GTK_MENU_BAR(RoadMapMainMenuBar), menu_item);
 
-   RoadMapCurrentMenu = gtk_menu_new ();
-   gtk_menu_item_set_submenu (GTK_MENU_ITEM(menu_item), RoadMapCurrentMenu);
+   gtk_menu_item_set_submenu (GTK_MENU_ITEM(menu_item), (GtkWidget *) menu);
 }
 
 
-void roadmap_main_add_menu_item (const char *label,
+void roadmap_main_add_menu_item (RoadMapMenu menu,
+                                 const char *label,
                                  const char *tip,
                                  RoadMapCallback callback) {
 
    GtkWidget *menu_item;
 
-   if (RoadMapCurrentMenu == NULL) {
+   if (menu == NULL) {
       roadmap_log (ROADMAP_FATAL, "No menu defined for menu item %s", label);
    }
 
@@ -217,7 +228,7 @@ void roadmap_main_add_menu_item (const char *label,
    } else {
       menu_item = gtk_menu_item_new ();
    }
-   gtk_menu_append (GTK_MENU(RoadMapCurrentMenu), menu_item);
+   gtk_menu_append (GTK_MENU(menu), menu_item);
 
    if (tip != NULL) {
       gtk_tooltips_set_tip (gtk_tooltips_new (), menu_item, tip, NULL);
@@ -225,9 +236,22 @@ void roadmap_main_add_menu_item (const char *label,
 }
 
 
-void roadmap_main_add_separator (void) {
+void roadmap_main_add_separator (RoadMapMenu menu) {
 
-   roadmap_main_add_menu_item (NULL, NULL, NULL);
+   roadmap_main_add_menu_item (menu, NULL, NULL, NULL);
+}
+
+
+void roadmap_main_popup_menu (RoadMapMenu menu, int x, int y) {
+
+   gtk_menu_popup (GTK_MENU(menu),
+                   NULL,
+                   NULL,
+                   NULL,
+                   NULL,
+                   0,
+                   gtk_get_current_event_time());
+
 }
 
 

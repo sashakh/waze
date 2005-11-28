@@ -33,9 +33,9 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
+#include "roadmap_plugin.h"
 
 #include "roadmap_layer.h"
-#include "editor/editor_screen.h"
 
 
 static RoadMapConfigDescriptor RoadMapConfigStylePretty =
@@ -207,12 +207,6 @@ done:
 }
 
 
-void roadmap_layer_select (int layer, int pen_type) {
-
-   roadmap_canvas_select_pen (RoadMapCategory[layer].pen[pen_type]);
-}
-
-
 RoadMapPen roadmap_layer_get_pen (int layer, int pen_type) {
 
    if (!roadmap_layer_is_visible (layer)) return NULL;
@@ -243,8 +237,7 @@ void roadmap_layer_adjust (void) {
                    roadmap_config_get_integer (&category->declutter),
                    category->pen_count > 1);
 
-            editor_adjust_layer (i, thickness, category->pen_count);
-
+            roadmap_plugin_adjust_layer (i, thickness, category->pen_count);
             /* As a matter of taste, I do dislike roads with a filler
              * of 1 pixel. Lets force at least a filler of 2.
              */

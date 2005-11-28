@@ -14,9 +14,10 @@ STRIP=strip
 
 WARNFLAGS=-W -Wall -Wno-unused-parameter
 
-GUICFLAGS=-I/usr/include/qt3 -I/usr/local/include/qt3
-GUILDFLAGS=-lqt
-MOC=/usr/bin/moc
+QTDIR=/usr/qt/3
+GUICFLAGS=-I/usr/include/qt3 -I/usr/local/include/qt3 -I$(QTDIR)/include
+GUILDFLAGS=-L $(QTDIR)/lib -lqt
+MOC=moc
 
 
 ifeq ($(DESKTOP),QPE)

@@ -109,7 +109,6 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
    }
 }
 
-
 static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
    if (!is_button_down && !is_dragging) return;
 

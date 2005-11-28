@@ -40,7 +40,7 @@
 
 #if ROADMAP_USE_SHAPEFILES
 
-#include <libshp/shapefil.h>
+#include <shapefil.h>
 
 /* shapefile column names */
 
@@ -163,7 +163,9 @@ static void buildplace_save (const char *name) {
       *cursor = 0;
    }
 
-   buildmap_db_open (BuildPlaceResult, db_name);
+   if (buildmap_db_open (BuildPlaceResult, db_name) < 0) {
+      buildmap_fatal (0, "cannot create database %s", db_name);
+   }
 
    buildmap_square_save ();
    buildmap_point_save ();

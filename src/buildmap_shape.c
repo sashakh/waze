@@ -241,13 +241,16 @@ void buildmap_shape_save (void) {
    RoadMapShapeByLine *db_byline;
    RoadMapShapeBySquare *db_bysquare;
 
-   buildmap_db *root  = buildmap_db_add_section (NULL, "shape");
+   buildmap_db *root;
    buildmap_db *table_square;
    buildmap_db *table_line;
    buildmap_db *table_data;
 
 
    buildmap_info ("saving shapes...");
+
+   root  = buildmap_db_add_section (NULL, "shape");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    square_count = buildmap_square_get_count();
 
@@ -315,16 +318,14 @@ void buildmap_shape_save (void) {
 
    /* Create the database space. */
 
-   table_square = buildmap_db_add_section (root, "bysquare");
-   buildmap_db_add_data (table_square,
-                         square_count, sizeof(RoadMapShapeBySquare));
+   table_square = buildmap_db_add_child
+               (root, "bysquare", square_count, sizeof(RoadMapShapeBySquare));
 
-   table_line = buildmap_db_add_section (root, "byline");
-   buildmap_db_add_data (table_line,
-                         ShapeLineCount, sizeof(RoadMapShapeByLine));
+   table_line = buildmap_db_add_child
+                  (root, "byline", ShapeLineCount, sizeof(RoadMapShapeByLine));
 
-   table_data = buildmap_db_add_section (root, "data");
-   buildmap_db_add_data (table_data, shape_count, sizeof(RoadMapShape));
+   table_data = buildmap_db_add_child
+                  (root, "data", shape_count, sizeof(RoadMapShape));
 
    db_bysquare = (RoadMapShapeBySquare *) buildmap_db_get_data (table_square);
    db_byline = (RoadMapShapeByLine *) buildmap_db_get_data (table_line);

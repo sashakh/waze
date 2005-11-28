@@ -71,7 +71,7 @@
 #include "roadmap_pointer.h"
 
 #include "editor/editor_main.h"
-#include "editor/editor_export.h"
+#include "editor/export/editor_export.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 
@@ -95,28 +95,6 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
 /* The menu and toolbar callbacks: --------------------------------------- */
 
 static void roadmap_start_periodic (void);
-
-static void roadmap_start_enable_editor (void) {
-
-   editor_main_set (1);
-   roadmap_screen_redraw ();
-}
-
-static void roadmap_start_disable_editor (void) {
-
-   editor_main_set (0);
-   roadmap_screen_redraw ();
-}
-
-static void roadmap_start_editor_export (void) {
-
-   editor_export_data ("test.gpx");
-}
-
-static void roadmap_start_editor_reset_export (void) {
-
-   editor_export_reset_dirty ();
-}
 
 static void roadmap_start_console (void) {
 
@@ -171,6 +149,11 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX");
+}
+
+static void roadmap_start_export_data (void) {
+
+   editor_export_data ("test.xml");
 }
 
 static void roadmap_start_create_trip (void) {
@@ -422,17 +405,8 @@ static RoadMapAction RoadMapStartActions[] = {
    {"about", "About", NULL, NULL,
       "Show information about RoadMap", roadmap_start_about},
 
-   {"editorenable", "Enable editor", NULL, NULL,
-      "Enable editor", roadmap_start_enable_editor},
-
-   {"editordisable", "Disable editor", NULL, NULL,
-      "Disable editor", roadmap_start_disable_editor},
-
-   {"editorexport", "Export editor data", NULL, NULL,
-      "Export editor data", roadmap_start_editor_export},
-
-   {"editorexportreset", "Unset dirty", NULL, NULL,
-      "Unset dirty", roadmap_start_editor_reset_export},
+   {"exportdata", "Export Data", NULL, NULL,
+      "Export editor data", roadmap_start_export_data},
 
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
@@ -447,13 +421,9 @@ static const char *RoadMapStartMenu[] = {
 
    RoadMapFactorySeparator,
 
-   "editorenable",
-   "editordisable",
-   "editorexport",
-   "editorexportreset",
+   "exportdata",
 
    RoadMapFactorySeparator,
-
    "mutevoice",
    "enablevoice",
    "nonavigation",
@@ -574,11 +544,6 @@ static char const *RoadMapStartToolbar[] = {
    "full",
    "quit",
 
-   RoadMapFactorySeparator,
-
-   "editorenable",
-   "editordisable",
-
    NULL,
 };
 
@@ -651,7 +616,7 @@ static void roadmap_start_set_unit (void) {
 static int RoadMapStartGpsRefresh = 0;
 
 static void roadmap_gps_update
-               (int gps_time,
+               (time_t gps_time,
                 const RoadMapGpsPrecision *dilution,
                 const RoadMapGpsPosition *gps_position) {
 
@@ -895,8 +860,6 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_screen_set_initial_position ();
 
-   editor_main_initialize ();
-
    roadmap_history_load ();
    
    roadmap_driver_activate ();
@@ -916,6 +879,8 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_locator_declare (&roadmap_start_no_download);
    roadmap_main_set_periodic (200, roadmap_start_periodic);
+
+   editor_main_initialize ();
 }
 
 

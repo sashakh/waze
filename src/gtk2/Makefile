@@ -21,7 +21,6 @@ RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
 
 ifeq ($(MODE),DEBUG)
    STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
-   LDFLAGS=-g 
 else
 ifeq ($(MODE),PROFILE)
    STDCFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
@@ -105,8 +104,8 @@ libgtkroadmap.a: $(RMLIBOBJS)
 	$(AR) $(ARFLAGS) libgtkroadmap.a $(RMLIBOBJS)
 	$(RANLIB) libgtkroadmap.a
 
-gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS) 
-	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS) ../libguiroadmap.a
+gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
+	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
 	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)

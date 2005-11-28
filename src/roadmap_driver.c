@@ -126,7 +126,7 @@ static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
 
 
 static void roadmap_driver_publish_position
-                (int gps_time, const RoadMapGpsPosition *position, int mask) {
+                (time_t gps_time, const RoadMapGpsPosition *position, int mask) {
 
    /* Format the GPRMC sentence that is used to publish our position. */
 
@@ -136,7 +136,7 @@ static void roadmap_driver_publish_position
    int longitude_mmmm;
 
    struct tm *gmt;
-   time_t now = (time_t)gps_time;
+   time_t now = gps_time;
 
    char buffer[128];  /* large enough and more. */
 
@@ -258,7 +258,7 @@ static void roadmap_driver_publish_satellites
 
 
 static void roadmap_driver_listener
-               (int gps_time,
+               (time_t gps_time,
                 const RoadMapGpsPrecision *dilution,
                 const RoadMapGpsPosition *position) {
 

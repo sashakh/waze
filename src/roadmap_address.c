@@ -61,7 +61,8 @@ typedef struct {
 
 static void roadmap_address_done (RoadMapGeocode *selected) {
 
-    RoadMapNeighbour line = ROADMAP_NEIGHBOUR_NULL;
+    PluginStreet street;
+    PluginLine line;
 
     roadmap_locator_activate (selected->fips);
 
@@ -73,10 +74,11 @@ static void roadmap_address_done (RoadMapGeocode *selected) {
                  abs(selected->position.latitude)%1000000,
                  selected->position.latitude >= 0 ? 'N' : 'S');
 
-    line.line = selected->line;
+    roadmap_plugin_set_line
+       (&line, ROADMAP_PLUGIN_ID, selected->line, -1, selected->fips);
 
     roadmap_display_activate
-       ("Selected Street", &line, &selected->position);
+       ("Selected Street", &line, &selected->position, &street);
 
     roadmap_trip_set_point ("Selection", &selected->position);
     roadmap_trip_set_point ("Address", &selected->position);

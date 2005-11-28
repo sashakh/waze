@@ -38,7 +38,7 @@
 
 #if ROADMAP_USE_SHAPEFILES
 
-#include <libshp/shapefil.h>
+#include <shapefil.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"

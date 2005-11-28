@@ -217,7 +217,7 @@ void roadmap_factory (const char           *name,
    int use_icons =
             roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
 
-   RoadMapMenu gui_menu;
+   RoadMapMenu gui_menu = NULL;
 
    for (i = 0; menu[i] != NULL; ++i) {
 

@@ -3231,7 +3231,6 @@ FIPS          County     State
 72     151     Yabucoa     PR
 72     153     Yauco     PR
 74     300     Midway Islands     UM
-77     001     Israel     IL
 78     010     St. Croix     VI
 78     020     St. John     VI
 78     030     St. Thomas     VI

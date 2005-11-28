@@ -27,7 +27,7 @@ ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
 # then use the mtrace tool to analyze the output.
-   MODECFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
+   MODECFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP -DNOIGNORE
    MODELDFLAGS=
 else
 ifeq ($(MODE),PROFILE)
@@ -87,7 +87,7 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
@@ -116,6 +116,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_place.c \
           roadmap_polygon.c \
           roadmap_street.c \
+          roadmap_plugin.c \
           roadmap_geocode.c \
           roadmap_history.c \
           roadmap_input.c \
@@ -137,7 +138,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_layer.c \
           roadmap_fuzzy.c \
           roadmap_navigate.c \
-			 roadmap_pointer.c \
+          roadmap_pointer.c \
           roadmap_screen.c \
           roadmap_display.c \
           roadmap_factory.c \
@@ -164,22 +165,27 @@ RGGUIOBJS=$(RGGUISRCS:.c=.o)
 RMPLUGINSRCS=roadmap_copy.c \
              roadmap_httpcopy.c \
              editor/editor_main.c \
+             editor/editor_plugin.c \
              editor/editor_screen.c \
-             editor/editor_dialog.c \
-             editor/editor_street.c \
-             editor/editor_point.c \
-             editor/editor_shape.c \
-             editor/editor_line.c \
-             editor/editor_square.c \
-             editor/editor_route.c \
-             editor/editor_street.c \
-             editor/editor_dictionary.c \
+             editor/static/editor_dialog.c \
+             editor/db/editor_street.c \
+             editor/db/editor_point.c \
+             editor/db/editor_shape.c \
+             editor/db/editor_line.c \
+             editor/db/editor_square.c \
+             editor/db/editor_route.c \
+             editor/db/editor_dictionary.c \
              buildmap_dbwrite.c \
-             editor/editor_track.c \
-             editor/editor_override.c \
-             editor/editor_trkseg.c \
-             editor/editor_export.c \
-             editor/editor_db.c
+             buildmap_messages.c \
+             editor/db/editor_override.c \
+             editor/export/editor_export.c \
+             editor/db/editor_trkseg.c \
+             editor/track/editor_track_filter.c \
+             editor/track/editor_track_util.c \
+             editor/track/editor_track_main.c \
+             editor/track/editor_track_unknown.c \
+             editor/track/editor_track_known.c \
+             editor/db/editor_db.c
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 
@@ -233,7 +239,7 @@ BUOBJS=$(BUSRCS:.c=.o)
 
 
 PKGDATAFILES=sprites preferences schema session drivers
-BUILD=buildmap dumpmap buildplace buildus
+BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace
@@ -262,7 +268,7 @@ clean: cleanone
 	if [ -d unix ] ; then $(MAKE) -C unix cleanone ; fi
 
 cleanone:
-	rm -f *.o *.a *.da editor/*.o $(BUILD) $(TOOLS) $(DRIVERS)
+	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
 	# Clean up CVS backup files as well.
 	$(RM) .#*
 

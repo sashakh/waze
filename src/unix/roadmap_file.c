@@ -270,7 +270,6 @@ const char *roadmap_file_map (const char *set,
          context->fd = open (full_name, open_mode, 0666);
 
          if (context->fd >= 0) break;
-         name_size = errno;
 
          sequence = roadmap_path_next(set, sequence);
 

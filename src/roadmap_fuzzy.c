@@ -34,9 +34,7 @@
 #include "roadmap_config.h"
 #include "roadmap_line.h"
 #include "roadmap_locator.h"
-
-#include "editor/editor_db.h"
-#include "editor/editor_line.h"
+#include "roadmap_plugin.h"
 
 #include "roadmap_fuzzy.h"
 
@@ -53,6 +51,13 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyStreet =
 static int RoadMapAccuracyStreet;
 static int RoadMapConfidence;
 static int RoadMapError;
+
+
+void roadmap_fuzzy_set_cycle_params (int street_accuracy, int confidence) {
+
+    RoadMapAccuracyStreet = street_accuracy;
+    RoadMapConfidence = confidence;
+}
 
 
 void roadmap_fuzzy_start_cycle (void) {
@@ -89,13 +94,13 @@ RoadMapFuzzy roadmap_fuzzy_direction
         * and each side is symetrical around the 90 point: use these
         * properties to fold the delta.
         */
-       if (delta < 0) delta += 180;
+       while (delta < 0) delta += 180;
        if (delta > 90) delta = 180 - delta;
 
     } else {
 
        delta = delta % 360;
-       if (delta < 0) delta += 360;
+       while (delta < 0) delta += 360;
        if (delta > 180) delta = 360 - delta;
     }
 
@@ -137,50 +142,27 @@ RoadMapFuzzy roadmap_fuzzy_connected
     int i, j;
 
 
-    if ((street->fips == reference->fips) &&
-        (street->line == reference->line)) return FUZZY_TRUTH_MAX;
+    if (roadmap_plugin_same_line (&street->line, &reference->line))
+       return FUZZY_TRUTH_MAX;
 
-    if (!street->plugin_id) {
-       if (roadmap_locator_activate (street->fips) != ROADMAP_US_OK) {
-          return 0;
-       }
-       roadmap_line_from (street->line, &(line_point[0]));
-       roadmap_line_to   (street->line, &(line_point[1]));
-
-    } else {
-       if (editor_db_activate (street->fips) == -1) {
-          return 0;
-       }
-
-       editor_line_get
-             (street->line,
-              &(line_point[0]),
-              &(line_point[1]),
-              NULL, NULL, NULL);
+    if (roadmap_plugin_activate_db (&street->line) == -1) {
+       return 0;
     }
 
-    if (!reference->plugin_id) {
-       if (roadmap_locator_activate (reference->fips) != ROADMAP_US_OK) {
-          return 0;
-       }
-       roadmap_line_from (reference->line, &(reference_point[0]));
-       roadmap_line_to   (reference->line, &(reference_point[1]));
-    } else {
-       if (editor_db_activate (reference->fips) == -1) {
-          return 0;
-       }
+    roadmap_plugin_line_from (&street->line, &(line_point[0]));
+    roadmap_plugin_line_to   (&street->line, &(line_point[1]));
 
-       editor_line_get
-             (reference->line,
-              &(reference_point[0]),
-              &(reference_point[1]),
-              NULL, NULL, NULL);
+    if (roadmap_plugin_activate_db (&reference->line) == -1) {
+       return 0;
     }
+
+    roadmap_plugin_line_from (&reference->line, &(reference_point[0]));
+    roadmap_plugin_line_to   (&reference->line, &(reference_point[1]));
 
     for (i = 0; i <= 1; ++i) {
         for (j = 0; j <= 1; ++j) {
-            if ((line_point[i].latitude == line_point[j].latitude) &&
-                (line_point[i].longitude == line_point[j].longitude)) {
+            if ((line_point[i].latitude == reference_point[j].latitude) &&
+                (line_point[i].longitude == reference_point[j].longitude)) {
                 *connection = line_point[i];
                 return (FUZZY_TRUTH_MAX * 2) / 3;
             }

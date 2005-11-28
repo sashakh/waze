@@ -32,10 +32,6 @@
 
 int   roadmap_square_count  (void);
 int   roadmap_square_search (const RoadMapPosition *position);
-
-int roadmap_square_search_near
-   (const RoadMapPosition *position, int *squares, int size);
-
 void  roadmap_square_min    (int square, RoadMapPosition *position);
 
 void  roadmap_square_edges  (int square, RoadMapArea *edges);
