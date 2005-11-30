@@ -113,8 +113,10 @@ static void track_reset_points (int last_point_id) {
 
    points_count -= last_point_id;
 
-   memmove (TrackPoints, TrackPoints + last_point_id,
-         sizeof(TrackPoints[0]) * points_count);
+   if (points_count > 0) {
+      memmove (TrackPoints, TrackPoints + last_point_id,
+            sizeof(TrackPoints[0]) * points_count);
+   }
 }
 
 
@@ -442,33 +444,11 @@ static void track_rec_locate(time_t gps_time,
        * the time from the previous point is too long.
        * This is probably a new GPS track.
        */
-      if (cur_active_line) {
 
-         TrackNewSegment segment;
-
-         segment.point_id = points_count - 1;
-         segment.type = TRACK_ROAD_REG;
-
-         end_unknown_segments (&segment, 1);
-         cur_active_line = 0;
-      } else {
-
-         if (TrackConfirmedStreet.valid) {
-            editor_track_known_end_segment
-               (&TrackPreviousLine.line,
-                points_count - 1,
-                &TrackConfirmedLine.line,
-                is_new_track);
-         }
-      }
-
-      TrackConfirmedStreet.valid = 0;
-      track_reset_points (points_count);
-      cur_node.id = -1;
-      is_new_track = 1;
+      editor_track_end ();
       return;
    }
-   
+
    while ((filtered_gps_point = editor_track_filter_get (filter)) != NULL) {
 
       TrackLastPosition = *filtered_gps_point;
@@ -514,6 +494,38 @@ int editor_track_point_distance (void) {
    }
 
    return distance;
+}
+
+
+void editor_track_end (void) {
+
+   if (points_count > 1) {
+
+      if (cur_active_line) {
+
+         TrackNewSegment segment;
+
+         segment.point_id = points_count - 1;
+         segment.type = TRACK_ROAD_REG;
+
+         end_unknown_segments (&segment, 1);
+         cur_active_line = 0;
+      } else {
+
+         if (TrackConfirmedStreet.valid) {
+            editor_track_known_end_segment
+               (&TrackPreviousLine.line,
+                points_count - 1,
+                &TrackConfirmedLine.line,
+                is_new_track);
+         }
+      }
+   }
+
+   TrackConfirmedStreet.valid = 0;
+   track_reset_points (points_count);
+   cur_node.id = -1;
+   is_new_track = 1;
 }
 
 
