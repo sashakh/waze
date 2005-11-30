@@ -88,7 +88,8 @@ void editor_route_segment_copy (int source_line, int plugin_id, int dest_line) {
    route_id =
       editor_route_segment_add
                      (route->from_flags,
-                      route->to_flags);
+                      route->to_flags,
+                      route->speed_limit);
 
    if (route_id < 0) {
       editor_log
@@ -102,13 +103,14 @@ void editor_route_segment_copy (int source_line, int plugin_id, int dest_line) {
 
 
 int editor_route_segment_add
-      (EditorRouteFlag from_flags, EditorRouteFlag to_flags) {
+   (EditorRouteFlag from_flags, EditorRouteFlag to_flags, short speed_limit) {
 
       editor_db_route_segment route;
       int id;
 
       route.from_flags = from_flags;
       route.to_flags = to_flags;
+      route.speed_limit = speed_limit;
 
       id = editor_db_add_item (ActiveSegmentRouteDB, &route);
 
@@ -156,8 +158,10 @@ int editor_route_get_direction (int route_id, int who) {
 }
 
 
-void editor_route_segment_get
-      (int route_id, EditorRouteFlag *from_flags, EditorRouteFlag *to_flags) {
+void editor_route_segment_get (int route_id,
+                               EditorRouteFlag *from_flags,
+                               EditorRouteFlag *to_flags,
+                               short *speed_limit) {
 
    editor_db_route_segment *route;
 
@@ -182,14 +186,17 @@ void editor_route_segment_get
       return;
    }
 
-   *from_flags = route->from_flags;
-   *to_flags = route->to_flags;
+   if (from_flags  != NULL) *from_flags  = route->from_flags;
+   if (to_flags    != NULL) *to_flags    = route->to_flags;
+   if (speed_limit != NULL) *speed_limit = route->speed_limit;
 
 }
 
 
-void editor_route_segment_set
-      (int route_id, EditorRouteFlag from_flags, EditorRouteFlag to_flags) {
+void editor_route_segment_set (int route_id,
+                               EditorRouteFlag from_flags,
+                               EditorRouteFlag to_flags,
+                               short speed_limit) {
 
    editor_db_route_segment *route;
 
@@ -216,6 +223,7 @@ void editor_route_segment_set
 
    route->from_flags = from_flags;
    route->to_flags = to_flags;
+   route->speed_limit = speed_limit;
 }
 
 

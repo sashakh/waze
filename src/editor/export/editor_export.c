@@ -35,6 +35,7 @@
 #include "roadmap_path.h"
 #include "roadmap_layer.h"
 #include "roadmap_point.h"
+#include "roadmap_fileselection.h"
 
 #include "../editor_log.h"
 
@@ -44,7 +45,9 @@
 #include "../db/editor_line.h"
 #include "../db/editor_trkseg.h"
 #include "../db/editor_street.h"
+#include "../db/editor_route.h"
 
+#include "../track/editor_track_main.h"
 #include "editor_export.h"
 
 #define NO_ELEVATION 1000000
@@ -191,6 +194,8 @@ static void add_line_data (FILE *file,
    int to_point_id;
    int roadmap_from_id;
    int roadmap_to_id;
+   int route_id;
+   short speed_limit;
 
    fprintf (file, "<extensions>\n");
    
@@ -254,6 +259,20 @@ static void add_line_data (FILE *file,
       add_attribute (file, "city_name",
          editor_street_get_street_city
             (&properties, ED_STREET_LEFT_SIDE));
+
+      route_id = editor_line_get_route (line_id);
+
+      if (route_id != -1) {
+
+         editor_route_segment_get
+            (route_id, NULL, NULL, &speed_limit);
+
+         if (speed_limit) {
+            char str[100];
+            snprintf (str, sizeof(str), "%d", speed_limit);
+            add_attribute (file, "city_name", str);
+         }
+      }
 
       fprintf (file, "</attributes>\n");
 
@@ -332,7 +351,7 @@ static int export_dirty_lines(FILE *file) {
 }
  
 
-int editor_export_data(const char *name) {
+static int editor_export_data(const char *name) {
    
    FILE *file = create_export_file (name);
    int trkseg;
@@ -461,5 +480,24 @@ void editor_export_reset_dirty () {
       editor_line_get (i, NULL, NULL, NULL, &cfcc, &flags);
       editor_line_modify_properties (i, cfcc, flags | ED_LINE_DIRTY);
    }
+}
+
+
+static void editor_export_file_dialog_ok
+                           (const char *filename, const char *mode) {
+
+   editor_export_data (filename);
+}
+
+
+void editor_export_gpx (void) {
+                                
+   editor_track_end ();
+
+   roadmap_fileselection_new ("Export data",
+                              NULL, /* no filter. */
+                              roadmap_path_user (),
+                              "w",
+                              editor_export_file_dialog_ok);
 }
 

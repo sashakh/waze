@@ -33,14 +33,17 @@ typedef short EditorRouteFlag;
 typedef struct editor_route_segment_s {
    EditorRouteFlag from_flags;
    EditorRouteFlag to_flags;
+   short speed_limit;
 } editor_db_route_segment;
 
 
 int editor_route_segment_add
-      (short from_flags, short to_flags) ;
+      (short from_flags, short to_flags, short speed_limit);
 
-void editor_route_segment_get (int route, short *from_flags, short *to_flags);
-void editor_route_segment_set (int route, short from_flags, short to_flags);
+void editor_route_segment_get
+      (int route, short *from_flags, short *to_flags, short *speed_limit);
+void editor_route_segment_set
+      (int route, short from_flags, short to_flags, short speed_limit);
 
 void editor_route_segment_copy (int source_line, int plugin_id, int dest_line);
 

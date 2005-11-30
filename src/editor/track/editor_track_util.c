@@ -747,6 +747,7 @@ void editor_track_add_trkseg (PluginLine *line,
 
       short from_flags;
       short to_flags;
+      short speed_limit = 0;
       
       if (plugin_id == ROADMAP_PLUGIN_ID) {
          //TODO get roadmap route data
@@ -756,10 +757,10 @@ void editor_track_add_trkseg (PluginLine *line,
       }
 
       if (route == -1) {
-         route = editor_route_segment_add (0, 0);
+         route = editor_route_segment_add (0, 0, 0);
          from_flags = to_flags = 0;
       } else {
-         editor_route_segment_get (route, &from_flags, &to_flags);
+         editor_route_segment_get (route, &from_flags, &to_flags, &speed_limit);
       }
 
       if (direction == 1) {
@@ -771,7 +772,7 @@ void editor_track_add_trkseg (PluginLine *line,
       }
       
       if (route != -1) {
-         editor_route_segment_set (route, from_flags, to_flags);
+         editor_route_segment_set (route, from_flags, to_flags, speed_limit);
       }
    }
 
@@ -876,7 +877,7 @@ int editor_track_util_create_line (int gps_first_point,
    editor_trkseg_connect_roads (trkseg, trkseg2);
    editor_line_set_trksegs (line_id, trkseg, trkseg2);
 
-   route = editor_route_segment_add (ED_ROUTE_CAR, 0);
+   route = editor_route_segment_add (ED_ROUTE_CAR, 0, 0);
    editor_line_set_route (line_id, route);
 
    roadmap_plugin_set_line (&line, EditorPluginID, line_id, cfcc, fips);
