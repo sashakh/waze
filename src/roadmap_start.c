@@ -153,7 +153,7 @@ static void roadmap_start_about (void) {
 
 static void roadmap_start_export_data (void) {
 
-   editor_export_data ("test.xml");
+   editor_export_gpx ();
 }
 
 static void roadmap_start_create_trip (void) {
@@ -886,6 +886,7 @@ void roadmap_start (int argc, char **argv) {
 
 void roadmap_start_exit (void) {
     
+    roadmap_plugin_shutdown ();
     roadmap_driver_shutdown ();
     roadmap_history_save();
     roadmap_config_save (0);
