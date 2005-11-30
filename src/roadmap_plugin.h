@@ -52,6 +52,7 @@ typedef struct {
 typedef struct {
    const char *address;
    const char *street;
+   const char *street_t2s;
    const char *city;
 } PluginStreetProperties;
 
@@ -141,6 +142,8 @@ typedef int (*plugin_get_closest_func)
         struct RoadMapNeighbour_t *neighbours, int count,
         int max);
 
+typedef void (*plugin_shutdown) (void);
+
 typedef struct {
    plugin_line_pos_func             line_from;
    plugin_line_pos_func             line_to;
@@ -155,6 +158,7 @@ typedef struct {
    plugin_find_connected_lines_func find_connected_lines;
    plugin_adjust_layer_hook         adjust_layer;
    plugin_get_closest_func          get_closest;
+   plugin_shutdown                  shutdown;
 
 } RoadMapPluginHooks;
 
@@ -192,6 +196,8 @@ int roadmap_plugin_get_closest
         int *categories, int categories_count,
         struct RoadMapNeighbour_t *neighbours, int count,
         int max);
+
+void roadmap_plugin_shutdown (void);
 
 #endif /* INCLUDE__ROADMAP_PLUGIN__H */
 

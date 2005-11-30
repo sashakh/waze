@@ -34,6 +34,7 @@
 #include "db/editor_override.h"
 #include "db/editor_street.h"
 
+#include "track/editor_track_main.h"
 #include "editor_main.h"
 #include "editor_screen.h"
 
@@ -112,6 +113,7 @@ static void editor_plugin_street_properties
 
    props->address = editor_street_get_street_address (&properties);
    props->street = editor_street_get_street_name (&properties);
+   props->street_t2s = editor_street_get_street_t2s (&properties);
    props->city =
       editor_street_get_street_city (&properties, ED_STREET_LEFT_SIDE);
 }
@@ -131,7 +133,8 @@ static RoadMapPluginHooks editor_plugin_hooks = {
       &editor_plugin_street_properties,
       &editor_street_get_connected_lines,
       &editor_screen_adjust_layer,
-      &editor_street_get_closest
+      &editor_street_get_closest,
+      &editor_track_end
 };
 
 

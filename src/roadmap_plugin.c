@@ -385,6 +385,7 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
 
       props->address = roadmap_street_get_street_address (&rm_properties);
       props->street = roadmap_street_get_street_name (&rm_properties);
+      props->street_t2s = "";
       props->city = roadmap_street_get_city_name (&rm_properties);
       return;
 
@@ -393,6 +394,7 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
 
       props->address = "";
       props->street = "";
+      props->street_t2s = "";
       props->city = "";
 
       if (hooks == NULL) {
@@ -468,6 +470,23 @@ int roadmap_plugin_get_closest
    }
 
    return count;
+}
+
+
+void roadmap_plugin_shutdown (void) {
+
+   int i;
+
+   for (i=1; i<=PluginCount; i++) {
+
+      RoadMapPluginHooks *hooks = get_hooks (i);
+      if (hooks == NULL) continue;
+
+      if (hooks->shutdown != NULL) {
+
+         hooks->shutdown ();
+      }
+   }
 }
 
 
