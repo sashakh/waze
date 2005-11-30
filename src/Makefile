@@ -325,6 +325,7 @@ cleanall:
 			$(MAKE) -C $$module clean ; \
 		fi ; \
 	done
+	find editor/ -name \*.o -exec rm {} \;
 
 rebuild: cleanall everything
 
