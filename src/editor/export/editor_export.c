@@ -103,7 +103,7 @@ static void close_trkseg(FILE *file) {
 
 static FILE *create_export_file(const char *name) {
 
-   FILE *file = roadmap_file_fopen (roadmap_path_user(), name, "w");
+   FILE *file = roadmap_file_fopen (NULL, name, "w");
    if (file == NULL) return NULL;
    
    fprintf (file, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -363,6 +363,8 @@ static int editor_export_data(const char *name) {
       return -1;
    }
 
+   editor_track_end ();
+
    trkseg = editor_trkseg_get_next_export ();
 
    if (trkseg == -1) {
@@ -492,8 +494,6 @@ static void editor_export_file_dialog_ok
 
 void editor_export_gpx (void) {
                                 
-   editor_track_end ();
-
    roadmap_fileselection_new ("Export data",
                               NULL, /* no filter. */
                               roadmap_path_user (),
