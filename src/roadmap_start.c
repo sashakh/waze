@@ -871,6 +871,8 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
+   editor_main_initialize ();
+
    roadmap_trip_restore_focus ();
 
    if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
@@ -879,8 +881,6 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_locator_declare (&roadmap_start_no_download);
    roadmap_main_set_periodic (200, roadmap_start_periodic);
-
-   editor_main_initialize ();
 }
 
 
