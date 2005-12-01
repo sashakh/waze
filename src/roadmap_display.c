@@ -507,6 +507,7 @@ int roadmap_display_activate
 
     roadmap_message_set ('#', properties.address);
     roadmap_message_set ('N', properties.street);
+    roadmap_message_set ('T', properties.street_t2s);
     roadmap_message_set ('C', properties.city);
 
     if (! roadmap_message_format (text, sizeof(text), format)) {
