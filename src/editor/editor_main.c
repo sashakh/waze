@@ -31,7 +31,7 @@
 #include "../roadmap_layer.h"
 
 #include "editor_screen.h"
-#include "track/editor_track.h"
+#include "track/editor_track_main.h"
 #include "editor_plugin.h"
 #include "editor_main.h"
 
