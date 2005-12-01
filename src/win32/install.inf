@@ -29,6 +29,7 @@ CopyFiles = Files.Config, Files.Maps , Files.ARM
 [SourceDisksFiles]
 drivers = 1
 preferences = 5
+session = 5
 roadmap.toolbar = 5
 schema = 1
 sprites = 1
@@ -55,6 +56,7 @@ RoadGPS,0,RoadGPS.exe
 [Files.Config]
 drivers,,,0x00000010
 preferences,,,0x00000010
+session,,,0x00000010
 roadmap.toolbar,,,0x00000010
 schema,,,0x00000010
 sprites,,,0x00000010
