@@ -467,7 +467,7 @@ int editor_trkseg_dup (int source_id) {
                editor_shape_add
                         (shape_pos.longitude - from.longitude,
                          shape_pos.latitude - from.latitude,
-                         shape_time - start_time);
+                         (short)(shape_time - start_time));
 
          if (new_last_shape == -1) {
             editor_log

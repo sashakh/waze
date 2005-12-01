@@ -45,12 +45,12 @@
 typedef struct GPSFilter {
 
    int max_distance;
-   int max_time;
+   time_t max_time;
    int point_distance;
 
    int first_point;
    RoadMapGpsPosition last_gps_point;
-   int last_gps_time;
+   time_t last_gps_time;
    int last_azymuth;
 
    RoadMapGpsPosition normalized_gps_point;
