@@ -87,8 +87,8 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
-LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD) -DROADMAP_USE_POSTGRES
+LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
 LIBS=$(RDMLIBS) -lpopt -lm
@@ -103,6 +103,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_list.c \
           roadmap_config.c \
           roadmap_option.c \
+          roadmap_metadata.c \
           roadmap_county.c \
           roadmap_locator.c \
           roadmap_math.c \
@@ -176,6 +177,7 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/db/editor_route.c \
              editor/db/editor_dictionary.c \
              buildmap_dbwrite.c \
+				 buildmap_metadata.c \
              buildmap_messages.c \
              editor/db/editor_override.c \
              editor/export/editor_export.c \
@@ -198,6 +200,7 @@ DMOBJS=$(DMSRCS:.c=.o)
 BMSRCS=buildmap_messages.c \
        buildmap_dictionary.c \
        buildmap_dbwrite.c \
+       buildmap_metadata.c \
        buildmap_city.c \
        buildmap_square.c \
        buildmap_point.c \
@@ -211,6 +214,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_tiger.c \
        buildmap_shapefile.c \
        buildmap_empty.c \
+       buildmap_postgres.c \
        buildmap_place.c \
        buildmap_main.c
 
