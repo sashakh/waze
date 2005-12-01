@@ -44,6 +44,7 @@
 #include "roadmap_street.h"
 #include "roadmap_polygon.h"
 #include "roadmap_county.h"
+#include "roadmap_metadata.h"
 
 #include "roadmap_locator.h"
 
@@ -79,6 +80,9 @@ static void roadmap_locator_configure (void) {
 
    if (RoadMapCountyCache == NULL) {
 
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "metadata", &RoadMapMetadataHandler);
       RoadMapCountyModel =
          roadmap_db_register
             (RoadMapCountyModel, "zip", &RoadMapZipHandler);
