@@ -277,32 +277,45 @@ void buildmap_shape_save (void) {
       while ((abs(one_shape->longitude - longitude) > 0x7fff) ||
              (abs(one_shape->latitude - latitude) > 0x7fff)) {
 
-         double a = (1.0 * (one_shape->latitude - latitude))
-                                / (one_shape->longitude - longitude);
-
          short delta_longitude;
          short delta_latitude;
 
 
-         if (one_shape->longitude - longitude > 0x7fff) {
+         if (one_shape->longitude == longitude) {
 
-            delta_longitude = 0x7fff;
-            delta_latitude  = (a * 0x7fff);
+            delta_longitude = 0;
 
-         } else if (longitude - one_shape->longitude > 0x7fff) {
-
-            delta_longitude = 0 - 0x7fff;
-            delta_latitude  = 0 - (short) (a * 0x7fff);
-
-         } else if (one_shape->latitude - latitude > 0x7fff) {
-
-            delta_latitude = 0x7fff;
-            delta_longitude = (short) (0x7fff / a);
+            if (one_shape->latitude - latitude > 0x7fff) {
+               delta_latitude = 0x7fff;
+            } else {
+               delta_latitude = 0 - 0x7fff;
+            }
 
          } else {
 
-            delta_latitude = 0 - 0x7fff;
-            delta_longitude = 0 - (short) (0x7fff / a);
+            double a = (1.0 * (one_shape->latitude - latitude))
+                                  / (one_shape->longitude - longitude);
+
+            if ((a <= 1) && (a >= -1)) {
+
+               if (one_shape->longitude - longitude > 0x7fff) {
+                  delta_longitude = 0x7fff;
+                  delta_latitude  = (a * 0x7fff);
+               } else {
+                  delta_longitude = 0 - 0x7fff;
+                  delta_latitude  = 0 - (short) (a * 0x7fff);
+               }
+
+            } else {
+
+               if (one_shape->latitude - latitude > 0x7fff) {
+                  delta_latitude = 0x7fff;
+                  delta_longitude = (short) (0x7fff / a);
+               } else {
+                  delta_latitude = 0 - 0x7fff;
+                  delta_longitude = 0 - (short) (0x7fff / a);
+               }
+            }
          }
 
          latitude  += delta_latitude;
@@ -376,32 +389,45 @@ void buildmap_shape_save (void) {
       while ((abs(one_shape->longitude - longitude) > 0x7fff) ||
              (abs(one_shape->latitude - latitude) > 0x7fff)) {
 
-         double a = (1.0 * (one_shape->latitude - latitude))
-                                / (one_shape->longitude - longitude);
-
          short delta_longitude;
          short delta_latitude;
 
 
-         if (one_shape->longitude - longitude > 0x7fff) {
+         if (one_shape->longitude == longitude) {
 
-            delta_longitude = 0x7fff;
-            delta_latitude  = (a * 0x7fff);
+            delta_longitude = 0;
 
-         } else if (longitude - one_shape->longitude > 0x7fff) {
-
-            delta_longitude = 0 - 0x7fff;
-            delta_latitude  = 0 - (short) (a * 0x7fff);
-
-         } else if (one_shape->latitude - latitude > 0x7fff) {
-
-            delta_latitude = 0x7fff;
-            delta_longitude = (short) (0x7fff / a);
+            if (one_shape->latitude - latitude > 0x7fff) {
+               delta_latitude = 0x7fff;
+            } else {
+               delta_latitude = 0 - 0x7fff;
+            }
 
          } else {
 
-            delta_latitude = 0 - 0x7fff;
-            delta_longitude = 0 - (short) (0x7fff / a);
+            double a = (1.0 * (one_shape->latitude - latitude))
+                                  / (one_shape->longitude - longitude);
+
+            if ((a <= 1) && (a >= -1)) {
+
+               if (one_shape->longitude - longitude > 0x7fff) {
+                  delta_longitude = 0x7fff;
+                  delta_latitude  = (a * 0x7fff);
+               } else {
+                  delta_longitude = 0 - 0x7fff;
+                  delta_latitude  = 0 - (short) (a * 0x7fff);
+               }
+
+            } else {
+
+               if (one_shape->latitude - latitude > 0x7fff) {
+                  delta_latitude = 0x7fff;
+                  delta_longitude = (short) (0x7fff / a);
+               } else {
+                  delta_latitude = 0 - 0x7fff;
+                  delta_longitude = 0 - (short) (0x7fff / a);
+               }
+            }
          }
 
          db_byline[line_index].count += 1;
