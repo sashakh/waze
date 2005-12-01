@@ -32,6 +32,8 @@
 #include "roadmap.h"
 #include "roadmap_canvas.h"
 #include "roadmap_screen.h"
+#include "roadmap_trip.h"
+#include "roadmap_display.h"
 #include "roadmap_math.h"
 #include "roadmap_navigate.h"
 #include "roadmap_pointer.h"
@@ -55,7 +57,7 @@
 #include "editor_main.h"
 
 #include "static/editor_dialog.h"
-#include "track/editor_track.h"
+#include "track/editor_track_main.h"
 
 #include "editor_screen.h"
 
@@ -212,6 +214,7 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
     
    RoadMapPosition position;
    PluginLine line;
+   PluginStreet street;
    int distance;
 
    int i;
@@ -222,9 +225,11 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
          (&position, 20, &line, &distance) == -1) {
        
       select_count = 0;
+      roadmap_display_hide ("Selected Street");
       roadmap_screen_redraw ();
       return;
    }
+
    for (i=0; i<select_count; i++) {
       if (roadmap_plugin_same_line(&SelectedLines[i].line, &line)) break;
    }
@@ -237,15 +242,18 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
       }
 
       select_count--;
-      roadmap_screen_redraw ();
-      return;
+
+   } else {
+
+      if (select_count < MAX_LINE_SELECTIONS) {
+
+         SelectedLines[select_count].line = line;
+         select_count++;
+      }
    }
 
-   if (select_count == MAX_LINE_SELECTIONS) return;
-
-   SelectedLines[select_count].line = line;
-   select_count++;
-
+   roadmap_trip_set_point ("Selection", &position);
+   roadmap_display_activate ("Selected Street", &line, &position, &street);
    roadmap_screen_redraw ();
 }
 
