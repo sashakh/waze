@@ -36,6 +36,8 @@
 #include "roadmap_county.h"
 #include "roadmap_line.h"
 #include "roadmap_locator.h"
+#include "roadmap_metadata.h"
+#include "roadmap_messagebox.h"
 #include "buildmap.h"
 
 #include "../editor_log.h"
@@ -74,7 +76,33 @@ static editor_db_header *ActiveDBHeader;
 static char *ActiveBlocks;
 
 static void editor_header_activate (void *context) {
+   
+   int current_fips = roadmap_locator_active ();
+   
    ActiveDBHeader = (editor_db_header *) context;
+   
+   if (roadmap_locator_activate (ActiveDBHeader->fips) != ROADMAP_US_OK) {
+
+      roadmap_messagebox
+         ("Error", "Can't activate roadmap's internal database");
+      ActiveDBHeader = NULL;
+      return;
+   }
+
+   if (strcmp
+         (ActiveDBHeader->rm_map_date,
+          roadmap_metadata_get_attribute ("Version", "Date"))) {
+
+      roadmap_messagebox
+         ("Error",
+          "RoadMap database does match Editor data.\n Delete the editor database.");
+      ActiveDBHeader = NULL;
+      return;
+   }
+
+   if ((current_fips >= 0) && (current_fips != roadmap_locator_active ())) {
+      roadmap_locator_activate (current_fips);
+   }
 }
 
 static void editor_blocks_activate (void *context) {
@@ -268,6 +296,7 @@ static void add_db_string_section (buildmap_db *parent, const char *name) {
 int editor_db_create (int fips) {
 
    char name[100];
+   const char *map_creation_date;
    buildmap_db *root;
    editor_db_header *header;
    int square_count;
@@ -298,6 +327,18 @@ int editor_db_create (int fips) {
       return -1;
    }
 
+   map_creation_date = roadmap_metadata_get_attribute ("Version", "Date");
+
+   if (!strlen (map_creation_date) ||
+         (strlen (map_creation_date) >= (sizeof (header->rm_map_date) - 1))) {
+
+      editor_log
+         (ROADMAP_ERROR,
+          "Can't create new database (RM map has no valid timestamp): %s/%s",
+            roadmap_path_user(), name);
+      editor_log_pop ();
+      return -1;
+   }
 
    root = buildmap_db_add_section (NULL, "header");
    buildmap_db_add_data (root, 1, sizeof(editor_db_header));
@@ -309,6 +350,7 @@ int editor_db_create (int fips) {
    header->edges = *edges;
    header->block_size = DB_DEFAULT_BLOCK_SIZE;
    header->num_total_blocks = DB_DEFAULT_INITIAL_BLOCKS;
+   strcpy (header->rm_map_date, map_creation_date);
 
    add_db_section
       (NULL, "points", NULL, 0, sizeof(editor_db_point), EDITOR_MAX_POINTS);
@@ -389,6 +431,9 @@ static int editor_db_open (int fips) {
       if (EditorCache[i].fips == fips) {
 
          roadmap_db_activate (map_name);
+
+         if (ActiveDBHeader == NULL) return -1;
+
          EditorActiveCounty = fips;
 
          return 0;
@@ -414,6 +459,8 @@ static int editor_db_open (int fips) {
       return -1;
    }
 
+   if (ActiveDBHeader == NULL) return -1;
+    
    EditorCache[oldest].fips = fips;
    EditorCache[oldest].last_access = access;
 
@@ -628,7 +675,9 @@ int editor_db_grow (void) {
     * ActiveDBHeader pointer becomes invalid.
     */
 
-   if (ActiveDBHeader->num_used_blocks < ActiveDBHeader->num_total_blocks) {
+   if (ActiveDBHeader->num_used_blocks <
+         (ActiveDBHeader->num_total_blocks - 10)) {
+
       return 0;
    }
 
@@ -685,9 +734,22 @@ int editor_db_locator(const RoadMapPosition *position) {
 }
 
 
+void editor_db_check_grow (void) {
+
+   if (ActiveDBHeader == NULL) return;
+
+   if (ActiveDBHeader->num_used_blocks >=
+         (ActiveDBHeader->num_total_blocks - 10)) {
+
+      editor_db_grow ();
+   }
+}
+
+
 void *editor_map (roadmap_db *root) {
    return roadmap_db_get_data (root);
 }
+
 
 void editor_unmap (void *context) {}
 

@@ -51,6 +51,11 @@ static int longitude_count;
 static void editor_squares_activate (void *context) {
    RoadMapArea *edges = editor_db_get_active_edges ();
 
+   if (edges == NULL) {
+      ActiveSquaresDB = NULL;
+      return;
+   }
+
    ActiveSquaresDB = (editor_db_section *) context;
    longitude_count = abs(
           (edges->east - edges->west) / EDITOR_DB_LONGITUDE_STEP + 1);

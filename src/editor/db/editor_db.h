@@ -52,6 +52,7 @@ typedef struct editor_db_header_s {
    int num_total_blocks;
    int num_used_blocks;
    int file_size;
+   char rm_map_date[40];
 } editor_db_header;
 
 typedef void (*editor_item_init)  (void *item);
@@ -74,6 +75,7 @@ int editor_db_allocate_items (editor_db_section *section, int count);
 int editor_db_insert_item (editor_db_section *section, void *data, int pos);
 int editor_db_grow (void);
 RoadMapArea *editor_db_get_active_edges(void);
+void editor_db_check_grow (void);
 
 #endif // INCLUDE__EDITOR_DB__H
 
