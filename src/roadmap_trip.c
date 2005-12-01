@@ -64,8 +64,8 @@ static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
                         ROADMAP_CONFIG_ITEM("Focus", "Rotate");
 
 
-/* Default location is: 1 market St, san Francisco, California. */
-#define ROADMAP_DEFAULT_POSITION "-122394181, 37794928"
+/* Default location is: Kikar Ha-Medina, Tel Aviv, Israel. */
+#define ROADMAP_DEFAULT_POSITION "34794810, 32106010"
 
 static int RoadMapTripRotate   = 1;
 static int RoadMapTripModified = 0; /* List needs to be saved ? */
