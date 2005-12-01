@@ -25,6 +25,7 @@
 #define INCLUDE__EDITOR_TRACK_MAIN__H
 
 #include "roadmap_gps.h"
+#include "roadmap_canvas.h"
 
 typedef struct {
 
@@ -52,6 +53,7 @@ int editor_track_point_distance (void);
 RoadMapPosition *track_point_pos (int index);
 RoadMapGpsPosition *track_point_gps (int index);
 int track_point_time (int index);
+int editor_track_draw_current (RoadMapPen pen);
 void editor_track_end (void);
 
 #endif // INCLUDE__EDITOR_TRACK_MAIN__H

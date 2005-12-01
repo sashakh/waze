@@ -473,7 +473,10 @@ editor_gps_update (time_t gps_time,
                    const RoadMapGpsPosition *gps_position) {
 
    if (editor_is_enabled()) {
+
+      editor_track_util_set_focus ((RoadMapPosition *)gps_position);
       track_rec_locate(gps_time, dilution, gps_position);
+      editor_track_util_release_focus ();
    }
 }
 

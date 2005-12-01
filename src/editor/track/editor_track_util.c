@@ -58,7 +58,7 @@
 #include "editor_track_main.h"
 #include "editor_track_util.h"
 
-#define FOCUS_RANGE 1000
+#define FOCUS_RANGE 10000
 
 #define SPLIT_START  0x1
 #define SPLIT_END    0x2
@@ -66,7 +66,7 @@
 #define SPLIT_CHECK  0x8
 
 
-static void editor_track_util_set_focus(const RoadMapPosition *position) {
+void editor_track_util_set_focus(const RoadMapPosition *position) {
 
    RoadMapArea focus;
 
@@ -79,7 +79,7 @@ static void editor_track_util_set_focus(const RoadMapPosition *position) {
 }
 
 
-static void editor_track_util_release_focus() {
+void editor_track_util_release_focus() {
 
    roadmap_math_release_focus ();
 }
@@ -397,16 +397,16 @@ static void adjust_connect_node (NodeNeighbour *node, PluginLine *line) {
 
    editor_track_util_node_pos (node, &split_position);
 
-   editor_track_util_set_focus(&split_position);
+   //editor_track_util_set_focus(&split_position);
    if (!roadmap_plugin_get_distance (&split_position, line, &result)) {
 
       assert (0);
       
-      roadmap_math_release_focus();
+      //editor_track_util_release_focus ();
       node->id = -1;
       return;
    }
-   editor_track_util_release_focus ();
+   //editor_track_util_release_focus ();
 
    assert (result.distance < 3*editor_track_point_distance ());
 
@@ -454,12 +454,12 @@ int editor_track_util_get_distance (const RoadMapPosition *point,
                                     RoadMapNeighbour *result) {
    int res;
 
-   editor_track_util_set_focus(point);
+   //editor_track_util_set_focus (point);
    roadmap_plugin_activate_db (line);
 
    res = roadmap_plugin_get_distance (point, line, result);
       
-   roadmap_math_release_focus();
+   //editor_track_util_release_focus ();
    return res;
 }
 
@@ -485,7 +485,7 @@ int editor_track_util_find_street
       previous_line = NULL;
    }
 
-   editor_track_util_set_focus((RoadMapPosition*)gps_position);
+   //editor_track_util_set_focus((RoadMapPosition*)gps_position);
 
    layer_count = roadmap_layer_all_roads (layers, 128);
 
@@ -497,7 +497,7 @@ int editor_track_util_find_street
            ((RoadMapPosition *)gps_position, layers, layer_count,
              neighbourhood, count, max);
 
-   editor_track_util_release_focus ();
+   //editor_track_util_release_focus ();
 
    
    for (i = 0, *best = roadmap_fuzzy_false(), *found = 0; i < count; ++i) {

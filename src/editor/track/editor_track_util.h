@@ -78,5 +78,8 @@ void editor_track_add_trkseg
    
 int editor_track_util_create_db (const RoadMapPosition *pos);
 
+void editor_track_util_set_focus(const RoadMapPosition *position);
+void editor_track_util_release_focus();
+
 #endif // INCLUDE__EDITOR_TRACK_UTIL__H
 

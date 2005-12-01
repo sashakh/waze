@@ -282,7 +282,7 @@ int editor_trkseg_split (int trkseg,
    focus.south = split_position->latitude - 1000;
    focus.north = split_position->latitude + 1000;
     
-   roadmap_math_set_focus (&focus);
+   //roadmap_math_set_focus (&focus);
 
    editor_point_position (trk_from, &to);
 
@@ -316,7 +316,7 @@ int editor_trkseg_split (int trkseg,
       from = to;
    }
 
-   roadmap_math_release_focus ();
+   //roadmap_math_release_focus ();
 
    if (smallest_distance == 0x7fffffff) {
       editor_log (ROADMAP_ERROR, "split position is too far from target line!");
