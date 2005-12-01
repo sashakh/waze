@@ -54,9 +54,9 @@ static int   ErrorTotal = 0;
 static int   LastProgress = 0;
 
 
-void buildmap_set_source (char *name) {
+void buildmap_set_source (const char *name) {
 
-   char *p;
+   const char *p;
 
    /* Get the file's base name (for error display purpose). */
 

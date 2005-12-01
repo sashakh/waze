@@ -30,7 +30,7 @@
 #define BUILDMAP_BLOCK  2048 /* memory allocation block. */
 
 
-void buildmap_set_source (char *name);
+void buildmap_set_source (const char *name);
 void buildmap_set_line   (int line);
 
 void buildmap_fatal    (int column, char *format, ...);
@@ -46,10 +46,10 @@ typedef struct dictionary_volume *BuildMapDictionary;
 
 BuildMapDictionary buildmap_dictionary_open (char *name);
 RoadMapString buildmap_dictionary_add
-                (BuildMapDictionary dictionary, char *string, int length);
+             (BuildMapDictionary dictionary, const char *string, int length);
 
 RoadMapString buildmap_dictionary_locate
-                (BuildMapDictionary dictionary, char *string);
+                (BuildMapDictionary dictionary, const char *string);
 char *buildmap_dictionary_get
          (BuildMapDictionary dictionary, RoadMapString index);
 

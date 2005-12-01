@@ -239,7 +239,7 @@ buildmap_dictionary_add_reference (struct dictionary_volume *dictionary,
 static int
 buildmap_dictionary_search
    (struct dictionary_volume *dictionary,
-    char *string,
+    const char *string,
     int   length,
     struct dictionary_tree **last_tree) {
 
@@ -247,8 +247,8 @@ buildmap_dictionary_search
    struct dictionary_reference *reference;
 
    int   i;
-   char *cursor;
-   char *stored;
+   const char *cursor;
+   const char *stored;
 
 
    *last_tree = tree = dictionary->tree;
@@ -605,7 +605,7 @@ BuildMapDictionary buildmap_dictionary_open (char *name) {
 
 
 RoadMapString buildmap_dictionary_add
-                 (BuildMapDictionary dictionary, char *string, int length) {
+           (BuildMapDictionary dictionary, const char *string, int length) {
 
    int  cursor;
    char character;
@@ -738,7 +738,7 @@ char *buildmap_dictionary_get
 
 
 RoadMapString buildmap_dictionary_locate
-                 (BuildMapDictionary dictionary, char *string) {
+                 (BuildMapDictionary dictionary, const char *string) {
 
    struct dictionary_tree *tree;
 
