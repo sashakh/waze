@@ -364,7 +364,7 @@ int editor_street_get_connected_lines (const RoadMapPosition *crossing,
       }
 
       roadmap_plugin_set_line
-         (&plugin_lines[count++], EditorPluginID, i, cfcc, fips);
+         (&plugin_lines[count++], EditorPluginID, line, cfcc, fips);
 
       if (count >= size) return count;
    }
