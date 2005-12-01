@@ -82,6 +82,8 @@ int editor_point_add (RoadMapPosition *position, int flags, int roadmap_id) {
       id = editor_db_add_item (ActivePointsDB, &point);
    }
 
+   /* FIXME this is a temporary solution for my bad DB design */
+   editor_db_check_grow ();
    return id;
 }
 
