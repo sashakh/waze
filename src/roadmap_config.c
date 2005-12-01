@@ -423,7 +423,7 @@ static int roadmap_config_set_item
 
 static char *roadmap_config_skip_until (char *p, char c) {
 
-   while (*p != '\n' && *p != c && *p > 0) p++;
+   while (*p != '\n' && *p != c && *p != 0) p++;
    return p;
 }
 
