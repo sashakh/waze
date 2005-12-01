@@ -148,7 +148,10 @@ static void roadmap_start_about (void) {
                        "(c) " ROADMAP_YEAR " Pascal Martin\n"
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
-                       "for Linux & UNIX");
+                       "for Linux & UNIX"
+		       "\n\nEditor Plugin 0.2\n"
+		       "Ehud Shabtai\n"
+		       "eshabtai@gmail.com");
 }
 
 static void roadmap_start_export_data (void) {
