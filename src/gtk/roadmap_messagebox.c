@@ -80,3 +80,13 @@ void roadmap_messagebox (const char *title, const char *text) {
    gtk_widget_show_all (GTK_WIDGET(dialog));
 }
 
+
+void roadmap_messagebox_wait (const char *title, const char *text) {
+
+   /* gtk_window_set_modal does not seem to do the trick (i.e.
+    * halt the application on its course), so we default to
+    * the normal message box.
+    */
+   roadmap_messagebox (title, text);
+}
+

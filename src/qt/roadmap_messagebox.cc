@@ -34,3 +34,7 @@ extern "C" {
 void roadmap_messagebox(const char* title, const char* message) {
 	QMessageBox::information(0, roadmap_start_get_title(title), message);
 }
+
+void roadmap_messagebox_wait(const char* title, const char* message) {
+	QMessageBox::critical(0, roadmap_start_get_title(title), message);
+}

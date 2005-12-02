@@ -683,7 +683,7 @@ void roadmap_start_error (const char *text) {
 }
 
 void roadmap_start_fatal (const char *text) {
-   roadmap_messagebox ("Fatal Error", text);
+   roadmap_messagebox_wait ("Fatal Error", text);
 }
 
 

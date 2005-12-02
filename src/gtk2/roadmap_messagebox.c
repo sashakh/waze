@@ -1,4 +1,4 @@
-/* roadmap_messageboc.c - manage the roadmap dialogs used for user info.
+/* roadmap_messagebox.c - manage the roadmap dialogs used for user info.
  *
  * LICENSE:
  *
@@ -47,7 +47,17 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
    return FALSE;
 }
 
-void roadmap_messagebox (const char *title, const char *text) {
+static gint roadmap_messagebox_ok_modal (GtkWidget *w, gpointer data) {
+
+   GtkWidget *dialog = (GtkWidget *) data;
+
+   gtk_dialog_response (GTK_DIALOG(dialog), 1);
+
+   return FALSE;
+}
+
+static void roadmap_messagebox_show (const char *title,
+                                     const char *text, int modal) {
 
    GtkWidget *ok;
    GtkWidget *label;
@@ -77,12 +87,31 @@ void roadmap_messagebox (const char *title, const char *text) {
    gtk_container_set_border_width
       (GTK_CONTAINER(GTK_BOX(GTK_DIALOG(dialog)->vbox)), 4);
 
-   g_signal_connect (ok, "clicked", (GCallback) roadmap_messagebox_ok, dialog);
+   g_signal_connect (ok, "clicked",
+                     modal ? (GCallback) roadmap_messagebox_ok_modal :
+                             (GCallback) roadmap_messagebox_ok,
+                     dialog);
 
    gtk_widget_grab_default (ok);
 
    gtk_grab_add (dialog);
 
    gtk_widget_show_all (GTK_WIDGET(dialog));
+
+   if (modal) {
+      gtk_dialog_run (GTK_DIALOG(dialog));
+
+      gtk_grab_remove (dialog);
+      gtk_widget_destroy (dialog);
+   }
+}
+
+
+void roadmap_messagebox (const char *title, const char *message) {
+   roadmap_messagebox_show (title, message, 0);
+}
+
+void roadmap_messagebox_wait (const char *title, const char *message) {
+   roadmap_messagebox_show (title, message, 1);
 }
 

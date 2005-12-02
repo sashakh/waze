@@ -31,17 +31,28 @@
 #include "../roadmap_messagebox.h"
 
 
-void roadmap_messagebox (const char *title, const char *text)
+static void roadmap_messagebox_show (const char *title,
+                                     const char *text, int options)
 {
 #ifdef _UNICODE
 	LPWSTR u_title, u_text;
 	u_title = ConvertToUNICODE(title);
 	u_text = ConvertToUNICODE(text);
-	MessageBox(0, u_text, u_title, MB_OK);
+	MessageBox(0, u_text, u_title, MB_OK|options);
 	free(u_title);
 	free(u_text);
 #else
-	MessageBox(0, text, title, MB_OK);
+	MessageBox(0, text, title, MB_OK|options);
 #endif
+}
+
+void roadmap_messagebox (const char *title, const char *text)
+{
+   roadmap_messagebox_show (title, text, 0);
+}
+
+void roadmap_messagebox_wait (const char *title, const char *text)
+{
+   roadmap_messagebox_show (title, text, MB_ICONERROR);
 }
 

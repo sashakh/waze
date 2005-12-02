@@ -114,7 +114,7 @@ void roadgps_start_error (const char *text) {
 }
 
 void roadgps_start_fatal (const char *text) {
-   roadmap_messagebox ("Fatal Error", text);
+   roadmap_messagebox_wait ("Fatal Error", text);
 }
 
 
