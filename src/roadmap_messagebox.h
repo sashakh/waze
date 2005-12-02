@@ -24,6 +24,7 @@
 #ifndef INCLUDE__ROADMAP_MESSAGEBOX__H
 #define INCLUDE__ROADMAP_MESSAGEBOX__H
 
-void roadmap_messagebox (const char *title, const char *message);
+void roadmap_messagebox      (const char *title, const char *message);
+void roadmap_messagebox_wait (const char *title, const char *message);
 
 #endif // INCLUDE__ROADMAP_MESSAGEBOX__H
