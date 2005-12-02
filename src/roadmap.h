@@ -57,6 +57,12 @@ int  roadmap_log_enabled (int level, char *source, int line);
 #define roadmap_check_allocated(p) \
             roadmap_check_allocated_with_source_line(__FILE__,__LINE__,p)
 
+typedef void (* RoadMapLogRedirect) (const char *message);
+
+RoadMapLogRedirect roadmap_log_redirect (int level,
+                                         RoadMapLogRedirect redirect);
+
+
 #define ROADMAP_SHOW_AREA        1
 #define ROADMAP_SHOW_SQUARE      2
 

@@ -39,6 +39,7 @@
 #include "roadmap_factory.h"
 #include "roadmap_math.h"
 #include "roadmap_main.h"
+#include "roadmap_messagebox.h"
 
 #include "roadgps_logger.h"
 #include "roadgps_screen.h"
@@ -106,6 +107,15 @@ static const char *RoadGpsStartKeyBinding[] = {
 
    NULL
 };
+
+
+void roadgps_start_error (const char *text) {
+   roadmap_messagebox ("Error", text);
+}
+
+void roadgps_start_fatal (const char *text) {
+   roadmap_messagebox ("Fatal Error", text);
+}
 
 
 static void roadgps_start_add_gps (RoadMapIO *io) {
@@ -217,6 +227,9 @@ void roadmap_start (int argc, char **argv) {
    // Do not forget to set the trace file using the env. variable MALLOC_TRACE.
    mtrace();
 #endif
+
+   roadmap_log_redirect (ROADMAP_MESSAGE_ERROR, roadgps_start_error);
+   roadmap_log_redirect (ROADMAP_MESSAGE_FATAL, roadgps_start_fatal);
 
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);

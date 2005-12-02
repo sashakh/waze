@@ -678,6 +678,15 @@ static void roadmap_gps_update
 }
 
 
+void roadmap_start_error (const char *text) {
+   roadmap_messagebox ("Error", text);
+}
+
+void roadmap_start_fatal (const char *text) {
+   roadmap_messagebox ("Fatal Error", text);
+}
+
+
 static void roadmap_start_periodic (void) {
 
    roadmap_spawn_check ();
@@ -840,6 +849,9 @@ void roadmap_start (int argc, char **argv) {
     */
    mtrace();
 #endif
+
+   roadmap_log_redirect (ROADMAP_MESSAGE_ERROR, roadmap_start_error);
+   roadmap_log_redirect (ROADMAP_MESSAGE_FATAL, roadmap_start_fatal);
 
    roadmap_config_initialize ();
 

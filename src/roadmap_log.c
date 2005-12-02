@@ -33,6 +33,7 @@
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -48,19 +49,37 @@ static const char *RoadMapLogStack[ROADMAP_LOG_STACK_SIZE];
 static int         RoadMapLogStackCursor = 0;
 
 static struct roadmap_message_descriptor {
+
    int   level;
    int   show_stack;
    int   save_to_file;
    int   do_exit;
    char *prefix;
+
+   RoadMapLogRedirect redirect;
+
 } RoadMapMessageHead [] = {
-   {ROADMAP_MESSAGE_DEBUG,   0, 0, 0, "++"},
-   {ROADMAP_MESSAGE_INFO,    0, 0, 0, "--"},
-   {ROADMAP_MESSAGE_WARNING, 0, 0, 0, "=="},
-   {ROADMAP_MESSAGE_ERROR,   1, 1, 0, "**"},
-   {ROADMAP_MESSAGE_FATAL,   1, 1, 1, "##"},
-   {0,                       1, 1, 1, "??"}
+   {ROADMAP_MESSAGE_DEBUG,   0, 0, 0, "++", NULL},
+   {ROADMAP_MESSAGE_INFO,    0, 0, 0, "--", NULL},
+   {ROADMAP_MESSAGE_WARNING, 0, 0, 0, "==", NULL},
+   {ROADMAP_MESSAGE_ERROR,   1, 1, 0, "**", NULL},
+   {ROADMAP_MESSAGE_FATAL,   1, 1, 1, "##", NULL},
+   {0,                       1, 1, 1, "??", NULL}
 };
+
+
+static void roadmap_log_noredirect (const char *message) {}
+
+
+static struct roadmap_message_descriptor *roadmap_log_find (int level) {
+
+   struct roadmap_message_descriptor *category;
+
+   for (category = RoadMapMessageHead; category->level != 0; ++category) {
+      if (category->level == level) break;
+   }
+   return category;
+}
 
 
 void roadmap_log_push (const char *description) {
@@ -136,6 +155,22 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
    }
 }
 
+static void roadmap_redirect_one (struct roadmap_message_descriptor *category,
+                                  char *format,
+                                  va_list ap) {
+
+   char message[1024];
+
+   if (category->redirect != NULL) {
+
+      vsnprintf(message, sizeof(message)-1, format, ap);
+      message[0] = toupper(message[0]);
+
+      category->redirect (message);
+   }
+}
+
+
 void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    FILE *file;
@@ -160,9 +195,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
       if (debug == NULL) return;
    }
 
-   for (category = RoadMapMessageHead; category->level != 0; ++category) {
-      if (category->level == level) break;
-   }
+   category = roadmap_log_find (level);
 
    va_start(ap, format);
 
@@ -185,6 +218,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
    }
 
    roadmap_log_one (category, stderr, saved, source, line, format, ap);
+   roadmap_redirect_one (category, format, ap);
 
    va_end(ap);
 
@@ -205,3 +239,22 @@ void roadmap_check_allocated_with_source_line
         roadmap_log (ROADMAP_MESSAGE_FATAL, source, line, "no more memory");
     }
 }
+
+
+RoadMapLogRedirect roadmap_log_redirect (int level,
+                                         RoadMapLogRedirect redirect) {
+
+   RoadMapLogRedirect old;
+   struct roadmap_message_descriptor *category;
+
+
+   category = roadmap_log_find (level);
+
+   old = category->redirect;
+   category->redirect = redirect;
+
+   if (old == NULL) old = roadmap_log_noredirect;
+
+   return old;
+}
+
