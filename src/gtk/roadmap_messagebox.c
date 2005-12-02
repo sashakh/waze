@@ -1,4 +1,4 @@
-/* roadmap_dialog.c - manage the roadmap dialogs used for user input.
+/* roadmap_messagebox.c - manage the roadmap dialogs used for user info.
  *
  * LICENSE:
  *
