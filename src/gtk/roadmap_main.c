@@ -69,7 +69,9 @@ static GtkWidget      *RoadMapMainToolbar = NULL;
 static GtkWidget      *RoadMapMainStatus  = NULL;
 
 
-static void roadmap_main_close (GtkWidget *widget, gpointer data) {
+static void roadmap_main_close (GtkWidget *widget,
+                                GdkEvent *event,
+                                gpointer data) {
 
    roadmap_main_exit ();
 }
@@ -155,8 +157,8 @@ void roadmap_main_new (const char *title, int width, int height) {
 
       roadmap_main_set_window_size (RoadMapMainWindow, width, height);
 
-      gtk_signal_connect (GTK_OBJECT(RoadMapMainWindow), "destroy",
-                          GTK_SIGNAL_FUNC(gtk_widget_destroyed),
+      gtk_signal_connect (GTK_OBJECT(RoadMapMainWindow), "destroy_event",
+                          GTK_SIGNAL_FUNC(roadmap_main_close),
                           RoadMapMainWindow);
 
       gtk_signal_connect (GTK_OBJECT(RoadMapMainWindow), "delete_event",

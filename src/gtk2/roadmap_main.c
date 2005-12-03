@@ -132,7 +132,9 @@ static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
 #endif // ROADMAP_USES_GPE
 
 
-static void roadmap_main_close (GtkWidget *widget, gpointer data) {
+static void roadmap_main_close (GtkWidget *widget,
+                                GdkEvent *event,
+                                gpointer data) {
 
    roadmap_main_exit ();
 }
@@ -230,8 +232,8 @@ void roadmap_main_new (const char *title, int width, int height) {
 
       roadmap_main_set_window_size (RoadMapMainWindow, width, height);
 
-      g_signal_connect (RoadMapMainWindow, "destroy",
-                        (GCallback)gtk_widget_destroyed,
+      g_signal_connect (RoadMapMainWindow, "destroy_event",
+                        (GCallback)roadmap_main_close,
                         RoadMapMainWindow);
 
       g_signal_connect (RoadMapMainWindow, "delete_event",
