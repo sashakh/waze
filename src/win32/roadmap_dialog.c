@@ -299,6 +299,7 @@ void roadmap_dialog_new_color (const char *frame, const char *name)
 void roadmap_dialog_new_choice (const char *frame,
 								const char *name,
 								int count,
+								int current,
 								char **labels,
 								void **values,
 								RoadMapDialogCallback callback)
@@ -325,7 +326,7 @@ void roadmap_dialog_new_choice (const char *frame,
 	}
 	child->choice = choice;
 	child->callback = callback;
-	child->value  = choice[0].value;
+	child->value  = choice[current].value;
 }
 
 

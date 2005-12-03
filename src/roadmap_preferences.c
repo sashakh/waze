@@ -34,6 +34,7 @@
 #include "roadmap_gui.h"
 #include "roadmap_config.h"
 #include "roadmap_dialog.h"
+#include "roadmap_screen.h"
 #include "roadmap_preferences.h"
 
 
@@ -94,7 +95,8 @@ static void roadmap_preferences_ok (const char *name, void *data) {
       }
    }
 
-   roadmap_preferences_cancel (name, data);
+   roadmap_dialog_hide (name);
+   roadmap_screen_redraw ();
 }
 
 static void roadmap_preferences_force (const char *name, void *data) {
@@ -160,6 +162,8 @@ static void roadmap_preferences_new_dialog
 
    while (cursor->reference != NULL) {
 
+      int current = 0;
+
       value = roadmap_config_get (cursor);
       roadmap_preferences_new_item (context, cursor);
 
@@ -167,27 +171,32 @@ static void roadmap_preferences_new_dialog
 
       case ROADMAP_CONFIG_ENUM:
 
-         count = 1;
-         values[0] = (char *)value; /* Always make the original value appear first. */
+         count = 0;
 
          for (enumeration = roadmap_config_get_enumeration (cursor);
               enumeration != NULL;
               enumeration = roadmap_config_get_enumeration_next (enumeration)) {
 
+            if (count >= (int)(sizeof(values) / sizeof(char *))) {
+               roadmap_log (ROADMAP_FATAL,
+                            "too many values for item %s.%s",
+                            cursor->category, cursor->name);
+            }
+
             values[count] = roadmap_config_get_enumeration_value (enumeration);
 
-            if (strcmp (values[count], value) != 0) {
-
-               if (count >= 256) {
-                  roadmap_log (ROADMAP_FATAL,
-                               "too many values for item %s.%s",
-                               cursor->category, cursor->name);
-               }
-               count += 1;
+            if (strcasecmp (values[count], value) == 0) {
+               current = count;
             }
+            count += 1;
          }
-         roadmap_dialog_new_choice
-            (cursor->category, cursor->name, count, values, (void **)values, NULL);
+         roadmap_dialog_new_choice (cursor->category,
+                                    cursor->name,
+                                    count,
+                                    current,
+                                    values,
+                                    (void **)values,
+                                    NULL);
          break;
 
       case ROADMAP_CONFIG_COLOR:

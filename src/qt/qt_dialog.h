@@ -57,6 +57,7 @@ protected:
 	QString name;
 	RoadMapDialogCallback callback;
 	QVector<Item> items;
+   int current;
 	QWidget* widget;
 
 public:
@@ -71,7 +72,7 @@ public:
 
 	Entry(RMapDialog* dialog, int type, QString name);
 	Entry(RMapDialog* dialog, int type, QString name, QVector<Item>& items,
-		RoadMapDialogCallback callback);
+		int current, RoadMapDialogCallback callback);
 
 	~Entry();
 
@@ -102,8 +103,13 @@ public:
 	void addTextEntry(const char* frame, const char* name);
 	void addLabelEntry(const char* frame, const char* name);
 	void addColorEntry(const char* frame, const char* name);
-	void addChoiceEntry(const char* frame, const char* name, int count,
-		char** labels, void** values, RoadMapDialogCallback callback);
+	void addChoiceEntry(const char* frame,
+                       const char* name,
+                       int count,
+                       int current,
+                       char** labels,
+                       void** values,
+                       RoadMapDialogCallback callback);
 
 	void addListEntry(const char* frame, const char* name);
 	void setListEntryValues(const char* frame, const char* name, int count,

@@ -347,6 +347,7 @@ void roadmap_dialog_new_color (const char *frame, const char *name) {
 void roadmap_dialog_new_choice (const char *frame,
                                 const char *name,
                                 int count,
+                                int current,
                                 char **labels,
                                 void **values,
                                 RoadMapDialogCallback callback) {
@@ -384,6 +385,7 @@ void roadmap_dialog_new_choice (const char *frame,
       gtk_widget_show (menu_item);
    }
    gtk_option_menu_set_menu (GTK_OPTION_MENU(w), menu);
+   gtk_option_menu_set_history (GTK_OPTION_MENU(w), current);
 
    if (child->choice != NULL) {
       free(child->choice);

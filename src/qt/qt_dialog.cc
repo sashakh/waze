@@ -84,8 +84,13 @@ void RMapDialog::addColorEntry(const char* frameName, const char* name) {
 	addTextEntry(frameName, name);
 }
 
-void RMapDialog::addChoiceEntry(const char* frameName, const char* name, int count,
-	char** labels, void** values, RoadMapDialogCallback callback) {
+void RMapDialog::addChoiceEntry(const char* frameName,
+                                const char* name,
+                                int count,
+                                int current,
+                                char** labels,
+                                void** values,
+                                RoadMapDialogCallback callback) {
 
 	QList<Entry>* frame = getFrame(frameName);
 
@@ -97,7 +102,8 @@ void RMapDialog::addChoiceEntry(const char* frameName, const char* name, int cou
 		items.insert(i, item);
 	}
 
-	Entry* entry = new Entry(this, Entry::ChoiceEntry, name, items, callback);
+	Entry* entry =
+      new Entry(this, Entry::ChoiceEntry, name, items, current, callback);
 	frame->append(entry);
 }
 
@@ -131,7 +137,8 @@ void RMapDialog::setListEntryValues(const char* frameName, const char* name,
 
 void RMapDialog::addButton(char* label, RoadMapDialogCallback callback) {
 	QVector<Item> items;
-	Entry* entry = new Entry(this, Entry::ButtonEntry, label, items, callback);
+	Entry* entry =
+      new Entry(this, Entry::ButtonEntry, label, items, 0, callback);
 	buttons.append(entry);
 }
 
@@ -221,14 +228,16 @@ Entry::Entry(RMapDialog* dlg, int etype, QString ename) {
 	name = ename;
 	callback = 0;
 	widget = 0;
+   current = 0;
 }
 
 Entry::Entry(RMapDialog* dlg, int etype, QString ename, QVector<Item>& eitems,
-	RoadMapDialogCallback ecallback) {
+	int ecurrent, RoadMapDialogCallback ecallback) {
 
 	dialog = dlg;
 	type = etype;
 	name = ename;
+   current = ecurrent;
 	callback = ecallback;
 
 	items.resize(eitems.count());
@@ -264,6 +273,7 @@ QWidget* Entry::create(QWidget* parent) {
 				for(uint i = 0; i < items.count(); i++) {
 					cb->insertItem(items[i]->label);
 				}
+            cb->setCurrentItem(current);
 
 				connect(cb, SIGNAL(activated(int)), this, SLOT(run()));
 	
@@ -339,11 +349,21 @@ void Entry::setValue(const void* val) {
 			break;
 
 		case ChoiceEntry: 
-			items[((QComboBox*) widget)->currentItem()]->value = (char *)val;
+         for (uint i = 0; i < items.count(); ++i) {
+            if (items[i] == val) {
+               ((QComboBox*) widget)->setCurrentItem(i);
+               break;
+            }
+         }
 			break;
 
 		case ListEntry:
-			items[((QListBox*) widget)->currentItem()]->value = (char *)val;
+         for (uint i = 0; i < items.count(); ++i) {
+            if (items[i] == val) {
+               ((QListBox*) widget)->setCurrentItem(i);
+               break;
+            }
+         }
 			break;
 
 		case LabelEntry:
