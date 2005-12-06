@@ -1914,16 +1914,20 @@ CONFIGURATION
          <<Default:>> gpsd://localhost
 
          <<Comment:>> The gpsd protocol (gpsd://<hostname>[:<port>]) uses
-		  the NMEA raw mode of gpsd, while the gpsd2 protocol
-		  (gpsd2://<hostname>[:<port>]) uses the gpsd native protocol. 
-		  The object protocol (object:<id>) makes it possible to use
-		  an internal RoadMap object as GPS source (so that a driver
-		  can feed the GPS position to RoadMap).  The file protocol
-		  (file://<path>) is also possible, for debug.  If gpsd is not
-		  available, one can use a GPS source connected directly to a
-		  serial port.  (tty://<device-path>[:baudrate]) An example
-		  would be "tty://dev/ttyS0".  4800 baud is the NMEA standard,
-		  but a different speed can be given: "tty://dev/ttyS0:19200". 
+                  the NMEA raw mode of gpsd, while the gpsd2 protocol
+                  (gpsd2://<hostname>[:<port>]) uses the gpsd native protocol. 
+                  The object protocol (object:<id>) makes it possible to use
+                  an internal RoadMap object as GPS source (so that a driver
+                  can feed the GPS position to RoadMap).  The file protocol
+                  (file://<path>) is also possible, for debug.  If gpsd is not
+                  available, one can use a GPS source connected directly to a
+                  serial port.  (tty://<device-path>[:baudrate])  An example
+                  would be "tty://dev/ttyS0".  4800 baud is the NMEA standard,
+                  but a different speed can be given: "tty://dev/ttyS0:19200". 
+                  (Note that using direct tty access prevents one from running
+                  both RoadMap and RoadGps at the same time, since there is no
+                  mechanism in place to allow sharing the serial port.  Using
+                  gpsd is recommended.)
 
     [GPS.Color] The color used for the current GPS position symbol.
 
