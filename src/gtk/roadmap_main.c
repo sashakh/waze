@@ -502,6 +502,7 @@ void roadmap_main_exit (void) {
    gtk_main_quit();
 }
 
+void roadmap_signals_init(void);
 
 int main (int argc, char **argv) {
 
@@ -513,6 +514,8 @@ int main (int argc, char **argv) {
       RoadMapMainIo[i].io.os.file = -1;
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
    }
+
+   roadmap_signals_init();
 
    roadmap_start (argc, argv);
 

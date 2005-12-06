@@ -53,6 +53,7 @@ RMLIBSRCS=roadmap_keyboard.c \
           roadmap_messagebox.c \
           roadmap_dialog.c \
           roadmap_fileselection.c \
+          roadmap_signals.c \
           roadmap_canvas.c
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)
