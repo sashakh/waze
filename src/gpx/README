@@ -1,0 +1,17 @@
+
+The files in this gpx subdirectory are derived from the code for
+the excellent GPS data translation and filtering program called
+GPSBabel, available at http://www.gpsbabel.org.  The starting
+point for the code here was at roughly their release level 1.2.8. 
+The changes made here were to allow more flexible access to the
+route and waypoint data structures, and to reduce the codesize as
+a benefit of only supporting GPX format. 
+
+(The other big difference between this and the current gpsbabel
+code is the absence here of the more sophisticated foreign
+character set translation that gpsbabel has in their cet
+subdirectory -- we use the more primitive 1.2.7 character
+translation.)
+
+Paul Fox
+November, 2005
