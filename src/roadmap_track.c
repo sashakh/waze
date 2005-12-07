@@ -129,6 +129,7 @@ static RoadMapTrackPolicy roadmap_track_policy(void)
 
 
 static void roadmap_track_gps_update (int gps_time,
+                   const RoadMapGpsPrecision *dilution,
                    const RoadMapGpsPosition *gps_position) {
 
     int need_point = 0;
