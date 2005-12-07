@@ -498,7 +498,7 @@ INSTALLATION
       The complete list of options for building RoadMap is as follow:
 
       [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
-      aslo generate the necessary information & code for profiling.
+      also generates the necessary information & code for profiling.
 
       [SQL=SQLITE] Use the sqlite library. This option has no practical effect
       at this time.
@@ -842,7 +842,7 @@ USING ROADMAP
    is possible to select another mode: show the current destination point
    (see the section "Managing Trips" below), show a specific location, track
    the GPS position with the north shown up, track the GPS position with the
-   direction of movement shown up.
+   direction of movement shown up, etc.
 
    When RoadMap is in GPS tracking mode, the map view will reflect the
    movement of the car so that the GPS sprite will remains at the predefined
@@ -876,7 +876,7 @@ USING ROADMAP
 
 * USING THE {MOUSE} OR PEN
 
-   RoadMap use mostly one mouse button (the left button on a 3 buttons mouse).
+   RoadMap uses mostly one mouse button (the left button on a 3 button mouse).
    This is because RoadMap is designed for a PDA, where pens are used.
 
    A short mouse Click or pen tap on the map screen displays the name of the
@@ -916,7 +916,7 @@ USING ROADMAP
    screen information will be displayed each time, but the voice messge
    will be provided only once. As voice messages tend to take a significant
    time to be produced, RoadMap memorizes the latest message requested while
-   the current message was produced and will 'air" it after the current
+   the current message was produced and will "air" it after the current
    message has been completed. Only one message is stored that way, the last
    requested one: any message generated in between is ignored.
 
@@ -1001,6 +1001,8 @@ USING ROADMAP
    R              |     Set the map back to the default zoom level.
 *-----------------*-----------------------------------------------------*
    S              |     Start tracking the current trip.
+*-----------------*-----------------------------------------------------*
+   T              |     Toggle display of the current track.
 *-----------------*-----------------------------------------------------*
    U              |     Center the map on the GPS position (north up).
 *-----------------*-----------------------------------------------------*
@@ -1115,10 +1117,10 @@ USING ROADMAP
 
 * WAYPOINTS AND ADDRESSES
 
-   RoadMap manages four types of points: a location point (selected using
+   RoadMap manages several types of points: a location point (selected using
    a street address or the mouse), the GPS position (updated automatically
-   if a GPS fix is available), a destination point, and an arbitrary number
-   of user-defined waypoints.
+   if a GPS fix is available), and an arbitrary number of user-defined
+   waypoints, which may appear as part of a route or a track.
 
    One can select which one of these locations serves as the center of
    the map. The GPS and waypoints positions are special cases: see the
@@ -1126,9 +1128,10 @@ USING ROADMAP
 
    The location point is really a buffer for the selection of a street
    block. Once selected, the point can be defined as a (new) waypoint or
-   as the destination. Thus the definition of a destination or waypoint
-   is a two step procedure: (1) select a location, and (2) set the selected
-   point as a waypoint or the destination point (in the Trip menu).
+   as the destination, by using it to establish a new trip.  Thus the
+   definition of a destination or waypoint is a two step procedure:  (1)
+   select a location, and (2) use the selected point to create a waypoint or 
+   a new route (in the Trip menu).
 
    The location point can be entered in one of three ways:
    - by clicking on a location on the map,
@@ -1277,56 +1280,267 @@ USING ROADMAP
 
 * MANAGING {TRIPS}
    
-   A trip is made of one destination point and many user-defined waypoints.
-   The purpose of a RoadMap trip is to describe a real-life trip and to
-   provide the user information about the trip progress.
-   
-   RoadMap supports an infinite number of trips: each trip context is saved
-   in a trip file. One trip at a time can be edited or activated. A saved
-   trip can be reloaded from the trip file, of course. each trip support an
-   infinite number of waypoints.
+   RoadMap supports an infinite number of trips:  each trip context is
+   saved in a trip file.  One trip at a time can be edited or activated.  A
+   saved trip can be reloaded from the trip file, of course.
 
    The last trip created or loaded will be reloaded the next time RoadMap
    starts.
+
+   A trip is a (usually small, but unlimited) collection of landmarks,
+   routes, and tracks which (usually) have some relationship to one
+   another.
+
+   Routes are sequences of waypoints that (usually!) lead you somewhere you
+   want to go.  Tracks are sequences of recorded waypoints that show you
+   where you've been.  Although one doesn't usually do so, a track can be
+   followed just as a route can be followed.
+
+   Trip landmarks are waypoints that aren't in a route or a track.  They're
+   just (presumably) interesting all by themselves.  (The trip's landmarks
+   are distinct from another set of landmarks known as your "Personal
+   Landmarks".  The "personal landmarks" are displayed on the map no matter
+   which trip is loaded.) Landmarks and waypoints are sometimes just
+   referred to as "Places".
+
+   One end of a route is the starting point, and the other is the
+   destination.  Comments attached to the route's waypoints are used to
+   give directions from one waypoint to the next.  Routes can be reversed,
+   in order to traverse them backwards (but the comments don't get
+   rewritten).  Reversing a route will not change the trip file -- the
+   reversal is completely internal to RoadMap.
+
+   When you load a trip (or when you start RoadMap, and the last trip you
+   used is automatically re-loaded), you'll be presented with a menu of
+   routes to choose from.  (That is, if the trip contains more than one. 
+   If there's only one, it will be selected automatically.)
+
+   While you might choose to name your trips with a ".gpx" suffix, as a
+   reminder of what format they're stored in, this is entirely optional. 
+   File suffix doesn't matter.
    
-   A trip must have been loaded before it can be edited. There are three trip
-   edition actions available in the "Trips" menu: set the destination point,
-   add a waypoint or remove a waypoint. The destination point is defined
-   using a street address by selecting the "Set Destination.." entry. A
-   waypoint is added by highlighting a location on the map and then selecting
-   the "Add as Waypoint" entry. Waypoints can be deleted by selecting the
-   "Delete Waypoints.." entry, then selecting a specific waypoint and hitting
-   the "Delete" button.
+----
+       Note that although tracks and routes are conceptually
+       separate, either type can be selected at this point, and
+       any of the operations under the "Routes" menu can be
+       applied to either.
+----
 
-   A trip that has been created or loaded can then be activated. Activating
-   a trip defines the departure point (the current GPS location) and
-   enable the "trip display" mode, i.e. some trip information displayed on
-   top of the map. These trip displays include an arrow beside the GPS
-   location symbol to indicate the direction of the next waypoint (if any)
-   or else of the destination, as well as user configurable messages, such
-   as distance information, at the corners of the map. (see CONFIGURATION
-   for more information about these user configurable messages).
+   One of the buttons in this "Manage Routes" dialog is "None", which is a
+   quick way of not selecting any route at all.
 
-   When a trip is active, RoadMap tracks the GPS position in realtime and
-   updates its map accordingly. The GPS position can be shown in two modes:
-   either North up or GPS direction up depending on the "Display.Rotate"
-   preference item. In the second case, the map is rotated according to
-   the direction information received from the GPS. This dynamic rotation
-   is in addition to the map manual rotation.
+   Creating a route:
 
-   A trip can be stopped at any time and then resumed. Resuming a trip
-   does not modify the departure point. The trip can also be resumed in
-   reverse mode: in that case the departure point and the destination
-   point switch roles. Note that this does not modify the trip, only the
-   way RoadMap uses the trip information. The reverse mode makes it
-   possible to use the same RoadMap trip on the way back.
+       If you're starting a "fresh" trip, you'll likely start by creating a
+       route.  Choose a place that will be part of the route -- a waypoint,
+       a landmark, a street address, a geographic location -- and then use
+       the "Create New Route" menu entry to begin constructing your route. 
+       This will create an unnamed route with only one waypoint -- your
+       destination.
 
-   When starting a trip, the map can rotate to match the orientation
-   of the vehicule. This display mode is the most convenient as it matches
-   the driver's or passenger's view. It is however possible to switch the
-   display in the "North Up" mode by changing the preference item
-   "Display.Rotate" to "no".
+       A route with only one waypoint isn't very interesting, so you'll
+       want to select more points along the route.  To select a new place,
+       you can a) click (or tap) on the street where you wish to go, b) use
+       the "Find" menu items "Address...", "Intersection...", or
+       "Position..." to locate it, or c) choose another, previously created
+       place from the route, the trip landmarks, or the personal landmarks. 
+       After locating your new waypoint, use the "Add as waypoint" menu
+       item to add each to the route.  You'll have choices of where to add
+       (at the beginning, at the end, or as a midpoint of the nearest route
+       segment), as well as a chance to add it as a landmark, to either the
+       trip's list, or your personal list.  Continue adding waypoints to
+       your route.  
+----
+	Note that waypoints are always copied.  So if you choose an
+	existing waypoint or landmark to use as a route waypoint, you'll
+	end up with a new waypoint, not just a second reference to an
+	existing waypoint.
+----
+       You can give your new route points names as you go, or wait until
+       later and use the "Route Waypoints..." menu item to go back to the
+       list, and select the ones you wish to rename or to which you wish to
+       add comments.  Waypoint deletion is done here as well.
 
+       Your route doesn't yet have a name.  That's fine -- routes and
+       tracks can be unnamed.  If there's only one route in a trip file,
+       it's no big deal, but if there's more than one, you might want to
+       give them names to help keep them straight.  You do this (you can
+       also add descriptive text) from the "Manage Current Routes" menu
+       item.  This is also where you'd select a different route to work
+       with.  If your trip has tracks, they'll appear hear as well.  Be
+       careful with delete!  There's no undo command.  Note that in
+       addition to having no name, multiple routes can have the same name. 
+       This will not confuse RoadMap, though it may confuse the user.
+
+   Converting a track to a route:
+
+       Another, perhaps less convenient, method of creating a route, is to
+       base it on a track that you (or someone else) has already travelled. 
+       While it's possible to simply select a track and follow it as one
+       would follow a route, there are usually too many trackpoints showing
+       up and obscuring the actual roads.  It's better to create a route
+       from the track using the "Simplify Route" command.  (Remember that
+       all of the route commands apply to tracks as well.)  If
+       simplification was successful (i.e., if any waypoints could be
+       eliminated) a new route will be created and selected.  It will be
+       named after the original, with "Simple ..." prepended to to the
+       original name.  (If it had a name -- otherwise the result is unnamed
+       as well.)
+
+   Importing a route:
+
+       One advantage of using the popular GPX format is that routes
+       and landmarks can be obtained from other sources.  Not only are
+       some GPS management programs converting to use GPX directly, but
+       there are many "<something-else>-to-GPX" conversion programs
+       available.  There are many such programs listed at:
+          {{http://www.topografix.com/gpx_resources.asp}}
+
+       One of the best, and most complete, of these conversion programs
+       is gpsbabel, available here:
+          {{http://www.gpsbabel.org/}}
+
+       There's also an online front-end to gpsbabel, here:
+          {{http://www.gpsvisualizer.com/gpsbabel/}}
+
+       Gpsbabel will convert from most popular GPS data formats, and
+       can talk directly to many GPS devices without involving their
+       vendor's "support software" at all.  [ RoadMap is particularly
+       indebted to gpsbabel, since much of the code which supports
+       RoadMap's GPX input and output came directly from gpsbabel. ]
+
+       One handy source of route and waypoint data these days is Google
+       Maps.  Google directions and waypoints can be converted directly to
+       GPX format by the GMapToGPX bookmarklet:
+          {{http://www.elsewhere.org/GMapToGPX/}}
+
+       gpsbabel can do this too, somewhat more indirectly -- the following
+       script shows how:
+--------
+        #!/bin/sh
+
+        function usage()
+        {
+            echo usage: $0 "from address" "to address" >&2
+            exit 1
+        }
+
+        if [ $# != 2 ]
+        then
+            usage
+        fi
+
+        from="$1"
+        to="$2"
+
+        # the gpsbabel line simplifies:  the "error=xxx" value is in miles,
+        # and signifies how far any single point must be from the straight
+        # line connecting its neighbors in order to not be discarded.
+        wget -O - "http://maps.google.com/maps?q=$from to $to&output=js" \
+                   2>/dev/null  |
+            sed -e 's/<b>//g' -e 's/<\/b>//g' |
+            gpsbabel -r -i google -f - -x simplify,error=0.05 -o gpx -F -
+--------
+
+       The above script shows how one might use gpsbabel to simplify
+       a route or track rather than doing it with the Simplify command
+       inside RoadMap.  Using gpsbabel might give better results, since
+       it currently uses a different (and more expensive) algorithm
+       than does RoadMap.
+
+       Once you have a have a data in GPX format, it's simply a matter
+       of loading that that data with "Open Trip", or merging it into
+       another of your existing trips with "Merge Trip".
+
+   Quick Destination:
+
+       Sometimes one doesn't really want to follow a route at all -- all
+       you want to do is set a goal, and be kept informed of how far away
+       it is, and in which direction.  That's what the "Quick Destination"
+       menu entry is for.  Select where you want to go (a waypoint, a
+       street address, an intersection, or latitude/longitude spot), and as
+       you move around, the display will show continously display the
+       distance and direction to that point.
+
+   Following a route:
+
+       A route that has been created or loaded can then be activated. 
+       Activating a route defines the departure point (the current GPS
+       location) and enables the "trip display" mode:  extra status
+       information will appear on the map.  This will include an arrow
+       beside the GPS location symbol to indicate the direction of the next
+       waypoint, as well as user configurable messages, such as distance
+       information, the directions to the next waypoint (if any are present
+       in the waypoint's comments), its distance, etc.  The messages will
+       disply at the corners of the map.  (see CONFIGURATION for more
+       information about these user configurable messages).
+
+       If the route's waypoint contains comments (from the "<cmt>" element
+       of the GPX file), these will be displayed as directions which
+       should be followed when that waypoint is reached.  The directions
+       displayed will be from the next waypoint which has directions, i.e.
+       there may intervening waypoints that do not have comments.
+
+       A waypoint is "attained" by entering within its "vicinity".  This
+       radius is set in the user's' trip preferences (125 ft, by default). 
+       When entering the vicinity circle, the GPS directional arrow will
+       immediately begin pointing at the next waypoint in the list. 
+       On-screen directions will not be updated (i.e., to describe the next
+       turn, rather than the current turn) until one leaves the waypoint
+       vicinity.  In addition, RoadMap honors a larger circle, at twice the
+       size of the waypoint vicinity.  If one enters this circle and then
+       leaves it (without ever entering the inner "vicinity-sized" circle),
+       then Roadmap will see if the next route segment is closer than the
+       last route segment, and if so will assume that the user is on track
+       to the next.  The directional pointer and on-screen directions will
+       be updated, even though the waypoint was never "quite" attained.
+       This helps accomodate small map errors, or large roundabout or
+       interchange intersections where the actual waypoint may be
+       unreachable.
+
+       A route can be stopped at any time and then resumed.  When a route is
+       resumed, the waypoint chosen as the "next" to be visited is chosen
+       by searching for the route segment that is closest (in geometrical
+       terms) to the GPS location.  The route can also be resumed in reverse
+       mode:  in that case the departure point and the destination point
+       switch roles.  The reverse mode makes it possible to use the same
+       RoadMap route on the way back, though as noted previously, any
+       comments on the waypoints that give directions will be unchanged. 
+       This can be a bit confusing sometimes!
+
+       When a route is active, RoadMap tracks the GPS position in realtime
+       and updates the map accordingly.  The GPS position can be shown in
+       two modes:  either North up or GPS direction up depending on the
+       "Display.Rotate" preference item.  In the second case, the map is
+       rotated according to the direction information received from the
+       GPS, and is convenient as it matches the driver's or passenger's
+       view.  (This dynamic rotation is in addition to the map manual
+       rotation.) Some people find it disconcerting, however, and will wish
+       to retain "North up" mode.
+
+* CURRENT TRACK
+
+       Unless specifically disabled in preferences, the GPS track followed
+       by the user will be continuously recorded by RoadMap.  By default
+       this "breadcrumb trail" will be displayed on the map, but this can
+       be suppressed with the "Show/Hide Track" toggle command.
+
+       The frequency at which points for the track are recorded is
+       determined by several settings in preferences:
+
+         * If "Time" is chosen, then track points will be saved
+           periodically every so many seconds (as long as the GPS
+           has moved at least a little bit).
+
+         * If "Distance" is chosen, then a new track point will be saved
+           whenever the configured distance from the previously saved
+           trackpoint has been exceeded.
+
+         * IF "Deviation" is chosen, then a new track point will only be
+           saved if the new point is the configured distance "off track"
+           from the preceding path of travel.  This minimizes the points
+           saved, since straight line travel is represented by very few
+           points.   [ Currently unimplemented. ]
 
 * DRIVERS
 
@@ -1555,7 +1769,7 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  C: | the name of the city for the selected or current street.
 *-----+-----------------------------------------------------------------+
-|  D: | Distance to the destination time (set only when a trip is active).
+|  D: | Distance to the destination (set only when a trip is active).
 *-----+-----------------------------------------------------------------+
 |  E: | Next sunset time (evening), undefined in night time.
 *-----+-----------------------------------------------------------------+
@@ -1573,6 +1787,12 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  W: | Distance to the next waypoint (set only when a trip is active).
 *-----+-----------------------------------------------------------------+
+|  X: | Directions to be followed when the next waypoint (with
+|     | directions) is reached. (set only when a trip is active).
+*-----+-----------------------------------------------------------------+
+|  Y: | Distance to the next waypoint which includes directions, unless
+|     | the GPS is "at" that waypoint.  (set only when a trip is active).
+*-----+-----------------------------------------------------------------+
 |  #: | the street number range to the selected or current street block.
 *-----+-----------------------------------------------------------------+
    
@@ -1580,6 +1800,7 @@ CONFIGURATION
 
    Example: "%D (%W)" shows the distance to the destination point, followed
    by the distance to the next waypoint (in parenthesis).
+
    
    A message is evaluated, and displayed, only when all referenced macros
    have a defined value. Therefore the example above will show nothing if
@@ -1592,6 +1813,10 @@ CONFIGURATION
    distance to the destination point if this distance is defined. If none
    of the two distance have been defined (for example when no trip is
    active), then no display is shown and/or no sound is produced.
+
+   Likewise, "In %Y, %X|%X" will say something like "In 0.5 miles, Turn
+   Right", unless you're already at the point at which you should turn
+   right.  Then it will just say "Turn Right".
 
    Another typical example is "sunset: %E|sunrise: %M", which shows the
    next sunset (in daylight time) or sunrise (in night time).
@@ -2345,12 +2570,12 @@ CONFIGURATION
 
      The coordinates are pixel positions, relative to the sprites "hot point".
 
-     A S command must appear before any alias or drawing command.
+     An S command must appear before any alias or drawing command.
 
      A sprite cannot contain both an alias command and drawing commands. In
      addition, if an alias command is present, it is the only command defining
-     this sprite (i.e. an alias sprite is only made of the two S and A
-     commands). For example:
+     this sprite (i.e. an alias sprite is defined by just one S and one A
+     command). For example:
 
 ----
      S Friend
@@ -2372,29 +2597,153 @@ CONFIGURATION
 
      One reason for using alias sprites is to make it simpler to redefine
      sprites known to RoadMap (such as "Direction" or "Destination"). The
-     alias mechanism has a neglictible fix cost at runtime: using multiple
+     alias mechanism has a negligible fixed cost at runtime: using multiple
      alias levels will have no practical impact on RoadMap performances.
 
 
 * TRIP FILES
-   
-     A trip file contains the information relative to one trip. it uses
-     a CSV format where each record describes a point and contains four
-     fields: type, name, longitude, latitude.
-     
-     The type field is either "Destination" or "Waypoint".
-     
-     The name field is the name of the waypoint (the name of the destination
-     is always "Destination").
 
-     The following trip file example defines a trip from the Golden Gate's
-     bridge to 1, Market St, in san Francisco, California:
+     RoadMap trip data is stored in GPX format.  More about the widely-used
+     GPX data format can be found at:
+
+        {{http://www.topografix.com/gpx.asp}}
+
+     The main thing to know about this format is that a GPX file
+     may contain one or more "routes", one or more "tracks", and
+     one or more "landmarks".
+     
+     Routes and tracks are very similar:  it's most useful to
+     think of a route as "where you want to go", and a track as
+     "where you've been".  Routes are usually composed, either
+     manually or using navigation software.  Tracks are usually
+     recorded, by making a note of one's GPS location
+     periodically.  (By the way, tracks don't get included into
+     trip files automatically.  If you wish to store your tracks
+     along with your routes for a given trip, you'll need to save
+     copies of your current track and them to the trip.)
+
+     Routes and tracks are both composed of "waypoints".  To
+     reduce confusion, RoadMap tries to use the term "waypoint"
+     to _only_ refer to points which are contained in routes and
+     tracks.  Points unassociated with a specific route or track
+     are called "landmarks".  If you read the GPX documentation
+     you'll find that these points are usually all called
+     waypoints.
+
+     Waypoints simply represent a place, along with some other
+     information about that place.  For instance, a waypoint in a
+     route might have a name, and it might also have a comment
+     attached to it which says which way to turn when this
+     waypoint is reached.  A waypoint in a track might only
+     contain its location and the time at which you were there. 
+     The landmarks in the trip file might represent places of
+     interest which, while not really part of a route, are
+     related to the trip somehow.
+     
+     Here are some more details regarding how RoadMap uses the GPX
+     format.
+
+     Waypoints (and landmarks):
+
+        <name> is used directly if available.
+        
+        If no name is available, a shortened version of the <cmt>
+        or <description> element will be used instead.  If
+        neither of these elements is available, a name will be
+        generated.
+        
+        In addition, if no <cmt> is available, the <description>
+        element will be used as a description.
+        
+        The <sym> element will be used as the sprite name, if it
+        is set, otherwise fixed RoadMap defaults will be used for
+        the spritename, depending on what sort of waypoint it is.
+
+        When generating a waypoint while recording a track,
+        RoadMap will set the <ele>, <speed>, <course>, and <time>
+        elements, as well as the "lat" and "lon" attributes.  All
+        of this data comes directly from the GPS.  The <name> and
+        <sym> elements are left unset.
+
+    Routes and Tracks:
+
+        The <name> and <desc> elements will be used and set.  For
+        tracks, the <trkseg> level of the hierarchy is ignored --
+        all track segments are treated as one.
+
+     The following trip file example contains just one route,
+     which goes from the Golden Gate's bridge to 1 Market St, in
+     san Francisco, California.  It also contains the locations
+     of some nearby pizza parlors:
      
 +-------------------------------------------------------
-     Destination,Destination,-122394181,37794928
-     Waypoint,1000 - 1098 The Embarcadero  San Francisco,-122401781,37803934
-     Waypoint,100 - 198 Richardson Ave  San Francisco,-122446481,37799826
+
+    <?xml version="1.0"?>
+    <gpx version="1.1">
+       <rte>
+          <name>198 Richardson Ave to 1 Market St</name>
+          <rtept lat="37.8003" lon="-122.44703">
+             <cmt>Head southeast from Richardson Ave</cmt>
+          </rtept>
+          <rtept lat="37.79879" lon="-122.4446">
+             <cmt>Bear left at Lombard St</cmt>
+          </rtept>
+          <rtept lat="37.79901" lon="-122.44265">
+             <cmt>Turn right at Divisadero St</cmt>
+          </rtept>
+          <rtept lat="37.78336" lon="-122.43948">
+             <cmt>Turn left at Geary Blvd</cmt>
+          </rtept>
+          <rtept lat="37.78529" lon="-122.42467">
+             <cmt>Bear right at Ofarrell St</cmt>
+          </rtept>
+          <rtept lat="37.78678" lon="-122.40458">
+             <cmt>Turn left at Market St</cmt>
+          </rtept>
+          <rtept lat="37.79444" lon="-122.39487">
+             <cmt>Arrive at destination</cmt>
+          </rtept>
+       </rte>
+       <wpt lat="37.792612" lon="-122.393843">
+          <name>Village Pizzeria</name>
+       </wpt>
+       <wpt lat="37.793392" lon="-122.397554">
+          <name>Parkway Pizza</name>
+       </wpt>
+       <wpt lat="37.789001" lon="-122.394843">
+          <name>Dogzilla Cafe</name>
+       </wpt>
+    </gpx>
+
 +-------------------------------------------------------
+
+    In addition to the trip files, there are two other important
+    files which are also stored in GPX format.
+
+        The "Current Track" file contains waypoints representing
+        where you've been -- a "breadcrumb trail", if you will. 
+        This file (called "current_track.gpx" by default) will
+        only contain a single track when written.  When read
+        (on startup, to restore previous state), only the first
+        track in the file will be read.  All other routes or
+        tracks and waypoints will be ignored (and likely lost,
+        when the current track is saved at the end of the
+        session).
+    
+        The "Personal Landmarks" files, called "landmarks.gpx" by
+        default, contains landmarks (waypoints) which you might
+        want to keep handy no matter what trip file you have
+        loaded.  Examples might include your home, your office,
+        your hairdress, etc.  When writing this file, only the
+        personal landmarks are written.  When reading, only the
+        unassociated waypoints are read -- any routes or tracks
+        in the file are ignored.
+
+    [Note that since these files are in GPX format, they can also
+    be manually opened as trips.  In this case, the landmarks associated
+    with the "Personal Landmarks" file will appear as "Trip Landmarks"
+    for that trip, and the track in "Current Track" will appear as
+    the only unnamed track in that trip.]
 
 
 TOOLS
@@ -2418,11 +2767,11 @@ CONFIGURATION EXAMPLES
    ~/.roadmap/preferences ("factory" defaults):
 
 +-------------------------------------------------------
-Accuracy.Confidence: 25
-Accuracy.GPS Position: 300
 Accuracy.GPS Speed: 4
-Accuracy.Mouse: 20
+Accuracy.Confidence: 25
 Accuracy.Street: 150
+Accuracy.Mouse: 20
+Accuracy.Minimum Drag: 5
 Approach.Background: yellow
 Approach.Foreground: black
 Approach.Text: Approaching %N, %C|Approaching %N
@@ -2434,7 +2783,7 @@ Current Street.Text: %N, %C|%N
 Destination.Color: red
 Display.Bottom Left: %S
 Display.Bottom Right: %D (%W)|%D
-Display.Top Right: ETA: %A|%T
+Display.Top Right: In %Y, %X|%X
 Display.Duration: 10
 Display.Rotate: yes
 General.Default Zoom: 20
@@ -2463,30 +2812,26 @@ Shapes.Declutter: 1300
 Voice.Approach: flite -t 'Approaching %N'
 Voice.Current Street: flite -t 'On %N'
 Voice.Next Intersection: flite -t 'Next intersection: %N'
-Voice.Selected Street: flite -t '%N'
+Voice.Selected Street: flite -t 'Selected %N'
 +-------------------------------------------------------
 
 
    ~/.roadmap/session ("factory" defaults):
 
 +-------------------------------------------------------
-Locations.Location: -122394181,37794928
-Locations.GPS: -122394181,37794928
-Locations.Trip: default
-General.Zoom: 0
-Navigation.Enable: yes
-Delta.X: 0
-Delta.Y: 0
 Delta.Rotate: 0
-GPS.Position: 0,0
-GPS.Direction: 0
-Address.Position: 0,0
-Selection.Position: 0,0
-Hold.Position: 0,0
+Delta.Y: 0
+Delta.X: 0
+Focus.Rotate: 0
+Focus.Name: Address
+Trip.Name: default.gpx
 Hold.Direction: 0
-Focus.Rotate: 1
-Focus.Name: GPS
-Trip.Name: default
+Hold.Position: 0,0
+Selection.Position: -122394181,37794928
+Address.Position: -122394181,37794928
+GPS.Direction: 0
+GPS.Position: 0,0
+General.Zoom: 150
 +-------------------------------------------------------
 
 
