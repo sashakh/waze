@@ -86,6 +86,7 @@ int  roadmap_math_distance
         (const RoadMapPosition *position1, const RoadMapPosition *position2);
 
 int  roadmap_math_distance_convert (const char *string, int *explicit);
+int  roadmap_math_to_trip_distance (int distance);
 int  roadmap_math_to_trip_distance_tenths (int distance);
 
 int  roadmap_math_to_speed_unit (int knots);
