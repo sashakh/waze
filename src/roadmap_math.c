@@ -1021,12 +1021,18 @@ int roadmap_math_to_trip_distance (int distance) {
     return distance / RoadMapContext.units->to_trip_unit;
 }
 
+int roadmap_math_to_trip_distance_tenths (int distance) {
+    
+    return (10 * distance) / RoadMapContext.units->to_trip_unit;
+}
+
 
 int  roadmap_math_get_distance_from_segment
         (const RoadMapPosition *position,
          const RoadMapPosition *position1,
          const RoadMapPosition *position2,
-               RoadMapPosition *intersection) {
+               RoadMapPosition *intersection,
+                           int *which) {
 
    int distance;
    int minimum;
@@ -1062,8 +1068,10 @@ int  roadmap_math_get_distance_from_segment
       x3 = (x1 + x2) / 2;
       y3 = 0.0;
 
-      intersection->longitude =
-         (position1->longitude + position2->longitude) / 2;
+      if (intersection != NULL) {
+         intersection->longitude =
+            (position1->longitude + position2->longitude) / 2;
+      }
 
    } else {
       
@@ -1077,10 +1085,12 @@ int  roadmap_math_get_distance_from_segment
       x3 = 0.0 - (b / (a + (1.0 / a)));
       y3 = b / ((a * a) + 1.0);
 
-      intersection->longitude =
-         position1->longitude
-            + (int)(((x1 - x3)
-                 * (position2->longitude - position1->longitude)) / (x1 - x2));
+      if (intersection != NULL) {
+         intersection->longitude =
+            position1->longitude + (int)(((x1 - x3)
+                    * (position2->longitude - position1->longitude))
+                       / (x1 - x2));
+      }
    }
 
 
@@ -1089,18 +1099,22 @@ int  roadmap_math_get_distance_from_segment
 
       /* The intersection point is in the segment. */
 
-      if ((y1 - y2 > -1.0) && (y1 - y2 < 1.0)) {
+      if (intersection != NULL) {
+         if ((y1 - y2 > -1.0) && (y1 - y2 < 1.0)) {
 
-         intersection->latitude =
-            (position1->latitude + position2->latitude) / 2;
+            intersection->latitude =
+               (position1->latitude + position2->latitude) / 2;
 
-      } else {
+         } else {
 
-         intersection->latitude =
-            position1->latitude
-               + (int)(((y1 - y3)
-                   * (position2->latitude - position1->latitude)) / (y1 - y2));
+            intersection->latitude =
+               position1->latitude + (int)(((y1 - y3)
+                      * (position2->latitude - position1->latitude))
+                         / (y1 - y2));
+         }
       }
+
+      if (which != NULL) *which = 0;  /* neither endpoint is closest */
 
       return (int) sqrt ((x3 * x3) + (y3 * y3));
    }
@@ -1112,11 +1126,18 @@ int  roadmap_math_get_distance_from_segment
    distance = (int) sqrt ((x2 * x2) + (y2 * y2));
 
    if (distance < minimum) {
-      *intersection = *position2;
+
+      if (intersection != NULL) *intersection = *position2;
+
+      if (which != NULL) *which = 2;  /* endpoint 2 is closest */
+
       return distance;
    }
 
-   *intersection = *position1;
+   if (intersection != NULL) *intersection = *position1;
+
+   if (which != NULL) *which = 1;  /* endpoint 1 is closest */
+
    return minimum;
 }
 
