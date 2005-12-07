@@ -471,7 +471,6 @@ void roadmap_dialog_show_list (const char  *frame,
    child->choice = choice;
    child->value  = choice[0].value;
 
-   gtk_list_select_item (GTK_LIST(child->w), 0);
 }
 
 

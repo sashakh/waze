@@ -552,10 +552,6 @@ void roadmap_dialog_show_list (const char  *frame,
       gtk_list_store_set (GTK_LIST_STORE(model), &iterator,
                           RM_LIST_WAYPOINT_NAME, labels[i],
                           -1);
-      if (i == 0) {
-         gtk_tree_selection_select_iter
-            (gtk_tree_view_get_selection(GTK_TREE_VIEW (child->w)), &iterator);
-      }
    }
    child->choice = choice;
    child->value  = choice[0].value;
