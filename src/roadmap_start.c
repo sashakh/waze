@@ -53,7 +53,10 @@
 #include "roadmap_coord.h"
 #include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
+#include "roadmap_gpx.h"
 #include "roadmap_trip.h"
+#include "roadmap_track.h"
+#include "roadmap_landmark.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
 #include "roadmap_fuzzy.h"
@@ -174,7 +177,12 @@ static void roadmap_start_create_trip (void) {
 
 static void roadmap_start_open_trip (void) {
     
-    roadmap_trip_load (NULL, 0);
+    roadmap_trip_load (NULL, 0, 0);
+}
+
+static void roadmap_start_merge_trip (void) {
+    
+    roadmap_trip_load (NULL, 0, 1);
 }
 
 static void roadmap_start_save_trip (void) {
@@ -187,45 +195,41 @@ static void roadmap_start_save_trip_as (void) {
     roadmap_trip_save (NULL, 1);
 }
 
-static void roadmap_start_trip (void) {
+static void roadmap_start_route (void) {
     
-    roadmap_trip_start ();
+    roadmap_trip_route_start ();
 }
 
-static void roadmap_start_trip_resume (void) {
+static void roadmap_start_route_resume (void) {
     
-    roadmap_trip_resume ();
+    roadmap_trip_route_resume ();
 }
 
-static void roadmap_start_trip_reverse (void) {
+static void roadmap_start_route_reverse (void) {
     
-    roadmap_trip_reverse ();
+    roadmap_trip_route_reverse ();
 }
 
-static void roadmap_start_trip_return (void) {
+static void roadmap_start_route_return (void) {
 
-   roadmap_trip_return ();
+    roadmap_trip_route_return ();
 }
 
-static void roadmap_start_set_destination (void) {
+static void roadmap_start_create_route (void) {
 
-    roadmap_trip_set_selection_as ("Destination");
+    roadmap_trip_new_route ();
+}
+
+static void roadmap_start_create_waypoint (void) {
+
+    roadmap_trip_create_selection_waypoint ();
     roadmap_screen_refresh();
 }
 
-static void roadmap_start_set_waypoint (void) {
+static void roadmap_start_create_gps_waypoint (void) {
 
-    const char *id = roadmap_display_get_id ("Selected Street");
-
-    if (id != NULL) {
-       roadmap_trip_set_selection_as (id);
-       roadmap_screen_refresh();
-    }
-}
-
-static void roadmap_start_delete_waypoint (void) {
-    
-    roadmap_trip_remove_point (NULL);
+    roadmap_trip_create_gps_waypoint ();
+    roadmap_screen_refresh();
 }
 
 static int roadmap_start_no_download (int fips) {
@@ -356,17 +360,17 @@ static RoadMapAction RoadMapStartActions[] = {
    {"destination", "Destination", "D", NULL,
       "Show the current destination point", roadmap_start_show_destination},
 
-   {"startpoint", "Start", "Start", NULL,
+   {"startpoint", "Route Start", "Start", NULL,
       "Show the current route starting point", roadmap_start_show_start},
 
    {"departure", "Departure", "Dep", NULL,
-      "Show the trips' departure point", roadmap_start_show_departure},
+      "Show the route's point of departure", roadmap_start_show_departure},
 
    {"gps", "GPS Position", "GPS", "G",
-      "Center the map on the current GPS position", roadmap_start_show_gps},
+      "Show the current GPS position", roadmap_start_show_gps},
 
    {"location", "Location", "L", NULL,
-      "Center the map on the last selected location",
+      "Show the last selected address, crossroads, or position",
       roadmap_start_show_location},
 
    {"mapdownload", "Map Download", "Download", NULL,
@@ -385,6 +389,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"opentrip", "Open Trip", "Open", "O",
       "Open an existing trip", roadmap_start_open_trip},
 
+   {"mergetrip", "Merge Trip", "Merge", "M",
+      "Merge a trip with the current trip", roadmap_start_merge_trip},
+
    {"savetrip", "Save Trip", "Save", "S",
       "Save the current trip", roadmap_start_save_trip},
 
@@ -396,35 +403,68 @@ static RoadMapAction RoadMapStartActions[] = {
       "Save the current trip under a different name",
       roadmap_start_save_trip_as},
 
-   {"starttrip", "Start Trip", "Start", NULL,
-      "Start tracking the current trip", roadmap_start_trip},
+   {"starttrip", "Start Route", "Start", NULL,
+      "Start following the current route", roadmap_start_route},
 
-   {"stoptrip", "Stop Trip", "Stop", NULL,
-      "Stop tracking the current trip", roadmap_trip_stop},
+   {"stoptrip", "Stop Route", "Stop", NULL,
+      "Stop following the current route", roadmap_trip_route_stop},
 
-   {"resumetrip", "Resume Trip", "Resume", NULL,
-      "Resume the trip", roadmap_start_trip_resume},
+   {"tracktoggle", "Show/Hide Track", "Track", NULL,
+      "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
 
-   {"returntrip", "Return Trip", "Return", NULL,
-      "Start the trip back to the departure point",
-      roadmap_start_trip_return},
+   {"tracksave", "Save Track", "Save Track", NULL,
+      "Save the current GPS breadcrumb track", roadmap_track_save},
 
-   {"reversetrip", "Reverse Trip", "Reverse", NULL,
-      "Reverse the route and resume the trip",
-       roadmap_start_trip_reverse},
+   {"trackclear", "Clear Track", "Clear Track", NULL,
+      "Clear the current GPS breadcrumb track", roadmap_track_clear},
 
-   {"setasdestination", "Set as Destination", NULL, NULL,
-      "Set the selected street block as the trip's destination",
-      roadmap_start_set_destination},
+   {"tracktoroute", "Convert Track", NULL, NULL,
+      "Convert the current GPS track to a new route",
+      roadmap_trip_track_convert },
 
-   {"manageroutes", "Manage Routes...", "Manage", NULL,
-      "Select or delete routes", roadmap_trip_route_manage_dialog},
+   {"resumeroute", "Resume Route", "Resume", NULL,
+      "Resume following (resync with) the current route",
+      roadmap_start_route_resume},
 
-   {"addaswaypoint", "Add as Waypoint", "Waypoint", "W",
-      "Set the selected street block as waypoint", roadmap_start_set_waypoint},
+   {"returnroute", "Return Route", "Return", NULL,
+      "Start the route back to the departure point",
+      roadmap_start_route_return},
 
-   {"deletewaypoints", "Delete Waypoints...", "Delete...", NULL,
-      "Delete selected waypoints", roadmap_start_delete_waypoint},
+   {"reverseroute", "Reverse Route", "Reverse", NULL,
+      "Reverse the current route",
+       roadmap_start_route_reverse},
+
+   {"simplifyroute", "Simplify Route", NULL, NULL,
+      "Create simplified version of current route", roadmap_trip_route_convert },
+
+   {"createroute", "Create new route", NULL, NULL,
+      "Start new route using last selected street or place",
+      roadmap_start_create_route},
+
+   {"setasdestination", "Quick destination", NULL, NULL,
+      "Show distance and direction to the last selected street or place",
+      roadmap_trip_set_as_destination},
+
+   {"manageroutes", "Manage Current Routes...", "Manage", NULL,
+      "Select, rename, or delete routes", roadmap_trip_route_manage_dialog},
+
+   {"gpsaswaypoint", "GPS as new place...", "GPS Place", "GW",
+      "Create new place using current GPS position", roadmap_start_create_gps_waypoint},
+
+   {"addaswaypoint", "Add as new place...", "Place", "W",
+      "Create new place using last selected street or place", roadmap_start_create_waypoint},
+
+   {"editroutewaypoints", "Route Waypoints...", NULL, NULL,
+      "Edit current route's waypoints", roadmap_trip_route_waypoint_manage_dialog },
+
+   {"edittripwaypoints", "Trip Landmarks...", NULL, NULL,
+      "Edit landmarks associated with this trip", roadmap_trip_trip_waypoint_manage_dialog },
+
+   {"editpersonalwaypoints", "Personal Landmarks...", NULL, NULL,
+      "Edit personal landmarks", roadmap_trip_personal_waypoint_manage_dialog },
+
+   {"mergepersonalwaypoints", "Load More Personal Landmarks...", NULL, NULL,
+      "Merge personal landmarks from file", roadmap_landmark_merge },
 
    {"full", "Full Screen", "Full", "F",
       "Toggle the window full screen mode (depends on the window manager)",
@@ -443,6 +483,7 @@ static const char *RoadMapStartMenu[] = {
 
    "preferences",
    "gpsconsole",
+   "savescreenshot",
 
    RoadMapFactorySeparator,
 
@@ -493,7 +534,9 @@ static const char *RoadMapStartMenu[] = {
 
    RoadMapFactorySeparator,
 
+   "startpoint",
    "destination",
+   "departure",
    "gps",
 
    RoadMapFactorySeparator,
@@ -502,29 +545,40 @@ static const char *RoadMapStartMenu[] = {
    "mapdiskspace",
    "deletemaps",
 
+   ROADMAP_MENU "Track",
+
+   "tracksave",
+   "trackclear",
+   "tracktoroute",
+   "tracktoggle",
+
 
    ROADMAP_MENU "Trip",
 
    "newtrip",
    "opentrip",
+   "mergetrip",
    "savetrip",
    "savetripas",
-   "savescreenshot",
 
-   RoadMapFactorySeparator,
+   ROADMAP_MENU "Routes",
 
+   "manageroutes",
    "starttrip",
    "stoptrip",
-   "resumetrip",
-   "resumetripnorthup",
-   "returntrip",
-
-   RoadMapFactorySeparator,
-
+   "resumeroute",
+   "reverseroute",
+   "simplifyroute",
+   "createroute",
    "setasdestination",
-   "addaswaypoint",
-   "deletewaypoints",
 
+   ROADMAP_MENU "Places",
+
+   "addaswaypoint",
+   "editroutewaypoints",
+   "edittripwaypoints",
+   "editpersonalwaypoints",
+   "mergepersonalwaypoints",
 
    ROADMAP_MENU "Help",
 
@@ -588,7 +642,7 @@ static char const *RoadMapStartKeyBinding[] = {
    "="               ROADMAP_MAPPED_TO "zoomin",
    "-"               ROADMAP_MAPPED_TO "zoomout",
    "A"               ROADMAP_MAPPED_TO "address",
-   "B"               ROADMAP_MAPPED_TO "returntrip",
+   "B"               ROADMAP_MAPPED_TO "returnroute",
    /* C Unused. */
    "D"               ROADMAP_MAPPED_TO "destination",
    "E"               ROADMAP_MAPPED_TO "deletemaps",
@@ -606,7 +660,7 @@ static char const *RoadMapStartKeyBinding[] = {
    "Q"               ROADMAP_MAPPED_TO "quit",
    "R"               ROADMAP_MAPPED_TO "zoom1",
    "S"               ROADMAP_MAPPED_TO "starttrip",
-   /* T Unused. */
+   "T"               ROADMAP_MAPPED_TO "tracktoggle",
    "U"               ROADMAP_MAPPED_TO "gpsnorthup",
    /* V Unused. */
    "W"               ROADMAP_MAPPED_TO "addaswaypoint",
@@ -653,7 +707,7 @@ static void roadmap_gps_update
 
       roadmap_object_move (RoadMapStartGpsID, gps_position);
 
-      roadmap_trip_set_gps (gps_position);
+      roadmap_trip_set_gps (gps_time, gps_position);
       roadmap_log_reset_stack ();
 
       roadmap_navigate_locate (gps_position);
@@ -914,6 +968,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_set_initial_position ();
 
    roadmap_history_load ();
+
+   roadmap_track_autoload ();
    
    roadmap_driver_activate ();
    roadmap_gps_open ();
@@ -927,7 +983,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_trip_restore_focus ();
 
    if ((roadmap_trip_current() == NULL) ||
-       (! roadmap_trip_load (roadmap_trip_current(), 1))) {
+       (! roadmap_trip_load (roadmap_trip_current(), 1, 0))) {
       roadmap_start_create_trip ();
    }
 
@@ -946,5 +1002,7 @@ void roadmap_start_exit (void) {
     roadmap_driver_shutdown ();
     roadmap_history_save();
     roadmap_config_save (0);
-    roadmap_start_save_trip ();
+    roadmap_track_autosave ();
+    roadmap_landmark_save ();
+    roadmap_trip_save (roadmap_trip_current(), 0);
 }

@@ -13,7 +13,7 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../gpx/libgpx.a ../libroadmap.a
 
 
 ifeq ($(MODE),DEBUG)
@@ -45,7 +45,7 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lexpat -lm
 
 # --- RoadMap sources & targets -----------------------------------
 

@@ -97,9 +97,8 @@ endif
 CFLAGS=$(MODECFLAGS) $(DTCFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
 
-RDMLIBS=libroadmap.a unix/libosroadmap.a
-LIBS=$(RDMLIBS) -lpopt -lm
-
+RDMLIBS=libroadmap.a unix/libosroadmap.a gpx/libgpx.a
+LIBS=$(RDMLIBS) -lpopt -lexpat -lm
 
 # --- RoadMap sources & targets --------------------------------------------
 
@@ -135,7 +134,8 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_object.c \
           roadmap_driver.c \
           roadmap_adjust.c \
-          roadmap_sunrise.c
+          roadmap_sunrise.c \
+          roadmap_gpx.c
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
@@ -143,6 +143,8 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 RMGUISRCS=roadmap_sprite.c \
           roadmap_object.c \
           roadmap_trip.c \
+          roadmap_track.c \
+          roadmap_landmark.c \
           roadmap_layer.c \
           roadmap_fuzzy.c \
           roadmap_navigate.c \
@@ -234,7 +236,8 @@ TOOLS=sunrise $(SQLTOOLS)
 
 # --- Conventional targets ----------------------------------------
 
-.PHONY: all gtk gtk2 qt rebuild build everything clean strip install uninstall unix
+.PHONY: all gtk gtk2 qt rebuild build everything \
+         clean strip install uninstall unix gpx
 
 all: everything
 
@@ -256,7 +259,12 @@ unix:
 		$(MAKE) -C unix RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
 	fi
 
-runtime: unix $(RUNTIME) $(DRIVERS)
+gpx:
+	if [ -d gpx ] ; then \
+		$(MAKE) -C gpx RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
+	fi
+
+runtime: unix gpx $(RUNTIME) $(DRIVERS)
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
@@ -292,6 +300,7 @@ clean:
 		fi ; \
 	done
 	if [ -d unix ] ; then $(MAKE) -C unix clean ; fi
+	if [ -d gpx ] ; then $(MAKE) -C gpx clean ; fi
 
 
 install: installdata installbin installicons installdesktop

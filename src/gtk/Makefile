@@ -17,7 +17,7 @@ STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g $(WARNFLAGS)
 # STDCFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
 
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../gpx/libgpx.a ../libroadmap.a
 
 HOST=`uname -s`
 ifeq ($(HOST),Darwin)
@@ -27,7 +27,7 @@ else
 endif
 
 CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include
-LIBS= -L/usr/local/libs $(RDMLIBS) $(GUILDFLAGS) -lm
+LIBS= -L/usr/local/libs $(RDMLIBS) $(GUILDFLAGS) -lexpat -lm
 
 # --- RoadMap sources & targets --------------------------------------------
 

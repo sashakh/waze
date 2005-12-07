@@ -47,7 +47,10 @@
 
 #include "roadmap_sprite.h"
 #include "roadmap_object.h"
+#include "roadmap_gpx.h"
 #include "roadmap_trip.h"
+#include "roadmap_track.h"
+#include "roadmap_landmark.h"
 #include "roadmap_canvas.h"
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
@@ -1053,7 +1056,9 @@ static void roadmap_screen_repaint (void) {
 
           roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
+          roadmap_landmark_display ();
           roadmap_trip_display ();
+          roadmap_track_display ();
           roadmap_display_signs ();
        }
     }
@@ -1217,7 +1222,10 @@ void roadmap_screen_refresh (void) {
 
         roadmap_screen_repaint ();
 
-    } else if (refresh || roadmap_trip_is_refresh_needed()) {
+    } else if (refresh ||
+                roadmap_trip_is_refresh_needed() ||
+                roadmap_landmark_is_refresh_needed() ||
+                roadmap_track_is_refresh_needed() ) {
 
        roadmap_screen_repaint ();
     }

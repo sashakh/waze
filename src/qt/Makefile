@@ -45,8 +45,8 @@ else
 	ARFLAGS="rf"
 endif
 
-RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a ../libroadmap.a
-LIBS=$(RDMLIBS) $(GUILDFLAGS) -lm
+RDMLIBS= ../libroadmap.a libqtroadmap.a ../unix/libosroadmap.a ../gpx/libgpx.a ../libroadmap.a
+LIBS=$(RDMLIBS) $(GUILDFLAGS) -lexpat -lm
 
 
 # --- RoadMap sources & targets --------------------------------------------

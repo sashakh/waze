@@ -695,7 +695,7 @@ void roadmap_display_initialize (void) {
     roadmap_config_declare
         ("preferences", &RoadMapConfigDisplayBottomLeft, "%S");
     roadmap_config_declare
-        ("preferences", &RoadMapConfigDisplayTopRight, "ETA: %A|%T");
+        ("preferences", &RoadMapConfigDisplayTopRight, "In %Y, %X|%X");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigConsoleBackground, "yellow");

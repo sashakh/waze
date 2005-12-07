@@ -8,6 +8,8 @@
 # C <x>,<y> <radius>:    defines a circle.
 # D <x>,<y> <radius>:    defines a disk (i.e. a filled circle).
 # the coordinates x and y are relative to the sprite's hot point.
+# positive x and y values are towards the south-east, and the natural
+# "direction" for the sprite is north (e.g., for an arrow).
 #
 
 # We use aliases to separate what sprites represent from the actual drawing.
@@ -27,13 +29,25 @@ S Direction
 A RedArrow
 
 S Destination
-A RedDot
+A RedDotCircle
 
 S Waypoint
 A GreenDot
 
 S Start
-A GreenTriangle
+A GreenTrianglePointer
+
+S RoutePoint
+A Circle-Pointer
+
+S SecondaryRoutePoint
+A Small-Circle-Pointer
+
+S PersonalLandmark
+A 5PointStar
+
+S TripLandmark
+A GreenSquare
 
 S Highlight
 A YellowDot
@@ -41,14 +55,11 @@ A YellowDot
 S Kismet
 A RedDisk
 
-S Anonymous
-A GreenDot
-
 S Track
-A PurpleDot
+A PurpleCross
 
-S RouteMarker
-A Circle
+S BreadCrumb
+A PurpleDot
 
 S Departure
 A DottedSquare
@@ -89,11 +100,21 @@ P -5,-20 0,-35 5,-20
 F black 1
 L -5,-20 0,-35 5,-20 -5,-20
 
-S RedDot
+S RedDotCircle
 F red 1
 D 0,0 5
 F black 1
 C 0,0 5
+C 0,0 7
+
+S GreenTrianglePointer
+F green 2
+P 0,-9 -8,4 8,4 0,-9
+F black 1
+L 0,-9 -8,4 8,4 0,-9
+L 1,-8 1,-16
+L 1,-16 -1,-16
+L -1,-16 -1,-8
 
 S GreenDot
 F green 1
@@ -101,18 +122,30 @@ D 0,0 5
 F black 1
 C 0,0 5
 
-S PurpleDot
+S GreenSquare
+F black 1
+L 5,5 5,-5 -5,-5 -5,5 5,5
+F green 1
+P 4,4 4,-4 -4,-4 -4,4 4,4
+
+S PurpleCross
 F purple 2
 L -4,0 4,0
 F white 2
 F purple 2
 L 0,-4 0,4
 
-S GreenTriangle
-F green 2
-P 0,-9 -8,4 8,4 0,-9
-F black 1
-L 0,-9 -8,4 8,4 0,-9
+S PurpleDot
+F purple 1
+D 0,0 3
+
+S 5PointStar
+F darkred 1
+L 0,-9 5,7
+L 5,7 -8,-3
+L -8,-3 8,-3
+L 8,-3 -5,7
+L -5,7 0,-9
 
 S YellowDot
 F yellow 1
@@ -127,6 +160,25 @@ D 0,0 10
 S Circle
 F black 1
 C 0,0 7
+
+S Circle-Pointer
+F green 1
+D 0,0 7
+F black 1
+C 0,0 7
+C 0,0 1
+L 1,-7 1,-16
+L 1,-16 -1,-16
+L -1,-16 -1,-7
+
+S Small-Circle-Pointer
+F green 1
+D 0,0 6
+F black 1
+C 0,0 6
+L 1,-6 1,-16
+L 1,-16 -1,-16
+L -1,-16 -1,-6
 
 S DottedSquare
 F black 1
