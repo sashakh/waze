@@ -40,6 +40,7 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/unix/Makefile
          ${ROADMAP}/src/unix/*.[ch]
          ${ROADMAP}/src/win32/*.[ch]
+         ${ROADMAP}/src/win32/*.cpp
          ${ROADMAP}/src/win32/roadmap.rc
          ${ROADMAP}/src/ipkg/mkipkg
          ${ROADMAP}/src/ipkg/INSTALL
