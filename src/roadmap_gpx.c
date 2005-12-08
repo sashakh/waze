@@ -102,8 +102,10 @@ roadmap_gpx_read_one_track(
 
     ret = roadmap_gpx_read_file(path, name, NULL, NULL, &tracklist);
 
-    if (!ret || QUEUE_EMPTY(&tracklist))
+    if (!ret || QUEUE_EMPTY(&tracklist)) {
+        route_flush_queue(&tracklist);
         return 0;
+    }
 
     trk = (route_head *)QUEUE_FIRST(&tracklist);
     dequeue(&trk->Q);
