@@ -785,7 +785,7 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
          if (number_max == number_min) {
 
             position->longitude = (from.longitude + to.longitude) / 2;
-            position->latitude  = (from.latitude - to.latitude) / 2;
+            position->latitude  = (from.latitude + to.latitude) / 2;
 
          } else {
 
