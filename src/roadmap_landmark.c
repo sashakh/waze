@@ -171,15 +171,21 @@ void roadmap_landmark_merge(void) {
 void roadmap_landmark_load(void) {
 
     const char *name;
+    const char *path = roadmap_path_trips();
     queue tmp_waypoint_list;
     int ret;
 
     name = roadmap_config_get (&RoadMapConfigLandmarkName);
 
+    if (name[0] == 0) {
+       /* Load the default file, if it exists. */
+       name = "landmarks.gpx";
+       if (! roadmap_file_exists (path, name)) return; /* Not an error. */
+    }
+
     QUEUE_INIT(&tmp_waypoint_list);
 
-    ret = roadmap_gpx_read_waypoints(roadmap_path_trips(), name,
-                &tmp_waypoint_list);
+    ret = roadmap_gpx_read_waypoints(path, name, &tmp_waypoint_list);
 
     if (ret == 0) {
         waypt_flush_queue (&tmp_waypoint_list);
@@ -199,7 +205,7 @@ void
 roadmap_landmark_initialize(void) {
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigLandmarkName, "landmarks.gpx");
+        ("preferences", &RoadMapConfigLandmarkName, "");
 
     QUEUE_INIT(&RoadMapLandmarkHead);
 
