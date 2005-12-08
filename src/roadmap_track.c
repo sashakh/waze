@@ -284,10 +284,17 @@ void roadmap_track_autosave(void) {
 void roadmap_track_autoload(void) {
 
     const char *name;
+    const char *path = roadmap_path_trips();
 
     name = roadmap_config_get (&RoadMapConfigTrackName);
 
-    roadmap_gpx_read_one_track(roadmap_path_trips(), name, &RoadMapTrack);
+    if (name[0] == 0) {
+       /* Use the default file, if it exists. */
+       name = "current_track.gpx";
+       if (! roadmap_file_exists(path, name)) return; /* not an error. */
+    }
+
+    roadmap_gpx_read_one_track(path, name, &RoadMapTrack);
 
     RoadMapTrackModified = 0;
 
@@ -313,7 +320,7 @@ roadmap_track_initialize(void) {
         ("preferences", &RoadMapConfigLength, "1000");
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigTrackName, "current_track.gpx");
+        ("preferences", &RoadMapConfigTrackName, "");
 
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigDisplayString,
