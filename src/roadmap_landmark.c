@@ -116,8 +116,10 @@ void roadmap_landmark_save(void) {
 
     name = roadmap_config_get (&RoadMapConfigLandmarkName);
 
-    roadmap_gpx_write_waypoints(roadmap_path_trips(), name,
+    if (name && name[0]) {
+        roadmap_gpx_write_waypoints(roadmap_path_trips(), name,
                 &RoadMapLandmarkHead);
+    }
 
     RoadMapLandmarkModified = 0;
 
@@ -177,11 +179,7 @@ void roadmap_landmark_load(void) {
 
     name = roadmap_config_get (&RoadMapConfigLandmarkName);
 
-    if (name[0] == 0) {
-       /* Load the default file, if it exists. */
-       name = "landmarks.gpx";
-       if (! roadmap_file_exists (path, name)) return; /* Not an error. */
-    }
+    if ( ! roadmap_file_exists (path, name)) return;
 
     QUEUE_INIT(&tmp_waypoint_list);
 
@@ -205,7 +203,7 @@ void
 roadmap_landmark_initialize(void) {
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigLandmarkName, "");
+        ("preferences", &RoadMapConfigLandmarkName, "landmarks.gpx");
 
     QUEUE_INIT(&RoadMapLandmarkHead);
 
