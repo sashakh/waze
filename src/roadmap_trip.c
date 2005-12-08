@@ -978,6 +978,8 @@ void roadmap_trip_clear (void) {
         // FIXME -- We're blowing away possibly modified data here.
         //   RoadMapTripModified should be checked, and the user
         //   should confirm the action.
+        // ...or, we should do the write, particularly if we're changing
+        //   trips.
     }
 
     waypt_flush_queue (&RoadMapTripWaypointHead);
@@ -1856,9 +1858,6 @@ void roadmap_trip_initialize (void) {
 
     QUEUE_INIT(&RoadMapTripQuickRoute.waypoint_list);
 
-    roadmap_track_initialize();
-    roadmap_landmark_initialize();
-
     for (focal = RoadMapTripFocalPoints;
             focal->id != NULL; focal++) {
 
@@ -1938,7 +1937,7 @@ int roadmap_trip_load (const char *name, int silent, int merge) {
     if (! roadmap_path_is_full_path (name))
         trip_path = roadmap_path_trips ();
 
-    roadmap_log (ROADMAP_WARNING, "roadmap_trip_load '%s'", name);
+    roadmap_log (ROADMAP_DEBUG, "roadmap_trip_load '%s'", name);
 
     QUEUE_INIT(&tmp_waypoint_list);
     QUEUE_INIT(&tmp_route_list);
@@ -2026,14 +2025,14 @@ void roadmap_trip_save (const char *name, int force) {
         return;
     }
 
-    if (! roadmap_path_is_full_path (name))
+    if (! roadmap_path_is_full_path (name)) {
         trip_path = roadmap_path_trips ();
+    }
+
+    if (!force && !RoadMapTripModified) return;
 
     /* Always save if user-initiated. */
-    if (!force && !RoadMapTripModified)
-        return;
-
-    roadmap_log (ROADMAP_WARNING, "trip save_forced, or modified '%s'", name);
+    roadmap_log (ROADMAP_DEBUG, "trip save_forced, or modified '%s'", name);
 
     roadmap_gpx_write_file (trip_path, name, &RoadMapTripWaypointHead,
             &RoadMapTripRouteHead, &RoadMapTripTrackHead);

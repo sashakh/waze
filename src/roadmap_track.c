@@ -267,15 +267,38 @@ void roadmap_track_save(void) {
 
 }
 
+static const char *roadmap_track_filename(int *defaulted) {
+    const char *name;
+    name = roadmap_config_get (&RoadMapConfigTrackName);
+    if (!name[0]) {
+        name = "currenttrack.gpx";
+        *defaulted = 1;
+    } else {
+	if (strcasecmp(name, "NONE") == 0) {
+	    return NULL;
+	}
+        *defaulted = 0;
+    }
+    return name;
+}
+
 void roadmap_track_autosave(void) {
 
     const char *name;
+    int defaulted, ret;
 
     if (!RoadMapTrackModified) return;
 
-    name = roadmap_config_get (&RoadMapConfigTrackName);
+    name = roadmap_track_filename (&defaulted);
+    if (name == NULL) return;
 
-    roadmap_gpx_write_track(roadmap_path_trips(), name, RoadMapTrack);
+    ret = roadmap_gpx_write_track(roadmap_path_trips(), name, RoadMapTrack);
+
+    if (ret == 0) return;
+
+    if (defaulted) {
+        roadmap_config_set (&RoadMapConfigTrackName, name);
+    }
 
     RoadMapTrackModified = 0;
 
@@ -285,16 +308,21 @@ void roadmap_track_autoload(void) {
 
     const char *name;
     const char *path = roadmap_path_trips();
+    int defaulted, ret;
 
-    name = roadmap_config_get (&RoadMapConfigTrackName);
+    name = roadmap_track_filename (&defaulted);
+    if (name == NULL) return;
 
-    if (name[0] == 0) {
-       /* Use the default file, if it exists. */
-       name = "current_track.gpx";
-       if (! roadmap_file_exists(path, name)) return; /* not an error. */
+    if (! roadmap_file_exists(path, name)) return; /* not an error. */
+
+    ret = roadmap_gpx_read_one_track(path, name, &RoadMapTrack);
+
+    if (ret == 0) return;
+
+    if (defaulted) {
+        roadmap_config_set (&RoadMapConfigTrackName, name);
     }
 
-    roadmap_gpx_read_one_track(path, name, &RoadMapTrack);
 
     RoadMapTrackModified = 0;
 

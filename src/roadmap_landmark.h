@@ -27,6 +27,7 @@
 void  roadmap_landmark_display (void);
 void  roadmap_landmark_initialize (void);
 void  roadmap_landmark_save (void);
+void  roadmap_landmark_load (void);
 void roadmap_landmark_load(void);
 void roadmap_landmark_merge(void);
 int roadmap_landmark_count();

@@ -108,17 +108,35 @@ int roadmap_landmark_is_refresh_needed (void) {
     return 0;
 }
 
+static const char *roadmap_landmark_filename(int *defaulted) {
+    const char *name;
+    name = roadmap_config_get (&RoadMapConfigLandmarkName);
+    if (!name[0]) {
+        name = "landmarks.gpx";
+        *defaulted = 1;
+    } else {
+        *defaulted = 0;
+    }
+    return name;
+}
+
+
 void roadmap_landmark_save(void) {
 
     const char *name;
+    int defaulted, ret;
 
     if (!RoadMapLandmarkModified) return;
 
-    name = roadmap_config_get (&RoadMapConfigLandmarkName);
+    name = roadmap_landmark_filename (&defaulted);
 
-    if (name && name[0]) {
-        roadmap_gpx_write_waypoints(roadmap_path_trips(), name,
-                &RoadMapLandmarkHead);
+    ret = roadmap_gpx_write_waypoints(roadmap_path_trips(), name,
+            &RoadMapLandmarkHead);
+
+    if (ret == 0) return;
+
+    if (defaulted) {
+        roadmap_config_set (&RoadMapConfigLandmarkName, name);
     }
 
     RoadMapLandmarkModified = 0;
@@ -130,6 +148,8 @@ static void roadmap_landmark_merge_file(const char *name) {
     const char *trip_path = NULL;
     queue tmp_waypoint_list;
     int ret;
+
+    if (!name || !name[0]) return;
 
     if (! roadmap_path_is_full_path (name))
         trip_path = roadmap_path_trips ();
@@ -175,11 +195,11 @@ void roadmap_landmark_load(void) {
     const char *name;
     const char *path = roadmap_path_trips();
     queue tmp_waypoint_list;
-    int ret;
+    int defaulted, ret;
 
-    name = roadmap_config_get (&RoadMapConfigLandmarkName);
+    name = roadmap_landmark_filename (&defaulted);
 
-    if ( ! roadmap_file_exists (path, name)) return;
+    if ( ! roadmap_file_exists (path, name) && defaulted) return;
 
     QUEUE_INIT(&tmp_waypoint_list);
 
@@ -188,6 +208,10 @@ void roadmap_landmark_load(void) {
     if (ret == 0) {
         waypt_flush_queue (&tmp_waypoint_list);
         return;
+    }
+
+    if (defaulted) {
+        roadmap_config_set (&RoadMapConfigLandmarkName, name);
     }
 
     waypt_flush_queue (&RoadMapLandmarkHead);
@@ -203,10 +227,8 @@ void
 roadmap_landmark_initialize(void) {
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigLandmarkName, "landmarks.gpx");
+        ("preferences", &RoadMapConfigLandmarkName, "");
 
     QUEUE_INIT(&RoadMapLandmarkHead);
-
-    roadmap_landmark_load();
 
 }

@@ -1523,7 +1523,8 @@ USING ROADMAP
        Unless specifically disabled in preferences, the GPS track followed
        by the user will be continuously recorded by RoadMap.  By default
        this "breadcrumb trail" will be displayed on the map, but this can
-       be suppressed with the "Show/Hide Track" toggle command.
+       be suppressed with the "Show/Hide Track" toggle command.  Whether
+       the track is displayed initially is also configurable.
 
        The frequency at which points for the track are recorded is
        determined by several settings in preferences:
@@ -1541,6 +1542,14 @@ USING ROADMAP
            from the preceding path of travel.  This minimizes the points
            saved, since straight line travel is represented by very few
            points.   [ Currently unimplemented. ]
+
+         * If "Off" is chosen, then no track points will be saved.
+
+       Normally the recorded track will be saved in the configured filename. 
+       The default for this file is "current_track.gpx".  If one wishes to
+       record tracks, but never save them to disk, set the filename to the
+       special value "NONE".
+
 
 * DRIVERS
 
