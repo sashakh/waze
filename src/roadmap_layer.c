@@ -179,6 +179,8 @@ int roadmap_layer_visible_roads (int *layers, int size) {
     RoadMapLayer *layer;
     
 
+    if (RoadMapLayerCurrentClass == NULL) return 0;
+
     --size; /* To match our boundary check. */
 
     for (i = 0; i < RoadMapLayerCurrentClass->lines_count; ++i) {
@@ -205,6 +207,8 @@ int roadmap_layer_visible_lines
 
     RoadMapLayer *layer;
 
+
+    if (RoadMapLayerCurrentClass == NULL) return 0;
 
     --size; /* To match our boundary check. */
     
@@ -233,6 +237,9 @@ void roadmap_layer_adjust (void) {
     int future_thickness;
     unsigned int pen_index;
     RoadMapLayer *layer;
+
+
+    if (RoadMapLayerCurrentClass == NULL) return;
 
     for (i = RoadMapLayerCurrentClass->lines_count - 1; i >= 0; --i) {
 
@@ -313,7 +320,11 @@ void roadmap_layer_adjust (void) {
 
 RoadMapPen roadmap_layer_get_pen (int layer, unsigned int pen_index) {
 
-   int total = RoadMapLayerCurrentClass->polygons_count
+   int total;
+
+   if (RoadMapLayerCurrentClass == NULL) return NULL;
+
+   total = RoadMapLayerCurrentClass->polygons_count
                   + RoadMapLayerCurrentClass->lines_count;
 
    if (layer >= 1 && layer <= total && pen_index < RoadMapMaxUsedPen) {
