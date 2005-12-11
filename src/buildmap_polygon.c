@@ -23,9 +23,9 @@
  * SYNOPSYS:
  *
  *   void buildmap_polygon_initialize (void);
- *   int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid);
  *   int  buildmap_polygon_add_landmark
  *           (int landid, char cfcc, RoadMapString name);
+ *   int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid);
  *   int  buildmap_polygon_add_line
  *           (RoadMapString cenid, int polyid, int tlid, int side);
  *   int  buildmap_polygon_use_line (int tlid);
@@ -39,6 +39,41 @@
  * the Tiger data by sharing all duplicated information and
  * (2) produce the index data to serve as the basis for a fast
  * search mechanism for streets in roadmap.
+ *
+ * This module considers a single area to be described by a unique landmark
+ * ID. Each area can be made of multiple polygons, but the name of the area
+ * as well as the layer to be used is the same for all the polygons and
+ * is defined with the landmark.
+ *
+ * Thus buildmap_polygon_add_landmark() should be called before
+ * buildmap_polygon_add(), which should be called before
+ * buildmap_polygon_add_line().
+ *
+ * The contour of each polygon is defined by a succession of lines. The
+ * map file will be filled with the lines in an order that is convenient
+ * for drawing. Imagine you would walk around the area following the
+ * polygon countour: you would then walk over all lines in a certain
+ * order: this is the sorting order there.
+ *
+ * Of course this order can lead to two solutions: either you walk clockwise
+ * or counter clockwise. The code here choose on way arbitrarily. However
+ * you can provide the lines in direction, but you must tell which one it is.
+ * The direction is defined by the order of the "from" and "to" points: if
+ * you were to walk from "from" to "to", would you have the area's polygon
+ * on you right or on your left? That information is the purpose of the "side"
+ * parameter.
+ *
+ * Note that polygons must be loaded before the lines. This is because a
+ * line must be loaded if it is part of a polygon, even if its layer is
+ * normally ignored (a line may not belong to the same layer as the polygon:
+ * think of a city park which half bounding lines are streets and the other
+ * half are property lines--RoadMap would normally not load property lines).
+ *
+ * The function buildmap_polygon_use_line() tells the line loading logic
+ * if it must load the line anyway.
+ *
+ * The other functions are generic functions, same as for the other table
+ * modules.
  */
 
 #include <stdio.h>
