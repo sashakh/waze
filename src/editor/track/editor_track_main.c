@@ -429,13 +429,6 @@ static void track_rec_locate(time_t gps_time,
    int context_save_zoom;
    int point_id;
    int res;
-   static FILE *dbg_file;
-   
-   if (dbg_file == NULL) {
-      dbg_file = fopen("/tmp/rm.log", "w");
-   }
-
-   fflush (dbg_file);
    
    if (filter == NULL) {
 
@@ -445,8 +438,6 @@ static void track_rec_locate(time_t gps_time,
           roadmap_math_distance_convert ("10m", NULL));
    }
 
-   fprintf (dbg_file, "Recv gps point: %d, %d\n", gps_position->longitude, gps_position->latitude);
-   
    roadmap_math_get_context (&context_save_pos, &context_save_zoom);
    roadmap_math_set_context ((RoadMapPosition *)gps_position, 20);
    editor_track_util_set_focus ((RoadMapPosition *)gps_position);
@@ -460,8 +451,6 @@ static void track_rec_locate(time_t gps_time,
        * This is probably a new GPS track.
        */
 
-      fprintf (dbg_file, "Track end.\n");
-   
       editor_track_end ();
       goto restore;
    }
@@ -470,9 +459,6 @@ static void track_rec_locate(time_t gps_time,
 
       TrackLastPosition = *filtered_gps_point;
       
-      fprintf (dbg_file, "Filter output point: %d, %d\n",
-            filtered_gps_point->longitude, filtered_gps_point->latitude);
-   
       point_id = editor_track_add_point(&TrackLastPosition, gps_time);
 
       if (point_id == -1) {
