@@ -125,5 +125,7 @@ int  roadmap_gps_speed_accuracy  (void);
 
 int  roadmap_gps_is_nmea (void);
 
+void roadmap_gps_shutdown (void);
+
 #endif // INCLUDE__ROADMAP_GPS__H
 

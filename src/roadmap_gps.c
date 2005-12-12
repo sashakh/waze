@@ -177,6 +177,26 @@ static void roadmap_gps_call_loggers (const char *data) {
 }
 
 
+static void roadmap_gps_keep_alive (void) {
+
+   if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) return;
+
+   if (roadmap_gps_active ()) return;
+
+   roadmap_log (ROADMAP_ERROR, "GPS timeout detected.");
+
+   (*RoadMapGpsPeriodicRemove) (roadmap_gps_keep_alive);
+
+   (*RoadMapGpsLinkRemove) (&RoadMapGpsLink);
+
+   roadmap_io_close (&RoadMapGpsLink);
+
+   /* Try to establish a new IO channel: */
+
+   roadmap_gps_open();
+}
+
+
 /* NMEA protocol support ----------------------------------------------- */
 
 static RoadMapNmeaAccount RoadMapGpsNmeaAccount;
@@ -521,8 +541,19 @@ void roadmap_gps_initialize (void) {
 }
 
 
+void roadmap_gps_shutdown (void) {
 
-void  roadmap_gps_register_listener (roadmap_gps_listener listener) {
+   if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) return;
+
+   (*RoadMapGpsPeriodicRemove) (roadmap_gps_keep_alive);
+
+   (*RoadMapGpsLinkRemove) (&RoadMapGpsLink);
+
+   roadmap_io_close (&RoadMapGpsLink);
+}
+
+
+void roadmap_gps_register_listener (roadmap_gps_listener listener) {
 
    int i;
 
@@ -690,6 +721,9 @@ void roadmap_gps_open (void) {
    }
 
    RoadMapGpsConnectedSince = time(NULL);
+   RoadMapGpsLatestPositionData = time(NULL);
+
+   (*RoadMapGpsPeriodicAdd) (roadmap_gps_keep_alive);
 
    /* Declare this IO to the GUI toolkit so that we wake up on GPS data. */
 
@@ -800,6 +834,7 @@ void roadmap_gps_input (RoadMapIO *io) {
 
       /* Try to establish a new IO channel: */
 
+      (*RoadMapGpsPeriodicRemove) (roadmap_gps_keep_alive);
       roadmap_gps_open();
    }
 }
