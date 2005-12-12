@@ -11,7 +11,7 @@ FL,FLORIDA
 GA,GEORGIA
 HI,HAWAII
 ID,IDAHO
-IL,ILLINOIS
+LL,ILLINOIS
 IN,INDIANA
 IA,IOWA
 KS,KANSAS
@@ -73,3 +73,4 @@ DX,DCW South Asia
 DY,DCW North America
 DZ,DCW South America and Africa
 PN,Placenames
+IL,Israel
