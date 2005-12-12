@@ -51,6 +51,9 @@ typedef struct {
    RoadMapPointBySquare *BySquare;
    int                   BySquareCount;
 
+   int *PointID;
+   int  PointIDCount;
+
    unsigned short *PointToSquare2;
    int            *PointToSquare4;
 
@@ -63,6 +66,7 @@ static void *roadmap_point_map (roadmap_db *root) {
 
    roadmap_db *point_table;
    roadmap_db *bysquare_table;
+   roadmap_db *id_table;
 
    RoadMapPointContext *context;
 
@@ -72,10 +76,16 @@ static void *roadmap_point_map (roadmap_db *root) {
 
    bysquare_table  = roadmap_db_get_subsection (root, "bysquare");
    point_table = roadmap_db_get_subsection (root, "data");
+   id_table = roadmap_db_get_subsection (root, "id");
 
    context->BySquare =
       (RoadMapPointBySquare *) roadmap_db_get_data (bysquare_table);
    context->Point = (RoadMapPoint *) roadmap_db_get_data (point_table);
+
+   if (id_table != NULL) {
+      context->PointID = (int *) roadmap_db_get_data (id_table);
+      context->PointIDCount  = roadmap_db_get_count (id_table);
+   }
 
    context->BySquareCount = roadmap_db_get_count (bysquare_table);
    context->PointCount    = roadmap_db_get_count (point_table);
@@ -256,6 +266,12 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
 
 int roadmap_point_db_id (int point) {
 
-   return -1;
+   if ((RoadMapPointActive == NULL) ||
+         (RoadMapPointActive->PointID == NULL) ||
+         (RoadMapPointActive->PointIDCount <= point)) {
+      return -1;
+   }
+
+   return RoadMapPointActive->PointID[point];
 }
 
