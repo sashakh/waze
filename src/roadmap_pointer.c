@@ -34,7 +34,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_main.h"
 
-#define LONG_CLICK_TIMEOUT 1000
+#define LONG_CLICK_TIMEOUT 350
 #define DRAG_FLOW_CONTROL_TIMEOUT 30
 
 static int is_button_down = 0;
