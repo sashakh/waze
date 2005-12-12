@@ -38,15 +38,16 @@ typedef struct {
 
 typedef struct {
 
-   int min;
-   int max;
+   int fradd;
+   int toadd;
 
 } RoadMapStreetRange;
 
 
 typedef struct {
     
-    RoadMapStreetRange range;
+    RoadMapStreetRange first_range;
+    RoadMapStreetRange second_range;
     
     int street;
     
@@ -156,7 +157,7 @@ const char *roadmap_street_get_street_zip
                 (const RoadMapStreetProperties *properties, int side);
 
 void roadmap_street_get_street_range
-    (const RoadMapStreetProperties *properties, int side, int *from, int *to);
+    (const RoadMapStreetProperties *properties, int range, int *from, int *to);
 
 int roadmap_street_replace
               (RoadMapNeighbour *neighbours, int count, int max,

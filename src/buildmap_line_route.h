@@ -1,8 +1,8 @@
-/* buildmap_street.h - Build a street table & index for RoadMap.
+/* buildmap_line_route.h - Build a line route table
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2005 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -21,30 +21,28 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP_STREET__H_
-#define _BUILDMAP_STREET__H_
+#ifndef _BUILDMAP_LINE_ROUTE__H_
+#define _BUILDMAP_LINE_ROUTE__H_
 
-#include <stdio.h>
+#include "roadmap_db_line_route.h"
 
-void buildmap_street_initialize (void);
-int  buildmap_street_add
-        (char cfcc,
-         RoadMapString fedirp,
-         RoadMapString fename,
-         RoadMapString fetype,
-         RoadMapString fedirs,
-         RoadMapString t2s,
-         int line);
+void buildmap_line_route_initialize (void);
+int  buildmap_line_route_add
+       (unsigned char from_flags,
+        unsigned char to_flags,
+        unsigned char from_max_speed,
+        unsigned char to_max_speed,
+        unsigned short from_cross_time,
+        unsigned short to_cross_time,
+        int line);
 
-void buildmap_street_sort (void);
-int  buildmap_street_get_sorted (int street);
-void buildmap_street_print_sorted (FILE *file, int street);
+void buildmap_line_route_sort (void);
 
-int  buildmap_street_count (void);
+int  buildmap_line_route_count (void);
 
-void buildmap_street_save    (void);
-void buildmap_street_summary (void);
-void buildmap_street_reset   (void);
+void buildmap_line_route_save    (void);
+void buildmap_line_route_summary (void);
+void buildmap_line_route_reset   (void);
 
-#endif // _BUILDMAP_STREET__H_
+#endif // _BUILDMAP_LINE_ROUTE__H_
 

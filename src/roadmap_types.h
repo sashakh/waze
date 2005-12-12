@@ -27,6 +27,10 @@
 typedef unsigned short RoadMapZip;
 typedef unsigned short RoadMapString;
 
+typedef unsigned char  LineRouteFlag;
+typedef unsigned char  LineRouteMax;
+typedef unsigned short LineRouteTime;
+
 typedef struct {
    int longitude;
    int latitude;

@@ -414,12 +414,6 @@ static int buildmap_range_compare (const void *r1, const void *r2) {
    BuildMapRange *record1;
    BuildMapRange *record2;
 
-   int lowaddr1;
-   int lowaddr2;
-   int highaddr1;
-   int highaddr2;
-
-
    record1 = Range[i1/BUILDMAP_BLOCK] + (i1 % BUILDMAP_BLOCK);
    record2 = Range[i2/BUILDMAP_BLOCK] + (i2 % BUILDMAP_BLOCK);
 
@@ -435,53 +429,17 @@ static int buildmap_range_compare (const void *r1, const void *r2) {
       return result;
    }
 
-   if (record1->fradd < record1->toadd) {
-      lowaddr1 = record1->fradd;
-      highaddr1 = record1->toadd;
-   } else {
-      lowaddr1 = record1->toadd;
-      highaddr1 = record1->fradd;
-   }
-
-   if (record2->fradd < record2->toadd) {
-      lowaddr2 = record2->fradd;
-      highaddr2 = record2->toadd;
-   } else {
-      lowaddr2 = record2->toadd;
-      highaddr2 = record2->fradd;
-   }
-
-   result = lowaddr1 - lowaddr2;
+   result =
+      buildmap_line_get_sorted (record1->line & (~ CONTINUATION_FLAG)) -
+      buildmap_line_get_sorted (record2->line & (~ CONTINUATION_FLAG));
 
    if (result != 0) {
       return result;
    }
 
-   result = highaddr1 - highaddr2;
+   /* Preserve the order of range insertion */
 
-   if (result != 0) {
-      return result;
-   }
-
-   result = record1->zip - record2->zip;
-
-   if (result != 0) {
-      return result;
-   }
-
-   if ((record2->line & CONTINUATION_FLAG) ==
-       (record1->line & CONTINUATION_FLAG)) {
-
-      fprintf (stderr, "range conflict:\n");
-      buildmap_range_print (stderr, i1);
-      buildmap_range_print (stderr, i2);
-   }
-
-   if ((record2->line & CONTINUATION_FLAG) == 0) {
-      return -1; /* High order 16 bits last. */
-   }
-
-   return 1; /* Low order 16 bits first. */
+   return i1 - i2;
 }
 
 static int buildmap_range_compare_no_addr (const void *r1, const void *r2) {

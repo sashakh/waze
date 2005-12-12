@@ -113,6 +113,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_square.c \
           roadmap_point.c \
           roadmap_line.c \
+          roadmap_line_route.c \
           roadmap_shape.c \
           roadmap_place.c \
           roadmap_polygon.c \
@@ -207,6 +208,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_street.c \
        buildmap_area.c \
        buildmap_line.c \
+       buildmap_line_route.c \
        buildmap_shape.c \
        buildmap_polygon.c \
        buildmap_range.c \

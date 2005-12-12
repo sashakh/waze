@@ -1,8 +1,8 @@
-/* roadmap_db_street.h - the format of the street table used by RoadMap.
+/* roadmap_line_route.h - Manage the line route data.
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2005 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -19,28 +19,32 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   The RoadMap streets are described by the following table:
- *
- *   street         the identification (type, name, etc..) of each street.
  */
 
-#ifndef _ROADMAP_DB_STREET__H_
-#define _ROADMAP_DB_STREET__H_
+#ifndef _ROADMAP_LINE_ROUTE__H_
+#define _ROADMAP_LINE_ROUTE__H_
 
 #include "roadmap_types.h"
+#include "roadmap_dbread.h"
+#include "roadmap_db_line_route.h"
 
-typedef struct {
+#define ROUTE_DIRECTION_NONE         0
+#define ROUTE_DIRECTION_WITH_LINE    1
+#define ROUTE_DIRECTION_AGAINST_LINE 2
+#define ROUTE_DIRECTION_ANY          3
 
-   RoadMapString fedirp;
-   RoadMapString fename;
-   RoadMapString fetype;
-   RoadMapString fedirs;
-   RoadMapString t2s;
+int roadmap_line_route_get_direction (int line, int who);
 
-} RoadMapStreet;
+int roadmap_line_route_get_flags
+      (int line, LineRouteFlag *from, LineRouteFlag *to);
 
-#endif // _ROADMAP_DB_STREET__H_
+int roadmap_line_route_get_speed_limit
+      (int line, LineRouteMax *from, LineRouteMax *to);
+
+int roadmap_line_route_get_cross_times
+      (int line, LineRouteTime *from, LineRouteTime *to);
+
+extern roadmap_db_handler RoadMapLineRouteHandler;
+
+#endif // _ROADMAP_LINE_ROUTE__H_
 

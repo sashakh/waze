@@ -1,8 +1,8 @@
-/* buildmap_street.h - Build a street table & index for RoadMap.
+/* roadmap_db_line_route.h - the format of a line's route data
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2005 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -19,32 +19,31 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * SYNOPSYS:
+ *
+ *   RoadMap's lines route data is described by the following table:
+ *
+ *   line_route for each line its direction and cross time and allowed speed are specified
  */
 
-#ifndef _BUILDMAP_STREET__H_
-#define _BUILDMAP_STREET__H_
+#ifndef _ROADMAP_DB_LINE_ROUTE__H_
+#define _ROADMAP_DB_LINE_ROUTE__H_
 
-#include <stdio.h>
+#include "roadmap_types.h"
 
-void buildmap_street_initialize (void);
-int  buildmap_street_add
-        (char cfcc,
-         RoadMapString fedirp,
-         RoadMapString fename,
-         RoadMapString fetype,
-         RoadMapString fedirs,
-         RoadMapString t2s,
-         int line);
+#define ROUTE_CAR_ALLOWED 0x1
 
-void buildmap_street_sort (void);
-int  buildmap_street_get_sorted (int street);
-void buildmap_street_print_sorted (FILE *file, int street);
+typedef struct {  /* table line_route */
 
-int  buildmap_street_count (void);
+   unsigned char from_flags;
+   unsigned char to_flags;
+   unsigned char from_max_speed;
+   unsigned char to_max_speed;
+   unsigned short from_cross_time;
+   unsigned short to_cross_time;
 
-void buildmap_street_save    (void);
-void buildmap_street_summary (void);
-void buildmap_street_reset   (void);
+} RoadMapLineRoute;
 
-#endif // _BUILDMAP_STREET__H_
+#endif // _ROADMAP_DB_LINE_ROUTE__H_
 

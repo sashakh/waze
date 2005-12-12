@@ -60,6 +60,7 @@
 typedef struct {
    int longitude;
    int latitude;
+   int db_id;
    int sorted;
    int squareid;           /* Before sorting. */
    unsigned short square;  /* After sorting. */
@@ -98,7 +99,7 @@ void buildmap_point_initialize (void) {
 }
 
 
-int buildmap_point_add (int longitude, int latitude) {
+int buildmap_point_add (int longitude, int latitude, int db_id) {
 
    int i;
    int block;
@@ -144,9 +145,10 @@ int buildmap_point_add (int longitude, int latitude) {
    this_point = Point[block] + offset;
 
    this_point->longitude = longitude;
-   this_point->latitude   = latitude;
-   this_point->sorted = -1;
-   this_point->square = -1;
+   this_point->latitude  = latitude;
+   this_point->db_id     = db_id;
+   this_point->sorted    = -1;
+   this_point->square    = -1;
 
 
    /* Compute the geographic limits of the area. This will be used later
@@ -341,11 +343,13 @@ void buildmap_point_save (void) {
 
    BuildMapPoint *one_point;
    RoadMapPoint  *db_points;
+   int           *db_ids;
    RoadMapSortedList *db_bysquare;
 
    
    buildmap_db *root;
    buildmap_db *table_data;
+   buildmap_db *table_id;
    buildmap_db *table_bysquare;
 
 
@@ -357,6 +361,9 @@ void buildmap_point_save (void) {
    table_data = buildmap_db_add_child
                   (root, "data", PointCount, sizeof(RoadMapPoint));
 
+   table_id = buildmap_db_add_child
+                  (root, "id", PointCount, sizeof(int));
+
    table_bysquare = buildmap_db_add_child
                      (root,
                       "bysquare",
@@ -364,6 +371,7 @@ void buildmap_point_save (void) {
                       sizeof(RoadMapSortedList));
 
    db_points   = (RoadMapPoint *) buildmap_db_get_data (table_data);
+   db_ids      = (int *) buildmap_db_get_data (table_id);
    db_bysquare = (RoadMapSortedList *) buildmap_db_get_data (table_bysquare);
 
 
@@ -390,6 +398,8 @@ void buildmap_point_save (void) {
          (unsigned short) (one_point->longitude - reference_longitude);
       db_points[i].latitude =
          (unsigned short) (one_point->latitude - reference_latitude);
+
+      db_ids[i] = one_point->db_id;
    }
 }
 

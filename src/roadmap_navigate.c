@@ -33,6 +33,7 @@
 #include "roadmap_config.h"
 #include "roadmap_message.h"
 #include "roadmap_line.h"
+#include "roadmap_line_route.h"
 #include "roadmap_square.h"
 #include "roadmap_street.h"
 #include "roadmap_layer.h"
@@ -233,18 +234,15 @@ int roadmap_navigate_fuzzify
        return roadmap_fuzzy_false ();
     }
 
-    //TODO define CAR const
-#ifndef _WIN32
-#warning implement
-#endif
-    //line_direction = roadmap_plugin_get_direction (line, 0x001);
-    line_direction = 1;
+    line_direction =
+       roadmap_plugin_get_direction (&line->line, ROUTE_CAR_ALLOWED);
 
-    if ((line_direction == 0) || (line_direction == 3)) {
+    if ((line_direction == ROUTE_DIRECTION_NONE) ||
+          (line_direction == ROUTE_DIRECTION_ANY)) {
        symetric = 1;
     }
 
-    if (line_direction <= 1) {
+    if (symetric || (line_direction == ROUTE_DIRECTION_WITH_LINE)) {
        tracked->direction = roadmap_math_azymuth (&line->from, &line->to);
     } else {
        tracked->direction = roadmap_math_azymuth (&line->to, &line->from);

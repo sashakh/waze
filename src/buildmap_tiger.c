@@ -60,6 +60,7 @@
 
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
+static BuildMapDictionary DictionaryText2Speech;
 static BuildMapDictionary DictionaryType;
 static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
@@ -308,6 +309,7 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
    int  tlid;
    RoadMapString fedirp;
    RoadMapString fename;
+   RoadMapString t2s;
    RoadMapString fetype;
    RoadMapString fedirs;
    RoadMapString city;
@@ -328,8 +330,11 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 
    DictionaryPrefix = buildmap_dictionary_open ("prefix");
    DictionaryStreet = buildmap_dictionary_open ("street");
+   DictionaryText2Speech = buildmap_dictionary_open ("text2speech");
    DictionaryType   = buildmap_dictionary_open ("type");
    DictionarySuffix = buildmap_dictionary_open ("suffix");
+
+   t2s = buildmap_dictionary_add (DictionaryText2Speech, "", 0);
 
    data = buildmap_tiger_read (source, ".RT1", verbose, &size);
    if (data == NULL) return;
@@ -383,8 +388,8 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
          tolat  = tiger2int (cursor, 220, 228);
 
 
-         from_point = buildmap_point_add (frlong, frlat);
-         to_point   = buildmap_point_add (tolong, tolat);
+         from_point = buildmap_point_add (frlong, frlat, -1);
+         to_point   = buildmap_point_add (tolong, tolat, -1);
 
          line = buildmap_line_add (tlid, cfcc, from_point, to_point);
 
@@ -392,7 +397,7 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
              cfcc <= ROADMAP_ROAD_LAST) {
 
             street = buildmap_street_add
-                        (cfcc, fedirp, fename, fetype, fedirs, line);
+                        (cfcc, fedirp, fename, fetype, fedirs, t2s, line);
 
             if ((zipl > 0) || (zipr > 0)) {
 

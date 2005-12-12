@@ -131,7 +131,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
          if (range_count > 0) {
 
-            street_number[i] = ranges[0].min;
+            street_number[i] = ranges[0].fradd;
 
             for (k = 1; k < range_count; ++k) {
 
@@ -142,7 +142,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
                }
                blocks[count] = blocks[i];
                ranges[count] = ranges[k];
-               street_number[count] = ranges[count].min;
+               street_number[count] = ranges[count].fradd;
                count += 1;
             }
          }

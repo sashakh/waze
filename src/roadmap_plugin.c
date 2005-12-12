@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "roadmap.h"
 #include "roadmap_line.h"
+#include "roadmap_line_route.h"
 #include "roadmap_locator.h"
 #include "roadmap_street.h"
 
@@ -366,7 +367,7 @@ const char *roadmap_plugin_street_full_name (PluginLine *line) {
          return "";
       }
 
-      if (hooks->get_street != NULL) {
+      if (hooks->get_street_full_name != NULL) {
          return (*hooks->get_street_full_name) (line);
       }
 
@@ -385,7 +386,7 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
 
       props->address = roadmap_street_get_street_address (&rm_properties);
       props->street = roadmap_street_get_street_name (&rm_properties);
-      props->street_t2s = "";
+      props->street_t2s = roadmap_street_get_street_t2s (&rm_properties);
       props->city = roadmap_street_get_city_name (&rm_properties);
       return;
 
@@ -404,7 +405,7 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
          return;
       }
 
-      if (hooks->get_street != NULL) {
+      if (hooks->get_street_properties != NULL) {
          (*hooks->get_street_properties) (line, props);
       }
 
@@ -470,6 +471,32 @@ int roadmap_plugin_get_closest
    }
 
    return count;
+}
+
+
+int roadmap_plugin_get_direction (PluginLine *line, int who) {
+   
+   if (line->plugin_id == ROADMAP_PLUGIN_ID) {
+
+      return roadmap_line_route_get_direction (line->line_id, who);
+
+   } else {
+      RoadMapPluginHooks *hooks = get_hooks (line->plugin_id);
+
+      if (hooks == NULL) {
+         roadmap_log (ROADMAP_ERROR, "plugin id:%d is missing.",
+               line->plugin_id);
+
+         return 0;
+      }
+
+      if (hooks->route_direction != NULL) {
+         return (*hooks->route_direction) (line, who);
+      }
+
+      return 0;
+   }
+
 }
 
 

@@ -95,6 +95,7 @@ int  buildmap_street_add
          RoadMapString fename,
          RoadMapString fetype,
          RoadMapString fedirs,
+         RoadMapString t2s,
          int line) {
 
    int longitude_line;
@@ -165,6 +166,7 @@ int  buildmap_street_add
    this_street->record.fedirp = fedirp;
    this_street->record.fetype = fetype;
    this_street->record.fedirs = fedirs;
+   this_street->record.t2s = t2s;
 
    this_street->cfcc  = cfcc;
    this_street->start = line;
@@ -232,12 +234,15 @@ void buildmap_street_print_sorted (FILE *file, int street) {
 
    this_street = Street[street/BUILDMAP_BLOCK] + (street % BUILDMAP_BLOCK);
 
-   fprintf (file, "%s %s %s (%s)",
+   fprintf (file, "%s %s (%s) %s (%s)",
             buildmap_dictionary_get
                (buildmap_dictionary_open("prefix"),
                 this_street->record.fedirp),
             buildmap_dictionary_get
                (buildmap_dictionary_open("street"),
+                this_street->record.fename),
+            buildmap_dictionary_get
+               (buildmap_dictionary_open("t2s"),
                 this_street->record.fename),
             buildmap_dictionary_get
                (buildmap_dictionary_open("suffix"),

@@ -25,7 +25,7 @@
 #define _BUILDMAP_POINT__H_
 
 void buildmap_point_initialize (void);
-int  buildmap_point_add        (int longitude, int latitude);
+int  buildmap_point_add        (int longitude, int latitude, int id);
 
 void buildmap_point_sort (void);
 int  buildmap_point_get_square (int pointid);

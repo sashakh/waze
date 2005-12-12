@@ -52,6 +52,7 @@
 #include "buildmap_square.h"
 #include "buildmap_point.h"
 #include "buildmap_line.h"
+#include "buildmap_line_route.h"
 #include "buildmap_street.h"
 #include "buildmap_range.h"
 #include "buildmap_area.h"
@@ -64,13 +65,14 @@
 #define WaterTlidStart 1100000
 /* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(segments.the_geom) AS the_geom, segments.type AS layer, streets.name FROM segments LEFT JOIN streets ON segments.street_id == streets.id;";
-
-static const char *country_borders_sql = "SELECT ogc_fid AS id, AsText(wkb_geometry) AS the_geom FROM boundaries;";
-static const char *water_sql = "SELECT ogc_fid AS id, AsText(wkb_geometry) AS the_geom FROM water;";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(segments.the_geom) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
+static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time FROM segments;";
+static const char *country_borders_sql = "SELECT id AS id, AsText(the_geom) AS the_geom FROM boundaries;";
+static const char *water_sql = "SELECT id AS id, AsText(the_geom) AS the_geom FROM water;";
 
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
+static BuildMapDictionary DictionaryText2Speech;
 static BuildMapDictionary DictionaryType;
 static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
@@ -94,7 +96,7 @@ str2dict (BuildMapDictionary d, const char *string) {
 }
 
 
-static int type2layer (const char *type) {
+static int pg2layer (int layer) {
 
    return ROADMAP_ROAD_STREET;
 }
@@ -203,6 +205,251 @@ static int db_result_ok (PGresult *result) {
 }
 
 
+static void buildmap_postgres_read_roads_lines (int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   int line;
+   int street;
+   int zip;
+   int tlid;
+   int frlong;
+   int frlat;
+   int tolong;
+   int tolat;
+   int from_point;
+   int to_point;
+   int from_node_id;
+   int to_node_id;
+   RoadMapString fedirp;
+   RoadMapString fename;
+   RoadMapString t2s;
+   RoadMapString fetype;
+   RoadMapString fedirs;
+   RoadMapString city;
+
+   DictionaryPrefix = buildmap_dictionary_open ("prefix");
+   DictionaryStreet = buildmap_dictionary_open ("street");
+   DictionaryText2Speech = buildmap_dictionary_open ("text2speech");
+   DictionaryType   = buildmap_dictionary_open ("type");
+   DictionarySuffix = buildmap_dictionary_open ("suffix");
+   DictionaryCity   = buildmap_dictionary_open ("city");
+
+   PGresult *db_result;
+
+   db_result = PQexec(hPGConn, roads_sql);
+
+   if (!db_result_ok (db_result)) {
+
+      fprintf
+         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
+      PQfinish(hPGConn);
+      exit(-1);
+   }
+
+   record_count = PQntuples(db_result);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      float *lon_arr;
+      float *lat_arr;
+      int num_points;
+      int layer;
+      int column = 0;
+
+      buildmap_set_line (irec);
+
+      tlid = atoi(PQgetvalue(db_result, irec, column++));
+
+      num_points =
+         decode_line_string
+         (PQgetvalue(db_result, irec, column++), &lon_arr, &lat_arr);
+
+      frlong = lon_arr[0] * 1000000.0;
+      frlat  = lat_arr[0] * 1000000.0;
+
+      tolong = lon_arr[num_points-1] * 1000000.0;
+      tolat  = lat_arr[num_points-1] * 1000000.0;
+
+      layer = pg2layer (atoi(PQgetvalue(db_result, irec, column++)));
+
+      from_node_id = atoi(PQgetvalue(db_result, irec, column++));
+      to_node_id = atoi(PQgetvalue(db_result, irec, column++));
+
+      fedirp = str2dict (DictionaryPrefix, "");
+      
+      fename =
+         str2dict (DictionaryStreet, PQgetvalue(db_result, irec, column++));
+      t2s =
+         str2dict (DictionaryText2Speech, PQgetvalue(db_result, irec, column++));
+
+      fetype = str2dict (DictionaryPrefix, "");
+      fedirs = str2dict (DictionaryPrefix, "");
+
+      from_point = buildmap_point_add (frlong, frlat, from_node_id);
+      to_point   = buildmap_point_add (tolong, tolat, to_node_id);
+
+      line = buildmap_line_add (tlid, layer, from_point, to_point);
+
+      street = buildmap_street_add
+                  (layer, fedirp, fename, fetype, fedirs, t2s, line);
+      city =
+         str2dict (DictionaryCity, PQgetvalue(db_result, irec, column++));
+      zip = buildmap_zip_add (0, 0, 0);
+
+      if (!city) {
+
+         buildmap_range_add_no_address (line, street);
+      } else {
+
+         buildmap_range_add
+            (line, street, 1, 11, zip, city);
+
+         buildmap_range_add
+            (line, street, 2, 12, zip, city);
+      }
+
+      free (lon_arr);
+      free (lat_arr);
+
+   }
+
+   PQclear(db_result);
+
+   return;
+}
+
+
+static void buildmap_postgres_read_roads_route (int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   int line;
+   int tlid;
+
+   unsigned char from_car_allowed;
+   unsigned char to_car_allowed;
+   unsigned char from_max_speed;
+   unsigned char to_max_speed;
+   unsigned short from_cross_time;
+   unsigned short to_cross_time;
+  
+   PGresult *db_result;
+
+   db_result = PQexec(hPGConn, roads_route_sql);
+
+   if (!db_result_ok (db_result)) {
+
+      fprintf
+         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
+      PQfinish(hPGConn);
+      exit(-1);
+   }
+
+   record_count = PQntuples(db_result);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      int column = 0;
+
+      buildmap_set_line (irec);
+
+      tlid = atoi(PQgetvalue(db_result, irec, column++));
+
+      from_car_allowed =
+         !strcmp("t", PQgetvalue(db_result, irec, column++)) ?
+         ROUTE_CAR_ALLOWED: 0;
+      to_car_allowed =
+         !strcmp("t", PQgetvalue(db_result, irec, column++)) ?
+         ROUTE_CAR_ALLOWED: 0;
+
+      from_max_speed  = atoi(PQgetvalue(db_result, irec, column++));
+      to_max_speed    = atoi(PQgetvalue(db_result, irec, column++));
+      from_cross_time = atoi(PQgetvalue(db_result, irec, column++));
+      to_cross_time   = atoi(PQgetvalue(db_result, irec, column++));
+
+      line = buildmap_line_find_sorted(tlid);
+
+      buildmap_line_route_add
+         (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
+          from_cross_time, to_cross_time,
+          line);
+   }
+
+   PQclear(db_result);
+
+   return;
+}
+
+
+static void buildmap_postgres_read_roads_shape_points (int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   int line_index;
+   int tlid;
+   int j, lat, lon;
+
+   PGresult *db_result;
+
+   db_result = PQexec(hPGConn, roads_sql);
+
+   if (!db_result_ok (db_result)) {
+
+      fprintf
+         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
+      PQfinish(hPGConn);
+      exit(-1);
+   }
+
+   record_count = PQntuples(db_result);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      float *lon_arr;
+      float *lat_arr;
+      int num_points;
+
+      buildmap_set_line (irec);
+
+      tlid = atoi(PQgetvalue(db_result, irec, 0));
+
+      num_points =
+         decode_line_string
+         (PQgetvalue(db_result, irec, 1), &lon_arr, &lat_arr);
+
+      line_index = buildmap_line_find_sorted(tlid);
+
+      if (line_index >= 0) {
+
+         for (j=1; j<num_points-1; j++) {
+
+            lon = lon_arr[j] * 1000000.0;
+            lat = lat_arr[j] * 1000000.0;
+            buildmap_shape_add(line_index, j-1, lon, lat);
+         }
+      }
+
+      free (lon_arr);
+      free (lat_arr);
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+
+   }
+
+   PQclear(db_result);
+
+   postgres_summary (verbose, record_count);
+}
+
+
 static void buildmap_postgres_read_borders_lines (int verbose) {
 
    int    irec;
@@ -251,8 +498,8 @@ static void buildmap_postgres_read_borders_lines (int verbose) {
       tolong = lon_arr[num_points-1] * 1000000.0;
       tolat  = lat_arr[num_points-1] * 1000000.0;
 
-      from_point = buildmap_point_add (frlong, frlat);
-      to_point   = buildmap_point_add (tolong, tolat);
+      from_point = buildmap_point_add (frlong, frlat, -1);
+      to_point   = buildmap_point_add (tolong, tolat, -1);
 
       line = buildmap_line_add (tlid, BuildMapBorders, from_point, to_point);
 
@@ -380,7 +627,7 @@ static void buildmap_postgres_read_water_lines (int verbose) {
       tolong = lon_arr[num_points-1] * 1000000.0;
       tolat  = lat_arr[num_points-1] * 1000000.0;
 
-      from_point = buildmap_point_add (frlong, frlat);
+      from_point = buildmap_point_add (frlong, frlat, -1);
 
       for (j=1; j<num_points-1; j++) {
          
@@ -389,13 +636,13 @@ static void buildmap_postgres_read_water_lines (int verbose) {
          lon = lon_arr[j] * 1000000.0;
          lat = lat_arr[j] * 1000000.0;
 
-          to_point = buildmap_point_add (lon, lat);
+          to_point = buildmap_point_add (lon, lat, -1);
     
           buildmap_line_add (tlid++, BuildMapSea, from_point, to_point);
     from_point = to_point;
       }
 
-      to_point   = buildmap_point_add (tolong, tolat);
+      to_point = buildmap_point_add (tolong, tolat, -1);
 
       buildmap_line_add (tlid++, BuildMapSea, from_point, to_point);
 
@@ -407,72 +654,6 @@ static void buildmap_postgres_read_water_lines (int verbose) {
    PQclear(db_result);
 
    return;
-}
-
-
-static void buildmap_postgres_read_water_shape_points (int verbose) {
-
-   int    irec;
-   int    record_count;
-
-   int line_index;
-   int tlid;
-   int j, lat, lon;
-
-   PGresult *db_result;
-
-   db_result = PQexec(hPGConn, water_sql);
-
-   if (!db_result_ok (db_result)) {
-
-      fprintf
-         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
-      PQfinish(hPGConn);
-      exit(-1);
-   }
-
-   record_count = PQntuples(db_result);
-
-   for (irec=0; irec<record_count; irec++) {
-
-      float *lon_arr;
-      float *lat_arr;
-      int num_points;
-
-      buildmap_set_line (irec);
-
-      tlid   = WaterTlidStart + atoi(PQgetvalue(db_result, irec, 0));
-
-      num_points =
-         decode_line_string
-         (PQgetvalue(db_result, irec, 1), &lon_arr, &lat_arr);
-
-      line_index = buildmap_line_find_sorted(tlid);
-
-      if (line_index >= 0) {
-
-         for (j=1; j<num_points-1; j++) {
-
-            lon = lon_arr[j] * 1000000.0;
-            lat = lat_arr[j] * 1000000.0;
-            buildmap_shape_add(line_index, j-1, lon, lat);
-         }
-      }
-
-      free (lon_arr);
-      free (lat_arr);
-
-      if (verbose) {
-         if ((irec & 0xff) == 0) {
-            buildmap_progress (irec, record_count);
-         }
-      }
-
-   }
-
-   PQclear(db_result);
-
-   postgres_summary (verbose, record_count);
 }
 
 
@@ -564,8 +745,11 @@ void buildmap_postgres_process (const char *source,
    buildmap_postgres_connect (source);
    buildmap_postgres_read_borders_lines (verbose);
    buildmap_postgres_read_water_lines (verbose);
+   buildmap_postgres_read_roads_lines (verbose);
    buildmap_line_sort();
    buildmap_postgres_read_borders_shape_points (verbose);
+   buildmap_postgres_read_roads_route (verbose);
+   buildmap_postgres_read_roads_shape_points (verbose);
    //buildmap_postgres_read_water_shape_points (verbose);
    buildmap_postgres_read_water_polygons (verbose);
    PQfinish (hPGConn);

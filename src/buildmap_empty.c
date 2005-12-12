@@ -81,10 +81,10 @@ void buildmap_empty_process (const char *source) {
    buildmap_info ("Using points: %d %d, %d %d",
          points[0], points[1], points[2], points[3]);
 
-   p1 = buildmap_point_add (points[0], points[1]);
-   p2 = buildmap_point_add (points[2], points[1]);
-   p3 = buildmap_point_add (points[2], points[3]);
-   p4 = buildmap_point_add (points[0], points[3]);
+   p1 = buildmap_point_add (points[0], points[1], -1);
+   p2 = buildmap_point_add (points[2], points[1], -1);
+   p3 = buildmap_point_add (points[2], points[3], -1);
+   p4 = buildmap_point_add (points[0], points[3], -1);
 
    buildmap_line_add (1, cfcc, p1, p2);
    buildmap_line_add (2, cfcc, p2, p3);
