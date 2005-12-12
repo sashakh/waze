@@ -39,21 +39,28 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam)
 
 	while(io->subsystem != ROADMAP_IO_INVALID)
 	{
+      int error = 0;
+
 		SetCommMask (hCommPort, EV_RXCHAR);
 		if(!WaitCommEvent (hCommPort, &fdwCommMask, 0))
 		{
+
+         error = 1;
 			if(GetLastError() == ERROR_INVALID_HANDLE) {
 				roadmap_log (ROADMAP_INFO,
 						"Com port is closed.");
 			} else {
 				roadmap_log (ROADMAP_ERROR,
 						"Error in WaitCommEvent.");
+            roadmap_serial_close (hCommPort);
 			}
 		
 			/* Ok, we got some error. We continue to the same path
 			 * as if input is available. The read attempt should
 			 * fail, and result in removing this input.
 			 */
+
+         error = 1;
 		}
 
 		/* Check if this input was unregistered while we were
@@ -64,7 +71,9 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam)
 		}
 
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 0);
+		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)error);
+
+      if (error) break;
 	}
 
 	free(io);

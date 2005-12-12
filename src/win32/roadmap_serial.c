@@ -39,22 +39,12 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 		0,
 		NULL,
 		OPEN_EXISTING,
-		0,
+		FILE_FLAG_WRITE_THROUGH,
 		NULL);
 
 	free(url_unicode);
 
 	if(hCommPort == INVALID_HANDLE_VALUE) {
-		return (HANDLE)-1;
-	}
-
-	ct.ReadIntervalTimeout = MAXDWORD;
-	ct.ReadTotalTimeoutMultiplier = 0;
-	ct.ReadTotalTimeoutConstant = 0;
-	ct.WriteTotalTimeoutMultiplier = 10;
-	ct.WriteTotalTimeoutConstant = 1000;
-	if(!SetCommTimeouts(hCommPort, &ct)) {
-		roadmap_serial_close(hCommPort);
 		return (HANDLE)-1;
 	}
 
@@ -64,19 +54,29 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 		return (HANDLE)-1;
 	}
 
-	dcb.fBinary			   = TRUE;
+//	dcb.fBinary			   = TRUE;
 	dcb.BaudRate	       = baud_rate;
-	dcb.fOutxCtsFlow       = TRUE;
+//	dcb.fOutxCtsFlow       = TRUE;
 	dcb.fRtsControl        = RTS_CONTROL_DISABLE;
 	dcb.fDtrControl        = DTR_CONTROL_DISABLE;
-	dcb.fOutxDsrFlow       = FALSE;
-	dcb.fOutX              = FALSE;
-	dcb.fInX               = FALSE;
+//	dcb.fOutxDsrFlow       = FALSE;
+//	dcb.fOutX              = FALSE;
+//	dcb.fInX               = FALSE;
 	dcb.ByteSize           = 8;
-	dcb.Parity             = NOPARITY;
+	dcb.fParity             = FALSE;
 	dcb.StopBits           = ONESTOPBIT;
 
 	if(!SetCommState(hCommPort, &dcb)) {
+		roadmap_serial_close(hCommPort);
+		return (HANDLE)-1;
+	}
+
+	ct.ReadIntervalTimeout = MAXDWORD;
+	ct.ReadTotalTimeoutMultiplier = 0;
+	ct.ReadTotalTimeoutConstant = 0;
+	ct.WriteTotalTimeoutMultiplier = 10;
+	ct.WriteTotalTimeoutConstant = 1000;
+	if(!SetCommTimeouts(hCommPort, &ct)) {
 		roadmap_serial_close(hCommPort);
 		return (HANDLE)-1;
 	}

@@ -392,6 +392,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
+         
+         if (lParam) {
+            /* An error occured */
+            context->io->subsystem = ROADMAP_IO_INVALID;
+         }
 			(*context->callback) (context->io);
 			break;
 		}
