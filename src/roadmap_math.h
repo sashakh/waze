@@ -113,4 +113,8 @@ int  roadmap_math_delta_direction (int direction1, int direction2);
 
 int roadmap_math_distance_convert(const char *string, int *explicit);
 
+void roadmap_math_set_context (RoadMapPosition *position, int zoom);
+
+void roadmap_math_get_context (RoadMapPosition *position, int *zoom);
+
 #endif // _ROADMAP_MATH__H_

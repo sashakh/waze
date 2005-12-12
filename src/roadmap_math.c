@@ -1300,3 +1300,26 @@ int roadmap_math_distance_convert(const char *string, int *explicit)
     return (int)distance;
 }
 
+
+void roadmap_math_set_context (RoadMapPosition *position, int zoom) {
+
+   RoadMapContext.center = *position;
+
+   if (zoom < 0x10000) {
+      RoadMapContext.zoom = (unsigned short) zoom;
+   }
+
+   if (RoadMapContext.zoom <= 1) {
+      RoadMapContext.zoom = 2;
+   }
+
+   roadmap_math_compute_scale ();
+}
+
+
+void roadmap_math_get_context (RoadMapPosition *position, int *zoom) {
+
+   *position = RoadMapContext.center;
+   *zoom = RoadMapContext.zoom;
+}
+
