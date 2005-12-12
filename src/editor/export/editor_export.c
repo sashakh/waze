@@ -35,6 +35,7 @@
 #include "roadmap_path.h"
 #include "roadmap_layer.h"
 #include "roadmap_point.h"
+#include "roadmap_line_route.h"
 #include "roadmap_fileselection.h"
 
 #include "../editor_log.h"
@@ -195,7 +196,7 @@ static void add_line_data (FILE *file,
    int roadmap_from_id;
    int roadmap_to_id;
    int route_id;
-   short speed_limit;
+   LineRouteMax speed_limit;
 
    fprintf (file, "<extensions>\n");
    
@@ -265,12 +266,12 @@ static void add_line_data (FILE *file,
       if (route_id != -1) {
 
          editor_route_segment_get
-            (route_id, NULL, NULL, &speed_limit);
+            (route_id, NULL, NULL, &speed_limit, NULL);
 
          if (speed_limit) {
             char str[100];
             snprintf (str, sizeof(str), "%d", speed_limit);
-            add_attribute (file, "city_name", str);
+            add_attribute (file, "speed_limit", str);
          }
       }
 

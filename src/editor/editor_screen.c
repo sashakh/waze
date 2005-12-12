@@ -38,6 +38,7 @@
 #include "roadmap_navigate.h"
 #include "roadmap_pointer.h"
 #include "roadmap_line.h"
+#include "roadmap_line_route.h"
 #include "roadmap_shape.h"
 #include "roadmap_square.h"
 #include "roadmap_layer.h"
@@ -316,45 +317,54 @@ void editor_screen_adjust_layer (int layer, int thickness, int pen_count) {
 
 static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
 
-   int route;
    int has_street = 0;
    int has_route = 0;
 
-   //TODO get route from roadmap
-   
-   if (editor_db_activate (fips) != -1) {
+   if (plugin_id == ROADMAP_PLUGIN_ID) {
       
-      if (!plugin_id) {
-         route = editor_override_line_get_route (line);
-      } else {
-         route = editor_line_get_route (line);
-      }
+      if (roadmap_locator_activate (fips) >= 0) {
+         
+         RoadMapStreetProperties properties;
 
-      if (route != -1) {
-         has_route = 1;
-      }
-   }
+         roadmap_street_get_properties (line, &properties);
 
-   if (plugin_id == 0) {
-      
-      RoadMapStreetProperties properties;
+         if (properties.street != -1) {
+            has_street = 1;
+         }
 
-      roadmap_locator_activate (fips);
-      roadmap_street_get_properties (line, &properties);
+         if (roadmap_line_route_get_direction
+               (line, ROUTE_CAR_ALLOWED) != ROUTE_DIRECTION_NONE) {
 
-      if (properties.street != -1) {
-         has_street = 1;
+            has_route = 1;
+
+         } else if (editor_db_activate (fips) != -1) {
+            
+            int route;
+            route = editor_override_line_get_route (line);
+
+            if (route != -1) {
+               has_route = 1;
+            }
+         }
       }
 
    } else {
 
-      EditorStreetProperties properties;
+      if (editor_db_activate (fips) != -1) {
+      
+         EditorStreetProperties properties;
+         int route;
 
-      editor_db_activate (fips);
-      editor_street_get_properties (line, &properties);
+         editor_street_get_properties (line, &properties);
 
-      if (properties.street != -1) {
-         has_street = 1;
+         if (properties.street != -1) {
+            has_street = 1;
+         }
+
+         route = editor_line_get_route (line);
+         if (route != -1) {
+            has_route = 1;
+         }
       }
    }
 
@@ -411,6 +421,9 @@ int editor_screen_override_pen (int line,
          return 1;
       }
       *override_pen = pen->pen;
+   } else {
+
+      return 0;
    }
    
    if (ActiveDB != -1) {
@@ -428,7 +441,7 @@ int editor_screen_override_pen (int line,
       RoadMapPosition from;
       RoadMapPosition to;
 
-      direction = editor_route_get_direction (route, ED_ROUTE_CAR);
+      direction = editor_route_get_direction (route, ROUTE_CAR_ALLOWED);
 
       if (direction <= 0) {
          return 0;
@@ -613,7 +626,7 @@ static void editor_screen_draw_square
       
          if (route != -1) {
 
-            direction = editor_route_get_direction (route, ED_ROUTE_CAR);
+            direction = editor_route_get_direction (route, ROUTE_CAR_ALLOWED);
             if (direction > 0) { 
                roadmap_screen_draw_line_direction
                   (&from, &to, &trk_from_pos, first_shape, last_shape,

@@ -425,8 +425,17 @@ static void track_rec_locate(time_t gps_time,
 
    static struct GPSFilter *filter;
    const RoadMapGpsPosition *filtered_gps_point;
+   RoadMapPosition context_save_pos;
+   int context_save_zoom;
    int point_id;
    int res;
+   static FILE *dbg_file;
+   
+   if (dbg_file == NULL) {
+      dbg_file = fopen("/tmp/rm.log", "w");
+   }
+
+   fflush (dbg_file);
    
    if (filter == NULL) {
 
@@ -435,6 +444,12 @@ static void track_rec_locate(time_t gps_time,
           600, /* 10 minutes */
           roadmap_math_distance_convert ("10m", NULL));
    }
+
+   fprintf (dbg_file, "Recv gps point: %d, %d\n", gps_position->longitude, gps_position->latitude);
+   
+   roadmap_math_get_context (&context_save_pos, &context_save_zoom);
+   roadmap_math_set_context ((RoadMapPosition *)gps_position, 20);
+   editor_track_util_set_focus ((RoadMapPosition *)gps_position);
 
    res = editor_track_filter_add (filter, gps_time, dilution, gps_position);
 
@@ -445,14 +460,19 @@ static void track_rec_locate(time_t gps_time,
        * This is probably a new GPS track.
        */
 
+      fprintf (dbg_file, "Track end.\n");
+   
       editor_track_end ();
-      return;
+      goto restore;
    }
 
    while ((filtered_gps_point = editor_track_filter_get (filter)) != NULL) {
 
       TrackLastPosition = *filtered_gps_point;
       
+      fprintf (dbg_file, "Filter output point: %d, %d\n",
+            filtered_gps_point->longitude, filtered_gps_point->latitude);
+   
       point_id = editor_track_add_point(&TrackLastPosition, gps_time);
 
       if (point_id == -1) {
@@ -464,6 +484,10 @@ static void track_rec_locate(time_t gps_time,
       
       track_rec_locate_point (point_id);
    }
+
+restore:
+   editor_track_util_release_focus ();
+   roadmap_math_set_context (&context_save_pos, context_save_zoom);
 }
 
 
@@ -474,9 +498,7 @@ editor_gps_update (time_t gps_time,
 
    if (editor_is_enabled()) {
 
-      editor_track_util_set_focus ((RoadMapPosition *)gps_position);
       track_rec_locate(gps_time, dilution, gps_position);
-      editor_track_util_release_focus ();
    }
 }
 

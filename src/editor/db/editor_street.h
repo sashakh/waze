@@ -52,7 +52,8 @@ typedef struct editor_db_range_s {
 } editor_db_range;
 
 typedef struct {
-    RoadMapStreetRange range;
+    RoadMapStreetRange first_range;
+    RoadMapStreetRange second_range;
     int street;
     int range_id;
     EditorString city;

@@ -30,6 +30,7 @@
 #include "string.h"
 
 #include "roadmap.h"
+#include "roadmap_line_route.h"
 
 #include "../editor_log.h"
 
@@ -55,41 +56,67 @@ roadmap_db_handler EditorRouteHandler = {
 };
 
 
-void editor_route_segment_copy (int source_line, int plugin_id, int dest_line) {
+void editor_route_segment_copy (int source_line,
+                                int plugin_id,
+                                int dest_line) {
 
    int route_id;
    editor_db_route_segment *route;
 
    if (!plugin_id) {
 
-      //TODO get roadmap's route information
       route_id = editor_override_line_get_route (source_line);
    } else {
       route_id = editor_line_get_route (source_line);
    }
       
-   if (route_id == -1) return;
+   if (route_id != -1) {
 
-   route = (editor_db_route_segment *) editor_db_get_item (
-                                       ActiveSegmentRouteDB,
-                                       route_id,
-                                       0,
-                                       NULL);
+      route = (editor_db_route_segment *) editor_db_get_item (
+                                          ActiveSegmentRouteDB,
+                                          route_id,
+                                          0,
+                                          NULL);
 
-   assert (route != NULL);
+      assert (route != NULL);
 
-   if (route == NULL) {
-      editor_log
-         (ROADMAP_ERROR,
-          "Can't find route information for route_id:", route_id);
-      return;
+      if (route == NULL) {
+         editor_log
+            (ROADMAP_ERROR,
+            "Can't find route information for route_id:", route_id);
+         return;
+      }
+
+      route_id =
+         editor_route_segment_add
+                        (route->from_flags,
+                         route->to_flags,
+                         route->from_speed_limit,
+                         route->to_speed_limit);
+   } else {
+
+      LineRouteFlag from_flags = 0;
+      LineRouteFlag to_flags = 0;
+      LineRouteMax  from_speed_limit = 0;
+      LineRouteMax  to_speed_limit = 0;
+
+      if (plugin_id != 0) return; /* No route info */
+      
+      if (!roadmap_line_route_get_flags
+            (source_line, &from_flags, &to_flags) &&
+         !roadmap_line_route_get_speed_limit
+            (source_line, &from_speed_limit, &to_speed_limit)) {
+
+         return;
+      }
+
+      route_id =
+         editor_route_segment_add
+                        (from_flags,
+                         to_flags,
+                         from_speed_limit,
+                         to_speed_limit);
    }
-
-   route_id =
-      editor_route_segment_add
-                     (route->from_flags,
-                      route->to_flags,
-                      route->speed_limit);
 
    if (route_id < 0) {
       editor_log
@@ -102,24 +129,27 @@ void editor_route_segment_copy (int source_line, int plugin_id, int dest_line) {
 }
 
 
-int editor_route_segment_add
-   (EditorRouteFlag from_flags, EditorRouteFlag to_flags, short speed_limit) {
+int editor_route_segment_add (LineRouteFlag from_flags,
+                              LineRouteFlag to_flags,
+                              LineRouteMax from_speed_limit,
+                              LineRouteMax to_speed_limit) {
 
-      editor_db_route_segment route;
-      int id;
+   editor_db_route_segment route;
+   int id;
 
-      route.from_flags = from_flags;
-      route.to_flags = to_flags;
-      route.speed_limit = speed_limit;
+   route.from_flags = from_flags;
+   route.to_flags = to_flags;
+   route.from_speed_limit = from_speed_limit;
+   route.to_speed_limit = to_speed_limit;
 
+   id = editor_db_add_item (ActiveSegmentRouteDB, &route);
+
+   if (id == -1) {
+      editor_db_grow ();
       id = editor_db_add_item (ActiveSegmentRouteDB, &route);
+   }
 
-      if (id == -1) {
-         editor_db_grow ();
-         id = editor_db_add_item (ActiveSegmentRouteDB, &route);
-      }
-
-      return id;
+   return id;
 }
 
 
@@ -159,9 +189,10 @@ int editor_route_get_direction (int route_id, int who) {
 
 
 void editor_route_segment_get (int route_id,
-                               EditorRouteFlag *from_flags,
-                               EditorRouteFlag *to_flags,
-                               short *speed_limit) {
+                               LineRouteFlag *from_flags,
+                               LineRouteFlag *to_flags,
+                               LineRouteMax *from_speed_limit,
+                               LineRouteMax *to_speed_limit) {
 
    editor_db_route_segment *route;
 
@@ -188,15 +219,17 @@ void editor_route_segment_get (int route_id,
 
    if (from_flags  != NULL) *from_flags  = route->from_flags;
    if (to_flags    != NULL) *to_flags    = route->to_flags;
-   if (speed_limit != NULL) *speed_limit = route->speed_limit;
+   if (from_speed_limit != NULL) *from_speed_limit = route->from_speed_limit;
+   if (to_speed_limit != NULL) *to_speed_limit = route->to_speed_limit;
 
 }
 
 
 void editor_route_segment_set (int route_id,
-                               EditorRouteFlag from_flags,
-                               EditorRouteFlag to_flags,
-                               short speed_limit) {
+                               LineRouteFlag from_flags,
+                               LineRouteFlag to_flags,
+                               LineRouteMax from_speed_limit,
+                               LineRouteMax to_speed_limit) {
 
    editor_db_route_segment *route;
 
@@ -223,7 +256,8 @@ void editor_route_segment_set (int route_id,
 
    route->from_flags = from_flags;
    route->to_flags = to_flags;
-   route->speed_limit = speed_limit;
+   route->from_speed_limit = from_speed_limit;
+   route->to_speed_limit = to_speed_limit;
 }
 
 

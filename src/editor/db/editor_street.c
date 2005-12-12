@@ -483,7 +483,8 @@ void editor_street_get_properties
    properties->street = -1;
    properties->city = -1;
    properties->range_id = -1;
-   properties->range.min = properties->range.max = -1;
+   properties->first_range.fradd = properties->first_range.toadd = -1;
+   properties->second_range.fradd = properties->second_range.toadd = -1;
    
    if (editor_line_get_street
          (line, &properties->street, &range) == -1) {
@@ -495,25 +496,22 @@ void editor_street_get_properties
                                ED_STREET_LEFT_SIDE,
                               &properties->city,
                                NULL,
-                              &properties->range.min,
-                              &properties->range.max) != -1)) {
+                              &properties->first_range.fradd,
+                              &properties->first_range.toadd) != -1)) {
 
       properties->range_id = range;
-
-      if (properties->range.min > properties->range.max) {
-         int tmp = properties->range.min;
-         properties->range.min = properties->range.max;
-         properties->range.max = tmp;
-      }
    }
 
    if (range != -1) {
-      int from;
-      int to;
       EditorString city;
 
       if (editor_street_get_range
-            (range, ED_STREET_RIGHT_SIDE, &city, NULL, &from, &to) == -1) {
+                              (range,
+                               ED_STREET_RIGHT_SIDE,
+                              &city,
+                               NULL,
+                              &properties->second_range.fradd,
+                              &properties->second_range.toadd) == -1) {
          return;
       }
 
@@ -521,21 +519,6 @@ void editor_street_get_properties
          properties->city = city;
       }
 
-      if (from > to) {
-         int tmp = from;
-         from = to;
-         to = tmp;
-      }
-
-      if ((from != -1) &&
-         ((properties->range.min == -1) || (from < properties->range.min))) {
-         properties->range.min = from;
-      }
-
-      if ((to != -1) &&
-         ((properties->range.max == -1) || (to > properties->range.max))) {
-         properties->range.max = to;
-      }
    }
 }
 
@@ -573,13 +556,38 @@ const char *editor_street_get_street_address
                (const EditorStreetProperties *properties) {
 
     static char RoadMapStreetAddress [32];
+    int min;
+    int max;
 
-    if (properties->range.min >= properties->range.max) {
+    if (properties->first_range.fradd == -1) {
         return "";
     }
 
-    sprintf (RoadMapStreetAddress,
-             "%d - %d", properties->range.min, properties->range.max);
+    if (properties->first_range.fradd > properties->first_range.toadd) {
+       min = properties->first_range.toadd;
+       max = properties->first_range.fradd;
+    } else {
+       min = properties->first_range.fradd;
+       max = properties->first_range.toadd;
+    }
+
+    if (properties->second_range.fradd != -1) {
+
+       if (properties->second_range.fradd < min) {
+          min = properties->second_range.fradd;
+       }
+       if (properties->second_range.fradd > max) {
+          max = properties->second_range.fradd;
+       }
+       if (properties->second_range.toadd < min) {
+          min = properties->second_range.toadd;
+       }
+       if (properties->second_range.toadd > max) {
+          max = properties->second_range.toadd;
+       }
+    }
+
+    sprintf (RoadMapStreetAddress, "%d - %d", min, max);
 
     return RoadMapStreetAddress;
 }

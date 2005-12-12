@@ -41,6 +41,7 @@
 #include "roadmap_layer.h"
 #include "roadmap_locator.h"
 #include "roadmap_line.h"
+#include "roadmap_line_route.h"
 #include "roadmap_point.h"
 #include "roadmap_navigate.h"
 
@@ -745,40 +746,53 @@ void editor_track_add_trkseg (PluginLine *line,
 
    if (direction != 0) {
 
-      short from_flags;
-      short to_flags;
-      short speed_limit = 0;
+      LineRouteFlag from_flags = 0;
+      LineRouteFlag to_flags = 0;
+      LineRouteMax speed_limit = 0;
       
       if (plugin_id == ROADMAP_PLUGIN_ID) {
-         //TODO get roadmap route data
          route = editor_override_line_get_route (roadmap_plugin_get_line_id (line));
       } else {
          route = editor_line_get_route (roadmap_plugin_get_line_id (line));
       }
 
       if (route == -1) {
-         route = editor_route_segment_add (0, 0, 0);
-         from_flags = to_flags = 0;
+         
+         if (plugin_id == ROADMAP_PLUGIN_ID) {
+            roadmap_line_route_get_flags
+               (roadmap_plugin_get_line_id (line),
+                &from_flags, &to_flags);
+
+            roadmap_line_route_get_speed_limit
+               (roadmap_plugin_get_line_id (line),
+                &speed_limit, &speed_limit);
+         }
+
+         route = editor_route_segment_add
+                  (from_flags, to_flags, speed_limit, speed_limit);
       } else {
-         editor_route_segment_get (route, &from_flags, &to_flags, &speed_limit);
+         editor_route_segment_get
+            (route, &from_flags, &to_flags, &speed_limit, &speed_limit);
       }
 
-      if (direction == 1) {
+      if (direction == ROUTE_DIRECTION_WITH_LINE) {
          from_flags |= who;
-      } else if (direction == 2) {
+      } else if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
          to_flags |= who;
       } else {
          assert (0);
       }
       
       if (route != -1) {
-         editor_route_segment_set (route, from_flags, to_flags, speed_limit);
+         editor_route_segment_set
+            (route, from_flags, to_flags, speed_limit, speed_limit);
       }
    }
 
    if (plugin_id != EditorPluginID) {
 
-      editor_override_line_get_trksegs (roadmap_plugin_get_line_id (line), &first, &last);
+      editor_override_line_get_trksegs
+         (roadmap_plugin_get_line_id (line), &first, &last);
       
       if (first == -1) {
          first = last = trkseg;
@@ -786,11 +800,13 @@ void editor_track_add_trkseg (PluginLine *line,
          editor_trkseg_connect_roads (last, trkseg);
          last = trkseg;
       }
-      editor_override_line_set_trksegs (roadmap_plugin_get_line_id (line), first, last);
+      editor_override_line_set_trksegs
+         (roadmap_plugin_get_line_id (line), first, last);
 
    } else {
 
-      editor_line_get_trksegs (roadmap_plugin_get_line_id (line), &first, &last);
+      editor_line_get_trksegs
+         (roadmap_plugin_get_line_id (line), &first, &last);
       
       if (first == -1) {
          first = last = trkseg;
@@ -799,7 +815,8 @@ void editor_track_add_trkseg (PluginLine *line,
          last = trkseg;
       }
 
-      editor_line_set_trksegs (roadmap_plugin_get_line_id (line), first, last);
+      editor_line_set_trksegs
+         (roadmap_plugin_get_line_id (line), first, last);
    }
 }
 
@@ -877,7 +894,7 @@ int editor_track_util_create_line (int gps_first_point,
    editor_trkseg_connect_roads (trkseg, trkseg2);
    editor_line_set_trksegs (line_id, trkseg, trkseg2);
 
-   route = editor_route_segment_add (ED_ROUTE_CAR, 0, 0);
+   route = editor_route_segment_add (ROUTE_CAR_ALLOWED, 0, 0, 0);
    editor_line_set_route (line_id, route);
 
    roadmap_plugin_set_line (&line, EditorPluginID, line_id, cfcc, fips);

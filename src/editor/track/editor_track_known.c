@@ -36,6 +36,7 @@
 #include "roadmap_math.h"
 #include "roadmap_gps.h"
 #include "roadmap_line.h"
+#include "roadmap_line_route.h"
 
 #include "../db/editor_db.h"
 #include "../db/editor_line.h"
@@ -131,14 +132,15 @@ int editor_track_known_end_segment (PluginLine *previous_line,
          trkseg = editor_track_util_create_trkseg
                      (trkseg_line_id, 0, last_point_id,
                       flags|ED_TRKSEG_IGNORE|ED_TRKSEG_END_TRACK);
-         editor_track_add_trkseg (line, trkseg, 0, ED_ROUTE_CAR);
+
+         editor_track_add_trkseg (line, trkseg, 0, ROUTE_CAR_ALLOWED);
          editor_log_pop ();
          return 1;
       } else {
 
          trkseg = editor_track_util_create_trkseg
                   (trkseg_line_id, 0, last_point_id, flags|ED_TRKSEG_IGNORE);
-         editor_track_add_trkseg (line, trkseg, 0, ED_ROUTE_CAR);
+         editor_track_add_trkseg (line, trkseg, 0, ROUTE_CAR_ALLOWED);
          editor_log_pop ();
          return 0;
       }
@@ -155,11 +157,11 @@ int editor_track_known_end_segment (PluginLine *previous_line,
    if (flags & ED_TRKSEG_OPPOSITE_DIR) {
       
       editor_log (ROADMAP_INFO, "Updating route direction: to -> from");
-      editor_track_add_trkseg (line, trkseg, 2, ED_ROUTE_CAR);
+      editor_track_add_trkseg (line, trkseg, 2, ROUTE_CAR_ALLOWED);
    } else {
 
       editor_log (ROADMAP_INFO, "Updating route direction: from -> to");
-      editor_track_add_trkseg (line, trkseg, 1, ED_ROUTE_CAR);
+      editor_track_add_trkseg (line, trkseg, 1, ROUTE_CAR_ALLOWED);
    }
 
 

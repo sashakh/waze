@@ -35,6 +35,7 @@
 #include "roadmap_dialog.h"
 #include "roadmap_layer.h"
 #include "roadmap_line.h"
+#include "roadmap_line_route.h"
 #include "roadmap_shape.h"
 #include "roadmap_square.h"
 #include "roadmap_locator.h"
@@ -194,8 +195,8 @@ static void editor_segments_apply (const char *name, void *context) {
 
    int i;
    int route_id;
-   EditorRouteFlag route_from_flags;
-   EditorRouteFlag route_to_flags;
+   LineRouteFlag route_from_flags;
+   LineRouteFlag route_to_flags;
    int type = (int) roadmap_dialog_get_data ("General", "Road type");
    int cfcc = type + ROADMAP_ROAD_FIRST;
    int direction = (int) roadmap_dialog_get_data ("General", "Direction");
@@ -225,12 +226,12 @@ static void editor_segments_apply (const char *name, void *context) {
    int zip_id;
    int l_from, l_to;
    int r_from, r_to;
-   short speed_limit;
+   LineRouteMax speed_limit;
 
    l_from = l_to = r_from = r_to = -1;
 
    decode_range (street_range, &l_from, &l_to, &r_from, &r_to);
-   speed_limit = (short) atoi (speed_limit_str);
+   speed_limit = (LineRouteMax) atoi (speed_limit_str);
 
    for (i=0; i<selected_lines->count; i++) {
 
@@ -290,28 +291,30 @@ static void editor_segments_apply (const char *name, void *context) {
       route_id = editor_line_get_route (line->line.line_id);
 
       if (route_id == -1) {
-         route_id = editor_route_segment_add (0, 0, 0);
+         route_id = editor_route_segment_add (0, 0, 0, 0);
          editor_line_set_route (line->line.line_id, route_id);
       } else {
          editor_route_segment_get
-            (route_id, &route_from_flags, &route_to_flags, NULL);
+            (route_id, &route_from_flags, &route_to_flags, NULL, NULL);
       }
 
       if ((direction == 1) || (direction == 3)) {
-         route_from_flags |= ED_ROUTE_CAR;
+         route_from_flags |= ROUTE_CAR_ALLOWED;
       } else {
-         route_from_flags &= ~ED_ROUTE_CAR;
+         route_from_flags &= ~ROUTE_CAR_ALLOWED;
       }
 
       if ((direction == 2) || (direction == 3)) {
-         route_to_flags |= ED_ROUTE_CAR;
+         route_to_flags |= ROUTE_CAR_ALLOWED;
       } else {
-         route_to_flags &= ~ED_ROUTE_CAR;
+         route_to_flags &= ~ROUTE_CAR_ALLOWED;
       }
 
       if (route_id != -1) {
          editor_route_segment_set
-            (route_id, route_from_flags, route_to_flags, speed_limit);
+            (route_id,
+             route_from_flags, route_to_flags,
+             speed_limit, speed_limit);
       }
 
       editor_line_mark_dirty (line->line.line_id);
@@ -356,11 +359,11 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
    int r_from = -1;
    int r_to = -1;
    int direction = 0;
-   short speed_limit = 0;
+   LineRouteMax speed_limit = 0;
    int cfcc = ROADMAP_ROAD_LAST;
    int same_street = 1;
    int same_direction = 1;
-   short same_speed_limit = 1;
+   int same_speed_limit = 1;
    int same_l_city = 1;
    int same_r_city = 1;
    int same_l_zip = 1;
@@ -383,7 +386,7 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
       int this_r_from = -1;
       int this_r_to = -1;
       int this_direction = 0;
-      short this_speed_limit = 0;
+      LineRouteMax this_speed_limit = 0;
       int route_id;
 
       if (lines[i].line.plugin_id == EditorPluginID) {
@@ -416,15 +419,20 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
 
             if (route_id != -1) {
                this_direction =
-                  editor_route_get_direction (route_id, ED_ROUTE_CAR);
-               editor_route_segment_get (route_id, NULL, NULL, &this_speed_limit);
+                  editor_route_get_direction (route_id, ROUTE_CAR_ALLOWED);
+               editor_route_segment_get
+                  (route_id, NULL, NULL,
+                   &this_speed_limit, NULL);
             }
          }
       } else {
 
          RoadMapStreetProperties properties;
 
-         roadmap_locator_activate (lines[i].line.fips);
+         if (roadmap_locator_activate (lines[i].line.fips) < 0) {
+            continue;
+         }
+
          roadmap_street_get_properties (lines[i].line.line_id, &properties);
     
          this_name = roadmap_street_get_street_fename (&properties);
@@ -448,13 +456,21 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
          roadmap_street_get_street_range
             (&properties, ROADMAP_STREET_RIGHT_SIDE, &this_r_from, &this_r_to);
 
-         //TODO check roadmap route
          route_id = editor_override_line_get_route (lines[0].line.line_id);
 
          if (route_id != -1) {
             this_direction =
-               editor_route_get_direction (route_id, ED_ROUTE_CAR);
-            editor_route_segment_get (route_id, NULL, NULL, &this_speed_limit);
+               editor_route_get_direction (route_id, ROUTE_CAR_ALLOWED);
+            editor_route_segment_get
+               (route_id, NULL, NULL, &this_speed_limit, NULL);
+         } else {
+
+            this_direction =
+               roadmap_line_route_get_direction
+                  (lines[i].line.line_id, ROUTE_CAR_ALLOWED);
+            roadmap_line_route_get_speed_limit
+                  (lines[i].line.line_id,
+                   &this_speed_limit, &this_speed_limit);
          }
       }
 
@@ -691,22 +707,30 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
    /* Collect info data */
    for (i=0; i<selected_lines->count; i++) {
       int line_length;
-      double speed;
+      int time;
 
       SelectedLine *line = &selected_lines->lines[i];
 
       if (line->line.plugin_id == EditorPluginID) {
 
          line_length = editor_line_length (line->line.line_id);
-         speed = editor_line_get_avg_speed (line->line.line_id, 1);
+         time = editor_line_get_cross_time (line->line.line_id, 1);
          
       } else  {
+         LineRouteTime from_cross_time;
+         LineRouteTime to_cross_time;
+
          line_length = roadmap_line_length (line->line.line_id);
-         speed = -1; //TODO get real speed
+         if (roadmap_line_route_get_cross_times
+               (line->line.line_id, &from_cross_time, &to_cross_time) == -1) {
+            time = -1; //TODO get real speed
+         } else {
+            time = from_cross_time;
+         }
       }
 
-      if (speed > 0) {
-         total_time += (int)(1.0 * line_length / speed) + 1;
+      if (time > 0) {
+         total_time += time;
       } else {
 
          if ((total_time == 0) || (total_length == 0)) {

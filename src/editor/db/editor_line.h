@@ -88,7 +88,7 @@ int editor_line_get_route (int line);
 int editor_line_set_route (int line, int route);
 void editor_line_get_trksegs (int line, int *first, int *last);
 void editor_line_set_trksegs (int line, int first, int last);
-double editor_line_get_avg_speed (int line, int direction);
+int editor_line_get_cross_time (int line, int direction);
 int editor_line_mark_dirty (int line_id);
 
 extern roadmap_db_handler EditorLinesHandler;

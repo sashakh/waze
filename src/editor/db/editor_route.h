@@ -24,26 +24,33 @@
 #ifndef INCLUDE__EDITOR_ROUTE__H
 #define INCLUDE__EDITOR_ROUTE__H
 
-#define ED_ROUTE_CAR 0x0001
-
-#define ED_ROUTE_STOP_LIGHT  0x8000
-
-typedef short EditorRouteFlag;
-
 typedef struct editor_route_segment_s {
-   EditorRouteFlag from_flags;
-   EditorRouteFlag to_flags;
-   short speed_limit;
+   LineRouteFlag from_flags;
+   LineRouteFlag to_flags;
+   LineRouteMax from_speed_limit;
+   LineRouteMax to_speed_limit;
 } editor_db_route_segment;
 
 
 int editor_route_segment_add
-      (short from_flags, short to_flags, short speed_limit);
+      (LineRouteFlag from_flags,
+       LineRouteFlag to_flags,
+       LineRouteMax from_speed_limit,
+       LineRouteMax to_speed_limit);
 
 void editor_route_segment_get
-      (int route, short *from_flags, short *to_flags, short *speed_limit);
+      (int route,
+       LineRouteFlag *from_flags,
+       LineRouteFlag *to_flags,
+       LineRouteMax *from_speed_limit,
+       LineRouteMax *to_speed_limit);
+
 void editor_route_segment_set
-      (int route, short from_flags, short to_flags, short speed_limit);
+      (int route,
+       LineRouteFlag from_flags,
+       LineRouteFlag to_flags,
+       LineRouteMax from_speed_limit,
+       LineRouteMax to_speed_limit);
 
 void editor_route_segment_copy (int source_line, int plugin_id, int dest_line);
 

@@ -673,26 +673,21 @@ void editor_line_set_trksegs (int line, int first, int last) {
 }
 
 
-double editor_line_get_avg_speed (int line, int direction) {
+int editor_line_get_cross_time (int line, int direction) {
 
    editor_db_line *line_db;
-   int length;
    time_t start_time;
    time_t end_time;
 
    line_db = (editor_db_line *) editor_db_get_item
                            (ActiveLinesDB, line, 0, NULL);
 
-
-   length = editor_line_length (line);
-
-   if (!length) return -1;
-
-   editor_trkseg_get_time (line_db->first_trkseg, &start_time, &end_time);
+   editor_trkseg_get_time
+      (line_db->first_trkseg, &start_time, &end_time);
 
    if (start_time == end_time) return -1;
 
-   return  1.0 * length / (end_time - start_time);
+   return  end_time - start_time;
 }
 
 

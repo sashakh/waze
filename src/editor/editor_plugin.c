@@ -31,6 +31,7 @@
 
 #include "db/editor_db.h"
 #include "db/editor_line.h"
+#include "db/editor_route.h"
 #include "db/editor_override.h"
 #include "db/editor_street.h"
 
@@ -119,6 +120,16 @@ static void editor_plugin_street_properties
 }
 
 
+static int editor_plugin_get_direction (PluginLine *line, int who) {
+
+   int route_id = editor_line_get_route (line->line_id);
+
+   if (route_id == -1) return 0;
+   
+   return editor_route_get_direction (route_id, who);
+}
+
+
 static RoadMapPluginHooks editor_plugin_hooks = {
 
       &editor_plugin_line_from,
@@ -134,6 +145,7 @@ static RoadMapPluginHooks editor_plugin_hooks = {
       &editor_street_get_connected_lines,
       &editor_screen_adjust_layer,
       &editor_street_get_closest,
+      &editor_plugin_get_direction,
       &editor_track_end
 };
 
