@@ -138,10 +138,14 @@ static int find_line_break (int last_point,
          max_azymuth_diff = diff;
       }
 
-      prev_azymuth = 
-         roadmap_math_azymuth
-            (track_point_pos (i-1),
-             track_point_pos (i));
+      if (i == last_point) {
+	      prev_azymuth = last_azymuth;
+		} else {
+	      prev_azymuth = 
+   	      roadmap_math_azymuth
+      	      (track_point_pos (i-1),
+         	    track_point_pos (i));
+		}
 
       diff = roadmap_math_delta_direction (prev_azymuth, current_azymuth);
       pairs[j].index = i;
@@ -169,6 +173,8 @@ static int find_line_break (int last_point,
       while ((100 * angle_sum / max_azymuth_diff) < 70) {
          
          assert (j<(current_point-last_point+1));
+         if (j>=(current_point-last_point+1)) break;
+
          angle_sum += pairs[j].angle;
          if (pairs[j].index < *middle1) {
             *middle1 = pairs[j].index;

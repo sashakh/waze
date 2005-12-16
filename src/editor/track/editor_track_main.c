@@ -466,7 +466,7 @@ static void track_rec_locate(time_t gps_time,
          assert(0);
       }
 
-      roadmap_fuzzy_set_cycle_params (30, 200);
+      roadmap_fuzzy_set_cycle_params (40, 300);
       
       track_rec_locate_point (point_id);
    }

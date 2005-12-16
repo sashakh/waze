@@ -98,10 +98,15 @@ int editor_track_filter_add (GPSFilter *filter,
    }
 
    if (gps_position->speed == 0) return 0;
-   
+
    if ((filter->last_gps_point.latitude == gps_position->latitude) &&
        (filter->last_gps_point.longitude == gps_position->longitude)) return 0;
-   
+
+   if (dilution->dilution_horizontal > 6) {
+
+      return 0;
+   }
+
    if ((roadmap_math_distance
             ((RoadMapPosition *) &filter->last_gps_point,
               (RoadMapPosition*) gps_position) >= filter->max_distance) ||
