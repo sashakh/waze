@@ -464,7 +464,9 @@ void roadmap_main_set_status (const char *text) {
 void roadmap_main_flush (void) {
 
    while (gtk_events_pending ()) {
-      gtk_main_iteration ();
+      if (gtk_main_iteration ()) {
+	 exit(0);  /* gtk_main_quit() called */
+      }
    }
 }
 
@@ -478,7 +480,9 @@ int roadmap_main_flush_synchronous (int deadline) {
    start_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
 
    while (gtk_events_pending ()) {
-      gtk_main_iteration ();
+      if (gtk_main_iteration ()) {
+	 exit(0);  /* gtk_main_quit() called */
+      }
    }
    gdk_flush();
 
