@@ -1,4 +1,4 @@
-/* wince_serial.c - serial connection management.
+/* roadmap_serial.c - serial connection management.
  *
  * LICENSE:
  *
@@ -25,94 +25,77 @@
 #include <windows.h>
 #include "../roadmap.h"
 #include "../roadmap_serial.h"
+#include "win32_serial.h"
 
 RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 		int baud_rate)
 {
-	HANDLE hCommPort = INVALID_HANDLE_VALUE;
-	LPWSTR url_unicode = ConvertToWideChar(name, CP_UTF8);
-	COMMTIMEOUTS ct;
-	DCB dcb;
 
-	hCommPort = CreateFile (url_unicode,
-		GENERIC_READ | GENERIC_WRITE,
-		0,
-		NULL,
-		OPEN_EXISTING,
-		FILE_FLAG_WRITE_THROUGH,
-		NULL);
+   Win32SerialConn *conn = malloc (sizeof(Win32SerialConn));
 
-	free(url_unicode);
+   if (conn == NULL) return NULL;
 
-	if(hCommPort == INVALID_HANDLE_VALUE) {
-		return (HANDLE)-1;
-	}
+   strncpy (conn->name, name, sizeof(conn->name));
+   conn->name[sizeof(conn->name)-1] = '\0';
+   strncpy (conn->mode, mode, sizeof(conn->mode));
+   conn->mode[sizeof(conn->mode)-1] = '\0';
+   conn->baud_rate = baud_rate;
 
-	dcb.DCBlength = sizeof(DCB);
-	if(!GetCommState(hCommPort, &dcb)) {
-		roadmap_serial_close(hCommPort);
-		return (HANDLE)-1;
-	}
+   conn->handle = INVALID_HANDLE_VALUE;
+   conn->data_count = 0;
+   conn->ref_count = 1;
 
-//	dcb.fBinary			   = TRUE;
-	dcb.BaudRate	       = baud_rate;
-//	dcb.fOutxCtsFlow       = TRUE;
-	dcb.fRtsControl        = RTS_CONTROL_DISABLE;
-	dcb.fDtrControl        = DTR_CONTROL_DISABLE;
-//	dcb.fOutxDsrFlow       = FALSE;
-//	dcb.fOutX              = FALSE;
-//	dcb.fInX               = FALSE;
-	dcb.ByteSize           = 8;
-	dcb.fParity             = FALSE;
-	dcb.StopBits           = ONESTOPBIT;
-
-	if(!SetCommState(hCommPort, &dcb)) {
-		roadmap_serial_close(hCommPort);
-		return (HANDLE)-1;
-	}
-
-	ct.ReadIntervalTimeout = MAXDWORD;
-	ct.ReadTotalTimeoutMultiplier = 0;
-	ct.ReadTotalTimeoutConstant = 0;
-	ct.WriteTotalTimeoutMultiplier = 10;
-	ct.WriteTotalTimeoutConstant = 1000;
-	if(!SetCommTimeouts(hCommPort, &ct)) {
-		roadmap_serial_close(hCommPort);
-		return (HANDLE)-1;
-	}
-
-	return hCommPort;
+   return conn;
 }
 
 
 void roadmap_serial_close(RoadMapSerial serial)
 {
-	if (serial != INVALID_HANDLE_VALUE) {
-		CloseHandle(serial);
+	if (ROADMAP_SERIAL_IS_VALID (serial) &&
+         (serial->handle != INVALID_HANDLE_VALUE)) {
+		CloseHandle(serial->handle);
+      serial->handle = INVALID_HANDLE_VALUE;
+      
+      if (!--serial->ref_count) {
+         free (serial);
+      }
 	}
 }
 
 
 int roadmap_serial_read(RoadMapSerial serial, void *data, int size)
 {
-   DWORD dwBytesRead;
 
-   if(!ReadFile((HANDLE)serial,
-                data,
-                size,
-                &dwBytesRead,
-                NULL)) {
+   if (!ROADMAP_SERIAL_IS_VALID (serial) ||
+         (serial->handle == INVALID_HANDLE_VALUE)) {
+
       return -1;
    }
 
-   return dwBytesRead;
+   if (serial->data_count <= 0) return serial->data_count;
+
+   if (size > serial->data_count) size = serial->data_count;
+
+   memcpy (data, serial->data, size);
+
+   serial->data_count -= size;
+
+   return size;
 }
+
 
 int roadmap_serial_write (RoadMapSerial serial, const void *data, int length)
 {
    DWORD dwBytesWritten;
 
-   if(!WriteFile((HANDLE)serial,
+   if (!ROADMAP_SERIAL_IS_VALID (serial) ||
+         (serial->handle == INVALID_HANDLE_VALUE)) {
+
+      return -1;
+   }
+
+
+   if(!WriteFile(serial->handle,
                 data,
                 length,
                 &dwBytesWritten,

@@ -70,11 +70,16 @@ _mktime (unsigned int year, unsigned int mon,
 time_t time(time_t *t)
 {
 	SYSTEMTIME st;
+   unsigned long seconds;
+
 	GetSystemTime(&st);
 	
-	return _mktime(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
+	seconds = _mktime(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
 		st.wSecond);
-	
+
+   if (t != NULL) *t = seconds;
+
+   return seconds;
 }
 
 

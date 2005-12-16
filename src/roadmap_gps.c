@@ -375,6 +375,9 @@ static void roadmap_gps_nmea (void) {
          (NULL, "GLL", roadmap_gps_gll, RoadMapGpsNmeaAccount);
 
       roadmap_nmea_subscribe
+         (NULL, "GSA", roadmap_gps_gsa, RoadMapGpsNmeaAccount);
+
+      roadmap_nmea_subscribe
          ("GRM", "E", roadmap_gps_pgrme, RoadMapGpsNmeaAccount);
 
       roadmap_nmea_subscribe
@@ -382,9 +385,6 @@ static void roadmap_gps_nmea (void) {
    }
 
    if (RoadMapGpsMonitors[0] != NULL) {
-
-      roadmap_nmea_subscribe
-         (NULL, "GSA", roadmap_gps_gsa, RoadMapGpsNmeaAccount);
 
       roadmap_nmea_subscribe
          (NULL, "GSV", roadmap_gps_gsv, RoadMapGpsNmeaAccount);
@@ -792,6 +792,7 @@ void roadmap_gps_register_periodic_control
 void roadmap_gps_input (RoadMapIO *io) {
 
    static RoadMapInputContext decode;
+   int res;
 
 
    if (decode.title == NULL) {
@@ -826,7 +827,10 @@ void roadmap_gps_input (RoadMapIO *io) {
          roadmap_log (ROADMAP_FATAL, "internal error (unsupported protocol)");
    }
 
-   if (roadmap_input (&decode) < 0) {
+
+   res = roadmap_input (&decode);
+
+   if (res < 0) {
 
       (*RoadMapGpsLinkRemove) (io);
 

@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "roadmap.h"
 #include "roadmap_path.h"
@@ -119,7 +120,29 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
    int i;
 
-   fprintf (file, "%c%s %s, line %d: ", saved, category->prefix, source, line);
+#ifndef _WIN32
+   time_t now;
+   struct tm *tms;
+
+   time (&now);
+   tms = localtime (&now);
+
+   fprintf (file, "%d:%d:%d %c%s %s, line %d ",
+         tms->tm_hour, tms->tm_min, tms->tm_sec,
+         saved, category->prefix, source, line);
+#else
+	DWORD tm = GetTickCount();
+
+	//GetSystemTime(&st);
+
+   fprintf (file, "%d.%d %c%s %s, line %d ",
+         tm / 1000, tm % 1000,
+         saved, category->prefix, source, line);
+
+#endif
+   if (!category->show_stack && (RoadMapLogStackCursor > 0)) {
+      fprintf (file, "(%s): ", RoadMapLogStack[RoadMapLogStackCursor-1]);
+   }
    vfprintf(file, format, ap);
    fprintf (file, "\n");
 
@@ -138,13 +161,17 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
 void roadmap_log (int level, char *source, int line, char *format, ...) {
 
-   FILE *file;
+   static FILE *file;
    va_list ap;
    char saved = ' ';
    struct roadmap_message_descriptor *category;
    char *debug;
 
    if (level < roadmap_verbosity()) return;
+
+#ifdef DEBUG
+   return;
+#endif
 
    debug = roadmap_debug();
 
@@ -158,12 +185,16 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    if (category->save_to_file) {
 
-      file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
+      if (file == NULL) {
+
+         file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
+      }
 
       if (file != NULL) {
 
          roadmap_log_one (category, file, ' ', source, line, format, ap);
-         fclose (file);
+         fflush (file);
+         //fclose (file);
 
          va_end(ap);
          va_start(ap, format);

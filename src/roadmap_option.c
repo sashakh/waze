@@ -51,7 +51,8 @@ static RoadMapConfigDescriptor RoadMapConfigMapCache =
                         ROADMAP_CONFIG_ITEM("Map", "Cache");
 
 
-static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
+//static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
+static int roadmap_option_verbose = ROADMAP_MESSAGE_INFO;
 static int roadmap_option_no_area = 0;
 static int roadmap_option_square  = 0;
 static int roadmap_option_cache_size = 0;

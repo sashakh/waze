@@ -42,6 +42,7 @@ extern "C" {
 #include "../roadmap_main.h"
 #include "../roadmap_serial.h"
 #include "wince_input_mon.h"
+#include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
 }
 
@@ -392,11 +393,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
+         Win32SerialConn *conn = (Win32SerialConn *) lParam;
          
-         if (lParam) {
-            /* An error occured */
-            context->io->subsystem = ROADMAP_IO_INVALID;
+         if (conn->handle == INVALID_HANDLE_VALUE) {
+            /* An old input which was removed */
+            break;
          }
+
 			(*context->callback) (context->io);
 			break;
 		}
@@ -639,8 +642,7 @@ extern "C" {
 		
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
 			if (RoadMapMainIo[i].io == NULL) {
-				RoadMapMainIo[i].io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
-				*(RoadMapMainIo[i].io) = *io;
+				RoadMapMainIo[i].io = io;
 				RoadMapMainIo[i].callback = callback;
 				break;
 			}
@@ -654,6 +656,7 @@ extern "C" {
 		HANDLE monitor_thread = NULL;
 		switch (io->subsystem) {
 		case ROADMAP_IO_SERIAL:
+         io->os.serial->ref_count++;
 			monitor_thread = CreateThread(NULL, 0,
 				SerialMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
 			break;
@@ -684,13 +687,8 @@ extern "C" {
 		int i;
 				
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			if (RoadMapMainIo[i].io == NULL) continue;
+         if (RoadMapMainIo[i].io == io) {
 
-			if (!memcmp(RoadMapMainIo[i].io, io, sizeof(RoadMapIO))) {
-				RoadMapMainIo[i].io->subsystem = ROADMAP_IO_INVALID;
-
-				// We mark this io as null, as the monitor thread will free
-				// the allocation.
 				RoadMapMainIo[i].io = NULL;
 				break;
 			}

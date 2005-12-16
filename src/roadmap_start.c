@@ -707,7 +707,7 @@ static void roadmap_start_remove_driver_server (RoadMapIO *io) {
 
 static void roadmap_start_set_timeout (RoadMapCallback callback) {
 
-   roadmap_main_set_periodic (3000, callback);
+   roadmap_main_set_periodic (10000, callback);
 }
 
 

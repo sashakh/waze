@@ -23,36 +23,138 @@
  */
 
 #include <windows.h>
+#include <assert.h>
 #include "../roadmap.h"
 #include "../roadmap_io.h"
 #include "../roadmap_serial.h"
 #include "wince_input_mon.h"
+#include "win32_serial.h"
 
 extern HWND RoadMapMainWindow;
 
-DWORD WINAPI SerialMonThread(LPVOID lpParam)
+static HANDLE serial_open(const char *name,
+                          const char *mode,
+		                    int baud_rate) {
+
+	HANDLE hCommPort = INVALID_HANDLE_VALUE;
+	LPWSTR url_unicode = ConvertToWideChar(name, CP_UTF8);
+	DCB dcb;
+   COMMTIMEOUTS ct;
+
+	hCommPort = CreateFile (url_unicode,
+		GENERIC_READ | GENERIC_WRITE,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		0,
+		NULL);
+
+	free(url_unicode);
+
+	if(hCommPort == INVALID_HANDLE_VALUE) {
+		return INVALID_HANDLE_VALUE;
+	}
+
+	dcb.DCBlength = sizeof(DCB);
+	if(!GetCommState(hCommPort, &dcb)) {
+		roadmap_serial_close(hCommPort);
+		return INVALID_HANDLE_VALUE;
+	}
+
+//	dcb.fBinary			   = TRUE;
+	dcb.BaudRate	       = baud_rate;
+//	dcb.fOutxCtsFlow       = TRUE;
+	dcb.fRtsControl        = RTS_CONTROL_DISABLE;
+	dcb.fDtrControl        = DTR_CONTROL_DISABLE;
+//	dcb.fOutxDsrFlow       = FALSE;
+//	dcb.fOutX              = FALSE;
+//	dcb.fInX               = FALSE;
+	dcb.ByteSize           = 8;
+	dcb.fParity             = FALSE;
+	dcb.StopBits           = ONESTOPBIT;
+
+	if(!SetCommState(hCommPort, &dcb)) {
+		roadmap_serial_close(hCommPort);
+		return INVALID_HANDLE_VALUE;
+	}
+
+	ct.ReadIntervalTimeout = MAXDWORD;
+	ct.ReadTotalTimeoutMultiplier = MAXDWORD;
+	ct.ReadTotalTimeoutConstant = 10000;
+	ct.WriteTotalTimeoutMultiplier = 10;
+	ct.WriteTotalTimeoutConstant = 100;
+
+	if(!SetCommTimeouts(hCommPort, &ct)) {
+		roadmap_serial_close(hCommPort);
+		return INVALID_HANDLE_VALUE;
+	}
+
+	return hCommPort;
+}
+
+
+static int serial_read(HANDLE handle, void *data, int size)
 {
+   DWORD dwBytesRead;
+
+   if(!ReadFile(handle,
+                data,
+                size,
+                &dwBytesRead,
+                NULL)) {
+      return -1;
+   }
+
+   return dwBytesRead;
+}
+
+
+DWORD WINAPI SerialMonThread(LPVOID lpParam) {
+
 	roadmap_main_io *data = (roadmap_main_io*)lpParam;
-	RoadMapIO *io = data->io;
-	DWORD fdwCommMask;
-	HANDLE hCommPort = data->io->os.serial;
+   Win32SerialConn *conn = data->io->os.serial;
 
-	while(io->subsystem != ROADMAP_IO_INVALID)
-	{
-      int error = 0;
+   conn->handle = serial_open (conn->name, conn->mode, conn->baud_rate);
 
-		SetCommMask (hCommPort, EV_RXCHAR);
-		if(!WaitCommEvent (hCommPort, &fdwCommMask, 0))
-		{
+   if (conn->handle == INVALID_HANDLE_VALUE) {
 
-         error = 1;
-			if(GetLastError() == ERROR_INVALID_HANDLE) {
+      /* Send a message to main window. A read attempt will fail
+       * and this input will be removed.
+       */
+
+      conn->data_count = -1;
+      SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
+   }
+
+	while(conn->handle != INVALID_HANDLE_VALUE) {
+
+      if (conn->data_count == 0) {
+
+         do {
+            conn->data_count =
+               serial_read (conn->handle, conn->data, sizeof(conn->data));
+
+         } while (conn->data_count == 0);
+      }
+
+   	/* Check if this input was unregistered while we were
+		 * sleeping.
+		 */
+		if (conn->handle == INVALID_HANDLE_VALUE) {
+			break;
+		}
+
+   
+      if (conn->data_count < 0) {
+         
+         int error_code = GetLastError();
+
+			if( error_code == ERROR_INVALID_HANDLE) {
 				roadmap_log (ROADMAP_INFO,
 						"Com port is closed.");
 			} else {
 				roadmap_log (ROADMAP_ERROR,
-						"Error in WaitCommEvent.");
-            roadmap_serial_close (hCommPort);
+						"Error in serial_read: %d", error_code);
 			}
 		
 			/* Ok, we got some error. We continue to the same path
@@ -60,23 +162,21 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam)
 			 * fail, and result in removing this input.
 			 */
 
-         error = 1;
-		}
-
-		/* Check if this input was unregistered while we were
-		 * sleeping.
-		 */
-		if (io->subsystem == ROADMAP_IO_INVALID) {
-			break;
 		}
 
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)error);
-
-      if (error) break;
+		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
 	}
 
-	free(io);
+   if (!--conn->ref_count) {
+   	free(conn);
+   } else {
+
+      roadmap_log
+         (ROADMAP_ERROR, "conn ref_count is not zero: %d",
+          conn->ref_count);
+      assert (0);
+   }
 
 	return 0;
 }

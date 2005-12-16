@@ -118,7 +118,7 @@ static int roadmap_navigate_get_neighbours
               (const RoadMapPosition *position, int accuracy,
                RoadMapNeighbour *neighbours, int max) {
 
-    int count;
+    int count = 0;
     int layers[128];
     int layer_count;
 

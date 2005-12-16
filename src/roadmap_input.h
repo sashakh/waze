@@ -65,7 +65,7 @@ typedef struct roadmap_input_context {
    RoadMapInputLogger  logger;
    RoadMapInputDecode  decoder;
 
-   char data[1024];
+   char data[5120];
    int  cursor;
 
 } RoadMapInputContext;

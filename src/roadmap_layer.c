@@ -372,7 +372,7 @@ void roadmap_layer_initialize (void) {
         category->declutter.category = name;
         category->declutter.name     = "Declutter";
         roadmap_config_declare
-            ("schema", &category->declutter, "20248000000");
+            ("schema", &category->declutter, "2024800000");
 
 
         /* Retrieve the first pen's color (mandatory). */
