@@ -20,6 +20,8 @@
 #include <signal.h>     /* for signal */
 #include <gtk/gtk.h>        /* well guess for what ... */
 
+#include "roadmap.h"
+
 void roadmap_main_exit (void);
 
 /* 
@@ -41,7 +43,7 @@ int signal_pipe[2];
 void roadmap_signal_handler(int signal) {
 
     if(write(signal_pipe[1], &signal, sizeof(int)) != sizeof(int)) {
-        fprintf(stderr, "unix signal %d lost\n", signal);
+        roadmap_log(ROADMAP_WARNING, "unix signal %d lost", signal);
     }
 }
     
@@ -82,8 +84,8 @@ static gboolean roadmap_deliver_signal
          * Check it.
          */
         if(bytes_read != sizeof(int)){
-            fprintf(stderr, 
-                    "lost data in signal pipe (expected %d, received %d)\n",
+            roadmap_log(ROADMAP_WARNING, 
+                    "lost data in signal pipe (expected %d, received %d)",
                     sizeof(int), bytes_read);
             continue;               /* discard the garbage and keep fingers crossed */
         }
@@ -96,11 +98,11 @@ static gboolean roadmap_deliver_signal
      * potential errors and return from the callback.
      */
     if(error != NULL) {
-        fprintf(stderr, "reading signal pipe failed: %s\n", error->message);
+        roadmap_log(ROADMAP_WARNING, "reading signal pipe failed: %s", error->message);
         exit(1);
     }
     if(status == G_IO_STATUS_EOF) {
-        fprintf(stderr, "signal pipe has been closed\n");
+        roadmap_log(ROADMAP_WARNING, "signal pipe has been closed");
         exit(1);
     }
 
@@ -162,7 +164,7 @@ roadmap_signals_init(void) {
      */
     g_io_channel_set_encoding(g_signal_in, NULL, &error);
     if(error != NULL) {      /* handle potential errors */
-        fprintf(stderr, "g_io_channel_set_encoding failed %s\n",
+        roadmap_log(ROADMAP_WARNING, "g_io_channel_set_encoding failed %s",
             error->message);
         exit(1);
     }
@@ -172,7 +174,7 @@ roadmap_signals_init(void) {
         g_io_channel_get_flags(g_signal_in) | G_IO_FLAG_NONBLOCK, &error);
 
     if(error != NULL) {      /* read errors */
-        fprintf(stderr, "g_io_set_flags failed %s\n", error->message);
+        roadmap_log(ROADMAP_WARNING, "g_io_set_flags failed %s", error->message);
         exit(1);
     }
 

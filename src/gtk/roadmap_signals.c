@@ -17,6 +17,8 @@
 #include <signal.h>     /* for signal */
 #include <gtk/gtk.h>        /* well guess for what ... */
 
+#include "roadmap.h"
+
 void roadmap_main_exit (void);
 
 /* 
@@ -38,7 +40,7 @@ int signal_pipe[2];
 void roadmap_signal_handler(int signal) {
 
     if(write(signal_pipe[1], &signal, sizeof(int)) != sizeof(int)) {
-        fprintf(stderr, "unix signal %d lost\n", signal);
+        roadmap_log(ROADMAP_WARNING, "unix signal %d lost", signal);
     }
 }
     
@@ -79,8 +81,8 @@ static gboolean roadmap_deliver_signal
          * Check it.
          */
         if(bytes_read != sizeof(int)){
-            fprintf(stderr,
-		    "lost data in signal pipe (expected %d, received %d)\n",
+            roadmap_log(ROADMAP_WARNING,
+		    "lost data in signal pipe (expected %d, received %d)",
                     sizeof(int), bytes_read);
             continue;               /* discard the garbage and keep fingers crossed */
         }
@@ -97,7 +99,7 @@ static gboolean roadmap_deliver_signal
      * Reading from the pipe has not returned with normal status. Check for 
      * potential errors and return from the callback.
      */
-    fprintf(stderr, "signal pipe has been closed\n");
+    roadmap_log (ROADMAP_WARNING, "signal pipe has been closed");
 
     return (FALSE);      /* don't keep the event source */
 
