@@ -80,10 +80,16 @@ struct voice_translation {
 
 /* The translations below must be sorted by decreasing size,
  * so that the longest match is always selected first.
+ * There are two translation lists: the first is for the tail of
+ * the message (suffixes) and the second one is for the head (prefix).
+ *
+ * A prefix is supposed to be followed by a reasonably long word (3
+ * characters or more).
  */
-static struct voice_translation RoadMapVoiceTranslation[] = {
+static struct voice_translation RoadMapVoiceTranslate1[] = {
     {"Blvd", "boulevard"},
-    {"Hwy",  "Highway"},
+    {"Hwy",  "highway"},
+    {"Fwy",  "freeway"},
     {"Cir",  "circle"},
     {"St",   "street"},
     {"Rd",   "road"},
@@ -95,6 +101,12 @@ static struct voice_translation RoadMapVoiceTranslation[] = {
     {"W",    "west"},
     {"S",    "south"},
     {"E",    "east"},
+    {NULL, NULL}
+};
+
+static struct voice_translation RoadMapVoiceTranslate2[] = {
+    {"St", "saint"},
+    {"Dr", "Doctor"},
     {NULL, NULL}
 };
 
@@ -203,67 +215,94 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
     const char *acronym_found;
     struct voice_translation *cursor_found;
 
-    if (size <= 0) {
-        return 0;
-    }
+    for (;;) {
+
+       if (size <= 0) {
+          return 0;
+       }
     
-    acronym = input;
-    acronym_length = 0;
-    acronym_found = input + strlen(input);
-    cursor_found  = NULL;
+       acronym = input;
+       acronym_length = 0;
+       acronym_found = input + strlen(input);
+       cursor_found  = NULL;
     
-    for (cursor = RoadMapVoiceTranslation; cursor->from != NULL; ++cursor) {
+       for (cursor = RoadMapVoiceTranslate1; cursor->from != NULL; ++cursor) {
         
-        acronym = strstr (input, cursor->from);
-        if (acronym != NULL) {
-            if (acronym < acronym_found) {
+          acronym = strstr (input, cursor->from);
+          if (acronym != NULL) {
+             if (acronym < acronym_found) {
                 acronym_found = acronym;
                 cursor_found  = cursor;
-            }
-        }
-    }
+             }
+          }
+       }
     
-    if (cursor_found == NULL) {
-        strncpy (output, input, size);
-        return 1;
-    }
+       for (cursor = RoadMapVoiceTranslate2; cursor->from != NULL; ++cursor) {
+        
+          acronym = strstr (input, cursor->from);
+          if (acronym != NULL) {
+             if (acronym < acronym_found) {
+                acronym_found = acronym;
+                cursor_found  = cursor;
+             } else if (acronym == acronym_found) {
 
-    acronym = acronym_found;
-    cursor  = cursor_found;
-    acronym_length = strlen(cursor->from);
-    
-    length = acronym - input;
-        
-    if (length > size) return 0;
-    
-    /* Copy the unexpanded part, up to the acronym that was found. */
-    strncpy (output, input, length);
-    output += length;
-    size -= length;
+                int count = 0;
+                int word_end = strlen(cursor->from);
 
-    if (size <= 0) return 0;
-    
-    if ((acronym_length != 0) &&
-        (acronym[acronym_length] == 0 ||
-         (! isalnum(acronym[acronym_length])))) {
-        
-        /* This is a valid acronym: translate it. */
-        length = strlen(cursor->to);
-        strncpy (output, cursor->to, size);
-        output += length;
-        size   -= length;
-        
-        if (size <= 0) return 0;
+                if (acronym[word_end] == ' ') {
+                   while (isalpha(acronym[++word_end])) ++count;
+                }
 
-    } else {
-        /* This is not a valid acronym: leave it unchanged. */
-        strncpy (output, acronym, acronym_length);
-        output += acronym_length;
-        size   -= acronym_length;
+                if (count > 2) {
+                   /* Chance are this is a prefix. */
+                   acronym_found = acronym;
+                   cursor_found  = cursor;
+                }
+             }
+          }
+       }
+    
+       if (cursor_found == NULL) {
+          strncpy (output, input, size);
+          return 1;
+       }
+
+       acronym = acronym_found;
+       cursor  = cursor_found;
+       acronym_length = strlen(cursor->from);
+    
+       length = acronym - input;
+        
+       if (length > size) return 0;
+    
+       /* Copy the unexpanded part, up to the acronym that was found. */
+       strncpy (output, input, length);
+       output += length;
+       size -= length;
+
+       if (size <= 0) return 0;
+    
+       if ((acronym_length != 0) &&
+             (acronym[acronym_length] == 0 ||
+              (! isalnum(acronym[acronym_length])))) {
+        
+          /* This is a valid acronym: translate it. */
+          length = strlen(cursor->to);
+          strncpy (output, cursor->to, size);
+          output += length;
+          size   -= length;
+        
+          if (size <= 0) return 0;
+
+       } else {
+          /* This is not a valid acronym: leave it unchanged. */
+          strncpy (output, acronym, acronym_length);
+          output += acronym_length;
+          size   -= acronym_length;
+       }
+        
+       input = acronym + acronym_length;
     }
-        
-        
-    return roadmap_voice_expand (acronym + acronym_length, output, size);
 }
 
 
