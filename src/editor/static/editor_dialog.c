@@ -246,10 +246,7 @@ static void editor_segments_apply (const char *name, void *context) {
          }
       }
 
-      if (line->line.plugin_id == EditorPluginID) {
-
-         editor_line_modify_properties (line->line.line_id, cfcc, 0);
-      } else { /* != Editor line */
+      if (line->line.plugin_id != EditorPluginID) {
 
          int new_line = editor_line_copy (line->line.line_id, line->line.cfcc, line->line.fips);
          if (new_line == -1) {
@@ -262,6 +259,8 @@ static void editor_segments_apply (const char *name, void *context) {
          line->line.line_id = new_line;
          line->line.plugin_id = EditorPluginID;
       }
+
+      editor_line_modify_properties (line->line.line_id, cfcc, 0);
 
       editor_line_get_street (line->line.line_id, &street_id, &street_range_id);
       street_id = editor_street_create (street_name, street_type, "", "");
