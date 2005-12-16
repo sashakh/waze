@@ -721,6 +721,9 @@ INSTALLATION
      /usr/share/roadmap or /etc/roadmap.  It is likely the "make install"
      step was not performed.
 
+   * If things do not go any better, start roadmap with the --debug option
+     and check what roadmap tells you it is doing.
+
 
 ROADMAP APPLICATIONS
 
