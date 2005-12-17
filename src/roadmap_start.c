@@ -149,7 +149,7 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX"
-		       "\n\nEditor Plugin 0.3\n"
+		       "\n\nEditor Plugin 0.3.1\n"
 		       "Ehud Shabtai\n"
 		       "eshabtai@gmail.com");
 }
@@ -891,8 +891,9 @@ void roadmap_start_exit (void) {
     
     roadmap_plugin_shutdown ();
     roadmap_driver_shutdown ();
-    roadmap_gps_shutdown ();
     roadmap_history_save ();
     roadmap_config_save (0);
     roadmap_start_save_trip ();
+    roadmap_db_end ();
+    roadmap_gps_shutdown ();
 }
