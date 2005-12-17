@@ -1,0 +1,384 @@
+                               ---------
+                    Creating a Map for RoadMap HOWTO
+                               ---------
+                 Pascal Martin (pascal.martin@ponts.org)
+                               ---------
+                                                                                                            December 2005
+
+
+INTRODUCTION
+
+   This HOWTO describes how to create a new map for RoadMap. The intend is
+   not to provide a complete description of the RoadMap map format, only
+   to guide the authors of new maps in the complicated process of gathering
+   and organizing the data.
+
+   Some programming is usually necessary, as the map data may come in
+   various forms. In this document the term "RoadMap code" always make
+   reference to the source of the buildmap programs. In no circumstance
+   should the roadmap program itself be modified, as this would break
+   compatibility with pre-existing maps.
+
+
+OVERVIEW
+
+   There are four major phases involved when creating maps for RoadMap:
+
+   * One must decide how the maps will be organized. It is important to
+   have a good idea of how the country is organized and how individual
+   addresses are formatted (the format of addresses will have an influence
+   on the maps organization).
+
+   * Then the format of the data source must be identified and analyzed.
+   Knowing the data come in a shape file is not enough, as there are many
+   different ways of organizing shape file data. Typical questions to answer
+   are: what are the layers? What field describes the layer for a specific
+   feature? How does the data source layers match the Roadmap layers?
+
+   * A map builder input module may need to be modified or customized to
+   handle the specific format used by the data source.
+
+   * The map builder application must be run and the map indexes created.
+
+* PLANNING THE MAP ORGANIZATION
+
+   The preliminary step when building a map is always to decide how the
+   data will be organized. There are a many different cases, among them
+   the main ones are:
+
+   * The map will represent a new class of features.
+
+   * The map will cover a new country.
+
+   * The map will cover an existing country and represent existing features.
+
+   Even in the more complex cases when the map to be built represents new
+   features for a new country, it is recommended to reduce the problem by
+   separating these two steps: first define a new class of features and
+   then define a new country.
+
+   It is strongly recommended to reuse existing classes as much as possible,
+   even if that requires to split the data in more RoadMap map files.
+
+   If maps already exist for this country, the existing country subdivision
+   system must be reused as is. Changing the way the country's maps are
+   organized would require to regenerate the existing maps and would cause
+   the new set of maps to be incompatible with maps from other authors.
+
+   RoadMap use index files to retrieve which map files to use to represent
+   the visible area or to locate a given address. These index files represent
+   a hierachical organization that provide RoadMap with a fast search and
+   access mechanism to the maps. Many of the constraint regarding the
+   organization of the maps are direct consequences of the way the index
+   files are organized.
+
+* DATA SOURCE FORMAT
+
+   There are two main situations: either the format of the data source is
+   or is not supported by the RoadMap map builder (buildmap).
+
+   In the first case, a new buildmap module must be created (see the section
+   IMPLEMENTING A NEW BUILDMAP MODULE).
+
+   In the second case the odds are that your data implements a <<variant>>
+   of the supported format and the existing support code in RoadMap must be
+   modified.
+
+   Why is it that way? Lets consider the ESRI "shape file" format. This
+   format defines two files: the shape file itself (.shp) describes the
+   lines and polygons. This is where all the geometry information is stored.
+   A database file (.dbf) describes the attributes associated with each
+   feature described in the shape file. This is actually a DBASE III file.
+   It seems that different data sources describe the features using
+   different fields and conventions, so the RoadMap code must be modified
+   to access the correct fields. Also, each data source defines its own
+   set of layers and thus the mapping of these layers to the RoadMap layers
+   must be customized as well.
+
+   Most map data organization is kind of complicated, especially the way
+   attributes are organized. So one would be wise to take some time to
+   understand what is exactly the data he is going to process.
+
+   It is common for the layers to be split in separate file sets. The RoadMap
+   code is not really organized to handle this. So either the RoadMap code
+   must be modified, or else the data must be merged using standard GIS tools.
+
+* BUILDMAP INPUT MODULES
+
+   A buildmap input module must provide the following function:
+
+----
+   buildmap_xxx_process (const char *input, const char *class);
+----
+
+   This function must be called in buildmap_main.c
+
+   The input parameter indicates the file or files to load the data from.
+   This name follows whatever conventions are specific to the format of
+   the data. The class parameter indicates which Roadmap class is to be
+   processed.
+
+   Note that no output name is provided: the output map has already been setup
+   by buildmap and the input module should call the appropriate buildmap
+   table modules. The buildmap table modules are documented in the RoadMap
+   documentation.
+
+
+LAYERS
+
+* LAYER CLASS
+
+   Every feature stored in a RoadMap map file belongs to one layer. Layers
+   are organized in classes. Each map file provides features that belong to
+   layers within a single class.
+
+   In other words, a class describes all the layers provided in one set
+   of map files. A typical example would be a class representing all roads
+   or a class representing all land uses (city area, national parks, etc..)
+
+
+* DEFINING A NEW LAYER CLASS
+
+   A layer class is made of two lists of layers:
+
+   * One list for all line features (for example: streets).
+
+   * One list for all polygon features (for example: lakes).
+
+   Each list is an ordered sequence of layers. The order in the sequence
+   defines the drawing order. Note that all polygons are drawn before any
+   line, no matter what class these belong to.
+
+   Each class is described in a class description file. This is a text file
+   that contains a list of properties. This is where the lists of lines and
+   polygons are defined, as well as the colors and width used for each feature.
+
+   At a minimum there must be one class description file, representing the
+   "default" representation of the class, or else there can be two such files,
+   one defining the daylight time representation and the other the night
+   time representation.
+
+   Note that one can create alternate skins by redefining a complete set
+   of description files for all classes. These alternate skins must implement
+   the same classes and features as in the default description files.
+
+   The drawing order across classes is defined by defining sorting criteria:
+   the "before" and "after" properties. The "before" property lists classes
+   that this class must be before of, i.e. the current class must be drawn
+   before the listed classes. The "after" property lists classes that this
+   class must be after of, i.e. the current class must be drawn after the
+   listed classes.
+
+   Note that all maps for a given territory are treated as one set in the
+   index files. In other words, the index system stops at the territory:
+   Roadmap will scan all the maps files for that territory with no or little
+   optimizations.
+
+
+MAP ORGANIZATION
+
+   RoadMap divides earth into territories, usually defined by administrative
+   boundaries (international borders, local goverment with one country,
+   etc...). Other organizations are possible (such as maps defined by a
+   geographical location) but are not yet supported.
+
+   The territories are organized in a tree fashion, where the top level is
+   the country, as defined by its international borders. The rational for
+   this division of the world is that the source of most map data is usually
+   defined by country (most of the time the data is provided by a government
+   body).
+
+   The country level follows the agreed (or not so agreed on) international
+   borders. If the list of countries changes, the organization of the maps
+   must change. That the least of the problems that are to be faced when
+   this happens...
+
+   The territory tree can have 2 or more levels, depending on the country.
+   The top and middle levels must have a name and are usually called
+   "authority" within Roadmap. Each item at the lowest level defines one
+   territory covered by one set of map files. The top and middle levels
+   only exist in the index files.
+
+   In order to limit the size of each individual maps, the low level
+   territories should represent a entity of a limited size. 
+
+   A RoadMap map file will represent a class of features for a given low
+   level territory.  Example of feature classes are: roads, water area,
+   elevation lines, etc..
+
+
+* MAPS IDENTIFICATION
+
+   It is important to understand how maps are identified. RoadMap uses a
+   32 bits integer named World Territory ID (wtid) and defined as follow:
+
+    * The wtid is made of 10 decimal digits. There are two major classes
+    of wtid format: one is defined by legal boundaries and the other is
+    defined by a longitude/latitude grid. At that time, only the legal
+    boundaries class of wtid is supported in RoadMap.
+
+    * The legal-boundaries wtid for the USA has the format 00000SSCCC where
+    SSCCC is the county's FIPS code. Note that, in this case, the value of
+    the wtid exactly matches the value of the FIPS code. A CCC of 000 means
+    the whole state. A wtid value of 0 represents the whole US.
+
+    * the legal-boundaries wtid for other countries has the format 0CCCCXXXXX,
+    where CCCC is the telephone dialing code for the country covered by the
+    maps and XXXXX is a subdivision inside that country, wich format depends
+    on the country's legal organization. A XXXXX of 00000 represents the
+    whole country.
+ 
+    * The grid wtid have the format: 1CCLLLLllll where LLLL is a number that
+    represents the longitude span covered by the map and llll is a number
+    that represents the latitude covered by the map. CC identifies the type
+    of grid used to define the map; value 00 represents the USGS "quad" grid.
+    When the USGS quad gris is used, LLLL and llll are formatted as DDDQ,
+    where DDD is the decimal degree (range 0-360 for longitude and 0-180
+    for latitude) and Q is the quad index (range 1-8, where 1 represents
+    the low order longitude or latitude value and 8 the high order value).
+ 
+   The details of the format of the wtid is never used by RoadMap: its
+   sole purpose is to ensure the generation of a unique and consistent
+   map identification code.
+ 
+   An individual map will be uniquely identified in RoadMap using two
+   integers: the wtid and the class index. The class index is defined using
+   the list of classes when RoadMap loads the class description files and
+   is never stored on disk. The wtid is predefined (see above) and is stored
+   in the map files.
+
+   The international dialing codes are defined in the ITU Operational
+   Bulletin No. 835. For more information, go to:
+
+      {{http://www.itu.int/itu-t/bulletin/annex.html}}
+
+   RoadMap also use names to identify authorities (such as when it searches
+   for the location of a given address). These names mimics the wtid using
+   ASCII official codes for the countries and sub-territories. The format
+   is <country> / <sub-authority>, where sub-authority may also be a slash-
+   separated list of legal entities. For example, the format of the code
+   name for the US is: us/<state code> (the code name for California is
+   thus "us/ca"). The code name must be suitable for address search.
+   The country code name follow the iso 3166-1 standard. See:
+
+      {{http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html}}
+
+   The sub-authority levels must follow the local country convention for
+   postal addresses and city identification.
+
+   Each country can also be subdivided into a single level list of territories
+   (flat model) or using multiple levels (subtree model). For example the US
+   is split into its individual states, and each state is split into counties,
+   so that the tree is: country (US) / state / county. Only the lowest
+   territory level is represented by map files. The upper levels (named
+   "authority" levels in RoadMap) only exist in the RoadMap index files.
+
+   As a general rule, the choice between a flat or sub-tree model should
+   be directed by the format of a street address, especially how a city
+   is identified. For example, a country like France has a single authority
+   that administers city name, so a name like "Lyon" identifies a single
+   city in France and a flat model should be used. This is not true in
+   the US, where the city names are managed at the state level, so that
+   a US city name must be suffixed using the state symbol. In the case of
+   the US a two-level model should be used.
+
+   Note that one index file may contains 1 or 2 levels of the tree: one
+   authority level only (a "grand index"), the territory level only (a map
+   index) or both (a multilevel index). The index itself belongs to its
+   own parent authority (as described in the metadata table), like any other
+   map file. This parent authority is the common upper level authority above
+   all listed authority, or the common level above the listed territories
+   (if there is no authority table).
+
+   Continuing with the US example, the US can be represented in two ways:
+
+     * as a single index, which belongs to the US country, authorities are
+     the US states and territories are the counties.
+
+     * as a two-level tree of indexes: the top-level index lists the states
+     as authorities and contains no territory, map or cities tables; each
+     lower level index represents one state, lists counties as territories
+     and contain no authority table.
+
+   Usually the world is represented using a grand index that contains the
+   list of countries as authorities.
+
+
+* DEFINING A NEW COUNTRY
+
+   If the country was not represented in RoadMap yet, the division of the
+   country into sub-territories must be decided. There are several criteria
+   to consider:
+
+      * The territories must be compatible with the way postal addresses
+      are organized. The major requirements are that city names should be
+      unique inside a map file. If possible, the middle level authority levels
+      defined for that country, if any, should match the country's postal
+      convention as well.
+
+      * The territories should be compatible with the way the data source is
+      organized. It is possible to reorganize the data according to different
+      criteria, for example by splitting or merging files, but this introduces
+      a new level of complexity and should be avoided when possible.
+
+   Once this is achieved, a numerical identification system must be decided.
+   It is recommended to use the country identification scheme when it exists.
+   Many countries have defined a numerical ID for each legal entity and that
+   ID should be as much as possible the basis for the encoding of the wtid.
+
+   Names must be defined for each authority. Postal conventions must be used
+   when they exist. An authority is identified using either a short symbol
+   (such as "CA" for Califoria), or a full name ("California" to follow with
+   our previous example). When RoadMap will try to locate an address, it
+   will assume that the names in the address either match the symbols or
+   full name of authorities. The best performances will be achieved if the
+   authority tree for that country matches the postal conventions exactly.
+
+   For example, if the address reads "san francisco, ca, usa", RoadMap will
+   search for a top level authority identified as "usa", then a lower level
+   authority identified as "ca". Some defaults might be used, depending on
+   the current location (so that "san francisco, ca" would also search through
+   California if you happen to be in the USA). Some confusions may be avoided
+   by using full names (such as "vancouver, canada").
+
+   A new country must be described in the file countries.txt. Here is an
+   example  of a countries.txt file describing the US and canada:
+
+------
+       # List of countries, format: iso 3166-1, itu E.164A (except USA), name
+       us,0,USA
+       ca,1,Canada
+------
+
+   The country's list of parent territories must be described in a separate
+   file for each country, so that each country can be maintained independently.
+   The file's name must follow the convention: country-<country-symbol>.txt
+   (for example, "country-us.txt" for the US).
+
+   The format of the file is:
+
+------
+        wtid,symbol,name[,parent-authority-symbol]
+------
+
+   The wtid must be empty if an authority is described (since no map file
+   exists for an authority) and the parent authority's symbol must be empty
+   if the authority is the country itself. The symbol item is usually empty
+   for the territory level, but this is not required.
+
+   Here is an example that describes the state of Rhode Island (USA):
+
+------
+        ,RI,RHODE ISLAND
+        44001,,Bristol,RI
+        44003,,Kent,RI
+        44005,,Newport,RI
+        44007,,Providence,RI
+        44009,,Washington,RI
+------
+
+   For large countries it is recommended to locate the official description
+   of legal entities and to write a tool to translates it's original format
+   into the format assumed by RoadMap. This saves from painful updates when
+   the list changes.
+
