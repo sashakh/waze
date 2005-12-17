@@ -44,6 +44,7 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
    conn->handle = INVALID_HANDLE_VALUE;
    conn->data_count = 0;
    conn->ref_count = 1;
+   conn->valid = 1;
 
    return conn;
 }
@@ -51,15 +52,18 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 
 void roadmap_serial_close(RoadMapSerial serial)
 {
-	if (ROADMAP_SERIAL_IS_VALID (serial) &&
-         (serial->handle != INVALID_HANDLE_VALUE)) {
-		CloseHandle(serial->handle);
-      serial->handle = INVALID_HANDLE_VALUE;
-      
+   if (ROADMAP_SERIAL_IS_VALID (serial)) {
+
+      if (serial->handle != INVALID_HANDLE_VALUE) {
+         CloseHandle(serial->handle);
+         serial->handle = INVALID_HANDLE_VALUE;
+      }
+
+      serial->valid = 0;
       if (!--serial->ref_count) {
          free (serial);
       }
-	}
+   }
 }
 
 

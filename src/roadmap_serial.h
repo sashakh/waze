@@ -33,10 +33,10 @@
 #ifdef _WIN32
 
 #include <windows.h>
-struct Win32SerialConn;
+#include "win32/win32_serial.h"
 
 typedef struct Win32SerialConn *RoadMapSerial; /* WIN32 style. */
-#define ROADMAP_SERIAL_IS_VALID(f) (f != NULL)
+#define ROADMAP_SERIAL_IS_VALID(f) ((f != NULL) && (f->valid))
 
 #else
 

@@ -61,14 +61,9 @@ static HANDLE serial_open(const char *name,
 		return INVALID_HANDLE_VALUE;
 	}
 
-//	dcb.fBinary			   = TRUE;
 	dcb.BaudRate	       = baud_rate;
-//	dcb.fOutxCtsFlow       = TRUE;
 	dcb.fRtsControl        = RTS_CONTROL_DISABLE;
 	dcb.fDtrControl        = DTR_CONTROL_DISABLE;
-//	dcb.fOutxDsrFlow       = FALSE;
-//	dcb.fOutX              = FALSE;
-//	dcb.fInX               = FALSE;
 	dcb.ByteSize           = 8;
 	dcb.fParity             = FALSE;
 	dcb.StopBits           = ONESTOPBIT;
@@ -122,6 +117,12 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
        * and this input will be removed.
        */
 
+      /* Sleep to avoid busy loop, as RoadMap will try to create
+       * a new connection as soon as the message is sent
+       */
+
+      Sleep(3000);
+
       conn->data_count = -1;
       SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
    }
@@ -140,7 +141,7 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
    	/* Check if this input was unregistered while we were
 		 * sleeping.
 		 */
-		if (conn->handle == INVALID_HANDLE_VALUE) {
+		if (!conn->valid) {
 			break;
 		}
 

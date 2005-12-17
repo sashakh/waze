@@ -395,7 +395,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
          Win32SerialConn *conn = (Win32SerialConn *) lParam;
          
-         if (conn->handle == INVALID_HANDLE_VALUE) {
+         if (!ROADMAP_SERIAL_IS_VALID (conn)) {
             /* An old input which was removed */
             break;
          }

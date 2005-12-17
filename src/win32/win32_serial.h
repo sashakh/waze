@@ -12,6 +12,7 @@ typedef struct Win32SerialConn {
    char data[10240];
    int data_count;
    int ref_count;
+   int valid;
    
 } Win32SerialConn;
 
