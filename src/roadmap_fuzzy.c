@@ -153,8 +153,8 @@ RoadMapFuzzy roadmap_fuzzy_connected
 
     for (i = 0; i <= 1; ++i) {
         for (j = 0; j <= 1; ++j) {
-            if ((line_point[i].latitude == line_point[j].latitude) &&
-                (line_point[i].longitude == line_point[j].longitude)) {
+            if ((line_point[i].latitude == reference_point[j].latitude) &&
+                (line_point[i].longitude == reference_point[j].longitude)) {
                 *connection = line_point[i];
                 return (FUZZY_TRUTH_MAX * 2) / 3;
             }
