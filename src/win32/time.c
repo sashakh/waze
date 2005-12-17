@@ -97,7 +97,7 @@ static int get_bias()
 unsigned long
 mktime(struct tm *_tm)
 {
-	return _mktime(_tm->tm_year, _tm->tm_mon, _tm->tm_mday, _tm->tm_hour,
+	return _mktime(_tm->tm_year + 1900, _tm->tm_mon + 1, _tm->tm_mday, _tm->tm_hour,
 		_tm->tm_min, _tm->tm_sec) + get_bias() * 60;
 }
 
