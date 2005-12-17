@@ -99,6 +99,7 @@ void editor_trkseg_get_time (int trkseg,
 
 
 int editor_trkseg_add (int line_id,
+                       int plugin_id,
                        int p_from,
                        int first_shape,
                        int last_shape,
@@ -110,6 +111,7 @@ int editor_trkseg_add (int line_id,
    int id;
 
    track.line_id            = line_id;
+   track.plugin_id          = plugin_id;
    track.point_from         = p_from;
    track.first_shape        = first_shape;
    track.last_shape         = last_shape;
@@ -273,7 +275,7 @@ int editor_trkseg_split (int trkseg,
 
       return
          editor_trkseg_add
-            (-1, i, -1, -1, trk_middle_time, trk_end_time,
+            (-1, -1, i, -1, -1, trk_middle_time, trk_end_time,
              flags|ED_TRKSEG_NO_GLOBAL);
    }
 
@@ -333,7 +335,7 @@ int editor_trkseg_split (int trkseg,
 
       new_trkseg_id =
          editor_trkseg_add
-            (-1, i, first_shape, last_shape, split_time, trk_end_time,
+            (-1, -1, i, first_shape, last_shape, split_time, trk_end_time,
              flags|ED_TRKSEG_NO_GLOBAL);
 
       editor_trkseg_set
@@ -356,7 +358,7 @@ int editor_trkseg_split (int trkseg,
       i = editor_point_add (&result.to, 0, -1);
       new_trkseg_id =
          editor_trkseg_add
-            (-1, i, -1, -1, split_time, trk_end_time,
+            (-1, -1, i, -1, -1, split_time, trk_end_time,
              flags|ED_TRKSEG_NO_GLOBAL);
 
       editor_trkseg_set
@@ -378,6 +380,7 @@ int editor_trkseg_split (int trkseg,
    new_trkseg_id =
       editor_trkseg_add
          (-1,
+          -1,
           i,
           split_shape_point,
           last_shape,
@@ -401,7 +404,7 @@ int editor_trkseg_split (int trkseg,
 }
 
 
-void editor_trkseg_set_line (int trkseg, int line_id) {
+void editor_trkseg_set_line (int trkseg, int line_id, int plugin_id) {
    
    editor_db_trkseg *track;
 
@@ -413,13 +416,14 @@ void editor_trkseg_set_line (int trkseg, int line_id) {
       if (track == NULL) return;
 
       track->line_id = line_id;
+      track->plugin_id = plugin_id;
 
       trkseg = track->next_road_trkseg;
    }
 }
 
 
-int editor_trkseg_get_line (int trkseg) {
+void editor_trkseg_get_line (int trkseg, int *line_id, int *plugin_id) {
 
    editor_db_trkseg *track;
 
@@ -428,7 +432,8 @@ int editor_trkseg_get_line (int trkseg) {
 
    assert (track != NULL);
 
-   return track->line_id;
+   *line_id = track->line_id;
+   *plugin_id = track->plugin_id;
 }
 
 
@@ -488,8 +493,14 @@ int editor_trkseg_dup (int source_id) {
    
    return
       editor_trkseg_add
-         (track->line_id, new_from_point, new_first_shape, new_last_shape,
-          track->gps_start_time, track->gps_end_time, track->flags);
+         (track->line_id,
+          track->plugin_id,
+          new_from_point,
+          new_first_shape,
+          new_last_shape,
+          track->gps_start_time,
+          track->gps_end_time,
+          track->flags);
 }
 
 

@@ -52,7 +52,7 @@ int editor_track_point_distance (void);
 
 RoadMapPosition *track_point_pos (int index);
 RoadMapGpsPosition *track_point_gps (int index);
-int track_point_time (int index);
+time_t track_point_time (int index);
 int editor_track_draw_current (RoadMapPen pen);
 void editor_track_end (void);
 

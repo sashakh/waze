@@ -95,17 +95,24 @@ void editor_route_segment_copy (int source_line,
                          route->to_speed_limit);
    } else {
 
+      int route_flags;
+      int route_speed;
+
       LineRouteFlag from_flags = 0;
       LineRouteFlag to_flags = 0;
       LineRouteMax  from_speed_limit = 0;
       LineRouteMax  to_speed_limit = 0;
 
-      if (plugin_id != 0) return; /* No route info */
+      if (plugin_id != ROADMAP_PLUGIN_ID) return; /* No route info */
       
-      if (!roadmap_line_route_get_flags
-            (source_line, &from_flags, &to_flags) &&
-         !roadmap_line_route_get_speed_limit
-            (source_line, &from_speed_limit, &to_speed_limit)) {
+      route_flags = 
+         roadmap_line_route_get_flags
+            (source_line, &from_flags, &to_flags);
+      route_speed =
+         roadmap_line_route_get_speed_limit
+            (source_line, &from_speed_limit, &to_speed_limit);
+
+      if ((route_flags == -1) && (route_speed == -1)) {
 
          return;
       }

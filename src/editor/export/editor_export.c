@@ -35,10 +35,13 @@
 #include "roadmap_path.h"
 #include "roadmap_layer.h"
 #include "roadmap_point.h"
+#include "roadmap_line.h"
+#include "roadmap_locator.h"
 #include "roadmap_line_route.h"
 #include "roadmap_fileselection.h"
 
 #include "../editor_log.h"
+#include "../editor_main.h"
 
 #include "../db/editor_db.h"
 #include "../db/editor_point.h"
@@ -46,6 +49,7 @@
 #include "../db/editor_line.h"
 #include "../db/editor_trkseg.h"
 #include "../db/editor_street.h"
+#include "../db/editor_override.h"
 #include "../db/editor_route.h"
 
 #include "../track/editor_track_main.h"
@@ -126,11 +130,7 @@ static void close_export_file(FILE *file) {
 
 
 static void add_trkpts (FILE *file,
-                        int trkseg,
-                        int line_id,
-                        int flags,
-                        RoadMapPosition *from,
-                        RoadMapPosition *to) {
+                        int trkseg) {
 
    RoadMapPosition trkseg_pos;
    int from_point;
@@ -181,6 +181,7 @@ static void add_attribute (FILE *file, const char *name, const char *value) {
 
 static void add_line_data (FILE *file,
                            int line_id,
+                           int plugin_id,
                            int cfcc,
                            int flags,
                            int trkseg_flags,
@@ -216,19 +217,25 @@ static void add_line_data (FILE *file,
       fprintf (file, "<action trk_type=\"%s\">Update</action>\n", trk_type);
    }
 
-   editor_line_get_points (line_id, &from_point_id, &to_point_id);
+   if (plugin_id == EditorPluginID) {
 
-   editor_point_roadmap_id (from_point_id, &roadmap_from_id);
-   editor_point_roadmap_id (to_point_id, &roadmap_to_id);
+      editor_line_get_points (line_id, &from_point_id, &to_point_id);
 
-   if (roadmap_from_id >= 0)
-      roadmap_from_id = roadmap_point_db_id (roadmap_from_id);
+      editor_point_roadmap_id (from_point_id, &roadmap_from_id);
+      editor_point_roadmap_id (to_point_id, &roadmap_to_id);
 
-   if (roadmap_to_id >= 0)
-      roadmap_to_id = roadmap_point_db_id (roadmap_to_id);
+      if (roadmap_from_id >= 0)
+         roadmap_from_id = roadmap_point_db_id (roadmap_from_id);
 
-   if (roadmap_from_id == -1) roadmap_from_id = -from_point_id-2;
-   if (roadmap_to_id == -1) roadmap_to_id = -to_point_id-2;
+      if (roadmap_to_id >= 0)
+         roadmap_to_id = roadmap_point_db_id (roadmap_to_id);
+
+      if (roadmap_from_id == -1) roadmap_from_id = -from_point_id-2;
+      if (roadmap_to_id == -1) roadmap_to_id = -to_point_id-2;
+   } else {
+
+      roadmap_line_points (line_id, &roadmap_from_id, &roadmap_to_id);
+   }
 
    fprintf (file, "<line from_id=\"%d\" to_id=\"%d\">\n",
          roadmap_from_id, roadmap_to_id);
@@ -243,7 +250,7 @@ static void add_line_data (FILE *file,
 
    fprintf (file, "</line>\n");
 
-   if ((line_id != -1) && (flags & ED_LINE_DIRTY)) {
+   if ((plugin_id == EditorPluginID) && (flags & ED_LINE_DIRTY)) {
 
       fprintf (file, "<attributes>\n");
 
@@ -320,18 +327,18 @@ static int export_dirty_lines(FILE *file) {
 
          editor_line_get_trksegs (i, &trkseg, &last_trkseg);
 
-         add_trkpts (file, trkseg, i, flags, &from, &to);
+         add_trkpts (file, trkseg);
 
          editor_trkseg_get_time (trkseg, &start_time, &end_time);
          editor_trkseg_get (trkseg, NULL, NULL, NULL, &trkseg_flags);
 
          if (trkseg_flags & ED_TRKSEG_OPPOSITE_DIR) {
          
-            add_line_data (file, i, cfcc, flags, trkseg_flags,
+            add_line_data (file, i, EditorPluginID, cfcc, flags, trkseg_flags,
                            &to, &from, start_time, end_time);
          } else {
          
-            add_line_data (file, i, cfcc, flags, trkseg_flags,
+            add_line_data (file, i, EditorPluginID, cfcc, flags, trkseg_flags,
                            &from, &to, start_time, end_time);
          }
       
@@ -357,13 +364,27 @@ static int editor_export_data(const char *name) {
    FILE *file = create_export_file (name);
    int trkseg;
    int line_id;
+   int plugin_id;
    int current_trk_open = 0;
+   int fips;
 
    if (file == NULL) {
       editor_log (ROADMAP_ERROR, "Can't create file: %s", name);
       return -1;
    }
 
+   fips = roadmap_locator_active ();
+
+   if (fips < 0) {
+      editor_log (ROADMAP_ERROR, "Can't locate current fips");
+      return -1;
+   }
+
+   if (editor_db_activate (fips) == -1) {
+      editor_log (ROADMAP_ERROR, "Can't load editor db");
+      return -1;
+   }
+   
    editor_track_end ();
 
    trkseg = editor_trkseg_get_next_export ();
@@ -387,9 +408,15 @@ static int editor_export_data(const char *name) {
       time_t start_time;
       time_t end_time;
 
-      line_id = editor_trkseg_get_line (trkseg);
+      editor_trkseg_get_line (trkseg, &line_id, &plugin_id);
       
-      if (line_id != -1) {
+      if (line_id == -1) {
+         roadmap_log (ROADMAP_ERROR, "trkseg has an unknwon line_id.");
+
+         goto close_trk;
+      }
+
+      if (plugin_id == EditorPluginID) {
 
          editor_line_get (line_id, &from, &to, NULL, &cfcc, &flags);
 
@@ -398,13 +425,20 @@ static int editor_export_data(const char *name) {
             editor_line_modify_properties
                (line_id, cfcc, flags & ~ED_LINE_DIRTY);
 
-            if (current_trk_open) {
-               close_trk (file);
-               current_trk_open = 0;
-            }
-
-            goto next_trkseg;
+            goto close_trk;
          }
+      } else {
+
+         flags = editor_override_line_get_flags (line_id);
+
+         if (flags & ED_LINE_DELETED) {
+
+            goto close_trk;
+         }
+
+         roadmap_line_from (line_id, &from);
+         roadmap_line_to (line_id, &to);
+         cfcc = 4;
       }
 
       editor_trkseg_get
@@ -426,32 +460,34 @@ static int editor_export_data(const char *name) {
 
       open_trkseg (file);
 
-      add_trkpts (file, trkseg, line_id, flags, &from, &to);
+      add_trkpts (file, trkseg);
 
       editor_trkseg_get_time (trkseg, &start_time, &end_time);
 
       if (trkseg_flags & ED_TRKSEG_OPPOSITE_DIR) {
          
-         add_line_data (file, line_id, cfcc, flags, trkseg_flags,
+         add_line_data (file, line_id, plugin_id, cfcc, flags, trkseg_flags,
                         &to, &from, start_time, end_time);
       } else {
          
-         add_line_data (file, line_id, cfcc, flags, trkseg_flags,
+         add_line_data (file, line_id, plugin_id, cfcc, flags, trkseg_flags,
                         &from, &to, start_time, end_time);
       }
       
       close_trkseg (file);
 
-next_trkseg:
+      if (!(trkseg_flags & ED_TRKSEG_END_TRACK)) {
 
-      if (trkseg_flags & ED_TRKSEG_END_TRACK) {
-
-         if (current_trk_open) {
-            close_trk (file);
-            current_trk_open = 0;
-         }
+         goto next_trkseg;
       }
 
+close_trk:
+      if (current_trk_open) {
+         close_trk (file);
+         current_trk_open = 0;
+      }
+
+next_trkseg:
       trkseg = editor_trkseg_next_in_global (trkseg);
    }
 

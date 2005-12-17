@@ -301,8 +301,9 @@ static int find_split_point (PluginLine *line,
    if (connect_point->id == -1) {
 
       int from, to;
+      int plugin_id = roadmap_plugin_get_id (line);
 
-      if (roadmap_plugin_get_id (line) != EditorPluginID) {
+      if (plugin_id != EditorPluginID) {
          roadmap_line_points (roadmap_plugin_get_line_id (line), &from, &to);
       } else {
          editor_line_get_points (roadmap_plugin_get_line_id (line), &from, &to);
@@ -315,7 +316,7 @@ static int find_split_point (PluginLine *line,
          connect_point->id = to;
       }
 
-      connect_point->plugin_id = EditorPluginID;
+      connect_point->plugin_id = plugin_id;
    }
 
    if ((start_point_id == -1) ||
@@ -515,7 +516,8 @@ int editor_track_util_find_street
       }
     }
 
-   if (roadmap_fuzzy_is_acceptable (*best)) return count;
+   if (roadmap_fuzzy_is_acceptable (*best) &&
+         !previous_street->opposite_street_direction) return count;
 
    /* search for a line in the opposite direction */
    for (i = 0; i < count; ++i) {
@@ -682,15 +684,18 @@ int editor_track_util_connect_roads (PluginLine *from,
 }
 
 
-int editor_track_util_create_trkseg
-            (int line_id, int first_point, int last_point, int flags) {
+int editor_track_util_create_trkseg (int line_id,
+                                     int plugin_id,
+                                     int first_point,
+                                     int last_point,
+                                     int flags) {
 
    int trk_from;
    int first_shape = -1;
    int last_shape = -1;
    int trkseg_id;
    int i;
-   int gps_time = track_point_time (first_point);
+   time_t gps_time = track_point_time (first_point);
    RoadMapPosition *pos = track_point_pos (first_point);
 
    trk_from = editor_point_add (pos, 0, -1);
@@ -701,7 +706,7 @@ int editor_track_util_create_trkseg
       last_shape = editor_shape_add
                      (shape_pos->longitude - pos->longitude,
                       shape_pos->latitude - pos->latitude,
-                      track_point_time (i) - gps_time);
+                      (short) (track_point_time (i) - gps_time));
 
       if (last_shape == -1) {
          editor_log (ROADMAP_ERROR, "Can't add shape point.");
@@ -718,12 +723,13 @@ int editor_track_util_create_trkseg
    }
 
    trkseg_id = editor_trkseg_add (line_id,
-                         trk_from,
-                         first_shape,
-                         last_shape,
-                         track_point_time (first_point),
-                         track_point_time (last_point),
-                         flags);
+                                  plugin_id,
+                                  trk_from,
+                                  first_shape,
+                                  last_shape,
+                                  track_point_time (first_point),
+                                  track_point_time (last_point),
+                                  flags);
 
    if (trkseg_id == -1) return -1;
 
@@ -734,9 +740,9 @@ int editor_track_util_create_trkseg
 
 
 void editor_track_add_trkseg (PluginLine *line,
-                                     int trkseg,
-                                     int direction,
-                                     int who) {
+                              int trkseg,
+                              int direction,
+                              int who) {
    
    int first;
    int last;
@@ -744,14 +750,15 @@ void editor_track_add_trkseg (PluginLine *line,
 
    int plugin_id = roadmap_plugin_get_id (line);
 
-   if (direction != 0) {
+   if (direction != ROUTE_DIRECTION_NONE) {
 
       LineRouteFlag from_flags = 0;
       LineRouteFlag to_flags = 0;
       LineRouteMax speed_limit = 0;
       
       if (plugin_id == ROADMAP_PLUGIN_ID) {
-         route = editor_override_line_get_route (roadmap_plugin_get_line_id (line));
+         route = editor_override_line_get_route
+                     (roadmap_plugin_get_line_id (line));
       } else {
          route = editor_line_get_route (roadmap_plugin_get_line_id (line));
       }
@@ -857,7 +864,7 @@ int editor_track_util_create_line (int gps_first_point,
    /* we skip the first and last points of the GPS track */
    trkseg =
       editor_track_util_create_trkseg
-         (-1, gps_first_point+1, gps_last_point-1,
+         (-1, EditorPluginID, gps_first_point+1, gps_last_point-1,
           ED_TRKSEG_FAKE|ED_TRKSEG_NO_GLOBAL);
 
    if (trkseg == -1) {
@@ -874,7 +881,7 @@ int editor_track_util_create_line (int gps_first_point,
       return -1;
    }
 
-   editor_trkseg_set_line (trkseg, line_id);
+   editor_trkseg_set_line (trkseg, line_id, EditorPluginID);
 
    /* this is the second trkseg of the line */
    if (is_new_track) {
@@ -883,7 +890,7 @@ int editor_track_util_create_line (int gps_first_point,
       
    trkseg2 =
       editor_track_util_create_trkseg
-         (line_id, gps_first_point, gps_last_point, trk_flags);
+         (line_id, EditorPluginID, gps_first_point, gps_last_point, trk_flags);
 
    if (trkseg2 == -1) {
       editor_log (ROADMAP_ERROR, "Can't create new trkseg.");

@@ -50,6 +50,7 @@ typedef struct editor_db_trkseg_header_s {
 
 typedef struct editor_db_trkseg_s {
    int line_id;
+   int plugin_id;
    int point_from;
    int point_to;
    int first_shape;
@@ -61,9 +62,10 @@ typedef struct editor_db_trkseg_s {
    int next_global_trkseg;
 } editor_db_trkseg;
 
-void editor_trkseg_set_line (int trkseg, int line_id);
+void editor_trkseg_set_line (int trkseg, int line_id, int plugin_id);
 
 int editor_trkseg_add (int line_id,
+                       int plugin_id,
                        int p_from,
                        int first_shape,
                        int last_shape,
@@ -77,7 +79,7 @@ void editor_trkseg_get (int trkseg,
                         int *last_shape,
                         int *flags);
 
-int editor_trkseg_get_line (int trkseg);
+void editor_trkseg_get_line (int trkseg, int *line_id, int *plugin_id);
 
 void editor_trkseg_get_time (int trkseg,
                              time_t *start_time,
@@ -87,8 +89,6 @@ void editor_trkseg_connect_roads (int previous, int next);
 void editor_trkseg_connect_global (int previous, int next);
 int editor_trkseg_next_in_road (int trkseg);
 int editor_trkseg_next_in_global (int trkseg);
-
-int editor_trkseg_roadmap_line (int line_id, int *first, int *last);
 
 int editor_trkseg_split (int trkseg,
                          RoadMapPosition *line_from,

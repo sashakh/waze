@@ -65,6 +65,7 @@ int editor_track_known_end_segment (PluginLine *previous_line,
    RoadMapPosition *current;
    int trkseg;
    int trkseg_line_id;
+   int trkseg_plugin_id;
    int line_length;
    int segment_length;
    int percentage;
@@ -85,15 +86,15 @@ int editor_track_known_end_segment (PluginLine *previous_line,
 
    roadmap_plugin_line_from (line, &from);
    roadmap_plugin_line_to (line, &to);
+   trkseg_plugin_id = roadmap_plugin_get_id (line);
+   trkseg_line_id = roadmap_plugin_get_line_id (line);
    
-   if (roadmap_plugin_get_id (line) == EditorPluginID) {
+   if (trkseg_plugin_id == EditorPluginID) {
 
-      line_length = editor_line_length (roadmap_plugin_get_line_id (line));
-      trkseg_line_id = roadmap_plugin_get_line_id (line);
+      line_length = editor_line_length (trkseg_line_id);
    } else {
 
-      line_length = roadmap_line_length (roadmap_plugin_get_line_id (line));
-      trkseg_line_id = -1;
+      line_length = roadmap_line_length (trkseg_line_id);
    }
 
    segment_length = editor_track_util_length (0, last_point_id);
@@ -101,7 +102,7 @@ int editor_track_known_end_segment (PluginLine *previous_line,
    editor_log
       (ROADMAP_INFO,
          "Ending line %d (plugin_id:%d). Line length:%d, Segment length:%d",
-         roadmap_plugin_get_line_id (line), roadmap_plugin_get_id (line), line_length, segment_length);
+         trkseg_line_id, trkseg_plugin_id, line_length, segment_length);
 
    /* End current segment if we really passed through it
     * and not only touched a part of it.
@@ -111,7 +112,7 @@ int editor_track_known_end_segment (PluginLine *previous_line,
 
    if (line_length == 0) {
       editor_log (ROADMAP_ERROR, "line %d (plugin_id:%d) has length of zero.",
-            roadmap_plugin_get_line_id (line), roadmap_plugin_get_id (line));
+            trkseg_line_id, trkseg_plugin_id);
       editor_log_pop ();
       return 0;
    }
@@ -130,17 +131,20 @@ int editor_track_known_end_segment (PluginLine *previous_line,
       if (segment_length > (editor_track_point_distance ()*1.5)) {
 
          trkseg = editor_track_util_create_trkseg
-                     (trkseg_line_id, 0, last_point_id,
+                     (trkseg_line_id, trkseg_plugin_id, 0, last_point_id,
                       flags|ED_TRKSEG_IGNORE|ED_TRKSEG_END_TRACK);
 
-         editor_track_add_trkseg (line, trkseg, 0, ROUTE_CAR_ALLOWED);
+         editor_track_add_trkseg
+            (line, trkseg, ROUTE_DIRECTION_NONE, ROUTE_CAR_ALLOWED);
          editor_log_pop ();
          return 1;
       } else {
 
          trkseg = editor_track_util_create_trkseg
-                  (trkseg_line_id, 0, last_point_id, flags|ED_TRKSEG_IGNORE);
-         editor_track_add_trkseg (line, trkseg, 0, ROUTE_CAR_ALLOWED);
+                  (trkseg_line_id, trkseg_plugin_id,
+                   0, last_point_id, flags|ED_TRKSEG_IGNORE);
+         editor_track_add_trkseg
+            (line, trkseg, ROUTE_DIRECTION_NONE, ROUTE_CAR_ALLOWED);
          editor_log_pop ();
          return 0;
       }
@@ -152,16 +156,18 @@ int editor_track_known_end_segment (PluginLine *previous_line,
 
    trkseg =
       editor_track_util_create_trkseg
-         (trkseg_line_id, 0, last_point_id, flags);
+         (trkseg_line_id, trkseg_plugin_id, 0, last_point_id, flags);
 
    if (flags & ED_TRKSEG_OPPOSITE_DIR) {
       
       editor_log (ROADMAP_INFO, "Updating route direction: to -> from");
-      editor_track_add_trkseg (line, trkseg, 2, ROUTE_CAR_ALLOWED);
+      editor_track_add_trkseg
+         (line, trkseg, ROUTE_DIRECTION_AGAINST_LINE, ROUTE_CAR_ALLOWED);
    } else {
 
       editor_log (ROADMAP_INFO, "Updating route direction: from -> to");
-      editor_track_add_trkseg (line, trkseg, 1, ROUTE_CAR_ALLOWED);
+      editor_track_add_trkseg
+         (line, trkseg, ROUTE_DIRECTION_WITH_LINE, ROUTE_CAR_ALLOWED);
    }
 
 
@@ -257,6 +263,7 @@ int editor_track_known_locate_point (int point_id,
       }
 
       *confirmed_line   = RoadMapNeighbourhood[found];
+      *confirmed_street = *new_street;
       
       confirmed_street->fuzzyfied = best;
       confirmed_street->valid = 1;

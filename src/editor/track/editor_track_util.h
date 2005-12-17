@@ -70,8 +70,11 @@ int editor_track_util_new_road_end (RoadMapNeighbour *line,
 
 int editor_track_util_length (int first, int last);
 
-int editor_track_util_create_trkseg
-            (int line_id, int first_point, int last_point, int flags);
+int editor_track_util_create_trkseg (int line_id,
+                                     int plugin_id,
+                                     int first_point,
+                                     int last_point,
+                                     int flags);
 
 void editor_track_add_trkseg
    (PluginLine *line, int trkseg, int direction, int who);

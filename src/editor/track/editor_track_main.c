@@ -33,6 +33,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
 #include "roadmap.h"
 #include "roadmap_math.h"
@@ -86,7 +87,7 @@ RoadMapGpsPosition* track_point_gps (int index) {
    return &TrackPoints[index].gps_point;
 }
 
-int track_point_time (int index) {
+time_t track_point_time (int index) {
 
    return TrackPoints[index].time;
 }
@@ -206,6 +207,21 @@ static int create_new_line (int gps_first_point,
 static void end_known_segment (int point_id,
                                RoadMapTracking *new_street,
                                RoadMapNeighbour *new_line) {
+
+   int fips = roadmap_plugin_get_fips (&TrackConfirmedLine.line);
+
+   if (editor_db_activate (fips) == -1) {
+
+      editor_db_create (fips);
+      if (editor_db_activate (fips) == -1) {
+         roadmap_log (ROADMAP_ERROR, "Can't end known segment.");
+
+         track_reset_points (-1);
+         TrackConfirmedLine = *new_line;
+         TrackConfirmedStreet = *new_street;
+         return;
+      }
+   }
 
    if (new_street->valid) {
 
@@ -466,7 +482,7 @@ static void track_rec_locate(time_t gps_time,
          assert(0);
       }
 
-      roadmap_fuzzy_set_cycle_params (40, 300);
+      roadmap_fuzzy_set_cycle_params (40, 150);
       
       track_rec_locate_point (point_id);
    }

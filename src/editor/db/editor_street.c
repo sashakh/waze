@@ -241,6 +241,10 @@ int editor_street_get_distance (const RoadMapPosition *position,
                                 const PluginLine *line,
                                 RoadMapNeighbour *result) {
 
+   int fips = editor_db_locator (position);
+
+   if (editor_db_activate (fips) == -1) return 0;
+
    return editor_street_get_distance_with_shape
       (position,
        roadmap_plugin_get_line_id (line),
@@ -327,6 +331,8 @@ int editor_street_get_connected_lines (const RoadMapPosition *crossing,
    /* FIXME - this is wrong */
    int fips = roadmap_locator_active ();
    
+   if (editor_db_activate (fips) == -1) return 0;
+
    editor_square_find_by_position (crossing, &square, 1, 0);
    square_cfccs = editor_square_get_cfccs (square);
 

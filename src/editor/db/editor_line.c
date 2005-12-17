@@ -318,6 +318,7 @@ int editor_line_copy (int line, int cfcc, int fips) {
          
    trkseg = editor_trkseg_add
             (-1,
+             EditorPluginID,
              trkseg_from,
              editor_first_shape,
              editor_last_shape,
@@ -348,7 +349,7 @@ int editor_line_copy (int line, int cfcc, int fips) {
    }
 
    editor_trkseg_connect_roads (trkseg, j);
-   editor_trkseg_set_line (line_db->first_trkseg, line_id);
+   editor_trkseg_set_line (line_db->first_trkseg, line_id, EditorPluginID);
 
    /* Add roadmap line trksegs to copied line */
    editor_override_line_get_trksegs (line, &first, &last);
@@ -362,9 +363,9 @@ int editor_line_copy (int line, int cfcc, int fips) {
 
    line_db->first_trkseg = trkseg;
 
-   editor_route_segment_copy (line, 0, line_id);
-   editor_street_copy_street (line, 0, line_id);
-   editor_street_copy_range (line, 0, line_id);
+   editor_route_segment_copy (line, ROADMAP_PLUGIN_ID, line_id);
+   editor_street_copy_street (line, ROADMAP_PLUGIN_ID, line_id);
+   editor_street_copy_range (line, ROADMAP_PLUGIN_ID, line_id);
 
    //TODO: copy street
 
@@ -495,13 +496,13 @@ int editor_line_split (PluginLine *line,
    line_db->point_to = new_point;
    line_db->flags |= ED_LINE_EXPLICIT_SPLIT;
 
-   editor_trkseg_set_line (new_trkseg_first, new_line_id);
+   editor_trkseg_set_line (new_trkseg_first, new_line_id, EditorPluginID);
    editor_line_set_trksegs (new_line_id, new_trkseg_first, new_trkseg_curr);
-   editor_trkseg_set_line (old_trkseg_first, line_id);
+   editor_trkseg_set_line (old_trkseg_first, line_id, EditorPluginID);
    editor_line_set_trksegs (line_id, old_trkseg_first, old_trkseg_curr);
 
-   editor_route_segment_copy (line_id, 1, new_line_id);
-   editor_street_copy_street (line_id, 1, new_line_id);
+   editor_route_segment_copy (line_id, EditorPluginID, new_line_id);
+   editor_street_copy_street (line_id, EditorPluginID, new_line_id);
 
    editor_street_get_properties (line_id, &properties);
 
