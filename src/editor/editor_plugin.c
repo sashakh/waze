@@ -130,6 +130,12 @@ static int editor_plugin_get_direction (PluginLine *line, int who) {
 }
 
 
+static void editor_plugin_shutdown (void) {
+
+   editor_track_end ();
+}
+
+
 static RoadMapPluginHooks editor_plugin_hooks = {
 
       &editor_plugin_line_from,
@@ -146,7 +152,7 @@ static RoadMapPluginHooks editor_plugin_hooks = {
       &editor_screen_adjust_layer,
       &editor_street_get_closest,
       &editor_plugin_get_direction,
-      &editor_track_end
+      &editor_plugin_shutdown
 };
 
 
