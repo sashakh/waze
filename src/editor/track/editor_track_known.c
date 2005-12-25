@@ -205,13 +205,15 @@ int editor_track_known_locate_point (int point_id,
       } else {
 
          current_fuzzy = roadmap_navigate_fuzzify
-                           (confirmed_street, confirmed_line,
+                           (new_street,
+                            confirmed_line,
                             confirmed_line,
                             gps_position->steering);
       }
 
-      if ((current_fuzzy >= before) ||
-            roadmap_fuzzy_is_certain(current_fuzzy)) {
+      if ((new_street->line_direction == confirmed_street->line_direction) &&
+            ((current_fuzzy >= before) ||
+            roadmap_fuzzy_is_certain(current_fuzzy))) {
 
          confirmed_street->fuzzyfied = current_fuzzy;
          return 0; /* We are on the same street. */
@@ -253,7 +255,9 @@ int editor_track_known_locate_point (int point_id,
             (!roadmap_plugin_same_line
                (&confirmed_line->line, &RoadMapNeighbourhood[found].line) ||
                (confirmed_street->opposite_street_direction !=
-                new_street->opposite_street_direction))) {
+                new_street->opposite_street_direction) ||
+               (confirmed_street->line_direction !=
+                new_street->line_direction))) {
 
          *new_line = RoadMapNeighbourhood[found];
          new_street->valid = 1;

@@ -135,8 +135,8 @@ int editor_track_filter_add (GPSFilter *filter,
           gps_position->speed;
 
    azymuth = roadmap_math_azymuth
-               ((RoadMapPosition *) &filter->normalized_gps_point,
-                (RoadMapPosition *) &filter->last_gps_point);
+               ((RoadMapPosition *) &filter->last_gps_point,
+                (RoadMapPosition *) &filter->normalized_gps_point);
 
    filter->normalized_gps_point.steering = azymuth;
 

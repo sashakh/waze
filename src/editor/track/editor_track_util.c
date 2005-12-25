@@ -214,6 +214,13 @@ static int find_split_point (PluginLine *line,
             /* when looking for an end point, go backward as
              * much as possible.
              */
+
+            if (abs (last_azymuth_diff - current_azymuth_diff) > 10) {
+               break;
+            }
+
+            last_azymuth_diff = current_azymuth_diff;
+
             if (roadmap_fuzzy_is_acceptable (current_fuzzy)) {
                start_point_id = i;
                split_pos = result.intersection;

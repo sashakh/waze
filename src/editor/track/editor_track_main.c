@@ -316,6 +316,11 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
                pos.longitude = (pos1->longitude + pos2->longitude) / 2;
                pos.latitude = (pos1->latitude + pos2->latitude) / 2;
 
+               if (cur_node.plugin_id == ROADMAP_PLUGIN_ID) {
+                  cur_node.id = editor_point_roadmap_to_editor (cur_node.id);
+                  cur_node.plugin_id = EditorPluginID;
+               }
+
                editor_point_set_pos (cur_node.id, &pos);
 
                start_point = end_point;
@@ -325,6 +330,11 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
             break;
 
          case TRACK_ROAD_ROUNDABOUT:
+
+            if (cur_node.plugin_id == ROADMAP_PLUGIN_ID) {
+               cur_node.id = editor_point_roadmap_to_editor (cur_node.id);
+               cur_node.plugin_id = EditorPluginID;
+            }
 
             create_new_line
                (start_point, end_point, cur_node.id, cur_node.id, 4);
@@ -342,9 +352,14 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
             editor_track_util_new_road_end
                      (&TrackConfirmedLine,
                       track_point_pos (end_point),
-                      points_count-1,
+                      end_point,
                       TrackConfirmedStreet.opposite_street_direction,
                       &end_node);
+
+         if (end_node.plugin_id == ROADMAP_PLUGIN_ID) {
+            end_node.id = editor_point_roadmap_to_editor (end_node.id);
+            end_node.plugin_id = EditorPluginID;
+         }
 
          end_node_id = end_node.id;
       }
@@ -360,11 +375,13 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
 }
 
 
-static void track_rec_locate_point(int point_id) {
+static void track_rec_locate_point(int point_id, int force_unknown) {
 
    int i;
    int count;
    TrackNewSegment new_segments[10];
+
+   assert (!force_unknown || cur_active_line);
 
    if (!cur_active_line) {
 
@@ -389,7 +406,7 @@ static void track_rec_locate_point(int point_id) {
 
             for (i=0; i<points_count; i++) {
 
-               track_rec_locate_point (i);
+               track_rec_locate_point (i, 1);
             }
          }
       }
@@ -403,7 +420,7 @@ static void track_rec_locate_point(int point_id) {
                 &TrackConfirmedLine,
                 new_segments,
                 sizeof(new_segments) / sizeof(new_segments[0]),
-                0);
+                force_unknown);
 
       if (count) {
 
@@ -422,13 +439,12 @@ static void track_rec_locate_point(int point_id) {
          } 
 
          /* After creating a new line, we need to check if the current
-          * point_is still known.
-          * This is not an efficent way to do it...
+          * point_is still unknown.
           */
 
          for (i=0; i<points_count; i++) {
 
-            track_rec_locate_point (i);
+            track_rec_locate_point (i, 0);
          }
       }
    }
@@ -484,7 +500,7 @@ static void track_rec_locate(time_t gps_time,
 
       roadmap_fuzzy_set_cycle_params (40, 150);
       
-      track_rec_locate_point (point_id);
+      track_rec_locate_point (point_id, 0);
    }
 
 restore:

@@ -396,13 +396,11 @@ int editor_track_unknown_locate_point (int point_id,
    int found;
    int count;
    
-#if 0
    if (force) {
       /* this point is already known to be unknown */
       return detect_road_segment
                (point_id, gps_position, new_segment, max_segments);
    }
-#endif
 
    /* let's see if we got to a known street line */
    count = editor_track_util_find_street
