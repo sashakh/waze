@@ -149,7 +149,7 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX"
-		       "\n\nEditor Plugin 0.3.1\n"
+		       "\n\nEditor Plugin 0.3.3\n"
 		       "Ehud Shabtai\n"
 		       "eshabtai@gmail.com");
 }
