@@ -248,7 +248,8 @@ static void editor_segments_apply (const char *name, void *context) {
 
       if (line->line.plugin_id != EditorPluginID) {
 
-         int new_line = editor_line_copy (line->line.line_id, line->line.cfcc, line->line.fips);
+         int new_line = editor_line_copy
+                        (line->line.line_id, line->line.cfcc, line->line.fips);
          if (new_line == -1) {
             editor_log
                (ROADMAP_ERROR,
