@@ -98,6 +98,12 @@ str2dict (BuildMapDictionary d, const char *string) {
 
 static int pg2layer (int layer) {
 
+   switch (layer) {
+      case 1: return ROADMAP_ROAD_STREET;
+      case 2: return ROADMAP_ROAD_MAIN;
+      case 3: return ROADMAP_ROAD_FREEWAY;
+   }
+
    return ROADMAP_ROAD_STREET;
 }
 
