@@ -76,7 +76,9 @@ static void add_trkpt(FILE *file, int lon, int lat, int ele, time_t time) {
       fprintf (file, "<ele>%d</ele>\n", ele);
    }
    
-   add_timestamp (file, time);
+   if (time != (time_t) -1) {
+      add_timestamp (file, time);
+   }
 
    fprintf (file, "</trkpt>\n");
 }
@@ -152,7 +154,10 @@ static void add_trkpts (FILE *file,
 
       for (i=first_shape; i<=last_shape; i++) {
          editor_shape_position (i, &trkseg_pos);
-         editor_shape_time (i, &start_time);
+
+         if (start_time != (time_t) -1) {
+            editor_shape_time (i, &start_time);
+         }
 
          add_trkpt
             (file, trkseg_pos.longitude, trkseg_pos.latitude,
@@ -235,6 +240,8 @@ static void add_line_data (FILE *file,
    } else {
 
       roadmap_line_points (line_id, &roadmap_from_id, &roadmap_to_id);
+      roadmap_from_id = roadmap_point_db_id (roadmap_from_id);
+      roadmap_to_id = roadmap_point_db_id (roadmap_to_id);
    }
 
    fprintf (file, "<line from_id=\"%d\" to_id=\"%d\">\n",
