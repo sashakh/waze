@@ -220,12 +220,17 @@ int roadmap_navigate_retrieve_line
 int roadmap_navigate_fuzzify
                 (RoadMapTracking *tracked,
                  RoadMapNeighbour *previous_line,
-                 RoadMapNeighbour *line, int direction) {
+                 RoadMapNeighbour *line,
+                 int direction) {
 
     RoadMapFuzzy fuzzyfied_distance;
     RoadMapFuzzy fuzzyfied_direction;
+    RoadMapFuzzy fuzzyfied_direction_with_line = 0;
+    RoadMapFuzzy fuzzyfied_direction_against_line = 0;
     RoadMapFuzzy connected;
     int line_direction = 0;
+    int azymuth_with_line;
+    int azymuth_against_line;
     int symetric = 0;
 
     fuzzyfied_distance = roadmap_fuzzy_distance (line->distance);
@@ -243,13 +248,30 @@ int roadmap_navigate_fuzzify
     }
 
     if (symetric || (line_direction == ROUTE_DIRECTION_WITH_LINE)) {
-       tracked->direction = roadmap_math_azymuth (&line->from, &line->to);
-    } else {
-       tracked->direction = roadmap_math_azymuth (&line->to, &line->from);
-    }
+       azymuth_with_line = roadmap_math_azymuth (&line->from, &line->to);
+       fuzzyfied_direction_with_line =
+          roadmap_fuzzy_direction (azymuth_with_line, direction, 0);
 
-    fuzzyfied_direction =
-        roadmap_fuzzy_direction (tracked->direction, direction, symetric);
+    }
+    
+    if (symetric || (line_direction == ROUTE_DIRECTION_AGAINST_LINE)) {
+       azymuth_against_line = roadmap_math_azymuth (&line->to, &line->from);
+       fuzzyfied_direction_against_line =
+          roadmap_fuzzy_direction (azymuth_against_line, direction, 0);
+    }
+ 
+    if (fuzzyfied_direction_against_line >
+          fuzzyfied_direction_with_line) {
+       
+       fuzzyfied_direction = fuzzyfied_direction_against_line;
+       tracked->azymuth = azymuth_against_line;
+       tracked->line_direction = ROUTE_DIRECTION_AGAINST_LINE;
+    } else {
+
+       fuzzyfied_direction = fuzzyfied_direction_with_line;
+       tracked->azymuth = azymuth_with_line;
+       tracked->line_direction = ROUTE_DIRECTION_WITH_LINE;
+    }
 
     if (! roadmap_fuzzy_is_acceptable (fuzzyfied_direction)) {
        return roadmap_fuzzy_false ();
@@ -281,7 +303,7 @@ static int roadmap_navigate_confirm_intersection
     if (!PLUGIN_VALID(RoadMapConfirmedStreet.intersection)) return 0;
 
     delta = roadmap_math_delta_direction (position->steering,
-                                     RoadMapConfirmedStreet.direction);
+                                     RoadMapConfirmedStreet.azymuth);
 
     return (delta < 90 && delta > -90);
 }

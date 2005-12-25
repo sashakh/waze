@@ -39,7 +39,8 @@ typedef struct {
     int valid;
     PluginStreet street;
 
-    int direction;
+    int azymuth;
+    int line_direction;
     int opposite_street_direction;
 
     RoadMapFuzzy fuzzyfied;
@@ -52,7 +53,7 @@ typedef struct {
 
 } RoadMapTracking;
 
-#define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
+#define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
 
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
