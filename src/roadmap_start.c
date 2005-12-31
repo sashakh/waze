@@ -71,6 +71,7 @@
 #include "roadmap_pointer.h"
 
 #include "editor/editor_main.h"
+#include "editor/db/editor_db.h"
 #include "editor/export/editor_export.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
@@ -149,15 +150,76 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX"
-		       "\n\nEditor Plugin 0.3.3\n"
-		       "Ehud Shabtai\n"
-		       "eshabtai@gmail.com");
+		                 "\n\nEditor Plugin 0.4.0\n"
+		                 "Ehud Shabtai\n"
+		                 "eshabtai@gmail.com");
 }
 
 static void roadmap_start_export_data (void) {
 
    editor_export_gpx ();
 }
+
+static void roadmap_start_download_map_done (void) {
+
+   editor_main_set (1);
+   roadmap_download_subscribe_when_done (NULL);
+   roadmap_screen_redraw ();
+}
+
+static void roadmap_start_download_map (void) {
+
+   static int *fips = NULL;
+   static int ProtocolInitialized = 0;
+   RoadMapPosition center;
+   int count;
+   int i;
+
+   if (! ProtocolInitialized) {
+
+      /* PLUGINS NOT SUPPORTED YET.
+       * roadmap_plugin_load_all
+       *      ("download", roadmap_download_subscribe_protocol);
+       */
+
+      roadmap_copy_init (roadmap_download_subscribe_protocol);
+      roadmap_httpcopy_init (roadmap_download_subscribe_protocol);
+
+      ProtocolInitialized = 1;
+   }
+
+   roadmap_screen_get_center (&center);
+   count = roadmap_locator_by_position (&center, &fips);
+
+   if (count == 0) {
+      roadmap_display_text("Info", "No map available");
+      return;
+   }
+
+   for (i = count-1; i >= 0; --i) {
+
+      if (!editor_export_empty (fips[i])) {
+         roadmap_messagebox("Info", "You must first export your data.");
+         return;
+      }
+   }
+
+   editor_main_set (0);
+
+   roadmap_download_subscribe_when_done (roadmap_start_download_map_done);
+   roadmap_download_unblock_all ();
+
+   for (i = count-1; i >= 0; --i) {
+
+      editor_db_close (fips[i]);
+      editor_db_delete (fips[i]);
+      roadmap_download_get_county (fips[i]);
+   }
+
+
+   roadmap_screen_redraw ();
+}
+
 
 static void roadmap_start_create_trip (void) {
     
@@ -411,6 +473,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"exportdata", "Export Data", NULL, NULL,
       "Export editor data", roadmap_start_export_data},
 
+   {"updatemap", "Update map", NULL, NULL,
+      "Export editor data", roadmap_start_download_map},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -425,6 +490,7 @@ static const char *RoadMapStartMenu[] = {
    RoadMapFactorySeparator,
 
    "exportdata",
+   "updatemap",
 
    RoadMapFactorySeparator,
    "mutevoice",
@@ -804,6 +870,11 @@ void roadmap_start_unfreeze (void) {
 
    RoadMapStartFrozen = 0;
    roadmap_screen_unfreeze ();
+}
+
+int roadmap_start_is_frozen (void) {
+
+   return RoadMapStartFrozen;
 }
 
 

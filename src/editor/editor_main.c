@@ -66,6 +66,11 @@ void editor_main_set (int status) {
 
    EditorEnabled = status;
 
+   if (!EditorEnabled) {
+
+      editor_track_end ();
+   }
+
    editor_screen_set (status);
 }
 

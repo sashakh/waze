@@ -53,7 +53,11 @@
 #include "roadmap_httpcopy.h"
 
 
+#ifndef _WIN32
 #define ROADMAP_HTTP_MAX_CHUNK 32768
+#else
+#define ROADMAP_HTTP_MAX_CHUNK 4096
+#endif
 
 
 static int roadmap_http_send (int socket,
@@ -269,6 +273,7 @@ static int roadmap_httpcopy (RoadMapDownloadCallbacks *callbacks,
       return 0;
    }
 
+   callbacks->progress (received);
    roadmap_file_remove (NULL, destination);
 
    if (received > 0) {

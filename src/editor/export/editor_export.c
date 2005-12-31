@@ -391,7 +391,7 @@ static int editor_export_data(const char *name) {
       editor_log (ROADMAP_ERROR, "Can't load editor db");
       return -1;
    }
-   
+
    editor_track_end ();
 
    trkseg = editor_trkseg_get_next_export ();
@@ -543,5 +543,38 @@ void editor_export_gpx (void) {
                               roadmap_path_user (),
                               "w",
                               editor_export_file_dialog_ok);
+}
+
+int editor_export_empty (int fips) {
+   
+   int trkseg;
+   int num_lines;
+   int i;
+
+   if (fips < 0) {
+      return 1;
+   }
+
+   if (editor_db_activate (fips) == -1) {
+      return 1;
+   }
+   
+   editor_track_end ();
+
+   trkseg = editor_trkseg_get_next_export ();
+
+   if (trkseg != -1) return 0;
+
+   num_lines = editor_line_get_count();
+
+   for (i=0; i<num_lines; i++) {
+      
+      int flags;
+      editor_line_get (i, NULL, NULL, NULL, NULL, &flags);
+
+      if ((flags & ED_LINE_DIRTY)) return 0;
+   }
+
+   return 1;
 }
 

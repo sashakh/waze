@@ -26,6 +26,7 @@
 
 void editor_export_gpx (void);
 void editor_export_reset_dirty (void);
+int editor_export_empty (int fips);
 
 #endif // INCLUDE__EDITOR_EXPORT__H
 

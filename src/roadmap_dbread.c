@@ -577,12 +577,13 @@ void roadmap_db_close (char *name) {
 void roadmap_db_end (void) {
 
    roadmap_db_database *database;
+   roadmap_db_database *next;
 
-   for (database = RoadmapDatabaseFirst;
-        database != NULL;
-        database = database->next) {
+   for (database = RoadmapDatabaseFirst; database != NULL; ) {
 
+      next = database->next;
       roadmap_db_close_database (database);
+      database = next;
    }
 }
 

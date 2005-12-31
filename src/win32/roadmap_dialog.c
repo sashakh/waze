@@ -455,7 +455,7 @@ void roadmap_dialog_complete (int use_keyboard)
 	if (count == 0) count = 1;
 	psp = (PROPSHEETPAGE*) calloc(count, sizeof(*psp));
 	
-	dialog->w = CreateDialogParam(g_hInst, (LPCWSTR)IDD_GENERIC, NULL,
+	dialog->w = CreateDialogParam(g_hInst, (LPCWSTR)IDD_GENERIC, NULL, /*RoadMapMainWindow, FIXME*/
 		DialogFunc, (LPARAM)dialog);
 	
 	ShowWindow(dialog->w, SW_HIDE);
@@ -1089,3 +1089,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	return (INT_PTR)FALSE;
 }
 
+int dialog_test (int i) {
+   UpdateWindow(RoadMapDialogCurrent->w);
+   return 0;
+}

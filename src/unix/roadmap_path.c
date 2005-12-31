@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -120,13 +121,15 @@ static const char *RoadMapPathMapsPreferred =
 #endif
 
 
+static char *roadmap_path_expand (const char *item, size_t length);
+
 static void roadmap_path_list_create(const char *name,
                                      const char *items[],
                                      const char *preferred) {
 
 
-   int i;
-   int count;
+   size_t i;
+   size_t count;
    RoadMapPathList new_path;
 
    for (count = 0; items[count] != NULL; ++count) ;
@@ -136,15 +139,15 @@ static void roadmap_path_list_create(const char *name,
 
    new_path->next  = RoadMapPaths;
    new_path->name  = strdup(name);
-   new_path->count = count;
+   new_path->count = (int)count;
 
    new_path->items = calloc (count, sizeof(char *));
    roadmap_check_allocated(new_path->items);
 
    for (i = 0; i < count; ++i) {
-      new_path->items[i] = strdup(items[i]);
+      new_path->items[i] = roadmap_path_expand (items[i], strlen(items[i]));
    }
-   new_path->preferred  = strdup(preferred);
+   new_path->preferred  = roadmap_path_expand (preferred, strlen(preferred));
 
    RoadMapPaths = new_path;
 }
@@ -293,16 +296,38 @@ const char *roadmap_path_trips (void) {
 }
             
 
+static char *roadmap_path_expand (const char *item, size_t length) {
+
+   const char *expansion;
+   size_t expansion_length;
+   char *expanded;
+
+   switch (item[0]) {
+      case '~': expansion = roadmap_path_home(); item++; length--; break;
+      case '&': expansion = roadmap_path_user(); item++; length--; break;
+      default:  expansion = "";
+   }
+   expansion_length = strlen(expansion);
+
+   expanded = malloc (length + expansion_length + 1);
+   roadmap_check_allocated(expanded);
+
+   strcpy (expanded, expansion);
+   strncat (expanded, item, length);
+
+   expanded[length+expansion_length] = 0;
+
+   return expanded;
+}
+
+
 /* Path lists operations. -------------------------------------------------- */
 
 void roadmap_path_set (const char *name, const char *path) {
 
    int i;
-   int count;
-   int length;
-   int expand_length;
+   size_t count;
    const char *item;
-   const char *expand;
    const char *next_item;
 
    RoadMapPathList path_list = roadmap_path_find (name);
@@ -346,26 +371,12 @@ void roadmap_path_set (const char *name, const char *path) {
       item += 1;
       next_item = strchr (item, ',');
 
-      switch (item[0]) {
-         case '~': expand = roadmap_path_home(); item += 1; break;
-         case '&': expand = roadmap_path_user(); item += 1; break;
-         default:  expand = "";
-      }
-      expand_length = strlen(expand);
-
       if (next_item == NULL) {
-         length = strlen(item);
+         path_list->items[i] = roadmap_path_expand (item, strlen(item));
       } else {
-         length = next_item - item;
+         path_list->items[i] =
+            roadmap_path_expand (item, (size_t)(next_item - item));
       }
-
-      path_list->items[i] = malloc (length + expand_length + 1);
-      roadmap_check_allocated(path_list->items[i]);
-
-      strcpy (path_list->items[i], expand);
-      strncat (path_list->items[i], item, length);
-
-      (path_list->items[i])[length+expand_length] = 0;
 
       if (roadmap_file_exists(NULL, path_list->items[i])) {
          ++i;
@@ -469,11 +480,11 @@ static char *RoadMapPathEmptyList = NULL;
 
 char **roadmap_path_list (const char *path, const char *extension) {
 
-   char *match;
-   int   length;
-   int   count;
-   char **result;
-   char **cursor;
+   char  *match;
+   int    length;
+   size_t count;
+   char  **result;
+   char  **cursor;
 
    DIR *directory;
    struct dirent *entry;
@@ -489,13 +500,24 @@ char **roadmap_path_list (const char *path, const char *extension) {
    roadmap_check_allocated (result);
 
    rewinddir (directory);
-   length = strlen(extension);
+   if (extension != NULL) {
+      length = strlen(extension);
+   } else {
+      length = 0;
+   }
 
    while ((entry = readdir(directory)) != NULL) {
 
-      match = entry->d_name + strlen(entry->d_name) - length;
+      if (entry->d_name[0] == '.') continue;
 
-      if (! strcmp (match, extension)) {
+      if (length > 0) {
+         
+         match = entry->d_name + strlen(entry->d_name) - length;
+
+         if (! strcmp (match, extension)) {
+            *(cursor++) = strdup (entry->d_name);
+         }
+      } else {
          *(cursor++) = strdup (entry->d_name);
       }
    }
@@ -542,6 +564,18 @@ const char *roadmap_path_search_icon (const char *name) {
 
 int roadmap_path_is_full_path (const char *name) {
    return name[0] == '/';
+}
+
+
+int roadmap_path_is_directory (const char *name) {
+
+   struct stat file_attributes;
+
+   if (stat (name, &file_attributes) != 0) {
+      return 0;
+   }
+
+   return S_ISDIR(file_attributes.st_mode);
 }
 
 

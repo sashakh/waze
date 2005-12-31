@@ -814,7 +814,7 @@ static void roadmap_screen_repaint (void) {
     int max_pen = roadmap_layer_max_pen();
     
 
-    if (!RoadMapScreenDragging && RoadMapScreenFrozen) return;
+    if (RoadMapScreenFrozen) return;
 
     if (RoadMapScreenDragging &&
         (! roadmap_config_match(&RoadMapConfigStylePrettyDrag, "yes"))) {

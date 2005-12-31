@@ -83,7 +83,7 @@ static int  RoadMapDownloadQueueSize = 0;
 static int  RoadMapDownloadRefresh = 0;
 
 static int  RoadMapDownloadCurrentFileSize = 0;
-static int  RoadMapDownloadDownloaded = 0;
+static int  RoadMapDownloadDownloaded = -1;
 
 
 struct roadmap_download_protocol {
@@ -111,7 +111,7 @@ static int roadmap_download_request (int size) {
    /* TBD: for the time being, answer everything is fine. */
 
    RoadMapDownloadCurrentFileSize = size;
-   RoadMapDownloadDownloaded = 0;
+   RoadMapDownloadDownloaded = -1;
    return 1;
 }
 
@@ -166,6 +166,8 @@ static void roadmap_download_end (void) {
        */
       RoadMapDownloadRefresh = 0;
       RoadMapDownloadWhenDone ();
+   } else {
+      RoadMapDownloadWhenDone ();
    }
 }
 
@@ -178,7 +180,7 @@ static void roadmap_download_progress (int loaded) {
    int progress = (100 * loaded) / RoadMapDownloadCurrentFileSize;
 
 
-   /* Avoid updating the dialod too often: this may slowdown the download. */
+   /* Avoid updating the dialog too often: this may slowdown the download. */
 
    if (progress == RoadMapDownloadDownloaded) return;
 
@@ -203,8 +205,7 @@ static void roadmap_download_progress (int loaded) {
    roadmap_dialog_set_data (".file", "Size", image);
 
    if (loaded == RoadMapDownloadCurrentFileSize) {
-      roadmap_dialog_hide (".file");
-      roadmap_download_end ();
+      roadmap_dialog_hide ("Downloading");
    } else {
       roadmap_download_format_size (image, loaded);
       roadmap_dialog_set_data (".file", "Download", image);
@@ -392,6 +393,7 @@ static void roadmap_download_ok (const char *name, void *context) {
       if (strncmp (source, protocol->prefix, strlen(protocol->prefix)) == 0) {
 
          roadmap_start_freeze ();
+         roadmap_locator_close (fips);
 
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
                                 source, destination)) {
@@ -401,6 +403,7 @@ static void roadmap_download_ok (const char *name, void *context) {
          }
          roadmap_download_unblock (fips);
          roadmap_start_unfreeze ();
+         roadmap_download_end ();
          break;
       }
    }
@@ -461,8 +464,13 @@ static void roadmap_download_next_county (void) {
 
    roadmap_dialog_set_data (".file", "From", source);
 
+#ifndef _WIN32
    snprintf (buffer, sizeof(buffer), "%s%s", 
              roadmap_config_get (&RoadMapConfigDestination), basename);
+#else
+   snprintf (buffer, sizeof(buffer), "%s\\%s",
+             roadmap_config_get (&RoadMapConfigDestination), basename+1);
+#endif
 
    roadmap_dialog_set_data (".file", "To", buffer);
 }
@@ -649,10 +657,15 @@ static void roadmap_download_delete_populate (void) {
 
     for (i = 0; i < RoadMapDownloadDeleteCount; ++i) {
 
+#ifndef _WIN32
        snprintf (name, sizeof(name), "%s/" ROADMAP_FILE_NAME_FORMAT,
                  roadmap_config_get (&RoadMapConfigDestination),
                  RoadMapDownloadDeleteFips[i]);
-
+#else
+       snprintf (name, sizeof(name), "%s\\" ROADMAP_FILE_NAME_FORMAT,
+                 roadmap_config_get (&RoadMapConfigDestination),
+                 RoadMapDownloadDeleteFips[i]);
+#endif
        if (! roadmap_file_exists (NULL, name)) {
 
           /* The map for this county is not available: remove
@@ -691,10 +704,15 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
 
       roadmap_download_block (RoadMapDownloadDeleteSelected);
 
+#ifndef _WIN32
       snprintf (path, sizeof(path), "%s/" ROADMAP_FILE_NAME_FORMAT,
                 roadmap_config_get (&RoadMapConfigDestination),
                 RoadMapDownloadDeleteSelected);
-
+#else
+      snprintf (path, sizeof(path), "%s\\" ROADMAP_FILE_NAME_FORMAT,
+                roadmap_config_get (&RoadMapConfigDestination),
+                RoadMapDownloadDeleteSelected);
+#endif
       roadmap_locator_close (RoadMapDownloadDeleteSelected);
       roadmap_file_remove (NULL, path);
 
@@ -766,10 +784,10 @@ void roadmap_download_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
-      "/usr/local/share/roadmap/" ROADMAP_FILE_NAME_FORMAT);
+      "http://www.eshabtai.net/roadmap/maps/" ROADMAP_FILE_NAME_FORMAT);
 
    snprintf (default_destination, sizeof(default_destination),
-             "%s/maps", roadmap_path_user());
+             "%s\\maps", roadmap_path_user());
 
    roadmap_config_declare
       ("preferences",

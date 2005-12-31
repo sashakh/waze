@@ -48,10 +48,7 @@ extern "C" {
 
 
 // Menu & toolbar defines
-#define MENU_ID_START	WM_USER
-#define MAX_MENU_ITEMS	100
-#define TOOL_ID_START	(MENU_ID_START + MAX_MENU_ITEMS + 1)
-#define MAX_TOOL_ITEMS	100
+
 struct tb_icon {
 	char *name;
 	int id;
@@ -759,7 +756,10 @@ extern "C" {
 	
 	void roadmap_main_set_status (const char *text) {}
 	
-	void roadmap_main_flush (void) {}
+	void roadmap_main_flush (void) 
+   {      
+      UpdateWindow(GetFocus());
+   }
 	
 	
 	void roadmap_main_exit (void)

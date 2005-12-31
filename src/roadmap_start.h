@@ -33,6 +33,7 @@
  */
 void roadmap_start_freeze   (void);
 void roadmap_start_unfreeze (void);
+int roadmap_start_is_frozen (void);
 
 void roadmap_start      (int argc, char **argv);
 void roadmap_start_exit (void);

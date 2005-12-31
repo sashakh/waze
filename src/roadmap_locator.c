@@ -248,6 +248,10 @@ void roadmap_locator_close (int fips) {
          roadmap_locator_remove (i);
       }
    }
+
+   if (RoadMapActiveCounty == fips) {
+      RoadMapActiveCounty = 0;
+   }
 }
 
 

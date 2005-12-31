@@ -63,6 +63,8 @@ void editor_unmap (void *context);
 int editor_db_create (int fips);
 int editor_db_activate (int fips);
 int editor_db_locator(const RoadMapPosition *position);
+void editor_db_close (int fips);
+void editor_db_delete (int fips);
 
 void editor_db_mark_cfcc (int cfcc);
 int editor_db_is_cfcc_marked (int cfcc);

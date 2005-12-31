@@ -5,8 +5,6 @@
 #include "../roadmap_main.h"
 #include "../roadmap_io.h"
 
-#define WM_USER_READ WM_USER+1
-
 typedef struct roadmap_main_io {
    RoadMapIO *io;
    RoadMapInput callback;

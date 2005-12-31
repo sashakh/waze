@@ -58,6 +58,7 @@ static const char *RoadMapPathConfigPreferred = "\\Storage Card\\roadmap";
 
 /* The default path for the map files (the "maps" path): */
 static const char *RoadMapPathMaps[] = {
+   "&\\maps",
 	"\\Program Files\\roadmap\\maps",
 	"\\Storage Card\\roadmap\\maps",
 	NULL
@@ -70,6 +71,8 @@ static const char *RoadMapPathUser[] = {
 	NULL
 };
 
+
+static char *roadmap_path_expand (const char *item, size_t length);
 
 static void roadmap_path_list_create(const char *name,
 									 const char *items[],
@@ -92,9 +95,9 @@ static void roadmap_path_list_create(const char *name,
 	roadmap_check_allocated(new_path->items);
 
 	for (i = 0; i < count; ++i) {
-		new_path->items[i] = strdup(items[i]);
+		new_path->items[i] = roadmap_path_expand (items[i], strlen(items[i]));
 	}
-	new_path->preferred  = strdup(preferred);
+   new_path->preferred  = roadmap_path_expand (preferred, strlen(preferred));
 
 	RoadMapPaths = new_path;
 }
@@ -106,11 +109,11 @@ static RoadMapPathList roadmap_path_find (const char *name)
 	if (RoadMapPaths == NULL) {
 
 		/* Add the hardcoded configuration. */
+		roadmap_path_list_create ("user", RoadMapPathUser, roadmap_path_user());
 		roadmap_path_list_create ("config", RoadMapPathConfig,
 											RoadMapPathConfigPreferred);
 		roadmap_path_list_create ("maps", RoadMapPathMaps,
 										  RoadMapPathMapsPreferred);
-		roadmap_path_list_create ("user", RoadMapPathUser, roadmap_path_user());
 	}
 
 	for (cursor = RoadMapPaths; cursor != NULL; cursor = cursor->next) {
@@ -226,16 +229,36 @@ const char *roadmap_path_trips (void)
 }
 
 
+static char *roadmap_path_expand (const char *item, size_t length) {
+
+   const char *expansion;
+   size_t expansion_length;
+   char *expanded;
+
+   switch (item[0]) {
+      case '&': expansion = roadmap_path_user(); item++; length--; break;
+      default:  expansion = "";
+   }
+   expansion_length = strlen(expansion);
+
+   expanded = malloc (length + expansion_length + 1);
+   roadmap_check_allocated(expanded);
+
+   strcpy (expanded, expansion);
+   strncat (expanded, item, length);
+
+   expanded[length+expansion_length] = 0;
+
+   return expanded;
+}
+
 /* Path lists operations. -------------------------------------------------- */
 
 void roadmap_path_set (const char *name, const char *path)
 {
 	int i;
 	int count;
-	int length;
-	int expand_length;
 	const char *item;
-	const char *expand;
 	const char *next_item;
 
 	RoadMapPathList path_list = roadmap_path_find (name);
@@ -279,22 +302,12 @@ void roadmap_path_set (const char *name, const char *path)
 		item += 1;
 		next_item = strchr (item, ',');
 
-		expand = "";
-		expand_length = strlen(expand);
-
 		if (next_item == NULL) {
-			length = strlen(item);
+         path_list->items[i] = roadmap_path_expand (item, strlen(item));
 		} else {
-			length = next_item - item;
+         path_list->items[i] =
+            roadmap_path_expand (item, (size_t)(next_item - item));
 		}
-
-		path_list->items[i] = malloc (length + expand_length + 1);
-		roadmap_check_allocated(path_list->items[i]);
-
-		strcpy (path_list->items[i], expand);
-		strncat (path_list->items[i], item, length);
-
-		(path_list->items[i])[length+expand_length] = 0;
 
 		if (roadmap_file_exists(NULL, path_list->items[i])) {
 			++i;

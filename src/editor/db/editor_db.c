@@ -296,6 +296,7 @@ static void add_db_string_section (buildmap_db *parent, const char *name) {
 int editor_db_create (int fips) {
 
    char name[100];
+   char path[100];
    const char *map_creation_date;
    buildmap_db *root;
    editor_db_header *header;
@@ -318,11 +319,14 @@ int editor_db_create (int fips) {
       return -1;
    }
 
+   snprintf (path, sizeof(path), "%s/maps", roadmap_path_user());
    snprintf (name, sizeof(name), "edt%05d", fips);
    
-   if (buildmap_db_open (roadmap_path_user(), name) == -1) {
+   roadmap_path_create (path);
+
+   if (buildmap_db_open (path, name) == -1) {
       editor_log (ROADMAP_ERROR, "Can't create new database: %s/%s",
-            roadmap_path_user(), name);
+            path, name);
       editor_log_pop ();
       return -1;
    }
@@ -335,7 +339,7 @@ int editor_db_create (int fips) {
       editor_log
          (ROADMAP_ERROR,
           "Can't create new database (RM map has no valid timestamp): %s/%s",
-            roadmap_path_user(), name);
+            path, name);
       editor_log_pop ();
       return -1;
    }
@@ -421,8 +425,7 @@ static int editor_db_open (int fips) {
    if (fips <= 0) {
       return -1;
    }
-   snprintf (map_name, sizeof(map_name), "%s/edt%05d",
-         roadmap_path_user(), fips);
+   snprintf (map_name, sizeof(map_name), "edt%05d", fips);
 
    /* Look for the oldest entry in the cache. */
 
@@ -493,6 +496,38 @@ int editor_db_activate (int fips) {
    }
 
    return res;
+}
+
+
+void editor_db_close (int fips) {
+
+   int i;
+
+   for (i = EditorCacheSize-1; i >= 0; --i) {
+
+      if (EditorCache[i].fips == fips) {
+         editor_db_remove (i);
+      }
+   }
+
+   if (EditorActiveCounty == fips) {
+      EditorActiveCounty = 0;
+   }
+}
+
+
+void editor_db_delete (int fips) {
+
+   char name[100];
+   char path[100];
+
+   snprintf (path, sizeof(path), "%s/maps", roadmap_path_user());
+   snprintf (name, sizeof(name), "edt%05d%s", fips, ROADMAP_DB_TYPE);
+   
+   if (roadmap_file_exists (path, name)) {
+
+      roadmap_file_remove (path, name);
+   }
 }
 
 
@@ -670,6 +705,7 @@ int editor_db_grow (void) {
    int file_size;
    int fips = ActiveDBHeader->fips;
    char map_name[255];
+   char path[100];
 
    /* NOTE that after the call to editor_db_remove(),
     * ActiveDBHeader pointer becomes invalid.
@@ -681,7 +717,9 @@ int editor_db_grow (void) {
       return 0;
    }
 
-   snprintf (map_name, sizeof(map_name), "edt%05d.rdm", ActiveDBHeader->fips);
+   snprintf (path, sizeof(path), "%s/maps", roadmap_path_user());
+   snprintf (map_name, sizeof(map_name), "edt%05d%s",
+               ActiveDBHeader->fips, ROADMAP_DB_TYPE);
 
    ActiveDBHeader->num_total_blocks += DB_DEFAULT_INITIAL_BLOCKS;
    ActiveDBHeader->file_size +=
@@ -699,8 +737,7 @@ int editor_db_grow (void) {
 
    assert (i >= 0);
 
-   if (roadmap_file_truncate
-         (roadmap_path_user(), map_name, file_size) == -1) {
+   if (roadmap_file_truncate (path, map_name, file_size) == -1) {
       
       editor_log (ROADMAP_ERROR, "Can't grow database.");
       return -1;
