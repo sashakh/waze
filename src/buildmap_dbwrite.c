@@ -38,6 +38,7 @@
 #include <string.h>
 
 #include "roadmap_types.h"
+#include "roadmap_path.h"
 #include "roadmap_file.h"
 #include "roadmap_db.h"
 
@@ -92,9 +93,8 @@ static int buildmap_db_extend (int size) {
       }
 
       if (roadmap_file_map
-                  ("maps",
+                  (NULL,
                    BuildmapCurrentDbName,
-                   NULL,
                    "rw",
                    &BuildmapCurrentDbBaseMapContext) == NULL) {
          buildmap_error (0, "cannot remap database %s", BuildmapCurrentDbName);
@@ -155,18 +155,12 @@ int buildmap_db_open (const char *path, const char *name) {
       path = ".";
    }
 
-   BuildmapCurrentDbName =
-      malloc (strlen(path) + strlen(name) + strlen(ROADMAP_DB_TYPE) + 4);
+   BuildmapCurrentDbName = roadmap_path_join (path, name);
 
    if (BuildmapCurrentDbName == NULL) {
       buildmap_error (0, "no more memory");
       return -1;
    }
-
-   strcpy (BuildmapCurrentDbName, path);
-   strcat (BuildmapCurrentDbName, "/");
-   strcat (BuildmapCurrentDbName, name);
-   strcat (BuildmapCurrentDbName, ROADMAP_DB_TYPE);
 
    roadmap_file_save (NULL, BuildmapCurrentDbName, "", 1);
 

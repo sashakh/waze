@@ -34,9 +34,10 @@
 
 struct RoadMapFileContextStructure {
 
-	HANDLE  hFile;
-	void *base;
-	int   size;
+	HANDLE hFile;
+	void  *base;
+	int    size;
+	LPWSTR name;
 };
 
 
@@ -229,88 +230,39 @@ const char *roadmap_file_unique (const char *base)
 }
 
 
-const char *roadmap_file_map (const char *set,
-							  const char *name,
-							  const char *sequence,
-							  RoadMapFileContext *file)
+const char *roadmap_file_map (const char *path,
+                              const char *name,
+                              const char *mode,
+                              RoadMapFileContext *file)
 {
 	RoadMapFileContext context;
 	DWORD file_size;
+   char *full_name;
+
 
 	context = malloc (sizeof(*context));
 	roadmap_check_allocated(context);
 
 	context->hFile = INVALID_HANDLE_VALUE;
 	context->base = NULL;
+	context->name = NULL;
 	context->size = 0;
 
 	if (name[0] == '\\') {
-		LPWSTR name_unicode = ConvertToUNICODE(name);
-		context->hFile = CreateFileForMapping(
-			name_unicode,
+      full_name = name;
+   } else {
+      full_name = roadmap_path_join (path, name);
+   }
+	context->name = ConvertToUNICODE(name);
+
+	context->hFile = CreateFileForMapping(
+			context->name,
 			GENERIC_READ ,
 			FILE_SHARE_READ, NULL, OPEN_EXISTING, 
 			FILE_ATTRIBUTE_NORMAL, NULL);
-		free(name_unicode);
-		sequence = ""; /* Whatever, but NULL. */
-
-	} else {
-
-		char *full_name;
-		LPWSTR full_name_unicode;
-
-		int full_name_size;
-		int name_size = strlen(name);
-		int size;
-
-
-		if (sequence == NULL) {
-			sequence = roadmap_path_first(set);
-		} else {
-			sequence = roadmap_path_next(set, sequence);
-		}
-		if (sequence == NULL) {
-			return NULL;
-		}
-
-		full_name_size = 512;
-		full_name = malloc (full_name_size);
-		roadmap_check_allocated(full_name);
-
-		do {
-			size = strlen(sequence) + name_size + 2;
-
-			if (size >= full_name_size) {
-				full_name = realloc (full_name, size);
-				roadmap_check_allocated(full_name);
-				full_name_size = size;
-			}
-
-			strcpy (full_name, sequence);
-			strcat (full_name, "\\");
-			strcat (full_name, name);
-
-			full_name_unicode = ConvertToUNICODE(full_name);
-			context->hFile = CreateFileForMapping(
-				full_name_unicode,
-				GENERIC_READ ,
-				FILE_SHARE_READ, NULL, OPEN_EXISTING, 
-				FILE_ATTRIBUTE_NORMAL, NULL);
-			free(full_name_unicode);
-
-			if (context->hFile != INVALID_HANDLE_VALUE) break;
-
-			sequence = roadmap_path_next(set, sequence);
-
-		} while (sequence != NULL);
-
-		free (full_name);
-	}
 
 	if (context->hFile == INVALID_HANDLE_VALUE ) {
-		if (sequence == 0) {
-			roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
-		}
+		roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}
@@ -318,13 +270,10 @@ const char *roadmap_file_map (const char *set,
 	file_size = GetFileSize(context->hFile, NULL);
 
 	if (file_size == INVALID_FILE_SIZE) {
-		if (sequence == 0) {
-			roadmap_log (ROADMAP_ERROR, "cannot stat file %s", name);
-		}
+		roadmap_log (ROADMAP_ERROR, "cannot get size of file %s", name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}
-
 	context->size = file_size;
 
 	context->hFile = CreateFileMapping(
@@ -334,18 +283,12 @@ const char *roadmap_file_map (const char *set,
 		0,0,0);
 
 	if (context->hFile == INVALID_HANDLE_VALUE) {
-		if (sequence == 0) {
-			roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
-		}
+		roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}
 
-	context->base =
-		MapViewOfFile(
-		context->hFile,
-		FILE_MAP_READ,
-		0,0,0 );
+	context->base = MapViewOfFile(context->hFile, FILE_MAP_READ, 0, 0, 0 );
 
 	if (context->base == NULL) {
 		roadmap_log (ROADMAP_ERROR, "cannot map file %s", name);
@@ -355,7 +298,7 @@ const char *roadmap_file_map (const char *set,
 
 	*file = context;
 
-	return sequence; /* Indicate the next directory in the path. */
+	return context->base;
 }
 
 
@@ -388,6 +331,7 @@ void roadmap_file_unmap (RoadMapFileContext *file)
 	if (context->hFile != INVALID_HANDLE_VALUE ) {
 		CloseHandle(context->hFile);
 	}
+	free(context->name);
 	free(context);
 	*file = NULL;
 }

@@ -46,6 +46,7 @@ struct RoadMapFileContextStructure {
    int   fd;
    void *base;
    int   size;
+   char *name;
 };
 
 
@@ -194,9 +195,8 @@ const char *roadmap_file_unique (const char *base) {
 }
 
 
-const char *roadmap_file_map (const char *set,
+const char *roadmap_file_map (const char *path,
                               const char *name,
-                              const char *sequence,
                               const char *mode,
                               RoadMapFileContext *file) {
 
@@ -225,80 +225,26 @@ const char *roadmap_file_map (const char *set,
       map_flags = MAP_SHARED;
    } else {
       roadmap_log (ROADMAP_ERROR,
-                   "%s: invalid file access mode %s", name, mode);
+                   "invalid file access mode %s for file %s", mode, name);
       return NULL;
    }
 
    if (name[0] == '/') {
-
-      context->fd = open (name, open_mode, 0666);
-      sequence = ""; /* Whatever, but NULL. */
-
+      context->name = strdup(name);
    } else {
-
-      char *full_name;
-
-      size_t full_name_size;
-      size_t name_size = strlen(name);
-      size_t size;
-
-
-      if (sequence == NULL) {
-         sequence = roadmap_path_first(set);
-      } else {
-         sequence = roadmap_path_next(set, sequence);
-      }
-      if (sequence == NULL) {
-         return NULL;
-      }
-
-      full_name_size = 512;
-      full_name = malloc (full_name_size);
-      roadmap_check_allocated(full_name);
-
-      do {
-         size = strlen(sequence) + name_size + 2;
-
-         if (size >= full_name_size) {
-            full_name = realloc (full_name, size);
-            roadmap_check_allocated(full_name);
-            full_name_size = size;
-         }
-
-         strcpy (full_name, sequence);
-         strcat (full_name, "/");
-         strcat (full_name, name);
-
-         context->fd = open (full_name, open_mode, 0666);
-
-         if (context->fd >= 0) break;
-
-         roadmap_log (ROADMAP_DEBUG, "could not open file %s: %s",
-                      full_name,
-                      strerror(errno));
-
-         sequence = roadmap_path_next(set, sequence);
-
-      } while (sequence != NULL);
-
-      if (context->fd >= 0) {
-         roadmap_log (ROADMAP_DEBUG, "opened file %s", full_name);
-      }
-      free (full_name);
+      context->name = roadmap_path_join (path, name);
    }
 
+   context->fd = open (context->name, open_mode, 0666);
+
    if (context->fd < 0) {
-      if (sequence == 0) {
-         roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
-      }
+      roadmap_log (ROADMAP_INFO, "cannot open file %s", context->name);
       roadmap_file_unmap (&context);
       return NULL;
    }
 
    if (fstat (context->fd, &state_result) != 0) {
-      if (sequence == 0) {
-         roadmap_log (ROADMAP_ERROR, "cannot stat file %s", name);
-      }
+      roadmap_log (ROADMAP_ERROR, "cannot stat file %s", context->name);
       roadmap_file_unmap (&context);
       return NULL;
    }
@@ -312,14 +258,14 @@ const char *roadmap_file_map (const char *set,
                          0);
 
    if (context->base == NULL) {
-      roadmap_log (ROADMAP_ERROR, "cannot map file %s", name);
+      roadmap_log (ROADMAP_ERROR, "cannot map file %s", context->name);
       roadmap_file_unmap (&context);
       return NULL;
    }
 
    *file = context;
 
-   return sequence; /* Indicate the next directory in the path. */
+   return context->base;
 }
 
 
@@ -352,6 +298,7 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
    if (context->fd >= 0) {
       close (context->fd);
    }
+   free(context->name);
    free(context);
    *file = NULL;
 }

@@ -31,6 +31,14 @@
  *   and roadmap_file_close do what one would assume from their names.
  *   Please note however that roadmap_file_read must return an error when
  *   trying to read beyond the end of the file.
+ *
+ *   The function roadmap_file_map() maps the given file into memory and
+ *   returns the base address of the mapping, or NULL if the mapping failed.
+ *
+ *   Any function that takes a path and name parameter follows the
+ *   conventions as set for roadmap_path_join(), i.e. the path parameter
+ *   is ignored if either NULL or empty. In addition, roadmap_file_map()
+ *   ignores the path parameter if the name is a full file name.
  */
 
 #ifndef INCLUDED__ROADMAP_FILE__H
@@ -80,9 +88,8 @@ FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
 struct RoadMapFileContextStructure;
 typedef struct RoadMapFileContextStructure *RoadMapFileContext;
 
-const char *roadmap_file_map (const char *set,
+const char *roadmap_file_map (const char *path,
                               const char *name,
-                              const char *sequence,
                               const char *mode,
                               RoadMapFileContext *file);
 

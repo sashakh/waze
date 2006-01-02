@@ -53,6 +53,7 @@
 #include <stdlib.h>
 
 #include "roadmap.h"
+#include "roadmap_scan.h"
 #include "roadmap_file.h"
 #include "roadmap_download.h"
 
@@ -67,10 +68,19 @@ static int roadmap_copy (RoadMapDownloadCallbacks *callbacks,
                          const char *destination) {
 
    int size;
+   const char *path;
    RoadMapFileContext input;
 
-   if (roadmap_file_map ("maps", source, NULL, "r", &input) == NULL) {
-      callbacks->error ("Cannot find the download source file");
+   path = roadmap_scan ("maps", source);
+   if (path == NULL) {
+      callbacks->error ("Cannot find the download source file %s", source);
+      return 0;
+   }
+
+   if (roadmap_file_map (path, source, "r", &input) == NULL) {
+      callbacks->error ("Cannot access the download source file %s in %s",
+                        source,
+                        path);
       return 0;
    }
 

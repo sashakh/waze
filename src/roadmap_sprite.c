@@ -32,6 +32,7 @@
 #include "roadmap.h"
 #include "roadmap_math.h"
 #include "roadmap_file.h"
+#include "roadmap_scan.h"
 #include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 
@@ -310,7 +311,7 @@ static int roadmap_sprite_drawing_is_valid (RoadMapSprite sprite) {
 }
 
 
-static void roadmap_sprite_load_file (const char *data, int size) {
+static void roadmap_sprite_load_text (const char *data, int size) {
 
    int argc;
    int argl[256];
@@ -430,6 +431,23 @@ static void roadmap_sprite_load_file (const char *data, int size) {
 
       while (p < end && *p < ' ') p++;
       data = p;
+   }
+}
+
+
+static void roadmap_sprite_load_file (const char *path) {
+
+   RoadMapFileContext file;
+
+   if (roadmap_file_map (path, "sprites", "r", &file) == NULL) {
+
+      roadmap_log (ROADMAP_ERROR, "cannot map file sprites in %s", path);
+
+   } else {
+      roadmap_sprite_load_text
+         (roadmap_file_base(file), roadmap_file_size(file));
+
+      roadmap_file_unmap (&file);
    }
 }
 
@@ -571,27 +589,20 @@ void roadmap_sprite_load (void) {
    const char *cursor;
 
    RoadMapSprite sprite;
-   RoadMapFileContext file;
 
 
-   for (cursor = roadmap_file_map ("config", "sprites", NULL, "r", &file);
+   for (cursor = roadmap_scan ("config", "sprites");
         cursor != NULL;
-        cursor = roadmap_file_map ("config", "sprites", cursor, "r", &file)) {
+        cursor = roadmap_scan_next ("config", "sprites", cursor)) {
 
-      roadmap_sprite_load_file
-         (roadmap_file_base(file), roadmap_file_size(file));
-
-      roadmap_file_unmap (&file);
+      roadmap_sprite_load_file (cursor);
    }
 
-   for (cursor = roadmap_file_map ("user", "sprites", NULL, "r", &file);
+   for (cursor = roadmap_scan ("user", "sprites");
         cursor != NULL;
-        cursor = roadmap_file_map ("user", "sprites", cursor, "r", &file)) {
+        cursor = roadmap_scan_next ("user", "sprites", cursor)) {
 
-      roadmap_sprite_load_file
-         (roadmap_file_base(file), roadmap_file_size(file));
-
-      roadmap_file_unmap (&file);
+      roadmap_sprite_load_file (cursor);
    }
 
    RoadMapSpriteDefault = roadmap_sprite_search ("Default");
@@ -600,7 +611,7 @@ void roadmap_sprite_load (void) {
 
       const char *hardcoded = "S Default\nF black 1\nP -4,-4 4,-4 4,4 -4,4\n";
 
-      roadmap_sprite_load_file (hardcoded, strlen(hardcoded));
+      roadmap_sprite_load_text (hardcoded, strlen(hardcoded));
 
       RoadMapSpriteDefault = roadmap_sprite_search ("Default");
    }
