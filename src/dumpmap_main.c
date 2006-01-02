@@ -262,8 +262,6 @@ int main (int argc, const char **argv) {
 
    const char **leftovers;
 
-   char *path = NULL;
-   char *p;
 
    poptContext decoder =
       poptGetContext ("dumpmap", argc, argv, DumpMapOptions, 0);
@@ -313,18 +311,11 @@ int main (int argc, const char **argv) {
 
       printf ("%s\n", *leftovers);
 
-      /*  Get the file name and convert it into a database name. */
-      path = strdup (*leftovers);
-      p = strchr (path, '.');
-      if (p != NULL) {
-         *p = 0;
-      }
-
-      if (! roadmap_db_open (path, RoadMapCountyModel, "r")) {
+      if (! roadmap_db_open ("", *leftovers, RoadMapCountyModel)) {
          roadmap_log (ROADMAP_FATAL, "cannot open the map database");
       }
+      roadmap_db_close ("", *leftovers);
 
-      roadmap_db_close (path);
       leftovers += 1;
    }
 

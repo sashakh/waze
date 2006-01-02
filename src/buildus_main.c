@@ -115,10 +115,8 @@ static void buildus_scan_cities (int fips) {
 static void buildus_scan_maps (void) {
 
    char *extension;
-   int   extension_index;
 
    int  fips;
-   char map_name[64];
 
    DIR *directory;
    struct dirent *entry;
@@ -155,27 +153,23 @@ static void buildus_scan_maps (void) {
       if (extension == NULL) continue;
       if (strcmp (extension, ".rdm") != 0) continue;
 
-      extension_index = extension - entry->d_name;
+      fips = atoi (entry->d_name + 3);
 
-      memcpy (map_name, entry->d_name, extension_index);
-      map_name[extension_index] = 0;
-
-      fips = atoi (map_name + 3);
-
-      buildmap_set_source (map_name);
+      buildmap_set_source (entry->d_name);
       if (! BuildMapSilent) buildmap_info ("scanning the county file...");
 
-      if (! roadmap_db_open (map_name, RoadMapCountyModel, "r")) {
-         buildmap_fatal (0, "cannot open map database %s", map_name);
+      if (! roadmap_db_open (BuildMapPath, entry->d_name, RoadMapCountyModel)) {
+         buildmap_fatal (0, "cannot open map database %s in %s",
+                            entry->d_name, BuildMapPath);
       }
-      roadmap_db_activate (map_name);
+      roadmap_db_activate (BuildMapPath, entry->d_name);
 
       buildus_scan_cities (fips);
 
       roadmap_square_edges (ROADMAP_SQUARE_GLOBAL, &edges);
       buildus_county_set_position (fips, &edges);
 
-      roadmap_db_close (map_name);
+      roadmap_db_close (BuildMapPath, entry->d_name);
    }
 
    closedir (directory);
