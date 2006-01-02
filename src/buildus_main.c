@@ -74,10 +74,10 @@ static struct poptOption BuildUsOptions[] = {
 
 static void buildus_save (void) {
 
-   buildmap_set_source ("usdir");
+   buildmap_set_source ("usdir.rdm");
 
-   if (buildmap_db_open (BuildMapPath, "usdir") < 0) {
-      buildmap_fatal (0, "cannot create database 'usdir'");
+   if (buildmap_db_open (BuildMapPath, "usdir.rdm") < 0) {
+      buildmap_fatal (0, "cannot create database 'usdir.rdm'");
    }
 
    buildmap_dictionary_save ();
