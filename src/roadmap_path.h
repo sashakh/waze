@@ -64,6 +64,8 @@
  *   path and name in a way that is compatible with the OS conventions. The
  *   function roadmap_path_parent() works in a similar fashion, except that
  *   it returns the path of the parent directory of the concatenation result.
+ *   Both functions ignore the path argument if it is either NULL or empty.
+ *   Only the file name is considered in this case.
  *
  *   For example, on UNIX, if path is "/usr/include" and name is "sys/errno.h"
  *   then roadmap_path_join() will return "/usr/include/sys/errno.h" while
@@ -135,6 +137,8 @@ char *roadmap_path_remove_extension (const char *name);
 int roadmap_path_is_full_path (const char *name);
 
 int roadmap_path_is_directory (const char *name);
+
+const char *roadmap_path_skip_separator (const char *name);
 
 const char *roadmap_path_temporary (void);
 

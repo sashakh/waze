@@ -138,7 +138,7 @@ static char *roadmap_path_cat (const char *s1, const char *s2)
 
 char *roadmap_path_join (const char *path, const char *name)
 {
-	if (path == NULL) {
+	if (path == NULL || path[0] == 0) {
 		return strdup (name);
 	}
 	return roadmap_path_cat (path, name);
@@ -476,6 +476,14 @@ int roadmap_path_is_full_path (const char *name)
 
 int roadmap_path_is_directory (const char *name) {
    return 0; /* FIXME: win32 implementation needed here. */
+}
+
+const char *roadmap_path_skip_separator (const char *name) {
+
+   if ((*name == '/') || (*name == '\\')) {
+      return name + 1;
+   }
+   return NULL; // Not a valid path separator.
 }
 
 const char *roadmap_path_temporary (void) {

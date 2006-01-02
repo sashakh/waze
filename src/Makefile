@@ -106,10 +106,12 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_message.c \
           roadmap_string.c \
           roadmap_voice.c \
+          roadmap_scan.c \
           roadmap_list.c \
           roadmap_config.c \
           roadmap_option.c \
           roadmap_metadata.c \
+          roadmap_index.c \
           roadmap_county.c \
           roadmap_locator.c \
           roadmap_math.c \
@@ -182,7 +184,7 @@ DMSRCS=dumpmap_main.c
 DMOBJS=$(DMSRCS:.c=.o)
 
 
-BMSRCS=buildmap_messages.c \
+BMLIBSRCS=buildmap_messages.c \
        buildmap_dictionary.c \
        buildmap_dbwrite.c \
        buildmap_metadata.c \
@@ -200,7 +202,11 @@ BMSRCS=buildmap_messages.c \
        buildmap_shapefile.c \
 		 buildmap_empty.c \
        buildmap_place.c \
-       buildmap_main.c
+       buildmap_index.c \
+
+BMLIBOBJS=$(BMLIBSRCS:.c=.o)
+
+BMSRCS=buildmap_main.c
 
 BMOBJS=$(BMSRCS:.c=.o)
 
@@ -229,17 +235,17 @@ BUOBJS=$(BUSRCS:.c=.o)
 PKGDATAFILES=sprites preferences schema session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
-RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
+RUNTIME=rdmindex $(RDMLIBS) libguiroadgps.a libguiroadmap.a
 DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace
 TOOLS=sunrise $(SQLTOOLS)
 
 
 # --- Conventional targets ----------------------------------------
 
-.PHONY: all gtk gtk2 qt rebuild build everything \
+.PHONY: all gtk gtk2 qt rebuild build \
          clean strip install uninstall unix gpx
 
-all: everything
+all: runtime build $(TOOLS) icons
 
 gtk:
 	$(MAKE) DESKTOP=GTK
@@ -250,9 +256,8 @@ gtk2:
 qt:
 	$(MAKE) DESKTOP=QT
 
-rebuild: clean everything
+rebuild: clean all
 
-everything: runtime build $(TOOLS) icons
 
 unix:
 	if [ -d unix ] ; then \
@@ -327,8 +332,8 @@ installdata:
 installbin:
 	mkdir -p $(DESTDIR)$(pkgbindir)
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
-	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
+	cp $(BUILD) $(SCRIPTS) rdmindex $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
+	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) rdmindex $(DRIVERS)
 	mkdir -p $(DESTDIR)$(man1dir)
 	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
 
@@ -371,25 +376,11 @@ uninstall:
 icons:
 	$(MAKE) -C icons STDCFLAGS="$(CFLAGS)" all
 
-sunrise: roadmap_sunrise.c
-	$(CC) -g -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
-
-sqliteload: sqliteload.c
-	$(CC) -g sqliteload.c $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
-
-rdmkismet: roadmap_kismet.c $(RDMLIBS)
-	$(CC) -g roadmap_kismet.c -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
-
-rdmghost: roadmap_ghost.c $(RDMLIBS)
-	$(CC) -g roadmap_ghost.c -o rdmghost $(RDMLIBS) -lm
-
-rdmfriends: roadmap_friends.c $(RDMLIBS)
-	$(CC) -g roadmap_friends.c -o rdmfriends $(RDMLIBS) $(RDMLIBS) -lm
-
-rdmtrace: roadmap_trace.c $(RDMLIBS)
-	$(CC) -g roadmap_trace.c -o rdmtrace $(RDMLIBS) -lm
-
 # --- The real targets --------------------------------------------
+
+libbuildmap.a: $(BMLIBOBJS)
+	$(AR) $(ARFLAGS) libbuildmap.a $(BMLIBOBJS)
+	$(RANLIB) libbuildmap.a
 
 libroadmap.a: $(RMLIBOBJS)
 	$(AR) $(ARFLAGS) libroadmap.a $(RMLIBOBJS)
@@ -403,12 +394,34 @@ libguiroadgps.a: $(RGGUIOBJS)
 	$(AR) $(ARFLAGS) libguiroadgps.a $(RGGUIOBJS)
 	$(RANLIB) libguiroadgps.a
 
+sunrise: roadmap_sunrise.c
+	$(CC) -g -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
+
+sqliteload: sqliteload.c
+	$(CC) -g sqliteload.c $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
+
+rdmindex : rdmindex_main.c libbuildmap.a $(RDMLIBS)
+	$(CC) -g rdmindex_main.c -o rdmindex libbuildmap.a $(RDMLIBS) $(LIBS)
+
+rdmkismet: roadmap_kismet.c $(RDMLIBS)
+	$(CC) -g roadmap_kismet.c -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
+
+rdmghost: roadmap_ghost.c $(RDMLIBS)
+	$(CC) -g roadmap_ghost.c -o rdmghost $(RDMLIBS) -lm
+
+rdmfriends: roadmap_friends.c $(RDMLIBS)
+	$(CC) -g roadmap_friends.c -o rdmfriends $(RDMLIBS) $(RDMLIBS) -lm
+
+rdmtrace: roadmap_trace.c $(RDMLIBS)
+	$(CC) -g roadmap_trace.c -o rdmtrace $(RDMLIBS) -lm
+
 dumpmap: $(DMOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)
 
-buildmap: $(BMOBJS) $(RDMLIBS)
-	$(CC) $(LDFLAGS) $(BMOBJS) -o buildmap $(LIBS)
+buildmap: $(BMOBJS) libbuildmap.a $(RDMLIBS)
+	$(CC) $(LDFLAGS) $(BMOBJS) -o buildmap libbuildmap.a $(LIBS)
 
+# buildus to be retired soon.
 buildus: $(BUOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BUOBJS) -o buildus $(LIBS)
 
