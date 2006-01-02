@@ -6,9 +6,9 @@
 # USAGE:
 # ------
 #
-# rdmdownload <destination-path> [format=2000|2002|2004] [<state-symbol> ..]
+# rdmdownload <destination-path> [format=2004|2005] [<state> ..]
 #
-#    Example: downloadmap /var/tmp/maps CA
+#    Example: rdmdownload /var/tmp/maps CA
 #
 # PLEASE NOTE THE TIGER FILES ARE HUGE: THIS DOWNLOAD IS LIKELY
 # TO TAKE A VERY LONG TIME TO COMPLETE AND THE TIGER FILES WILL
@@ -19,18 +19,15 @@
 TIGERDIR=$1
 shift
 
-TIGERURL=http://www2.census.gov/geo/tiger/tiger2004se
+TIGERURL=http://www2.census.gov/geo/tiger/tiger2005fe
 TIGEROPT1="-nd -np -r -N -P $TIGERDIR -A.zip"
 TIGEROPT2="-nd -np -r -N -P $TIGERDIR -A.ZIP"
 
 case $1 in
-   format=2000) TIGERURL=http://www2.census.gov/geo/tiger/tigerua
+   format=2004) TIGERURL=http://www2.census.gov/geo/tiger/tiger2004se
                 shift
                 ;;
-   format=2002) TIGERURL=http://www2.census.gov/geo/tiger/tiger2002
-                shift
-                ;;
-   format=2004)
+   format=2005)
                 shift
                 ;;
 esac
