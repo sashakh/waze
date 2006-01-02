@@ -67,9 +67,10 @@ roadmap_db_model *roadmap_db_register
      (roadmap_db_model *model, char *section, roadmap_db_handler *handler);
 
 
-int  roadmap_db_open (char *name, roadmap_db_model *model, const char *mode);
+int  roadmap_db_open (const char *path,
+                      const char *name, roadmap_db_model *model);
 
-void roadmap_db_activate (char *name);
+void roadmap_db_activate (const char *path, const char *name);
 
 roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path);
 
@@ -81,7 +82,7 @@ int         roadmap_db_get_level (roadmap_db *section);
 char       *roadmap_db_get_data  (roadmap_db *section);
 roadmap_db *roadmap_db_get_next  (roadmap_db *section);
 
-void roadmap_db_close (char *name);
+void roadmap_db_close (const char *path, const char *name);
 void roadmap_db_end   (void);
 
 #endif // INCLUDED__ROADMAP_DBREAD__H

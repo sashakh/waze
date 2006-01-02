@@ -27,9 +27,10 @@
  *   roadmap_db_model *roadmap_db_register
  *          (char *section, roadmap_db_handler *handler);
  *
- *   int  roadmap_db_open (char *name, roadmap_db_model *model);
+ *   int  roadmap_db_open (const char *path,
+ *                         const char *name, roadmap_db_model *model);
  *
- *   void roadmap_db_activate (char *name);
+ *   void roadmap_db_activate (const char *path, const char *name);
  *
  *   roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path);
  *
@@ -40,7 +41,7 @@
  *   char       *roadmap_db_get_data  (roadmap_db *section);
  *   roadmap_db *roadmap_db_get_next  (roadmap_db *section);
  *
- *   void roadmap_db_close (char *name);
+ *   void roadmap_db_close (const char *path, const char *name);
  *   void roadmap_db_end   (void);
  */
 
@@ -58,6 +59,7 @@
 typedef struct roadmap_db_database_s {
 
    char *name;
+   char *path;
 
    RoadMapFileContext file;
    char *base;
@@ -79,6 +81,26 @@ static struct roadmap_db_section *roadmap_db_locate
                  (roadmap_db_database *database, int offset) {
 
    return (struct roadmap_db_section *) (database->base + offset);
+}
+
+
+static roadmap_db_database *roadmap_db_find (const char *path,
+                                             const char *name) {
+
+   roadmap_db_database *database;
+
+   for (database = RoadmapDatabaseFirst;
+        database != NULL;
+        database = database->next) {
+
+      if ((strcmp (name, database->name) == 0) &&
+          (strcmp (path, database->path) == 0)) {
+
+         return database;
+      }
+   }
+
+   return NULL;
 }
 
 
@@ -312,6 +334,7 @@ static void roadmap_db_close_database (roadmap_db_database *database) {
    }
 
    free(database->name);
+   free(database->path);
    free(database);
 }
 
@@ -358,46 +381,35 @@ roadmap_db_model *roadmap_db_register
 }
 
 
-int roadmap_db_open (char *name, roadmap_db_model *model, const char *mode) {
+int roadmap_db_open (const char *path,
+                     const char *name,
+                     roadmap_db_model *model) {
 
-   char *full_name;
-   RoadMapFileContext file;
-
-   roadmap_db_database *database;
+   RoadMapFileContext   file;
+   roadmap_db_database *database = roadmap_db_find (path, name);
 
 
-   for (database = RoadmapDatabaseFirst;
-        database != NULL;
-        database = database->next) {
+   if (database != NULL) {
 
-      if (strcmp (name, database->name) == 0) {
-
-         roadmap_db_call_activate (database);
-         return 1; /* Already open. */
-      }
+      roadmap_db_call_activate (database);
+      return 1; /* Already open. */
    }
 
-   full_name = malloc (strlen(name) + strlen(ROADMAP_DB_TYPE) + 4);
-   roadmap_check_allocated(full_name);
+   if (roadmap_file_map (path, name, "r", &file) == NULL) {
 
-   strcpy (full_name, name);
-   strcat (full_name, ROADMAP_DB_TYPE);
-
-   if (roadmap_file_map ("maps", full_name, NULL, mode, &file) == NULL) {
-
-      roadmap_log (ROADMAP_INFO, "cannot open database file %s", full_name);
-      free (full_name);
+      roadmap_log (ROADMAP_INFO,
+                   "cannot open database file %s in %s", name, path);
       return 0;
    }
 
-   roadmap_log (ROADMAP_INFO, "Opening database file %s", full_name);
-   free (full_name);
+   roadmap_log (ROADMAP_INFO, "Opening database file %s in %s", name, path);
 
    database = malloc(sizeof(*database));
    roadmap_check_allocated(database);
 
    database->file = file;
    database->name = strdup(name);
+   database->path = strdup(path);
    database->base = roadmap_file_base (file);
    database->size = roadmap_file_size (file);
 
@@ -428,25 +440,18 @@ int roadmap_db_open (char *name, roadmap_db_model *model, const char *mode) {
 }
 
 
-void roadmap_db_activate (char *name) {
+void roadmap_db_activate (const char *path, const char *name) {
 
-   roadmap_db_database *database;
+   roadmap_db_database *database = roadmap_db_find (path, name);
 
-   for (database = RoadmapDatabaseFirst;
-        database != NULL;
-        database = database->next) {
-
-      if (strcmp (name, database->name) == 0) {
-
-         roadmap_log (ROADMAP_DEBUG, "Activating database %s", name);
-
-         roadmap_db_call_activate (database);
-         return;
-      }
+   if (database == NULL) {
+      roadmap_log
+         (ROADMAP_ERROR, "cannot activate database %s (not found)", name);
+      return;
    }
 
-   roadmap_log
-      (ROADMAP_ERROR, "cannot activate database %s (not found)", name);
+   roadmap_log (ROADMAP_DEBUG, "Activating database %s", name);
+   roadmap_db_call_activate (database);
 }
 
 
@@ -558,18 +563,12 @@ roadmap_db *roadmap_db_get_next  (roadmap_db *section) {
 }
 
 
-void roadmap_db_close (char *name) {
+void roadmap_db_close (const char *path, const char *name) {
 
-   roadmap_db_database *database;
+   roadmap_db_database *database = roadmap_db_find (path, name);
 
-   for (database = RoadmapDatabaseFirst;
-        database != NULL;
-        database = database->next) {
-
-      if (strcmp (name, database->name) == 0) {
-         roadmap_db_close_database (database);
-         break;
-      }
+   if (database != NULL) {
+      roadmap_db_close_database (database);
    }
 }
 
