@@ -980,7 +980,8 @@ void buildmap_tiger_process (const char *source,
    buildmap_metadata_add_attribute ("Territory", "Id", county);
    buildmap_metadata_add_attribute ("Territory", "Parent", "us"); /* for now. */
 
-   buildmap_metadata_add_attribute ("Class", "Name", "Road");
+   buildmap_metadata_add_attribute ("Class", "Name", "All");
+   buildmap_metadata_add_attribute ("Map", "Source", "USCB");
 
    free(base);
 }
