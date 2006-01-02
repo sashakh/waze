@@ -25,6 +25,9 @@
  *   The RoadMap map attributes are described by the following table:
  *
  *   metadata/attributes    The list of attributes associated with this map.
+ *   metadata/values        The list of attributes values.
+ *
+ *   A single attribute may have a list of values.
  */
 
 #ifndef INCLUDED__ROADMAP_DB_ATTRIBUTES__H
@@ -36,10 +39,12 @@ typedef struct { /* table metadata/attributes */
 
    RoadMapString category;
    RoadMapString name;
-   RoadMapString value;
-   RoadMapString filler;
+   short value_first;
+   short value_count;
 
 } RoadMapAttribute;
+
+/* Table metadata/values is an array of RoadMapString sorted by attribute. */
 
 #endif // INCLUDED__ROADMAP_DB_ATTRIBUTES__H
 

@@ -48,6 +48,9 @@ typedef struct {
    RoadMapAttribute *Attributes;
    int               AttributesCount;
 
+   RoadMapString    *Values;
+   int               ValuesCount;
+
    RoadMapDictionary RoadMapAttributeStrings;
 
 } RoadMapMetadataContext;
@@ -60,6 +63,7 @@ static void *roadmap_metadata_map (roadmap_db *root) {
    RoadMapMetadataContext *context;
 
    roadmap_db *attributes_table;
+   roadmap_db *values_table;
 
 
    context = (RoadMapMetadataContext *) malloc (sizeof(RoadMapMetadataContext));
@@ -71,14 +75,24 @@ static void *roadmap_metadata_map (roadmap_db *root) {
    context->RoadMapAttributeStrings = NULL;
 
    attributes_table = roadmap_db_get_subsection (root, "attributes");
+   values_table = roadmap_db_get_subsection (root, "values");
 
    context->Attributes =
       (RoadMapAttribute *) roadmap_db_get_data (attributes_table);
    context->AttributesCount = roadmap_db_get_count (attributes_table);
 
+   context->Values = (RoadMapString *) roadmap_db_get_data (values_table);
+   context->ValuesCount = roadmap_db_get_count (values_table);
+
    if (roadmap_db_get_size (attributes_table) !=
        context->AttributesCount * sizeof(RoadMapAttribute)) {
       roadmap_log (ROADMAP_ERROR, "invalid metadata/attributes structure");
+      goto roadmap_metadata_map_abort;
+   }
+
+   if (roadmap_db_get_size (values_table) !=
+       context->ValuesCount * sizeof(RoadMapString)) {
+      roadmap_log (ROADMAP_ERROR, "invalid metadata/values structure");
       goto roadmap_metadata_map_abort;
    }
 
@@ -137,6 +151,14 @@ roadmap_db_handler RoadMapMetadataHandler = {
 const char *roadmap_metadata_get_attribute (const char *category,
                                             const char *name) {
 
+   return roadmap_metadata_get_attribute_next (category, name, 0);
+}
+
+
+const char *roadmap_metadata_get_attribute_next (const char *category,
+                                                 const char *name,
+                                                 int index) {
+
    int i;
    RoadMapString coded_category =
       roadmap_dictionary_locate
@@ -147,13 +169,22 @@ const char *roadmap_metadata_get_attribute (const char *category,
          (RoadMapMetadataActive->RoadMapAttributeStrings, name);
 
    for (i = RoadMapMetadataActive->AttributesCount - 1; i >= 0; --i) {
+
       if (RoadMapMetadataActive->Attributes[i].name == coded_name &&
           RoadMapMetadataActive->Attributes[i].category == coded_category) {
+
+         short cursor =
+            RoadMapMetadataActive->Attributes[i].value_first + index;
+
+         if (index >=  RoadMapMetadataActive->Attributes[i].value_count) {
+            return NULL;
+         }
          return roadmap_dictionary_get
                    (RoadMapMetadataActive->RoadMapAttributeStrings,
-                    RoadMapMetadataActive->Attributes[i].value);
+                    RoadMapMetadataActive->Values[cursor]);
       }
    }
+
    return "";
 }
 
