@@ -160,11 +160,17 @@ const char *roadmap_metadata_get_attribute_next (const char *category,
                                                  int index) {
 
    int i;
-   RoadMapString coded_category =
+   RoadMapString coded_category;
+   RoadMapString coded_name;
+
+
+   if (RoadMapMetadataActive == NULL) return "";
+
+   coded_category =
       roadmap_dictionary_locate
          (RoadMapMetadataActive->RoadMapAttributeStrings, category);
 
-   RoadMapString coded_name =
+   coded_name =
       roadmap_dictionary_locate
          (RoadMapMetadataActive->RoadMapAttributeStrings, name);
 
