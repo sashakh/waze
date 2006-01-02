@@ -23,9 +23,14 @@
  * SYNOPSYS:
  *
  *   void buildmap_metadata_initialize (void);
+ *
  *   void buildmap_metadata_add_attribute (const char *category,
  *                                         const char *name,
  *                                         const char *value);
+ *
+ *   void buildmap_metadata_add_value (const char *category,
+ *                                     const char *name,
+ *                                     const char *value);
  *
  *   void buildmap_metadata_sort    (void);
  *   void buildmap_metadata_save    (void);
@@ -50,9 +55,20 @@
 #include "buildmap_metadata.h"
 
 
+#define BUILDMAP_MAX_VALUES 64
+
+typedef struct {
+
+    RoadMapString category;
+    RoadMapString name;
+
+    RoadMapString values[BUILDMAP_MAX_VALUES];
+    short         count;
+
+} BuildMapAttribute;
 
 static int AttributeCount = 0;
-static RoadMapAttribute *Attribute[BUILDMAP_BLOCK] = {NULL};
+static BuildMapAttribute *Attribute[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *AttributeByName = NULL;
 
@@ -80,7 +96,7 @@ void buildmap_metadata_add_attribute (const char *category,
    int i;
    int block;
    int offset;
-   RoadMapAttribute *this_attribute;
+   BuildMapAttribute *this_attribute;
 
 
    /* First check if the attribute is already known. */
@@ -103,7 +119,7 @@ void buildmap_metadata_add_attribute (const char *category,
       if ((this_attribute->name == coded_name) &&
           (this_attribute->category == coded_category)) {
           
-         if (this_attribute->value != coded_value) {
+         if (this_attribute->values[0] != coded_value) {
             roadmap_log (ROADMAP_FATAL,
                          "attribute %s.%s changed to %s",
                          category, name, value);
@@ -136,9 +152,52 @@ void buildmap_metadata_add_attribute (const char *category,
 
    this_attribute->category = coded_category;
    this_attribute->name = coded_name;
-   this_attribute->value = coded_value;
+   this_attribute->values[0] = coded_value;
+   this_attribute->count = 1;
 
    AttributeCount += 1;
+}
+
+
+void buildmap_metadata_add_value (const char *category,
+                                  const char *name,
+                                  const char *value) {
+
+   int i;
+   BuildMapAttribute *this_attribute;
+
+
+   RoadMapString coded_category =
+      buildmap_dictionary_locate (AttributeDictionary, category);
+
+   RoadMapString coded_name =
+      buildmap_dictionary_locate (AttributeDictionary, name);
+
+   RoadMapString coded_value =
+      buildmap_dictionary_add (AttributeDictionary, value, strlen(value));
+
+   for (i = roadmap_hash_get_first (AttributeByName, coded_name);
+        i >= 0;
+        i = roadmap_hash_get_next (AttributeByName, i)) {
+
+      this_attribute = Attribute[i / BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+
+      if ((this_attribute->name == coded_name) &&
+          (this_attribute->category == coded_category)) {
+          
+         if (this_attribute->count >= BUILDMAP_MAX_VALUES) {
+            roadmap_log (ROADMAP_FATAL,
+                         "too many values for attribute %s.%s",
+                         category, name);
+         }
+
+         this_attribute->values[this_attribute->count++] = coded_value;
+
+         return;
+      }
+   }
+
+   roadmap_log (ROADMAP_FATAL, "attribute %s.%s not found", category, name);
 }
 
 
@@ -148,15 +207,27 @@ void buildmap_metadata_sort (void) {}
 void buildmap_metadata_save (void) {
 
    int i;
+   int j;
+   int values_count;
+   int values_cursor;
 
-   RoadMapAttribute *one_attribute;
-   RoadMapAttribute *db_attributes;
+   BuildMapAttribute *one_attribute;
+   RoadMapAttribute  *db_attributes;
+   RoadMapString     *db_values;
    
    buildmap_db *root;
    buildmap_db *table_attributes;
+   buildmap_db *table_values;
 
 
    buildmap_info ("saving %d attributes...", AttributeCount);
+
+   values_count = 0;
+   for (i = 0; i < AttributeCount; ++i) {
+
+      one_attribute = Attribute[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+      values_count += one_attribute->count;
+   }
 
    root = buildmap_db_add_section (NULL, "metadata");
 
@@ -164,15 +235,29 @@ void buildmap_metadata_save (void) {
    buildmap_db_add_data
       (table_attributes, AttributeCount, sizeof(RoadMapAttribute));
 
-   db_attributes = (RoadMapAttribute *) buildmap_db_get_data (table_attributes);
+   table_values = buildmap_db_add_section (root, "values");
+   buildmap_db_add_data
+      (table_values, values_count, sizeof(RoadMapString));
 
+   db_attributes = (RoadMapAttribute *) buildmap_db_get_data (table_attributes);
+   db_values     = (RoadMapString *) buildmap_db_get_data (table_values);
+
+
+   values_cursor = 0;
 
    for (i = 0; i < AttributeCount; ++i) {
 
       one_attribute = Attribute[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
 
-      db_attributes[i] = *one_attribute;
-      db_attributes[i].filler = 0;
+      db_attributes[i].category = one_attribute->category;
+      db_attributes[i].name     = one_attribute->name;
+
+      db_attributes[i].value_first = values_cursor;
+      db_attributes[i].value_count = one_attribute->count;
+
+      for (j = 0; j < one_attribute->count; ++j) {
+         db_values[values_cursor++] = one_attribute->values[j];
+      }
    }
 }
 

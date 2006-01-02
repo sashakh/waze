@@ -25,9 +25,14 @@
 #define INCLUDED__BUILDMAP_METADATA__H
 
 void buildmap_metadata_initialize (void);
+
 void buildmap_metadata_add_attribute (const char *category,
                                       const char *name,
                                       const char *value);
+
+void buildmap_metadata_add_value (const char *category,
+                                  const char *name,
+                                  const char *value);
 
 void buildmap_metadata_sort    (void);
 void buildmap_metadata_save    (void);
