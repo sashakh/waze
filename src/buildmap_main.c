@@ -179,17 +179,10 @@ static void buildmap_county_sort (void) {
 
 static void buildmap_county_save (const char *name) {
 
-   char *cursor;
    char db_name[128];
 
-   snprintf (db_name, 127, "usc%s", name);
+   snprintf (db_name, 127, "usc%s.rdm", name);
 
-   /* Remove the suffix if any was provided. */
-
-   cursor = strrchr (db_name, '.');
-   if (cursor != NULL) {
-      *cursor = 0;
-   }
 
    if (buildmap_db_open (BuildMapResult, db_name) < 0) {
       buildmap_fatal (0, "cannot create database %s", db_name);
