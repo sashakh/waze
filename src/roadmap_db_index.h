@@ -24,11 +24,11 @@
  *
  *   The RoadMap index is described by the following table:
  *
- *   index/authorities The authority body. Links to territories.
- *   index/territories The territory. Sorted by authority, links to maps.
- *   index/files       A map file (a specific territory & class).
- *   index/names       Describes the names of a specific authority.
- *   index/cities      Links the name of a city with its associated territory.
+ *   index/authority   The authority body. Links to territories.
+ *   index/territory   The territory. Sorted by authority, links to maps.
+ *   index/map         A map file (a specific territory & class).
+ *   index/name        Describes the names of a specific authority.
+ *   index/citiek      Links the name of a city with its associated territory.
  *
  * NOTE:
  *
@@ -97,7 +97,7 @@
 
 #include "roadmap_types.h"
 
-typedef struct { /* table index/authorities */
+typedef struct { /* table index/authority */
 
    RoadMapString symbol;    /* Relative to the index's parent. */
    RoadMapString pathname;  /* Relative or absolute path for the maps. */
@@ -117,8 +117,8 @@ typedef struct {  /* table index/territory */
 
    int wtid;                /* Stands for "world territory ID". */
 
+   RoadMapString name;
    RoadMapString pathname;  /* Relative or absolute path for the map files. */
-   unsigned short reserved; /* Must be 0. */
 
    RoadMapArea edges;       /* Bounding earth area for this territory. */
 
@@ -134,16 +134,16 @@ typedef struct {  /* table index/territory */
 } RoadMapTerritory;
 
 
-typedef struct {  /* table index/files */
+typedef struct {  /* table index/map */
 
    RoadMapString class;
    RoadMapString filename;  /* ... relative to the authority/territory path. */
 
-} RoadMapFile;
+} RoadMapMap;
 
-/* table index/names is an array of RoadMapString sorted by authority. */
+/* table index/name is an array of RoadMapString sorted by authority. */
 
-/* table index/cities is an array of RoadMapString sorted by map. */
+/* table index/city is an array of RoadMapString sorted by map. */
 
 #endif // INCLUDE__ROADMAP_DB_INDEX__H
 
