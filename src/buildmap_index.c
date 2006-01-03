@@ -225,6 +225,10 @@ static BuildMapAuthority *buildmap_index_new_authority (RoadMapString symbol) {
       buildmap_fatal (0, "too many authorities for a single index");
    }
 
+   BuildMapCurrentAuthority = this_authority;
+
+   roadmap_hash_add (AuthorityBySymbol, symbol, AuthorityCount);
+
    return this_authority;
 }
 
@@ -403,6 +407,8 @@ void buildmap_index_add_map (int wtid,
 
    if (this_authority == NULL) {
       this_authority = buildmap_index_new_authority (authority_index);
+   } else {
+      BuildMapCurrentAuthority = this_authority;
    }
 
    /* This territory was not known yet: create a new record. */
@@ -450,6 +456,9 @@ void buildmap_index_add_authority_name (const char *name) {
 
 void buildmap_index_set_map_edges (const RoadMapArea *edges) {
 
+   if (BuildMapCurrentTerritory == NULL) {
+      buildmap_fatal (0, "no current map");
+   }
    buildmap_index_include_area (&(BuildMapCurrentTerritory->edges), edges);
 
    buildmap_index_include_area (&(BuildMapCurrentAuthority->edges),
@@ -515,9 +524,11 @@ static void buildmap_index_common_parent (char *common, const char *file) {
    if (*p1 == 0) return; /* Nothing to do. */
 
    *p1 = 0;
-   p1 = roadmap_path_parent (NULL, common);
-   strcpy (common, p1);
-   roadmap_path_free (p1);
+   if (p1 != common) {
+      p1 = roadmap_path_parent (NULL, common);
+      strcpy (common, p1);
+      roadmap_path_free (p1);
+   }
 }
 
 
@@ -541,41 +552,55 @@ void buildmap_index_sort (void) {
       this_territory =
          Territory[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
 
+      /* Find if there is any common path for all the maps. */
+
       this_territory->pathname =
          roadmap_path_parent (NULL, this_territory->maps->filename);
 
-      for (this_map = this_territory->maps->next;
-           this_map != NULL;
-           this_map = this_map->next) {
+      if (strcmp (RoadMapPathCurrentDirectory, this_territory->pathname) == 0) {
 
-         buildmap_index_common_parent
-            (this_territory->pathname, this_map->filename);
-      } 
+         this_territory->pathname[0] = 0;
 
-      /* Remove the common part from the file names. */
+      } else {
 
-      length = strlen (this_territory->pathname);
-
-      p = roadmap_path_skip_separator
-             (this_territory->maps->filename + length);
-      if (p == NULL) {
-         buildmap_fatal
-            (0, "invalid common path %s", this_territory->pathname);
-      }
-      length = (int) (p - this_territory->maps->filename);
-
-      if (length > 0) {
-         for (this_map = this_territory->maps;
+         for (this_map = this_territory->maps->next;
               this_map != NULL;
               this_map = this_map->next) {
 
-            char *relative = this_map->filename + length;
+            buildmap_index_common_parent
+               (this_territory->pathname, this_map->filename);
+         } 
+      }
 
-            this_map->filename_index =
-               buildmap_dictionary_add (MapFiles, relative, strlen(relative));
+      /* Register the file names, skipping the common path we found. */
+
+      length = strlen (this_territory->pathname);
+
+      if (length > 0) {
+
+         p = roadmap_path_skip_separator
+                (this_territory->maps->filename + length);
+         if (p == NULL) {
+            buildmap_fatal
+               (0, "invalid common path %s in %s",
+                this_territory->pathname,
+                this_territory->maps->filename);
          }
+         /* Ajust the length to avoid the path separator sequence. */
+         length = (int) (p - this_territory->maps->filename);
+      }
+
+      for (this_map = this_territory->maps;
+           this_map != NULL;
+           this_map = this_map->next) {
+
+         const char *relative = this_map->filename + length;
+
+         this_map->filename_index =
+            buildmap_dictionary_add (MapFiles, relative, strlen(relative));
       }
    }
+
 
    /* Retrieve the path for each authority by finding the
     * common denominator among the child territories.
@@ -589,37 +614,51 @@ void buildmap_index_sort (void) {
 
       if (this_authority->territories == NULL) continue;
 
-      this_authority->pathname = strdup (this_authority->territories->pathname);
+      if (this_authority->territories->pathname[0] == 0) {
 
-      for (this_territory = this_authority->territories->next;
-           this_territory != NULL;
-           this_territory = this_territory->next) {
+         this_authority->pathname = "";
 
-         buildmap_index_common_parent
-            (this_authority->pathname, this_territory->pathname);
+      } else {
+
+         this_authority->pathname =
+            strdup (this_authority->territories->pathname);
+
+         for (this_territory = this_authority->territories->next;
+              this_territory != NULL;
+              this_territory = this_territory->next) {
+
+            buildmap_index_common_parent
+               (this_authority->pathname, this_territory->pathname);
+         }
       }
 
       /* Remove the common part from the territory paths. */
 
       length = strlen (this_authority->pathname);
 
-      p = roadmap_path_skip_separator
-             (this_authority->territories->pathname + length);
-      if (p == NULL) {
-         buildmap_fatal
-            (0, "invalid common path %s", this_authority->pathname);
-      }
-      length = (int) (p - this_authority->territories->pathname);
+      for (this_territory = this_authority->territories;
+           this_territory != NULL;
+           this_territory = this_territory->next) {
 
-      if (length > 0) {
-         for (this_territory = this_authority->territories;
-              this_territory != NULL;
-              this_territory = this_territory->next) {
+         if (this_territory->pathname[length] != 0) {
 
-            char *relative = this_territory->pathname + length;
+            const char *relative = this_territory->pathname;
+
+            if (length > 0) {
+               relative = roadmap_path_skip_separator (relative + length);
+               if (relative == NULL) {
+                   buildmap_fatal
+                      (0, "invalid common path %s in %s",
+                       this_authority->pathname,
+                       this_territory->pathname);
+               }
+            }
 
             this_territory->pathname_index =
                buildmap_dictionary_add (MapFiles, relative, strlen(relative));
+
+         } else {
+            this_territory->pathname_index = 0;
          }
       }
 
@@ -769,5 +808,9 @@ void buildmap_index_save (void) {
 
 
 void buildmap_index_summary (void) {
+
+   fprintf (stderr,
+            "-- index statistics: %d authorities, %d territories, %d maps\n",
+            AuthorityCount, TerritoryCount, MapCount);
 }
 

@@ -43,12 +43,14 @@
 
 static roadmap_db_model *RoadMapIndexModel;
 
+static const char *RdmIndexName = "index.rdm";
+
 
 static int   RdmIndexVerbose = 0;
 static int   RdmIndexSilent = 0;
 static int   RdmIndexGrand = 0;
 static int   RdmIndexRecursive = 0;
-static char *RdmIndexPath;
+static char *RdmIndexPath = NULL;
 
 static struct poptOption RdmIndexOptions[] = {
 
@@ -78,8 +80,8 @@ static struct poptOption RdmIndexOptions[] = {
 
 static void rdmindex_save (void) {
 
-   buildmap_set_source ("index");
-   buildmap_db_open (RdmIndexPath, "index");
+   buildmap_set_source (RdmIndexName);
+   buildmap_db_open (RdmIndexPath, RdmIndexName);
 
    buildmap_dictionary_save ();
    buildmap_index_save ();
@@ -141,12 +143,15 @@ static void rdmindex_scan_maps (const char *path) {
 
       name = *cursor;
 
-      if (strcmp (name, "index.rdm") == 0) continue;
+      if (strcmp (name, RdmIndexName) == 0) continue;
+
+      /* Compatibility with old versions. */
+      if (strcmp (name, "usdir.rdm") == 0) continue;
 
       fullname = roadmap_path_join (path, name);
 
       buildmap_set_source (fullname);
-      if (! RdmIndexSilent) buildmap_info ("scanning the map file...");
+      if (! RdmIndexSilent) buildmap_info ("indexing...");
 
       if (! roadmap_db_open (path, name, RoadMapIndexModel)) {
          buildmap_fatal (0, "cannot open the map database");
@@ -256,21 +261,41 @@ int main (int argc, const char **argv) {
    poptContext decoder;
    const char **leftovers;
 
-   RdmIndexPath = strdup(roadmap_path_preferred("maps"));
 
    decoder = poptGetContext ("rdmindex", argc, argv, RdmIndexOptions, 0);
-
 
    while (poptGetNextOpt(decoder) > 0) ;
 
    leftovers = poptGetArgs(decoder);
 
 
+   /* The index path is set to the one directory provided as a "smart"
+    * default that is assumed to match the intend in most cases.
+    */
+   if ((RdmIndexPath == NULL) && (leftovers[0] != NULL)) {
+      if ((leftovers[1] == NULL) && roadmap_path_is_directory(leftovers[0])) {
+         RdmIndexPath = strdup(leftovers[0]);
+      }
+   }
+
+   /* Nothing really fits: use the ultimate default. */
+
+   if (RdmIndexPath == NULL) {
+      RdmIndexPath = strdup(roadmap_path_preferred("maps")); /* default. */
+   }
+
+   /* Make sure we have a directory there. */
+
+   if (! roadmap_path_is_directory (RdmIndexPath)) {
+      if (roadmap_file_exists (RdmIndexPath)) {
+         buildmap_fatal (-1, "path %s is not a directory", RdmIndexPath);
+      } else {
+         buildmap_fatal (-1, "path %s does not exist", RdmIndexPath);
+      }
+   }
+
    buildmap_index_initialize (RdmIndexPath);
 
-   RoadMapIndexModel =
-      roadmap_db_register
-         (RoadMapIndexModel, "string", &RoadMapDictionaryHandler);
 
    if (RdmIndexGrand) {
 
@@ -288,12 +313,14 @@ int main (int argc, const char **argv) {
 
       RoadMapIndexModel =
          roadmap_db_register
-            (RoadMapIndexModel, "square", &RoadMapSquareHandler);
-      /* Unused at that time.
+            (RoadMapIndexModel, "metadata", &RoadMapMetadataHandler);
       RoadMapIndexModel =
          roadmap_db_register
-            (RoadMapIndexModel, "zip", &RoadMapZipHandler);
-       */
+            (RoadMapIndexModel, "square", &RoadMapSquareHandler);
+      // Unused at that time.
+      // RoadMapIndexModel =
+      //    roadmap_db_register
+      //       (RoadMapIndexModel, "zip", &RoadMapZipHandler);
 
       /* By default we scan the local directory. */
 
@@ -304,9 +331,14 @@ int main (int argc, const char **argv) {
    }
 
    if (leftovers == NULL || leftovers[0] == NULL) {
-      poptPrintUsage (decoder, stderr, 0);
+      poptPrintUsage (decoder, stderr, 0); /* No argument? */
       return 1;
    }
+
+   RoadMapIndexModel =
+      roadmap_db_register
+         (RoadMapIndexModel, "string", &RoadMapDictionaryHandler);
+
 
 
    if (RdmIndexRecursive) {
@@ -325,6 +357,8 @@ int main (int argc, const char **argv) {
          }
       }
    }
+
+   buildmap_set_source (RdmIndexName);
 
    buildmap_index_sort();
 
