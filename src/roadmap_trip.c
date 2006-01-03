@@ -1832,7 +1832,7 @@ void roadmap_trip_display (void) {
 }
 
 
-const char * roadmap_trip_current (void) {
+static const char *roadmap_trip_current() {
     return roadmap_config_get (&RoadMapConfigTripName);
 }
 
@@ -1840,6 +1840,8 @@ const char * roadmap_trip_current (void) {
 void roadmap_trip_new (void) {
 
     roadmap_trip_clear ();
+
+    // FIXME choose a unique-ish name
     roadmap_config_set (&RoadMapConfigTripName, "default.gpx");
 
     roadmap_trip_set_modified(1);
@@ -1886,20 +1888,23 @@ void roadmap_trip_initialize (void) {
 
 /* File dialog support */
 
+static int  roadmap_trip_load_file (const char *name, int silent, int merge);
+static int  roadmap_trip_save_file (const char *name, int force);
+
 static void roadmap_trip_file_dialog_ok
         (const char *filename, const char *mode) {
 
     if (mode[0] == 'w') {
-        roadmap_trip_save (filename, 1);
+        roadmap_trip_save_file (filename, 1);
     } else {
-        roadmap_trip_load (filename, 0, 0);
+        roadmap_trip_load_file (filename, 0, 0);
     }
 }
 
 static void roadmap_trip_file_merge_dialog_ok
         (const char *filename, const char *mode) {
 
-    roadmap_trip_load (filename, 0, 1);
+    roadmap_trip_load_file (filename, 0, 1);
 }
 
 
@@ -1919,31 +1924,22 @@ static void roadmap_trip_file_merge_dialog (const char *mode) {
 
 
 
-int roadmap_trip_load (const char *name, int silent, int merge) {
+static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
     int ret;
-    const char *trip_path = NULL;
+    const char *path = NULL;
     queue tmp_waypoint_list, tmp_route_list, tmp_track_list;
 
-    if (name == NULL || name[0] == '\0') {
-        if (merge) {
-            roadmap_trip_file_merge_dialog ("r");
-        } else {
-            roadmap_trip_file_dialog ("r");
-        }
-        return 0;
-    }
-
     if (! roadmap_path_is_full_path (name))
-        trip_path = roadmap_path_trips ();
+        path = roadmap_path_trips ();
 
-    roadmap_log (ROADMAP_DEBUG, "roadmap_trip_load '%s'", name);
+    roadmap_log (ROADMAP_DEBUG, "roadmap_trip_load_file '%s'", name);
 
     QUEUE_INIT(&tmp_waypoint_list);
     QUEUE_INIT(&tmp_route_list);
     QUEUE_INIT(&tmp_track_list);
 
-    ret = roadmap_gpx_read_file (trip_path, name, &tmp_waypoint_list,
+    ret = roadmap_gpx_read_file (path, name, &tmp_waypoint_list,
             &tmp_route_list, &tmp_track_list);
 
     if (ret == 0) {
@@ -2014,58 +2010,88 @@ int roadmap_trip_load (const char *name, int silent, int merge) {
     return ret;
 }
 
+int roadmap_trip_load (int silent, int merge) {
+    int ret;
+    const char *name = roadmap_trip_current();
 
+    ret = roadmap_trip_load_file ( name, silent, merge);
 
-void roadmap_trip_save (const char *name, int force) {
+    if (ret == 0) return 0;
 
-    const char *trip_path = NULL;
+    return ret;
+}
 
-    if (name == NULL || name[0] == '\0') {
-        roadmap_trip_file_dialog ("w");
-        return;
+int roadmap_trip_load_ask (int merge) {
+
+    if (merge) {
+        roadmap_trip_file_merge_dialog ("r");
+    } else {
+        roadmap_trip_file_dialog ("r");
     }
+    return 0;
+
+}
+
+static int roadmap_trip_save_file (const char *name, int force) {
+
+    const char *path = NULL;
 
     if (! roadmap_path_is_full_path (name)) {
-        trip_path = roadmap_path_trips ();
+        path = roadmap_path_trips ();
     }
 
-    if (!force && !RoadMapTripModified) return;
+    if (!force && !RoadMapTripModified) return 1;
 
     /* Always save if user-initiated. */
     roadmap_log (ROADMAP_DEBUG, "trip save_forced, or modified '%s'", name);
 
-    roadmap_gpx_write_file (trip_path, name, &RoadMapTripWaypointHead,
+    return roadmap_gpx_write_file (path, name, &RoadMapTripWaypointHead,
             &RoadMapTripRouteHead, &RoadMapTripTrackHead);
 
 }
+
+int roadmap_trip_save (int force) {
+
+    int ret;
+    const char *name = roadmap_trip_current();
+
+    ret = roadmap_trip_save_file ( name, force);
+
+    return ret;
+}
+
+void roadmap_trip_save_as(int force) {
+    roadmap_trip_file_dialog ("w");
+}
+
 
 
 void roadmap_trip_save_screenshot (void) {
 
     const char *extension = ".png";
-    const char *trip_path = roadmap_path_trips ();
-    const char *trip_name = roadmap_trip_current ();
+    const char *path = roadmap_path_trips ();
+    const char *name = roadmap_trip_current ();
 
     unsigned int total_length;
-    unsigned int trip_length;
+    unsigned int name_length;
     char *dot;
     char *picture_name;
 
-    trip_length = strlen (trip_name);   /* Shorten it later. */
+    name_length = strlen (name);   /* Shorten it later. */
 
-    dot = strrchr (trip_name, '.');
+    dot = strrchr (name, '.');
     if (dot != NULL) {
-        trip_length -= strlen (dot);
+        name_length -= strlen (dot);
     }
 
-    total_length = trip_length + strlen (trip_path) + strlen (extension) + 12;
+    total_length = name_length + strlen (path) + strlen (extension) + 12;
     picture_name = malloc (total_length);
     roadmap_check_allocated (picture_name);
 
-    memcpy (picture_name, trip_name, trip_length);
+    memcpy (picture_name, name, name_length);
     sprintf (picture_name, "%s/%*.*s-%010d%s",
-             trip_path,
-             trip_length, trip_length, trip_name, (int) time (NULL), extension);
+             path,
+             name_length, name_length, name, (int) time (NULL), extension);
 
     roadmap_canvas_save_screenshot (picture_name);
     free (picture_name);

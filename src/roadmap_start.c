@@ -177,22 +177,22 @@ static void roadmap_start_create_trip (void) {
 
 static void roadmap_start_open_trip (void) {
     
-    roadmap_trip_load (NULL, 0, 0);
+    roadmap_trip_load_ask (0);
 }
 
 static void roadmap_start_merge_trip (void) {
     
-    roadmap_trip_load (NULL, 0, 1);
+    roadmap_trip_load_ask (1);
 }
 
 static void roadmap_start_save_trip (void) {
     
-    roadmap_trip_save (roadmap_trip_current(), 1);
+    roadmap_trip_save (1);
 }
 
 static void roadmap_start_save_trip_as (void) {
     
-    roadmap_trip_save (NULL, 1);
+    roadmap_trip_save_as (1);
 }
 
 static void roadmap_start_route (void) {
@@ -985,8 +985,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_trip_restore_focus ();
 
-   if ((roadmap_trip_current() == NULL) ||
-       (! roadmap_trip_load (roadmap_trip_current(), 1, 0))) {
+   if ( ! roadmap_trip_load (1, 0)) {
       roadmap_start_create_trip ();
    }
 
@@ -1006,6 +1005,6 @@ void roadmap_start_exit (void) {
     roadmap_history_save();
     roadmap_track_autosave ();
     roadmap_landmark_save ();
-    roadmap_trip_save (roadmap_trip_current(), 0);
+    roadmap_trip_save (0);
     roadmap_config_save (0);
 }
