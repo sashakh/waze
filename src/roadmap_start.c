@@ -545,13 +545,6 @@ static const char *RoadMapStartMenu[] = {
    "mapdiskspace",
    "deletemaps",
 
-   ROADMAP_MENU "Track",
-
-   "tracksave",
-   "trackclear",
-   "tracktoroute",
-   "tracktoggle",
-
 
    ROADMAP_MENU "Trip",
 
@@ -579,6 +572,14 @@ static const char *RoadMapStartMenu[] = {
    "edittripwaypoints",
    "editpersonalwaypoints",
    "mergepersonalwaypoints",
+
+   RoadMapFactorySeparator,
+
+   "tracksave",
+   "trackclear",
+   "tracktoroute",
+   "tracktoggle",
+
 
    ROADMAP_MENU "Help",
 
