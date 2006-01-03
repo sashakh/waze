@@ -30,14 +30,14 @@
 #define BUILDMAP_BLOCK  2048 /* memory allocation block. */
 
 
-void buildmap_set_source (char *name);
+void buildmap_set_source (const char *name);
 void buildmap_set_line   (int line);
 
-void buildmap_fatal    (int column, char *format, ...);
-void buildmap_error    (int column, char *format, ...);
+void buildmap_fatal    (int column, const char *format, ...);
+void buildmap_error    (int column, const char *format, ...);
 void buildmap_progress (int done, int estimated);
-void buildmap_info     (char *format, ...);
-void buildmap_summary  (int verbose, char *format, ...);
+void buildmap_info     (const char *format, ...);
+void buildmap_summary  (int verbose, const char *format, ...);
 
 int buildmap_get_error_count (void);
 int buildmap_get_error_total (void);

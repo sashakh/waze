@@ -50,13 +50,12 @@ static char *SourceFile = NULL;
 static int   SourceLine = 0;
 static int   ErrorCount = 0;
 static int   ErrorTotal = 0;
-
 static int   LastProgress = 0;
 
 
-void buildmap_set_source (char *name) {
+void buildmap_set_source (const char *name) {
 
-   char *p;
+   const char *p;
 
    /* Get the file's base name (for error display purpose). */
 
@@ -83,18 +82,35 @@ void buildmap_set_line (int line) {
 }
 
 
-void buildmap_error (int column, char *format, ...) {
+static void buildmap_show_source (FILE *output,
+                                  const char *preamble, int column) {
+
+   if (SourceFile == NULL) {
+      fprintf (output, "%s ", preamble);
+   } else if (SourceLine > 0) {
+      if (column >= 0) {
+          fprintf (output, "%s %s, line %d, column %d: ",
+                         preamble, SourceFile, SourceLine, column+1);
+      } else {
+          fprintf (output, "%s %s, line %d: ",
+                         preamble, SourceFile, SourceLine);
+      }
+   } else {
+       fprintf (output, "%s %s: ", preamble, SourceFile);
+   }
+}
+
+
+void buildmap_error (int column, const char *format, ...) {
 
    va_list ap;
    FILE    *log;
 
-   fprintf (stderr, "** %s, line %d, column %d: ",
-                    SourceFile, SourceLine, column+1);
+   buildmap_show_source (stderr, "**", column);
 
    log = fopen ("buildmap_errors.log", "a");
    if (log != NULL) {
-      fprintf (log, "** %s, line %d, column %d: ",
-                    SourceFile, SourceLine, column+1);
+      buildmap_show_source (log, "**", column);
    }
 
    va_start(ap, format);
@@ -115,18 +131,16 @@ void buildmap_error (int column, char *format, ...) {
 }
 
 
-void buildmap_fatal (int column, char *format, ...) {
+void buildmap_fatal (int column, const char *format, ...) {
 
    va_list ap;
    FILE    *log;
 
-   fprintf (stderr, "## %s, line %d, column %d: ",
-                    SourceFile, SourceLine, column+1);
+   buildmap_show_source (stderr, "##", column);
 
    log = fopen ("buildmap_errors.log", "a");
    if (log != NULL) {
-      fprintf (log, "## %s, line %d, column %d: ",
-                    SourceFile, SourceLine, column+1);
+      buildmap_show_source (log, "##", column);
    }
 
    va_start(ap, format);
@@ -159,15 +173,11 @@ void buildmap_progress (int done, int estimated) {
 }
 
 
-void buildmap_info (char *format, ...) {
+void buildmap_info (const char *format, ...) {
 
    va_list ap;
 
-   if (SourceLine > 0) {
-      fprintf (stderr, "-- %s, line %d: ", SourceFile, SourceLine);
-   } else {
-      fprintf (stderr, "-- %s: ", SourceFile);
-   }
+   buildmap_show_source (stderr, "--", -1);
 
    va_start(ap, format);
    vfprintf(stderr, format, ap);
@@ -177,20 +187,23 @@ void buildmap_info (char *format, ...) {
 }
 
 
-void buildmap_summary (int verbose, char *format, ...) {
+void buildmap_summary (int verbose, const char *format, ...) {
 
    va_list ap;
 
+   SourceLine = 0;
+   buildmap_show_source (stderr, "--", -1);
+
    if (ErrorCount > 0) {
       if (ErrorCount > 1) {
-         fprintf (stderr, "-- %s: %d errors", SourceFile, ErrorCount);
+         fprintf (stderr, "%d errors", ErrorCount);
       } else {
-         fprintf (stderr, "-- %s: 1 error", SourceFile);
+         fprintf (stderr, "1 error");
       }
       verbose = 1;
       ErrorCount = 0;
    } else if (verbose) {
-     fprintf (stderr, "-- %s: %d lines, no error", SourceFile, SourceLine);
+     fprintf (stderr, "no error");
    }
 
    if (verbose) {
