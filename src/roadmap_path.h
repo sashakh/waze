@@ -26,7 +26,7 @@
  *   lists, similar to the one defined for the UNIX PATH environment variable.
  *   In addition this API is OS independent.
  *
- *   The roadmap_path_user() function returns a constant that represents
+ *   The function roadmap_path_user() returns a constant that represents
  *   the path of the RoadMap context for the current user (on UNIX, this
  *   is typically $HOME/,roadmap). The roadmap_path_trips() function
  *   returns a constant that represents the path of the directory where
@@ -34,7 +34,7 @@
  *   subdirectory of the user context, named "trips"). These functions
  *   return the full path name of a single directory (i.e. not a list).
  *
- *   The roadmap_path_set() function sets a current RoadMap directory search
+ *   The function roadmap_path_set() sets a current RoadMap directory search
  *   list. If the search list was never set, the default path is used (see
  *   above). When analyzing the path string, roadmap_path_set() expands
  *   the following characters, but only if the character is the first
@@ -65,7 +65,10 @@
  *   function roadmap_path_parent() works in a similar fashion, except that
  *   it returns the path of the parent directory of the concatenation result.
  *   Both functions ignore the path argument if it is either NULL or empty.
- *   Only the file name is considered in this case.
+ *   Only the file name is considered in this case. If the name provided to
+ *   roadmap_path_parent() does not contain any path (local file), then
+ *   roadmap_path_parent() must return a string identical to the value of
+ *   RoadMapPathCurrentDirectory.
  *
  *   For example, on UNIX, if path is "/usr/include" and name is "sys/errno.h"
  *   then roadmap_path_join() will return "/usr/include/sys/errno.h" while
@@ -105,6 +108,8 @@
 
 #ifndef INCLUDE__ROADMAP_PATH__H
 #define INCLUDE__ROADMAP_PATH__H
+
+extern const char *RoadMapPathCurrentDirectory;
 
 void roadmap_path_set  (const char *name, const char *path);
 

@@ -41,6 +41,8 @@
 #include "roadmap_path.h"
 
 
+const char *RoadMapPathCurrentDirectory = ".";
+
 typedef struct RoadMapPathRecord *RoadMapPathList;
 
 struct RoadMapPathRecord {
@@ -209,7 +211,8 @@ char *roadmap_path_parent (const char *path, const char *name) {
 
    separator = strrchr (full_name, '/');
    if (separator == NULL) {
-      return ".";
+      roadmap_path_free(full_name);
+      return strdup(RoadMapPathCurrentDirectory);
    }
 
    *separator = 0;
@@ -541,7 +544,9 @@ void   roadmap_path_list_free (char **list) {
 
 
 void roadmap_path_free (const char *path) {
-   free ((char *) path);
+   if (path != RoadMapPathCurrentDirectory) {
+      free ((char *) path);
+   }
 }
 
 
