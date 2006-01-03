@@ -35,6 +35,12 @@ const char *roadmap_metadata_get_attribute_next (const char *category,
                                                  const char *name,
                                                  int index);
 
+typedef void (*RoadMapMetadataIterator) (const char *category,
+                                         const char *name,
+                                         const char *value);
+
+void roadmap_metadata_scan_attributes (RoadMapMetadataIterator iterator);
+
 extern roadmap_db_handler RoadMapMetadataHandler;
 
 #endif // INCLUDED__ROADMAP_METADATA__H

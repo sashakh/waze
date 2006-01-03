@@ -29,12 +29,14 @@
 #include "roadmap.h"
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
+#include "roadmap_metadata.h"
 
 
-roadmap_db_model *RoadMapCountyModel = NULL;
+roadmap_db_model *RoadMapModel = NULL;
 
 static int   DumpMapVerbose = 0;
 static int   DumpMapShowStrings = 0;
+static int   DumpMapShowAttributes = 0;
 static char *DumpMapShowDump = NULL;
 static char *DumpMapShowVolume = NULL;
 static char *DumpMapSearchStringOption = NULL;
@@ -208,6 +210,41 @@ roadmap_db_handler DumpMapSearchString =
      dumpmap_searchstring_map, dumpmap_searchstring_activate, NULL};
 
 
+/* Attributes print module -------------------------------------------------
+ *
+ * This is a simple module as it does not care about keeping any
+ * context, it does its jobs once the database has been mapped, and
+ * then it forgets about the database.
+ */
+
+static void *dumpmap_attributes_map (roadmap_db *root) {
+
+   return (*RoadMapMetadataHandler.map) (root);
+}
+
+static void dumpmap_attributes_print (const char *category,
+                                      const char *name,
+                                      const char *value) {
+
+   printf ("   %s.%s: %s\n", category, name, value);
+}
+
+static void dumpmap_attributes_activate (void *context) {
+
+   (*RoadMapMetadataHandler.activate) (context);
+
+   if (DumpMapShowAttributes != 0) {
+      roadmap_metadata_scan_attributes (dumpmap_attributes_print);
+   } else {
+      roadmap_dictionary_dump ();
+   }
+}
+
+roadmap_db_handler DumpMapPrintAttributes =
+    {"attributes",
+     dumpmap_attributes_map, dumpmap_attributes_activate, NULL};
+
+
 /* Section dump module -----------------------------------------------------
  *
  * This is a simple module as it does not care about keeping any
@@ -251,6 +288,9 @@ static struct poptOption DumpMapOptions[] = {
    {"dump", 'd',
       POPT_ARG_STRING, &DumpMapShowDump, 0, "Dump a specific table", "TABLE"},
 
+   {"attributes", 'a',
+      POPT_ARG_NONE, &DumpMapShowAttributes, 0, "Show map attributes", NULL},
+
    {NULL, 0,
         POPT_ARG_INCLUDE_TABLE, DumpMapDictionaryOptions, 0, "Dictionary options", NULL},
 
@@ -260,6 +300,7 @@ static struct poptOption DumpMapOptions[] = {
 
 int main (int argc, const char **argv) {
 
+   int i;
    const char **leftovers;
 
 
@@ -270,31 +311,40 @@ int main (int argc, const char **argv) {
    while (poptGetNextOpt(decoder) > 0) ;
 
 
-   if (DumpMapShowStrings || (DumpMapShowVolume != NULL)) {
+   if (DumpMapShowAttributes) {
 
-      RoadMapCountyModel =
+      RoadMapModel =
          roadmap_db_register
-            (RoadMapCountyModel, "string", &DumpMapPrintString);
+            (RoadMapModel, "metadata", &DumpMapPrintAttributes);
+      RoadMapModel =
+         roadmap_db_register
+            (RoadMapModel, "string", &RoadMapDictionaryHandler);
+
+   } else if (DumpMapShowStrings || (DumpMapShowVolume != NULL)) {
+
+      RoadMapModel =
+         roadmap_db_register
+            (RoadMapModel, "string", &DumpMapPrintString);
 
    } else if (DumpMapSearchStringOption != NULL) {
 
-      RoadMapCountyModel =
+      RoadMapModel =
          roadmap_db_register
-            (RoadMapCountyModel, "string", &RoadMapDictionaryHandler);
-      RoadMapCountyModel =
+            (RoadMapModel, "string", &RoadMapDictionaryHandler);
+      RoadMapModel =
          roadmap_db_register
-            (RoadMapCountyModel, "/", &DumpMapSearchString);
+            (RoadMapModel, "/", &DumpMapSearchString);
 
    } else if (DumpMapShowDump != NULL) {
 
-      RoadMapCountyModel =
+      RoadMapModel =
          roadmap_db_register
-            (RoadMapCountyModel, DumpMapShowDump, &DumpMapHexaDump);
+            (RoadMapModel, DumpMapShowDump, &DumpMapHexaDump);
 
    } else {
 
-      RoadMapCountyModel =
-         roadmap_db_register (RoadMapCountyModel, "/", &DumpMapPrintTree);
+      RoadMapModel =
+         roadmap_db_register (RoadMapModel, "/", &DumpMapPrintTree);
    }
 
 
@@ -307,16 +357,15 @@ int main (int argc, const char **argv) {
    }
 
 
-   while (*leftovers != NULL) {
+   for (i = 0; leftovers[i] != NULL; ++i) {
 
-      printf ("%s\n", *leftovers);
+      if (leftovers[1] != NULL) printf ("%s\n", leftovers[i]);
 
-      if (! roadmap_db_open ("", *leftovers, RoadMapCountyModel)) {
-         roadmap_log (ROADMAP_FATAL, "cannot open the map database");
+      if (! roadmap_db_open ("", leftovers[i], RoadMapModel)) {
+         roadmap_log (ROADMAP_FATAL,
+                      "cannot open map database %s", leftovers[i]);
       }
-      roadmap_db_close ("", *leftovers);
-
-      leftovers += 1;
+      roadmap_db_close ("", leftovers[i]);
    }
 
    roadmap_db_end ();

@@ -25,6 +25,11 @@
  *   const char *roadmap_metadata_get_attribute (const char *category,
  *                                               const char *name);
  *
+ *   const char *roadmap_metadata_get_attribute_next (const char *category,
+ *                                                    const char *name,
+ *                                                    int index);
+ *
+ *   void roadmap_metadata_scan_attributes (RoadMapMetadataIterator iterator);
  */
 
 #include <stdio.h>
@@ -51,7 +56,7 @@ typedef struct {
    RoadMapString    *Values;
    int               ValuesCount;
 
-   RoadMapDictionary RoadMapAttributeStrings;
+   RoadMapDictionary strings;
 
 } RoadMapMetadataContext;
 
@@ -72,7 +77,7 @@ static void *roadmap_metadata_map (roadmap_db *root) {
       return NULL;
    }
    context->type = RoadMapMetadataType;
-   context->RoadMapAttributeStrings = NULL;
+   context->strings = NULL;
 
    attributes_table = roadmap_db_get_subsection (root, "attributes");
    values_table = roadmap_db_get_subsection (root, "values");
@@ -114,13 +119,12 @@ static void roadmap_metadata_activate (void *context) {
          roadmap_log (ROADMAP_FATAL, "invalid metadata context activated");
       }
 
-      if (this->RoadMapAttributeStrings == NULL) {
-         this->RoadMapAttributeStrings =
-            roadmap_dictionary_open ("attributes");
-      }
+      if (this->strings == NULL) {
+         this->strings = roadmap_dictionary_open ("attributes");
 
-      if (this->RoadMapAttributeStrings == NULL) {
-         roadmap_log (ROADMAP_FATAL, "cannot open dictionary");
+         if (this->strings == NULL) {
+            roadmap_log (ROADMAP_FATAL, "cannot open dictionary");
+         }
       }
    }
 
@@ -167,12 +171,10 @@ const char *roadmap_metadata_get_attribute_next (const char *category,
    if (RoadMapMetadataActive == NULL) return "";
 
    coded_category =
-      roadmap_dictionary_locate
-         (RoadMapMetadataActive->RoadMapAttributeStrings, category);
+      roadmap_dictionary_locate (RoadMapMetadataActive->strings, category);
 
    coded_name =
-      roadmap_dictionary_locate
-         (RoadMapMetadataActive->RoadMapAttributeStrings, name);
+      roadmap_dictionary_locate (RoadMapMetadataActive->strings, name);
 
    for (i = RoadMapMetadataActive->AttributesCount - 1; i >= 0; --i) {
 
@@ -186,11 +188,46 @@ const char *roadmap_metadata_get_attribute_next (const char *category,
             return NULL;
          }
          return roadmap_dictionary_get
-                   (RoadMapMetadataActive->RoadMapAttributeStrings,
+                   (RoadMapMetadataActive->strings,
                     RoadMapMetadataActive->Values[cursor]);
       }
    }
 
    return "";
+}
+
+
+void roadmap_metadata_scan_attributes (RoadMapMetadataIterator iterator) {
+
+   int i;
+   int j;
+   int value_end;
+   const char *category;
+   const char *name;
+   RoadMapAttribute *this_attribute;
+
+   if (RoadMapMetadataActive == NULL) return;
+
+   for (i = RoadMapMetadataActive->AttributesCount - 1; i >= 0; --i) {
+
+      this_attribute = RoadMapMetadataActive->Attributes + i;
+
+      category =
+         roadmap_dictionary_get (RoadMapMetadataActive->strings,
+                                 this_attribute->category);
+
+      name =
+         roadmap_dictionary_get (RoadMapMetadataActive->strings,
+                                 this_attribute->name);
+
+      value_end = this_attribute->value_first + this_attribute->value_count;
+
+      for (j = this_attribute->value_first; j < value_end; ++j) {
+         iterator (category,
+                   name,
+                   roadmap_dictionary_get (RoadMapMetadataActive->strings,
+                                           RoadMapMetadataActive->Values[j]));
+      }
+   }
 }
 
