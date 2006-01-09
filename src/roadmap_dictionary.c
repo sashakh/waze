@@ -64,7 +64,6 @@ struct dictionary_volume {
    int   size;
 };
 
-#define ROADMAP_DICTIONARY_MAX   16
 
 static struct dictionary_volume *DictionaryVolume = NULL;
 
