@@ -24,31 +24,35 @@
  *
  *   The RoadMap lines are described by the following table:
  *
- *   line          the ID of the line and its from and to points.
- *                 The lines are sorted by square.
- *   bysquare      an index of lines per square.
- *   bysquare2     A given line may have one end in a different square:
- *                 this other index covers this very case.
+ *   line/data       The ID of the line and its from and to points.
+ *                   The lines are sorted by square.
+ *   line/bysquare1  An index of lines per square.
+ *   line/index2     This index table points to line/data and is pointed
+ *                   to from line/bysquare2. This is used to build lists.
+ *   line/bysquare2  A given line may have one end in a different square:
+ *                   this other index covers this very case.
  */
 
-#ifndef _ROADMAP_DB_LINE__H_
-#define _ROADMAP_DB_LINE__H_
+#ifndef INCLUDED__ROADMAP_DB_LINE__H
+#define INCLUDED__ROADMAP_DB_LINE__H
 
 #include "roadmap_types.h"
 
-typedef struct {  /* table line */
+typedef struct {  /* table line/data */
 
    int from;
    int to;
 
 } RoadMapLine;
 
-typedef struct { /* tables bysquare1 and bysquare2 */
+typedef struct { /* tables line/bysquare1 and line/bysquare2 */
 
    int first[ROADMAP_CATEGORY_RANGE];
    int last;
 
 } RoadMapLineBySquare;
 
-#endif // _ROADMAP_DB_LINE__H_
+/* Table line/index2 is an array of int. */
+
+#endif // INCLUDED__ROADMAP_DB_LINE__H
 
