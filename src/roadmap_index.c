@@ -155,20 +155,20 @@ static void roadmap_index_activate (void *context) {
          roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
       }
 
-      if (context->territory_is_covered == NULL) {
+      if (index_context->territory_is_covered == NULL) {
 
          /* First activation. */
 
-         context->names = roadmap_dictionary_open ("name");
-         context->cities = roadmap_dictionary_open ("city");
-         context->classes = roadmap_dictionary_open ("class");
-         context->files = roadmap_dictionary_open ("file");
+         index_context->names = roadmap_dictionary_open ("name");
+         index_context->cities = roadmap_dictionary_open ("city");
+         index_context->classes = roadmap_dictionary_open ("class");
+         index_context->files = roadmap_dictionary_open ("file");
 
          index_context->hash =
             roadmap_hash_new ("territoryIndex", index_context->territory_count);
 
-         context->territory_is_covered =
-            (char *) malloc(context->territory_count);
+         index_context->territory_is_covered =
+            (char *) malloc(index_context->territory_count);
       }
    }
    RoadMapIndexActive = index_context;
