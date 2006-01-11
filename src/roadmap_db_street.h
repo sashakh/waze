@@ -24,7 +24,8 @@
  *
  *   The RoadMap streets are described by the following table:
  *
- *   street         the identification (type, name, etc..) of each street.
+ *   street/name    the identification (prefix, name, etc..) of each street.
+ *   street/type    the type of each street.
  */
 
 #ifndef _ROADMAP_DB_STREET__H_
@@ -32,7 +33,7 @@
 
 #include "roadmap_types.h"
 
-typedef struct {
+typedef struct { /* Table street/name. */
 
    RoadMapString fedirp;
    RoadMapString fename;
@@ -40,6 +41,8 @@ typedef struct {
    RoadMapString fedirs;
 
 } RoadMapStreet;
+
+/* Table street/type is an array of char. */
 
 #endif // _ROADMAP_DB_STREET__H_
 
