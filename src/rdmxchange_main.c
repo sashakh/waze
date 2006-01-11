@@ -68,11 +68,11 @@ int main (int argc, const char **argv) {
    int i;
 
 
-   /* TBD
    RdmMapModel =
       roadmap_db_register (RdmMapModel, "zip", &RoadMapZipExport);
    RdmMapModel =
       roadmap_db_register (RdmMapModel, "street", &RoadMapStreetExport);
+   /* TBD
    RdmMapModel =
       roadmap_db_register (RdmMapModel, "range", &RoadMapRangeExport);
    */
