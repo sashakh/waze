@@ -232,6 +232,21 @@ BUSRCS=buildus_main.c \
 BUOBJS=$(BUSRCS:.c=.o)
 
 
+XCHGSRCS=rdmxchange_main.c \
+         rdmxchange_dictionary.c \
+			rdmxchange_index.c \
+			rdmxchange_metadata.c \
+			rdmxchange_point.c \
+			rdmxchange_line.c \
+			rdmxchange_shape.c \
+			rdmxchange_polygon.c \
+			rdmxchange_square.c \
+			rdmxchange_street.c \
+			rdmxchange_zip.c
+
+XCHGOBJS=$(XCHGSRCS:.c=.o)
+
+
 PKGDATAFILES=sprites preferences schema session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
@@ -264,10 +279,14 @@ unix:
 		$(MAKE) -C unix RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
 	fi
 
+unix/libosroadmap.a: unix
+
 gpx:
 	if [ -d gpx ] ; then \
 		$(MAKE) -C gpx RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
 	fi
+
+gpx/libgpx.a: gpx
 
 runtime: unix gpx $(RUNTIME) $(DRIVERS)
 	for module in $(RDMODULES) ; \
@@ -402,6 +421,9 @@ sqliteload: sqliteload.c
 
 rdmindex : rdmindex_main.c libbuildmap.a $(RDMLIBS)
 	$(CC) -g rdmindex_main.c -o rdmindex libbuildmap.a $(RDMLIBS) $(LIBS)
+
+rdmxchange : $(XCHGOBJS) $(RDMLIBS)
+	$(CC) -g -o rdmxchange $(XCHGOBJS) $(RDMLIBS) $(LIBS)
 
 rdmkismet: roadmap_kismet.c $(RDMLIBS)
 	$(CC) -g roadmap_kismet.c -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
