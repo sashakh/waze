@@ -160,19 +160,17 @@ roadmap_db_handler RoadMapLineExport = {
 
 static void rdmxchange_line_export_head (FILE *file) {
 
-   fprintf (file, "table line/data %d from to\n",
+   fprintf (file, "table line/data %d\n",
          RoadMapLineActive->LineCount);
 
-   fprintf (file, "table line/bysquare1 %d first[%d] last\n",
-                  RoadMapLineActive->LineBySquare1Count,
-                  ROADMAP_CATEGORY_RANGE);
+   fprintf (file, "table line/bysquare1 %d\n",
+                  RoadMapLineActive->LineBySquare1Count);
 
-   fprintf (file, "table line/index2 %d index\n",
+   fprintf (file, "table line/index2 %d\n",
          RoadMapLineActive->LineIndex2Count);
 
-   fprintf (file, "table line/bysquare2 %d first[%d] last\n",
-                  RoadMapLineActive->LineBySquare2Count,
-                  ROADMAP_CATEGORY_RANGE);
+   fprintf (file, "table line/bysquare2 %d\n",
+                  RoadMapLineActive->LineBySquare2Count);
 }
 
 
@@ -185,28 +183,31 @@ static void rdmxchange_line_export_data (FILE *file) {
    RoadMapLineBySquare *bysquare;
 
 
-   fprintf (file, "table line/data\n");
+   fprintf (file, "table line/data\n"
+                  "from,to\n");
    line = RoadMapLineActive->Line;
 
    for (i = 0; i < RoadMapLineActive->LineCount; ++i, ++line) {
-      fprintf (file, "%d,%d\n", line->from, line->to);
+      fprintf (file, "%.0d,%.0d\n", line->from, line->to);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table line/bysquare1\n");
+   fprintf (file, "table line/bysquare1\n"
+                  "first[%d],last\n", ROADMAP_CATEGORY_RANGE);
    bysquare = RoadMapLineActive->LineBySquare1;
 
    for (i = 0; i < RoadMapLineActive->LineBySquare1Count; ++i, ++bysquare) {
       for (j = 0; j < ROADMAP_CATEGORY_RANGE; ++j) {
-         fprintf (file, "%d,", bysquare->first[j]);
+         fprintf (file, "%.0d,", bysquare->first[j]);
       }
-      fprintf (file, "%d\n", bysquare->last);
+      fprintf (file, "%.0d\n", bysquare->last);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table line/index2\n");
+   fprintf (file, "table line/index2\n"
+                  "index\n");
    index2 = RoadMapLineActive->LineIndex2;
 
    for (i = 0; i < RoadMapLineActive->LineIndex2Count; ++i, ++index2) {
@@ -215,14 +216,15 @@ static void rdmxchange_line_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table line/bysquare2\n");
+   fprintf (file, "table line/bysquare2\n"
+                  "first[%d],last\n", ROADMAP_CATEGORY_RANGE);
    bysquare = RoadMapLineActive->LineBySquare2;
 
    for (i = 0; i < RoadMapLineActive->LineBySquare2Count; ++i, ++bysquare) {
       for (j = 0; j < ROADMAP_CATEGORY_RANGE; ++j) {
-         fprintf (file, "%d,", bysquare->first[j]);
+         fprintf (file, "%.0d,", bysquare->first[j]);
       }
-      fprintf (file, "%d\n", bysquare->last);
+      fprintf (file, "%.0d\n", bysquare->last);
    }
    fprintf (file, "\n");
 }

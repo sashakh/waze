@@ -157,19 +157,19 @@ static void rdmxchange_dictionary_export_head (FILE *file) {
 
    for (volume = DictionaryVolume; volume != NULL; volume = volume->next) {
 
-      fprintf (file, "table string/%s/node %d character type index\n",
+      fprintf (file, "table string/%s/node %d\n",
                      volume->name,
                      volume->node_count);
 
-      fprintf (file, "table string/%s/tree %d character type index\n",
+      fprintf (file, "table string/%s/tree %d\n",
                      volume->name,
                      volume->tree_count);
 
-      fprintf (file, "table string/%s/data %d text\n",
+      fprintf (file, "table string/%s/data %d\n",
                      volume->name,
                      volume->size);
 
-      fprintf (file, "table string/%s/index %d offset\n",
+      fprintf (file, "table string/%s/index %d\n",
                      volume->name,
                      volume->string_count);
    }
@@ -189,29 +189,36 @@ static void rdmxchange_dictionary_export_data (FILE *file) {
 
    for (volume = DictionaryVolume; volume != NULL; volume = volume->next) {
 
-      fprintf (file, "table string/%s/node\n", volume->name);
+      fprintf (file, "table string/%s/node\n"
+                     "character,type,index\n", volume->name);
       node = volume->node;
 
       for (i = 0; i < volume->node_count; ++i, ++node) {
          if (node->character == 0) {
-            fprintf (file, ",%d,%d\n", node->type, node->index);
+            fprintf (file, ",%.0d,%.0d\n", node->type, node->index);
             continue;
          }
-         fprintf (file, "%c,%d,%d\n", node->character, node->type, node->index);
+         fprintf (file, "%c,%.0d,%.0d\n", node->character,
+                                          node->type,
+                                          node->index);
       }
       fprintf (file, "\n");
 
 
-      fprintf (file, "table string/%s/tree\n", volume->name);
+      fprintf (file, "table string/%s/tree\n"
+                     "first,count,position\n", volume->name);
       tree = volume->tree;
 
       for (i = 0; i < volume->tree_count; ++i, ++tree) {
-         fprintf (file, "%d,%d,%d\n", tree->first, tree->count, tree->position);
+         fprintf (file, "%.0d,%.0d,%.0d\n", tree->first,
+                                            tree->count,
+                                            tree->position);
       }
       fprintf (file, "\n");
 
 
-      fprintf (file, "table string/%s/data\n", volume->name);
+      fprintf (file, "table string/%s/data\n"
+                     "text\n", volume->name);
       data = volume->data + 1; /* Skip the first (empty) string. */
       data_end = volume->data + volume->size;
 
@@ -221,7 +228,8 @@ static void rdmxchange_dictionary_export_data (FILE *file) {
       fprintf (file, "\n");
 
 
-      fprintf (file, "table string/%s/index\n", volume->name);
+      fprintf (file, "table string/%s/index\n"
+                     "offset\n", volume->name);
       index = volume->string_index;
 
       for (i = 0; i < volume->string_count; ++i, ++index) {

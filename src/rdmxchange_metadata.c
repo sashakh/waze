@@ -139,15 +139,11 @@ static void rdmxchange_metadata_export_head (FILE *file) {
 
    if (RoadMapMetadataActive == NULL) return; /* No such table in that file. */
 
-   fprintf (file, "table metadata/attributes %d"
-         " category"
-         " name"
-         " value.first"
-         " value.count\n",
-         RoadMapMetadataActive->AttributesCount);
+   fprintf (file, "table metadata/attributes %d\n",
+                  RoadMapMetadataActive->AttributesCount);
 
-   fprintf (file, "table metadata/values %d index\n",
-         RoadMapMetadataActive->ValuesCount);
+   fprintf (file, "table metadata/values %d\n",
+                  RoadMapMetadataActive->ValuesCount);
 }
 
 
@@ -160,19 +156,24 @@ static void rdmxchange_metadata_export_data (FILE *file) {
 
    if (RoadMapMetadataActive == NULL) return; /* No such table in that file. */
 
-   fprintf (file, "table metadata/attributes\n");
+   fprintf (file, "table metadata/attributes\n"
+                  "category,"
+                  "name,"
+                  "value.first,"
+                  "value.count\n");
    attributes = RoadMapMetadataActive->Attributes;
 
    for (i = 0; i < RoadMapMetadataActive->AttributesCount; ++i) {
-      fprintf (file, "%d,%d,%d,%d\n", attributes[i].category,
-                                      attributes[i].name,
-                                      attributes[i].value_first,
-                                      attributes[i].value_count);
+      fprintf (file, "%.0d,%.0d,%.0d,%.0d\n", attributes[i].category,
+                                              attributes[i].name,
+                                              attributes[i].value_first,
+                                              attributes[i].value_count);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table metadata/values\n");
+   fprintf (file, "table metadata/values\n"
+                  "index\n");
    values = RoadMapMetadataActive->Values;
 
    for (i = 0; i < RoadMapMetadataActive->ValuesCount; ++i) {

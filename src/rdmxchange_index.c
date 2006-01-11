@@ -154,44 +154,19 @@ roadmap_db_handler RoadMapIndexExport = {
 
 static void rdmxchange_index_export_head (FILE *file) {
 
-   fprintf (file, "table index/authority %d"
-                       " symbol"
-                       " path"
-                       " edges.east"
-                       " edges.north"
-                       " edges.west"
-                       " edges.south"
-                       " name.first"
-                       " name.count"
-                       " territory.first"
-                       " territory.count\n",
+   fprintf (file, "table index/authority %d\n",
                   RoadMapIndexActive->authority_count);
 
-   fprintf (file, "table index/territory %d"
-                       " wtid"
-                       " name"
-                       " path"
-                       " edges.east"
-                       " edges.north"
-                       " edges.west"
-                       " edges.south"
-                       " map.first"
-                       " map.count"
-                       " city.first"
-                       " city.count"
-                       " postal.low"
-                       " postal.high\n",
+   fprintf (file, "table index/territory %d\n",
                   RoadMapIndexActive->territory_count);
 
-   fprintf (file, "table index/map %d"
-                       " class"
-                       " file\n",
+   fprintf (file, "table index/map %d\n",
                   RoadMapIndexActive->map_count);
 
-   fprintf (file, "table index/name %d index\n",
+   fprintf (file, "table index/name %d\n",
                   RoadMapIndexActive->name_count);
 
-   fprintf (file, "table index/city %d index\n",
+   fprintf (file, "table index/city %d\n",
                   RoadMapIndexActive->city_count);
 }
 
@@ -206,53 +181,79 @@ static void rdmxchange_index_export_data (FILE *file) {
    RoadMapString    *city;
 
 
-   fprintf (file, "table index/authority\n");
+   fprintf (file, "table index/authority\n"
+                  "symbol,"
+                  "path,"
+                  "edges.east,"
+                  "edges.north,"
+                  "edges.west,"
+                  "edges.south,"
+                  "name.first,"
+                  "name.count,"
+                  "territory.first,"
+                  "territory.count\n");
    authority = RoadMapIndexActive->authority;
 
    for (i = 0; i < RoadMapIndexActive->authority_count; ++i) {
-      fprintf (file, "%d,%d,", authority[i].symbol, authority[i].pathname);
-      fprintf (file, "%d,%d,%d,%d,", authority[i].edges.east,
-                                     authority[i].edges.north,
-                                     authority[i].edges.west,
-                                     authority[i].edges.south);
-      fprintf (file, "%d,%d,", authority[i].name_first,
-                               authority[i].name_count);
-      fprintf (file, "%d,%d\n", authority[i].territory_first,
-                                authority[i].territory_count);
+      fprintf (file, "%.0d,%.0d,", authority[i].symbol, authority[i].pathname);
+      fprintf (file, "%.0d,%.0d,%.0d,%.0d,", authority[i].edges.east,
+                                             authority[i].edges.north,
+                                             authority[i].edges.west,
+                                             authority[i].edges.south);
+      fprintf (file, "%.0d,%.0d,", authority[i].name_first,
+                                   authority[i].name_count);
+      fprintf (file, "%.0d,%.0d\n", authority[i].territory_first,
+                                    authority[i].territory_count);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table index/territory\n");
+   fprintf (file, "table index/territory\n"
+                  "wtid,"
+                  "name,"
+                  "path,"
+                  "edges.east,"
+                  "edges.north,"
+                  "edges.west,"
+                  "edges.south,"
+                  "map.first,"
+                  "map.count,"
+                  "city.first,"
+                  "city.count,"
+                  "postal.low,"
+                  "postal.high\n");
    territory = RoadMapIndexActive->territory;
 
    for (i = 0; i < RoadMapIndexActive->territory_count; ++i) {
-      fprintf (file, "%d,", territory[i].wtid);
-      fprintf (file, "%d,%d,", territory[i].name, territory[i].pathname);
-      fprintf (file, "%d,%d,%d,%d,", territory[i].edges.east,
-                                     territory[i].edges.north,
-                                     territory[i].edges.west,
-                                     territory[i].edges.south);
-      fprintf (file, "%d,%d,", territory[i].map_first,
-                               territory[i].map_count);
-      fprintf (file, "%d,%d,", territory[i].city_first,
-                               territory[i].city_count);
-      fprintf (file, "%d,%d\n", territory[i].postal_low,
-                                territory[i].postal_high);
+      fprintf (file, "%.0d,", territory[i].wtid);
+      fprintf (file, "%.0d,%.0d,", territory[i].name,
+                                   territory[i].pathname);
+      fprintf (file, "%.0d,%.0d,%.0d,%.0d,", territory[i].edges.east,
+                                             territory[i].edges.north,
+                                             territory[i].edges.west,
+                                             territory[i].edges.south);
+      fprintf (file, "%.0d,%.0d,", territory[i].map_first,
+                                   territory[i].map_count);
+      fprintf (file, "%.0d,%.0d,", territory[i].city_first,
+                                   territory[i].city_count);
+      fprintf (file, "%.0d,%.0d\n", territory[i].postal_low,
+                                    territory[i].postal_high);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table index/map\n");
+   fprintf (file, "table index/map\n"
+                  "class,file\n");
    map = RoadMapIndexActive->map;
 
    for (i = 0; i < RoadMapIndexActive->map_count; ++i) {
-      fprintf (file, "%d,%d\n", map[i].class, map[i].filename);
+      fprintf (file, "%.0d,%.0d\n", map[i].class, map[i].filename);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table index/name\n");
+   fprintf (file, "table index/name\n"
+                  "index\n");
    name = RoadMapIndexActive->name;
 
    for (i = 0; i < RoadMapIndexActive->name_count; ++i) {
@@ -261,7 +262,8 @@ static void rdmxchange_index_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table index/city\n");
+   fprintf (file, "table index/city\n"
+                  "index\n");
    city = RoadMapIndexActive->city;
 
    for (i = 0; i < RoadMapIndexActive->city_count; ++i) {

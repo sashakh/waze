@@ -126,18 +126,10 @@ roadmap_db_handler RoadMapPolygonExport = {
 
 static void rdmxchange_polygon_export_head (FILE *file) {
 
-   fprintf (file, "table polygon/head %d"
-                        " points.first"
-                        " points.count"
-                        " name"
-                        " layer"
-                        " edges.east"
-                        " edges.north"
-                        " edges.west"
-                        " edges.south\n",
+   fprintf (file, "table polygon/head %d\n",
                   RoadMapPolygonActive->PolygonCount);
 
-   fprintf (file, "table polygon/points %d index\n",
+   fprintf (file, "table polygon/points %d\n",
                   RoadMapPolygonActive->PolygonPointCount);
 }
 
@@ -149,21 +141,30 @@ static void rdmxchange_polygon_export_data (FILE *file) {
    RoadMapPolygonPoint *point;
 
 
-   fprintf (file, "table polygon/head\n");
+   fprintf (file, "table polygon/head\n"
+                  "points.first,"
+                  "points.count,"
+                  "name,"
+                  "layer,"
+                  "edges.east,"
+                  "edges.north,"
+                  "edges.west,"
+                  "edges.south\n");
    polygon = RoadMapPolygonActive->Polygon;
 
    for (i = 0; i < RoadMapPolygonActive->PolygonCount; ++i, ++polygon) {
-      fprintf (file, "%d,%d,", polygon->first, polygon->count);
-      fprintf (file, "%d,%d,", polygon->name, polygon->cfcc);
-      fprintf (file, "%d,%d,%d,%d\n", polygon->east,
-                                      polygon->north,
-                                      polygon->west,
-                                      polygon->south);
+      fprintf (file, "%.0d,%.0d,", polygon->first, polygon->count);
+      fprintf (file, "%.0d,%.0d,", polygon->name, polygon->cfcc);
+      fprintf (file, "%.0d,%.0d,%.0d,%.0d\n", polygon->east,
+                                              polygon->north,
+                                              polygon->west,
+                                              polygon->south);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table polygon/point\n");
+   fprintf (file, "table polygon/point\n"
+                  "index\n");
    point = RoadMapPolygonActive->PolygonPoint;
 
    for (i = 0; i < RoadMapPolygonActive->PolygonPointCount; ++i, ++point) {

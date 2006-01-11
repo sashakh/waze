@@ -152,13 +152,13 @@ roadmap_db_handler RoadMapShapeExport = {
 
 static void rdmxchange_shape_export_head (FILE *file) {
 
-   fprintf (file, "table shape/bysquare %d first count\n",
+   fprintf (file, "table shape/bysquare %d\n",
                   RoadMapShapeActive->ShapeBySquareCount);
 
-   fprintf (file, "table shape/byline %d line first count\n",
+   fprintf (file, "table shape/byline %d\n",
                   RoadMapShapeActive->ShapeByLineCount);
 
-   fprintf (file, "table shape/data %d longitude latitude\n",
+   fprintf (file, "table shape/data %d\n",
                   RoadMapShapeActive->ShapeCount);
 }
 
@@ -171,29 +171,35 @@ static void rdmxchange_shape_export_data (FILE *file) {
    RoadMapShapeBySquare *bysquare;
 
 
-   fprintf (file, "table shape/bysquare\n");
+   fprintf (file, "table shape/bysquare\n"
+                  "first,count\n");
    bysquare = RoadMapShapeActive->ShapeBySquare;
 
    for (i = 0; i < RoadMapShapeActive->ShapeBySquareCount; ++i, ++bysquare) {
-      fprintf (file, "%d,%d\n", bysquare->first, bysquare->count);
+      fprintf (file, "%.0d,%.0d\n", bysquare->first, bysquare->count);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table shape/byline\n");
+   fprintf (file, "table shape/byline\n"
+                  "line,first,count\n");
    byline = RoadMapShapeActive->ShapeByLine;
 
    for (i = 0; i < RoadMapShapeActive->ShapeByLineCount; ++i, ++byline) {
-      fprintf (file, "%d,%d,%d\n", byline->line, byline->first, byline->count);
+      fprintf (file, "%.0d,%.0d,%.0d\n", byline->line,
+                                         byline->first,
+                                         byline->count);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table shape/data\n");
+   fprintf (file, "table shape/data\n"
+                  "longitude,latitude\n");
    point = RoadMapShapeActive->Shape;
 
    for (i = 0; i < RoadMapShapeActive->ShapeCount; ++i, ++point) {
-      fprintf (file, "%d,%d\n", point->delta_longitude, point->delta_latitude);
+      fprintf (file, "%.0d,%.0d\n", point->delta_longitude,
+                                    point->delta_latitude);
    }
    fprintf (file, "\n");
 }

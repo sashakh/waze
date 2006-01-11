@@ -112,23 +112,10 @@ roadmap_db_handler RoadMapSquareExport = {
 
 static void rdmxchange_square_export_head (FILE *file) {
 
-   fprintf (file, "table square/global 1"
-                         " edges.east"
-                         " edges.north"
-                         " edges.west"
-                         " edges.south"
-                         " step.longitude"
-                         " step.latitude"
-                         " squares.count\n");
+   fprintf (file, "table square/global 1\n");
 
-   fprintf (file, "table square/data %d"
-                         " edges.east"
-                         " edges.north"
-                         " edges.west"
-                         " edges.south"
-                         " points.count"
-                         " position\n",
-                         RoadMapSquareActive->SquareCount);
+   fprintf (file, "table square/data %d\n",
+                  RoadMapSquareActive->SquareCount);
 }
 
 
@@ -137,15 +124,22 @@ static void rdmxchange_square_export_data (FILE *file) {
    int i;
    RoadMapSquare *square;
 
-   fprintf (file, "table square/global\n");
+   fprintf (file, "table square/global\n"
+                  "edges.east,"
+                  "edges.north,"
+                  "edges.west,"
+                  "edges.south,"
+                  "step.longitude,"
+                  "step.latitude,"
+                  "squares.count\n");
 
-   fprintf (file, "%d,%d,%d,%d,",
+   fprintf (file, "%.0d,%.0d,%.0d,%.0d,",
                    RoadMapSquareActive->SquareGlobal->edges.east,
                    RoadMapSquareActive->SquareGlobal->edges.north,
                    RoadMapSquareActive->SquareGlobal->edges.west,
                    RoadMapSquareActive->SquareGlobal->edges.south);
 
-   fprintf (file, "%d,%d,%d,%d,%d\n\n",
+   fprintf (file, "%.0d,%.0d,%.0d,%.0d,%.0d\n\n",
                   RoadMapSquareActive->SquareGlobal->step_longitude,
                   RoadMapSquareActive->SquareGlobal->step_latitude,
                   RoadMapSquareActive->SquareGlobal->count_longitude,
@@ -153,17 +147,23 @@ static void rdmxchange_square_export_data (FILE *file) {
                   RoadMapSquareActive->SquareGlobal->count_squares);
 
 
-   fprintf (file, "table square/data\n");
+   fprintf (file, "table square/data\n"
+                  "edges.east,"
+                  "edges.north,"
+                  "edges.west,"
+                  "edges.south,"
+                  "points.count,"
+                  "position\n");
    square = RoadMapSquareActive->Square;
 
    for (i = 0; i < RoadMapSquareActive->SquareCount; ++i, ++square) {
 
-      fprintf (file, "%d,%d,%d,%d,", square->edges.east,
-                                     square->edges.north,
-                                     square->edges.west,
-                                     square->edges.south);
+      fprintf (file, "%.0d,%.0d,%.0d,%.0d,", square->edges.east,
+                                             square->edges.north,
+                                             square->edges.west,
+                                             square->edges.south);
 
-      fprintf (file, "%d,%d\n", square->count_points, square->position);
+      fprintf (file, "%.0d,%.0d\n", square->count_points, square->position);
    }
    fprintf (file, "\n");
 }

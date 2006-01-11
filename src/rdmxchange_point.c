@@ -120,10 +120,10 @@ roadmap_db_handler RoadMapPointExport = {
 
 static void rdmxchange_point_export_head (FILE *file) {
 
-   fprintf (file, "table point/data %d longitude latitude\n",
+   fprintf (file, "table point/data %d\n",
                   RoadMapPointActive->PointCount);
 
-   fprintf (file, "table point/bysquare %d first count\n",
+   fprintf (file, "table point/bysquare %d\n",
                   RoadMapPointActive->BySquareCount);
 }
 
@@ -135,20 +135,22 @@ static void rdmxchange_point_export_data (FILE *file) {
    RoadMapPointBySquare *bysquare;
 
 
-   fprintf (file, "table point/data\n");
+   fprintf (file, "table point/data\n"
+                  "longitude,latitude\n");
    point = RoadMapPointActive->Point;
 
    for (i = 0; i < RoadMapPointActive->PointCount; ++i, ++point) {
-      fprintf (file, "%d,%d\n", point->longitude, point->latitude);
+      fprintf (file, "%.0d,%.0d\n", point->longitude, point->latitude);
    }
    fprintf (file, "\n");
 
 
-   fprintf (file, "table point/bysquare\n");
+   fprintf (file, "table point/bysquare\n"
+                  "first,count\n");
    bysquare = RoadMapPointActive->BySquare;
 
    for (i = 0; i < RoadMapPointActive->BySquareCount; ++i, ++bysquare) {
-      fprintf (file, "%d,%d\n", bysquare->first, bysquare->count);
+      fprintf (file, "%.0d,%.0d\n", bysquare->first, bysquare->count);
    }
    fprintf (file, "\n");
 }
