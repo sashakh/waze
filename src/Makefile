@@ -242,6 +242,7 @@ XCHGSRCS=rdmxchange_main.c \
 			rdmxchange_polygon.c \
 			rdmxchange_square.c \
 			rdmxchange_street.c \
+			rdmxchange_range.c \
 			rdmxchange_zip.c
 
 XCHGOBJS=$(XCHGSRCS:.c=.o)

@@ -52,6 +52,14 @@ static int RdmXchangeExportRegistered = 0;
 
 void rdmxchange_main_register_export (RdmXchangeExport *export) {
 
+   int i;
+
+   for (i = 0; i < RdmXchangeExportRegistered; ++i) {
+      if (RdmXchangeExportList[i] == export) {
+         return; /* Already registered. */
+      }
+   }
+
    if (RdmXchangeExportRegistered >= RDMXCHANGE_MAX_MODULES) {
       fprintf (stderr, "too many tables\n");
       exit(1);
@@ -72,10 +80,8 @@ int main (int argc, const char **argv) {
       roadmap_db_register (RdmMapModel, "zip", &RoadMapZipExport);
    RdmMapModel =
       roadmap_db_register (RdmMapModel, "street", &RoadMapStreetExport);
-   /* TBD
    RdmMapModel =
       roadmap_db_register (RdmMapModel, "range", &RoadMapRangeExport);
-   */
    RdmMapModel =
       roadmap_db_register (RdmMapModel, "polygon", &RoadMapPolygonExport);
    RdmMapModel =

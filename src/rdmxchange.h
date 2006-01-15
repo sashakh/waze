@@ -54,6 +54,7 @@ extern roadmap_db_handler RoadMapShapeExport;
 extern roadmap_db_handler RoadMapSquareExport;
 extern roadmap_db_handler RoadMapStreetExport;
 extern roadmap_db_handler RoadMapZipExport;
+extern roadmap_db_handler RoadMapRangeExport;
 
 #endif // INCLUDED__RDMXCHANGE__H
 
