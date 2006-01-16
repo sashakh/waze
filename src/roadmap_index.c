@@ -188,7 +188,7 @@ static void roadmap_index_unmap (void *context) {
 
    if (index_context->territory_is_covered != NULL) {
 
-      roadmap_hash_free (index_context->hash);
+      roadmap_hash_delete (index_context->hash);
       free (index_context->territory_is_covered);
    }
    free (index_context);

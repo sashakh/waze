@@ -48,6 +48,16 @@
 static RoadMapHash *HashLast = NULL;
 
 
+static void roadmap_hash_free (RoadMapHash *hash) {
+
+   if (hash->values != NULL) {
+      free (hash->values);
+   }
+   free (hash->next);
+   free (hash);
+}
+
+
 RoadMapHash *roadmap_hash_new (char *name, int size) {
 
    int i;
@@ -140,16 +150,6 @@ void roadmap_hash_resize (RoadMapHash *hash, int size) {
 }
 
 
-void roadmap_hash_free (RoadMapHash *hash) {
-
-   if (hash->values != NULL) {
-      free (hash->values);
-   }
-   free (hash->next);
-   free (hash);
-}
-
-
 void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value) {
 
    if ((index < 0) || (index > hash->size)) {
@@ -213,6 +213,33 @@ void  roadmap_hash_summary (void) {
 }
 
 
+void roadmap_hash_delete (RoadMapHash *hash) {
+
+   RoadMapHash *cursor;
+
+   if (hash == NULL) return;
+
+   if (HashLast == hash) {
+
+      /* This was the last hash created. Remove it from the list. */
+      HashLast = cursor->next_hash;
+
+   } else {
+
+      for (cursor = HashLast; cursor != NULL; cursor = cursor->next_hash) {
+
+         if (cursor->next_hash == hash) {
+            /* This is our hash table: removes it from the list. */
+            cursor->next_hash = hash->next_hash;
+            break;
+         }
+      }
+   }
+
+   roadmap_hash_free (hash);
+}
+
+
 void roadmap_hash_reset (void) {
 
    RoadMapHash *hash;
@@ -222,11 +249,7 @@ void roadmap_hash_reset (void) {
 
       next = hash->next_hash;
 
-      if (hash->values != NULL) {
-         free (hash->values);
-      }
-      free (hash->next);
-      free (hash);
+      roadmap_hash_free (hash);
    }
    HashLast = NULL;
 }

@@ -56,7 +56,7 @@ int  roadmap_hash_get_first (RoadMapHash *hash, int key);
 int  roadmap_hash_get_next  (RoadMapHash *hash, int index);
 void roadmap_hash_resize    (RoadMapHash *hash, int size);
 
-void roadmap_hash_free (RoadMapHash *hash);
+void roadmap_hash_delete (RoadMapHash *hash);
 
 void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value);
 void *roadmap_hash_get_value (RoadMapHash *hash, int index);
