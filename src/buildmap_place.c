@@ -22,8 +22,8 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_place_initialize (void);
  *   int  buildmap_place_add (int name, int cfcc, int point);
+ *
  *   int  buildmap_place_get_sorted  (int place);
  *   int buildmap_place_get_name_sorted (int place);
  *   BuildMapPlace *buildmap_place_get_record (int place);
@@ -36,10 +36,6 @@
  *           (int place, int *longitude, int *latitude);
  *   void buildmap_place_get_square_sorted (int place);
  *   int buildmap_place_compare (const void *r1, const void *r2);
- *   void buildmap_place_sort (void);
- *   void buildmap_place_save    (void);
- *   void buildmap_place_summary (void);
- *   void buildmap_place_reset   (void);
  *
  * These functions are used to build a table of places from
  * the various data sources. The objective is double: (1) reduce 
@@ -79,7 +75,10 @@ static RoadMapHash *PlaceByName = NULL;
 static int *SortedPlace = NULL;
 
 
-void buildmap_place_initialize (void) {
+static void buildmap_place_register (void);
+
+
+static void buildmap_place_initialize (void) {
 
    PlaceByName = roadmap_hash_new ("PlaceByName", BUILDMAP_BLOCK);
 
@@ -89,6 +88,8 @@ void buildmap_place_initialize (void) {
    }
 
    PlaceCount = 0;
+
+   buildmap_place_register();
 }
 
 
@@ -97,6 +98,9 @@ int buildmap_place_add (int name, int cfcc, int point) {
    int block;
    int offset;
    BuildMapPlace *this_place;
+
+
+   if (PlaceByName == NULL) buildmap_place_initialize();
 
 
    block = PlaceCount / BUILDMAP_BLOCK;
@@ -264,7 +268,7 @@ static int buildmap_place_compare (const void *r1, const void *r2) {
    return record1->point - record2->point;
 }
 
-void buildmap_place_sort (void) {
+static void buildmap_place_sort (void) {
 
    int i;
    int j;
@@ -312,7 +316,7 @@ void buildmap_place_sort (void) {
 }
 
 
-void buildmap_place_save (void) {
+static void buildmap_place_save (void) {
 
    int i;
    int j;
@@ -409,7 +413,7 @@ void buildmap_place_save (void) {
 }
 
 
-void buildmap_place_summary (void) {
+static void buildmap_place_summary (void) {
 
    fprintf (stderr,
             "-- place table statistics: %d places\n",
@@ -417,7 +421,7 @@ void buildmap_place_summary (void) {
 }
 
 
-void buildmap_place_reset (void) {
+static void buildmap_place_reset (void) {
 
    int i;
 
@@ -432,6 +436,22 @@ void buildmap_place_reset (void) {
    SortedPlace = NULL;
 
    PlaceCount = 0;
+
+   roadmap_hash_delete (PlaceByName);
    PlaceByName = NULL;
+}
+
+
+static buildmap_db_module BuildMapPlaceModule = {
+   "place",
+   buildmap_place_sort,
+   buildmap_place_save,
+   buildmap_place_summary,
+   buildmap_place_reset
+}; 
+      
+         
+static void buildmap_place_register (void) {
+   buildmap_db_register (&BuildMapPlaceModule);
 }
 

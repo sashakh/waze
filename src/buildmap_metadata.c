@@ -22,8 +22,6 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_metadata_initialize (void);
- *
  *   void buildmap_metadata_add_attribute (const char *category,
  *                                         const char *name,
  *                                         const char *value);
@@ -31,11 +29,6 @@
  *   void buildmap_metadata_add_value (const char *category,
  *                                     const char *name,
  *                                     const char *value);
- *
- *   void buildmap_metadata_sort    (void);
- *   void buildmap_metadata_save    (void);
- *   void buildmap_metadata_summary (void);
- *   void buildmap_metadata_reset   (void);
  *
  * These functions are used to build a table of attributes that describe
  * what this map file contains.
@@ -75,7 +68,10 @@ static RoadMapHash *AttributeByName = NULL;
 BuildMapDictionary AttributeDictionary = NULL;
 
 
-void buildmap_metadata_initialize (void) {
+static void buildmap_metadata_register (void);
+
+
+static void buildmap_metadata_initialize (void) {
 
    AttributeByName =
       roadmap_hash_new ("AttributeByName", BUILDMAP_BLOCK);
@@ -86,6 +82,8 @@ void buildmap_metadata_initialize (void) {
    }
 
    AttributeDictionary = buildmap_dictionary_open ("attributes");
+
+   buildmap_metadata_register ();
 }
 
 
@@ -98,16 +96,23 @@ void buildmap_metadata_add_attribute (const char *category,
    int offset;
    BuildMapAttribute *this_attribute;
 
+   RoadMapString coded_category;
+   RoadMapString coded_name;
+   RoadMapString coded_value;
+
+
+   if (AttributeByName == NULL) buildmap_metadata_initialize();
+
 
    /* First check if the attribute is already known. */
 
-   RoadMapString coded_category =
+   coded_category =
       buildmap_dictionary_add (AttributeDictionary, category, strlen(category));
 
-   RoadMapString coded_name =
+   coded_name =
       buildmap_dictionary_add (AttributeDictionary, name, strlen(name));
 
-   RoadMapString coded_value =
+   coded_value =
       buildmap_dictionary_add (AttributeDictionary, value, strlen(value));
 
    for (i = roadmap_hash_get_first (AttributeByName, coded_name);
@@ -201,10 +206,7 @@ void buildmap_metadata_add_value (const char *category,
 }
 
 
-void buildmap_metadata_sort (void) {}
-
-
-void buildmap_metadata_save (void) {
+static void buildmap_metadata_save (void) {
 
    int i;
    int j;
@@ -262,7 +264,7 @@ void buildmap_metadata_save (void) {
 }
 
 
-void buildmap_metadata_summary (void) {
+static void buildmap_metadata_summary (void) {
 
    fprintf (stderr,
             "-- metadata table statistics: %d attributes, %d bytes used\n",
@@ -270,7 +272,7 @@ void buildmap_metadata_summary (void) {
 }
 
 
-void buildmap_metadata_reset (void) {
+static void buildmap_metadata_reset (void) {
 
    int i;
 
@@ -283,6 +285,21 @@ void buildmap_metadata_reset (void) {
 
    AttributeCount = 0;
 
+   roadmap_hash_delete (AttributeByName);
    AttributeByName = NULL;
+}
+
+
+static buildmap_db_module BuildMapMetadataModule = {
+   "metadata",
+   NULL,
+   buildmap_metadata_save,
+   buildmap_metadata_summary,
+   buildmap_metadata_reset
+}; 
+      
+         
+static void buildmap_metadata_register (void) {
+   buildmap_db_register (&BuildMapMetadataModule);
 }
 

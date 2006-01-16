@@ -191,8 +191,10 @@ void buildmap_summary (int verbose, const char *format, ...) {
 
    va_list ap;
 
-   SourceLine = 0;
-   buildmap_show_source (stderr, "--", -1);
+   if (ErrorCount > 0 || verbose) {
+      SourceLine = 0;
+      buildmap_show_source (stderr, "--", -1);
+   }
 
    if (ErrorCount > 0) {
       if (ErrorCount > 1) {
