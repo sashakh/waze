@@ -57,6 +57,12 @@ static buildmap_db   BuildmapDbRoot;
 static buildmap_db *BuildmapCurrentDbSection = NULL;
 
 
+#define BUILDMAP_MAX_MODULE  256
+
+static const buildmap_db_module *BuildmapModuleRegistration[BUILDMAP_MAX_MODULE];
+static int BuildmapModuleCount = 0;
+
+
 static void buildmap_db_repair_tree (buildmap_db *section) {
 
    buildmap_db *child;
@@ -344,5 +350,75 @@ buildmap_db *buildmap_db_add_child (buildmap_db *parent,
    }
 
    return table;
+}
+
+
+/* This section brings support for generic operations on all
+ * modules.
+ */
+
+void buildmap_db_register (const buildmap_db_module *module) {
+
+   int i;
+
+   /* First check if that module was not already registered. */
+
+   for (i = BuildmapModuleCount - 1; i >= 0; --i) {
+      if (BuildmapModuleRegistration[i] == module) return;
+   }
+
+   if (BuildmapModuleCount >= BUILDMAP_MAX_MODULE) {
+      buildmap_fatal (0, "too many modules");
+   }
+
+   BuildmapModuleRegistration[BuildmapModuleCount++] = module;
+}
+
+
+void buildmap_db_sort (void) {
+
+   int i;
+
+   for (i = 0; i < BuildmapModuleCount; ++i) {
+      if (BuildmapModuleRegistration[i]->sort != NULL) {
+         BuildmapModuleRegistration[i]->sort ();
+      }
+   }
+}
+
+
+void buildmap_db_save (void) {
+
+   int i;
+
+   for (i = 0; i < BuildmapModuleCount; ++i) {
+      if (BuildmapModuleRegistration[i]->save != NULL) {
+         BuildmapModuleRegistration[i]->save ();
+      }
+   }
+}
+
+
+void buildmap_db_summary (void) {
+
+   int i;
+
+   for (i = 0; i < BuildmapModuleCount; ++i) {
+      if (BuildmapModuleRegistration[i]->summary != NULL) {
+         BuildmapModuleRegistration[i]->summary ();
+      }
+   }
+}
+
+
+void buildmap_db_reset (void) {
+
+   int i;
+
+   for (i = 0; i < BuildmapModuleCount; ++i) {
+      if (BuildmapModuleRegistration[i]->reset != NULL) {
+         BuildmapModuleRegistration[i]->reset ();
+      }
+   }
 }
 

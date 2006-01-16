@@ -42,9 +42,11 @@ void buildmap_summary  (int verbose, const char *format, ...);
 int buildmap_get_error_count (void);
 int buildmap_get_error_total (void);
 
+
 typedef struct dictionary_volume *BuildMapDictionary;
 
 BuildMapDictionary buildmap_dictionary_open (char *name);
+
 RoadMapString buildmap_dictionary_add
                 (BuildMapDictionary dictionary, const char *string, int length);
 
@@ -52,10 +54,6 @@ RoadMapString buildmap_dictionary_locate
                 (BuildMapDictionary dictionary, const char *string);
 char *buildmap_dictionary_get
          (BuildMapDictionary dictionary, RoadMapString index);
-
-void  buildmap_dictionary_summary (void);
-void  buildmap_dictionary_save    (void);
-void  buildmap_dictionary_reset   (void);
 
 
 struct buildmap_db_section {
@@ -71,7 +69,22 @@ struct buildmap_db_section {
 typedef struct buildmap_db_section buildmap_db;
 
 
+typedef void (*buildmap_db_action) (void);
+
+typedef struct {
+
+   const char        *name;
+   buildmap_db_action sort;
+   buildmap_db_action save;
+   buildmap_db_action summary;
+   buildmap_db_action reset;
+
+} buildmap_db_module;
+
+
 int buildmap_db_open (const char *path, const char *name);
+
+void buildmap_db_register (const buildmap_db_module *module);
 
 buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name);
 int          buildmap_db_add_data (buildmap_db *section, int count, int size);
@@ -81,6 +94,12 @@ buildmap_db *buildmap_db_add_child (buildmap_db *parent,
                                     char *name,
                                     int count,
                                     int size);
+
+/* The functions that call the registered actions: */
+void buildmap_db_sort    (void);
+void buildmap_db_save    (void);
+void buildmap_db_summary (void);
+void buildmap_db_reset   (void);
 
 void buildmap_db_close (void);
 
