@@ -25,15 +25,13 @@
  *   void  buildmap_square_initialize
  *            (int minlongitude, int maxlongitude,
  *             int minlatitude,  int maxlatitude);
+ *
  *   int   buildmap_square_add  (int longitude, int latitude);
- *   void  buildmap_square_sort (void);
+ *
  *   short buildmap_square_get_sorted (int squareid);
  *   int   buildmap_square_get_count (void);
  *   void  buildmap_square_get_reference_sorted
  *            (int square, int *longitude, int *latitude);
- *   void buildmap_square_save    (void);
- *   void buildmap_square_summary (void);
- *   void buildmap_square_reset   (void);
  *
  * These functions are used to build a table of lines from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -80,6 +78,9 @@ static int SortStepLatitude;
 
 static int SortCountLongitude;
 static int SortCountLatitude;
+
+
+static void buildmap_square_register (void);
 
 
 static int buildmap_square_search (int longitude, int latitude) {
@@ -206,6 +207,8 @@ void buildmap_square_initialize
    for (i = SquareTableSize - count_latitude; i < SquareTableSize; i++) {
       Square[i].maxlongitude = maxlongitude;
    }
+
+   buildmap_square_register();
 }
 
 
@@ -294,7 +297,7 @@ void buildmap_square_sort (void) {
 }
 
 
-void buildmap_square_save (void) {
+static void buildmap_square_save (void) {
 
    int i;
 
@@ -354,14 +357,14 @@ void buildmap_square_save (void) {
 }
 
 
-void buildmap_square_summary (void) {
+static void buildmap_square_summary (void) {
 
    fprintf (stderr, "-- square table statistics: %d squares, %d bytes used\n",
                     SquareCount, SquareCount * sizeof(RoadMapSquare));
 }
 
 
-void buildmap_square_reset (void) {
+static void buildmap_square_reset (void) {
 
    SquareCount = 0;
    SquareTableSize = 0;
@@ -382,5 +385,19 @@ void buildmap_square_reset (void) {
 
    SortCountLongitude = 0;
    SortCountLatitude = 0;
+}
+
+
+static buildmap_db_module BuildMapSquareModule = {
+   "square",
+   buildmap_square_sort,
+   buildmap_square_save,
+   buildmap_square_summary,
+   buildmap_square_reset
+}; 
+   
+
+static void buildmap_square_register (void) {
+   buildmap_db_register (&BuildMapSquareModule);
 }
 

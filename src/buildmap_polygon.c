@@ -22,17 +22,13 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_polygon_initialize (void);
  *   int  buildmap_polygon_add_landmark
  *           (int landid, char cfcc, RoadMapString name);
  *   int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid);
  *   int  buildmap_polygon_add_line
  *           (RoadMapString cenid, int polyid, int tlid, int side);
+ *
  *   int  buildmap_polygon_use_line (int tlid);
- *   void buildmap_polygon_sort     (void);
- *   void buildmap_polygon_save     (void);
- *   void buildmap_polygon_summary  (void);
- *   void buildmap_polygon_reset    (void);
  *
  * These functions are used to build a table of lines from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -140,6 +136,9 @@ static RoadMapHash *PolygonLineById = NULL;
 
 static int *SortedPolygon = NULL;
 static int *SortedPolygonLine = NULL;
+
+
+static void buildmap_polygon_register (void);
 
 
 static BuildMapLandmark *buildmap_polygon_search_landmark (int landid) {
@@ -466,7 +465,7 @@ static void buildmap_polygon_fill_bounding_box
 }
 
 
-void buildmap_polygon_initialize (void) {
+static void buildmap_polygon_initialize (void) {
 
    LandmarkById = roadmap_hash_new ("LandmarkById", BUILDMAP_BLOCK);
    PolygonByPolyid = roadmap_hash_new ("PolygonByPolyid", BUILDMAP_BLOCK);
@@ -490,6 +489,8 @@ void buildmap_polygon_initialize (void) {
    PolygonCount = 0;
    PolygonLineCount = 0;
    LandmarkCount = 0;
+
+   buildmap_polygon_register();
 }
 
 
@@ -499,6 +500,9 @@ int  buildmap_polygon_add_landmark
    int block;
    int offset;
    BuildMapLandmark *this_landmark;
+
+
+   if (LandmarkById == NULL) buildmap_polygon_initialize ();
 
 
    if (cfcc < 0) {
@@ -538,6 +542,9 @@ int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid) {
    int offset;
    BuildMapPolygon *this_polygon;
    BuildMapLandmark *this_landmark;
+
+
+   if (LandmarkById == NULL) buildmap_polygon_initialize ();
 
 
    this_landmark = buildmap_polygon_search_landmark (landid);
@@ -588,6 +595,8 @@ int  buildmap_polygon_add_line
    BuildMapPolygon *this_polygon;
    BuildMapPolygonLine *this_line;
 
+
+   if (LandmarkById == NULL) buildmap_polygon_initialize ();
 
    this_polygon = buildmap_polygon_search (cenid, polyid);
    if (this_polygon == NULL) {
@@ -673,6 +682,9 @@ int buildmap_polygon_use_line (int tlid) {
    int index;
    BuildMapPolygonLine *this_line;
 
+
+   if (LandmarkById == NULL) return 0;
+
    for (index = roadmap_hash_get_first (PolygonLineById, tlid);
         index >= 0;
         index = roadmap_hash_get_next (PolygonLineById, index)) {
@@ -729,7 +741,7 @@ static int buildmap_polygon_compare_lines (const void *r1, const void *r2) {
 }
 
 
-void buildmap_polygon_sort (void) {
+static void buildmap_polygon_sort (void) {
 
    int i;
    int j;
@@ -893,7 +905,7 @@ void buildmap_polygon_sort (void) {
 }
 
 
-void buildmap_polygon_save (void) {
+static void buildmap_polygon_save (void) {
 
    int i;
    int j;
@@ -1009,7 +1021,7 @@ void buildmap_polygon_save (void) {
 }
 
 
-void buildmap_polygon_summary (void) {
+static void buildmap_polygon_summary (void) {
 
    fprintf (stderr,
             "-- polygon table statistics: %d polygons, %d lines\n",
@@ -1017,7 +1029,7 @@ void buildmap_polygon_summary (void) {
 }
 
 
-void buildmap_polygon_reset (void) {
+static void buildmap_polygon_reset (void) {
 
    int i;
 
@@ -1047,8 +1059,27 @@ void buildmap_polygon_reset (void) {
    PolygonCount  = 0;
    PolygonLineCount = 0;
 
+   roadmap_hash_delete (LandmarkById);
    LandmarkById = NULL;
+
+   roadmap_hash_delete (PolygonByPolyid);
    PolygonByPolyid = NULL;
+
+   roadmap_hash_delete (PolygonLineById);
    PolygonLineById = NULL;
+}
+
+
+static buildmap_db_module BuildMapPolygonModule = {
+   "polygon",
+   buildmap_polygon_sort,
+   buildmap_polygon_save,
+   buildmap_polygon_summary,
+   buildmap_polygon_reset
+}; 
+      
+         
+static void buildmap_polygon_register (void) {
+   buildmap_db_register (&BuildMapPolygonModule);
 }
 

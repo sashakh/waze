@@ -21,20 +21,16 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDUS_COUNTY__H_
-#define _BUILDUS_COUNTY__H_
+#ifndef INCLUDED__BUILDUS_COUNTY__H
+#define INCLUDED__BUILDUS_COUNTY__H
 
 #include "roadmap_types.h"
 
-void buildus_county_initialize (void);
 int  buildus_county_add (int fips,
                          RoadMapString name, RoadMapString state_symbol);
 void buildus_county_add_state (RoadMapString name, RoadMapString symbol);
 void buildus_county_add_city (int fips, RoadMapString city);
 void buildus_county_set_position (int fips, const RoadMapArea *edges);
-void buildus_county_sort (void);
-void buildus_county_save (void);
-void buildus_county_summary (void);
 
-#endif // _BUILDUS_COUNTY__H_
+#endif // INCLUDED__BUILDUS_COUNTY__H
 

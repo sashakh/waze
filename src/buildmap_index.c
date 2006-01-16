@@ -34,10 +34,6 @@
  *   void buildmap_index_add_city           (const char *city);
  *   void buildmap_index_add_postal_code    (unsigned int code);
  *
- *   void buildmap_index_sort (void);
- *   void buildmap_index_save (void);
- *   void buildmap_index_summary (void);
- *
  * These functions are used to build a table of counties from
  * the census bureau list of FIPS code.
  * The goal is to help localize the specific map for a given address
@@ -151,6 +147,9 @@ static const char *BuildMapBasePath = NULL;
 static       int   BuildMapBaseLength = 0;
 
 
+static void buildmap_index_register (void);
+
+
 void buildmap_index_initialize (const char *path) {
 
    TerritoryByWtid = roadmap_hash_new ("TerritoryByWtid", BUILDMAP_BLOCK);
@@ -168,6 +167,8 @@ void buildmap_index_initialize (const char *path) {
 
    BuildMapBasePath = strdup(path);
    BuildMapBaseLength = strlen(BuildMapBasePath);
+
+   buildmap_index_register ();
 }
 
 
@@ -532,7 +533,7 @@ static void buildmap_index_common_parent (char *common, const char *file) {
 }
 
 
-void buildmap_index_sort (void) {
+static void buildmap_index_sort (void) {
 
    int index;
    int length;
@@ -667,7 +668,7 @@ void buildmap_index_sort (void) {
 }
 
 
-void buildmap_index_save (void) {
+static void buildmap_index_save (void) {
 
    int i;
 
@@ -807,10 +808,24 @@ void buildmap_index_save (void) {
 }
 
 
-void buildmap_index_summary (void) {
+static void buildmap_index_summary (void) {
 
    fprintf (stderr,
             "-- index statistics: %d authorities, %d territories, %d maps\n",
             AuthorityCount, TerritoryCount, MapCount);
+}
+
+
+static buildmap_db_module BuildMapIndexModule = {
+   "index",
+   buildmap_index_sort,
+   buildmap_index_save,
+   buildmap_index_summary,
+   NULL
+}; 
+      
+         
+static void buildmap_index_register (void) {
+   buildmap_db_register (&BuildMapIndexModule);
 }
 

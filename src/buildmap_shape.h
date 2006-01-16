@@ -21,19 +21,12 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP_SHAPE__H_
-#define _BUILDMAP_SHAPE__H_
+#ifndef INCLUDED__BUILDMAP_SHAPE__H
+#define INCLUDED__BUILDMAP_SHAPE__H
 
 #include "roadmap_types.h"
 
-void buildmap_shape_initialize (void);
 int buildmap_shape_add (int line, int sequence, int longitude, int latitude);
 
-void buildmap_shape_sort (void);
-
-void buildmap_shape_save    (void);
-void buildmap_shape_summary (void);
-void buildmap_shape_reset   (void);
-
-#endif // _BUILDMAP_SHAPE__H_
+#endif // INCLUDED__BUILDMAP_SHAPE__H
 

@@ -22,10 +22,8 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_point_initialize (void);
  *   int  buildmap_point_add        (int longitude, int latitude);
  *
- *   void buildmap_point_sort (void);
  *   int  buildmap_point_get_square (int pointid);
  *   int  buildmap_point_get_longitude (int pointid);
  *   int  buildmap_point_get_latitude  (int pointid);
@@ -33,9 +31,6 @@
  *   int  buildmap_point_get_longitude_sorted (int point);
  *   int  buildmap_point_get_latitude_sorted  (int point);
  *   int  buildmap_point_get_square_sorted (int pointid);
- *   void buildmap_point_save    (void);
- *   void buildmap_point_summary (void);
- *   void buildmap_point_reset   (void);
  *
  * These functions are used to build a table of lines from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -79,7 +74,9 @@ static int SortMaxLatitude  = -0x7fffffff;
 static int SortMinLatitude  =  0x7fffffff;
 
 
-void buildmap_point_initialize (void) {
+static void buildmap_point_register (void);
+
+static void buildmap_point_initialize (void) {
 
    PointByPosition =
       roadmap_hash_new ("PointByPosition", BUILDMAP_BLOCK);
@@ -95,6 +92,8 @@ void buildmap_point_initialize (void) {
    SortMinLongitude =  0x7fffffff;
    SortMaxLatitude  = -0x7fffffff;
    SortMinLatitude  =  0x7fffffff;
+
+   buildmap_point_register();
 }
 
 
@@ -104,6 +103,9 @@ int buildmap_point_add (int longitude, int latitude) {
    int block;
    int offset;
    BuildMapPoint *this_point;
+
+
+   if (PointByPosition == NULL) buildmap_point_initialize();
 
 
    /* First check if the point is already known. */
@@ -330,7 +332,7 @@ void buildmap_point_sort (void) {
 }
 
 
-void buildmap_point_save (void) {
+static void buildmap_point_save (void) {
 
    int i;
    int j;
@@ -394,14 +396,14 @@ void buildmap_point_save (void) {
 }
 
 
-void buildmap_point_summary (void) {
+static void buildmap_point_summary (void) {
 
    fprintf (stderr, "-- point table statistics: %d points, %d bytes used\n",
                     PointCount, PointCount * sizeof(RoadMapPoint));
 }
 
 
-void buildmap_point_reset (void) {
+static void buildmap_point_reset (void) {
 
    int i;
 
@@ -412,16 +414,33 @@ void buildmap_point_reset (void) {
       }
    }
 
-   free (SortedPoint);
-   SortedPoint = NULL;
+   if (SortedPoint != NULL) {
+      free (SortedPoint);
+      SortedPoint = NULL;
+   }
 
    PointCount = 0;
 
+   roadmap_hash_delete (PointByPosition);
    PointByPosition = NULL;
 
    SortMaxLongitude = -0x7fffffff;
    SortMinLongitude =  0x7fffffff;
    SortMaxLatitude  = -0x7fffffff;
    SortMinLatitude  =  0x7fffffff;
+}
+
+
+static buildmap_db_module BuildMapPointModule = {
+   "point",
+   buildmap_point_sort,
+   buildmap_point_save,
+   buildmap_point_summary,
+   buildmap_point_reset
+};
+
+
+static void buildmap_point_register (void) {
+   buildmap_db_register (&BuildMapPointModule);
 }
 

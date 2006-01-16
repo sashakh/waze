@@ -22,7 +22,6 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_area_initialize (void);
  *   int buildmap_area_add
  *          (char cfcc,
  *           RoadMapString fedirp,
@@ -30,9 +29,6 @@
  *           RoadMapString fetype,
  *           RoadMapString fedirs,
  *           int tlid);
- *   void  buildmap_area_sort (void);
- *   void  buildmap_area_save (void);
- *   void  buildmap_area_summary (void);
  *
  * These functions are used to build a table of areas from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -50,11 +46,6 @@
 #include "buildmap_area.h"
 
 
-void buildmap_area_initialize (void) {
-
-}
-
-
 int buildmap_area_add
         (char cfcc,
          RoadMapString fedirp,
@@ -64,20 +55,5 @@ int buildmap_area_add
          int tlid) {
 
    return 0; /* TBD */
-}
-
-
-void buildmap_area_sort (void) {
-
-}
-
-
-void buildmap_area_save (void) {
-
-}
-
-
-void buildmap_area_summary (void) {
-
 }
 

@@ -22,16 +22,13 @@
  *
  * SYNOPSYS:
  *
- *   void buildus_county_initialize (void);
  *   int  buildus_county_add (int fips,
  *                            RoadMapString name, RoadMapString state_symbol);
  *   int  buildus_county_add_state (RoadMapString name, int code);
  *   void buildus_county_add_city (int fips, RoadMapString city);
+ *
  *   void buildus_county_set_position (int fips,
  *                                     const RoadMapArea *bounding_box);
- *   void buildus_county_sort (void);
- *   void buildus_county_save (void);
- *   void buildus_county_summary (void);
  *
  * These functions are used to build a table of counties from
  * the census bureau list of FIPS code.
@@ -88,7 +85,10 @@ static int StateMaxCode = 0;
 static int StateCount   = 0;
 
 
-void buildus_county_initialize (void) {
+static void buildus_county_register (void);
+
+
+static void buildus_county_initialize (void) {
 
    int i;
 
@@ -104,6 +104,8 @@ void buildus_county_initialize (void) {
    CountyCityCount = 0;
    StateMaxCode = 0;
    StateCount = 0;
+
+   buildus_county_register();
 }
 
 
@@ -114,6 +116,9 @@ int buildus_county_add
    int block;
    int offset;
    RoadMapCounty *this_county;
+
+
+   if (CountyByFips == NULL) buildus_county_initialize ();
 
 
    /* First search if that county is not yet known. */
@@ -193,6 +198,10 @@ void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
    int i;
    RoadMapArea area_reset = {0, 0, 0, 0};
 
+
+   if (CountyByFips == NULL) buildus_county_initialize ();
+
+
    /* Search if that state is not yet known. */
 
    for (i = StateCount; i > 0; --i) {
@@ -223,6 +232,9 @@ void buildus_county_add_city (int fips, RoadMapString city) {
    int offset;
    RoadMapCounty *this_county;
    struct RoadMapCity *this_city;
+
+
+   if (CountyByFips == NULL) buildus_county_initialize ();
 
 
    /* First retrieve the county. */
@@ -356,7 +368,7 @@ static int buildmap_county_compare_city (const void *r1, const void *r2) {
    return record1->name - record2->name;
 }
 
-void buildus_county_sort (void) {
+static void buildus_county_sort (void) {
 
    int i;
 
@@ -398,7 +410,7 @@ void buildus_county_sort (void) {
 }
 
 
-void buildus_county_save (void) {
+static void buildus_county_save (void) {
 
    int i;
    int j;
@@ -546,7 +558,16 @@ void buildus_county_save (void) {
 }
 
 
-void buildus_county_summary (void) {
+static buildmap_db_module BuildUsCountyModule = {
+   "county",
+   buildus_county_sort,
+   buildus_county_save,
+   NULL,
+   NULL
+};
 
+
+static void buildus_county_register (void) {
+   buildmap_db_register (&BuildUsCountyModule);
 }
 

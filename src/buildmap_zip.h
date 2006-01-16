@@ -21,12 +21,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP_ZIP__H_
-#define _BUILDMAP_ZIP__H_
+#ifndef INCLUDED__BUILDMAP_ZIP__H
+#define INCLUDED__BUILDMAP_ZIP__H
 
 #include "roadmap_types.h"
 
-void buildmap_zip_initialize (void);
 void buildmap_zip_set_county (int county_code);
 
 RoadMapZip buildmap_zip_add (int zip, int longitude, int latitude);
@@ -37,9 +36,5 @@ int  buildmap_zip_get_latitude  (RoadMapZip index);
 
 RoadMapZip buildmap_zip_locate (int zip);
 
-void buildmap_zip_save    (void);
-void buildmap_zip_summary (void);
-void buildmap_zip_reset   (void);
-
-#endif // _BUILDMAP_ZIP__H_
+#endif // INCLUDED__BUILDMAP_ZIP__H
 

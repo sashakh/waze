@@ -83,8 +83,7 @@ static void rdmindex_save (void) {
    buildmap_set_source (RdmIndexName);
    buildmap_db_open (RdmIndexPath, RdmIndexName);
 
-   buildmap_dictionary_save ();
-   buildmap_index_save ();
+   buildmap_db_save ();
 
    buildmap_db_close ();
 }
@@ -360,13 +359,12 @@ int main (int argc, const char **argv) {
 
    buildmap_set_source (RdmIndexName);
 
-   buildmap_index_sort();
+   buildmap_db_sort();
 
    if (RdmIndexVerbose) {
 
       roadmap_hash_summary ();
-      buildmap_dictionary_summary ();
-      buildmap_index_summary ();
+      buildmap_db_summary ();
    }
 
    rdmindex_save ();

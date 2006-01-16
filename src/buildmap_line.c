@@ -22,9 +22,8 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_line_initialize (void);
  *   int  buildmap_line_add (int tlid, int cfcc, int from, int to);
- *   void buildmap_line_sort (void);
+ *
  *   int  buildmap_line_get_sorted  (int line);
  *   void buildmap_line_find_sorted (int tlid);
  *   int  buildmap_line_get_id_sorted (int line);
@@ -33,9 +32,6 @@
  *   void buildmap_line_get_position_sorted
  *           (int line, int *longitude, int *latitude);
  *   void buildmap_line_get_square_sorted (int line);
- *   void buildmap_line_save    (void);
- *   void buildmap_line_summary (void);
- *   void buildmap_line_reset   (void);
  *
  * These functions are used to build a table of lines from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -77,7 +73,10 @@ static int *SortedLine = NULL;
 static int *SortedLine2 = NULL;
 
 
-void buildmap_line_initialize (void) {
+static void buildmap_line_register (void);
+
+
+static void buildmap_line_initialize (void) {
 
    LineById = roadmap_hash_new ("LineById", BUILDMAP_BLOCK);
 
@@ -87,6 +86,8 @@ void buildmap_line_initialize (void) {
    }
 
    LineCount = 0;
+
+   buildmap_line_register();
 }
 
 
@@ -95,6 +96,9 @@ int buildmap_line_add (int tlid, int cfcc, int from, int to) {
    int block;
    int offset;
    BuildMapLine *this_line;
+
+
+   if (LineById == NULL) buildmap_line_initialize();
 
 
    block = LineCount / BUILDMAP_BLOCK;
@@ -381,7 +385,7 @@ void buildmap_line_sort (void) {
 }
 
 
-void buildmap_line_save (void) {
+static void buildmap_line_save (void) {
 
    int i;
    int j;
@@ -545,7 +549,7 @@ void buildmap_line_save (void) {
 }
 
 
-void buildmap_line_summary (void) {
+static void buildmap_line_summary (void) {
 
    fprintf (stderr,
             "-- line table statistics: %d lines, %d crossing\n",
@@ -553,7 +557,7 @@ void buildmap_line_summary (void) {
 }
 
 
-void buildmap_line_reset (void) {
+static void buildmap_line_reset (void) {
 
    int i;
 
@@ -573,6 +577,21 @@ void buildmap_line_reset (void) {
    LineCount = 0;
    LineCrossingCount = 0;
 
+   roadmap_hash_delete (LineById);
    LineById = NULL;
+}
+
+
+static buildmap_db_module BuildMapLineModule = {
+   "line",
+   buildmap_line_sort,
+   buildmap_line_save,
+   buildmap_line_summary,
+   buildmap_line_reset
+}; 
+      
+         
+static void buildmap_line_register (void) {
+   buildmap_db_register (&BuildMapLineModule);
 }
 

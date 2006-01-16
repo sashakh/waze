@@ -137,17 +137,6 @@ static void  buildplace_select_format (poptContext decoder) {
    }
 }
 
-static void buildplace_initialize (void) {
-
-   buildmap_point_initialize();
-   buildmap_place_initialize();
-}
-
-
-static void buildplace_sort (void) {
-
-   buildmap_place_sort ();
-}
 
 static void buildplace_save (const char *name) {
 
@@ -167,10 +156,7 @@ static void buildplace_save (const char *name) {
       buildmap_fatal (0, "cannot create database %s", db_name);
    }
 
-   buildmap_square_save ();
-   buildmap_point_save ();
-   buildmap_dictionary_save ();
-   buildmap_place_save ();
+   buildmap_db_save ();
 
    buildmap_db_close ();
 }
@@ -184,17 +170,6 @@ static void buildplace_dsg_reset(void) {
         BuildPlaceDSGStrings[i] = NULL;
     }
     BuildPlaceDSGCount = 0;
-}
-
-
-static void buildplace_reset (void) {
-
-   buildmap_square_reset ();
-   buildmap_point_reset ();
-   buildmap_place_reset ();
-   buildmap_dictionary_reset ();
-   roadmap_hash_reset ();
-   buildplace_dsg_reset ();
 }
 
 
@@ -369,8 +344,6 @@ static void buildplace_read_dsg (const char *dsgfile) {
 static void buildplace_process (const char *source, const char *fips,
                                 int verbose) {
 
-   buildplace_initialize ();
-
    switch (BuildPlaceFormatFamily) {
 
       case BUILDPLACE_FORMAT_SHAPE:
@@ -382,20 +355,20 @@ static void buildplace_process (const char *source, const char *fips,
          break;
    }
 
-   buildplace_sort();
+   buildmap_db_sort();
 
    if (verbose) {
 
       roadmap_hash_summary ();
-      buildmap_dictionary_summary ();
-
-      buildmap_square_summary ();
-      buildmap_place_summary ();
+      buildmap_db_summary ();
       buildplace_dsg_summary ();
    }
 
    buildplace_save (fips);
-   buildplace_reset ();
+
+   buildmap_db_reset ();
+   buildplace_dsg_reset ();
+   roadmap_hash_reset ();
 }
 
 

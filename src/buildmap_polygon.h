@@ -21,23 +21,19 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_POLYGON__H_
-#define _ROADMAP_POLYGON__H_
+#ifndef INCLUDED__ROADMAP_POLYGON__H
+#define INCLUDED__ROADMAP_POLYGON__H
 
 #define POLYGON_SIDE_LEFT   0
 #define POLYGON_SIDE_RIGHT  1
 
-void buildmap_polygon_initialize (void);
 int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid);
 int  buildmap_polygon_add_landmark
         (int landid, char cfcc, RoadMapString name);
 int  buildmap_polygon_add_line
         (RoadMapString cenid, int polyid, int tlid, int side);
-int  buildmap_polygon_use_line (int tlid);
-void buildmap_polygon_sort    (void);
-void buildmap_polygon_save    (void);
-void buildmap_polygon_summary (void);
-void buildmap_polygon_reset   (void);
 
-#endif // _ROADMAP_POLYGON__H_
+int  buildmap_polygon_use_line (int tlid);
+
+#endif // INCLUDED__ROADMAP_POLYGON__H
 

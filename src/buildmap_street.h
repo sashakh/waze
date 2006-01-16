@@ -21,12 +21,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP_STREET__H_
-#define _BUILDMAP_STREET__H_
+#ifndef INCLUDED__BUILDMAP_STREET__H
+#define INCLUDED__BUILDMAP_STREET__H
 
 #include <stdio.h>
 
-void buildmap_street_initialize (void);
 int  buildmap_street_add
         (char cfcc,
          RoadMapString fedirp,
@@ -35,15 +34,12 @@ int  buildmap_street_add
          RoadMapString fedirs,
          int line);
 
-void buildmap_street_sort (void);
 int  buildmap_street_get_sorted (int street);
 void buildmap_street_print_sorted (FILE *file, int street);
 
 int  buildmap_street_count (void);
 
-void buildmap_street_save    (void);
-void buildmap_street_summary (void);
-void buildmap_street_reset   (void);
+void buildmap_street_sort (void);
 
-#endif // _BUILDMAP_STREET__H_
+#endif // INCLUDED__BUILDMAP_STREET__H
 

@@ -22,14 +22,9 @@
  *
  * SYNOPSYS:
  *
- *   void  buildmap_city_initialize (void);
  *   void  buildmap_city_add        (int fips, int year, RoadMapString name);
  *
  *   RoadMapString buildmap_city_get_name   (int fips);
- *
- *   void  buildmap_city_save    (void);
- *   void  buildmap_city_summary (void);
- *   void  buildmap_city_reset   (void);
  *
  * These functions are used to build a table of cities from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -68,11 +63,16 @@ static BuildMapCity *City[BUILDMAP_BLOCK] = {NULL};
 static RoadMapHash *CityByFips = NULL;
 
 
-void buildmap_city_initialize (void) {
+static void buildmap_city_register (void);
+
+
+static void buildmap_city_initialize (void) {
 
    CityByFips = roadmap_hash_new ("CityByFips", BUILDMAP_BLOCK);
 
    CityCount = 0;
+
+   buildmap_city_register();
 }
 
 
@@ -82,6 +82,9 @@ void buildmap_city_add (int fips, int year, RoadMapString name) {
    int block;
    int offset;
    BuildMapCity *this_city;
+
+
+   if (CityByFips == NULL) buildmap_city_initialize();
 
 
    /* First search if that city is not yet known. */
@@ -140,6 +143,8 @@ RoadMapString buildmap_city_get_name (int fips) {
    int index;
    BuildMapCity *this_city;
 
+   if (CityByFips == NULL) return 0;
+
    for (index = roadmap_hash_get_first (CityByFips, fips);
         index >= 0;
         index = roadmap_hash_get_next (CityByFips, index)) {
@@ -155,18 +160,14 @@ RoadMapString buildmap_city_get_name (int fips) {
 }
 
 
-void  buildmap_city_save (void) {
-}
-
-
-void buildmap_city_summary (void) {
+static void buildmap_city_summary (void) {
 
    fprintf (stderr,
             "-- city table statistics: %d cities\n", CityCount);
 }
 
 
-void buildmap_city_reset (void) {
+static void buildmap_city_reset (void) {
 
    int i;
 
@@ -179,6 +180,21 @@ void buildmap_city_reset (void) {
 
    CityCount = 0;
 
+   roadmap_hash_delete (CityByFips);
    CityByFips = NULL;
+}
+
+
+static buildmap_db_module BuildMapCityModule = {
+   "city",
+   NULL,
+   NULL,
+   buildmap_city_summary,
+   buildmap_city_reset
+};
+
+
+static void buildmap_city_register (void) {
+   buildmap_db_register (&BuildMapCityModule);
 }
 

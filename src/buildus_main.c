@@ -80,8 +80,7 @@ static void buildus_save (void) {
       buildmap_fatal (0, "cannot create database 'usdir.rdm'");
    }
 
-   buildmap_dictionary_save ();
-   buildus_county_save ();
+   buildmap_db_save ();
 
    buildmap_db_close ();
 }
@@ -188,19 +187,16 @@ int main (int argc, const char **argv) {
    while (poptGetNextOpt(decoder) > 0) ;
 
 
-   buildus_county_initialize ();
-
    buildus_fips_read (BuildMapTiger, BuildMapVerbose);
 
    buildus_scan_maps ();
 
-   buildus_county_sort();
+   buildmap_db_sort();
 
    if (BuildMapVerbose) {
 
       roadmap_hash_summary ();
-      buildmap_dictionary_summary ();
-      buildus_fips_summary ();
+      buildmap_db_summary ();
    }
 
    buildus_save ();

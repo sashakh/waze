@@ -21,24 +21,21 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP_POINT__H_
-#define _BUILDMAP_POINT__H_
+#ifndef INCLUDED__BUILDMAP_POINT__H
+#define INCLUDED__BUILDMAP_POINT__H
 
-void buildmap_point_initialize (void);
 int  buildmap_point_add        (int longitude, int latitude);
 
-void buildmap_point_sort (void);
 int  buildmap_point_get_square (int pointid);
 int  buildmap_point_get_longitude (int pointid);
 int  buildmap_point_get_latitude  (int pointid);
+
 int  buildmap_point_get_sorted (int pointid);
 int  buildmap_point_get_longitude_sorted (int point);
 int  buildmap_point_get_latitude_sorted  (int point);
 int  buildmap_point_get_square_sorted (int point);
 
-void buildmap_point_save    (void);
-void buildmap_point_summary (void);
-void buildmap_point_reset   (void);
+void buildmap_point_sort (void);
 
-#endif // _BUILDMAP_POINT__H_
+#endif // INCLUDED__BUILDMAP_POINT__H
 

@@ -22,13 +22,8 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_shape_initialize (void);
  *   int buildmap_shape_add
  *          (int line, int sequence, int longitude, int latitude);
- *   void  buildmap_shape_sort (void);
- *   void  buildmap_shape_save    (void);
- *   void  buildmap_shape_summary (void);
- *   void  buildmap_shape_reset   (void);
  *
  * These functions are used to build a table of shape points from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -77,7 +72,10 @@ static int ShapeAddCount = 0;
 static int *SortedShape = NULL;
 
 
-void buildmap_shape_initialize (void) {
+static void buildmap_shape_register (void);
+
+
+static void buildmap_shape_initialize (void) {
 
    ShapeByLine = roadmap_hash_new ("ShapeByLine", BUILDMAP_BLOCK);
 
@@ -87,6 +85,8 @@ void buildmap_shape_initialize (void) {
    ShapeCount = 0;
    ShapeLineCount = 0;
    ShapeMaxSequence = 0;
+
+   buildmap_shape_register();
 }
 
 
@@ -98,6 +98,10 @@ int buildmap_shape_add
    int block;
    int offset;
    BuildMapShape *this_shape;
+
+
+   if (ShapeByLine == NULL) buildmap_shape_initialize ();
+
 
    ShapeAddCount += 1;
 
@@ -200,7 +204,7 @@ static int buildmap_shape_compare (const void *r1, const void *r2) {
 }
 
 
-void buildmap_shape_sort (void) {
+static void buildmap_shape_sort (void) {
 
    int i;
 
@@ -221,7 +225,7 @@ void buildmap_shape_sort (void) {
 }
 
 
-void buildmap_shape_save (void) {
+static void buildmap_shape_save (void) {
 
    int i;
    int j;
@@ -482,7 +486,7 @@ void buildmap_shape_save (void) {
 }
 
 
-void buildmap_shape_summary (void) {
+static void buildmap_shape_summary (void) {
 
    fprintf (stderr,
             "-- shape table: %d items, %d add, %d bytes used\n"
@@ -494,7 +498,7 @@ void buildmap_shape_summary (void) {
 }
 
 
-void  buildmap_shape_reset (void) {
+static void  buildmap_shape_reset (void) {
 
    int i;
 
@@ -514,8 +518,23 @@ void  buildmap_shape_reset (void) {
    ShapeMaxLine = 0;
    ShapeMaxSequence = 0;
 
+   roadmap_hash_delete (ShapeByLine);
    ShapeByLine = NULL;
 
    ShapeAddCount = 0;
+}
+
+
+static buildmap_db_module BuildMapShapeModule = {
+   "shape",
+   buildmap_shape_sort,
+   buildmap_shape_save,
+   buildmap_shape_summary,
+   buildmap_shape_reset
+};
+
+
+static void buildmap_shape_register (void) {
+   buildmap_db_register (&BuildMapShapeModule);
 }
 

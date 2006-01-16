@@ -21,17 +21,15 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _BUILDMAP_PLACE__H_
-#define _BUILDMAP_PLACE__H_
+#ifndef INCLUDED__BUILDMAP_PLACE__H
+#define INCLUDED__BUILDMAP_PLACE__H
 
 #define BUILDMAP_MAX_PLACE_CFCC  10
 
-void buildmap_place_initialize (void);
 int  buildmap_place_add (int name, int cfcc, int point);
+
 int  buildmap_place_get_sorted  (int place);
 int buildmap_place_get_name_sorted (int place);
-/* static BuildMapPlace *buildmap_place_get_record (int place); */
-/* static BuildMapPlace *buildmap_place_get_record_sorted (int place); */
 int buildmap_place_find_sorted (int name);
 void buildmap_place_get_position 
         (int place, int *longitude, int *latitude);
@@ -39,11 +37,6 @@ int buildmap_place_get_point_sorted (int place);
 void buildmap_place_get_position_sorted
         (int place, int *longitude, int *latitude);
 int buildmap_place_get_square_sorted (int place);
-/* int buildmap_place_compare (const void *r1, const void *r2); */
-void buildmap_place_sort (void);
-void buildmap_place_save    (void);
-void buildmap_place_summary (void);
-void buildmap_place_reset   (void);
 
-#endif /* _BUILDMAP_PLACE__H_ */
+#endif /* INCLUDED__BUILDMAP_PLACE__H */
 

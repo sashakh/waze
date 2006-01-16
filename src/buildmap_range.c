@@ -22,16 +22,10 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_range_initialize (void);
  *   int  buildmap_range_add
  *           (int line, int street, int fradd, int toadd, RoadMapZip zip);
  *   void buildmap_range_add_no_address (int line, int street);
  *   void buildmap_range_add_place (RoadMapString place, RoadMapString city);
- *   void buildmap_range_sort (void);
- *   void buildmap_range_save (void);
- *   void buildmap_range_print (int index);
- *   void buildmap_range_summary (void);
- *   void buildmap_range_reset   (void);
  *
  * These functions are used to build a table of street ranges from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -91,7 +85,10 @@ static int RangeAddCount = 0;
 static int *SortedRange = NULL;
 static int *SortedNoAddress = NULL;
 
-void buildmap_range_initialize (void) {
+static void buildmap_range_register (void);
+
+
+static void buildmap_range_initialize (void) {
 
    RangeByLine       = roadmap_hash_new ("RangeByLine",       BUILDMAP_BLOCK);
    RangePlaceByPlace = roadmap_hash_new ("RangePlaceByPlace", BUILDMAP_BLOCK);
@@ -101,6 +98,8 @@ void buildmap_range_initialize (void) {
    RangeMaxStreet = 0;
    RangeAddCount = 0;
    RangeCount = 0;
+
+   buildmap_range_register();
 }
 
 
@@ -178,6 +177,9 @@ int buildmap_range_add
 
    int index;
    BuildMapRange *this_range;
+
+
+   if (RangeByLine == NULL) buildmap_range_initialize();
 
 
    if (line < 0) {
@@ -270,6 +272,9 @@ void buildmap_range_add_no_address (int line, int street) {
    int offset = RangeNoAddressCount % BUILDMAP_BLOCK;
 
 
+   if (RangeByLine == NULL) buildmap_range_initialize();
+
+
    if (line <= 0 || street <= 0) {
       return;
    }
@@ -333,6 +338,9 @@ void buildmap_range_add_place (RoadMapString place, RoadMapString city) {
    int offset = RangePlaceCount % BUILDMAP_BLOCK;
 
 
+   if (RangeByLine == NULL) buildmap_range_initialize();
+
+
    if (city <= 0) {
       return;
    }
@@ -385,7 +393,7 @@ void buildmap_range_add_place (RoadMapString place, RoadMapString city) {
 }
 
 
-void buildmap_range_print (FILE *file, int index) {
+static void buildmap_range_print (FILE *file, int index) {
 
    BuildMapRange *this_range;
    BuildMapDictionary cities = buildmap_dictionary_open ("city");
@@ -499,7 +507,7 @@ static int buildmap_range_compare_no_addr (const void *r1, const void *r2) {
    return record1->line - record2->line;
 }
 
-void buildmap_range_sort (void) {
+static void buildmap_range_sort (void) {
 
    int i;
    BuildMapRange *this_range;
@@ -552,7 +560,7 @@ void buildmap_range_sort (void) {
 }
 
 
-void  buildmap_range_save (void) {
+static void  buildmap_range_save (void) {
 
    int i;
    int k;
@@ -981,7 +989,7 @@ void  buildmap_range_save (void) {
 }
 
 
-void buildmap_range_summary (void) {
+static void buildmap_range_summary (void) {
 
    fprintf (stderr,
             "-- range table: %d items, %d add, %d bytes used, %d duplicates\n",
@@ -992,7 +1000,7 @@ void buildmap_range_summary (void) {
 }
 
 
-void buildmap_range_reset (void) {
+static void buildmap_range_reset (void) {
 
    int i;
 
@@ -1022,8 +1030,13 @@ void buildmap_range_reset (void) {
       }
    }
 
+   roadmap_hash_delete (RangeByLine);
    RangeByLine = NULL;
+
+   roadmap_hash_delete (RangePlaceByPlace);
    RangePlaceByPlace = NULL;
+
+   roadmap_hash_delete (RangeNoAddressByLine);
    RangeNoAddressByLine = NULL;
 
    RangeAddCount = 0;
@@ -1033,5 +1046,19 @@ void buildmap_range_reset (void) {
 
    free (SortedNoAddress);
    SortedNoAddress = NULL;
+}
+
+
+static buildmap_db_module BuildMapRangeModule = {
+   "range",
+   buildmap_range_sort,
+   buildmap_range_save,
+   buildmap_range_summary,
+   buildmap_range_reset
+};
+
+
+static void buildmap_range_register (void) {
+   buildmap_db_register (&BuildMapRangeModule);
 }
 

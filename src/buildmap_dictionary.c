@@ -23,14 +23,13 @@
  * SYNOPSYS:
  *
  *   BuildMapDictionary buildmap_dictionary_open (char *name);
+ *
  *   RoadMapString buildmap_dictionary_add
  *                    (BuildMapDictionary d, const char *string, int length);
  *   RoadMapString buildmap_dictionary_locate
  *                    (BuildMapDictionary d, const char *string);
+ *
  *   char *buildmap_dictionary_get (BuildMapDictionary d, RoadMapString index);
- *   void  buildmap_dictionary_save    (void);
- *   void  buildmap_dictionary_summary (void);
- *   void  buildmap_dictionary_reset   (void);
  *
  * These functions are used to build a dictionary of strings from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -96,12 +95,16 @@ struct dictionary_volume {
    int hits;
 };
 
-#define DICTIONARY_MAX_VOLUME_COUNT  16
+#define DICTIONARY_MAX_VOLUME_COUNT  256
 
 static struct dictionary_volume *DictionaryVolume[DICTIONARY_MAX_VOLUME_COUNT];
 static int DictionaryVolumeCount = 0;
 
 static int DictionaryDebugOn = 0;
+
+
+static void buildmap_dictionary_summary  (void);
+static void buildmap_dictionary_register (void);
 
 
 static void buildmap_dictionary_print_subtree
@@ -545,11 +548,15 @@ BuildMapDictionary buildmap_dictionary_open (char *name) {
    int i;
    struct dictionary_volume *dictionary;
 
+
    for (i = 0; i < DictionaryVolumeCount; i++) {
       if (strcmp (name, DictionaryVolume[i]->name) == 0) {
          return DictionaryVolume[i];
       }
    }
+
+   if (DictionaryVolumeCount == 0) buildmap_dictionary_register ();
+
 
    /* This is a new dictionary volume. */
 
@@ -751,7 +758,7 @@ RoadMapString buildmap_dictionary_locate
 }
 
 
-void buildmap_dictionary_summary (void) {
+static void buildmap_dictionary_summary (void) {
 
    int i;
    int size;
@@ -802,7 +809,7 @@ void buildmap_dictionary_summary (void) {
 }
 
 
-void  buildmap_dictionary_save (void) {
+static void  buildmap_dictionary_save (void) {
 
    int i;
 
@@ -821,7 +828,7 @@ void  buildmap_dictionary_save (void) {
 }
 
 
-void buildmap_dictionary_reset (void) {
+static void buildmap_dictionary_reset (void) {
 
    int i;
 
@@ -840,5 +847,19 @@ void buildmap_dictionary_reset (void) {
 
    DictionaryVolumeCount = 0;
    DictionaryDebugOn = 0;
+}
+
+
+static buildmap_db_module BuildMapDictionaryModule = {
+   "dictionary",
+   NULL,
+   buildmap_dictionary_save,
+   buildmap_dictionary_summary,
+   buildmap_dictionary_reset
+}; 
+      
+         
+static void buildmap_dictionary_register (void) {
+   buildmap_db_register (&BuildMapDictionaryModule);
 }
 

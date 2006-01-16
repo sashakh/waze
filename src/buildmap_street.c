@@ -22,7 +22,6 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_street_initialize (void);
  *   int  buildmap_street_add
  *           (char cfcc,
  *            RoadMapString fedirp,
@@ -30,13 +29,11 @@
  *            RoadMapString fetype,
  *            RoadMapString fedirs,
  *            int line);
- *   void buildmap_street_sort (void);
- *   int  buildmap_street_get_sorted (int street);
+ *
  *   int  buildmap_street_count (void);
- *   void buildmap_street_save (void);
+ *
+ *   int  buildmap_street_get_sorted (int street);
  *   void buildmap_street_print_sorted (FILE *file, int street);
- *   void buildmap_street_summary (void);
- *   void buildmap_street_reset   (void);
  *
  * These functions are used to build a table of streets from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -80,12 +77,17 @@ static int StreetAddCount = 0;
 static int *SortedStreet = NULL;
 
 
-void buildmap_street_initialize (void) {
+static void buildmap_street_register (void);
+
+
+static void buildmap_street_initialize (void) {
 
    StreetByName = roadmap_hash_new ("StreetByName", BUILDMAP_BLOCK);
 
    StreetAddCount = 0;
    StreetCount = 0;
+
+   buildmap_street_register();
 }
 
 
@@ -106,6 +108,10 @@ int  buildmap_street_add
    int block;
    int offset;
    BuildMapStreet *this_street;
+
+
+   if (StreetByName == NULL) buildmap_street_initialize();
+
 
    StreetAddCount += 1;
 
@@ -263,7 +269,7 @@ int  buildmap_street_count (void) {
 }
 
 
-void  buildmap_street_save (void) {
+static void  buildmap_street_save (void) {
 
    int i;
    int j;
@@ -304,7 +310,7 @@ void  buildmap_street_save (void) {
 }
 
 
-void buildmap_street_summary (void) {
+static void buildmap_street_summary (void) {
 
    fprintf (stderr,
             "-- street table statistics: %d streets, %d add, %d bytes used\n",
@@ -312,7 +318,7 @@ void buildmap_street_summary (void) {
 }
 
 
-void buildmap_street_reset (void) {
+static void buildmap_street_reset (void) {
 
    int i;
 
@@ -325,11 +331,26 @@ void buildmap_street_reset (void) {
 
    StreetCount = 0;
 
+   roadmap_hash_delete (StreetByName);
    StreetByName = NULL;
 
    StreetAddCount = 0;
 
    free (SortedStreet);
    SortedStreet = NULL;
+}
+
+
+static buildmap_db_module BuildMapStreetModule = {
+   "street",
+   buildmap_street_sort,
+   buildmap_street_save,
+   buildmap_street_summary,
+   buildmap_street_reset
+};
+
+
+static void buildmap_street_register (void) {
+   buildmap_db_register (&BuildMapStreetModule);
 }
 

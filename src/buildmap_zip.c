@@ -22,16 +22,13 @@
  *
  * SYNOPSYS:
  *
- *   void buildmap_zip_initialize (void);
  *   void buildmap_zip_set_county (int county_code);
  *   RoadMapZip buildmap_zip_add (int zip, int longitude, int latitude);
+ *
  *   int  buildmap_zip_get_zip_code  (RoadMapZip index);
  *   int  buildmap_zip_get_longitude (RoadMapZip index);
  *   int  buildmap_zip_get_latitude  (RoadMapZip index);
  *   RoadMapZip buildmap_zip_locate (int zip);
- *   void buildmap_zip_save (void);
- *   void buildmap_zip_summary (void);
- *   void buildmap_zip_reset   (void);
  *
  * These functions are used to build a table of zip codes from
  * the Tiger maps. The objective is double: (1) reduce the size of
@@ -74,10 +71,7 @@ static struct zip_code_record ZipCode[BUILDMAP_MAX_ZIP];
 
 
 
-void buildmap_zip_initialize (void) {
-
-   /* TBD: Load the existing ZIP table. */
-}
+static void buildmap_zip_register (void);
 
 
 void  buildmap_zip_set_county (int county_code) {
@@ -88,6 +82,10 @@ void  buildmap_zip_set_county (int county_code) {
 RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
 
    int i;
+
+
+   if (ZipCodeCount == 0) buildmap_zip_register();
+
 
    for (i = 1; i < ZipCodeCount; i++) {
 
@@ -176,7 +174,7 @@ RoadMapZip  buildmap_zip_locate (int zip) {
 }
 
 
-void buildmap_zip_save (void) {
+static void buildmap_zip_save (void) {
 
    int i;
    int *db_zip;
@@ -193,14 +191,14 @@ void buildmap_zip_save (void) {
 }
 
 
-void buildmap_zip_summary (void) {
+static void buildmap_zip_summary (void) {
 
    fprintf (stderr, "-- zip code table: %d items, %d add\n",
                     ZipCodeCount, ZipCodeAddCount);
 }
 
 
-void buildmap_zip_reset (void) {
+static void buildmap_zip_reset (void) {
 
    int i;
    RoadMapArea area_reset = {0, 0, 0, 0};
@@ -215,5 +213,19 @@ void buildmap_zip_reset (void) {
    ThisMapCounty = 0;
    ZipCodeCount = 0;
    ZipCodeAddCount = 0;
+}
+
+
+static buildmap_db_module BuildMapZipModule = {
+   "zip",
+   NULL,
+   buildmap_zip_save,
+   buildmap_zip_summary,
+   buildmap_zip_reset
+};
+
+
+static void buildmap_zip_register (void) {
+   buildmap_db_register (&BuildMapZipModule);
 }
 
