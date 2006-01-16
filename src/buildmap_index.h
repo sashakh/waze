@@ -41,9 +41,5 @@ void buildmap_index_set_map_edges      (const RoadMapArea *edges);
 void buildmap_index_add_city           (const char *city);
 void buildmap_index_add_postal_code    (unsigned int code);
 
-void buildmap_index_sort (void);
-void buildmap_index_save (void);
-void buildmap_index_summary (void);
-
 #endif // INCLUDED__BUILDMAP_INDEX__H
 
