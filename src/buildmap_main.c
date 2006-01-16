@@ -152,30 +152,6 @@ static void  buildmap_county_select_format (poptContext decoder) {
    }
 }
 
-static void buildmap_county_initialize (void) {
-
-   buildmap_zip_initialize();
-   buildmap_city_initialize();
-   buildmap_point_initialize();
-   buildmap_range_initialize();
-   buildmap_line_initialize();
-   buildmap_polygon_initialize();
-   buildmap_shape_initialize();
-   buildmap_street_initialize();
-   buildmap_area_initialize();
-   buildmap_metadata_initialize();
-}
-
-
-static void buildmap_county_sort (void) {
-
-   buildmap_line_sort ();
-   buildmap_street_sort ();
-   buildmap_range_sort ();
-   buildmap_shape_sort ();
-   buildmap_polygon_sort ();
-   buildmap_metadata_sort ();
-}
 
 static void buildmap_county_save (const char *name) {
 
@@ -188,42 +164,15 @@ static void buildmap_county_save (const char *name) {
       buildmap_fatal (0, "cannot create database %s", db_name);
    }
 
-   buildmap_square_save ();
-   buildmap_line_save ();
-   buildmap_point_save ();
-   buildmap_shape_save ();
-   buildmap_dictionary_save ();
-   buildmap_city_save ();
-   buildmap_street_save ();
-   buildmap_range_save ();
-   buildmap_polygon_save ();
-   buildmap_zip_save ();
-   buildmap_metadata_save ();
+   buildmap_db_save ();
 
    buildmap_db_close ();
 }
 
-static void buildmap_county_reset (void) {
-
-   buildmap_square_reset ();
-   buildmap_line_reset ();
-   buildmap_point_reset ();
-   buildmap_shape_reset ();
-   buildmap_dictionary_reset ();
-   buildmap_city_reset ();
-   buildmap_street_reset ();
-   buildmap_metadata_reset ();
-   buildmap_range_reset ();
-   buildmap_polygon_reset ();
-   buildmap_zip_reset ();
-   roadmap_hash_reset ();
-}
 
 static void buildmap_county_process (const char *source,
                                      const char *county,
                                      int verbose, int canals, int rivers) {
-
-   buildmap_county_initialize ();
 
    switch (BuildMapFormatFamily) {
 
@@ -253,25 +202,16 @@ static void buildmap_county_process (const char *source,
          return;
    }
 
-   buildmap_county_sort();
+   buildmap_db_sort();
 
    if (verbose) {
-
       roadmap_hash_summary ();
-      buildmap_dictionary_summary ();
-
-      buildmap_zip_summary ();
-      buildmap_square_summary ();
-      buildmap_street_summary ();
-      buildmap_line_summary ();
-      buildmap_range_summary ();
-      buildmap_shape_summary ();
-      buildmap_polygon_summary ();
-      buildmap_metadata_summary ();
+      buildmap_db_summary ();
    }
 
    buildmap_county_save (county);
-   buildmap_county_reset ();
+   buildmap_db_reset ();
+   roadmap_hash_reset ();
 }
 
 
