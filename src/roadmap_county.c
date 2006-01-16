@@ -155,7 +155,7 @@ static void roadmap_county_unmap (void *context) {
       RoadMapCountyActive = NULL;
    }
 
-   roadmap_hash_free (county_context->hash);
+   roadmap_hash_delete (county_context->hash);
 
    free (county_context);
 }
