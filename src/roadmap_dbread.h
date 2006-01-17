@@ -56,15 +56,17 @@ typedef struct {
 
 typedef struct roadmap_db_model_s {
 
-   char *section;
+   const char *section;
 
-   roadmap_db_handler *handler;
+   const roadmap_db_handler *handler;
 
-   struct roadmap_db_model_s *next;
+   const struct roadmap_db_model_s *next;
+
 } roadmap_db_model;
 
-roadmap_db_model *roadmap_db_register
-     (roadmap_db_model *model, char *section, roadmap_db_handler *handler);
+roadmap_db_model *roadmap_db_register (const roadmap_db_model *model,
+                                       const char *section,
+                                       const roadmap_db_handler *handler);
 
 
 int  roadmap_db_open (const char *path,

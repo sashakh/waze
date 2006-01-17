@@ -24,8 +24,9 @@
  *
  *   #include "roadmap_dbread.h"
  *
- *   roadmap_db_model *roadmap_db_register
- *          (char *section, roadmap_db_handler *handler);
+ *   roadmap_db_model *roadmap_db_register (const roadmap_db_model *model,
+ *                                          const char *section,
+ *                                          const roadmap_db_handler *handler);
  *
  *   int  roadmap_db_open (const char *path,
  *                         const char *name, roadmap_db_model *model);
@@ -178,7 +179,7 @@ static void roadmap_db_free_subtree (roadmap_db *parent) {
 static int roadmap_db_call_map_one
               (roadmap_db_model *model, roadmap_db *this, char *section) {
 
-   roadmap_db_model *registered;
+   const roadmap_db_model *registered;
 
    this->handler_context = NULL;
 
@@ -226,9 +227,9 @@ static int roadmap_db_call_map (roadmap_db_database *database) {
 static void roadmap_db_call_activate (roadmap_db_database *database) {
 
    int done;
-   char *section;
-   roadmap_db *child;
-   roadmap_db_model *registered;
+   const char *section;
+   const roadmap_db *child;
+   const roadmap_db_model *registered;
 
 
    /* For each module declared in the model, search for the matching table
@@ -280,7 +281,7 @@ static void roadmap_db_call_activate (roadmap_db_database *database) {
 static void roadmap_db_call_unmap_one
                (roadmap_db_model *model, roadmap_db *this, char *section) {
 
-   roadmap_db_model *registered;
+   const roadmap_db_model *registered;
 
    for (registered = model;
         registered != NULL;
@@ -340,11 +341,12 @@ static void roadmap_db_close_database (roadmap_db_database *database) {
 
 
 roadmap_db_model *roadmap_db_register
-                      (roadmap_db_model *model,
-                       char *section,
-                       roadmap_db_handler *handler) {
+                      (const roadmap_db_model *model,
+                       const char *section,
+                       const roadmap_db_handler *handler) {
 
-   roadmap_db_model *registered;
+   const roadmap_db_model *registered;
+   roadmap_db_model *new_model;
 
    /* Check there is not a handler already: */
 
@@ -369,15 +371,15 @@ roadmap_db_model *roadmap_db_register
       }
    }
 
-   registered = malloc (sizeof(roadmap_db_model));
+   new_model = malloc (sizeof(roadmap_db_model));
 
-   roadmap_check_allocated(registered);
+   roadmap_check_allocated(new_model);
 
-   registered->section = section;
-   registered->handler = handler;
-   registered->next    = model;
+   new_model->section = section;
+   new_model->handler = handler;
+   new_model->next    = model;
 
-   return registered;
+   return new_model;
 }
 
 
