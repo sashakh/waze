@@ -87,7 +87,7 @@ RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
    if (ZipCodeCount == 0) buildmap_zip_register();
 
 
-   for (i = 1; i < ZipCodeCount; i++) {
+   for (i = 0; i < ZipCodeCount; ++i) {
 
       if (ZipCode[i].zip_code == zip) {
 
@@ -112,8 +112,6 @@ RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
        buildmap_fatal (0, "too many zip codes");
    }
 
-   ZipCodeCount += 1;
-
    i = ZipCodeCount;
 
    ZipCode[i].zip_code = zip;
@@ -123,13 +121,15 @@ RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
    ZipCode[i].bounding_box.north  = - 0x7fffffff;
    ZipCode[i].bounding_box.south  = + 0x7fffffff;
 
+   ZipCodeCount += 1;
+
    return (RoadMapZip)i;
 }
 
 
 int   buildmap_zip_get_zip_code (RoadMapZip index) {
 
-   if (index <= 0 || index >= ZipCodeCount) {
+   if (index >= ZipCodeCount) {
       buildmap_fatal (0, "invalid zip index");
    }
 
@@ -139,7 +139,7 @@ int   buildmap_zip_get_zip_code (RoadMapZip index) {
 
 int   buildmap_zip_get_longitude (RoadMapZip index) {
 
-   if (index <= 0 || index >= ZipCodeCount) {
+   if (index >= ZipCodeCount) {
       buildmap_fatal (0, "invalid zip index");
    }
 
@@ -150,7 +150,7 @@ int   buildmap_zip_get_longitude (RoadMapZip index) {
 
 int   buildmap_zip_get_latitude  (RoadMapZip index) {
 
-   if (index <= 0 || index >= ZipCodeCount) {
+   if (index >= ZipCodeCount) {
       buildmap_fatal (0, "invalid zip index");
    }
 
@@ -163,7 +163,7 @@ RoadMapZip  buildmap_zip_locate (int zip) {
 
    int i;
 
-   for (i = 1; i < ZipCodeCount; i++) {
+   for (i = 0; i < ZipCodeCount; ++i) {
 
       if (ZipCode[i].zip_code == zip) {
          return (RoadMapZip)i;
@@ -185,7 +185,7 @@ static void buildmap_zip_save (void) {
 
    db_zip = (int *) buildmap_db_get_data (root);
 
-   for (i = 1; i < ZipCodeCount; i++) {
+   for (i = 0; i < ZipCodeCount; ++i) {
       db_zip[i] = ZipCode[i].zip_code;
    }
 }
@@ -203,7 +203,7 @@ static void buildmap_zip_reset (void) {
    int i;
    RoadMapArea area_reset = {0, 0, 0, 0};
 
-   for (i = 0; i < BUILDMAP_MAX_ZIP; i++) {
+   for (i = 0; i < ZipCodeCount; ++i) {
 
       ZipCode[i].zip_code = 0;
       ZipCode[i].county_code = 0;
