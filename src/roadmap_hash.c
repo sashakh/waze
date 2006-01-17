@@ -222,7 +222,7 @@ void roadmap_hash_delete (RoadMapHash *hash) {
    if (HashLast == hash) {
 
       /* This was the last hash created. Remove it from the list. */
-      HashLast = cursor->next_hash;
+      HashLast = hash->next_hash;
 
    } else {
 
