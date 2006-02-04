@@ -337,13 +337,14 @@ static void buildmap_point_save (void) {
    int i;
    int j;
 
+   int square_count;
    int last_square = -1;
    int reference_longitude;
    int reference_latitude;
 
    BuildMapPoint *one_point;
    RoadMapPoint  *db_points;
-   RoadMapSortedList *db_bysquare;
+   RoadMapPointBySquare *db_bysquare;
 
    
    buildmap_db *root;
@@ -352,6 +353,8 @@ static void buildmap_point_save (void) {
 
 
    buildmap_info ("saving points...");
+
+   square_count = buildmap_square_get_count();
 
    root = buildmap_db_add_section (NULL, "point");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");
@@ -363,10 +366,10 @@ static void buildmap_point_save (void) {
    table_bysquare = buildmap_db_add_section (root, "bysquare");
    if (table_bysquare == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data
-      (table_bysquare, buildmap_square_get_count(), sizeof(RoadMapSortedList));
+      (table_bysquare, square_count, sizeof(RoadMapPointBySquare));
 
    db_points   = (RoadMapPoint *) buildmap_db_get_data (table_data);
-   db_bysquare = (RoadMapSortedList *) buildmap_db_get_data (table_bysquare);
+   db_bysquare = (RoadMapPointBySquare *) buildmap_db_get_data (table_bysquare);
 
 
    for (i = 0; i < PointCount; i++) {
