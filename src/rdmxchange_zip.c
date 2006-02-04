@@ -8,8 +8,7 @@
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *   the Free Software Foundation, as of version 2 of the License.
  *
  *   RoadMap is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,9 +23,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "roadmap.h"
-#include "roadmap_dbread.h"
 
 #include "rdmxchange.h"
 
@@ -103,7 +99,7 @@ roadmap_db_handler RoadMapZipExport = {
 
 static void rdmxchange_zip_export_head (FILE *file) {
 
-   fprintf (file, "table zip %d\n", RoadMapZipActive->ZipCodeCount);
+   fprintf (file, "zip,%d\n", RoadMapZipActive->ZipCodeCount);
 }
 
 
@@ -112,7 +108,7 @@ static void rdmxchange_zip_export_data (FILE *file) {
    int i;
    int *zipcode;
 
-   fprintf (file, "table zip\n"
+   fprintf (file, "zip\n"
                   "code\n");
    zipcode = RoadMapZipActive->ZipCode;
 
@@ -134,4 +130,109 @@ static void rdmxchange_zip_register_export (void) {
 
    rdmxchange_main_register_export (&RdmXchangeZipExport);
 }
+
+
+/* The import side. ----------------------------------------------------- */
+
+static int *ZipCode = NULL;
+static int  ZipCodeCount = 0;
+static int  ZipCodeCursor = 0;
+
+
+static void rdmxchange_zip_save (void) {
+
+   int i;
+   int *db_zip;
+   buildmap_db *root  = buildmap_db_add_section (NULL, "zip");
+
+   /* Create the tables. */
+
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (root, ZipCodeCount, sizeof(int));
+
+   db_zip = (int *) buildmap_db_get_data (root);
+
+   /* Fill the data in. */
+
+   for (i = 0; i < ZipCodeCount; ++i) {
+      db_zip[i] = ZipCode[i];
+   }
+
+   /* Do not save this data ever again. */
+   free (ZipCode);
+   ZipCode = NULL;
+   ZipCodeCount = 0;
+}
+
+
+static buildmap_db_module RdmXchangeZipModule = {
+   "zip",
+   NULL,
+   rdmxchange_zip_save,
+   NULL,
+   NULL
+};
+
+
+static void rdmxchange_zip_import_table (const char *name, int count) {
+
+   buildmap_db_register (&RdmXchangeZipModule);
+
+   if (strcmp (name, "zip") == 0) {
+
+      if (ZipCode != NULL) free (ZipCode);
+
+      ZipCode = calloc (count, sizeof(int));
+      ZipCodeCount = count;
+
+   } else {
+
+      buildmap_fatal (1, "invalid table name %s", name);
+   }
+}
+
+
+static int rdmxchange_zip_import_schema (const char *table,
+                                         char *fields[], int count) {
+
+   if (strcmp (table, "zip") == 0) {
+
+      if (ZipCode == NULL || count != 1 || strcmp(fields[0], "code") != 0) {
+         buildmap_fatal (1, "invalid schema for table zip");
+      }
+      ZipCodeCursor = 0;
+
+      return 1;
+   }
+
+   buildmap_fatal (1, "invalid table name %s", table);
+   return 0;
+}
+
+static void rdmxchange_zip_import_data (int table,
+                                        char *fields[], int count) {
+
+   switch (table) {
+
+      case 1:
+
+         if (count != 1) {
+            buildmap_fatal (count, "invalid zip record");
+         }
+         ZipCode[ZipCodeCursor++] = rdmxchange_import_int (fields[0]);
+         break;
+
+      default:
+
+          buildmap_fatal (1, "invalid table");
+   }
+}
+
+
+RdmXchangeImport RdmXchangeZipImport = {
+   "zip",
+   rdmxchange_zip_import_table,
+   rdmxchange_zip_import_schema,
+   rdmxchange_zip_import_data
+};
 

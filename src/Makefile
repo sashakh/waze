@@ -243,7 +243,9 @@ XCHGSRCS=rdmxchange_main.c \
 			rdmxchange_square.c \
 			rdmxchange_street.c \
 			rdmxchange_range.c \
-			rdmxchange_zip.c
+			rdmxchange_zip.c \
+			buildmap_messages.c \
+			buildmap_dbwrite.c
 
 XCHGOBJS=$(XCHGSRCS:.c=.o)
 

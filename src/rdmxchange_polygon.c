@@ -8,8 +8,7 @@
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *   the Free Software Foundation, as of version 2 of the License.
  *
  *   RoadMap is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -126,10 +125,10 @@ roadmap_db_handler RoadMapPolygonExport = {
 
 static void rdmxchange_polygon_export_head (FILE *file) {
 
-   fprintf (file, "table polygon/head %d\n",
+   fprintf (file, "polygon/head,%d\n",
                   RoadMapPolygonActive->PolygonCount);
 
-   fprintf (file, "table polygon/points %d\n",
+   fprintf (file, "polygon/point,%d\n",
                   RoadMapPolygonActive->PolygonPointCount);
 }
 
@@ -141,7 +140,7 @@ static void rdmxchange_polygon_export_data (FILE *file) {
    RoadMapPolygonPoint *point;
 
 
-   fprintf (file, "table polygon/head\n"
+   fprintf (file, "polygon/head\n"
                   "points.first,"
                   "points.count,"
                   "name,"
@@ -163,7 +162,7 @@ static void rdmxchange_polygon_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table polygon/point\n"
+   fprintf (file, "polygon/point\n"
                   "index\n");
    point = RoadMapPolygonActive->PolygonPoint;
 
@@ -183,3 +182,172 @@ static RdmXchangeExport RdmXchangePolygonExport = {
 static void rdmxchange_polygon_register_export (void) {
    rdmxchange_main_register_export (&RdmXchangePolygonExport);
 }
+
+
+/* The import side. ----------------------------------------------------- */
+
+static RoadMapPolygon      *Polygon = NULL;
+static RoadMapPolygonPoint *PolygonPoint = NULL;
+static int  PolygonCount = 0;
+static int  PolygonPointCount = 0;
+static int  PolygonCursor = 0;
+
+
+static void rdmxchange_polygon_save (void) {
+
+   int i;
+
+   RoadMapPolygon *db_head;
+   RoadMapPolygonPoint *db_point;
+
+   buildmap_db *root;
+   buildmap_db *head_table;
+   buildmap_db *point_table;
+
+
+   root = buildmap_db_add_section (NULL, "polygon");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+
+   head_table = buildmap_db_add_section (root, "head");
+   if (head_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (head_table, PolygonCount, sizeof(RoadMapPolygon));
+
+   point_table = buildmap_db_add_section (root, "point");
+   if (point_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (point_table,
+         PolygonPointCount, sizeof(RoadMapPolygonPoint));
+
+   db_head   = (RoadMapPolygon *)         buildmap_db_get_data (head_table);
+   db_point  = (RoadMapPolygonPoint *)    buildmap_db_get_data (point_table);
+
+   for (i = PolygonCount-1; i >= 0; --i) {
+      db_head[i] = Polygon[i];
+   }
+
+   for (i = PolygonPointCount-1; i >= 0; --i) {
+      db_point[i] = PolygonPoint[i];
+   }
+
+   /* Do not save this data ever again. */
+   free (Polygon);
+   Polygon = NULL;
+   PolygonCount = 0;
+
+   free (PolygonPoint);
+   PolygonPoint = NULL;
+   PolygonPointCount = 0;
+}
+
+
+static buildmap_db_module RdmXchangePolygonModule = {
+   "polygon",
+   NULL,
+   rdmxchange_polygon_save,
+   NULL,
+   NULL
+};
+
+
+static void rdmxchange_polygon_import_table (const char *name, int count) {
+
+   if (strcmp (name, "polygon/head") == 0) {
+
+      if (Polygon != NULL) free (Polygon);
+
+      Polygon = calloc (count, sizeof(RoadMapPolygon));
+      PolygonCount = count;
+
+   } else if (strcmp (name, "polygon/point") == 0) {
+
+      if (PolygonPoint != NULL) free (PolygonPoint);
+
+      PolygonPoint = calloc (count, sizeof(RoadMapPolygonPoint));
+      PolygonPointCount = count;
+
+   } else {
+
+      buildmap_fatal (1, "invalid table name %s", name);
+   }
+
+   buildmap_db_register (&RdmXchangePolygonModule);
+}
+
+
+static int rdmxchange_polygon_import_schema (const char *table,
+                                                  char *fields[], int count) {
+
+   PolygonCursor = 0;
+
+   if (strcmp (table, "polygon/head") == 0) {
+
+      if ((Polygon == NULL) ||
+          (count != 8) ||
+          (strcmp (fields[0], "points.first") != 0) ||
+          (strcmp (fields[1], "points.count") != 0) ||
+          (strcmp (fields[2], "name") != 0) ||
+          (strcmp (fields[3], "layer") != 0) ||
+          (strcmp (fields[4], "edges.east") != 0) ||
+          (strcmp (fields[5], "edges.north") != 0) ||
+          (strcmp (fields[6], "edges.west") != 0) ||
+          (strcmp (fields[7], "edges.south") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 1;
+
+   } else if (strcmp (table, "polygon/point") == 0) {
+
+      if ((PolygonPoint == NULL) ||
+            (count != 1) || (strcmp (fields[0], "index") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 2;
+   }
+
+   buildmap_fatal (1, "invalid table name %s", table);
+   return 0;
+}
+
+
+static void rdmxchange_polygon_import_data (int table,
+                                              char *fields[], int count) {
+
+   RoadMapPolygon *polygon;
+
+   switch (table) {
+      case 1:
+
+         if (count != 8) {
+            buildmap_fatal (count, "invalid polygon/head record");
+         }
+         polygon = &(Polygon[PolygonCursor++]);
+
+         polygon->first = rdmxchange_import_int (fields[0]);
+         polygon->count = rdmxchange_import_int (fields[1]);
+         polygon->name  = (RoadMapString) rdmxchange_import_int (fields[2]);
+         polygon->cfcc  = (char) rdmxchange_import_int (fields[3]);
+         polygon->east  = rdmxchange_import_int (fields[4]);
+         polygon->north = rdmxchange_import_int (fields[5]);
+         polygon->west  = rdmxchange_import_int (fields[6]);
+         polygon->south = rdmxchange_import_int (fields[7]);
+
+         break;
+
+      case 2:
+
+         if (count != 1) {
+            buildmap_fatal (count, "invalid polygon/point record");
+         }
+         PolygonPoint[PolygonCursor++].point =
+                           rdmxchange_import_int (fields[0]);
+         break;
+   }
+}
+
+
+RdmXchangeImport RdmXchangePolygonImport = {
+   "polygon",
+   rdmxchange_polygon_import_table,
+   rdmxchange_polygon_import_schema,
+   rdmxchange_polygon_import_data
+};
+

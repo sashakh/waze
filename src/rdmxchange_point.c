@@ -8,8 +8,7 @@
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *   the Free Software Foundation, as of version 2 of the License.
  *
  *   RoadMap is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -120,10 +119,10 @@ roadmap_db_handler RoadMapPointExport = {
 
 static void rdmxchange_point_export_head (FILE *file) {
 
-   fprintf (file, "table point/data %d\n",
+   fprintf (file, "point/data,%d\n",
                   RoadMapPointActive->PointCount);
 
-   fprintf (file, "table point/bysquare %d\n",
+   fprintf (file, "point/bysquare,%d\n",
                   RoadMapPointActive->BySquareCount);
 }
 
@@ -135,7 +134,7 @@ static void rdmxchange_point_export_data (FILE *file) {
    RoadMapPointBySquare *bysquare;
 
 
-   fprintf (file, "table point/data\n"
+   fprintf (file, "point/data\n"
                   "longitude,latitude\n");
    point = RoadMapPointActive->Point;
 
@@ -145,7 +144,7 @@ static void rdmxchange_point_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table point/bysquare\n"
+   fprintf (file, "point/bysquare\n"
                   "first,count\n");
    bysquare = RoadMapPointActive->BySquare;
 
@@ -166,3 +165,169 @@ static void rdmxchange_point_register_export (void) {
    rdmxchange_main_register_export (&RdmXchangePointExport);
 }
 
+
+/* The import side. ----------------------------------------------------- */
+
+static RoadMapPoint *Point = NULL;
+static RoadMapPointBySquare *PointBySquare = NULL;
+static int  PointCount = 0;
+static int  PointBySquareCount = 0;
+static int  PointCursor = 0;
+
+
+static void rdmxchange_point_save (void) {
+
+   int i;
+   RoadMapPoint  *db_points;
+   RoadMapPointBySquare *db_bysquare;
+
+   buildmap_db *root;
+   buildmap_db *table_data;
+   buildmap_db *table_bysquare;
+
+
+   /* Create the tables. */
+
+   root  = buildmap_db_add_section (NULL, "point");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+
+   table_data = buildmap_db_add_section (root, "data");
+   if (table_data == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (table_data, PointCount, sizeof(RoadMapPoint));
+
+   table_bysquare = buildmap_db_add_section (root, "bysquare");
+   if (table_bysquare == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data
+      (table_bysquare, PointBySquareCount, sizeof(RoadMapPointBySquare));
+
+   db_points   = (RoadMapPoint *) buildmap_db_get_data (table_data);
+   db_bysquare = (RoadMapPointBySquare *) buildmap_db_get_data (table_bysquare);
+
+   /* Fill the data in. */
+
+   for (i = 0; i < PointCount; ++i) {
+      db_points[i] = Point[i];
+   }
+
+   for (i = 0; i < PointBySquareCount; ++i) {
+      db_bysquare[i] = PointBySquare[i];
+   }
+
+   /* Do not save this data ever again. */
+   free (Point);
+   Point = NULL;
+   PointCount = 0;
+
+   free (PointBySquare);
+   PointBySquare = NULL;
+   PointBySquareCount = 0;
+}
+
+
+static buildmap_db_module RdmXchangePointModule = {
+   "point",
+   NULL,
+   rdmxchange_point_save,
+   NULL,
+   NULL
+};
+
+
+static void rdmxchange_point_import_table (const char *name, int count) {
+
+   buildmap_db_register (&RdmXchangePointModule);
+
+   if (strcmp (name, "point/data") == 0) {
+
+      if (Point != NULL) free (Point);
+
+      Point = calloc (count, sizeof(RoadMapPoint));
+      PointCount = count;
+
+   } else if (strcmp (name, "point/bysquare") == 0) {
+
+      if (PointBySquare != NULL) free (PointBySquare);
+
+      PointBySquare = calloc (count, sizeof(RoadMapPointBySquare));
+      PointBySquareCount = count;
+
+   } else {
+
+      buildmap_fatal (1, "invalid table name %s", name);
+   }
+}
+
+
+static int rdmxchange_point_import_schema (const char *table,
+                                         char *fields[], int count) {
+
+   if (strcmp (table, "point/data") == 0) {
+
+      if (Point == NULL ||
+            count != 2 ||
+            strcmp(fields[0], "longitude") != 0 ||
+            strcmp(fields[1], "latitude") != 0) {
+         buildmap_fatal (1, "invalid schema for table point/data");
+      }
+      PointCursor = 0;
+
+      return 1;
+
+   } else if (strcmp (table, "point/bysquare") == 0) {
+
+      if (PointBySquare == NULL ||
+            count != 2 ||
+            strcmp(fields[0], "first") != 0 ||
+            strcmp(fields[1], "count") != 0) {
+         buildmap_fatal (1, "invalid schema for table point/bysquare");
+      }
+      PointCursor = 0;
+
+      return 2;
+
+   }
+
+   buildmap_fatal (1, "invalid table name %s", table);
+   return 0;
+}
+
+static void rdmxchange_point_import_data (int table,
+                                        char *fields[], int count) {
+
+   switch (table) {
+
+      case 1:
+
+         if (count != 2) {
+            buildmap_fatal (count, "invalid point/data record");
+         }
+         Point[PointCursor].longitude =
+            (unsigned short) rdmxchange_import_int (fields[0]);
+         Point[PointCursor].latitude =
+            (unsigned short) rdmxchange_import_int (fields[1]);
+         break;
+
+      case 2:
+
+         if (count != 2) {
+            buildmap_fatal (count, "invalid point/bysquare record");
+         }
+         PointBySquare[PointCursor].first = rdmxchange_import_int (fields[0]);
+         PointBySquare[PointCursor].count = rdmxchange_import_int (fields[1]);
+         break;
+
+      default:
+
+          buildmap_fatal (1, "invalid table");
+   }
+
+   PointCursor += 1;
+}
+
+
+RdmXchangeImport RdmXchangePointImport = {
+   "point",
+   rdmxchange_point_import_table,
+   rdmxchange_point_import_schema,
+   rdmxchange_point_import_data
+};

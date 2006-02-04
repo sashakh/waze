@@ -8,8 +8,7 @@
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *   the Free Software Foundation, as of version 2 of the License.
  *
  *   RoadMap is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -152,13 +151,13 @@ roadmap_db_handler RoadMapShapeExport = {
 
 static void rdmxchange_shape_export_head (FILE *file) {
 
-   fprintf (file, "table shape/bysquare %d\n",
+   fprintf (file, "shape/bysquare,%d\n",
                   RoadMapShapeActive->ShapeBySquareCount);
 
-   fprintf (file, "table shape/byline %d\n",
+   fprintf (file, "shape/byline,%d\n",
                   RoadMapShapeActive->ShapeByLineCount);
 
-   fprintf (file, "table shape/data %d\n",
+   fprintf (file, "shape/data,%d\n",
                   RoadMapShapeActive->ShapeCount);
 }
 
@@ -171,7 +170,7 @@ static void rdmxchange_shape_export_data (FILE *file) {
    RoadMapShapeBySquare *bysquare;
 
 
-   fprintf (file, "table shape/bysquare\n"
+   fprintf (file, "shape/bysquare\n"
                   "first,count\n");
    bysquare = RoadMapShapeActive->ShapeBySquare;
 
@@ -181,7 +180,7 @@ static void rdmxchange_shape_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table shape/byline\n"
+   fprintf (file, "shape/byline\n"
                   "line,first,count\n");
    byline = RoadMapShapeActive->ShapeByLine;
 
@@ -193,7 +192,7 @@ static void rdmxchange_shape_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table shape/data\n"
+   fprintf (file, "shape/data\n"
                   "longitude,latitude\n");
    point = RoadMapShapeActive->Shape;
 
@@ -215,3 +214,219 @@ static void rdmxchange_shape_register_export (void) {
    rdmxchange_main_register_export (&RdmXchangeShapeExport);
 }
 
+
+/* The import side. ----------------------------------------------------- */
+
+static RoadMapShape *Shape = NULL;
+static RoadMapShapeByLine *ShapeByLine = NULL;
+static RoadMapShapeBySquare *ShapeBySquare = NULL;
+static int ShapeCount = 0;
+static int ShapeByLineCount = 0;
+static int ShapeBySquareCount = 0;
+static int ShapeCursor = 0;
+
+
+static void rdmxchange_shape_save (void) {
+
+   int i;
+   RoadMapShape *db_shape;
+   RoadMapShapeByLine *db_byline;
+   RoadMapShapeBySquare *db_bysquare;
+
+   buildmap_db *root;
+   buildmap_db *table_square;
+   buildmap_db *table_line;
+   buildmap_db *table_data;
+
+
+   root  = buildmap_db_add_section (NULL, "shape");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+
+   table_square = buildmap_db_add_section (root, "bysquare");
+   if (table_square == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (table_square,
+         ShapeBySquareCount, sizeof(RoadMapShapeBySquare));
+
+   table_line = buildmap_db_add_section (root, "byline");
+   if (table_line == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (table_line,
+         ShapeByLineCount, sizeof(RoadMapShapeByLine));
+
+   table_data = buildmap_db_add_section (root, "data");
+   if (table_data == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (table_data, ShapeCount, sizeof(RoadMapShape));
+
+   db_bysquare = (RoadMapShapeBySquare *) buildmap_db_get_data (table_square);
+   db_byline = (RoadMapShapeByLine *) buildmap_db_get_data (table_line);
+   db_shape  = (RoadMapShape *) buildmap_db_get_data (table_data);
+
+
+   for (i = ShapeBySquareCount-1; i >= 0; --i) {
+      db_bysquare[i] = ShapeBySquare[i];
+   }
+
+   for (i = ShapeByLineCount-1; i >= 0; --i) {
+      db_byline[i] = ShapeByLine[i];
+   }
+
+   for (i = ShapeCount-1; i >= 0; --i) {
+      db_shape[i] = Shape[i];
+   }
+
+   /* Do not save this data ever again. */
+
+   free (ShapeBySquare);
+   ShapeBySquare = NULL;
+   ShapeBySquareCount = 0;
+
+   free (ShapeByLine);
+   ShapeByLine = NULL;
+   ShapeByLineCount = 0;
+
+   free (Shape);
+   Shape = NULL;
+   ShapeCount = 0;
+}
+
+
+static buildmap_db_module RdmXchangeShapeModule = {
+   "shape",
+   NULL,
+   rdmxchange_shape_save,
+   NULL,
+   NULL
+};
+
+
+static void rdmxchange_shape_import_table (const char *name, int count) {
+
+   if (strcmp (name, "shape/bysquare") == 0) {
+
+      if (ShapeBySquare != NULL) free (ShapeBySquare);
+
+      ShapeBySquare = calloc (count, sizeof(RoadMapShapeBySquare));
+      ShapeBySquareCount = count;
+
+   } else if (strcmp (name, "shape/byline") == 0) {
+
+      if (ShapeByLine != NULL) free (ShapeByLine);
+
+      ShapeByLine = calloc (count, sizeof(RoadMapShapeByLine));
+      ShapeByLineCount = count;
+
+   } else if (strcmp (name, "shape/data") == 0) {
+
+      if (Shape != NULL) free (Shape);
+
+      Shape = calloc (count, sizeof(RoadMapShape));
+      ShapeCount = count;
+
+   } else {
+
+      buildmap_fatal (1, "invalid table name %s", name);
+   }
+
+   buildmap_db_register (&RdmXchangeShapeModule);
+}
+
+
+static int rdmxchange_shape_import_schema (const char *table,
+                                                 char *fields[], int count) {
+
+   ShapeCursor = 0;
+
+   if (strcmp (table, "shape/bysquare") == 0) {
+
+      if ((ShapeBySquare == NULL) ||
+          (count != 2) ||
+          (strcmp (fields[0], "first") != 0) ||
+          (strcmp (fields[1], "count") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 1;
+
+   } else if (strcmp (table, "shape/byline") == 0) {
+
+      if ((ShapeByLine == NULL) ||
+          (count != 3) ||
+          (strcmp (fields[0], "line") != 0) ||
+          (strcmp (fields[1], "first") != 0) ||
+          (strcmp (fields[2], "count") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 2;
+
+   } else if (strcmp (table, "shape/data") == 0) {
+
+      if ((Shape == NULL) ||
+          (count != 2) ||
+          (strcmp (fields[0], "longitude") != 0) ||
+          (strcmp (fields[1], "latitude") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 3;
+
+   }
+
+   buildmap_fatal (1, "invalid table name %s", table);
+   return 0;
+}
+
+
+static void rdmxchange_shape_import_data (int table,
+                                              char *fields[], int count) {
+
+   RoadMapShapeBySquare *bysquare;
+   RoadMapShapeByLine   *byline;
+   RoadMapShape         *shape;
+
+
+   switch (table) {
+
+      case 1:
+
+         if (count != 2) {
+            buildmap_fatal (count, "invalid shape/bysquare record");
+         }
+         bysquare = &(ShapeBySquare[ShapeCursor]);
+
+         bysquare->first = rdmxchange_import_int (fields[0]);
+         bysquare->count = rdmxchange_import_int (fields[1]);
+
+         break;
+
+      case 2:
+
+         if (count != 3) {
+            buildmap_fatal (count, "invalid shape/byline record");
+         }
+         byline = &(ShapeByLine[ShapeCursor]);
+
+         byline->line  = rdmxchange_import_int (fields[0]);
+         byline->first = rdmxchange_import_int (fields[1]);
+         byline->count = rdmxchange_import_int (fields[2]);
+         break;
+
+      case 3:
+
+         if (count != 2) {
+            buildmap_fatal (count, "invalid shape/data record");
+         }
+         shape = &(Shape[ShapeCursor]);
+
+         shape->delta_longitude = (short) rdmxchange_import_int (fields[0]);
+         shape->delta_latitude  = (short) rdmxchange_import_int (fields[1]);
+
+         break;
+   }
+
+   ShapeCursor += 1;
+}
+
+
+RdmXchangeImport RdmXchangeShapeImport = {
+   "shape",
+   rdmxchange_shape_import_table,
+   rdmxchange_shape_import_schema,
+   rdmxchange_shape_import_data
+};

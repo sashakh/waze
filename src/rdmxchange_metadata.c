@@ -8,8 +8,7 @@
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *   the Free Software Foundation, as of version 2 of the License.
  *
  *   RoadMap is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -139,10 +138,10 @@ static void rdmxchange_metadata_export_head (FILE *file) {
 
    if (RoadMapMetadataActive == NULL) return; /* No such table in that file. */
 
-   fprintf (file, "table metadata/attributes %d\n",
+   fprintf (file, "metadata/attributes,%d\n",
                   RoadMapMetadataActive->AttributesCount);
 
-   fprintf (file, "table metadata/values %d\n",
+   fprintf (file, "metadata/values,%d\n",
                   RoadMapMetadataActive->ValuesCount);
 }
 
@@ -156,7 +155,7 @@ static void rdmxchange_metadata_export_data (FILE *file) {
 
    if (RoadMapMetadataActive == NULL) return; /* No such table in that file. */
 
-   fprintf (file, "table metadata/attributes\n"
+   fprintf (file, "metadata/attributes\n"
                   "category,"
                   "name,"
                   "value.first,"
@@ -172,7 +171,7 @@ static void rdmxchange_metadata_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table metadata/values\n"
+   fprintf (file, "metadata/values\n"
                   "index\n");
    values = RoadMapMetadataActive->Values;
 
@@ -193,3 +192,171 @@ static void rdmxchange_metadata_register_export (void) {
 
    rdmxchange_main_register_export (&RdmXchangeMetadataExport);
 }
+
+
+/* The import side. ----------------------------------------------------- */
+
+static RoadMapAttribute *MetadataAttribute = NULL;
+static RoadMapString    *MetadataValue = NULL;
+static int  MetadataAttributeCount = 0;
+static int  MetadataValueCount = 0;
+static int  MetadataCursor = 0;
+
+
+static void rdmxchange_metadata_save (void) {
+
+   int i;
+
+   RoadMapAttribute  *db_attributes;
+   RoadMapString     *db_values;
+
+   buildmap_db *root;
+   buildmap_db *table_attributes;
+   buildmap_db *table_values;
+
+
+   /* Create the tables. */
+
+   root = buildmap_db_add_section (NULL, "metadata");
+   table_attributes = buildmap_db_add_section (root, "attributes");
+   buildmap_db_add_data
+      (table_attributes, MetadataAttributeCount, sizeof(RoadMapAttribute));
+
+   table_values = buildmap_db_add_section (root, "values");
+   buildmap_db_add_data
+      (table_values, MetadataValueCount, sizeof(RoadMapString));
+
+   db_attributes = (RoadMapAttribute *) buildmap_db_get_data (table_attributes);
+   db_values     = (RoadMapString *) buildmap_db_get_data (table_values);
+
+   /* Fill the data in. */
+
+   for (i = 0; i < MetadataAttributeCount; ++i) {
+      db_attributes[i] = MetadataAttribute[i];
+   }
+
+   for (i = 0; i < MetadataValueCount; ++i) {
+      db_values[i] = MetadataValue[i];
+   }
+
+   /* Do not save this data ever again. */
+   free (MetadataAttribute);
+   MetadataAttribute = NULL;
+   MetadataAttributeCount = 0;
+
+   free (MetadataValue);
+   MetadataValue = NULL;
+   MetadataValueCount = 0;
+}
+
+
+static buildmap_db_module RdmXchangeMetadataModule = {
+   "metadata",
+   NULL,
+   rdmxchange_metadata_save,
+   NULL,
+   NULL
+};
+
+
+static void rdmxchange_metadata_import_table (const char *name, int count) {
+
+   buildmap_db_register (&RdmXchangeMetadataModule);
+
+   if (strcmp (name, "metadata/attributes") == 0) {
+
+      if (MetadataAttribute != NULL) free (MetadataAttribute);
+
+      MetadataAttribute = calloc (count, sizeof(RoadMapAttribute));
+      MetadataAttributeCount = count;
+
+   } else if (strcmp (name, "metadata/values") == 0) {
+
+      if (MetadataValue != NULL) free (MetadataValue);
+
+      MetadataValue = calloc (count, sizeof(RoadMapString));
+      MetadataValueCount = count;
+
+   } else {
+
+      buildmap_fatal (1, "invalid table name %s", name);
+   }
+}
+
+
+static int rdmxchange_metadata_import_schema (const char *table,
+                                         char *fields[], int count) {
+
+   MetadataCursor = 0;
+
+   if (strcmp (table, "metadata/attributes") == 0) {
+
+      if (MetadataAttribute == NULL ||
+            count != 4 ||
+            strcmp(fields[0], "category") != 0 ||
+            strcmp(fields[1], "name") != 0 ||
+            strcmp(fields[2], "value.first") != 0 ||
+            strcmp(fields[3], "value.count") != 0) {
+         buildmap_fatal (1, "invalid schema for table metadata/attributes");
+      }
+
+      return 1;
+
+   } else if (strcmp (table, "metadata/values") == 0) {
+
+      if (MetadataAttribute == NULL ||
+            count != 1 || strcmp(fields[0], "index") != 0) {
+         buildmap_fatal (1, "invalid schema for table metadata/values");
+      }
+
+      return 2;
+   }
+
+   buildmap_fatal (1, "invalid table name %s", table);
+   return 0;
+}
+
+static void rdmxchange_metadata_import_data (int table,
+                                        char *fields[], int count) {
+
+   switch (table) {
+
+      case 1:
+
+         if (count != 4) {
+            buildmap_fatal (count, "invalid zip record");
+         }
+         MetadataAttribute[MetadataCursor].category =
+            (RoadMapString) rdmxchange_import_int (fields[0]);
+         MetadataAttribute[MetadataCursor].name =
+            (RoadMapString) rdmxchange_import_int (fields[1]);
+         MetadataAttribute[MetadataCursor].value_first =
+            (short) rdmxchange_import_int (fields[2]);
+         MetadataAttribute[MetadataCursor].value_count =
+            (short) rdmxchange_import_int (fields[3]);
+         break;
+
+      case 2:
+
+         if (count != 1) {
+            buildmap_fatal (count, "invalid zip record");
+         }
+         MetadataValue[MetadataCursor] =
+            (RoadMapString) rdmxchange_import_int (fields[0]);
+         break;
+
+      default:
+
+          buildmap_fatal (1, "invalid table");
+   }
+   MetadataCursor += 1;
+}
+
+
+RdmXchangeImport RdmXchangeMetadataImport = {
+   "metadata",
+   rdmxchange_metadata_import_table,
+   rdmxchange_metadata_import_schema,
+   rdmxchange_metadata_import_data
+};
+

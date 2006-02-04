@@ -8,8 +8,7 @@
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
+ *   the Free Software Foundation, as of version 2 of the License.
  *
  *   RoadMap is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -122,8 +121,8 @@ roadmap_db_handler RoadMapStreetExport = {
 
 static void rdmxchange_street_export_head (FILE *file) {
 
-   fprintf (file, "table street/name %d\n", RoadMapStreetActive->StreetsCount);
-   fprintf (file, "table street/type %d\n", RoadMapStreetActive->StreetsCount);
+   fprintf (file, "street/name,%d\n", RoadMapStreetActive->StreetsCount);
+   fprintf (file, "street/type,%d\n", RoadMapStreetActive->StreetsCount);
 }
 
 
@@ -134,7 +133,7 @@ static void rdmxchange_street_export_data (FILE *file) {
    RoadMapStreet *street;
 
 
-   fprintf (file, "table street/name\n"
+   fprintf (file, "street/name\n"
                   "fedirp,"
                   "fename,"
                   "fetype,"
@@ -151,7 +150,7 @@ static void rdmxchange_street_export_data (FILE *file) {
    fprintf (file, "\n");
 
 
-   fprintf (file, "table street/type\n"
+   fprintf (file, "street/type\n"
                   "type\n");
    streetstype = RoadMapStreetActive->StreetType;
 
@@ -173,4 +172,160 @@ static void rdmxchange_street_register_export (void) {
 
    rdmxchange_main_register_export (&RdmXchangeStreetExport);
 }
+
+
+/* The import side. ----------------------------------------------------- */
+
+static char *StreetLayer = NULL;
+static RoadMapStreet *StreetName = NULL;
+static int  StreetLayerCount = 0;
+static int  StreetNameCount = 0;
+static int  StreetCursor = 0;
+
+
+static void rdmxchange_street_save (void) {
+
+   int i;
+   RoadMapStreet *db_name;
+   char          *db_layer;
+   buildmap_db   *root;
+   buildmap_db   *table_name;
+   buildmap_db   *table_layer;
+
+
+   root  = buildmap_db_add_section (NULL, "street");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+
+   table_name = buildmap_db_add_section (root, "name");
+   if (table_name == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (table_name, StreetNameCount, sizeof(RoadMapStreet));
+
+   table_layer = buildmap_db_add_section (root, "type");
+   if (table_layer == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (table_layer, StreetLayerCount, sizeof(char));
+
+   db_name  = (RoadMapStreet *) buildmap_db_get_data (table_name);
+   db_layer = (char *) buildmap_db_get_data (table_layer);
+
+   for (i = StreetNameCount-1; i >= 0; --i) {
+      db_name[i] = StreetName[i];
+   }
+
+   for (i = StreetLayerCount-1; i >= 0; --i) {
+      db_layer[i] = StreetLayer[i];
+   }
+
+   /* Do not save this data ever again. */
+   free (StreetName);
+   StreetName = NULL;
+   StreetNameCount = 0;
+
+   free (StreetLayer);
+   StreetLayer = NULL;
+   StreetLayerCount = 0;
+}
+
+
+static buildmap_db_module RdmXchangeStreetModule = {
+   "street",
+   NULL,
+   rdmxchange_street_save,
+   NULL,
+   NULL
+};
+
+
+static void rdmxchange_street_import_table (const char *name, int count) {
+
+   if (strcmp (name, "street/name") == 0) {
+
+      if (StreetName != NULL) free (StreetName);
+
+      StreetName = calloc (count, sizeof(RoadMapStreet));
+      StreetNameCount = count;
+
+   } else if (strcmp (name, "street/type") == 0) {
+
+      if (StreetLayer != NULL) free (StreetLayer);
+
+      StreetLayer = calloc (count, sizeof(char));
+      StreetLayerCount = count;
+
+   } else {
+
+      buildmap_fatal (1, "invalid table name %s", name);
+   }
+
+   buildmap_db_register (&RdmXchangeStreetModule);
+}
+
+
+static int rdmxchange_street_import_schema (const char *table,
+                                                  char *fields[], int count) {
+
+   StreetCursor = 0;
+
+   if (strcmp (table, "street/name") == 0) {
+
+      if ((StreetName == NULL) ||
+          (count != 4) ||
+          (strcmp (fields[0], "fedirp") != 0) ||
+          (strcmp (fields[1], "fename") != 0) ||
+          (strcmp (fields[2], "fetype") != 0) ||
+          (strcmp (fields[3], "fedirs") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 1;
+
+   } else if (strcmp (table, "street/type") == 0) {
+
+      if ((StreetLayer == NULL) ||
+            (count != 1) || (strcmp (fields[0], "type") != 0)) {
+         buildmap_fatal (1, "invalid schema for table %s\n", table);
+      }
+      return 2;
+   }
+
+   buildmap_fatal (1, "invalid table name %s", table);
+   return 0;
+}
+
+
+static void rdmxchange_street_import_data (int table,
+                                              char *fields[], int count) {
+
+   RoadMapStreet *street;
+
+   switch (table) {
+      case 1:
+
+         if (count != 4) {
+            buildmap_fatal (count, "invalid street/name record");
+         }
+         street = &(StreetName[StreetCursor++]);
+
+         street->fedirp = (RoadMapString) rdmxchange_import_int (fields[0]);
+         street->fename = (RoadMapString) rdmxchange_import_int (fields[1]);
+         street->fetype = (RoadMapString) rdmxchange_import_int (fields[2]);
+         street->fedirs = (RoadMapString) rdmxchange_import_int (fields[3]);
+
+         break;
+
+      case 2:
+
+         if (count != 1) {
+            buildmap_fatal (count, "invalid street/type record");
+         }
+         StreetLayer[StreetCursor++] = (char)rdmxchange_import_int (fields[0]);
+         break;
+   }
+}
+
+
+RdmXchangeImport RdmXchangeStreetImport = {
+   "street",
+   rdmxchange_street_import_table,
+   rdmxchange_street_import_schema,
+   rdmxchange_street_import_data
+};
 
