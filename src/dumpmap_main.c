@@ -254,8 +254,36 @@ roadmap_db_handler DumpMapPrintAttributes =
 
 static void *dumpmap_hexadump_map (roadmap_db *root) {
 
+   int i;
+   int size;
+   const char *data;
+
+   size = roadmap_db_get_size (root);
+   data = roadmap_db_get_data (root);
+
+   for (i = 0; i <= size - 16; i += 16) {
+
+      int j;
+
+      printf ("%08d  ", i);
+
+      for (j = 0; j < 16; ++j) {
+         printf (" %02x", 0xff & ((int)data[i+j]));
+      }
+      printf ("\n");
+   }
+
+   if (i < size) {
+      printf ("%08d  ", i);
+      for (; i < size; ++i) {
+         printf (" %02x", 0xff & ((int)data[i]));
+      }
+      printf ("\n");
+   }
+
    return "OK";
 }
+
 
 roadmap_db_handler DumpMapHexaDump =
     {"hexadump", dumpmap_hexadump_map, NULL, NULL};
