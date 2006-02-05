@@ -22,7 +22,7 @@
  *
  * SYNOPSYS:
  *
- *   int  buildmap_line_add (int tlid, int cfcc, int from, int to);
+ *   int  buildmap_line_add (int tlid, int layer, int from, int to);
  *
  *   int  buildmap_line_get_sorted  (int line);
  *   void buildmap_line_find_sorted (int tlid);
@@ -59,7 +59,9 @@ typedef struct {
    RoadMapLine record;
    int tlid;
    int sorted;
-   int cfcc;
+   int layer;
+   int square_from;
+   int square_to;
 } BuildMapLine;
 
 
@@ -91,7 +93,7 @@ static void buildmap_line_initialize (void) {
 }
 
 
-int buildmap_line_add (int tlid, int cfcc, int from, int to) {
+int buildmap_line_add (int tlid, int layer, int from, int to) {
 
    int block;
    int offset;
@@ -119,10 +121,13 @@ int buildmap_line_add (int tlid, int cfcc, int from, int to) {
    this_line = Line[block] + offset;
 
    if ((from < 0) || (to < 0)) {
-     buildmap_fatal (0, "invalid points");
+      buildmap_fatal (0, "invalid points");
+   }
+   if (layer <= 0) {
+      buildmap_fatal (0, "invalid layer");
    }
    this_line->tlid = tlid;
-   this_line->cfcc = cfcc;
+   this_line->layer = layer;
    this_line->record.from = from;
    this_line->record.to   = to;
 
@@ -261,8 +266,8 @@ static int buildmap_line_compare (const void *r1, const void *r2) {
       return square1 - square2;
    }
 
-   if (record1->cfcc != record2->cfcc) {
-      return record1->cfcc - record2->cfcc;
+   if (record1->layer != record2->layer) {
+      return record1->layer - record2->layer;
    }
 
    if (record1->record.from != record2->record.from) {
@@ -299,8 +304,8 @@ static int buildmap_line_compare2 (const void *r1, const void *r2) {
       return square1 - square2;
    }
 
-   if (record1->cfcc != record2->cfcc) {
-      return record1->cfcc - record2->cfcc;
+   if (record1->layer != record2->layer) {
+      return record1->layer - record2->layer;
    }
 
    square1 = buildmap_point_get_square_sorted (record1->record.from);
@@ -324,6 +329,9 @@ void buildmap_line_sort (void) {
    BuildMapLine *one_line;
 
    if (SortedLine != NULL) return; /* Sort was already performed. */
+
+   if (LineCount == 0) return; /* No line to sort. */
+
 
    buildmap_point_sort ();
 
@@ -389,14 +397,18 @@ static void buildmap_line_save (void) {
 
    int i;
    int j;
-   int k;
    int square;
    int square_current;
-   int cfcc_current;
+   int layer_current;
    int square_count;
+   int layer1_count;
+   int layer2_count;
+   int layer_sublist;
 
    BuildMapLine *one_line;
 
+   int *db_layer1;
+   int *db_layer2;
    int *db_index2;
    RoadMapLine *db_lines;
    RoadMapLineBySquare *db_square1;
@@ -405,13 +417,119 @@ static void buildmap_line_save (void) {
    buildmap_db *root;
    buildmap_db *data_table;
    buildmap_db *square1_table;
-   buildmap_db *index2_table;
+   buildmap_db *layer1_table;
    buildmap_db *square2_table;
+   buildmap_db *layer2_table;
+   buildmap_db *index2_table;
 
 
    buildmap_info ("saving lines...");
 
    square_count = buildmap_square_get_count();
+
+
+   /* We need to calculate how much space we will need for line/bylayer1
+    * and line/bylayer2. We take this opportunity to make some coherency
+    * checks, which adds to the code.
+    */
+   square_current = -1;
+   layer_current  = 0;
+   layer1_count   = 0;
+
+   for (i = 0; i < LineCount; ++i) {
+
+      j = SortedLine[i];
+      one_line = Line[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
+
+      square = buildmap_point_get_square_sorted (one_line->record.from);
+
+      if (square != square_current) {
+
+         if (square < square_current) {
+            buildmap_fatal (0, "abnormal square order: %d following %d",
+                               square, square_current);
+         }
+         if (square_current >= 0) {
+            /* Lets compute how much space is needed for the just finished
+             * square.
+             */
+            if (layer_current <= 0) {
+                buildmap_fatal (0, "empty square %d has lines?", square);
+            }
+            layer1_count += (layer_current + 1); /* 1 slot for the end line. */
+         }
+         square_current = square;
+
+         layer_current = 0; /* Restart from the 1st layer. */
+      }
+
+      if (one_line->layer < layer_current) {
+         buildmap_fatal (0, "abnormal layer order: %d following %d",
+                            one_line->layer, layer_current);
+      }
+
+      layer_current = one_line->layer;
+      one_line->square_from = square;
+   }
+
+   if (square_current >= 0) {
+      /* Lets compute how much space is needed for the last square. */
+      if (layer_current < 0) {
+         buildmap_fatal (0, "empty square %d has lines?", square);
+      }
+      layer1_count += (layer_current + 1); /* 1 slot for the end line. */
+   }
+
+   square_current = -1;
+   layer_current  = 0;
+   layer2_count   = 0;
+
+   for (i = 0; i < LineCrossingCount; ++i) {
+
+      j = SortedLine2[i];
+      one_line = Line[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
+
+      square = buildmap_point_get_square_sorted (one_line->record.to);
+
+      if (square == one_line->square_from) {
+         buildmap_fatal (0, "non crossing line in the crossing line table");
+      }
+
+      if (square != square_current) {
+
+         if (square < square_current) {
+            buildmap_fatal (0, "abnormal square order: d following %d",
+                               square, square_current);
+         }
+         if (square_current >= 0) {
+            /* Lets compute how much space is needed for the just finished
+             * square.
+             */
+            if (layer_current <= 0) {
+                buildmap_fatal (0, "empty square %d has lines?", square);
+            }
+            layer2_count += (layer_current + 1); /* 1 slot for the end line. */
+         }
+         square_current = square;
+
+         layer_current = 0; /* Restart from the 1st layer. */
+      }
+
+      if (one_line->layer < layer_current) {
+         buildmap_fatal (0, "abnormal layer order: %d following %d",
+                            one_line->layer, layer_current);
+      }
+      layer_current = one_line->layer;
+      one_line->square_to = square;
+   }
+
+   if (square_current >= 0) {
+      /* Lets compute how much space is needed for the last square. */
+      if (layer_current < 0) {
+         buildmap_fatal (0, "empty square %d has lines?", square);
+      }
+      layer2_count += (layer_current + 1); /* 1 slot for the end line. */
+   }
 
 
    /* Create the database space */
@@ -428,31 +546,34 @@ static void buildmap_line_save (void) {
    buildmap_db_add_data (square1_table,
                          square_count, sizeof(RoadMapLineBySquare));
 
-   index2_table = buildmap_db_add_section (root, "index2");
-   if (index2_table == NULL) buildmap_fatal (0, "Can't add a new section");
-   buildmap_db_add_data (index2_table, LineCrossingCount, sizeof(int));
+   layer1_table = buildmap_db_add_section (root, "bylayer1");
+   if (layer1_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (layer1_table, layer1_count, sizeof(int));
 
    square2_table = buildmap_db_add_section (root, "bysquare2");
    if (square2_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (square2_table,
                          square_count, sizeof(RoadMapLineBySquare));
 
+   layer2_table = buildmap_db_add_section (root, "bylayer2");
+   if (layer2_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (layer2_table, layer2_count, sizeof(int));
+
+   index2_table = buildmap_db_add_section (root, "index2");
+   if (index2_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (index2_table, LineCrossingCount, sizeof(int));
+
    db_lines   = (RoadMapLine *) buildmap_db_get_data (data_table);
    db_square1 = (RoadMapLineBySquare *) buildmap_db_get_data (square1_table);
-   db_index2  = (int *) buildmap_db_get_data (index2_table);
+   db_layer1  = (int *) buildmap_db_get_data (layer1_table);
    db_square2 = (RoadMapLineBySquare *) buildmap_db_get_data (square2_table);
-
-
-   for (i = 0; i < square_count; ++i) {
-      for (k = 0; k < ROADMAP_CATEGORY_RANGE; k++) {
-         db_square1[i].first[k] = -1;
-         db_square2[i].first[k] = -1;
-      }
-   }
+   db_layer2  = (int *) buildmap_db_get_data (layer2_table);
+   db_index2  = (int *) buildmap_db_get_data (index2_table);
 
 
    square_current = -1;
-   cfcc_current   = -1;
+   layer_current  = 0;
+   layer_sublist  = 0;
 
    for (i = 0; i < LineCount; ++i) {
 
@@ -462,43 +583,58 @@ static void buildmap_line_save (void) {
 
       db_lines[i] = one_line->record;
 
-      square = buildmap_point_get_square_sorted (one_line->record.from);
+      square = one_line->square_from;
 
       if (square != square_current) {
 
-         if (square < square_current) {
-            buildmap_fatal (0, "abnormal square order: %d following %d",
-                               square, square_current);
-         }
          if (square_current >= 0) {
-            db_square1[square_current].last = i - 1;
+            
+            /* Complete the previous square. */
+
+            db_layer1[layer_sublist+layer_current] = i;
+            db_square1[square_current].first = layer_sublist;
+            db_square1[square_current].count = layer_current;
+
+            /* Move on to the next square. */
+
+            layer_sublist += (layer_current + 1);
+            if (layer_sublist >= layer1_count) {
+               buildmap_fatal (0, "invalid line/bylayer1 count");
+            }
          }
          square_current = square;
-
-         cfcc_current = -1; /* Force cfcc change. */
+         layer_current = 0; /* Restart at the first layer. */
       }
 
-      if (one_line->cfcc != cfcc_current) {
-
-         if (one_line->cfcc < cfcc_current) {
-            buildmap_fatal (0, "abnormal cfcc order: %d following %d",
-                               one_line->cfcc, cfcc_current);
-         }
-         if (one_line->cfcc <= 0 || one_line->cfcc > ROADMAP_CATEGORY_RANGE) {
-            buildmap_fatal (0, "illegal cfcc value");
-         }
-         cfcc_current = one_line->cfcc;
-
-         db_square1[square].first[cfcc_current-1] = i;
+      /* The current line is the start of every layer up to and
+       * including this layer. If there are skipped layers, they
+       * will have 0 lines since they start at the same place as
+       * the next layer.
+       */
+      while (layer_current < one_line->layer) {
+         db_layer1[layer_sublist+layer_current] = i;
+         layer_current += 1;
       }
    }
 
-   db_square1[square_current].last = LineCount - 1;
+   /* Complete the last square. */
+   if (square_current >= 0) {
 
-   /* Generate the second table (complement). */
+      db_layer1[layer_sublist+layer_current] = i;
+      db_square1[square_current].first = layer_sublist;
+      db_square1[square_current].count = layer_current;
+
+      if (layer_sublist+layer_current+1 != layer1_count) {
+         buildmap_fatal (0, "invalid line/bylayer1 count");
+      }
+   }
+
+
+   /* Generate the second table (crossing streets). */
 
    square_current = -1;
-   cfcc_current   = -1;
+   layer_current  = 0;
+   layer_sublist  = 0;
 
    for (i = 0; i < LineCrossingCount; ++i) {
 
@@ -508,43 +644,43 @@ static void buildmap_line_save (void) {
 
       db_index2[i] = one_line->sorted;
 
-      square = buildmap_point_get_square_sorted (one_line->record.to);
-
-      if (square == buildmap_point_get_square_sorted (one_line->record.from)) {
-         buildmap_fatal (0, "non crossing line in the crossing line table");
-      }
+      square = one_line->square_to;
 
       if (square != square_current) {
 
-         if (square < square_current) {
-            buildmap_fatal (0, "abnormal square order: d following %d",
-                               square, square_current);
-         }
          if (square_current >= 0) {
-            db_square2[square_current].last = i - 1;
+            
+            /* Complete the previous square. */
+
+            db_layer2[layer_sublist+layer_current] = i;
+            db_square2[square_current].first = layer_sublist;
+            db_square2[square_current].count = layer_current;
+
+            /* Move on to the next square. */
+
+            layer_sublist += (layer_current + 1);
+            if (layer_sublist >= layer2_count) {
+               buildmap_fatal (0, "invalid line/bylayer2 count");
+            }
          }
          square_current = square;
-
-         cfcc_current = -1; /* Force cfcc change. */
+         layer_current = 0; /* Restart at the first layer. */
       }
 
-      if (one_line->cfcc != cfcc_current) {
-
-         if (one_line->cfcc < cfcc_current) {
-            buildmap_fatal (0, "abnormal cfcc order: %d following %d",
-                               one_line->cfcc, cfcc_current);
-         }
-         if (one_line->cfcc <= 0 || one_line->cfcc > ROADMAP_CATEGORY_RANGE) {
-            buildmap_fatal (0, "illegal cfcc value");
-         }
-         cfcc_current = one_line->cfcc;
-
-         db_square2[square].first[cfcc_current-1] = i;
+      while (layer_current < one_line->layer) {
+         db_layer2[layer_sublist+layer_current] = i;
+         layer_current += 1;
       }
    }
 
    if (square_current >= 0) {
-      db_square2[square_current].last = LineCrossingCount - 1;
+      db_layer2[layer_sublist+layer_current] = i;
+      db_square2[square_current].first = layer_sublist;
+      db_square2[square_current].count = layer_current;
+
+      if (layer_sublist+layer_current+1 != layer2_count) {
+         buildmap_fatal (0, "invalid line/bylayer2 count");
+      }
    }
 }
 
