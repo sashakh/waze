@@ -26,11 +26,22 @@
  *
  *   line/data       The ID of the line and its from and to points.
  *                   The lines are sorted by square.
- *   line/bysquare1  An index of lines per square.
- *   line/index2     This index table points to line/data and is pointed
- *                   to from line/bysquare2. This is used to build lists.
+ *   line/bysquare1  An index of layers per square (points to line/bylayer1).
+ *   line/bylayer1   An indirect index, from layers to lines.
  *   line/bysquare2  A given line may have one end in a different square:
- *                   this other index covers this very case.
+ *                   this 2nd index covers this (points to line/bylayer2).
+ *   line/bylayer2   An indirect index, from layers to lines.
+ *   line/index2     This index table points to line/data and is pointed
+ *                   to from line/layer2. This is used to build lists.
+ *
+ *   The logic here is that line/bysquare1 points to a sublist of layers in
+ *   line/bylayer1. each item in this sublist points to a sublist of lines.
+ *
+ *   The line/bysquare2 logic is slightly different, as there is one
+ *   additional indirection: items in line/bylayer2 point to sublists in
+ *   line/index2, and an item in line/index2 point to a line. This is done
+ *   so because the lines are not sorted according to this 2nd index, only
+ *   according to the first one.
  */
 
 #ifndef INCLUDED__ROADMAP_DB_LINE__H
@@ -47,10 +58,14 @@ typedef struct {  /* table line/data */
 
 typedef struct { /* tables line/bysquare1 and line/bysquare2 */
 
-   int first[ROADMAP_CATEGORY_RANGE];
-   int last;
+   int first; /* First layer item in line/layer. */
+   int count; /* Number of layers + 1, the additional layer defines the end. */
 
 } RoadMapLineBySquare;
+
+/* Table line/bylayer1 is an array of int. */
+
+/* Table line/bylayer2 is an array of int. */
 
 /* Table line/index2 is an array of int. */
 

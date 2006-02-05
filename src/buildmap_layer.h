@@ -1,8 +1,8 @@
-/* buildmap_shapefile.h - Read shapefiles.
+/* buildmap_layer.h - Read the RoadMap layers from the class file.
  *
  * LICENSE:
  *
- *   Copyright 2004 Stephen Woodbridge
+ *   Copyright 2002 Pascal F. Martin
  *
  *   This file is part of RoadMap.
  *
@@ -21,16 +21,12 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDED__BUILDMAP_SHAPEFILE__H
-#define INCLUDED__BUILDMAP_SHAPEFILE__H
+#ifndef INCLUDED__BUILDMAP_LAYER__H
+#define INCLUDED__BUILDMAP_LAYER__H
 
-void buildmap_shapefile_process (const char *source,
-                                 const char *county,
-                                 int verbose);
+int  buildmap_layer_get (const char *name);
 
-void buildmap_shapefile_dcw_process (const char *source,
-                                     const char *county,
-                                     int verbose);
+void buildmap_layer_load (const char *class_file);
 
-#endif // INCLUDED__BUILDMAP_SHAPEFILE__H
+#endif // INCLUDED__BUILDMAP_LAYER__H
 

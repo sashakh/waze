@@ -22,9 +22,9 @@
  *
  * SYNOPSYS:
  *
- *   int  roadmap_place_in_square (int square, int cfcc, int *first, int *last);
- *   void roadmap_place_point   (int place, RoadMapPosition *position);
- *
+ *   int  roadmap_place_in_square
+ *           (int square, int layer, int *first, int *last);
+ *   void roadmap_place_point (int place, RoadMapPosition *position);
  *   int  roadmap_place_count (void);
  *
  * These functions are used to retrieve the points that make the places.
@@ -50,8 +50,11 @@ typedef struct {
 
    char *type;
 
-   RoadMapPlace *Place;
-   int           PlaceCount;
+   int  *Place;
+   int   PlaceCount;
+
+   int  *PlaceByLayer;
+   int   PlaceByLayerCount;
 
    RoadMapPlaceBySquare *PlaceBySquare;
    int                   PlaceBySquareCount;
@@ -66,6 +69,7 @@ static void *roadmap_place_map (roadmap_db *root) {
    RoadMapPlaceContext *context;
 
    roadmap_db *place_table;
+   roadmap_db *layer_table;
    roadmap_db *square_table;
 
 
@@ -77,14 +81,22 @@ static void *roadmap_place_map (roadmap_db *root) {
    context->type = RoadMapPlaceType;
 
    place_table   = roadmap_db_get_subsection (root, "data");
+   layer_table   = roadmap_db_get_subsection (root, "bylayer");
    square_table  = roadmap_db_get_subsection (root, "bysquare");
 
-   context->Place = (RoadMapPlace *) roadmap_db_get_data (place_table);
+   context->Place = (int *) roadmap_db_get_data (place_table);
    context->PlaceCount = roadmap_db_get_count (place_table);
 
-   if (roadmap_db_get_size (place_table) !=
-       context->PlaceCount * sizeof(RoadMapPlace)) {
+   if (roadmap_db_get_size (place_table) != context->PlaceCount * sizeof(int)) {
       roadmap_log (ROADMAP_ERROR, "invalid place/data structure");
+      goto roadmap_place_map_abort;
+   }
+
+   context->PlaceByLayer = (int *) roadmap_db_get_data (layer_table);
+   context->PlaceByLayerCount = roadmap_db_get_count (layer_table);
+
+   if (roadmap_db_get_size (layer_table) != context->PlaceCount * sizeof(int)) {
+      roadmap_log (ROADMAP_ERROR, "invalid place/bylayer structure");
       goto roadmap_place_map_abort;
    }
 
@@ -127,44 +139,32 @@ static void roadmap_place_unmap (void *context) {
 }
 
 roadmap_db_handler RoadMapPlaceHandler = {
-   "dictionary",
+   "place",
    roadmap_place_map,
    roadmap_place_activate,
    roadmap_place_unmap
 };
 
 
-int roadmap_place_in_square (int square, int cfcc, int *first, int *last) {
+int roadmap_place_in_square (int square, int layer, int *first, int *last) {
 
-   int  next;
    int *index;
 
-   if (cfcc <= 0 || cfcc > ROADMAP_CATEGORY_RANGE) {
-      roadmap_log (ROADMAP_FATAL, "illegal cfcc %d", cfcc);
-   }
    square = roadmap_square_index(square);
    if (square < 0) {
       return 0;   /* This square is empty. */
    }
 
-   index = RoadMapPlaceActive->PlaceBySquare[square].first;
-
-   if (index[cfcc-1] < 0) {
-      return 0;
+   if (layer <= 0 || layer > RoadMapPlaceActive->PlaceBySquare[square].count) {
+      roadmap_log (ROADMAP_FATAL, "illegal layer %d", layer);
    }
-   *first = index[cfcc-1];
+   index = RoadMapPlaceActive->PlaceByLayer
+              + RoadMapPlaceActive->PlaceBySquare[square].first;
 
-   for (next = -1; next < 0 && cfcc < ROADMAP_CATEGORY_RANGE; cfcc++) {
-      next  = index[cfcc];
-   }
+   *first = index[layer-1];
+   *last  = index[layer] - 1;
 
-   if (next > 0) {
-      *last = next - 1;
-   } else {
-      *last = RoadMapPlaceActive->PlaceBySquare[square].last;
-   }
-
-   return 1;
+   return (*first <= *last);
 }
 
 

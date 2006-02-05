@@ -28,9 +28,7 @@ void buildmap_tiger_set_format (int year);
 
 void buildmap_tiger_process (const char *source,
                              const char *county,
-                             int verbose,
-                             int canals,
-                             int rivers);
+                             int verbose);
 
 #endif // INCLUDED__BUILDMAP_TIGER__H
 

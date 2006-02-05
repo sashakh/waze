@@ -66,7 +66,8 @@
  * half are property lines--RoadMap would normally not load property lines).
  *
  * The function buildmap_polygon_use_line() tells the line loading logic
- * if it must load the line anyway.
+ * the layer to use for this line (which is used only if the line was not
+ * going to be loaded according to its own native layer).
  *
  * The other functions are generic functions, same as for the other table
  * modules.
@@ -693,7 +694,7 @@ int buildmap_polygon_use_line (int tlid) {
                            + (index % BUILDMAP_BLOCK);
 
       if (this_line->tlid == tlid) {
-         return 1;
+         return this_line->polygon->cfcc;
       }
    }
 

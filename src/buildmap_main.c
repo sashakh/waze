@@ -49,6 +49,8 @@
 #include "buildmap_polygon.h"
 #include "buildmap_metadata.h"
 
+#include "buildmap_layer.h"
+
 
 #define BUILDMAP_FORMAT_TIGER     1
 #define BUILDMAP_FORMAT_SHAPE     2
@@ -57,10 +59,9 @@
 
 static int   BuildMapFormatFamily = 0;
 
-static int   BuildMapCanals  = 0;
-static int   BuildMapRivers  = 0;
 static int   BuildMapVerbose = 0;
 static char *BuildMapFormat  = "2002";
+static char *BuildMapClass   = "default/All";
 
 static char *BuildMapResult;
 
@@ -79,11 +80,9 @@ static struct poptOption BuildMapTigerOptions [] = {
 
 static struct poptOption BuildMapDataOptions [] = {
 
-   {"canals", 'c',
-      POPT_ARG_NONE, &BuildMapCanals, 0, "Show canals on maps", NULL},
-
-   {"rivers", 'r',
-      POPT_ARG_NONE, &BuildMapRivers, 0, "Show rivers on maps", NULL},
+   {"class", 'c',
+      POPT_ARG_STRING, &BuildMapClass, 0,
+      "The class file to create the map for", NULL},
 
    POPT_TABLEEND
 };
@@ -172,24 +171,21 @@ static void buildmap_county_save (const char *name) {
 
 static void buildmap_county_process (const char *source,
                                      const char *county,
-                                     int verbose, int canals, int rivers) {
+                                     int verbose) {
 
    switch (BuildMapFormatFamily) {
 
       case BUILDMAP_FORMAT_TIGER:
-         buildmap_tiger_process
-            (source, county, verbose, canals, rivers);
+         buildmap_tiger_process (source, county, verbose);
          break;
 
 #ifdef ROADMAP_USE_SHAPEFILES
       case BUILDMAP_FORMAT_SHAPE:
-         buildmap_shapefile_process
-            (source, county, verbose, canals, rivers);
+         buildmap_shapefile_process (source, county, verbose);
          break;
 
       case BUILDMAP_FORMAT_DCW:
-         buildmap_shapefile_dcw_process
-            (source, county, verbose, canals, rivers);
+         buildmap_shapefile_dcw_process (source, county, verbose);
          break;
 #endif
 
@@ -239,10 +235,12 @@ int main (int argc, const char **argv) {
       return 1;
    }
 
+   buildmap_layer_load (BuildMapClass);
+
    buildmap_county_process
             ((char *) (leftovers[1]),
              (char *) (leftovers[0]),
-             BuildMapVerbose, BuildMapCanals, BuildMapRivers);
+             BuildMapVerbose);
 
    poptFreeContext (decoder);
 

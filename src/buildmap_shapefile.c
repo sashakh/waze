@@ -58,6 +58,8 @@
 #include "buildmap_shape.h"
 #include "buildmap_polygon.h"
 
+#include "buildmap_layer.h"
+
 // shapfile column names for DMTI
 
 #define F_CARTO     "CARTO"
@@ -94,12 +96,41 @@ static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
 static BuildMapDictionary DictionaryFSA;
 
-static int BuildMapCanals = ROADMAP_WATER_RIVER;
-static int BuildMapRivers = ROADMAP_WATER_RIVER;
+
+/* Road layers. */
+
+static int BuildMapLayerFreeway = 0;
+static int BuildMapLayerRamp = 0;
+static int BuildMapLayerMain = 0;
+static int BuildMapLayerStreet = 0;
+static int BuildMapLayerTrail = 0;
+
+/* Water layers. */
+
+static int BuildMapLayerShoreline = 0;
+static int BuildMapLayerRiver = 0;
+static int BuildMapLayerCanal = 0;
+static int BuildMapLayerLake = 0;
+static int BuildMapLayerSea = 0;
 
 
-static RoadMapString
-str2dict (BuildMapDictionary d, const char *string) {
+static void buildmap_shapefile_find_layers (void) {
+
+   BuildMapLayerFreeway   = buildmap_layer_get ("freeways");
+   BuildMapLayerRamp      = buildmap_layer_get ("ramps");
+   BuildMapLayerMain      = buildmap_layer_get ("highways");
+   BuildMapLayerStreet    = buildmap_layer_get ("streets");
+   BuildMapLayerTrail     = buildmap_layer_get ("trails");
+
+   BuildMapLayerShoreline = buildmap_layer_get ("shore");
+   BuildMapLayerRiver     = buildmap_layer_get ("rivers");
+   BuildMapLayerCanal     = buildmap_layer_get ("canals");
+   BuildMapLayerLake      = buildmap_layer_get ("lakes");
+   BuildMapLayerSea       = buildmap_layer_get ("sea");
+}
+
+
+static RoadMapString str2dict (BuildMapDictionary d, const char *string) {
 
    if (!strlen(string)) {
       return buildmap_dictionary_add (d, "", 0);
@@ -120,13 +151,13 @@ static char shapefile2type (char cfcc, int carto) {
 
          switch (carto) {
 
-            case 1:  return ROADMAP_ROAD_FREEWAY;
-            case 2:  return ROADMAP_ROAD_MAIN;
-            case 3:  return ROADMAP_ROAD_MAIN;
-            case 4:  return ROADMAP_ROAD_MAIN;
-            case 5:  return ROADMAP_ROAD_STREET;
-            case 6:  return ROADMAP_ROAD_TRAIL;
-            default: return ROADMAP_ROAD_RAMP;
+            case 1:  return BuildMapLayerFreeway;
+            case 2:  return BuildMapLayerMain;
+            case 3:  return BuildMapLayerMain;
+            case 4:  return BuildMapLayerMain;
+            case 5:  return BuildMapLayerStreet;
+            case 6:  return BuildMapLayerTrail;
+            default: return BuildMapLayerRamp;
          }
          break;
 
@@ -134,10 +165,10 @@ static char shapefile2type (char cfcc, int carto) {
 
          switch (carto) {
 
-            case  0:  return ROADMAP_ROAD_STREET;
-            case 14:  return ROADMAP_ROAD_FREEWAY;
-            case 15:  return ROADMAP_ROAD_MAIN;
-            default:  return ROADMAP_ROAD_TRAIL;
+            case  0:  return BuildMapLayerStreet;
+            case 14:  return BuildMapLayerFreeway;
+            case 15:  return BuildMapLayerMain;
+            default:  return BuildMapLayerTrail;
          }
          break;
 
@@ -145,10 +176,10 @@ static char shapefile2type (char cfcc, int carto) {
 
          switch (carto) {
 
-            case '0': return ROADMAP_WATER_SHORELINE;
-            case '1': return BuildMapRivers;
-            case '2': return BuildMapCanals;
-            case '5': return ROADMAP_WATER_SEA;
+            case '0': return BuildMapLayerShoreline;
+            case '1': return BuildMapLayerRiver;
+            case '2': return BuildMapLayerCanal;
+            case '5': return BuildMapLayerSea;
          }
          break;
    }
@@ -708,7 +739,7 @@ static void buildmap_shapefile_read_dcw_hyr (const char *source, int verbose) {
 
 void buildmap_shapefile_process (const char *source,
                                  const char *county,
-                                 int verbose, int canals, int rivers) {
+                                 int verbose) {
 
 #if ROADMAP_USE_SHAPEFILES
 
@@ -718,13 +749,7 @@ void buildmap_shapefile_process (const char *source,
    /* Remove the "file type", if any, to keep only the province's name. */
    if (strlen(basename) > 2) basename[2] = 0;
 
-   if (! canals) {
-      BuildMapCanals = 0;
-   }
-
-   if (! rivers) {
-      BuildMapRivers = 0;
-   }
+   buildmap_shapefile_find_layers ();
 
    buildmap_shapefile_read_rte(base, verbose);
    buildmap_shapefile_read_hyl(base, verbose);
@@ -744,19 +769,13 @@ void buildmap_shapefile_process (const char *source,
 
 void buildmap_shapefile_dcw_process (const char *source,
                                      const char *county,
-                                     int verbose, int canals, int rivers) {
+                                     int verbose) {
 
 #if ROADMAP_USE_SHAPEFILES
 
    char *base = roadmap_path_remove_extension (source);
 
-   if (! canals) {
-      BuildMapCanals = 0;
-   }
-
-   if (! rivers) {
-      BuildMapRivers = 0;
-   }
+   buildmap_shapefile_find_layers ();
 
    buildmap_shapefile_read_dcw_roads(base, verbose);
    buildmap_shapefile_read_dcw_hyl(base, verbose);

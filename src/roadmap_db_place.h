@@ -1,4 +1,4 @@
-/* roadmap_db_line.h - the format of the address line table used by RoadMap.
+/* roadmap_db_place.h - the format of the address line table used by RoadMap.
  *
  * LICENSE:
  *
@@ -22,24 +22,28 @@
  *
  * SYNOPSYS:
  *
- *   The RoadMap lines are described by the following table:
+ *   The RoadMap places are described by the following tables:
  *
- *   line          the ID of the line and its from and to points.
+ *   place/bysquare   an index by square, links to place/bylayer.
+ *   place/bylayer    a subindex by square, links to place/data.
+ *   place/data       the link to the place's point.
  */
 
-#ifndef _ROADMAP_DB_PLACE__H_
-#define _ROADMAP_DB_PLACE__H_
+#ifndef INCLUDED__ROADMAP_DB_PLACE__H
+#define INCLUDED__ROADMAP_DB_PLACE__H
 
 #include "roadmap_types.h"
 
-typedef int RoadMapPlace; /* table place */
+typedef struct { /* table place/bysquare */
 
-typedef struct { /* tables bysquare */
-
-   int first[ROADMAP_CATEGORY_RANGE];
-   int last;
+   int first;
+   int count;
 
 } RoadMapPlaceBySquare;
 
-#endif // _ROADMAP_DB_PLACE__H_
+/* Table place/bylayer is an array of int. */
+
+/* Table place/data is an array of int. */
+
+#endif // INCLUDED__ROADMAP_DB_PLACE__H
 

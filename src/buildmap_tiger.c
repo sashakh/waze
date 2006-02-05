@@ -58,6 +58,8 @@
 #include "buildmap_polygon.h"
 #include "buildmap_metadata.h"
 
+#include "buildmap_layer.h"
+
 
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
@@ -66,10 +68,75 @@ static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
 static BuildMapDictionary DictionaryLandmark;
 
-static int BuildMapCanals = ROADMAP_WATER_RIVER;
-static int BuildMapRivers = ROADMAP_WATER_RIVER;
-
 static int   BuildMapFormat = 2000;
+
+/* Road layers. */
+
+static int BuildMapLayerFreeway = 0;
+static int BuildMapLayerRamp = 0;
+static int BuildMapLayerMain = 0;
+static int BuildMapLayerStreet = 0;
+static int BuildMapLayerTrail = 0;
+
+/* Area layers. */
+
+static int BuildMapLayerParc = 0;
+static int BuildMapLayerHospital = 0;
+static int BuildMapLayerAirport = 0;
+static int BuildMapLayerStation = 0;
+static int BuildMapLayerMall = 0;
+
+/* Water layers. */
+
+static int BuildMapLayerShoreline = 0;
+static int BuildMapLayerRiver = 0;
+static int BuildMapLayerCanal = 0;
+static int BuildMapLayerLake = 0;
+static int BuildMapLayerSea = 0;
+
+static struct {
+   const char *name;
+   int line_count;
+   int landmark_count;
+} BuildMapTigerLayerStatistics[256];
+
+static void buildmap_tiger_set_one_layer (int verbose,
+                                          int *layer, const char *name) {
+
+   *layer = buildmap_layer_get (name);
+
+   if (*layer > 0) {
+      if (verbose) fprintf (stderr, "   %3d %s\n", *layer, name);
+      if (*layer < 256) {
+         BuildMapTigerLayerStatistics[*layer].name = name;
+         BuildMapTigerLayerStatistics[*layer].line_count = 0;
+         BuildMapTigerLayerStatistics[*layer].landmark_count = 0;
+      }
+   }
+}
+
+static void buildmap_tiger_set_layers (int verbose) {
+
+   if (verbose) fprintf (stderr, "Enabled TIGER layers:\n");
+
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerFreeway,   "freeways");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerRamp,      "ramps");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerMain,      "highways");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerStreet,    "streets");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerTrail,     "trails");
+
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerParc,      "parks");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerHospital,  "hospitals");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerAirport,   "airports");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerStation,   "stations");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerMall,      "malls");
+
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerShoreline, "shore");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerRiver,     "rivers");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerCanal,     "canals");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerLake,      "lakes");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerSea,       "sea");
+}
 
 
 static void tigerAdjust (char *line, int *start, int *end) {
@@ -156,34 +223,43 @@ tiger2string (BuildMapDictionary d, char *line, int start, int end) {
  */
 static char tiger2area (char *line, int start, int end) {
 
-   start -= 1; /* Adjust: tiger start from 1, C starts from 0. */
-
-   switch (line[start]) {
+   switch (line[start-1]) { /* Adjust: tiger start from 1, C starts from 0. */
 
       case 'D': /* Area. */
 
-         if (line[start+1] == '8') {
-            return ROADMAP_AREA_PARC;
-         } else if (strncmp (line+start, "D31", 3) == 0) {
-            return ROADMAP_AREA_HOSPITAL;
-         } else if (strncmp (line+start, "D51", 3) == 0) {
-            return ROADMAP_AREA_AIRPORT;
-         } else if (strncmp (line+start, "D52", 3) == 0) {
-            return ROADMAP_AREA_STATION;
-         } else if (strncmp (line+start, "D53", 3) == 0) {
-            return ROADMAP_AREA_STATION;
-         } else if (strncmp (line+start, "D61", 3) == 0) {
-            return ROADMAP_AREA_MALL;
+         switch (line[start]) {
+
+            case '8': return BuildMapLayerParc;
+
+            case '3':
+                      if (line[start+1] == '1') {
+                         return BuildMapLayerHospital;
+                      }
+                      break;
+
+            case '5':
+                      switch (line[start+1]) {
+                         case '1': return BuildMapLayerAirport;
+                         case '2': return BuildMapLayerStation;
+                         case '3': return BuildMapLayerStation;
+                      }
+                      break;
+
+            case '6':
+                      if (line[start+1] == '1') {
+                         return BuildMapLayerMall;
+                      }
+                      break;
          }
          break;
 
       case 'H': /* Rivers, lakes and sea. */
 
-         switch (line[start+1]) {
+         switch (line[start]) {
 
-            case '3': return ROADMAP_WATER_LAKE;
-            case '4': return ROADMAP_WATER_LAKE;  /* Reservoir. */
-            case '6': return ROADMAP_WATER_LAKE;  /* Quarry. */
+            case '3': return BuildMapLayerLake;
+            case '4': return BuildMapLayerLake;  /* Reservoir. */
+            case '6': return BuildMapLayerLake;  /* Quarry. */
          }
          break;
    }
@@ -199,40 +275,43 @@ static char tiger2area (char *line, int start, int end) {
  */
 static char tiger2type (char *line, int start, int end) {
 
-   start -= 1; /* Adjust: tiger start from 1, C starts from 0. */
-
-   switch (line[start]) {
+   switch (line[start-1]) { /* Adjust: tiger start from 1, C starts from 0. */
 
       case 'A': /* Roads. */
 
-         switch (line[start+1]) {
+         switch (line[start]) {
 
-            case '1': return ROADMAP_ROAD_FREEWAY;
-            case '2': return ROADMAP_ROAD_MAIN;
-            case '3': return ROADMAP_ROAD_MAIN;
-            case '4': return ROADMAP_ROAD_STREET;
+            case '1': return BuildMapLayerFreeway;
+            case '2': return BuildMapLayerMain;
+            case '3': return BuildMapLayerMain;
+            case '4': return BuildMapLayerStreet;
             case '6':
-               if (line[start+2] == '3') {
-                  return ROADMAP_ROAD_RAMP;
+               if (line[start+1] == '3') {
+                  return BuildMapLayerRamp;
                }
-               return 0;
-            default:  return ROADMAP_ROAD_TRAIL;
+               break;
+            default:  return BuildMapLayerTrail;
          }
          break;
 
       case 'H': /* Rivers, lakes and sea. */
 
-         switch (line[start+1]) {
+         switch (line[start]) {
 
-            case '0': return ROADMAP_WATER_SHORELINE;
-            case '1': return BuildMapRivers;
-            case '2': return BuildMapCanals;
-            case '5': return ROADMAP_WATER_SEA;
+            case '0': return BuildMapLayerShoreline;
+            case '1': return BuildMapLayerRiver;
+            case '2': return BuildMapLayerCanal;
+            case '5': return BuildMapLayerSea;
+            default:  return tiger2area (line, start, end);
          }
          break;
+
+      default:
+
+         return tiger2area (line, start, end);
    }
 
-   return tiger2area (line, start+1, end);
+   return 0;
 }
 
 
@@ -289,6 +368,8 @@ static void tiger_summary (int verbose, int count) {
    buildmap_summary (verbose, "%d records", count);
 }
 
+
+/* Table 1: lines. */
 
 static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 
@@ -356,9 +437,11 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
       tlid   = tiger2int (cursor, 6, 15);
 
       if (cfcc == 0) {
-         if (buildmap_polygon_use_line (tlid)) {
-            cfcc = ROADMAP_AREA_PARC; /* to force loading this line. */
-         }
+         /* Even if filtered out, a line should be still recorded if
+          * it is part of a polygon we recorded: we need the line to
+          * draw the polygon.
+          */
+         cfcc = buildmap_polygon_use_line (tlid);
       }
 
       if (cfcc > 0) {
@@ -387,10 +470,11 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
          from_point = buildmap_point_add (frlong, frlat);
          to_point   = buildmap_point_add (tolong, tolat);
 
+         BuildMapTigerLayerStatistics[(int)cfcc].line_count += 1;
+
          line = buildmap_line_add (tlid, cfcc, from_point, to_point);
 
-         if (cfcc >= ROADMAP_ROAD_FIRST &&
-             cfcc <= ROADMAP_ROAD_LAST) {
+         if (cursor[55] == 'A') { /* Roads. */
 
             street = buildmap_street_add
                         (cfcc, fedirp, fename, fetype, fedirs, line);
@@ -494,8 +578,7 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
                buildmap_range_add_no_address (line, street);
             }
 
-         } else if (cfcc >= ROADMAP_AREA_FIRST &&
-                    cfcc <= ROADMAP_AREA_LAST) {
+         } else if (cursor[55] == 'D') { /* Areas. */
 
             buildmap_area_add (cfcc, fedirp, fename, fetype, fedirs, tlid);
          }
@@ -525,6 +608,8 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
    }
 }
 
+
+/* Table 2: shapes. */
 
 static void buildmap_tiger_read_rt2 (const char *source, int verbose) {
 
@@ -617,6 +702,8 @@ static void buildmap_tiger_read_rt2 (const char *source, int verbose) {
 }
 
 
+/* Table C: cities. */
+
 static void buildmap_tiger_read_rtc (const char *source, int verbose) {
 
    int    rtc_line_size;
@@ -704,6 +791,8 @@ static void buildmap_tiger_read_rtc (const char *source, int verbose) {
 }
 
 
+/* Table 7: landmarks. */
+
 static void buildmap_tiger_read_rt7 (const char *source, int verbose) {
 
    int    size;
@@ -745,6 +834,8 @@ static void buildmap_tiger_read_rt7 (const char *source, int verbose) {
 
       if (cfcc > 0) {
 
+         BuildMapTigerLayerStatistics[(int)cfcc].landmark_count += 1;
+
          landid   = tiger2int (cursor, 11, 20);
          landname = tiger2string (DictionaryLandmark, cursor, 25, 54);
 
@@ -772,6 +863,8 @@ static void buildmap_tiger_read_rt7 (const char *source, int verbose) {
    tiger_summary (verbose, record_count);
 }
 
+
+/* Table 8: polygons. */
 
 static void buildmap_tiger_read_rt8 (const char *source, int verbose) {
 
@@ -839,6 +932,8 @@ static void buildmap_tiger_read_rt8 (const char *source, int verbose) {
    tiger_summary (verbose, record_count);
 }
 
+
+/* Table I: polygon lines. */
 
 static void buildmap_tiger_read_rti (const char *source, int verbose) {
 
@@ -950,38 +1045,49 @@ void buildmap_tiger_set_format (int year) {
 
 void buildmap_tiger_process (const char *source,
                              const char *county,
-                             int verbose,
-                             int canals,
-                             int rivers) {
+                             int verbose) {
 
+   int i;
    char *base = roadmap_path_remove_extension (source);
 
 
-   if (! canals) {
-      BuildMapCanals = 0;
-   }
+   buildmap_tiger_set_layers (verbose);
 
-   if (! rivers) {
-      BuildMapRivers = 0;
-   }
+   buildmap_tiger_read_rtc (base, verbose); /* Cities. */
 
-   buildmap_tiger_read_rtc (base, verbose);
+   buildmap_tiger_read_rt7 (base, verbose); /* landmarks. */
 
-   buildmap_tiger_read_rt7 (base, verbose);
+   buildmap_tiger_read_rt8 (base, verbose); /* Polygons. */
 
-   buildmap_tiger_read_rt8 (base, verbose);
+   buildmap_tiger_read_rti (base, verbose); /* Polygon lines. */
 
-   buildmap_tiger_read_rti (base, verbose);
+   buildmap_tiger_read_rt1 (base, verbose); /* Lines. */
 
-   buildmap_tiger_read_rt1 (base, verbose);
+   buildmap_tiger_read_rt2 (base, verbose); /* Shapes. */
 
-   buildmap_tiger_read_rt2 (base, verbose);
 
    buildmap_metadata_add_attribute ("Territory", "Id", county);
    buildmap_metadata_add_attribute ("Territory", "Parent", "us"); /* for now. */
 
-   buildmap_metadata_add_attribute ("Class", "Name", "All");
-   buildmap_metadata_add_attribute ("Map", "Source", "USCB");
+   buildmap_metadata_add_attribute ("Class", "Name",   "All");
+   buildmap_metadata_add_attribute ("Data",  "Source", "USCB");
+
+   if (verbose) {
+      fprintf (stderr,
+               "-- %s: layer statistics:\n",
+               roadmap_path_skip_directories(source));
+
+      for (i = 0; i < 256; ++i) {
+         if (BuildMapTigerLayerStatistics[i].name != NULL) {
+            fprintf (stderr,
+                     "-- %s:     %s: %d lines, %d landmarks\n",
+                     roadmap_path_skip_directories(source),
+                     BuildMapTigerLayerStatistics[i].name,
+                     BuildMapTigerLayerStatistics[i].line_count,
+                     BuildMapTigerLayerStatistics[i].landmark_count);
+         }
+      }
+   }
 
    free(base);
 }

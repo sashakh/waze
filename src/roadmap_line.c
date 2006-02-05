@@ -22,8 +22,10 @@
  *
  * SYNOPSYS:
  *
- *   int  roadmap_line_in_square (int square, int cfcc, int *first, int *last);
- *   int  roadmap_line_in_square2 (int square, int cfcc, int *first, int *last);
+ *   int  roadmap_line_in_square
+ *           (int square, int layer, int *first, int *last);
+ *   int  roadmap_line_in_square2
+ *           (int square, int layer, int *first, int *last);
  *   int  roadmap_line_get_from_index2 (int index);
  *   void roadmap_line_from (int line, RoadMapPosition *position);
  *   void roadmap_line_to   (int line, RoadMapPosition *position);
@@ -61,11 +63,17 @@ typedef struct {
    RoadMapLineBySquare *LineBySquare1;
    int                  LineBySquare1Count;
 
-   int *LineIndex2;
-   int  LineIndex2Count;
+   int                 *LineByLayer1;
+   int                  LineByLayer1Count;
 
    RoadMapLineBySquare *LineBySquare2;
    int                  LineBySquare2Count;
+
+   int                 *LineByLayer2;
+   int                  LineByLayer2Count;
+
+   int *LineIndex2;
+   int  LineIndex2Count;
 
 } RoadMapLineContext;
 
@@ -80,6 +88,8 @@ static void *roadmap_line_map (roadmap_db *root) {
    roadmap_db *index2_table;
    roadmap_db *square1_table;
    roadmap_db *square2_table;
+   roadmap_db *layer1_table;
+   roadmap_db *layer2_table;
 
 
    context = (RoadMapLineContext *) malloc (sizeof(RoadMapLineContext));
@@ -91,7 +101,9 @@ static void *roadmap_line_map (roadmap_db *root) {
 
    line_table    = roadmap_db_get_subsection (root, "data");
    square1_table = roadmap_db_get_subsection (root, "bysquare1");
+   layer1_table = roadmap_db_get_subsection (root, "bylayer1");
    square2_table = roadmap_db_get_subsection (root, "bysquare2");
+   layer2_table = roadmap_db_get_subsection (root, "bylayer2");
    index2_table  = roadmap_db_get_subsection (root, "index2");
 
    context->Line = (RoadMapLine *) roadmap_db_get_data (line_table);
@@ -113,12 +125,30 @@ static void *roadmap_line_map (roadmap_db *root) {
       goto roadmap_line_map_abort;
    }
 
+   context->LineByLayer1 = (int *) roadmap_db_get_data (layer1_table);
+   context->LineByLayer1Count = roadmap_db_get_count (layer1_table);
+
+   if (roadmap_db_get_size (layer1_table) !=
+       context->LineByLayer1Count * sizeof(int)) {
+      roadmap_log (ROADMAP_ERROR, "invalid line/bylayer1 structure");
+      goto roadmap_line_map_abort;
+   }
+
    context->LineIndex2 = (int *) roadmap_db_get_data (index2_table);
    context->LineIndex2Count = roadmap_db_get_count (index2_table);
 
    if (roadmap_db_get_size (index2_table) !=
        context->LineIndex2Count * sizeof(int)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/index2 structure");
+      goto roadmap_line_map_abort;
+   }
+
+   context->LineByLayer2 = (int *) roadmap_db_get_data (layer2_table);
+   context->LineByLayer2Count = roadmap_db_get_count (layer2_table);
+
+   if (roadmap_db_get_size (layer2_table) !=
+       context->LineByLayer2Count * sizeof(int)) {
+      roadmap_log (ROADMAP_ERROR, "invalid line/bylayer2 structure");
       goto roadmap_line_map_abort;
    }
 
@@ -169,91 +199,56 @@ roadmap_db_handler RoadMapLineHandler = {
 };
 
 
-int roadmap_line_in_square (int square, int cfcc, int *first, int *last) {
+int roadmap_line_in_square (int square, int layer, int *first, int *last) {
 
-   int  next;
    int *index;
 
    if (RoadMapLineActive == NULL) return 0; /* No line. */
 
-   if (cfcc <= 0 || cfcc > ROADMAP_CATEGORY_RANGE) {
-      roadmap_log (ROADMAP_FATAL, "illegal cfcc %d", cfcc);
-   }
    square = roadmap_square_index(square);
    if (square < 0) {
       return 0;   /* This square is empty. */
    }
 
-   index = RoadMapLineActive->LineBySquare1[square].first;
-
-   if (index[cfcc-1] < 0) {
-      return 0;
+   if (layer <= 0 || layer > RoadMapLineActive->LineBySquare1[square].count) {
+       return 0;
    }
-   *first = index[cfcc-1];
+   index = RoadMapLineActive->LineByLayer1
+              + RoadMapLineActive->LineBySquare1[square].first;
 
-   for (next = -1; next < 0 && cfcc < ROADMAP_CATEGORY_RANGE; cfcc++) {
-      next  = index[cfcc];
-   }
+   *first = index[layer-1];
+   *last = index[layer] - 1;
 
-   if (next > 0) {
-      *last = next - 1;
-   } else {
-      *last = RoadMapLineActive->LineBySquare1[square].last;
-   }
-
-   return 1;
+   return (*first <= *last);
 }
 
 
-int roadmap_line_in_square2 (int square, int cfcc, int *first, int *last) {
+int roadmap_line_in_square2 (int square, int layer, int *first, int *last) {
 
-   int  next;
+   int layer_first;
    int *index;
 
    if (RoadMapLineActive == NULL) return 0; /* No line. */
 
-   if (cfcc <= 0 || cfcc > ROADMAP_CATEGORY_RANGE) {
-      roadmap_log (ROADMAP_FATAL, "illegal cfcc %d", cfcc);
-   }
    square = roadmap_square_index(square);
    if (square < 0) {
       return 0;   /* This square is empty. */
    }
 
-   index = RoadMapLineActive->LineBySquare2[square].first;
+   if (layer <= 0 || layer > RoadMapLineActive->LineBySquare2[square].count) {
+       return 0;
+   }
+   index = RoadMapLineActive->LineByLayer2
+              + RoadMapLineActive->LineBySquare2[square].first;
 
-   if (index[cfcc-1] < 0 ||
-       index[cfcc-1] >= RoadMapLineActive->LineIndex2Count) {
+   layer_first = index[layer-1];
+   if (layer_first < 0 || layer_first >= RoadMapLineActive->LineIndex2Count) {
       return 0;
    }
-   *first = index[cfcc-1];
+   *first = layer_first;
+   *last = index[layer] - 1;
 
-   /* The last line for this category is the line before the first line
-    * for the next category that has lines, otherwise it is the last
-    * square's line.
-    */
-   for (next = -1; next < 0 && cfcc < ROADMAP_CATEGORY_RANGE; cfcc++) {
-      next  = index[cfcc];
-   }
-
-   if (next >= 0) {
-
-      if (next <= *first) {
-
-         /* Due to a bug in buildmap, the value 0 may show up. */
-         if (next != 0) {
-            roadmap_log (ROADMAP_ERROR,
-                         "invalid LineBySquare2 index for square %d", square);
-         }
-         return 0;
-      }
-      *last = next - 1;
-
-   } else {
-      *last = RoadMapLineActive->LineBySquare2[square].last;
-   }
-
-   return 1;
+   return (*first <= *last);
 }
 
 

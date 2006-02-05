@@ -22,7 +22,7 @@
  *
  * SYNOPSYS:
  *
- *   int  buildmap_place_add (int name, int cfcc, int point);
+ *   int  buildmap_place_add (int name, int layer, int point);
  *
  *   int  buildmap_place_get_sorted  (int place);
  *   int buildmap_place_get_name_sorted (int place);
@@ -62,8 +62,9 @@
 typedef struct {
    int name;
    int sorted;
-   int cfcc;
+   int layer;
    int point;
+   int square;
 } BuildMapPlace;
 
 
@@ -93,7 +94,7 @@ static void buildmap_place_initialize (void) {
 }
 
 
-int buildmap_place_add (int name, int cfcc, int point) {
+int buildmap_place_add (int name, int layer, int point) {
 
    int block;
    int offset;
@@ -124,7 +125,7 @@ int buildmap_place_add (int name, int cfcc, int point) {
      buildmap_fatal (0, "invalid point");
    }
    this_place->name = name;
-   this_place->cfcc = cfcc;
+   this_place->layer = layer;
    this_place->point = point;
 
    roadmap_hash_add (PlaceByName, name, PlaceCount);
@@ -251,7 +252,7 @@ static int buildmap_place_compare (const void *r1, const void *r2) {
 
    /* The Places are first sorted by square.
     * Within a square, Places are sorted by category.
-    * Within a category, Places are sorted by point.
+    * Within a layer, Places are sorted by point.
     */
 
    square1 = buildmap_point_get_square_sorted (record1->point);
@@ -261,8 +262,8 @@ static int buildmap_place_compare (const void *r1, const void *r2) {
       return square1 - square2;
    }
 
-   if (record1->cfcc != record2->cfcc) {
-      return record1->cfcc - record2->cfcc;
+   if (record1->layer != record2->layer) {
+      return record1->layer - record2->layer;
    }
 
    return record1->point - record2->point;
@@ -320,20 +321,23 @@ static void buildmap_place_save (void) {
 
    int i;
    int j;
-   int k;
    int square;
    int square_current;
-   int cfcc_current;
+   int layer_current;
    int square_count;
+   int layer_count;
+   int layer_sublist;
 
    BuildMapPlace *one_place;
 
-   RoadMapPlace *db_places;
+   int *db_places;
+   int *db_layer;
    RoadMapPlaceBySquare *db_square;
 
    buildmap_db *root;
    buildmap_db *data_table;
    buildmap_db *square_table;
+   buildmap_db *layer_table;
 
 
    buildmap_info ("saving places...");
@@ -341,41 +345,17 @@ static void buildmap_place_save (void) {
    square_count = buildmap_square_get_count();
 
 
-   /* Create the database space */
-
-   root = buildmap_db_add_section (NULL, "place");
-   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
-
-   data_table = buildmap_db_add_section (root, "data");
-   if (data_table == NULL) buildmap_fatal (0, "Can't add a new section");
-   buildmap_db_add_data (data_table, PlaceCount, sizeof(RoadMapPlace));
-
-   square_table = buildmap_db_add_section (root, "bysquare");
-   if (square_table == NULL) buildmap_fatal (0, "Can't add a new section");
-   buildmap_db_add_data (square_table,
-                         square_count, sizeof(RoadMapPlaceBySquare));
-
-   db_places  = (RoadMapPlace *) buildmap_db_get_data (data_table);
-   db_square  = (RoadMapPlaceBySquare *) buildmap_db_get_data (square_table);
-
-
-   for (i = 0; i < square_count; ++i) {
-      for (k = 0; k < ROADMAP_CATEGORY_RANGE; k++) {
-         db_square[i].first[k] = -1;
-      }
-   }
-
+   /* First we must compute the size of the place/bylayer table. */
 
    square_current = -1;
-   cfcc_current   = -1;
+   layer_current  = 0;
+   layer_count    = 0;
 
    for (i = 0; i < PlaceCount; ++i) {
 
       j = SortedPlace[i];
 
       one_place = Place[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
-
-      db_places[i] = one_place->point;
 
       square = buildmap_point_get_square_sorted (one_place->point);
 
@@ -386,30 +366,103 @@ static void buildmap_place_save (void) {
                                square, square_current);
          }
          if (square_current >= 0) {
-            db_square[square_current].last = i - 1;
+            layer_count += (layer_current + 1);
          }
          square_current = square;
 
-         cfcc_current = -1; /* Force cfcc change. */
+         layer_current = 0; /* Restart from first layer. */
       }
 
-      if (one_place->cfcc != cfcc_current) {
+      if (one_place->layer < layer_current) {
+         buildmap_fatal (0, "abnormal layer order: %d following %d",
+               one_place->layer, layer_current);
+      }
+      layer_current = one_place->layer;
+      one_place->square = square;
+   }
 
-         if (one_place->cfcc < cfcc_current) {
-            buildmap_fatal (0, "abnormal cfcc order: %d following %d",
-                               one_place->cfcc, cfcc_current);
-         }
-         if (one_place->cfcc <= 0 || 
-                one_place->cfcc > BUILDMAP_MAX_PLACE_CFCC) {
-            buildmap_fatal (0, "illegal cfcc value");
-         }
-         cfcc_current = one_place->cfcc;
+   if (square_current >= 0) {
+      layer_count += (layer_current + 1); /* Space for the last square. */
+   }
 
-         db_square[square].first[cfcc_current-1] = i;
+
+   /* Create the database space */
+
+   root = buildmap_db_add_section (NULL, "place");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
+
+   data_table = buildmap_db_add_section (root, "data");
+   if (data_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (data_table, PlaceCount, sizeof(int));
+
+   square_table = buildmap_db_add_section (root, "bysquare");
+   if (square_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (square_table,
+                         square_count, sizeof(RoadMapPlaceBySquare));
+
+   layer_table = buildmap_db_add_section (root, "bylayer");
+   if (layer_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (layer_table, layer_count, sizeof(int));
+
+   db_places  = (int *) buildmap_db_get_data (data_table);
+   db_layer   = (int *) buildmap_db_get_data (layer_table);
+   db_square  = (RoadMapPlaceBySquare *) buildmap_db_get_data (square_table);
+
+
+   square_current = -1;
+   layer_current  = 0;
+   layer_sublist  = 0;
+
+   for (i = 0; i < PlaceCount; ++i) {
+
+      j = SortedPlace[i];
+
+      one_place = Place[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
+
+      db_places[i] = one_place->point;
+      square = one_place->square;
+
+      if (square != square_current) {
+
+         if (square_current >= 0) {
+
+            /* Complete the previous square. */
+
+            db_layer[layer_sublist+square_current] = i;
+            db_square[square_current].first = layer_sublist;
+            db_square[square_current].count = layer_current;
+
+            /* Move on to the next square. */
+
+            layer_sublist += layer_current;
+            if (layer_sublist >= layer_count) {
+               buildmap_fatal (0, "invalid place/bylayer count");
+            }
+         }
+         square_current = square;
+         layer_current = 0; /* Restart at the first layer. */
+      }
+
+      /* The current place is the start of every layer up to and
+       * including this layer. If there are skipped layers, they
+       * will have 0 place since they start at the same position
+       * as the next layer.
+       */
+      while (layer_current < one_place->layer) {
+         db_layer[layer_sublist+layer_current] = i;
+         layer_current += 1;
       }
    }
 
-   db_square[square_current].last = PlaceCount - 1;
+   if (square_current >= 0) {
+      db_layer[layer_sublist+square_current] = i;
+      db_square[square_current].first = layer_sublist;
+      db_square[square_current].count = layer_current;
+
+      if (layer_sublist+square_current+1 != layer_count) {
+         buildmap_fatal (0, "invalid place/bylayer count");
+      }
+   }
 }
 
 

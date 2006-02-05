@@ -198,6 +198,7 @@ BMLIBSRCS=buildmap_messages.c \
        buildmap_polygon.c \
        buildmap_range.c \
        buildmap_zip.c \
+       buildmap_layer.c \
        buildmap_tiger.c \
        buildmap_shapefile.c \
 		 buildmap_empty.c \
@@ -254,7 +255,7 @@ PKGDATAFILES=sprites preferences schema session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=rdmindex $(RDMLIBS) libguiroadgps.a libguiroadmap.a
-DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace
+DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace rdmxchange
 TOOLS=sunrise $(SQLTOOLS)
 
 
