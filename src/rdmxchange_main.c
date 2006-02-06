@@ -339,7 +339,7 @@ int main (int argc, const char **argv) {
             RdmXchangeExportRegistered = 0;
 
             if (! roadmap_db_open ("", argv[i], RdmMapModel)) {
-               fprintf (stderr, "cannot open map database %s", argv[i]);
+               fprintf (stderr, "cannot open map database %s\n", argv[i]);
                exit(1);
             }
             roadmap_db_activate ("", argv[i]);
@@ -349,7 +349,7 @@ int main (int argc, const char **argv) {
             fullname = roadmap_path_join (RdmXchangePath, basename);
             io = fopen (fullname, "w");
             if (io == NULL) {
-               fprintf (stderr, "cannot open output file %s", fullname);
+               fprintf (stderr, "cannot open output file %s\n", fullname);
                exit(1);
             }
 
@@ -373,7 +373,7 @@ int main (int argc, const char **argv) {
 
             io = fopen (argv[i], "r");
             if (io == NULL) {
-               fprintf (stderr, "cannot open input file %s", argv[i]);
+               fprintf (stderr, "cannot open input file %s\n", argv[i]);
                exit(1);
             }
             buildmap_set_source (argv[i]);
@@ -383,7 +383,7 @@ int main (int argc, const char **argv) {
             strcpy (extension, ".rdm");
 
             if (buildmap_db_open (RdmXchangePath, basename) < 0) {
-               fprintf (stderr, "cannot create map database %s", basename);
+               fprintf (stderr, "cannot create map database %s\n", basename);
                exit(1);
             }
             buildmap_db_save ();
