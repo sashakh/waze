@@ -9,22 +9,24 @@
 # ------
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000|2002|2004]
+#                         [format=2000|2002|2004|2005]
 #                         [state=<state-id>]
 #                         [verbose|test]
 #
 #   or
 #
 # rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000|2002|2004]
+#                         [format=2000|2002|2004|2005]
 #                         [verbose|test]
 #                         county-fips ...
 #
-#    Example: rdmgenmaps /var/tmp/maps state=06
+#    Example: rdmgenmaps /var/lib/roadmap state=06
 #
 #
 # Default setup: preferred map path is used, latest format, all states.
 
+FORMAT="--format=2002"
+MAPPATH=""
 OPTIONS=""
 TMPDIR=/var/tmp
 state=''
@@ -40,20 +42,22 @@ gendir=Y
 verbose=N
 
 case $1 in
-   maps=*) BUILDMAPOPTIONS="--maps=`expr $1 : 'maps=\(.*\)'`"
-           BUILDUSOPTIONS=$BUILDMAPOPTIONS
+   maps=*) MAPPATH="--maps=`expr $1 : 'maps=\(.*\)'`"
            shift
            ;;
 esac
 
 case $1 in
-   format=2000) BUILDMAPOPTIONS="--format=2000 $OPTIONS"
+   format=2000) FORMAT="--format=2000"
                 shift
                 ;;
-   format=2002) BUILDMAPOPTIONS="--format=2002 $OPTIONS"
+   format=2002) FORMAT="--format=2002"
                 shift
                 ;;
-   format=2004) BUILDMAPOPTIONS="--format=2002 $OPTIONS"
+   format=2004) FORMAT="--format=2002"
+                shift
+                ;;
+   format=2005) FORMAT="--format=2002"
                 shift
                 ;;
 esac
@@ -95,9 +99,9 @@ function process_one_county {
    rt1=$TMPDIR/roadmap/TGR$1.RT1
    if [ -e $rt1 ] ; then
       if [ $verbose = 'Y' ] ; then
-         echo "$BUILDMAP $BUILDMAPOPTIONS $1 $rt1"
+         echo "$BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1"
       fi
-      $BUILDMAP $BUILDMAPOPTIONS $1 $rt1
+      $BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
@@ -138,9 +142,9 @@ if [ $gendir = 'Y' ] ; then
    echo "Generating usdir.rdm, please wait.."
 
    if [ -e buildus ] ; then
-      ./buildus -s $BUILDUSOPTIONS
+      ./buildus -s $MAPPATH
    else
-      buildus -s $BUILDUSOPTIONS
+      buildus -s $MAPPATH
    fi
 fi
 
