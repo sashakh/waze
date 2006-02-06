@@ -58,8 +58,8 @@ typedef struct {
    RoadMapString city;
 
    int line;
-   int fradd;
-   int toadd;
+   unsigned int fradd;
+   unsigned int toadd;
 
 } BuildMapRange;
 
@@ -129,12 +129,12 @@ static BuildMapRange *buildmap_range_new (void) {
 }
 
 
-void buildmap_range_merge (int frleft,  int toleft,
-                           int frright, int toright,
-                           int *from,   int *to) {
+void buildmap_range_merge (unsigned int frleft,  unsigned int toleft,
+                           unsigned int frright, unsigned int toright,
+                           unsigned int *from,   unsigned int *to) {
 
-   int fradd = frright;
-   int toadd = toright;
+   unsigned int fradd = frright;
+   unsigned int toadd = toright;
 
    if (fradd < toadd) {
       if (fradd > frleft) fradd = frleft;
@@ -173,7 +173,8 @@ void buildmap_range_merge (int frleft,  int toleft,
 
 int buildmap_range_add
        (int line, int street,
-        int fradd, int toadd, RoadMapZip zip, RoadMapString city) {
+        unsigned int fradd, unsigned int toadd,
+        RoadMapZip zip, RoadMapString city) {
 
    int index;
    BuildMapRange *this_range;
@@ -187,9 +188,6 @@ int buildmap_range_add
    }
    if (street < 0) {
       buildmap_fatal (0, "negative street index");
-   }
-   if (fradd < 0 || toadd < 0) {
-      buildmap_fatal (0, "negative street address");
    }
 
    RangeAddCount += 1;

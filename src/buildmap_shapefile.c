@@ -239,8 +239,8 @@ static void buildmap_range_add_address (
       RoadMapZip  zip,
       int line,
       int street,
-      int fradd,
-      int toadd) {
+      unsigned int fradd,
+      unsigned int toadd) {
 
    RoadMapString city;
    RoadMapString place;
@@ -305,10 +305,10 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
    RoadMapString fename;
    RoadMapString fetype;
    RoadMapString fedirs;
-   int fraddl;
-   int toaddl;
-   int fraddr;
-   int toaddr;
+   unsigned int fraddl;
+   unsigned int toaddl;
+   unsigned int fraddr;
+   unsigned int toaddr;
    int zipl;
    int zipr;
    int frlong;
@@ -390,11 +390,11 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
          fedirs = str2dict (DictionarySuffix,
            DBFReadStringAttribute(hDBF, irec, iFEDIRS));
 
-         fraddl = DBFReadIntegerAttribute(hDBF, irec, iFRADDL);
-         toaddl = DBFReadIntegerAttribute(hDBF, irec, iTOADDL);
+         fraddl = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iFRADDL);
+         toaddl = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iTOADDL);
 
-         fraddr = DBFReadIntegerAttribute(hDBF, irec, iFRADDR);
-         toaddr = DBFReadIntegerAttribute(hDBF, irec, iTOADDR);
+         fraddr = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iFRADDR);
+         toaddr = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iTOADDR);
 
          zipl   = str2dict (DictionaryFSA,
            DBFReadStringAttribute(hDBF, irec, iZIPL));
@@ -437,8 +437,8 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
              (diff_fr > -10) && (diff_fr < 10) &&
              (diff_to > -10) && (diff_to < 10)) {
 
-            int fradd;
-            int toadd;
+            unsigned int fradd;
+            unsigned int toadd;
 
             buildmap_range_merge (fraddl, toaddl,
                                   fraddr, toaddr,

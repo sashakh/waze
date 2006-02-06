@@ -189,7 +189,7 @@ static int tiger2int (char *line, int start, int end) {
    return sign * result;
 }
 
-static int tiger2address (char *line, int start, int end) {
+static unsigned int tiger2address (char *line, int start, int end) {
 
    tigerAdjust (line, &start, &end);
 
@@ -394,10 +394,10 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
    RoadMapString fedirs;
    RoadMapString city;
    RoadMapString place;
-   int fraddl;
-   int toaddl;
-   int fraddr;
-   int toaddr;
+   unsigned int fraddl;
+   unsigned int toaddl;
+   unsigned int fraddr;
+   unsigned int toaddr;
    int zipl;
    int zipr;
    int frlong;
@@ -511,8 +511,8 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 
                      if (placel == placer) {
 
-                        int fradd;
-                        int toadd;
+                        unsigned int fradd;
+                        unsigned int toadd;
 
                         buildmap_range_merge (fraddl, toaddl,
                                               fraddr, toaddr,

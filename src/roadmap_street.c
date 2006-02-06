@@ -392,9 +392,9 @@ static void roadmap_street_locate (const char *name,
 
    if (space != NULL) {
 
-      unsigned  length;
+      unsigned int length;
 
-      length = (unsigned)(space - name);
+      length = (unsigned int)(space - name);
 
       if (length < sizeof(buffer)) {
 
@@ -429,7 +429,7 @@ static void roadmap_street_locate (const char *name,
 
          if (street->type > 0) {
 
-            length = (unsigned)(space - name);
+            length = (unsigned int)(space - name);
 
             if (length < sizeof(buffer)) {
 
@@ -683,8 +683,8 @@ int roadmap_street_get_ranges
    int i;
    int end;
 
-   int fradd;
-   int toadd;
+   unsigned int fradd;
+   unsigned int toadd;
 
    int total = 0;
 
@@ -697,10 +697,10 @@ int roadmap_street_get_ranges
 
       if (HAS_CONTINUATION(this_addr)) {
 
-         fradd = ((int)(this_addr->fradd) & 0xffff)
-                    + (((int)(this_addr[1].fradd) & 0xffff) << 16);
-         toadd = ((int)(this_addr->toadd) & 0xffff)
-                    + (((int)(this_addr[1].toadd) & 0xffff) << 16);
+         fradd = ((unsigned int)(this_addr->fradd) & 0xffff)
+                    + (((unsigned int)(this_addr[1].fradd) & 0xffff) << 16);
+         toadd = ((unsigned int)(this_addr->toadd) & 0xffff)
+                    + (((unsigned int)(this_addr[1].toadd) & 0xffff) << 16);
 
          ++i; /* Because this range occupies two entries. */
 
@@ -728,16 +728,16 @@ int roadmap_street_get_ranges
 
 
 int roadmap_street_get_position (RoadMapBlocks *blocks,
-                                 int number,
+                                 unsigned int number,
                                  RoadMapPosition *position) {
 
    int i;
    int end;
-   int number_max;
-   int number_min;
+   unsigned int number_max;
+   unsigned int number_min;
 
-   int fradd;
-   int toadd;
+   unsigned int fradd;
+   unsigned int toadd;
 
    RoadMapPosition from;
    RoadMapPosition to;
@@ -754,10 +754,10 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
       if (HAS_CONTINUATION(this_addr)) {
 
-         fradd = ((int)(this_addr->fradd) & 0xffff)
-                    + (((int)(this_addr[1].fradd) & 0xffff) << 16);
-         toadd = ((int)(this_addr->toadd) & 0xffff)
-                    + (((int)(this_addr[1].toadd) & 0xffff) << 16);
+         fradd = ((unsigned int)(this_addr->fradd) & 0xffff)
+                    + (((unsigned int)(this_addr[1].fradd) & 0xffff) << 16);
+         toadd = ((unsigned int)(this_addr->toadd) & 0xffff)
+                    + (((unsigned int)(this_addr[1].toadd) & 0xffff) << 16);
 
          ++i;
 
@@ -789,15 +789,23 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
          } else {
 
+            int delta;
+
+            if (fradd > number) {
+               delta = fradd - number;
+            } else {
+               delta = number - fradd;
+            }
+
             position->longitude =
                from.longitude -
-                  ((from.longitude - to.longitude)
-                      * abs(fradd - number)) / (number_max - number_min);
+                  ((from.longitude - to.longitude) * delta)
+                     / (int)(number_max - number_min);
 
             position->latitude =
                from.latitude -
-                  ((from.latitude - to.latitude)
-                     * abs(fradd - number)) / (number_max - number_min);
+                  ((from.latitude - to.latitude) * delta)
+                     / (int)(number_max - number_min);
          }
 
          return line;

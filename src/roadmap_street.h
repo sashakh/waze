@@ -38,8 +38,8 @@ typedef struct {
 
 typedef struct {
 
-   int min;
-   int max;
+   unsigned int min;
+   unsigned int max;
 
 } RoadMapStreetRange;
 
@@ -92,7 +92,7 @@ int roadmap_street_get_ranges (RoadMapBlocks *blocks,
                                RoadMapStreetRange *ranges);
 
 int roadmap_street_get_position (RoadMapBlocks *blocks,
-                                 int number,
+                                 unsigned int number,
                                  RoadMapPosition *position);
 
 int roadmap_street_get_distance (const RoadMapPosition *position,

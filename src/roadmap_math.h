@@ -110,7 +110,7 @@ int  roadmap_math_intersection (RoadMapPosition *from1,
 
 void roadmap_math_screen_edges (RoadMapArea *area);
 
-int  roadmap_math_street_address (const char *image, int length);
+unsigned int roadmap_math_street_address (const char *image, int length);
 
 int  roadmap_math_compare_points (const RoadMapPosition *p1,
                                   const RoadMapPosition *p2);

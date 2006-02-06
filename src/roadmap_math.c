@@ -1243,11 +1243,11 @@ int roadmap_math_compare_points (const RoadMapPosition *p1,
 }
 
 
-int  roadmap_math_street_address (const char *image, int length) {
+unsigned int roadmap_math_street_address (const char *image, int length) {
 
    int i;
    int digit;
-   int result = 0;
+   unsigned int result = 0;
 
    if ((length > 8) &&
        ((image[0] == 'W') || (image[0] == 'E') ||
@@ -1258,9 +1258,9 @@ int  roadmap_math_street_address (const char *image, int length) {
         * The west/north flags and format the number accordingly.
         */
        int separator = 0;
-       int part1 = 0;
-       int part2 = 0;
-       int multiplier = 10;
+       unsigned int multiplier = 10;
+       unsigned int part1 = 0;
+       unsigned int part2 = 0;
 
 
        for (i = length - 1; i > 0; --i) {
@@ -1275,17 +1275,17 @@ int  roadmap_math_street_address (const char *image, int length) {
        for (i = 1; i < separator; ++i) {
           if (image[i] < '0' || image[i] > '9') {
              roadmap_log
-                (ROADMAP_ERROR, "bad numerical character %c", image[i]);
+                (ROADMAP_WARNING, "bad numerical character %c", image[i]);
           }
-          part1 = (part1 * 10) + (image[i] - '0');
+          part1 = (part1 * 10) + (unsigned int)(image[i] - '0');
        }
 
        for (i = separator + 1; i < length; ++i) {
           if (image[i] < '0' || image[i] > '9') {
              roadmap_log
-                (ROADMAP_ERROR, "bad numerical character %c", image[i]);
+                (ROADMAP_WARNING, "bad numerical character %c", image[i]);
           }
-          part2 = (part2 * 10) + (image[i] - '0');
+          part2 = (part2 * 10) + (unsigned int)(image[i] - '0');
           multiplier *= 10;
        }
 
@@ -1307,11 +1307,11 @@ int  roadmap_math_street_address (const char *image, int length) {
          } else if (digit >= 'a' && digit <= 'z') {
             digit = '1' + digit - 'a';
          } else  {
-            roadmap_log (ROADMAP_ERROR, "bad numerical character %c", digit);
+            roadmap_log (ROADMAP_WARNING, "bad numerical character %c", digit);
             continue;
          }
       }
-      result = (result * 10) + (digit - '0');
+      result = (result * 10) + (unsigned int)(digit - '0');
    }
 
    return result;

@@ -26,13 +26,14 @@
 
 #include "roadmap_types.h"
 
-void buildmap_range_merge (int frleft,  int toleft,
-                           int frright, int toright,
-                           int *from,   int *to);
+void buildmap_range_merge (unsigned int frleft,  unsigned int toleft,
+                           unsigned int frright, unsigned int toright,
+                           unsigned int *from,   unsigned int *to);
 
 int  buildmap_range_add
         (int line, int street,
-         int fradd, int toadd, RoadMapZip zip, RoadMapString city);
+         unsigned int fradd, unsigned int toadd,
+         RoadMapZip zip, RoadMapString city);
 void buildmap_range_add_no_address (int line, int street);
 void buildmap_range_add_place      (RoadMapString place, RoadMapString city);
 

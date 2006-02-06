@@ -56,7 +56,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    int fips;
    int count;
 
-   int   street_number [ROADMAP_MAX_STREETS];
+   unsigned int  street_number [ROADMAP_MAX_STREETS];
    RoadMapBlocks blocks[ROADMAP_MAX_STREETS];
 
    RoadMapGeocode *results;
@@ -118,14 +118,12 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
     */
    if (number_image[0] == 0) {
 
+      int cursor;
       int range_count;
       RoadMapStreetRange ranges[ROADMAP_MAX_STREETS];
 
-      for (i = 0, j = 0; i < count; ++i) {
-         street_number[i] = -1;
-      }
 
-      for (i = 0, j = 0; i < count && street_number[i] < 0; ++i) {
+      for (i = 0, cursor = count; i < count; ++i) {
 
          range_count =
             roadmap_street_get_ranges (blocks+i, ROADMAP_MAX_STREETS, ranges);
@@ -136,26 +134,26 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
             for (k = 1; k < range_count; ++k) {
 
-               if (count >= ROADMAP_MAX_STREETS) {
+               if (cursor >= ROADMAP_MAX_STREETS) {
                   roadmap_log (ROADMAP_WARNING,
                                "too many blocks, cannot expand");
                   break;
                }
-               blocks[count] = blocks[i];
-               ranges[count] = ranges[k];
-               street_number[count] = ranges[count].min;
-               count += 1;
+               blocks[cursor] = blocks[i];
+               street_number[cursor] = ranges[k].min;
+               cursor += 1;
             }
          }
       }
+      count = cursor;
 
    } else {
 
-      int number;
+      unsigned int number;
 
       number = roadmap_math_street_address (number_image, strlen(number_image));
 
-      for (i = 0, j = 0; i < count; ++i) {
+      for (i = 0; i < count; ++i) {
          street_number[i] = number;
       }
    }
@@ -165,7 +163,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
    fips = roadmap_locator_active();
 
-   for (i = 0, j = 0; i< count; ++i) {
+   for (i = 0, j = 0; i < count; ++i) {
 
       int line;
 
