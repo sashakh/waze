@@ -371,12 +371,13 @@ installicons:
 	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
 	for icon in roadmap*.png ; \
 	do \
-		convert $icon $(icon:.png=.xpm) \
-		cp -f $(icon:.png=.xpm) $(DESTDIR)$(ICONDIR)/. \
+		icon2=`basename $$icon .png` ; \
+		convert $$icon $${icon2}.xpm ; \
+		cp -f $${icon2}.xpm $(DESTDIR)$(ICONDIR)/. ; \
 	done
 
 installdoc:
-	copy ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
+	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
 webdoc:
 	aptconvert -toc -enc ASCII ../web/manual.html ../README
