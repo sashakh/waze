@@ -40,16 +40,47 @@
 #include "roadmap_layer.h"
 
 
+/* This is the maximum number of layers PER CLASS. As there is no limit on
+ * the number of classes, the total number of layers is actually unlimited.
+ * We could have implemented support for an unlimited number of layers per
+ * class, but who wants a thousand layers per map, anyway?
+ * Having this limit makes life easier for everyone, and the downside is nil.
+ * Note that this has no impact on the API of roadmap_layer.
+ */
+#define ROADMAP_MAX_LAYERS           1024
+
+/* There is a maximum number of navigation modules that can be registered.
+ * This is not really a limitation for now, since there is currently only
+ * one navigation mode (car) and any other would be hiking, boat, plane,
+ * spaceship... i.e. much less than the limit here.
+ * The size cannot be changed easily: the code uses bitmaps...
+ */
+#define ROADMAP_MAX_NAVIGATION_MODES   (8*sizeof(int))
+
+/* Some layers may be displayed using more than one pen.
+ * For example, a freeway could be displayed using 3 pens:
+ * border, fill, center divider.
+ */
+#define ROADMAP_MAX_LAYER_PENS    4
+
+
 static RoadMapConfigDescriptor RoadMapConfigStylePretty =
                         ROADMAP_CONFIG_ITEM("Style", "Use Pretty Lines");
 
 static RoadMapConfigDescriptor RoadMapConfigSkin =
                         ROADMAP_CONFIG_ITEM("Display", "Skin");
 
+static const char   *RoadMapNavigationMode[ROADMAP_MAX_NAVIGATION_MODES];
+static unsigned int  RoadMapNavigationModeCount = 0;
+
+
 /* CLASSES. -----------------------------------------------------------
  * A class represent a group of categories that have the same basic
- * properties. For example, the "Road" class can be searched for an
- * address.
+ * properties or which come from a single source. For example, the "Road"
+ * class can be searched for an address. Note however that RoadMap never
+ * assumes that there is any implicit property common to the layers
+ * of the same class: the organization of layers into classes is only
+ * a map creator's convention.
  * The lines and the polygons arrays are consecutive to each other,
  * i.e. a single array where the lines are listed first, so that we
  * can manage them as a single list, using a single index.
@@ -78,30 +109,28 @@ static RoadMapClass *RoadMapLayerCurrentClass;
  * A layer represents a group of map objects that are represented
  * using the same pen (i.e. same color, thickness) and the same
  * graphical primitive (line, polygon, etc..).
- * Some layers may be displayed using more than one pen.
- * For example, a freeway could be displayed using 3 pens:
- * border, fill, center divider.
  */
-#define ROADMAP_LAYER_PENS    4
-
 typedef struct roadmap_layer_record {
 
     const char *name;
     
     RoadMapClass *class;
 
-    char in_use[ROADMAP_LAYER_PENS];
+    char in_use[ROADMAP_MAX_LAYER_PENS];
 
     RoadMapConfigDescriptor declutter;
     RoadMapConfigDescriptor thickness;
 
     unsigned int pen_count;
-    RoadMapPen pen[ROADMAP_LAYER_PENS];
-    int delta_thickness[ROADMAP_LAYER_PENS];
+    RoadMapPen pen[ROADMAP_MAX_LAYER_PENS];
+    int delta_thickness[ROADMAP_MAX_LAYER_PENS];
+
+    int navigation_modes;
 
 } RoadMapLayer;
 
 static unsigned int RoadMapMaxUsedPen = 1;
+static unsigned int RoadMapMaxDefinedLayers = 1;
 
 
 /* SETS. --------------------------------------------------------------
@@ -161,6 +190,12 @@ static int roadmap_layer_is_visible (RoadMapLayer *layer) {
 }
 
 
+unsigned int roadmap_layer_max_defined(void) {
+
+   return RoadMapMaxDefinedLayers + 1; /* To be safe, allocate a bit more. */
+}
+
+
 unsigned int roadmap_layer_max_pen(void) {
 
    if (! roadmap_config_match (&RoadMapConfigStylePretty, "yes")) {
@@ -170,32 +205,31 @@ unsigned int roadmap_layer_max_pen(void) {
 }
 
 
-/* THIS FUNCTION IS A TEMPORARY COMPATIBILITY HACK. */
-int roadmap_layer_visible_roads (int *layers, int size) {
+int roadmap_layer_navigable (int mode, int *layers, int size) {
     
     int i;
-    int count = -1;
+    int mask = 1 << mode;
+    int count = 0;
 
     RoadMapLayer *layer;
     
 
     if (RoadMapLayerCurrentClass == NULL) return 0;
 
-    --size; /* To match our boundary check. */
+    for (i = 1; i <= RoadMapLayerCurrentClass->lines_count; ++i) {
 
-    for (i = 0; i < RoadMapLayerCurrentClass->lines_count; ++i) {
+        layer = RoadMapLayerCurrentClass->layers + i - 1;
 
-        layer = RoadMapLayerCurrentClass->layers + i;
+        if (layer->navigation_modes & mask) {
 
-        if (strcasecmp(layer->name, "Rivers") == 0) break;
-
-        if (roadmap_layer_is_visible (layer)) {
-            if (count >= size) break;
-            layers[++count] = i + 1;
+           if (roadmap_layer_is_visible (layer)) {
+              if (count >= size) break;
+              layers[count++] = i;
+           }
         }
     }
     
-    return count + 1;
+    return count;
 }
 
 
@@ -203,30 +237,28 @@ int roadmap_layer_visible_lines
        (int *layers, int size, unsigned int pen_index) {
 
     int i;
-    int count = -1;
+    int count = 0;
 
     RoadMapLayer *layer;
 
 
     if (RoadMapLayerCurrentClass == NULL) return 0;
 
-    --size; /* To match our boundary check. */
-    
-    for (i = RoadMapLayerCurrentClass->lines_count - 1; i >= 0; --i) {
+    for (i = RoadMapLayerCurrentClass->lines_count; i > 0; --i) {
 
-        layer = RoadMapLayerCurrentClass->layers + i;
+        layer = RoadMapLayerCurrentClass->layers + i - 1;
 
         if (pen_index >= layer->pen_count) continue;
         if (! layer->in_use[pen_index]) continue;
 
         if (roadmap_layer_is_visible (layer)) {
            if (count >= size) goto done;
-           layers[++count] = i + 1;
+           layers[count++] = i;
         }
     }
-    
+
 done:
-    return count + 1;
+    return count;
 }
 
 
@@ -424,28 +456,26 @@ void roadmap_layer_select_set (const char *name) {
 /* Initialization code. ------------------------------------------- */
 
 static int roadmap_layer_decode (const char *config,
-                                 const char *id, char**args, int max) {
+                                 const char *category, const char *id,
+                                 char**args, int max) {
 
    int   count;
    char *buffer;
+   const char *value = roadmap_config_get_from (config, category, id);
 
-   if (max <= 0) {
-      roadmap_log (ROADMAP_FATAL,
-                   "too many layers in class file %s",
-                   roadmap_config_file(config));
-   }
+   if (value == NULL) return 0;
 
    /* We must allocate a new storage because we are going to split
     * the string, thus modify it.
     */
-   buffer = strdup(roadmap_config_get_from (config, "Class", id));
+   buffer = strdup(value);
    roadmap_check_allocated(buffer);
 
    count = roadmap_input_split (buffer, ' ', args, max);
    if (count <= 0) {
       roadmap_log (ROADMAP_FATAL,
-                   "invalid layer list %s in class file %s",
-                   id, roadmap_config_file(config));
+                   "invalid list %s.%s in class file %s",
+                   category, id, roadmap_config_file(config));
    }
 
    return count;
@@ -644,12 +674,12 @@ static void roadmap_layer_load_file (const char *class_file) {
      */
     lines_count =
        roadmap_layer_decode
-          (class_config, "Lines", layers, ROADMAP_MAX_LAYERS);
+          (class_config, "Class", "Lines", layers, ROADMAP_MAX_LAYERS);
     if (lines_count <= 0) return;
 
     polygons_count =
        roadmap_layer_decode
-          (class_config, "Polygons",
+          (class_config, "Class", "Polygons",
            layers + lines_count, ROADMAP_MAX_LAYERS - lines_count);
     if (polygons_count <= 0) return;
 
@@ -680,11 +710,15 @@ static void roadmap_layer_load_file (const char *class_file) {
     set->class_count += 1;
 
 
+    if (RoadMapMaxDefinedLayers < (unsigned int) lines_count + polygons_count) {
+       RoadMapMaxDefinedLayers = lines_count + polygons_count;
+    }
+
     for (i = lines_count + polygons_count - 1; i >= 0; --i) {
 
         RoadMapLayer *layer = new_class->layers + i;
 
-        const char *color[ROADMAP_LAYER_PENS];
+        const char *color[ROADMAP_MAX_LAYER_PENS];
 
         int  thickness;
         int  other_pen_length = strlen(layers[i]) + 64;
@@ -693,6 +727,7 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         layer->name = layers[i];
         layer->class = new_class;
+        layer->navigation_modes = 0;
 
 
         /* Retrieve the layer's thickness & declutter. */
@@ -715,7 +750,7 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         /* Retrieve the layer's other colors (optional). */
 
-        for (pen_index = 1; pen_index < ROADMAP_LAYER_PENS; ++pen_index) {
+        for (pen_index = 1; pen_index < ROADMAP_MAX_LAYER_PENS; ++pen_index) {
 
            const char *image;
 
@@ -750,6 +785,10 @@ static void roadmap_layer_load_file (const char *class_file) {
             roadmap_canvas_set_foreground (color[0]);
         }
 
+        if (i >= lines_count) { /* This is a polygon. */
+           layer->in_use[0] = 1;
+        }
+
         for (pen_index = 1; pen_index < layer->pen_count; ++pen_index) {
 
            snprintf (other_pen, other_pen_length, "%s%d", layers[i], pen_index);
@@ -763,7 +802,37 @@ static void roadmap_layer_load_file (const char *class_file) {
            }
            roadmap_canvas_set_thickness (thickness);
            roadmap_canvas_set_foreground (color[pen_index]);
+
+           if (i >= lines_count) { /* This is a polygon. */
+              layer->in_use[pen_index] = 1;
+           }
         }
+    }
+
+    /* Retrieve the navigation modes associated with each layer. */
+
+    for (i = 0; i < (int)RoadMapNavigationModeCount; ++i) {
+
+       int j;
+       int k;
+       int mask = 1 << i;
+       char *navigation_layers[ROADMAP_MAX_LAYERS];
+
+       int layers_count =
+          roadmap_layer_decode (class_config,
+                                "Navigation", RoadMapNavigationMode[i],
+                                navigation_layers, ROADMAP_MAX_LAYERS);
+
+       for (j = layers_count - 1; j >= 0; --j) {
+
+          for (k = lines_count - 1; k >= 0; --k) {
+
+             if (strcasecmp(layers[k], navigation_layers[j]) == 0) {
+                new_class->layers[k].navigation_modes |= mask;
+                break;
+             }
+          }
+       }
     }
 }
 
@@ -817,6 +886,17 @@ void roadmap_layer_load (void) {
     }
 
     roadmap_layer_select_set ("default");
+}
+
+
+int roadmap_layer_declare_navigation_mode (const char *name) {
+
+   if (RoadMapNavigationModeCount >= ROADMAP_MAX_NAVIGATION_MODES) {
+      roadmap_log (ROADMAP_FATAL, "too many navigation modes");
+   }
+   RoadMapNavigationMode[RoadMapNavigationModeCount] = strdup(name);
+
+   return RoadMapNavigationModeCount++;
 }
 
 

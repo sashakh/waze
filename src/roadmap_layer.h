@@ -58,14 +58,7 @@
 
 #include "roadmap_canvas.h"
 
-/* This is the maximum number of layers PER CLASS. As there is no limit on
- * the number of classes, the total number of layers is actually unlimited.
- * We could have implemented support for an unlimited number of layers per
- * class, but who wants a thousand layers per map, anyway?
- * Having this limit makes life easier for everyone, and the downside is nil.
- */
-#define ROADMAP_MAX_LAYERS  1024
-
+unsigned int roadmap_layer_max_defined(void);
 unsigned int roadmap_layer_max_pen(void);
 
 void roadmap_layer_adjust (void);
@@ -75,8 +68,7 @@ void roadmap_layer_select_set (const char *set); /* Either "day" or "night". */
 
 int  roadmap_layer_select_class (const char *name);
 
-/* DEPRECATED, use: roadmap_layer_select_class ("Roads") */
-int  roadmap_layer_visible_roads (int *layers, int size);
+int roadmap_layer_navigable (int mode, int *layers, int size);
 
 int  roadmap_layer_visible_lines
         (int *layers, int size, unsigned int pen_index);
@@ -92,6 +84,7 @@ const char *roadmap_layer_class_name (void);
 
 void roadmap_layer_load (void);
 
+int  roadmap_layer_declare_navigation_mode (const char *name);
 void roadmap_layer_initialize (void);
 
 #endif // INCLUDED__ROADMAP_LAYER__H

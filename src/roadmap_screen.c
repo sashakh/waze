@@ -919,9 +919,11 @@ static void roadmap_screen_reset_square_mask (void) {
 
 static int roadmap_screen_repaint_square (int square, unsigned int pen_index) {
 
+   static int *layers = NULL;
+   static int  layers_size = 0;
+
    int i;
    int count;
-   int layers[1024];
 
    RoadMapArea edges;
 
@@ -952,8 +954,13 @@ static int roadmap_screen_repaint_square (int square, unsigned int pen_index) {
 
    if (pen_index == 0) roadmap_screen_draw_square_edges (square);
 
-   count = roadmap_layer_visible_lines (layers, 1024, pen_index);
-   
+   if (layers == NULL) {
+      layers_size = roadmap_layer_max_defined();
+      layers = (int *)calloc (layers_size, sizeof(int));
+      roadmap_check_allocated(layers);
+   }
+   count = roadmap_layer_visible_lines (layers, layers_size, pen_index);
+
    RoadMapScreenLastPen = NULL;
 
    for (i = 0; i < count; ++i) {

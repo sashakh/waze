@@ -60,6 +60,9 @@ static RoadMapConfigDescriptor RoadMapNavigateFlag =
  */
 static int RoadMapNavigateEnabled = 0;
 
+static int RoadMapCarMode;
+
+
 /* Avoid doing navigation work when the position has not changed. */
 static RoadMapGpsPosition RoadMapLatestGpsPosition;
 static RoadMapPosition    RoadMapLatestPosition;
@@ -178,7 +181,7 @@ static int roadmap_navigate_get_neighbours
     focus_point.x += accuracy;
     roadmap_navigate_adjust_focus (&focus, &focus_point);
 
-    count = roadmap_layer_visible_roads (layers, 128);
+    count = roadmap_layer_navigable (RoadMapCarMode, layers, 128);
     
     if (count > 0) {
 
@@ -343,7 +346,7 @@ static RoadMapFuzzy roadmap_navigate_is_intersection
 static int roadmap_navigate_find_intersection
                   (const RoadMapGpsPosition *position, PluginLine *found) {
 
-    int cfcc;
+    int layer;
     int square;
     int first_line;
     int last_line;
@@ -397,19 +400,25 @@ static int roadmap_navigate_find_intersection
 
     if (square != -1) {
 
-       for (cfcc = ROADMAP_ROAD_FIRST; cfcc <= ROADMAP_ROAD_LAST; ++cfcc) {
+       int i;
+       int layers[128];
+       int count = roadmap_layer_navigable (RoadMapCarMode, layers, 128);
+
+       for (i = 0; i < count; ++i) {
+
+          layer = layers[i];
 
           if (roadmap_line_in_square
-                  (square, cfcc, &first_line, &last_line) > 0) {
+                  (square, layer, &first_line, &last_line) > 0) {
 
              int line;
 
              for (line = first_line; line <= last_line; ++line) {
 
                 PluginLine p_line =
-                   PLUGIN_MAKE_LINE (ROADMAP_PLUGIN_ID, line, cfcc, fips);
+                   PLUGIN_MAKE_LINE (ROADMAP_PLUGIN_ID, line, layer, fips);
 
-                if (roadmap_plugin_override_line (line, cfcc, fips)) {
+                if (roadmap_plugin_override_line (line, layer, fips)) {
                    continue;
                 }
 
@@ -438,7 +447,7 @@ static int roadmap_navigate_find_intersection
        }
 
        if (roadmap_line_in_square2
-              (square, cfcc, &first_line, &last_line) > 0) {
+              (square, layer, &first_line, &last_line) > 0) {
 
           int xline;
 
@@ -446,9 +455,9 @@ static int roadmap_navigate_find_intersection
 
              int line = roadmap_line_get_from_index2 (xline);
              PluginLine p_line =
-                PLUGIN_MAKE_LINE (ROADMAP_PLUGIN_ID, line, cfcc, fips);
+                PLUGIN_MAKE_LINE (ROADMAP_PLUGIN_ID, line, layer, fips);
 
-             if (roadmap_plugin_override_line (line, cfcc, fips)) {
+             if (roadmap_plugin_override_line (line, layer, fips)) {
                 continue;
              }
 
@@ -667,6 +676,8 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
 
 void roadmap_navigate_initialize (void) {
+
+    RoadMapCarMode = roadmap_layer_declare_navigation_mode ("Car");
 
     roadmap_config_declare_enumeration
         ("session", &RoadMapNavigateFlag, "yes", "no", NULL);
