@@ -1,6 +1,7 @@
 Class.Name: All
 Class.Lines: Freeways Ramps Highways Streets Trails Rivers Shore
 Class.Polygons: Lakes Sea Parks Hospitals Airports Stations Malls
+Navigation.Car: Freeways Ramps Highways Streets Trails
 Freeways.Color: black
 Freeways.Color1: IndianRed
 Freeways.Delta1: -2
