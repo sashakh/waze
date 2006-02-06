@@ -444,41 +444,41 @@ static int roadmap_navigate_find_intersection
                 }
              }
           }
-       }
 
-       if (roadmap_line_in_square2
-              (square, layer, &first_line, &last_line) > 0) {
+          if (roadmap_line_in_square2
+                (square, layer, &first_line, &last_line) > 0) {
 
-          int xline;
+             int xline;
 
-          for (xline = first_line; xline <= last_line; ++xline) {
+             for (xline = first_line; xline <= last_line; ++xline) {
 
-             int line = roadmap_line_get_from_index2 (xline);
-             PluginLine p_line =
-                PLUGIN_MAKE_LINE (ROADMAP_PLUGIN_ID, line, layer, fips);
+                int line = roadmap_line_get_from_index2 (xline);
+                PluginLine p_line =
+                   PLUGIN_MAKE_LINE (ROADMAP_PLUGIN_ID, line, layer, fips);
 
-             if (roadmap_plugin_override_line (line, layer, fips)) {
-                continue;
-             }
+                if (roadmap_plugin_override_line (line, layer, fips)) {
+                   continue;
+                }
 
-             match = roadmap_navigate_is_intersection
-                                 (&p_line, position->steering, &crossing);
+                match = roadmap_navigate_is_intersection
+                           (&p_line, position->steering, &crossing);
 
-             if (best_match < match) {
+                if (best_match < match) {
 
-                PluginStreet street;
+                   PluginStreet street;
 
-                roadmap_street_get_properties (line, &properties);
+                   roadmap_street_get_properties (line, &properties);
 
-                roadmap_plugin_set_street
-                   (&street, ROADMAP_PLUGIN_ID, properties.street);
+                   roadmap_plugin_set_street
+                      (&street, ROADMAP_PLUGIN_ID, properties.street);
 
-                if ((properties.street > 0) &&
-                    (! roadmap_plugin_same_street
+                   if ((properties.street > 0) &&
+                         (! roadmap_plugin_same_street
                           (&street, &RoadMapConfirmedStreet.street))) {
 
-                   *found = p_line;
-                   best_match = match;
+                      *found = p_line;
+                      best_match = match;
+                   }
                 }
              }
           }
