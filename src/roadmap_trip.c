@@ -507,13 +507,13 @@ static char *Placement_Choices [] =
     "Place before route start",
 };
 
-static int Placement_Vals [] = {
-    PLACE_NEW_ROUTE,
-    PLACE_PERSONAL_MARK,
-    PLACE_TRIP_MARK,
-    PLACE_ROUTE_MARK_DEST,
-    PLACE_ROUTE_MARK_INSERT,
-    PLACE_ROUTE_MARK_START
+static void *Placement_Vals [] = {
+    (void *)PLACE_NEW_ROUTE,
+    (void *)PLACE_PERSONAL_MARK,
+    (void *)PLACE_TRIP_MARK,
+    (void *)PLACE_ROUTE_MARK_DEST,
+    (void *)PLACE_ROUTE_MARK_INSERT,
+    (void *)PLACE_ROUTE_MARK_START
 };
 
 static char **Placements = Placement_Choices;
@@ -539,7 +539,7 @@ static void roadmap_trip_add_waypoint_dialog
         roadmap_dialog_new_choice
             ("Name", ".placements",
                 route_options ? NUM_ROUTE_PLACEMENTS : NUM_PLACEMENTS, 0,
-                Placements, (void **) Placement_Vals, NULL);
+                Placements, Placement_Vals, NULL);
 
         roadmap_dialog_add_button
                 ("Cancel", roadmap_trip_dialog_cancel);

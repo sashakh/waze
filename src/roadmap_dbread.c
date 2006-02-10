@@ -134,7 +134,7 @@ static void roadmap_db_make_tree
                       database->name);
       }
 
-      child_offset = (child_offset + 3) & (~3);
+      child_offset = (child_offset + 7) & (~7);
 
       child = (roadmap_db *) malloc (sizeof(roadmap_db));
 
@@ -153,7 +153,7 @@ static void roadmap_db_make_tree
       roadmap_db_make_tree (database, child);
 
       if (child->head->next > 0) {
-         int aligned = (child->head->next + 3) & (~3);
+         int aligned = (child->head->next + 7) & (~7);
          child->next = (roadmap_db *) (database->base + aligned);
       } else {
          child->next = NULL;

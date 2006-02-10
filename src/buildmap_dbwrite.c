@@ -28,7 +28,7 @@
  *
  *   buildmap_db *buildmap_db_add_section (buildmap_db *parent, char *name);
  *   int    buildmap_db_add_data (buildmap_db *section, int count, int size);
- *   char  *buildmap_db_get_data (buildmap_db *section);
+ *   void  *buildmap_db_get_data (buildmap_db *section);
  *
  *   void buildmap_db_close (void);
  */
@@ -205,7 +205,7 @@ buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name) {
    }
 
    offset = parent->data + parent->head->size;
-   aligned = (offset + 3) & (~3);
+   aligned = (offset + 7) & (~7);
 
    if (buildmap_db_extend (aligned + sizeof(struct roadmap_db_section)) < 0) {
       return NULL;
@@ -235,7 +235,8 @@ buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name) {
    }
    parent->last = new;
 
-   buildmap_db_propagate (parent, sizeof(struct roadmap_db_section));
+   buildmap_db_propagate
+      (parent, (aligned - offset) + sizeof(struct roadmap_db_section));
 
    BuildmapCurrentDbSection = new;
 
@@ -260,7 +261,7 @@ int buildmap_db_add_data (buildmap_db *section, int count, int size) {
    } else {
       total_size = size;
    }
-   aligned_size = (total_size + 3) & (~3);
+   aligned_size = (total_size + 7) & (~7);
 
    section->head->size += total_size;
 
@@ -276,7 +277,7 @@ int buildmap_db_add_data (buildmap_db *section, int count, int size) {
 }
 
 
-char *buildmap_db_get_data (buildmap_db *section) {
+void *buildmap_db_get_data (buildmap_db *section) {
 
    return BuildmapCurrentDbBase + section->data;
 }
