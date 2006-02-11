@@ -314,7 +314,8 @@ static void buildmap_street_summary (void) {
 
    fprintf (stderr,
             "-- street table statistics: %d streets, %d add, %d bytes used\n",
-            StreetCount, StreetAddCount, StreetCount * sizeof(RoadMapStreet));
+            StreetCount, StreetAddCount,
+            (int)(StreetCount * sizeof(RoadMapStreet)));
 }
 
 

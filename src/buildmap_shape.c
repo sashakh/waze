@@ -492,8 +492,8 @@ static void buildmap_shape_summary (void) {
             "-- shape table: %d items, %d add, %d bytes used\n"
             "                %d lines (range %d), max %d points per line\n",
             ShapeCount, ShapeAddCount,
-            ShapeCount * sizeof(RoadMapShape)
-               + (ShapeMaxLine + 1) * sizeof(RoadMapShapeByLine),
+            (int) (ShapeCount * sizeof(RoadMapShape)
+               + (ShapeMaxLine + 1) * sizeof(RoadMapShapeByLine)),
             ShapeLineCount, ShapeMaxLine, ShapeMaxSequence);
 }
 

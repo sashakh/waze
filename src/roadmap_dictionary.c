@@ -96,7 +96,7 @@ static void roadmap_dictionary_print_subtree
                     tree->position,
                     tree->position,
                     "",
-                    (tree - dictionary->tree),
+                    (int)(tree - dictionary->tree),
                     tree->count);
 
    for (index = tree->first;

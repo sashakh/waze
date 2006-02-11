@@ -117,7 +117,7 @@ static void buildmap_dictionary_print_subtree
                     tree->position,
                     tree->position,
                     "",
-                    (tree - dictionary->tree),
+                    (int)(tree - dictionary->tree),
                     tree->count);
 
    for (reference = tree->first;
@@ -495,7 +495,7 @@ static void  buildmap_dictionary_save_one
    db_reference = (struct roadmap_dictionary_reference *)
       buildmap_db_get_data (table_node);
    db_index = (unsigned int *) buildmap_db_get_data (table_index);
-   db_data  = buildmap_db_get_data (table_data);
+   db_data  = (char *)buildmap_db_get_data (table_data);
 
    tree_count = 0;
    reference_count = 0;

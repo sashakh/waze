@@ -60,8 +60,6 @@ static char *BuildPlaceDSGStrings[BUILDPLACE_MAX_DSG] = {NULL};
 static int   BuildPlaceDSGcfcc[BUILDPLACE_MAX_DSG];
 static int   BuildPlaceDSGCount = 0;
 
-static BuildMapDictionary DictionaryName;
-
 static int   BuildPlaceFormatFamily = 0;
 
 static int   BuildPlaceVerbose = 0;
@@ -220,7 +218,9 @@ static void buildplace_dsg_summary (void) {
 static void buildplace_shapefile_process (const char *source, int verbose) {
 
 #if ROADMAP_USE_SHAPEFILES
-   
+
+    static BuildMapDictionary DictionaryName;
+
     char name[160];
     int irec;
     int record_count;

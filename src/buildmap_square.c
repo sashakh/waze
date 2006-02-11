@@ -360,7 +360,7 @@ static void buildmap_square_save (void) {
 static void buildmap_square_summary (void) {
 
    fprintf (stderr, "-- square table statistics: %d squares, %d bytes used\n",
-                    SquareCount, SquareCount * sizeof(RoadMapSquare));
+                    SquareCount, (int)(SquareCount * sizeof(RoadMapSquare)));
 }
 
 

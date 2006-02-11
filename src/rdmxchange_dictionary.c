@@ -312,7 +312,7 @@ static void rdmxchange_dictionary_save_one (buildmap_db *root,
    db_node = (struct roadmap_dictionary_reference *)
       buildmap_db_get_data (table_node);
    db_index = (unsigned int *) buildmap_db_get_data (table_index);
-   db_data  = buildmap_db_get_data (table_data);
+   db_data  = (char *)buildmap_db_get_data (table_data);
 
 
    /* Fill the data in. */

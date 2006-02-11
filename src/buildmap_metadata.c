@@ -268,7 +268,7 @@ static void buildmap_metadata_summary (void) {
 
    fprintf (stderr,
             "-- metadata table statistics: %d attributes, %d bytes used\n",
-            AttributeCount, AttributeCount * sizeof(RoadMapAttribute));
+            AttributeCount, (int)(AttributeCount * sizeof(RoadMapAttribute)));
 }
 
 

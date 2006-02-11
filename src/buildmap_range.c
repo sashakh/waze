@@ -993,7 +993,7 @@ static void buildmap_range_summary (void) {
             "-- range table: %d items, %d add, %d bytes used, %d duplicates\n",
             RangeCount,
             RangeAddCount,
-            RangeCount * sizeof(RoadMapRange),
+            (int)(RangeCount * sizeof(RoadMapRange)),
             RangeDuplicates);
 }
 
