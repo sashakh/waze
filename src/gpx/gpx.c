@@ -969,7 +969,7 @@ gpx_read_pre()
                 xsi_schema_loc = xstrdup(DEFAULT_XSI_SCHEMA_LOC);
         }
         if (!xsi_schema_loc) {
-                fatal("gpx: Unable to allocate %d bytes of memory.\n", strlen(DEFAULT_XSI_SCHEMA_LOC) + 1);
+                fatal("gpx: Unable to allocate %d bytes of memory.\n", (int) strlen(DEFAULT_XSI_SCHEMA_LOC) + 1);
         }
 
         XML_SetElementHandler(psr, gpx_start, gpx_end);
