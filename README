@@ -195,12 +195,17 @@ INSTALLATION
   is to let the users choose the type of hardware storage that is convenient
   for them.
 
-  The RoadMap commands must be installed in a bin directory. This is an
-  easy one: the only requirement is that this directory must appear in the
-  PATH variable (either you choose an existing directory or you add your own).
+** EXECUTABLE FILES
+
+  The RoadMap programs should be installed in a standard executable directory.
+  This is an easy one: the only requirement is that this directory must appear
+  in the PATH variable (either you choose an existing directory or you add your
+  own).
+
+** CONFIGURATION FILES
 
   RoadMap comes with some critical configuration files (files sprites,
-  schema, preferences, etc..). RoadMap supports these files to be in a few
+  preferences, etc..). RoadMap supports these files to be in a few
   different places, which list cannot be changed in the user preferences
   since it is used to load the preferences themselves.
   
@@ -214,7 +219,54 @@ INSTALLATION
 
          * ~/.roadmap.
          
-  As an exception, the list on the Zaurus is:
+  These directories are searched sequentially: any configuration item found
+  in one directory overrides all the same items found in the directories
+  listed before. In other words, the configuration is loaded in the following
+  order:
+
+      1- /usr/share/roadmap (installation defaults)
+
+      2- /usr/local/share/roadmap (local site defaults)
+
+      3- /etc/roadmap (local machine defaults)
+
+      4- ~/.roadmap (current user configuration)
+
+  The directory <<~/.roadmap>> contains the user configuration: any user change
+  to the configuration is written there. The items in the user configuration
+  take precedence over the "default" configuration as defined in the "shared"
+  directories.
+
+  The directory <<~/.roadmap>> has two subdirectories: <<trips>> and <<maps>>.
+
+  The directory <<~/.roadmap/trips>> is used as the default location for the
+  trip files. Note that trip files can be stored anywhere, not only in
+  <<~/.roadmap/trips>>.
+
+  The directory <<~/.roadmap/maps>> contains map files specific for this user.
+  As a general rule, it is not recommended for each user to have their
+  own copy of the maps, as these maps take a lot of space. This directory
+  can be used however when maps are downloaded on the fly, as shared maps
+  are usually not writable for users. The local rules can be established so
+  that either all users download maps into the shared repository, or else
+  each user manages his own maps. On a PDA or on a personal desktop systems
+  the first solution makes the more sense, but for public access computers
+  (such as computers at an University) the second solution might be the most
+  convenient.
+
+  Theses user configuration directories are created when needed, if they do
+  not exist.
+
+  Althrough the Sharp Zaurus is a Linux (i.e. UNIX) PDA, it's setup is
+  somewhat unusual, and the location of the configuration files is
+  different.
+
+  The rational for the selected setup, which is typical of a PDA, is to
+  try to make RoadMap an auto-installed option when sliding in the proper
+  memory card. So the locations for files always include the Zaurus mount
+  points for the CompactFlash or SD cards.
+
+  The configuration directories on the Sharp Zaurus PDA are:
 
          * /opt/QtPalmtop/share/roadmap,
 
@@ -224,14 +276,23 @@ INSTALLATION
 
          * ~/.roadmap.
 
-  On Windows CE this list is:
+  Like the Zaurus, Windows CE based computers are usually of the PDA type,
+  so the same approach as for the Zaurus is used here, i.e. we make it
+  possible to install all RoadMap files in a memory card.
+
+  The configuration directories on Windows CE are:
 
          * \Program Files\roadmap
 
          * \Storage Card\roadmap (preferred path)
 
+  As Windows CE does not really have the concept of a user directory, RoadMap
+  will automatically add to the list the directory where its executable stands.
+
+** ICON FILES
+
   RoadMap (GTK version) needs some icons. These icons must be placed
-  in some standard location:
+  in the operating system's standard locations. On UNIX, this usually is:
   
          * ~/pixmaps,
 
@@ -239,16 +300,19 @@ INSTALLATION
 
          * /usr/share/pixmaps.
 
-  RoadMap needs some county maps to serve any useful purpose.
+** MAP FILES
+
+  RoadMap needs some map files to serve any useful purpose.
+
   The location for these map files can be redefined in the user preferences
   (item Map.Path). The maps are a problem of their own, since they may require
   a huge space (up to 1.8 G Bytes for the full set). It is recommended to share
-  these maps between users. Because these maps are not architecture-independent
+  these maps between users. Because these maps are architecture-dependent
   you should be careful, however, not to share them on a network (this could
-  also be very inefficient, both from a network and performances point of
-  view).
+  also be very inefficient, as this could saturate the network and the RoadMap
+  performances would be severely impacted).
   
-  By default, RoadMap is built to search for these directories on most
+  By default, RoadMap is built to search for the following directories on most
   UNIX systems:
   
          * ~/.roadmap/maps,
@@ -280,9 +344,15 @@ INSTALLATION
 
          * /usr/share/roadmap,
 
+         * /var/lib/roadmap,
+
          * /mnt/hda/share/roadmap and
 
          * /mnt/card/share/roadmap
+
+  Note that the architecture-dependent nature of the map files is not an
+  issue with a PDA, as these machines tend to be used standalone and not
+  to rely on network access.
 
   On Windows CE the default map search path is:
 
@@ -1028,6 +1098,9 @@ USING ROADMAP
 
 * ON-THE-FLY MAP DOWNLOAD
 
+   Map downloading is being rewritten: future versions will download
+   rdx files from the RoadMap web site (or from a user specified site).
+
    Today's PDA have a limited storage space, which must be shared with MP3
    and other files. As the RoadMap maps can take up to 1.6 GB, most PDA users
    will want to install only the few maps they need. The on-the-fly download
@@ -1322,17 +1395,15 @@ USING ROADMAP
    reminder of what format they're stored in, this is entirely optional. 
    File suffix doesn't matter.
    
-----
-       Note that although tracks and routes are conceptually
-       separate, either type can be selected at this point, and
-       any of the operations under the "Routes" menu can be
-       applied to either.
-----
+   Note that although tracks and routes are conceptually
+   separate, either type can be selected at this point, and
+   any of the operations under the "Routes" menu can be
+   applied to either.
 
    One of the buttons in this "Manage Routes" dialog is "None", which is a
    quick way of not selecting any route at all.
 
-   Creating a route:
+** Creating a route:
 
        If you're starting a "fresh" trip, you'll likely start by creating a
        route.  Choose a place that will be part of the route -- a waypoint,
@@ -1353,12 +1424,12 @@ USING ROADMAP
        segment), as well as a chance to add it as a landmark, to either the
        trip's list, or your personal list.  Continue adding waypoints to
        your route.  
-----
-	Note that waypoints are always copied.  So if you choose an
-	existing waypoint or landmark to use as a route waypoint, you'll
-	end up with a new waypoint, not just a second reference to an
-	existing waypoint.
-----
+
+       Note that waypoints are always copied.  So if you choose an
+       existing waypoint or landmark to use as a route waypoint, you'll
+       end up with a new waypoint, not just a second reference to an
+       existing waypoint.
+
        You can give your new route points names as you go, or wait until
        later and use the "Route Waypoints..." menu item to go back to the
        list, and select the ones you wish to rename or to which you wish to
@@ -1375,7 +1446,7 @@ USING ROADMAP
        addition to having no name, multiple routes can have the same name. 
        This will not confuse RoadMap, though it may confuse the user.
 
-   Converting a track to a route:
+** Converting a track to a route:
 
        Another, perhaps less convenient, method of creating a route, is to
        base it on a track that you (or someone else) has already travelled. 
@@ -1390,7 +1461,7 @@ USING ROADMAP
        original name.  (If it had a name -- otherwise the result is unnamed
        as well.)
 
-   Importing a route:
+** Importing a route:
 
        One advantage of using the popular GPX format is that routes
        and landmarks can be obtained from other sources.  Not only are
@@ -1419,6 +1490,7 @@ USING ROADMAP
 
        gpsbabel can do this too, somewhat more indirectly -- the following
        script shows how:
+
 --------
         #!/bin/sh
 
@@ -1455,7 +1527,7 @@ USING ROADMAP
        of loading that that data with "Open Trip", or merging it into
        another of your existing trips with "Merge Trip".
 
-   Quick Destination:
+** Quick Destination:
 
        Sometimes one doesn't really want to follow a route at all -- all
        you want to do is set a goal, and be kept informed of how far away
@@ -1465,7 +1537,7 @@ USING ROADMAP
        you move around, the display will show continously display the
        distance and direction to that point.
 
-   Following a route:
+** Following a route:
 
        A route that has been created or loaded can then be activated. 
        Activating a route defines the departure point (the current GPS
@@ -1682,55 +1754,28 @@ USING ROADGPS
 
 CONFIGURATION
 
+   This section describes the files used to configure RoadMap on the local
+   machine. In most cases these files contain user-defined data that defines
+   the look of the RoadMap user interface, or resources used by RoadMap.
+
+   We will first describe where to find these configuration files on the
+   different operating systems that RoadMap supports, then we will describe
+   the content of each configuration file.
+
+   The files themselves are the same on all operating systems.
+
+   Note that this section does not cover the files describing the maps:
+   there is a clear separation in RoadMap between the map data, which the
+   user normally does not modify or customize, and the configuration data,
+   which the user may want to custimize. The map files are described in
+   a separate section.
+
+   The configuration files are stored in a set of directories to allow
+   for a default, system-wide configuration and allow each user to customize
+   the configuration separately. See the INSTALLATION section for more details.
+
 * FILES
    
-   The RoadMap configuration is stored in text files located in the following
-   directories:
-
-----
-            /usr/share/roadmap
-            /usr/local/share/roadmap
-            /etc/roadmap
-            ~/.roadmap (equivalent to "&" in RoadMap)
-            ~/.roadmap/trips (equivalent to "&/trips" in RoadMap)
-            ~/.roadmap/maps (equivalent to "&/maps" in RoadMap)
-----
-
-   The first four directories are searched sequentially: any configuration
-   item found in one directory overrides all the same items found in the
-   directories listed before. In other words, the configuration is loaded in
-   the following order:
-
-      1- /usr/share/roadmap (installation defaults)
-
-      2- /usr/local/share/roadmap (local site defaults)
-
-      3- /etc/roadmap (local machine defaults)
-
-      4- ~/.roadmap (current user configuration)
-
-   The directory <<~/.roadmap>> contains the user configuration: any user change
-   to the configuration is written there. The items in the user configuration
-   take precedence over the "default" configuration in the "shared" directories.
-
-   The directory <<~/.roadmap/trips>> is used as the default location for the
-   trip files. Note that trip files can be stored anywhere, not only in
-   <<~/.roadmap/trips>>.
-
-   The directory <<~/.roadmap/maps>> contains map files specific for this user.
-   As a general rule, it is not recommended for each user to have their
-   own copy of the maps, as these maps take a lot of space. This directory
-   can be used however when maps are downloaded on the fly, as shared maps
-   are usually not writable for users. The local rules can be established so
-   that either all users download maps into the shared repository, or else
-   each user manages his own maps. On a PDA or on a personal desktop systems
-   the first solution makes the more sense, but for public access computers
-   (such as computers at an University) the second solution might be the most
-   convenient.
-
-   The user configuration directories are created when needed, if they do
-   not exist.
-
    The syntax of most RoadMap configuration files is similar to the X
    ressources file format (the exceptions are the sprites file and the
    trip files). Each configuration item is represented by one line of text,
@@ -1741,8 +1786,6 @@ CONFIGURATION
 ----
 
    The following configuration files are used:
-
-     [schema]          The definition of the geographic entities.
 
      [preferences]     User's preferences.
 
@@ -1765,6 +1808,21 @@ CONFIGURATION
    The toolbar files define the content of the RoadMap and RoadGps toolbars.
    See the section CONFIGURING THE MENUS AND TOOLBAR for more information.
 
+* CLASS FILES AND SKINS
+
+   The RoadMap configuration also contains the map class files. Each class
+   file describes the organization of one set of map files showing the same
+   list of layers (roads, topography, water feature, etc...).
+   
+   The class files are stored in a skin subdirectory. It is possible to
+   install multiple sets of class files by creating multiple skin
+   subdirectories and then select the active skin in the user preference.
+   The default skin is named, well, <<default>>.
+
+   The class files are described in more details in the MAP FORMAT section.
+
+   (Note that the class files replace the old <<schema>> file, which is no
+   longer used.)
 
 * CONFIGURING THE TEXT AND VOICE MESSAGES
    
@@ -1963,9 +2021,9 @@ CONFIGURATION
    has a limited size.
 
    Please note that, contrary to the example above, this renaming is not
-   intended to provide a mechanism for the internationalization of RoadMap.
-   This would be a very crude translation mechanism, as it is very incomplete.
-   For example, dialogs are not translated.
+   intended to provide a general mechanism for the internationalization of
+   RoadMap.  This would be a very crude translation mechanism, as it is very
+   incomplete (for example, dialogs are not translated).
 
    In fact, this renaming mechanism is likely to conflict with a future
    internationalization effort, and might be removed in later releases.
@@ -2751,11 +2809,11 @@ CONFIGURATION
         unassociated waypoints are read -- any routes or tracks
         in the file are ignored.
 
-    [Note that since these files are in GPX format, they can also
+    Note that since these files are in GPX format, they can also
     be manually opened as trips.  In this case, the landmarks associated
     with the "Personal Landmarks" file will appear as "Trip Landmarks"
     for that trip, and the track in "Current Track" will appear as
-    the only unnamed track in that trip.]
+    the only unnamed track in that trip.
 
 
 TOOLS
@@ -2766,7 +2824,9 @@ TOOLS
 
    RoadMap comes with a tool to display information extracted from a map file:
 
+----
    dumpmap [--usage] [-d TABLE] [--strings] [--volume=NAME] [--search=NAME]
+----
 
    dumpmap uses the popt library for parsing command line argument: the
    option --help provides a full description of each option. The name of
@@ -3051,11 +3111,21 @@ WRITING A ROADMAP DRIVER
 
 MAP FORMAT
 
-* MAP FILES
+   The maps are made of three types of files: the map files themselves
+   contains the map data, the map indexes allow for fast retrieval of
+   the map files to display and the class files describe the features
+   stored in each map file.
+
+* MAP FILES AND INDEXES
 
    As indicated in several other places, the RoadMap map files (extension
-   .rdm) are organized by county (one file per county), plus a directory
-   of counties (usdir.rdm). The name of a county file follows the format:
+   .rdm) are organized by administrative territories, such s a county per
+   file in the US. The map files are retrieved using index files, which files
+   themselves use a format similar to the map files. The index files contain
+   only the list of map files, plus some indexes to accelerate the display of
+   a specific area, or the search of an address.
+
+   As for now, the names of the US county files follow the convention below:
 
 ----
    usc<fips>.rdm
@@ -3065,12 +3135,133 @@ MAP FORMAT
    of five digits: the first two digits identify the state and the last
    three digits identify the county within the state.
 
-   The rdm files are binary files and uses the local conventions for byte
-   order and C structure layout.
+   As for now, there is a single index file, named usdir.rdm. This file
+   must be in the same directory as the map files.
 
-   The two types of files, usdir.rdm or usc*.rdm, contain very different
+   This naming convention is likely to change in the near future!
+
+   The rdm files are binary files and uses the local conventions for byte
+   order and C structure layout. In order to make it possible to share map
+   files between different systems, an ASCII format is also defined, with
+   the suffix <<.rdx>>; the rdmxchange program translates from one format
+   to the other. Note that the data stored in the rdx files is strictly
+   equivalent to the one stored in the rdm files, and the organization of
+   this data is very specific to the RoadMap application. The rdx format
+   was not designed to exchange data with other applications.
+
+   These two types of files, the map and index files, contain very different
    data but share the same general organization: these files contain
    multiple data tables organized in a tree fashion.
+
+* CLASS FILES
+
+   A class file is a text file that describes the features of a set of map
+   files, where the features are organized in layers. Each map file contains
+   features that belong to one (and only one) class.
+
+   An example of class would be roads. Roads would be organized is layers
+   like freeways, highways, streets and trails. All map files describing
+   roads will contain features organized using these same layers.
+
+   The class files are stored in the RoadMap configuration directories,
+   thus they can be customized by the user, independently from the map files.
+   It must be noted, however, that the way the layers are organized must not
+   be changed. Changing the list of layers would render the existing map files
+   more or less useless.
+
+   The preferred method for customizing a class is to create a new RoadMap
+   skin directory, copy all the class files from an existing skin directory
+   and then edit the class files in that new skin directory. The active
+   RoadMap skin can be selected in the user preferences.
+
+   The class files use the same format as the preference file. It defines
+   the properties of the various layers that make a set of maps.
+
+   The two differences with the preferences files are that there is no
+   predefined layers in RoadMap (layers are entirely defined by the class
+   files) and there is no default value.
+
+   A class file contains general attributes and layer attributes.
+
+   The general attributes are:
+
+     [Class.Name:] the name of the class (the name of the file does not count).
+
+         <<Format:>> string
+
+     [Class.Lines:] the line layers, ordered with the top layer first.
+
+         <<Format:>> a space separated list of layer names.
+
+     [Class.Polygons:] the polygon layers, ordered with the top layer first.
+
+         <<Format:>> a space separated list of layer names.
+
+     [Navigation.Car:] the list of layers to be used for car navigation.
+
+         <<Format:>> a space separated list of layer names.
+
+         <<Comment:>> The layers should all be line layers.
+
+   For each layer, RoadMap use the following items:
+
+     [<layer>.Class:] the class of object this layer belongs to.
+
+         <<Format:>> Road, Feature or Area.
+
+         <<Comment:>> Road and Feature categories are searched in the "line"
+                  table of the map files and drawn as lines. The Road
+                  layer is searched when a street name is looked for.
+                  The Area objects are drawn separatly, as polygons.
+
+     [<layer>.Color:] the first color used when drawing the objects.
+
+         <<Format:>> color
+
+     [<layer>.Color1:] the second color used when drawing the objects.
+
+         <<Format:>> color
+
+         <<Comment:>> This color is optional. See <layer>.Delta1.
+
+     [<layer>.Color2:] the third color used when drawing the objects.
+
+         <<Format:>> color
+
+         <<Comment:>> This color is optional. See <layer>.Delta2.
+
+     [<layer>.Color3:] the fourth color used when drawing the objects.
+
+         <<Format:>> color
+
+         <<Comment:>> This color is optional. See <layer>.Delta3.
+
+     [<layer>.Thickness:] the thickness used to draw the first color lines.
+
+         <<Format:>> number of pixels
+
+     [<layer>.Delta1:] the thickness used to draw the second color lines.
+
+         <<Format:>> number of pixels, relative to previous color if negative.
+
+     [<layer>.Delta2:] the thickness used to draw the third color lines.
+
+         <<Format:>> number of pixels, relative to previous color if negative.
+
+     [<layer>.Delta3:] the thickness used to draw the fourth color lines.
+
+         <<Format:>> number of pixels, relative to previous color if negative.
+
+     [<layer>.Declutter:] the zoom level from which the objects are hidden
+
+         <<Format:>> integer
+
+         <<Comment:>> The definition of this item is rather obscure. To be fixed.
+
+   The Color1 to Color3 and Delta1 to Delta3 attributes are optional, but
+   the 1 .. n-1 attributes must be defined if the nth attribute is defined.
+
+   These additional colors are typicall used to draw streets.
 
 * TABLES
 
@@ -3394,4 +3585,49 @@ MAP FORMAT
    [range.byzip]     for each range, the ZIP code.
    [range.place]     for each place, the city it belongs to.
    [range.bysquare]  for each square, a street search accelerator.
+
+* THE EXCHANGE FORMAT
+
+   The rdx files are straight conversion of the rdm file in an ASCII format
+   that is neither sensitive to the CPU byte order or the compiler's structure
+   layout. Apart from that ASCII representation, the list of tables and
+   the content of each table is exactly the same as for the rdm file. The
+   purpose of the rdx format is to allow the public distribution of map files
+   that can be used on all CPU architectures.
+
+   A rdx file is organized in two major sections: the first section contains
+   one header per table; the second section contains the data for each table.
+
+   A table header is one text line, with two comma-separated fields: the
+   table name and the table size (in number of records). The header section
+   ends with an empty line.
+
+   The data section is a sequence of table data, each table is separated
+   from the previous table with an empty line.
+
+   Each table data contains the following lines, in that order:
+
+   [Table name]
+   [Fields]
+   [Record]
+   [...]
+   [Record]
+
+   The table name is the full path of the table, such as "range/bysquare".
+
+   The fields line is a comma separated list of fields. A field may
+   be suffixed with an array size indication. For example:
+
+----
+      excluded[32],included[32],start,count
+----
+
+   Each record line is a comma separated list of values, in the same order
+   as specified in the fields line. The values of an array field are stored
+   sequentially, as if these were different fields. Value 0 may be represented
+   using an empty string. For example:
+
+----
+      5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,10,22
+----
 
