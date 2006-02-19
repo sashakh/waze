@@ -97,7 +97,6 @@ struct RoadMapConfigPredefined {
 static struct RoadMapConfigPredefined RoadMapConfigPredefinedFiles[] = {
    {"session",     0},
    {"preferences", 0},
-   {"schema",      1},
    {NULL, 0}
 };
 

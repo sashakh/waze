@@ -251,7 +251,7 @@ XCHGSRCS=rdmxchange_main.c \
 XCHGOBJS=$(XCHGSRCS:.c=.o)
 
 
-PKGDATAFILES=sprites preferences schema session drivers roadmap.popup
+PKGDATAFILES=sprites preferences session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 RUNTIME=rdmindex $(RDMLIBS) libguiroadgps.a libguiroadmap.a
