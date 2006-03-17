@@ -64,6 +64,7 @@ static int RoadMapCountyCacheSize = 0;
 
 static int RoadMapActiveCounty;
 
+static int RoadMapUsdirActive = 0;
 
 static roadmap_db_model *RoadMapUsModel;
 static roadmap_db_model *RoadMapCountyModel;
@@ -122,14 +123,6 @@ static void roadmap_locator_configure (void) {
          roadmap_db_register
             (RoadMapUsModel, "string", &RoadMapDictionaryHandler);
 
-      if (! roadmap_db_open ("usdir", RoadMapUsModel, "r")) {
-         roadmap_log (ROADMAP_FATAL, "cannot open directory database (usdir)");
-      }
-
-      RoadMapUsCityDictionary   = roadmap_dictionary_open ("city");
-      RoadMapUsStateDictionary  = roadmap_dictionary_open ("state");
-
-
       RoadMapCountyCacheSize = roadmap_option_cache ();
       if (RoadMapCountyCacheSize < ROADMAP_CACHE_SIZE) {
          RoadMapCountyCacheSize = ROADMAP_CACHE_SIZE;
@@ -138,6 +131,18 @@ static void roadmap_locator_configure (void) {
          calloc (RoadMapCountyCacheSize, sizeof(struct roadmap_cache_entry));
       roadmap_check_allocated (RoadMapCountyCache);
    }
+
+   if (!RoadMapUsdirActive) {
+      if (! roadmap_db_open ("usdir", RoadMapUsModel, "r")) {
+         roadmap_log (ROADMAP_FATAL, "cannot open directory database (usdir)");
+      }
+
+      RoadMapUsCityDictionary   = roadmap_dictionary_open ("city");
+      RoadMapUsStateDictionary  = roadmap_dictionary_open ("state");
+
+      RoadMapUsdirActive = 1;
+   }
+
 }
 
 
@@ -251,6 +256,15 @@ void roadmap_locator_close (int fips) {
 
    if (RoadMapActiveCounty == fips) {
       RoadMapActiveCounty = 0;
+   }
+}
+
+
+void roadmap_locator_close_dir (void) {
+
+   if (RoadMapUsdirActive) {
+      roadmap_db_close ("usdir");
+      RoadMapUsdirActive = 0;
    }
 }
 

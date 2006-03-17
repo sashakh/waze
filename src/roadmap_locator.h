@@ -45,6 +45,7 @@ int  roadmap_locator_activate    (int fips);
 int  roadmap_locator_active      (void);
 
 void roadmap_locator_close (int fips);
+void roadmap_locator_close_dir (void);
 
 RoadMapString roadmap_locator_get_state (const char *state);
 
