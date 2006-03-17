@@ -150,7 +150,7 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX"
-		                 "\n\nEditor Plugin 0.4.0\n"
+		                 "\n\nEditor Plugin 0.4.3\n"
 		                 "Ehud Shabtai\n"
 		                 "eshabtai@gmail.com");
 }
@@ -213,9 +213,8 @@ static void roadmap_start_download_map (void) {
 
       editor_db_close (fips[i]);
       editor_db_delete (fips[i]);
-      roadmap_download_get_county (fips[i]);
+      roadmap_download_get_county (fips[i], i ? 0 : 1);
    }
-
 
    roadmap_screen_redraw ();
 }
@@ -311,7 +310,7 @@ static void roadmap_start_toggle_download (void) {
       }
 
       roadmap_download_subscribe_when_done (roadmap_screen_redraw);
-      roadmap_locator_declare (roadmap_download_get_county);
+      //roadmap_locator_declare (roadmap_download_get_county);
       roadmap_download_unblock_all ();
    }
 
@@ -773,7 +772,7 @@ static void roadmap_start_remove_driver_server (RoadMapIO *io) {
 
 static void roadmap_start_set_timeout (RoadMapCallback callback) {
 
-   roadmap_main_set_periodic (10000, callback);
+   roadmap_main_set_periodic (3000, callback);
 }
 
 
