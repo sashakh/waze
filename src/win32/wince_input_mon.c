@@ -46,7 +46,7 @@ static HANDLE serial_open(const char *name,
 		0,
 		NULL,
 		OPEN_EXISTING,
-		0,
+		FILE_FLAG_WRITE_THROUGH,
 		NULL);
 
 	free(url_unicode);
@@ -121,13 +121,13 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
        * a new connection as soon as the message is sent
        */
 
-      Sleep(3000);
+      Sleep(2000);
 
       conn->data_count = -1;
       SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
    }
 
-	while(conn->handle != INVALID_HANDLE_VALUE) {
+   while(conn->handle != INVALID_HANDLE_VALUE) {
 
       if (conn->data_count == 0) {
 
