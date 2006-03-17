@@ -105,6 +105,10 @@ static void editor_header_activate (void *context) {
    }
 }
 
+static void editor_header_unmap (void *context) {
+   if (ActiveDBHeader == context) ActiveDBHeader = NULL;
+}
+
 static void editor_blocks_activate (void *context) {
    ActiveBlocks = (char *) context;
 }
@@ -113,7 +117,7 @@ roadmap_db_handler EditorHeaderHandler = {
    "header",
    editor_map,
    editor_header_activate,
-   editor_unmap
+   editor_header_unmap
 };
 
 roadmap_db_handler EditorBlocksHandler = {
@@ -767,7 +771,10 @@ int editor_db_locator(const RoadMapPosition *position) {
 
    if (count) return fips[0];
 
-   return -1;
+   /* FIXME this is a hack until I figure out why we get some -1 fips */
+   editor_log (ROADMAP_ERROR, "editor_db_locator - can't find fips.");
+   return 77001;
+   //return -1;
 }
 
 
