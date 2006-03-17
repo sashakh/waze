@@ -39,6 +39,7 @@
 #include "roadmap_locator.h"
 #include "roadmap_line_route.h"
 #include "roadmap_fileselection.h"
+#include "roadmap_messagebox.h"
 
 #include "../editor_log.h"
 #include "../editor_main.h"
@@ -377,6 +378,7 @@ static int editor_export_data(const char *name) {
 
    if (file == NULL) {
       editor_log (ROADMAP_ERROR, "Can't create file: %s", name);
+      roadmap_messagebox ("Export Error", "Can't create file.");
       return -1;
    }
 
@@ -384,11 +386,17 @@ static int editor_export_data(const char *name) {
 
    if (fips < 0) {
       editor_log (ROADMAP_ERROR, "Can't locate current fips");
+      close_export_file (file);
+      roadmap_file_remove (NULL, name);
+      roadmap_messagebox ("Export Error", "Can't locate fips.");
       return -1;
    }
 
    if (editor_db_activate (fips) == -1) {
       editor_log (ROADMAP_ERROR, "Can't load editor db");
+      close_export_file (file);
+      roadmap_file_remove (NULL, name);
+      roadmap_messagebox ("Export Error", "No editor data to export.");
       return -1;
    }
 
@@ -400,6 +408,10 @@ static int editor_export_data(const char *name) {
 
       if (!export_dirty_lines (file)) {
          editor_log (ROADMAP_INFO, "No trksegs are available for export.");
+         roadmap_messagebox ("Export Error", "No new data to export.");
+         close_export_file (file);         
+         roadmap_file_remove (NULL, name);
+         return 0;
       }
       close_export_file (file);
       return 0;
@@ -539,7 +551,7 @@ static void editor_export_file_dialog_ok
 void editor_export_gpx (void) {
                                 
    roadmap_fileselection_new ("Export data",
-                              NULL, /* no filter. */
+                              "gpx", /* no filter. */
                               roadmap_path_user (),
                               "w",
                               editor_export_file_dialog_ok);
@@ -577,4 +589,3 @@ int editor_export_empty (int fips) {
 
    return 1;
 }
-
