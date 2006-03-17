@@ -42,6 +42,7 @@ void roadmap_fileselection_new (const char *title,
 {
 	WCHAR filename[MAX_PATH] = {0};
 	WCHAR strFilter[MAX_PATH] = {0};
+	LPWSTR fltr = NULL;
 	LPWSTR title_unicode = ConvertToWideChar(title, CP_UTF8);
 	BOOL res;
 
@@ -54,10 +55,10 @@ void roadmap_fileselection_new (const char *title,
 	ofn.Flags = OFN_EXPLORER;
 	ofn.lpstrTitle = title_unicode;
 	if (filter != NULL) {
-		LPWSTR fltr = ConvertToWideChar(filter, CP_UTF8);
+		fltr = ConvertToWideChar(filter, CP_UTF8);
 		_snwprintf(strFilter, sizeof(strFilter)/sizeof(strFilter[0]),
-						TEXT("%s\0%s\0"), fltr, fltr);
-		free(fltr);
+						TEXT("*.%s\0*.%s\0"), fltr, fltr);
+      ofn.lpstrDefExt = fltr;
 		ofn.lpstrFilter = strFilter;
 	} else {
 		ofn.lpstrFilter = TEXT("*.*\0*.*\0");
@@ -73,6 +74,7 @@ void roadmap_fileselection_new (const char *title,
 	}
 
 	free((char*)ofn.lpstrTitle);
+   if (fltr) free(fltr);
 
 	if (res) {
 		char *name = ConvertToMultiByte(filename, CP_UTF8);
