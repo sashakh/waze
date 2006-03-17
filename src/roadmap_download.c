@@ -198,8 +198,16 @@ static void roadmap_download_progress (int loaded) {
 
       roadmap_dialog_complete (0);
    }
-   roadmap_dialog_set_data (".file", "County", roadmap_county_get_name (fips));
-   roadmap_dialog_set_data (".file", "State", roadmap_county_get_state (fips));
+
+   if (fips != -1) {
+      roadmap_dialog_set_data (".file", "County",
+            roadmap_county_get_name (fips));
+      roadmap_dialog_set_data (".file", "State",
+            roadmap_county_get_state (fips));
+   } else {
+      roadmap_dialog_set_data (".file", "County", "usdir");
+      roadmap_dialog_set_data (".file", "State", "");
+   }
 
    roadmap_download_format_size (image, RoadMapDownloadCurrentFileSize);
    roadmap_dialog_set_data (".file", "Size", image);
@@ -366,9 +374,11 @@ static void roadmap_download_ok (const char *name, void *context) {
 
 
    format = roadmap_dialog_get_data (".file", "From");
+   roadmap_config_set (&RoadMapConfigSource, format);
    snprintf (source, sizeof(source), format, fips);
 
    format = roadmap_dialog_get_data (".file", "To");
+   roadmap_config_set (&RoadMapConfigDestination, format);
    snprintf (destination, sizeof(destination), format, fips);
 
    roadmap_dialog_hide (name);
@@ -426,7 +436,102 @@ static void roadmap_download_cancel (const char *name, void *context) {
 
    roadmap_download_block (RoadMapDownloadQueue[RoadMapDownloadQueueConsumer]);
 
+   /* empty queue */
+   RoadMapDownloadQueueConsumer = RoadMapDownloadQueueProducer - 1;
+
    roadmap_download_end ();
+}
+
+
+static void roadmap_download_usdir (void) {
+
+   struct roadmap_download_protocol *protocol;
+
+   char source[256];
+   char destination[256];
+
+   char *format;
+   const char *directory;
+
+
+   strncpy (source, roadmap_config_get (&RoadMapConfigSource), sizeof(source));
+   source[sizeof(source)-1] = 0;
+
+   format = strrchr (source, '/');
+   if (!format) {
+      roadmap_messagebox ("Download Error", "Can't download usdir.");
+      roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
+      roadmap_download_end ();
+      return;
+   }
+
+   strncpy (format+1, "usdir.rdm", sizeof(source) - (format - source + 1));
+
+   strncpy (destination, roadmap_config_get (&RoadMapConfigDestination), sizeof(destination));
+   destination[sizeof(destination)-1] = 0;
+
+#ifndef _WIN32
+   format = strrchr (destination, '/');
+#else
+   format = strrchr (destination, '\\');
+#endif
+   if (!format) {
+      roadmap_messagebox ("Download Error", "Can't download usdir.");
+      roadmap_log (ROADMAP_WARNING, "invalid download destination %s", destination);
+      roadmap_download_end ();
+      return;
+   }
+
+   strncpy (format+1, "usdir.rdm", sizeof(destination) - (format - destination + 1));
+
+   directory = roadmap_path_parent (NULL, destination);
+   roadmap_path_create (directory);
+   roadmap_path_free (directory);
+
+
+   /* FIXME: at this point, we should set a temporary destination
+    * file name. When done with the transfer, we should rename the file
+    * to its final name. That would replace the "freeze" in a more
+    * elegant manner.
+    */
+
+   /* Search for the correct protocol handler to call this time. */
+
+   for (protocol = RoadMapDownloadProtocolMap;
+        protocol != NULL;
+        protocol = protocol->next) {
+
+      if (strncmp (source, protocol->prefix, strlen(protocol->prefix)) == 0) {
+
+         roadmap_start_freeze ();
+         roadmap_locator_close_dir();
+
+         if (protocol->handler (&RoadMapDownloadCallbackFunctions,
+                                source, destination)) {
+
+            roadmap_download_uncompress (destination);
+            RoadMapDownloadRefresh = 1;
+         }
+         roadmap_start_unfreeze ();
+         roadmap_download_end ();
+         break;
+      }
+   }
+
+   if (protocol == NULL) {
+
+      roadmap_messagebox ("Download Error", "invalid download protocol");
+      roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
+      roadmap_download_end ();
+      return;
+   }
+
+   if (RoadMapDownloadCurrentFileSize > 0) {
+      roadmap_download_progress (RoadMapDownloadCurrentFileSize);
+   } else {
+      roadmap_download_end ();
+      return;
+   }
 }
 
 
@@ -439,6 +544,10 @@ static void roadmap_download_next_county (void) {
 
    char buffer[2048];
 
+   if (fips == -1) {
+      roadmap_download_usdir ();
+      return;
+   }
 
    source = roadmap_config_get (&RoadMapConfigSource);
    basename = strrchr (source, '/');
@@ -476,7 +585,7 @@ static void roadmap_download_next_county (void) {
 }
 
 
-int roadmap_download_get_county (int fips) {
+int roadmap_download_get_county (int fips, int download_usdir) {
 
    int next;
 
@@ -502,6 +611,15 @@ int roadmap_download_get_county (int fips) {
    }
 
    RoadMapDownloadQueue[RoadMapDownloadQueueProducer] = fips;
+
+   if (download_usdir) {
+
+      next = roadmap_download_increment(next);
+
+      if (next != RoadMapDownloadQueueConsumer) {
+         RoadMapDownloadQueue[next-1] = -1;
+      }
+   }
 
    if (RoadMapDownloadQueueProducer == RoadMapDownloadQueueConsumer) {
 
@@ -784,7 +902,7 @@ void roadmap_download_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
-      "http://www.eshabtai.net/roadmap/maps/" ROADMAP_FILE_NAME_FORMAT);
+      "http://www.freemap.co.il/roadmap/maps/" ROADMAP_FILE_NAME_FORMAT);
 
    snprintf (default_destination, sizeof(default_destination),
              "%s\\maps", roadmap_path_user());
