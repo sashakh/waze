@@ -34,7 +34,7 @@ ifeq ($(MODE),PROFILE)
    MODECFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
    MODELDFLAGS=-pg
 else
-   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer $(WARNFLAGS) $(OPTIONS)
+   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer -DNDEBUG=1 $(WARNFLAGS) $(OPTIONS)
    MODELDFLAGS=
 endif
 endif
