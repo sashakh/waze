@@ -84,7 +84,7 @@ static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 /* Listeners information (navigation data) ----------------------------- */
 
 static char   RoadMapLastKnownStatus = 'A';
-static time_t RoadMapGpsLatestPositionData = 0;
+static time_t RoadMapGpsLatestData = 0;
 static int    RoadMapGpsEstimatedError = 0;
 static int    RoadMapGpsRetryPending = 0;
 static int    RoadMapGpsReceivedTime = 0;
@@ -137,8 +137,6 @@ static void roadmap_gps_update_status (char status) {
 static void roadmap_gps_process_position (void) {
 
    int i;
-
-   RoadMapGpsLatestPositionData = time(NULL);
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -534,7 +532,7 @@ void roadmap_gps_initialize (void) {
          ("preferences", &RoadMapConfigGPSBaudRate, "4800");
 #endif
       roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSTimeout, "10");
+         ("preferences", &RoadMapConfigGPSTimeout, "3");
 
       RoadMapGpsInitialized = 1;
    }
@@ -721,7 +719,7 @@ void roadmap_gps_open (void) {
    }
 
    RoadMapGpsConnectedSince = time(NULL);
-   RoadMapGpsLatestPositionData = time(NULL);
+   RoadMapGpsLatestData = time(NULL);
 
    (*RoadMapGpsPeriodicAdd) (roadmap_gps_keep_alive);
 
@@ -841,6 +839,8 @@ void roadmap_gps_input (RoadMapIO *io) {
       (*RoadMapGpsPeriodicRemove) (roadmap_gps_keep_alive);
       roadmap_gps_open();
    }
+
+   RoadMapGpsLatestData = time (NULL);
 }
 
 
@@ -854,7 +854,7 @@ int roadmap_gps_active (void) {
 
    timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
 
-   if (time(NULL) - RoadMapGpsLatestPositionData >= timeout) {
+   if (time(NULL) - RoadMapGpsLatestData >= timeout) {
       return 0;
    }
 
