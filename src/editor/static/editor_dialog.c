@@ -610,13 +610,13 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
       roadmap_dialog_set_data ("General", "City", r_city);
    }
 
+   roadmap_dialog_set_data ("General", "Direction", (void *)direction);
+   
    if (strlen(l_zip)) {
       roadmap_dialog_set_data ("General", "Zip code", l_zip);
    } else {
       roadmap_dialog_set_data ("General", "Zip code", r_zip);
    }
-   roadmap_dialog_set_data ("General", "Direction", (void *)direction);
-   
    snprintf(range_str, sizeof(range_str), "%d", speed_limit);
    roadmap_dialog_set_data ("General", "Speed Limit", range_str);
 
@@ -691,9 +691,9 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
       roadmap_dialog_new_entry ("General", "Text to Speech");
       roadmap_dialog_new_entry ("General", "Street range");
       roadmap_dialog_new_entry ("General", "City");
-      roadmap_dialog_new_entry ("General", "Zip code");
       roadmap_dialog_new_choice ("General", "Direction", 4, direction_txts,
                                  (void**)direction_values, NULL);
+      roadmap_dialog_new_entry ("General", "Zip code");
       roadmap_dialog_new_entry ("General", "Speed Limit");
 
       roadmap_dialog_add_button ("Cancel", editor_segments_cancel);

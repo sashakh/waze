@@ -1031,8 +1031,8 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 
 						if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
 							widget_height = height - curr_y - 2;
-							if (widget_height > MAX_LIST_HEIGHT) {
-								widget_height = MAX_LIST_HEIGHT;
+							if (widget_height > MAX_LIST_HEIGHT*2) {
+								widget_height = MAX_LIST_HEIGHT*2;
 							}
 						}
 						MoveWindow(widget,
