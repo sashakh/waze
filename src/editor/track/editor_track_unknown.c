@@ -450,3 +450,4 @@ int editor_track_unknown_locate_point (int point_id,
       return detect_road_segment (point_id, gps_position, new_segment, max_segments);
    }
 }
+

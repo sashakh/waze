@@ -417,7 +417,7 @@ static void adjust_connect_node (NodeNeighbour *node, PluginLine *line) {
    }
    //editor_track_util_release_focus ();
 
-   assert (result.distance < 3*editor_track_point_distance ());
+   assert (result.distance < 5*editor_track_point_distance ());
 
    split_position.longitude = result.intersection.longitude;
    split_position.latitude = result.intersection.latitude;

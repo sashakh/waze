@@ -208,7 +208,15 @@ static void end_known_segment (int point_id,
                                RoadMapTracking *new_street,
                                RoadMapNeighbour *new_line) {
 
-   int fips = roadmap_plugin_get_fips (&TrackConfirmedLine.line);
+   int fips;
+   
+   if (!TrackConfirmedStreet.valid) {
+      TrackConfirmedLine = *new_line;
+      TrackConfirmedStreet = *new_street;
+      return;
+   }
+
+   fips = roadmap_plugin_get_fips (&TrackConfirmedLine.line);
 
    if (editor_db_activate (fips) == -1) {
 
@@ -293,6 +301,19 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
    int i;
    int start_point = 0;
    NodeNeighbour end_node = NODE_NEIGHBOUR_NULL;
+
+   int fips = editor_db_locator (track_point_pos (start_point));
+
+   if (editor_db_activate (fips) == -1) {
+
+      editor_db_create (fips);
+      if (editor_db_activate (fips) == -1) {
+         roadmap_log (ROADMAP_ERROR, "Can't end unknown segment.");
+
+         track_reset_points (-1);
+         return;
+      }
+   }
 
    for (i=0; i<count; i++) {
 
