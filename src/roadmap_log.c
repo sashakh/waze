@@ -131,12 +131,12 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
          tms->tm_hour, tms->tm_min, tms->tm_sec,
          saved, category->prefix, source, line);
 #else
-	DWORD tm = GetTickCount();
 
-	//GetSystemTime(&st);
+   SYSTEMTIME st;
+	GetSystemTime(&st);
 
-   fprintf (file, "%d.%d %c%s %s, line %d ",
-         tm / 1000, tm % 1000,
+   fprintf (file, "%d/%d %d:%d:%d %c%s %s, line %d ",
+         st.wDay, st.wMonth, st.wHour, st.wMinute, st.wSecond,
          saved, category->prefix, source, line);
 
 #endif
