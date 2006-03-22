@@ -71,6 +71,7 @@ static int PointCount = 0;
 static BuildMapPoint *Point[BUILDMAP_BLOCK] = {NULL};
 
 static RoadMapHash *PointByPosition = NULL;
+static RoadMapHash *PointById = NULL;
 
 static int *SortedPoint = NULL;
 
@@ -81,6 +82,8 @@ static int SortMinLatitude  =  0x7fffffff;
 
 
 void buildmap_point_initialize (void) {
+
+   PointById = roadmap_hash_new ("PointById", BUILDMAP_BLOCK);
 
    PointByPosition =
       roadmap_hash_new ("PointByPosition", BUILDMAP_BLOCK);
@@ -138,9 +141,11 @@ int buildmap_point_add (int longitude, int latitude, int db_id) {
       }
 
       roadmap_hash_resize (PointByPosition, (block+1) * BUILDMAP_BLOCK);
+      roadmap_hash_resize (PointById, (block+1) * BUILDMAP_BLOCK);
    }
 
    roadmap_hash_add (PointByPosition, longitude, PointCount);
+   roadmap_hash_add (PointById, db_id, PointCount);
 
    this_point = Point[block] + offset;
 
@@ -251,6 +256,30 @@ int  buildmap_point_get_latitude_sorted  (int point) {
    }
 
    return buildmap_point_get(SortedPoint[point])->latitude;
+}
+
+
+int  buildmap_point_find_sorted (int db_id) {
+
+   int index;
+   BuildMapPoint *this_point;
+
+   if (SortedPoint == NULL) {
+      buildmap_fatal (0, "points not sorted yet");
+   }
+
+   for (index = roadmap_hash_get_first (PointById, db_id);
+        index >= 0;
+        index = roadmap_hash_get_next (PointById, index)) {
+
+      this_point = Point[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
+
+      if (this_point->db_id == db_id) {
+         return this_point->sorted;
+      }
+   }
+
+   return -1;
 }
 
 
@@ -428,6 +457,7 @@ void buildmap_point_reset (void) {
    PointCount = 0;
 
    PointByPosition = NULL;
+   PointById = NULL;
 
    SortMaxLongitude = -0x7fffffff;
    SortMinLongitude =  0x7fffffff;

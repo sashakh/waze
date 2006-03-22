@@ -43,8 +43,10 @@
 #include "buildmap_range.h"
 #include "buildmap_line.h"
 #include "buildmap_line_route.h"
+#include "buildmap_dglib.h"
 #include "buildmap_point.h"
 #include "buildmap_shape.h"
+#include "buildmap_turn_restrictions.h"
 #include "buildmap_city.h"
 #include "buildmap_zip.h"
 #include "buildmap_area.h"
@@ -66,6 +68,8 @@ static int   BuildMapVerbose = 0;
 static char *BuildMapFormat  = "2002";
 
 static char *BuildMapResult;
+
+static time_t creation_time;
 
 static struct poptOption BuildMapTigerOptions [] = {
 
@@ -161,8 +165,10 @@ static void buildmap_county_initialize (void) {
    buildmap_range_initialize();
    buildmap_line_initialize();
    buildmap_line_route_initialize();
+   buildmap_dglib_initialize(creation_time);
    buildmap_polygon_initialize();
    buildmap_shape_initialize();
+   buildmap_turn_restrictions_initialize();
    buildmap_street_initialize();
    buildmap_area_initialize();
    buildmap_metadata_initialize();
@@ -173,9 +179,11 @@ static void buildmap_county_sort (void) {
 
    buildmap_line_sort ();
    buildmap_line_route_sort ();
+   buildmap_dglib_sort ();
    buildmap_street_sort ();
    buildmap_range_sort ();
    buildmap_shape_sort ();
+   buildmap_turn_restrictions_sort ();
    buildmap_polygon_sort ();
    buildmap_metadata_sort ();
 }
@@ -201,8 +209,10 @@ static void buildmap_county_save (const char *name) {
    buildmap_square_save ();
    buildmap_line_save ();
    buildmap_line_route_save ();
+   buildmap_dglib_save (BuildMapResult, db_name);
    buildmap_point_save ();
    buildmap_shape_save ();
+   buildmap_turn_restrictions_save ();
    buildmap_dictionary_save ();
    buildmap_city_save ();
    buildmap_street_save ();
@@ -219,8 +229,10 @@ static void buildmap_county_reset (void) {
    buildmap_square_reset ();
    buildmap_line_reset ();
    buildmap_line_route_reset ();
+   buildmap_dglib_reset (creation_time);
    buildmap_point_reset ();
    buildmap_shape_reset ();
+   buildmap_turn_restrictions_reset ();
    buildmap_dictionary_reset ();
    buildmap_city_reset ();
    buildmap_street_reset ();
@@ -235,8 +247,7 @@ static void buildmap_county_process (const char *source,
                                      const char *county,
                                      int verbose, int canals, int rivers) {
 
-   time_t current_time;
-
+   char unix_time_str[255];
    buildmap_county_initialize ();
 
    switch (BuildMapFormatFamily) {
@@ -262,9 +273,11 @@ static void buildmap_county_process (const char *source,
          break;
    }
 
-   time (&current_time);
    buildmap_metadata_add_attribute ("Version", "Date",
-         asctime (gmtime (&current_time)));
+         asctime (gmtime (&creation_time)));
+   
+   snprintf (unix_time_str, sizeof(unix_time_str), "%ld", creation_time);
+   buildmap_metadata_add_attribute ("Version", "UnixTime", unix_time_str);
 
    buildmap_county_sort();
 
@@ -278,8 +291,10 @@ static void buildmap_county_process (const char *source,
       buildmap_street_summary ();
       buildmap_line_summary ();
       buildmap_line_route_summary ();
+      buildmap_dglib_summary ();
       buildmap_range_summary ();
       buildmap_shape_summary ();
+      buildmap_turn_restrictions_summary ();
       buildmap_polygon_summary ();
       buildmap_metadata_summary ();
    }
@@ -293,6 +308,7 @@ int main (int argc, const char **argv) {
 
    const char **leftovers;
 
+   time (&creation_time);
 
    BuildMapResult = strdup(roadmap_path_preferred("maps")); /* default. */
 

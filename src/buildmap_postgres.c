@@ -53,10 +53,12 @@
 #include "buildmap_point.h"
 #include "buildmap_line.h"
 #include "buildmap_line_route.h"
+#include "buildmap_dglib.h"
 #include "buildmap_street.h"
 #include "buildmap_range.h"
 #include "buildmap_area.h"
 #include "buildmap_shape.h"
+#include "buildmap_turn_restrictions.h"
 #include "buildmap_polygon.h"
 
 /* DB schemes */
@@ -69,6 +71,7 @@ static const char *roads_sql = "SELECT segments.id AS id, AsText(segments.the_ge
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time FROM segments;";
 static const char *country_borders_sql = "SELECT id AS id, AsText(the_geom) AS the_geom FROM boundaries;";
 static const char *water_sql = "SELECT id AS id, AsText(the_geom) AS the_geom FROM water;";
+static const char *turn_restrictions_sql = "SELECT node_id, seg1_id, seg2_id FROM turn_restrictions;";
 
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
@@ -382,6 +385,11 @@ static void buildmap_postgres_read_roads_route (int verbose) {
          (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
           from_cross_time, to_cross_time,
           line);
+
+      buildmap_dglib_add
+         (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
+          from_cross_time, to_cross_time,
+          line);
    }
 
    PQclear(db_result);
@@ -441,6 +449,60 @@ static void buildmap_postgres_read_roads_shape_points (int verbose) {
 
       free (lon_arr);
       free (lat_arr);
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+
+   }
+
+   PQclear(db_result);
+
+   postgres_summary (verbose, record_count);
+}
+
+
+static void buildmap_postgres_read_turn_restrictions (int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   int node_index;
+   int node_id;
+
+   PGresult *db_result;
+
+   db_result = PQexec(hPGConn, turn_restrictions_sql);
+
+   if (!db_result_ok (db_result)) {
+
+      fprintf
+         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
+      PQfinish(hPGConn);
+      exit(-1);
+   }
+
+   record_count = PQntuples(db_result);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      int from_line;
+      int to_line;
+
+      buildmap_set_line (irec);
+
+      node_id = atoi(PQgetvalue(db_result, irec, 0));
+      from_line = atoi(PQgetvalue(db_result, irec, 1));
+      to_line = atoi(PQgetvalue(db_result, irec, 2));
+
+      node_index = buildmap_point_find_sorted(node_id);
+      from_line = buildmap_line_find_sorted(from_line);
+      to_line = buildmap_line_find_sorted(to_line);
+
+      if (node_index < 0) continue;
+      buildmap_turn_restrictions_add(node_index, from_line, to_line);
 
       if (verbose) {
          if ((irec & 0xff) == 0) {
@@ -756,6 +818,7 @@ void buildmap_postgres_process (const char *source,
    buildmap_postgres_read_borders_shape_points (verbose);
    buildmap_postgres_read_roads_route (verbose);
    buildmap_postgres_read_roads_shape_points (verbose);
+   buildmap_postgres_read_turn_restrictions (verbose);
    //buildmap_postgres_read_water_shape_points (verbose);
    buildmap_postgres_read_water_polygons (verbose);
    PQfinish (hPGConn);

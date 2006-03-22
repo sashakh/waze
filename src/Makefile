@@ -87,11 +87,11 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD) -DROADMAP_USE_POSTGRES
-LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES
+LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq -L ./dglib
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
-LIBS=$(RDMLIBS) -lpopt -lm
+LIBS=$(RDMLIBS) -lpopt -lm -ldgl
 
 
 # --- RoadMap sources & targets --------------------------------------------
@@ -115,6 +115,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_line.c \
           roadmap_line_route.c \
           roadmap_shape.c \
+          roadmap_turns.c \
           roadmap_place.c \
           roadmap_polygon.c \
           roadmap_street.c \
@@ -188,7 +189,10 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/track/editor_track_main.c \
              editor/track/editor_track_unknown.c \
              editor/track/editor_track_known.c \
-             editor/db/editor_db.c
+             editor/db/editor_db.c \
+				 navigate/navigate_main.c \
+				 navigate/navigate_plugin.c \
+				 navigate/navigate_dglib.c \
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 
@@ -209,7 +213,9 @@ BMSRCS=buildmap_messages.c \
        buildmap_area.c \
        buildmap_line.c \
        buildmap_line_route.c \
+       buildmap_dglib.c \
        buildmap_shape.c \
+       buildmap_turn_restrictions.c \
        buildmap_polygon.c \
        buildmap_range.c \
        buildmap_zip.c \

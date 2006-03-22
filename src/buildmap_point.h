@@ -35,6 +35,7 @@ int  buildmap_point_get_sorted (int pointid);
 int  buildmap_point_get_longitude_sorted (int point);
 int  buildmap_point_get_latitude_sorted  (int point);
 int  buildmap_point_get_square_sorted (int point);
+int  buildmap_point_find_sorted (int db_id);
 
 void buildmap_point_save    (void);
 void buildmap_point_summary (void);
