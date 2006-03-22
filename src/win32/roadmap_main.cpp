@@ -106,7 +106,25 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	{
 		return FALSE;
 	}
-		
+
+/*
+   DWORD disp;
+	HKEY key;
+
+	LONG res_key = RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("RoadMap"),
+		0, NULL, REG_OPTION_NON_VOLATILE, 0, NULL, &key, &disp);
+	RegSetValueEx(key, _T("Dll"), 0, REG_SZ, (unsigned char*)_T("ComSplit.dll"), 26);
+	RegSetValueEx(key, _T("Prefix"), 0, REG_SZ, (unsigned char*)_T("COM"), 8);
+	disp = 4;
+	RegSetValueEx(key, _T("Index"), 0, REG_DWORD, (unsigned char*)&disp, sizeof(DWORD));
+
+	RegCloseKey(key);
+	
+	//res = RegisterDevice(_T("COM"), 4, _T("ComSplit.dll"), 0);
+	HANDLE res = ActivateDevice(_T("RoadMap"), NULL);
+
+   res = res;
+*/
 	ShowWindow(RoadMapMainWindow, nCmdShow);
 	UpdateWindow(RoadMapMainWindow);
 	
@@ -390,11 +408,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
-         Win32SerialConn *conn = (Win32SerialConn *) lParam;
+
+         if (lParam != 1) {
+            Win32SerialConn *conn = (Win32SerialConn *) lParam;
          
-         if (!ROADMAP_SERIAL_IS_VALID (conn)) {
-            /* An old input which was removed */
-            break;
+            if (!ROADMAP_SERIAL_IS_VALID (conn)) {
+               /* An old input which was removed */
+               break;
+            }
          }
 
 			(*context->callback) (context->io);

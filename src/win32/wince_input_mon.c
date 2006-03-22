@@ -207,7 +207,7 @@ DWORD WINAPI SocketMonThread(LPVOID lpParam)
 		}
 
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 0);
+		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 1);
 	}
 
 	free(io);
@@ -228,7 +228,7 @@ DWORD WINAPI FileMonThread(LPVOID lpParam)
 	while(io->subsystem != ROADMAP_IO_INVALID)
 	{
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 0);
+		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 1);
 	}
 
 	free(io);
