@@ -1,0 +1,111 @@
+/*! \page dglib Directed Graph Library
+
+by GRASS Development Team
+
+http://grass.itc.it/dglib/
+
+\section intro Introduction
+
+The Directed Graph Library or DGLib (Micarelli 2002) provides
+functionality for vector network analysis. This library released under
+GPL is hosted by the GRASS project (in the CVS server). As stand-alone
+library it may also be used by other software project.
+
+A graph is a system of logical connections between a collection of
+objects called vertices. Graphs are usually represented by a picture,
+so that each vertex is shown as a point, with the connections shown as
+line segments. These vertices are also commonly referred to as nodes,
+edges referred to as arcs. A directed graph (digraph) consists of a
+finite set of vertices, and a finite set of edges, where an edge is an
+ordered pair of vertices. A directed graph has the property that edges
+have a direction, this is the reason for defining an edge as an
+ordered pair of vertices often referred to as the head and the tail of
+the edge.
+
+The original design idea behind DGLib was to support middle sized
+graphs in RAM with a near-static structure that doesn't need to be
+dynamically modified by the user program; ability to read graphs from
+input streams and process them with no needle to rebuild internal
+trees. A representation has been defined, where graph data is stored
+in 32bit word arrays and each element pointer is converted to a
+relative offset. This representation is serializable from/to
+input/output streams and allows fast load-and-use processing. Graphs
+need to be de-serialized in order to be edited. In further
+refactorings the library has evolved to support dynamic changes and
+state-independent algorithm (algorithms can be run on both
+serializable or editable graphs).
+
+DGLib defines a serializable graph as being in FLAT state and a
+editable graph as being in TREE state. The implementation makes
+intensive use of libavl (http://www.msu.edu/~pfaffben/avl/) AVL data
+structures to support TREE state.
+
+So far DGLib defines three different graph versions, version 1
+supports directed graph with a weak concept of the edge, it can
+support many applications where one doesn't need to know about the
+input edges of a node (in-degree) and where there is no requirement to
+directly retrieve edges by their identifier but only by head/tail
+combinations. Version 2 adds in-degree support and a true edge
+addressing, yet supporting directed graph. Version 3 uses the same
+internal representation of version 2 but activates code branches to
+support undirected graphs.
+
+The DGLib user can control a number of static features and can attach
+a arbitrary amount of data to each node (node-attributes) and each
+edge (edge-attributes). Attributes are not considered to be part of
+the graph structure and can be edited also when the graph is in FLAT
+state.
+
+Graph traversal in neither recursive nor hook (callback) based, but
+built on the use of traversers for nodes and edges. By default,
+traversal is ordered by node and edge identifiers but can optionally
+be ordered by other means. For example, it is often useful to visit
+edges on a weight order} basis (greedy algorithm), this is possible
+via prioritizers that are activated by setting specific graph options.
+
+Both preemptive (blocking) and non-preemptive
+(non-blocking/multiplexed) I/O is supported, although GRASS does not
+actually use graph storage it may be easily required by any other
+library user. Thread safety is so far ensured by a data separation
+design that keeps all application context states into stack
+containers, whose life cycle is controlled by the user program. Each
+graph is a separate container and two or more graphs never
+conflict. In addition algorithms (ie. shortest path) can safely share
+the same graph, while concurrent editing on the same graph is unsafe.
+
+As DGLib is under development, only a bunch of polynomial time
+algorithms have been implemented, and the basic structure is being
+stressed to be a mature core to possibly time wasting
+computations. Current algorithms are: shortest path, depth spanning,
+and minimum spanning. Spanning algorithms silently behave as
+arborescenses when applied to directed graphs. A clip callback
+function, optionally supplied by the user, comes called by the library
+while traversing the graph in order to alter default algorithm
+behavior (i.e. user can control access to specific graph segments
+while computing shortest path).
+
+The Directed Graph Library library provides functionality to assign
+costs to lines and/or nodes. That means that costs can be accumulated
+while traveling along polylines. The user can assign individual costs
+to all lines and/or nodes of a vector map and later calculate shortest
+path connections based on the accumulated costs. Applications are
+transport analysis, connectivity and more.
+
+
+Text based on:<br>
+
+R. Blazek, M. Neteler, and R. Micarelli. The new GRASS 5.1 vector
+architecture. In Open source GIS - GRASS users conference 2002,
+Trento, Italy, 11-13 September 2002. University of Trento, Italy,
+2002.
+<a href="http://www.ing.unitn.it/%7Egrass/conferences/GRASS2002/proceedings/proceedings/pdfs/Blazek_Radim.pdf">http://www.ing.unitn.it/~grass/conferences/GRASS2002/proceedings/proceedings/pdfs/Blazek_Radim.pdf</a>
+
+
+\section seealso See Also
+
+GRASS 6 Vector Architecture \ref Vector_Library 
+
+
+Last change: $Date: 2006/03/22 08:51:51 $
+*/
+
