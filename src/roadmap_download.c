@@ -234,7 +234,7 @@ static void roadmap_download_allocate (void) {
 
    if (RoadMapDownloadQueue == NULL) {
 
-      RoadMapDownloadQueueSize = roadmap_county_count();
+      RoadMapDownloadQueueSize = roadmap_county_count() + 5;
 
       RoadMapDownloadQueue =
          calloc (RoadMapDownloadQueueSize, sizeof(int));
@@ -378,7 +378,6 @@ static void roadmap_download_ok (const char *name, void *context) {
    snprintf (source, sizeof(source), format, fips);
 
    format = roadmap_dialog_get_data (".file", "To");
-   roadmap_config_set (&RoadMapConfigDestination, format);
    snprintf (destination, sizeof(destination), format, fips);
 
    roadmap_dialog_hide (name);
@@ -408,8 +407,25 @@ static void roadmap_download_ok (const char *name, void *context) {
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
                                 source, destination)) {
 
+            char *tmp;
+
             roadmap_download_uncompress (destination);
             RoadMapDownloadRefresh = 1;
+
+            /* download navigation data */
+            if ((tmp = strstr (source, ".rdm")) != NULL) {
+               strcpy (tmp, ".dgl");
+
+               if ((tmp = strstr (destination, ".rdm")) != NULL) {
+                  strcpy (tmp, ".dgl");
+               
+                     if (!protocol->handler (&RoadMapDownloadCallbackFunctions,
+                                                source, destination)) {
+                        roadmap_messagebox ("Error",
+                              "Error downloading navigation data.");
+                     }
+               }
+            }
          }
          roadmap_download_unblock (fips);
          roadmap_start_unfreeze ();

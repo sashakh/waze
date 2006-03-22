@@ -398,7 +398,7 @@ static void roadmap_trip_remove_dialog_populate (int count) {
     }
     
     roadmap_dialog_show_list
-        ("Names", ".Waypoints", count, Names, (void **)Names,
+        ("Names", ".Waypoints", i, Names, (void **)Names,
          roadmap_trip_remove_dialog_selected);
 }
 
@@ -774,6 +774,17 @@ const RoadMapPosition *roadmap_trip_get_focus_position (void) {
     }
     
     return &RoadMapTripLastPosition;
+}
+
+
+const RoadMapPosition *roadmap_trip_get_position (const char *name) {
+    
+   RoadMapTripPoint *trip = NULL;
+
+   trip = roadmap_trip_search (name);
+   if (trip == NULL) return NULL;
+
+   return &trip->map;
 }
 
 

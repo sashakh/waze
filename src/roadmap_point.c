@@ -275,3 +275,11 @@ int roadmap_point_db_id (int point) {
    return RoadMapPointActive->PointID[point];
 }
 
+
+int roadmap_point_count (void) {
+
+   if (RoadMapPointActive == NULL) return 0; /* No line. */
+
+   return RoadMapPointActive->PointCount;
+}
+

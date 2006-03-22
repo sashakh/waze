@@ -39,6 +39,9 @@ void roadmap_start      (int argc, char **argv);
 void roadmap_start_exit (void);
 
 const char *roadmap_start_get_title (const char *name);
+void roadmap_start_add_long_click_item (const char *name,
+                                        const char *description,
+                                        RoadMapCallback callback);
 
 #endif /* INCLUDE__ROADMAP_START__H */
 

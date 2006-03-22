@@ -48,7 +48,7 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl
 
 # --- RoadMap sources & targets -----------------------------------
 

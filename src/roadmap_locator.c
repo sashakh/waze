@@ -40,6 +40,7 @@
 #include "roadmap_point.h"
 #include "roadmap_square.h"
 #include "roadmap_shape.h"
+#include "roadmap_turns.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
 #include "roadmap_street.h"
@@ -100,6 +101,9 @@ static void roadmap_locator_configure (void) {
       RoadMapCountyModel =
          roadmap_db_register
             (RoadMapCountyModel, "shape", &RoadMapShapeHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
+            (RoadMapCountyModel, "turns", &RoadMapTurnsHandler);
       RoadMapCountyModel =
          roadmap_db_register
             (RoadMapCountyModel, "line", &RoadMapLineHandler);

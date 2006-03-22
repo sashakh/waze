@@ -186,8 +186,7 @@ static void editor_screen_delete_segments (void) {
       }
    }
 
-   select_count = 0;
-   roadmap_screen_redraw ();
+   editor_screen_reset_selected ();
 
    return;
 
@@ -225,9 +224,8 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
    if (roadmap_navigate_retrieve_line
          (&position, 20, &line, &distance) == -1) {
        
-      select_count = 0;
       roadmap_display_hide ("Selected Street");
-      roadmap_screen_redraw ();
+      editor_screen_reset_selected ();
       return;
    }
 
@@ -244,11 +242,19 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
 
       select_count--;
 
+      if (!select_count) {
+         roadmap_pointer_register_long_click (SaveLongClickHandler);
+      }
+
    } else {
 
       if (select_count < MAX_LINE_SELECTIONS) {
 
          SelectedLines[select_count].line = line;
+         if (!select_count) {
+            SaveLongClickHandler = roadmap_pointer_register_long_click
+                                    (editor_screen_long_click);
+         }
          select_count++;
       }
    }
@@ -711,21 +717,23 @@ void editor_screen_set (int status) {
 
       SaveShortClickHandler = roadmap_pointer_register_short_click
          (editor_screen_short_click);
-      SaveLongClickHandler = roadmap_pointer_register_long_click
-         (editor_screen_long_click);
-
-      /* TODO: remove this call */
       roadmap_layer_adjust();
    } else {
 
       roadmap_pointer_register_short_click (SaveShortClickHandler);
-      roadmap_pointer_register_long_click (SaveLongClickHandler);
-      select_count = 0;
+      if (select_count) {
+         roadmap_pointer_register_long_click (SaveLongClickHandler);
+         select_count = 0;
+      }
    }
 }
 
 
 void editor_screen_reset_selected (void) {
+
+	if (select_count) {
+      roadmap_pointer_register_long_click (SaveLongClickHandler);
+   }
 
    select_count = 0;
    roadmap_screen_redraw ();

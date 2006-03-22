@@ -70,6 +70,7 @@
 #include "roadmap_help.h"
 #include "roadmap_pointer.h"
 
+#include "navigate/navigate_main.h"
 #include "editor/editor_main.h"
 #include "editor/db/editor_db.h"
 #include "editor/export/editor_export.h"
@@ -91,6 +92,8 @@ static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
 
 static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
+
+static RoadMapMenu LongClickMenu;
 
 
 /* The menu and toolbar callbacks: --------------------------------------- */
@@ -150,9 +153,9 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX"
-		                 "\n\nEditor Plugin 0.4.3\n"
-		                 "Ehud Shabtai\n"
-		                 "eshabtai@gmail.com");
+                       "\n\nEditor Plugin 0.5.0\n"
+                       "Ehud Shabtai\n"
+                       "eshabtai@gmail.com");
 }
 
 static void roadmap_start_export_data (void) {
@@ -255,9 +258,20 @@ static void roadmap_start_trip_reverse (void) {
     roadmap_trip_reverse ();
 }
 
+static void roadmap_start_navigate (void) {
+    
+    navigate_main_calc_route ();
+}
+
 static void roadmap_start_set_destination (void) {
 
     roadmap_trip_set_selection_as ("Destination");
+    roadmap_screen_refresh();
+}
+
+static void roadmap_start_set_departure (void) {
+
+    roadmap_trip_set_selection_as ("Departure");
     roadmap_screen_refresh();
 }
 
@@ -452,9 +466,17 @@ static RoadMapAction RoadMapStartActions[] = {
       "Start the trip back to the departure point",
       roadmap_start_trip_reverse},
 
+   {"setasdeparture", "Set as Departure", NULL, NULL,
+      "Set the selected street block as the trip's departure",
+      roadmap_start_set_departure},
+
    {"setasdestination", "Set as Destination", NULL, NULL,
       "Set the selected street block as the trip's destination",
       roadmap_start_set_destination},
+
+   {"navigate", "Navigate", NULL, NULL,
+      "Calculate route",
+      roadmap_start_navigate},
 
    {"addaswaypoint", "Add as Waypoint", "Waypoint", "W",
       "Set the selected street block as waypoint", roadmap_start_set_waypoint},
@@ -564,10 +586,12 @@ static const char *RoadMapStartMenu[] = {
    "resumetrip",
    "resumetripnorthup",
    "returntrip",
+   "navigate",
 
    RoadMapFactorySeparator,
 
    "setasdestination",
+   "setasdeparture",
    "addaswaypoint",
    "deletewaypoints",
 
@@ -857,6 +881,36 @@ static void roadmap_start_usage (const char *section) {
 }
 
 
+static void roadmap_start_long_click (RoadMapGuiPoint *point) {
+   
+   RoadMapPosition position;
+
+   roadmap_math_to_position (point, &position);
+   roadmap_trip_set_point ("Selection", &position);
+   
+   if (LongClickMenu != NULL) {
+      roadmap_main_popup_menu (LongClickMenu, point->x, point->y);
+   }
+}
+ 
+
+void roadmap_start_add_long_click_item (const char *name,
+                                        const char *description,
+                                        RoadMapCallback callback) {
+   if (LongClickMenu == NULL) {
+      LongClickMenu = roadmap_main_new_menu ();
+   }
+
+   if (name == NULL) {
+      roadmap_main_add_separator (LongClickMenu);
+      return;
+   }
+
+   roadmap_main_add_menu_item (LongClickMenu, name, description, callback);
+
+}
+   
+
 void roadmap_start_freeze (void) {
 
    RoadMapStartFrozen = 1;
@@ -893,6 +947,20 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
+
+   roadmap_start_add_long_click_item ("Set as Departure",
+                  "Set current point as Departure point.",
+                  roadmap_start_set_departure);
+
+   roadmap_start_add_long_click_item ("Set as Destination",
+                  "Set current point as Destination point.",
+                  roadmap_start_set_destination);
+
+   roadmap_start_add_long_click_item ("Navigate",
+                  "Calculate a route",
+                  roadmap_start_navigate);
+
+   roadmap_pointer_register_long_click (roadmap_start_long_click);
 
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
@@ -945,6 +1013,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
    editor_main_initialize ();
+   navigate_main_initialize ();
 
    roadmap_trip_restore_focus ();
 
@@ -954,6 +1023,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_locator_declare (&roadmap_start_no_download);
    roadmap_main_set_periodic (200, roadmap_start_periodic);
+
 }
 
 

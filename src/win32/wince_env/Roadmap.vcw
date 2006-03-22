@@ -1,5 +1,23 @@
-Microsoft eMbedded Visual Tools Workspace File, Format Version 3.00
+Microsoft eMbedded Visual Tools Workspace File, Format Version 4.00
 # WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "ComSplit"=C:\Projects\ComSplit\ComSplit.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libosroadmap
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libroadmap
+    End Project Dependency
+}}}
 
 ###############################################################################
 
@@ -55,6 +73,39 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libwinceguiroadmap
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libdgl
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "driver_test"=.\driver_test\driver_test.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libosroadmap
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libroadmap
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libdgl"=.\libdgl\libdgl.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
 }}}
 
 ###############################################################################

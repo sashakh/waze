@@ -229,8 +229,8 @@ int roadmap_navigate_fuzzify
     RoadMapFuzzy fuzzyfied_direction_against_line = 0;
     RoadMapFuzzy connected;
     int line_direction = 0;
-    int azymuth_with_line;
-    int azymuth_against_line;
+    int azymuth_with_line = 0;
+    int azymuth_against_line = 0;
     int symetric = 0;
 
     fuzzyfied_distance = roadmap_fuzzy_distance (line->distance);
