@@ -1,0 +1,109 @@
+----------------------------
+#include "agg_pixfmt_rgb24.h"             #include "agg_pixfmt_rgb.h"
+---------------------------
+#include "agg_pixfmt_gray8.h"             #include "agg_pixfmt_gray.h"
+---------------------------
+#include "agg_color_rgba8.h"              #include "agg_color_rgba.h"
+---------------------------
+#include "agg_gray8.h"                    #include "agg_color_gray.h"
+----------------------------
+#include "agg_span_gouraud_rgba8.h"       #include "agg_span_gouraud_rgba.h"
+----------------------------
+#include "agg_span_image_filter_rgb24.h"  #include "agg_span_image_filter_rgb.h"
+----------------------------
+#include "agg_span_image_filter_rgba32.h" #include "agg_span_image_filter_rgba.h"
+----------------------------
+#include "agg_span_pattern_rgba32.h"      #include "agg_span_pattern_rgba.h"
+----------------------------
+#include "agg_span_pattern_rgb24.h"       #include "agg_span_pattern_rgb.h"
+----------------------------
+#include "agg_span_gouraud_rgba8.h"       #include "agg_span_gouraud_rgba.h"
+----------------------------
+#include "agg_span_gouraud_gray8.h"       #include "agg_span_gouraud_gray.h"
+----------------------------
+#include "agg_span_pattern_filter_rgba32.h" #include "agg_span_pattern_filter_rgba.h"
+----------------------------
+#include "agg_span_pattern_filter_rgb24.h" #include "agg_span_pattern_filter_rgb.h"
+
+
+
+
+---------------------------
+        typedef agg::span_gradient<color_type, 
+                                   interpolator_type, 
+                                   gradient_func_type, 
+                                   const agg::rgba8*,
+                                   span_allocator_type> span_gradient_type;
+--------
+        typedef agg::gradient_extern_array<color_type, 8> color_array_type;
+        typedef agg::span_gradient<color_type, 
+                                   interpolator_type, 
+                                   gradient_func_type, 
+                                   color_array_type,
+                                   span_allocator_type> span_gradient_type;
+---------------------------
+
+agg::span_gouraud_rgba8<>          agg::span_gouraud_rgba<agg::rgba8>
+
+---------------------------
+        typedef agg::span_gradient_alpha<color_type, 
+                                         interpolator_type, 
+                                         gradient_alpha_func_type, 
+                                         const agg::int8u*> span_gradient_alpha_type;
+-------
+        typedef agg::gradient_extern_array<agg::int8u*, 8> gradient_alpha_type;
+        typedef agg::span_gradient_alpha<color_type, 
+                                         interpolator_type, 
+                                         gradient_alpha_func_type, 
+                                         gradient_alpha_type> span_gradient_alpha_type;
+---------------------------
+agg::rgba8(c, agg::rgba8::rgb);        agg::rgb8_packed(c);
+---------------------------
+enum { base_shift = 8 };   gradient colors
+---------------------------
+agg::order_bgr24                       agg::order_bgr
+agg::order_rgb24                       agg::order_rgb
+agg::order_bgra32                      agg::order_bgra
+agg::order_....32                      agg::order_....
+
+---------------------
+        typedef agg::span_image_filter_rgb24_bilinear<agg::order_bgr24, 
+                                                      interpolator_type> span_gen_type;
+--------
+        typedef agg::span_image_filter_rgb_bilinear<agg::rgba8,
+                                                    agg::order_bgr, 
+                                                    interpolator_type> span_gen_type;
+---------------------
+
+
+---------------------
+typedef agg::span_gouraud_rgba8<> gouraud_span_gen_type;
+--------
+typedef agg::span_gouraud_rgba<color_type> gouraud_span_gen_type;
+---------------------
+
+----------------------
+typedef agg::span_pattern_rgba32<agg::order_rgba32> span_gen_type;
+--------
+        typedef agg::wrap_mode_reflect_auto_pow2 wrap_x_type;
+        typedef agg::wrap_mode_reflect_auto_pow2 wrap_y_type;
+        typedef agg::span_pattern_rgba<agg::rgba8, 
+                                       agg::order_rgba,
+                                       wrap_x_type,
+                                       wrap_y_type> span_gen_type;
+----------------------
+
+
+----------------------
+typedef agg::remainder_auto_pow2 remainder_type;
+-------
+typedef agg::wrap_mode_repeat_auto_pow2 remainder_type;
+Possible variants:
+agg::wrap_mode_repeat
+agg::wrap_mode_repeat_pow2
+agg::wrap_mode_repeat_auto_pow2
+agg::wrap_mode_reflect
+agg::wrap_mode_reflect_pow2
+agg::wrap_mode_reflect_auto_pow2
+---------------------
+
