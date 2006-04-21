@@ -49,6 +49,7 @@ static RoadMapPathList RoadMapPaths = NULL;
 /* The hardcoded path for configuration files (the "config" path).
 */ 
 static const char *RoadMapPathConfig[] = {
+   "&",
 	"\\Program Files\\roadmap",
 	"\\Storage Card\\roadmap",
 	NULL
