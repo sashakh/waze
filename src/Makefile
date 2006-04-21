@@ -24,6 +24,14 @@ STRIP = strip
 WARNFLAGS = -W -Wall -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wreturn-type -Wsign-compare
 
 
+ifeq ($(EXPAT),NO)
+   EXPATCFLAGS=-DNO_EXPAT
+	EXPATLDFLAGS=
+else
+   EXPATCFLAGS=
+	EXPATLDFLAGS=-lexpat
+endif
+
 ifeq ($(MODE),DEBUG)
 # Memory leak detection using mtrace:
 # Do not forget to set the trace file using the env. variable MALLOC_TRACE,
@@ -94,11 +102,11 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(DTCFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
+CFLAGS=$(MODECFLAGS) $(EXPATCFLAGS) $(DTCFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a gpx/libgpx.a
-LIBS=$(RDMLIBS) -lpopt -lexpat -lm
+LIBS=$(RDMLIBS) -lpopt $(EXPATLDFLAGS) -lm
 
 # --- RoadMap sources & targets --------------------------------------------
 

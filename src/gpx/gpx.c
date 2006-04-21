@@ -21,7 +21,10 @@
 
  */
 
+#ifndef NO_EXPAT
+
 #include "defs.h"
+
 #include <expat.h>
 
 static XML_Parser psr;
@@ -1603,4 +1606,6 @@ gpx_exit(void)
         }
 }
 #endif
+
+#endif // ifndef NO_EXPAT
 
