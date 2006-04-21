@@ -31,6 +31,10 @@
 #include "resource.h"
 #include <Winsock.h>
 
+#ifdef WIN32_PROFILE
+#include <C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h>
+#endif
+
 extern "C" {
 #include "../roadmap.h"
 #include "../roadmap_path.h"
@@ -106,6 +110,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	{
 		return FALSE;
 	}
+
+#ifdef WIN32_PROFILE
+   SuspendCAPAll();
+#endif
 
 /*
    DWORD disp;
