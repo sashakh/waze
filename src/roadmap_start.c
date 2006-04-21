@@ -177,22 +177,60 @@ static void roadmap_start_create_trip (void) {
 
 static void roadmap_start_open_trip (void) {
     
+#ifdef NO_EXPAT
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+#else
     roadmap_trip_load_ask (0);
+#endif
 }
 
 static void roadmap_start_merge_trip (void) {
     
+#ifdef NO_EXPAT
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+#else
     roadmap_trip_load_ask (1);
+#endif
 }
 
 static void roadmap_start_save_trip (void) {
-    
+
+#ifdef NO_EXPAT
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+#else
     roadmap_trip_save (1);
+#endif
 }
 
 static void roadmap_start_save_trip_as (void) {
-    
+
+#ifdef NO_EXPAT
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+#else
     roadmap_trip_save_as (1);
+#endif
+}
+
+static void roadmap_start_save_track (void) {
+#ifdef NO_EXPAT
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+#else
+    roadmap_track_save();
+#endif
+}
+
+static void roadmap_start_merge_landmark (void) {
+#ifdef NO_EXPAT
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+#else
+    roadmap_landmark_merge ();
+#endif
 }
 
 static void roadmap_start_route (void) {
@@ -413,7 +451,7 @@ static RoadMapAction RoadMapStartActions[] = {
       "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
 
    {"tracksave", "Save Track", "Save Track", NULL,
-      "Save the current GPS breadcrumb track", roadmap_track_save},
+      "Save the current GPS breadcrumb track", roadmap_start_save_track},
 
    {"trackclear", "Clear Track", "Clear Track", NULL,
       "Clear the current GPS breadcrumb track", roadmap_track_clear},
@@ -464,7 +502,7 @@ static RoadMapAction RoadMapStartActions[] = {
       "Edit personal landmarks", roadmap_trip_personal_waypoint_manage_dialog },
 
    {"mergepersonalwaypoints", "Load More Personal Landmarks...", NULL, NULL,
-      "Merge personal landmarks from file", roadmap_landmark_merge },
+      "Merge personal landmarks from file", roadmap_start_merge_landmark },
 
    {"full", "Full Screen", "Full", "F",
       "Toggle the window full screen mode (depends on the window manager)",
@@ -972,8 +1010,10 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_history_load ();
 
+#ifndef NO_EXPAT
    roadmap_track_autoload ();
    roadmap_landmark_load ();
+#endif
    
    roadmap_driver_activate ();
    roadmap_gps_open ();
@@ -986,9 +1026,13 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_trip_restore_focus ();
 
+#ifdef NO_EXPAT
+   roadmap_start_create_trip ();
+#else
    if ( ! roadmap_trip_load (1, 0)) {
       roadmap_start_create_trip ();
    }
+#endif
 
    roadmap_locator_declare (&roadmap_start_no_download);
 
@@ -1004,8 +1048,10 @@ void roadmap_start_exit (void) {
     
     roadmap_driver_shutdown ();
     roadmap_history_save();
+#ifndef NO_EXPAT
     roadmap_track_autosave ();
     roadmap_landmark_save ();
     roadmap_trip_save (0);
+#endif
     roadmap_config_save (0);
 }
