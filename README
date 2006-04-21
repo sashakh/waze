@@ -123,6 +123,9 @@ INSTALLATION
    or if only pre-built maps are used, then there is no need for shapelib:
    build RoadMap with the make option: SHAPEFILES=NO.
 
+   By default, RoadMap uses the expat library to load GPX trip and landmark
+   files. RoadMap can be built without expat using the make option: EXPAT=NO.
+
 
 * WINDOWS SPECIFIC DEPENDENCIES AND LIMITATIONS
 
@@ -577,10 +580,13 @@ INSTALLATION
       environment. By default GTK, GTK2 and QT are built. The GPE environment
       is a PDA variant of GTK2 and the QPE environment is a PDA variant of QT.
 
-      [SHAPEFILES=NO] Do not link build with the shapelib. The side effect
-      of this option is that the Digital Charts of the World cannot be
-      converted to RoadMap files. This option is to be used only when
-      the shapelib library is not available.
+      [SHAPEFILES=NO] Do not link buildmap with the shapelib. The side
+      effect of this option is that the Digital Charts of the World cannot
+      be converted to RoadMap files anymore. This option is to be used only
+      when the shapelib library is not available.
+
+      [EXPAT=NO] Do not link roadmap with the expat library. The side effect
+      is that you cannot load or save trips or landmarks anymore.
 
       [HOST=Darwin] Assume the compiler tools accept the Mac OS X (Darwin)
       command line options.
