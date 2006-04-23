@@ -466,6 +466,43 @@ void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points) {
 }
 
 
+/* 
+ * rotate the coordinates of a point to an arbitrary angle
+ */
+void roadmap_math_rotate_point (RoadMapGuiPoint *points,
+                                RoadMapGuiPoint *center, int angle) {
+
+   static int cached_angle = 0;
+   static int sin_orientation;
+   static int cos_orientation;
+
+   int x;
+   int y;
+
+   if (angle == 0) return;
+
+   if (angle != cached_angle) {
+      cached_angle = angle;
+      roadmap_math_trigonometry (cached_angle,
+                                 &sin_orientation,
+                                 &cos_orientation);
+   }
+
+   x = points->x;
+   y = points->y;
+
+   points->x =
+      center->x +
+      (((x * cos_orientation)
+        + (y * sin_orientation) + 16383) / 32768);
+
+   points->y =
+      center->y -
+      (((y * cos_orientation)
+        - (x * sin_orientation) + 16383) / 32768);
+}
+
+
 /* Rotate a specific object:
  * rotate the coordinates of the object's points according to the provided
  * rotation.
@@ -746,17 +783,9 @@ int roadmap_math_thickness (int base, int declutter, int use_multiple_pens) {
       }
    }
 
-   /* if this is a multi-pen object, try to force a minimum thickness of 3
-    * so we'll get a pretty drawing. Otherwise set it to 1.
-    */
    if (use_multiple_pens && (ratio < 3)) {
-      if ((1.0 * RoadMapContext.zoom / declutter) < 0.50) {
-         ratio = 3;
-      } else {
-         ratio = 1;
-      }
+      ratio = 1;
    }
-
    return (int) ratio;
 }
 
@@ -935,6 +964,30 @@ int roadmap_math_azymuth
     roadmap_log (ROADMAP_DEBUG,
                     "azymuth for (x=%f, y=%f): %d",
                     x, y, result);
+    return result;
+}
+
+
+int roadmap_math_angle
+       (const RoadMapGuiPoint *point1, const RoadMapGuiPoint *point2) {
+
+    int result;
+    int x;
+    int y;
+    double d;
+
+    x = point2->x - point1->x;
+    y = point2->y - point1->y;
+
+    d = sqrt ((x * x) + (y * y));
+    
+    if (d > 0.0001 || d < -0.0001) {
+        result = roadmap_math_arccosine
+                    ((int) ((32768 * y) / d), (x > 0)?1:-1);
+    } else {
+        result = 0;
+    }
+    
     return result;
 }
 
