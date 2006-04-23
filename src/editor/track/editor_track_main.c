@@ -624,7 +624,7 @@ int editor_track_draw_current (RoadMapPen pen) {
 
    roadmap_screen_draw_one_line
                (from, to, 0, from, first_shape, last_shape,
-                editor_track_shape_position, pen);
+                editor_track_shape_position, pen, 0, 0 ,0);
 
    return 1;
 }

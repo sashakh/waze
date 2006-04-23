@@ -29,7 +29,7 @@
 #include "roadmap.h"
 #include "roadmap_gui.h"
 
-#define MAX_LABELS 50
+#define MAX_LABELS 150
 
 typedef struct {
 

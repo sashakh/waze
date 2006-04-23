@@ -34,5 +34,14 @@ typedef struct {
 
 } RoadMapGuiPoint;
 
+typedef struct {
+
+   short minx;
+   short miny;
+   short maxx;
+   short maxy;
+
+} RoadMapGuiRect;
+
 #endif /* _ROADMAP_GUI__H_ */
 

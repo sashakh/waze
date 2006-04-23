@@ -117,6 +117,8 @@ static void editor_plugin_street_properties
    props->street_t2s = editor_street_get_street_t2s (&properties);
    props->city =
       editor_street_get_street_city (&properties, ED_STREET_LEFT_SIDE);
+   props->plugin_street.plugin_id = line->plugin_id;
+   props->plugin_street.street_id = properties.street;
 }
 
 

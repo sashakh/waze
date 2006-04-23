@@ -131,5 +131,8 @@ void roadmap_canvas_refresh (void);
 
 void roadmap_canvas_save_screenshot (const char* filename);
 
+void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position, RoadMapGuiPoint *center,
+                                       int angle, const char *text);
+
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

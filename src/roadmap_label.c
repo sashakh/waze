@@ -87,7 +87,7 @@ static RoadMapGuiPoint get_metrics(RoadMapGuiPoint *p, RoadMapGuiRect *rect,
    y1 = (int)(h/2.0) + oy;
 
    q.x = x1 - rect->minx;
-   q.y = rect->maxy - y1;
+   q.y = rect->miny - y1;
 
    roadmap_math_rotate_point (&q, p, angle);
 
@@ -109,7 +109,7 @@ static RoadMapGuiPoint get_metrics(RoadMapGuiPoint *p, RoadMapGuiRect *rect,
 
    lines = 4;
 
-   //roadmap_canvas_draw_multiple_lines(1, &lines, poly);
+   /* roadmap_canvas_draw_multiple_lines(1, &lines, poly); */
 
    compute_bbox(poly, bbox);
 
@@ -131,7 +131,7 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
    }
 
    if(RoadMapLabelCache.numlabels == MAX_LABELS) {
-      roadmap_log (ROADMAP_ERROR, "Too many lables on screen.");
+      roadmap_log (ROADMAP_WARNING, "Too many lables on screen.");
       RoadMapLabelCacheFull = 1;
       return -1;
    }
@@ -182,11 +182,9 @@ int roadmap_label_draw_cache (void) {
 
       roadmap_canvas_get_text_extents(text, &width, &ascent, &descent);
       r.minx = 0;
-      r.maxx=width;
-      r.miny = -ascent;
-      r.maxy = descent;
-      //FIXME
-      width *= 1.5;
+      r.maxx=width+1;
+      r.miny = ascent;
+      r.maxy = descent+1;
 
       /*
          label_offsety += MS_NINT(((bbox[5] + bbox[1]) + size) / 2);

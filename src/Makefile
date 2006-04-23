@@ -151,6 +151,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_coord.c \
           roadmap_download.c \
           roadmap_help.c \
+          roadmap_label.c \
           roadmap_start.c
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)
