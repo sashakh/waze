@@ -388,6 +388,8 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
       props->street = roadmap_street_get_street_name (&rm_properties);
       props->street_t2s = roadmap_street_get_street_t2s (&rm_properties);
       props->city = roadmap_street_get_city_name (&rm_properties);
+      props->plugin_street.plugin_id = ROADMAP_PLUGIN_ID;
+      props->plugin_street.street_id = rm_properties.street;
       return;
 
    } else {

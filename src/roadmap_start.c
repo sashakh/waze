@@ -58,6 +58,7 @@
 #include "roadmap_screen.h"
 #include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
+#include "roadmap_label.h"
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
 #include "roadmap_copy.h"
@@ -161,6 +162,11 @@ static void roadmap_start_about (void) {
 static void roadmap_start_export_data (void) {
 
    editor_export_gpx ();
+}
+
+static void roadmap_start_export_reset (void) {
+
+   editor_export_reset_dirty ();
 }
 
 static void roadmap_start_download_map_done (void) {
@@ -494,6 +500,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"exportdata", "Export Data", NULL, NULL,
       "Export editor data", roadmap_start_export_data},
 
+   {"resetexport", "Reset export data", NULL, NULL,
+      "Reset export data", roadmap_start_export_reset},
+
    {"updatemap", "Update map", NULL, NULL,
       "Export editor data", roadmap_start_download_map},
 
@@ -512,6 +521,7 @@ static const char *RoadMapStartMenu[] = {
 
    "exportdata",
    "updatemap",
+/*   "resetexport", */
 
    RoadMapFactorySeparator,
    "mutevoice",
@@ -969,6 +979,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_initialize   ();
    roadmap_fuzzy_initialize    ();
    roadmap_navigate_initialize ();
+   roadmap_label_initialize    ();
    roadmap_display_initialize  ();
    roadmap_voice_initialize    ();
    roadmap_gps_initialize      ();

@@ -54,6 +54,7 @@ typedef struct {
    const char *street;
    const char *street_t2s;
    const char *city;
+   PluginStreet plugin_street;
 } PluginStreetProperties;
 
 #define PLUGIN_LINE_NULL {-1, -1, -1, -1}
