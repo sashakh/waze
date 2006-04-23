@@ -24,6 +24,9 @@
 #ifndef FRIBIDI_H
 #define FRIBIDI_H
 
+#ifndef WIN32
+#error This is the win32 include file. It will not work on Unix.
+#endif
 #ifndef NULL
 #define NULL 0
 #endif
