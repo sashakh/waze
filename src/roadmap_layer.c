@@ -188,7 +188,7 @@ int roadmap_layer_visible_lines (int *layers, int size, int pen_type) {
 
         RoadMapClass *this_class = RoadMapLineClass + i;
 
-        for (j = this_class->count - 1; j >= 0; --j) {
+        for (j = 0; j<this_class->count; ++j) {
 
             int category = this_class->category[j];
 
@@ -211,6 +211,18 @@ RoadMapPen roadmap_layer_get_pen (int layer, int pen_type) {
 
    if (!roadmap_layer_is_visible (layer)) return NULL;
    
+   if (pen_type == -1) {
+
+      int i;
+      for (i=RoadMapMaxUsedPen; i>=0; i--) {
+
+         if (RoadMapCategory[layer].in_use[i])
+            return RoadMapCategory[layer].pen[i];
+      }
+
+      return NULL;   
+   }
+
    if (!RoadMapCategory[layer].in_use[pen_type]) return NULL;
    
    return RoadMapCategory[layer].pen[pen_type];
@@ -254,10 +266,12 @@ void roadmap_layer_adjust (void) {
                }
             }
 
-            roadmap_canvas_select_pen (category->pen[0]);
-            roadmap_canvas_set_thickness (thickness);
-            category->in_use[0] = 1;
+            if (thickness > 0) {
+               roadmap_canvas_select_pen (category->pen[0]);
+               roadmap_canvas_set_thickness (thickness);
+            }
 
+            category->in_use[0] = 1;
             for (j = 1; j < category->pen_count; ++j) {
 
                /* The previous thickness was already the minimum:
@@ -435,8 +449,11 @@ void roadmap_layer_initialize (void) {
            } else {
               thickness = category->delta_thickness[j];
            }
-           roadmap_canvas_set_thickness (thickness);
+
            roadmap_canvas_set_foreground (color[j]);
+           if (thickness > 0) {
+              roadmap_canvas_set_thickness (thickness);
+           }
         }
     }
 }
