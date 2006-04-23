@@ -483,22 +483,13 @@ static void roadmap_download_usdir (void) {
 
    strncpy (format+1, "usdir.rdm", sizeof(source) - (format - source + 1));
 
-   strncpy (destination, roadmap_config_get (&RoadMapConfigDestination), sizeof(destination));
-   destination[sizeof(destination)-1] = 0;
-
 #ifndef _WIN32
-   format = strrchr (destination, '/');
+   snprintf (destination, sizeof(destination), "%s/usdir.rdm", 
+         roadmap_config_get (&RoadMapConfigDestination));
 #else
-   format = strrchr (destination, '\\');
+   snprintf (destination, sizeof(destination), "%s\\usdir.rdm", 
+         roadmap_config_get (&RoadMapConfigDestination));
 #endif
-   if (!format) {
-      roadmap_messagebox ("Download Error", "Can't download usdir.");
-      roadmap_log (ROADMAP_WARNING, "invalid download destination %s", destination);
-      roadmap_download_end ();
-      return;
-   }
-
-   strncpy (format+1, "usdir.rdm", sizeof(destination) - (format - destination + 1));
 
    directory = roadmap_path_parent (NULL, destination);
    roadmap_path_create (directory);
