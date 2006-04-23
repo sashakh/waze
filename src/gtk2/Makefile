@@ -16,7 +16,7 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../libguiroadmap.a ../unix/libosroadmap.a ../libroadmap.a libgtkroadmap.a
 
 
 ifeq ($(MODE),DEBUG)
@@ -48,17 +48,22 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl -lagg -lfreetype
 
+ifeq ($(BIDI),YES)
+LIBS += -lfribidi
+CFLAGS += -DUSE_FRIBIDI
+endif
+
+CXXFLAGS = $(CFLAGS) -I/usr/include/agg2 -I/usr/include/freetype2 -I/usr/include/fribidi
 # --- RoadMap sources & targets -----------------------------------
 
 RMLIBSRCS=roadmap_keyboard.c \
           roadmap_messagebox.c \
           roadmap_dialog.c \
-          roadmap_fileselection.c \
-          roadmap_canvas.c
+          roadmap_fileselection.c 
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o)
+RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg23/font_freetype/agg_font_freetype.o
 
 RUNTIME=gtkroadgps gtkroadmap
 
@@ -105,7 +110,7 @@ libgtkroadmap.a: $(RMLIBOBJS)
 	$(RANLIB) libgtkroadmap.a
 
 gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
-	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
+	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
 	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
