@@ -63,7 +63,10 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
                                    int first_shape,
                                    int last_shape,
                                    RoadMapShapeItr shape_itr,
-                                   RoadMapPen pen);
+                                   RoadMapPen pen,
+                                   int *total_length,
+                                   RoadMapGuiPoint *middle,
+                                   int *angle);
 
 void roadmap_screen_draw_line_direction (RoadMapPosition *from,
                                          RoadMapPosition *to,
@@ -73,4 +76,27 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
                                          RoadMapShapeItr shape_itr,
                                          int width,
                                          int direction);
+
+int roadmap_screen_is_dragging (void);
+
+#define DBG_TIME_FULL 0
+#define DBG_TIME_DRAW_SQUARE 1
+#define DBG_TIME_DRAW_ONE_LINE 2
+#define DBG_TIME_SELECT_PEN 3
+#define DBG_TIME_DRAW_LINES 4
+#define DBG_TIME_CREATE_PATH 5
+#define DBG_TIME_ADD_PATH 6
+#define DBG_TIME_FLIP 7
+#define DBG_TIME_TEXT_FULL 8
+#define DBG_TIME_TEXT_CNV 9
+#define DBG_TIME_TEXT_LOAD 10
+#define DBG_TIME_TEXT_ONE_LETTER 11
+#define DBG_TIME_TEXT_GET_GLYPH 12
+#define DBG_TIME_TEXT_ONE_RAS 13
+
+#define DBG_TIME_LAST_COUNTER 14
+
+void dbg_time_start(int type);
+void dbg_time_end(int type);
+
 #endif // INCLUDE__ROADMAP_SCREEN__H
