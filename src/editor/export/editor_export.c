@@ -409,7 +409,7 @@ static int editor_export_data(const char *name) {
       if (!export_dirty_lines (file)) {
          editor_log (ROADMAP_INFO, "No trksegs are available for export.");
          roadmap_messagebox ("Export Error", "No new data to export.");
-         close_export_file (file);         
+         close_export_file (file);
          roadmap_file_remove (NULL, name);
          return 0;
       }
@@ -528,6 +528,25 @@ void editor_export_reset_dirty () {
    int count;
    int i;
 
+   count = editor_trkseg_get_current_trkseg ();
+
+   for (i=0; i<count; i++) {
+      int trkseg_flags;
+
+      editor_trkseg_get
+         (i, NULL, NULL, NULL, &trkseg_flags);
+
+      if (!(trkseg_flags & ED_TRKSEG_FAKE)) {
+         editor_trkseg_set_next_export (i);
+         break;
+      }
+   }
+
+   if (i == count) {
+      roadmap_messagebox ("Error", "Can't find first trkseg to export.");
+      return;
+   }
+
    count = editor_line_get_count ();
 
    for (i=0; i<count; i++) {
@@ -536,8 +555,9 @@ void editor_export_reset_dirty () {
       int cfcc;
 
       editor_line_get (i, NULL, NULL, NULL, &cfcc, &flags);
-      editor_line_modify_properties (i, cfcc, flags | ED_LINE_DIRTY);
+      /* editor_line_modify_properties (i, cfcc, flags | ED_LINE_DIRTY); */
    }
+
 }
 
 
