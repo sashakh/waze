@@ -51,6 +51,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
+#include "roadmap_label.h"
 #include "roadmap_plugin.h"
 
 #include "roadmap_screen.h"
@@ -188,7 +189,10 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
                                    int first_shape,
                                    int last_shape,
                                    RoadMapShapeItr shape_itr,
-                                   RoadMapPen pen) {
+                                   RoadMapPen pen,
+                                   int *total_length,
+                                   RoadMapGuiPoint *middle,
+                                   int *angle) {
    RoadMapGuiPoint point0;
    RoadMapGuiPoint point1;
 
@@ -200,6 +204,11 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
    RoadMapGuiPoint *points;
 
    int last_point_visible = 0;
+   int longest_segent = -1;
+
+   dbg_time_start(DBG_TIME_DRAW_ONE_LINE);
+
+   if (total_length) *total_length = 0;
 
    /* if the pen has changed, we need to flush the prevoius lines and points
     */
@@ -262,6 +271,19 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
                continue;
             }
 
+            if (total_length) {
+
+               int length = (int)(sqrt(pow(point1.x - point0.x,2) + pow(point1.y - point0.y,2)));
+               *total_length += length;
+
+               if (length > longest_segent) {
+                  longest_segent = length;
+                  *angle = roadmap_math_azymuth(&last_midposition, &midposition);
+                  middle->x = (point1.x + point0.x) / 2;
+                  middle->y = (point1.y + point0.y) / 2;
+               }
+            }
+
             /* Show this line: add 2 points if this is the start of a new
              * complete line (i.e. the first visible line), or just add
              * one more point to the current complete line.
@@ -299,6 +321,19 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
              roadmap_math_get_visible_coordinates
                         (&last_midposition, to, &point0, &point1)) {
 
+         if (total_length) {
+
+            int length = (int)(sqrt(pow(point1.x - point0.x,2) + pow(point1.y - point0.y,2)));
+            *total_length += length;
+
+            if (length > longest_segent) {
+               longest_segent = length;
+               *angle = roadmap_math_azymuth(&last_midposition, to);
+               middle->x = (point1.x + point0.x) / 2;
+               middle->y = (point1.y + point0.y) / 2;
+            }
+         }
+
          if (!last_point_visible) {
              *(points++) = point0; /* Show the start of this segment. */
          }
@@ -326,7 +361,10 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
 
       /* Optimization: do not draw a line that is obviously not visible. */
       if (! fully_visible) {
-         if (! roadmap_math_line_is_visible (from, to)) return;
+         if (! roadmap_math_line_is_visible (from, to)) {
+            dbg_time_end(DBG_TIME_DRAW_ONE_LINE);
+            return;
+         }
       }
 
       /* Optimization: adjust the edges of the line so
@@ -344,7 +382,17 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
          RoadMapScreenPoints.cursor[0] = point0;
          RoadMapScreenPoints.cursor += 1;
 
+         dbg_time_end(DBG_TIME_DRAW_ONE_LINE);
          return;
+      }
+      
+      if (total_length) {
+
+         *total_length = (int)(sqrt(pow(point1.x - point0.x,2) + pow(point1.y - point0.y,2)));
+
+         *angle = roadmap_math_azymuth(from, to);
+         middle->x = (point1.x + point0.x) / 2;
+         middle->y = (point1.y + point0.y) / 2;
       }
       
       if (RoadMapScreenLinePoints.cursor + 2 >= RoadMapScreenLinePoints.end) {
@@ -360,6 +408,8 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
       RoadMapScreenObjects.cursor += 1;
 
    }
+
+   dbg_time_end(DBG_TIME_DRAW_ONE_LINE);
 }
 
 
@@ -544,6 +594,10 @@ static int roadmap_screen_draw_square
    int last_shape;
    RoadMapPen layer_pen;
    int fips = roadmap_locator_active ();
+   int total_length;
+   int *total_length_ptr;
+   int angle;
+   RoadMapGuiPoint seg_middle;
 
    int drawn = 0;
 
@@ -552,6 +606,12 @@ static int roadmap_screen_draw_square
 
    layer_pen = roadmap_layer_get_pen (cfcc, pen_type);
 
+   if ((pen_type != 0) || RoadMapScreenDragging){
+      /* we do labels only for the first pen */
+      total_length_ptr = 0;
+   } else {
+      total_length_ptr = &total_length;
+   }
 
    /* Draw each line that belongs to this square. */
 
@@ -573,7 +633,8 @@ static int roadmap_screen_draw_square
 
             RoadMapPosition from;
             RoadMapPosition to;
-            RoadMapPen pen;
+            RoadMapPen pen = layer_pen;
+
             
             if (first_shape_line >= 0) {
 
@@ -595,7 +656,13 @@ static int roadmap_screen_draw_square
 
             roadmap_screen_draw_one_line
                   (&from, &to, fully_visible, &from, first_shape, last_shape,
-                   roadmap_shape_get_position, pen);
+                   roadmap_shape_get_position, pen, total_length_ptr, &seg_middle, &angle);
+            
+            if (total_length_ptr) {
+               PluginLine l = {ROADMAP_PLUGIN_ID, line, cfcc, fips};
+               roadmap_label_add (&seg_middle, angle, total_length, &l);
+            }
+
             drawn += 1;
          }
       }
@@ -698,7 +765,13 @@ static int roadmap_screen_draw_square
 
             roadmap_screen_draw_one_line
                   (&from, &to, fully_visible, &from, first_shape, last_shape,
-                   roadmap_shape_get_position, pen);
+                   roadmap_shape_get_position, pen, total_length_ptr, &seg_middle, &angle);
+
+            if (total_length_ptr) {
+
+               PluginLine l = {ROADMAP_PLUGIN_ID, real_line, cfcc, fips};
+               roadmap_label_add (&seg_middle, angle, total_length, &l);
+            }
 
             drawn += 1;
          }
@@ -746,11 +819,10 @@ static void roadmap_screen_reset_square_mask (void) {
 }
 
 
-static int roadmap_screen_repaint_square (int square, int pen_type) {
+static int roadmap_screen_repaint_square (int square, int pen_type, 
+                                          int layer_count, int *layers) {
 
    int i;
-   int count;
-   int layers[256];
 
    RoadMapArea edges;
 
@@ -762,6 +834,9 @@ static int roadmap_screen_repaint_square (int square, int pen_type) {
    if (SquareOnScreen[square]) {
       return 0;
    }
+
+   dbg_time_start(DBG_TIME_DRAW_SQUARE);
+
    SquareOnScreen[square] = 1;
 
    roadmap_log_push ("roadmap_screen_repaint_square");
@@ -780,23 +855,24 @@ static int roadmap_screen_repaint_square (int square, int pen_type) {
    }
 
    if (pen_type == 0) roadmap_screen_draw_square_edges (square);
-
-   count = roadmap_layer_visible_lines (layers, 256, pen_type);
    
    RoadMapScreenLastPen = NULL;
 
-   for (i = 0; i < count; ++i) {
+   for (i = 0; i < layer_count; ++i) {
 
         category = layers[i];
 
         drawn += roadmap_screen_draw_square
                     (square, category, fully_visible, pen_type);
 
-        roadmap_screen_flush_lines();
-        roadmap_screen_flush_points();
    }
 
+   roadmap_screen_flush_lines();
+   roadmap_screen_flush_points();
+
    roadmap_log_pop ();
+   
+   dbg_time_end(DBG_TIME_DRAW_SQUARE);
    return drawn;
 }
 
@@ -812,13 +888,16 @@ static void roadmap_screen_repaint (void) {
     int k;
     int count;
     int max_pen = roadmap_layer_max_pen();
+    int use_only_main_pen = 0;
     
 
     if (RoadMapScreenFrozen) return;
 
+    dbg_time_start(DBG_TIME_FULL);
     if (RoadMapScreenDragging &&
         (! roadmap_config_match(&RoadMapConfigStylePrettyDrag, "yes"))) {
        max_pen = 1;
+       use_only_main_pen = 1;
     }
 
     if (in_view == NULL) {
@@ -861,9 +940,22 @@ static void roadmap_screen_repaint (void) {
             roadmap_screen_draw_polygons ();
 
             for (k = 0; k < max_pen; ++k) {
+
+               int layer_count;
+               int layers[256];
+               int pen_type = k;
+
                roadmap_screen_reset_square_mask();
+
+               layer_count = roadmap_layer_visible_lines (layers, 256, k);
+               if (!layer_count) continue;
+
+               if (use_only_main_pen) {
+                  pen_type = -1;
+               }
+
                for (j = count - 1; j >= 0; --j) {
-                  roadmap_screen_repaint_square (in_view[j], k);
+                  roadmap_screen_repaint_square (in_view[j], pen_type, layer_count, layers);
                }
             }
         }
@@ -871,6 +963,8 @@ static void roadmap_screen_repaint (void) {
         roadmap_plugin_screen_repaint (max_pen);
         roadmap_screen_flush_lines ();
         roadmap_screen_flush_points ();
+
+        roadmap_label_draw_cache ();
     }
 
     if (!RoadMapScreenDragging ||
@@ -894,6 +988,7 @@ static void roadmap_screen_repaint (void) {
     roadmap_canvas_refresh ();
 
     roadmap_log_pop ();
+    dbg_time_end(DBG_TIME_FULL);
 }
 
 
@@ -1382,3 +1477,29 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
 }
 
 
+int roadmap_screen_is_dragging (void) {
+
+   return RoadMapScreenDragging;
+}
+
+
+static unsigned long dbg_time_rec[DBG_TIME_LAST_COUNTER];
+static unsigned long dbg_time_tmp[DBG_TIME_LAST_COUNTER];
+
+#ifdef __WIN32
+void dbg_time_start(int type) {
+   dbg_time_tmp[type] = GetTickCount();
+}
+
+void dbg_time_end(int type) {
+   dbg_time_rec[type] += GetTickCount() - dbg_time_tmp[type];
+}
+#else
+void dbg_time_start(int type) {
+   dbg_time_tmp[type] = 0;
+}
+
+void dbg_time_end(int type) {
+   dbg_time_rec[type] += 0;
+}
+#endif
