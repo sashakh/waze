@@ -278,6 +278,7 @@ void editor_screen_adjust_layer (int layer, int thickness, int pen_count) {
    if (layer > ROADMAP_ROAD_LAST) return;
    if (!editor_is_enabled()) return;
 
+   if (thickness < 1) thickness = 1;
    if ((pen_count > 1) && (thickness < 3)) {
       pen_count = 1;
    }
@@ -326,6 +327,7 @@ static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
    int has_street = 0;
    int has_route = 0;
 
+   return NO_ROAD_STATE;
    if (plugin_id == ROADMAP_PLUGIN_ID) {
       
       if (roadmap_locator_activate (fips) >= 0) {
@@ -345,7 +347,7 @@ static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
 
          } else if (editor_db_activate (fips) != -1) {
             
-            int route;
+            int route = 0;
             route = editor_override_line_get_route (line);
 
             if (route != -1) {
@@ -414,7 +416,11 @@ int editor_screen_override_pen (int line,
       road_state = SELECTED_STATE;
    } else {
       
-      road_state = editor_screen_get_road_state (line, 0, fips);
+      if (!roadmap_screen_is_dragging() && (pen_type > 0)) {
+         road_state = editor_screen_get_road_state (line, 0, fips);
+      } else {
+         road_state = NO_ROAD_STATE;
+      }
    }
 
    if (road_state != NO_ROAD_STATE) {
@@ -621,7 +627,7 @@ static void editor_screen_draw_square
       roadmap_screen_draw_one_line
                (&from, &to, fully_visible,
                 &trk_from_pos, first_shape, last_shape,
-                editor_shape_position, pen);
+                editor_shape_position, pen, 0, 0, 0);
 
       if ((EditorPens[cfcc][pen_type][0].thickness > 20) &&
          (pen_type == 1)) {
