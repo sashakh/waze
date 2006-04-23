@@ -76,6 +76,27 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libdgl
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libft
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name fribidi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name agg23
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "agg23"=.\agg23\agg23.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
 }}}
 
 ###############################################################################
@@ -98,7 +119,31 @@ Package=<4>
 
 ###############################################################################
 
+Project: "fribidi"=.\fribidi\fribidi.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "libdgl"=.\libdgl\libdgl.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libft"=.\libft\libft.vcp - Package Owner=<4>
 
 Package=<5>
 {{{

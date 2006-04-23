@@ -208,7 +208,7 @@ BSC32=bscmake.exe
 # PROP Target_Dir ""
 CPP=clarm.exe
 # ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /Zi /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /fastcap /c
+# ADD CPP /nologo /W3 /Zi /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "WIN32_PROFILE" /YX /O2 /M$(CECrtMT) /fastcap /c
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
@@ -361,6 +361,7 @@ DEP_CPP_ROADG=\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ENDIF 
@@ -513,6 +514,7 @@ DEP_CPP_ROADGP=\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ENDIF 
@@ -681,6 +683,7 @@ DEP_CPP_ROADGPS=\
 	"..\..\..\roadmap_start.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ENDIF 
@@ -835,6 +838,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ENDIF 
