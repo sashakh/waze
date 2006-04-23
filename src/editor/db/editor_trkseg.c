@@ -520,3 +520,8 @@ int editor_trkseg_get_next_export (void) {
    return ActiveTrksegDB->header.next_export;
 }
 
+void editor_trkseg_set_next_export (int id) {
+
+   ActiveTrksegDB->header.next_export = id;
+}
+
