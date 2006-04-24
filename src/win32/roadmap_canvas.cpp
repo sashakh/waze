@@ -590,10 +590,13 @@ void roadmap_canvas_refresh (void)
 HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar)
 {
    HDC hdc;
-   BITMAPINFO bmp_info; 
+   static BITMAPINFO* bmp_info = (BITMAPINFO*) malloc(sizeof(BITMAPINFO) +
+                                       (sizeof(RGBQUAD)*3)); 
    HBITMAP bmp;
    void* buf = 0;
    
+   memset(bmp_info, 0, sizeof(BITMAPINFO) + sizeof(RGBQUAD)*3);
+
    if ((RoadMapDrawingBuffer != NULL) && IsWindowVisible(tool_bar)) {
       
       DeleteObject(SelectObject(RoadMapDrawingBuffer, OldBitmap));
@@ -613,24 +616,24 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar)
    
    RoadMapDrawingBuffer = CreateCompatibleDC(hdc);
    
-   bmp_info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
-   bmp_info.bmiHeader.biWidth = ClientRect.right - ClientRect.left + 1;
-   bmp_info.bmiHeader.biHeight = ClientRect.bottom - ClientRect.top + 1; 
-   bmp_info.bmiHeader.biPlanes = 1; 
-   bmp_info.bmiHeader.biBitCount = 16; 
-   bmp_info.bmiHeader.biCompression = BI_BITFIELDS; 
-   bmp_info.bmiHeader.biSizeImage = 0; 
-   bmp_info.bmiHeader.biXPelsPerMeter = 0; 
-   bmp_info.bmiHeader.biYPelsPerMeter = 0; 
-   bmp_info.bmiHeader.biClrUsed = 0; 
-   bmp_info.bmiHeader.biClrImportant = 0; 
-   ((DWORD*)bmp_info.bmiColors)[0] = 0xF800;
-   ((DWORD*)bmp_info.bmiColors)[1] = 0x07E0;
-   ((DWORD*)bmp_info.bmiColors)[2] = 0x001F; 
+   bmp_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
+   bmp_info->bmiHeader.biWidth = ClientRect.right - ClientRect.left + 1;
+   bmp_info->bmiHeader.biHeight = ClientRect.bottom - ClientRect.top + 1; 
+   bmp_info->bmiHeader.biPlanes = 1; 
+   bmp_info->bmiHeader.biBitCount = 16; 
+   bmp_info->bmiHeader.biCompression = BI_BITFIELDS; 
+   bmp_info->bmiHeader.biSizeImage = 0; 
+   bmp_info->bmiHeader.biXPelsPerMeter = 0; 
+   bmp_info->bmiHeader.biYPelsPerMeter = 0; 
+   bmp_info->bmiHeader.biClrUsed = 0; 
+   bmp_info->bmiHeader.biClrImportant = 0; 
+   ((DWORD*)bmp_info->bmiColors)[0] = 0xF800;
+   ((DWORD*)bmp_info->bmiColors)[1] = 0x07E0;
+   ((DWORD*)bmp_info->bmiColors)[2] = 0x001F; 
    
    bmp = CreateDIBSection( 
       RoadMapDrawingBuffer, 
-      &bmp_info, 
+      bmp_info, 
       DIB_RGB_COLORS, 
       &buf, 
       0, 
