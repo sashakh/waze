@@ -1537,11 +1537,12 @@ USING ROADMAP
 
        Sometimes one doesn't really want to follow a route at all -- all
        you want to do is set a goal, and be kept informed of how far away
-       it is, and in which direction.  That's what the "Quick Destination"
-       menu entry is for.  Select where you want to go (a waypoint, a
-       street address, an intersection, or latitude/longitude spot), and as
-       you move around, the display will show continously display the
-       distance and direction to that point.
+       it is, and in which direction.  (This might be useful for geocaching,
+       for instance.)  That's what the "Quick Destination" menu entry is
+       for.  Select where you want to go (a waypoint, a street address, an
+       intersection, or latitude/longitude spot), and as you move around,
+       the display will continously display the distance and direction
+       to that point.
 
 ** Following a route:
 
@@ -1553,7 +1554,7 @@ USING ROADMAP
        waypoint, as well as user configurable messages, such as distance
        information, the directions to the next waypoint (if any are present
        in the waypoint's comments), its distance, etc.  The messages will
-       disply at the corners of the map.  (see CONFIGURATION for more
+       display at the corners of the map.  (see CONFIGURATION for more
        information about these user configurable messages).
 
        If the route's waypoint contains comments (from the "<cmt>" element
@@ -2690,7 +2691,7 @@ CONFIGURATION
      
      Routes and tracks are very similar:  it's most useful to
      think of a route as "where you want to go", and a track as
-     "where you've been".  Routes are usually composed, either
+     "where you've been".  Routes are usually "composed", either
      manually or using navigation software.  Tracks are usually
      recorded, by making a note of one's GPS location
      periodically.  (By the way, tracks don't get included into
@@ -2701,10 +2702,10 @@ CONFIGURATION
      Routes and tracks are both composed of "waypoints".  To
      reduce confusion, RoadMap tries to use the term "waypoint"
      to _only_ refer to points which are contained in routes and
-     tracks.  Points unassociated with a specific route or track
-     are called "landmarks".  If you read the GPX documentation
-     you'll find that these points are usually all called
-     waypoints.
+     tracks.  Points that are unassociated with a specific route
+     or track are called "landmarks".  If you read the GPX
+     documentation you'll find that everything is called a
+     waypoint.
 
      Waypoints simply represent a place, along with some other
      information about that place.  For instance, a waypoint in a
@@ -2810,7 +2811,7 @@ CONFIGURATION
         default, contains landmarks (waypoints) which you might
         want to keep handy no matter what trip file you have
         loaded.  Examples might include your home, your office,
-        your hairdress, etc.  When writing this file, only the
+        your hairdresser, etc.  When writing this file, only the
         personal landmarks are written.  When reading, only the
         unassociated waypoints are read -- any routes or tracks
         in the file are ignored.
