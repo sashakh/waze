@@ -14,13 +14,14 @@ Provider = %CompanyName%
 CEShortcuts = Shortcuts.All
 
 [DefaultInstall.ARM]
-CopyFiles = Files.Config, Files.Maps , Files.ARM
+CopyFiles = Files.Config, Files.Maps, Files.ARM, Files.Icons
 
 [SourceDisksNames]
 1 = ,"Common config files",,L:\shared\roadmap_editor\src
 2 = ,"Common map files",,L:\shared\roadmap_editor\maps
 5 = ,"WinCE preferences",,L:\shared\roadmap_editor\src\win32
 6 = ,"Manual",,L:\shared\roadmap_editor\manual
+7 = ,"bmp icons",,L:\shared\roadmap_editor\src\icons\bmp
 
 [SourceDisksNames.ARM]
 3 = ,"ARM files",,L:\shared\roadmap_editor\src\win32\wince_env\Roadmap\ARMV4Rel
@@ -33,10 +34,27 @@ session = 5
 roadmap.toolbar = 5
 schema = 1
 sprites = 1
+objects = 1
+font.ttf = 1
 usc77001.rdm = 2
 usdir.rdm = 2
 apt_toc.gif = 6
 manual.html = 6
+rm_2d.bmp = 7
+rm_3d.bmp = 7
+rm_clockwise.bmp = 7
+rm_counterclockwise.bmp = 7
+rm_destination.bmp = 7
+rm_full.bmp = 7
+rm_gps.bmp = 7
+rm_hold.bmp = 7
+rm_location.bmp = 7
+rm_quit.bmp = 7
+rm_record.bmp = 7
+rm_stop.bmp = 7
+rm_zoom1.bmp = 7
+rm_zoomin.bmp = 7
+rm_zoomout.bmp = 7
 
 [SourceDisksFiles.ARM]
 Roadmap.exe = 3
@@ -47,6 +65,7 @@ Shortcuts.All = 0,%CE11%
 Files.Config = 0,%InstallDir%
 Files.Maps = 0,%InstallDir%\Maps
 Files.ARM = 0,%InstallDir%
+Files.Icons = 0,%InstallDir%\icons
 DefaultDestDir = 0,%InstallDir%
 
 [Shortcuts.All]
@@ -60,8 +79,27 @@ session,,,0x00000010
 roadmap.toolbar,,,0x00000010
 schema,,,0x00000010
 sprites,,,0x00000010
+objects,,,0x00000010
+font.ttf,,,0x00000010
 apt_toc.gif,,,0
 manual.html,,,0
+
+[Files.Icons]
+rm_2d.bmp,,,0x00000010
+rm_3d.bmp,,,0x00000010
+rm_clockwise.bmp,,,0x00000010
+rm_counterclockwise.bmp,,,0x00000010
+rm_destination.bmp,,,0x00000010
+rm_full.bmp,,,0x00000010
+rm_gps.bmp,,,0x00000010
+rm_hold.bmp,,,0x00000010
+rm_location.bmp,,,0x00000010
+rm_quit.bmp,,,0x00000010
+rm_record.bmp,,,0x00000010
+rm_stop.bmp,,,0x00000010
+rm_zoom1.bmp,,,0x00000010
+rm_zoomin.bmp,,,0x00000010
+rm_zoomout.bmp,,,0x00000010
 
 [Files.Maps]
 usc77001.rdm,,,0x00000010
