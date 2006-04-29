@@ -27,6 +27,10 @@
 #include "roadmap_types.h"
 #include "roadmap_canvas.h"
 
+enum { VIEW_MODE_2D = 0,
+       VIEW_MODE_3D
+};
+
 void roadmap_screen_initialize (void);
 
 void roadmap_screen_set_initial_position (void);
@@ -40,6 +44,7 @@ void roadmap_screen_move_down  (void);
 void roadmap_screen_move_right (void);
 void roadmap_screen_move_left  (void);
 
+void roadmap_screen_toggle_view_mode (void);
 void roadmap_screen_increase_horizon (void);
 void roadmap_screen_decrease_horizon (void);
 

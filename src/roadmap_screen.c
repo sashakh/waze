@@ -50,6 +50,7 @@
 #include "roadmap_trip.h"
 #include "roadmap_canvas.h"
 #include "roadmap_screen_obj.h"
+#include "roadmap_state.h"
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
 #include "roadmap_label.h"
@@ -93,6 +94,7 @@ static int RoadMapScreenDragging = 0;
 static RoadMapGuiPoint RoadMapScreenPointerLocation;
 static RoadMapPosition RoadMapScreenCenter;
 
+static int RoadMapScreenViewMode = VIEW_MODE_2D;
 static int RoadMapScreen3dHorizon;
 static int RoadMapScreenRotation;
 static int RoadMapScreenWidth;
@@ -979,13 +981,13 @@ static void roadmap_screen_repaint (void) {
 
        roadmap_trip_format_messages ();
     
+       roadmap_screen_obj_draw ();
+
        if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
 
           roadmap_trip_display ();
           roadmap_display_signs ();
        }
-
-       roadmap_screen_obj_draw ();
     }
 
     RoadMapScreenAfterRefresh();
@@ -1088,6 +1090,12 @@ static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 }
 
 
+static int roadmap_screen_get_view_mode (void) {
+   
+   return RoadMapScreenViewMode;
+}
+
+
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
@@ -1182,7 +1190,27 @@ void roadmap_screen_rotate (int delta) {
 }
 
 
+void roadmap_screen_toggle_view_mode (void) {
+   
+   if (RoadMapScreenViewMode == VIEW_MODE_2D) {
+
+      RoadMapScreenViewMode = VIEW_MODE_3D;
+      RoadMapScreen3dHorizon = -100;
+   } else {
+      RoadMapScreenViewMode = VIEW_MODE_2D;
+      RoadMapScreen3dHorizon = 0;
+   }
+
+   roadmap_math_set_horizon (RoadMapScreen3dHorizon);
+   roadmap_screen_repaint ();
+}
+
+
 void roadmap_screen_increase_horizon (void) {
+
+   if (RoadMapScreenViewMode != VIEW_MODE_3D) return;
+
+   if (RoadMapScreen3dHorizon >= -100) return;
 
    RoadMapScreen3dHorizon += 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
@@ -1191,6 +1219,8 @@ void roadmap_screen_increase_horizon (void) {
 
 
 void roadmap_screen_decrease_horizon (void) {
+
+   if (RoadMapScreenViewMode != VIEW_MODE_3D) return;
 
    RoadMapScreen3dHorizon -= 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
@@ -1295,6 +1325,7 @@ void roadmap_screen_initialize (void) {
 
    RoadMapScreen3dHorizon = 0;
 
+   roadmap_state_add ("view_mode", &roadmap_screen_get_view_mode);
    roadmap_state_monitor (&roadmap_screen_repaint);
 }
 

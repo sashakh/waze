@@ -155,7 +155,7 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX"
-                       "\n\nEditor Plugin 0.5.0\n"
+                       "\n\nEditor Plugin 0.6.0 pre1\n"
                        "Ehud Shabtai\n"
                        "eshabtai@gmail.com");
 }
@@ -404,6 +404,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"down", "Down", "S", NULL,
       "Move the map view downward", roadmap_screen_move_down},
 
+   {"ToggleView", "Toggle view mode", "M", NULL,
+      "Toggle view mode 2D / 3D", roadmap_screen_toggle_view_mode},
+
    {"IncHorizon", "Increase Horizon", "I", NULL,
       "Increase the 3D horizon", roadmap_screen_increase_horizon},
 
@@ -559,6 +562,7 @@ static const char *RoadMapStartMenu[] = {
    "left",
    "right",
    "down",
+   "ToggleView",
    "IncHorizon",
    "DecHorizon",
 
