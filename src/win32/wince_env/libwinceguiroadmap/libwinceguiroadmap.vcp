@@ -232,7 +232,7 @@ BSC32=bscmake.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\roadmap_canvas.cpp
+SOURCE=..\..\roadmap_canvas_agg.cpp
 
 !IF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARM) Release"
 
@@ -241,97 +241,44 @@ SOURCE=..\..\roadmap_canvas.cpp
 !ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE x86) Release"
 
 DEP_CPP_ROADM=\
+	"..\..\..\agg23\include\agg_array.h"\
+	"..\..\..\agg23\include\agg_basics.h"\
+	"..\..\..\agg23\include\agg_clip_liang_barsky.h"\
+	"..\..\..\agg23\include\agg_color_rgba.h"\
+	"..\..\..\agg23\include\agg_config.h"\
+	"..\..\..\agg23\include\agg_conv_adaptor_vcgen.h"\
+	"..\..\..\agg23\include\agg_conv_contour.h"\
+	"..\..\..\agg23\include\agg_conv_stroke.h"\
+	"..\..\..\agg23\include\agg_conv_transform.h"\
+	"..\..\..\agg23\include\agg_curves.h"\
+	"..\..\..\agg23\include\agg_dda_line.h"\
+	"..\..\..\agg23\include\agg_ellipse.h"\
+	"..\..\..\agg23\include\agg_ellipse_bresenham.h"\
+	"..\..\..\agg23\include\agg_gamma_functions.h"\
+	"..\..\..\agg23\include\agg_line_aa_basics.h"\
+	"..\..\..\agg23\include\agg_math.h"\
+	"..\..\..\agg23\include\agg_math_stroke.h"\
+	"..\..\..\agg23\include\agg_path_storage.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb_packed.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_rasterizer_scanline_aa.h"\
+	"..\..\..\agg23\include\agg_render_scanlines.h"\
+	"..\..\..\agg23\include\agg_renderer_base.h"\
+	"..\..\..\agg23\include\agg_renderer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_renderer_primitives.h"\
+	"..\..\..\agg23\include\agg_renderer_scanline.h"\
+	"..\..\..\agg23\include\agg_rendering_buffer.h"\
+	"..\..\..\agg23\include\agg_scanline_p.h"\
+	"..\..\..\agg23\include\agg_trans_affine.h"\
+	"..\..\..\agg23\include\agg_vcgen_contour.h"\
+	"..\..\..\agg23\include\agg_vcgen_stroke.h"\
+	"..\..\..\agg23\include\agg_vertex_sequence.h"\
+	"..\..\..\agg23\include\platform\win32\agg_win32_bmp.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
-	"..\..\..\roadmap_gui.h"\
-	"..\..\..\roadmap_types.h"\
-	"..\..\colors.h"\
-	"..\..\roadmap_win32.h"\
-	"..\..\roadmap_wincecanvas.h"\
-	"C:\Projects\agg23\include\agg_array.h"\
-	"C:\Projects\agg23\include\agg_basics.h"\
-	"C:\Projects\agg23\include\agg_clip_liang_barsky.h"\
-	"C:\Projects\agg23\include\agg_color_rgba.h"\
-	"C:\Projects\agg23\include\agg_config.h"\
-	"C:\Projects\agg23\include\agg_conv_adaptor_vcgen.h"\
-	"C:\Projects\agg23\include\agg_conv_stroke.h"\
-	"C:\Projects\agg23\include\agg_curves.h"\
-	"C:\Projects\agg23\include\agg_gamma_functions.h"\
-	"C:\Projects\agg23\include\agg_math.h"\
-	"C:\Projects\agg23\include\agg_math_stroke.h"\
-	"C:\Projects\agg23\include\agg_path_storage.h"\
-	"C:\Projects\agg23\include\agg_pixfmt_rgb_packed.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_scanline_aa.h"\
-	"C:\Projects\agg23\include\agg_render_scanlines.h"\
-	"C:\Projects\agg23\include\agg_renderer_base.h"\
-	"C:\Projects\agg23\include\agg_renderer_scanline.h"\
-	"C:\Projects\agg23\include\agg_rendering_buffer.h"\
-	"C:\Projects\agg23\include\agg_scanline_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_p.h"\
-	"C:\Projects\agg23\include\agg_vcgen_stroke.h"\
-	"C:\Projects\agg23\include\agg_vertex_sequence.h"\
-	
-# ADD CPP /I "C:\Projects\agg23\include"
-
-!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE x86) Debug"
-
-DEP_CPP_ROADM=\
-	"..\..\..\roadmap.h"\
-	"..\..\..\roadmap_canvas.h"\
-	"..\..\..\roadmap_gui.h"\
-	"..\..\..\roadmap_types.h"\
-	"..\..\colors.h"\
-	"..\..\roadmap_win32.h"\
-	"..\..\roadmap_wincecanvas.h"\
-	"C:\Projects\agg23\include\agg_array.h"\
-	"C:\Projects\agg23\include\agg_basics.h"\
-	"C:\Projects\agg23\include\agg_clip_liang_barsky.h"\
-	"C:\Projects\agg23\include\agg_color_rgba.h"\
-	"C:\Projects\agg23\include\agg_config.h"\
-	"C:\Projects\agg23\include\agg_conv_adaptor_vcgen.h"\
-	"C:\Projects\agg23\include\agg_conv_stroke.h"\
-	"C:\Projects\agg23\include\agg_curves.h"\
-	"C:\Projects\agg23\include\agg_gamma_functions.h"\
-	"C:\Projects\agg23\include\agg_math.h"\
-	"C:\Projects\agg23\include\agg_math_stroke.h"\
-	"C:\Projects\agg23\include\agg_path_storage.h"\
-	"C:\Projects\agg23\include\agg_pixfmt_rgb_packed.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_scanline_aa.h"\
-	"C:\Projects\agg23\include\agg_render_scanlines.h"\
-	"C:\Projects\agg23\include\agg_renderer_base.h"\
-	"C:\Projects\agg23\include\agg_renderer_scanline.h"\
-	"C:\Projects\agg23\include\agg_rendering_buffer.h"\
-	"C:\Projects\agg23\include\agg_scanline_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_p.h"\
-	"C:\Projects\agg23\include\agg_vcgen_stroke.h"\
-	"C:\Projects\agg23\include\agg_vertex_sequence.h"\
-	
-# ADD CPP /I "C:\Projects\agg23\include"
-
-!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Debug"
-
-DEP_CPP_ROADM=\
-	"..\..\..\agg23\font_freetype\agg_font_freetype.h"\
-	"..\..\..\freetype\include\freetype\config\ftheader.h"\
-	"..\..\..\freetype\include\ft2build.h"\
-	"..\..\..\fribidi\fribidi.h"\
-	"..\..\..\fribidi\fribidi_char_sets.h"\
-	"..\..\..\fribidi\fribidi_char_sets.i"\
-	"..\..\..\fribidi\fribidi_char_sets_cap_rtl.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1255.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1256.h"\
-	"..\..\..\fribidi\fribidi_char_sets_isiri_3342.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_6.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_8.h"\
-	"..\..\..\fribidi\fribidi_char_sets_utf8.h"\
-	"..\..\..\fribidi\fribidi_config.h"\
-	"..\..\..\fribidi\fribidi_types.h"\
-	"..\..\..\fribidi\fribidi_types.i"\
-	"..\..\..\fribidi\fribidi_unicode.h"\
-	"..\..\..\roadmap.h"\
-	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_canvas_agg.h"\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_math.h"\
@@ -343,193 +290,226 @@ DEP_CPP_ROADM=\
 	"..\..\roadmap_win32.h"\
 	"..\..\roadmap_wincecanvas.h"\
 	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
-	"C:\Projects\agg23\include\agg_array.h"\
-	"C:\Projects\agg23\include\agg_basics.h"\
-	"C:\Projects\agg23\include\agg_clip_liang_barsky.h"\
-	"C:\Projects\agg23\include\agg_color_rgba.h"\
-	"C:\Projects\agg23\include\agg_config.h"\
-	"C:\Projects\agg23\include\agg_conv_adaptor_vcgen.h"\
-	"C:\Projects\agg23\include\agg_conv_contour.h"\
-	"C:\Projects\agg23\include\agg_conv_curve.h"\
-	"C:\Projects\agg23\include\agg_conv_stroke.h"\
-	"C:\Projects\agg23\include\agg_conv_transform.h"\
-	"C:\Projects\agg23\include\agg_curves.h"\
-	"C:\Projects\agg23\include\agg_dda_line.h"\
-	"C:\Projects\agg23\include\agg_ellipse.h"\
-	"C:\Projects\agg23\include\agg_ellipse_bresenham.h"\
-	"C:\Projects\agg23\include\agg_font_cache_manager.h"\
-	"C:\Projects\agg23\include\agg_gamma_functions.h"\
-	"C:\Projects\agg23\include\agg_line_aa_basics.h"\
-	"C:\Projects\agg23\include\agg_math.h"\
-	"C:\Projects\agg23\include\agg_math_stroke.h"\
-	"C:\Projects\agg23\include\agg_path_storage.h"\
-	"C:\Projects\agg23\include\agg_path_storage_integer.h"\
-	"C:\Projects\agg23\include\agg_pixfmt_rgb_packed.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline_aa.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_scanline_aa.h"\
-	"C:\Projects\agg23\include\agg_render_scanlines.h"\
-	"C:\Projects\agg23\include\agg_renderer_base.h"\
-	"C:\Projects\agg23\include\agg_renderer_outline_aa.h"\
-	"C:\Projects\agg23\include\agg_renderer_primitives.h"\
-	"C:\Projects\agg23\include\agg_renderer_scanline.h"\
-	"C:\Projects\agg23\include\agg_rendering_buffer.h"\
-	"C:\Projects\agg23\include\agg_scanline_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_p.h"\
-	"C:\Projects\agg23\include\agg_scanline_storage_aa.h"\
-	"C:\Projects\agg23\include\agg_scanline_storage_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_u.h"\
-	"C:\Projects\agg23\include\agg_trans_affine.h"\
-	"C:\Projects\agg23\include\agg_vcgen_contour.h"\
-	"C:\Projects\agg23\include\agg_vcgen_stroke.h"\
-	"C:\Projects\agg23\include\agg_vertex_sequence.h"\
 	
-# ADD CPP /I "C:\Projects\agg23\include"
+# ADD CPP /I "../../../agg23/include"
 
-!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Release"
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE x86) Debug"
 
 DEP_CPP_ROADM=\
-	"..\..\..\freetype\include\freetype\config\ftheader.h"\
-	"..\..\..\freetype\include\ft2build.h"\
-	"..\..\..\fribidi\fribidi.h"\
-	"..\..\..\fribidi\fribidi_char_sets.h"\
-	"..\..\..\fribidi\fribidi_char_sets.i"\
-	"..\..\..\fribidi\fribidi_char_sets_cap_rtl.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1255.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1256.h"\
-	"..\..\..\fribidi\fribidi_char_sets_isiri_3342.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_6.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_8.h"\
-	"..\..\..\fribidi\fribidi_char_sets_utf8.h"\
-	"..\..\..\fribidi\fribidi_config.h"\
-	"..\..\..\fribidi\fribidi_types.h"\
-	"..\..\..\fribidi\fribidi_types.i"\
-	"..\..\..\fribidi\fribidi_unicode.h"\
+	"..\..\..\agg23\include\agg_array.h"\
+	"..\..\..\agg23\include\agg_basics.h"\
+	"..\..\..\agg23\include\agg_clip_liang_barsky.h"\
+	"..\..\..\agg23\include\agg_color_rgba.h"\
+	"..\..\..\agg23\include\agg_config.h"\
+	"..\..\..\agg23\include\agg_conv_adaptor_vcgen.h"\
+	"..\..\..\agg23\include\agg_conv_contour.h"\
+	"..\..\..\agg23\include\agg_conv_stroke.h"\
+	"..\..\..\agg23\include\agg_conv_transform.h"\
+	"..\..\..\agg23\include\agg_curves.h"\
+	"..\..\..\agg23\include\agg_dda_line.h"\
+	"..\..\..\agg23\include\agg_ellipse.h"\
+	"..\..\..\agg23\include\agg_ellipse_bresenham.h"\
+	"..\..\..\agg23\include\agg_gamma_functions.h"\
+	"..\..\..\agg23\include\agg_line_aa_basics.h"\
+	"..\..\..\agg23\include\agg_math.h"\
+	"..\..\..\agg23\include\agg_math_stroke.h"\
+	"..\..\..\agg23\include\agg_path_storage.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb_packed.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_rasterizer_scanline_aa.h"\
+	"..\..\..\agg23\include\agg_render_scanlines.h"\
+	"..\..\..\agg23\include\agg_renderer_base.h"\
+	"..\..\..\agg23\include\agg_renderer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_renderer_primitives.h"\
+	"..\..\..\agg23\include\agg_renderer_scanline.h"\
+	"..\..\..\agg23\include\agg_rendering_buffer.h"\
+	"..\..\..\agg23\include\agg_scanline_p.h"\
+	"..\..\..\agg23\include\agg_trans_affine.h"\
+	"..\..\..\agg23\include\agg_vcgen_contour.h"\
+	"..\..\..\agg23\include\agg_vcgen_stroke.h"\
+	"..\..\..\agg23\include\agg_vertex_sequence.h"\
+	"..\..\..\agg23\include\platform\win32\agg_win32_bmp.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_canvas_agg.h"\
+	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
-	"..\..\..\roadmap_screen.h"\
-	"..\..\..\roadmap_types.h"\
-	"..\..\colors.h"\
-	"..\..\roadmap_win32.h"\
-	"..\..\roadmap_wincecanvas.h"\
-	"c:\projects\agg23\font_freetype\agg_font_freetype.h"\
-	"C:\Projects\agg23\include\agg_array.h"\
-	"C:\Projects\agg23\include\agg_basics.h"\
-	"C:\Projects\agg23\include\agg_clip_liang_barsky.h"\
-	"C:\Projects\agg23\include\agg_color_rgba.h"\
-	"C:\Projects\agg23\include\agg_config.h"\
-	"C:\Projects\agg23\include\agg_conv_adaptor_vcgen.h"\
-	"C:\Projects\agg23\include\agg_conv_contour.h"\
-	"C:\Projects\agg23\include\agg_conv_curve.h"\
-	"C:\Projects\agg23\include\agg_conv_stroke.h"\
-	"C:\Projects\agg23\include\agg_conv_transform.h"\
-	"C:\Projects\agg23\include\agg_curves.h"\
-	"C:\Projects\agg23\include\agg_dda_line.h"\
-	"C:\Projects\agg23\include\agg_ellipse.h"\
-	"C:\Projects\agg23\include\agg_ellipse_bresenham.h"\
-	"C:\Projects\agg23\include\agg_font_cache_manager.h"\
-	"C:\Projects\agg23\include\agg_gamma_functions.h"\
-	"C:\Projects\agg23\include\agg_line_aa_basics.h"\
-	"C:\Projects\agg23\include\agg_math.h"\
-	"C:\Projects\agg23\include\agg_math_stroke.h"\
-	"C:\Projects\agg23\include\agg_path_storage.h"\
-	"C:\Projects\agg23\include\agg_path_storage_integer.h"\
-	"C:\Projects\agg23\include\agg_pixfmt_rgb_packed.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline_aa.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_scanline_aa.h"\
-	"C:\Projects\agg23\include\agg_render_scanlines.h"\
-	"C:\Projects\agg23\include\agg_renderer_base.h"\
-	"C:\Projects\agg23\include\agg_renderer_outline_aa.h"\
-	"C:\Projects\agg23\include\agg_renderer_primitives.h"\
-	"C:\Projects\agg23\include\agg_renderer_scanline.h"\
-	"C:\Projects\agg23\include\agg_rendering_buffer.h"\
-	"C:\Projects\agg23\include\agg_scanline_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_p.h"\
-	"C:\Projects\agg23\include\agg_scanline_storage_aa.h"\
-	"C:\Projects\agg23\include\agg_scanline_storage_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_u.h"\
-	"C:\Projects\agg23\include\agg_trans_affine.h"\
-	"C:\Projects\agg23\include\agg_vcgen_contour.h"\
-	"C:\Projects\agg23\include\agg_vcgen_stroke.h"\
-	"C:\Projects\agg23\include\agg_vertex_sequence.h"\
-	
-# ADD CPP /I "C:\Projects\agg23\include"
-
-!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Profiler"
-
-DEP_CPP_ROADM=\
-	"..\..\..\freetype\include\freetype\config\ftheader.h"\
-	"..\..\..\freetype\include\ft2build.h"\
-	"..\..\..\fribidi\fribidi.h"\
-	"..\..\..\fribidi\fribidi_char_sets.h"\
-	"..\..\..\fribidi\fribidi_char_sets.i"\
-	"..\..\..\fribidi\fribidi_char_sets_cap_rtl.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1255.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1256.h"\
-	"..\..\..\fribidi\fribidi_char_sets_isiri_3342.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_6.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_8.h"\
-	"..\..\..\fribidi\fribidi_char_sets_utf8.h"\
-	"..\..\..\fribidi\fribidi_config.h"\
-	"..\..\..\fribidi\fribidi_types.h"\
-	"..\..\..\fribidi\fribidi_types.i"\
-	"..\..\..\fribidi\fribidi_unicode.h"\
-	"..\..\..\roadmap.h"\
-	"..\..\..\roadmap_canvas.h"\
-	"..\..\..\roadmap_gui.h"\
-	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\colors.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\roadmap_wincecanvas.h"\
 	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
-	"c:\projects\agg23\font_freetype\agg_font_freetype.h"\
-	"C:\Projects\agg23\include\agg_array.h"\
-	"C:\Projects\agg23\include\agg_basics.h"\
-	"C:\Projects\agg23\include\agg_clip_liang_barsky.h"\
-	"C:\Projects\agg23\include\agg_color_rgba.h"\
-	"C:\Projects\agg23\include\agg_config.h"\
-	"C:\Projects\agg23\include\agg_conv_adaptor_vcgen.h"\
-	"C:\Projects\agg23\include\agg_conv_contour.h"\
-	"C:\Projects\agg23\include\agg_conv_curve.h"\
-	"C:\Projects\agg23\include\agg_conv_stroke.h"\
-	"C:\Projects\agg23\include\agg_conv_transform.h"\
-	"C:\Projects\agg23\include\agg_curves.h"\
-	"C:\Projects\agg23\include\agg_dda_line.h"\
-	"C:\Projects\agg23\include\agg_ellipse.h"\
-	"C:\Projects\agg23\include\agg_ellipse_bresenham.h"\
-	"C:\Projects\agg23\include\agg_font_cache_manager.h"\
-	"C:\Projects\agg23\include\agg_gamma_functions.h"\
-	"C:\Projects\agg23\include\agg_line_aa_basics.h"\
-	"C:\Projects\agg23\include\agg_math.h"\
-	"C:\Projects\agg23\include\agg_math_stroke.h"\
-	"C:\Projects\agg23\include\agg_path_storage.h"\
-	"C:\Projects\agg23\include\agg_path_storage_integer.h"\
-	"C:\Projects\agg23\include\agg_pixfmt_rgb_packed.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_outline_aa.h"\
-	"C:\Projects\agg23\include\agg_rasterizer_scanline_aa.h"\
-	"C:\Projects\agg23\include\agg_render_scanlines.h"\
-	"C:\Projects\agg23\include\agg_renderer_base.h"\
-	"C:\Projects\agg23\include\agg_renderer_outline_aa.h"\
-	"C:\Projects\agg23\include\agg_renderer_primitives.h"\
-	"C:\Projects\agg23\include\agg_renderer_scanline.h"\
-	"C:\Projects\agg23\include\agg_rendering_buffer.h"\
-	"C:\Projects\agg23\include\agg_scanline_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_p.h"\
-	"C:\Projects\agg23\include\agg_scanline_storage_aa.h"\
-	"C:\Projects\agg23\include\agg_scanline_storage_bin.h"\
-	"C:\Projects\agg23\include\agg_scanline_u.h"\
-	"C:\Projects\agg23\include\agg_trans_affine.h"\
-	"C:\Projects\agg23\include\agg_vcgen_contour.h"\
-	"C:\Projects\agg23\include\agg_vcgen_stroke.h"\
-	"C:\Projects\agg23\include\agg_vertex_sequence.h"\
 	
-# ADD CPP /I "C:\Projects\agg23\include"
+# ADD CPP /I "../../../agg23/include"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_ROADM=\
+	"..\..\..\agg23\include\agg_array.h"\
+	"..\..\..\agg23\include\agg_basics.h"\
+	"..\..\..\agg23\include\agg_clip_liang_barsky.h"\
+	"..\..\..\agg23\include\agg_color_rgba.h"\
+	"..\..\..\agg23\include\agg_config.h"\
+	"..\..\..\agg23\include\agg_conv_adaptor_vcgen.h"\
+	"..\..\..\agg23\include\agg_conv_contour.h"\
+	"..\..\..\agg23\include\agg_conv_stroke.h"\
+	"..\..\..\agg23\include\agg_conv_transform.h"\
+	"..\..\..\agg23\include\agg_curves.h"\
+	"..\..\..\agg23\include\agg_dda_line.h"\
+	"..\..\..\agg23\include\agg_ellipse.h"\
+	"..\..\..\agg23\include\agg_ellipse_bresenham.h"\
+	"..\..\..\agg23\include\agg_gamma_functions.h"\
+	"..\..\..\agg23\include\agg_line_aa_basics.h"\
+	"..\..\..\agg23\include\agg_math.h"\
+	"..\..\..\agg23\include\agg_math_stroke.h"\
+	"..\..\..\agg23\include\agg_path_storage.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb_packed.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_rasterizer_scanline_aa.h"\
+	"..\..\..\agg23\include\agg_render_scanlines.h"\
+	"..\..\..\agg23\include\agg_renderer_base.h"\
+	"..\..\..\agg23\include\agg_renderer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_renderer_primitives.h"\
+	"..\..\..\agg23\include\agg_renderer_scanline.h"\
+	"..\..\..\agg23\include\agg_rendering_buffer.h"\
+	"..\..\..\agg23\include\agg_scanline_p.h"\
+	"..\..\..\agg23\include\agg_trans_affine.h"\
+	"..\..\..\agg23\include\agg_vcgen_contour.h"\
+	"..\..\..\agg23\include\agg_vcgen_stroke.h"\
+	"..\..\..\agg23\include\agg_vertex_sequence.h"\
+	"..\..\..\agg23\include\platform\win32\agg_win32_bmp.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_canvas_agg.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\colors.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\roadmap_wincecanvas.h"\
+	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
+	
+# ADD CPP /I "../../../agg23/include"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_ROADM=\
+	"..\..\..\agg23\include\agg_array.h"\
+	"..\..\..\agg23\include\agg_basics.h"\
+	"..\..\..\agg23\include\agg_clip_liang_barsky.h"\
+	"..\..\..\agg23\include\agg_color_rgba.h"\
+	"..\..\..\agg23\include\agg_config.h"\
+	"..\..\..\agg23\include\agg_conv_adaptor_vcgen.h"\
+	"..\..\..\agg23\include\agg_conv_contour.h"\
+	"..\..\..\agg23\include\agg_conv_stroke.h"\
+	"..\..\..\agg23\include\agg_conv_transform.h"\
+	"..\..\..\agg23\include\agg_curves.h"\
+	"..\..\..\agg23\include\agg_dda_line.h"\
+	"..\..\..\agg23\include\agg_ellipse.h"\
+	"..\..\..\agg23\include\agg_ellipse_bresenham.h"\
+	"..\..\..\agg23\include\agg_gamma_functions.h"\
+	"..\..\..\agg23\include\agg_line_aa_basics.h"\
+	"..\..\..\agg23\include\agg_math.h"\
+	"..\..\..\agg23\include\agg_math_stroke.h"\
+	"..\..\..\agg23\include\agg_path_storage.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb_packed.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_rasterizer_scanline_aa.h"\
+	"..\..\..\agg23\include\agg_render_scanlines.h"\
+	"..\..\..\agg23\include\agg_renderer_base.h"\
+	"..\..\..\agg23\include\agg_renderer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_renderer_primitives.h"\
+	"..\..\..\agg23\include\agg_renderer_scanline.h"\
+	"..\..\..\agg23\include\agg_rendering_buffer.h"\
+	"..\..\..\agg23\include\agg_scanline_p.h"\
+	"..\..\..\agg23\include\agg_trans_affine.h"\
+	"..\..\..\agg23\include\agg_vcgen_contour.h"\
+	"..\..\..\agg23\include\agg_vcgen_stroke.h"\
+	"..\..\..\agg23\include\agg_vertex_sequence.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_canvas_agg.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\colors.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\roadmap_wincecanvas.h"\
+	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
+	
+# ADD CPP /I "../../../agg23/include"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Profiler"
+
+DEP_CPP_ROADM=\
+	"..\..\..\agg23\include\agg_array.h"\
+	"..\..\..\agg23\include\agg_basics.h"\
+	"..\..\..\agg23\include\agg_clip_liang_barsky.h"\
+	"..\..\..\agg23\include\agg_color_rgba.h"\
+	"..\..\..\agg23\include\agg_config.h"\
+	"..\..\..\agg23\include\agg_conv_adaptor_vcgen.h"\
+	"..\..\..\agg23\include\agg_conv_contour.h"\
+	"..\..\..\agg23\include\agg_conv_stroke.h"\
+	"..\..\..\agg23\include\agg_conv_transform.h"\
+	"..\..\..\agg23\include\agg_curves.h"\
+	"..\..\..\agg23\include\agg_dda_line.h"\
+	"..\..\..\agg23\include\agg_ellipse.h"\
+	"..\..\..\agg23\include\agg_ellipse_bresenham.h"\
+	"..\..\..\agg23\include\agg_gamma_functions.h"\
+	"..\..\..\agg23\include\agg_line_aa_basics.h"\
+	"..\..\..\agg23\include\agg_math.h"\
+	"..\..\..\agg23\include\agg_math_stroke.h"\
+	"..\..\..\agg23\include\agg_path_storage.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb.h"\
+	"..\..\..\agg23\include\agg_pixfmt_rgb_packed.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline.h"\
+	"..\..\..\agg23\include\agg_rasterizer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_rasterizer_scanline_aa.h"\
+	"..\..\..\agg23\include\agg_render_scanlines.h"\
+	"..\..\..\agg23\include\agg_renderer_base.h"\
+	"..\..\..\agg23\include\agg_renderer_outline_aa.h"\
+	"..\..\..\agg23\include\agg_renderer_primitives.h"\
+	"..\..\..\agg23\include\agg_renderer_scanline.h"\
+	"..\..\..\agg23\include\agg_rendering_buffer.h"\
+	"..\..\..\agg23\include\agg_scanline_p.h"\
+	"..\..\..\agg23\include\agg_trans_affine.h"\
+	"..\..\..\agg23\include\agg_vcgen_contour.h"\
+	"..\..\..\agg23\include\agg_vcgen_stroke.h"\
+	"..\..\..\agg23\include\agg_vertex_sequence.h"\
+	"..\..\..\agg23\include\platform\win32\agg_win32_bmp.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_canvas_agg.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\colors.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\roadmap_wincecanvas.h"\
+	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
+	
+# ADD CPP /I "../../../agg23/include"
 
 !ENDIF 
 
@@ -591,9 +571,19 @@ DEP_CPP_ROADMA=\
 DEP_CPP_ROADMA=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_factory.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_main.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_start.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	{$(INCLUDE)}"aygshell.h"\
 	{$(INCLUDE)}"sipapi.h"\
 	{$(INCLUDE)}"winuserm.h"\
@@ -610,11 +600,11 @@ DEP_CPP_ROADMA=\
 	"..\..\..\roadmap_start.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	{$(INCLUDE)}"aygshell.h"\
+	{$(INCLUDE)}"sipapi.h"\
+	{$(INCLUDE)}"winuserm.h"\
 	
 NODEP_CPP_ROADMA=\
-	".\inuserm.h"\
-	".\ipapi.h"\
-	".\ygshell.h"\
 	"C:\Program Files\Windows CE Tools\wce420\POCKET PC 2003\Include\ARMV4\vibrate.h"\
 	
 
@@ -762,10 +752,20 @@ DEP_CPP_ROADMAP_=\
 
 DEP_CPP_ROADMAP_=\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_factory.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_main.h"\
 	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_start.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Release"
