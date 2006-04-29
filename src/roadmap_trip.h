@@ -28,6 +28,8 @@
 #include "roadmap_list.h"
 #include "roadmap_gps.h"
 
+enum { TRIP_FOCUS_GPS = -1,
+       TRIP_FOCUS_NO_GPS = 0};
 
 void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
 

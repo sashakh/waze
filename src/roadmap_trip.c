@@ -42,6 +42,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
+#include "roadmap_state.h"
 #include "roadmap_message.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_preferences.h"
@@ -558,6 +559,17 @@ static void roadmap_trip_clear (void) {
 }
 
 
+static int roadmap_trip_gps_state (void) {
+
+   if (roadmap_trip_get_focus_name () == RoadMapTripGps->id) {
+      
+      return TRIP_FOCUS_GPS;
+   }
+
+   return TRIP_FOCUS_NO_GPS;
+}
+
+
 void roadmap_trip_set_point (const char *name, RoadMapPosition *position) {
 
     if (name == NULL) {
@@ -1036,6 +1048,8 @@ void roadmap_trip_initialize (void) {
         ("session", &RoadMapConfigFocusName, "GPS");
     roadmap_config_declare
         ("session", &RoadMapConfigFocusRotate, "1");
+
+    roadmap_state_add ("GPS_focus", roadmap_trip_gps_state);
 }
 
 
@@ -1176,4 +1190,5 @@ void roadmap_trip_save_screenshot (void) {
    roadmap_canvas_save_screenshot (picture_name);
    free (picture_name);
 }
+
 
