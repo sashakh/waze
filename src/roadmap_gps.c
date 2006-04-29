@@ -39,6 +39,7 @@
 #include "roadmap_net.h"
 #include "roadmap_file.h"
 #include "roadmap_serial.h"
+#include "roadmap_state.h"
 #include "roadmap_nmea.h"
 #include "roadmap_gpsd2.h"
 
@@ -88,6 +89,7 @@ static time_t RoadMapGpsLatestData = 0;
 static int    RoadMapGpsEstimatedError = 0;
 static int    RoadMapGpsRetryPending = 0;
 static int    RoadMapGpsReceivedTime = 0;
+static int    RoadMapGpsReception = 0;
 
 static RoadMapGpsPosition RoadMapGpsReceivedPosition;
 
@@ -122,6 +124,38 @@ static roadmap_gps_link_control RoadMapGpsLinkRemove =
 
 /* Basic support functions -------------------------------------------- */
 
+static int roadmap_gps_reception_state (void) {
+
+   return RoadMapGpsReception;
+}
+
+
+static void roadmap_gps_update_reception (void) {
+
+   int new_state;
+
+   if (!roadmap_gps_active ()) {
+      new_state = GPS_RECEPTION_NA;
+
+   } else if (RoadMapGpsSatelliteCount == 0) {
+      new_state = GPS_RECEPTION_NONE;
+      
+   } else if ((RoadMapGpsSatelliteCount <= 3) ||
+         (RoadMapGpsQuality.dilution_horizontal > 2.3)) {
+
+      new_state = GPS_RECEPTION_POOR;
+   } else {
+      new_state = GPS_RECEPTION_GOOD;
+   }
+
+   if (RoadMapGpsReception != new_state) {
+
+      RoadMapGpsReception = new_state;
+      roadmap_state_refresh ();
+   }
+}
+
+
 static void roadmap_gps_update_status (char status) {
 
    if (status != RoadMapLastKnownStatus) {
@@ -147,6 +181,8 @@ static void roadmap_gps_process_position (void) {
             &RoadMapGpsQuality,
             &RoadMapGpsReceivedPosition);
    }
+
+   roadmap_gps_update_reception ();
 }
 
 
@@ -161,6 +197,8 @@ static void roadmap_gps_call_monitors (void) {
       (RoadMapGpsMonitors[i])
          (&RoadMapGpsQuality, RoadMapGpsDetected, RoadMapGpsSatelliteCount);
    }
+
+   roadmap_gps_update_reception ();
 }
 
 
@@ -235,7 +273,7 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
       RoadMapGpsReceivedPosition.longitude = fields->gga.longitude;
       /* speed not available: keep previous value. */
       RoadMapGpsReceivedPosition.altitude  =
-         roadmap_math_to_current_unit (fields->gga.altitude,
+      roadmap_math_to_current_unit (fields->gga.altitude,
                                        fields->gga.altitude_unit);
 
       roadmap_gps_process_position();
@@ -306,6 +344,8 @@ static void roadmap_gps_gsa
    RoadMapGpsQuality.dilution_position   = fields->gsa.dilution_position;
    RoadMapGpsQuality.dilution_horizontal = fields->gsa.dilution_horizontal;
    RoadMapGpsQuality.dilution_vertical   = fields->gsa.dilution_vertical;
+
+   roadmap_gps_update_reception ();
 }
 
 
@@ -380,9 +420,6 @@ static void roadmap_gps_nmea (void) {
 
       roadmap_nmea_subscribe
          ("GRM", "M", roadmap_gps_pgrmm, RoadMapGpsNmeaAccount);
-   }
-
-   if (RoadMapGpsMonitors[0] != NULL) {
 
       roadmap_nmea_subscribe
          (NULL, "GSV", roadmap_gps_gsv, RoadMapGpsNmeaAccount);
@@ -535,6 +572,8 @@ void roadmap_gps_initialize (void) {
          ("preferences", &RoadMapConfigGPSTimeout, "3");
 
       RoadMapGpsInitialized = 1;
+
+      roadmap_state_add ("GPS_reception", &roadmap_gps_reception_state);
    }
 }
 
@@ -583,6 +622,8 @@ void roadmap_gps_open (void) {
 
 
    /* Check if we have a gps interface defined: */
+
+   roadmap_gps_update_reception ();
 
    url = roadmap_gps_source ();
 
