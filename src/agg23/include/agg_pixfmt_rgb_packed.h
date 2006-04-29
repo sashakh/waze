@@ -1068,32 +1068,30 @@ namespace agg
                         unsigned len,
                         int8u cover)
         {
-            typedef typename SrcPixelFormatRenderer::order_type src_order;
-
             const value_type* psrc = (const value_type*)psrc_;
             pixel_type* pdst = (pixel_type*)m_rbuf->row(ydst) + xdst;
             do 
             {
-                value_type alpha = psrc[src_order::A];
+                value_type alpha = base_mask;
                 if(alpha)
                 {
                     if(alpha == base_mask && cover == 255)
                     {
-                        *pdst = m_blender.make_pix(psrc[src_order::R], 
-                                                   psrc[src_order::G],
-                                                   psrc[src_order::B]);
+                        *pdst = m_blender.make_pix(psrc[0], 
+                                                   psrc[1],
+                                                   psrc[2]);
                     }
                     else
                     {
                         m_blender.blend_pix(pdst, 
-                                            psrc[src_order::R],
-                                            psrc[src_order::G],
-                                            psrc[src_order::B],
-                                            alpha,
+                                            psrc[0],
+                                            psrc[1],
+                                            psrc[2],
+                                            cover,
                                             cover);
                     }
                 }
-                psrc += 4;
+                psrc += 3;
                 ++pdst;
             }
             while(--len);

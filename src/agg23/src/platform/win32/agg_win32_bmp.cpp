@@ -298,7 +298,7 @@ namespace agg
 
         if(dvc_width != bmp_width || dvc_height != bmp_height)
         {
-            ::SetStretchBltMode(h_dc, COLORONCOLOR);
+            //::SetStretchBltMode(h_dc, COLORONCOLOR);
             ::StretchDIBits(
                 h_dc,            // handle of device context 
                 dvc_x,           // x-coordinate of upper-left corner of source rect. 
@@ -478,6 +478,7 @@ namespace agg
         destroy();
         m_bpp = bmi->bmiHeader.biBitCount;
         create_from_bmp(bmi);
+        //m_buf = (unsigned char *)bmi + bmf.bfOffBits - sizeof (BITMAPFILEHEADER);
         m_is_internal = 1;
         return true;
 
