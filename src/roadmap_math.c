@@ -41,6 +41,7 @@
 #include "roadmap.h"
 #include "roadmap_math.h"
 #include "roadmap_square.h"
+#include "roadmap_state.h"
 #include "roadmap_config.h"
 
 #include "roadmap_trigonometry.h"
@@ -455,6 +456,19 @@ static void roadmap_math_project (RoadMapGuiPoint *point) {
 }
 
 
+static int roadmap_math_zoom_state (void) {
+
+   if (RoadMapContext.zoom == 
+         roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom)) {
+
+      return MATH_ZOOM_RESET;
+   } else {
+
+      return MATH_ZOOM_NO_RESET;
+   }
+}
+
+
 /* Rotation of the screen:
  * rotate the coordinates of a point on the screen, the center of
  * the rotation being the center of the screen.
@@ -578,6 +592,9 @@ void roadmap_math_initialize (void) {
     roadmap_config_declare ("session", &RoadMapConfigGeneralZoom, "0");
     roadmap_config_declare
         ("preferences", &RoadMapConfigGeneralDefaultZoom, "20");
+
+    roadmap_state_add ("zoom_reset", &roadmap_math_zoom_state);
+
     RoadMapContext.orientation = 0;
 
     RoadMapContext._3D_horizon = 0;

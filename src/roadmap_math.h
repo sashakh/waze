@@ -28,6 +28,9 @@
 #include "roadmap_types.h"
 #include "roadmap_gui.h"
 
+enum { MATH_ZOOM_RESET = -1,
+       MATH_ZOOM_NO_RESET = 0
+};
 
 void roadmap_math_initialize   (void);
 
