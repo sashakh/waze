@@ -97,7 +97,7 @@ static void roadmap_navigate_adjust_focus
 
     RoadMapPosition focus_position;
 
-    roadmap_math_to_position (focused_point, &focus_position);
+    roadmap_math_to_position (focused_point, &focus_position, 1);
 
     if (focus_position.longitude < focus->west) {
         focus->west = focus_position.longitude;
@@ -135,7 +135,7 @@ static int roadmap_navigate_get_neighbours
 
     focus_point.x += accuracy;
     focus_point.y += accuracy;
-    roadmap_math_to_position (&focus_point, &focus_position);
+    roadmap_math_to_position (&focus_point, &focus_position, 1);
 
     focus.west = focus_position.longitude;
     focus.east = focus_position.longitude;

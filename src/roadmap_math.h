@@ -43,6 +43,7 @@ void roadmap_math_set_center      (RoadMapPosition *position);
 void roadmap_math_set_size        (int width, int height);
 int  roadmap_math_set_orientation (int direction);
 int  roadmap_math_get_orientation (void);
+void roadmap_math_set_horizon     (int horizon);
 
 void roadmap_math_set_focus     (const RoadMapArea *focus);
 void roadmap_math_release_focus (void);
@@ -66,7 +67,8 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
 void roadmap_math_coordinate  (const RoadMapPosition *position,
                                RoadMapGuiPoint *point);
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
-                               RoadMapPosition *position);
+                               RoadMapPosition *position,
+                               int projected);
 
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points);
 
