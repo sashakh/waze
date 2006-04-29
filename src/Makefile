@@ -128,6 +128,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_io.c \
           roadmap_gps.c \
           roadmap_object.c \
+          roadmap_state.c \
           roadmap_driver.c \
           roadmap_adjust.c \
           roadmap_sunrise.c
@@ -137,6 +138,7 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
 RMGUISRCS=roadmap_sprite.c \
           roadmap_object.c \
+          roadmap_screen_obj.c \
           roadmap_trip.c \
           roadmap_layer.c \
           roadmap_fuzzy.c \
