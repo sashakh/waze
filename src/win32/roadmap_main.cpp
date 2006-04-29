@@ -390,7 +390,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (RoadMapMainToolbar != NULL) {
 				point.y -= 26;
 			}
-			roadmap_canvas_mouse_move(&point);
+			roadmap_canvas_mouse_moved(&point);
 		}
 		break;
 				
