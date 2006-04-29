@@ -32,6 +32,7 @@
 #include "roadmap.h"
 #include "roadmap_canvas.h"
 #include "roadmap_screen.h"
+#include "roadmap_screen_obj.h"
 #include "roadmap_trip.h"
 #include "roadmap_display.h"
 #include "roadmap_math.h"
@@ -219,7 +220,11 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
 
    int i;
     
-   roadmap_math_to_position (point, &position);
+   if (roadmap_screen_obj_click (point)) {
+      return;
+   }
+
+   roadmap_math_to_position (point, &position, 1);
    
    if (roadmap_navigate_retrieve_line
          (&position, 20, &line, &distance) == -1) {
