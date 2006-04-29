@@ -431,8 +431,8 @@ void roadgps_screen_initialize (void) {
    roadmap_canvas_register_configure_handler (&roadgps_screen_configure);
 }
 
-static unsigned long dbg_time_rec[0];
-static unsigned long dbg_time_tmp[0];
+static unsigned long dbg_time_rec[1];
+static unsigned long dbg_time_tmp[1];
 
 #ifdef __WIN32
 void dbg_time_start(int type) {
