@@ -16,7 +16,7 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../libguiroadmap.a ../unix/libosroadmap.a ../libroadmap.a libgtkroadmap.a
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a libgtkroadmap.a
 
 
 ifeq ($(MODE),DEBUG)
@@ -47,7 +47,7 @@ else
 endif
 
 
-CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG
+CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
 LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl -lagg -lfreetype
 
 ifeq ($(BIDI),YES)
@@ -63,7 +63,7 @@ RMLIBSRCS=roadmap_keyboard.c \
           roadmap_dialog.c \
           roadmap_fileselection.c 
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg23/font_freetype/agg_font_freetype.o
+RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg23/roadmap_canvas.o ../agg23/font_freetype/agg_font_freetype.o
 
 RUNTIME=gtkroadgps gtkroadmap
 
