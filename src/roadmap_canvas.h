@@ -36,6 +36,9 @@
 struct roadmap_canvas_pen;
 typedef struct roadmap_canvas_pen *RoadMapPen;
 
+struct roadmap_canvas_image;
+typedef struct roadmap_canvas_image *RoadMapImage;
+
 typedef void (*RoadMapCanvasMouseHandler)     (RoadMapGuiPoint *point);
 typedef void (*RoadMapCanvasConfigureHandler) (void);
 
@@ -80,6 +83,7 @@ void roadmap_canvas_select_pen (RoadMapPen pen);
  */
 void roadmap_canvas_set_foreground (const char *color);
 void roadmap_canvas_set_thickness  (int thickness);
+void roadmap_canvas_set_opacity (int opacity);
 
 
 /* The functions below draw in the selected buffer using the selected pen: */
@@ -104,6 +108,9 @@ void roadmap_canvas_erase (void);
 #define ROADMAP_CANVAS_BOTTOMRIGHT (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT)
 #define ROADMAP_CANVAS_BOTTOMLEFT  (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_LEFT)
 
+#define CANVAS_DRAW_FAST 0x1
+#define CANVAS_NO_ROTATE 0x2
+
 void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
                                   int corner,
                                   const char *text);
@@ -112,13 +119,13 @@ void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points);
 
 void roadmap_canvas_draw_multiple_lines 
-         (int count, int *lines, RoadMapGuiPoint *points);
+         (int count, int *lines, RoadMapGuiPoint *points, int fast_draw);
 
 void roadmap_canvas_draw_multiple_polygons
-         (int count, int *polygons, RoadMapGuiPoint *points, int filled);
+         (int count, int *polygons, RoadMapGuiPoint *points, int filled, int fast_draw);
 
 void roadmap_canvas_draw_multiple_circles
-        (int count, RoadMapGuiPoint *centers, int *radius, int filled);
+        (int count, RoadMapGuiPoint *centers, int *radius, int filled, int fast_draw);
 
 
 int roadmap_canvas_width (void);
@@ -131,8 +138,15 @@ void roadmap_canvas_refresh (void);
 
 void roadmap_canvas_save_screenshot (const char* filename);
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position, RoadMapGuiPoint *center,
-                                       int angle, const char *text);
+void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
+                                       RoadMapGuiPoint *center, int angle,
+                                       const char *text);
+
+RoadMapImage roadmap_canvas_load_image (const char *path,
+                                        const char* file_name);
+
+void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
+                                int opacity);
 
 #endif // INCLUDE__ROADMAP_CANVAS__H
 
