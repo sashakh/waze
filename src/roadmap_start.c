@@ -53,6 +53,7 @@
 #include "roadmap_coord.h"
 #include "roadmap_crossing.h"
 #include "roadmap_sprite.h"
+#include "roadmap_screen_obj.h"
 #include "roadmap_trip.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
@@ -403,6 +404,12 @@ static RoadMapAction RoadMapStartActions[] = {
    {"down", "Down", "S", NULL,
       "Move the map view downward", roadmap_screen_move_down},
 
+   {"IncHorizon", "Increase Horizon", "I", NULL,
+      "Increase the 3D horizon", roadmap_screen_increase_horizon},
+
+   {"DecHorizon", "Decrease Horizon", "DI", NULL,
+      "Decrease the 3D horizon", roadmap_screen_decrease_horizon},
+
    {"clockwise", "Rotate Clockwise", "R+", NULL,
       "Rotate the map view clockwise", roadmap_start_rotate},
 
@@ -552,6 +559,8 @@ static const char *RoadMapStartMenu[] = {
    "left",
    "right",
    "down",
+   "IncHorizon",
+   "DecHorizon",
 
    RoadMapFactorySeparator,
 
@@ -895,7 +904,7 @@ static void roadmap_start_long_click (RoadMapGuiPoint *point) {
    
    RoadMapPosition position;
 
-   roadmap_math_to_position (point, &position);
+   roadmap_math_to_position (point, &position, 1);
    roadmap_trip_set_point ("Selection", &position);
    
    if (LongClickMenu != NULL) {
@@ -1009,6 +1018,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
    roadmap_sprite_initialize ();
+   roadmap_screen_obj_initialize ();
 
    roadmap_screen_set_initial_position ();
 
@@ -1048,3 +1058,17 @@ void roadmap_start_exit (void) {
     roadmap_db_end ();
     roadmap_gps_shutdown ();
 }
+
+
+const RoadMapAction *roadmap_start_find_action (const char *name) {
+
+   const RoadMapAction *actions = RoadMapStartActions;
+
+   while (actions->name != NULL) {
+      if (strcmp (actions->name, name) == 0) return actions;
+      ++actions;
+   }
+
+   return NULL;
+}
+
