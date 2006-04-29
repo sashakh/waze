@@ -30,6 +30,9 @@
 
 #include "roadmap_gui.h"
 
+#define SPRITE_FAST 0x1
+#define SPRITE_NO_ROTATE 0x2
+
 void roadmap_sprite_initialize (void);
 
 void roadmap_sprite_draw

@@ -177,7 +177,7 @@ static void roadmap_display_create_pens (void) {
     
     RoadMapConsoleBackground =
         roadmap_display_new_pen (&RoadMapConfigConsoleBackground);
-    
+
     RoadMapConsoleForeground =
         roadmap_display_new_pen (&RoadMapConfigConsoleForeground);
     
@@ -186,6 +186,8 @@ static void roadmap_display_create_pens (void) {
         sign->background =
             roadmap_display_new_pen (&sign->background_descriptor);
 
+        roadmap_canvas_set_opacity (150);
+    
         sign->foreground =
             roadmap_display_new_pen (&sign->foreground_descriptor);
     }
@@ -406,10 +408,10 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     }
     
     roadmap_canvas_select_pen (sign->background);
-    roadmap_canvas_draw_multiple_polygons (1, &count, points, 1);
+    roadmap_canvas_draw_multiple_polygons (1, &count, points, 1, 0);
 
     roadmap_canvas_select_pen (RoadMapMessageContour);
-    roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
+    roadmap_canvas_draw_multiple_polygons (1, &count, points, 0, 0);
     
     roadmap_canvas_select_pen (sign->foreground);
     roadmap_display_string
@@ -606,10 +608,10 @@ static void roadmap_display_console_box
     
     count = 4;
     roadmap_canvas_select_pen (RoadMapConsoleBackground);
-    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
+    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1, 0);
     
     roadmap_canvas_select_pen (RoadMapConsoleForeground);
-    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0);
+    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0, 0);
 
     frame[0].x = frame[3].x - 3;
     frame[0].y = frame[3].y + 3;
