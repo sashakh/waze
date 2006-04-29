@@ -40,6 +40,9 @@ void roadmap_screen_move_down  (void);
 void roadmap_screen_move_right (void);
 void roadmap_screen_move_left  (void);
 
+void roadmap_screen_increase_horizon (void);
+void roadmap_screen_decrease_horizon (void);
+
 void roadmap_screen_rotate (int delta);
 
 void roadmap_screen_refresh (void); /* Conditional: only if needed. */

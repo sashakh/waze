@@ -49,6 +49,7 @@
 #include "roadmap_object.h"
 #include "roadmap_trip.h"
 #include "roadmap_canvas.h"
+#include "roadmap_screen_obj.h"
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
 #include "roadmap_label.h"
@@ -92,6 +93,7 @@ static int RoadMapScreenDragging = 0;
 static RoadMapGuiPoint RoadMapScreenPointerLocation;
 static RoadMapPosition RoadMapScreenCenter;
 
+static int RoadMapScreen3dHorizon;
 static int RoadMapScreenRotation;
 static int RoadMapScreenWidth;
 static int RoadMapScreenHeight;
@@ -175,7 +177,7 @@ static void roadmap_screen_flush_lines (void) {
    roadmap_canvas_draw_multiple_lines
       (RoadMapScreenObjects.cursor - RoadMapScreenObjects.data,
        RoadMapScreenObjects.data,
-       RoadMapScreenLinePoints.data);
+       RoadMapScreenLinePoints.data, RoadMapScreenDragging);
 
    RoadMapScreenObjects.cursor = RoadMapScreenObjects.data;
    RoadMapScreenLinePoints.cursor  = RoadMapScreenLinePoints.data;
@@ -426,7 +428,8 @@ static void roadmap_screen_flush_polygons (void) {
         RoadMapScreenLinePoints.data);
 
    roadmap_canvas_draw_multiple_polygons
-      (count, RoadMapScreenObjects.data, RoadMapScreenLinePoints.data, 1);
+      (count, RoadMapScreenObjects.data, RoadMapScreenLinePoints.data, 1,
+       RoadMapScreenDragging);
 
    RoadMapScreenObjects.cursor = RoadMapScreenObjects.data;
    RoadMapScreenLinePoints.cursor  = RoadMapScreenLinePoints.data;
@@ -577,7 +580,8 @@ static void roadmap_screen_draw_square_edges (int square) {
    roadmap_canvas_select_pen (RoadMapPenEdges);
    count = 6;
    roadmap_math_rotate_coordinates (count, points);
-   roadmap_canvas_draw_multiple_lines (1, &count, points);
+   roadmap_canvas_draw_multiple_lines (1, &count, points,
+                                       RoadMapScreenDragging);
    RoadMapScreenLastPen = NULL;
 }
 
@@ -879,7 +883,6 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
 
 static void roadmap_screen_repaint (void) {
 
-    static RoadMapGuiPoint CompassPoint = {20, 20};
     static int *fips = NULL;
     static int *in_view = NULL;
 
@@ -964,7 +967,9 @@ static void roadmap_screen_repaint (void) {
         roadmap_screen_flush_lines ();
         roadmap_screen_flush_points ();
 
-        roadmap_label_draw_cache ();
+        if ((RoadMapScreen3dHorizon == 0) && !RoadMapScreenDragging) {
+            roadmap_label_draw_cache ();
+        }
     }
 
     if (!RoadMapScreenDragging ||
@@ -976,11 +981,11 @@ static void roadmap_screen_repaint (void) {
     
        if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
 
-          roadmap_sprite_draw ("Compass", &CompassPoint, 0);
-
           roadmap_trip_display ();
           roadmap_display_signs ();
        }
+
+       roadmap_screen_obj_draw ();
     }
 
     RoadMapScreenAfterRefresh();
@@ -1012,7 +1017,7 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
     RoadMapPosition position;
 
     
-    roadmap_math_to_position (point, &position);
+    roadmap_math_to_position (point, &position, 1);
    
     if (roadmap_navigate_retrieve_line
              (&position,
@@ -1054,7 +1059,7 @@ static void roadmap_screen_record_move (int dx, int dy) {
    center.x = (RoadMapScreenWidth / 2) + dx;
    center.y = (RoadMapScreenHeight / 2) + dy;
 
-   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_math_to_position (&center, &RoadMapScreenCenter, 0);
    roadmap_math_set_center (&RoadMapScreenCenter);
 }
 
@@ -1177,6 +1182,22 @@ void roadmap_screen_rotate (int delta) {
 }
 
 
+void roadmap_screen_increase_horizon (void) {
+
+   RoadMapScreen3dHorizon += 100;
+   roadmap_math_set_horizon (RoadMapScreen3dHorizon);
+   roadmap_screen_repaint ();
+}
+
+
+void roadmap_screen_decrease_horizon (void) {
+
+   RoadMapScreen3dHorizon -= 100;
+   roadmap_math_set_horizon (RoadMapScreen3dHorizon);
+   roadmap_screen_repaint ();
+}
+
+
 void roadmap_screen_move_up (void) {
 
    roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / 4));
@@ -1271,6 +1292,10 @@ void roadmap_screen_initialize (void) {
 
    RoadMapScreenPoints.cursor = RoadMapScreenPoints.data;
    RoadMapScreenPoints.end = RoadMapScreenPoints.data + ROADMAP_SCREEN_BULK;
+
+   RoadMapScreen3dHorizon = 0;
+
+   roadmap_state_monitor (&roadmap_screen_repaint);
 }
 
 
