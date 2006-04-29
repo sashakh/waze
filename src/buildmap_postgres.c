@@ -67,10 +67,10 @@
 #define WaterTlidStart 1100000
 /* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(segments.the_geom) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.0001)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time FROM segments;";
-static const char *country_borders_sql = "SELECT id AS id, AsText(the_geom) AS the_geom FROM boundaries;";
-static const char *water_sql = "SELECT id AS id, AsText(the_geom) AS the_geom FROM water;";
+static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM boundaries;";
+static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM water;";
 static const char *turn_restrictions_sql = "SELECT node_id, seg1_id, seg2_id FROM turn_restrictions;";
 
 static BuildMapDictionary DictionaryPrefix;
