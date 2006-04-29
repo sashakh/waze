@@ -452,6 +452,7 @@ void roadmap_screen_obj_initialize (void) {
       roadmap_screen_obj_load (roadmap_file_base(file), roadmap_file_size(file));
 
       roadmap_file_unmap (&file);
+      return;
    }
 
    for (cursor = roadmap_file_map ("user", "objects", NULL, "r", &file);
@@ -461,6 +462,7 @@ void roadmap_screen_obj_initialize (void) {
       roadmap_screen_obj_load (roadmap_file_base(file), roadmap_file_size(file));
 
       roadmap_file_unmap (&file);
+      return;
    }
 }
 
