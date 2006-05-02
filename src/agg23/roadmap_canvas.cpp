@@ -601,10 +601,10 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
             //agg::conv_curve<agg::conv_transform<font_manager_type::path_adaptor_type> > > 
          //stroke(fill);
 
-         agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> >contour(tr);
-    contour.width(2);
+         //agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> >contour(tr);
+         //contour.width(2);
 
-         agg::conv_stroke< agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> > > stroke(contour);
+         //agg::conv_stroke< agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> > > stroke(contour);
          //agg::conv_stroke< agg::conv_transform<font_manager_type::path_adaptor_type> > stroke(tr);
 
          dbg_time_start(DBG_TIME_TEXT_ONE_RAS);
