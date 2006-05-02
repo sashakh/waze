@@ -30,6 +30,7 @@
 #include "roadmap_config.h"
 #include "roadmap_math.h"
 #include "roadmap_plugin.h"
+#include "roadmap_canvas.h"
 
 #include "roadmap_label.h"
 
@@ -39,8 +40,12 @@
 static RoadMapConfigDescriptor RoadMapConfigMinFeatureSize =
                         ROADMAP_CONFIG_ITEM("Labels", "MinFeatureSize");
 
+static RoadMapConfigDescriptor RoadMapConfigLabelsColor =
+                        ROADMAP_CONFIG_ITEM("Labels", "Color");
+
 static labelCacheObj RoadMapLabelCache;
 static int RoadMapLabelCacheFull = 0;
+static RoadMapPen RoadMapLabelPen;
 
 static int rect_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
 
@@ -165,6 +170,8 @@ int roadmap_label_draw_cache (void) {
 
    labelCacheMemberObj *cachePtr=NULL;
 
+   roadmap_canvas_select_pen (RoadMapLabelPen);
+
    for(l=0; l<RoadMapLabelCache.numlabels; l++) {
 
       PluginStreetProperties properties;
@@ -259,6 +266,13 @@ int roadmap_label_initialize (void) {
    roadmap_config_declare
        ("preferences", &RoadMapConfigMinFeatureSize,  "25");
 
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigLabelsColor,  "#000000");
+
+   RoadMapLabelPen = roadmap_canvas_create_pen ("labels.main");
+   roadmap_canvas_set_foreground
+      (roadmap_config_get (&RoadMapConfigLabelsColor));
+    
    return 0;
 }
 
