@@ -32,6 +32,9 @@
 
 #include "roadmap_gui.h"
 
+enum { IMAGE_NORAML,
+       IMAGE_SELECTED
+};
 
 struct roadmap_canvas_pen;
 typedef struct roadmap_canvas_pen *RoadMapPen;
@@ -146,7 +149,7 @@ RoadMapImage roadmap_canvas_load_image (const char *path,
                                         const char* file_name);
 
 void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
-                                int opacity);
+                                int opacity, int mode);
 
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

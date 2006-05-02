@@ -30,7 +30,7 @@
 
 struct roadmap_canvas_image {
    agg::rendering_buffer rbuf;
-   agg::pixfmt_rgb24 pixfmt;
+   agg::pixfmt_bgr24 pixfmt;
 
    roadmap_canvas_image():pixfmt(rbuf) {}
 };
