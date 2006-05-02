@@ -32,6 +32,7 @@
 #include "roadmap_pointer.h"
 #include "roadmap_gui.h"
 #include "roadmap_canvas.h"
+#include "roadmap_screen_obj.h"
 #include "roadmap_main.h"
 
 #define LONG_CLICK_TIMEOUT 350
@@ -40,6 +41,7 @@
 static int is_button_down = 0;
 static int is_dragging = 0;
 static int is_drag_flow_control_on = 0;
+static RoadMapScreenObj screen_object;
 
 static RoadMapGuiPoint last_pointer_point;
 
@@ -67,7 +69,12 @@ static RoadMapPointerHandler RoadMapPointerDragEnd =
 static void roadmap_pointer_button_timeout(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-   RoadMapPointerLongClick(&last_pointer_point);
+
+   if (screen_object != NULL) {
+      roadmap_screen_obj_long_click (screen_object); 
+   } else {
+      RoadMapPointerLongClick(&last_pointer_point);
+   }
    is_button_down = 0;
 }
  
@@ -79,7 +86,10 @@ static void roadmap_pointer_button_timeout(void) {
 static void roadmap_pointer_drag_flow_control(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
-   RoadMapPointerDragMotion(&last_pointer_point);
+
+   if (screen_object == NULL) {
+      RoadMapPointerDragMotion(&last_pointer_point);
+   }
    is_drag_flow_control_on = 0;
 }
    
@@ -87,6 +97,12 @@ static void roadmap_pointer_drag_flow_control(void) {
 static void roadmap_pointer_button_pressed (RoadMapGuiPoint *point) {
    is_button_down = 1;    
    last_pointer_point = *point;
+   screen_object = roadmap_screen_obj_by_pos (point);
+
+   if (screen_object) {
+      roadmap_screen_obj_pressed (screen_object);
+   }
+
    roadmap_main_set_periodic
       (LONG_CLICK_TIMEOUT, roadmap_pointer_button_timeout);
 }
@@ -99,12 +115,22 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
          roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
          is_drag_flow_control_on = 0;
       }
-      RoadMapPointerDragEnd(point);
+
+      if (screen_object) {
+         roadmap_screen_obj_short_click (screen_object);
+      } else {
+         RoadMapPointerDragEnd(point);
+      }
       is_dragging = 0;
       is_button_down = 0;
    } else if (is_button_down) {
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      RoadMapPointerShortClick(point);
+      
+      if (screen_object) {
+         roadmap_screen_obj_short_click (screen_object); 
+      } else {
+         RoadMapPointerShortClick(point);
+      }
       is_button_down = 0;
    }
 }
@@ -119,7 +145,11 @@ static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
           (abs(point->y - last_pointer_point.y) <= 3)) return;
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      RoadMapPointerDragStart(&last_pointer_point);
+      
+      if (!screen_object) {
+         RoadMapPointerDragStart(&last_pointer_point);
+      }
+
       last_pointer_point = *point;
       is_drag_flow_control_on = 1;
       roadmap_main_set_periodic
