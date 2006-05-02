@@ -567,7 +567,7 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
    const wchar_t* p = wstr;
 #endif
    
-   ren_solid.color(agg::rgba8(0, 0, 0));
+   ren_solid.color(CurrentPen->color);
    dbg_time_end(DBG_TIME_TEXT_CNV);
    
    dbg_time_start(DBG_TIME_TEXT_LOAD);
