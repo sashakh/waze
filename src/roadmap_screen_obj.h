@@ -27,9 +27,17 @@
 #include "roadmap_string.h"
 #include "roadmap_gps.h"
 
+struct RoadMapScreenObjDescriptor;
+typedef struct RoadMapScreenObjDescriptor *RoadMapScreenObj;
+
 void roadmap_screen_obj_initialize (void);
 void roadmap_screen_obj_draw (void);
-int roadmap_screen_obj_click (RoadMapGuiPoint *point);
+
+RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point);
+
+int roadmap_screen_obj_short_click (RoadMapScreenObj object);
+int roadmap_screen_obj_long_click (RoadMapScreenObj object);
+void roadmap_screen_obj_pressed (RoadMapScreenObj object);
 
 #endif // INCLUDE__ROADMAP_SCREEN_OBJECT__H
 

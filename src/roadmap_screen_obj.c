@@ -71,9 +71,8 @@ struct RoadMapScreenObjDescriptor {
    struct RoadMapScreenObjDescriptor *next;
 };
 
-typedef struct RoadMapScreenObjDescriptor *RoadMapScreenObj;
-
 static RoadMapScreenObj RoadMapObjectList = NULL;
+static RoadMapScreenObj RoadMapScreenObjSelected = NULL;
 
 static char *roadmap_object_string (const char *data, int length) {
 
@@ -473,15 +472,21 @@ void roadmap_screen_obj_draw (void) {
 
    for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
       int state = 0;
+      int image_mode = IMAGE_NORAML;
 
       if (cursor->state_fn) {
          state = (*cursor->state_fn) ();
          if ((state < 0) || (state >= MAX_STATES)) continue;
       }
 
+      if (cursor == RoadMapScreenObjSelected) {
+         image_mode = IMAGE_SELECTED;
+      }
+
       if (cursor->images[state]) {
+
          roadmap_canvas_draw_image (cursor->images[state], &cursor->position,
-                                    cursor->opacity);
+                                    cursor->opacity, image_mode);
       }
 
       if (cursor->sprites[state]) {
@@ -497,7 +502,7 @@ void roadmap_screen_obj_draw (void) {
 }
 
 
-int roadmap_screen_obj_click (RoadMapGuiPoint *point) {
+RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
 
    RoadMapScreenObj cursor;
 
@@ -508,9 +513,53 @@ int roadmap_screen_obj_click (RoadMapGuiPoint *point) {
           (point->y >= (cursor->position.y + cursor->bbox.miny)) &&
           (point->y <= (cursor->position.y + cursor->bbox.maxy))) {
 
-         if (cursor->action) (*(cursor->action->callback)) ();
-         return 1;
+         return cursor;
       }
+   }
+
+   return NULL;
+}
+
+
+int roadmap_screen_obj_short_click (RoadMapScreenObj object) {
+
+   RoadMapScreenObjSelected = NULL;
+
+   if (object->action) {
+      (*(object->action->callback)) ();
+      return 1;
+   }
+
+   return 0;
+}
+
+
+void roadmap_screen_obj_pressed (RoadMapScreenObj object) {
+   int state = 0;
+
+   RoadMapScreenObjSelected = object;
+
+   if (object->state_fn) {
+      state = (*object->state_fn) ();
+      if ((state < 0) || (state >= MAX_STATES)) return;
+   }
+
+   if (object->images[state]) {
+
+      roadmap_canvas_draw_image (object->images[state], &object->position,
+                                 object->opacity, IMAGE_SELECTED);
+   }
+   
+   roadmap_canvas_refresh ();
+}
+
+int roadmap_screen_obj_long_click (RoadMapScreenObj object) {
+
+   RoadMapScreenObjSelected = NULL;
+
+   if (object->action) {
+      (*(object->action->callback)) ();
+      return 1;
    }
 
    return 0;
