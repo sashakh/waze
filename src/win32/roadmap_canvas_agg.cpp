@@ -241,9 +241,10 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path, const char *file_n
    
    int width = pmap_tmp.width();
    int height = pmap_tmp.height();
+   int stride = pmap_tmp.stride();
 
-   unsigned char *buf = (unsigned char *)malloc (width*height*3);
-   memcpy (buf, pmap_tmp.buf(), width*height*3);
+   unsigned char *buf = (unsigned char *)malloc (stride * height);
+   memcpy (buf, pmap_tmp.buf(), stride * height);
 
    //agg::rendering_buffer tmp_rbuf (pmap_tmp.buf(),
    //                              width, height,
@@ -262,6 +263,6 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path, const char *file_n
    */
    image->rbuf.attach (buf,
                        width, height,
-                       -pmap_tmp.stride());
+                       -stride);
    return image;
 }
