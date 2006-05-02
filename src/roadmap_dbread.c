@@ -558,6 +558,22 @@ roadmap_db *roadmap_db_get_next  (roadmap_db *section) {
 }
 
 
+void roadmap_db_sync (char *name) {
+
+   roadmap_db_database *database;
+
+   for (database = RoadmapDatabaseFirst;
+        database != NULL;
+        database = database->next) {
+
+      if (strcmp (name, database->name) == 0) {
+         roadmap_file_sync (database->file);
+         break;
+      }
+   }
+}
+
+
 void roadmap_db_close (char *name) {
 
    roadmap_db_database *database;

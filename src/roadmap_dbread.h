@@ -81,6 +81,7 @@ int         roadmap_db_get_level (roadmap_db *section);
 char       *roadmap_db_get_data  (roadmap_db *section);
 roadmap_db *roadmap_db_get_next  (roadmap_db *section);
 
+void roadmap_db_sync (char *name);
 void roadmap_db_close (char *name);
 void roadmap_db_end   (void);
 

@@ -85,6 +85,7 @@ const char *roadmap_file_map (const char *set,
 void *roadmap_file_base (RoadMapFileContext file);
 int   roadmap_file_size (RoadMapFileContext file);
 
+int  roadmap_file_sync (RoadMapFileContext file);
 void roadmap_file_unmap (RoadMapFileContext *file);
 
 const char *roadmap_file_unique (const char *base);
