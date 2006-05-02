@@ -220,10 +220,6 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
 
    int i;
     
-   if (roadmap_screen_obj_click (point)) {
-      return;
-   }
-
    roadmap_math_to_position (point, &position, 1);
    
    if (roadmap_navigate_retrieve_line
