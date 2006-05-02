@@ -654,7 +654,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 			0,
 			_T("COMBOBOX"),       // Class name
 			NULL,		          // Window name
-			dwStyle,              // Window style
+			dwStyle | WS_VSCROLL,              // Window style
 			0,                    // x-coordinate of the upper-left corner
 			0,                    // y-coordinate of the upper-left corner
 			CW_USEDEFAULT,        // The width of the tree-view control window
