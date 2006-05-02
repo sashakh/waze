@@ -26,6 +26,27 @@
 #include "../roadmap.h"
 #include "../roadmap_serial.h"
 #include "win32_serial.h"
+#include "listports.h"
+
+
+static int serial_ports[MAX_SERIAL_ENUMS];
+
+static BOOL list_port_callback(LPVOID pCallbackValue,
+                               LISTPORTS_PORTINFO* lpPortInfo) {
+
+   int index;
+   char *str = ConvertToMultiByte (lpPortInfo->lpPortName, CP_UTF8);
+
+   index = atoi (str+3);
+   free (str);
+
+   if ((index >= 0) && (index < MAX_SERIAL_ENUMS)) {
+      serial_ports [index] = 1;
+   }
+
+   return TRUE;
+}
+
 
 RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 		int baud_rate)
@@ -108,5 +129,16 @@ int roadmap_serial_write (RoadMapSerial serial, const void *data, int length)
    }
 
    return dwBytesWritten;
+}
+
+
+const int *roadmap_serial_enumerate (void)
+{
+   if (!serial_ports[0]) {
+      
+      ListPorts (list_port_callback, NULL);
+   }
+
+   return serial_ports;
 }
 

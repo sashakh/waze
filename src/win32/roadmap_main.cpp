@@ -45,6 +45,8 @@ extern "C" {
 #include "../roadmap_io.h"
 #include "../roadmap_main.h"
 #include "../roadmap_serial.h"
+#include "../roadmap_messagebox.h"
+#include "../roadmap_screen.h"
 #include "wince_input_mon.h"
 #include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
@@ -70,13 +72,14 @@ static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
 // IO stuff
 #define ROADMAP_MAX_IO 16
-static roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO] = {0};
+static roadmap_main_io *RoadMapMainIo[ROADMAP_MAX_IO] = {0};
 
 // varibles used across this module
 static RoadMapKeyInput	RoadMapMainInput = NULL;
 static HWND				RoadMapMainMenuBar = NULL;
 static HMENU			RoadMapCurrentSubMenu = NULL;
 static HWND				RoadMapMainToolbar = NULL;
+static HANDLE        VirtualSerialHandle = 0;
 
 // Global Variables:
 extern "C" HINSTANCE	g_hInst = NULL;
@@ -97,6 +100,42 @@ static TCHAR szWindowClass[] = _T("RoadGPSClass");
 static TCHAR szWindowClass[] = _T("RoadMapClass");
 #endif
 
+static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
+                        ROADMAP_CONFIG_ITEM("GPS", "Virtual");
+
+
+static void setup_virtual_serial (void) {
+
+   DWORD index;
+   DWORD resp;
+	HKEY key;
+
+   const char *virtual_port = roadmap_config_get (&RoadMapConfigGPSVirtual);
+
+   if (strlen(virtual_port) < 5) return;
+   if (strncmp(virtual_port, "COM", 3)) return;
+
+   index = atoi (virtual_port + 3);
+
+   if ((index < 0) || (index > 9)) return;
+
+	RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("Drivers\\RoadMap"),
+		0, NULL, REG_OPTION_NON_VOLATILE, 0, NULL, &key, &resp);
+	RegSetValueEx(key, _T("Dll"), 0, REG_SZ, (unsigned char*)_T("ComSplit.dll"), 26);
+	RegSetValueEx(key, _T("Prefix"), 0, REG_SZ, (unsigned char*)_T("COM"), 8);
+	RegSetValueEx(key, _T("Index"), 0, REG_DWORD, (unsigned char*)&index, sizeof(DWORD));
+
+	RegCloseKey(key);
+	
+	//res = RegisterDevice(_T("COM"), 4, _T("ComSplit.dll"), 0);
+	VirtualSerialHandle = ActivateDevice(_T("RoadMap"), NULL);
+
+   if (VirtualSerialHandle == 0) {
+      roadmap_messagebox ("Virtual comm Error!", "Can't setup virtual serial port.");
+   }
+}
+
+
 // our main function
 int WINAPI WinMain(HINSTANCE hInstance,
 				   HINSTANCE hPrevInstance,
@@ -115,24 +154,8 @@ int WINAPI WinMain(HINSTANCE hInstance,
    SuspendCAPAll();
 #endif
 
-/*
-   DWORD disp;
-	HKEY key;
+   setup_virtual_serial ();
 
-	LONG res_key = RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("RoadMap"),
-		0, NULL, REG_OPTION_NON_VOLATILE, 0, NULL, &key, &disp);
-	RegSetValueEx(key, _T("Dll"), 0, REG_SZ, (unsigned char*)_T("ComSplit.dll"), 26);
-	RegSetValueEx(key, _T("Prefix"), 0, REG_SZ, (unsigned char*)_T("COM"), 8);
-	disp = 4;
-	RegSetValueEx(key, _T("Index"), 0, REG_DWORD, (unsigned char*)&disp, sizeof(DWORD));
-
-	RegCloseKey(key);
-	
-	//res = RegisterDevice(_T("COM"), 4, _T("ComSplit.dll"), 0);
-	HANDLE res = ActivateDevice(_T("RoadMap"), NULL);
-
-   res = res;
-*/
 	ShowWindow(RoadMapMainWindow, nCmdShow);
 	UpdateWindow(RoadMapMainWindow);
 	
@@ -148,7 +171,12 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			DispatchMessage(&msg);
 		}
 	}
-	
+
+   if (VirtualSerialHandle != 0) {
+      DeactivateDevice (VirtualSerialHandle);
+   }
+
+      
 	WSACleanup();
 	return (int) msg.wParam;
 }
@@ -230,6 +258,12 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
 	}
 	
 	return 0;
+}
+
+
+static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent,
+                                   DWORD dwTime) {
+   SystemIdleTimerReset ();
 }
 
 
@@ -335,6 +369,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Initialize the shell activate info structure
 		memset(&s_sai, 0, sizeof (s_sai));
 		s_sai.cbSize = sizeof (s_sai);
+
+      SetTimer (NULL, 0, 50000, AvoidSuspend);
 		break;
 		
 	case WM_PAINT:
@@ -408,14 +444,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Notify shell of our activate message
 		SHHandleWMActivate(hWnd, wParam, lParam, &s_sai, FALSE);
 		break;
-		
+      
 	case WM_SETTINGCHANGE:
 		SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
 		break;
-		
+
+   case WM_KILLFOCUS:
+      roadmap_screen_freeze ();
+      break;
+
+   case WM_SETFOCUS:
+      roadmap_screen_unfreeze ();
+      break;
+
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
+         if (!context->is_valid) break;
 
          if (lParam != 1) {
             Win32SerialConn *conn = (Win32SerialConn *) lParam;
@@ -667,9 +712,11 @@ extern "C" {
 		int i;
 		
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			if (RoadMapMainIo[i].io == NULL) {
-				RoadMapMainIo[i].io = io;
-				RoadMapMainIo[i].callback = callback;
+			if (RoadMapMainIo[i] == NULL) {
+            RoadMapMainIo[i] = (roadmap_main_io *) malloc (sizeof(roadmap_main_io));
+				RoadMapMainIo[i]->io = io;
+				RoadMapMainIo[i]->callback = callback;
+            RoadMapMainIo[i]->is_valid = 1;
 				break;
 			}
 		}
@@ -684,15 +731,15 @@ extern "C" {
 		case ROADMAP_IO_SERIAL:
          io->os.serial->ref_count++;
 			monitor_thread = CreateThread(NULL, 0,
-				SerialMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
+				SerialMonThread, (void*)RoadMapMainIo[i], 0, NULL);
 			break;
 		case ROADMAP_IO_NET:
 			monitor_thread = CreateThread(NULL, 0,
-				SocketMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
+				SocketMonThread, (void*)RoadMapMainIo[i], 0, NULL);
 			break;
 		case ROADMAP_IO_FILE:
 			monitor_thread = CreateThread(NULL, 0,
-				FileMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
+				FileMonThread, (void*)RoadMapMainIo[i], 0, NULL);
 			break;
 		}
 		
@@ -713,9 +760,15 @@ extern "C" {
 		int i;
 				
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-         if (RoadMapMainIo[i].io == io) {
+         if (RoadMapMainIo[i] && RoadMapMainIo[i]->io == io) {
 
-				RoadMapMainIo[i].io = NULL;
+            if (RoadMapMainIo[i]->is_valid) {
+               RoadMapMainIo[i]->is_valid = 0;
+            } else {
+               free (RoadMapMainIo[i]);
+            }
+
+				RoadMapMainIo[i] = NULL;
 				break;
 			}
 		}

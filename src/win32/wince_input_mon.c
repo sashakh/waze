@@ -127,7 +127,7 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
       SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
    }
 
-   while(conn->handle != INVALID_HANDLE_VALUE) {
+   while(data->is_valid && (conn->handle != INVALID_HANDLE_VALUE)) {
 
       if (conn->data_count == 0) {
 
@@ -171,12 +171,12 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
 
    if (!--conn->ref_count) {
    	free(conn);
-   } else {
+   }
 
-      roadmap_log
-         (ROADMAP_ERROR, "conn ref_count is not zero: %d",
-          conn->ref_count);
-      assert (0);
+   if (data->is_valid) {
+      data->is_valid = 0;
+   } else {
+      free (data);
    }
 
 	return 0;
@@ -191,7 +191,7 @@ DWORD WINAPI SocketMonThread(LPVOID lpParam)
 	fd_set set;
 
 	FD_ZERO(&set);
-	while(io->subsystem != ROADMAP_IO_INVALID)
+	while(data->is_valid && (io->subsystem != ROADMAP_IO_INVALID))
 	{
 		FD_SET(fd, &set);
 		if(select(fd+1, &set, NULL, NULL, NULL) == SOCKET_ERROR) {
@@ -210,7 +210,11 @@ DWORD WINAPI SocketMonThread(LPVOID lpParam)
 		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 1);
 	}
 
-	free(io);
+   if (data->is_valid) {
+      data->is_valid = 0;
+   } else {
+      free (data);
+   }
 
 	return 0;
 }
@@ -225,13 +229,17 @@ DWORD WINAPI FileMonThread(LPVOID lpParam)
 	roadmap_main_io *data = (roadmap_main_io*)lpParam;
 	RoadMapIO *io = data->io;
 
-	while(io->subsystem != ROADMAP_IO_INVALID)
+	while(data->is_valid && (io->subsystem != ROADMAP_IO_INVALID))
 	{
 		/* Send a message to main window so it can read. */
 		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 1);
 	}
 
-	free(io);
+   if (data->is_valid) {
+      data->is_valid = 0;
+   } else {
+      free (data);
+   }
 
 	return 0;
 }
