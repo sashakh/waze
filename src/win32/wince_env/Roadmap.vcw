@@ -12,10 +12,10 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libosroadmap
+    Project_Dep_Name libroadmap
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libroadmap
+    Project_Dep_Name libosroadmap
     End Project Dependency
 }}}
 

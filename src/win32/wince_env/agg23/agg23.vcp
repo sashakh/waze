@@ -254,6 +254,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\agg23\include\agg_ellipse_bresenham.h"\
 	"..\..\..\agg23\include\agg_font_cache_manager.h"\
 	"..\..\..\agg23\include\agg_gamma_functions.h"\
+	"..\..\..\agg23\include\agg_image_filters.h"\
 	"..\..\..\agg23\include\agg_line_aa_basics.h"\
 	"..\..\..\agg23\include\agg_math.h"\
 	"..\..\..\agg23\include\agg_math_stroke.h"\
@@ -275,6 +276,11 @@ DEP_CPP_ROADM=\
 	"..\..\..\agg23\include\agg_scanline_storage_aa.h"\
 	"..\..\..\agg23\include\agg_scanline_storage_bin.h"\
 	"..\..\..\agg23\include\agg_scanline_u.h"\
+	"..\..\..\agg23\include\agg_span_allocator.h"\
+	"..\..\..\agg23\include\agg_span_generator.h"\
+	"..\..\..\agg23\include\agg_span_image_filter.h"\
+	"..\..\..\agg23\include\agg_span_image_filter_rgb.h"\
+	"..\..\..\agg23\include\agg_span_interpolator_linear.h"\
 	"..\..\..\agg23\include\agg_trans_affine.h"\
 	"..\..\..\agg23\include\agg_vcgen_contour.h"\
 	"..\..\..\agg23\include\agg_vcgen_stroke.h"\
