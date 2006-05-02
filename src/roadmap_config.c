@@ -220,8 +220,8 @@ static RoadMapConfigItem *roadmap_config_new_item
 }
 
 
-static void roadmap_config_add_enumeration_value (RoadMapConfigItem *item,
-                                                  const char *value) {
+void roadmap_config_add_enumeration_value (RoadMapConfigItem *item,
+                                           const char *value) {
 
    RoadMapConfigEnum *new_value;
    RoadMapConfigEnum *last = item->detail.enumeration_values;
@@ -256,7 +256,7 @@ void roadmap_config_declare (const char *config,
 }
 
 
-void roadmap_config_declare_enumeration (const char *config,
+RoadMapConfigItem *roadmap_config_declare_enumeration (const char *config,
                                          RoadMapConfigDescriptor *descriptor,
                                          const char *enumeration_value, ...) {
 
@@ -289,6 +289,8 @@ void roadmap_config_declare_enumeration (const char *config,
       roadmap_config_add_enumeration_value (item, p);
    }
    va_end(ap);
+
+   return item;
 }
 
 

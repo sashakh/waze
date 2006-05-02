@@ -56,9 +56,12 @@ void roadmap_config_declare
         (const char *file,
          RoadMapConfigDescriptor *descriptor, const char *default_value);
 
-void roadmap_config_declare_enumeration
+RoadMapConfigItem *roadmap_config_declare_enumeration
         (const char *file,
          RoadMapConfigDescriptor *descriptor, const char *enumeration_value, ...);
+
+void roadmap_config_add_enumeration_value (RoadMapConfigItem *item,
+                                           const char *value);
 
 void roadmap_config_declare_color
         (const char *file,
