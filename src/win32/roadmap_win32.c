@@ -43,7 +43,7 @@ LPWSTR ConvertToWideChar(LPCSTR string, UINT nCodePage)
 }
 
 
-char* ConvertToMultiByte(const LPWSTR s, UINT nCodePage)
+char* ConvertToMultiByte(const LPCWSTR s, UINT nCodePage)
 {
    int len;
 	int nSize = wcslen(s);
