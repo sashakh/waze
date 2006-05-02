@@ -93,15 +93,15 @@ static font_manager_type            m_fman(m_feng);
 static RoadMapConfigDescriptor RoadMapConfigFont =
                         ROADMAP_CONFIG_ITEM("Labels", "FontName");
 
-struct roadmap_canvas_pen {	
-	struct roadmap_canvas_pen *next;
-	char  *name;
+struct roadmap_canvas_pen {   
+   struct roadmap_canvas_pen *next;
+   char  *name;
    agg::rgba8 color;
-	int thickness;
+   int thickness;
 };
 
 static struct roadmap_canvas_pen *RoadMapPenList = NULL;
-static RoadMapPen	CurrentPen;
+static RoadMapPen CurrentPen;
 static int        RoadMapCanvasFontLoaded = 0;
 
 /* The canvas callbacks: all callbacks are initialized to do-nothing
@@ -139,22 +139,22 @@ void roadmap_canvas_get_text_extents
       return;
    }
 
-	double x  = 0;
-	double y  = 0;
-	const wchar_t* p = wstr;
+   double x  = 0;
+   double y  = 0;
+   const wchar_t* p = wstr;
 
-	while(*p) {
-		const agg::glyph_cache* glyph = m_fman.glyph(*p);
+   while(*p) {
+      const agg::glyph_cache* glyph = m_fman.glyph(*p);
 
-		if(glyph) {
-			x += glyph->advance_x;
-			y += glyph->advance_y;
-			if (-glyph->bounds.y1 > *descent) *descent=-glyph->bounds.y1 - 1;
-		}
-		++p;
-	}
+      if(glyph) {
+         x += glyph->advance_x;
+         y += glyph->advance_y;
+         if (-glyph->bounds.y1 > *descent) *descent=-glyph->bounds.y1 - 1;
+      }
+      ++p;
+   }
 
-	*width = (int)x;
+   *width = (int)x;
 }
 
 
@@ -164,41 +164,41 @@ void roadmap_canvas_select_pen (RoadMapPen pen)
    if (!CurrentPen || (pen->thickness != CurrentPen->thickness)) {
       profile.width(pen->thickness);
    }
-	CurrentPen = pen;
+   CurrentPen = pen;
 
    reno.color(pen->color);
 
    dbg_time_end(DBG_TIME_SELECT_PEN);
 
-   return;	
+   return;  
 }
 
 
 RoadMapPen roadmap_canvas_create_pen (const char *name)
 {
-	struct roadmap_canvas_pen *pen;
-	
-	for (pen = RoadMapPenList; pen != NULL; pen = pen->next) {
-		if (strcmp(pen->name, name) == 0) break;
-	}
-	
-	if (pen == NULL) {
-		
-		pen = (struct roadmap_canvas_pen *)
-			malloc (sizeof(struct roadmap_canvas_pen));
-		roadmap_check_allocated(pen);
-		
-		pen->name = strdup (name);
-		pen->color = agg::rgba8(0, 0, 0);
-		pen->thickness = 1;
-		pen->next = RoadMapPenList;
-		
-		RoadMapPenList = pen;
-	}
-	
-	roadmap_canvas_select_pen (pen);
-	
-	return pen;
+   struct roadmap_canvas_pen *pen;
+   
+   for (pen = RoadMapPenList; pen != NULL; pen = pen->next) {
+      if (strcmp(pen->name, name) == 0) break;
+   }
+   
+   if (pen == NULL) {
+      
+      pen = (struct roadmap_canvas_pen *)
+         malloc (sizeof(struct roadmap_canvas_pen));
+      roadmap_check_allocated(pen);
+      
+      pen->name = strdup (name);
+      pen->color = agg::rgba8(0, 0, 0);
+      pen->thickness = 1;
+      pen->next = RoadMapPenList;
+      
+      RoadMapPenList = pen;
+   }
+   
+   roadmap_canvas_select_pen (pen);
+   
+   return pen;
 }
 
 
@@ -206,17 +206,17 @@ void roadmap_canvas_set_foreground (const char *color) {
 
    if (!CurrentPen) return;
 
-	CurrentPen->color = roadmap_canvas_agg_parse_color(color);
-	roadmap_canvas_select_pen(CurrentPen);
+   CurrentPen->color = roadmap_canvas_agg_parse_color(color);
+   roadmap_canvas_select_pen(CurrentPen);
 }
 
 
 void roadmap_canvas_set_thickness (int thickness) {
 
    if (CurrentPen && (CurrentPen->thickness != thickness)) {
-		CurrentPen->thickness = thickness;
+      CurrentPen->thickness = thickness;
       profile.width(thickness);
-	}
+   }
 }
 
 
@@ -224,7 +224,7 @@ void roadmap_canvas_set_opacity (int opacity) {
 
    if (!CurrentPen) return;
    CurrentPen->color.a = opacity;
-	roadmap_canvas_select_pen(CurrentPen);
+   roadmap_canvas_select_pen(CurrentPen);
 }
 
 
@@ -237,51 +237,51 @@ void roadmap_canvas_erase (void) {
 void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
                                  int corner,
                                  const char *text) {
-	int x;
-	int y;
-	int text_width;
-	int text_ascent;
-	int text_descent;
-	int text_height;
-	
-	roadmap_canvas_get_text_extents 
-        	(text, &text_width, &text_ascent, &text_descent);
-	
-	text_height = text_ascent + text_descent;
-	
-	switch (corner) {
-		
-	case ROADMAP_CANVAS_TOPLEFT:
-		y = position->y;
-		x = position->x;
-		break;
-		
-	case ROADMAP_CANVAS_TOPRIGHT:
-		y = position->y;
-		x = position->x - text_width;
-		break;
-		
-	case ROADMAP_CANVAS_BOTTOMRIGHT:
-		y = position->y - text_height;
-		x = position->x - text_width;
-		break;
-		
-	case ROADMAP_CANVAS_BOTTOMLEFT:
-		y = position->y - text_height;
-		x = position->x;
-		break;
-		
-	case ROADMAP_CANVAS_CENTER:
-		y = position->y - (text_height / 2);
-		x = position->x - (text_width / 2);
-		break;
-		
-	default:
-		return;
-	}
+   int x;
+   int y;
+   int text_width;
+   int text_ascent;
+   int text_descent;
+   int text_height;
+   
+   roadmap_canvas_get_text_extents 
+         (text, &text_width, &text_ascent, &text_descent);
+   
+   text_height = text_ascent + text_descent;
+   
+   switch (corner) {
+      
+   case ROADMAP_CANVAS_TOPLEFT:
+      y = position->y;
+      x = position->x;
+      break;
+      
+   case ROADMAP_CANVAS_TOPRIGHT:
+      y = position->y;
+      x = position->x - text_width;
+      break;
+      
+   case ROADMAP_CANVAS_BOTTOMRIGHT:
+      y = position->y - text_height;
+      x = position->x - text_width;
+      break;
+      
+   case ROADMAP_CANVAS_BOTTOMLEFT:
+      y = position->y - text_height;
+      x = position->x;
+      break;
+      
+   case ROADMAP_CANVAS_CENTER:
+      y = position->y - (text_height / 2);
+      x = position->x - (text_width / 2);
+      break;
+      
+   default:
+      return;
+   }
 
-	RoadMapGuiPoint start = {x, y+text_height};
-	roadmap_canvas_draw_string_angle (&start, position, 0, text);
+   RoadMapGuiPoint start = {x, y+text_height};
+   roadmap_canvas_draw_string_angle (&start, position, 0, text);
 }
 
 
@@ -601,8 +601,11 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
             //agg::conv_curve<agg::conv_transform<font_manager_type::path_adaptor_type> > > 
          //stroke(fill);
 
-         agg::conv_stroke< agg::conv_transform<font_manager_type::path_adaptor_type> >
-            stroke(tr);
+         agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> >contour(tr);
+    contour.width(2);
+
+         agg::conv_stroke< agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> > > stroke(contour);
+         //agg::conv_stroke< agg::conv_transform<font_manager_type::path_adaptor_type> > stroke(tr);
 
          dbg_time_start(DBG_TIME_TEXT_ONE_RAS);
          
@@ -612,10 +615,11 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
          ras.add_path(tr);
          agg::render_scanlines(ras, sl, ren_solid);
          //ras.add_path(fill);
-         //ren_solid.color(agg::rgba8(0, 0, 0));
-         //agg::render_scanlines(ras, sl, ren_solid);
          //ras.add_path(stroke);
          //ren_solid.color(agg::rgba8(255, 255, 255));
+         //agg::render_scanlines(ras, sl, ren_solid);
+         //ras.add_path(tr);
+         //ren_solid.color(agg::rgba8(0, 0, 0));
          //agg::render_scanlines(ras, sl, ren_solid);
 
 #ifdef WIN32_PROFILE
@@ -682,14 +686,30 @@ RoadMapImage roadmap_canvas_load_image (const char *path,
    return roadmap_canvas_agg_load_image (path, file_name);
 }
 
+#include "agg_span_interpolator_linear.h"
+#include "agg_span_image_filter_rgb.h"
 
 void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
-                                int opacity) {
+                                int opacity, int mode) {
 
-   if ((opacity <= 0) || (opacity >= 255)) {
+   if ((mode == IMAGE_SELECTED) || (opacity <= 0) || (opacity >= 255)) {
       opacity = 255;
    }
 
    agg_renb.blend_from(image->pixfmt, 0, pos->x, pos->y, opacity);
+
+   if (mode == IMAGE_SELECTED) {
+
+      RoadMapGuiPoint points[5] = {
+         {pos->x, pos->y},
+         {pos->x + image->rbuf.width(), pos->y},
+         {pos->x + image->rbuf.width(), pos->y + image->rbuf.height()},
+         {pos->x, pos->y + image->rbuf.height()},
+         {pos->x, pos->y}};
+
+      int num_points = 5;
+
+      roadmap_canvas_draw_multiple_lines (1, &num_points, points, 0);
+   }
 }
 
