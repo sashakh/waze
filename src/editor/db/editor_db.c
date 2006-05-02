@@ -59,6 +59,7 @@
 /* TODO create a generic cache system - this was copied from roadmap_locator */
 
 #define EDITOR_CACHE_SIZE 10
+#define FLUSH_SIZE 300
 
 struct editor_cache_entry {
 
@@ -477,6 +478,23 @@ static int editor_db_open (int fips) {
 }
 
 
+void editor_db_sync (int fips) {
+
+   int i;
+
+   for (i = EditorCacheSize-1; i >= 0; --i) {
+
+      if (EditorCache[i].fips == fips) {
+         char map_name[64];
+
+         snprintf (map_name, sizeof(map_name),
+               "edt%05d", EditorCache[i].fips);
+         roadmap_db_sync (map_name);
+      }
+   }
+}
+
+
 int editor_db_activate (int fips) {
 
    int res;
@@ -552,6 +570,7 @@ int editor_db_add_item (editor_db_section *section, void *data) {
    int block = section->num_items / section->items_per_block;
    int block_offset = section->num_items % section->items_per_block;
    char *item_addr;
+   static int flush_count;
 
    if ((section->num_items == 0) ||
          ((section->num_items % section->items_per_block) == 0)) {
@@ -566,6 +585,11 @@ int editor_db_add_item (editor_db_section *section, void *data) {
          block_offset * section->item_size;
 
       memcpy (item_addr, data, section->item_size);
+   }
+
+   if (++flush_count == FLUSH_SIZE) {
+      flush_count = 0;
+      editor_db_sync (ActiveDBHeader->fips);
    }
 
    return section->num_items++;

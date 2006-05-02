@@ -328,6 +328,16 @@ int roadmap_file_size (RoadMapFileContext file){
 }
 
 
+int roadmap_file_sync (RoadMapFileContext file) {
+
+   if (file->base != NULL) {
+      return msync (file->base, file->size, MS_SYNC);
+   }
+
+   return -1;
+}
+
+
 void roadmap_file_unmap (RoadMapFileContext *file) {
 
    RoadMapFileContext context = *file;

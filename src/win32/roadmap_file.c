@@ -311,7 +311,7 @@ const char *roadmap_file_map (const char *set,
 			name_unicode,
 			open_mode,
 			FILE_SHARE_READ, NULL, OPEN_EXISTING, 
-			FILE_ATTRIBUTE_NORMAL, NULL);
+			FILE_ATTRIBUTE_NORMAL|FILE_FLAG_WRITE_THROUGH, NULL);
 		free(name_unicode);
 		sequence = ""; /* Whatever, but NULL. */
 
@@ -451,6 +451,19 @@ void roadmap_file_unmap (RoadMapFileContext *file)
 	}
 	free(context);
 	*file = NULL;
+}
+
+
+int roadmap_file_sync (RoadMapFileContext file)
+{
+   BOOL res;
+
+   if (file->base == NULL) return -1;
+
+   res = FlushViewOfFile(file->base, file->size);
+
+   if (!res) return -1;
+   else return 0;
 }
 
 
