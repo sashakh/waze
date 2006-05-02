@@ -60,7 +60,7 @@ struct tb_icon {
 	int id;
 };
 static	RoadMapCallback menu_callbacks[MAX_MENU_ITEMS] = {0};
-static	RoadMapCallback	tool_callbacks[MAX_TOOL_ITEMS] = {0};
+static	RoadMapCallback tool_callbacks[MAX_TOOL_ITEMS] = {0};
 
 // timer stuff
 #define ROADMAP_MAX_TIMER 16
@@ -76,10 +76,11 @@ static roadmap_main_io *RoadMapMainIo[ROADMAP_MAX_IO] = {0};
 
 // varibles used across this module
 static RoadMapKeyInput	RoadMapMainInput = NULL;
-static HWND				RoadMapMainMenuBar = NULL;
-static HMENU			RoadMapCurrentSubMenu = NULL;
-static HWND				RoadMapMainToolbar = NULL;
-static HANDLE        VirtualSerialHandle = 0;
+static HWND				   RoadMapMainMenuBar = NULL;
+static HMENU			   RoadMapCurrentSubMenu = NULL;
+static HWND				   RoadMapMainToolbar = NULL;
+static HANDLE           VirtualSerialHandle = 0;
+static const char *RoadMapMainVirtualSerial;
 
 // Global Variables:
 extern "C" HINSTANCE	g_hInst = NULL;
@@ -96,8 +97,10 @@ static INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 // class name definition
 #ifdef _ROADGPS
 static TCHAR szWindowClass[] = _T("RoadGPSClass");
+static TCHAR szOtherWindowClass[] = _T("RoadMapClass");
 #else
 static TCHAR szWindowClass[] = _T("RoadMapClass");
+static TCHAR szOtherWindowClass[] = _T("RoadGPSClass");
 #endif
 
 static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
@@ -119,6 +122,14 @@ static void setup_virtual_serial (void) {
 
    if ((index < 0) || (index > 9)) return;
 
+#ifdef _ROADGPS
+   if (FindWindow(szOtherWindowClass, NULL) != NULL) {
+      /* RoadMap or RoadGPS is already running */
+      RoadMapMainVirtualSerial = virtual_port;
+      return;
+   }
+#endif
+
 	RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("Drivers\\RoadMap"),
 		0, NULL, REG_OPTION_NON_VOLATILE, 0, NULL, &key, &resp);
 	RegSetValueEx(key, _T("Dll"), 0, REG_SZ, (unsigned char*)_T("ComSplit.dll"), 26);
@@ -128,13 +139,17 @@ static void setup_virtual_serial (void) {
 	RegCloseKey(key);
 	
 	//res = RegisterDevice(_T("COM"), 4, _T("ComSplit.dll"), 0);
-	VirtualSerialHandle = ActivateDevice(_T("RoadMap"), NULL);
+	VirtualSerialHandle = ActivateDevice(_T("Drivers\\RoadMap"), NULL);
 
    if (VirtualSerialHandle == 0) {
       roadmap_messagebox ("Virtual comm Error!", "Can't setup virtual serial port.");
    }
 }
 
+
+const char *roadmap_main_get_virtual_serial (void) {
+   return RoadMapMainVirtualSerial;
+}
 
 // our main function
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -449,6 +464,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
 		break;
 
+#ifndef _ROADGPS
    case WM_KILLFOCUS:
       roadmap_screen_freeze ();
       break;
@@ -456,7 +472,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
    case WM_SETFOCUS:
       roadmap_screen_unfreeze ();
       break;
-
+#endif
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;

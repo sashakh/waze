@@ -688,8 +688,14 @@ void roadmap_gps_open (void) {
    url = roadmap_gps_source ();
 
    if (url == NULL) {
-
+#ifdef _WIN32
+      url = roadmap_main_get_virtual_serial ();
+      if (!url) {
+         url = roadmap_config_get (&RoadMapConfigGPSSource);
+      }
+#else
       url = roadmap_config_get (&RoadMapConfigGPSSource);
+#endif
 
       if (url == NULL) {
          return;
