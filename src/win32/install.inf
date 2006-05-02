@@ -14,7 +14,7 @@ Provider = %CompanyName%
 CEShortcuts = Shortcuts.All
 
 [DefaultInstall.ARM]
-CopyFiles = Files.Config, Files.Maps, Files.ARM, Files.Icons
+CopyFiles = Files.Config, Files.Maps, Files.ARM, Files.Icons, Files.Dll
 
 [SourceDisksNames]
 1 = ,"Common config files",,L:\shared\roadmap_editor\src
@@ -26,6 +26,7 @@ CopyFiles = Files.Config, Files.Maps, Files.ARM, Files.Icons
 [SourceDisksNames.ARM]
 3 = ,"ARM files",,L:\shared\roadmap_editor\src\win32\wince_env\Roadmap\ARMV4Rel
 4 = ,"ARM files",,L:\shared\roadmap_editor\src\win32\wince_env\RoadGPS\ARMV4Rel
+8 = ,"ARMDll files",,C:\Projects\ComSplit\ARMV4Rel
 
 [SourceDisksFiles]
 drivers = 1
@@ -59,6 +60,7 @@ rm_zoomout.bmp = 7
 [SourceDisksFiles.ARM]
 Roadmap.exe = 3
 RoadGPS.exe = 4
+ComSplit.dll = 8
 
 [DestinationDirs]
 Shortcuts.All = 0,%CE11%
@@ -66,6 +68,7 @@ Files.Config = 0,%InstallDir%
 Files.Maps = 0,%InstallDir%\Maps
 Files.ARM = 0,%InstallDir%
 Files.Icons = 0,%InstallDir%\icons
+Files.Dll = 0,\Windows
 DefaultDestDir = 0,%InstallDir%
 
 [Shortcuts.All]
@@ -108,4 +111,7 @@ usdir.rdm,,,0x00000010
 [Files.ARM]
 Roadmap.exe,,,0
 RoadGPS.exe,,,0
+
+[Files.Dll]
+ComSplit.dll,,,0
 
