@@ -1,6 +1,10 @@
 N Compass
 I Compass
+I Compass_fixed
 P 20 20
+S orientation_mode
+B -20 -16 20 16
+A toggleorientation
 
 N zoom1_button
 I rm_zoom1.bmp
@@ -42,7 +46,8 @@ N view_button
 I rm_3d.bmp
 I rm_2d.bmp
 P 1 205
-A ToggleView
+O 128
+A toggleview
 B -4 -4 28 28
 S view_mode
 
@@ -54,3 +59,4 @@ I Reception_good
 P 19 60
 S GPS_reception
 R
+
