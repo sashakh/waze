@@ -42,6 +42,7 @@
 #include "roadmap_state.h"
 #include "roadmap_nmea.h"
 #include "roadmap_gpsd2.h"
+#include "roadmap_message.h"
 
 #include "roadmap_gps.h"
 
@@ -56,6 +57,9 @@ static RoadMapConfigDescriptor RoadMapConfigGPSSource =
                         ROADMAP_CONFIG_ITEM("GPS", "Source");
 
 #ifdef _WIN32
+static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
+                        ROADMAP_CONFIG_ITEM("GPS", "Virtual");
+
 static RoadMapConfigDescriptor RoadMapConfigGPSBaudRate =
                         ROADMAP_CONFIG_ITEM("GPS", "Baud Rate");
 #endif
@@ -98,6 +102,7 @@ static RoadMapGpsPosition RoadMapGpsReceivedPosition;
 
 static int RoadMapGpsActiveSatelliteHash;
 static int RoadMapGpsSatelliteCount;
+static int RoadMapGpsActiveSatelliteCount;
 
 static char RoadMapGpsActiveSatellite[ROADMAP_NMEA_MAX_SATELLITE];
 static RoadMapGpsSatellite RoadMapGpsDetected[ROADMAP_NMEA_MAX_SATELLITE];
@@ -137,10 +142,10 @@ static void roadmap_gps_update_reception (void) {
    if (!roadmap_gps_active ()) {
       new_state = GPS_RECEPTION_NA;
 
-   } else if (RoadMapGpsSatelliteCount == 0) {
+   } else if (RoadMapGpsActiveSatelliteCount == 0) {
       new_state = GPS_RECEPTION_NONE;
       
-   } else if ((RoadMapGpsSatelliteCount <= 3) ||
+   } else if ((RoadMapGpsActiveSatelliteCount <= 3) ||
          (RoadMapGpsQuality.dilution_horizontal > 2.3)) {
 
       new_state = GPS_RECEPTION_POOR;
@@ -171,6 +176,8 @@ static void roadmap_gps_update_status (char status) {
 static void roadmap_gps_process_position (void) {
 
    int i;
+
+   roadmap_message_set ('c', "%d", RoadMapGpsActiveSatelliteCount);
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -259,6 +266,9 @@ static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
 
 static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
+   RoadMapGpsQuality.dilution_horizontal = fields->gga.dilution/100.0;
+   roadmap_message_set ('h', "%.2f", RoadMapGpsQuality.dilution_horizontal);
+
    if (fields->gga.quality == ROADMAP_NMEA_QUALITY_INVALID) {
 
       roadmap_gps_update_status ('V');
@@ -345,6 +355,10 @@ static void roadmap_gps_gsa
    RoadMapGpsQuality.dilution_horizontal = fields->gsa.dilution_horizontal;
    RoadMapGpsQuality.dilution_vertical   = fields->gsa.dilution_vertical;
 
+   roadmap_message_set ('p', "%.2f", RoadMapGpsQuality.dilution_position);
+   roadmap_message_set ('h', "%.2f", RoadMapGpsQuality.dilution_horizontal);
+   roadmap_message_set ('v', "%.2f", RoadMapGpsQuality.dilution_vertical);
+   
    roadmap_gps_update_reception ();
 }
 
@@ -369,6 +383,7 @@ static void roadmap_gps_gsv
    }
 
    if (fields->gsv.index == fields->gsv.total) {
+      int active_count = 0;
 
       RoadMapGpsSatelliteCount = fields->gsv.count;
 
@@ -386,12 +401,14 @@ static void roadmap_gps_gsv
 
                if (RoadMapGpsActiveSatellite[i] == id) {
                   RoadMapGpsDetected[index].status = 'A';
+                  active_count++;
                   break;
                }
             }
          }
       }
 
+      RoadMapGpsActiveSatelliteCount = active_count;
       roadmap_gps_call_monitors ();
    }
 }
@@ -477,15 +494,21 @@ static void roadmap_gps_satellites  (int sequence,
                                      int strength,
                                      int active) {
 
+   static int active_count;
    if (sequence == 0) {
 
       /* End of list: propagate the information. */
 
+      RoadMapGpsActiveSatelliteCount = active_count;
       roadmap_gps_call_monitors ();
 
    } else {
 
       int index = sequence - 1;
+
+      if (index == 0) {
+         active_count = 0;
+      }
 
       RoadMapGpsDetected[index].id        = (char)id;
       RoadMapGpsDetected[index].elevation = (char)elevation;
@@ -498,6 +521,7 @@ static void roadmap_gps_satellites  (int sequence,
             RoadMapGpsQuality.dimension = 2;
          }
          RoadMapGpsDetected[index].status  = 'A';
+         active_count++;
 
       } else {
          RoadMapGpsDetected[index].status  = 'F';
@@ -517,6 +541,10 @@ static void roadmap_gps_dilution (int dimension,
    RoadMapGpsQuality.dilution_position   = position;
    RoadMapGpsQuality.dilution_horizontal = horizontal;
    RoadMapGpsQuality.dilution_vertical   = vertical;
+
+   roadmap_message_set ('p', "%.2f", RoadMapGpsQuality.dilution_position);
+   roadmap_message_set ('h', "%.2f", RoadMapGpsQuality.dilution_horizontal);
+   roadmap_message_set ('v', "%.2f", RoadMapGpsQuality.dilution_vertical);
 }
 
 /* End of GPSD protocol support ---------------------------------------- */
@@ -552,6 +580,12 @@ static void roadmap_gps_object_monitor (RoadMapDynamicString id) {
 void roadmap_gps_initialize (void) {
 
    static int RoadMapGpsInitialized = 0;
+#ifdef _WIN32
+   const int *serial_ports;
+   RoadMapConfigItem *source_item = NULL;
+   RoadMapConfigItem *virtual_item = NULL;
+   int i;
+#endif
 
    if (! RoadMapGpsInitialized) {
 
@@ -563,8 +597,34 @@ void roadmap_gps_initialize (void) {
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost");
 #else
-      roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSSource, "COM1:");
+
+      virtual_item = roadmap_config_declare_enumeration
+               ("preferences", &RoadMapConfigGPSVirtual, "", NULL);
+      
+      serial_ports = roadmap_serial_enumerate ();
+      for (i=0; i<MAX_SERIAL_ENUMS; ++i) {
+
+         char name[10];
+         sprintf (name, "COM%d:", i);
+
+         if (!serial_ports[i]) {
+            roadmap_config_add_enumeration_value (virtual_item, name);
+            continue;
+         }
+
+         if (!source_item) {
+            source_item = roadmap_config_declare_enumeration
+                     ("preferences", &RoadMapConfigGPSSource, name, NULL);
+         } else {
+            roadmap_config_add_enumeration_value (source_item, name);
+         }
+      }
+
+      if (!source_item) {
+         roadmap_config_declare_enumeration
+            ("preferences", &RoadMapConfigGPSSource, "COM1:", NULL);
+      }
+
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSBaudRate, "4800");
 #endif
@@ -760,7 +820,7 @@ void roadmap_gps_open (void) {
    }
 
    RoadMapGpsConnectedSince = time(NULL);
-   RoadMapGpsLatestData = time(NULL);
+   //RoadMapGpsLatestData = time(NULL);
 
    (*RoadMapGpsPeriodicAdd) (roadmap_gps_keep_alive);
 
