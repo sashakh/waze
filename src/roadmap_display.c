@@ -186,7 +186,7 @@ static void roadmap_display_create_pens (void) {
         sign->background =
             roadmap_display_new_pen (&sign->background_descriptor);
 
-        roadmap_canvas_set_opacity (150);
+        roadmap_canvas_set_opacity (230);
     
         sign->foreground =
             roadmap_display_new_pen (&sign->foreground_descriptor);
