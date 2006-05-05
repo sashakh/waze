@@ -1653,8 +1653,8 @@ void roadmap_trip_format_messages (void) {
         } else if (getting_close) {
 
             /* If we got close (within 2x), but never quite there. */
-            waypoint *near= RoadMapTripNext;
-            int distance = roadmap_math_distance (&gps->map, &near->pos);
+            waypoint *goal = RoadMapTripNext;
+            int distance = roadmap_math_distance (&gps->map, &goal->pos);
 
             if (distance > waypoint_size * 2) {
                 /* Leaving 2x vicinity -- assume we're on our way to
@@ -1662,19 +1662,19 @@ void roadmap_trip_format_messages (void) {
                  * we were just on.
                  */
                 int dist1, dist2;
-                if (near == RoadMapTripStart) {
+                if (goal == RoadMapTripStart) {
                         /* We've left the bigger circle, we're on
                          * our way. */
                         need_newgoal = 1;
                 } else {
                     /* Distance to the previous segment. */
                     dist1 = roadmap_math_get_distance_from_segment
-                        (&gps->map, &near->pos,
-                            &(roadmap_trip_prev(near))->pos, NULL, NULL);
+                        (&gps->map, &goal->pos,
+                            &(roadmap_trip_prev(goal))->pos, NULL, NULL);
                     /* Distance to the next segment. */
                     dist2 = roadmap_math_get_distance_from_segment
-                        (&gps->map, &near->pos,
-                            &(roadmap_trip_next(near))->pos, NULL, NULL);
+                        (&gps->map, &goal->pos,
+                            &(roadmap_trip_next(goal))->pos, NULL, NULL);
                     if (dist2 < dist1) {
                         /* We've left the bigger circle, and
                          * we're closer to the next segment than
