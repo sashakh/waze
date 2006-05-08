@@ -48,6 +48,7 @@
 #include "agg_renderer_outline_aa.h"
 #include "agg_pixfmt_rgb_packed.h"
 #include "agg_path_storage.h"
+#include "util/agg_color_conv_rgb8.h"
 #include "platform/win32/agg_win32_bmp.h"
 
 extern "C" {
@@ -243,26 +244,18 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path, const char *file_n
    int height = pmap_tmp.height();
    int stride = pmap_tmp.stride();
 
-   unsigned char *buf = (unsigned char *)malloc (stride * height);
-   memcpy (buf, pmap_tmp.buf(), stride * height);
+   unsigned char *buf = (unsigned char *)malloc (width * height * 4);
 
-   //agg::rendering_buffer tmp_rbuf (pmap_tmp.buf(),
-   //                              width, height,
-   //                               pmap_tmp.stride());
-
-   //agg::pixfmt_rgb24 tmp_pixfmt (tmp_rbuf);
-   //agg::renderer_base<agg::pixfmt_rgb24> tmp_ren(tmp_pixfmt);
+   agg::rendering_buffer tmp_rbuf (pmap_tmp.buf(),
+                                   width, height,
+                                   -pmap_tmp.stride());
 
    RoadMapImage image =  new roadmap_canvas_image();
    
-   /*
-   int stride = ((width * 2 + 3) >> 2) << 2;
-   image->rbuf.attach (buf, width, height, stride);
-   image->ren.attach (image->pixfmt);
-   agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_rgb24_to_rgb565());
-   */
    image->rbuf.attach (buf,
                        width, height,
-                       -stride);
+                       width * 4);
+
+   agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_bgr24_to_rgba32());
    return image;
 }

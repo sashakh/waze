@@ -35,7 +35,6 @@
 #include <agg_curves.h>
 #include <agg_conv_stroke.h>
 #include "util/agg_color_conv_rgb8.h"
-#include "util/agg_color_conv_rgb16.h"
 #include <agg_conv_contour.h>
 #include <agg_conv_transform.h>
 #include <agg_rasterizer_scanline_aa.h>
@@ -108,6 +107,7 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path,
    }
 
    if (gdk_pixbuf_get_colorspace (pixbuf) != GDK_COLORSPACE_RGB) {
+      g_object_unref (pixbuf);
       return NULL;
    }
    
@@ -116,26 +116,23 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path,
    int width = gdk_pixbuf_get_width (pixbuf);
    int height = gdk_pixbuf_get_height (pixbuf);
 
-   unsigned char *buf = (unsigned char *)malloc (width*height*3);
+   unsigned char *buf = (unsigned char *)malloc (width*height*4);
 
    agg::rendering_buffer tmp_rbuf (gdk_pixbuf_get_pixels (pixbuf),
                                   width, height,
                                   gdk_pixbuf_get_rowstride (pixbuf));
 
    agg::pixfmt_rgb24 tmp_pixfmt (tmp_rbuf);
-   agg::renderer_base<agg::pixfmt_rgb24> tmp_ren(tmp_pixfmt);
 
    RoadMapImage image =  new roadmap_canvas_image();
    
-   /*
-   int stride = ((width * 2 + 3) >> 2) << 2;
-   image->rbuf.attach (buf, width, height, stride);
-   image->ren.attach (image->pixfmt);
-   agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_rgb24_to_rgb565());
-   */
-   image->rbuf.attach (gdk_pixbuf_get_pixels (pixbuf),
-                                  width, height,
-                                  gdk_pixbuf_get_rowstride (pixbuf));
+   image->rbuf.attach (buf,
+                       width, height,
+                       width * 4);
+   agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_rgb24_to_rgba32());
+   
+   g_object_unref (pixbuf);
+
    return image;
 }
 
