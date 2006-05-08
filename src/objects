@@ -9,7 +9,7 @@ A toggleorientation
 N zoom1_button
 I rm_zoom1.bmp
 P 215 100
-O 128
+O 160
 A zoom1
 B -4 -4 28 28
 S zoom_reset
@@ -17,21 +17,21 @@ S zoom_reset
 N zoomin_button
 I rm_zoomin.bmp
 P 215 135
-O 128
+O 160
 A zoomin
 B -4 -4 28 28
 
 N zoomout_button
 I rm_zoomout.bmp
 P 215 170
-O 128
+O 160
 A zoomout
 B -4 -4 28 28
 
 N gps_button
 I rm_gps.bmp
 P 215 205
-O 128
+O 160
 A gps
 B -4 -4 28 28
 S GPS_focus
@@ -46,7 +46,7 @@ N view_button
 I rm_3d.bmp
 I rm_2d.bmp
 P 1 205
-O 128
+O 160
 A toggleview
 B -4 -4 28 28
 S view_mode
