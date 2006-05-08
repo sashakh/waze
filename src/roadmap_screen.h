@@ -106,8 +106,10 @@ int roadmap_screen_is_dragging (void);
 #define DBG_TIME_TEXT_ONE_LETTER 11
 #define DBG_TIME_TEXT_GET_GLYPH 12
 #define DBG_TIME_TEXT_ONE_RAS 13
+#define DBG_TIME_DRAW_LONG_LINES 14
+#define DBG_TIME_FIND_LONG_LINES 15
 
-#define DBG_TIME_LAST_COUNTER 14
+#define DBG_TIME_LAST_COUNTER 16
 
 void dbg_time_start(int type);
 void dbg_time_end(int type);
