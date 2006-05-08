@@ -76,7 +76,6 @@ static int ShapeAddCount = 0;
 
 static int *SortedShape = NULL;
 
-
 void buildmap_shape_initialize (void) {
 
    ShapeByLine = roadmap_hash_new ("ShapeByLine", BUILDMAP_BLOCK);
@@ -126,6 +125,8 @@ int buildmap_shape_add
       }
    }
 
+   buildmap_line_test_long (line, longitude, latitude);
+      
    /* This shape was not known yet: create a new one. */
 
    block = ShapeCount / BUILDMAP_BLOCK;

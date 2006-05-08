@@ -50,5 +50,13 @@ typedef struct { /* tables bysquare1 and bysquare2 */
 
 } RoadMapLineBySquare;
 
+typedef struct {
+
+   int line;
+   unsigned char cfcc;
+
+   RoadMapArea area;
+} RoadMapLongLine;
+
 #endif // _ROADMAP_DB_LINE__H_
 

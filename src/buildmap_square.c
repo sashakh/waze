@@ -50,6 +50,7 @@
 #include "roadmap_db_square.h"
 
 #include "buildmap.h"
+#include "buildmap_point.h"
 #include "buildmap_line.h"
 #include "buildmap_square.h"
 
@@ -123,10 +124,7 @@ static int buildmap_square_search (int longitude, int latitude) {
        (Square[index].minlatitude > latitude) ||
        (Square[index].maxlatitude < latitude)) {
 
-      buildmap_fatal (0, "point %d (%dx%d) does not fit in any square",
-                         index,
-                         longitude,
-                         latitude);
+      return -1;
    }
 
    return index;
@@ -216,6 +214,13 @@ int buildmap_square_add (int longitude, int latitude) {
    /* Check which square this point fits in. */
 
    squareid = buildmap_square_search (longitude, latitude);
+   
+   if (squareid == -1) {
+      buildmap_fatal (0, "point %d (%dx%d) does not fit in any square",
+            index,
+            longitude,
+            latitude);
+   }
 
    Square[squareid].count += 1;
 
@@ -232,6 +237,10 @@ short buildmap_square_get_sorted (int squareid) {
 
    if ((squareid < 0) || (squareid > SquareTableSize)) {
       buildmap_fatal (0, "invalid square index %d", squareid);
+   }
+
+   if (Square[squareid].count == 0) {
+      return -1;
    }
 
    return Square[squareid].sorted;
@@ -263,6 +272,32 @@ void  buildmap_square_get_reference_sorted
 
    *longitude = Square[square].minlongitude;
    *latitude  = Square[square].minlatitude;
+}
+
+
+int buildmap_square_is_long_line (int from_point, int to_point,
+		  		                      int longitude, int latitude) {
+
+   int shape_square;
+
+   shape_square = buildmap_square_search (longitude, latitude);
+
+   if (shape_square == -1) {
+      return 1;
+   }
+
+   shape_square = buildmap_square_get_sorted (shape_square);
+
+   if (shape_square == -1) {
+      return 1;
+   }
+
+   if ((shape_square != buildmap_point_get_square_sorted (from_point)) &&
+         (shape_square != buildmap_point_get_square_sorted (to_point))) {
+      return 1;
+   }
+
+   return 0;
 }
 
 
