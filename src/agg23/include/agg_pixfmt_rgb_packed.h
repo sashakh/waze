@@ -1069,12 +1069,16 @@ namespace agg
                         int8u cover)
         {
             typedef typename SrcPixelFormatRenderer::order_type src_order;
+
             const value_type* psrc = (const value_type*)psrc_;
             pixel_type* pdst = (pixel_type*)m_rbuf->row(ydst) + xdst;
             do 
             {
-                value_type alpha = base_mask;
-                if(alpha)
+                value_type alpha = psrc[src_order::A];
+                if(alpha && !
+			(psrc[src_order::R] == 255 &&
+			 psrc[src_order::G] == 255 &&
+			 psrc[src_order::B] == 255))
                 {
                     if(alpha == base_mask && cover == 255)
                     {
@@ -1084,15 +1088,18 @@ namespace agg
                     }
                     else
                     {
+			if (alpha == base_mask) {
+				alpha = cover;
+			}
                         m_blender.blend_pix(pdst, 
                                             psrc[src_order::R],
                                             psrc[src_order::G],
                                             psrc[src_order::B],
-                                            cover,
+                                            alpha,
                                             cover);
                     }
                 }
-                psrc += 3;
+                psrc += 4;
                 ++pdst;
             }
             while(--len);
