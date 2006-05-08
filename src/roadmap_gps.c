@@ -177,8 +177,6 @@ static void roadmap_gps_process_position (void) {
 
    int i;
 
-   roadmap_message_set ('c', "%d", RoadMapGpsActiveSatelliteCount);
-
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
       if (RoadMapGpsListeners[i] == NULL) break;
@@ -196,6 +194,8 @@ static void roadmap_gps_process_position (void) {
 static void roadmap_gps_call_monitors (void) {
 
    int i;
+
+   roadmap_message_set ('c', "%d", RoadMapGpsActiveSatelliteCount);
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -268,6 +268,9 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
    RoadMapGpsQuality.dilution_horizontal = fields->gga.dilution/100.0;
    roadmap_message_set ('h', "%.2f", RoadMapGpsQuality.dilution_horizontal);
+
+   RoadMapGpsActiveSatelliteCount = fields->gga.count;
+   roadmap_message_set ('c', "%d", fields->gga.count);
 
    if (fields->gga.quality == ROADMAP_NMEA_QUALITY_INVALID) {
 
