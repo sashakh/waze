@@ -21,16 +21,6 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * SYNOPSYS:
- *
- *   int  roadmap_line_in_square (int square, int cfcc, int *first, int *last);
- *   int  roadmap_line_in_square2 (int square, int cfcc, int *first, int *last);
- *   int  roadmap_line_get_from_index2 (int index);
- *   void roadmap_line_from (int line, RoadMapPosition *position);
- *   void roadmap_line_to   (int line, RoadMapPosition *position);
- *
- *   int  roadmap_line_count (void);
- *
- * These functions are used to retrieve the points that make the lines.
  */
 
 #include <stdio.h>
