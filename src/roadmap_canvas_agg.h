@@ -25,12 +25,12 @@
 #define INCLUDE__ROADMAP_CANVAS_AGG__H
 
 #include "roadmap_gui.h"
-#include "agg_pixfmt_rgb.h"
+#include "agg_pixfmt_rgba.h"
 #include "agg_pixfmt_rgb_packed.h"
 
 struct roadmap_canvas_image {
    agg::rendering_buffer rbuf;
-   agg::pixfmt_bgr24 pixfmt;
+   agg::pixfmt_rgba32 pixfmt;
 
    roadmap_canvas_image():pixfmt(rbuf) {}
 };
