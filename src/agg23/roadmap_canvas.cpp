@@ -430,9 +430,6 @@ void roadmap_canvas_draw_multiple_circles
       int x = centers[i].x;
       int y = centers[i].y;
       
-      ras.reset ();
-
-      
       agg::ellipse e( x, y, r, r);
       path.add_path(e);
       
@@ -612,6 +609,7 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
 #ifdef WIN32_PROFILE
          ResumeCAPAll();
 #endif
+         ras.reset();
          ras.add_path(tr);
          agg::render_scanlines(ras, sl, ren_solid);
          //ras.add_path(fill);
@@ -685,9 +683,6 @@ RoadMapImage roadmap_canvas_load_image (const char *path,
 
    return roadmap_canvas_agg_load_image (path, file_name);
 }
-
-#include "agg_span_interpolator_linear.h"
-#include "agg_span_image_filter_rgb.h"
 
 void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
                                 int opacity, int mode) {
