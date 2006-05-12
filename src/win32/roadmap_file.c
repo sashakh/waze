@@ -92,7 +92,7 @@ int roadmap_file_exists (const char *path, const char *name)
 
 	file = CreateFile (full_name_unicode,
 		GENERIC_READ,
-		0,
+		FILE_SHARE_READ,
 		NULL,
 		OPEN_EXISTING,
 		0,
@@ -119,7 +119,7 @@ int roadmap_file_length (const char *path, const char *name)
 
 	file = CreateFile (full_name_unicode,
 		GENERIC_READ,
-		0,
+		FILE_SHARE_READ,
 		NULL,
 		OPEN_EXISTING,
 		0,
