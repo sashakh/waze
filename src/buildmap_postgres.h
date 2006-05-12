@@ -25,7 +25,7 @@
 #define INCLUDE__BUILDMAP_POSTGRES__H
 
 void buildmap_postgres_process (const char *source,
-                                 int verbose, int canals, int rivers);
+                                 int verbose, int empty);
 
 #endif // INCLUDE__BUILDMAP_POSTGRES__H
 

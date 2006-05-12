@@ -269,7 +269,7 @@ static void buildmap_county_process (const char *source,
          break;
 
       case BUILDMAP_FORMAT_PG:
-         buildmap_postgres_process (source, verbose, canals, rivers);
+         buildmap_postgres_process (source, verbose, canals);
          break;
    }
 

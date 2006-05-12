@@ -69,9 +69,10 @@
 
 static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time FROM segments;";
-static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM boundaries;";
+static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM water;";
 static const char *turn_restrictions_sql = "SELECT node_id, seg1_id, seg2_id FROM turn_restrictions;";
+static const char *cities_sql = "SELECT name FROM cities;";
 
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
@@ -81,8 +82,6 @@ static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
 static BuildMapDictionary DictionaryLandmark;
 
-static int BuildMapCanals = ROADMAP_WATER_RIVER;
-static int BuildMapRivers = ROADMAP_WATER_RIVER;
 static int BuildMapSea = ROADMAP_WATER_SEA;
 static int BuildMapBorders = ROADMAP_WATER_SHORELINE;
 
@@ -787,12 +786,42 @@ static void buildmap_postgres_read_water_polygons (int verbose) {
 }
 
 
+static void buildmap_postgres_read_cities (int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   PGresult *db_result;
+
+   db_result = PQexec(hPGConn, cities_sql);
+
+   if (!db_result_ok (db_result)) {
+
+      fprintf
+         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
+      PQfinish(hPGConn);
+      exit(-1);
+   }
+
+   record_count = PQntuples(db_result);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      str2dict (DictionaryCity, PQgetvalue(db_result, irec, 0));
+   }
+
+   PQclear(db_result);
+
+   postgres_summary (verbose, record_count);
+}
+
+
 
 #endif // ROADMAP_USE_POSTGRES
 
 
 void buildmap_postgres_process (const char *source,
-                                 int verbose, int canals, int rivers) {
+                                 int verbose, int empty) {
 
 #if ROADMAP_USE_POSTGRES
 
@@ -802,25 +831,28 @@ void buildmap_postgres_process (const char *source,
    DictionarySuffix = buildmap_dictionary_open ("suffix");
    DictionaryCity   = buildmap_dictionary_open ("city");
 
-   if (! canals) {
-      BuildMapCanals = 0;
-   }
-
-   if (! rivers) {
-      BuildMapRivers = 0;
-   }
-
    buildmap_postgres_connect (source);
    buildmap_postgres_read_borders_lines (verbose);
    buildmap_postgres_read_water_lines (verbose);
-   buildmap_postgres_read_roads_lines (verbose);
+
+   if (!empty) {
+      buildmap_postgres_read_roads_lines (verbose);
+   }
+
    buildmap_line_sort();
    buildmap_postgres_read_borders_shape_points (verbose);
-   buildmap_postgres_read_roads_route (verbose);
-   buildmap_postgres_read_roads_shape_points (verbose);
-   buildmap_postgres_read_turn_restrictions (verbose);
+
+   if (!empty) {
+      buildmap_postgres_read_roads_route (verbose);
+      buildmap_postgres_read_roads_shape_points (verbose);
+      buildmap_postgres_read_turn_restrictions (verbose);
+   }
    //buildmap_postgres_read_water_shape_points (verbose);
    buildmap_postgres_read_water_polygons (verbose);
+
+   if (!empty) {
+      buildmap_postgres_read_cities (verbose);
+   }
    PQfinish (hPGConn);
 
 #else
