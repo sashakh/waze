@@ -335,7 +335,7 @@ static void roadmap_trip_set_dialog (RoadMapPosition *position) {
     
     if (roadmap_dialog_activate ("Add Waypoint", &point_position)) {
 
-        roadmap_dialog_new_entry  ("Name", "Name:");
+        roadmap_dialog_new_entry  ("Name", "Name:", NULL);
         roadmap_dialog_add_button ("OK", roadmap_trip_set_dialog_ok);
         roadmap_dialog_add_button ("Cancel", roadmap_trip_dialog_cancel);
 

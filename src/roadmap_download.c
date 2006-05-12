@@ -567,8 +567,8 @@ static void roadmap_download_next_county (void) {
 
       roadmap_dialog_new_label  (".file", "County");
       roadmap_dialog_new_label  (".file", "State");
-      roadmap_dialog_new_entry  (".file", "From");
-      roadmap_dialog_new_entry  (".file", "To");
+      roadmap_dialog_new_entry  (".file", "From", NULL);
+      roadmap_dialog_new_entry  (".file", "To", NULL);
 
       roadmap_dialog_add_button ("OK", roadmap_download_ok);
       roadmap_dialog_add_button ("Cancel", roadmap_download_cancel);

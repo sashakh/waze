@@ -276,8 +276,8 @@ void roadmap_coord_dialog (void) {
 
    if (roadmap_dialog_activate ("Position", NULL)) {
 
-      roadmap_dialog_new_entry ("Coordinates", RoadMapLongitudeLabel);
-      roadmap_dialog_new_entry ("Coordinates", RoadMapLatitudeLabel);
+      roadmap_dialog_new_entry ("Coordinates", RoadMapLongitudeLabel, NULL);
+      roadmap_dialog_new_entry ("Coordinates", RoadMapLatitudeLabel, NULL);
 
       roadmap_dialog_add_button ("Back", roadmap_coord_before);
       roadmap_dialog_add_button ("Next", roadmap_coord_after);

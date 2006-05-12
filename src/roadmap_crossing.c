@@ -247,9 +247,9 @@ void roadmap_crossing_dialog (void) {
 
    if (roadmap_dialog_activate ("Intersection", NULL)) {
 
-      roadmap_dialog_new_entry ("Crossing", "Street 1:");
-      roadmap_dialog_new_entry ("Crossing", "Street 2:");
-      roadmap_dialog_new_entry ("Crossing", "State:");
+      roadmap_dialog_new_entry ("Crossing", "Street 1:", NULL);
+      roadmap_dialog_new_entry ("Crossing", "Street 2:", NULL);
+      roadmap_dialog_new_entry ("Crossing", "State:", NULL);
 
       roadmap_dialog_add_button ("Back", roadmap_crossing_before);
       roadmap_dialog_add_button ("Next", roadmap_crossing_after);

@@ -193,7 +193,7 @@ static void roadmap_preferences_new_dialog
       case ROADMAP_CONFIG_COLOR:
       case ROADMAP_CONFIG_STRING:
 
-         roadmap_dialog_new_entry (cursor->category, cursor->name);
+         roadmap_dialog_new_entry (cursor->category, cursor->name, NULL);
          break;
 
       default:
