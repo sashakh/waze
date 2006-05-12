@@ -146,7 +146,7 @@ int editor_line_add
    line.first_trkseg = line.last_trkseg = trkseg;
 
    line.cfcc = cfcc;
-   line.flags = flags|ED_LINE_DIRTY;
+   line.flags = flags;
 
    line.street = -1;
    line.range = -1;
