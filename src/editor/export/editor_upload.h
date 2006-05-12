@@ -1,8 +1,8 @@
-/* editor_export.h - export editor data
+/* editor_upload.c - Upload a gpx file to freemap.co.il
  *
  * LICENSE:
  *
- *   Copyright 2005 Ehud Shabtai
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -21,13 +21,12 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__EDITOR_EXPORT__H
-#define INCLUDE__EDITOR_EXPORT__H
+#ifndef INCLUDE__EDITOR_UPLOAD__H
+#define INCLUDE__EDITOR_UPLOAD__H
 
-void editor_export_gpx (void);
-void editor_export_reset_dirty (void);
-int editor_export_empty (int fips);
-void editor_export_initialize (void);
+void editor_upload_initialize (void);
+void editor_upload_select (void);
+void editor_upload_file (const char *filename);
 
-#endif // INCLUDE__EDITOR_EXPORT__H
+#endif // INCLUDE__EDITOR_UPLOAD__H
 

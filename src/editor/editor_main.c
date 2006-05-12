@@ -32,12 +32,15 @@
 
 #include "editor_screen.h"
 #include "track/editor_track_main.h"
+#include "export/editor_upload.h"
+#include "export/editor_export.h"
 #include "editor_plugin.h"
 #include "editor_main.h"
 
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
+const char *EDITOR_VERSION = "0.6 pre3";
 
 int editor_is_enabled (void) {
    return EditorEnabled;
@@ -46,8 +49,10 @@ int editor_is_enabled (void) {
 
 void editor_main_initialize (void) {
 
+   editor_upload_initialize ();
+   editor_export_initialize ();
    editor_screen_initialize ();
-   editor_track_initialize ();
+   editor_track_initialize  ();
    editor_main_set (1);
 
    EditorPluginID = editor_plugin_register ();
@@ -75,4 +80,7 @@ void editor_main_set (int status) {
 }
 
 
+const char *editor_main_get_version (void) {
 
+   return EDITOR_VERSION;
+}

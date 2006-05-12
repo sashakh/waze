@@ -30,5 +30,6 @@ extern int EditorPluginID;
 int editor_is_enabled (void);
 void editor_main_initialize (void);
 void editor_main_set (int status);
+const char *editor_main_get_version (void);
 
 #endif /* INCLUDE__EDITOR_MAIN__H */
