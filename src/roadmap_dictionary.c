@@ -75,6 +75,7 @@ struct dictionary_cursor {
    int tree_index;
    int complete;
    int completion;
+   int position;
 };
 
 
@@ -131,6 +132,44 @@ static void roadmap_dictionary_print_subtree
 
       default:
          fprintf (stdout, "\n");
+         roadmap_log (ROADMAP_FATAL,
+                      "corrupted node type %d",
+                      dictionary->reference[index].type & 0x0f);
+      }
+   }
+}
+
+
+static void roadmap_dictionary_walk
+               (struct dictionary_volume *dictionary, int tree_index,
+                RoadMapDictionaryCB callback, void *data) {
+
+   int index;
+   struct roadmap_dictionary_tree *tree = dictionary->tree + tree_index;
+   RoadMapString string;
+
+   for (index = tree->first;
+        index < tree->first + tree->count;
+        index++) {
+
+      switch (dictionary->reference[index].type & 0x0f) {
+
+      case ROADMAP_DICTIONARY_STRING:
+
+         string = dictionary->reference[index].index;
+         if (!(*callback)
+               (string, roadmap_dictionary_get (dictionary, string), data)) {
+            return;
+         }
+         break;
+
+      case ROADMAP_DICTIONARY_TREE:
+
+         roadmap_dictionary_walk
+            (dictionary, dictionary->reference[index].index, callback, data);
+         break;
+
+      default:
          roadmap_log (ROADMAP_FATAL,
                       "corrupted node type %d",
                       dictionary->reference[index].type & 0x0f);
@@ -350,6 +389,7 @@ RoadMapDictionaryCursor roadmap_dictionary_new_cursor (RoadMapDictionary d) {
       cursor->tree_index = 0;
       cursor->complete   = 0;
       cursor->completion = 0;
+      cursor->position = 0;
    }
 
    return cursor;
@@ -372,7 +412,13 @@ int roadmap_dictionary_move_cursor (RoadMapDictionaryCursor c, char input) {
    reference = c->volume->reference;
    end = tree->first + tree->count;
 
+   if (tree->position > c->position) {
+      c->position++;
+      return 1;
+   }
+
    input = tolower(input);
+   c->position++;
 
    for (index = tree->first; index < end; index++) {
 
@@ -487,6 +533,23 @@ int roadmap_dictionary_get_result (RoadMapDictionaryCursor c) {
 }
 
 
+void roadmap_dictionary_get_all_results (RoadMapDictionaryCursor c,
+                                         RoadMapDictionaryCB callback,
+                                         void *data) {
+
+   if (c->complete) {
+
+      RoadMapString index = c->volume->reference[c->completion].index;
+      (*callback) (index, roadmap_dictionary_get (c->volume, index), data);
+      return;
+   }
+
+   roadmap_dictionary_walk (c->volume, c->tree_index, callback, data);
+
+   return;
+}
+
+
 void roadmap_dictionary_get_next (RoadMapDictionaryCursor c, char *set) {
 
    int end;
@@ -557,4 +620,41 @@ void roadmap_dictionary_dump_volume (char *name) {
       }
    }
 }
+
+
+void roadmap_dictionary_search_all
+            (RoadMapDictionary dictionary, const char *str,
+             RoadMapDictionaryCB callback,
+             void *data) {
+
+   struct dictionary_cursor cursor;
+   const char *itr = str;
+
+   cursor.volume = dictionary;
+   cursor.tree_index = 0;
+   cursor.complete   = 0;
+   cursor.completion = 0;
+   cursor.position   = 0;
+
+   while (*itr) {
+      if (!roadmap_dictionary_move_cursor (&cursor, *itr++)) {
+         
+         if (cursor.complete) {
+            const char *name = roadmap_dictionary_get_string
+                                 (cursor.volume, cursor.completion);
+
+            if (!strncmp (str, name, strlen(str))) {
+               RoadMapString string =
+                  dictionary->reference[cursor.completion].index;
+               (*callback)
+                  (string, roadmap_dictionary_get (dictionary, string), data);
+            }
+         }
+         return;
+      }
+   }
+
+   roadmap_dictionary_get_all_results (&cursor, callback, data);
+}
+
 

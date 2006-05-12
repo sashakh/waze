@@ -106,6 +106,9 @@ static RoadMapStreetContext *RoadMapStreetActive = NULL;
 static RoadMapZipContext    *RoadMapZipActive    = NULL;
 static RoadMapRangeContext  *RoadMapRangeActive  = NULL;
 
+#define MAX_SEARCH_NAMES 100
+static int RoadMapStreetSearchCount;
+static char *RoadMapStreetSearchNames[MAX_SEARCH_NAMES];
 
 static void *roadmap_street_map (roadmap_db *root) {
 
@@ -509,6 +512,7 @@ static int roadmap_street_block_by_county_subdivision
 
                blocks[count].street = i;
                blocks[count].first  = range_index;
+               blocks[count].city   = by_city->city;
                blocks[count].count  = by_city->count;
 
                if (++count >= size) {
@@ -1947,5 +1951,79 @@ void roadmap_street_get_street_range
    } else {
       roadmap_log (ROADMAP_ERROR, "Illegal range number: %d", range);
    }
+}
+
+
+static int roadmap_street_search_results (RoadMapString index,
+                                          const char *string,
+                                          void *context) {
+
+   RoadMapStreetIdentifier street = {0, index, 0, 0};
+   RoadMapBlocks blocks[MAX_SEARCH_NAMES];
+   int city = (int)context;
+   int i;
+   int count;
+
+   if (RoadMapStreetSearchCount == MAX_SEARCH_NAMES) return 0;
+
+   count = roadmap_street_block_by_county_subdivision
+                                (&street, city, blocks, MAX_SEARCH_NAMES);
+
+   if (count <= 0) return 1;
+
+   for (i=0; i < count; i++) {
+
+      char tmp[255];
+      RoadMapStreet *this_street;
+
+      this_street =
+         RoadMapStreetActive->RoadMapStreets + blocks[i].street;
+    
+
+      snprintf (tmp, sizeof(tmp), "%s, %s",
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetNames, this_street->fename),
+         roadmap_dictionary_get
+                (RoadMapRangeActive->RoadMapCityNames, blocks[i].city));
+
+      if (RoadMapStreetSearchNames[RoadMapStreetSearchCount]) {
+         free (RoadMapStreetSearchNames[RoadMapStreetSearchCount]);
+      }
+
+      RoadMapStreetSearchNames[RoadMapStreetSearchCount++] = strdup(tmp);
+      if (RoadMapStreetSearchCount == MAX_SEARCH_NAMES) return 0;
+   }
+
+   return 1;
+}
+
+
+void roadmap_street_search (const char *city, const char *str,
+                            RoadMapDictionaryCB cb,
+                            void *data) {
+
+   int i;
+
+   int city_index;
+
+   if (!strlen(city)) {
+      city_index = -1;
+   } else {
+      city_index = roadmap_dictionary_locate
+         (RoadMapRangeActive->RoadMapCityNames, city);
+
+      if (city_index <= 0) return;
+   }
+
+   RoadMapStreetSearchCount = 0;
+
+   roadmap_dictionary_search_all (RoadMapRangeActive->RoadMapStreetNames,
+                                  str, roadmap_street_search_results,
+                                  (void *)city_index);
+
+   for (i=0; i<RoadMapStreetSearchCount; i++) {
+      (*cb) (-1, RoadMapStreetSearchNames[i], data);
+   }
+
 }
 

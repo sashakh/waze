@@ -372,3 +372,11 @@ RoadMapString roadmap_locator_get_state (const char *state) {
    return roadmap_dictionary_locate (RoadMapUsStateDictionary, state);
 }
 
+
+void roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
+                                  void *data) {
+
+   roadmap_dictionary_search_all
+            (RoadMapUsCityDictionary, str, cb, data);
+}
+

@@ -28,6 +28,8 @@
 #include "roadmap_dbread.h"
 
 typedef struct dictionary_volume *RoadMapDictionary;
+typedef int (*RoadMapDictionaryCB)
+   (RoadMapString index, const char *string, void *data);
 
 RoadMapDictionary roadmap_dictionary_open (char *name);
 
@@ -43,8 +45,15 @@ int  roadmap_dictionary_completable (RoadMapDictionaryCursor c);
 void roadmap_dictionary_completion  (RoadMapDictionaryCursor c, char *data);
 void roadmap_dictionary_get_next    (RoadMapDictionaryCursor c, char *set);
 int  roadmap_dictionary_get_result  (RoadMapDictionaryCursor c);
+void roadmap_dictionary_get_all_results (RoadMapDictionaryCursor c,
+                                         RoadMapDictionaryCB callback,
+                                         void *data);
 void roadmap_dictionary_free_cursor (RoadMapDictionaryCursor c);
 
+void roadmap_dictionary_search_all
+            (RoadMapDictionary dictionary, const char *str,
+             RoadMapDictionaryCB callback,
+             void *data);
 
 RoadMapString roadmap_dictionary_locate (RoadMapDictionary d,
                                          const char *string);

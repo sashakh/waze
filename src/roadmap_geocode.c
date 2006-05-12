@@ -70,7 +70,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    case ROADMAP_US_OK:
 
       count = roadmap_street_blocks_by_city
-                  (street_name, city_name, blocks, 256);
+                  (street_name, city_name, blocks, ROADMAP_MAX_STREETS);
       break;
 
    case ROADMAP_US_NOSTATE:

@@ -27,12 +27,14 @@
 #include "roadmap_types.h"
 #include "roadmap_plugin.h"
 #include "roadmap_dbread.h"
+#include "roadmap_dictionary.h"
 
 typedef struct {
 
    int street;
    int first;
    int count;
+   RoadMapString city;
 
 } RoadMapBlocks;
 
@@ -162,6 +164,10 @@ void roadmap_street_get_street_range
 int roadmap_street_replace
               (RoadMapNeighbour *neighbours, int count, int max,
                const RoadMapNeighbour *this);
+
+void roadmap_street_search (const char *city, const char *str,
+                            RoadMapDictionaryCB cb,
+                            void *data);
 
 extern roadmap_db_handler RoadMapStreetHandler;
 extern roadmap_db_handler RoadMapZipHandler;
