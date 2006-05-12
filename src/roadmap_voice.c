@@ -300,11 +300,15 @@ void roadmap_voice_announce (const char *title) {
         return;
     }
     
-    roadmap_message_format
-        (text, sizeof(text),
-         roadmap_config_get (&RoadMapVoiceText[i].config));
-    
-    if (text[0] == 0) return; /* No message. */
+    if (!roadmap_message_format
+             (text, sizeof(text),
+              roadmap_config_get (&RoadMapVoiceText[i].config)) ||
+
+         (text[0] == 0)) {
+
+       /* No message. */
+       return;
+    }
 
     if (roadmap_voice_expand (text, expanded, sizeof(expanded))) {
         final = expanded;
