@@ -47,7 +47,7 @@
 #include <agg_pixfmt_rgb.h>
 #include <agg_pixfmt_rgb_packed.h>
 
-#include <agg_font_freetype.h>
+#include "../agg/font_freetype/agg_font_freetype.h"
 
 #ifdef USE_FRIBIDI
 #include <fribidi.h>

@@ -63,7 +63,7 @@ RMLIBSRCS=roadmap_keyboard.c \
           roadmap_dialog.c \
           roadmap_fileselection.c 
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg23/roadmap_canvas.o ../agg23/font_freetype/agg_font_freetype.o
+RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
 
 RUNTIME=gtkroadgps gtkroadmap
 

@@ -102,6 +102,7 @@ struct roadmap_dialog_item {
 	char *ansi_value;
 	RoadMapDialogSelection *choice;
    int num_choices;
+   int data_is_string;
 };
 
 static RoadMapDialogItem RoadMapDialogWindows = NULL;
@@ -150,6 +151,7 @@ static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
 	child->ansi_value = NULL;
 	child->choice   = NULL;
    child->num_choices = 0;
+   child->data_is_string = 0;
 
 	if (parent != NULL) {
 
@@ -284,11 +286,13 @@ void roadmap_dialog_hide (const char *name)
 }
 
 
-void roadmap_dialog_new_entry (const char *frame, const char *name)
+void roadmap_dialog_new_entry (const char *frame, const char *name,
+                               RoadMapDialogCallback callback)
 {
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
 	
-	child->widget_type = ROADMAP_WIDGET_ENTRY;
+   child->callback = callback;
+   child->widget_type = ROADMAP_WIDGET_ENTRY;
 }
 
 
@@ -302,7 +306,7 @@ void roadmap_dialog_new_label (const char *frame, const char *name)
 
 void roadmap_dialog_new_color (const char *frame, const char *name)
 {
-	roadmap_dialog_new_entry (frame, name);
+	roadmap_dialog_new_entry (frame, name, NULL);
 }
 
 
@@ -337,6 +341,10 @@ void roadmap_dialog_new_choice (const char *frame,
 	child->callback = callback;
 	child->value  = choice[0].value;
    child->num_choices = count;
+
+   if ((void **)labels == values) {
+      child->data_is_string = 1;
+   }
 }
 
 
@@ -346,6 +354,15 @@ void roadmap_dialog_new_list (const char  *frame, const char  *name)
 		roadmap_dialog_new_item (frame, name);
 	
 	child->widget_type = ROADMAP_WIDGET_LIST;
+}
+
+
+static int listview_sort_cmp (const void *a, const void *b) {
+
+   RoadMapDialogSelection *c1 = (RoadMapDialogSelection *)a;
+   RoadMapDialogSelection *c2 = (RoadMapDialogSelection *)b;
+
+   return strcmp (c1->label, c2->label);
 }
 
 
@@ -391,12 +408,18 @@ void roadmap_dialog_show_list (const char  *frame,
 		choice[i].item = child;
 		choice[i].value = (char*)values[i];
 		choice[i].label = labels[i];
-		choice[i].callback = callback;
-		
-		str = ConvertToWideChar(labels[i], CP_UTF8);
+		choice[i].callback = callback;		
+	}
+
+   qsort(choice, count, sizeof(*choice), listview_sort_cmp);
+
+	for (i = 0; i < count; ++i) {
+				
+		str = ConvertToWideChar(choice[i].label, CP_UTF8);
 		SendMessage(child->w, (UINT) LB_ADDSTRING, 0, (LPARAM)str);
 		free(str);
 	}
+
 	child->choice = choice;
 	child->value  = choice[0].value;
    child->num_choices = count;
@@ -556,12 +579,42 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
 		{
          int i;
          for (i=0; i<this_item->num_choices; i++) {
-            if (data == this_item->choice[i].value) {
+            if ((data == this_item->choice[i].value) ||
+                (this_item->data_is_string &&
+                 !strcmp (this_item->choice[i].value, data))) {
+
                SendMessage
                   (this_item->w, (UINT) CB_SETCURSEL, (WPARAM) i, (LPARAM) 0);
                break;
             }
          }
+         
+         if ((i == this_item->num_choices) && this_item->data_is_string) {
+            
+            RoadMapDialogSelection *choice;
+            LPWSTR label;
+            int count = this_item->num_choices + 1;
+            
+            choice = (RoadMapDialogSelection *)
+               realloc (this_item->choice, count * sizeof(*choice));
+            roadmap_check_allocated(choice);
+            
+            this_item->choice = choice;
+            
+            memcpy (this_item->choice + this_item->num_choices,
+               this_item->choice + this_item->num_choices - 1,
+               sizeof(RoadMapDialogSelection));
+            
+            this_item->choice[this_item->num_choices].value = (char *)data;
+            this_item->num_choices++;
+            
+            label = ConvertToWideChar((const char *)data, CP_UTF8);
+            SendMessage(this_item->w, (UINT) CB_ADDSTRING, (WPARAM) 0,
+               (LPARAM) label);
+            SendMessage(this_item->w, (UINT) CB_SETCURSEL, (WPARAM) i, (LPARAM) 0);
+            free(label);
+         }
+         
 		}
 		break;
 
@@ -649,12 +702,12 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 			g_hInst,              // The instance handle
 			NULL);                // Specify NULL for this parameter when you 
 
-		dwStyle |= WS_BORDER|CBS_DROPDOWNLIST;
+		dwStyle |= WS_BORDER|CBS_DROPDOWNLIST|WS_VSCROLL;
 		item->w = CreateWindowEx (
 			0,
 			_T("COMBOBOX"),       // Class name
 			NULL,		          // Window name
-			dwStyle | WS_VSCROLL,              // Window style
+			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
 			0,                    // y-coordinate of the upper-left corner
 			CW_USEDEFAULT,        // The width of the tree-view control window
@@ -744,7 +797,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 			g_hInst,              // The instance handle
 			NULL);                // Specify NULL for this parameter when you 
 
-		dwStyle |= WS_BORDER|LBS_NOTIFY;
+		dwStyle |= WS_BORDER|LBS_NOTIFY|WS_VSCROLL;
 		item->w = CreateWindowEx (
 			0,
 			_T("LISTBOX"),        // Class name
@@ -875,6 +928,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	case WM_COMMAND:
 		if ((HIWORD(wParam) == CBN_SELCHANGE) ||
 			(HIWORD(wParam) == BN_CLICKED) ||
+         (HIWORD(wParam) == EN_CHANGE) ||
 			(HIWORD(wParam) == LBN_SELCHANGE) ) {
 				RoadMapDialogItem item =
 						(RoadMapDialogItem)GetWindowLong((HWND)lParam,
@@ -1018,8 +1072,8 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 					MoveWindow(widget,
 						column_edge_width, curr_y,
 						width - column_edge_width*2,
-						row_height*3, TRUE);
-					curr_y += row_height*3 + row_space;
+						row_height*5, TRUE);
+					curr_y += row_height*5 + row_space;
 				} else {
 					if (label != NULL) {
 						unsigned int widget_height = row_height;
@@ -1056,6 +1110,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	case WM_COMMAND:
 		if ((HIWORD(wParam) == BN_CLICKED) ||
 			(HIWORD(wParam) == LBN_SELCHANGE) ||
+         (HIWORD(wParam) == EN_CHANGE) ||
 			(HIWORD(wParam) == CBN_SELCHANGE)) {
 				int i = -1;
 				RoadMapDialogItem item =
