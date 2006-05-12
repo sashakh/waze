@@ -76,6 +76,7 @@
 #include "editor/editor_main.h"
 #include "editor/db/editor_db.h"
 #include "editor/export/editor_export.h"
+#include "editor/export/editor_upload.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 
@@ -149,15 +150,20 @@ static void roadmap_start_counter_rotate (void) {
 
 static void roadmap_start_about (void) {
 
-   roadmap_messagebox ("About",
+   char about[500];
+
+   snprintf (about, sizeof(about),
                        "RoadMap " ROADMAP_VERSION "\n"
                        "(c) " ROADMAP_YEAR " Pascal Martin\n"
                        "<pascal.martin@iname.com>\n"
+                       "(c) Ehud Shabtai\n"
+                       "eshabtai@gmail.com\n"
                        "A Street navigation system\n"
-                       "for Linux & UNIX"
-                       "\n\nEditor Plugin 0.6.0 pre2\n"
-                       "Ehud Shabtai\n"
-                       "eshabtai@gmail.com");
+                       "for Linux, UNIX & WinCE"
+                       "\n\nEditor Plugin %s\n",
+                       editor_main_get_version ());
+
+   roadmap_messagebox ("About", about);
 }
 
 static void roadmap_start_export_data (void) {
@@ -229,6 +235,9 @@ static void roadmap_start_download_map (void) {
    roadmap_screen_redraw ();
 }
 
+static void roadmap_start_upload_gpx (void) {
+   editor_upload_select ();
+}
 
 static void roadmap_start_create_trip (void) {
     
@@ -520,6 +529,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"updatemap", "Update map", NULL, NULL,
       "Export editor data", roadmap_start_download_map},
 
+   {"uploadgpx", "Upload GPX file", NULL, NULL,
+      "Export editor data", roadmap_start_upload_gpx},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -535,6 +547,7 @@ static const char *RoadMapStartMenu[] = {
 
    "exportdata",
    "updatemap",
+   "uploadgpx",
 /*   "resetexport", */
 
    RoadMapFactorySeparator,
@@ -1053,7 +1066,6 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_locator_declare (&roadmap_start_no_download);
    roadmap_main_set_periodic (200, roadmap_start_periodic);
-
 }
 
 

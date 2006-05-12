@@ -186,6 +186,7 @@ RMPLUGINSRCS=roadmap_copy.c \
              buildmap_messages.c \
              editor/db/editor_override.c \
              editor/export/editor_export.c \
+             editor/export/editor_upload.c \
              editor/db/editor_trkseg.c \
              editor/track/editor_track_filter.c \
              editor/track/editor_track_util.c \
