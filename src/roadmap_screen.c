@@ -1385,6 +1385,7 @@ void roadmap_screen_toggle_orientation_mode (void) {
    }
 
    RoadMapScreenRotation = 0;
+   roadmap_state_refresh ();
    roadmap_screen_rotate (0);
 }
 

@@ -86,6 +86,7 @@ void roadmap_canvas_select_pen (RoadMapPen pen);
  */
 void roadmap_canvas_set_foreground (const char *color);
 void roadmap_canvas_set_thickness  (int thickness);
+int  roadmap_canvas_get_thickness  (RoadMapPen pen);
 void roadmap_canvas_set_opacity (int opacity);
 
 

@@ -55,6 +55,13 @@ typedef struct {
 
 #define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
 
+typedef struct {
+   void (*update) (RoadMapPosition *position, PluginLine *current);
+   void (*get_next_line)
+          (PluginLine *current, int direction, PluginLine *next);
+
+} RoadMapNavigateRouteCB;
+
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
@@ -72,5 +79,12 @@ int roadmap_navigate_fuzzify
                 (RoadMapTracking *tracked,
                  RoadMapNeighbour *previous_line,
                  RoadMapNeighbour *line, int direction);
+
+int roadmap_navigate_get_current (RoadMapPosition *position,
+                                   PluginLine *line,
+                                   int *direction);
+
+void roadmap_navigate_route (RoadMapNavigateRouteCB callbacks);
+void roadmap_navigate_end_route (RoadMapNavigateRouteCB callbacks);
 
 #endif // INCLUDE__ROADMAP_NAVIGATE__H

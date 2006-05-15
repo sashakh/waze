@@ -347,6 +347,33 @@ int roadmap_line_length (int line) {
 }
 
 
+int roadmap_line_shapes (int line, int *first_shape, int *last_shape) {
+
+   RoadMapPosition p1;
+
+   int square;
+   int first_shape_line;
+   int last_shape_line;
+
+   *first_shape = *last_shape = -1;
+   roadmap_point_position (RoadMapLineActive->Line[line].from, &p1);
+   square = roadmap_square_search (&p1);
+
+   if (roadmap_shape_in_square (square, &first_shape_line,
+                                        &last_shape_line) > 0) {
+
+      if (roadmap_shape_of_line (line, first_shape_line,
+                                       last_shape_line,
+                                       first_shape, last_shape) > 0) {
+
+         return 0;
+      }
+   }
+
+   return -1;
+}
+
+
 void roadmap_line_points (int line, int *from, int *to) {
 
 #ifdef DEBUG

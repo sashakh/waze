@@ -125,6 +125,7 @@ RoadMapSign RoadMapStreetSign[] = {
     ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "yellow", "black"),
     ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "yellow", "black"),
     ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "red", "white"),
+    ROADMAP_SIGN("GPS", "Driving Instruction", SIGN_TOP, NULL, "red", "white"),
     ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
 };
 

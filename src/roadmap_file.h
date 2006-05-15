@@ -38,6 +38,7 @@
 
 typedef HANDLE RoadMapFile; /* WIN32 style. */
 #define ROADMAP_FILE_IS_VALID(f) (f != INVALID_HANDLE_VALUE)
+#define ROADMAP_INVALID_FILE INVALID_HANDLE_VALUE
 
 #else
 
@@ -45,6 +46,7 @@ typedef HANDLE RoadMapFile; /* WIN32 style. */
 
 typedef int RoadMapFile; /* UNIX style. */
 #define ROADMAP_FILE_IS_VALID(f) (f != (RoadMapFile)-1)
+#define ROADMAP_INVALID_FILE -1
 
 #endif
 

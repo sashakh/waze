@@ -32,6 +32,8 @@
 #include "roadmap_line_route.h"
 #include "roadmap_locator.h"
 #include "roadmap_street.h"
+#include "roadmap_screen.h"
+#include "roadmap_shape.h"
 
 #include "roadmap_plugin.h"
 
@@ -197,6 +199,50 @@ int roadmap_plugin_get_distance
    }
 }
       
+
+void roadmap_plugin_get_line_points (const PluginLine *line,
+                                     RoadMapPosition  *from_pos,
+                                     RoadMapPosition  *to_pos,
+                                     int              *first_shape,
+                                     int              *last_shape,
+                                     RoadMapShapeItr  *shape_itr) {
+
+   roadmap_plugin_line_from (line, from_pos);
+   roadmap_plugin_line_to (line, to_pos);
+
+   if (line->plugin_id == ROADMAP_PLUGIN_ID) {
+
+      roadmap_line_shapes (line->line_id, first_shape, last_shape);
+      *shape_itr = roadmap_shape_get_position;
+   } else {
+      RoadMapPluginHooks *hooks = get_hooks (line->plugin_id);
+      
+      if (hooks == NULL) {
+         roadmap_log (ROADMAP_ERROR, "plugin id:%d is missing.",
+               line->plugin_id);
+
+         *first_shape = *last_shape = -1;
+         *shape_itr   = NULL;
+         return;
+      }
+
+      //FIXME implement for plugins
+#if 0
+      if (hooks->line_shapes != NULL) {
+         (*hooks->line_shapes) (line, first_shape, last_shape, shape_itr);
+
+      } else {
+#else
+         {
+#endif   
+         *first_shape = *last_shape = -1;
+         *shape_itr   = NULL;
+      }
+
+      return;
+   }
+}
+
 
 void roadmap_plugin_line_from (const PluginLine *line, RoadMapPosition *pos) {
 

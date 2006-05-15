@@ -47,6 +47,19 @@
 static RoadMapConfigDescriptor RoadMapNavigateFlag =
                         ROADMAP_CONFIG_ITEM("Navigation", "Enable");
 
+typedef struct {
+   RoadMapNavigateRouteCB callbacks;
+   PluginLine current_line;
+   PluginLine next_line;
+   int enabled;
+   
+} RoadMapNavigateRoute;
+
+#define ROADMAP_NAVIGATE_ROUTE_NULL \
+{ {0}, PLUGIN_LINE_NULL, PLUGIN_LINE_NULL, 0 }
+
+static RoadMapNavigateRoute RoadMapRouteInfo;
+
 /* The navigation flag will be set according to the session's content,
  * so that the user selected state is kept from one session to
  * the next.
@@ -63,7 +76,6 @@ static RoadMapTracking  RoadMapConfirmedStreet = ROADMAP_TRACKING_NULL;
 
 static RoadMapNeighbour RoadMapConfirmedLine = ROADMAP_NEIGHBOUR_NULL;
 static RoadMapNeighbour RoadMapNeighbourhood[ROADMAP_NEIGHBOURHOUD];
-
 
 static void roadmap_navigate_trace (const char *format, PluginLine *line) {
     
@@ -280,7 +292,7 @@ int roadmap_navigate_fuzzify
     if (previous_line != NULL) {
         connected =
             roadmap_fuzzy_connected
-                (line, previous_line, &tracked->entry);
+              (line, previous_line, tracked->line_direction, &tracked->entry);
     } else {
         connected = roadmap_fuzzy_not (0);
     }
@@ -592,6 +604,12 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
                 roadmap_navigate_find_intersection (gps_position, &p_line);
             }
 
+            if (RoadMapRouteInfo.enabled) {
+
+               RoadMapRouteInfo.callbacks.update
+                           (&RoadMapLatestPosition,
+                            &RoadMapConfirmedLine.line);
+            }
             return; /* We are on the same street. */
         }
     }
@@ -620,22 +638,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     if (roadmap_fuzzy_is_acceptable (best)) {
 
+        PluginLine old_line = RoadMapConfirmedLine.line;
+
         if (roadmap_plugin_activate_db
                 (&RoadMapNeighbourhood[found].line) == -1) {
             return;
-        }
-
-        if (!roadmap_plugin_same_line
-              (&RoadMapConfirmedLine.line, &RoadMapNeighbourhood[found].line)) {
-            if (PLUGIN_VALID(RoadMapConfirmedLine.line)) {
-                roadmap_navigate_trace
-                    ("Quit street %N", &RoadMapConfirmedLine.line);
-            }
-            roadmap_navigate_trace
-                ("Enter street %N, %C|Enter street %N",
-                 &RoadMapNeighbourhood[found].line);
-
-            roadmap_display_hide ("Approach");
         }
 
         RoadMapConfirmedLine   = RoadMapNeighbourhood[found];
@@ -655,6 +662,28 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
            PluginLine p_line;
            roadmap_navigate_find_intersection (gps_position, &p_line);
         }
+
+        if (!roadmap_plugin_same_line
+              (&RoadMapConfirmedLine.line, &old_line)) {
+            if (PLUGIN_VALID(old_line)) {
+                roadmap_navigate_trace
+                    ("Quit street %N", &old_line);
+            }
+            roadmap_navigate_trace
+                ("Enter street %N, %C|Enter street %N",
+                 &RoadMapConfirmedLine.line);
+
+            roadmap_display_hide ("Approach");
+
+            if (RoadMapRouteInfo.enabled) {
+
+               RoadMapRouteInfo.callbacks.get_next_line
+                  (&RoadMapConfirmedLine.line,
+                   RoadMapConfirmedStreet.line_direction,
+                   &RoadMapRouteInfo.next_line);
+            }
+        }
+
 
     } else {
 
@@ -681,4 +710,48 @@ void roadmap_navigate_initialize (void) {
     roadmap_config_declare_enumeration
         ("session", &RoadMapNavigateFlag, "yes", "no", NULL);
 }
+
+
+void roadmap_navigate_route (RoadMapNavigateRouteCB callbacks) {
+
+   RoadMapRouteInfo.callbacks = callbacks;
+
+   if (RoadMapConfirmedStreet.valid) {
+
+      RoadMapRouteInfo.current_line = RoadMapConfirmedLine.line;
+
+      callbacks.get_next_line (&RoadMapConfirmedLine.line,
+                               RoadMapConfirmedStreet.line_direction,
+                               &RoadMapRouteInfo.next_line);
+   }
+
+   RoadMapRouteInfo.enabled = 1;
+}
+
+
+void roadmap_navigate_end_route (RoadMapNavigateRouteCB callbacks) {
+
+   RoadMapRouteInfo.enabled = 0;
+}
+
+
+int roadmap_navigate_get_current (RoadMapPosition *position,
+                                   PluginLine *line,
+                                   int *direction) {
+
+   *position = RoadMapLatestPosition;
+   
+   if (RoadMapConfirmedStreet.valid) {
+      
+      *line = RoadMapConfirmedLine.line;
+      *direction = RoadMapConfirmedStreet.line_direction;
+      return 0;
+   } else {
+
+      line->plugin_id = -1;
+      *direction = ROUTE_DIRECTION_NONE;
+      return -1;
+   }
+}
+
 

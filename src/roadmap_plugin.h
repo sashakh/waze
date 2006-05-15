@@ -26,7 +26,9 @@
 #define INCLUDE__ROADMAP_PLUGIN__H
 
 #include "roadmap_canvas.h"
+#include "roadmap_screen.h"
 
+#define INVALID_PLUGIN_ID -1
 #define ROADMAP_PLUGIN_ID 0
 
 #define PLUGIN_MAKE_LINE(plugin_id, line_id, cfcc, fips) \
@@ -72,6 +74,13 @@ void roadmap_plugin_get_street (const PluginLine *line, PluginStreet *street);
 void roadmap_plugin_line_from (const PluginLine *line, RoadMapPosition *pos);
 
 void roadmap_plugin_line_to (const PluginLine *line, RoadMapPosition *pos);
+
+void roadmap_plugin_get_line_points (const PluginLine *line,
+                                     RoadMapPosition  *from_pos,
+                                     RoadMapPosition  *to_pos,
+                                     int              *first_shape,
+                                     int              *last_shape,
+                                     RoadMapShapeItr  *shape_itr);
 
 int roadmap_plugin_get_id (const PluginLine *line);
 
