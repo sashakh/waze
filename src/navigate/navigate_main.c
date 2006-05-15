@@ -502,8 +502,10 @@ void navigate_main_calc_route () {
    PluginLine from_line;
    int from_point;
    int use_gps_location = (strcmp (roadmap_trip_get_focus_name (), "GPS") == 0);
+   use_gps_location = 0;
 
    NavigateDestination.plugin_id = INVALID_PLUGIN_ID;
+   NavigateTrackEnabled = 0;
 
    NavigateNumSegments = MAX_NAV_SEGEMENTS;
 
@@ -543,11 +545,15 @@ void navigate_main_calc_route () {
 
       snprintf(msg, sizeof(msg), "Length: %.1f km\nTime: %.1f minutes",
             length/1000.0, track_time/60.0);
-      NavigateTrackEnabled = 1;
-      NavigateCurrentSegment = 0;
 
-      roadmap_trip_stop ();
-      roadmap_navigate_route (NavigateCallbacks);
+      NavigateTrackEnabled = 1;
+
+      if (use_gps_location) {
+         NavigateCurrentSegment = 0;
+
+         roadmap_trip_stop ();
+         roadmap_navigate_route (NavigateCallbacks);
+      }
 
       roadmap_screen_redraw ();
       roadmap_messagebox ("Route found", msg);
@@ -575,9 +581,15 @@ void navigate_main_screen_repaint (int max_pen) {
          }
 
          if (width != current_width) {
-            roadmap_canvas_select_pen (NavigatePen);
+
+            RoadMapPen previous_pen;
+            previous_pen = roadmap_canvas_select_pen (NavigatePen);
             roadmap_canvas_set_thickness (width);
             current_width = width;
+
+            if (previous_pen) {
+               roadmap_canvas_select_pen (previous_pen);
+            }
          }
 
          last_cfcc = segment->line.cfcc;

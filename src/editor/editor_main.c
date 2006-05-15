@@ -40,7 +40,7 @@
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.6 pre3";
+const char *EDITOR_VERSION = "0.6.0";
 
 int editor_is_enabled (void) {
    return EditorEnabled;
