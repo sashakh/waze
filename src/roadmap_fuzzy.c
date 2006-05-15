@@ -35,6 +35,7 @@
 #include "roadmap_line.h"
 #include "roadmap_locator.h"
 #include "roadmap_plugin.h"
+#include "roadmap_line_route.h"
 
 #include "roadmap_fuzzy.h"
 
@@ -128,6 +129,7 @@ RoadMapFuzzy roadmap_fuzzy_distance  (int distance) {
 RoadMapFuzzy roadmap_fuzzy_connected
                  (const RoadMapNeighbour *street,
                   const RoadMapNeighbour *reference,
+                        int               direction,
                         RoadMapPosition  *connection) {
 
     /* The logic for the connection membership function is that
@@ -163,8 +165,27 @@ RoadMapFuzzy roadmap_fuzzy_connected
         for (j = 0; j <= 1; ++j) {
             if ((line_point[i].latitude == reference_point[j].latitude) &&
                 (line_point[i].longitude == reference_point[j].longitude)) {
-                *connection = line_point[i];
-                return (FUZZY_TRUTH_MAX * 2) / 3;
+               
+               if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
+
+                  if (i == 0) {
+                     /* we are heading out of this road */
+
+                     return roadmap_fuzzy_false ();
+                  }
+
+               } else {
+
+                  if (i == 1) {
+                     /* we are heading out of this road */
+
+                     return roadmap_fuzzy_false ();
+                  }
+               }
+
+               *connection = line_point[i];
+
+               return (FUZZY_TRUTH_MAX * 2) / 3;
             }
         }
     }
