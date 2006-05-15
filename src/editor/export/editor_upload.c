@@ -162,7 +162,7 @@ static int editor_http_send (RoadMapSocket socket,
    fwrite (buffer, length, 1, dbg_file);
    if (roadmap_net_send (socket, buffer, length) != length) {
       error ("send error on: %s", buffer);
-      return 0;
+      return -1;
    }
    return length;
 }
@@ -203,7 +203,7 @@ static void send_auth(const char *user, const char *pw, RoadMapSocket fd,
 }
 
 
-static int editor_http_send_header (const char *target,
+static RoadMapSocket editor_http_send_header (const char *target,
                                      const char *full_name,
                                      size_t size,
                                      const char *user,
@@ -222,7 +222,7 @@ static int editor_http_send_header (const char *target,
    host = strdup(target);
    if (host == NULL) {
       error ("no more memory");
-      return 0;
+      return ROADMAP_INVALID_SOCKET;
    }
 
 
@@ -232,7 +232,7 @@ static int editor_http_send_header (const char *target,
    if (path == NULL) {
       error ("bad URL syntax in: %s", host);
       free (host);
-      return 0;
+      return ROADMAP_INVALID_SOCKET;
    }
    *path = 0; /* Isolate the host string. */
 
@@ -240,36 +240,71 @@ static int editor_http_send_header (const char *target,
    if (path == NULL) {
       error ("bad URL syntax in: %s", target);
       free (host);
-      return 0;
+      return ROADMAP_INVALID_SOCKET;
    }
 
    /* Connect to the server (roadmap_net understands the "host:port"
     * syntax).
     */
    fd = roadmap_net_connect ("tcp", host, 80);
-   if (fd >= 0) {
+   if (ROADMAP_NET_IS_VALID(fd)) {
       const char *filename = roadmap_path_skip_directories (full_name);
       char *p = strchr(host, ':');
 
       if (p != NULL) *p = 0; /* remove the port/service info. */
 
-      editor_http_send (fd, error, "POST %s HTTP/1.0\r\n", path);
-      editor_http_send (fd, error, "Host: %s\r\n", host);
+      if (editor_http_send (fd, error, "POST %s HTTP/1.0\r\n", path) == -1)
+         goto send_error;
+
+      if (editor_http_send (fd, error, "Host: %s\r\n", host) == -1)
+         goto send_error;
       
       send_auth (user, pw, fd, error);
 
-      editor_http_send (fd, error, "Content-Type: multipart/form-data; boundary=---------------------------10424402741337131014341297293\r\n");
-      editor_http_send (fd, error, "Content-Length: %d\r\n", size + 261 + strlen(filename));
-      editor_http_send (fd, error, "\r\n");
-      editor_http_send (fd, error, "-----------------------------10424402741337131014341297293\r\n");
-      editor_http_send (fd, error, "Content-disposition: form-data; name=\"file_0\"; filename=\"%s\"\r\n", filename);
-      editor_http_send (fd, error, "Content-type: application/octet-stream\r\n");
-      editor_http_send (fd, error, "Content-Transfer-Encoding: binary\r\n\r\n");
+      if (editor_http_send (fd, error,
+               "Content-Type: multipart/form-data; boundary=---------------------------10424402741337131014341297293\r\n") == -1) {
+         goto send_error;
+      }
+
+      if (editor_http_send (fd, error, "Content-Length: %d\r\n",
+               size + 261 + strlen(filename)) == -1) {
+         goto send_error;
+      }
+
+      if (editor_http_send (fd, error, "\r\n") == -1) goto send_error;
+
+      if (editor_http_send (fd, error,
+               "-----------------------------10424402741337131014341297293\r\n") == -1) {
+         goto send_error;
+      }
+
+      if (editor_http_send (fd, error,
+               "Content-disposition: form-data; name=\"file_0\"; filename=\"%s\"\r\n",
+               filename) == -1) {
+         goto send_error;
+      }
+
+      if (editor_http_send (fd, error,
+               "Content-type: application/octet-stream\r\n") == -1) {
+         goto send_error;
+      }
+
+      if (editor_http_send (fd, error,
+               "Content-Transfer-Encoding: binary\r\n\r\n") == -1) {
+         goto send_error;
+      }
+
+   } else {
+      error ("Can't connect to server: %s", host);
    }
 
    free (host);
-
    return fd;
+
+send_error:
+   free (host);
+   roadmap_net_close (fd);
+   return ROADMAP_INVALID_SOCKET;
 }
 
 
@@ -393,7 +428,7 @@ static int editor_post_file (const char *target,
 
    RoadMapFile file = roadmap_file_open (file_name, "r");
 
-   if (!ROADMAP_FILE_IS_VALID(file)) {
+   if (!ROADMAP_NET_IS_VALID(file)) {
       editor_upload_error ("Can't open file: %s\n", file_name);
       return 0;
    }
@@ -404,7 +439,7 @@ static int editor_post_file (const char *target,
    RoadMapUploadCurrentName = file_name;
 
    fd = editor_http_send_header (target, file_name, size, user_name, password, editor_upload_error);
-   if (fd < 0) {
+   if (!ROADMAP_NET_IS_VALID(fd)) {
       return 0;
    }
 
@@ -430,6 +465,8 @@ static int editor_post_file (const char *target,
 
    editor_http_send (fd, editor_upload_error, "\r\n-----------------------------10424402741337131014341297293--\r\n");
    fflush (dbg_file);
+
+   loaded = sizeof(buffer);
    if (!editor_http_decode_response
              (fd, buffer, &loaded, editor_upload_error)) {
       goto cancel_upload;
@@ -492,7 +529,7 @@ void editor_upload_file (const char *filename) {
       roadmap_dialog_new_label  (".file", "Name");
       roadmap_dialog_new_entry  (".file", "To", NULL);
       roadmap_dialog_new_entry  (".file", "User Name", NULL);
-      roadmap_dialog_new_entry  (".file", "Password", NULL);
+      roadmap_dialog_new_password  (".file", "Password");
 
       roadmap_dialog_add_button ("OK", editor_upload_ok);
       roadmap_dialog_add_button ("Cancel", editor_upload_cancel);
@@ -536,6 +573,6 @@ void editor_upload_initialize (void) {
       "http://www.freemap.co.il/upload/upload_rm.php");
 
    roadmap_config_declare ("preferences", &RoadMapConfigUser, "");
-   roadmap_config_declare ("preferences", &RoadMapConfigPassword, "");
+   roadmap_config_declare_password ("preferences", &RoadMapConfigPassword, "");
 }
 
