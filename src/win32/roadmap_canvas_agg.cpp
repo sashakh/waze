@@ -85,9 +85,17 @@ agg::rgba8 roadmap_canvas_agg_parse_color (const char *color) {
 	int high, i, low;
 	
 	if (*color == '#') {
-		int r, g, b;
-		sscanf(color, "#%2x%2x%2x", &r, &g, &b);
-      return agg::rgba8(r, g, b);
+		int r, g, b, a;
+      int count;
+      
+		count = sscanf(color, "#%2x%2x%2x%2x", &r, &g, &b, &a);
+
+      if (count == 4) {    
+         return agg::rgba8(r, g, b, a);
+      } else {
+         return agg::rgba8(r, g, b);
+      }
+
 	} else {
 		/* Do binary search on color table */
 		for (low=(-1), high=sizeof(color_table)/sizeof(color_table[0]);

@@ -86,6 +86,20 @@ agg::rgba8 roadmap_canvas_agg_parse_color (const char *color) {
 
    GdkColor native_color;
 
+	if (*color == '#') {
+		int r, g, b, a;
+      int count;
+      
+		count = sscanf(color, "#%2x%2x%2x%2x", &r, &g, &b, &a);
+
+      if (count == 4) {    
+         return agg::rgba8(r, g, b, a);
+      } else {
+         return agg::rgba8(r, g, b);
+      }
+
+	}
+
    gdk_color_parse (color, &native_color);
    gdk_color_alloc (gdk_colormap_get_system(), &native_color);
 

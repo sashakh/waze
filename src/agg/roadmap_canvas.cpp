@@ -211,6 +211,14 @@ void roadmap_canvas_set_foreground (const char *color) {
 }
 
 
+int  roadmap_canvas_get_thickness  (RoadMapPen pen) {
+
+   if (pen == NULL) return 0;
+
+   return pen->thickness;
+}
+
+
 void roadmap_canvas_set_thickness (int thickness) {
 
    if (CurrentPen && (CurrentPen->thickness != thickness)) {
