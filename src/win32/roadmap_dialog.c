@@ -46,6 +46,7 @@ extern HINSTANCE g_hInst;
 #define ROADMAP_WIDGET_BUTTON    3
 #define ROADMAP_WIDGET_LIST      4
 #define ROADMAP_WIDGET_LABEL     5
+#define ROADMAP_WIDGET_PASSWORD  6
 
 const unsigned int MAX_ROW_HEIGHT = 20;
 const unsigned int MAX_ROW_SPACE = 5;
@@ -296,6 +297,14 @@ void roadmap_dialog_new_entry (const char *frame, const char *name,
 }
 
 
+void roadmap_dialog_new_password (const char *frame, const char *name)
+{
+	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
+	
+   child->widget_type = ROADMAP_WIDGET_PASSWORD;
+}
+
+
 void roadmap_dialog_new_label (const char *frame, const char *name)
 {
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
@@ -540,6 +549,8 @@ void *roadmap_dialog_get_data (const char *frame, const char *name)
 	this_item   = roadmap_dialog_get (this_frame, name);
 	
 	switch (this_item->widget_type) {
+
+   case ROADMAP_WIDGET_PASSWORD:
 	case ROADMAP_WIDGET_ENTRY:
 		{
 			GetWindowText(this_item->w, str, sizeof(str)/sizeof(str[0]));
@@ -567,6 +578,8 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
 	this_item   = roadmap_dialog_get (this_frame, name);
 	
 	switch (this_item->widget_type) {
+
+   case ROADMAP_WIDGET_PASSWORD:
 	case ROADMAP_WIDGET_ENTRY:
 	case ROADMAP_WIDGET_LABEL:
 		{
@@ -652,6 +665,8 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 	}
 
 	switch (item->widget_type) {
+
+   case ROADMAP_WIDGET_PASSWORD:
 	case ROADMAP_WIDGET_ENTRY:
 		name_unicode = ConvertToWideChar(title, CP_UTF8);
 		item->label = CreateWindowEx (
@@ -669,6 +684,11 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 			NULL);                // Specify NULL for this parameter when you 
 
 		dwStyle |= WS_BORDER|ES_AUTOHSCROLL;
+	   
+      if (item->widget_type == ROADMAP_WIDGET_PASSWORD) {
+         dwStyle |= ES_PASSWORD;
+      }
+
 		item->w = CreateWindowEx (
 			0,
 			_T("EDIT"),           // Class name

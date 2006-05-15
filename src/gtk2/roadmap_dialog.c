@@ -49,6 +49,7 @@
 #define ROADMAP_WIDGET_BUTTON    3
 #define ROADMAP_WIDGET_LIST      4
 #define ROADMAP_WIDGET_LABEL     5
+#define ROADMAP_WIDGET_PASSWORD  6
 
 enum {
     RM_LIST_WAYPOINT_NAME,
@@ -400,6 +401,15 @@ void roadmap_dialog_new_entry (const char *frame, const char *name,
 }
 
 
+void roadmap_dialog_new_password (const char *frame, const char *name) {
+
+   GtkWidget *w = gtk_entry_new ();
+   gtk_entry_set_visibility(GTK_ENTRY(w), FALSE);
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
+   child->widget_type = ROADMAP_WIDGET_PASSWORD;
+}
+
+
 void roadmap_dialog_new_label (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_label_new (name);
@@ -746,6 +756,7 @@ void *roadmap_dialog_get_data (const char *frame, const char *name) {
 
    switch (this_item->widget_type) {
 
+   case ROADMAP_WIDGET_PASSWORD:
    case ROADMAP_WIDGET_ENTRY:
 
       return (void *)gtk_entry_get_text (GTK_ENTRY(this_item->w));
@@ -768,6 +779,7 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
 
    switch (this_item->widget_type) {
 
+   case ROADMAP_WIDGET_PASSWORD:
    case ROADMAP_WIDGET_ENTRY:
 
       gtk_entry_set_text (GTK_ENTRY(this_item->w), (const char *)data);
