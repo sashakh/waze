@@ -32,6 +32,7 @@ int  buildmap_dglib_add
         unsigned char to_max_speed,
         unsigned short from_cross_time,
         unsigned short to_cross_time,
+        unsigned char  layer,
         int line);
 
 void buildmap_dglib_sort (void);

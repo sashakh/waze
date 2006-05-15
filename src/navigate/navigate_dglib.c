@@ -32,10 +32,12 @@
 #include "graph.h"
 #include "roadmap.h"
 #include "roadmap_path.h"
+#include "roadmap_line.h"
 #include "roadmap_locator.h"
 #include "roadmap_turns.h"
 #include "roadmap_metadata.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_line_route.h"
 
 #include "navigate_main.h"
 #include "navigate_graph.h"
@@ -53,7 +55,9 @@ static int  clipper     (
 {       
    if ( roadmap_turns_find_restriction (
             dglNodeGet_Id(pgraph, pIn->pnNodeFrom),
-            dglEdgeGet_Id(pgraph, pIn->pnPrevEdge),
+            pIn->pnPrevEdge != NULL ?
+               dglEdgeGet_Id(pgraph, pIn->pnPrevEdge) :
+               (int) pvarg,
             dglEdgeGet_Id(pgraph, pIn->pnEdge))) {
             /*
             printf( "        discarder.\n" );
@@ -120,7 +124,12 @@ int navigate_load_data (void) {
 }
 
 
-int navigate_get_route_segments (int from, int to, int *segments, int *size) {
+int navigate_get_route_segments (PluginLine *from_line,
+                                 int from_point,
+                                 PluginLine *to_line,
+                                 int to_point,
+                                 NavigateSegment *segments,
+                                 int *size) {
    
    int i;
    int nret;
@@ -129,7 +138,11 @@ int navigate_get_route_segments (int from, int to, int *segments, int *size) {
 
    if (fips_data_loaded != roadmap_locator_active ()) return -1;
 
-   nret = dglShortestPath (&graph, &pReport, from, to, clipper, NULL, &spCache);
+   /* save places for start & end lines */
+   *size -= 2;
+
+   nret = dglShortestPath (&graph, &pReport, from_point, to_point,
+                           clipper, (void *)from_line->line_id, NULL);
    if (nret <= 0) return nret;
 
    if (pReport->cArc > *size) return -1;
@@ -137,11 +150,43 @@ int navigate_get_route_segments (int from, int to, int *segments, int *size) {
    total_cost = pReport->nDistance;
    *size = pReport->cArc;
 
-   for(i=0; i < pReport->cArc ;i++) {
-      segments[i] = dglEdgeGet_Id(&graph, pReport->pArc[i].pnEdge);
-      if (segments[i] < 0) {
-         segments[i] = abs(segments[i]);
+   /* add starting line */
+   if (abs(dglEdgeGet_Id(&graph, pReport->pArc[0].pnEdge)) !=
+         from_line->line_id) {
+
+      int tmp_from;
+      int tmp_to;
+      
+      /* FIXME no plugin support */
+      roadmap_line_points (from_line->line_id, &tmp_from, &tmp_to);
+
+      segments[0].line = *from_line;
+
+      if (from_point == tmp_from) {
+         segments[0].line_direction = ROUTE_DIRECTION_AGAINST_LINE;
+      } else {
+         segments[0].line_direction = ROUTE_DIRECTION_WITH_LINE;
       }
+
+      segments++;
+      (*size)++;
+   }
+
+
+   for(i=0; i < pReport->cArc ;i++) {
+      segments[i].line.plugin_id = ROADMAP_PLUGIN_ID;
+      segments[i].line.line_id = dglEdgeGet_Id(&graph, pReport->pArc[i].pnEdge);
+      segments[i].line.fips = roadmap_locator_active ();
+      segments[i].line.cfcc = *(unsigned char *)
+         dglEdgeGet_Attr(&graph, pReport->pArc[i].pnEdge);
+      if (segments[i].line.line_id < 0) {
+         segments[i].line.line_id = abs(segments[i].line.line_id);
+         segments[i].line_direction = ROUTE_DIRECTION_AGAINST_LINE;
+
+      } else {
+         segments[i].line_direction = ROUTE_DIRECTION_WITH_LINE;
+      }
+
 /*
       printf(  "edge[%d]: from %ld to %ld - travel cost %ld - user edgeid %ld - distance from start node %ld\n" ,
             i,
@@ -153,6 +198,17 @@ int navigate_get_route_segments (int from, int to, int *segments, int *size) {
             );
             */
    }
+
+   /* add ending line */
+
+   /* FIXME no plugin support */
+   if (segments[i-1].line.line_id != to_line->line_id) {
+      segments[i].line = *to_line;
+      /* TODO destination line should have a direction */
+      segments[i].line_direction = ROUTE_DIRECTION_NONE;
+      (*size)++;
+   }
+
    dglFreeSPReport(&graph, pReport);
 
    return total_cost;

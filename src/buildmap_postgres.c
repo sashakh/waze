@@ -68,7 +68,7 @@
 /* ROADS */
 
 static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
-static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time FROM segments;";
+static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments;";
 static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM water;";
 static const char *turn_restrictions_sql = "SELECT node_id, seg1_id, seg2_id FROM turn_restrictions;";
@@ -343,6 +343,7 @@ static void buildmap_postgres_read_roads_route (int verbose) {
    unsigned char to_max_speed;
    unsigned short from_cross_time;
    unsigned short to_cross_time;
+   unsigned char layer;
   
    PGresult *db_result;
 
@@ -377,6 +378,7 @@ static void buildmap_postgres_read_roads_route (int verbose) {
       to_max_speed    = atoi(PQgetvalue(db_result, irec, column++));
       from_cross_time = atoi(PQgetvalue(db_result, irec, column++));
       to_cross_time   = atoi(PQgetvalue(db_result, irec, column++));
+      layer =           (unsigned char) pg2layer (atoi(PQgetvalue(db_result, irec, column++)));
 
       line = buildmap_line_find_sorted(tlid);
 
@@ -387,7 +389,7 @@ static void buildmap_postgres_read_roads_route (int verbose) {
 
       buildmap_dglib_add
          (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
-          from_cross_time, to_cross_time,
+          from_cross_time, to_cross_time, layer,
           line);
    }
 

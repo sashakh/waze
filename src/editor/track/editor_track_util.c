@@ -549,7 +549,9 @@ int editor_track_util_find_street
 
             if (roadmap_fuzzy_is_certain (
                   roadmap_fuzzy_connected
-                     (&neighbourhood[i], previous_line, &connection))) {
+                     (&neighbourhood[i], previous_line,
+                      candidate.line_direction,
+                      &connection))) {
                
                if (roadmap_math_distance
                      (&connection, (RoadMapPosition *) gps_position) >=

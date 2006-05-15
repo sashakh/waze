@@ -41,7 +41,7 @@ static RoadMapPluginHooks navigate_plugin_hooks = {
       NULL,
       NULL,
       &navigate_main_override_pen,
-      NULL,
+      &navigate_main_screen_repaint,
       NULL,
       NULL,
       NULL,
