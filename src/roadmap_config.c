@@ -256,6 +256,17 @@ void roadmap_config_declare (const char *config,
 }
 
 
+void roadmap_config_declare_password (const char *config,
+                                      RoadMapConfigDescriptor *descriptor,
+                                      const char *default_value) {
+
+   RoadMapConfig *file = roadmap_config_search_file (config);
+
+   roadmap_config_new_item
+      (file, descriptor, default_value, ROADMAP_CONFIG_PASSWORD);
+}
+
+
 RoadMapConfigItem *roadmap_config_declare_enumeration (const char *config,
                                          RoadMapConfigDescriptor *descriptor,
                                          const char *enumeration_value, ...) {

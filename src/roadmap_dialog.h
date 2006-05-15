@@ -77,6 +77,9 @@ void roadmap_dialog_new_label (const char *frame, const char *name);
 void roadmap_dialog_new_entry (const char *frame, const char *name,
                                RoadMapDialogCallback callback);
 
+/* Add one hidden text entry item to the current dialog. */
+void roadmap_dialog_new_password (const char *frame, const char *name);
+
 /* Add one color selection item to to the current dialog. */
 void roadmap_dialog_new_color (const char *frame, const char *name);
 

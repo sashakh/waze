@@ -196,6 +196,11 @@ static void roadmap_preferences_new_dialog
          roadmap_dialog_new_entry (cursor->category, cursor->name, NULL);
          break;
 
+      case ROADMAP_CONFIG_PASSWORD:
+
+         roadmap_dialog_new_password (cursor->category, cursor->name);
+         break;
+
       default:
          roadmap_log (ROADMAP_FATAL,
                       "invalid preference item type %d",

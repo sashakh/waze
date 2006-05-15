@@ -32,6 +32,7 @@
 #define ROADMAP_CONFIG_STRING   0
 #define ROADMAP_CONFIG_ENUM     1
 #define ROADMAP_CONFIG_COLOR    2
+#define ROADMAP_CONFIG_PASSWORD 3
 
 
 struct RoadMapConfigItemRecord;
@@ -53,6 +54,10 @@ typedef struct {
 
 
 void roadmap_config_declare
+        (const char *file,
+         RoadMapConfigDescriptor *descriptor, const char *default_value);
+
+void roadmap_config_declare_password
         (const char *file,
          RoadMapConfigDescriptor *descriptor, const char *default_value);
 
