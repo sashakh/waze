@@ -158,8 +158,9 @@ void roadmap_canvas_get_text_extents
 }
 
 
-void roadmap_canvas_select_pen (RoadMapPen pen)
+RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen)
 {
+   RoadMapPen old_pen = CurrentPen;
    dbg_time_start(DBG_TIME_SELECT_PEN);
    if (!CurrentPen || (pen->thickness != CurrentPen->thickness)) {
       profile.width(pen->thickness);
@@ -170,7 +171,7 @@ void roadmap_canvas_select_pen (RoadMapPen pen)
 
    dbg_time_end(DBG_TIME_SELECT_PEN);
 
-   return;  
+   return old_pen;
 }
 
 

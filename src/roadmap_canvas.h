@@ -77,7 +77,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name);
 /* This calls make the given pen the default context when drawing
  * on the canvas.
  */
-void roadmap_canvas_select_pen (RoadMapPen pen);
+RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen);
 
 
 /* Set properties for the current pen:
