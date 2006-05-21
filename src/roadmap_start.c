@@ -348,6 +348,12 @@ static void roadmap_start_toggle_download (void) {
 }
 
 
+static void roadmap_start_detect_receiver (void) {
+    
+    roadmap_gps_detect_receiver ();
+}
+
+
 /* The RoadMap menu and toolbar items: ----------------------------------- */
 
 /* This table lists all the RoadMap actions that can be initiated
@@ -531,6 +537,8 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"uploadgpx", "Upload GPX file", NULL, NULL,
       "Export editor data", roadmap_start_upload_gpx},
+   {"detectreceiver", "Detect GPS receiver", NULL, NULL,
+      "Auto-detect GPS receiver", roadmap_start_detect_receiver},
 
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
@@ -636,6 +644,9 @@ static const char *RoadMapStartMenu[] = {
    "addaswaypoint",
    "deletewaypoints",
 
+   ROADMAP_MENU "Tools",
+
+   "detectreceiver",
 
    ROADMAP_MENU "Help",
 

@@ -55,6 +55,7 @@ int   roadmap_serial_read  (RoadMapSerial serial, void *data, int size);
 int   roadmap_serial_write (RoadMapSerial serial, const void *data, int length);
 void  roadmap_serial_close (RoadMapSerial serial);
 const int *roadmap_serial_enumerate (void);
+const char **roadmap_serial_get_speeds (void);
 
 #endif // INCLUDE__ROADMAP_FILE__H
 
