@@ -318,6 +318,26 @@ int editor_trkseg_split (int trkseg,
       from = to;
    }
 
+   if (flags & ED_TRKSEG_OPPOSITE_DIR) {
+      to = *line_from;
+   } else {
+      to = *line_to;
+   }
+
+   distance =
+      roadmap_math_get_distance_from_segment
+      (split_position, &from, &to, &intersection);
+
+   if (distance < smallest_distance) {
+      smallest_distance = distance;
+      result.from = from;
+      result.to = to;
+      result.intersection = intersection;
+      split_shape_point = i;
+      /* split_time is the time of the previous shape */
+      split_time = shape_time;
+   }
+
    //roadmap_math_release_focus ();
 
    if (smallest_distance == 0x7fffffff) {
@@ -350,8 +370,9 @@ int editor_trkseg_split (int trkseg,
       return new_trkseg_id;
    }
 
-   if ((split_shape_point == last_shape) &&
-         !roadmap_math_compare_points (&result.to, &result.intersection)) {
+   if ((split_shape_point > last_shape) ||
+         ((split_shape_point == last_shape) &&
+         !roadmap_math_compare_points (&result.to, &result.intersection))) {
 
       /* the split is after the trkseg points */
          
