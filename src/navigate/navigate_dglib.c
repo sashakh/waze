@@ -203,9 +203,19 @@ int navigate_get_route_segments (PluginLine *from_line,
 
    /* FIXME no plugin support */
    if (segments[i-1].line.line_id != to_line->line_id) {
+
+      int from_point;
+      int to_point;
       segments[i].line = *to_line;
-      /* TODO destination line should have a direction */
-      segments[i].line_direction = ROUTE_DIRECTION_NONE;
+      roadmap_line_points (to_line->line_id, &from_point, &to_point);
+      
+      if (from_point == dglNodeGet_Id(&graph, &pReport->nDestinationNode)) {
+         
+         segments[i].line_direction = ROUTE_DIRECTION_WITH_LINE;
+      } else {
+
+         segments[i].line_direction = ROUTE_DIRECTION_AGAINST_LINE;
+      }
       (*size)++;
    }
 

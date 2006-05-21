@@ -26,6 +26,9 @@
 
 #include "roadmap_canvas.h"
 
+#define LAYER_VISIBLE_ROADS   1
+#define LAYER_ALL_ROADS       2
+
 int  roadmap_layer_max_pen(void);
 
 int roadmap_layer_all_roads (int *layers, int size);

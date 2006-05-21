@@ -288,8 +288,12 @@ int roadmap_turns_find_restriction (int node, int from_line, int to_line) {
    if (!i) return 0;
 
    for (; first_turn <= last_turn; first_turn++) {
+
       if ((RoadMapTurnsActive->Turns[first_turn].from_line == from_line) &&
-            RoadMapTurnsActive->Turns[first_turn].to_line == to_line) return 1;
+            RoadMapTurnsActive->Turns[first_turn].to_line == to_line) {
+
+         return 1;
+      }
    }
 
    return 0;

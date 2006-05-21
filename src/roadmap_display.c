@@ -125,7 +125,7 @@ RoadMapSign RoadMapStreetSign[] = {
     ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "yellow", "black"),
     ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "yellow", "black"),
     ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "red", "white"),
-    ROADMAP_SIGN("GPS", "Driving Instruction", SIGN_TOP, NULL, "red", "white"),
+    ROADMAP_SIGN("GPS", "Driving Instruction", SIGN_TOP, "In %D %I", "red", "white"),
     ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
 };
 
@@ -457,7 +457,7 @@ void roadmap_display_page (const char *name) {
 
 int roadmap_display_activate
         (const char *title,
-         PluginLine *line,
+         const PluginLine *line,
          const RoadMapPosition *position,
          PluginStreet *street) {
 
@@ -568,6 +568,18 @@ void roadmap_display_hide (const char *title) {
     }
 }
 
+
+void roadmap_display_show (const char *title) {
+    
+    RoadMapSign *sign;
+
+    sign = roadmap_display_search_sign (title);
+    if (sign != NULL) {
+        sign->deadline = -1;
+    }
+}
+
+
 static void roadmap_display_console_box
                 (int corner, RoadMapConfigDescriptor *item) {
     
@@ -670,7 +682,9 @@ void roadmap_display_signs (void) {
             (RoadMapDisplayPage == NULL) ||
             (! strcmp (sign->page, RoadMapDisplayPage))) {
 
-           if (sign->deadline > now && sign->content != NULL) {
+           if ( ((sign->deadline == -1) || (sign->deadline > now))
+                     && sign->content != NULL) {
+
                roadmap_display_sign (sign);
            }
         }

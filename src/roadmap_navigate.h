@@ -66,10 +66,8 @@ void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
 int roadmap_navigate_retrieve_line
-        (const RoadMapPosition *position,
-         int accuracy,
-         PluginLine *line,
-         int *distance);
+        (const RoadMapPosition *position, int accuracy, PluginLine *line,
+         int *distance, int type);
 
 void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position);
 

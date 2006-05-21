@@ -394,7 +394,7 @@ void roadmap_plugin_get_street (const PluginLine *line, PluginStreet *street) {
 }
 
 
-const char *roadmap_plugin_street_full_name (PluginLine *line) {
+const char *roadmap_plugin_street_full_name (const PluginLine *line) {
 
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
 
@@ -422,7 +422,7 @@ const char *roadmap_plugin_street_full_name (PluginLine *line) {
 }
 
 
-void roadmap_plugin_get_street_properties (PluginLine *line,
+void roadmap_plugin_get_street_properties (const PluginLine *line,
                                            PluginStreetProperties *props) {
    
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {

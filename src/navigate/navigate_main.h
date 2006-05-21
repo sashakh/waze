@@ -35,7 +35,7 @@ enum NavigateInstr {
    KEEP_LEFT,
    KEEP_RIGHT,
    CONTINUE,
-   APPROCHING_DESTINATION
+   APPROACHING_DESTINATION
 };
 
 typedef struct {
@@ -44,6 +44,7 @@ typedef struct {
    PluginStreet         street;
    RoadMapPosition      from_pos;
    RoadMapPosition      to_pos;
+   RoadMapPosition      shape_inital_pos;
    int                  first_shape;
    int                  last_shape;
    RoadMapShapeItr      shape_itr;

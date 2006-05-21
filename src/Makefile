@@ -181,9 +181,9 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/db/editor_square.c \
              editor/db/editor_route.c \
              editor/db/editor_dictionary.c \
-             buildmap_dbwrite.c \
-				 buildmap_metadata.c \
-             buildmap_messages.c \
+	     buildmap_dbwrite.c \
+	     buildmap_metadata.c \
+	     buildmap_messages.c \
              editor/db/editor_override.c \
              editor/export/editor_export.c \
              editor/export/editor_upload.c \
@@ -193,10 +193,10 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/track/editor_track_main.c \
              editor/track/editor_track_unknown.c \
              editor/track/editor_track_known.c \
-             editor/db/editor_db.c \
-				 navigate/navigate_main.c \
-				 navigate/navigate_plugin.c \
-				 navigate/navigate_dglib.c \
+	     editor/db/editor_db.c \
+	     navigate/navigate_main.c \
+	     navigate/navigate_plugin.c \
+	     navigate/navigate_dglib.c \
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 

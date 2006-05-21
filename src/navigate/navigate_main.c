@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "type.h"
 #include "graph.h"
 
@@ -35,6 +36,8 @@
 #include "roadmap_plugin.h"
 #include "roadmap_line.h"
 #include "roadmap_display.h"
+#include "roadmap_message.h"
+#include "roadmap_voice.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_canvas.h"
 #include "roadmap_street.h"
@@ -78,6 +81,9 @@ static int NavigateNumSegments = 0;
 static int NavigateCurrentSegment = 0;
 static PluginLine NavigateDestination = PLUGIN_LINE_NULL;
 static int NavigateDestPoint;
+static RoadMapPosition NavigateDestPos;
+static RoadMapPosition NavigateSrcPos;
+static int NavigateNextAnnounce;
 
 
 static int navigate_find_track_points (PluginLine *from_line, int *from_point,
@@ -101,6 +107,7 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
       if (roadmap_navigate_get_current (&pos, &line, &direction) != -1) {
 
+         NavigateSrcPos = pos;
          roadmap_line_points (line.line_id, &from_tmp, &to_tmp);
 
          if (direction == ROUTE_DIRECTION_WITH_LINE) {
@@ -113,11 +120,13 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
       } else {
          position = roadmap_trip_get_position ("GPS");
+         NavigateSrcPos = *position;
       }
 
    } else {
 
       position = roadmap_trip_get_position ("Departure");
+      NavigateSrcPos = *position;
    }
 
    if (*from_point == -1) {
@@ -125,7 +134,7 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
       if (!position) return -1;
 
       if ((roadmap_navigate_retrieve_line
-               (position, 20, &line, &distance) == -1) ||
+               (position, 20, &line, &distance, LAYER_ALL_ROADS) == -1) ||
             (roadmap_plugin_get_id (&line) != ROADMAP_PLUGIN_ID)) {
 
          roadmap_messagebox
@@ -174,8 +183,10 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
    position = roadmap_trip_get_position ("Destination");
    if (!position) return -1;
 
+   NavigateDestPos = *position;
+
    if ((roadmap_navigate_retrieve_line
-            (position, 20, &line, &distance) == -1) ||
+            (position, 20, &line, &distance, LAYER_ALL_ROADS) == -1) ||
          (roadmap_plugin_get_id (&line) != ROADMAP_PLUGIN_ID)) {
 
       roadmap_messagebox ("Error", "Can't find a road near destination point.");
@@ -199,10 +210,10 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
          }
          break;
       case ROUTE_DIRECTION_WITH_LINE:
-         roadmap_line_points (to_line->line_id, &to_tmp, to_point);
+         roadmap_line_points (to_line->line_id, to_point, &to_tmp);
          break;
       case ROUTE_DIRECTION_AGAINST_LINE:
-         roadmap_line_points (to_line->line_id, to_point, &to_tmp);
+         roadmap_line_points (to_line->line_id, &to_tmp, to_point);
          break;
       default:
          roadmap_line_points (to_line->line_id, &to_tmp, to_point);
@@ -230,11 +241,12 @@ static int navigate_main_calc_azymuth (NavigateSegment *seg, int type) {
 
          last_shape = seg->first_shape;
          shape_pos  = &end;
-         *shape_pos = seg->from_pos;
+         *shape_pos = seg->shape_inital_pos;
       } else {
 
          last_shape = seg->last_shape;
          shape_pos  = &start;
+         *shape_pos = seg->shape_inital_pos;
       }
 
       for (shape = seg->first_shape; shape <= last_shape; shape++) {
@@ -244,6 +256,155 @@ static int navigate_main_calc_azymuth (NavigateSegment *seg, int type) {
    }
 
    return roadmap_math_azymuth (&start, &end);
+}
+
+
+static void navigate_fix_line_end (RoadMapPosition *position,
+                                   NavigateSegment *segment,
+                                   int type) {
+
+   RoadMapPosition from;
+   RoadMapPosition to;
+   RoadMapPosition intersection;
+   int smallest_distance = 0x7fffffff;
+   int distance;
+   int seg_shape_end;
+   RoadMapPosition seg_end_pos;
+   RoadMapPosition seg_shape_initial;
+   int i;
+
+   if (segment->first_shape <= -1) {
+      
+      from = segment->from_pos;
+      to = segment->to_pos;
+   } else {
+
+      to = from = segment->from_pos;
+
+      for (i = segment->first_shape; i <= segment->last_shape; i++) {
+
+         segment->shape_itr (i, &to);
+
+         distance =
+            roadmap_math_get_distance_from_segment
+            (position, &from, &to, &intersection);
+
+         if (distance < smallest_distance) {
+
+            smallest_distance = distance;
+
+            if (type == LINE_START) {
+
+               seg_shape_end = i;
+               seg_end_pos = intersection;
+               seg_shape_initial = from;
+            } else {
+
+               seg_shape_end = i-1;
+               seg_end_pos = intersection;
+            }
+         }
+
+         from = to;
+      }
+
+      to = segment->to_pos;
+   }
+
+   distance =
+      roadmap_math_get_distance_from_segment
+      (position, &from, &to, &intersection);
+
+   if (distance < smallest_distance) {
+
+      seg_end_pos = intersection;
+      seg_shape_end = -1;
+   }
+
+   if (type == LINE_START) {
+      
+      segment->from_pos = seg_end_pos;
+      segment->shape_inital_pos = seg_shape_initial;
+      if ((seg_shape_end < 0) || (seg_shape_end > segment->last_shape)) {
+         segment->first_shape = segment->last_shape = -1;
+      } else {
+         segment->first_shape = seg_shape_end;
+      }
+
+   } else {
+
+      segment->to_pos = seg_end_pos;
+      if ((seg_shape_end < 0) || (seg_shape_end < segment->first_shape)) {
+         segment->first_shape = segment->last_shape = -1;
+      } else {
+         segment->last_shape = seg_shape_end;
+      }
+   }
+}
+
+
+static int navigate_calc_length (RoadMapPosition *position,
+                                 const NavigateSegment *segment,
+                                 int type) {
+
+   RoadMapPosition from;
+   RoadMapPosition to;
+   RoadMapPosition intersection;
+   int current_length = 0;
+   int length_result = 0;
+   int smallest_distance = 0x7fffffff;
+   int distance;
+   int i;
+
+   if (segment->first_shape <= -1) {
+      
+      from = segment->from_pos;
+      to = segment->to_pos;
+   } else {
+
+      from = segment->from_pos;
+      to   = segment->shape_inital_pos;
+
+      for (i = segment->first_shape; i <= segment->last_shape; i++) {
+
+         segment->shape_itr (i, &to);
+
+         distance =
+            roadmap_math_get_distance_from_segment
+            (position, &from, &to, &intersection);
+
+         if (distance < smallest_distance) {
+            smallest_distance = distance;
+            length_result = current_length +
+               roadmap_math_distance (&from, &intersection);
+         }
+
+         current_length += roadmap_math_distance (&from, &to);
+         from = to;
+      }
+
+      to = segment->to_pos;
+   }
+
+   distance =
+      roadmap_math_get_distance_from_segment
+      (position, &from, &to, &intersection);
+
+   if (distance < smallest_distance) {
+
+      length_result = current_length +
+                        roadmap_math_distance (&from, &intersection);
+   }
+
+   current_length += roadmap_math_distance (&from, &to);
+
+   if (type == LINE_START) {
+      
+      return length_result;
+   } else {
+
+      return current_length - length_result;
+   }
 }
 
 
@@ -298,7 +459,9 @@ static void navigate_main_set_road_instr (NavigateSegment *seg1,
 
 
 static int navigate_main_prepare_segments (NavigateSegment *segments,
-                                           int count) {
+                                           int count,
+                                           RoadMapPosition *src_pos,
+                                           RoadMapPosition *dst_pos) {
 
    int i;
 
@@ -311,6 +474,8 @@ static int navigate_main_prepare_segments (NavigateSegment *segments,
                                       &segments[i].last_shape,
                                       &segments[i].shape_itr);
 
+      segments[i].shape_inital_pos = segments[i].from_pos;
+
       roadmap_plugin_get_street (&segments[i].line, &segments[i].street);
    }
 
@@ -319,8 +484,19 @@ static int navigate_main_prepare_segments (NavigateSegment *segments,
       navigate_main_set_road_instr (&segments[i], &segments[i+1]);
    }
 
-   segments[i].instruction = APPROCHING_DESTINATION;
+   segments[i].instruction = APPROACHING_DESTINATION;
 
+   if (segments[0].line_direction == ROUTE_DIRECTION_WITH_LINE) {
+      navigate_fix_line_end (src_pos, &segments[0], LINE_START);
+   } else {
+      navigate_fix_line_end (src_pos, &segments[0], LINE_END);
+   }
+
+   if (segments[i].line_direction == ROUTE_DIRECTION_WITH_LINE) {
+      navigate_fix_line_end (dst_pos, &segments[i], LINE_END);
+   } else {
+      navigate_fix_line_end (dst_pos, &segments[i], LINE_START);
+   }
    return 0;
 }
 
@@ -353,7 +529,8 @@ static int navigate_main_recalc_route () {
       return -1;
    }
 
-   navigate_main_prepare_segments (NavigateSegments, NavigateNumSegments);
+   navigate_main_prepare_segments (NavigateSegments, NavigateNumSegments,
+                                   &NavigateSrcPos, &NavigateDestPos);
    NavigateTrackEnabled = 1;
    NavigateCurrentSegment = 0;
    roadmap_navigate_route (NavigateCallbacks);
@@ -368,15 +545,37 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    int distance_to_destination_far;
    const NavigateSegment *segment = NavigateSegments + NavigateCurrentSegment;
    const char *inst_text = "";
+   char str[100];
+
+   if (!NavigateTrackEnabled) return;
 
    if (segment->line_direction == ROUTE_DIRECTION_WITH_LINE) {
       
       distance_to_destination =
-         roadmap_math_distance (position, &segment->to_pos);
+         navigate_calc_length (position, segment, LINE_END);
    } else {
 
       distance_to_destination =
-         roadmap_math_distance (position, &segment->from_pos);
+         navigate_calc_length (position, segment, LINE_START);
+   }
+
+   while (segment->instruction == CONTINUE) {
+
+      const NavigateSegment *prev = segment;
+
+      /* Check if the previous segment is the last */
+      if (prev == (NavigateSegments + NavigateNumSegments - 1)) {
+         break;
+      }
+
+      segment++;
+
+      if (!roadmap_plugin_same_street (&prev->street, &segment->street)) {
+         break;
+      }
+
+      /* TODO no plugin support */
+      distance_to_destination += roadmap_line_length (segment->line.line_id);
    }
 
    switch (segment->instruction) {
@@ -393,30 +592,62 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       case KEEP_RIGHT:
          inst_text = "Keep right";
          break;
+      case APPROACHING_DESTINATION:
+         inst_text = "Approaching destination";
+         break;
       case CONTINUE:
          inst_text = "Continue straight";
          break;
-      case APPROCHING_DESTINATION:
-         inst_text = "Approaching destination";
-         break;
+   }
+
+   if ((segment->instruction == APPROACHING_DESTINATION) &&
+        distance_to_destination < 5) {
+
+      NavigateTrackEnabled = 0;
+      roadmap_navigate_end_route (NavigateCallbacks);
+      return;
    }
 
    distance_to_destination_far =
       roadmap_math_to_trip_distance(distance_to_destination);
 
+   roadmap_message_set ('I', inst_text);
+
    if (distance_to_destination_far > 0) {
 
-      roadmap_display_text ("Driving Instruction", "%s, %d %s",
-                            inst_text,
+      snprintf (str, sizeof(str), "%d", distance_to_destination_far);
+      roadmap_message_set ('D', str);
+
+      roadmap_message_set ('U', roadmap_math_trip_unit ());
+      roadmap_display_text ("Driving Instruction", "In %d%s, %s",
                             distance_to_destination_far,
-                            roadmap_math_trip_unit());
+                            roadmap_math_trip_unit(),
+                            inst_text);
    } else {
 
-      roadmap_display_text ("Driving Instruction", "%s, %d %s",
-                            inst_text,
+      snprintf (str, sizeof(str), "%d", distance_to_destination);
+      roadmap_message_set ('D', str);
+
+      roadmap_message_set ('U', roadmap_math_distance_unit ());
+
+      roadmap_display_text ("Driving Instruction", "In %d%s, %s",
                             distance_to_destination,
-                            roadmap_math_distance_unit());
+                            roadmap_math_distance_unit(),
+                            inst_text);
    };
+
+   if (NavigateNextAnnounce == -1) {
+
+      NavigateNextAnnounce = 50;
+      roadmap_voice_announce ("Driving Instruction");
+   } else {
+
+      if (distance_to_destination <= NavigateNextAnnounce) {
+         NavigateNextAnnounce = 0;
+         roadmap_message_unset ('D');
+         roadmap_voice_announce ("Driving Instruction");
+      }
+   }
 
 }
 
@@ -424,10 +655,14 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 void navigate_get_next_line
           (PluginLine *current, int direction, PluginLine *next) {
 
+   const PluginStreet *current_street;
+
    if (!NavigateTrackEnabled) {
       
       if (navigate_main_recalc_route () != -1) {
 
+         roadmap_display_text ("Driving Instruction", "Drive carefully.");
+         roadmap_display_show ("Driving Instruction");
          roadmap_trip_stop ();
       }
 
@@ -436,6 +671,8 @@ void navigate_get_next_line
 
    if (!roadmap_plugin_same_line
          (current, &NavigateSegments[NavigateCurrentSegment].line)) {
+
+      current_street = &NavigateSegments[NavigateCurrentSegment].street;
       NavigateCurrentSegment++;
    }
 
@@ -448,8 +685,11 @@ void navigate_get_next_line
       
       if (navigate_main_recalc_route () == -1) {
 
+         roadmap_display_hide ("Driving Instruction");
          roadmap_trip_start ();
       }
+
+      NavigateNextAnnounce = -1;
       //roadmap_messagebox("Error", "Lost route.");
 
       return;
@@ -459,7 +699,16 @@ void navigate_get_next_line
 
       next->plugin_id = INVALID_PLUGIN_ID;
    } else {
-      *next = NavigateSegments[NavigateCurrentSegment].line;
+
+      *next = NavigateSegments[NavigateCurrentSegment+1].line;
+   }
+
+   if ((NavigateCurrentSegment < NavigateNumSegments) &&
+        !roadmap_plugin_same_street
+            (current_street,
+             &NavigateSegments[NavigateCurrentSegment].street)) {
+
+      NavigateNextAnnounce = -1;
    }
 
    return;
@@ -502,7 +751,6 @@ void navigate_main_calc_route () {
    PluginLine from_line;
    int from_point;
    int use_gps_location = (strcmp (roadmap_trip_get_focus_name (), "GPS") == 0);
-   use_gps_location = 0;
 
    NavigateDestination.plugin_id = INVALID_PLUGIN_ID;
    NavigateTrackEnabled = 0;
@@ -535,8 +783,10 @@ void navigate_main_calc_route () {
       int i;
       int length = 0;
 
-      navigate_main_prepare_segments (NavigateSegments, NavigateNumSegments);
+      navigate_main_prepare_segments (NavigateSegments, NavigateNumSegments,
+                                      &NavigateSrcPos, &NavigateDestPos);
 
+      /* TODO no plugin support */
       for (i=0; i<NavigateNumSegments; i++) {
          if (NavigateSegments[i].line.plugin_id == ROADMAP_PLUGIN_ID) {
             length += roadmap_line_length (NavigateSegments[i].line.line_id);
@@ -556,6 +806,8 @@ void navigate_main_calc_route () {
       }
 
       roadmap_screen_redraw ();
+      roadmap_display_text ("Driving Instruction", "Drive carefully.");
+      roadmap_display_show ("Driving Instruction");
       roadmap_messagebox ("Route found", msg);
    }
 }
@@ -598,7 +850,7 @@ void navigate_main_screen_repaint (int max_pen) {
       roadmap_screen_draw_one_line (&segment->from_pos,
                                     &segment->to_pos,
                                     0,
-                                    &segment->from_pos,
+                                    &segment->shape_inital_pos,
                                     segment->first_shape,
                                     segment->last_shape,
                                     segment->shape_itr,

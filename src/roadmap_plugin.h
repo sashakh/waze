@@ -191,9 +191,9 @@ int roadmap_plugin_override_pen (int line,
 
 void roadmap_plugin_screen_repaint (int max_pen);
 
-const char *roadmap_plugin_street_full_name (PluginLine *line);
+const char *roadmap_plugin_street_full_name (const PluginLine *line);
 
-void roadmap_plugin_get_street_properties (PluginLine *line,
+void roadmap_plugin_get_street_properties (const PluginLine *line,
                                            PluginStreetProperties *props);
 
 int roadmap_plugin_find_connected_lines (RoadMapPosition *crossing,

@@ -1172,7 +1172,8 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
              (&position,
               roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
               &line,
-              &distance) != -1) {
+              &distance,
+              LAYER_ALL_ROADS) != -1) {
 
         PluginStreet street;
 

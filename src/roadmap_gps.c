@@ -228,14 +228,9 @@ static void roadmap_gps_keep_alive (void) {
 
    roadmap_log (ROADMAP_ERROR, "GPS timeout detected.");
 
-   (*RoadMapGpsPeriodicRemove) (roadmap_gps_keep_alive);
-
-   (*RoadMapGpsLinkRemove) (&RoadMapGpsLink);
-
-   roadmap_io_close (&RoadMapGpsLink);
+   roadmap_gps_shutdown ();
 
    /* Try to establish a new IO channel: */
-
    roadmap_gps_open();
 }
 
@@ -998,4 +993,5 @@ int  roadmap_gps_is_nmea (void) {
 
    return 0; /* safe bet in case of something wrong. */
 }
+
 
