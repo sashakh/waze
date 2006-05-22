@@ -506,8 +506,6 @@ static int roadmap_street_block_by_county_subdivision
 
          if ((range_index == range_end) && (city < 0)) {
 
-            RoadMapRangeByCity *by_city = RoadMapRangeActive->RoadMapByCity + 
-                                             by_street->first_city;
             blocks[count].street = i;
             blocks[count].first  = range_index;
             blocks[count].city   = 0;
