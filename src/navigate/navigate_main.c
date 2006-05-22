@@ -74,7 +74,7 @@ RoadMapNavigateRouteCB NavigateCallbacks = {
 };
 
 
-#define MAX_NAV_SEGEMENTS 100
+#define MAX_NAV_SEGEMENTS 500
 
 static NavigateSegment NavigateSegments[MAX_NAV_SEGEMENTS];
 static int NavigateNumSegments = 0;
@@ -414,6 +414,11 @@ static void navigate_main_set_road_instr (NavigateSegment *seg1,
    int seg1_azymuth;
    int seg2_azymuth;
    int delta;
+   int minimum_turn_degree = 15;
+
+   if (roadmap_plugin_same_street (&seg1->street, &seg2->street)) {
+      minimum_turn_degree = 30;
+   }
 
    if (seg1->line_direction == ROUTE_DIRECTION_WITH_LINE) {
       
@@ -435,7 +440,7 @@ static void navigate_main_set_road_instr (NavigateSegment *seg1,
    while (delta > 180)  delta -= 360;
    while (delta < -180) delta += 360;
 
-   if (delta < -30) {
+   if (delta < -minimum_turn_degree) {
 
       if (delta > -45) {
          seg1->instruction = KEEP_RIGHT;
@@ -443,7 +448,7 @@ static void navigate_main_set_road_instr (NavigateSegment *seg1,
          seg1->instruction = TURN_RIGHT;
       }
 
-   } else if (delta > 30) {
+   } else if (delta > minimum_turn_degree) {
 
       if (delta < 45) {
          seg1->instruction = KEEP_LEFT;
@@ -541,6 +546,7 @@ static int navigate_main_recalc_route () {
 
 void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
+   int annouce = 0;
    int distance_to_destination;
    int distance_to_destination_far;
    const NavigateSegment *segment = NavigateSegments + NavigateCurrentSegment;
@@ -636,17 +642,37 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
                             inst_text);
    };
 
+   roadmap_display_show ("Driving Instruction");
+
    if (NavigateNextAnnounce == -1) {
 
       NavigateNextAnnounce = 50;
-      roadmap_voice_announce ("Driving Instruction");
+
+      annouce = 1;
    } else {
 
       if (distance_to_destination <= NavigateNextAnnounce) {
          NavigateNextAnnounce = 0;
          roadmap_message_unset ('D');
-         roadmap_voice_announce ("Driving Instruction");
+         annouce = 1;
       }
+   }
+
+   if (annouce) {
+      PluginStreetProperties properties;
+
+      if (segment < (NavigateSegments + NavigateNumSegments - 1)) {
+         segment++;
+      }
+
+      roadmap_plugin_get_street_properties (&segment->line, &properties);
+
+      roadmap_message_set ('#', properties.address);
+      roadmap_message_set ('N', properties.street);
+      roadmap_message_set ('T', properties.street_t2s);
+      roadmap_message_set ('C', properties.city);
+
+      roadmap_voice_announce ("Driving Instruction");
    }
 
 }
@@ -655,7 +681,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 void navigate_get_next_line
           (PluginLine *current, int direction, PluginLine *next) {
 
-   const PluginStreet *current_street;
+   const PluginStreet *current_street = NULL;
 
    if (!NavigateTrackEnabled) {
       
@@ -704,9 +730,10 @@ void navigate_get_next_line
    }
 
    if ((NavigateCurrentSegment < NavigateNumSegments) &&
-        !roadmap_plugin_same_street
-            (current_street,
-             &NavigateSegments[NavigateCurrentSegment].street)) {
+         (!current_street ||
+           !roadmap_plugin_same_street
+               (current_street,
+                &NavigateSegments[NavigateCurrentSegment].street))) {
 
       NavigateNextAnnounce = -1;
    }
