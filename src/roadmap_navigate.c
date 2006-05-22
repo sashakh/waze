@@ -142,28 +142,40 @@ static int roadmap_navigate_get_neighbours
 
     roadmap_log_push ("roadmap_navigate_retrieve_line");
 
-    roadmap_math_coordinate (position, &focus_point);
-    roadmap_math_rotate_coordinates (1, &focus_point);
+    if (roadmap_math_point_is_visible (position)) {
 
-    focus_point.x += accuracy;
-    focus_point.y += accuracy;
-    roadmap_math_to_position (&focus_point, &focus_position, 1);
+       roadmap_math_coordinate (position, &focus_point);
+       roadmap_math_rotate_coordinates (1, &focus_point);
 
-    focus.west = focus_position.longitude;
-    focus.east = focus_position.longitude;
-    focus.north = focus_position.latitude;
-    focus.south = focus_position.latitude;
+       focus_point.x += accuracy;
+       focus_point.y += accuracy;
+       roadmap_math_to_position (&focus_point, &focus_position, 1);
 
-    accuracy *= 2;
- 
-    focus_point.x -= accuracy;
-    roadmap_navigate_adjust_focus (&focus, &focus_point);
+       focus.west = focus_position.longitude;
+       focus.east = focus_position.longitude;
+       focus.north = focus_position.latitude;
+       focus.south = focus_position.latitude;
 
-    focus_point.y -= accuracy;
-    roadmap_navigate_adjust_focus (&focus, &focus_point);
+       accuracy *= 2;
 
-    focus_point.x += accuracy;
-    roadmap_navigate_adjust_focus (&focus, &focus_point);
+       focus_point.x -= accuracy;
+       roadmap_navigate_adjust_focus (&focus, &focus_point);
+
+       focus_point.y -= accuracy;
+       roadmap_navigate_adjust_focus (&focus, &focus_point);
+
+       focus_point.x += accuracy;
+       roadmap_navigate_adjust_focus (&focus, &focus_point);
+       
+    } else {
+
+       accuracy *= 100;
+
+       focus.west = position->longitude - accuracy;
+       focus.east = position->longitude + accuracy;
+       focus.north = position->latitude + accuracy;
+       focus.south = position->latitude - accuracy;
+    }
 
     if (type == LAYER_VISIBLE_ROADS) {
        layer_count = roadmap_layer_visible_roads (layers, 128);
@@ -233,6 +245,7 @@ int roadmap_navigate_retrieve_line
 
 int roadmap_navigate_fuzzify
                 (RoadMapTracking *tracked,
+                 RoadMapTracking *previous_street,
                  RoadMapNeighbour *previous_line,
                  RoadMapNeighbour *line,
                  int direction) {
@@ -246,6 +259,10 @@ int roadmap_navigate_fuzzify
     int azymuth_with_line = 0;
     int azymuth_against_line = 0;
     int symetric = 0;
+
+    if (!previous_street || !previous_street->valid) {
+       previous_line = NULL;
+    }
 
     fuzzyfied_distance = roadmap_fuzzy_distance (line->distance);
 
@@ -294,7 +311,8 @@ int roadmap_navigate_fuzzify
     if (previous_line != NULL) {
         connected =
             roadmap_fuzzy_connected
-              (line, previous_line, tracked->line_direction, &tracked->entry);
+              (line, previous_line, previous_street->line_direction,
+               tracked->line_direction, &tracked->entry);
     } else {
         connected = roadmap_fuzzy_not (0);
     }
@@ -607,8 +625,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         } else {
 
             current_fuzzy = roadmap_navigate_fuzzify
-                              (&RoadMapConfirmedStreet, &RoadMapConfirmedLine,
-                               &RoadMapConfirmedLine, gps_position->steering);
+                              (&RoadMapConfirmedStreet,
+                               &RoadMapConfirmedStreet,
+                               &RoadMapConfirmedLine,
+                               &RoadMapConfirmedLine,
+                               gps_position->steering);
         }
 
         if ((previous_direction == RoadMapConfirmedStreet.line_direction) &&
@@ -642,8 +663,8 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
         result = roadmap_navigate_fuzzify
                      (&candidate,
-                      RoadMapConfirmedStreet.valid ?
-                      &RoadMapConfirmedLine : NULL,
+                      &RoadMapConfirmedStreet,
+                      &RoadMapConfirmedLine,
                       RoadMapNeighbourhood+i,
                       gps_position->steering);
 
@@ -715,6 +736,8 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
             roadmap_display_hide ("Approach");
 
             if (RoadMapRouteInfo.enabled) {
+
+               RoadMapRouteInfo.current_line = RoadMapConfirmedLine.line;
 
                RoadMapRouteInfo.callbacks.get_next_line
                   (&RoadMapConfirmedLine.line,

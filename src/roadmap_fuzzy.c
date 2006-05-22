@@ -129,6 +129,7 @@ RoadMapFuzzy roadmap_fuzzy_distance  (int distance) {
 RoadMapFuzzy roadmap_fuzzy_connected
                  (const RoadMapNeighbour *street,
                   const RoadMapNeighbour *reference,
+                        int               prev_direction,
                         int               direction,
                         RoadMapPosition  *connection) {
 
@@ -161,33 +162,24 @@ RoadMapFuzzy roadmap_fuzzy_connected
     roadmap_plugin_line_from (&reference->line, &(reference_point[0]));
     roadmap_plugin_line_to   (&reference->line, &(reference_point[1]));
 
-    for (i = 0; i <= 1; ++i) {
-        for (j = 0; j <= 1; ++j) {
-            if ((line_point[i].latitude == reference_point[j].latitude) &&
-                (line_point[i].longitude == reference_point[j].longitude)) {
-               
-               if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
+    if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
+       i = 1;
+    } else {
+       i = 0;
+    }
 
-                  if (i == 0) {
-                     /* we are heading out of this road */
+    if (prev_direction == ROUTE_DIRECTION_AGAINST_LINE) {
+       j = 0;
+    } else {
+       j = 1;
+    }
 
-                     return roadmap_fuzzy_false ();
-                  }
+    if ((line_point[i].latitude == reference_point[j].latitude) &&
+         (line_point[i].longitude == reference_point[j].longitude)) {
 
-               } else {
+       *connection = line_point[i];
 
-                  if (i == 1) {
-                     /* we are heading out of this road */
-
-                     return roadmap_fuzzy_false ();
-                  }
-               }
-
-               *connection = line_point[i];
-
-               return (FUZZY_TRUTH_MAX * 2) / 3;
-            }
-        }
+       return (FUZZY_TRUTH_MAX * 2) / 3;
     }
 
     connection->latitude  = 0;
@@ -227,6 +219,7 @@ RoadMapFuzzy roadmap_fuzzy_false (void) {
 int roadmap_fuzzy_is_acceptable (RoadMapFuzzy a) {
     return (a >= RoadMapConfidence);
 }
+
 
 int roadmap_fuzzy_is_good (RoadMapFuzzy a) {
     return (a >= FUZZY_TRUTH_MAX / 2);

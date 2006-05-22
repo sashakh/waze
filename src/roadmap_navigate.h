@@ -75,6 +75,7 @@ void roadmap_navigate_initialize (void);
 
 int roadmap_navigate_fuzzify
                 (RoadMapTracking *tracked,
+                 RoadMapTracking *previous_street,
                  RoadMapNeighbour *previous_line,
                  RoadMapNeighbour *line, int direction);
 
