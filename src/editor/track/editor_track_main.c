@@ -241,7 +241,7 @@ static void end_known_segment (int point_id,
                             TrackConfirmedStreet.opposite_street_direction,
                             new_street->opposite_street_direction,
                             track_point_gps (point_id),
-                            points_count - 1);
+                            point_id);
 
       if (editor_track_known_end_segment
             (&TrackPreviousLine.line, split_point,
@@ -418,7 +418,7 @@ static void track_rec_locate_point(int point_id, int force_unknown) {
                 &new_line);
 
       if (count) {
-         end_known_segment (point_id, &new_street, &new_line);
+         end_known_segment (count, &new_street, &new_line);
 
          if (!new_street.valid) {
             /* the current point does not belong to a known street */
@@ -585,6 +585,15 @@ void editor_track_end (void) {
          }
       }
    }
+
+   TrackConfirmedStreet.valid = 0;
+   track_reset_points (points_count);
+   cur_node.id = -1;
+   is_new_track = 1;
+}
+
+
+void editor_track_reset (void) {
 
    TrackConfirmedStreet.valid = 0;
    track_reset_points (points_count);

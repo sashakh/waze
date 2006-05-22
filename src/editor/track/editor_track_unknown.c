@@ -392,6 +392,7 @@ int editor_track_unknown_locate_point (int point_id,
                                        int force) {
 
    RoadMapFuzzy best;
+   RoadMapFuzzy second_best;
    RoadMapTracking nominated;
    int found;
    int count;
@@ -405,7 +406,8 @@ int editor_track_unknown_locate_point (int point_id,
    /* let's see if we got to a known street line */
    count = editor_track_util_find_street
             (gps_position, &nominated, confirmed_street, confirmed_line,
-             RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD, &found, &best);
+             RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD, &found, &best,
+             &second_best);
 
    if (roadmap_fuzzy_is_good (best) ||
          confirmed_street->valid) {

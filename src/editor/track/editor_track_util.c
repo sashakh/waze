@@ -170,7 +170,9 @@ static int find_split_point (PluginLine *line,
                (steering, roadmap_math_azymuth (&result.from, &result.to));
 
          current_fuzzy = roadmap_navigate_fuzzify
-                         (&candidate, NULL,
+                         (&candidate,
+                          NULL,
+                          NULL,
                           &result,
                           steering);
 
@@ -481,7 +483,8 @@ int editor_track_util_find_street
                       RoadMapNeighbour *neighbourhood,
                       int max,
                       int *found,
-                      RoadMapFuzzy *best) {
+                      RoadMapFuzzy *best,
+                      RoadMapFuzzy *second_best) {
 
    RoadMapTracking candidate;
    int count;
@@ -509,17 +512,26 @@ int editor_track_util_find_street
    //editor_track_util_release_focus ();
 
    
+   *second_best = roadmap_fuzzy_false ();
+
    for (i = 0, *best = roadmap_fuzzy_false(), *found = 0; i < count; ++i) {
 
       result = roadmap_navigate_fuzzify
-                 (&candidate, previous_line, neighbourhood+i,
+                 (&candidate,
+                  previous_street,
+                  previous_line,
+                  neighbourhood+i,
                   gps_position->steering);
       
       if (result > *best) {
          *found = i;
+         *second_best = *best;
          *best = result;
          *nominated = candidate;
          nominated->opposite_street_direction = 0;
+         
+      } else if (result > *second_best) {
+         *second_best = result;
       }
     }
 
@@ -530,7 +542,10 @@ int editor_track_util_find_street
    for (i = 0; i < count; ++i) {
 
       result = roadmap_navigate_fuzzify
-                 (&candidate, previous_line, neighbourhood+i,
+                 (&candidate,
+                  previous_street,
+                  previous_line,
+                  neighbourhood+i,
                   gps_position->steering - 180);
       
       if (!roadmap_fuzzy_is_good (result)) {
@@ -549,7 +564,9 @@ int editor_track_util_find_street
 
             if (roadmap_fuzzy_is_certain (
                   roadmap_fuzzy_connected
-                     (&neighbourhood[i], previous_line,
+                     (&neighbourhood[i],
+                      previous_line,
+                      previous_street->line_direction,
                       candidate.line_direction,
                       &connection))) {
                
@@ -569,9 +586,12 @@ int editor_track_util_find_street
 
       if (result > *best) {
          *found = i;
+         *second_best = *best;
          *best = result;
          *nominated = candidate;
          nominated->opposite_street_direction = 1;
+      } else if (result > *second_best) {
+         *second_best = result;
       }
     }
 

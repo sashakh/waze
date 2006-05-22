@@ -55,6 +55,7 @@ RoadMapGpsPosition *track_point_gps (int index);
 time_t track_point_time (int index);
 int editor_track_draw_current (RoadMapPen pen);
 void editor_track_end (void);
+void editor_track_reset (void);
 
 #endif // INCLUDE__EDITOR_TRACK_MAIN__H
 
