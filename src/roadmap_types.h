@@ -24,6 +24,8 @@
 #ifndef INCLUDED__ROADMAP_TYPES__H
 #define INCLUDED__ROADMAP_TYPES__H
 
+#define ROADMAP_INVALID_STRING ((unsigned short) -1)
+
 typedef unsigned short RoadMapZip;
 typedef unsigned short RoadMapString;
 

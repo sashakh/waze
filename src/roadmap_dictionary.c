@@ -225,7 +225,7 @@ roadmap_dictionary_search
         index = roadmap_dictionary_get_reference (dictionary, tree, character);
 
         if (index < 0) {
-           return 0;
+           return -1;
         }
 
         switch (dictionary->reference[index].type) {
@@ -589,7 +589,7 @@ RoadMapString roadmap_dictionary_locate (RoadMapDictionary d,
    result = roadmap_dictionary_search (d, string, strlen(string));
 
    if (result < 0) {
-      return 0;
+      return ROADMAP_INVALID_STRING;
    }
 
    return (RoadMapString)result;

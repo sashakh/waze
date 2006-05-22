@@ -161,7 +161,7 @@ static void roadmap_crossing_ok (const char *name, void *data) {
 
 
    state = roadmap_locator_get_state (state_name);
-   if (state <= 0) {
+   if (state == ROADMAP_INVALID_STRING) {
        roadmap_messagebox ("Warning", "unknown state");
        return;
    }
