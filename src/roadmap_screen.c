@@ -1230,9 +1230,24 @@ static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
 static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
-   roadmap_screen_record_move
-      (RoadMapScreenPointerLocation.x - point->x,
-       RoadMapScreenPointerLocation.y - point->y);
+   if (RoadMapScreenViewMode == VIEW_MODE_3D) {
+
+      RoadMapGuiPoint p = *point;
+      RoadMapGuiPoint p2 = RoadMapScreenPointerLocation;
+
+      roadmap_math_unproject (&p);
+      roadmap_math_unproject (&p2);
+
+      roadmap_screen_record_move
+         (p2.x - p.x, p2.y - p.y);
+      
+   } else {
+
+      roadmap_screen_record_move
+         (RoadMapScreenPointerLocation.x - point->x,
+          RoadMapScreenPointerLocation.y - point->y);
+   }
+
    roadmap_screen_repaint ();
    RoadMapScreenPointerLocation = *point;
 }

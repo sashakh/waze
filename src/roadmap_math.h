@@ -72,6 +72,7 @@ void roadmap_math_coordinate  (const RoadMapPosition *position,
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
                                RoadMapPosition *position,
                                int projected);
+void roadmap_math_unproject   (RoadMapGuiPoint *point);
 
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points);
 

@@ -967,13 +967,11 @@ int  roadmap_math_get_orientation (void) {
 }
 
 
-void roadmap_math_to_position (const RoadMapGuiPoint *point,
-                               RoadMapPosition *position,
-                               int projected) {
+void roadmap_math_unproject (RoadMapGuiPoint *point) {
 
-   RoadMapGuiPoint point2;
+   if (RoadMapContext._3D_horizon) {
 
-   if (projected && RoadMapContext._3D_horizon) {
+      RoadMapGuiPoint point2;
 
       double fDistFromCenterX = point->x - RoadMapContext.width / 2; // X distance from center of screen
       double fDistFromHorizon = point->y - RoadMapContext._3D_horizon; // Y distance from horizon
@@ -987,6 +985,23 @@ void roadmap_math_to_position (const RoadMapGuiPoint *point,
       fD = fDistFromBottom / ( 1.0 - fDistFromBottom / fVisibleRange); // inverse Y squeezing formula
 
       point2.y = (int) (RoadMapContext.height - fD); // center on screen
+
+      *point = point2;
+   }
+}
+
+
+void roadmap_math_to_position (const RoadMapGuiPoint *point,
+                               RoadMapPosition *position,
+                               int projected) {
+
+   RoadMapGuiPoint point2;
+
+   if (projected && RoadMapContext._3D_horizon) {
+
+      point2 = *point;
+      roadmap_math_unproject (&point2);
+
       point = &point2;
    }
 
