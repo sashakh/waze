@@ -23,6 +23,11 @@
 #    Example: rdmgenmaps /var/lib/roadmap state=06
 #
 #
+# The buildmap and buildus programs will be found either in the
+# current directory, or via $PATH.  Pass in $BUILDMAP and/or
+# $BUILDUS to override.
+#
+#
 # Default setup: preferred map path is used, latest format, all states.
 
 FORMAT="--format=2002"
@@ -83,10 +88,13 @@ case $1 in
 esac
 
 
-if [ -e ./buildmap ] ; then
-   BUILDMAP=./buildmap
-else
-   BUILDMAP=buildmap
+if [ ! "$BUILDMAP" ]
+then
+    if [ -e ./buildmap ] ; then
+       BUILDMAP=./buildmap
+    else
+       BUILDMAP=buildmap
+    fi
 fi
 
 function process_one_county {
@@ -101,7 +109,7 @@ function process_one_county {
       if [ $verbose = 'Y' ] ; then
          echo "$BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1"
       fi
-      $BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1
+      $BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1 || exit 1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
@@ -141,10 +149,14 @@ if [ $gendir = 'Y' ] ; then
 
    echo "Generating usdir.rdm, please wait.."
 
-   if [ -e buildus ] ; then
-      ./buildus -s $MAPPATH
-   else
-      buildus -s $MAPPATH
+   if [ ! "$BUILDUS" ]
+   then
+       if [ -e buildus ] ; then
+	  BUILDUS=./buildus
+       else
+	  BUILDUS=buildus
+       fi
    fi
+   $BUILDUS -s $MAPPATH
 fi
 
