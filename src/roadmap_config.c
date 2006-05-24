@@ -707,14 +707,16 @@ const char *roadmap_config_new (const char *file, int writable) {
    RoadMapConfig *new_config;
    const char *name = roadmap_path_skip_directories (file);
 
-
    if (roadmap_config_search_file (name) != NULL) {
       roadmap_log (ROADMAP_FATAL, "config %s redefined as %s", name, file);
    }
 
    new_config = roadmap_config_new_file (name, file, writable);
 
-   roadmap_config_load_file (NULL, new_config, ROADMAP_CONFIG_CLEAN);
+   if (roadmap_config_load_file (NULL, new_config, ROADMAP_CONFIG_CLEAN) == 0) {
+      return NULL;
+   }
+
    return name;
 }
 
