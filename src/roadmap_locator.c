@@ -334,13 +334,16 @@ int roadmap_locator_by_state (const char *state_symbol, int **fips) {
 }
 
 
-int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
+int roadmap_locator_by_city
+       (const char *city_name, const char *state_symbol, int **fips) {
+
+   int count;
 
    RoadMapString city;
    RoadMapString state;
 
-   roadmap_locator_configure();
-   if (RoadMapCountyCache == NULL) return ROADMAP_US_NOMAP;
+   count = roadmap_locator_allocate (fips);
+   if (count <= 0) return ROADMAP_US_NOMAP;
 
    state = roadmap_dictionary_locate (RoadMapUsStateDictionary, state_symbol);
    if (state <= 0) {
@@ -356,7 +359,7 @@ int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
       return ROADMAP_US_NOCITY;
    }
 
-   return roadmap_locator_open (roadmap_county_by_city (city, state));
+   return roadmap_county_by_city (city, state, *fips, count);
 }
 
 

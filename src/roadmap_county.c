@@ -272,9 +272,11 @@ static RoadMapCountyByState *roadmap_county_search_state (RoadMapString state) {
 }
 
 
-int roadmap_county_by_city (RoadMapString city, RoadMapString state) {
+int roadmap_county_by_city
+       (RoadMapString city, RoadMapString state, int *fips, int count) {
 
    int i;
+   int found = 0;
    RoadMapCountyCity *this_city;
    RoadMapCountyByState *this_state;
 
@@ -290,11 +292,12 @@ int roadmap_county_by_city (RoadMapString city, RoadMapString state) {
       this_city = RoadMapCountyActive->city + i;
 
       if (this_city->city == city) {
-         return RoadMapCountyActive->county[this_city->county].fips;
+         fips[found++] = RoadMapCountyActive->county[this_city->county].fips;
+         if (found == count) return count; /* Better stop now. */
       }
    }
 
-   return 0; /* No such city in this state. */
+   return found;
 }
 
 

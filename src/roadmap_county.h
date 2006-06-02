@@ -30,7 +30,8 @@
 int  roadmap_county_by_position
         (const RoadMapPosition *position, int *fips, int count);
 
-int  roadmap_county_by_city (RoadMapString city, RoadMapString state);
+int  roadmap_county_by_city
+        (RoadMapString city, RoadMapString state, int *fips, int count);
 
 int  roadmap_county_by_state(RoadMapString state, int *fips, int count);
 

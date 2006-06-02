@@ -46,15 +46,14 @@
 static const char *RoadMapGeocodeError = NULL;
 
 
-int roadmap_geocode_address (RoadMapGeocode **selections,
-                             const char *number_image,
-                             const char *street_name,
-                             const char *city_name,
-                             const char *state_name) {
+static int roadmap_geocode_address_county (RoadMapGeocode **selections,
+                                           const char *number_image,
+                                           const char *street_name,
+                                           const char *city_name,
+                                           int fips) {
 
    int i, j, k;
-   int fips;
-   int count;
+   int block_count;
 
    unsigned int  street_number [ROADMAP_MAX_STREETS];
    RoadMapBlocks blocks[ROADMAP_MAX_STREETS];
@@ -62,36 +61,16 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    RoadMapGeocode *results;
 
 
-   RoadMapGeocodeError = "No error";
-   *selections = NULL;
-
-   switch (roadmap_locator_by_city (city_name, state_name)) {
-
-   case ROADMAP_US_OK:
-
-      count = roadmap_street_blocks_by_city
-                  (street_name, city_name, blocks, 256);
-      break;
-
-   case ROADMAP_US_NOSTATE:
-
-      RoadMapGeocodeError = "No state with that name could be found";
-      return 0;
-
-   case ROADMAP_US_NOCITY:
-
-      RoadMapGeocodeError = "No city with that name could be found";
-      return 0;
-
-   default:
-
-      RoadMapGeocodeError = "No related map could be found";
-      return 0;
+   if (roadmap_locator_activate (fips) != ROADMAP_US_OK) {
+      return ROADMAP_US_NOMAP;
    }
 
-   if (count <= 0) {
+   block_count =
+      roadmap_street_blocks_by_city (street_name, city_name, blocks, 256);
 
-      switch (count) {
+   if (block_count <= 0) {
+
+      switch (block_count) {
       case ROADMAP_STREET_NOADDRESS:
          RoadMapGeocodeError = "No such address could be found on that street";
          break;
@@ -107,9 +86,9 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
       return 0;
    }
 
-   if (count > ROADMAP_MAX_STREETS) {
+   if (block_count > ROADMAP_MAX_STREETS) {
       roadmap_log (ROADMAP_ERROR, "too many blocks");
-      count = ROADMAP_MAX_STREETS;
+      block_count = ROADMAP_MAX_STREETS;
    }
 
    /* If the street number was not provided, retrieve all street blocks to
@@ -123,7 +102,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
       RoadMapStreetRange ranges[ROADMAP_MAX_STREETS];
 
 
-      for (i = 0, cursor = count; i < count; ++i) {
+      for (i = 0, cursor = block_count; i < block_count; ++i) {
 
          range_count =
             roadmap_street_get_ranges (blocks+i, ROADMAP_MAX_STREETS, ranges);
@@ -145,7 +124,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
             }
          }
       }
-      count = cursor;
+      block_count = cursor;
 
    } else {
 
@@ -153,17 +132,15 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
       number = roadmap_math_street_address (number_image, strlen(number_image));
 
-      for (i = 0; i < count; ++i) {
+      for (i = 0; i < block_count; ++i) {
          street_number[i] = number;
       }
    }
 
    results = (RoadMapGeocode *)
-       calloc (count, sizeof(RoadMapGeocode));
+       calloc (block_count, sizeof(RoadMapGeocode));
 
-   fips = roadmap_locator_active();
-
-   for (i = 0, j = 0; i < count; ++i) {
+   for (i = 0, j = 0; i < block_count; ++i) {
 
       int line;
 
@@ -200,6 +177,88 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    }
 
    return j;
+}
+
+
+int roadmap_geocode_address (RoadMapGeocode **selections,
+                             const char *number_image,
+                             const char *street_name,
+                             const char *city_name,
+                             const char *state_name) {
+
+   static int *fips = NULL;
+
+   int i;
+   int county_count;
+   int selected;
+
+
+   selected = 0;
+   *selections = NULL;
+   RoadMapGeocodeError = "No error";
+
+   county_count = roadmap_locator_by_city (city_name, state_name, &fips);
+
+   if (county_count == 1) {
+
+      selected =
+         roadmap_geocode_address_county (selections,
+                                         number_image,
+                                         street_name,
+                                         city_name,
+                                         fips[0]);
+
+   } else if (county_count > 0) {
+
+      RoadMapGeocodeError = "No error";
+
+      for (i = county_count - 1; i >= 0; --i) {
+
+         int count;
+         int total;
+         RoadMapGeocode *subselections;
+
+         count = roadmap_geocode_address_county (&subselections,
+                                                 number_image,
+                                                 street_name,
+                                                 city_name,
+                                                 fips[i]);
+
+         if (count > 0) {
+
+            total = selected + count;
+
+            *selections = realloc (*selections, total * sizeof(RoadMapGeocode));
+            memcpy (*selections+selected,
+                    subselections, count * sizeof(RoadMapGeocode));
+            free(subselections);
+
+            selected = total;
+         }
+      }
+
+   } else if (selected == 0) {
+
+      switch (county_count) {
+
+      case ROADMAP_US_NOSTATE:
+
+         RoadMapGeocodeError = "No state with that name could be found";
+         return 0;
+
+      case ROADMAP_US_NOCITY:
+
+         RoadMapGeocodeError = "No city with that name could be found";
+         return 0;
+
+      default:
+
+         RoadMapGeocodeError = "No related map could be found";
+         return 0;
+      }
+   }
+
+   return selected;
 }
 
 
