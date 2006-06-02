@@ -753,7 +753,12 @@ static void buildmap_tiger_read_rtc (const char *source, int verbose) {
       if (cursor[10] != '1') {
 
          fips = tiger2int (cursor, 15, 19);
-         year = tiger2int (cursor, 11, 14);
+
+         if (cursor[10] == 'E' || cursor[10] == 'C') {
+            year = 2002;
+         } else {
+            year = tiger2int (cursor, 11, 14);
+         }
 
          if (fips > 0) {
 
