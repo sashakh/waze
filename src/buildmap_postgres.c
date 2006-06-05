@@ -104,6 +104,8 @@ static int pg2layer (int layer) {
       case 1: return ROADMAP_ROAD_STREET;
       case 2: return ROADMAP_ROAD_MAIN;
       case 3: return ROADMAP_ROAD_FREEWAY;
+      case 4: return ROADMAP_ROAD_RAMP;
+      case 5: return ROADMAP_ROAD_TRAIL;
    }
 
    return ROADMAP_ROAD_STREET;
