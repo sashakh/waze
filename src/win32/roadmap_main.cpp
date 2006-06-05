@@ -79,8 +79,10 @@ static RoadMapKeyInput	RoadMapMainInput = NULL;
 static HWND				   RoadMapMainMenuBar = NULL;
 static HMENU			   RoadMapCurrentSubMenu = NULL;
 static HWND				   RoadMapMainToolbar = NULL;
+static bool				   RoadMapMainFullScreen = false;
 static HANDLE           VirtualSerialHandle = 0;
 static const char *RoadMapMainVirtualSerial;
+
 
 // Global Variables:
 extern "C" HINSTANCE	g_hInst = NULL;
@@ -456,8 +458,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_ACTIVATE:
-		// Notify shell of our activate message
-		SHHandleWMActivate(hWnd, wParam, lParam, &s_sai, FALSE);
+      if ((LOWORD(wParam)!=WA_INACTIVE) &&
+            RoadMapMainFullScreen) {
+         SHFullScreen(RoadMapMainWindow, SHFS_HIDETASKBAR | SHFS_HIDESIPBUTTON);
+
+      } else {
+
+		   // Notify shell of our activate message
+		   SHHandleWMActivate(hWnd, wParam, lParam, &s_sai, FALSE);
+      }
 		break;
       
 	case WM_SETTINGCHANGE:
@@ -541,7 +550,39 @@ extern "C" {
 	
 	void roadmap_main_toggle_full_screen (void)
 	{
-		// TODO: implement
+      #define MENU_HEIGHT 26
+      RECT rc;
+
+      //get window size
+      GetWindowRect(RoadMapMainWindow, &rc);
+
+      if (!RoadMapMainFullScreen) {
+         SHFullScreen(RoadMapMainWindow, SHFS_HIDETASKBAR | SHFS_HIDESIPBUTTON);
+         ShowWindow(RoadMapMainMenuBar, SW_HIDE);
+
+         MoveWindow(RoadMapMainWindow,
+		      rc.left, 
+		      rc.top-MENU_HEIGHT, 
+		      rc.right, 
+		      rc.bottom+MENU_HEIGHT, 
+		      TRUE);
+
+         RoadMapMainFullScreen = true;
+
+      } else {
+	
+         SHFullScreen(RoadMapMainWindow, SHFS_SHOWTASKBAR | SHFS_SHOWSIPBUTTON);
+         ShowWindow(RoadMapMainMenuBar, SW_SHOW);
+         MoveWindow(RoadMapMainWindow, 
+            rc.left, 
+            rc.top+MENU_HEIGHT, 
+            rc.right, 
+            rc.bottom-(2*MENU_HEIGHT), 
+            TRUE);
+
+         RoadMapMainFullScreen = false;
+
+      }
 	}
 
 	
