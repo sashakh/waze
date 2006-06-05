@@ -187,7 +187,7 @@ int roadmap_label_draw_cache (void) {
       text = properties.street;
       cachePtr->street = properties.plugin_street;
 
-      roadmap_canvas_get_text_extents(text, &width, &ascent, &descent);
+      roadmap_canvas_get_text_extents(text, -1, &width, &ascent, &descent);
       r.minx = 0;
       r.maxx=width+1;
       r.miny = ascent;

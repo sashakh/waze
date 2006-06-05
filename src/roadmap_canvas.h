@@ -64,7 +64,7 @@ void roadmap_canvas_register_configure_handler
  * according to the current font.
  */
 void roadmap_canvas_get_text_extents 
-        (const char *text, int *width, int *ascent, int *descent);
+        (const char *text, int size, int *width, int *ascent, int *descent);
 
 
 /* This call creates a new pen. If the pen already exists,
@@ -115,6 +115,9 @@ void roadmap_canvas_erase (void);
 #define CANVAS_DRAW_FAST 0x1
 #define CANVAS_NO_ROTATE 0x2
 
+#define CANVAS_COPY_NORMAL 0x1
+#define CANVAS_COPY_BLEND  0x2
+
 void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
                                   int corner,
                                   const char *text);
@@ -146,11 +149,23 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center, int angle,
                                        const char *text);
 
+int  roadmap_canvas_image_width  (const RoadMapImage image);
+int  roadmap_canvas_image_height (const RoadMapImage image);
+
 RoadMapImage roadmap_canvas_load_image (const char *path,
                                         const char* file_name);
 
 void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
                                 int opacity, int mode);
+
+void roadmap_canvas_copy_image (RoadMapImage dst_image,
+                                const RoadMapGuiPoint *pos,
+                                const RoadMapGuiRect  *rect,
+                                RoadMapImage src_image, int mode);
+
+void roadmap_canvas_draw_image_text (RoadMapImage image,
+                                     const RoadMapGuiPoint *position,
+                                     int size, const char *text);
 
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

@@ -768,6 +768,13 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         INVALIDATE_PLUGIN(RoadMapConfirmedLine.line);
         RoadMapConfirmedStreet.valid = 0;
     }
+
+    if (RoadMapRouteInfo.enabled) {
+
+       RoadMapRouteInfo.callbacks.update
+          (&RoadMapLatestPosition,
+           &RoadMapConfirmedLine.line);
+    }
 }
 
 

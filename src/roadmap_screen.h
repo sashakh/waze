@@ -67,7 +67,8 @@ void roadmap_screen_get_center (RoadMapPosition *center);
 typedef void (*RoadMapScreenSubscriber) (void);
 typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 
-void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler);
+RoadMapScreenSubscriber roadmap_screen_subscribe_after_refresh
+                                    (RoadMapScreenSubscriber handler);
 
 void roadmap_screen_draw_one_line (RoadMapPosition *from,
                                    RoadMapPosition *to,

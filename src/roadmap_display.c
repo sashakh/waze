@@ -284,7 +284,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     roadmap_log_push ("roadmap_display_sign");
 
     roadmap_canvas_get_text_extents
-        (sign->content, &width, &ascent, &descent);
+        (sign->content, -1, &width, &ascent, &descent);
 
     width += 8; /* Keep some room around the text. */
     
@@ -521,9 +521,15 @@ int roadmap_display_activate
     message_has_changed =
         (sign->content == NULL || strcmp (sign->content, text) != 0);
 
-    sign->deadline =
-        time(NULL)
-            + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
+    if (roadmap_config_get_integer (&RoadMapConfigDisplayDuration) == -1) {
+       sign->deadline = -1;
+       
+    } else {
+
+       sign->deadline =
+           time(NULL)
+               + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
+    }
 
 
     if (street_has_changed) {
@@ -597,7 +603,7 @@ static void roadmap_display_console_box
         return;
     }
     
-    roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
+    roadmap_canvas_get_text_extents (text, -1, &width, &ascent, &descent);
 
     if (corner & ROADMAP_CANVAS_RIGHT) {
         frame[2].x = roadmap_canvas_width() - 5;
@@ -651,8 +657,14 @@ void roadmap_display_text (const char *title, const char *format, ...) {
    }
    sign->content = strdup(text);
 
-   sign->deadline =
-      time(NULL) + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
+   if (roadmap_config_get_integer (&RoadMapConfigDisplayDuration) == -1) {
+      sign->deadline = -1;
+      
+   } else {
+      sign->deadline =
+         time(NULL) +
+         roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
+   }
 }
 
 

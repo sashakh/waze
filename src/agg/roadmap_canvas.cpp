@@ -90,6 +90,9 @@ static agg::renderer_scanline_aa_solid<agg::renderer_base<pixfmt> > ren_solid(ag
 static font_engine_type             m_feng;
 static font_manager_type            m_fman(m_feng);
 
+static font_engine_type             m_image_feng;
+static font_manager_type            m_image_fman(m_image_feng);
+
 static RoadMapConfigDescriptor RoadMapConfigFont =
                         ROADMAP_CONFIG_ITEM("Labels", "FontName");
 
@@ -126,7 +129,7 @@ RoadMapCanvasConfigureHandler RoadMapCanvasConfigure =
 
 
 void roadmap_canvas_get_text_extents 
-        (const char *text, int *width, int *ascent, int *descent) {
+        (const char *text, int size, int *width, int *ascent, int *descent) {
 
    *ascent = 0;
    *descent = 0;
@@ -143,8 +146,20 @@ void roadmap_canvas_get_text_extents
    double y  = 0;
    const wchar_t* p = wstr;
 
+   font_manager_type *fman;
+
+   if (size == -1) {
+      /* Use the regular font */
+      fman = &m_fman;
+   } else {
+
+      m_image_feng.height(size);
+      m_image_feng.width(size);
+      fman = &m_image_fman;
+   }
+
    while(*p) {
-      const agg::glyph_cache* glyph = m_fman.glyph(*p);
+      const agg::glyph_cache* glyph = fman->glyph(*p);
 
       if(glyph) {
          x += glyph->advance_x;
@@ -254,7 +269,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
    int text_height;
    
    roadmap_canvas_get_text_extents 
-         (text, &text_width, &text_ascent, &text_descent);
+         (text, -1, &text_width, &text_ascent, &text_descent);
    
    text_height = text_ascent + text_descent;
    
@@ -661,7 +676,8 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
    agg_renb.reset_clipping(true);
    ras.clip_box(0, 0, agg_renb.width(), agg_renb.height());
 
-   agg::glyph_rendering gren = gren = agg::glyph_ren_outline; 
+   agg::glyph_rendering gren = agg::glyph_ren_outline; 
+   agg::glyph_rendering image_gren = agg::glyph_ren_agg_gray8; 
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigFont, "font.ttf");
@@ -673,11 +689,16 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
 
    if (!RoadMapCanvasFontLoaded) {
 
-      if(m_feng.load_font(font_file, 0, gren)) {
+      if(m_feng.load_font(font_file, 0, gren) &&
+            m_image_feng.load_font(font_file, 0, image_gren)) {
+
          m_feng.hinting(true);
          m_feng.height(15);
          m_feng.width(15);
          m_feng.flip_y(true);
+
+         m_image_feng.hinting(true);
+         m_image_feng.flip_y(true);
 
          RoadMapCanvasFontLoaded = 1;
       } else {
@@ -718,5 +739,102 @@ void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
 
       roadmap_canvas_draw_multiple_lines (1, &num_points, points, 0);
    }
+}
+
+
+void roadmap_canvas_copy_image (RoadMapImage dst_image,
+                                const RoadMapGuiPoint *pos,
+                                const RoadMapGuiRect  *rect,
+                                RoadMapImage src_image, int mode) {
+
+   agg::renderer_base<agg::pixfmt_rgba32> renb(dst_image->pixfmt);
+
+   agg::rect_i agg_rect;
+   agg::rect_i *agg_rect_p = NULL;
+
+   if (rect) {
+      agg_rect.x1 = rect->minx;
+      agg_rect.y1 = rect->miny;
+      agg_rect.x2 = rect->maxx;
+      agg_rect.y2 = rect->maxy;
+
+      agg_rect_p = &agg_rect;
+   }
+
+   if (mode == CANVAS_COPY_NORMAL) {
+      renb.copy_from(src_image->rbuf, agg_rect_p, pos->x, pos->y);
+   } else {
+      renb.blend_from(src_image->pixfmt, agg_rect_p, pos->x, pos->y, 255);
+   }
+}
+
+
+int  roadmap_canvas_image_width  (const RoadMapImage image) {
+
+   if (!image) return 0;
+   
+   return image->rbuf.width();
+}
+
+
+int  roadmap_canvas_image_height (const RoadMapImage image) {
+   
+   if (!image) return 0;
+   
+   return image->rbuf.height();
+}
+
+
+void roadmap_canvas_draw_image_text (RoadMapImage image,
+                                     const RoadMapGuiPoint *position,
+                                     int size, const char *text) {
+   
+   if (RoadMapCanvasFontLoaded != 1) return;
+   
+   wchar_t wstr[255];
+   int length = roadmap_canvas_agg_to_wchar (text, wstr, 255);
+   if (length <=0) return;
+   
+#ifdef USE_FRIBIDI
+   wchar_t *bidi_text = bidi_string(wstr);
+   const wchar_t* p = bidi_text;
+#else   
+   const wchar_t* p = wstr;
+#endif
+   
+   ren_solid.color(CurrentPen->color);
+   
+   double x  = position->x;
+   double y  = position->y + size - 7;
+
+   agg::renderer_base<agg::pixfmt_rgba32> renb(image->pixfmt);
+   agg::renderer_scanline_aa_solid< agg::renderer_base<agg::pixfmt_rgba32> > ren_solid (renb);
+
+   ren_solid.color(agg::rgba8(0, 0, 0));
+
+   m_image_feng.height(size);
+   m_image_feng.width(size);
+
+   while(*p) {
+      const agg::glyph_cache* glyph = m_image_fman.glyph(*p);
+
+      if(glyph) {
+         m_image_fman.init_embedded_adaptors(glyph, x, y);
+         
+         agg::render_scanlines(m_image_fman.gray8_adaptor(), 
+               m_image_fman.gray8_scanline(), 
+               ren_solid);      
+
+         // increment pen position
+         x += glyph->advance_x;
+         y += glyph->advance_y;
+      }
+      ++p;
+   }
+
+#ifdef USE_FRIBIDI
+   free(bidi_text);
+#endif
+
 }
 

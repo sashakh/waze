@@ -195,6 +195,8 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/track/editor_track_known.c \
 	     editor/db/editor_db.c \
 	     navigate/navigate_main.c \
+	     navigate/navigate_instr.c \
+	     navigate/navigate_bar.c \
 	     navigate/navigate_plugin.c \
 	     navigate/navigate_dglib.c \
 
