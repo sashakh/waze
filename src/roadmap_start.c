@@ -98,6 +98,7 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
 
 static RoadMapMenu LongClickMenu;
 
+static RoadMapScreenSubscriber roadmap_start_prev_after_refresh = NULL;
 
 /* The menu and toolbar callbacks: --------------------------------------- */
 
@@ -589,8 +590,7 @@ static const char *RoadMapStartMenu[] = {
    "down",
    "toggleorientation",
    "toggleview",
-   "IncHorizon",
-   "DecHorizon",
+   "full",
 
    RoadMapFactorySeparator,
 
@@ -924,6 +924,10 @@ static void roadmap_start_after_refresh (void) {
       roadmap_sprite_draw
          ("Download", &download_point, 0 - roadmap_math_get_orientation());
    }
+
+   if (roadmap_start_prev_after_refresh) {
+      (*roadmap_start_prev_after_refresh) ();
+   }
 }
 
 
@@ -1064,7 +1068,8 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_help_initialize ();
 
-   roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
+   roadmap_start_prev_after_refresh =
+      roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
    editor_main_initialize ();
    navigate_main_initialize ();
