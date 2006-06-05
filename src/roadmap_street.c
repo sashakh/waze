@@ -472,6 +472,9 @@ static void roadmap_street_locate (const char *name,
 
    street->name =
       roadmap_dictionary_locate (RoadMapRangeActive->RoadMapStreetNames, name);
+   if (street->prefix == ROADMAP_INVALID_STRING) street->prefix = 0;
+   if (street->suffix == ROADMAP_INVALID_STRING) street->suffix = 0;
+   if (street->type   == ROADMAP_INVALID_STRING) street->type   = 0;
 }
 
 
