@@ -30,12 +30,13 @@
 #include "roadmap_screen.h"
 
 enum NavigateInstr {
-   TURN_LEFT,
+   TURN_LEFT = 0,
    TURN_RIGHT,
    KEEP_LEFT,
    KEEP_RIGHT,
    CONTINUE,
-   APPROACHING_DESTINATION
+   APPROACHING_DESTINATION,
+   LAST_DIRECTION
 };
 
 typedef struct {
@@ -49,6 +50,8 @@ typedef struct {
    int                  last_shape;
    RoadMapShapeItr      shape_itr;
    enum NavigateInstr   instruction;
+   int                  group_id;
+   int                  distance;
    
 } NavigateSegment;
  
