@@ -113,5 +113,5 @@ gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
 	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
-	$(CC) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
+	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
 
