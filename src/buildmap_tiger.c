@@ -350,7 +350,7 @@ static char *buildmap_tiger_read
    }
 
    data = mmap (NULL, state_result.st_size, PROT_READ, MAP_PRIVATE, file, 0);
-   if (data == NULL) {
+   if (data == MAP_FAILED) {
       buildmap_error (0, "cannot mmap");
       return NULL;
    }

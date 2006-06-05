@@ -257,7 +257,7 @@ const char *roadmap_file_map (const char *path,
                          context->fd,
                          0);
 
-   if (context->base == NULL) {
+   if (context->base == MAP_FAILED) {
       roadmap_log (ROADMAP_ERROR, "cannot map file %s", context->name);
       roadmap_file_unmap (&context);
       return NULL;
