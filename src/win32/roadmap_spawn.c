@@ -31,10 +31,93 @@
 #include "../roadmap_list.h"
 #include "../roadmap_spawn.h"
 
+typedef void (*text2speech)(const char *text);
+static int flite_dll_initialized = 0;
+static HINSTANCE flite_dll_inst;
+static text2speech flite_t2s;
+static HANDLE flite_thread;
+static HANDLE flite_inuse_event;
+static HANDLE flite_launch_event;
+static RoadMapFeedback *flite_feedback;
+static const char *flite_text;
 
 static char *RoadMapSpawnPath = NULL;
 
 static RoadMapList RoadMapSpawnActive = ROADMAP_LIST_EMPTY;
+
+DWORD WINAPI FliteThread(LPVOID lpParam) {
+
+   while (1) {
+      char *text;
+
+      if (WaitForSingleObject(flite_launch_event, INFINITE) != WAIT_OBJECT_0) {
+         roadmap_log (ROADMAP_ERROR,
+            "FliteThread - error waiting for event. No more talking.");
+         break;
+      }
+
+      text = strdup(flite_text);
+      SetEvent(flite_inuse_event);
+
+      flite_t2s(text);
+      free(text);
+
+      flite_feedback->handler (flite_feedback->data);
+   }
+
+   return 0;
+}
+
+
+static int exec_flite_dll (const char *command_line,
+								   RoadMapFeedback *feedback) {
+
+   if (flite_dll_initialized == -1) return -1;
+
+   if (!flite_dll_initialized) {
+
+      flite_dll_inst = LoadLibrary(L"\\Storage card\\RoadMap\\flite_dll.dll");
+      if (!flite_dll_inst) {
+         flite_dll_initialized = -1;
+         return -1;
+      }
+
+      flite_t2s = (text2speech)GetProcAddress(flite_dll_inst, L"text2speech");
+      if (!flite_t2s) {
+         FreeLibrary(flite_dll_inst);
+         flite_dll_initialized = -1;
+         return -1;
+      }
+
+      flite_inuse_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+      flite_launch_event = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+		flite_thread = CreateThread(NULL, 0, FliteThread, 0, 0, NULL);
+
+      SetThreadPriority(flite_thread, THREAD_PRIORITY_HIGHEST);
+
+      flite_dll_initialized = 1;
+   }
+
+   do {
+      while (*command_line && (*command_line == ' ')) command_line++;
+      if(*command_line == '-') {
+         while (*command_line && (*command_line != ' ')) command_line++;
+      }
+   } while ((*command_line == ' ') || (*command_line == '-'));
+
+   flite_text = command_line;
+   flite_feedback = feedback;
+
+   SetEvent (flite_launch_event);
+   if (WaitForSingleObject (flite_inuse_event, 1000) != WAIT_OBJECT_0) {
+
+      ResetEvent (flite_launch_event);
+      feedback->handler (feedback->data);
+   }
+
+   return 0;
+}
 
 
 static int roadmap_spawn_child (const char *name,
@@ -115,6 +198,12 @@ int  roadmap_spawn_with_feedback (const char *name,
 								  const char *command_line,
 								  RoadMapFeedback *feedback)
 {
+   if (!strcmp (name, "flite") &&
+      (exec_flite_dll(command_line, feedback) != -1)) {
+
+      return 0;
+   }
+
 	roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
 	feedback->child = roadmap_spawn_child (name, command_line, NULL);
 
