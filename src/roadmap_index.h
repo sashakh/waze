@@ -34,12 +34,21 @@ int  roadmap_index_by_city (const char *authority, const char *city);
 
 int  roadmap_index_by_authority (const char *authority, int *wtid, int count);
 
-const char *roadmap_index_get_territory_name (int wtid);
+int  roadmap_index_by_territory
+        (int wtid, char **class, char **files, int count);
+
 const char *roadmap_index_get_authority_name (int wtid);
+
+const char *roadmap_index_get_territory_name (int wtid);
+const char *roadmap_index_get_territory_path (int wtid);
+
+const RoadMapArea *roadmap_index_get_territory_edges (int wtid);
 
 int  roadmap_index_get_territory_count (void);
 
-const RoadMapArea *roadmap_index_get_territory_edges (int wtid);
+int  roadmap_index_get_map_count (void);
+
+int  roadmap_index_list_authorities (char ***symbols, char ***names);
 
 extern roadmap_db_handler RoadMapIndexHandler;
 

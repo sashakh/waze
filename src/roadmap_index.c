@@ -31,6 +31,14 @@
  *   extern roadmap_db_handler RoadMapIndexHandler;
  *
  * These functions are used to retrieve a map given a location or city.
+ *
+ *
+ * int roadmap_index_list_authorities (const char ***names);
+ *
+ * This function is used to list the content of the index: first get
+ * the list of authorities, then follow down with territories and maps.
+ *
+ * The list of string pointers must be deallocated, but not the strings.
  */
 
 #include <stdio.h>
@@ -41,6 +49,7 @@
 #include "roadmap.h"
 #include "roadmap_math.h"
 #include "roadmap_hash.h"
+#include "roadmap_path.h"
 #include "roadmap_dbread.h"
 #include "roadmap_db_index.h"
 #include "roadmap_dictionary.h"
@@ -499,15 +508,6 @@ const char *roadmap_index_get_authority_name (int wtid) {
 }
 
 
-int roadmap_index_get_territory_count (void) {
-
-   if (RoadMapIndexActive == NULL) {
-      return 0; /* None is available, anyway. */
-   }
-   return RoadMapIndexActive->territory_count;
-}
-
-
 const RoadMapArea *roadmap_index_get_territory_edges (int wtid) {
 
    int i;
@@ -518,5 +518,144 @@ const RoadMapArea *roadmap_index_get_territory_edges (int wtid) {
    if (i < 0) return NULL;
 
    return &RoadMapIndexActive->territory[i].edges;
+}
+
+
+const char *roadmap_index_get_territory_path (int wtid) {
+
+   int i;
+   int index;
+   int authority_path;
+   int territory_path;
+   RoadMapAuthority *this_authority;
+
+
+   if (RoadMapIndexActive == NULL) return "";
+
+   index = roadmap_index_search_territory (wtid);
+   if (index < 0) return "";
+
+   for (i = RoadMapIndexActive->authority_count - 1; i >= 0; --i) {
+
+      this_authority = RoadMapIndexActive->authority + i;
+
+      if (index >= this_authority->territory_first &&
+          index <= this_authority->territory_first
+                       + this_authority->territory_count) {
+         authority_path = this_authority->pathname;
+         break;
+      }
+   }
+
+   territory_path = RoadMapIndexActive->territory[index].pathname;
+
+   if (authority_path > 0 && territory_path > 0) {
+
+      static char *full_path = NULL;
+
+      char *path1;
+      char *path2;
+
+      path1 = roadmap_dictionary_get
+                 (RoadMapIndexActive->files, authority_path);
+      path2 = roadmap_dictionary_get
+                (RoadMapIndexActive->files, territory_path);
+
+      if (full_path != NULL) roadmap_path_free (full_path);
+      full_path = roadmap_path_join (path1, path2);
+
+      return full_path;
+
+   } else if (authority_path > 0) {
+
+      return roadmap_dictionary_get
+                (RoadMapIndexActive->files, authority_path);
+
+   } else if (territory_path > 0) {
+
+      return roadmap_dictionary_get
+                (RoadMapIndexActive->files, territory_path);
+   }
+
+   return "";
+}
+
+
+int roadmap_index_get_territory_count (void) {
+
+   if (RoadMapIndexActive == NULL) {
+      return 0; /* None is available, anyway. */
+   }
+   return RoadMapIndexActive->territory_count;
+}
+
+
+int  roadmap_index_get_map_count (void) {
+
+   if (RoadMapIndexActive == NULL) {
+      return 0; /* None is available, anyway. */
+   }
+   return RoadMapIndexActive->map_count;
+}
+
+
+int  roadmap_index_by_territory
+        (int wtid, char **classes, char **files, int count) {
+
+   int i, j;
+   int map_end;
+   RoadMapTerritory *this_territory;
+
+   if (RoadMapIndexActive == NULL) return 0;
+
+   i = roadmap_index_search_territory (wtid);
+   if (i < 0) return 0;
+
+   this_territory = RoadMapIndexActive->territory + i;
+
+   if (count > this_territory->map_count) {
+      map_end = this_territory->map_first + this_territory->map_count;
+   } else {
+      map_end = this_territory->map_first + count;
+   }
+
+   for (count = 0, j = this_territory->map_first; j < map_end; ++j, ++count) {
+      classes[count] =
+         roadmap_dictionary_get (RoadMapIndexActive->classes,
+                                 RoadMapIndexActive->map[j].class);
+      files[count] =
+         roadmap_dictionary_get (RoadMapIndexActive->files,
+                                 RoadMapIndexActive->map[j].filename);
+   }
+
+   return count;
+}
+
+
+int roadmap_index_list_authorities (char ***symbols,
+                                    char ***names) {
+
+   int i;
+   RoadMapAuthority *this_authority;
+
+   *names = calloc (RoadMapIndexActive->authority_count, sizeof(char *));
+   roadmap_check_allocated(*names);
+   
+   *symbols = calloc (RoadMapIndexActive->authority_count, sizeof(char *));
+   roadmap_check_allocated(*symbols);
+   
+   for (i = RoadMapIndexActive->authority_count - 1; i >= 0; --i) {
+
+      this_authority = RoadMapIndexActive->authority + i;
+
+      (*symbols)[i] = roadmap_dictionary_get
+                         (RoadMapIndexActive->names, this_authority->symbol);
+
+      (*names)[i] = roadmap_dictionary_get
+                         (RoadMapIndexActive->names,
+                          RoadMapIndexActive->name[this_authority->name_first]);
+   }
+
+   return RoadMapIndexActive->authority_count;
 }
 
