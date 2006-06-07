@@ -765,8 +765,9 @@ static void buildmap_index_save (void) {
          }
          one_territory = db_territory + territory_cursor;
 
+         one_territory->wtid = this_territory->wtid;
          one_territory->pathname = this_territory->pathname_index;
-         one_territory->name = 0;
+         one_territory->name = this_territory->name;
 
          one_territory->edges = this_territory->edges;
 
