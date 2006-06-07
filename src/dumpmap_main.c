@@ -30,6 +30,7 @@
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
 #include "roadmap_metadata.h"
+#include "roadmap_index.h"
 
 
 roadmap_db_model *RoadMapModel = NULL;
@@ -37,6 +38,7 @@ roadmap_db_model *RoadMapModel = NULL;
 static int   DumpMapVerbose = 0;
 static int   DumpMapShowStrings = 0;
 static int   DumpMapShowAttributes = 0;
+static int   DumpMapShowIndex = 0;
 static char *DumpMapShowDump = NULL;
 static char *DumpMapShowVolume = NULL;
 static char *DumpMapSearchStringOption = NULL;
@@ -245,6 +247,100 @@ roadmap_db_handler DumpMapPrintAttributes =
      dumpmap_attributes_map, dumpmap_attributes_activate, NULL};
 
 
+/* Index print module ------------------------------------------------------
+ *
+ * This is a simple module as it does not care about keeping any
+ * context, it does its jobs once the database has been mapped, and
+ * then it forgets about the database.
+ */
+
+static void *dumpmap_index_map (roadmap_db *root) {
+
+   return (*RoadMapIndexHandler.map) (root);
+}
+
+static void roadmap_index_print_maps (int wtid) {
+
+   int i;
+   int max;
+   int count;
+   char **classes;
+   char **files;
+
+   max = roadmap_index_get_map_count ();
+   classes = calloc (max, sizeof(char *));
+   roadmap_check_allocated(classes);
+   files = calloc (max, sizeof(char *));
+   roadmap_check_allocated(files);
+
+   count = roadmap_index_by_territory (wtid, classes, files, max);
+
+   for (i = 0; i < count; ++i) {
+      printf ("         map %s (%s)\n", files[i], classes[i]);
+   }
+}
+
+static void roadmap_index_print_territories (const char *authority) {
+
+   int i;
+   int max;
+   int count;
+   int *list;
+
+   max = roadmap_index_get_territory_count ();
+   list = calloc (max, sizeof(int));
+   roadmap_check_allocated(list);
+
+   count = roadmap_index_by_authority (authority, list, max);
+
+   for (i = 0; i < count; ++i) {
+
+      const char *path = roadmap_index_get_territory_path (list[i]);
+
+      if (path == NULL || path[0] == 0) path = ".";
+
+      printf ("      Territory %09d (%s) at %s\n",
+              list[i], roadmap_index_get_territory_name (list[i]), path);
+      roadmap_index_print_maps (list[i]);
+   }
+}
+
+static void roadmap_index_print_authorities (void) {
+
+   char **names;
+   char **symbols;
+   int authority_count;
+   int authority;
+
+
+   printf ("RoadMap index tables:\n");
+
+   authority_count = roadmap_index_list_authorities (&symbols, &names);
+
+   for (authority = 0; authority < authority_count; ++authority) {
+
+       printf ("   Authority %s (%s)\n", symbols[authority], names[authority]);
+
+       roadmap_index_print_territories (symbols[authority]);
+   }
+}
+
+static void dumpmap_index_activate (void *context) {
+
+   (*RoadMapIndexHandler.activate) (context);
+
+   if (DumpMapShowIndex != 0) {
+      roadmap_index_print_authorities ();
+   } else {
+      roadmap_dictionary_dump ();
+   }
+}
+
+roadmap_db_handler DumpMapPrintIndex =
+    {"index",
+     dumpmap_index_map, dumpmap_index_activate, NULL};
+
+
 /* Section dump module -----------------------------------------------------
  *
  * This is a simple module as it does not care about keeping any
@@ -319,6 +415,9 @@ static struct poptOption DumpMapOptions[] = {
    {"attributes", 'a',
       POPT_ARG_NONE, &DumpMapShowAttributes, 0, "Show map attributes", NULL},
 
+   {"index", 'i',
+      POPT_ARG_NONE, &DumpMapShowIndex, 0, "Show map index", NULL},
+
    {NULL, 0,
         POPT_ARG_INCLUDE_TABLE, DumpMapDictionaryOptions, 0, "Dictionary options", NULL},
 
@@ -344,6 +443,15 @@ int main (int argc, const char **argv) {
       RoadMapModel =
          roadmap_db_register
             (RoadMapModel, "metadata", &DumpMapPrintAttributes);
+      RoadMapModel =
+         roadmap_db_register
+            (RoadMapModel, "string", &RoadMapDictionaryHandler);
+
+   } else if (DumpMapShowIndex) {
+
+      RoadMapModel =
+         roadmap_db_register
+            (RoadMapModel, "index", &DumpMapPrintIndex);
       RoadMapModel =
          roadmap_db_register
             (RoadMapModel, "string", &RoadMapDictionaryHandler);
