@@ -936,8 +936,9 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 					HWND sheet = GetParent(frame->w);
 					if (sheet != NULL) {
 						MoveWindow(sheet, 0, 0,
+							width,
 							height - MAX_ROW_HEIGHT,
-							width, TRUE);
+							TRUE);
 						return TRUE;
 					}
 				}
