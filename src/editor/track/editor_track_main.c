@@ -46,6 +46,7 @@
 #include "../db/editor_db.h"
 #include "../db/editor_point.h"
 #include "../db/editor_route.h"
+#include "../db/editor_line.h"
 #include "../editor_log.h"
 #include "editor_track_filter.h"
 #include "editor_track_util.h"
@@ -204,6 +205,76 @@ static int create_new_line (int gps_first_point,
 }
 
 
+static int add_road_connection (int point_id,
+                                RoadMapTracking *new_street,
+                                RoadMapNeighbour *new_line) {
+
+   int from_point;
+   int end_point;
+   int line_id;
+   NodeNeighbour end_node = NODE_NEIGHBOUR_NULL;
+
+   editor_log_push ("add_road_connection");
+
+   from_point =
+      editor_track_util_new_road_start
+      (&TrackConfirmedLine,
+       track_point_pos (point_id),
+       point_id,
+       TrackConfirmedStreet.line_direction,
+       &cur_node);
+
+   assert (from_point != -1);
+
+   if (from_point == -1) {
+      return -1;
+   }
+
+   if (editor_track_known_end_segment
+         (&TrackPreviousLine.line, from_point,
+          &TrackConfirmedLine.line, is_new_track)) {
+
+      is_new_track = 0;
+   }
+
+   track_reset_points (from_point);
+   
+   /*FIXME the whole previous line thing is not used and broken */
+   TrackPreviousLine = TrackConfirmedLine;
+
+   TrackConfirmedLine = *new_line;
+   TrackConfirmedStreet = *new_street;
+
+   end_point =
+      editor_track_util_new_road_end
+      (&TrackConfirmedLine,
+       track_point_pos (points_count - 1),
+       points_count - 1,
+       TrackConfirmedStreet.line_direction,
+       &end_node);
+
+   if (end_node.plugin_id == ROADMAP_PLUGIN_ID) {
+      end_node.id = editor_point_roadmap_to_editor (end_node.id);
+      end_node.plugin_id = EditorPluginID;
+   }
+
+   line_id = create_new_line (0, end_point, -1, end_node.id, 4);
+
+   if (line_id != -1) {
+      int cfcc;
+      int flags;
+
+      editor_line_get (line_id, NULL, NULL, NULL, &cfcc, &flags);
+      editor_line_modify_properties
+         (line_id, cfcc, flags | ED_LINE_CONNECTION);
+   }
+
+   track_reset_points (end_point);
+
+   return 0;
+}
+
+
 static void end_known_segment (int point_id,
                                RoadMapTracking *new_street,
                                RoadMapNeighbour *new_line) {
@@ -238,17 +309,39 @@ static void end_known_segment (int point_id,
       int split_point = editor_track_util_connect_roads
                            (&TrackConfirmedLine.line,
                             &new_line->line,
-                            TrackConfirmedStreet.opposite_street_direction,
-                            new_street->opposite_street_direction,
+                            TrackConfirmedStreet.line_direction,
+                            new_street->line_direction,
                             track_point_gps (point_id),
                             point_id);
 
-      if (editor_track_known_end_segment
-            (&TrackPreviousLine.line, split_point,
-             &TrackConfirmedLine.line, is_new_track)) {
+      if (split_point != -1) {
+         
+         if (editor_track_known_end_segment
+               (&TrackPreviousLine.line, split_point,
+                &TrackConfirmedLine.line, is_new_track)) {
+
+            is_new_track = 0;
+            
+            /*FIXME the whole previous line thing is not used and broken */
+            TrackPreviousLine = TrackConfirmedLine;
+         }
+
+      } else {
+
+         /* We can't just connect the two roads.
+          * We need to create a new road in between.
+          */
+         
+         if (add_road_connection (point_id, new_street, new_line) == -1) {
+            TrackConfirmedLine = *new_line;
+            TrackConfirmedStreet = *new_street;
+            track_reset_points (-1);
+            return;
+         }
 
          is_new_track = 0;
          TrackPreviousLine = TrackConfirmedLine;
+         return;
       }
 
       track_reset_points (split_point);
@@ -274,7 +367,7 @@ static void end_known_segment (int point_id,
                      (&TrackConfirmedLine,
                       track_point_pos (point_id),
                       point_id,
-                      TrackConfirmedStreet.opposite_street_direction,
+                      TrackConfirmedStreet.line_direction,
                       &cur_node);
 
       if (split_point != -1) {
@@ -374,7 +467,7 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
                      (&TrackConfirmedLine,
                       track_point_pos (end_point),
                       end_point,
-                      TrackConfirmedStreet.opposite_street_direction,
+                      TrackConfirmedStreet.line_direction,
                       &end_node);
 
          if (end_node.plugin_id == ROADMAP_PLUGIN_ID) {

@@ -508,7 +508,7 @@ static int editor_export_data(const char *name) {
 
          editor_line_get (line_id, &from, &to, NULL, &cfcc, &flags);
 
-         if (flags & ED_LINE_DELETED) {
+         if (flags & (ED_LINE_DELETED|ED_LINE_CONNECTION)) {
 
             editor_line_modify_properties
                (line_id, cfcc, flags & ~ED_LINE_DIRTY);

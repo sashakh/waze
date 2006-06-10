@@ -32,6 +32,7 @@
 #define ED_LINE_DELETED         0x1 /* flag */
 #define ED_LINE_EXPLICIT_SPLIT  0x2 /* flag */
 #define ED_LINE_DIRTY           0x4 /* flag */
+#define ED_LINE_CONNECTION      0x8
 
 typedef struct editor_db_line_s {
    int point_from;
