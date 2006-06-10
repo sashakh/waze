@@ -328,8 +328,9 @@ static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
    int has_street = 0;
    int has_route = 0;
 
-   return NO_ROAD_STATE;
    if (plugin_id == ROADMAP_PLUGIN_ID) {
+      
+      return NO_ROAD_STATE;
       
       if (roadmap_locator_activate (fips) >= 0) {
          
@@ -370,10 +371,14 @@ static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
             has_street = 1;
          }
 
+#if 0
          route = editor_line_get_route (line);
          if (route != -1) {
             has_route = 1;
          }
+#else
+         has_route = 1;
+#endif         
       }
    }
 
@@ -498,7 +503,7 @@ static char *editor_screen_get_pen_color (int pen_type, int road_state) {
    case SELECTED_STATE:       return "black";
    case NO_DATA_STATE:        return "dark red";
    case MISSING_NAME_STATE:   return "red";
-   case MISSING_ROUTE_STATE:  return "orange";
+   case MISSING_ROUTE_STATE:  return "yellow";
 
    default:
                               assert (0);
@@ -600,6 +605,9 @@ static void editor_screen_draw_square
          if (is_selected) {
 
             road_state = SELECTED_STATE;
+         } else if (flag & ED_LINE_CONNECTION) {
+
+            road_state = MISSING_ROUTE_STATE;
          } else {
       
             road_state = editor_screen_get_road_state (line, 1, fips);
