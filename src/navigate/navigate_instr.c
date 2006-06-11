@@ -150,7 +150,7 @@ static void navigate_fix_line_end (RoadMapPosition *position,
          seg_shape_initial = from;
       } else {
 
-         seg_shape_end = segment->last_shape - 1;
+         seg_shape_end = segment->last_shape;
          seg_end_pos = intersection;
       }
    }
@@ -439,7 +439,6 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
    int group_id = 0;
    NavigateSegment *segment;
 
-
    for (i=0; i < count; i++) {
 
       roadmap_plugin_get_line_points (&segments[i].line,
@@ -473,18 +472,8 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
       navigate_fix_line_end (dst_pos, &segments[i], LINE_START);
    }
 
-
+   /* assign group ids */
    segment = segments;
-
-   if (segment->line_direction == ROUTE_DIRECTION_WITH_LINE) {
-      segment->distance =
-         navigate_instr_calc_length (&segment->from_pos, segment, LINE_END);
-   } else {
-      segment->distance =
-         navigate_instr_calc_length (&segment->to_pos, segment, LINE_START);
-   }
-
-
    while (segment < segments + count) {
 
       int group_count = 0;
@@ -506,8 +495,6 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
          }
 
          group_count++;
-         /* TODO no plugin support */
-         segment->distance = roadmap_line_length (segment->line.line_id);
       }
 
       while (group_count >= 0) {
@@ -520,13 +507,49 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
       group_id++;
    }
 
-   segment = segments + count - 1;
-   if (segment->line_direction == ROUTE_DIRECTION_WITH_LINE) {
-      segment->distance =
-         navigate_instr_calc_length (&segment->from_pos, segment, LINE_END);
-   } else {
-      segment->distance =
-         navigate_instr_calc_length (&segment->to_pos, segment, LINE_START);
+   /* Calculate lengths and ETA for each segment */
+   segment = segments;
+   while (segment < segments + count) {
+      LineRouteTime from_cross_time;
+      LineRouteTime to_cross_time;
+
+      /* TODO no plugin support */
+      roadmap_line_route_get_cross_times
+         (segment->line.line_id, &from_cross_time, &to_cross_time);
+
+      if ((segment == segments) || (segment == (segments + count -1))) {
+
+         if (segment->line_direction == ROUTE_DIRECTION_WITH_LINE) {
+            segment->distance =
+               navigate_instr_calc_length
+                  (&segment->from_pos, segment, LINE_END);
+
+            /* calculate cross time using the line length */
+            segment->cross_time = 1.0 * from_cross_time * segment->distance /
+               (roadmap_line_length (segment->line.line_id)+1);
+         } else {
+            segment->distance =
+               navigate_instr_calc_length
+                  (&segment->to_pos, segment, LINE_START);
+
+            segment->cross_time = 1.0 * to_cross_time * segment->distance /
+               (roadmap_line_length (segment->line.line_id)+1);
+         }
+
+      } else {
+
+         segment->distance = roadmap_line_length (segment->line.line_id);
+         roadmap_line_route_get_cross_times
+            (segment->line.line_id, &from_cross_time, &to_cross_time);
+         
+         if (segment->line_direction == ROUTE_DIRECTION_WITH_LINE) {
+            segment->cross_time = from_cross_time;
+         } else {
+            segment->cross_time = to_cross_time;
+         }
+      }
+
+      segment++;
    }
 
    return 0;

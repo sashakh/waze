@@ -27,6 +27,7 @@
 #include "roadmap_canvas.h"
 
 void navigate_bar_initialize (void);
+void navigate_bar_set_mode (int mode);
 void navigate_bar_draw (void);
 void navigate_bar_set_instruction (enum NavigateInstr instr);
 void navigate_bar_set_distance (int distance);

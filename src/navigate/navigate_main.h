@@ -52,6 +52,7 @@ typedef struct {
    enum NavigateInstr   instruction;
    int                  group_id;
    int                  distance;
+   int                  cross_time;
    
 } NavigateSegment;
  
