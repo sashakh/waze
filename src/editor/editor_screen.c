@@ -223,7 +223,7 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
    roadmap_math_to_position (point, &position, 1);
    
    if (roadmap_navigate_retrieve_line
-         (&position, 20, &line, &distance, LAYER_ALL_ROADS) == -1) {
+         (&position, 1, &line, &distance, LAYER_ALL_ROADS) == -1) {
        
       roadmap_display_hide ("Selected Street");
       editor_screen_reset_selected ();
