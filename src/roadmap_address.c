@@ -49,7 +49,7 @@
 #include "roadmap_address.h"
 
 #define MAX_NAMES 100
-static char *def_values[2] = {"", "Other"};
+static char *def_values[2] = {"", "Search"};
 static int RoadMapAddressSearchCount;
 static char *RoadMapAddressSearchNames[MAX_NAMES];
 
