@@ -161,8 +161,8 @@ const RoadMapGpsPosition *editor_track_filter_get (GPSFilter *filter) {
       RoadMapGpsPosition interpolated_point = filter->normalized_gps_point;
 
       while (roadmap_math_distance
-            ( (RoadMapPosition*) &filter->last_gps_point,
-              (RoadMapPosition*) &interpolated_point ) >=
+            ( (const RoadMapPosition*) &filter->last_gps_point,
+              (const RoadMapPosition*) (void*)&interpolated_point ) >=
                                  (filter->point_distance * 2)) {
 
             interpolated_point.longitude =

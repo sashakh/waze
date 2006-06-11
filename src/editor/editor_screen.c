@@ -363,7 +363,7 @@ static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
       if (editor_db_activate (fips) != -1) {
       
          EditorStreetProperties properties;
-         int route;
+         /* int route; */
 
          editor_street_get_properties (line, &properties);
 

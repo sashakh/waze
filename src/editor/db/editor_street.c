@@ -698,6 +698,7 @@ const char *editor_street_get_street_city
       str = range->right_city;
    } else {
       assert (0);
+      str = 0;
    }
 
    if (str == -1) return "";
@@ -726,6 +727,7 @@ const char *editor_street_get_street_zip
       str = range->right_zip;
    } else {
       assert (0);
+      str = 0;
    }
 
    if (str == -1) return "";

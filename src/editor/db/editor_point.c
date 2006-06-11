@@ -118,7 +118,7 @@ int editor_point_set_pos (int point, RoadMapPosition *position) {
 
 int editor_point_roadmap_to_editor (int roadmap_id) {
 
-   editor_db_del_point *del_point_ptr;
+   editor_db_del_point *del_point_ptr = NULL;
    editor_db_del_point del_point;
    int ed_point_id;
    RoadMapPosition point_pos;

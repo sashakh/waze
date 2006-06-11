@@ -798,13 +798,13 @@ static int roadmap_screen_draw_long_lines (int pen_type) {
    int last_cfcc = -1;
    int index = 0;
    int real_line;
-   int real_square;
+   int real_square = -2;
    int cfcc;
    int first_shape_line;
    int last_shape_line;
    int first_shape;
    int last_shape;
-   RoadMapPen layer_pen;
+   RoadMapPen layer_pen = NULL;
    int fips = roadmap_locator_active ();
    int total_length;
    int *total_length_ptr;

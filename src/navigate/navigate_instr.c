@@ -94,7 +94,7 @@ static void navigate_fix_line_end (RoadMapPosition *position,
    RoadMapPosition intersection;
    int smallest_distance = 0x7fffffff;
    int distance;
-   int seg_shape_end;
+   int seg_shape_end = -1;
    RoadMapPosition seg_end_pos;
    RoadMapPosition seg_shape_initial;
    int i;
@@ -525,15 +525,15 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
                   (&segment->from_pos, segment, LINE_END);
 
             /* calculate cross time using the line length */
-            segment->cross_time = 1.0 * from_cross_time * segment->distance /
-               (roadmap_line_length (segment->line.line_id)+1);
+            segment->cross_time = (int) (1.0 * from_cross_time * segment->distance /
+               (roadmap_line_length (segment->line.line_id)+1));
          } else {
             segment->distance =
                navigate_instr_calc_length
                   (&segment->to_pos, segment, LINE_START);
 
-            segment->cross_time = 1.0 * to_cross_time * segment->distance /
-               (roadmap_line_length (segment->line.line_id)+1);
+            segment->cross_time = (int) (1.0 * to_cross_time * segment->distance /
+               (roadmap_line_length (segment->line.line_id)+1));
          }
 
       } else {

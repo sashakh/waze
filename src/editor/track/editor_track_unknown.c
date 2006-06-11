@@ -57,7 +57,7 @@ static int match_distance_from_current
    int i;
    int distance;
    int smallest_distance;
-   int azymuth;
+   int azymuth = 0;
    RoadMapPosition intersection;
 
    smallest_distance = 0x7fffffff;

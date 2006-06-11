@@ -133,7 +133,7 @@ static int roadmap_nmea_decode_numeric (char *value, int unit) {
    int result;
 
    if (strchr (value, '.') != NULL) {
-      result = (int) trunc(atof(value) * unit);
+      result = (int) (atof(value) * unit);
    } else {
       result = atoi (value) * unit;
    }

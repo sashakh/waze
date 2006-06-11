@@ -96,7 +96,7 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
                                        PluginLine *to_line, int *to_point,
                                        int use_gps_location) {
 
-   const RoadMapPosition *position;
+   const RoadMapPosition *position = NULL;
    RoadMapPosition from_position;
    RoadMapPosition to_position;
    PluginLine line;
