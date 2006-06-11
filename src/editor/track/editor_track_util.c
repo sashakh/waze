@@ -448,9 +448,10 @@ static int adjust_connect_node (NodeNeighbour *node, PluginLine *line) {
 }
 
 
-static int editor_track_util_get_node_id (PluginLine *from,
-                                          int direction,
-                                          int node_type) {
+static void editor_track_util_get_node (PluginLine *from,
+                                        int direction,
+                                        int node_type,
+                                        NodeNeighbour *node) {
    
    int plugin_id = roadmap_plugin_get_id (from);
    int line_id   = roadmap_plugin_get_line_id (from);
@@ -476,10 +477,17 @@ static int editor_track_util_get_node_id (PluginLine *from,
          editor_point_roadmap_id (to_point_id, &roadmap_id);
       }
 
-      if (roadmap_id != -1) return roadmap_id;
+      if (roadmap_id != -1) {
 
-      if (node_type == NODE_FROM) return -from_point_id-2;
-      else return -to_point_id-2;
+         node->plugin_id = ROADMAP_PLUGIN_ID;
+         node->id = roadmap_id;
+      } else {
+
+         node->plugin_id = EditorPluginID;
+
+         if (node_type == NODE_FROM) node->id = from_point_id;
+         else node->id = to_point_id;
+      }
 
    } else {
 
@@ -488,8 +496,10 @@ static int editor_track_util_get_node_id (PluginLine *from,
 
       roadmap_line_points (line_id, &from_point_id, &to_point_id);
 
-      if (node_type == NODE_FROM) return from_point_id;
-      else return to_point_id;
+      node->plugin_id = ROADMAP_PLUGIN_ID;
+
+      if (node_type == NODE_FROM) node->id = from_point_id;
+      else node->id = to_point_id;
    }
 }
 
@@ -499,8 +509,57 @@ static int editor_track_util_is_connected (PluginLine *from,
                                            PluginLine *to,
                                            int to_direction) {
 
-   return editor_track_util_get_node_id (from, from_direction, NODE_TO) ==
-            editor_track_util_get_node_id (to, to_direction, NODE_FROM);
+   NodeNeighbour from_node;
+   NodeNeighbour to_node;
+
+   editor_track_util_get_node (from, from_direction, NODE_TO, &from_node);
+   editor_track_util_get_node (to, to_direction, NODE_FROM, &to_node);
+
+   return editor_track_util_same_node (&from_node, &to_node);
+}
+
+
+int find_connecting_road (RoadMapPosition *pos,
+                          NodeNeighbour *from_node,
+                          NodeNeighbour *to_node) {
+
+   RoadMapNeighbour neighbourhood[16];
+   int max = sizeof(neighbourhood) / sizeof(neighbourhood[1]);
+   int count;
+   int layers[128];
+   int layer_count;
+   int i;
+
+   layer_count = roadmap_layer_all_roads (layers, 128);
+
+   count = roadmap_street_get_closest
+           (pos, layers, layer_count, neighbourhood, max);
+
+   count = roadmap_plugin_get_closest
+           (pos, layers, layer_count, neighbourhood, count, max);
+
+   for (i = 0; i < count; ++i) {
+      NodeNeighbour c_from_node;
+      NodeNeighbour c_to_node;
+
+      editor_track_util_get_node (&neighbourhood[i].line,
+                                  ROUTE_DIRECTION_WITH_LINE,
+                                  NODE_FROM, &c_from_node);
+
+      editor_track_util_get_node (&neighbourhood[i].line,
+                                  ROUTE_DIRECTION_WITH_LINE,
+                                  NODE_TO, &c_to_node);
+
+      if ((editor_track_util_same_node (from_node, &c_from_node) &&
+           editor_track_util_same_node (to_node, &c_to_node)) ||
+          (editor_track_util_same_node (from_node, &c_to_node) &&
+           editor_track_util_same_node (to_node, &c_from_node))) {
+
+         return 1;
+      }
+   }
+
+   return 0;
 }
 
 
@@ -713,12 +772,20 @@ int editor_track_util_connect_roads (PluginLine *from,
       }
 
       //TODO: need to handle a merge of two nodes (each with two roads or more)
-      //TODO: Check if there's a small line connecting both nodes.
+
+      if (find_connecting_road (track_point_pos((from_point + to_point) / 2),
+                                 &from_node, &to_node)) {
+
+         editor_log (ROADMAP_INFO, "Found a third line connecting both lines. Done.");
+         editor_log_pop ();
+         return (from_point + to_point) / 2;
+      }
 
       if (editor_track_util_nodes_distance (&from_node, &to_node) >
-            editor_track_point_distance ()) {
+            2 * editor_track_point_distance ()) {
          editor_log (ROADMAP_INFO,
                "The roads are too far away. Need a connection road.");
+         editor_log_pop ();
          return -1;
       }
 
@@ -732,6 +799,7 @@ int editor_track_util_connect_roads (PluginLine *from,
          editor_log (ROADMAP_INFO,
                "Neither lines have a node near connection but the roads are connected. We need a connection road.");
 
+         editor_log_pop ();
          return -1;
       }
 
@@ -753,6 +821,7 @@ int editor_track_util_connect_roads (PluginLine *from,
       if (adjust_connect_node (&connect_node, to) == -1) {
          editor_log (ROADMAP_INFO,
                "The roads are too far away. Need a connection road.");
+         editor_log_pop ();
          return -1;
       }
      
@@ -761,6 +830,7 @@ int editor_track_util_connect_roads (PluginLine *from,
       if (roads_connected) {
          editor_log (ROADMAP_INFO,
                "'from' line has no node but roads are connected. Do nothing.");
+         editor_log_pop ();
          return to_point;
       }
 
@@ -769,6 +839,7 @@ int editor_track_util_connect_roads (PluginLine *from,
       if (adjust_connect_node (&connect_node, to) == -1) {
          editor_log (ROADMAP_INFO,
                "The roads are too far away. Need a connection road.");
+         editor_log_pop ();
          return -1;
       }
      
@@ -777,6 +848,7 @@ int editor_track_util_connect_roads (PluginLine *from,
       if (roads_connected) {
          editor_log (ROADMAP_INFO,
                "'to' line has no node but roads are connected. Do nothing.");
+         editor_log_pop ();
          return from_point;
       }
  
@@ -785,6 +857,7 @@ int editor_track_util_connect_roads (PluginLine *from,
       if (adjust_connect_node (&connect_node, from) == -1) {
          editor_log (ROADMAP_INFO,
                "The roads are too far away. Need a connection road.");
+         editor_log_pop ();
          return -1;
       }
      
