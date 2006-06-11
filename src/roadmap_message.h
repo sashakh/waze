@@ -24,6 +24,9 @@
 #ifndef INCLUDE__ROADMAP_MESSAGE__H
 #define INCLUDE__ROADMAP_MESSAGE__H
 
+RoadMapCallback roadmap_message_register (RoadMapCallback callback);
+void roadmap_message_update (void);
+
 void roadmap_message_set    (char parameter, const char *format, ...);
 void roadmap_message_unset  (char parameter);
 

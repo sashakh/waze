@@ -74,6 +74,7 @@ static int RoadMapTripRefresh  = 1; /* Screen needs to be refreshed ? */
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved   = 1;
 
+static RoadMapCallback RoadMapTripNextMessageUpdate;
 
 typedef struct roadmap_trip_point {
 
@@ -559,6 +560,120 @@ static void roadmap_trip_clear (void) {
 }
 
 
+static void roadmap_trip_format_messages (void) {
+    
+    int distance_to_destination;
+    int distance_to_destination_far;
+    RoadMapTripPoint *gps = RoadMapTripGps;
+    RoadMapTripPoint *waypoint;
+
+
+    if (RoadMapTripFocus == gps &&
+        RoadMapTripDestination != NULL &&
+        RoadMapTripDestination->has_value) {
+    
+        time_t now = time(NULL);
+        time_t sun;
+
+        roadmap_message_set ('T', roadmap_time_get_hours_minutes(now));
+
+        distance_to_destination =
+            roadmap_math_distance (&gps->map, &RoadMapTripDestination->map);
+    
+        roadmap_log (ROADMAP_DEBUG,
+                        "GPS: distance to destination = %d %s",
+                        distance_to_destination,
+                        roadmap_math_distance_unit());
+
+        distance_to_destination_far =
+           roadmap_math_to_trip_distance(distance_to_destination);
+
+        if (distance_to_destination_far > 0) {
+           roadmap_message_set ('D', "%d %s",
+                                distance_to_destination_far,
+                                roadmap_math_trip_unit());
+        } else {
+           roadmap_message_set ('D', "%d %s",
+                                distance_to_destination,
+                                roadmap_math_distance_unit());
+        };
+
+        
+        RoadMapTripNextWaypoint = RoadMapTripDestination;
+        
+        for (waypoint = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
+             waypoint != NULL;
+             waypoint = (RoadMapTripPoint *)waypoint->link.next) {
+
+            if (waypoint->in_trip && waypoint != RoadMapTripDeparture) {
+                if ((waypoint->distance < distance_to_destination) &&
+                    (waypoint->distance > RoadMapTripNextWaypoint->distance)) {
+                    RoadMapTripNextWaypoint = waypoint;
+                }
+            }
+        }
+        
+        if (RoadMapTripNextWaypoint != RoadMapTripDestination) {
+            
+            int distance_to_waypoint =
+                    roadmap_math_distance (&gps->map,
+                                           &RoadMapTripNextWaypoint->map);
+            
+            roadmap_log (ROADMAP_DEBUG,
+                            "GPS: distance to next waypoint %s = %d %s",
+                            RoadMapTripNextWaypoint->id,
+                            distance_to_waypoint,
+                            roadmap_math_distance_unit());
+            
+            roadmap_message_set ('W', "%d %s",
+                                 roadmap_math_to_trip_distance
+                                            (distance_to_waypoint),
+                                 roadmap_math_trip_unit());
+            
+        } else {
+            roadmap_message_unset ('W');
+        }
+        
+        roadmap_message_set ('S', "%3d %s",
+                             roadmap_math_to_speed_unit(gps->gps.speed),
+                             roadmap_math_speed_unit());
+
+        roadmap_message_set ('H', "%d %s",
+                             gps->gps.altitude,
+                             roadmap_math_distance_unit());
+
+        sun = roadmap_sunset (&gps->gps);
+        if (sun > now) {
+
+           roadmap_message_unset ('M');
+
+           roadmap_message_set ('E', roadmap_time_get_hours_minutes(sun));
+
+        } else {
+
+           roadmap_message_unset ('E');
+
+           sun = roadmap_sunrise (&gps->gps);
+           roadmap_message_set ('M', roadmap_time_get_hours_minutes(sun));
+        }
+
+    } else {
+
+        RoadMapTripNextWaypoint = NULL;
+
+        roadmap_message_unset ('D');
+        roadmap_message_unset ('S');
+        roadmap_message_unset ('T');
+        roadmap_message_unset ('W');
+
+        roadmap_message_unset ('M');
+        roadmap_message_unset ('E');
+    }
+
+    (*RoadMapTripNextMessageUpdate) ();
+}
+
+
 static int roadmap_trip_gps_state (void) {
 
    if (roadmap_trip_get_focus_name () == RoadMapTripGps->id) {
@@ -854,119 +969,6 @@ void roadmap_trip_stop (void) {
 }
 
 
-void roadmap_trip_format_messages (void) {
-    
-    int distance_to_destination;
-    int distance_to_destination_far;
-    RoadMapTripPoint *gps = RoadMapTripGps;
-    RoadMapTripPoint *waypoint;
-
-
-    if (RoadMapTripFocus == gps &&
-        RoadMapTripDestination != NULL &&
-        RoadMapTripDestination->has_value) {
-    
-        time_t now = time(NULL);
-        time_t sun;
-
-        roadmap_message_set ('T', roadmap_time_get_hours_minutes(now));
-
-        distance_to_destination =
-            roadmap_math_distance (&gps->map, &RoadMapTripDestination->map);
-    
-        roadmap_log (ROADMAP_DEBUG,
-                        "GPS: distance to destination = %d %s",
-                        distance_to_destination,
-                        roadmap_math_distance_unit());
-
-        distance_to_destination_far =
-           roadmap_math_to_trip_distance(distance_to_destination);
-
-        if (distance_to_destination_far > 0) {
-           roadmap_message_set ('D', "%d %s",
-                                distance_to_destination_far,
-                                roadmap_math_trip_unit());
-        } else {
-           roadmap_message_set ('D', "%d %s",
-                                distance_to_destination,
-                                roadmap_math_distance_unit());
-        };
-
-        
-        RoadMapTripNextWaypoint = RoadMapTripDestination;
-        
-        for (waypoint = (RoadMapTripPoint *)RoadMapTripWaypoints.first;
-             waypoint != NULL;
-             waypoint = (RoadMapTripPoint *)waypoint->link.next) {
-
-            if (waypoint->in_trip && waypoint != RoadMapTripDeparture) {
-                if ((waypoint->distance < distance_to_destination) &&
-                    (waypoint->distance > RoadMapTripNextWaypoint->distance)) {
-                    RoadMapTripNextWaypoint = waypoint;
-                }
-            }
-        }
-        
-        if (RoadMapTripNextWaypoint != RoadMapTripDestination) {
-            
-            int distance_to_waypoint =
-                    roadmap_math_distance (&gps->map,
-                                           &RoadMapTripNextWaypoint->map);
-            
-            roadmap_log (ROADMAP_DEBUG,
-                            "GPS: distance to next waypoint %s = %d %s",
-                            RoadMapTripNextWaypoint->id,
-                            distance_to_waypoint,
-                            roadmap_math_distance_unit());
-            
-            roadmap_message_set ('W', "%d %s",
-                                 roadmap_math_to_trip_distance
-                                            (distance_to_waypoint),
-                                 roadmap_math_trip_unit());
-            
-        } else {
-            roadmap_message_unset ('W');
-        }
-        
-        roadmap_message_set ('S', "%3d %s",
-                             roadmap_math_to_speed_unit(gps->gps.speed),
-                             roadmap_math_speed_unit());
-
-        roadmap_message_set ('H', "%d %s",
-                             gps->gps.altitude,
-                             roadmap_math_distance_unit());
-
-        sun = roadmap_sunset (&gps->gps);
-        if (sun > now) {
-
-           roadmap_message_unset ('M');
-
-           roadmap_message_set ('E', roadmap_time_get_hours_minutes(sun));
-
-        } else {
-
-           roadmap_message_unset ('E');
-
-           sun = roadmap_sunrise (&gps->gps);
-           roadmap_message_set ('M', roadmap_time_get_hours_minutes(sun));
-        }
-
-    } else {
-
-        RoadMapTripNextWaypoint = NULL;
-
-        roadmap_message_unset ('A');
-        roadmap_message_unset ('D');
-        roadmap_message_unset ('S');
-        roadmap_message_unset ('T');
-        roadmap_message_unset ('W');
-
-        roadmap_message_unset ('M');
-        roadmap_message_unset ('E');
-    }
-}
-
-
 void roadmap_trip_display (void) {
 
     int azymuth;
@@ -1028,7 +1030,7 @@ void roadmap_trip_initialize (void) {
             roadmap_config_declare
                 ("session",
                  &RoadMapTripPredefined[i].config_position,
-		 ROADMAP_DEFAULT_POSITION);
+       ROADMAP_DEFAULT_POSITION);
 
             if (RoadMapTripPredefined[i].mobile) {
                 roadmap_config_declare
@@ -1049,6 +1051,9 @@ void roadmap_trip_initialize (void) {
     roadmap_config_declare
         ("session", &RoadMapConfigFocusRotate, "1");
 
+    RoadMapTripNextMessageUpdate =
+       roadmap_message_register (roadmap_trip_format_messages);
+    
     roadmap_state_add ("GPS_focus", roadmap_trip_gps_state);
 }
 

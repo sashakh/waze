@@ -796,6 +796,8 @@ void roadmap_navigate_route (RoadMapNavigateRouteCB callbacks) {
       callbacks.get_next_line (&RoadMapConfirmedLine.line,
                                RoadMapConfirmedStreet.line_direction,
                                &RoadMapRouteInfo.next_line);
+
+      callbacks.update (&RoadMapLatestPosition, &RoadMapConfirmedLine.line);
    }
 
    RoadMapRouteInfo.enabled = 1;

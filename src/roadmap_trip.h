@@ -62,7 +62,6 @@ void  roadmap_trip_resume  (void);
 void  roadmap_trip_stop    (void);
 void  roadmap_trip_reverse (void);
 
-void  roadmap_trip_format_messages (void);
 void  roadmap_trip_display (void);
 
 void  roadmap_trip_new (void);

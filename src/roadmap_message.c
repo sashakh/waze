@@ -36,6 +36,24 @@
 
 static char *RoadMapMessageParameters[128] = {NULL};
 
+static void roadmap_message_dummy (void) {}
+
+static RoadMapCallback RoadMapMessageUpdate = roadmap_message_dummy;
+
+RoadMapCallback roadmap_message_register (RoadMapCallback callback) {
+
+   RoadMapCallback prev = RoadMapMessageUpdate;
+   RoadMapMessageUpdate = callback;
+
+   return prev;
+}
+
+
+void roadmap_message_update (void) {
+
+   (*RoadMapMessageUpdate) ();
+}
+
 
 int roadmap_message_format (char *text, int length, const char *format) {
 

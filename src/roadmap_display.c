@@ -619,8 +619,8 @@ static void roadmap_display_console_box
         frame[0].y = roadmap_canvas_height () - ascent - descent - 11;
         frame[1].y = roadmap_canvas_height () - 6;
     } else {
-        frame[0].y = 6;
-        frame[1].y = ascent + descent + 11;
+        frame[0].y = 40;
+        frame[1].y = ascent + descent + frame[0].y + 5;
     }
     frame[2].y = frame[1].y;
     frame[3].y = frame[0].y;

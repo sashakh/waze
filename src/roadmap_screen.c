@@ -48,6 +48,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_object.h"
 #include "roadmap_trip.h"
+#include "roadmap_message.h"
 #include "roadmap_canvas.h"
 #include "roadmap_screen_obj.h"
 #include "roadmap_state.h"
@@ -1126,19 +1127,19 @@ static void roadmap_screen_repaint (void) {
 
        roadmap_object_iterate (roadmap_screen_draw_object);
 
-       roadmap_trip_format_messages ();
+       roadmap_message_update ();
     
        roadmap_screen_obj_draw ();
+    }
 
-       if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
+    if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
 
-          roadmap_trip_display ();
-          roadmap_display_signs ();
-       }
+       roadmap_trip_display ();
     }
 
     RoadMapScreenAfterRefresh();
 
+    roadmap_display_signs ();
     roadmap_canvas_refresh ();
 
     roadmap_log_pop ();
