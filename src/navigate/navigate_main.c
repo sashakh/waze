@@ -393,6 +393,22 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       roadmap_message_set ('T', properties.street_t2s);
       roadmap_message_set ('C', properties.city);
 
+      if (NavigateDistanceToTurn <= 50) {
+         roadmap_message_unset ('w');
+      } else {
+
+         int distance_far =
+            roadmap_math_to_trip_distance(NavigateDistanceToTurn);
+
+         if (distance_far > 0) {
+            roadmap_message_set ('w', "%d %s",
+                  distance_far, roadmap_math_trip_unit());
+         } else {
+            roadmap_message_set ('w', "%d %s",
+                  NavigateDistanceToTurn, roadmap_math_distance_unit());
+         };
+      }
+
       roadmap_voice_announce ("Driving Instruction");
    }
 

@@ -56,7 +56,7 @@ static struct roadmap_voice_config RoadMapVoiceText[] = {
     {ROADMAP_CONFIG_ITEM("Voice", "Current Street"), "flite -t 'On %N'"},
     {ROADMAP_CONFIG_ITEM("Voice", "Next Intersection"), "flite -t 'Next intersection: %N'"},
     {ROADMAP_CONFIG_ITEM("Voice", "Selected Street"), "flite -t 'Selected %N'"},
-    {ROADMAP_CONFIG_ITEM("Voice", "Driving Instruction"), "flite -t 'In %D %U, %I'|flite -t '%I to %T'|flite -t '%I'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Driving Instruction"), "flite -t 'In %w, %I'|flite -t '%I to %T'|flite -t '%I'"},
     {ROADMAP_CONFIG_ITEM_EMPTY, NULL}
 };
 
