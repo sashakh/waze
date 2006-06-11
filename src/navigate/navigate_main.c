@@ -61,6 +61,7 @@
 int NavigateEnabled = 0;
 int NavigatePluginID = -1;
 static int NavigateTrackEnabled = 0;
+static int NavigateTrackFollowGPS = 0;
 static RoadMapPen NavigatePen;
 
 static void navigate_update (RoadMapPosition *position, PluginLine *current);
@@ -93,8 +94,7 @@ static int NavigateNextAnnounce;
 
 
 static int navigate_find_track_points (PluginLine *from_line, int *from_point,
-                                       PluginLine *to_line, int *to_point,
-                                       int use_gps_location) {
+                                       PluginLine *to_line, int *to_point) {
 
    const RoadMapPosition *position = NULL;
    RoadMapPosition from_position;
@@ -107,7 +107,7 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
    *from_point = -1;
 
-   if (use_gps_location) {
+   if (NavigateTrackFollowGPS) {
 
       RoadMapPosition pos;
 
@@ -243,7 +243,7 @@ static int navigate_main_recalc_route () {
 
    if (navigate_find_track_points
          (&from_line, &from_point,
-          &NavigateDestination, &NavigateDestPoint, 1) < 0) {
+          &NavigateDestination, &NavigateDestPoint) < 0) {
 
       return -1;
    }
@@ -563,7 +563,9 @@ void navigate_main_calc_route () {
    int track_time;
    PluginLine from_line;
    int from_point;
-   int use_gps_location = (strcmp (roadmap_trip_get_focus_name (), "GPS") == 0);
+
+   NavigateTrackFollowGPS =
+      (strcmp (roadmap_trip_get_focus_name (), "GPS") == 0);
 
    NavigateDestination.plugin_id = INVALID_PLUGIN_ID;
    NavigateTrackEnabled = 0;
@@ -574,8 +576,7 @@ void navigate_main_calc_route () {
    if (navigate_load_data () < 0) return;
 
    if (navigate_find_track_points
-         (&from_line, &from_point, &NavigateDestination, &NavigateDestPoint,
-          use_gps_location) < 0) {
+         (&from_line, &from_point, &NavigateDestination, &NavigateDestPoint)) {
 
       return;
    }
@@ -611,7 +612,7 @@ void navigate_main_calc_route () {
       NavigateTrackEnabled = 1;
       navigate_bar_set_mode (NavigateTrackEnabled);
 
-      if (use_gps_location) {
+      if (NavigateTrackFollowGPS) {
          NavigateCurrentSegment = 0;
 
          roadmap_trip_stop ();
@@ -630,6 +631,15 @@ void navigate_main_screen_repaint (int max_pen) {
    int last_cfcc = -1;
 
    if (!NavigateTrackEnabled) return;
+
+   if (!NavigateTrackFollowGPS && 
+         !strcmp (roadmap_trip_get_focus_name (), "GPS")) {
+
+      NavigateTrackFollowGPS = 1;
+
+      roadmap_trip_stop ();
+      roadmap_navigate_route (NavigateCallbacks);
+   }
 
    for (i=0; i<NavigateNumSegments; i++) {
 
