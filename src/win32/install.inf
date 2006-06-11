@@ -56,6 +56,15 @@ rm_stop.bmp = 7
 rm_zoom1.bmp = 7
 rm_zoomin.bmp = 7
 rm_zoomout.bmp = 7
+nav_approaching.bmp = 7
+nav_continue.bmp = 7
+nav_keep_left.bmp = 7
+nav_keep_right.bmp = 7
+nav_panel.bmp = 7
+nav_panel_wide.bmp = 7
+nav_turn_left.bmp = 7
+nav_turn_right.bmp = 7
+nav_u_turn.bmp = 7
 
 [SourceDisksFiles.ARM]
 Roadmap.exe = 3
@@ -103,6 +112,15 @@ rm_stop.bmp,,,0x00000010
 rm_zoom1.bmp,,,0x00000010
 rm_zoomin.bmp,,,0x00000010
 rm_zoomout.bmp,,,0x00000010
+nav_approaching.bmp,,,0x00000010
+nav_continue.bmp,,,0x00000010
+nav_keep_left.bmp,,,0x00000010
+nav_keep_right.bmp,,,0x00000010
+nav_panel.bmp,,,0x00000010
+nav_panel_wide.bmp,,,0x00000010
+nav_turn_left.bmp,,,0x00000010
+nav_turn_right.bmp,,,0x00000010
+nav_u_turn.bmp,,,0x00000010
 
 [Files.Maps]
 usc77001.rdm,,,0x00000010
