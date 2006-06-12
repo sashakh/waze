@@ -375,15 +375,125 @@ typedef struct roadmap_street_identifier {
 } RoadMapStreetIdentifier;
 
 
+/* 
+ *  the list of possible types (second column) was generated with:
+ *
+ *    for x in /usr/local/share/roadmap/maps/ *.rdm
+ *    do
+ *        dumpmap --volume=type --strings $x |
+ *          awk '/ --> / && $5 !~ /\"\"/ { printf "   { \"\", %s},\n", $5;  } '
+ *    done | sort -u
+ *
+ *  the "fullnames" (first column) were added by hand, and then
+ *  the list was re-alphabetized by first column.  the '??' entries
+ *  may have fullnames, but i can't guess them.  -pgf 
+ */
+
+
+typedef struct {
+   const char *fullname;
+   const char *abbrev;
+} RoadmapStreetTypeMap;
+
+/* Both many-to-one and one-to-many mappings are supported, but
+ * the first column must be alphabetical!
+ */
+static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
+   { "Alley", "Aly"},
+   /* { "", "Arc"}, */
+   { "Avenue", "Ave"},
+   { "Boulevard", "Blvd"},
+   { "Bridge", "Br"},
+   { "Bridge", "Brg"},
+   { "Bypass", "Byp"},
+   { "Causeway", "Cswy"},
+   { "Center", "Ctr"},
+   { "Circle", "Cir"},
+   { "Court", "Ct"},
+   { "Cove", "Cv"},
+   { "Crescent", "Cres"},
+   { "Crossing", "Xing"},
+   { "Drive", "Dr"},
+   { "Expressway", "Expy"},
+   { "Freeway", "Fwy"},
+   /* ?? { "", "Grd"}, */
+   { "Highway", "Hwy"},
+   { "Hiway", "Hwy"},
+   { "Lane", "Ln"},
+   /* { "", "Loop"}, */
+   { "Mall", "Mal"},
+   { "Overpass", "Ovps"},
+   /* { "", "Pass"}, */
+   /* { "", "Path"}, */
+   /* { "", "Pike"}, */
+   { "Parkway", "Pky"},
+   { "Place", "Pl"},
+   { "Plaza", "Plz"},
+   /* { "", "Ramp"}, */
+   { "Road", "Rd"},
+   /* { "", "Row"}, */
+   { "Route", "Rte"},
+   { "Rt", "Rte"},
+   /* { "", "Rue"}, */
+   /* { "", "Run"}, */
+   { "Skyway", "Skwy"},
+   /* { "", "Spur"}, */
+   { "Street", "St"},
+   { "Square", "Sq"},
+   { "Terrace", "Ter"},
+   { "Terrace", "Trce"},
+   { "Throughway", "Thwy"},
+   { "Thruway", "Thwy"},
+   { "Trail", "Trl"},
+   { "Tunnel", "Tunl"},
+   { "Turnpike", "Tpke"},
+   { "Underpass", "Unp"},
+   /* { "", "Walk"}, */
+   /* { "", "Way"}, */
+   { "Walkway", "Wkwy"},
+   { 0, 0 }
+};
+
+static RoadmapStreetTypeMap *roadmap_street_type_to_abbrev (
+   const char *type, RoadmapStreetTypeMap *last) {
+
+   RoadmapStreetTypeMap *tm;
+   int r;
+
+   /* If we match a fullname, return the corresponding abbreviation.
+    * If we're passed a "last" pointer, start there instead of at
+    * the beginning.
+    */
+   for (tm = last ? ++last : RoadmapStreetFullTypes;
+      tm->fullname; tm++) {
+      r = strcasecmp(tm->fullname, type);
+      if (r == 0)
+         return tm;
+      if (r > 0)
+         break;
+   }
+   return 0;
+}
+
+
 static void roadmap_street_locate (const char *name,
                                    RoadMapStreetIdentifier *street) {
 
    char *space;
    char  buffer[128];
 
+
    street->prefix = 0;
    street->suffix = 0;
    street->type   = 0;
+
+   /* trim leading spaces */
+   while (*name == ' ' && *name != 0) ++name;
+   if (*name == 0) {
+      street->name = 0;
+      return;
+   }
+
 
    /* Search for a prefix. If found, remove the prefix from the name
     * by shifting the name's pointer.
@@ -412,20 +522,43 @@ static void roadmap_street_locate (const char *name,
       }
 
       /* Search for a street type. If found, extract the street name
-       * and stor it in the temporary buffer, which will be substituted
+       * and store it in the temporary buffer, which will be substituted
        * for the name.
        */
       space = strrchr (name, ' ');
 
       if (space != NULL) {
 
-         char *trailer;
+         char *ptr;
+         RoadmapStreetTypeMap *typemap;
 
-         trailer = space + 1;
+         strcpy(buffer, space + 1);
 
-         street->type =
+         /* trim trailing spaces and dots, since types are
+          * usually abbreviations, and users type dots */
+         ptr = &buffer[strlen(buffer)-1];
+         while (*ptr == ' ' || *ptr == '.') {
+            *ptr = 0;
+            --ptr;
+         }
+
+         typemap = 0;
+         do {
+
+            /* Try fullname mappings until there are no more, then
+             * try the string that was given.
+             */
+            typemap = roadmap_street_type_to_abbrev(buffer, typemap);
+
+            street->type =
             roadmap_dictionary_locate
-               (RoadMapRangeActive->RoadMapStreetType, trailer);
+            (RoadMapRangeActive->RoadMapStreetType,
+               typemap ? typemap->abbrev : buffer);
+
+            if (street->type > 0)
+                break;
+
+         } while(typemap != 0);
 
          if (street->type > 0) {
 
@@ -441,6 +574,8 @@ static void roadmap_street_locate (const char *name,
                space = strrchr (buffer, ' ');
 
                if (space != NULL) {
+
+                  char *trailer;
 
                   trailer = space + 1;
 
