@@ -182,6 +182,37 @@ int buildmap_shape_add
 }
 
 
+int buildmap_shape_get
+       (int line, int sequence, int *longitude, int *latitude) {
+
+   int index;
+   int line_exists;
+   int block;
+   int offset;
+   BuildMapShape *this_shape;
+
+   for (index = roadmap_hash_get_first (ShapeByLine, line);
+        index >= 0;
+        index = roadmap_hash_get_next (ShapeByLine, index)) {
+
+      this_shape = Shape[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
+
+      if (this_shape->line == line) {
+
+         if (this_shape->sequence == (unsigned int)sequence) {
+
+            *longitude = this_shape->longitude;
+            *latitude = this_shape->latitude;
+
+            return 0;
+         }
+      }
+   }
+
+   return -1;
+}
+
+
 static int buildmap_shape_compare (const void *r1, const void *r2) {
 
    int index1 = *((int *)r1);

@@ -109,12 +109,17 @@ int  buildmap_dglib_add
    }
 
    if (to_flags & ROUTE_CAR_ALLOWED) {
-      EgdesCount++;
 
-      status = dglAddEdgeX( &graph , to , from , to_cross_time ,
-                           -line , NULL , NULL , &layer, 0 );
-      if ( status < 0 ) {
-         buildmap_fatal (0, "dglAddEdge error: %s\n", dglStrerror( &graph ) );
+      if (line == 0) {
+         buildmap_error (0, "buildmap_dglib_add - can't set line as bi-directional (id = 0)");
+      } else {
+         EgdesCount++;
+
+         status = dglAddEdgeX( &graph , to , from , to_cross_time ,
+               -line , NULL , NULL , &layer, 0 );
+         if ( status < 0 ) {
+            buildmap_fatal (0, "dglAddEdge error: %s\n", dglStrerror( &graph ) );
+         }
       }
    }
 

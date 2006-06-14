@@ -56,6 +56,7 @@
 #include "buildmap_area.h"
 #include "buildmap_shape.h"
 #include "buildmap_polygon.h"
+#include "buildmap_dglib.h"
 
 
 static BuildMapDictionary DictionaryPrefix;
@@ -530,6 +531,110 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 }
 
 
+static void buildmap_tiger_gen_route (const char *source, int verbose) {
+
+   int    size;
+   int    estimated;
+   int    line_count;
+   int    record_count;
+   char  *data;
+   char  *cursor;
+   char  *end_of_data;
+
+   int line;
+
+   char cfcc;
+   int  tlid;
+
+   data = buildmap_tiger_read (source, ".RT1", verbose, &size);
+   if (data == NULL) return;
+
+   estimated = size / 229;
+
+   line_count = 0;
+   record_count = 0;
+   end_of_data = data + size;
+
+   for (cursor = data; cursor < end_of_data; cursor += 229) {
+
+      line_count += 1;
+      buildmap_set_line (line_count);
+
+      cfcc = tiger2type (cursor, 56, 58);
+      tlid   = tiger2int (cursor, 6, 15);
+
+      if (cfcc >= ROADMAP_ROAD_FIRST &&
+            cfcc <= ROADMAP_ROAD_LAST) {
+
+         int from_car_allowed = 1;
+         int to_car_allowed = 0;
+         int from_max_speed = 0;
+         int to_max_speed = 0;
+         int from_cross_time = 0;
+         int to_cross_time = 0;
+         int line_length;
+
+         line = buildmap_line_find_sorted(tlid);
+
+         line_length = buildmap_line_length (line);
+
+         switch (cfcc) {
+            case ROADMAP_ROAD_FREEWAY:
+               from_cross_time = to_cross_time = line_length / 30;
+               to_car_allowed = 1;
+               break;
+
+            case ROADMAP_ROAD_RAMP:
+               from_cross_time = line_length / 10;
+               break;
+
+            case ROADMAP_ROAD_MAIN:
+               from_cross_time = to_cross_time = line_length / 15;
+               to_car_allowed = 1;
+               break;
+
+            case ROADMAP_ROAD_STREET:
+               from_cross_time = to_cross_time = line_length / 7;
+               to_car_allowed = 1;
+               break;
+
+            case ROADMAP_ROAD_TRAIL:
+               from_cross_time = to_cross_time = line_length / 5;
+               to_car_allowed = 1;
+               break;
+
+            default:
+               buildmap_fatal (0, "Should not be here!");
+         }
+
+         buildmap_dglib_add
+            (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
+             from_cross_time, to_cross_time, cfcc,
+             line);
+      }
+
+      record_count += 1;
+
+      if (verbose) {
+         if ((line_count & 0xff) == 0) {
+            buildmap_progress (line_count, estimated);
+         }
+      }
+
+      if (cursor[228] == '\r') {
+         cursor += 1;   /* Case of an MS-DOS format file. */
+      }
+      if (cursor[228] != '\n') {
+         buildmap_error (0, "bad end of line");
+      }
+   }
+
+   munmap (data, size);
+
+   tiger_summary (verbose, record_count);
+}
+
+
 static void buildmap_tiger_read_rt2 (const char *source, int verbose) {
 
    static int LocationOfPoint[] = {19, 38, 57, 76, 95, 114, 133, 152, 171, 190};
@@ -979,6 +1084,8 @@ void buildmap_tiger_process (const char *source,
    buildmap_tiger_read_rt1 (base, verbose);
 
    buildmap_tiger_read_rt2 (base, verbose);
+
+   buildmap_tiger_gen_route (base, verbose);
 
    free(base);
 }

@@ -36,6 +36,7 @@ int  buildmap_line_get_square_sorted (int line);
 void buildmap_line_get_position_sorted
         (int line, int *longitude, int *latitude);
 void buildmap_line_sort          (void);
+int buildmap_line_length         (int line);
 
 void buildmap_line_test_long (int line, int longitude, int latitude);
    

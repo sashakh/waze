@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "roadmap_db_line.h"
 
@@ -56,6 +57,7 @@
 #include "buildmap.h"
 #include "buildmap_point.h"
 #include "buildmap_square.h"
+#include "buildmap_shape.h"
 #include "buildmap_line.h"
 
 
@@ -79,6 +81,23 @@ static int *SortedLine2 = NULL;
 static RoadMapLongLine LongLines[MAX_LONG_LINES];
 static int LongLinesCount;
 static RoadMapHash *LongLinesHash = NULL;
+
+static int buildmap_line_calc_length (int from_lon, int from_lat,
+                                      int to_lon,   int to_lat) {
+
+   double nRadius = 6378.137;
+   double nRadians = M_PI / 180.0;
+   double nLon1 = from_lon / 1000000.0;
+   double nLat1 = from_lat / 1000000.0;
+   double nLon2 = to_lon   / 1000000.0;
+   double nLat2 = to_lat   / 1000000.0;
+   double nCose = sin(nRadians * nLon1) * sin(nRadians * nLon2) +
+                  cos(nRadians * nLon1) * cos(nRadians * nLon2) *
+                  cos(nRadians * (nLat1 - nLat2));
+   double nDistance = nRadius * acos(nCose);
+   return (int)(nDistance * 1000);
+}
+
 
 static void buildmap_shape_update_long_line (RoadMapLongLine *line,
                                              int longitude, int latitude) {
@@ -316,6 +335,37 @@ int buildmap_line_get_square_sorted (int line) {
 
    return buildmap_point_get_square_sorted
              (buildmap_line_get_record_sorted(line)->record.from);
+}
+
+
+int buildmap_line_length (int line) {
+
+   int length = 0;
+   BuildMapLine *this_line = buildmap_line_get_record_sorted (line);
+   int from_lon;
+   int from_lat;
+   int to_lon;
+   int to_lat;
+   int i;
+
+   from_lon = buildmap_point_get_longitude_sorted (this_line->record.from);
+   from_lat  = buildmap_point_get_latitude_sorted  (this_line->record.from);
+
+   i=0;
+   while (buildmap_shape_get (line, i, &to_lon, &to_lat) != -1) {
+      
+      length += buildmap_line_calc_length (from_lon, from_lat, to_lon, to_lat);
+      from_lon = to_lon;
+      from_lat = to_lat;
+      i++;
+   }
+
+   
+   to_lon = buildmap_point_get_longitude_sorted (this_line->record.to);
+   to_lat  = buildmap_point_get_latitude_sorted  (this_line->record.to);
+   length += buildmap_line_calc_length (from_lon, from_lat, to_lon, to_lat);
+
+   return length;
 }
 
 

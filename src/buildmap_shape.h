@@ -28,6 +28,7 @@
 
 void buildmap_shape_initialize (void);
 int buildmap_shape_add (int line, int sequence, int longitude, int latitude);
+int buildmap_shape_get (int line, int sequence, int *longitude, int *latitude);
 
 void buildmap_shape_sort (void);
 
