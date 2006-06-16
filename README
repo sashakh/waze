@@ -652,9 +652,9 @@ INSTALLATION
    where the state-id is the two first digit of the FIPS (such as 06 for
    california).
 
-   The rdmgemaps tool is a shell script that extract the TIGER files from
+   The rdmgenmaps tool is a shell script that extract the TIGER files from
    the downloaded ZIP files, invokes the buildmap tool and then cleans
-   up the TIGER files. Last, rdmgemaps invokes the buildus tool to generate
+   up the TIGER files. Last, rdmgenmaps invokes the buildus tool to generate
    the US states & counties catalog. The main purpose of rdmgenmaps is really
    to keep the TIGER files in compressed form, considering their huge size..
 
