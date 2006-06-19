@@ -61,7 +61,7 @@ static struct roadmap_message_descriptor {
 } RoadMapMessageHead [] = {
    {ROADMAP_MESSAGE_DEBUG,   0, 0, 0, "++", NULL},
    {ROADMAP_MESSAGE_INFO,    0, 0, 0, "--", NULL},
-   {ROADMAP_MESSAGE_WARNING, 0, 0, 0, "==", NULL},
+   {ROADMAP_MESSAGE_WARNING, 0, 1, 0, "==", NULL},
    {ROADMAP_MESSAGE_ERROR,   1, 1, 0, "**", NULL},
    {ROADMAP_MESSAGE_FATAL,   1, 1, 1, "##", NULL},
    {0,                       1, 1, 1, "??", NULL}
