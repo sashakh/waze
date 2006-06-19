@@ -433,7 +433,7 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Plaza", "Plz"},
    /* { "", "Ramp"}, */
    { "Road", "Rd"},
-   { "Ranch Road", "RMRd"}, */
+   { "Ranch Road", "RMRd"},
    /* { "", "Row"}, */
    { "Route", "Rte"},
    { "Rt", "Rte"},
