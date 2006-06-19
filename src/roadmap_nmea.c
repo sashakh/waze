@@ -716,14 +716,15 @@ int roadmap_nmea_decode (void *user_context,
 
    if (*p == '*') {
 
-      unsigned char mnea_checksum = hex2bin(p[1]) * 16 + hex2bin(p[2]);
+      unsigned char nmea_checksum = hex2bin(p[1]) * 16 + hex2bin(p[2]);
 
-      if (mnea_checksum != checksum) {
-         roadmap_log (ROADMAP_ERROR,
-               "mnea checksum error for '%s' (nmea=%02x, calculated=%02x)",
+      if (nmea_checksum != checksum) {
+         roadmap_log (ROADMAP_WARNING,
+               "nmea checksum error for '%s' (nmea=%02x, calculated=%02x)",
                sentence,
-               mnea_checksum,
+               nmea_checksum,
                checksum);
+	 return 0;
       }
    }
    *p = 0;
