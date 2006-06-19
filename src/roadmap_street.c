@@ -400,10 +400,10 @@ typedef struct {
  */
 static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Alley", "Aly"},
-   /* { "", "Arc"}, */
+   { "Arcade", "Arc"},
    { "Avenue", "Ave"},
    { "Boulevard", "Blvd"},
-   { "Bridge", "Br"},
+   { "Branch", "Br"},
    { "Bridge", "Brg"},
    { "Bypass", "Byp"},
    { "Causeway", "Cswy"},
@@ -415,13 +415,15 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Crossing", "Xing"},
    { "Drive", "Dr"},
    { "Expressway", "Expy"},
+   { "Farm Road", "FMRd"},
    { "Freeway", "Fwy"},
-   /* ?? { "", "Grd"}, */
+   { "Grade", "Grd"},
    { "Highway", "Hwy"},
    { "Hiway", "Hwy"},
    { "Lane", "Ln"},
    /* { "", "Loop"}, */
    { "Mall", "Mal"},
+   { "Motorway", "Mtwy"},
    { "Overpass", "Ovps"},
    /* { "", "Pass"}, */
    /* { "", "Path"}, */
@@ -431,6 +433,7 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Plaza", "Plz"},
    /* { "", "Ramp"}, */
    { "Road", "Rd"},
+   { "Ranch Road", "RMRd"}, */
    /* { "", "Row"}, */
    { "Route", "Rte"},
    { "Rt", "Rte"},
@@ -444,6 +447,7 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Terrace", "Trce"},
    { "Throughway", "Thwy"},
    { "Thruway", "Thwy"},
+   { "Trafficway", "Tfwy"},
    { "Trail", "Trl"},
    { "Tunnel", "Tunl"},
    { "Turnpike", "Tpke"},
