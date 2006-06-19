@@ -89,6 +89,7 @@ static gboolean roadmap_deliver_signal
                     sizeof(int), bytes_read);
             continue;               /* discard the garbage and keep fingers crossed */
         }
+        roadmap_log(ROADMAP_WARNING, "received signal %d", buf.signal);
         roadmap_main_exit();
 
     }

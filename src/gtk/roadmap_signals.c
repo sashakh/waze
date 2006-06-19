@@ -82,10 +82,11 @@ static gboolean roadmap_deliver_signal
          */
         if(bytes_read != sizeof(int)){
             roadmap_log(ROADMAP_WARNING,
-		    "lost data in signal pipe (expected %d, received %d)",
+                    "lost data in signal pipe (expected %d, received %d)",
                     sizeof(int), bytes_read);
             continue;               /* discard the garbage and keep fingers crossed */
         }
+        roadmap_log(ROADMAP_WARNING, "received signal %d", buf.signal);
         roadmap_main_exit();
         break;
 

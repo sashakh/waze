@@ -23,7 +23,7 @@ ifeq ($(MODE),PROFILE)
    STDCFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
    LDFLAGS=-pg $(LDFLAGS)
 else
-   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer $(WARNFLAGS) $(OPTIONS)
+   STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g $(WARNFLAGS) $(OPTIONS)
 endif
 endif
 
