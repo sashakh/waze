@@ -36,6 +36,7 @@ route_head *RoadMapTrack = NULL;
 static int RoadMapTrackModified;
 static int RoadMapTrackDisplay;
 static int RoadMapTrackRefresh;
+RoadMapGpsPosition RoadMapTrackGpsPosition;
 
 typedef enum {
     RoadMapTrackPolicyOff,
@@ -83,6 +84,8 @@ static void roadmap_track_add_trackpoint ( int gps_time,
     w->creation_time = gps_time;
 
     route_add_wpt_tail (RoadMapTrack, w);
+
+    RoadMapTrackGpsPosition = *gps_position;
 
     maxtrack = roadmap_config_get_integer (&RoadMapConfigLength);
     while (RoadMapTrack->rte_waypt_ct > maxtrack) {
@@ -213,7 +216,14 @@ static void roadmap_track_waypoint_draw (const waypoint *waypointp)
 {
     RoadMapGuiPoint guipoint;
 
-    if (roadmap_math_point_is_visible (&waypointp->pos)) {
+    /* Don't draw the trackpoint if it coincides with our most recent
+     * GPS position.  Otherwise, at least in "deviation" mode, we get
+     * a continuously moving trackpoint, right under the tip of the
+     * GPS arrow.
+     */
+    if (roadmap_math_point_is_visible (&waypointp->pos) &&
+	(RoadMapTrackGpsPosition.latitude != waypointp->pos.latitude ||
+	 RoadMapTrackGpsPosition.longitude != waypointp->pos.longitude) ) {
 
         roadmap_math_coordinate (&waypointp->pos, &guipoint);
         roadmap_math_rotate_coordinates (1, &guipoint);
