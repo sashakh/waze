@@ -850,11 +850,11 @@ static int roadmap_screen_draw_square
             RoadMapPen pen;
 
             if (first_shape_line >= 0) {
-               roadmap_shape_of_line (real_line,
-                                      first_shape_line, last_shape_line,
-                                      &first_shape, &last_shape);
-            } else {
-               first_shape = last_shape = -1;
+               if (roadmap_shape_of_line (real_line,
+                                          first_shape_line, last_shape_line,
+                                          &first_shape, &last_shape) == 0) {
+                  first_shape = -1;
+               }
             }
 
             /* Check if a plugin wants to override the pen */
