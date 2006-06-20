@@ -34,8 +34,6 @@
 
 route_head *RoadMapTrack = NULL;
 static int RoadMapTrackModified;
-static RoadMapGpsPosition RoadMapLastTrackPosition;
-static int RoadMapLastTrackTime;
 static int RoadMapTrackDisplay;
 static int RoadMapTrackRefresh;
 
@@ -92,8 +90,6 @@ static void roadmap_track_add_trackpoint ( int gps_time,
         route_del_wpt ( RoadMapTrack, w);
     }
 
-    RoadMapLastTrackPosition = *gps_position;
-    RoadMapLastTrackTime = gps_time;
     RoadMapTrackModified = 1;
 }
 
@@ -133,9 +129,10 @@ static void roadmap_track_gps_update (int gps_time,
                    const RoadMapGpsPosition *gps_position) {
 
     int need_point = 0;
-    int distance;
+    int ab_dist, ac_dist, bc_dist;
     RoadMapTrackPolicy policy;
-    RoadMapPosition gpspos, lastpos;
+    RoadMapPosition pos[3];
+    waypoint *w;
 
     policy = roadmap_track_policy();
 
@@ -148,17 +145,19 @@ static void roadmap_track_gps_update (int gps_time,
 
     if (gps_position->speed == 0) return;
    
-    if ((RoadMapLastTrackPosition.latitude == gps_position->latitude) &&
-        (RoadMapLastTrackPosition.longitude == gps_position->longitude)) {
+    pos[0].latitude = gps_position->latitude;
+    pos[0].longitude = gps_position->longitude;
+    w = (waypoint *)QUEUE_LAST (&RoadMapTrack->waypoint_list);
+    pos[1].latitude = w->pos.latitude;
+    pos[1].longitude = w->pos.longitude;
+
+    if ((pos[0].latitude == pos[1].latitude) &&
+        (pos[0].longitude == pos[1].longitude)) {
          return;
     }
 
-    gpspos.latitude = gps_position->latitude;
-    gpspos.longitude = gps_position->longitude;
-    lastpos.latitude = RoadMapLastTrackPosition.latitude;
-    lastpos.longitude = RoadMapLastTrackPosition.longitude;
 
-    distance = roadmap_math_distance ( &lastpos, &gpspos);
+    ab_dist = roadmap_math_distance ( &pos[0], &pos[1]);
 
     switch(policy) {
 
@@ -166,33 +165,37 @@ static void roadmap_track_gps_update (int gps_time,
         return;
 
     case RoadMapTrackPolicyTime:
-        need_point = ((distance > 10) &&
+        need_point = ((ab_dist > 10) &&
                 (roadmap_config_get_integer (&RoadMapConfigTimeInterval) <
-                        (gps_time - RoadMapLastTrackTime)));
+                        (gps_time - w->creation_time)));
         break;
 
     case RoadMapTrackPolicyDistance:
-        need_point = ( distance > 
+        need_point = ( ab_dist > 
             roadmap_config_get_integer (&RoadMapConfigDistanceInterval) );
    
         break;
 
     case RoadMapTrackPolicyDeviation:
-#if LATER
-        // FIXME -- This calculation should determine the answer
-        // to this question:  "How far am I from the point at
-        // which I would have been if I'd travelled in a straight
-        // line determined by my previous two trackpoints, and is
-        // that distance larger than the configured interval?"
-        //
-        // also need to be sure the "final" point is recorded
-        need_point = (roadmap_config_get_integer
-                (&RoadMapConfigDistanceInterval) <
-                    roadmap_math_distance ( &gpspos,
-                    roadmap_track_projected (distance, &lastpos)));
-#else
-        need_point = 0;
-#endif
+        if (RoadMapTrack->rte_waypt_ct > 2) {
+            w = (waypoint *)QUEUE_LAST(&w->Q);
+            pos[2].latitude = w->pos.latitude;
+            pos[2].longitude = w->pos.longitude;
+
+            /* The current most recent three points are A, B, and C.
+             * Drop point B if dist(A,B)+dist(B,C) is approximately
+             * equal to dist (A,C).
+	     */
+            bc_dist = roadmap_math_distance (&pos[1], &pos[2]);
+            ac_dist = roadmap_math_distance (&pos[0], &pos[2]);
+
+            if (abs (ab_dist + bc_dist - ac_dist) < 10) {
+                w = (waypoint *) QUEUE_LAST (&RoadMapTrack->waypoint_list);
+                route_del_wpt ( RoadMapTrack, w);
+            }
+        }
+
+        need_point = 1;
         break;
 
     }
@@ -274,9 +277,9 @@ static const char *roadmap_track_filename(int *defaulted) {
         name = "currenttrack.gpx";
         *defaulted = 1;
     } else {
-	if (strcasecmp(name, "NONE") == 0) {
-	    return NULL;
-	}
+        if (strcasecmp(name, "NONE") == 0) {
+            return NULL;
+        }
         *defaulted = 0;
     }
     return name;
@@ -342,7 +345,7 @@ roadmap_track_initialize(void) {
 
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigPolicyString,
-            "off", "deviation", "distance", "time", NULL);
+            "off", "Deviation", "Distance", "Time", NULL);
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigLength, "1000");
