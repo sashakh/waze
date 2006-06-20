@@ -724,7 +724,7 @@ int roadmap_nmea_decode (void *user_context,
                sentence,
                nmea_checksum,
                checksum);
-	 return 0;
+         return 0;
       }
    }
    *p = 0;
