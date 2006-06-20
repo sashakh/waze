@@ -1,4 +1,4 @@
-/* roadmap_input.c - Decode an SCII data stream.
+/* roadmap_input.c - Decode an ASCII data stream.
  *
  * LICENSE:
  *
