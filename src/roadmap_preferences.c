@@ -167,7 +167,7 @@ static void roadmap_preferences_new_dialog
 
       case ROADMAP_CONFIG_ENUM:
 
-         count = 1;
+         count = 0;
          values[0] = (char *)value; /* Always make the original value appear first. */
 
          for (enumeration = roadmap_config_get_enumeration (cursor);
@@ -176,7 +176,7 @@ static void roadmap_preferences_new_dialog
 
             values[count] = roadmap_config_get_enumeration_value (enumeration);
 
-            if (strcmp (values[count], value) != 0) {
+            //if (strcmp (values[count], value) != 0) {
 
                if (count >= 256) {
                   roadmap_log (ROADMAP_FATAL,
@@ -184,7 +184,7 @@ static void roadmap_preferences_new_dialog
                                cursor->category, cursor->name);
                }
                count += 1;
-            }
+            //}
          }
          roadmap_dialog_new_choice
             (cursor->category, cursor->name, count, values, (void **)values, NULL);
