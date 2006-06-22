@@ -75,8 +75,14 @@ static int exec_flite_dll (const char *command_line,
    if (flite_dll_initialized == -1) return -1;
 
    if (!flite_dll_initialized) {
+	   char full_name[MAX_PATH];
+	   LPWSTR full_name_unicode;
 
-      flite_dll_inst = LoadLibrary(L"\\Storage card\\RoadMap\\flite_dll.dll");
+      snprintf(full_name, MAX_PATH, "%s\\flite_dll.dll", RoadMapSpawnPath);
+      full_name_unicode = ConvertToWideChar(full_name, CP_UTF8);
+
+      flite_dll_inst = LoadLibrary(full_name_unicode);
+      free (full_name_unicode);
       if (!flite_dll_inst) {
          flite_dll_initialized = -1;
          return -1;
