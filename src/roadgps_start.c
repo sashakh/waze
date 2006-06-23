@@ -231,18 +231,21 @@ void roadmap_start (int argc, char **argv) {
    roadmap_log_redirect (ROADMAP_MESSAGE_ERROR, roadgps_start_error);
    roadmap_log_redirect (ROADMAP_MESSAGE_FATAL, roadgps_start_fatal);
 
+   roadmap_config_initialize ();
+
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
 
    roadmap_gps_initialize    ();
    roadgps_screen_initialize ();
-   roadmap_config_initialize ();
+   roadgps_logger_initialize ();
+
+   roadmap_config_load ();
 
    roadmap_factory_keymap (RoadGpsStartActions, RoadGpsStartKeyBinding);
 
    roadmap_option (argc, argv, roadgps_start_usage);
 
-   roadgps_logger_initialize ();
 
    roadgps_start_set_unit ();
 
