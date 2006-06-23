@@ -214,11 +214,12 @@ static void buildmap_county_process (const char *source,
 int main (int argc, const char **argv) {
 
    const char **leftovers;
+   poptContext decoder;
 
 
    BuildMapResult = strdup(roadmap_path_preferred("maps")); /* default. */
 
-   poptContext decoder =
+   decoder =
       poptGetContext ("buildmap", argc, argv, BuildMapOptionTable, 0);
 
    poptSetOtherOptionHelp(decoder, "[OPTIONS]* <fips> <source>");
