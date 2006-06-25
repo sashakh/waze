@@ -888,8 +888,8 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
       RoadMapRange *this_addr = RoadMapRangeActive->RoadMapAddr + i;
 
-      if (((number & 1) != (this_addr->fradd & 1)) &&
-          ((number & 1) != (this_addr->toadd & 1))) continue;
+      if (((number & 1) != (unsigned)(this_addr->fradd & 1)) &&
+          ((number & 1) != (unsigned)(this_addr->toadd & 1))) continue;
 
       if (HAS_CONTINUATION(this_addr)) {
 
