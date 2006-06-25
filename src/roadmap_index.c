@@ -525,7 +525,7 @@ const char *roadmap_index_get_territory_path (int wtid) {
 
    int i;
    int index;
-   int authority_path;
+   int authority_path = 0;
    int territory_path;
    RoadMapAuthority *this_authority;
 
