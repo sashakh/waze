@@ -380,7 +380,7 @@ static int roadmap_nmea_gsv (int argc, char *argv[]) {
 
    if (RoadMapNmeaReceived.gsv.count > ROADMAP_NMEA_MAX_SATELLITE) {
 
-      roadmap_log (ROADMAP_ERROR, "%d is too many satellite, %d max supported",
+      roadmap_log (ROADMAP_WARNING, "%d is too many satellite, %d max supported",
                    RoadMapNmeaReceived.gsv.count,
                    ROADMAP_NMEA_MAX_SATELLITE);
       RoadMapNmeaReceived.gsv.count = ROADMAP_NMEA_MAX_SATELLITE;
