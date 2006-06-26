@@ -23,28 +23,15 @@
  */
 
 
-#ifndef NO_EXPAT
+#ifdef ROADMAP_USES_EXPAT
 #include <expat.h>
 #endif
+
 #include "roadmap.h"
 #include "roadmap_trip.h"
 #include "roadmap_path.h"
 #define ROADMAP 1
 #include "gpx/defs.h"
-
-
-#ifdef NO_EXPAT
-static void roadmap_gpx_tell_no_expat (void) {
-
-    static int roadmap_gpx_told_no_expat = 0;
-
-    if (! roadmap_gpx_told_no_expat) {
-       roadmap_log (ROADMAP_ERROR, "No GPX file import (no expat library)");
-       roadmap_gpx_told_no_expat = 1;
-    }
-}
-#endif
-
 
 void fatal (const char *fmt, ...) {
     char buf[256];
@@ -66,17 +53,12 @@ void warning (const char *fmt, ...) {
     roadmap_log (ROADMAP_WARNING, "%s", buf);
 }
 
-void gpx_rd_cleanup(void);
-void gpx_rd_prepare(void);
+#ifdef ROADMAP_USES_EXPAT
 
 int
 roadmap_gpx_read_file(const char *path,
         const char *name, queue *w, queue *r, queue *t)
 {
-#ifdef NO_EXPAT
-    roadmap_gpx_tell_no_expat ();
-    return 0;
-#else
 
     queue *elem, *tmp;
     FILE *ifile;
@@ -97,7 +79,6 @@ roadmap_gpx_read_file(const char *path,
     fclose(ifile);
 
     return ret;
-#endif // NO_EXPAT
 }
 
 int
@@ -168,18 +149,12 @@ roadmap_gpx_read_one_route(
     *route = rte;
 
     return ret;
-
 }
-
 
 int
 roadmap_gpx_write_file(const char *path, const char *name,
         queue *w, queue *r, queue *t)
 {
-#ifdef NO_EXPAT
-    roadmap_gpx_tell_no_expat ();
-    return 0;
-#else
     FILE *fp;
     int ret;
 
@@ -192,16 +167,11 @@ roadmap_gpx_write_file(const char *path, const char *name,
         ret = 0;
 
     return ret;
-#endif // NO_EXPAT
 }
 
 int roadmap_gpx_write_waypoints(const char *path, const char *name,
         queue *waypoints)
 {
-#ifdef NO_EXPAT
-    roadmap_gpx_tell_no_expat ();
-    return 0;
-#else
     FILE *fp;
     int ret;
 
@@ -214,16 +184,11 @@ int roadmap_gpx_write_waypoints(const char *path, const char *name,
         ret = 0;
 
     return ret;
-#endif // NO_EXPAT
 }
 
 int roadmap_gpx_write_route(const char *path, const char *name,
         route_head *route)
 {
-#ifdef NO_EXPAT
-    roadmap_gpx_tell_no_expat ();
-    return 0;
-#else
     FILE *fp;
     int ret;
     queue route_head;
@@ -240,16 +205,11 @@ int roadmap_gpx_write_route(const char *path, const char *name,
         ret = 0;
 
     return ret;
-#endif // NO_EXPAT
 }
 
 int roadmap_gpx_write_track(const char *path, const char *name,
         route_head *track)
 {
-#ifdef NO_EXPAT
-    roadmap_gpx_tell_no_expat ();
-    return 0;
-#else
     FILE *fp;
     int ret;
     queue track_head;
@@ -266,5 +226,83 @@ int roadmap_gpx_write_track(const char *path, const char *name,
         ret = 0;
 
     return ret;
-#endif // NO_EXPAT
 }
+
+#else // ROADMAP_USES_EXPAT
+
+
+static void roadmap_gpx_tell_no_expat (void) {
+
+    static int roadmap_gpx_told_no_expat = 0;
+
+    if (! roadmap_gpx_told_no_expat) {
+       roadmap_log (ROADMAP_ERROR, "No GPX file import (no expat library)");
+       roadmap_gpx_told_no_expat = 1;
+    }
+}
+
+int
+roadmap_gpx_read_file(const char *path,
+        const char *name, queue *w, queue *r, queue *t)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+}
+
+int
+roadmap_gpx_read_waypoints
+        (const char *path, const char *name, queue *waypoints)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+
+}
+
+int
+roadmap_gpx_read_one_track(
+    const char *path, const char *name, route_head **track)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+
+}
+
+int
+roadmap_gpx_read_one_route(
+    const char *path, const char *name, route_head **route)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+}
+
+int
+roadmap_gpx_write_file(const char *path, const char *name,
+        queue *w, queue *r, queue *t)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+}
+
+int roadmap_gpx_write_waypoints(const char *path, const char *name,
+        queue *waypoints)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+}
+
+int roadmap_gpx_write_route(const char *path, const char *name,
+        route_head *route)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+}
+
+int roadmap_gpx_write_track(const char *path, const char *name,
+        route_head *track)
+{
+    roadmap_gpx_tell_no_expat ();
+    return 0;
+}
+
+#endif // ROADMAP_USES_EXPAT
+

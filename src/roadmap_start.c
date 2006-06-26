@@ -62,6 +62,7 @@
 #include "roadmap_screen.h"
 #include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
+#include "roadmap_label.h"
 #include "roadmap_display.h"
 #include "roadmap_locator.h"
 #include "roadmap_copy.h"
@@ -176,63 +177,51 @@ static void roadmap_start_create_trip (void) {
     roadmap_trip_new ();
 }
 
+#ifdef ROADMAP_USES_EXPAT
 static void roadmap_start_open_trip (void) {
-    
-#ifdef NO_EXPAT
-    roadmap_log (ROADMAP_ERROR,
-                 "This feature is not available (no expat library)");
-#else
     roadmap_trip_load_ask (0);
-#endif
 }
 
 static void roadmap_start_merge_trip (void) {
-    
-#ifdef NO_EXPAT
-    roadmap_log (ROADMAP_ERROR,
-                 "This feature is not available (no expat library)");
-#else
     roadmap_trip_load_ask (1);
-#endif
 }
 
 static void roadmap_start_save_trip (void) {
-
-#ifdef NO_EXPAT
-    roadmap_log (ROADMAP_ERROR,
-                 "This feature is not available (no expat library)");
-#else
     roadmap_trip_save (1);
-#endif
 }
 
 static void roadmap_start_save_trip_as (void) {
-
-#ifdef NO_EXPAT
-    roadmap_log (ROADMAP_ERROR,
-                 "This feature is not available (no expat library)");
-#else
     roadmap_trip_save_as (1);
-#endif
 }
 
 static void roadmap_start_save_track (void) {
-#ifdef NO_EXPAT
-    roadmap_log (ROADMAP_ERROR,
-                 "This feature is not available (no expat library)");
-#else
     roadmap_track_save();
-#endif
 }
 
 static void roadmap_start_merge_landmark (void) {
-#ifdef NO_EXPAT
+    roadmap_landmark_merge ();
+}
+
+#else // ROADMAP_USES_EXPAT
+
+static void roadmap_start_no_expat (void) {
     roadmap_log (ROADMAP_ERROR,
                  "This feature is not available (no expat library)");
-#else
-    roadmap_landmark_merge ();
-#endif
 }
+
+static void roadmap_start_open_trip (void) { roadmap_start_no_expat(); }
+
+static void roadmap_start_merge_trip (void) { roadmap_start_no_expat(); }
+
+static void roadmap_start_save_trip (void) { roadmap_start_no_expat(); }
+
+static void roadmap_start_save_trip_as (void) { roadmap_start_no_expat(); }
+
+static void roadmap_start_save_track (void) { roadmap_start_no_expat(); }
+
+static void roadmap_start_merge_landmark (void) { roadmap_start_no_expat(); }
+
+#endif // ROADMAP_USES_EXPAT
 
 static void roadmap_start_route (void) {
     
@@ -448,6 +437,22 @@ static RoadMapAction RoadMapStartActions[] = {
    {"stoptrip", "Stop Route", "Stop", NULL,
       "Stop following the current route", roadmap_trip_route_stop},
 
+   {"toggleview", "2D/3D View", "M", NULL,
+      "Toggle view mode 2D / 3D", roadmap_screen_toggle_view_mode},
+
+   {"togglelabels", "Show/Hide Street Labels", "Labels", NULL,
+      "Show or Hide the names of streets", roadmap_screen_toggle_labels},
+
+   {"toggleorientation", "Dynamic/Fixed Orientation", "", NULL,
+      "Toggle orientation mode dynamic / fixed",
+      roadmap_screen_toggle_orientation_mode},
+
+   {"IncHorizon", "Increase Horizon", "I", NULL,
+      "Increase the 3D horizon", roadmap_screen_increase_horizon},
+
+   {"DecHorizon", "Decrease Horizon", "DI", NULL,
+      "Decrease the 3D horizon", roadmap_screen_decrease_horizon},
+
    {"tracktoggle", "Show/Hide Track", "Track", NULL,
       "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
 
@@ -554,6 +559,10 @@ static const char *RoadMapStartMenu[] = {
    "left",
    "right",
    "down",
+   "togglelabels",
+   "toggleorientation",
+   "toggleview",
+   "full",
 
    RoadMapFactorySeparator,
 
@@ -978,6 +987,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_initialize   ();
    roadmap_fuzzy_initialize    ();
    roadmap_navigate_initialize ();
+   roadmap_label_initialize    ();
    roadmap_display_initialize  ();
    roadmap_voice_initialize    ();
    roadmap_gps_initialize      ();
@@ -1010,6 +1020,7 @@ void roadmap_start (int argc, char **argv) {
    
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
+   roadmap_label_activate    ();
    roadmap_sprite_load       ();
    roadmap_layer_load        ();
 
@@ -1017,7 +1028,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_history_load ();
 
-#ifndef NO_EXPAT
+#ifdef ROADMAP_USES_EXPAT
    roadmap_track_autoload ();
    roadmap_landmark_load ();
 #endif
@@ -1033,12 +1044,12 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_trip_restore_focus ();
 
-#ifdef NO_EXPAT
-   roadmap_start_create_trip ();
-#else
+#ifdef ROADMAP_USES_EXPAT
    if ( ! roadmap_trip_load (1, 0)) {
       roadmap_start_create_trip ();
    }
+#else
+   roadmap_start_create_trip ();
 #endif
 
    roadmap_locator_declare (&roadmap_start_no_download);
@@ -1055,7 +1066,7 @@ void roadmap_start_exit (void) {
     
     roadmap_driver_shutdown ();
     roadmap_history_save();
-#ifndef NO_EXPAT
+#ifdef ROADMAP_USES_EXPAT
     roadmap_track_autosave ();
     roadmap_landmark_save ();
     roadmap_trip_save (0);
