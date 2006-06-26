@@ -126,6 +126,10 @@ INSTALLATION
    By default, RoadMap uses the expat library to load GPX trip and landmark
    files. RoadMap can be built without expat using the make option: EXPAT=NO.
 
+   Likewise, RoadMap will use the agg library to render angled text
+   when labeling streets.  If you don't have agg, RoadMap will label
+   with horizontal strings.  Use: AGG=NO.
+
 
 * WINDOWS SPECIFIC DEPENDENCIES AND LIMITATIONS
 
@@ -534,22 +538,12 @@ INSTALLATION
       make build
 ----
 
-   [[4]] Compile roadmap for the GTK, GTK2 or the QT toolkit:
-
-----
-      make DESKTOP=GTK    -- if using the GTK 1.2 toolkit
-
-      make DESKTOP=GTK2   -- if using the GTK 2.0 toolkit
-
-      make DESKTOP=GPE    -- if using GPE with the GTK 2.0 toolkit
-
-      make DESKTOP=QT     -- if using the QT toolkit
-
-      make DESKTOP=QPE    -- if using the QT/QPE toolkit
-----
-
-      The following commands are convenient shortcuts that cover the most
-      frequent cases:
+   [[4]] Edit the config.mk file found in the src directory, and
+   choose one of GTK, GTK2 or QT toolkit.
+   
+   Other build options are described in the comments of that
+   file.  As a shortcut, you can just type one of the following,
+   but editing config.mk is recommended.
 
 ----
       make gtk    -- if using the GTK 1.2 toolkit
@@ -557,21 +551,17 @@ INSTALLATION
       make qt     -- if using the QT toolkit
 ----
 
-      If you want to build all three versions of RoadMap (GTK, GTK2
-      and QT), just type:
-
-----
-      make       -- This actually replaces steps 3 and 4.
-----
+      Simply typing "make" will build the default selection in config.mk.
 
       <<Note for QT users>>: the RoadMap QT module is built with QT3 by
       default, but requires the QT2 compatibility headers. RoadMap has not
       been tested with QT4.
 
-      The complete list of options for building RoadMap is as follow:
+      The complete list of options for building RoadMap is as follow.
+      These can all be modified by editing config.mk.
 
       [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
-      also generates the necessary information & code for profiling.
+      also generates the necessary information and code for profiling.
 
       [SQL=SQLITE] Use the sqlite library. This option has no practical effect
       at this time.
@@ -585,11 +575,12 @@ INSTALLATION
       be converted to RoadMap files anymore. This option is to be used only
       when the shapelib library is not available.
 
-      [EXPAT=NO] Do not link roadmap with the expat library. The side effect
-      is that you cannot load or save trips or landmarks anymore.
+      [EXPAT=NO] Do not link roadmap with the expat library. The side
+      effect is that you cannot load or save trips or landmarks anymore.
 
-      [HOST=Darwin] Assume the compiler tools accept the Mac OS X (Darwin)
-      command line options.
+      [AGG=NO] Do not try to link roadmap with the agg library. 
+      The side effect is that street labels will be written
+      horizontally, rather than "along" their street.
 
 ----
 ----
@@ -2169,6 +2160,15 @@ CONFIGURATION
          <<Format:>> color
 
          <<Default:>> LightYellow
+
+    [Map.Labels] Enable/disable the initial display of street names.
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+         <<Comment:>> chooses whether streets are labelled at startup.
+	 	      They can still be toggled by command.
 
     [Map.Signs] Enable/disable the map sprites and street signs.
 
