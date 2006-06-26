@@ -97,11 +97,11 @@ static void roadmap_pointer_drag_flow_control(void) {
    RoadMapPointerDragMotion(&last_pointer_point);
    is_drag_flow_control_on = 0;
 }
-   
+
 
 static void roadmap_pointer_button_pressed
                             (int button, RoadMapGuiPoint *point) {
-   is_button_down = 1;    
+   is_button_down = 1;
    last_pointer_point = *point;
    if (button == 1) {
       roadmap_main_set_periodic
@@ -112,7 +112,7 @@ static void roadmap_pointer_button_pressed
 
 static void roadmap_pointer_button_released
                             (int button, RoadMapGuiPoint *point) {
-    
+
    if (is_dragging) {
 
       if (is_drag_flow_control_on) {
@@ -146,6 +146,7 @@ static void roadmap_pointer_moved (int button, RoadMapGuiPoint *point) {
       /* Less sensitive, since a car is not a quiet environment... */
       if ((abs(point->x - last_pointer_point.x) <= mindrag) &&
           (abs(point->y - last_pointer_point.y) <= mindrag)) return;
+
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
       RoadMapPointerDragStart(&last_pointer_point);
