@@ -272,7 +272,7 @@ void roadmap_track_save(void) {
     time_t now;
 
     time(&now);
-    strftime(name, sizeof(name), "Track-%Y-%m-%d-%H:%M:%S.gpx",
+    strftime(name, sizeof(name), "Track-%Y-%m-%d-%H-%M-%S.gpx",
                 localtime(&now));
 
     roadmap_gpx_write_track(roadmap_path_trips(), name, RoadMapTrack);
