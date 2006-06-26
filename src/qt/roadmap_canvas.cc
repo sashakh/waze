@@ -82,8 +82,8 @@ void roadmap_canvas_register_configure_handler(
 	}
 }
 
-void roadmap_canvas_get_text_extents(const char *text, int *width, 
-	int *ascent, int *descent) {
+void roadmap_canvas_get_text_extents(const char *text, int size,
+	int *width, int *ascent, int *descent) {
 
 	roadMapCanvas->getTextExtents(text, width, ascent, descent);
 }
@@ -92,8 +92,14 @@ RoadMapPen roadmap_canvas_create_pen (const char *name) {
 	return roadMapCanvas->createPen(name);
 }
 
-void roadmap_canvas_select_pen (RoadMapPen pen) {
+RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
+
+	static RoadMapPen CurrentPen;
+
+	RoadMapPen old_pen = CurrentPen;
+	CurrentPen = pen;
 	roadMapCanvas->selectPen(pen);
+	return old_pen;
 }
 
 void roadmap_canvas_set_foreground (const char *color) {
@@ -114,24 +120,32 @@ void roadmap_canvas_draw_string(RoadMapGuiPoint *position, int corner,
 	roadMapCanvas->drawString(position, corner, text);
 }
 
+void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
+                                       RoadMapGuiPoint *center,
+                                       int angle, const char *text)
+{
+    /* no angle possible, currently.  at least try and center the text */
+    roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+}
+
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points) {
 	roadMapCanvas->drawMultiplePoints(count, points);
 }
 
 void roadmap_canvas_draw_multiple_lines(int count, int *lines, 
-	RoadMapGuiPoint *points) {
+	RoadMapGuiPoint *points, int fast_draw) {
 
 	roadMapCanvas->drawMultipleLines(count, lines, points);
 }
 
 void roadmap_canvas_draw_multiple_polygons(int count, int *polygons, 
-	RoadMapGuiPoint *points, int filled) {
+	RoadMapGuiPoint *points, int filled, int fast_draw) {
 
 	roadMapCanvas->drawMultiplePolygons(count, polygons, points, filled);
 }
 
 void roadmap_canvas_draw_multiple_circles(int count, RoadMapGuiPoint *centers, 
-	int *radius, int filled) {
+	int *radius, int filled, int fast_draw) {
 
 	roadMapCanvas->drawMultipleCircles(count, centers, radius, filled);
 }

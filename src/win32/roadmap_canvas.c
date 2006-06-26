@@ -82,8 +82,8 @@ static void roadmap_canvas_convert_points (POINT *winpoints,
 }
 
 
-void roadmap_canvas_get_text_extents (const char *text, int *width,
-			int *ascent, int *descent)
+void roadmap_canvas_get_text_extents (const char *text, int size,
+			int *width, int *ascent, int *descent)
 {
 	TEXTMETRIC metric;
 	LPWSTR text_unicode = ConvertToUNICODE(text);
@@ -97,9 +97,10 @@ void roadmap_canvas_get_text_extents (const char *text, int *width,
 }
 
 
-void roadmap_canvas_select_pen (RoadMapPen pen)
+RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
 {
 	HPEN old;
+	RoadMapPen old_pen = CurrentPen;
 	
 	CurrentPen = pen;
 	
@@ -108,7 +109,8 @@ void roadmap_canvas_select_pen (RoadMapPen pen)
 	
 	if (OldHPen == NULL) OldHPen = old;
 	else DeleteObject(old);
-	
+
+	return old_pen;
 }
 
 
@@ -206,7 +208,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	LPWSTR text_unicode;
 	
 	roadmap_canvas_get_text_extents 
-        (text, &text_width, &text_ascent, &text_descent);
+        (text, -1, &text_width, &text_ascent, &text_descent);
 	
 	text_height = text_ascent + text_descent;
 	
@@ -252,6 +254,14 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	free(text_unicode);
 }
 
+void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
+                                       RoadMapGuiPoint *center,
+                                       int angle, const char *text)
+{
+	/* no angle possible, currently.  at least try and center the text */
+	roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+}
+ 
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points)
 {
@@ -265,7 +275,7 @@ void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points)
 
 
 void roadmap_canvas_draw_multiple_lines (int count, int *lines,
-				RoadMapGuiPoint *points)
+				RoadMapGuiPoint *points, int fast_draw)
 {
 	int i;
 	int count_of_points;
@@ -294,7 +304,7 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
 
 
 void roadmap_canvas_draw_multiple_polygons (int count, int *polygons,
-				RoadMapGuiPoint *points, int filled)
+				RoadMapGuiPoint *points, int filled, int fast_draw)
 {
 	int i;
 	int count_of_points;
@@ -332,7 +342,8 @@ void roadmap_canvas_draw_multiple_polygons (int count, int *polygons,
 
 
 void roadmap_canvas_draw_multiple_circles (int count,
-				RoadMapGuiPoint *centers, int *radius, int filled)
+				RoadMapGuiPoint *centers, int *radius,
+				int filled, int fast_draw)
 {
 	int i;
 	HBRUSH oldBrush;
