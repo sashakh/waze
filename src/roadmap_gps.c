@@ -122,7 +122,14 @@ static roadmap_gps_link_control RoadMapGpsLinkRemove =
 
 /* Basic support functions -------------------------------------------- */
 
-static void roadmap_gps_update_status (char status) {
+static char roadmap_gps_update_status (char status) {
+
+   /* Reading from a file is usually for debugging.  gpsbabel
+    * doesn't recreate status correctly, so force good status here.
+    */
+   if (RoadMapGpsLink.subsystem == ROADMAP_IO_FILE) {
+       status = 'A';
+   }
 
    if (status != RoadMapLastKnownStatus) {
        if (RoadMapLastKnownStatus == 'A') {
@@ -131,6 +138,8 @@ static void roadmap_gps_update_status (char status) {
        }
        RoadMapLastKnownStatus = status;
    }
+
+   return status;
 }
 
 
@@ -202,13 +211,19 @@ static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
 
 static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
+   char status; 
+
    if (fields->gga.quality == ROADMAP_NMEA_QUALITY_INVALID) {
 
-      roadmap_gps_update_status ('V');
+      status = roadmap_gps_update_status ('V');
 
    } else {
 
-      roadmap_gps_update_status ('A');
+      status = roadmap_gps_update_status ('A');
+
+   }
+
+   if (status == 'A') {
 
       RoadMapGpsReceivedTime = fields->gga.fixtime;
 
@@ -226,9 +241,9 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
 
 static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
-   roadmap_gps_update_status (fields->gll.status);
+   char status = roadmap_gps_update_status (fields->gll.status);
 
-   if (fields->gll.status == 'A') {
+   if (status == 'A') {
 
       RoadMapGpsReceivedPosition.latitude  = fields->gll.latitude;
       RoadMapGpsReceivedPosition.longitude = fields->gll.longitude;
@@ -243,9 +258,9 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
 static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
 
-   roadmap_gps_update_status (fields->rmc.status);
+   char status = roadmap_gps_update_status (fields->rmc.status);
 
-   if (fields->rmc.status == 'A') {
+   if (status == 'A') {
 
       RoadMapGpsReceivedTime = fields->rmc.fixtime;
 
@@ -383,7 +398,7 @@ static void roadmap_gps_navigation (char status,
                                     int speed,
                                     int steering) {
 
-   roadmap_gps_update_status (status);
+   status = roadmap_gps_update_status (status);
 
    if (status == 'A') {
 
@@ -476,7 +491,7 @@ static void roadmap_gps_object_listener (RoadMapDynamicString id,
 
    RoadMapGpsReceivedPosition = *position;
 
-   roadmap_gps_update_status ('A');
+   (void)roadmap_gps_update_status ('A');
    roadmap_gps_process_position();
 
    (*RoadMapGpsNextObjectListener) (id, position);
@@ -803,9 +818,10 @@ void roadmap_gps_input (RoadMapIO *io) {
 
       roadmap_io_close (&context);
 
-      /* Try to establish a new IO channel: */
-
-      roadmap_gps_open();
+      /* Try to establish a new IO channel, but don't reread a file: */
+      if (RoadMapGpsLink.subsystem != ROADMAP_IO_FILE) {
+         roadmap_gps_open();
+      }
    }
 }
 
