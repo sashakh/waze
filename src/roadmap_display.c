@@ -81,31 +81,31 @@ typedef struct {
 
     const char *page;
     const char *title;
-    
+
     char *content;
     char *id;
-    
+
     int    on_current_page;
     int    has_position;
     int    was_visible;
     time_t deadline;
     RoadMapPosition position;
     RoadMapPosition endpoint[2];
-    
+
     RoadMapPen background;
     RoadMapPen foreground;
-    
+
     PluginLine line;
 
     RoadMapConfigDescriptor format_descriptor;
     RoadMapConfigDescriptor background_descriptor;
     RoadMapConfigDescriptor foreground_descriptor;
-    
+
     int         where;
     const char *default_format;
     const char *default_background;
     const char *default_foreground;
-    
+
     PluginStreet street;
 
 } RoadMapSign;
@@ -134,12 +134,12 @@ static RoadMapPen roadmap_display_new_pen
                         (RoadMapConfigDescriptor * descriptor) {
 
     const char *color = roadmap_config_get (descriptor);
-                            
+
     if (strcasecmp (color, "black") != 0) {
-        
+
         RoadMapPen pen;
         char pen_name[256];
-        
+
         if (sizeof(pen_name) <
               strlen(descriptor->category) + strlen(descriptor->name) + 2) {
            roadmap_log(ROADMAP_FATAL,
@@ -150,10 +150,10 @@ static RoadMapPen roadmap_display_new_pen
         strcpy (pen_name, descriptor->category);
         strcat (pen_name, ".");
         strcat (pen_name, descriptor->name);
-        
+
         pen = roadmap_canvas_create_pen (pen_name);
         roadmap_canvas_set_foreground (color);
-        
+
         return pen;
     }
 
@@ -162,28 +162,28 @@ static RoadMapPen roadmap_display_new_pen
 
 
 static void roadmap_display_create_pens (void) {
-    
+
     static int RoadMapDisplayPensCreated = 0;
-    
+
     RoadMapSign *sign;
-    
-    
+
+
     if (RoadMapDisplayPensCreated) return;
-        
+
     RoadMapDisplayPensCreated = 1;
 
 
     RoadMapMessageContour = roadmap_canvas_create_pen ("message.contour");
     roadmap_canvas_set_foreground ("black");
-    
+
     RoadMapConsoleBackground =
         roadmap_display_new_pen (&RoadMapConfigConsoleBackground);
-    
+
     RoadMapConsoleForeground =
         roadmap_display_new_pen (&RoadMapConfigConsoleForeground);
-    
+
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
-        
+
         sign->background =
             roadmap_display_new_pen (&sign->background_descriptor);
 
@@ -195,11 +195,11 @@ static void roadmap_display_create_pens (void) {
 
 static void roadmap_display_string
                 (char *text, int lines, int height, RoadMapGuiPoint *position) {
-    
+
     char *text_line = text;
-    
+
     if (lines > 1) {
-        
+
         /* There is more than one line of text to display:
          * find where to cut the text. We choose to cut at
          * a space, either before of after the string midpoint,
@@ -208,7 +208,7 @@ static void roadmap_display_string
         char *text_end = text_line + strlen(text_line);
         char *p1 = text_line + (strlen(text_line) / 2);
         char *p2 = p1;
-        
+
         while (p1 > text_line) {
             if (*p1 == ' ') {
                 break;
@@ -236,7 +236,7 @@ static void roadmap_display_string
             text_line = p1 + 1;
             position->y += height;
         }
-            
+
     }
 
     roadmap_canvas_draw_string
@@ -245,7 +245,7 @@ static void roadmap_display_string
 
 
 static RoadMapSign *roadmap_display_search_sign (const char *title) {
-    
+
     RoadMapSign *sign;
 
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
@@ -261,7 +261,7 @@ static RoadMapSign *roadmap_display_search_sign (const char *title) {
 static void roadmap_display_highlight (const RoadMapPosition *position) {
 
     RoadMapGuiPoint point;
-    
+
     roadmap_math_coordinate (position, &point);
     roadmap_math_rotate_coordinates (1, &point);
     roadmap_sprite_draw ("Highlight", &point, 0);
@@ -285,10 +285,10 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         (sign->content, &width, &ascent, &descent);
 
     width += 8; /* Keep some room around the text. */
-    
+
     height = roadmap_canvas_height();
     screen_width = roadmap_canvas_width();
-    
+
     /* Check if the text fits into one line, or if we need to use
      * more than one.
      */
@@ -299,40 +299,40 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         sign_width = screen_width - 10;
         lines = 1 + ((width + 10) / screen_width);
     }
-    
+
     text_height = ascent + descent + 3;
     sign_height = lines * text_height + 3;
-    
+
     if (sign->has_position) {
 
         int visible = roadmap_math_point_is_visible (&sign->position);
-        
+
         if (sign->was_visible && (! visible)) {
             sign->deadline = 0;
             roadmap_log_pop ();
             return;
         }
         sign->was_visible = visible;
-        
+
         roadmap_math_coordinate (&sign->position, points);
         roadmap_math_rotate_coordinates (1, points);
 
         if (sign->where == SIGN_TOP) {
-        
+
             points[1].x = 5 + (screen_width - sign_width) / 2;
             points[2].x = points[1].x - 5;
             points[4].x = (screen_width + sign_width) / 2;
             points[6].x = points[1].x + 10;
 
             text_position.x = points[2].x + 4;
-            
+
         } else if (points[0].x < screen_width / 2) {
 
             points[1].x = 10;
             points[2].x = 5;
             points[4].x = sign_width + 5;
             points[6].x = 20;
-        
+
             text_position.x = 9;
 
         } else {
@@ -341,12 +341,12 @@ static void roadmap_display_sign (RoadMapSign *sign) {
             points[2].x = screen_width - 5;
             points[4].x = screen_width - sign_width - 5;
             points[6].x = screen_width - 20;
-        
+
             text_position.x = points[4].x + 4;
         }
         points[3].x = points[2].x;
         points[5].x = points[4].x;
-    
+
 
         if (sign->where == SIGN_TOP || (points[0].y > height / 2)) {
 
@@ -356,7 +356,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
             text_position.y = 8;
 
         } else {
-   
+
             points[1].y = height - sign_height - 5;
             points[3].y = height - 5;
 
@@ -373,45 +373,45 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         roadmap_display_highlight (&sign->endpoint[1]);
 
     } else {
-        
+
         points[0].x = (screen_width - sign_width) / 2;
         points[1].x = (screen_width + sign_width) / 2;
         points[2].x = points[1].x;
         points[3].x = points[0].x;
-    
+
         switch (sign->where)
         {
            case SIGN_BOTTOM:
 
               points[0].y = height - sign_height - 5;
               break;
-    
+
            case SIGN_TOP:
-    
+
               points[0].y = 5;
               break;
-    
+
            case SIGN_CENTER:
-    
+
               points[0].y = (height - sign_height) / 2;
               break;
         }
         points[1].y = points[0].y;
         points[2].y = points[0].y + sign_height;
         points[3].y = points[2].y;
-    
+
         text_position.x = points[0].x + 4;
         text_position.y = points[0].y + 3;
-        
+
         count = 4;
     }
-    
+
     roadmap_canvas_select_pen (sign->background);
     roadmap_canvas_draw_multiple_polygons (1, &count, points, 1);
 
     roadmap_canvas_select_pen (RoadMapMessageContour);
     roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
-    
+
     roadmap_canvas_select_pen (sign->foreground);
     roadmap_display_string
         (sign->content, lines, text_height, &text_position);
@@ -479,18 +479,18 @@ int roadmap_display_activate (const char *title,
        return -1; /* This is not a sign: this is a text. */
     }
     format = roadmap_config_get (&sign->format_descriptor);
-    
+
     street_has_changed = 0;
-    
+
     if (! roadmap_plugin_same_line (&sign->line, line)) {
-        
+
        roadmap_plugin_get_street (line, street);
-        
+
         if (sign->id != NULL) {
             free (sign->id);
         }
         sign->id = strdup (roadmap_plugin_street_full_name (line));
-        
+
         sign->line = *line;
         sign->was_visible = 0;
 
@@ -502,7 +502,7 @@ int roadmap_display_activate (const char *title,
 
 
     roadmap_message_set ('F', sign->id);
-    
+
     roadmap_plugin_get_street_properties (line, &properties);
     roadmap_message_set ('#', properties.address);
     roadmap_message_set ('N', properties.street);
@@ -540,14 +540,14 @@ int roadmap_display_activate (const char *title,
 
     roadmap_plugin_line_from (line, &sign->endpoint[0]);
     roadmap_plugin_line_to   (line, &sign->endpoint[1]);
-    
+
     if (position == NULL) {
         sign->has_position = 0;
     } else {
         sign->has_position = 1;
         sign->position = *position;
     }
- 
+
     roadmap_log_pop ();
     *street = sign->street;
     return 0;
@@ -555,7 +555,7 @@ int roadmap_display_activate (const char *title,
 
 
 void roadmap_display_hide (const char *title) {
-    
+
     RoadMapSign *sign;
 
     sign = roadmap_display_search_sign (title);
@@ -566,21 +566,21 @@ void roadmap_display_hide (const char *title) {
 
 static void roadmap_display_console_box
                 (int corner, RoadMapConfigDescriptor *item) {
-    
+
     const char *format;
     char text[256];
     int count;
     int width, ascent, descent;
-    
+
     RoadMapGuiPoint frame[4];
 
 
     format = roadmap_config_get (item);
-    
+
     if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
     }
-    
+
     roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
 
     if (corner & ROADMAP_CANVAS_RIGHT) {
@@ -602,17 +602,17 @@ static void roadmap_display_console_box
     }
     frame[2].y = frame[1].y;
     frame[3].y = frame[0].y;
-    
+
     count = 4;
     roadmap_canvas_select_pen (RoadMapConsoleBackground);
     roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
-    
+
     roadmap_canvas_select_pen (RoadMapConsoleForeground);
     roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0);
 
     frame[0].x = frame[3].x - 3;
     frame[0].y = frame[3].y + 3;
-    
+
     roadmap_canvas_draw_string (frame,
                                 ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
                                 text);
@@ -647,15 +647,15 @@ void roadmap_display_signs (void) {
 
 
     roadmap_display_create_pens ();
-    
+
     roadmap_display_console_box
         (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_RIGHT,
          &RoadMapConfigDisplayBottomRight);
-    
+
     roadmap_display_console_box
         (ROADMAP_CANVAS_BOTTOM|ROADMAP_CANVAS_LEFT,
          &RoadMapConfigDisplayBottomLeft);
-    
+
     roadmap_display_console_box
         (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
          &RoadMapConfigDisplayTopRight);
@@ -679,7 +679,7 @@ const char *roadmap_display_get_id (const char *title) {
     RoadMapSign *sign = roadmap_display_search_sign (title);
 
     if (sign == NULL || (! sign->has_position)) return NULL;
-        
+
     return sign->id;
 }
 
@@ -687,7 +687,7 @@ const char *roadmap_display_get_id (const char *title) {
 void roadmap_display_initialize (void) {
 
     RoadMapSign *sign;
-    
+
     roadmap_config_declare
         ("preferences", &RoadMapConfigDisplayDuration, "10");
     roadmap_config_declare
@@ -701,9 +701,9 @@ void roadmap_display_initialize (void) {
         ("preferences", &RoadMapConfigConsoleBackground, "yellow");
     roadmap_config_declare
         ("preferences", &RoadMapConfigConsoleForeground, "black");
-    
+
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
-        
+
         if (sign->default_format != NULL) {
            roadmap_config_declare
               ("preferences",
