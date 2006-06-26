@@ -1253,14 +1253,14 @@ void roadmap_trip_set_gps
     (int gps_time, const RoadMapGpsPosition *gps_position) {
 
     RoadMapPosition position;
-
+    RoadMapGuiPoint guipoint1;
+    RoadMapGuiPoint guipoint2;
     roadmap_adjust_position (gps_position, &position);
 
     /* An existing point: refresh is needed only if the point
      * moved in a visible fashion.
      */
-    RoadMapGuiPoint guipoint1;
-    RoadMapGuiPoint guipoint2;
+
 
     if (RoadMapTripGps->map.latitude != position.latitude ||
         RoadMapTripGps->map.longitude != position.longitude) {
