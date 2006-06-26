@@ -1,71 +1,56 @@
-# --- Installation options -------------------------------------------------
+# GTK makefile
 
-DESTDIR=
-INSTALLDIR=/usr/local
-bindir=$(INSTALLDIR)/bin
+TOP = ..
+include $(TOP)/options.mk
 
+# --- GTK-specific options ---------------------------------------
 
-# --- Tool specific options ------------------------------------------------
+LIBS += `gtk-config --libs`
+CFLAGS += `gtk-config --cflags`
 
-GUICFLAGS=`gtk-config --cflags`
-GUILDFLAGS=`gtk-config --libs`
-
-WARNFLAGS = -W -Wall
-
-STDCFLAGS=-O2 -ffast-math -fomit-frame-pointer -g $(WARNFLAGS)
-# STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
-# STDCFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
-
-
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../gpx/libgpx.a ../libroadmap.a
-
-HOST=`uname -s`
-ifeq ($(HOST),Darwin)
-	ARFLAGS="r"
-else
-	ARFLAGS="rf"
-endif
-
-CFLAGS=$(STDCFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include
-LIBS= -L/usr/local/libs $(RDMLIBS) $(GUILDFLAGS) -lexpat -lm
-
-# --- RoadMap sources & targets --------------------------------------------
+# --- GTK sources & targets -----------------------------------
 
 RMLIBSRCS=roadmap_keyboard.c \
           roadmap_messagebox.c \
           roadmap_dialog.c \
           roadmap_fileselection.c \
-          roadmap_signals.c \
-          roadmap_canvas.c
+          roadmap_signals.c
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o)
+# hopefully temporary
+roadmap_canvas_agg.o:
+	@echo
+	@echo "*** Sorry!  We still need a roadmap_canvas_agg.cpp for GTK."
+	@echo
+	false
 
-RUNTIME=gtkroadgps gtkroadmap
+RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.c=.o)
 
+TARGETS = gtkroadgps gtkroadmap
 
-# --- Conventional targets -------------------------------------------------
+# --- Conventional targets ----------------------------------------
 
-.PHONY: all runtime clean strip install uninstall strip
+.PHONY: all strip clean install uninstall
 
-all: runtime
-
-runtime: $(RUNTIME)
-
-clean:
-	rm -f *.o *.a *.da $(RUNTIME)
+all: $(TARGETS)
 
 strip:
-	$(STRIP) -s $(RUNTIME)
+	$(STRIP) $(TARGETS)
+
+clean:
+	rm -f *.o *.a *.da $(TARGETS)
 
 install:
+	$(MAKE) -C $(TOP) install
+	$(STRIP) $(TARGETS)
 	mkdir -p $(DESTDIR)$(bindir)
-	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
-	install $(RUNTIME) $(DESTDIR)$(bindir)
+	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
+	install $(TARGETS) $(DESTDIR)$(bindir)
 	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
 	ln -s gtkroadgps $(DESTDIR)$(bindir)/roadgps
 
 uninstall:
-	cd $(DESTDIR)$(bindir) && rm -f $(RUNTIME) roadmap roadgps
+	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
+	$(MAKE) -C $(TOP) uninstall
 
 # --- The real targets --------------------------------------------
 
@@ -73,9 +58,13 @@ libgtkroadmap.a: $(RMLIBOBJS)
 	$(AR) $(ARFLAGS) libgtkroadmap.a $(RMLIBOBJS)
 	$(RANLIB) libgtkroadmap.a
 
-gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
-	$(CC) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
+gtkroadmap: roadmap_main.o libgtkroadmap.a \
+		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
+	$(CC) $(LDFLAGS) -o gtkroadmap roadmap_main.o \
+		$(TOP)/libguiroadmap.a libgtkroadmap.a $(LIBS)
 
-gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
-	$(CC) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
+gtkroadgps: roadmap_main.o libgtkroadmap.a \
+		$(TOP)/libguiroadgps.a  $(filter %.a, $(LIBS))
+	$(CC) $(LDFLAGS) -o gtkroadgps roadmap_main.o \
+		$(TOP)/libguiroadgps.a libgtkroadmap.a $(LIBS)
 

@@ -1,10 +1,10 @@
 
 # Those hand-made icons (the others are official road signs):
 ICONSRC= rm_hold.xpm \
-			rm_gps.xpm \
-			rm_zoom1.xpm \
-			rm_zoomin.xpm \
-			rm_zoomout.xpm
+	rm_gps.xpm \
+	rm_zoom1.xpm \
+	rm_zoomin.xpm \
+	rm_zoomout.xpm
 
 ICONS=$(ICONSRC:.xpm=.png)
 

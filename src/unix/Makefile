@@ -1,16 +1,11 @@
 # --- Tool specific options ------------------------------------------------
 
-HOST=`uname -s`
-ifeq ($(HOST),Darwin)
-	ARFLAGS="r"
-else
-	ARFLAGS="rf"
-endif
+TOP = ..
+include $(TOP)/options.mk
 
+# --- UNIX OS sources & targets --------------------------------------------
 
-# --- RoadMap sources & targets --------------------------------------------
-
-OSLIBSRCS=roadmap_file.c \
+LIBSRCS=roadmap_file.c \
           roadmap_path.c \
           roadmap_library.c \
           roadmap_net.c \
@@ -18,18 +13,14 @@ OSLIBSRCS=roadmap_file.c \
           roadmap_spawn.c \
           roadmap_time.c
 
-OSLIBOBJS=$(OSLIBSRCS:.c=.o)
+LIBOBJS=$(LIBSRCS:.c=.o)
 
 
 # --- Conventional targets ----------------------------------------
 
-.PHONY: all build runtime clean install uninstall
+.PHONY: all clean install uninstall
 
-all: runtime
-
-build:
-
-runtime: libosroadmap.a
+all: libosroadmap.a
 
 clean:
 	rm -f *.o *.a *.da
@@ -41,7 +32,7 @@ uninstall:
 
 # --- The real targets --------------------------------------------
 
-libosroadmap.a: $(OSLIBOBJS)
-	$(AR) $(ARFLAGS) libosroadmap.a $(OSLIBOBJS)
+libosroadmap.a: $(LIBOBJS)
+	$(AR) $(ARFLAGS) libosroadmap.a $(LIBOBJS)
 	$(RANLIB) libosroadmap.a
 

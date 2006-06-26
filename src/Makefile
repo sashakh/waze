@@ -1,183 +1,82 @@
-# --- Installation options -------------------------------------------------
-
-DESTDIR=
-INSTALLDIR=/usr/local
-desktopdir=$(INSTALLDIR)/applications
-pkgdatadir=$(INSTALLDIR)/share/roadmap
-pkgmapsdir=/var/lib/roadmap
-bindir=$(INSTALLDIR)/bin
-pkgbindir=$(bindir)
-menudir=$(DESTDIR)/usr/lib/menu
-ICONDIR=$(INSTALLDIR)/share/pixmaps
-mandir=$(INSTALLDIR)/share/man
-man1dir=$(mandir)/man1
-
-INSTALL      = install
-INSTALL_DATA = install -m644
-
 
 # --- Tool specific options ------------------------------------------------
 
-RANLIB = ranlib
-STRIP = strip
 
-WARNFLAGS = -W -Wall -Wno-unused-parameter -Wcast-align -Wpointer-arith -Wreturn-type -Wsign-compare
-
-
-ifeq ($(EXPAT),NO)
-   EXPATCFLAGS=-DNO_EXPAT
-	EXPATLDFLAGS=
-else
-   EXPATCFLAGS=
-	EXPATLDFLAGS=-lexpat
-endif
-
-ifeq ($(MODE),DEBUG)
-# Memory leak detection using mtrace:
-# Do not forget to set the trace file using the env. variable MALLOC_TRACE,
-# then use the mtrace tool to analyze the output.
-   MODECFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
-   MODELDFLAGS=
-else
-ifeq ($(MODE),PROFILE)
-   MODECFLAGS=-g $(WARNFLAGS) -pg -fprofile-arcs -g
-   MODELDFLAGS=-pg
-else
-   MODECFLAGS=-O2 -ffast-math -fomit-frame-pointer $(WARNFLAGS) $(OPTIONS)
-   MODELDFLAGS=
-endif
-endif
-
-ifeq ($(SQL),SQLITE)
-   SQLCFLAGS=-DROADMAP_USES_SQLITE
-	SQLLDFLAGS=-lsqlite
-	SQLTOOLS=sqliteload
-else
-   SQLCFLAGS=
-	SQLLDFLAGS=
-	SQLTOOLS=
-endif
-
-ifeq ($(DESKTOP),GTK2)
-	RDMODULES=gtk2
-	DTCFLAGS=
-else
-ifeq ($(DESKTOP),GPE)
-	RDMODULES=gtk2
-	DTCFLAGS=
-else
-ifeq ($(DESKTOP),GTK)
-	RDMODULES=gtk
-	DTCFLAGS=
-else
-ifeq ($(DESKTOP),QT)
-	RDMODULES=qt
-	DTCFLAGS=
-else
-ifeq ($(DESKTOP),QPE)
-	RDMODULES=qt
-	DTCFLAGS=-DQWS
-else
-	RDMODULES=gtk gtk2 qt
-	DTCFLAGS=
-endif
-endif
-endif
-endif
-endif
-
-HOST=`uname -s`
-ifeq ($(HOST),Darwin)
-	ARFLAGS="r"
-else
-	ARFLAGS="rf"
-endif
-
-ifeq ($(SHAPEFILES),NO)
-   ROADMAP_USE_SHAPEFILES=
-   SHAPELDFLAGS=
-else
-   ROADMAP_USE_SHAPEFILES=-DROADMAP_USE_SHAPEFILES
-	SHAPELDFLAGS=-lshp
-endif
-
-
-CFLAGS=$(MODECFLAGS) $(EXPATCFLAGS) $(DTCFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD)
-LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS)
-
-RDMLIBS=libroadmap.a unix/libosroadmap.a gpx/libgpx.a
-LIBS=$(RDMLIBS) -lpopt $(EXPATLDFLAGS) -lm
+TOP = .
+include $(TOP)/options.mk
 
 # --- RoadMap sources & targets --------------------------------------------
 
 RMLIBSRCS=roadmap_log.c \
-          roadmap_message.c \
-          roadmap_string.c \
-          roadmap_voice.c \
-          roadmap_scan.c \
-          roadmap_list.c \
-          roadmap_config.c \
-          roadmap_option.c \
-          roadmap_metadata.c \
-          roadmap_index.c \
-          roadmap_county.c \
-          roadmap_locator.c \
-          roadmap_math.c \
-          roadmap_hash.c \
-          roadmap_dbread.c \
-          roadmap_dictionary.c \
-          roadmap_square.c \
-          roadmap_point.c \
-          roadmap_line.c \
-          roadmap_shape.c \
-          roadmap_place.c \
-          roadmap_polygon.c \
-          roadmap_street.c \
-          roadmap_plugin.c \
-          roadmap_geocode.c \
-          roadmap_history.c \
-          roadmap_input.c \
-          roadmap_nmea.c \
-          roadmap_gpsd2.c \
-          roadmap_io.c \
-          roadmap_gps.c \
-          roadmap_object.c \
-          roadmap_driver.c \
-          roadmap_adjust.c \
-          roadmap_sunrise.c \
-          roadmap_gpx.c
+	roadmap_message.c \
+	roadmap_string.c \
+	roadmap_voice.c \
+	roadmap_scan.c \
+	roadmap_list.c \
+	roadmap_config.c \
+	roadmap_option.c \
+	roadmap_metadata.c \
+	roadmap_index.c \
+	roadmap_county.c \
+	roadmap_locator.c \
+	roadmap_math.c \
+	roadmap_hash.c \
+	roadmap_dbread.c \
+	roadmap_dictionary.c \
+	roadmap_square.c \
+	roadmap_point.c \
+	roadmap_line.c \
+	roadmap_shape.c \
+	roadmap_place.c \
+	roadmap_polygon.c \
+	roadmap_street.c \
+	roadmap_plugin.c \
+	roadmap_geocode.c \
+	roadmap_history.c \
+	roadmap_input.c \
+	roadmap_nmea.c \
+	roadmap_gpsd2.c \
+	roadmap_io.c \
+	roadmap_gps.c \
+	roadmap_object.c \
+	roadmap_driver.c \
+	roadmap_adjust.c \
+	roadmap_sunrise.c \
+	roadmap_state.c \
+	roadmap_gpx.c
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
 
 RMGUISRCS=roadmap_sprite.c \
-          roadmap_object.c \
-          roadmap_trip.c \
-          roadmap_track.c \
-          roadmap_landmark.c \
-          roadmap_layer.c \
-          roadmap_fuzzy.c \
-          roadmap_navigate.c \
-          roadmap_pointer.c \
-          roadmap_screen.c \
-          roadmap_display.c \
-          roadmap_factory.c \
-          roadmap_preferences.c \
-          roadmap_address.c \
-          roadmap_crossing.c \
-          roadmap_coord.c \
-          roadmap_download.c \
-          roadmap_help.c \
-          roadmap_start.c
+	roadmap_object.c \
+	roadmap_trip.c \
+	roadmap_track.c \
+	roadmap_landmark.c \
+	roadmap_layer.c \
+	roadmap_fuzzy.c \
+	roadmap_navigate.c \
+	roadmap_pointer.c \
+	roadmap_screen.c \
+	roadmap_display.c \
+	roadmap_factory.c \
+	roadmap_preferences.c \
+	roadmap_address.c \
+	roadmap_crossing.c \
+	roadmap_coord.c \
+	roadmap_download.c \
+	roadmap_help.c \
+	roadmap_label.c \
+	roadmap_start.c
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)
 
 
 RGGUISRCS=roadgps_start.c \
-          roadmap_factory.c \
-          roadmap_help.c \
-          roadgps_screen.c \
-          roadgps_logger.c
+	roadmap_factory.c \
+	roadmap_help.c \
+	roadgps_screen.c \
+	roadgps_logger.c
 
 RGGUIOBJS=$(RGGUISRCS:.c=.o)
 
@@ -193,25 +92,25 @@ DMOBJS=$(DMSRCS:.c=.o)
 
 
 BMLIBSRCS=buildmap_messages.c \
-       buildmap_dictionary.c \
-       buildmap_dbwrite.c \
-       buildmap_metadata.c \
-       buildmap_city.c \
-       buildmap_square.c \
-       buildmap_point.c \
-       buildmap_street.c \
-       buildmap_area.c \
-       buildmap_line.c \
-       buildmap_shape.c \
-       buildmap_polygon.c \
-       buildmap_range.c \
-       buildmap_zip.c \
-       buildmap_layer.c \
-       buildmap_tiger.c \
-       buildmap_shapefile.c \
-		 buildmap_empty.c \
-       buildmap_place.c \
-       buildmap_index.c \
+	buildmap_dictionary.c \
+	buildmap_dbwrite.c \
+	buildmap_metadata.c \
+	buildmap_city.c \
+	buildmap_square.c \
+	buildmap_point.c \
+	buildmap_street.c \
+	buildmap_area.c \
+	buildmap_line.c \
+	buildmap_shape.c \
+	buildmap_polygon.c \
+	buildmap_range.c \
+	buildmap_zip.c \
+	buildmap_layer.c \
+	buildmap_tiger.c \
+	buildmap_shapefile.c \
+	buildmap_empty.c \
+	buildmap_place.c \
+	buildmap_index.c \
 
 BMLIBOBJS=$(BMLIBSRCS:.c=.o)
 
@@ -221,40 +120,40 @@ BMOBJS=$(BMSRCS:.c=.o)
 
 
 BPSRCS=buildmap_messages.c \
-       buildmap_dictionary.c \
-       buildmap_dbwrite.c \
-       buildmap_square.c \
-       buildmap_point.c \
-       buildmap_place.c \
-       buildplace_main.c
+	buildmap_dictionary.c \
+	buildmap_dbwrite.c \
+	buildmap_square.c \
+	buildmap_point.c \
+	buildmap_place.c \
+	buildplace_main.c
 
 BPOBJS=$(BPSRCS:.c=.o)
 
 
 BUSRCS=buildus_main.c \
-       buildus_fips.c \
-       buildus_county.c \
-       buildmap_dictionary.c \
-       buildmap_dbwrite.c \
-       buildmap_messages.c
+	buildus_fips.c \
+	buildus_county.c \
+	buildmap_dictionary.c \
+	buildmap_dbwrite.c \
+	buildmap_messages.c
 
 BUOBJS=$(BUSRCS:.c=.o)
 
 
 XCHGSRCS=rdmxchange_main.c \
-         rdmxchange_dictionary.c \
-			rdmxchange_index.c \
-			rdmxchange_metadata.c \
-			rdmxchange_point.c \
-			rdmxchange_line.c \
-			rdmxchange_shape.c \
-			rdmxchange_polygon.c \
-			rdmxchange_square.c \
-			rdmxchange_street.c \
-			rdmxchange_range.c \
-			rdmxchange_zip.c \
-			buildmap_messages.c \
-			buildmap_dbwrite.c
+	rdmxchange_dictionary.c \
+	rdmxchange_index.c \
+	rdmxchange_metadata.c \
+	rdmxchange_point.c \
+	rdmxchange_line.c \
+	rdmxchange_shape.c \
+	rdmxchange_polygon.c \
+	rdmxchange_square.c \
+	rdmxchange_street.c \
+	rdmxchange_range.c \
+	rdmxchange_zip.c \
+	buildmap_messages.c \
+	buildmap_dbwrite.c
 
 XCHGOBJS=$(XCHGSRCS:.c=.o)
 
@@ -270,10 +169,13 @@ TOOLS=sunrise $(SQLTOOLS)
 # --- Conventional targets ----------------------------------------
 
 .PHONY: all gtk gtk2 qt rebuild build \
-         clean strip install uninstall unix gpx
+         topclean clean strip install uninstall unix gpx
 
 all: runtime build $(TOOLS) icons
 
+
+# --- Convenience targets, to force a specific desktop build ------
+#     (overrides setting in config.mk)
 gtk:
 	$(MAKE) DESKTOP=GTK
 
@@ -286,65 +188,47 @@ qt:
 rebuild: clean all
 
 
-unix:
-	if [ -d unix ] ; then \
-		$(MAKE) -C unix RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
-	fi
+# ---  Sub-targets ------------------------------------------------
 
-unix/libosroadmap.a: unix
+unix gpx:
+	$(MAKE) -C $@ all
 
-gpx:
-	if [ -d gpx ] ; then \
-		$(MAKE) -C gpx RANLIB=$(RANLIB) "CFLAGS=$(CFLAGS) -I.." ; \
-	fi
-
-gpx/libgpx.a: gpx
 
 runtime: unix gpx $(RUNTIME) $(DRIVERS)
 	for module in $(RDMODULES) ; \
 	do \
-		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module RANLIB=$(RANLIB) STDCFLAGS="$(CFLAGS)" runtime || exit 1; \
-		fi ; \
+		$(MAKE) -C $$module all || exit 1; \
 	done
 
 build: $(BUILD)
 
 strip:
-	for b in $(BUILD) $(DRIVERS) ; \
-	do \
-		if [ -f $$b ] ; then \
-			$(STRIP) -s $$b ; \
-		fi ; \
-	done
+	-$(STRIP) $(BUILD) $(DRIVERS)
 	for module in $(RDMODULES) ; \
 	do \
-		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module STRIP=$(STRIP) strip || exit 1; \
-		fi ; \
+		$(MAKE) -C $$module strip || exit 1; \
 	done
 
-clean:
+topclean:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
 	rm -f roadmap-32.xpm roadmap.xpm
 	# Clean up CVS backup files as well.
 	$(RM) .#*
+
+clean:  topclean
 	for module in icons $(RDMODULES) ; \
 	do \
-		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module clean || exit 1; \
-		fi ; \
+		$(MAKE) -C $$module clean || exit 1; \
 	done
-	if [ -d unix ] ; then $(MAKE) -C unix clean ; fi
-	if [ -d gpx ] ; then $(MAKE) -C gpx clean ; fi
+	$(MAKE) -C unix clean
+	$(MAKE) -C gpx clean
+	rm -f agg_support/*.o
 
 
 install: installdata installbin installicons installdesktop
 	for module in $(RDMODULES) ; \
 	do \
-		if [ -d $$module ] ; then \
-			$(MAKE) -C $$module RANLIB=$(RANLIB) STDCFLAGS="$(CFLAGS)" STRIP=$(STRIP) install || exit 1; \
-		fi ; \
+		$(MAKE) -C $$module install || exit 1; \
 	done
 
 installdata:

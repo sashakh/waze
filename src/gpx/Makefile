@@ -1,23 +1,12 @@
 # --- Tool specific options ------------------------------------------------
 
-RANLIB = ranlib
-
-HOST=`uname -s`
-ifeq ($(HOST),Darwin)
-	ARFLAGS="r"
-else
-	ARFLAGS="rf"
-endif
-
-# WARNFLAGS = -g
-WARNFLAGS = -O2
-MODECFLAGS= $(WARNFLAGS) -ffast-math -fomit-frame-pointer $(OPTIONS)
-CFLAGS =  $(MODECFLAGS) $(STDCFLAGS)
+TOP = ..
+include $(TOP)/options.mk
 
 # --- RoadMap sources & targets --------------------------------------------
 
 
-OSLIBSRCS=\
+LIBSRCS=\
           gpx.c \
           xmltag.c \
           waypt.c \
@@ -28,20 +17,16 @@ OSLIBSRCS=\
           formspec.c \
           vmem.c
 
-OSLIBOBJS=$(OSLIBSRCS:.c=.o)
+LIBOBJS=$(LIBSRCS:.c=.o)
 
 
 # --- Conventional targets ----------------------------------------
 
 all: runtime
 
-build:
-
 runtime: libgpx.a
 
-clean: cleanone
-
-cleanone:
+clean:
 	rm -f *.o *.a *.da
 
 install:
@@ -51,7 +36,7 @@ uninstall:
 
 # --- The real targets --------------------------------------------
 
-libgpx.a: $(OSLIBOBJS)
-	$(AR) $(ARFLAGS) libgpx.a $(OSLIBOBJS)
+libgpx.a: $(LIBOBJS)
+	$(AR) $(ARFLAGS) libgpx.a $(LIBOBJS)
 	$(RANLIB) libgpx.a
 
