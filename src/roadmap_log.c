@@ -258,3 +258,31 @@ RoadMapLogRedirect roadmap_log_redirect (int level,
    return old;
 }
 
+
+#ifdef ROADMAP_DBG_TIME
+
+static unsigned long dbg_time_rec[DBG_TIME_LAST_COUNTER];
+static unsigned long dbg_time_tmp[DBG_TIME_LAST_COUNTER];
+
+#ifdef __WIN32
+void dbg_time_start(int type) {
+   dbg_time_tmp[type] = GetTickCount();
+}
+
+void dbg_time_end(int type) {
+   dbg_time_rec[type] += GetTickCount() - dbg_time_tmp[type];
+}
+
+#else
+
+void dbg_time_start(int type) {
+   dbg_time_tmp[type] = 0;
+}
+
+void dbg_time_end(int type) {
+   dbg_time_rec[type] += 0;
+}
+
+#endif // __WIN32
+
+#endif // ROADMAP_DBG_TIME
