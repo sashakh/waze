@@ -48,6 +48,7 @@
 #include "roadmap_voice.h"
 #include "roadmap_gps.h"
 
+#include "roadmap_time.h"
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
 #include "roadmap_coord.h"
@@ -931,13 +932,10 @@ void roadmap_start_unfreeze (void) {
    roadmap_screen_unfreeze ();
 }
 
-roadmap_start_now() {
+char * roadmap_start_now() {
 
-    char *buf;
-    time_t t = time(0);;
-    buf = ctime(&t);
-    buf[strlen(buf)-1] = '\0';
-    return buf;
+   return roadmap_time_get_hours_minutes (time(NULL));
+
 }
 
 void roadmap_start (int argc, char **argv) {
@@ -951,7 +949,7 @@ void roadmap_start (int argc, char **argv) {
    mtrace();
 #endif
 
-   roadmap_log (ROADMAP_WARNING, "RoadMap starting, %s", roadmap_start_now());
+   roadmap_log (ROADMAP_WARNING, "RoadMap starting, time %s", roadmap_start_now());
    roadmap_log_redirect (ROADMAP_MESSAGE_ERROR, roadmap_start_error);
    roadmap_log_redirect (ROADMAP_MESSAGE_FATAL, roadmap_start_fatal);
 
@@ -1063,5 +1061,5 @@ void roadmap_start_exit (void) {
     roadmap_trip_save (0);
 #endif
     roadmap_config_save (0);
-    roadmap_log (ROADMAP_WARNING, "RoadMap exiting, %s", roadmap_start_now());
+    roadmap_log (ROADMAP_WARNING, "RoadMap exiting, time %s", roadmap_start_now());
 }
