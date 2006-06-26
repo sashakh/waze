@@ -69,6 +69,7 @@ typedef struct {
    const char *address;
    const char *street;
    const char *city;
+   PluginStreet plugin_street;
 
 } PluginStreetProperties;
 

@@ -282,7 +282,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     roadmap_log_push ("roadmap_display_sign");
 
     roadmap_canvas_get_text_extents
-        (sign->content, &width, &ascent, &descent);
+        (sign->content, -1, &width, &ascent, &descent);
 
     width += 8; /* Keep some room around the text. */
 
@@ -407,10 +407,10 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     }
 
     roadmap_canvas_select_pen (sign->background);
-    roadmap_canvas_draw_multiple_polygons (1, &count, points, 1);
+    roadmap_canvas_draw_multiple_polygons (1, &count, points, 1, 0);
 
     roadmap_canvas_select_pen (RoadMapMessageContour);
-    roadmap_canvas_draw_multiple_polygons (1, &count, points, 0);
+    roadmap_canvas_draw_multiple_polygons (1, &count, points, 0, 0);
 
     roadmap_canvas_select_pen (sign->foreground);
     roadmap_display_string
@@ -581,7 +581,7 @@ static void roadmap_display_console_box
         return;
     }
 
-    roadmap_canvas_get_text_extents (text, &width, &ascent, &descent);
+    roadmap_canvas_get_text_extents (text, -1, &width, &ascent, &descent);
 
     if (corner & ROADMAP_CANVAS_RIGHT) {
         frame[2].x = roadmap_canvas_width() - 5;
@@ -605,10 +605,10 @@ static void roadmap_display_console_box
 
     count = 4;
     roadmap_canvas_select_pen (RoadMapConsoleBackground);
-    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1);
+    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 1, 0);
 
     roadmap_canvas_select_pen (RoadMapConsoleForeground);
-    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0);
+    roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0, 0);
 
     frame[0].x = frame[3].x - 3;
     frame[0].y = frame[3].y + 3;

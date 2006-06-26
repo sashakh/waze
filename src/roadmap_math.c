@@ -45,6 +45,9 @@
 #define ROADMAP_BASE_IMPERIAL 0
 #define ROADMAP_BASE_METRIC   1
 
+#define MIN_ZOOM_IN     2
+#define MAX_ZOOM_OUT    0x10000
+
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralDefaultZoom =
                         ROADMAP_CONFIG_ITEM("General", "Default Zoom");
@@ -129,7 +132,7 @@ static struct {
    int cos_orientation; /* Multiplied by 32768. */
 
    RoadMapUnits *units;
-   
+   int _3D_horizon;
 } RoadMapContext;
 
 
@@ -432,6 +435,22 @@ static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
                 + (y * RoadMapContext.cos_orientation) + 16383) / 32768);
 }
 
+static void roadmap_math_project (RoadMapGuiPoint *point) {
+
+   double fDistFromCenterY = RoadMapContext.height - point->y; // how far away is this point along the Y axis
+   double fVisibleRange = RoadMapContext.height - RoadMapContext._3D_horizon; // how far from the bottom of the screen is the horizon
+   double fDistFromCenterX;
+   double fDistFromHorizon;
+
+   point->y = (int) (RoadMapContext.height - fDistFromCenterY / ( fabs(fDistFromCenterY / fVisibleRange) + 1 )); // make the Y coordinate converge on the horizon as the distance from the center goes to infinity
+
+   fDistFromCenterX = point->x - RoadMapContext.width / 2; // X distance from center of the screen
+   fDistFromHorizon = point->y - RoadMapContext._3D_horizon; // distance from the horizon after adjusting for perspective
+
+   point->x = (int) (fDistFromCenterX * ( fDistFromHorizon / fVisibleRange ) + RoadMapContext.width / 2); // squeeze the X axis, make it a point at the horizon and normal sized at the bottom of the screen
+}
+
+
 /* Rotation of the screen:
  * rotate the coordinates of a point on the screen, the center of
  * the rotation being the center of the screen.
@@ -464,6 +483,46 @@ void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points) {
    }
 }
 
+
+/* 
+ * rotate the coordinates of a point to an arbitrary angle
+ */
+void roadmap_math_rotate_point (RoadMapGuiPoint *points,
+                                RoadMapGuiPoint *center, int angle) {
+
+   static int cached_angle = 0;
+   static int sin_orientation;
+   static int cos_orientation;
+
+   int x;
+   int y;
+
+   if (angle == 0) return;
+
+   if (angle != cached_angle) {
+      cached_angle = angle;
+      roadmap_math_trigonometry (cached_angle,
+                                 &sin_orientation,
+                                 &cos_orientation);
+   }
+
+   x = points->x;
+   y = points->y;
+
+   points->x =
+      center->x +
+      (((x * cos_orientation)
+        + (y * sin_orientation) + 16383) / 32768);
+
+   points->y =
+      center->y -
+      (((y * cos_orientation)
+        - (x * sin_orientation) + 16383) / 32768);
+
+   if (RoadMapContext._3D_horizon) {
+      roadmap_math_project (points);
+   }
+}
 
 /* Rotate a specific object:
  * rotate the coordinates of the object's points according to the provided
@@ -685,7 +744,7 @@ void roadmap_math_zoom_out (void) {
    int zoom;
 
    zoom = (3 * RoadMapContext.zoom) / 2;
-   if (zoom < 0x10000) {
+   if (zoom < MAX_ZOOM_OUT) {
       RoadMapContext.zoom = (unsigned short) zoom;
    }
    roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
@@ -696,9 +755,10 @@ void roadmap_math_zoom_out (void) {
 void roadmap_math_zoom_in (void) {
 
    RoadMapContext.zoom = (2 * RoadMapContext.zoom) / 3;
-   if (RoadMapContext.zoom <= 1) {
-      RoadMapContext.zoom = 2;
+   if (RoadMapContext.zoom < MIN_ZOOM_IN) {
+      RoadMapContext.zoom = MIN_ZOOM_IN;
    }
+
    roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
    roadmap_math_compute_scale ();
 }
@@ -773,6 +833,13 @@ void roadmap_math_set_size (int width, int height) {
 void roadmap_math_set_center (RoadMapPosition *position) {
 
    RoadMapContext.center = *position;
+
+   roadmap_math_compute_scale ();
+}
+
+void roadmap_math_set_horizon (int horizon) {
+
+   RoadMapContext._3D_horizon = horizon;
 
    roadmap_math_compute_scale ();
 }
@@ -954,7 +1021,7 @@ int roadmap_math_distance
 
 
 /* Take a number followed by ft/mi/m/km, and converts it to current units. */
-int roadmap_math_distance_convert(const char *string, int *explicit)
+int roadmap_math_distance_convert(const char *string, int *was_explicit)
 {
     char *suffix;
     double distance;
@@ -993,7 +1060,7 @@ int roadmap_math_distance_convert(const char *string, int *explicit)
         had_units = 0;
     }
 
-    if (explicit) *explicit = had_units;
+    if (was_explicit) *was_explicit = had_units;
 
     return (int)distance;
 }

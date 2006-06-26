@@ -178,7 +178,7 @@ int roadmap_plugin_get_distance
          return 0;
       }
 
-      if (hooks->activate_db != NULL) {
+      if (hooks->get_distance != NULL) {
          return (*hooks->get_distance) (point, line, result);
       }
 
@@ -356,7 +356,7 @@ const char *roadmap_plugin_street_full_name (PluginLine *line) {
          return "";
       }
 
-      if (hooks->get_street != NULL) {
+      if (hooks->get_street_full_name != NULL) {
          return (*hooks->get_street_full_name) (line);
       }
 
@@ -376,6 +376,9 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
       props->address = roadmap_street_get_street_address (&rm_properties);
       props->street = roadmap_street_get_street_name (&rm_properties);
       props->city = roadmap_street_get_city_name (&rm_properties);
+      props->plugin_street.plugin_id = ROADMAP_PLUGIN_ID;
+      props->plugin_street.street_id = rm_properties.street;
+   
       return;
 
    } else {
@@ -392,7 +395,7 @@ void roadmap_plugin_get_street_properties (PluginLine *line,
          return;
       }
 
-      if (hooks->get_street != NULL) {
+      if (hooks->get_street_properties != NULL) {
          (*hooks->get_street_properties) (line, props);
       }
 

@@ -28,6 +28,9 @@
 #include "roadmap_types.h"
 #include "roadmap_gui.h"
 
+enum { MATH_ZOOM_RESET = -1,
+       MATH_ZOOM_NO_RESET = 0
+};
 
 void roadmap_math_initialize   (void);
 
@@ -43,6 +46,7 @@ void roadmap_math_set_center      (RoadMapPosition *position);
 void roadmap_math_set_size        (int width, int height);
 int  roadmap_math_set_orientation (int direction);
 int  roadmap_math_get_orientation (void);
+void roadmap_math_set_horizon     (int horizon);
 
 void roadmap_math_set_focus     (const RoadMapArea *focus);
 void roadmap_math_release_focus (void);
@@ -71,6 +75,9 @@ void roadmap_math_to_position (const RoadMapGuiPoint *point,
 
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points);
 
+void roadmap_math_rotate_point (RoadMapGuiPoint *points,
+                                RoadMapGuiPoint *center, int angle);
+
 void roadmap_math_rotate_object
          (int count, RoadMapGuiPoint *points,
           RoadMapGuiPoint *center, int orientation);
@@ -85,7 +92,7 @@ char *roadmap_math_speed_unit    (void);
 int  roadmap_math_distance
         (const RoadMapPosition *position1, const RoadMapPosition *position2);
 
-int  roadmap_math_distance_convert (const char *string, int *explicit);
+int  roadmap_math_distance_convert (const char *string, int *was_explicit);
 int  roadmap_math_to_trip_distance (int distance);
 int  roadmap_math_to_trip_distance_tenths (int distance);
 

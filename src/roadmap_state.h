@@ -1,8 +1,8 @@
-/* roadmap_gui.h - general definitions used by the RoadMap GUI module.
+/* roadmap_state.h - manage object states.
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -21,30 +21,16 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_GUI__H_
-#define _ROADMAP_GUI__H_
+#ifndef INCLUDE__ROADMAP_STATE__H
+#define INCLUDE__ROADMAP_STATE__H
 
-#include "roadmap_types.h"
+typedef int (*RoadMapStateFn) (void);
 
+void roadmap_state_add (const char *name, RoadMapStateFn state_fn);
+RoadMapStateFn roadmap_state_find (const char *name);
 
-typedef struct {
+void roadmap_state_monitor (RoadMapCallback monitor);
+void roadmap_state_refresh (void);
 
-   short x;
-   short y;
-
-} RoadMapGuiPoint;
-
-typedef struct {
-
-   short minx;
-   short miny;
-   short maxx;
-   short maxy;
-
-} RoadMapGuiRect;
-
-struct roadmap_menu_descriptor;
-typedef struct roadmap_menu_descriptor *RoadMapMenu;
-
-#endif /* _ROADMAP_GUI__H_ */
+#endif // INCLUDE__ROADMAP_STATE__H
 

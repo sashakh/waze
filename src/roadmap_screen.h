@@ -27,6 +27,14 @@
 #include "roadmap_types.h"
 #include "roadmap_canvas.h"
 
+enum { VIEW_MODE_2D = 0,
+       VIEW_MODE_3D
+};
+
+enum { ORIENTATION_DYNAMIC = 0,
+       ORIENTATION_FIXED
+};
+
 void roadmap_screen_initialize (void);
 
 void roadmap_screen_set_initial_position (void);
@@ -39,6 +47,12 @@ void roadmap_screen_move_up    (void);
 void roadmap_screen_move_down  (void);
 void roadmap_screen_move_right (void);
 void roadmap_screen_move_left  (void);
+
+void roadmap_screen_toggle_view_mode (void);
+void roadmap_screen_toggle_labels (void);
+void roadmap_screen_toggle_orientation_mode (void);
+void roadmap_screen_increase_horizon (void);
+void roadmap_screen_decrease_horizon (void);
 
 void roadmap_screen_rotate (int delta);
 
@@ -63,15 +77,11 @@ void roadmap_screen_draw_line (const RoadMapPosition *from,
                                int first_shape,
                                int last_shape,
                                RoadMapShapeIterator shape_next,
-                               RoadMapPen pen);
+                               RoadMapPen pen,
+                               int *total_length,
+                               RoadMapGuiPoint *middle,
+                               int *angle);
 
-void roadmap_screen_draw_line_direction (const RoadMapPosition *from,
-                                         const RoadMapPosition *to,
-                                         const RoadMapPosition *shape_start,
-                                         int first_shape,
-                                         int last_shape,
-                                         RoadMapShapeIterator shape_next,
-                                         int width,
-                                         int direction);
+int roadmap_screen_is_dragging (void);
 
 #endif // INCLUDE__ROADMAP_SCREEN__H
