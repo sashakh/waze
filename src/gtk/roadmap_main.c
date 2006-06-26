@@ -503,8 +503,12 @@ int roadmap_main_flush_synchronous (int deadline) {
 
 void roadmap_main_exit (void) {
 
-   roadmap_start_exit ();
-   gtk_main_quit();
+   static int exit_done;
+
+   if (!exit_done++) {
+      roadmap_start_exit ();
+      gtk_main_quit();
+   }
 }
 
 void roadmap_signals_init(void);
@@ -519,6 +523,8 @@ int main (int argc, char **argv) {
       RoadMapMainIo[i].io.os.file = -1;
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
    }
+
+   atexit(roadmap_main_exit);
 
    roadmap_signals_init();
 
