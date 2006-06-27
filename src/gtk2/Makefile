@@ -39,7 +39,6 @@ clean:
 	rm -f *.o *.a *.da $(TARGETS)
 
 install:
-	$(MAKE) -C $(TOP) install
 	$(STRIP) $(TARGETS)
 	mkdir -p $(DESTDIR)$(bindir)
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
@@ -49,7 +48,6 @@ install:
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
-	$(MAKE) -C $(TOP) uninstall
 
 # --- The real targets --------------------------------------------
 
