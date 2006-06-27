@@ -71,7 +71,9 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
 void roadmap_math_coordinate  (const RoadMapPosition *position,
                                RoadMapGuiPoint *point);
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
-                               RoadMapPosition *position);
+                               RoadMapPosition *position,
+                               int projected);
+void roadmap_math_unproject   (RoadMapGuiPoint *point);
 
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points);
 
@@ -84,6 +86,8 @@ void roadmap_math_rotate_object
 
 int  roadmap_math_azymuth
         (const RoadMapPosition *point1, const RoadMapPosition *point2);
+int roadmap_math_angle
+       (const RoadMapGuiPoint *point1, const RoadMapGuiPoint *point2);
 
 char *roadmap_math_distance_unit (void);
 char *roadmap_math_trip_unit     (void);
@@ -123,6 +127,10 @@ int  roadmap_math_compare_points (const RoadMapPosition *p1,
                                   const RoadMapPosition *p2);
 
 int  roadmap_math_delta_direction (int direction1, int direction2);
+
+void roadmap_math_set_context (RoadMapPosition *position, int zoom);
+
+void roadmap_math_get_context (RoadMapPosition *position, int *zoom);
 
 #endif // INCLUDED__ROADMAP_MATH__H
 

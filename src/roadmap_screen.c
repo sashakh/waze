@@ -1057,7 +1057,7 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
    RoadMapPosition position;
 
     
-   roadmap_math_to_position (point, &position);
+   roadmap_math_to_position (point, &position, 1);
    
    if (roadmap_navigate_retrieve_line
                (&position,
@@ -1105,7 +1105,7 @@ static void roadmap_screen_record_move (int dx, int dy) {
    center.x = (RoadMapScreenWidth / 2) + dx;
    center.y = (RoadMapScreenHeight / 2) + dy;
 
-   roadmap_math_to_position (&center, &RoadMapScreenCenter);
+   roadmap_math_to_position (&center, &RoadMapScreenCenter, 0);
    roadmap_math_set_center (&RoadMapScreenCenter);
 }
 
@@ -1132,18 +1132,13 @@ static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
    if (RoadMapScreenViewMode == VIEW_MODE_3D) {
 
-#if HAVE_3D_MODE
       RoadMapGuiPoint p = *point;
       RoadMapGuiPoint p2 = RoadMapScreenPointerLocation;
 
       roadmap_math_unproject (&p);
       roadmap_math_unproject (&p2);
 
-      roadmap_screen_record_move
-         (p2.x - p.x, p2.y - p.y);
-#else
-    ;
-#endif
+      roadmap_screen_record_move (p2.x - p.x, p2.y - p.y);
       
    } else {
 
@@ -1290,13 +1285,8 @@ void roadmap_screen_rotate (int delta) {
 void roadmap_screen_toggle_view_mode (void) {
    
    if (RoadMapScreenViewMode == VIEW_MODE_2D) {
-#if HAVE_3D_MODE
       RoadMapScreenViewMode = VIEW_MODE_3D;
       RoadMapScreen3dHorizon = -100;
-#else
-      roadmap_log (ROADMAP_ERROR,
-                  "No 3D mode yet");
-#endif
    } else {
       RoadMapScreenViewMode = VIEW_MODE_2D;
       RoadMapScreen3dHorizon = 0;
