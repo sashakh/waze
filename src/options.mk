@@ -95,6 +95,14 @@ ifneq ($(strip $(SHAPEFILES)),NO)
 	LIBS += -lshp
 endif
 
+# rotation support in QT/QPE
+ifeq ($(strip $(DESKTOP)),QT)
+	CFLAGS += -DANGLED_LABELS=1
+endif
+ifeq ($(strip $(DESKTOP)),QPE)
+	CFLAGS += -DANGLED_LABELS=1
+endif
+
 
 # later...
 # ifneq ($(NAVIGATE),NO)

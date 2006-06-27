@@ -56,7 +56,10 @@ public:
 	void setPenColor(const char* color);
 	void setPenThickness(int thickness);
 	void erase(void);
-	void drawString(RoadMapGuiPoint* position, int corner, const char* text);
+	void drawString(RoadMapGuiPoint* position, int corner,
+		const char* text);
+	void drawStringAngle(RoadMapGuiPoint* position,
+		int center, const char* text, int angle);
 	void drawMultiplePoints(int count, RoadMapGuiPoint* points);
 	void drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points);
 	void drawMultiplePolygons(int count, int* polygons, 

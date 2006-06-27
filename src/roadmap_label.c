@@ -199,7 +199,7 @@ int roadmap_label_draw_cache (int angles) {
          */
 
       /* text is too long for this feature */
-      if ((width >> 2)> cachePtr->featuresize) {
+      if ((width >> 2) > cachePtr->featuresize) {
          continue;
       }
 

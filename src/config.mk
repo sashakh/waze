@@ -19,6 +19,11 @@ MODE =		# blank for "normal" build
 # Add any other special local CFLAGS values here
 CFLAGS = 
 
+# if you know you need other libraries for your build, you can
+# add those here as well.  for example:
+# LIBS += -L$(QTDIR)/lib64
+LIBS =
+
 # Choose a desktop
 # DESKTOP = GTK
 DESKTOP = GTK2
@@ -29,7 +34,6 @@ DESKTOP = GTK2
 # if you select QT or QPE above, you might also want to set
 # QTDIR here:
 QTDIR=/usr
-
 
 # RoadMap uses the "expat" library in order to read and write xml
 # for the GPX format route/track/waypoint files.  If you don't

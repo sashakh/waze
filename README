@@ -579,8 +579,9 @@ INSTALLATION
       effect is that you cannot load or save trips or landmarks anymore.
 
       [AGG=NO] Do not try to link roadmap with the agg library. 
-      The side effect is that street labels will be written
-      horizontally, rather than "along" their street.
+      The side effect is that street labels may be written
+      horizontally, rather than "along" their street.  (QT and QPE
+      builds can do angled labels without the agg library.)
 
 ----
 ----

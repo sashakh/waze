@@ -104,13 +104,14 @@ void RMapCanvas::erase() {
 void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
 	int* descent) {
 
-	QFont defaultFont;
-	QFontMetrics fm(defaultFont);
-
-	QRect r = fm.boundingRect(text);
+	QFont f("Arial Bold",12);
+	QFontMetrics fm(f);
+	
+	QRect r = fm.boundingRect(QString::fromUtf8(text));
 	*w = r.width();
 	*ascent = fm.ascent();
 	*descent = fm.descent();
+
 }
 
 void RMapCanvas::drawString(RoadMapGuiPoint* position, int corner, const char* text) {
@@ -162,6 +163,25 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position, int corner, const char* t
 	}
 
 	p.drawText(x, y, text);
+}
+
+void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
+		int center, const char* text, int angle) {
+	if (!pixmap) {
+		return;
+	}
+
+	QPainter p(pixmap);
+	if (currentPen != 0) {
+		p.setPen(*currentPen);
+	}
+
+	QFont f("Arial Bold",12);
+
+	p.setFont(f);
+	p.translate(position->x,position->y);
+	p.rotate((double)angle);
+	p.drawText(0, 0, QString::fromUtf8(text));
 }
 
 void RMapCanvas::drawMultiplePoints(int count, RoadMapGuiPoint* points) {

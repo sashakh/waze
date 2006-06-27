@@ -124,8 +124,7 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center,
                                        int angle, const char *text)
 {
-    /* no angle possible, currently.  at least try and center the text */
-    roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+	roadMapCanvas->drawStringAngle(position, 0, text, angle);
 }
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points) {
