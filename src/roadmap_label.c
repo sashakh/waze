@@ -254,8 +254,8 @@ int roadmap_label_draw_cache (int angles) {
       if(!cachePtr->status)
          continue; /* next label */
 
-      roadmap_canvas_draw_string_angle (&p, &cachePtr->point,
-      cachePtr->angle, text);
+      roadmap_canvas_draw_string_angle
+                 (&p, &cachePtr->point, cachePtr->angle, text);
 
    } /* next label */
 
