@@ -16,13 +16,6 @@ RMLIBSRCS=roadmap_keyboard.c \
           roadmap_fileselection.c \
           roadmap_signals.c
 
-# hopefully temporary
-roadmap_canvas_agg.o:
-	@echo
-	@echo "*** Sorry!  We still need a roadmap_canvas_agg.cpp for GTK."
-	@echo
-	false
-
 RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.c=.o)
 
 TARGETS = gtkroadgps gtkroadmap
@@ -49,6 +42,13 @@ install:
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
+
+# hopefully temporary
+roadmap_canvas_agg.o:
+	@echo
+	@echo "*** Sorry!  We still need a roadmap_canvas_agg.cpp for GTK."
+	@echo
+	false
 
 # --- The real targets --------------------------------------------
 

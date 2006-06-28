@@ -38,13 +38,6 @@ RMLIBSRCS = qt_main.cc \
            roadmap_fileselection.cc \
            roadmap_messagebox.c
 
-# temporary
-roadmap_canvas_agg.o:
-	@echo
-	@echo "*** Sorry!  We still need a roadmap_canvas_agg.cc for QT."
-	@echo
-	false
-
 RMLIBOBJS1 = $(RMLIBSRCS:.cc=.o)
 RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBOBJS1:.c=.o)
 
@@ -83,6 +76,13 @@ install-ipkg: install
 
 uninstall:
 	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
+
+# temporary
+roadmap_canvas_agg.o:
+	@echo
+	@echo "*** Sorry!  We still need a roadmap_canvas_agg.cc for QT."
+	@echo
+	false
 
 
 # --- The real targets --------------------------------------------
