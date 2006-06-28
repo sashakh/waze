@@ -36,6 +36,7 @@
 #include "roadmap_index.h"
 #include "roadmap_square.h"
 #include "roadmap_metadata.h"
+#include "roadmap_file.h"
 
 #include "buildmap.h"
 #include "buildmap_index.h"
@@ -120,9 +121,6 @@ static void rdmindex_scan_maps (const char *path) {
 
    char **files;
    char **cursor;
-
-   char *extension;
-   int   extension_index;
 
    char *name;
    char *fullname;
@@ -286,7 +284,7 @@ int main (int argc, const char **argv) {
    /* Make sure we have a directory there. */
 
    if (! roadmap_path_is_directory (RdmIndexPath)) {
-      if (roadmap_file_exists (RdmIndexPath)) {
+      if (roadmap_file_exists (NULL, RdmIndexPath)) {
          buildmap_fatal (-1, "path %s is not a directory", RdmIndexPath);
       } else {
          buildmap_fatal (-1, "path %s does not exist", RdmIndexPath);

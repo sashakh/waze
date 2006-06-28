@@ -36,6 +36,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "roadmap.h"
 
@@ -70,7 +71,7 @@ int main(int argc, char *argv[]) {
 
    printf ("$PXRMADD,%s,%s,Friend\n", driver, driver);
    printf ("$PXRMSUB,RMC\n");
-   printf ("%s10\n", config, driver);
+   printf ("%s10\n", config);
    fflush(stdout);
 
    for(;;) {

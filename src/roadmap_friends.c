@@ -123,10 +123,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <sys/select.h>
 
 #include "roadmap.h"
+#include "roadmap_net.h"
 
 
 static char *friends_local_name = NULL;
@@ -203,7 +205,7 @@ static void send_position_to_friends (char *sentence, int socket) {
       }
    }
 
-   snprintf (buffer, sizeof(buffer), "POS: %s %s %.6f %.6f %d %d %d",
+   snprintf (buffer, sizeof(buffer), "POS: %s %s %.6f %.6f %ld %d %d",
              friends_local_name, friends_local_name,
              coordinate_to_friends (argv[3], argv[4]),
              coordinate_to_friends (argv[5], argv[6]),
@@ -234,7 +236,6 @@ static void forward_position_from_friends (char *friend_position) {
 
    char id[30];
    char name[40];
-   char lat[40];
    double latitude;
    double longitude;
    int latitude_ddmm;

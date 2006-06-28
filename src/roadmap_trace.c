@@ -34,6 +34,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 
 #include "roadmap.h"
@@ -46,18 +47,8 @@ struct delay_buffer {
 
 int main(int argc, char *argv[]) {
 
-   char  config[256];
-   int   config_length;
-
-   char  buffer[256];
    int   received;
-
-   int previous = -1;
-   int delay_cursor = 0;
-   int delay_length = 0;
-
-   struct delay_buffer *delay_line = NULL;
-
+   char  buffer[256];
 
    printf ("$PXRMSUB,NMEA\n");
    fflush(stdout);

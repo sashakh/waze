@@ -43,7 +43,7 @@
 #define MAX_WIRELESS_STATIONS   9999
 
 struct knetlist {
-    int btop, bbot;
+    unsigned int btop, bbot;
 };
 
 static struct knetlist knl[MAX_WIRELESS_STATIONS];
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 
    FILE *sfp;
    int knet = -1;
-   int i, kfd;
+   int i;
    int fdcount = 1;
 
    unsigned int chan, sig, wep, maxsig = 0, minsig = 255;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
       fprintf (stderr,
                "usage: %s [--help] [--gps]\n"
                "  --gps:         simulate GPS position information.\n"
-               "  --driver=name: use the specified driver name.\n");
+               "  --driver=name: use the specified driver name.\n", argv[0]);
       exit(0);
    }
 
@@ -278,8 +278,8 @@ int main(int argc, char *argv[]) {
                  i,
                  la_ddmm, la_mmmm, la_hemi,
                  lo_ddmm, lo_mmmm, lo_hemi,
-                 sig - 170,                  /* Why "170"? */
-                 chan + (wep << 8));
+                 sig - 170                  /* Why "170"? */
+                 /* , chan + (wep << 8) */);
 
          if (gps_mode) {
             /* In this mode, there is no GPS, so we use the kismet data
