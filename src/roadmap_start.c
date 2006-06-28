@@ -492,10 +492,10 @@ static RoadMapAction RoadMapStartActions[] = {
    {"manageroutes", "Manage Current Routes...", "Manage", NULL,
       "Select, rename, or delete routes", roadmap_trip_route_manage_dialog},
 
-   {"gpsaswaypoint", "GPS as new place...", "GPS Place", "GW",
+   {"gpsaswaypoint", "New place from GPS...", "GPS Place", "GW",
       "Create new place using current GPS position", roadmap_start_create_gps_waypoint},
 
-   {"addaswaypoint", "Add as new place...", "Place", "W",
+   {"addaswaypoint", "New place from selected...", "Place", "W",
       "Create new place using last selected street or place", roadmap_start_create_waypoint},
 
    {"editroutewaypoints", "Route Waypoints...", NULL, NULL,
@@ -507,7 +507,7 @@ static RoadMapAction RoadMapStartActions[] = {
    {"editpersonalwaypoints", "Personal Landmarks...", NULL, NULL,
       "Edit personal landmarks", roadmap_trip_personal_waypoint_manage_dialog },
 
-   {"mergepersonalwaypoints", "Load More Personal Landmarks...", NULL, NULL,
+   {"mergepersonalwaypoints", "Load more Personal Landmarks...", NULL, NULL,
       "Merge personal landmarks from file", roadmap_start_merge_landmark },
 
    {"full", "Full Screen", "Full", "F",
@@ -616,6 +616,7 @@ static const char *RoadMapStartMenu[] = {
    ROADMAP_MENU "Places",
 
    "addaswaypoint",
+   "gpsaswaypoint", 
    "editroutewaypoints",
    "edittripwaypoints",
    "editpersonalwaypoints",
