@@ -456,13 +456,13 @@ static RoadMapAction RoadMapStartActions[] = {
    {"tracktoggle", "Show/Hide Track", "Track", NULL,
       "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
 
-   {"tracksave", "Save Track", "Save Track", NULL,
+   {"tracksave", "Save Current Track", "Save Track", NULL,
       "Save the current GPS breadcrumb track", roadmap_start_save_track},
 
-   {"trackclear", "Clear Track", "Clear Track", NULL,
+   {"trackclear", "Clear Current Track", "Clear Track", NULL,
       "Clear the current GPS breadcrumb track", roadmap_track_clear},
 
-   {"tracktoroute", "Convert Track", NULL, NULL,
+   {"tracktoroute", "Make route from current track", "Track Back", NULL,
       "Convert the current GPS track to a new route",
       roadmap_trip_track_convert },
 
