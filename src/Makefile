@@ -311,28 +311,28 @@ libguiroadgps.a: $(RGGUIOBJS)
 	$(RANLIB) libguiroadgps.a
 
 sunrise: roadmap_sunrise.c
-	$(CC) -g -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
+	$(CC) $(LDFLAGS) $(CFLAGS) -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
 
-sqliteload: sqliteload.c
-	$(CC) -g sqliteload.c $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
+sqliteload: sqliteload.o
+	$(CC) sqliteload.o $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
 
-rdmindex : rdmindex_main.c libbuildmap.a $(RDMLIBS)
-	$(CC) -g rdmindex_main.c -o rdmindex libbuildmap.a $(RDMLIBS) $(LIBS)
+rdmindex : rdmindex_main.o libbuildmap.a $(RDMLIBS)
+	$(CC) $(LDFLAGS) rdmindex_main.o -o rdmindex libbuildmap.a $(RDMLIBS) $(LIBS)
 
 rdmxchange : $(XCHGOBJS) $(RDMLIBS)
-	$(CC) -g -o rdmxchange $(XCHGOBJS) $(RDMLIBS) $(LIBS)
+	$(CC) $(LDFLAGS) -o rdmxchange $(XCHGOBJS) $(RDMLIBS) $(LIBS)
 
-rdmkismet: roadmap_kismet.c $(RDMLIBS)
-	$(CC) -g roadmap_kismet.c -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
+rdmkismet: roadmap_kismet.o $(RDMLIBS)
+	$(CC) $(LDFLAGS) roadmap_kismet.o -o rdmkismet $(RDMLIBS) $(RDMLIBS) -lm
 
-rdmghost: roadmap_ghost.c $(RDMLIBS)
-	$(CC) -g roadmap_ghost.c -o rdmghost $(RDMLIBS) -lm
+rdmghost: roadmap_ghost.o $(RDMLIBS)
+	$(CC) $(LDFLAGS) roadmap_ghost.o -o rdmghost $(RDMLIBS) -lm
 
-rdmfriends: roadmap_friends.c $(RDMLIBS)
-	$(CC) -g roadmap_friends.c -o rdmfriends $(RDMLIBS) $(RDMLIBS) -lm
+rdmfriends: roadmap_friends.o $(RDMLIBS)
+	$(CC) $(LDFLAGS) roadmap_friends.o -o rdmfriends $(RDMLIBS) $(RDMLIBS) -lm
 
-rdmtrace: roadmap_trace.c $(RDMLIBS)
-	$(CC) -g roadmap_trace.c -o rdmtrace $(RDMLIBS) -lm
+rdmtrace: roadmap_trace.o $(RDMLIBS)
+	$(CC) $(LDFLAGS) roadmap_trace.o -o rdmtrace $(RDMLIBS) -lm
 
 dumpmap: $(DMOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)
