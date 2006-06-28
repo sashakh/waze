@@ -41,6 +41,8 @@ extern RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonReleased;
 
 extern RoadMapCanvasMouseHandler RoadMapCanvasMouseMoved;
 
+extern RoadMapCanvasMouseHandler RoadMapCanvasMouseScroll;
+
 extern RoadMapCanvasConfigureHandler RoadMapCanvasConfigure;
 
 void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, int stride);
