@@ -265,6 +265,7 @@ static unsigned long dbg_time_rec[DBG_TIME_LAST_COUNTER];
 static unsigned long dbg_time_tmp[DBG_TIME_LAST_COUNTER];
 
 #ifdef __WIN32
+
 void dbg_time_start(int type) {
    dbg_time_tmp[type] = GetTickCount();
 }
@@ -274,13 +275,24 @@ void dbg_time_end(int type) {
 }
 
 #else
+#include <time.h>
+#include <sys/time.h>
+
+unsigned long tv_to_msec(struct timeval *tv)
+{
+    return (tv->tv_sec & 0xffff) * 1000 + tv->tv_usec/1000;
+}
 
 void dbg_time_start(int type) {
-   dbg_time_tmp[type] = 0;
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   dbg_time_tmp[type] = tv_to_msec(&tv);
 }
 
 void dbg_time_end(int type) {
-   dbg_time_rec[type] += 0;
+   struct timeval tv;
+   gettimeofday(&tv, NULL);
+   dbg_time_rec[type] += tv_to_msec(&tv) - dbg_time_tmp[type];
 }
 
 #endif // __WIN32
