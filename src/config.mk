@@ -37,7 +37,7 @@ QTDIR = /usr
 # if you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
 # some Familiar builds), set QT_NO_ROTATE
-# QT_NO_ROTATE = yes
+# QT_NO_ROTATE = YES
 
 # RoadMap uses the "expat" library in order to read and write xml
 # for the GPX format route/track/waypoint files.  If you don't
