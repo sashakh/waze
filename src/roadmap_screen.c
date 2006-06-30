@@ -629,8 +629,11 @@ static int roadmap_screen_draw_square
    int angle = 0;
    int *angle_ptr = 0;
    RoadMapGuiPoint seg_middle;
+   RoadMapGuiPoint label_cutoff;
 
    int drawn = 0;
+
+   label_cutoff.y = 0;
 
 
    roadmap_log_push ("roadmap_screen_draw_square");
@@ -643,8 +646,13 @@ static int roadmap_screen_draw_square
          !RoadMapScreenDragging &&
          RoadMapScreenLabels) {
       total_length_ptr = &total_length;
+      if (RoadMapScreen3dHorizon != 0) {
+	 label_cutoff.x = roadmap_canvas_height() / 2;
+	 label_cutoff.y = roadmap_canvas_height() / 3;
+	 roadmap_math_unproject(&label_cutoff);
+      }
 #if ANGLED_LABELS
-      if (RoadMapScreen3dHorizon == 0) {
+       else {
          angle_ptr = &angle;
       }
 #endif
@@ -696,7 +704,7 @@ static int roadmap_screen_draw_square
                 roadmap_shape_get_position, pen, total_length_ptr,
                 &seg_middle, angle_ptr);
                          
-            if (total_length_ptr) {
+            if (total_length_ptr && seg_middle.y > label_cutoff.y) {
                PluginLine l = {ROADMAP_PLUGIN_ID, line, layer, fips};
                roadmap_label_add (&seg_middle, angle, total_length, &l);
             }
@@ -806,8 +814,7 @@ static int roadmap_screen_draw_square
                 roadmap_shape_get_position, pen, total_length_ptr,
                 &seg_middle, angle_ptr);
 
-            if (total_length_ptr) {
-
+            if (total_length_ptr && seg_middle.y > label_cutoff.y) {
                PluginLine l = {ROADMAP_PLUGIN_ID, real_line, layer, fips};
                roadmap_label_add (&seg_middle, angle, total_length, &l);
             }

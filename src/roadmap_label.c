@@ -193,20 +193,8 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
 
    if (RoadMapLabelCacheFull) return -1;
 
-   /* TEMPORARY -- this is a poor attempt to limit the number
-    * of labels we consider for inclusion on the screen.  in 3D
-    * mode this turns off labels from the upper third of the screen
-    * approximately -- i need to find the right transform to make
-    * this "right".
-    */
-   /* if (point->y < roadmap_canvas_height()/10) {  doesn't work   */
-   if (point->y < -450) {
-      return -1;
-   }
-
    if (featuresize <
          roadmap_config_get_integer (&RoadMapConfigMinFeatureSize)) {
-
       return -1;
    }
 
