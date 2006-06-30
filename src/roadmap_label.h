@@ -29,7 +29,7 @@
 #include "roadmap.h"
 #include "roadmap_gui.h"
 
-#define MAX_LABELS 500
+#define MAX_LABELS 700
 
 typedef struct {
 
@@ -38,16 +38,17 @@ typedef struct {
   PluginLine line;
   PluginStreet street;
 
-  int angle; /* degrees */
   RoadMapGuiPoint point; /* label point */
   RoadMapGuiRect bbox; /* label bounding box */
+  RoadMapGuiPoint poly[4];
 
-  int status; /* has this label been drawn or not */
+  short angle; /* degrees */
+  short status; /* has this label been drawn or not */
 
 } labelCacheMemberObj;
 
 typedef struct {
-  labelCacheMemberObj labels[MAX_LABELS];
+  labelCacheMemberObj *labels[MAX_LABELS];
   int numlabels;
 } labelCacheObj;
 
