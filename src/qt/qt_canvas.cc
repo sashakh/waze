@@ -114,7 +114,8 @@ void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
 
 }
 
-void RMapCanvas::drawString(RoadMapGuiPoint* position, int corner, const char* text) {
+void RMapCanvas::drawString(RoadMapGuiPoint* position, 
+		int corner, const char* text) {
 	if (!pixmap) {
 		return;
 	}
@@ -167,6 +168,7 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position, int corner, const char* t
 
 void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 		int center, const char* text, int angle) {
+#if QT_NO_ROTATE
 	if (!pixmap) {
 		return;
 	}
@@ -182,6 +184,7 @@ void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 	p.translate(position->x,position->y);
 	p.rotate((double)angle);
 	p.drawText(0, 0, QString::fromUtf8(text));
+#endif
 }
 
 void RMapCanvas::drawMultiplePoints(int count, RoadMapGuiPoint* points) {

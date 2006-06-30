@@ -17,7 +17,7 @@ MODE =		# blank for "normal" build
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # Add any other special local CFLAGS values here
-CFLAGS = 
+CFLAGS =
 
 # if you know you need other libraries for your build, you can
 # add those here as well.  for example:
@@ -33,7 +33,11 @@ DESKTOP = GTK2
 
 # if you select QT or QPE above, you might also want to set
 # QTDIR here:
-QTDIR=/usr
+QTDIR = /usr
+# if you are using a build of QT without the QPainter::rotate()
+# call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
+# some Familiar builds), set QT_NO_ROTATE
+# QT_NO_ROTATE = yes
 
 # RoadMap uses the "expat" library in order to read and write xml
 # for the GPX format route/track/waypoint files.  If you don't

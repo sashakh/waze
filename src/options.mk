@@ -96,11 +96,15 @@ ifneq ($(strip $(SHAPEFILES)),NO)
 endif
 
 # rotation support in QT/QPE
+ifeq ($(strip $(QT_NO_ROTATE)),YES)
+	CFLAGS += -DQT_NO_ROTATE -UANGLED_LABELS
+else
 ifeq ($(strip $(DESKTOP)),QT)
 	CFLAGS += -DANGLED_LABELS=1
 endif
 ifeq ($(strip $(DESKTOP)),QPE)
 	CFLAGS += -DANGLED_LABELS=1
+endif
 endif
 
 
