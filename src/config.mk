@@ -60,6 +60,7 @@ SHAPEFILES = NO
 # If you don't have this library, RoadMap can still do street
 # labels, but they will all be horizontal, and won't look as
 # nice.  (for more information on AGG, see http://antigrain.com)
+# RoadMap requires version 2.4 of agg.
 # [ Note -- currently, only GTK2 supports AGG builds.  ]
 # AGG = YES
 AGG = NO
