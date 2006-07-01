@@ -119,6 +119,10 @@ int  roadmap_math_intersection (RoadMapPosition *from1,
                                 RoadMapPosition *to2,
                                 RoadMapPosition *intersection);
 
+int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
+			   RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
+			   RoadMapGuiPoint *isect);
+
 void roadmap_math_screen_edges (RoadMapArea *area);
 
 unsigned int roadmap_math_street_address (const char *image, int length);

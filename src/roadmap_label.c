@@ -59,38 +59,6 @@ static int rect_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
    return 1;
 }
 
-int segment_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
-			   RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
-			   RoadMapGuiPoint *isect) {
-
-   double a1,b1;
-   double a2,b2;
-
-   if (f1->x == t1->x) {
-
-      a1 = 0;
-      b1 = f1->y;
-   } else {
-      a1 = 1.0 * (f1->y - t1->y) / (f1->x - t1->x);
-      b1 = f1->y - 1.0 * a1 * f1->x;
-   }
-
-   if ((f2->x - t2->x) == 0) {
-      a2 = 0;
-      b2 = f2->y;
-   } else {
-      a2 = 1.0 * (f2->y - t2->y) / (f2->x - t2->x);
-      b2 = f2->y - 1.0 * a2 * f2->x;
-   }
-
-   if (a1 == a2) return 0;
-
-   isect->x = (int) ((b1 - b2) / (a2 - a1));
-   isect->y = (int) (b1 + isect->x * a1);
-
-   return 1;
-}
-
 static int point_in_bbox( RoadMapGuiPoint *p, RoadMapGuiRect *bb) {
 
    if ((p->x < bb->minx) || (p->x > bb->maxx) ||
@@ -100,6 +68,7 @@ static int point_in_bbox( RoadMapGuiPoint *p, RoadMapGuiRect *bb) {
    return 1;
 }
 
+/* doesn't check for one completely inside the other -- just intersection */
 static int poly_overlap (labelCacheMemberObj *c1, labelCacheMemberObj *c2) {
 
    RoadMapGuiPoint *a = c1->poly;
@@ -108,7 +77,7 @@ static int poly_overlap (labelCacheMemberObj *c1, labelCacheMemberObj *c2) {
    int ai, bi;
    for (ai = 0; ai < 4; ai++) {
       for (bi = 0; bi < 4; bi++) {
-	 if (segment_intersect( &a[ai], &a[(ai+1)%4],
+	 if (roadmap_math_screen_intersect( &a[ai], &a[(ai+1)%4],
                                 &b[bi], &b[(bi+1)%4], &isect)) {
 	    if (point_in_bbox(&isect, &c1->bbox) &&
 		point_in_bbox(&isect, &c2->bbox))

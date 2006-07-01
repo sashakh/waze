@@ -441,6 +441,7 @@ static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
 }
 
 
+#if USE_FLOAT  /* for reference, until we're sure integer version works */
 static void roadmap_math_project (RoadMapGuiPoint *point) {
 
    /* how far away is this point along the Y axis */
@@ -490,7 +491,7 @@ void roadmap_math_unproject (RoadMapGuiPoint *point) {
 
    /* unsqueeze the X axis */
    point2.x = (int) (fDistFromCenterX / 
-	 ( fDistFromHorizon / fVisibleRange ) + RoadMapContext.width / 2);
+         ( fDistFromHorizon / fVisibleRange ) + RoadMapContext.width / 2);
 
    /* distance from bottom of screen */
    fDistFromBottom = RoadMapContext.height - point->y;
@@ -502,6 +503,71 @@ void roadmap_math_unproject (RoadMapGuiPoint *point) {
 
    *point = point2;
 }
+#else
+static void roadmap_math_project (RoadMapGuiPoint *point) {
+
+   /* how far away is this point along the Y axis */
+   long DistFromCenterY = RoadMapContext.height - point->y;
+
+   /* how far from the bottom of the screen is the horizon */
+   long VisibleRange = RoadMapContext.height - RoadMapContext._3D_horizon;
+
+   long DistFromCenterX;
+   long DistFromHorizon;
+
+   /* make the Y coordinate converge on the horizon as the
+    * distance from the center goes to infinity */
+   point->y = RoadMapContext.height - 
+               (DistFromCenterY * VisibleRange) /
+                        abs(DistFromCenterY + VisibleRange) ;
+
+   /* X distance from center of the screen */
+   DistFromCenterX = point->x - RoadMapContext.width / 2;
+
+   /* distance from the horizon after adjusting for perspective */
+   DistFromHorizon = point->y - RoadMapContext._3D_horizon;
+
+   /* squeeze the X axis, make it a point at the horizon and
+    * normal sized at the bottom of the screen */
+   point->x = (DistFromCenterX * DistFromHorizon) / VisibleRange
+                        + (RoadMapContext.width / 2);
+}
+
+void roadmap_math_unproject (RoadMapGuiPoint *point) {
+
+   RoadMapGuiPoint point2;
+
+   /* X distance from center of screen */
+   long DistFromCenterX = point->x - RoadMapContext.width / 2;
+
+   /* Y distance from horizon */
+   long DistFromHorizon = point->y - RoadMapContext._3D_horizon;
+
+   /* distance from bottom of screen to horizon */
+   long VisibleRange = RoadMapContext.height - RoadMapContext._3D_horizon;
+   long DistFromBottom;
+   long D;
+
+   if (RoadMapContext._3D_horizon == 0) {
+      return;
+   }
+
+   /* unsqueeze the X axis */
+   point2.x = DistFromCenterX * VisibleRange / DistFromHorizon +
+                RoadMapContext.width / 2;
+
+   /* distance from bottom of screen */
+   DistFromBottom = RoadMapContext.height - point->y;
+
+   /* inverse Y squeezing formula */
+   D = (DistFromBottom * VisibleRange) / ( (VisibleRange - DistFromBottom) );
+
+   /* center on screen */
+   point2.y = RoadMapContext.height - D;
+
+   *point = point2;
+}
+#endif
 
 
 static int roadmap_math_zoom_state (void) {
@@ -1490,6 +1556,65 @@ int roadmap_math_intersection (RoadMapPosition *from1,
 
    return 1;
 }
+
+int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
+			   RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
+			   RoadMapGuiPoint *isect) {
+
+#if USE_FLOAT  /* for reference, until we're sure integer version works */
+   double a1,b1;
+   double a2,b2;
+
+   if (f1->x == t1->x) {
+
+      a1 = 0;
+      b1 = f1->y;
+   } else {
+      a1 = 1.0 * (f1->y - t1->y) / (f1->x - t1->x);
+      b1 = f1->y - 1.0 * a1 * f1->x;
+   }
+
+   if ((f2->x - t2->x) == 0) {
+      a2 = 0;
+      b2 = f2->y;
+   } else {
+      a2 = 1.0 * (f2->y - t2->y) / (f2->x - t2->x);
+      b2 = f2->y - 1.0 * a2 * f2->x;
+   }
+
+   if (a1 == a2) return 0;
+
+   isect->x = (int) ((b1 - b2) / (a2 - a1));
+   isect->y = (int) (b1 + isect->x * a1);
+#else
+   long a1,b1;
+   long a2,b2;
+
+   if (f1->x == t1->x) {
+      a1 = 0;
+      b1 = 1024 * f1->y;
+   } else {
+      a1 = 1024 * (f1->y - t1->y) / (f1->x - t1->x);
+      b1 = 1024 * f1->y - a1 * f1->x;
+   }
+
+   if ((f2->x - t2->x) == 0) {
+      a2 = 0;
+      b2 = 1024 * f2->y;
+   } else {
+      a2 = 1024 * (f2->y - t2->y) / (f2->x - t2->x);
+      b2 = 1024 * f2->y - a2 * f2->x;
+   }
+
+   if (a1 == a2) return 0;
+
+   isect->x = (b1 - b2) / (a2 - a1);
+   isect->y = (b1 + isect->x * a1) / 1024;
+#endif
+
+   return 1;
+}
+
 
 
 int roadmap_math_compare_points (const RoadMapPosition *p1,
