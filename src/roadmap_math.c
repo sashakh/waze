@@ -519,7 +519,7 @@ static void roadmap_math_project (RoadMapGuiPoint *point) {
     * distance from the center goes to infinity */
    point->y = RoadMapContext.height - 
                (DistFromCenterY * VisibleRange) /
-                        abs(DistFromCenterY + VisibleRange) ;
+                        (abs(DistFromCenterY) + VisibleRange) ;
 
    /* X distance from center of the screen */
    DistFromCenterX = point->x - RoadMapContext.width / 2;
