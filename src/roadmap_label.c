@@ -169,7 +169,7 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
 
 
    if(RoadMapLabelCache.numlabels == MAX_LABELS) {
-      roadmap_log (ROADMAP_WARNING, "Too many labels on screen.");
+      roadmap_log (ROADMAP_WARNING, "Too many streets to label them all.");
       RoadMapLabelCacheFull = 1;
       return -1;
    }
