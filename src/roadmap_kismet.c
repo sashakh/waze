@@ -122,9 +122,9 @@ int main(int argc, char *argv[]) {
 
    int gps_mode = 0;
 
-   char *kismet_host;
+   char *kismet_host = 0; /* warning suppression */
+   FILE *sfp = 0; /* warning suppression */
 
-   FILE *sfp;
    int knet = -1;
    int i;
    int fdcount = 1;

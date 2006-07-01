@@ -259,7 +259,7 @@ static void forward_position_from_friends (char *friend_position) {
 
    if (strcmp (name, friends_local_name) != 0) {
 
-      int i;
+      int i = friends_count;
       int available = -1;
 
       if (friends_names != NULL) {
