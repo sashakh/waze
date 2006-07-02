@@ -32,6 +32,10 @@ enum { MATH_ZOOM_RESET = -1,
        MATH_ZOOM_NO_RESET = 0
 };
 
+enum { MATH_DIST_ACTUAL = 0,
+       MATH_DIST_SQUARED = 1
+};
+
 void roadmap_math_initialize   (void);
 
 void roadmap_math_use_metric   (void);
@@ -88,6 +92,9 @@ int  roadmap_math_azymuth
         (const RoadMapPosition *point1, const RoadMapPosition *point2);
 int roadmap_math_angle
        (const RoadMapGuiPoint *point1, const RoadMapGuiPoint *point2);
+long roadmap_math_screen_distance
+       (const RoadMapGuiPoint *point1, const RoadMapGuiPoint *point2,
+       int squared);
 
 char *roadmap_math_distance_unit (void);
 char *roadmap_math_trip_unit     (void);

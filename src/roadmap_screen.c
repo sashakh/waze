@@ -629,11 +629,10 @@ static int roadmap_screen_draw_square
    int angle = 0;
    int *angle_ptr = 0;
    RoadMapGuiPoint seg_middle;
-   RoadMapGuiPoint label_cutoff;
+   RoadMapGuiPoint loweredge;
+   int cutoff_dist = 0;
 
    int drawn = 0;
-
-   label_cutoff.y = 0;
 
 
    roadmap_log_push ("roadmap_screen_draw_square");
@@ -647,9 +646,16 @@ static int roadmap_screen_draw_square
          RoadMapScreenLabels) {
       total_length_ptr = &total_length;
       if (RoadMapScreen3dHorizon != 0) {
-	 label_cutoff.x = roadmap_canvas_height() / 2;
-	 label_cutoff.y = roadmap_canvas_height() / 3;
+	 /* arrange to not do labels further than 3/4 up the screen */
+	 RoadMapGuiPoint label_cutoff;
+	 label_cutoff.y = roadmap_canvas_height() / 4;
+	 label_cutoff.x = roadmap_canvas_width() / 2;
+	 loweredge.x = roadmap_canvas_width() / 2;
+	 loweredge.y = roadmap_canvas_height();
 	 roadmap_math_unproject(&label_cutoff);
+	 roadmap_math_unproject(&loweredge);
+	 cutoff_dist = roadmap_math_screen_distance
+                (&label_cutoff, &loweredge, MATH_DIST_SQUARED);
       }
 #if ANGLED_LABELS
        else {
@@ -704,7 +710,9 @@ static int roadmap_screen_draw_square
                 roadmap_shape_get_position, pen, total_length_ptr,
                 &seg_middle, angle_ptr);
                          
-            if (total_length_ptr && seg_middle.y > label_cutoff.y) {
+            if (total_length_ptr && (cutoff_dist == 0 ||
+		    cutoff_dist > roadmap_math_screen_distance
+                	    (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
                PluginLine l = {ROADMAP_PLUGIN_ID, line, layer, fips};
                roadmap_label_add (&seg_middle, angle, total_length, &l);
             }
@@ -814,7 +822,9 @@ static int roadmap_screen_draw_square
                 roadmap_shape_get_position, pen, total_length_ptr,
                 &seg_middle, angle_ptr);
 
-            if (total_length_ptr && seg_middle.y > label_cutoff.y) {
+            if (total_length_ptr && (cutoff_dist == 0 ||
+		    cutoff_dist > roadmap_math_screen_distance
+                	    (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
                PluginLine l = {ROADMAP_PLUGIN_ID, real_line, layer, fips};
                roadmap_label_add (&seg_middle, angle, total_length, &l);
             }

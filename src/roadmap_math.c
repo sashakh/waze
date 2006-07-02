@@ -1193,6 +1193,27 @@ int roadmap_math_angle
     return result;
 }
 
+long roadmap_math_screen_distance
+       (const RoadMapGuiPoint *pt1, const RoadMapGuiPoint *pt2, int squared) {
+
+   long dx;
+   long dy;
+   long ret;
+
+
+   dx = pt1->x - pt2->x;
+   dy = pt1->y - pt2->y;
+
+
+   ret = (dx * dx) + (dy * dy);
+
+   if (squared == MATH_DIST_ACTUAL) {
+        ret =  (long) sqrt ((double)ret);
+   }
+
+   return ret;
+}
+
 
 int roadmap_math_distance
        (const RoadMapPosition *position1, const RoadMapPosition *position2) {
@@ -1558,8 +1579,8 @@ int roadmap_math_intersection (RoadMapPosition *from1,
 }
 
 int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
-			   RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
-			   RoadMapGuiPoint *isect) {
+                           RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
+                           RoadMapGuiPoint *isect) {
 
 #if USE_FLOAT  /* for reference, until we're sure integer version works */
    double a1,b1;
