@@ -130,7 +130,7 @@ void roadmap_landmark_save(void) {
 
     name = roadmap_landmark_filename (&defaulted);
 
-    ret = roadmap_gpx_write_waypoints(roadmap_path_trips(), name,
+    ret = roadmap_gpx_write_waypoints(roadmap_path_user(), name,
             &RoadMapLandmarkHead);
 
     if (ret == 0) return;
@@ -193,7 +193,7 @@ void roadmap_landmark_merge(void) {
 void roadmap_landmark_load(void) {
 
     const char *name;
-    const char *path = roadmap_path_trips();
+    const char *path = roadmap_path_user();
     queue tmp_waypoint_list;
     int defaulted, ret;
 

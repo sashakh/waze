@@ -305,7 +305,7 @@ void roadmap_track_autosave(void) {
     name = roadmap_track_filename (&defaulted);
     if (name == NULL) return;
 
-    ret = roadmap_gpx_write_track(roadmap_path_trips(), name, RoadMapTrack);
+    ret = roadmap_gpx_write_track(roadmap_path_user(), name, RoadMapTrack);
 
     if (ret == 0) return;
 
@@ -320,7 +320,7 @@ void roadmap_track_autosave(void) {
 void roadmap_track_autoload(void) {
 
     const char *name;
-    const char *path = roadmap_path_trips();
+    const char *path = roadmap_path_user();
     int defaulted, ret;
 
     name = roadmap_track_filename (&defaulted);
