@@ -170,7 +170,7 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
 
 void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 		int center, const char* text, int angle) {
-#if !QT_NO_ROTATE
+#ifndef QT_NO_ROTATE
 	if (!pixmap) {
 		return;
 	}
