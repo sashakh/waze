@@ -1623,7 +1623,7 @@ USING ROADMAP
          * If "Off" is chosen, then no track points will be saved.
 
        Normally the recorded track will be saved in the configured filename. 
-       The default for this file is "current_track.gpx".  If one wishes to
+       The default for this file is "currenttrack.gpx".  If one wishes to
        record tracks, but never save them to disk, set the filename to the
        special value "NONE".
 
@@ -2800,10 +2800,10 @@ CONFIGURATION
 
     In addition to the trip files, there are two other important
     files which are also stored in GPX format.
-
+    
         The "Current Track" file contains waypoints representing
         where you've been -- a "breadcrumb trail", if you will. 
-        This file (called "current_track.gpx" by default) will
+        This file (called "currenttrack.gpx" by default) will
         only contain a single track when written.  When read
         (on startup, to restore previous state), only the first
         track in the file will be read.  All other routes or
@@ -2820,11 +2820,9 @@ CONFIGURATION
         unassociated waypoints are read -- any routes or tracks
         in the file are ignored.
 
-    Note that since these files are in GPX format, they can also
-    be manually opened as trips.  In this case, the landmarks associated
-    with the "Personal Landmarks" file will appear as "Trip Landmarks"
-    for that trip, and the track in "Current Track" will appear as
-    the only unnamed track in that trip.
+    (These files are not stored in the same directory as the other
+    trip files, but instead in the same directory in which the
+    user's preferences and session file are found.)
 
 
 TOOLS
