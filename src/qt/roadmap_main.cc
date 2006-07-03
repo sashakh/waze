@@ -76,7 +76,7 @@ static void roadmap_main_input (int fd) {
 
 void roadmap_main_new(const char* title, int width, int height) {
 
-	mainWindow = new RMapMainWindow(title);
+	mainWindow = new RMapMainWindow(title,width,height);
 
 #ifdef QWS
 	app->showMainWidget(mainWindow);

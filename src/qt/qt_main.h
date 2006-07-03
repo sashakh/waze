@@ -33,6 +33,7 @@
 #include <qpushbutton.h>
 #include <qstatusbar.h>
 #include <qtimer.h>
+#include <qtooltip.h>
 
 #define ROADMAP_MAX_TIMER 16
 
@@ -43,6 +44,7 @@ extern "C" {
 #include "roadmap_config.h"
 #include "roadmap_history.h"
 #include "roadmap_main.h"
+#include "roadmap_path.h"
 
    typedef void (*RoadMapQtInput) (int fd);
 };
@@ -86,7 +88,7 @@ class RMapMainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-	RMapMainWindow(const char* name);
+	RMapMainWindow(const char* name, int width, int height);
 	virtual ~RMapMainWindow();
 
 	void setKeyboardCallback(RoadMapKeyInput c);

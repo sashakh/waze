@@ -63,17 +63,18 @@ int  RMapCallback::same(RoadMapCallback cb) {
 }
 
 // Implementation of RMapMainWindow class
-RMapMainWindow::RMapMainWindow(const char* name) : QMainWindow(0, name) {
+RMapMainWindow::RMapMainWindow(const char* name, int width, int height) : QMainWindow(0, name) {
 	spacePressed = false;
 	for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
 		tm[i] = 0;
 		tcb[i] = 0;
 	}
-	setCaption(name);
+	setCaption(QString::fromUtf8(name));
 	canvas = new RMapCanvas(this);
 	setCentralWidget(canvas);
 	canvas->setFocus();
 	setToolBarsMovable(FALSE);
+	resize(width,height);
    toolBar = 0;
 }
 
@@ -171,7 +172,15 @@ void RMapMainWindow::addTool(const char* label,
 	}
 
    if (label != NULL) {
-      QPushButton* b = new QPushButton(label, toolBar);
+      const char *icopath=roadmap_path_search_icon(icon);
+      QPushButton* b;
+
+      if (icopath)
+       b = new QPushButton(QIconSet( QPixmap(icopath) ),NULL, toolBar);
+      else
+       b = new QPushButton(label, toolBar);
+      
+      QToolTip::add( b, QString::fromUtf8(tip) );
       b->setFocusPolicy(QWidget::NoFocus);
       RMapCallback* cb = new RMapCallback(callback);
 

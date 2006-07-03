@@ -67,7 +67,7 @@ RoadMapPen RMapCanvas::createPen(const char* name) {
 	RoadMapPen p = pens[name];
 
 	if (p == 0) {
-		QPen* pen = new QPen();
+		QPen* pen = new QPen(Qt::SolidLine/*Qt::DotLine*/);
 		p = new roadmap_canvas_pen();
 		p->pen = pen;
 		pens.insert(name, p);
@@ -124,7 +124,9 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
 	if (currentPen != 0) {
 		p.setPen(*currentPen);
 	}
-
+        QFont f("Arial Bold",12);
+        p.setFont(f);
+                
 	int text_width;
 	int text_ascent;
 	int text_descent;
@@ -163,12 +165,12 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
 		return;
 	}
 
-	p.drawText(x, y, text);
+	p.drawText(x, y, QString::fromUtf8(text));
 }
 
 void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 		int center, const char* text, int angle) {
-#if QT_NO_ROTATE
+#if !QT_NO_ROTATE
 	if (!pixmap) {
 		return;
 	}
