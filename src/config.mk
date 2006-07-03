@@ -33,7 +33,7 @@ DESKTOP = GTK2
 
 # if you select QT or QPE above, you might also want to set
 # QTDIR here:
-QTDIR = /usr
+# QTDIR = /usr
 # if you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
 # some Familiar builds), set QT_NO_ROTATE
