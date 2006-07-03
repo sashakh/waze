@@ -29,7 +29,9 @@
 #include "roadmap.h"
 #include "roadmap_gui.h"
 
-#define MAX_LABELS 700
+/* should be related by a power of 2 */
+#define MIN_LABELS 256
+#define MAX_LABELS 2048
 
 typedef struct {
 
@@ -48,8 +50,9 @@ typedef struct {
 } labelCacheMemberObj;
 
 typedef struct {
-  labelCacheMemberObj *labels[MAX_LABELS];
+  labelCacheMemberObj **labels;
   int numlabels;
+  int maxlabels;
 } labelCacheObj;
 
 

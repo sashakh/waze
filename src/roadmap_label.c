@@ -28,6 +28,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "roadmap_config.h"
 #include "roadmap_math.h"
@@ -77,12 +78,12 @@ static int poly_overlap (labelCacheMemberObj *c1, labelCacheMemberObj *c2) {
    int ai, bi;
    for (ai = 0; ai < 4; ai++) {
       for (bi = 0; bi < 4; bi++) {
-	 if (roadmap_math_screen_intersect( &a[ai], &a[(ai+1)%4],
+         if (roadmap_math_screen_intersect( &a[ai], &a[(ai+1)%4],
                                 &b[bi], &b[(bi+1)%4], &isect)) {
-	    if (point_in_bbox(&isect, &c1->bbox) &&
-		point_in_bbox(&isect, &c2->bbox))
-	       return 1;
-	 }
+            if (point_in_bbox(&isect, &c1->bbox) &&
+                point_in_bbox(&isect, &c2->bbox))
+               return 1;
+         }
       }
    }
 
@@ -107,7 +108,7 @@ static void compute_bbox(RoadMapGuiPoint *poly, RoadMapGuiRect *bbox) {
 
 
 static RoadMapGuiPoint get_metrics(labelCacheMemberObj *c, 
-					RoadMapGuiRect *rect) {
+                                        RoadMapGuiRect *rect) {
    RoadMapGuiPoint q;
    int x1=0, y1=0;
    RoadMapGuiPoint *poly = c->poly;
@@ -154,6 +155,39 @@ static RoadMapGuiPoint get_metrics(labelCacheMemberObj *c,
    return q;
 }
 
+static int roadmap_label_check_allocations(void) {
+
+   if (!RoadMapLabelCache.labels) {
+
+      RoadMapLabelCache.maxlabels = MIN_LABELS;
+
+      RoadMapLabelCache.labels = malloc(MIN_LABELS * sizeof(labelCacheObj));
+      roadmap_check_allocated (RoadMapLabelCache.labels );
+
+      memset (RoadMapLabelCache.labels,
+            0, MIN_LABELS * sizeof(labelCacheObj));
+
+   } else if (RoadMapLabelCache.numlabels == RoadMapLabelCache.maxlabels) {
+
+      if (RoadMapLabelCache.maxlabels == MAX_LABELS) {
+         roadmap_log (ROADMAP_WARNING, "Too many streets to label them all.");
+         RoadMapLabelCacheFull = 1;
+         return -1;
+      }
+
+      RoadMapLabelCache.maxlabels *= 2;
+
+      RoadMapLabelCache.labels = realloc( RoadMapLabelCache.labels,
+            RoadMapLabelCache.maxlabels * sizeof(labelCacheObj));
+      roadmap_check_allocated (RoadMapLabelCache.labels );
+
+      memset (&RoadMapLabelCache.labels[RoadMapLabelCache.numlabels],
+            0, RoadMapLabelCache.numlabels * sizeof(labelCacheObj));
+
+   }
+
+   return 0;
+}
 
 int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
                        int featuresize, const PluginLine *line) {
@@ -167,10 +201,7 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
       return -1;
    }
 
-
-   if(RoadMapLabelCache.numlabels == MAX_LABELS) {
-      roadmap_log (ROADMAP_WARNING, "Too many streets to label them all.");
-      RoadMapLabelCacheFull = 1;
+   if (roadmap_label_check_allocations() != 0) {
       return -1;
    }
 
@@ -202,8 +233,6 @@ int roadmap_label_draw_cache (int angles) {
    int descent;
    RoadMapGuiPoint p;
    RoadMapGuiRect r;
-   // int label_offsetx = 0;
-   // int label_offsety = 0;
    const char *text;
 
    labelCacheMemberObj *cachePtr=NULL;
@@ -250,7 +279,6 @@ int roadmap_label_draw_cache (int angles) {
 
          cachePtr->angle -= 90;
 
-         // p = get_metrics (&(cachePtr->point), &r, cachePtr->angle, &cachePtr->bbox);
          p = get_metrics (cachePtr, &r);
       } else {
          /* Text will be horizontal, so bypass a lot of math.
@@ -273,16 +301,16 @@ int roadmap_label_draw_cache (int angles) {
          }
 
 
-         if(rect_overlap (&RoadMapLabelCache.labels[i]->bbox,
+         if (rect_overlap (&RoadMapLabelCache.labels[i]->bbox,
                  &cachePtr->bbox)) {
 
-	    /* if labels are horizontal, bbox check is sufficient.  else... */
+            /* if labels are horizontal, bbox check is sufficient.  else... */
             if(!angles ||
-		poly_overlap (RoadMapLabelCache.labels[i], cachePtr)) {
+                poly_overlap (RoadMapLabelCache.labels[i], cachePtr)) {
 
                cachePtr->status = 0;
                break;
-	    }
+            }
          }
       }
 
