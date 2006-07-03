@@ -11,10 +11,11 @@ MOC=$(QTDIR)/bin/moc
 
 # --- QT-specific options ------------------------------------------------
 
-CFLAGS += -I$(QTDIR)/include -I/usr/include/qt3 -I/usr/local/include/qt3
+ifeq ($(DESKTOP),QT)
+CFLAGS += -I$(QTDIR)/include
 CFLAGS += -fno-rtti -fno-exceptions
 LIBS += -L$(QTDIR)/lib -lqt-mt
-
+endif
 
 ifeq ($(DESKTOP),QPE)
    CFLAGS += -I$(QTDIR)/include -DQWS
