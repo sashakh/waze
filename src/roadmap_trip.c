@@ -476,7 +476,8 @@ static void roadmap_trip_add_waypoint_dialog_okay
 
     point_name = (char *) roadmap_dialog_get_data ("Name", "Name:");
 
-    where = (int) roadmap_dialog_get_data ("Name", ".placements");
+    /* (long) cast to suppress warning on 64-bit platforms */
+    where = (long) roadmap_dialog_get_data ("Name", ".placements");
 
     if (point_name && point_name[0] != 0) {
         roadmap_trip_add_waypoint (point_name, pos, where);

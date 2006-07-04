@@ -209,7 +209,8 @@ static gint roadmap_canvas_mouse_event
    point.x = (short)event->x;
    point.y = (short)event->y;
 
-   switch ((int) data) {
+   /* (long) cast to suppress warning on 64-bit platforms */
+   switch ((long) data) {
       case 1: (*RoadMapCanvasMouseButtonPressed) (event->button, &point);  break;
       case 2: (*RoadMapCanvasMouseButtonReleased) (event->button, &point); break;
       case 3: (*RoadMapCanvasMouseMoved) (event->button, &point);          break;
