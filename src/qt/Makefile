@@ -63,6 +63,7 @@ install:
 	install $(TARGETS) $(DESTDIR)$(bindir)/
 	ln -s qtroadmap $(DESTDIR)$(bindir)/roadmap
 	ln -s qtroadgps $(DESTDIR)$(bindir)/roadgps
+	cd $(DESTDIR)$(bindir) ; $(STRIP) $(TARGETS)
 
 install-ipkg: install
 	mkdir -p $(DESTDIR)$(desktopdir)

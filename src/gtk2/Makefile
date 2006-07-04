@@ -39,12 +39,12 @@ clean:
 	rm -f *.o *.a *.da $(TARGETS)
 
 install:
-	$(STRIP) $(TARGETS)
 	mkdir -p $(DESTDIR)$(bindir)
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
 	install $(TARGETS) $(DESTDIR)$(bindir)
 	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
 	ln -s gtkroadgps $(DESTDIR)$(bindir)/roadgps
+	cd $(DESTDIR)$(bindir) ; $(STRIP) $(TARGETS)
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
