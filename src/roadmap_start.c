@@ -447,10 +447,10 @@ static RoadMapAction RoadMapStartActions[] = {
       "Toggle orientation mode dynamic / fixed",
       roadmap_screen_toggle_orientation_mode},
 
-   {"IncHorizon", "Increase Horizon", "I", NULL,
+   {"increasehorizon", "Increase Horizon", "I", NULL,
       "Increase the 3D horizon", roadmap_screen_increase_horizon},
 
-   {"DecHorizon", "Decrease Horizon", "DI", NULL,
+   {"decreasehorizon", "Decrease Horizon", "DI", NULL,
       "Decrease the 3D horizon", roadmap_screen_decrease_horizon},
 
    {"tracktoggle", "Show/Hide Track", "Track", NULL,
@@ -462,9 +462,17 @@ static RoadMapAction RoadMapStartActions[] = {
    {"trackclear", "Clear Current Track", "Clear Track", NULL,
       "Clear the current GPS breadcrumb track", roadmap_track_clear},
 
-   {"tracktoroute", "Make route from current track", "Track Back", NULL,
-      "Convert the current GPS track to a new route",
-      roadmap_trip_track_convert },
+   {"backtrackroute", "Create Backtrack Route", "BackTrack", NULL,
+      "Convert the current GPS breadcrumb track to a new route",
+      roadmap_trip_currenttrack_to_route },
+
+   {"trackroute", "Convert Track to Route", "RouteToTrack", NULL,
+      "Create a new route from the currently selected track",
+      roadmap_trip_track_to_route },
+
+   {"addtrack", "Add Current Track to Trip", "AddTrack", NULL,
+      "Add a copy of the current GPS breadcrumb track to the trip",
+      roadmap_trip_currenttrack_to_track },
 
    {"resumeroute", "Resume Route", "Resume", NULL,
       "Resume following (resync with) the current route",
@@ -479,13 +487,14 @@ static RoadMapAction RoadMapStartActions[] = {
        roadmap_start_route_reverse},
 
    {"simplifyroute", "Simplify Route", NULL, NULL,
-      "Create simplified version of current route", roadmap_trip_route_convert },
+      "Create simplified version of current route",
+      roadmap_trip_route_simplify },
 
-   {"createroute", "Create new route", NULL, NULL,
+   {"createroute", "New route using selection", NULL, NULL,
       "Start new route using last selected street or place",
       roadmap_start_create_route},
 
-   {"setasdestination", "Quick destination", NULL, NULL,
+   {"setasdestination", "Goto selection", NULL, NULL,
       "Show distance and direction to the last selected street or place",
       roadmap_trip_set_as_destination},
 
@@ -493,10 +502,12 @@ static RoadMapAction RoadMapStartActions[] = {
       "Select, rename, or delete routes", roadmap_trip_route_manage_dialog},
 
    {"gpsaswaypoint", "New place from GPS...", "GPS Place", "GW",
-      "Create new place using current GPS position", roadmap_start_create_gps_waypoint},
+      "Create new place using current GPS position",
+      roadmap_start_create_gps_waypoint},
 
    {"addaswaypoint", "New place from selected...", "Place", "W",
-      "Create new place using last selected street or place", roadmap_start_create_waypoint},
+      "Create new place using last selected street or place",
+      roadmap_start_create_waypoint},
 
    {"editroutewaypoints", "Route Waypoints...", NULL, NULL,
       "Edit current route's waypoints", roadmap_trip_route_waypoint_manage_dialog },
@@ -562,6 +573,8 @@ static const char *RoadMapStartMenu[] = {
    "togglelabels",
    "toggleorientation",
    "toggleview",
+   "IncHorizon",
+   "DecHorizon",
    "full",
 
    RoadMapFactorySeparator,
@@ -610,6 +623,7 @@ static const char *RoadMapStartMenu[] = {
    "resumeroute",
    "reverseroute",
    "simplifyroute",
+   "trackroute",
    "createroute",
    "setasdestination",
 
@@ -626,7 +640,8 @@ static const char *RoadMapStartMenu[] = {
 
    "tracksave",
    "trackclear",
-   "tracktoroute",
+   "backtrackroute",
+   "addtrack",
    "tracktoggle",
 
 

@@ -47,7 +47,6 @@ void  roadmap_trip_personal_waypoint_manage_dialog(void);
 
 void  roadmap_trip_restore_focus (void);
 void  roadmap_trip_set_focus (const char *name);
-// void  roadmap_trip_set_focus_waypoint (const char *name);
 
 int   roadmap_trip_is_focus_changed  (void);
 int   roadmap_trip_is_focus_moved    (void);
@@ -87,8 +86,10 @@ void roadmap_trip_save_screenshot (void);
 
 void roadmap_trip_route_manage_dialog (void);
 
-void roadmap_trip_track_convert (void);
-void roadmap_trip_route_convert (void);
+void roadmap_trip_track_to_route (void);
+void roadmap_trip_route_simplify (void);
+void roadmap_trip_currenttrack_to_route (void);
+void roadmap_trip_currenttrack_to_track (void);
 
 #endif // INCLUDE__ROADMAP_TRIP__H
 

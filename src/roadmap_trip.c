@@ -484,9 +484,9 @@ static void roadmap_trip_add_waypoint_dialog_okay
     }
 }
 
-#define PLACE_NEW_ROUTE             0
-#define PLACE_PERSONAL_MARK         1
-#define PLACE_TRIP_MARK             2
+#define PLACE_PERSONAL_MARK         0
+#define PLACE_TRIP_MARK             1
+#define PLACE_NEW_ROUTE             2
 #define PLACE_ROUTE_MARK_DEST       3
 #define PLACE_ROUTE_MARK_INSERT     4
 #define PLACE_ROUTE_MARK_START      5
@@ -499,18 +499,18 @@ static void roadmap_trip_add_waypoint_dialog_okay
  */
 static char *Placement_Choices [] =
 {
-    "Start a new route",
     "Add to personal landmarks",
     "Add to trip's landmarks",
+    "Start a new route",
     "Place at route end",
     "Insert in closest route segment",
     "Place before route start",
 };
 
 static void *Placement_Vals [] = {
-    (void *)PLACE_NEW_ROUTE,
     (void *)PLACE_PERSONAL_MARK,
     (void *)PLACE_TRIP_MARK,
+    (void *)PLACE_NEW_ROUTE,
     (void *)PLACE_ROUTE_MARK_DEST,
     (void *)PLACE_ROUTE_MARK_INSERT,
     (void *)PLACE_ROUTE_MARK_START
@@ -2131,7 +2131,7 @@ int roadmap_trip_simplify_route
                     bc_dist = roadmap_math_distance (&wb->pos, &wc->pos);
                 }
 
-                if (abs (ab_dist + bc_dist - ac_dist) < 20) {
+                if (abs (ab_dist + bc_dist - ac_dist) < 10) {
                     wb = wa;
                     bc_dist = ac_dist;
                     dropped++;
@@ -2152,23 +2152,43 @@ int roadmap_trip_simplify_route
     return dropped;
 }
 
-static void roadmap_trip_route_convert_worker
-        (route_head *orig_route, char *new_name) {
+void roadmap_trip_copy_route
+        (const route_head *orig_route, route_head *new_route) {
+    queue *elem, *tmp;
 
-    int dropped;
+    QUEUE_FOR_EACH (&orig_route->waypoint_list, elem, tmp) {
+	waypt_add(&new_route->waypoint_list, waypt_dupe( (waypoint *)elem ));
+    }
+
+}
+
+static void roadmap_trip_route_convert_worker
+        (route_head *orig_route, char *new_name, int simplify, int wanttrack) {
+
+    int dropped = 0;
     route_head *new_route;
 
     new_route = route_head_alloc();
     
-    dropped = roadmap_trip_simplify_route (orig_route, new_route);
+    if (simplify) {
+	dropped = roadmap_trip_simplify_route (orig_route, new_route);
+    } else {
+	roadmap_trip_copy_route (orig_route, new_route);
+    }
 
-    if (dropped > 0) {
+    if (!simplify || dropped > 0) {
 
         if (new_name) {
             new_route->rte_name = xstrdup(new_name);
         }
 
-        route_add(&RoadMapTripRouteHead, new_route);
+
+	if (wanttrack) {
+	    new_route->rte_is_track = 1;
+            route_add(&RoadMapTripTrackHead, new_route);
+	} else {
+            route_add(&RoadMapTripRouteHead, new_route);
+	}
 
         RoadMapCurrentRoute = new_route;
         RoadMapRouteIsReversed = 0;
@@ -2184,32 +2204,71 @@ static void roadmap_trip_route_convert_worker
 
 }
 
-void roadmap_trip_route_convert (void) {
+void roadmap_trip_track_to_route (void) {
 
     char name[50];
     char *namep = NULL;
+
+    if (RoadMapCurrentRoute == NULL) {
+	return;
+    }
+
+    if (! RoadMapCurrentRoute->rte_is_track) {
+	return;
+    }
+
+    if (RoadMapCurrentRoute->rte_name) {
+        snprintf(name, 50, "TrackRoute %s", RoadMapCurrentRoute->rte_name);
+        namep = name;
+    }
+
+    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep, 0, 0);
+
+}
+
+void roadmap_trip_route_simplify (void) {
+
+    char name[50];
+    char *namep = NULL;
+
+    if (RoadMapCurrentRoute == NULL) {
+	return;
+    }
 
     if (RoadMapCurrentRoute->rte_name) {
         snprintf(name, 50, "Simple %s", RoadMapCurrentRoute->rte_name);
         namep = name;
     }
 
-    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep);
+    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep, 1, 0);
 
 }
 
-
-void roadmap_trip_track_convert (void) {
+void roadmap_trip_currenttrack_to_route (void) {
 
     char name[40];
     time_t now;
 
 
     time(&now);
-    strftime(name, sizeof(name), "Trail-%Y-%m-%d-%H:%M:%S",
+    strftime(name, sizeof(name), "Backtrack-%Y-%m-%d-%H:%M:%S",
                 localtime(&now));
 
-    roadmap_trip_route_convert_worker (RoadMapTrack, name);
+    roadmap_trip_route_convert_worker (RoadMapTrack, name, 0, 0);
+
+}
+
+void roadmap_trip_currenttrack_to_track (void) {
+
+    char name[40];
+    time_t now;
+
+
+    time(&now);
+    strftime(name, sizeof(name), "Track-%Y-%m-%d-%H:%M:%S",
+                localtime(&now));
+
+    roadmap_trip_route_convert_worker (RoadMapTrack, name, 0, 1);
 
 }
 
