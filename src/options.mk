@@ -20,7 +20,9 @@ man1dir=$(mandir)/man1
 
 INSTALL      = install
 INSTALL_DATA = install -m644
-
+RANLIB       = ranlib
+STRIP        = strip
+CONVERT      = convert
 
 # --- Build options ------------------------------------------------
 
@@ -46,9 +48,6 @@ endif
 endif
 endif
 
-
-RANLIB=ranlib
-STRIP=strip
 
 ifeq ($(strip $(MODE)),DEBUG)
 	# Memory leak detection using mtrace:

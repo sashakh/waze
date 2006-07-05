@@ -1,4 +1,7 @@
 
+TOP = ..
+include $(TOP)/options.mk
+
 # Those hand-made icons (the others are official road signs):
 ICONSRC= rm_hold.xpm \
 	rm_gps.xpm \
@@ -8,18 +11,16 @@ ICONSRC= rm_hold.xpm \
 
 ICONS=$(ICONSRC:.xpm=.png)
 
-CONVERT=convert
-
 .PHONY: all install uninstall icons clean
 
 all: icons
 
 install: $(ICONS)
 	rm -f temp.png
-	cp rm_*.png $(ICONDIR)
+	cp rm_*.png $(DESTDIR)$(ICONDIR)
 
 uninstall:
-	cd $(ICONDIR) && rm -f rm_*.png
+	cd $(DESTDIR)$(ICONDIR) && rm -f rm_*.png
 
 icons: $(ICONS)
 	rm -f temp.png

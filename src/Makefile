@@ -157,6 +157,16 @@ XCHGSRCS=rdmxchange_main.c \
 
 XCHGOBJS=$(XCHGSRCS:.c=.o)
 
+ICONS_PNG = roadmap-16.png \
+	roadmap-32.png \
+	roadmap-48.png \
+	roadmap-64.png \
+	roadmap-right.png \
+	roadmap-small.png \
+	roadmap.png
+
+ICONS_XPM=$(ICONS_PNG:.png=.xpm)
+
 
 PKGDATAFILES=sprites preferences session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
@@ -209,19 +219,20 @@ strip:
 		$(MAKE) -C $$module strip || exit 1; \
 	done
 
+icons: $(ICONS_XPM)
+	$(MAKE) -C icons all
+
 topclean:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
-	rm -f roadmap-32.xpm roadmap.xpm
+	rm -f $(ICONS_XPM)
 	# Clean up CVS backup files as well.
 	$(RM) .#*
 
 clean:  topclean
-	for module in icons $(RDMODULES) ; \
+	for module in icons unix gpx $(RDMODULES) ; \
 	do \
 		$(MAKE) -C $$module clean || exit 1; \
 	done
-	$(MAKE) -C unix clean
-	$(MAKE) -C gpx clean
 	rm -f agg_support/*.o
 
 
@@ -259,14 +270,8 @@ installdesktop:
 
 installicons:
 	mkdir -p $(DESTDIR)$(ICONDIR)
-	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" install
-	cp -f roadmap*.png $(DESTDIR)$(ICONDIR)/.
-	for icon in roadmap*.png ; \
-	do \
-		icon2=`basename $$icon .png` ; \
-		convert $$icon $${icon2}.xpm ; \
-		cp -f $${icon2}.xpm $(DESTDIR)$(ICONDIR)/. ; \
-	done
+	$(MAKE) -C icons install
+	cp -f $(ICONS_PNG) $(ICONS_XPM) $(DESTDIR)$(ICONDIR)/.
 
 installdoc:
 	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
@@ -278,7 +283,7 @@ uninstall:
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS) $(DRIVERS)
 	if [ -d $(menudir) ] ; then rm -f $(menudir)/roadmap; fi
-	cd icons && $(MAKE) ICONDIR="$(DESTDIR)$(ICONDIR)" uninstall
+	$(MAKE) -C icons uninstall
 	cd $(DESTDIR)$(ICONDIR) && rm -f roadmap*.png
 	cd $(DESTDIR)$(desktopdir) && rm -f roadmap.desktop
 	cd $(DESTDIR)$(man1dir) && rm -f roadgps.1 roadmap.1
@@ -288,9 +293,6 @@ uninstall:
 			$(MAKE) -C $$module uninstall || exit 1; \
 		fi ; \
 	done
-
-icons:
-	$(MAKE) -C icons STDCFLAGS="$(CFLAGS)" all
 
 # --- The real targets --------------------------------------------
 
@@ -346,4 +348,9 @@ buildus: $(BUOBJS) $(RDMLIBS)
 
 buildplace: $(BPOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BPOBJS) -o buildplace $(LIBS)
+
+
+# icon rule -- create xpm from png
+%.xpm : %.png
+	$(CONVERT) $< $@
 
