@@ -21,7 +21,7 @@
 
  */
 
-#ifndef NO_EXPAT
+#ifdef ROADMAP_USES_EXPAT
 
 #include "defs.h"
 
@@ -1607,5 +1607,5 @@ gpx_exit(void)
 }
 #endif
 
-#endif // ifndef NO_EXPAT
+#endif // ifndef ROADMAP_USES_EXPAT
 

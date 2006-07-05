@@ -21,7 +21,10 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef ROADMAP_USES_EXPAT
 # include <expat.h>
+#endif
+
 #define ROADMAP 1
 # include "gpx/defs.h"
 
