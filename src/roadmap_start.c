@@ -573,8 +573,8 @@ static const char *RoadMapStartMenu[] = {
    "togglelabels",
    "toggleorientation",
    "toggleview",
-   "IncHorizon",
-   "DecHorizon",
+   "increasehorizon",
+   "decreasehorizon",
    "full",
 
    RoadMapFactorySeparator,
