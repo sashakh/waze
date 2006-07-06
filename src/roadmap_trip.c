@@ -972,16 +972,8 @@ static void roadmap_trip_activate (void) {
 }
 
 
-void roadmap_trip_clear (void) {
+static void roadmap_trip_clear (void) {
 
-
-    if (RoadMapTripModified) {
-        // FIXME -- We're blowing away possibly modified data here.
-        //   RoadMapTripModified should be checked, and the user
-        //   should confirm the action.
-        // ...or, we should do the write, particularly if we're changing
-        //   trips.
-    }
 
     waypt_flush_queue (&RoadMapTripWaypointHead);
     route_flush_queue (&RoadMapTripRouteHead);
@@ -1840,10 +1832,28 @@ static const char *roadmap_trip_current() {
 
 void roadmap_trip_new (void) {
 
+    const char *path = roadmap_path_trips();
+    char name[50];
+    int i;
+    
+    strcpy (name, "NewTrip");
+
+    i = 1;
+    while (roadmap_file_exists(path, name) && i < 1000) {
+	sprintf(name, "NewTrip-%d", i++);
+    }
+    if (i == 1000) {
+	roadmap_log (ROADMAP_WARNING, "over 1000 new trips!");
+	strcpy (name, "NewTrip");
+    }
+
+    if (RoadMapTripModified) {
+	roadmap_trip_save (0);
+    }
+
     roadmap_trip_clear ();
 
-    // FIXME choose a unique-ish name
-    roadmap_config_set (&RoadMapConfigTripName, "default.gpx");
+    roadmap_config_set (&RoadMapConfigTripName, name);
 
     roadmap_trip_set_modified(1);
 
@@ -1968,6 +1978,15 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
     } else {
 
+	// FIXME if we happen to be loading the file we're about
+	// to save to, then we'll either a) clobber what we want
+	// to load, or b) potentially lose data we wanted to save.
+	// we default to saving, but this means if you load a trip,
+	// delete some stuff, and reload to get it back, that won't
+	// work.
+	if (RoadMapTripModified) {
+	    roadmap_trip_save (0);
+	}
         roadmap_trip_clear();
 
         QUEUE_MOVE(&RoadMapTripWaypointHead, &tmp_waypoint_list);

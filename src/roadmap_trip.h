@@ -72,7 +72,6 @@ void  roadmap_trip_display (void);
 void  roadmap_trip_new (void);
 
 void  roadmap_trip_initialize (void);
-void roadmap_trip_clear (void);
 
 /* In the two primitives that follow, the name is either NULL (i.e.
  * open a dialog to let the user enter one), or an explicit name.
