@@ -449,11 +449,11 @@ void roadmap_trip_restore_focus (void) {
         focal = RoadMapTripGps;
     }
 
-    if (!focal->has_value) {
+    if (focal == NULL || !focal->has_value) {
         focal = fallback;
     }
 
-    if (!focal->has_value) {
+    if (focal == NULL || !focal->has_value) {
         roadmap_trip_set_focus_waypoint (NULL);
     } else {
         roadmap_trip_set_point_focus (focal);
