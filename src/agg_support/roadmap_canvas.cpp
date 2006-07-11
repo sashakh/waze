@@ -335,8 +335,6 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
    ResumeCAPAll();
 #endif
 
-//pgf fast_draw = 1;
-   
    raso.round_cap(true);
    if (!fast_draw) {
       raso.line_join(agg::outline_miter_accurate_join);
