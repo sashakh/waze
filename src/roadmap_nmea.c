@@ -105,7 +105,7 @@ static time_t roadmap_nmea_decode_time (const char *hhmmss,
       return -1;
    }
 
-   if (ddmmyy != NULL) {
+   if ((ddmmyy != NULL) && *ddmmyy) {
 
       if (sscanf (ddmmyy, "%02d%02d%02d",
                   &(tm.tm_mday), &(tm.tm_mon), &(tm.tm_year)) != 3) {
@@ -118,8 +118,23 @@ static time_t roadmap_nmea_decode_time (const char *hhmmss,
       tm.tm_mon -= 1;
 
    } else if (tm.tm_year == 0) {
+      /* The date is not yet known.
+       * Use the system clock but return failure.
+       * This gives a chance for the GPS to update
+       * the date before the next cycle.
+       */
 
-      return -1; /* The date is not yet known. */
+      time_t cur_time;
+      struct tm *cur_tm;
+
+      time (&cur_time);
+      cur_tm = gmtime (&cur_time);
+
+      tm.tm_mday = cur_tm->tm_mday;
+      tm.tm_mon  = cur_tm->tm_mon;
+      tm.tm_year = cur_tm->tm_year;
+
+      return -1;
    }
 
    /* FIXME: th time zone might change if we are moving !. */
@@ -359,6 +374,20 @@ static int roadmap_nmea_gll (int argc, char *argv[]) {
 }
 
 
+static int roadmap_nmea_vtg (int argc, char *argv[]) {
+
+   if (argc <= 5) return 0;
+
+   RoadMapNmeaReceived.vtg.steering =
+      roadmap_nmea_decode_numeric (argv[1], 1);
+
+   RoadMapNmeaReceived.vtg.speed =
+      roadmap_nmea_decode_numeric (argv[5], 1);
+
+   return 1;
+}
+
+
 static int roadmap_nmea_gsv (int argc, char *argv[]) {
 
    int i;
@@ -563,6 +592,7 @@ static struct {
    {NULL, "GSA", roadmap_nmea_gsa},
    {NULL, "GSV", roadmap_nmea_gsv},
    {NULL, "GLL", roadmap_nmea_gll},
+   {NULL, "VTG", roadmap_nmea_vtg},
 
    /* We don't care about these ones (waypoints). */
    {NULL, "RTE", roadmap_nmea_null_decoder},

@@ -97,6 +97,11 @@ typedef union {
       short strength[4];
    } gsv;
 
+   struct {
+      int steering;
+      int speed;
+   } vtg;
+
    /* The following structures match Garmin extensions: */
 
    struct {
