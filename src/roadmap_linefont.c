@@ -109,7 +109,7 @@ typedef struct hershey_font {
 
 static hershey_font hf[1];
 
-static unsigned char *fontp;
+static const unsigned char *fontp;
 
 const unsigned char romans_font[];
 
