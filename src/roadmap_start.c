@@ -77,6 +77,7 @@
 #include "editor/db/editor_db.h"
 #include "editor/export/editor_export.h"
 #include "editor/export/editor_upload.h"
+#include "editor/export/editor_download.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 
@@ -177,63 +178,9 @@ static void roadmap_start_export_reset (void) {
    editor_export_reset_dirty ();
 }
 
-static void roadmap_start_download_map_done (void) {
-
-   editor_main_set (1);
-   roadmap_download_subscribe_when_done (NULL);
-   roadmap_screen_redraw ();
-}
-
 static void roadmap_start_download_map (void) {
 
-   static int *fips = NULL;
-   static int ProtocolInitialized = 0;
-   RoadMapPosition center;
-   int count;
-   int i;
-
-   if (! ProtocolInitialized) {
-
-      /* PLUGINS NOT SUPPORTED YET.
-       * roadmap_plugin_load_all
-       *      ("download", roadmap_download_subscribe_protocol);
-       */
-
-      roadmap_copy_init (roadmap_download_subscribe_protocol);
-      roadmap_httpcopy_init (roadmap_download_subscribe_protocol);
-
-      ProtocolInitialized = 1;
-   }
-
-   roadmap_screen_get_center (&center);
-   count = roadmap_locator_by_position (&center, &fips);
-
-   if (count == 0) {
-      roadmap_display_text("Info", "No map available");
-      return;
-   }
-
-   for (i = count-1; i >= 0; --i) {
-
-      if (!editor_export_empty (fips[i])) {
-         roadmap_messagebox("Info", "You must first export your data.");
-         return;
-      }
-   }
-
-   editor_main_set (0);
-
-   roadmap_download_subscribe_when_done (roadmap_start_download_map_done);
-   roadmap_download_unblock_all ();
-
-   for (i = count-1; i >= 0; --i) {
-
-      editor_db_close (fips[i]);
-      editor_db_delete (fips[i]);
-      roadmap_download_get_county (fips[i], i ? 0 : 1);
-   }
-
-   roadmap_screen_redraw ();
+   editor_download_update_map (EDITOR_DOWNLOAD_NORMAL);
 }
 
 static void roadmap_start_upload_gpx (void) {

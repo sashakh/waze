@@ -1045,7 +1045,7 @@ static void roadmap_screen_repaint (void) {
     int use_only_main_pen = 0;
     
 
-    if (RoadMapScreenFrozen) return;
+    if (!RoadMapScreenInitialized || RoadMapScreenFrozen) return;
 
     dbg_time_start(DBG_TIME_FULL);
     if (RoadMapScreenDragging &&

@@ -97,7 +97,7 @@ struct roadmap_download_protocol {
 static struct roadmap_download_protocol *RoadMapDownloadProtocolMap = NULL;
 
 
-static void roadmap_download_next_county (void);
+static int roadmap_download_next_county (int ui);
 
 static void roadmap_download_no_handler (void) {}
 
@@ -148,7 +148,7 @@ static int roadmap_download_increment (int cursor) {
 }
 
 
-static void roadmap_download_end (void) {
+static int roadmap_download_end () {
 
 
    RoadMapDownloadQueueConsumer =
@@ -157,7 +157,10 @@ static void roadmap_download_end (void) {
    if (RoadMapDownloadQueueConsumer != RoadMapDownloadQueueProducer) {
 
       /* The queue is not yet empty: start the next download. */
-      roadmap_download_next_county ();
+      if (roadmap_download_next_county (0) != 0) {
+         RoadMapDownloadWhenDone ();
+         return -1;
+      }
 
    } else if (RoadMapDownloadRefresh) {
 
@@ -165,10 +168,14 @@ static void roadmap_download_end (void) {
        * if there was at least one successful download.
        */
       RoadMapDownloadRefresh = 0;
+      roadmap_dialog_hide ("Downloading");
       RoadMapDownloadWhenDone ();
    } else {
+      roadmap_dialog_hide ("Downloading");
       RoadMapDownloadWhenDone ();
    }
+
+   return 0;
 }
 
 
@@ -195,6 +202,7 @@ static void roadmap_download_progress (int loaded) {
       roadmap_dialog_new_label  (".file", "State");
       roadmap_dialog_new_label  (".file", "Size");
       roadmap_dialog_new_label  (".file", "Download");
+      roadmap_dialog_new_label  (".file", "Status");
 
       roadmap_dialog_complete (0);
    }
@@ -209,11 +217,12 @@ static void roadmap_download_progress (int loaded) {
       roadmap_dialog_set_data (".file", "State", "");
    }
 
+   roadmap_dialog_set_data (".file", "Status", "Downloading...");
    roadmap_download_format_size (image, RoadMapDownloadCurrentFileSize);
    roadmap_dialog_set_data (".file", "Size", image);
 
    if (loaded == RoadMapDownloadCurrentFileSize) {
-      roadmap_dialog_hide ("Downloading");
+      roadmap_dialog_set_data (".file", "Status", "Completed.");
    } else {
       roadmap_download_format_size (image, loaded);
       roadmap_dialog_set_data (".file", "Download", image);
@@ -361,10 +370,11 @@ static void roadmap_download_uncompress (const char *destination) {
 }
 
 
-static void roadmap_download_ok (const char *name, void *context) {
+static int roadmap_download_start (const char *name) {
 
    int  fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
    struct roadmap_download_protocol *protocol;
+   int error = 0;
 
    char source[256];
    char destination[256];
@@ -423,9 +433,12 @@ static void roadmap_download_ok (const char *name, void *context) {
                                                 source, destination)) {
                         roadmap_messagebox ("Error",
                               "Error downloading navigation data.");
+                        error = 1;
                      }
                }
             }
+         } else {
+            error = 1;
          }
          roadmap_download_unblock (fips);
          roadmap_start_unfreeze ();
@@ -443,6 +456,14 @@ static void roadmap_download_ok (const char *name, void *context) {
    if (RoadMapDownloadCurrentFileSize > 0) {
       roadmap_download_progress (RoadMapDownloadCurrentFileSize);
    }
+
+   return error;
+}
+
+
+static void roadmap_download_ok (const char *name, void *context) {
+
+   roadmap_download_start (name);
 }
 
 
@@ -459,9 +480,10 @@ static void roadmap_download_cancel (const char *name, void *context) {
 }
 
 
-static void roadmap_download_usdir (void) {
+static int roadmap_download_usdir (void) {
 
    struct roadmap_download_protocol *protocol;
+   int error = 0;
 
    char source[256];
    char destination[256];
@@ -478,7 +500,7 @@ static void roadmap_download_usdir (void) {
       roadmap_messagebox ("Download Error", "Can't download usdir.");
       roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
       roadmap_download_end ();
-      return;
+      return -1;
    }
 
    strncpy (format+1, "usdir.rdm", sizeof(source) - (format - source + 1));
@@ -518,6 +540,8 @@ static void roadmap_download_usdir (void) {
 
             roadmap_download_uncompress (destination);
             RoadMapDownloadRefresh = 1;
+         } else {
+            error = -1;
          }
          roadmap_start_unfreeze ();
          roadmap_download_end ();
@@ -530,19 +554,18 @@ static void roadmap_download_usdir (void) {
       roadmap_messagebox ("Download Error", "invalid download protocol");
       roadmap_log (ROADMAP_WARNING, "invalid download source %s", source);
       roadmap_download_end ();
-      return;
+      return -1;
    }
 
    if (RoadMapDownloadCurrentFileSize > 0) {
       roadmap_download_progress (RoadMapDownloadCurrentFileSize);
-   } else {
-      roadmap_download_end ();
-      return;
    }
+
+   return error;
 }
 
 
-static void roadmap_download_next_county (void) {
+static int roadmap_download_next_county (int ui) {
 
    int fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
 
@@ -552,15 +575,14 @@ static void roadmap_download_next_county (void) {
    char buffer[2048];
 
    if (fips == -1) {
-      roadmap_download_usdir ();
-      return;
+      return roadmap_download_usdir ();
    }
 
    source = roadmap_config_get (&RoadMapConfigSource);
    basename = strrchr (source, '/');
    if (basename == NULL) {
       roadmap_messagebox ("Download Error", "Bad source file name (no path)");
-      return;
+      return -1;
    }
 
    if (roadmap_dialog_activate ("Download a Map", NULL)) {
@@ -589,10 +611,16 @@ static void roadmap_download_next_county (void) {
 #endif
 
    roadmap_dialog_set_data (".file", "To", buffer);
+
+   if (!ui) {
+      return roadmap_download_start ("Download a Map");
+   }
+
+   return 0;
 }
 
 
-int roadmap_download_get_county (int fips, int download_usdir) {
+int roadmap_download_get_county (int fips, int download_usdir, int ui) {
 
    int next;
 
@@ -603,7 +631,7 @@ int roadmap_download_get_county (int fips, int download_usdir) {
     * If not, set a block, which we will release when done. This is to
     * avoid requesting a download while we are downloading this county.
     */
-   if (roadmap_download_blocked (fips)) return 0;
+   if (roadmap_download_blocked (fips)) return -1;
 
    roadmap_download_block (fips);
 
@@ -614,7 +642,7 @@ int roadmap_download_get_county (int fips, int download_usdir) {
 
    if (next == RoadMapDownloadQueueConsumer) {
       /* The queue is full: stop downloading more. */
-      return 0;
+      return -1;
    }
 
    RoadMapDownloadQueue[RoadMapDownloadQueueProducer] = fips;
@@ -633,8 +661,7 @@ int roadmap_download_get_county (int fips, int download_usdir) {
       /* The queue was empty: start downloading now. */
 
       RoadMapDownloadQueueProducer = next;
-      roadmap_download_next_county();
-      return 0;
+      return roadmap_download_next_county(ui);
    }
 
    RoadMapDownloadQueueProducer = next;
