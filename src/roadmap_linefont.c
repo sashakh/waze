@@ -156,26 +156,18 @@ roadmap_load_hershey_font(void)
         } else {
             /* get the number of vertices in this figure ... */
             np = scanint(3);
+
+            /* point directly at the ASCII font data */
+            hf->hc[j].pt = (hpoint *)fontp;
+            fontp += np * sizeof(hpoint);
+
             if (np > MAXPOINTS) {
                 roadmap_log(ROADMAP_WARNING,
                     "Too many points in hershey character, truncated");
                 np = MAXPOINTS;
             }
-            hf->hc[j].npnt = np;
-            hf->hc[j].pt = malloc(np * sizeof(hpoint));
-            roadmap_check_allocated (hf->hc[j].pt );
 
-            /* read in the vertice coordinates ...
-             * (note that pt[0] contains the left and right margin
-             * values from the hershey data, which are unused in this
-             * implementation.)
-             */
-            for (i = 0; i < np; i++) {
-                if (*fontp == '\n') fontp++;
-                hf->hc[j].pt[i].x = *fontp++;       /* x-coordinate */
-                if (*fontp == '\n') fontp++;
-                hf->hc[j].pt[i].y = *fontp++;       /* y-coordinate */
-            }
+            hf->hc[j].npnt = np;
 
         }
     }
@@ -340,7 +332,9 @@ void roadmap_linefont_text (const char *text, int where,
  * the Roman-Simplex font distributed on Usenet with with Alan
  * Richardson's Xrotfont package.  To inline another such font,
  * simply quote each line, escape all '\' characters, and join
- * lines that are clearly continuations lines.
+ * lines that are clearly continuations lines.  (The data in
+ * this array is used directly by the code above, after some
+ * initial pointers are set up into the array.)
  * 
  */
 const unsigned char romans_font[] = 
