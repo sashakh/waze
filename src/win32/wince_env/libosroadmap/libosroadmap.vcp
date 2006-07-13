@@ -273,6 +273,47 @@ DEP_CPP_LISTP=\
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\md5.c
+
+!IF  "$(CFG)" == "libosroadmap - Win32 (WCE ARM) Release"
+
+!ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE ARM) Debug"
+
+!ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE x86) Release"
+
+DEP_CPP_MD5_C=\
+	"..\..\..\md5.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE x86) Debug"
+
+DEP_CPP_MD5_C=\
+	"..\..\..\md5.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_MD5_C=\
+	"..\..\..\md5.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_MD5_C=\
+	"..\..\..\md5.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE ARMV4) Profiler"
+
+DEP_CPP_MD5_C=\
+	"..\..\..\md5.h"\
+	
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\win32\roadmap_file.c
 
 !IF  "$(CFG)" == "libosroadmap - Win32 (WCE ARM) Release"
@@ -468,6 +509,7 @@ DEP_CPP_ROADMAP=\
 !ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_ROADMAP=\
+	"..\..\..\md5.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_types.h"\
@@ -477,6 +519,7 @@ DEP_CPP_ROADMAP=\
 !ELSEIF  "$(CFG)" == "libosroadmap - Win32 (WCE ARMV4) Release"
 
 DEP_CPP_ROADMAP=\
+	"..\..\..\md5.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_types.h"\
@@ -629,6 +672,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_types.h"\
+	"..\..\listports.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	

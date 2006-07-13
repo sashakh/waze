@@ -784,6 +784,137 @@ DEP_CPP_EDITOR_=\
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\editor\export\editor_download.c
+
+!IF  "$(CFG)" == "libroadmap - Win32 (WCE ARM) Release"
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARM) Debug"
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE x86) Release"
+
+DEP_CPP_EDITOR_D=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
+	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_display.h"\
+	"..\..\..\roadmap_download.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_httpcopy.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE x86) Debug"
+
+DEP_CPP_EDITOR_D=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
+	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_display.h"\
+	"..\..\..\roadmap_download.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_httpcopy.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_EDITOR_D=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
+	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_display.h"\
+	"..\..\..\roadmap_download.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_httpcopy.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_EDITOR_D=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
+	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_display.h"\
+	"..\..\..\roadmap_download.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_httpcopy.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Profiler"
+
+DEP_CPP_EDITOR_D=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
+	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_display.h"\
+	"..\..\..\roadmap_download.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_httpcopy.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\editor\export\editor_export.c
 
 !IF  "$(CFG)" == "libroadmap - Win32 (WCE ARM) Release"
@@ -817,6 +948,7 @@ DEP_CPP_EDITOR_E=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE x86) Debug"
 
@@ -845,6 +977,7 @@ DEP_CPP_EDITOR_E=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Debug"
 
@@ -894,6 +1027,7 @@ DEP_CPP_EDITOR_E=\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Release"
 
@@ -942,7 +1076,10 @@ DEP_CPP_EDITOR_E=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
+	"C:\Projects\zlib-1.2.3\zconf.h"\
+	"C:\Projects\zlib-1.2.3\zlib.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Profiler"
 
@@ -988,6 +1125,7 @@ DEP_CPP_EDITOR_E=\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ENDIF 
 
@@ -2793,6 +2931,7 @@ DEP_CPP_EDITOR_TRA=\
 
 DEP_CPP_EDITOR_TRA=\
 	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_line.h"\
 	"..\..\..\editor\db\editor_point.h"\
 	"..\..\..\editor\db\editor_route.h"\
 	"..\..\..\editor\editor_log.h"\
@@ -2830,6 +2969,7 @@ DEP_CPP_EDITOR_TRA=\
 
 DEP_CPP_EDITOR_TRA=\
 	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_line.h"\
 	"..\..\..\editor\db\editor_point.h"\
 	"..\..\..\editor\db\editor_route.h"\
 	"..\..\..\editor\editor_log.h"\
@@ -3643,13 +3783,22 @@ DEP_CPP_NAVIG=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_screen_obj.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Release"
@@ -3660,13 +3809,22 @@ DEP_CPP_NAVIG=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_screen_obj.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
 	
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Profiler"
