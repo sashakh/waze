@@ -8,6 +8,17 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "newres.h"
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0500
+#include <winresrc.h>
+#endif
+
+#ifndef I_IMAGENONE
+#define I_IMAGENONE (-1)
+#define TBSTATE_ENABLED  0
+#define TBSTYLE_DROPDOWN 0
+#define TBSTYLE_AUTOSIZE 0
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -56,7 +67,7 @@ IDM_MENU SHMENUBAR MOVEABLE PURE
 BEGIN
     IDM_MENU, 1,
     I_IMAGENONE, IDM_MAIN_COMMAND1, TBSTATE_ENABLED, 
-    TBSTYLE_DROPDOWN | TBSTYLE_AUTOSIZE, IDS_HELP, 0, 0,
+    TBSTYLE_DROPDOWN | TBSTYLE_AUTOSIZE, IDS_HELP, 0, 0
 END
 
 
@@ -158,23 +169,23 @@ LANGUAGE 0xD, 0x1
 // Bitmap
 //
 
-IDB_RM_COUNTERCLOCKWISE BITMAP  DISCARDABLE     "icons\\rm_counterclockwise.bmp"
-IDB_RM_DESTINATION      BITMAP  DISCARDABLE     "icons\\rm_destination.bmp"
-IDB_RM_DOWN             BITMAP  DISCARDABLE     "icons\\rm_down.bmp"
-IDB_RM_FULL             BITMAP  DISCARDABLE     "icons\\rm_full.bmp"
-IDB_RM_GPS              BITMAP  DISCARDABLE     "icons\\rm_gps.bmp"
-IDB_RM_HOLD             BITMAP  DISCARDABLE     "icons\\rm_hold.bmp"
-IDB_RM_LEFT             BITMAP  DISCARDABLE     "icons\\rm_left.bmp"
-IDB_RM_LOCATION         BITMAP  DISCARDABLE     "icons\\rm_location.bmp"
-IDB_RM_QUIT             BITMAP  DISCARDABLE     "icons\\rm_quit.bmp"
-IDB_RM_RECORD           BITMAP  DISCARDABLE     "icons\\rm_record.bmp"
-IDB_RM_RIGHT            BITMAP  DISCARDABLE     "icons\\rm_right.bmp"
-IDB_RM_STOP             BITMAP  DISCARDABLE     "icons\\rm_stop.bmp"
-IDB_RM_UP               BITMAP  DISCARDABLE     "icons\\rm_up.bmp"
-IDB_RM_ZOOM1            BITMAP  DISCARDABLE     "icons\\rm_zoom1.bmp"
-IDB_RM_ZOOMIN           BITMAP  DISCARDABLE     "icons\\rm_zoomin.bmp"
-IDB_RM_ZOOMOUT          BITMAP  DISCARDABLE     "icons\\rm_zoomout.bmp"
-IDB_RM_CLOCKWISE        BITMAP  DISCARDABLE     "icons\\rm_clockwise.bmp"
+IDB_RM_COUNTERCLOCKWISE BITMAP  DISCARDABLE     "icons/rm_counterclockwise.bmp"
+IDB_RM_DESTINATION      BITMAP  DISCARDABLE     "icons/rm_destination.bmp"
+IDB_RM_DOWN             BITMAP  DISCARDABLE     "icons/rm_down.bmp"
+IDB_RM_FULL             BITMAP  DISCARDABLE     "icons/rm_full.bmp"
+IDB_RM_GPS              BITMAP  DISCARDABLE     "icons/rm_gps.bmp"
+IDB_RM_HOLD             BITMAP  DISCARDABLE     "icons/rm_hold.bmp"
+IDB_RM_LEFT             BITMAP  DISCARDABLE     "icons/rm_left.bmp"
+IDB_RM_LOCATION         BITMAP  DISCARDABLE     "icons/rm_location.bmp"
+IDB_RM_QUIT             BITMAP  DISCARDABLE     "icons/rm_quit.bmp"
+IDB_RM_RECORD           BITMAP  DISCARDABLE     "icons/rm_record.bmp"
+IDB_RM_RIGHT            BITMAP  DISCARDABLE     "icons/rm_right.bmp"
+IDB_RM_STOP             BITMAP  DISCARDABLE     "icons/rm_stop.bmp"
+IDB_RM_UP               BITMAP  DISCARDABLE     "icons/rm_up.bmp"
+IDB_RM_ZOOM1            BITMAP  DISCARDABLE     "icons/rm_zoom1.bmp"
+IDB_RM_ZOOMIN           BITMAP  DISCARDABLE     "icons/rm_zoomin.bmp"
+IDB_RM_ZOOMOUT          BITMAP  DISCARDABLE     "icons/rm_zoomout.bmp"
+IDB_RM_CLOCKWISE        BITMAP  DISCARDABLE     "icons/rm_clockwise.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -28,6 +28,7 @@
 
 #include <windows.h>
 #include <winsock.h>
+#include <ctype.h>
 
 #include "../roadmap.h"
 #include "../roadmap_net.h"
@@ -141,9 +142,20 @@ connection_failure:
 }
 
 
-int roadmap_net_send (RoadMapSocket socket, void *data, int length)
+int roadmap_net_send (RoadMapSocket socket, const void *data, int length)
 {
-	return send(socket, data, length, 0);
+   int sent = 0;
+
+   while (sent < length) {
+
+      int res = send(socket, data, length, 0);
+
+      if (res <= 0) return -1;
+
+      sent += res;
+   }
+
+   return sent;
 }
 
 
@@ -200,3 +212,94 @@ RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket)
 	return accept(server_socket, NULL, NULL);
 }
 
+
+#ifdef UNDER_CE
+#include <winioctl.h>
+#include "../md5.h"
+
+__declspec(dllimport)
+BOOL KernelIoControl( DWORD dwIoControlCode, LPVOID lpInBuf, DWORD nInBufSize, LPVOID lpOutBuf, DWORD nOutBufSize, LPDWORD lpBytesReturned);
+
+#define IOCTL_HAL_GET_DEVICEID  CTL_CODE(FILE_DEVICE_HAL, 21, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
+typedef struct _DEVICE_ID {
+  DWORD dwSize;
+  DWORD dwPresetIDOffset;
+  DWORD dwPresetIDBytes;
+  DWORD dwPlatformIDOffset;
+  DWORD dwPlatformIDBytes;
+} DEVICE_ID, *PDEVICE_ID;
+
+
+int roadmap_net_unique_id(unsigned char *buffer, unsigned int size)
+{
+   DWORD dwOutBytes;
+   int nBuffSize = 128;
+   BYTE *arrOutBuff = (byte *) LocalAlloc(LMEM_FIXED, nBuffSize);
+   PDEVICE_ID pDevId;
+   BOOL bRes;
+
+   if (size < 16) {
+      return -1;
+   }
+
+   pDevId = (PDEVICE_ID) &arrOutBuff[0];
+   pDevId->dwSize = nBuffSize;
+
+   bRes = KernelIoControl(IOCTL_HAL_GET_DEVICEID, 0, 0, arrOutBuff, nBuffSize, &dwOutBytes);
+
+   // if buffer not large enough, reallocate the buffer
+   if (!bRes && GetLastError() == 122)
+   {
+       nBuffSize = pDevId->dwSize;
+       arrOutBuff = (byte *) LocalReAlloc(arrOutBuff, nBuffSize, LMEM_MOVEABLE);
+       bRes = KernelIoControl(IOCTL_HAL_GET_DEVICEID, 0, 0, arrOutBuff, nBuffSize, &dwOutBytes);
+   }
+
+   if (bRes) {
+
+      struct MD5Context context;
+      unsigned char digest[16];
+      
+      MD5Init (&context);
+      
+      MD5Update (&context, arrOutBuff + pDevId->dwPresetIDOffset, pDevId->dwPresetIDBytes);
+      MD5Update (&context, arrOutBuff + pDevId->dwPlatformIDOffset, pDevId->dwPlatformIDBytes);
+      MD5Final (digest, &context);
+
+      if (size > sizeof(digest)) size = sizeof(digest);
+      memcpy(buffer, digest, size);
+
+      LocalFree(arrOutBuff);
+
+      return size;
+   }
+
+   /* Some older PPC devices only return the ID if the buffer
+    * is exactly the size of a GUID, so attempt to retrieve
+    * the ID this way.
+    */
+   bRes = KernelIoControl(IOCTL_HAL_GET_DEVICEID, 0, 0, arrOutBuff, 16, &dwOutBytes);
+
+   if (bRes) {
+      struct MD5Context context;
+      unsigned char digest[16];
+      
+      MD5Init (&context);
+      
+      MD5Update (&context, arrOutBuff, 16);
+      MD5Final (digest, &context);
+
+      if (size > sizeof(digest)) size = sizeof(digest);
+      memcpy(buffer, digest, size);
+
+      LocalFree(arrOutBuff);
+
+      return size;
+   }
+
+   LocalFree(arrOutBuff);
+
+   return -1;
+}
+#endif

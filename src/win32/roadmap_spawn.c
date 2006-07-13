@@ -27,6 +27,7 @@
  */
 
 #include <windows.h>
+#include <stdio.h>
 #include "../roadmap.h"
 #include "../roadmap_list.h"
 #include "../roadmap_spawn.h"
@@ -69,8 +70,9 @@ DWORD WINAPI FliteThread(LPVOID lpParam) {
 }
 
 
+#ifdef UNDER_CE
 static int exec_flite_dll (const char *command_line,
-								   RoadMapFeedback *feedback) {
+					   RoadMapFeedback *feedback) {
 
    if (flite_dll_initialized == -1) return -1;
 
@@ -124,6 +126,7 @@ static int exec_flite_dll (const char *command_line,
 
    return 0;
 }
+#endif
 
 
 static int roadmap_spawn_child (const char *name,
@@ -204,11 +207,13 @@ int  roadmap_spawn_with_feedback (const char *name,
 								  const char *command_line,
 								  RoadMapFeedback *feedback)
 {
+#ifdef UNDER_CE
    if (!strcmp (name, "flite") &&
       (exec_flite_dll(command_line, feedback) != -1)) {
 
       return 0;
    }
+#endif
 
 	roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
 	feedback->child = roadmap_spawn_child (name, command_line, NULL);

@@ -29,8 +29,10 @@
 
 #include <windows.h>
 #include "resource.h"
-#include <aygshell.h>
 #include <commctrl.h>
+#ifdef UNDER_CE
+#include <aygshell.h>
+#endif
 
 #include "../roadmap.h"
 #include "../roadmap_types.h"
@@ -509,7 +511,10 @@ void roadmap_dialog_complete (int use_keyboard)
 	}
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags =
-		PSH_PROPSHEETPAGE|PSH_MAXIMIZE|PSH_USECALLBACK|PSH_MODELESS;
+		PSH_PROPSHEETPAGE|PSH_USECALLBACK|PSH_MODELESS;
+#ifdef UNDER_CE
+	psh.dwFlags |= PSH_MAXIMIZE;
+#endif
 	psh.hwndParent = dialog->w;
 	psh.hInstance = g_hInst;
 	psh.pszCaption = ConvertToWideChar(dialog->name, CP_UTF8);
@@ -530,6 +535,7 @@ void roadmap_dialog_complete (int use_keyboard)
 	for (i=0; i< count; i++) {
 		free((void*)psp[i].pszTitle);
 	}
+
 }
 
 
@@ -671,7 +677,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		name_unicode = ConvertToWideChar(title, CP_UTF8);
 		item->label = CreateWindowEx (
 			0,
-			_T("STATIC"),         // Class name
+			L"STATIC",            // Class name
 			name_unicode,  		  // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -691,7 +697,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 
 		item->w = CreateWindowEx (
 			0,
-			_T("EDIT"),           // Class name
+			L"EDIT",              // Class name
 			NULL,		          // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -710,7 +716,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		name_unicode = ConvertToWideChar(title, CP_UTF8);
 		item->label = CreateWindowEx (
 			0,
-			_T("STATIC"),         // Class name
+			L"STATIC",            // Class name
 			name_unicode,		  // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -725,7 +731,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		dwStyle |= WS_BORDER|CBS_DROPDOWNLIST|WS_VSCROLL;
 		item->w = CreateWindowEx (
 			0,
-			_T("COMBOBOX"),       // Class name
+			L"COMBOBOX",          // Class name
 			NULL,		          // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -756,7 +762,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		name_unicode = ConvertToWideChar(title, CP_UTF8);
 		item->label = CreateWindowEx (
 			0,
-			_T("STATIC"),         // Class name
+			L"STATIC",            // Class name
 			name_unicode,		  // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -770,7 +776,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 
 		item->w = CreateWindowEx (
 			0,
-			_T("STATIC"),         // Class name
+			L"STATIC",            // Class name
 			NULL,				  // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -785,9 +791,10 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 
 	case ROADMAP_WIDGET_BUTTON:
 		name_unicode = ConvertToWideChar(name, CP_UTF8);
+
 		item->w = CreateWindowEx (
 			0,
-			_T("BUTTON"),         // Class name
+			L"BUTTON",            // Class name
 			name_unicode,		  // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -805,7 +812,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		name_unicode = ConvertToWideChar(title, CP_UTF8);
 		item->label = CreateWindowEx (
 			0,
-			_T("STATIC"),         // Class name
+			L"STATIC",            // Class name
 			name_unicode,		  // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -820,7 +827,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		dwStyle |= WS_BORDER|LBS_NOTIFY|WS_VSCROLL;
 		item->w = CreateWindowEx (
 			0,
-			_T("LISTBOX"),        // Class name
+			L"LISTBOX",           // Class name
 			NULL,		          // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
@@ -858,23 +865,24 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
-			SHINITDLGINFO shidi;
 			RoadMapDialogItem dialog;
 			RoadMapDialogItem frame;
 			int num_buttons;
+#ifdef UNDER_CE
+			SHINITDLGINFO shidi;
 
 			shidi.dwMask = SHIDIM_FLAGS;
 			shidi.dwFlags = SHIDIF_SIPDOWN |
 					SHIDIF_SIZEDLGFULLSCREEN | SHIDIF_EMPTYMENU;
 			shidi.hDlg = hDlg;
 			SHInitDialog(&shidi);
-			dialog = (RoadMapDialogItem)lParam;
-			SetWindowLong(hDlg, GWL_USERDATA, (LONG)dialog);
-
 			SetWindowLong(hDlg, GWL_STYLE,
 				GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
-
             SHDoneButton(hDlg, SHDB_HIDE);
+
+#endif
+			dialog = (RoadMapDialogItem)lParam;
+			SetWindowLong(hDlg, GWL_USERDATA, (LONG)dialog);
 
 			/* create buttons */
 			num_buttons = 0;
@@ -885,7 +893,20 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 				}
 			}
 		}
+#ifdef UNDER_CE
 		return (INT_PTR)TRUE;
+#endif
+		/* Fall through to resize the dialog */
+
+		{
+				RECT rc;
+
+				GetWindowRect(hDlg, &rc);
+		    	lParam = MAKELPARAM(rc.right-rc.left+1, rc.bottom-rc.top+1);
+		}
+	
+
+		
 
 	case WM_SIZE:
 		{
@@ -964,6 +985,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		EndDialog(hDlg, message);
 		return TRUE;
 	}
+
 	return (INT_PTR)FALSE;
 }
 
@@ -974,16 +996,17 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
-			SHINITDLGINFO sid;
 			PROPSHEETPAGE *psp;
 			RoadMapDialogItem frame;
+#ifdef UNDER_CE
+			SHINITDLGINFO sid;
 
 			sid.dwMask = SHIDIM_FLAGS;  /* This is the only allowed value. */
 			sid.dwFlags = SHIDIF_SIZEDLGFULLSCREEN;  /* Make DB full screen. */
 			sid.hDlg = hDlg; 
 
 			SHInitDialog(&sid);
-
+#endif
 			psp = (PROPSHEETPAGE*) lParam;
 			frame = (RoadMapDialogItem)psp->lParam;
 			frame->w = hDlg;
@@ -992,6 +1015,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		}
 		return (INT_PTR)TRUE;
 
+#ifdef UNDER_CE
 	case WM_SETTINGCHANGE:
 		{
 			SIPINFO si;
@@ -1018,6 +1042,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			lParam = MAKELPARAM(w, h);
 			wParam = 0;
 		}
+#endif
 		/* fall through to resize */
 	case WM_SIZE:
 		{

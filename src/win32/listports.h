@@ -74,3 +74,4 @@ BOOL ListPorts(LISTPORTS_CALLBACK lpCallback,LPVOID lpCallbackValue);
 #elif VERSION_LISTPORTS!=0x00020000
 #error You have included two LISTPORTS.H with different version numbers
 #endif
+

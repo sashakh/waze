@@ -253,7 +253,7 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
       if(dwError==ERROR_FILE_NOT_FOUND) continue; else break;
     }
 
-    if (_tcsncicmp(lpPortName,TEXT("COM"),3)!=0) continue; // We want only COM serial ports
+    if (_wcsnicmp(lpPortName,TEXT("COM"),3)!=0) continue; // We want only COM serial ports
 
     //if (dwError=RegQueryValueEx(hkLevel1, TEXT("INDEX"), NULL, NULL, (LPBYTE)&index, &wordSize)) {
       //if(dwError==ERROR_FILE_NOT_FOUND) continue; else break;
@@ -409,7 +409,7 @@ BOOL ScanEnumTree(LPCTSTR lpEnumPath,LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
 
         /* check if it is a serial port (instead of, say, a parallel port) */
 
-        if(_tcsncicmp(lpPortName,TEXT("COM"),3)!=0)continue;
+        if(_wcsnicmp(lpPortName,TEXT("COM"),3)!=0)continue;
 
         /* now go for "FRIENDLYNAME" */
 
