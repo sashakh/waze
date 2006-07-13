@@ -26,7 +26,7 @@
  */
 
 #include <stdio.h>
-
+#include <time.h>
 #include <stdlib.h>
 #include "type.h"
 #include "graph.h"

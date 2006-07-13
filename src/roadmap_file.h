@@ -35,6 +35,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <stdio.h>
 
 typedef HANDLE RoadMapFile; /* WIN32 style. */
 #define ROADMAP_FILE_IS_VALID(f) (f != INVALID_HANDLE_VALUE)
