@@ -626,7 +626,7 @@ void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points) {
 /* 
  * rotate the coordinates of a point to an arbitrary angle
  */
-void roadmap_math_rotate_point (RoadMapGuiPoint *points,
+void roadmap_math_rotate_point (RoadMapGuiPoint *point,
                                 RoadMapGuiPoint *center, int angle) {
 
    static int cached_angle = 0;
@@ -636,8 +636,6 @@ void roadmap_math_rotate_point (RoadMapGuiPoint *points,
    int x;
    int y;
 
-   if (angle == 0) return;
-
    if (angle != cached_angle) {
       cached_angle = angle;
       roadmap_math_trigonometry (cached_angle,
@@ -645,21 +643,23 @@ void roadmap_math_rotate_point (RoadMapGuiPoint *points,
                                  &cos_orientation);
    }
 
-   x = points->x;
-   y = points->y;
+   x = point->x;
+   y = point->y;
 
-   points->x =
+   point->x =
       center->x +
       (((x * cos_orientation)
         + (y * sin_orientation) + 16383) / 32768);
 
-   points->y =
+   point->y =
       center->y -
       (((y * cos_orientation)
         - (x * sin_orientation) + 16383) / 32768);
 
+   if (angle == 0) return;
+
    if (RoadMapContext._3D_horizon) {
-      roadmap_math_project (points);
+      roadmap_math_project (point);
    }
 }
 
@@ -1578,6 +1578,9 @@ int roadmap_math_intersection (RoadMapPosition *from1,
    return 1;
 }
 
+/* this routine isn't accurate for segments that are either very flat
+ * or very steep (i.e. within a few degrees of 0 or 90).
+ */
 int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
                            RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
                            RoadMapGuiPoint *isect) {
@@ -1585,6 +1588,7 @@ int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
 #if USE_FLOAT  /* for reference, until we're sure integer version works */
    double a1,b1;
    double a2,b2;
+   double x;
 
    if (f1->x == t1->x) {
 
@@ -1605,11 +1609,17 @@ int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
 
    if (a1 == a2) return 0;
 
-   isect->x = (int) ((b1 - b2) / (a2 - a1));
-   isect->y = (int) (b1 + isect->x * a1);
+   x = (b1 - b2) / (a2 - a1);
+   if (fabs(a1) < fabs(a2)) {
+      isect->y = (int) (b1 + x * a1);
+   } else {
+      isect->y = (int) (b2 + x * a2);
+   }
+   isect->x = (int)x;
 #else
    long a1,b1;
    long a2,b2;
+   long x;
 
    if (f1->x == t1->x) {
       a1 = 0;
@@ -1619,7 +1629,7 @@ int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
       b1 = 1024 * f1->y - a1 * f1->x;
    }
 
-   if ((f2->x - t2->x) == 0) {
+   if (f2->x == t2->x) {
       a2 = 0;
       b2 = 1024 * f2->y;
    } else {
@@ -1629,8 +1639,13 @@ int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
 
    if (a1 == a2) return 0;
 
-   isect->x = (b1 - b2) / (a2 - a1);
-   isect->y = (b1 + isect->x * a1) / 1024;
+   x = (b1 - b2) / (a2 - a1);
+   if (abs(a1) < abs(a2)) {
+      isect->y = (b1 + x * a1) / 1024;
+   } else {
+      isect->y = (b2 + x * a2) / 1024;
+   }
+   isect->x = x;
 #endif
 
    return 1;

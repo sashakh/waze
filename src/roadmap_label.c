@@ -34,6 +34,7 @@
 #include "roadmap_math.h"
 #include "roadmap_plugin.h"
 #include "roadmap_canvas.h"
+#include "roadmap_linefont.h"
 
 #include "roadmap_label.h"
 
@@ -62,8 +63,8 @@ static int rect_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
 
 static int point_in_bbox( RoadMapGuiPoint *p, RoadMapGuiRect *bb) {
 
-   if ((p->x < bb->minx) || (p->x > bb->maxx) ||
-       (p->y > bb->maxy) || (p->y < bb->miny))
+   if ((p->x <= bb->minx) || (p->x >= bb->maxx) ||
+       (p->y >= bb->maxy) || (p->y <= bb->miny))
       return 0;
  
    return 1;
@@ -76,13 +77,15 @@ static int poly_overlap (labelCacheMemberObj *c1, labelCacheMemberObj *c2) {
    RoadMapGuiPoint *b = c2->poly;
    RoadMapGuiPoint isect;
    int ai, bi;
+
    for (ai = 0; ai < 4; ai++) {
       for (bi = 0; bi < 4; bi++) {
          if (roadmap_math_screen_intersect( &a[ai], &a[(ai+1)%4],
                                 &b[bi], &b[(bi+1)%4], &isect)) {
             if (point_in_bbox(&isect, &c1->bbox) &&
-                point_in_bbox(&isect, &c2->bbox))
+                point_in_bbox(&isect, &c2->bbox)) {
                return 1;
+	    }
          }
       }
    }
@@ -108,13 +111,12 @@ static void compute_bbox(RoadMapGuiPoint *poly, RoadMapGuiRect *bbox) {
 
 
 static RoadMapGuiPoint get_metrics(labelCacheMemberObj *c, 
-                                        RoadMapGuiRect *rect) {
+				RoadMapGuiRect *rect, int centered_y) {
    RoadMapGuiPoint q;
    int x1=0, y1=0;
    RoadMapGuiPoint *poly = c->poly;
+   int buffer = 1;
    int w, h;
-   int buffer = 0;
-   int lines = 2;
    int angle = c->angle;
    RoadMapGuiPoint *p = &c->point;
 
@@ -122,8 +124,9 @@ static RoadMapGuiPoint get_metrics(labelCacheMemberObj *c,
    h = rect->maxy - rect->miny;
 
    /* position CC */
-   x1 = -(int)(w/2.0) + 0; // ox;
-   y1 = (int)(h/2.0) + 0; // oy;
+   x1 = -(w/2);
+
+   y1 = centered_y ? (h/2) : 0;
 
    q.x = x1 - rect->minx;
    q.y = rect->miny - y1;
@@ -139,16 +142,14 @@ static RoadMapGuiPoint get_metrics(labelCacheMemberObj *c,
    roadmap_math_rotate_point (&poly[1], p, angle);
 
    poly[2].x = x1 + w + buffer; /* ur */
-   poly[2].y = -(y1 -h - buffer);
+   poly[2].y = -(y1 - h - buffer);
    roadmap_math_rotate_point (&poly[2], p, angle);
 
    poly[3].x = x1 + w + buffer; /* lr */
    poly[3].y = -(y1 + buffer);
    roadmap_math_rotate_point (&poly[3], p, angle);
 
-   lines = 4;
-
-   /* roadmap_canvas_draw_multiple_lines(1, &lines, poly, 1); */
+// { int lines = 4; roadmap_canvas_draw_multiple_lines(1, &lines, poly, 1); }
 
    compute_bbox(poly, &c->bbox);
 
@@ -234,6 +235,7 @@ int roadmap_label_draw_cache (int angles) {
    RoadMapGuiPoint p;
    RoadMapGuiRect r;
    const char *text;
+   short aang;
 
    labelCacheMemberObj *cachePtr=NULL;
 
@@ -254,7 +256,13 @@ int roadmap_label_draw_cache (int angles) {
       text = properties.street;
       cachePtr->street = properties.plugin_street;
 
+#if ROADMAP_USE_LINEFONT
+      roadmap_linefont_extents(text, 16, &width, &ascent, &descent);
+#define CENTER_Y 0
+#else
       roadmap_canvas_get_text_extents(text, -1, &width, &ascent, &descent);
+#define CENTER_Y 1
+#endif
       r.minx = 0;
       r.maxx=width+1;
       r.miny = 0;
@@ -267,7 +275,7 @@ int roadmap_label_draw_cache (int angles) {
 
       cachePtr->status = 1; /* assume label *can* be drawn */
 
-      /* The stored point is not screen orieneted, rotate is needed */
+      /* The stored point is not screen oriented, rotate is needed */
       roadmap_math_rotate_coordinates (1, &cachePtr->point);
 
       if (angles) {
@@ -279,7 +287,10 @@ int roadmap_label_draw_cache (int angles) {
 
          cachePtr->angle -= 90;
 
-         p = get_metrics (cachePtr, &r);
+	 /* the linefont font is bad.  reading it is hard with a road
+	  * running through it, so we don't center it on the road.
+	  */
+         p = get_metrics (cachePtr, &r, CENTER_Y);
       } else {
          /* Text will be horizontal, so bypass a lot of math.
           * (and compensate for eventual centering of text.)  */
@@ -304,10 +315,29 @@ int roadmap_label_draw_cache (int angles) {
          if (rect_overlap (&RoadMapLabelCache.labels[i]->bbox,
                  &cachePtr->bbox)) {
 
-            /* if labels are horizontal, bbox check is sufficient.  else... */
-            if(!angles ||
-                poly_overlap (RoadMapLabelCache.labels[i], cachePtr)) {
+            /* if labels are horizontal, bbox check is sufficient */
+            if(!angles) {
+               cachePtr->status = 0;
+               break;
+            }
 
+	    /* if labels are almost horizontal, the bbox check is
+	     * sufficient.  (in addition, the line intersector
+	     * has trouble with flat or steep lines)
+	     */
+	    aang = abs(cachePtr->angle);
+	    if (aang < 4 || aang > 86) {
+		cachePtr->status = 0;
+		break;
+	    }
+	    aang = abs(RoadMapLabelCache.labels[i]->angle);
+	    if (aang < 4 || aang > 86) {
+		cachePtr->status = 0;
+		break;
+	    }
+
+	    /* otherwise we do the full poly check */
+	    if ( poly_overlap (RoadMapLabelCache.labels[i], cachePtr)) {
                cachePtr->status = 0;
                break;
             }
@@ -327,6 +357,11 @@ int roadmap_label_draw_cache (int angles) {
          continue; /* next label */
       }
 
+#if ROADMAP_USE_LINEFONT
+      roadmap_linefont_text (text, 
+	angles ? ROADMAP_LINEFONT_CENTERED_ABOVE : ROADMAP_LINEFONT_CENTERED,
+	&cachePtr->point, 16, cachePtr->angle);
+#else
       if (angles) {
          roadmap_canvas_draw_string_angle
                  (&p, &cachePtr->point, cachePtr->angle, text);
@@ -334,6 +369,7 @@ int roadmap_label_draw_cache (int angles) {
          roadmap_canvas_draw_string
                  (&cachePtr->point, ROADMAP_CANVAS_CENTER, text);
       }
+#endif
 
    } /* next label */
 
@@ -348,6 +384,9 @@ int roadmap_label_activate (void) {
    RoadMapLabelPen = roadmap_canvas_create_pen ("labels.main");
    roadmap_canvas_set_foreground
       (roadmap_config_get (&RoadMapConfigLabelsColor));
+
+   /* assume this will only affect our internal line fonts */
+   roadmap_canvas_set_thickness (2);
     
    return 0;
 }

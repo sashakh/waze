@@ -63,10 +63,6 @@
 
 #include "roadmap_screen.h"
 
-#ifndef ANGLED_LABELS
-#define ANGLED_LABELS 0
-#endif
-
 
 static RoadMapConfigDescriptor RoadMapConfigDeltaX =
                         ROADMAP_CONFIG_ITEM("Delta", "X");
@@ -656,12 +652,9 @@ static int roadmap_screen_draw_square
 	 roadmap_math_unproject(&loweredge);
 	 cutoff_dist = roadmap_math_screen_distance
                 (&label_cutoff, &loweredge, MATH_DIST_SQUARED);
-      }
-#if ANGLED_LABELS
-       else {
+      } else {
          angle_ptr = &angle;
       }
-#endif
    }
 
    /* Draw each line that belongs to this square. */
@@ -1022,8 +1015,7 @@ static void roadmap_screen_repaint (void) {
         roadmap_screen_flush_points ();
         
         if (!RoadMapScreenDragging) {
-            roadmap_label_draw_cache
-                (ANGLED_LABELS && RoadMapScreen3dHorizon == 0);
+            roadmap_label_draw_cache (RoadMapScreen3dHorizon == 0);
         }
     }
 
@@ -1358,31 +1350,32 @@ void roadmap_screen_decrease_horizon (void) {
    roadmap_screen_repaint ();
 }
 
+#define FRACMOVE 4
 
 void roadmap_screen_move_up (void) {
 
-   roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / 4));
+   roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / FRACMOVE));
    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_move_down (void) {
 
-   roadmap_screen_record_move (0, RoadMapScreenHeight / 4);
+   roadmap_screen_record_move (0, RoadMapScreenHeight / FRACMOVE);
    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_move_right (void) {
 
-   roadmap_screen_record_move (RoadMapScreenHeight / 4, 0);
+   roadmap_screen_record_move (RoadMapScreenHeight / FRACMOVE, 0);
    roadmap_screen_repaint ();
 }
 
 
 void roadmap_screen_move_left (void) {
 
-   roadmap_screen_record_move (0 - (RoadMapScreenHeight / 4), 0);
+   roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
    roadmap_screen_repaint ();
 }
 

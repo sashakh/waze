@@ -19,8 +19,8 @@ MODE =		# blank for "normal" build
 # Add any other special local CFLAGS values here
 CFLAGS =
 
-# if you know you need other libraries for your build, you can
-# add those here as well.  for example:
+# If you know you need other libraries for your build, you can
+# add those here as well.  For example:
 # LIBS += -L$(QTDIR)/lib64
 LIBS =
 
@@ -31,12 +31,13 @@ DESKTOP = GTK2
 # DESKTOP = QT
 # DESKTOP = QPE
 
-# if you select QT or QPE above, you might also want to set
-# QTDIR here:
+# If you select QT or QPE above, you might also want to set
+# QTDIR here.  (But it might already be set in your environment.)
 # QTDIR = /usr
-# if you are using a build of QT without the QPainter::rotate()
+# If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
-# some Familiar builds), set QT_NO_ROTATE
+# some Familiar builds), set QT_NO_ROTATE.  RoadMap will then use
+# its internal labeling font.
 # QT_NO_ROTATE = YES
 
 # RoadMap uses the "expat" library in order to read and write xml
@@ -54,13 +55,12 @@ EXPAT = YES
 SHAPEFILES = NO
 # SHAPEFILES = YES
 
-# In order to properly label streets on the map, it's necessary
-# to be able to draw text at arbitrary angles.  RoadMap uses the
-# "Anti-Grain Geometry" library, libagg.a, in order to do this. 
-# If you don't have this library, RoadMap can still do street
-# labels, but they will all be horizontal, and won't look as
+# For better-looking lines and a better looking street-label
+# font, RoadMap can use the "Anti-Grain Geometry" library,
+# libagg.a, on some desktops.  If you don't have this library,
+# RoadMap can still do street labels, but they won't look as
 # nice.  (for more information on AGG, see http://antigrain.com)
-# RoadMap requires version 2.4 of agg.
+# RoadMap requires version 2.4 of agg.  
 # [ Note -- currently, only GTK2 supports AGG builds.  ]
 # AGG = YES
 AGG = NO

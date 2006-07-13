@@ -94,31 +94,26 @@ ifneq ($(strip $(SHAPEFILES)),NO)
 	LIBS += -lshp
 endif
 
-# rotation support in QT/QPE
+# rotation support in QT/QPE?
 ifeq ($(strip $(QT_NO_ROTATE)),YES)
-	CFLAGS += -DQT_NO_ROTATE -UANGLED_LABELS
+	CFLAGS += -DQT_NO_ROTATE
 else
 ifeq ($(strip $(DESKTOP)),QT)
-	CFLAGS += -DANGLED_LABELS=1
+	CFLAGS += -DROADMAP_NO_LINEFONT
 endif
 ifeq ($(strip $(DESKTOP)),QPE)
-	CFLAGS += -DANGLED_LABELS=1
+	CFLAGS += -DROADMAP_NO_LINEFONT
 endif
 endif
 
-
-# later...
-# ifneq ($(NAVIGATE),NO)
-# 	LIBS += -L$(TOP)/dglib -ldgl
-# endif
 
 # each DESKTOP version has a fully-"native" canvas
-# implementation, as well as an agg-based implementation.
+# implementation, as well as a possible agg-based implementation.
 ifeq ($(strip $(AGG)),NO)
 	CANVAS_OBJS = roadmap_canvas.o
 else
 	LIBS += -lagg -lfreetype
-	CFLAGS += -DANGLED_LABELS=1 \
+	CFLAGS += -DROADMAP_NO_LINEFONT \
 		-I$(TOP)/agg_support \
 		-I/usr/include/agg2 \
 		-I/usr/local/include/agg2 \

@@ -117,21 +117,23 @@ INSTALLATION
    dependent on SQLite, even while using SQLite will be an option in the
    future.
 
-   By default RoadMap use the shapelib library (to decode the shape file
-   format). The shape file format is only used for converting the Digital
-   Charts of the World. If only US maps from the census bureau are used,
-   or if only pre-built maps are used, then there is no need for shapelib:
-   build RoadMap with the make option: SHAPEFILES=NO.
+   RoadMap can use the shapelib library (to decode the shape file format). 
+   The shape file format is only used for converting the Digital Charts of
+   the World.  If only US maps from the census bureau are used, or if only
+   pre-built maps are used, then there is no need for shapelib:  set
+   SHAPEFILES = NO in config.mk.
 
-   By default, RoadMap uses the expat library to load GPX trip and landmark
-   files. RoadMap can be built without expat using the make option: EXPAT=NO.
+   RoadMap uses the expat library to load GPX trip and landmark files. 
+   RoadMap can be built without expat, with some loss of functionality, by
+   changing config.mk to say:  EXPAT = NO.
 
-   Likewise, RoadMap will use the agg library to render angled text when
-   labeling streets.  If you don't have agg, RoadMap will label with
-   horizontal strings.  Use:  AGG=NO.  RoadMap requires version 2.4 of the
-   agg library -- 2.3 is incompatible.  If your linux distribution includes
-   2.3, make sure that if you install 2.4 as well, that RoadMap finds both
-   headers and libraries from 2.4.
+   Likewise, RoadMap can sometimes use the agg library to render anti-
+   aliased maps and street label text.  If you don't have agg, RoadMap
+   will label with a (relatively crude) built-in font.  To use agg:
+   AGG = YES.  RoadMap requires version 2.4 of the agg library -- 2.3 is
+   incompatible.  If your linux distribution includes 2.3, make sure that
+   if you install 2.4 as well, that RoadMap finds both headers and
+   libraries from 2.4.
 
 
 * WINDOWS SPECIFIC DEPENDENCIES AND LIMITATIONS
@@ -582,9 +584,6 @@ INSTALLATION
       effect is that you cannot load or save trips or landmarks anymore.
 
       [AGG=NO] Do not try to link roadmap with the agg library. 
-      The side effect is that street labels may be written
-      horizontally, rather than "along" their street.  (QT and QPE
-      builds can do angled labels without the agg library.)
 
 ----
 ----
