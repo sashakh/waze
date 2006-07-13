@@ -303,12 +303,19 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
       RoadMapGpsReceivedPosition.latitude  = fields->gll.latitude;
       RoadMapGpsReceivedPosition.longitude = fields->gll.longitude;
+
       /* speed not available: keep previous value. */
       /* altitude not available: keep previous value. */
       /* steering not available: keep previous value. */
 
       roadmap_gps_process_position();
    }
+}
+
+
+static void roadmap_gps_vtg (void *context, const RoadMapNmeaFields *fields) {
+   RoadMapGpsReceivedPosition.speed = fields->vtg.speed;
+   RoadMapGpsReceivedPosition.steering = fields->vtg.steering;
 }
 
 
@@ -435,6 +442,9 @@ static void roadmap_gps_nmea (void) {
 
       roadmap_nmea_subscribe
          (NULL, "GSA", roadmap_gps_gsa, RoadMapGpsNmeaAccount);
+
+      roadmap_nmea_subscribe
+         (NULL, "VTG", roadmap_gps_vtg, RoadMapGpsNmeaAccount);
 
       roadmap_nmea_subscribe
          ("GRM", "E", roadmap_gps_pgrme, RoadMapGpsNmeaAccount);
@@ -840,7 +850,7 @@ void roadmap_gps_open (void) {
    }
 
    RoadMapGpsConnectedSince = time(NULL);
-   //RoadMapGpsLatestData = time(NULL);
+   RoadMapGpsLatestData = time(NULL);
 
    (*RoadMapGpsPeriodicAdd) (roadmap_gps_keep_alive);
 
