@@ -133,10 +133,12 @@ RoadMapCanvasConfigureHandler RoadMapCanvasConfigure =
 
 
 void roadmap_canvas_get_text_extents 
-        (const char *text, int size, int *width, int *ascent, int *descent) {
+        (const char *text, int size, int *width,
+            int *ascent, int *descent, int *can_tilt) {
 
    *ascent = 0;
    *descent = 0;
+   if (can_tilt) *can_tilt = 1;
 
    wchar_t wstr[255];
    int length = roadmap_canvas_agg_to_wchar (text, wstr, 255);
@@ -273,7 +275,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
    int text_height;
    
    roadmap_canvas_get_text_extents 
-         (text, -1, &text_width, &text_ascent, &text_descent);
+         (text, -1, &text_width, &text_ascent, &text_descent, NULL);
    
    text_height = text_ascent + text_descent;
    

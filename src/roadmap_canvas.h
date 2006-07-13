@@ -67,7 +67,8 @@ void roadmap_canvas_register_configure_handler
  * according to the current font.
  */
 void roadmap_canvas_get_text_extents 
-        (const char *text, int size, int *width, int *ascent, int *descent);
+        (const char *text, int size, int *width,
+            int *ascent, int *descent, int *can_tilt);
 
 
 /* This call creates a new pen. If the pen already exists,

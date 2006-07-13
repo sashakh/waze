@@ -73,7 +73,7 @@ public:
 
 	void registerConfigureHandler(RoadMapCanvasConfigureHandler handler);
 	void getTextExtents(const char* text, int* width, int* ascent, 
-		int* descent);
+		int* descent, int *can_tilt);
 
 	int getHeight();
 	int getWidth();

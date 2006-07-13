@@ -83,9 +83,9 @@ void roadmap_canvas_register_configure_handler(
 }
 
 void roadmap_canvas_get_text_extents(const char *text, int size,
-	int *width, int *ascent, int *descent) {
+	int *width, int *ascent, int *descent, int *can_tilt) {
 
-	roadMapCanvas->getTextExtents(text, width, ascent, descent);
+	roadMapCanvas->getTextExtents(text, width, ascent, descent, can_tilt);
 }
 
 RoadMapPen roadmap_canvas_create_pen (const char *name) {

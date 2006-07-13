@@ -102,7 +102,7 @@ void RMapCanvas::erase() {
 }
 
 void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
-	int* descent) {
+	int* descent, int *can_tilt) {
 
 	QFont f("Arial Bold",12);
 	QFontMetrics fm(f);
@@ -111,6 +111,11 @@ void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
 	*w = r.width();
 	*ascent = fm.ascent();
 	*descent = fm.descent();
+#ifdef QT_NO_ROTATE
+	if (can_tilt) *can_tilt = 0;
+#else
+	if (can_tilt) *can_tilt = 1;
+#endif
 
 }
 
@@ -132,7 +137,7 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
 	int text_descent;
 	int x, y;
 
-	getTextExtents(text, &text_width, &text_ascent, &text_descent);
+	getTextExtents(text, &text_width, &text_ascent, &text_descent, NULL);
 
 	switch (corner) {
 

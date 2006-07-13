@@ -149,7 +149,10 @@ static RoadMapGuiPoint get_metrics(labelCacheMemberObj *c,
    poly[3].y = -(y1 + buffer);
    roadmap_math_rotate_point (&poly[3], p, angle);
 
-// { int lines = 4; roadmap_canvas_draw_multiple_lines(1, &lines, poly, 1); }
+#define POLY_OUTLINE 0
+#if POLY_OUTLINE
+   { int lines = 4; roadmap_canvas_draw_multiple_lines(1, &lines, poly, 1); }
+#endif
 
    compute_bbox(poly, &c->bbox);
 
@@ -257,11 +260,16 @@ int roadmap_label_draw_cache (int angles) {
       cachePtr->street = properties.plugin_street;
 
 #if ROADMAP_USE_LINEFONT
-      roadmap_linefont_extents(text, 16, &width, &ascent, &descent);
+     /* The linefont font isn't pretty.  Reading it is hard with
+      * a road running through it, so we don't center labels on
+      * the road.  */
 #define CENTER_Y 0
+      roadmap_linefont_extents(text, 16, &width, &ascent, &descent);
 #else
-      roadmap_canvas_get_text_extents(text, -1, &width, &ascent, &descent);
 #define CENTER_Y 1
+      roadmap_canvas_get_text_extents
+            (text, -1, &width, &ascent, &descent, &i);
+      angles = angles && i;
 #endif
       r.minx = 0;
       r.maxx=width+1;
@@ -287,9 +295,6 @@ int roadmap_label_draw_cache (int angles) {
 
          cachePtr->angle -= 90;
 
-	 /* the linefont font is bad.  reading it is hard with a road
-	  * running through it, so we don't center it on the road.
-	  */
          p = get_metrics (cachePtr, &r, CENTER_Y);
       } else {
          /* Text will be horizontal, so bypass a lot of math.

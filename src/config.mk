@@ -34,10 +34,14 @@ DESKTOP = GTK2
 # If you select QT or QPE above, you might also want to set
 # QTDIR here.  (But it might already be set in your environment.)
 # QTDIR = /usr
+
 # If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
 # some Familiar builds), set QT_NO_ROTATE.  RoadMap will then use
-# its internal labeling font.
+# its internal labeling font.  Unfortunately, QT's line drawing
+# makes the internal font is particularly hard to read.  You may
+# also wish to add "CFLAGS += -DROADMAP_NO_LINEFONT" to force
+# horizionatl labels.
 # QT_NO_ROTATE = YES
 
 # RoadMap uses the "expat" library in order to read and write xml

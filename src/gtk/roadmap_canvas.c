@@ -80,7 +80,8 @@ static RoadMapCanvasConfigureHandler RoadMapCanvasConfigure =
 
 
 void roadmap_canvas_get_text_extents 
-        (const char *text, int size, int *width, int *ascent, int *descent) {
+        (const char *text, int size, int *width,
+            int *ascent, int *descent, int *can_tilt) {
 
     static int RoadMapCanvasAscent = 0;
     static int RoadMapCanvasDescent = 0;
@@ -112,6 +113,7 @@ void roadmap_canvas_get_text_extents
     
     *ascent  = RoadMapCanvasAscent;
     *descent = RoadMapCanvasDescent;
+    if (can_tilt) *can_tilt = 0;
 }
 
 
@@ -205,7 +207,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
    int text_descent;
 
    roadmap_canvas_get_text_extents 
-        (text, -1, &text_width, &text_ascent, &text_descent);
+        (text, -1, &text_width, &text_ascent, &text_descent, NULL);
 
    switch (corner) {
 
@@ -278,7 +280,7 @@ void roadmap_canvas_draw_multiple_lines
 
 void roadmap_canvas_draw_multiple_polygons
          (int count, int *polygons, RoadMapGuiPoint *points, int filled,
-	    int fast_draw) {
+            int fast_draw) {
 
    int i;
 
@@ -297,7 +299,7 @@ void roadmap_canvas_draw_multiple_polygons
 
 void roadmap_canvas_draw_multiple_circles
         (int count, RoadMapGuiPoint *centers, int *radius, int filled,
-	    int fast_draw) {
+            int fast_draw) {
 
    int i;
 

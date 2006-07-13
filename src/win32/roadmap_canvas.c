@@ -83,7 +83,7 @@ static void roadmap_canvas_convert_points (POINT *winpoints,
 
 
 void roadmap_canvas_get_text_extents (const char *text, int size,
-			int *width, int *ascent, int *descent)
+			int *width, int *ascent, int *descent, int *can_tilt)
 {
 	TEXTMETRIC metric;
 	LPWSTR text_unicode = ConvertToUNICODE(text);
@@ -94,6 +94,7 @@ void roadmap_canvas_get_text_extents (const char *text, int size,
 	GetTextMetrics(RoadMapDrawingBuffer, &metric);
 	*ascent = metric.tmAscent;
 	*descent = metric.tmDescent;
+        if (can_tilt) *can_tilt = 0;
 }
 
 
@@ -208,7 +209,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	LPWSTR text_unicode;
 	
 	roadmap_canvas_get_text_extents 
-        (text, -1, &text_width, &text_ascent, &text_descent);
+            (text, -1, &text_width, &text_ascent, &text_descent, NULL);
 	
 	text_height = text_ascent + text_descent;
 	
