@@ -53,6 +53,8 @@ int roadmap_net_send    (RoadMapSocket s, const void *data, int length);
 RoadMapSocket roadmap_net_listen(int port);
 RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket);
 
+int roadmap_net_unique_id (unsigned char *buffer, unsigned int size);
+
 void roadmap_net_close  (RoadMapSocket s);
 
 #endif // _ROADMAP_NET__H_
