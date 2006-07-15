@@ -46,7 +46,7 @@ typedef struct roadmap_list_head RoadMapList;
 
 void roadmap_list_insert (RoadMapList *list, RoadMapListItem *item);
 void roadmap_list_append (RoadMapList *list, RoadMapListItem *item);
-void roadmap_list_remove (RoadMapList *list, RoadMapListItem *item);
+RoadMapListItem *roadmap_list_remove (RoadMapList *list, RoadMapListItem *item);
 
 int  roadmap_list_count  (const RoadMapList *list);
 

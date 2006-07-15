@@ -33,15 +33,15 @@
 
 void roadmap_list_insert (RoadMapList *list, RoadMapListItem *item) {
     
-    item->previous = NULL;
+    item->next = list->first;
     
     if (list->first == NULL) {
-        list->first = item;
-        list->last  = item;
+        list->last = item;
+        list->first  = item;
     } else {
         list->first->previous = item;
     }
-    item->next = list->first;
+    item->previous = NULL;
     list->first = item;
 }
 
@@ -61,7 +61,7 @@ void roadmap_list_append (RoadMapList *list, RoadMapListItem *item) {
 }
 
 
-void roadmap_list_remove (RoadMapList *list, RoadMapListItem *item) {
+RoadMapListItem *roadmap_list_remove (RoadMapList *list, RoadMapListItem *item) {
     
     if (item->previous == NULL) {
         list->first = item->next;
@@ -73,6 +73,7 @@ void roadmap_list_remove (RoadMapList *list, RoadMapListItem *item) {
     } else {
         item->next->previous = item->previous;
     }
+    return item;
 }
 
 int  roadmap_list_count  (const RoadMapList *list) {
