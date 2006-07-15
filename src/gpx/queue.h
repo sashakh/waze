@@ -35,9 +35,12 @@ int queue_count(queue *q);
 #define QUEUE_NEXT(element) ((element)->next)
 #define QUEUE_LAST(head) ((head)->prev)
 #define QUEUE_EMPTY(head) ((head)->next == (head))
+
+/* anything attached to oldhead will be re-anchord at newhead.
+ * newhead will be cleared, and anything at newhead will be lost.  */
 #define QUEUE_MOVE(newhead,oldhead) \
-        if ( (oldhead)->next == (oldhead) ) {\
-                (newhead)->next = (newhead)->prev = (newhead); \
+        if ( QUEUE_EMPTY(oldhead) ) {\
+                QUEUE_INIT(newhead); \
         } \
         else { \
                 (newhead)->next = (oldhead)->next; \
@@ -45,15 +48,18 @@ int queue_count(queue *q);
                 (newhead)->next->prev = (newhead); \
                 (newhead)->prev->next = (newhead); \
         } \
-        (oldhead)->next = (oldhead)->prev = (oldhead)
+        QUEUE_INIT(oldhead)
 
+/* anything attached to fromhead will be appended at the end of tohead.
+ * fromhead is emptied.  */
 #define QUEUE_SPLICE(tohead,fromhead) \
-        if ( (fromhead)->next != (fromhead) ) {\
+        if ( !QUEUE_EMPTY(fromhead) ) {\
                 (tohead)->prev->next = (fromhead)->next; \
                 (fromhead)->next->prev = (tohead)->prev; \
                 (fromhead)->prev->next = (tohead); \
                 (tohead)->prev = (fromhead)->prev; \
-        }
+        } \
+        QUEUE_INIT(fromhead)
 
 #define ENQUEUE_TAIL(listhead, element) \
                 enqueue(element, (listhead)->prev)
@@ -68,4 +74,10 @@ int queue_count(queue *q);
         for ((element) = QUEUE_FIRST(listhead); \
                 (tmp) = QUEUE_NEXT(element), \
                 (element) != (listhead); \
+                (element) = (tmp))
+
+#define QUEUE_FOR_EACH_FROM_TO(from, to, element, tmp) \
+        for ((element) = (from); \
+                (tmp) = QUEUE_NEXT(element), \
+                (element) != (to); \
                 (element) = (tmp))
