@@ -62,6 +62,7 @@ typedef struct dialog_selected_lines {
 static char *def_values[2] = {"", "Other"};
 
 /* NOTE: This function modifies the street_range parameter */
+#if 0
 static void decode_range (char *street_range,
                           int *from1,
                           int *to1,
@@ -79,7 +80,7 @@ static void decode_range (char *street_range,
       if (i>max) break;
 
       ranges[num_ranges++] = street_range+i;
-      if (num_ranges == (sizeof(ranges) / sizeof(ranges[0]))) break;
+      if (num_ranges == (sizeof(ranges) / sizeof(ranges[0]) - 1)) break;
 
       while (isdigit (street_range[i]) && (i <= max)) i++;
 
@@ -111,6 +112,7 @@ static void decode_range (char *street_range,
       }
    }
 }
+#endif
 
 
 static const char *editor_segments_find_city
@@ -234,8 +236,8 @@ static void editor_segments_apply (const char *name, void *context) {
    char *t2s =
       (char *) roadmap_dialog_get_data ("General", "Text to Speech");
    
-   char *street_range =
-      (char *) roadmap_dialog_get_data ("General", "Street range");
+/*   char *street_range =
+      (char *) roadmap_dialog_get_data ("General", "Street range"); */
 
    char *city = (char *) roadmap_dialog_get_data ("General", "City");
    char *zip = (char *) roadmap_dialog_get_data ("General", "Zip code");
@@ -254,7 +256,7 @@ static void editor_segments_apply (const char *name, void *context) {
 
    l_from = l_to = r_from = r_to = -1;
 
-   decode_range (street_range, &l_from, &l_to, &r_from, &r_to);
+   //decode_range (street_range, &l_from, &l_to, &r_from, &r_to);
    speed_limit = (LineRouteMax) atoi (speed_limit_str);
 
    for (i=0; i<selected_lines->count; i++) {

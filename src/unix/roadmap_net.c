@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
+#include <time.h>
 
 #include <unistd.h>
 
@@ -41,6 +42,7 @@
 #include <arpa/inet.h>
 
 #include "roadmap.h"
+#include "md5.h"
 #include "roadmap_net.h"
 
 
@@ -190,4 +192,23 @@ RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket) {
 void roadmap_net_close (RoadMapSocket s) {
    close ((int)s);
 }
+
+
+int roadmap_net_unique_id (unsigned char *buffer, unsigned int size) {
+   struct MD5Context context;
+   unsigned char digest[16];
+   time_t tm;
+
+   time(&tm);
+      
+   MD5Init (&context);
+   MD5Update (&context, (unsigned char *)&tm, sizeof(tm));
+   MD5Final (digest, &context);
+
+   if (size > sizeof(digest)) size = sizeof(digest);
+   memcpy(buffer, digest, size);
+
+   return size;
+}
+
 

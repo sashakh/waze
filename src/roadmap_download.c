@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <zlib.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -64,12 +65,14 @@ struct roadmap_download_tool {
    char *name;
 };
 
+#if 0
 static struct roadmap_download_tool RoadMapDownloadCompressTools[] = {
    {".gz",  "gunzip -f"},
    {".bz2", "bunzip2 -f"},
    {".lzo", "lzop -d -Uf"},
    {NULL, NULL}
 };
+#endif
 
 static RoadMapHash *RoadMapDownloadBlock = NULL;
 static int *RoadMapDownloadBlockList = NULL;
@@ -350,23 +353,78 @@ int roadmap_download_blocked (int fips) {
 }
 
 
-static void roadmap_download_uncompress (const char *destination) {
-
+static int roadmap_download_uncompress (const char *tmp_file,
+                                        const char *destination) {
    char *p;
-   char  command[2048];
-   struct roadmap_download_tool *tool;
+   RoadMapFile source_file;
+   gzFile      source_file_gz;
+   RoadMapFile dest_file;
+   char *dest_name = strdup(destination);
+   int is_gz_file = 0;
+   int res = 0;
+   char buffer[1024];
+   int count;
 
-   for (tool = RoadMapDownloadCompressTools; tool->suffix != NULL; ++tool) {
+   p = strstr (dest_name, ".gz");
 
-      p = strstr (destination, tool->suffix);
+   if ((p != NULL) && (strcmp (p, ".gz") == 0)) {
+      is_gz_file = 1;
+      *p = '\0';
+      source_file_gz = gzopen(tmp_file, "rb");
+      if (!source_file_gz) res = -1;
 
-      if ((p != NULL) && (strcmp (p, tool->suffix) == 0)) {
+   } else {
 
-         snprintf (command, sizeof(command), "%s %s", tool->name, destination);
-         roadmap_spawn_command (command);
+      source_file = roadmap_file_open (tmp_file, "r");
+      if (!ROADMAP_FILE_IS_VALID (source_file)) res = -1;
+   }
+
+   if (res != 0) {
+      free(dest_name);
+      roadmap_file_remove (NULL, tmp_file);
+      return res;
+   }
+
+   roadmap_file_remove (NULL, dest_name);
+   dest_file = roadmap_file_open (dest_name, "w");
+   if (!ROADMAP_FILE_IS_VALID (dest_file)) {
+      res = -1;
+      goto end;
+   }
+
+   while (1) {
+
+      if (is_gz_file) {
+         count = gzread (source_file_gz, buffer, sizeof(buffer));
+      } else {
+         count = roadmap_file_read (source_file, buffer, sizeof(buffer));
+      }
+
+      if (count <= 0) {
+         res = count;
+         break;
+      }
+
+      if (roadmap_file_write (dest_file, buffer, count) != count) {
+         res = -1;
          break;
       }
    }
+
+end:
+   free(dest_name);
+
+   if (is_gz_file) {
+      gzclose (source_file_gz);
+   } else {
+      roadmap_file_close (source_file);
+   }
+
+   if (ROADMAP_FILE_IS_VALID (dest_file)) {
+      roadmap_file_close (dest_file);
+   }
+
+   return res;
 }
 
 
@@ -378,6 +436,7 @@ static int roadmap_download_start (const char *name) {
 
    char source[256];
    char destination[256];
+   const char *tmp_file;
 
    const char *format;
    const char *directory;
@@ -394,8 +453,10 @@ static int roadmap_download_start (const char *name) {
 
    directory = roadmap_path_parent (NULL, destination);
    roadmap_path_create (directory);
+   tmp_file = roadmap_path_join (directory, "dl_tmp.dat");
    roadmap_path_free (directory);
 
+   roadmap_file_remove (NULL, tmp_file);
 
    /* FIXME: at this point, we should set a temporary destination
     * file name. When done with the transfer, we should rename the file
@@ -415,25 +476,27 @@ static int roadmap_download_start (const char *name) {
          roadmap_locator_close (fips);
 
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
-                                source, destination)) {
+                                source, tmp_file)) {
 
             char *tmp;
 
-            roadmap_download_uncompress (destination);
+            roadmap_download_uncompress (tmp_file, destination);
             RoadMapDownloadRefresh = 1;
 
             /* download navigation data */
             if ((tmp = strstr (source, ".rdm")) != NULL) {
-               strcpy (tmp, ".dgl");
+               memcpy (tmp, ".dgl", 4);
 
                if ((tmp = strstr (destination, ".rdm")) != NULL) {
-                  strcpy (tmp, ".dgl");
+                  memcpy (tmp, ".dgl", 4);
                
                      if (!protocol->handler (&RoadMapDownloadCallbackFunctions,
-                                                source, destination)) {
+                                                source, tmp_file)) {
                         roadmap_messagebox ("Error",
                               "Error downloading navigation data.");
                         error = 1;
+                     } else {
+                        roadmap_download_uncompress (tmp_file, destination);
                      }
                }
             }
@@ -446,6 +509,9 @@ static int roadmap_download_start (const char *name) {
          break;
       }
    }
+
+   roadmap_file_remove (NULL, tmp_file);
+   roadmap_path_free (tmp_file);
 
    if (protocol == NULL) {
 
@@ -490,6 +556,7 @@ static int roadmap_download_usdir (void) {
 
    char *format;
    const char *directory;
+   const char *tmp_file;
 
 
    strncpy (source, roadmap_config_get (&RoadMapConfigSource), sizeof(source));
@@ -515,14 +582,9 @@ static int roadmap_download_usdir (void) {
 
    directory = roadmap_path_parent (NULL, destination);
    roadmap_path_create (directory);
+
+   tmp_file = roadmap_path_join (directory, "dl_tmp.dat");
    roadmap_path_free (directory);
-
-
-   /* FIXME: at this point, we should set a temporary destination
-    * file name. When done with the transfer, we should rename the file
-    * to its final name. That would replace the "freeze" in a more
-    * elegant manner.
-    */
 
    /* Search for the correct protocol handler to call this time. */
 
@@ -536,9 +598,9 @@ static int roadmap_download_usdir (void) {
          roadmap_locator_close_dir();
 
          if (protocol->handler (&RoadMapDownloadCallbackFunctions,
-                                source, destination)) {
+                                source, tmp_file)) {
 
-            roadmap_download_uncompress (destination);
+            roadmap_download_uncompress (tmp_file, destination);
             RoadMapDownloadRefresh = 1;
          } else {
             error = -1;
@@ -548,6 +610,8 @@ static int roadmap_download_usdir (void) {
          break;
       }
    }
+
+   roadmap_path_free (tmp_file);
 
    if (protocol == NULL) {
 

@@ -42,10 +42,9 @@
 #include "roadmap_config.h"
 #include "roadmap_main.h"
 #include "roadmap_fileselection.h"
+#include "md5.h"
 
 #include "editor_upload.h"
-
-static FILE *dbg_file;
 
 #define ROADMAP_HTTP_MAX_CHUNK 4096
 
@@ -146,20 +145,18 @@ static RoadMapDownloadCallbacks RoadMapUploadCallbackFunctions = {
 #endif
 
 static int editor_http_send (RoadMapSocket socket,
-                              RoadMapDownloadCallbackError error,
-                              const char *format, ...)
+                             RoadMapDownloadCallbackError error,
+                             const char *format, ...)
 {
    va_list ap;
    int     length;
    char    buffer[ROADMAP_HTTP_MAX_CHUNK];
    
-   if (!dbg_file) dbg_file = fopen ("/tmp/post3.gpx", "w");
    va_start(ap, format);
    vsnprintf (buffer, sizeof(buffer), format, ap);
    va_end(ap);
 
    length = strlen(buffer);
-   fwrite (buffer, length, 1, dbg_file);
    if (roadmap_net_send (socket, buffer, length) != length) {
       error ("send error on: %s", buffer);
       return -1;
@@ -423,14 +420,14 @@ static int editor_post_file (const char *target,
    int size;
    int loaded;
    int uploaded;
-
    char buffer[ROADMAP_HTTP_MAX_CHUNK];
+   char digest_hex[100];
 
    RoadMapFile file = roadmap_file_open (file_name, "r");
 
    if (!ROADMAP_NET_IS_VALID(file)) {
       editor_upload_error ("Can't open file: %s\n", file_name);
-      return 0;
+      return -1;
    }
 
    size = roadmap_file_length (NULL, file_name);
@@ -438,9 +435,22 @@ static int editor_post_file (const char *target,
    editor_upload_request (size);
    RoadMapUploadCurrentName = file_name;
 
-   fd = editor_http_send_header (target, file_name, size, user_name, password, editor_upload_error);
+   if (!user_name[0]) {
+      unsigned char digest[16];
+      if (roadmap_net_unique_id (digest, sizeof(digest)) != sizeof(digest)) {
+         return -1;
+      }
+
+      MD5Hex (digest, digest_hex);
+
+      user_name = "anonymous";
+      password = digest_hex;
+   }
+
+   fd = editor_http_send_header
+         (target, file_name, size, user_name, password, editor_upload_error);
    if (!ROADMAP_NET_IS_VALID(fd)) {
-      return 0;
+      return -1;
    }
 
    uploaded = 0;
@@ -451,7 +461,6 @@ static int editor_post_file (const char *target,
    while (loaded < size) {
 
       uploaded = roadmap_file_read (file, buffer, sizeof(buffer));
-   fwrite (buffer, uploaded, 1, dbg_file);
       uploaded = roadmap_net_send (fd, buffer, uploaded);
 
       if (uploaded <= 0) {
@@ -464,7 +473,6 @@ static int editor_post_file (const char *target,
    }
 
    editor_http_send (fd, editor_upload_error, "\r\n-----------------------------10424402741337131014341297293--\r\n");
-   fflush (dbg_file);
 
    loaded = sizeof(buffer);
    if (!editor_http_decode_response
@@ -477,14 +485,14 @@ static int editor_post_file (const char *target,
    buffer[loaded] = 0;
 
    roadmap_messagebox ("Upload done.", buffer);
-   return 1;
+   return 0;
 
 cancel_upload:
 
    roadmap_net_close (fd);
    roadmap_dialog_hide ("Uploading");
 
-   return 0;
+   return -1;
 }
 
 
@@ -559,11 +567,12 @@ static void editor_upload_file_dialog_ok
 void editor_upload_select (void) {
                                 
    roadmap_fileselection_new ("Upload file",
-                              "gpx",
+                              "gpx.gz",
                               roadmap_path_user (),
                               "r",
                               editor_upload_file_dialog_ok);
 }
+
 
 void editor_upload_initialize (void) {
 
@@ -574,5 +583,15 @@ void editor_upload_initialize (void) {
 
    roadmap_config_declare ("preferences", &RoadMapConfigUser, "");
    roadmap_config_declare_password ("preferences", &RoadMapConfigPassword, "");
+}
+
+
+int editor_upload_auto (const char *filename) {
+
+   return editor_post_file (
+            roadmap_config_get (&RoadMapConfigTarget),
+            filename, 
+            roadmap_config_get (&RoadMapConfigUser),
+            roadmap_config_get (&RoadMapConfigPassword));
 }
 

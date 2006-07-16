@@ -302,4 +302,9 @@ int roadmap_net_unique_id(unsigned char *buffer, unsigned int size)
 
    return -1;
 }
+#else
+int roadmap_net_unique_id(unsigned char *buffer, unsigned int size)
+{
+	return 16;
+}
 #endif

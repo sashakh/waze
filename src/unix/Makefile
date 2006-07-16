@@ -16,6 +16,7 @@ OSLIBSRCS=roadmap_file.c \
           roadmap_path.c \
           roadmap_library.c \
           roadmap_net.c \
+          ../md5.c \
           roadmap_serial.c \
           roadmap_spawn.c \
           roadmap_time.c

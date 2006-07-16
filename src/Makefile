@@ -188,6 +188,7 @@ RMPLUGINSRCS=roadmap_copy.c \
 				 editor/export/editor_export.c \
              editor/export/editor_download.c \
              editor/export/editor_upload.c \
+             editor/export/editor_sync.c \
              editor/db/editor_trkseg.c \
              editor/track/editor_track_filter.c \
              editor/track/editor_track_util.c \
@@ -285,6 +286,9 @@ clean: cleanone
 		fi ; \
 	done
 	if [ -d unix ] ; then $(MAKE) -C unix cleanone ; fi
+	find editor -name \*.o -exec rm {} \;
+	find navigate -name \*.o -exec rm {} \;
+	find agg -name \*.o -exec rm {} \;
 
 cleanone:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)

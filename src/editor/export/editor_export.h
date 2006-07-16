@@ -24,6 +24,7 @@
 #ifndef INCLUDE__EDITOR_EXPORT__H
 #define INCLUDE__EDITOR_EXPORT__H
 
+int editor_export_data(const char *name, int ui);
 void editor_export_gpx (void);
 void editor_export_reset_dirty (void);
 int editor_export_empty (int fips);

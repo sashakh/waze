@@ -499,7 +499,7 @@ static int export_dirty_lines(ExportStream *stream, const char *name) {
 }
  
 
-static int editor_export_data(const char *name) {
+int editor_export_data(const char *name, int ui) {
    
    ExportStream stream;
    int trkseg;
@@ -513,15 +513,20 @@ static int editor_export_data(const char *name) {
    fips = roadmap_locator_active ();
 
    if (fips < 0) {
-      editor_log (ROADMAP_ERROR, "Can't locate current fips");
-      roadmap_messagebox ("Export Error", "Can't locate fips.");
-      return -1;
+      if (!ui) {
+         fips = 77001;
+      } else {
+         editor_log (ROADMAP_ERROR, "Can't locate current fips");
+         roadmap_messagebox ("Export Error", "Can't locate fips.");
+         return -1;
+      }
    }
 
    if (editor_db_activate (fips) == -1) {
-      editor_log (ROADMAP_ERROR, "Can't load editor db");
-      roadmap_messagebox ("Export Error", "No editor data to export.");
-      return -1;
+      if (ui) {
+         roadmap_messagebox ("Export Error", "No editor data to export.");
+      }
+      return 0;
    }
 
    editor_track_end ();
@@ -531,8 +536,10 @@ static int editor_export_data(const char *name) {
    if (trkseg == -1) {
 
       if (!export_dirty_lines (&stream, name)) {
-         editor_log (ROADMAP_INFO, "No trksegs are available for export.");
-         roadmap_messagebox ("Export Error", "No new data to export.");
+         if (ui) {
+            editor_log (ROADMAP_INFO, "No trksegs are available for export.");
+            roadmap_messagebox ("Export Error", "No new data to export.");
+         }
 
          if (stream.type != NULL_STREAM) {
             close_export_stream (&stream);
@@ -541,8 +548,11 @@ static int editor_export_data(const char *name) {
          return 0;
       }
       close_export_stream (&stream);
-      editor_export_upload (name);
-      return 0;
+      
+      if (ui) {
+         editor_export_upload (name);
+      }
+      return 1;
    }
 
    if (create_export_stream (&stream, name) != 0) {
@@ -650,9 +660,12 @@ next_trkseg:
    close_export_stream (&stream);
 
    editor_trkseg_reset_next_export ();
-   editor_export_upload (name);
 
-   return 0;
+   if (ui) {
+      editor_export_upload (name);
+   }
+
+   return 1;
 }
 
 
@@ -697,7 +710,7 @@ void editor_export_reset_dirty () {
 static void editor_export_file_dialog_ok
                            (const char *filename, const char *mode) {
 
-   editor_export_data (filename);
+   editor_export_data (filename, 1);
 }
 
 

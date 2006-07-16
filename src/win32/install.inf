@@ -11,6 +11,7 @@ CESignature = "$Windows CE$"
 Provider = %CompanyName%
 
 [DefaultInstall]
+CESETUPDLL="setupdll.dll"
 CEShortcuts = Shortcuts.All
 
 [DefaultInstall.ARM]
@@ -27,6 +28,8 @@ CopyFiles = Files.Config, Files.Maps, Files.ARM, Files.Icons, Files.Dll
 3 = ,"ARM files",,L:\shared\roadmap_editor\src\win32\wince_env\Roadmap\ARMV4Rel
 4 = ,"ARM files",,L:\shared\roadmap_editor\src\win32\wince_env\RoadGPS\ARMV4Rel
 8 = ,"ARMDll files",,C:\Projects\ComSplit\ARMV4Rel
+9 = ,"Setup Dll",,L:\shared\roadmap_editor\src\win32\wince_env\setupdll\ARMV4Rel
+
 
 [SourceDisksFiles]
 drivers = 1
@@ -70,6 +73,7 @@ nav_u_turn.bmp = 7
 Roadmap.exe = 3
 RoadGPS.exe = 4
 ComSplit.dll = 8
+setupdll.dll = 9
 
 [DestinationDirs]
 Shortcuts.All = 0,%CE11%
@@ -132,4 +136,5 @@ RoadGPS.exe,,,0
 
 [Files.Dll]
 ComSplit.dll,,,0
+setupdll.dll,,0x80000000
 

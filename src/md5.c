@@ -247,3 +247,24 @@ MD5Transform(uint32 buf[4], uint32 const in[16])
     buf[2] += c;
     buf[3] += d;
 }
+
+
+void MD5Hex(const unsigned char digest[16], char *buffer)
+{
+   unsigned int i;
+
+   static const char bin2hex[] = { '0', '1', '2', '3',
+                                   '4', '5', '6', '7',
+                                   '8', '9', 'a', 'b',
+                                   'c', 'd', 'e', 'f' };
+
+   for (i=0; i<sizeof(digest); i++) {
+      *buffer = bin2hex[digest[i] >> 4];
+      buffer++;
+      *buffer = bin2hex[digest[i] & 0xf];
+      buffer++;
+   }
+
+   *buffer = '\0';
+}
+

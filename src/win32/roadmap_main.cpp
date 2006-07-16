@@ -27,9 +27,16 @@
 
 #include <windows.h>
 #include <commctrl.h>
-#include <aygshell.h>
 #include "resource.h"
-#include <Winsock.h>
+#include <winsock.h>
+#ifdef UNDER_CE
+#include <aygshell.h>
+#include <notify.h>
+#endif
+
+#ifndef I_IMAGENONE
+#define I_IMAGENONE (-2)
+#endif
 
 #ifdef WIN32_PROFILE
 #include <C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h>
@@ -50,6 +57,8 @@ extern "C" {
 #include "wince_input_mon.h"
 #include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
+#include "../editor/editor_main.h"
+#include "../editor/export/editor_sync.h"
 }
 
 
@@ -76,7 +85,11 @@ static roadmap_main_io *RoadMapMainIo[ROADMAP_MAX_IO] = {0};
 
 // varibles used across this module
 static RoadMapKeyInput	RoadMapMainInput = NULL;
+#ifdef UNDER_CE
 static HWND				   RoadMapMainMenuBar = NULL;
+#else
+static HMENU			   RoadMapMainMenuBar = NULL;
+#endif
 static HMENU			   RoadMapCurrentSubMenu = NULL;
 static HWND				   RoadMapMainToolbar = NULL;
 static bool				   RoadMapMainFullScreen = false;
@@ -89,8 +102,8 @@ extern "C" HINSTANCE	g_hInst = NULL;
 extern "C" HWND			RoadMapMainWindow  = NULL;
 
 // Forward declarations of functions included in this code module:
-static ATOM				MyRegisterClass(HINSTANCE, LPTSTR);
-static BOOL				InitInstance(HINSTANCE);
+static ATOM				   MyRegisterClass(HINSTANCE, LPTSTR);
+static BOOL				   InitInstance(HINSTANCE, LPTSTR);
 static LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 static INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
@@ -98,19 +111,36 @@ static INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 // class name definition
 #ifdef _ROADGPS
-static TCHAR szWindowClass[] = _T("RoadGPSClass");
-static TCHAR szOtherWindowClass[] = _T("RoadMapClass");
+static WCHAR szWindowClass[] = L"RoadGPSClass";
+static WCHAR szOtherWindowClass[] = L"RoadMapClass";
 #else
-static TCHAR szWindowClass[] = _T("RoadMapClass");
-static TCHAR szOtherWindowClass[] = _T("RoadGPSClass");
+static WCHAR szWindowClass[] = L"RoadMapClass";
+static WCHAR szOtherWindowClass[] = L"RoadGPSClass";
 #endif
 
 static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
                         ROADMAP_CONFIG_ITEM("GPS", "Virtual");
 
+static void roadmap_main_start_sync (void) {
+
+   struct hostent *h;
+   int i;
+
+   Sleep(1000);
+
+   for (i=0; i<5; i++) {
+      if ((h = gethostbyname ("ppp_peer")) != NULL) {
+         export_sync ();
+         break;
+      }
+      Sleep(1000);
+   }
+}
+
 
 static void setup_virtual_serial (void) {
 
+#ifdef UNDER_CE
    DWORD index;
    DWORD resp;
 	HKEY key;
@@ -132,20 +162,21 @@ static void setup_virtual_serial (void) {
    }
 #endif
 
-	RegCreateKeyEx(HKEY_LOCAL_MACHINE, _T("Drivers\\RoadMap"),
+	RegCreateKeyEx(HKEY_LOCAL_MACHINE, L"Drivers\\RoadMap",
 		0, NULL, REG_OPTION_NON_VOLATILE, 0, NULL, &key, &resp);
-	RegSetValueEx(key, _T("Dll"), 0, REG_SZ, (unsigned char*)_T("ComSplit.dll"), 26);
-	RegSetValueEx(key, _T("Prefix"), 0, REG_SZ, (unsigned char*)_T("COM"), 8);
-	RegSetValueEx(key, _T("Index"), 0, REG_DWORD, (unsigned char*)&index, sizeof(DWORD));
+	RegSetValueEx(key, L"Dll", 0, REG_SZ, (unsigned char*)L"ComSplit.dll", 26);
+	RegSetValueEx(key, L"Prefix", 0, REG_SZ, (unsigned char*)L"COM", 8);
+	RegSetValueEx(key, L"Index", 0, REG_DWORD, (unsigned char*)&index, sizeof(DWORD));
 
 	RegCloseKey(key);
 	
-	//res = RegisterDevice(_T("COM"), 4, _T("ComSplit.dll"), 0);
-	VirtualSerialHandle = ActivateDevice(_T("Drivers\\RoadMap"), NULL);
+	//res = RegisterDevice(L"COM", 4, L"ComSplit.dll", 0);
+	VirtualSerialHandle = ActivateDevice(L"Drivers\\RoadMap", NULL);
 
    if (VirtualSerialHandle == 0) {
       roadmap_messagebox ("Virtual comm Error!", "Can't setup virtual serial port.");
    }
+#endif
 }
 
 
@@ -154,21 +185,33 @@ const char *roadmap_main_get_virtual_serial (void) {
 }
 
 // our main function
+#ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance,
 				   HINSTANCE hPrevInstance,
 				   LPTSTR    lpCmdLine,
 				   int       nCmdShow)
+#else
+int WINAPI WinMain(HINSTANCE hInstance,
+				   HINSTANCE hPrevInstance,
+				   LPSTR     lpCmdLine,
+				   int       nCmdShow)
+#endif
 {
 	MSG msg;
+   LPTSTR cmd_line = L"";
 	
+#ifdef UNDER_CE
+   cmd_line = lpCmdLine;
+#endif
+
 	// Perform application initialization:
-	if (!InitInstance(hInstance))
+	if (!InitInstance(hInstance, cmd_line))
 	{
 		return FALSE;
 	}
 
 #ifdef WIN32_PROFILE
-   SuspendCAPAll();
+   //SuspendCAPAll();
 #endif
 
    setup_virtual_serial ();
@@ -189,9 +232,11 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		}
 	}
 
+#ifdef UNDER_CE
    if (VirtualSerialHandle != 0) {
       DeactivateDevice (VirtualSerialHandle);
    }
+#endif
 
       
 	WSACleanup();
@@ -222,24 +267,36 @@ ATOM MyRegisterClass(HINSTANCE hInstance, LPTSTR szWindowClass)
 }
 
 
-BOOL InitInstance(HINSTANCE hInstance)
+BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 {
 	HWND hWnd;
 	WSADATA wsaData;
+   BOOL do_sync = false;
 	
 	g_hInst = hInstance; // Store instance handle in our global variable
 	
+#ifdef UNDER_CE
 	SHInitExtraControls();
+#endif
+
+   if (!wcscmp(lpCmdLine, APP_RUN_AT_RS232_DETECT)) {
+      do_sync = true;
+   }
 	
 	//If it is already running, then focus on the window, and exit
 	hWnd = FindWindow(szWindowClass, NULL);	
 	if (hWnd) 
 	{
-		// set focus to foremost child window
-		// The "| 0x00000001" is used to bring any owned windows to the
-		// foreground and activate them.
-		SetForegroundWindow((HWND)((ULONG) hWnd | 0x00000001));
-		return 0;
+      if (do_sync) {
+         PostMessage(hWnd, WM_USER_SYNC, 0, 0);
+         return 0;
+      } else {
+		   // set focus to foremost child window
+		   // The "| 0x00000001" is used to bring any owned windows to the
+		   // foreground and activate them.
+		   SetForegroundWindow((HWND)((ULONG) hWnd | 0x00000001));
+		   return 0;
+      }
 	} 
 	
 	if (!MyRegisterClass(hInstance, szWindowClass))
@@ -253,6 +310,14 @@ BOOL InitInstance(HINSTANCE hInstance)
 	}
 	
 	char *args[1] = {0};
+
+   if (do_sync) {
+      roadmap_main_start_sync ();
+      roadmap_config_initialize ();
+      editor_main_initialize ();
+      roadmap_main_start_sync ();
+      return 0;
+   }
 
 	roadmap_start(0, args);
 	
@@ -280,7 +345,9 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
 
 static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent,
                                    DWORD dwTime) {
+#ifdef UNDER_CE
    SystemIdleTimerReset ();
+#endif
 }
 
 
@@ -319,7 +386,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	
+#ifdef UNDER_CE
 	static SHACTIVATEINFO s_sai;
+#endif
 	
 	switch (message) 
 	{
@@ -356,6 +425,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_CREATE:
+#ifdef UNDER_CE
 		SHMENUBARINFO mbi;
 		
 		memset(&mbi, 0, sizeof(SHMENUBARINFO));
@@ -382,12 +452,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				SendMessage(RoadMapMainMenuBar, (UINT) TB_DELETEBUTTON, 0, 0);
 			}
 		}
+#else
+	RoadMapMainMenuBar = CreateMenu ();
+	{
+	DWORD res = SetMenu(hWnd, RoadMapMainMenuBar);
+	res = res;
+	}
+#endif
 		
+#ifdef UNDER_CE                
 		// Initialize the shell activate info structure
 		memset(&s_sai, 0, sizeof (s_sai));
 		s_sai.cbSize = sizeof (s_sai);
 
       SetTimer (NULL, 0, 50000, AvoidSuspend);
+#endif
 		break;
 		
 	case WM_PAINT:
@@ -402,12 +481,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 	case WM_DESTROY:
 		if (RoadMapMainMenuBar != NULL) {
+#ifdef UNDER_CE			
 			DestroyWindow(RoadMapMainMenuBar);
+#else
+			DestroyMenu(RoadMapMainMenuBar);
+#endif
 		}
 		
+#ifdef UNDER_CE
 		if (RoadMapMainToolbar != NULL) {
 			CommandBar_Destroy(RoadMapMainToolbar);
 		}
+#endif
 		PostQuitMessage(0);
 		break;
 		
@@ -457,6 +542,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		else return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 		
+#ifdef UNDER_CE
 	case WM_ACTIVATE:
       if ((LOWORD(wParam)!=WA_INACTIVE) &&
             RoadMapMainFullScreen) {
@@ -472,7 +558,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_SETTINGCHANGE:
 		SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
 		break;
+#endif
 
+#ifdef UNDER_CE
 #ifndef _ROADGPS
    case WM_KILLFOCUS:
       roadmap_screen_freeze ();
@@ -482,6 +570,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       roadmap_screen_unfreeze ();
       break;
 #endif
+#endif
+
+	case WM_USER_SYNC:
+      roadmap_main_start_sync ();
+      break;
+
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
@@ -550,6 +644,7 @@ extern "C" {
 	
 	void roadmap_main_toggle_full_screen (void)
 	{
+#ifdef UNDER_CE
       #define MENU_HEIGHT 26
       RECT rc;
 
@@ -583,15 +678,23 @@ extern "C" {
          RoadMapMainFullScreen = false;
 
       }
+#endif
 	}
 
 	
 	void roadmap_main_new (const char *title, int width, int height)
 	{
 		LPWSTR szTitle = ConvertToWideChar(title, CP_UTF8);
-		RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, WS_VISIBLE,
+		DWORD style = WS_VISIBLE;
+
+#ifndef UNDER_CE
+		style |= WS_OVERLAPPEDWINDOW;
+#endif
+
+		RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, style,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
 			NULL, g_hInst, NULL);
+
 		
 		free(szTitle);
 		if (!RoadMapMainWindow)
@@ -600,6 +703,7 @@ extern "C" {
 			return;
 		}
 		
+#ifdef UNDER_CE
 		if (RoadMapMainMenuBar)
 		{
 			RECT rc;
@@ -612,6 +716,7 @@ extern "C" {
 			MoveWindow(RoadMapMainWindow, rc.left, rc.top, rc.right-rc.left,
 				rc.bottom-rc.top, FALSE);
 		}
+#endif
 	}
 	
 	
@@ -633,6 +738,8 @@ extern "C" {
 		if (RoadMapMainMenuBar == NULL) return;
 		
 		LPWSTR label_unicode = ConvertToWideChar(label, CP_UTF8);
+
+#ifdef UNDER_CE
 		TBBUTTON button;
 		SendMessage(RoadMapMainMenuBar, TB_BUTTONSTRUCTSIZE, sizeof(button),
 			0);
@@ -649,6 +756,10 @@ extern "C" {
 		
 		SendMessage(RoadMapMainMenuBar, (UINT) TB_ADDBUTTONS, (WPARAM) 1,
 			(LPARAM) (LPTBBUTTON) &button);
+#else
+        DWORD res = AppendMenu(RoadMapMainMenuBar, MF_POPUP, (UINT)menu, label_unicode);
+		SetMenu (RoadMapMainWindow, RoadMapMainMenuBar);
+#endif
 		free(label_unicode);
 	}
 	
@@ -671,7 +782,7 @@ extern "C" {
 			menu_callbacks[menu_id] = callback;
 			menu_id++;
 		} else {
-			AppendMenu((HMENU)menu, MF_SEPARATOR, 0, _T(""));
+			AppendMenu((HMENU)menu, MF_SEPARATOR, 0, L"");
 		}
 		
 		if (tip != NULL) {
@@ -697,16 +808,57 @@ extern "C" {
 		static int tool_id = 0;
 		
 		if (RoadMapMainToolbar == NULL) {
+
+#ifdef UNDER_CE
 			RoadMapMainToolbar = CommandBar_Create (g_hInst,
 				RoadMapMainWindow, 1);
+#else
+	INITCOMMONCONTROLSEX InitCtrlEx;
+
+	InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
+	InitCtrlEx.dwICC  = ICC_BAR_CLASSES;
+	InitCommonControlsEx(&InitCtrlEx);
+
+			RoadMapMainToolbar = CreateWindowEx (
+				0,
+				TOOLBARCLASSNAME,     // Class name
+				L"toolbar",  		  // Window name
+				WS_CHILD|WS_VISIBLE,  // Window style
+				0,                    // x-coordinate of the upper-left corner
+				0,                    // y-coordinate of the upper-left corner
+				CW_USEDEFAULT,        // The width of the tree-view control window
+				CW_USEDEFAULT,        // The height of the tree-view control window
+				RoadMapMainWindow,    // Window handle to the parent window
+				(HMENU) NULL,         // The tree-view control identifier
+				g_hInst,              // The instance handle
+				NULL);                // Specify NULL for this parameter when you
+
+	SendMessage(RoadMapMainToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+
+#endif
 			LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
 		}
 		
 		int icon_res_id = roadmap_main_toolbar_icon(icon);
 		if (icon_res_id == -1) return;
-		
-		int icon_tb_id = CommandBar_AddBitmap(RoadMapMainToolbar, g_hInst,
+
+	    int icon_tb_id = 0;
+		int res;
+
+#ifdef UNDER_CE
+		icon_tb_id = CommandBar_AddBitmap(RoadMapMainToolbar, g_hInst,
 			icon_res_id, 1, 16, 16);
+#else
+		TBADDBITMAP tbb;
+
+		tbb.hInst = NULL;
+		tbb.nID   = (DWORD)LoadBitmap(g_hInst, MAKEINTRESOURCE(icon_res_id));
+
+		icon_tb_id = SendMessage(RoadMapMainToolbar,
+			              (UINT) TB_ADDBITMAP,
+				          (WPARAM) 1,
+				          (LPARAM) &tbb);
+#endif
 		
 		TBBUTTON but;
 		but.iBitmap = icon_tb_id;
@@ -716,7 +868,14 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-		int res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#ifdef UNDER_CE
+		res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#else
+		res = SendMessage(RoadMapMainToolbar,
+			              (UINT) TB_ADDBUTTONS,
+				          (WPARAM) 1,
+				          (LPARAM) &but);
+#endif
 		if (res != FALSE) {
 			tool_callbacks[tool_id] = callback;
 			tool_id++;
@@ -739,8 +898,14 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-		int res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
-		
+#ifdef UNDER_CE
+		CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#else
+		SendMessage(RoadMapMainToolbar,
+			       (UINT) TB_ADDBUTTONS,
+				   (WPARAM) 1,
+				   (LPARAM) &but);
+#endif
 	}
 	
 	
@@ -832,7 +997,7 @@ extern "C" {
 	}
 	
 	
-	static void roadmap_main_timeout (HWND hwnd, UINT uMsg, UINT_PTR idEvent,
+	static void roadmap_main_timeout (HWND hwnd, UINT uMsg, UINT idEvent,
 		DWORD dwTime) 
 	{	
 		struct roadmap_main_timer *timer = RoadMapMainPeriodicTimer +
@@ -869,7 +1034,7 @@ extern "C" {
 		
 		timer->callback = callback;
 		SetTimer(RoadMapMainWindow, timer->id, interval,
-			roadmap_main_timeout);
+			(TIMERPROC)roadmap_main_timeout);
 	}
 	
 	

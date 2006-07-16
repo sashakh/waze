@@ -78,6 +78,7 @@
 #include "editor/export/editor_export.h"
 #include "editor/export/editor_upload.h"
 #include "editor/export/editor_download.h"
+#include "editor/export/editor_sync.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 
@@ -302,6 +303,12 @@ static void roadmap_start_detect_receiver (void) {
 }
 
 
+static void roadmap_start_sync_data (void) {
+    
+    export_sync ();
+}
+
+
 /* The RoadMap menu and toolbar items: ----------------------------------- */
 
 /* This table lists all the RoadMap actions that can be initiated
@@ -485,8 +492,12 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"uploadgpx", "Upload GPX file", NULL, NULL,
       "Export editor data", roadmap_start_upload_gpx},
+
    {"detectreceiver", "Detect GPS receiver", NULL, NULL,
       "Auto-detect GPS receiver", roadmap_start_detect_receiver},
+
+   {"sync", "Sync", NULL, NULL,
+      "Sync map and data", roadmap_start_sync_data},
 
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
@@ -501,6 +512,7 @@ static const char *RoadMapStartMenu[] = {
 
    RoadMapFactorySeparator,
 
+   "sync",
    "exportdata",
    "updatemap",
    "uploadgpx",

@@ -1,4 +1,4 @@
-/* editor_upload.c - Upload a gpx file to freemap.co.il
+/* editor_sync.h - synchronize data and maps
  *
  * LICENSE:
  *
@@ -21,13 +21,10 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDE__EDITOR_UPLOAD__H
-#define INCLUDE__EDITOR_UPLOAD__H
+#ifndef INCLUDE__EDITOR_SYNC_H
+#define INCLUDE__EDITOR_SYNC_H
 
-void editor_upload_initialize (void);
-void editor_upload_select     (void);
-void editor_upload_file       (const char *filename);
-int  editor_upload_auto       (const char *filename);
+int export_sync (void);
 
-#endif // INCLUDE__EDITOR_UPLOAD__H
+#endif // INCLUDE__EDITOR_SYNC_H
 
