@@ -357,7 +357,11 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_address.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_geocode.h"\
@@ -367,6 +371,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_main.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
 	"..\..\..\roadmap_net.h"\
@@ -375,6 +380,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_trip.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
@@ -388,7 +394,11 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_address.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_geocode.h"\
@@ -398,6 +408,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_main.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
 	"..\..\..\roadmap_net.h"\
@@ -406,6 +417,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_trip.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
@@ -589,6 +601,7 @@ DEP_CPP_ROADMA=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_gps.h"\
@@ -623,6 +636,7 @@ DEP_CPP_ROADMA=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_gps.h"\
@@ -910,6 +924,7 @@ DEP_CPP_ROADMAP_=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_gps.h"\
@@ -944,6 +959,7 @@ DEP_CPP_ROADMAP_=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_gps.h"\
@@ -1096,12 +1112,14 @@ DEP_CPP_ROADMAP_D=\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_line.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_message.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_types.h"\
@@ -1117,12 +1135,14 @@ DEP_CPP_ROADMAP_D=\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_line.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_message.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_types.h"\
@@ -1244,6 +1264,7 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE x86) Debug"
 
@@ -1273,6 +1294,7 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Debug"
 
@@ -1284,6 +1306,7 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_download.h"\
 	"..\..\..\roadmap_factory.h"\
 	"..\..\..\roadmap_file.h"\
@@ -1304,7 +1327,10 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
+	"C:\Projects\zlib-1.2.3\zconf.h"\
+	"C:\Projects\zlib-1.2.3\zlib.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Release"
 
@@ -1316,7 +1342,9 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
 	"..\..\..\roadmap_dialog.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_download.h"\
+	"..\..\..\roadmap_factory.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_hash.h"\
@@ -1335,7 +1363,10 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
+	"C:\Projects\zlib-1.2.3\zconf.h"\
+	"C:\Projects\zlib-1.2.3\zlib.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Profiler"
 
@@ -1367,6 +1398,7 @@ DEP_CPP_ROADMAP_DO=\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
+# ADD CPP /I "c:\projects\zlib-1.2.3"
 
 !ENDIF 
 
@@ -1599,12 +1631,16 @@ DEP_CPP_ROADMAP_FU=\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_db_line_route.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_fuzzy.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_line.h"\
+	"..\..\..\roadmap_line_route.h"\
 	"..\..\..\roadmap_locator.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
@@ -1617,12 +1653,16 @@ DEP_CPP_ROADMAP_FU=\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_db_line_route.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_fuzzy.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_line.h"\
+	"..\..\..\roadmap_line_route.h"\
 	"..\..\..\roadmap_locator.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
@@ -1891,6 +1931,7 @@ DEP_CPP_ROADMAP_L=\
 	"..\..\..\roadmap_label.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -1905,6 +1946,7 @@ DEP_CPP_ROADMAP_L=\
 	"..\..\..\roadmap_label.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -1992,6 +2034,7 @@ DEP_CPP_ROADMAP_LA=\
 	"..\..\..\roadmap_layer.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -2006,6 +2049,7 @@ DEP_CPP_ROADMAP_LA=\
 	"..\..\..\roadmap_layer.h"\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -2165,6 +2209,7 @@ DEP_CPP_ROADMAP_N=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_db_line_route.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_fuzzy.h"\
@@ -2181,6 +2226,7 @@ DEP_CPP_ROADMAP_N=\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_square.h"\
@@ -2200,6 +2246,7 @@ DEP_CPP_ROADMAP_N=\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_db_line_route.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_fuzzy.h"\
@@ -2216,6 +2263,7 @@ DEP_CPP_ROADMAP_N=\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_square.h"\
@@ -2454,14 +2502,17 @@ DEP_CPP_ROADMAP_P=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_main.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_pointer.h"\
+	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
@@ -2473,14 +2524,17 @@ DEP_CPP_ROADMAP_P=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_main.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_pointer.h"\
+	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
@@ -2751,6 +2805,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_fuzzy.h"\
@@ -2763,6 +2818,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
 	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_message.h"\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_object.h"\
@@ -2777,6 +2833,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_square.h"\
+	"..\..\..\roadmap_state.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_trip.h"\
@@ -2793,6 +2850,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_fuzzy.h"\
@@ -2805,6 +2863,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
 	"..\..\..\roadmap_math.h"\
+	"..\..\..\roadmap_message.h"\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_object.h"\
@@ -2819,6 +2878,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_square.h"\
+	"..\..\..\roadmap_state.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_trip.h"\
@@ -2965,16 +3025,22 @@ DEP_CPP_ROADMAP_SC=\
 DEP_CPP_ROADMAP_SC=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_factory.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_main.h"\
+	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_sprite.h"\
+	"..\..\..\roadmap_start.h"\
+	"..\..\..\roadmap_state.h"\
 	"..\..\..\roadmap_string.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
@@ -3310,7 +3376,10 @@ DEP_CPP_ROADMAP_ST=\
 DEP_CPP_ROADMAP_ST=\
 	"..\..\..\editor\db\editor_db.h"\
 	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
 	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\editor\export\editor_sync.h"\
+	"..\..\..\editor\export\editor_upload.h"\
 	"..\..\..\navigate\navigate_main.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_address.h"\
@@ -3323,6 +3392,7 @@ DEP_CPP_ROADMAP_ST=\
 	"..\..\..\roadmap_crossing.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_download.h"\
 	"..\..\..\roadmap_driver.h"\
@@ -3367,7 +3437,10 @@ DEP_CPP_ROADMAP_ST=\
 DEP_CPP_ROADMAP_ST=\
 	"..\..\..\editor\db\editor_db.h"\
 	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\export\editor_download.h"\
 	"..\..\..\editor\export\editor_export.h"\
+	"..\..\..\editor\export\editor_sync.h"\
+	"..\..\..\editor\export\editor_upload.h"\
 	"..\..\..\navigate\navigate_main.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_address.h"\
@@ -3380,6 +3453,7 @@ DEP_CPP_ROADMAP_ST=\
 	"..\..\..\roadmap_crossing.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_display.h"\
 	"..\..\..\roadmap_download.h"\
 	"..\..\..\roadmap_driver.h"\
@@ -3671,6 +3745,7 @@ DEP_CPP_ROADMAP_T=\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
+	"..\..\..\roadmap_state.h"\
 	"..\..\..\roadmap_sunrise.h"\
 	"..\..\..\roadmap_time.h"\
 	"..\..\..\roadmap_trip.h"\

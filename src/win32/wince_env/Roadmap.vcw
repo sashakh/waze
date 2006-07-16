@@ -272,6 +272,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "setupdll"=.\setupdll\setupdll.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "zlib"="C:\Projects\zlib-1.2.3\zlib.vcp" - Package Owner=<4>
 
 Package=<5>
