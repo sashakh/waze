@@ -134,11 +134,14 @@ static int roadmap_spawn_child (const char *name,
 								RoadMapPipe pipes[2])
 {
 	PROCESS_INFORMATION pi;
+	STARTUPINFO si;
 	char full_name[MAX_PATH];
 	LPWSTR full_path_unicode;
 	LPWSTR command_line_unicode;
 
+
 	memset(&pi, 0, sizeof(pi));
+	memset(&si, 0, sizeof(si));
 
 	if (*name != '\\') {
 		snprintf(full_name, MAX_PATH, "%s\\%s", RoadMapSpawnPath, name);
@@ -153,8 +156,10 @@ static int roadmap_spawn_child (const char *name,
 			command_line_unicode = NULL;
 	}
 
+	si.cb = sizeof(STARTUPINFO);
+
 	if (!CreateProcess(full_path_unicode, command_line_unicode, NULL,
-							NULL, FALSE, 0, NULL, NULL, NULL, & pi)) {
+							NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
 			free(full_path_unicode);
 			free(command_line_unicode);
 			roadmap_log (ROADMAP_ERROR, "CreateProcess(\"%s\") failed",

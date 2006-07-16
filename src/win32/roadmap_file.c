@@ -530,7 +530,7 @@ RoadMapFile roadmap_file_open(const char *name, const char *mode)
 		os_mode,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL,
-		OPEN_EXISTING,
+		OPEN_ALWAYS,
 		0,
 		NULL);
 	

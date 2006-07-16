@@ -188,7 +188,9 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
    if (tool_bar != NULL) {
       RECT tb_rect;
       GetClientRect(tool_bar, &tb_rect);
-      ClientRect.top += tb_rect.bottom;
+	  if (tb_rect.bottom < (ClientRect.bottom-2)) {
+		ClientRect.top += tb_rect.bottom + 2;
+	  }
    }
    
    

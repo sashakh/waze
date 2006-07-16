@@ -514,6 +514,8 @@ void roadmap_dialog_complete (int use_keyboard)
 		PSH_PROPSHEETPAGE|PSH_USECALLBACK|PSH_MODELESS;
 #ifdef UNDER_CE
 	psh.dwFlags |= PSH_MAXIMIZE;
+#else
+	psh.dwFlags |= PSH_NOAPPLYNOW;
 #endif
 	psh.hwndParent = dialog->w;
 	psh.hInstance = g_hInst;
@@ -524,6 +526,9 @@ void roadmap_dialog_complete (int use_keyboard)
 	psh.pfnCallback = DoPropSheetProc;
 	sheet = (HWND)PropertySheet(&psh);
 	
+	ShowWindow(GetDlgItem(sheet, IDOK), SW_HIDE);
+	ShowWindow(GetDlgItem(sheet, IDCANCEL), SW_HIDE);
+
 	GetClientRect(dialog->w, &client);
 	MoveWindow(sheet, client.top, client.left,
 		client.bottom - client.top - MAX_ROW_HEIGHT,
@@ -879,6 +884,9 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			SetWindowLong(hDlg, GWL_STYLE,
 				GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
             SHDoneButton(hDlg, SHDB_HIDE);
+#else
+			SetWindowLong(hDlg, GWL_STYLE,
+				GetWindowLong(hDlg, GWL_STYLE) | WS_OVERLAPPEDWINDOW);
 
 #endif
 			dialog = (RoadMapDialogItem)lParam;
