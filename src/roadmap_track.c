@@ -89,7 +89,7 @@ static void roadmap_track_add_trackpoint ( int gps_time,
 
     maxtrack = roadmap_config_get_integer (&RoadMapConfigLength);
     while (RoadMapTrack->rte_waypt_ct > maxtrack) {
-        w = (waypoint *) QUEUE_NEXT (&RoadMapTrack->waypoint_list);
+        w = (waypoint *) ROADMAP_LIST_FIRST (&RoadMapTrack->waypoint_list);
         route_del_wpt ( RoadMapTrack, w);
     }
 
@@ -141,7 +141,7 @@ static void roadmap_track_gps_update (int gps_time,
 
     if (policy == RoadMapTrackPolicyOff) return;
    
-    if ( QUEUE_EMPTY(&RoadMapTrack->waypoint_list) ) {
+    if ( ROADMAP_LIST_EMPTY(&RoadMapTrack->waypoint_list) ) {
         roadmap_track_add_trackpoint(gps_time, gps_position);
         return;
     }
@@ -150,7 +150,7 @@ static void roadmap_track_gps_update (int gps_time,
    
     pos[0].latitude = gps_position->latitude;
     pos[0].longitude = gps_position->longitude;
-    w = (waypoint *)QUEUE_LAST (&RoadMapTrack->waypoint_list);
+    w = (waypoint *)ROADMAP_LIST_LAST (&RoadMapTrack->waypoint_list);
     pos[1].latitude = w->pos.latitude;
     pos[1].longitude = w->pos.longitude;
 
@@ -181,7 +181,7 @@ static void roadmap_track_gps_update (int gps_time,
 
     case RoadMapTrackPolicyDeviation:
         if (RoadMapTrack->rte_waypt_ct > 2) {
-            w = (waypoint *)QUEUE_LAST(&w->Q);
+            w = (waypoint *)ROADMAP_LIST_PREV(&w->Q);
             pos[2].latitude = w->pos.latitude;
             pos[2].longitude = w->pos.longitude;
 
@@ -193,7 +193,7 @@ static void roadmap_track_gps_update (int gps_time,
             ac_dist = roadmap_math_distance (&pos[0], &pos[2]);
 
             if (abs (ab_dist + bc_dist - ac_dist) < 10) {
-                w = (waypoint *) QUEUE_LAST (&RoadMapTrack->waypoint_list);
+                w = (waypoint *) ROADMAP_LIST_LAST (&RoadMapTrack->waypoint_list);
                 route_del_wpt ( RoadMapTrack, w);
             }
         }

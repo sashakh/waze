@@ -28,14 +28,14 @@ route_head_alloc(void)
 {
         route_head *rte_head;
         rte_head = (route_head *) xcalloc(sizeof (*rte_head), 1);
-        QUEUE_INIT(&rte_head->Q);
+        QUEUE_INIT((queue_head *)&rte_head->Q);         /* safety */
         QUEUE_INIT(&rte_head->waypoint_list);
         return rte_head;
 }
 
 
 void
-route_add(queue *rq, route_head *rte)
+route_add(queue_head *rq, route_head *rte)
 {
         ENQUEUE_TAIL(rq, &rte->Q);
 }
@@ -43,12 +43,12 @@ route_add(queue *rq, route_head *rte)
 void
 route_del(route_head *rte)
 {
-        dequeue( &rte->Q );
+        roadmap_list_remove( &rte->Q );
         route_free( rte );
 }
 
 route_head *
-route_find_route_by_name(queue *routes, const char *name)
+route_find_route_by_name(queue_head *routes, const char *name)
 {
         queue *elem, *tmp;
         route_head *rte;
@@ -104,7 +104,7 @@ route_find_waypt_by_name( route_head *rh, const char *name )
 void 
 route_del_wpt( route_head *rte, waypoint *wpt)
 {
-        dequeue( &wpt->Q );
+        roadmap_list_remove( &wpt->Q );
         waypt_free( wpt );
         rte->rte_waypt_ct--;
 }
@@ -147,12 +147,12 @@ route_reverse(const route_head *rte_hd)
         route_head *rh = (route_head *) rte_hd;
         queue *elem, *tmp;
         QUEUE_FOR_EACH(&rh->waypoint_list, elem, tmp) {
-                ENQUEUE_HEAD(&rh->waypoint_list, dequeue(elem));
+                ENQUEUE_HEAD(&rh->waypoint_list, roadmap_list_remove(elem));
         }
 }
 
 void
-route_iterator(queue *qh, route_hdr rh, route_trl rt, waypt_cb wc)
+route_iterator(queue_head *qh, route_hdr rh, route_trl rt, waypt_cb wc)
 {
         queue *elem, *tmp;
         QUEUE_FOR_EACH(qh, elem, tmp) {
@@ -166,13 +166,13 @@ route_iterator(queue *qh, route_hdr rh, route_trl rt, waypt_cb wc)
 
 
 void
-route_flush_queue(queue *head)
+route_flush_queue(queue_head *head)
 {
         queue *elem, *tmp;
         queue *q;
 
         QUEUE_FOR_EACH(head, elem, tmp) {
-                q = dequeue(elem);
+                q = roadmap_list_remove(elem);
                 route_free((route_head *) q);
         }
 }

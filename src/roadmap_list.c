@@ -2,9 +2,17 @@
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
  *
  *   This file is part of RoadMap.
+ *
+ *   Current linked list implementation borrowed from gpsbabel's
+ *   queue.c, which is:
+ *       Copyright (C) 2002 Robert Lipe, robertlipe@usa.net
+ *
+ *   Previous implementation, and API spec, 
+ *       Copyright 2002 Pascal F. Martin
+ *
+ *   Merge done by Paul Fox, 2006
  *
  *   RoadMap is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,64 +33,37 @@
  *   See roadmap_list.h.
  */
 
-#include <stdlib.h>
-
-#include "roadmap.h"
 #include "roadmap_list.h"
 
-
-void roadmap_list_insert (RoadMapList *list, RoadMapListItem *item) {
-    
-    item->next = list->first;
-    
-    if (list->first == NULL) {
-        list->last = item;
-        list->first  = item;
-    } else {
-        list->first->previous = item;
-    }
-    item->previous = NULL;
-    list->first = item;
+/* places "new" after "existing" */
+void roadmap_list_enqueue(RoadMapListItem *new, RoadMapListItem *existing)
+{
+        new->next = existing->next;
+        new->prev = (RoadMapListItem *)existing;
+        existing->next->prev = new;
+        existing->next = new;
 }
 
+RoadMapListItem * roadmap_list_remove(RoadMapListItem *element)
+{
+        queue *prev = element->prev;
+        queue *next = element->next;
 
-void roadmap_list_append (RoadMapList *list, RoadMapListItem *item) {
-    
-    item->previous = list->last;
-    
-    if (list->last == NULL) {
-        list->first = item;
-        list->last  = item;
-    } else {
-        list->last->next = item;
-    }
-    item->next = NULL;
-    list->last = item;
+        next->prev = prev;
+        prev->next = next;
+
+        element->prev = element->next = element;
+
+        return element;
 }
 
+int roadmap_list_count(const RoadMapList *qh)
+{
+        RoadMapListItem *e;
+        int i = 0;
 
-RoadMapListItem *roadmap_list_remove (RoadMapList *list, RoadMapListItem *item) {
-    
-    if (item->previous == NULL) {
-        list->first = item->next;
-    } else {
-        item->previous->next = item->next;
-    }
-    if (item->next == NULL) {
-        list->last = item->previous;
-    } else {
-        item->next->previous = item->previous;
-    }
-    return item;
-}
+        for (e = QUEUE_FIRST(qh); e != (queue *)qh; e = QUEUE_NEXT(e))
+                i++;
 
-int  roadmap_list_count  (const RoadMapList *list) {
-    
-    int count = 0;
-    RoadMapListItem *item;
-    
-    for (item = list->first; item != NULL; item = item->next) {
-        count +=1;
-    }
-    return count;
+        return i;
 }

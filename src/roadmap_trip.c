@@ -161,9 +161,9 @@ static char *RoadMapTripWaypointFocusName = NULL;
 
 static time_t RoadMapTripGPSTime = 0;
 
-static queue RoadMapTripWaypointHead;
-static queue RoadMapTripRouteHead;
-static queue RoadMapTripTrackHead;
+static RoadMapList RoadMapTripWaypointHead;
+static RoadMapList RoadMapTripRouteHead;
+static RoadMapList RoadMapTripTrackHead;
 
 static route_head RoadMapTripQuickRoute = {
         {NULL, NULL},
@@ -184,33 +184,33 @@ static void roadmap_trip_set_modified(int modified) {
 static waypoint * roadmap_trip_beginning (void) {
 
     if (RoadMapRouteIsReversed)
-        return (waypoint *) QUEUE_LAST (&RoadMapCurrentRoute->waypoint_list);
+        return (waypoint *) ROADMAP_LIST_LAST (&RoadMapCurrentRoute->waypoint_list);
     else
-        return (waypoint *) QUEUE_FIRST (&RoadMapCurrentRoute->waypoint_list);
+        return (waypoint *) ROADMAP_LIST_FIRST (&RoadMapCurrentRoute->waypoint_list);
 }
 
 static waypoint * roadmap_trip_ending (void) {
 
     if (RoadMapRouteIsReversed)
-        return (waypoint *) QUEUE_FIRST (&RoadMapCurrentRoute->waypoint_list);
+        return (waypoint *) ROADMAP_LIST_FIRST (&RoadMapCurrentRoute->waypoint_list);
     else
-        return (waypoint *) QUEUE_LAST (&RoadMapCurrentRoute->waypoint_list);
+        return (waypoint *) ROADMAP_LIST_LAST (&RoadMapCurrentRoute->waypoint_list);
 }
 
 static waypoint * roadmap_trip_next (const waypoint *waypointp) {
 
     if (RoadMapRouteIsReversed)
-        return (waypoint *)QUEUE_LAST(&waypointp->Q);
+        return (waypoint *)ROADMAP_LIST_PREV(&waypointp->Q);
     else
-        return (waypoint *)QUEUE_NEXT(&waypointp->Q);
+        return (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
 }
 
 static waypoint * roadmap_trip_prev (const waypoint *waypointp) {
 
     if (RoadMapRouteIsReversed)
-        return (waypoint *)QUEUE_NEXT(&waypointp->Q);
+        return (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
     else
-        return (waypoint *)QUEUE_LAST(&waypointp->Q);
+        return (waypoint *)ROADMAP_LIST_PREV(&waypointp->Q);
 }
 
 static void roadmap_trip_set_route_focii (void) {
@@ -583,17 +583,17 @@ static void roadmap_trip_waypoint_manage_dialog_action
     case WAYPOINT_ACTION_MOVE_UP:
         if (waypointp == RoadMapTripStart)
             return;
-        neighbor = (waypoint *)QUEUE_LAST(&waypointp->Q);
+        neighbor = (waypoint *)ROADMAP_LIST_PREV(&waypointp->Q);
         waypt_del (waypointp);
-        ENQUEUE_BEFORE(&neighbor->Q, &waypointp->Q);
+        roadmap_list_put_before(&neighbor->Q, &waypointp->Q);
         break;
 
     case WAYPOINT_ACTION_MOVE_DOWN:
         if (waypointp == RoadMapTripDest)
             return;
-        neighbor = (waypoint *)QUEUE_NEXT(&waypointp->Q);
+        neighbor = (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
         waypt_del (waypointp);
-        ENQUEUE_AFTER(&neighbor->Q, &waypointp->Q);
+        roadmap_list_put_after(&neighbor->Q, &waypointp->Q);
         break;
 
     case WAYPOINT_ACTION_DELETE:
@@ -642,7 +642,7 @@ static void roadmap_trip_waypoint_manage_dialog_action
     if (data == ROUTE_WAYPOINTS) {
         count = RoadMapCurrentRoute->rte_waypt_ct;
     } else if (data == TRIP_WAYPOINTS) {
-        count = queue_count(&RoadMapTripWaypointHead);
+        count = roadmap_list_count(&RoadMapTripWaypointHead);
     } else {
         count = roadmap_landmark_count();
     }
@@ -710,10 +710,10 @@ static void roadmap_trip_waypoint_manage_dialog_populate
 
     static char **Names = NULL;
     static waypoint **Waypoints;
-    queue *list = NULL;  /* warning suppression */
+    RoadMapList *list = NULL;  /* warning suppression */
 
     int i;
-    queue *elem, *tmp;
+    RoadMapListItem *elem, *tmp;
     waypoint *waypointp;
 
 
@@ -737,7 +737,7 @@ static void roadmap_trip_waypoint_manage_dialog_populate
     }
 
     i = 0;
-    QUEUE_FOR_EACH (list, elem, tmp) {
+    ROADMAP_LIST_FOR_EACH (list, elem, tmp) {
         waypointp = (waypoint *) elem;
         Names[i] = waypointp->shortname;
         Waypoints[i++] = waypointp;
@@ -755,7 +755,7 @@ static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
     const char *name = NULL; /* ditto */
 
     if (which == TRIP_WAYPOINTS) {
-        count = queue_count(&RoadMapTripWaypointHead);
+        count = roadmap_list_count(&RoadMapTripWaypointHead);
         name = "Trip Landmarks";
     } else if (which == PERSONAL_WAYPOINTS) {
         count = roadmap_landmark_count();
@@ -837,8 +837,8 @@ static void roadmap_trip_route_manage_dialog_delete
             RoadMapTripRefresh = 1;
         }
 
-        count = queue_count (&RoadMapTripRouteHead) + 
-                queue_count (&RoadMapTripTrackHead);
+        count = roadmap_list_count (&RoadMapTripRouteHead) + 
+                roadmap_list_count (&RoadMapTripTrackHead);
         if (count > 0) {
             roadmap_trip_route_manage_dialog_populate (count);
         } else {
@@ -892,7 +892,7 @@ static void roadmap_trip_route_manage_dialog_populate (int count) {
 
     static char **Names = NULL;
     static route_head **Routes = NULL;
-    queue *elem, *tmp;
+    RoadMapListItem *elem, *tmp;
     int i;
 
     if (Names != NULL) {
@@ -908,14 +908,14 @@ static void roadmap_trip_route_manage_dialog_populate (int count) {
     roadmap_check_allocated (Routes);
 
     i = 0;
-    QUEUE_FOR_EACH (&RoadMapTripRouteHead, elem, tmp) {
+    ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, elem, tmp) {
         route_head *rh = (route_head *) elem;
         Names[i] = (rh->rte_name && rh->rte_name[0]) ?
                 rh->rte_name : "Unnamed Route";
         Routes[i++] = rh;
     }
 
-    QUEUE_FOR_EACH (&RoadMapTripTrackHead, elem, tmp) {
+    ROADMAP_LIST_FOR_EACH (&RoadMapTripTrackHead, elem, tmp) {
         route_head *th = (route_head *) elem;
         Names[i] = (th->rte_name && th->rte_name[0]) ?
                 th->rte_name : "Unnamed Track";
@@ -931,8 +931,8 @@ void roadmap_trip_route_manage_dialog (void) {
 
     int count;
 
-    if (QUEUE_EMPTY(&RoadMapTripRouteHead) &&
-        QUEUE_EMPTY(&RoadMapTripTrackHead)) {
+    if (ROADMAP_LIST_EMPTY(&RoadMapTripRouteHead) &&
+        ROADMAP_LIST_EMPTY(&RoadMapTripTrackHead)) {
         return;                 /* Nothing to manage. */
     }
 
@@ -952,8 +952,8 @@ void roadmap_trip_route_manage_dialog (void) {
         roadmap_dialog_complete (0);    /* No need for a keyboard. */
     }
 
-    count = queue_count (&RoadMapTripRouteHead) + 
-            queue_count (&RoadMapTripTrackHead);
+    count = roadmap_list_count (&RoadMapTripRouteHead) + 
+            roadmap_list_count (&RoadMapTripTrackHead);
     roadmap_trip_route_manage_dialog_populate (count);
 }
 
@@ -1345,7 +1345,7 @@ const RoadMapPosition * roadmap_trip_get_focus_position (void) {
 
 static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos) {
 
-    queue *elem, *tmp;
+    RoadMapListItem *elem, *tmp;
     waypoint *nextpoint;
     int dist, distmin;
     int which;
@@ -1355,19 +1355,19 @@ static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos) {
     }
 
     distmin = 500000000;
-    nextpoint = (waypoint *)QUEUE_FIRST(&RoadMapCurrentRoute->waypoint_list);
+    nextpoint = (waypoint *)ROADMAP_LIST_FIRST(&RoadMapCurrentRoute->waypoint_list);
 
     /* Find the closest segment to our current position. */
-    QUEUE_FOR_EACH (&RoadMapCurrentRoute->waypoint_list, elem, tmp) {
+    ROADMAP_LIST_FOR_EACH (&RoadMapCurrentRoute->waypoint_list, elem, tmp) {
 
         waypoint *waypointp = (waypoint *) elem;
         if (waypointp ==
-            (waypoint *)QUEUE_LAST( &RoadMapCurrentRoute->waypoint_list))
+            (waypoint *)ROADMAP_LIST_LAST( &RoadMapCurrentRoute->waypoint_list))
             break;
 
         dist = roadmap_math_get_distance_from_segment
             (pos, &waypointp->pos,
-            &((waypoint *)QUEUE_NEXT(&waypointp->Q))->pos,
+            &((waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q))->pos,
             NULL, &which);
 
         if (dist < distmin) {
@@ -1378,14 +1378,14 @@ static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos) {
 
             } else if (which == 2) {
                 /* waypointp->next is closer */
-                nextpoint = (waypoint *)QUEUE_NEXT(&waypointp->Q);
+                nextpoint = (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
 
             } else {
                 /* segment itself is closest */
                 if (RoadMapRouteIsReversed) {
                     nextpoint = waypointp;
                 } else {
-                    nextpoint = (waypoint *)QUEUE_NEXT(&waypointp->Q);
+                    nextpoint = (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
                 }
             }
         }
@@ -1840,15 +1840,15 @@ void roadmap_trip_new (void) {
 
     i = 1;
     while (roadmap_file_exists(path, name) && i < 1000) {
-	sprintf(name, "NewTrip-%d", i++);
+        sprintf(name, "NewTrip-%d", i++);
     }
     if (i == 1000) {
-	roadmap_log (ROADMAP_WARNING, "over 1000 new trips!");
-	strcpy (name, "NewTrip");
+        roadmap_log (ROADMAP_WARNING, "over 1000 new trips!");
+        strcpy (name, "NewTrip");
     }
 
     if (RoadMapTripModified) {
-	roadmap_trip_save (0);
+        roadmap_trip_save (0);
     }
 
     roadmap_trip_clear ();
@@ -1865,11 +1865,11 @@ void roadmap_trip_initialize (void) {
 
     RoadMapTripFocal *focal;
 
-    QUEUE_INIT(&RoadMapTripWaypointHead);
-    QUEUE_INIT(&RoadMapTripRouteHead);
-    QUEUE_INIT(&RoadMapTripTrackHead);
+    ROADMAP_LIST_INIT(&RoadMapTripWaypointHead);
+    ROADMAP_LIST_INIT(&RoadMapTripRouteHead);
+    ROADMAP_LIST_INIT(&RoadMapTripTrackHead);
 
-    QUEUE_INIT(&RoadMapTripQuickRoute.waypoint_list);
+    ROADMAP_LIST_INIT(&RoadMapTripQuickRoute.waypoint_list);
 
     for (focal = RoadMapTripFocalPoints;
             focal->id != NULL; focal++) {
@@ -1939,16 +1939,16 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
     int ret;
     const char *path = NULL;
-    queue tmp_waypoint_list, tmp_route_list, tmp_track_list;
+    RoadMapList tmp_waypoint_list, tmp_route_list, tmp_track_list;
 
     if (! roadmap_path_is_full_path (name))
         path = roadmap_path_trips ();
 
     roadmap_log (ROADMAP_DEBUG, "roadmap_trip_load_file '%s'", name);
 
-    QUEUE_INIT(&tmp_waypoint_list);
-    QUEUE_INIT(&tmp_route_list);
-    QUEUE_INIT(&tmp_track_list);
+    ROADMAP_LIST_INIT(&tmp_waypoint_list);
+    ROADMAP_LIST_INIT(&tmp_route_list);
+    ROADMAP_LIST_INIT(&tmp_track_list);
 
     ret = roadmap_gpx_read_file (path, name, &tmp_waypoint_list,
             &tmp_route_list, &tmp_track_list);
@@ -1971,27 +1971,27 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
     if (merge) {
 
-        QUEUE_SPLICE(&RoadMapTripWaypointHead, &tmp_waypoint_list);
-        QUEUE_SPLICE(&RoadMapTripRouteHead, &tmp_route_list);
-        QUEUE_SPLICE(&RoadMapTripTrackHead, &tmp_track_list);
+        ROADMAP_LIST_SPLICE(&RoadMapTripWaypointHead, &tmp_waypoint_list);
+        ROADMAP_LIST_SPLICE(&RoadMapTripRouteHead, &tmp_route_list);
+        ROADMAP_LIST_SPLICE(&RoadMapTripTrackHead, &tmp_track_list);
         roadmap_trip_set_modified(1);
 
     } else {
 
-	// FIXME if we happen to be loading the file we're about
-	// to save to, then we'll either a) clobber what we want
-	// to load, or b) potentially lose data we wanted to save.
-	// we default to saving, but this means if you load a trip,
-	// delete some stuff, and reload to get it back, that won't
-	// work.
-	if (RoadMapTripModified) {
-	    roadmap_trip_save (0);
-	}
+        // FIXME if we happen to be loading the file we're about
+        // to save to, then we'll either a) clobber what we want
+        // to load, or b) potentially lose data we wanted to save.
+        // we default to saving, but this means if you load a trip,
+        // delete some stuff, and reload to get it back, that won't
+        // work.
+        if (RoadMapTripModified) {
+            roadmap_trip_save (0);
+        }
         roadmap_trip_clear();
 
-        QUEUE_MOVE(&RoadMapTripWaypointHead, &tmp_waypoint_list);
-        QUEUE_MOVE(&RoadMapTripRouteHead, &tmp_route_list);
-        QUEUE_MOVE(&RoadMapTripTrackHead, &tmp_track_list);
+        ROADMAP_LIST_MOVE(&RoadMapTripWaypointHead, &tmp_waypoint_list);
+        ROADMAP_LIST_MOVE(&RoadMapTripRouteHead, &tmp_route_list);
+        ROADMAP_LIST_MOVE(&RoadMapTripTrackHead, &tmp_track_list);
 
         roadmap_config_set (&RoadMapConfigTripName,
             roadmap_path_skip_directories(name));
@@ -2001,17 +2001,17 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
     RoadMapCurrentRoute = NULL;
 
-    if (queue_count (&RoadMapTripRouteHead) +
-            queue_count (&RoadMapTripTrackHead) > 1) {
+    if (roadmap_list_count (&RoadMapTripRouteHead) +
+            roadmap_list_count (&RoadMapTripTrackHead) > 1) {
         /* Multiple choices?  Present a dialog. */
         roadmap_trip_route_manage_dialog ();
     } else { /* If there's only one route (or track), use it. */
-        if (!QUEUE_EMPTY(&RoadMapTripRouteHead)) {
+        if (!ROADMAP_LIST_EMPTY(&RoadMapTripRouteHead)) {
             RoadMapCurrentRoute = 
-                    (route_head *)QUEUE_FIRST(&RoadMapTripRouteHead);
-        } else if (!QUEUE_EMPTY(&RoadMapTripTrackHead)) {
+                    (route_head *)ROADMAP_LIST_FIRST(&RoadMapTripRouteHead);
+        } else if (!ROADMAP_LIST_EMPTY(&RoadMapTripTrackHead)) {
             RoadMapCurrentRoute = 
-                    (route_head *)QUEUE_FIRST(&RoadMapTripTrackHead);
+                    (route_head *)ROADMAP_LIST_FIRST(&RoadMapTripTrackHead);
         } else {
             RoadMapCurrentRoute = NULL;
         }
@@ -2133,11 +2133,11 @@ int roadmap_trip_simplify_route
         (const route_head *orig_route, route_head *new_route) {
 
     waypoint *wa = NULL, *wb = NULL, *wc = NULL;
-    queue *elem, *tmp;
+    RoadMapListItem *elem, *tmp;
     int dropped = 0;
     int ac_dist = -1, ab_dist = -1, bc_dist = -1;
 
-    QUEUE_FOR_EACH (&orig_route->waypoint_list, elem, tmp) {
+    ROADMAP_LIST_FOR_EACH (&orig_route->waypoint_list, elem, tmp) {
 
         wa = (waypoint *) elem;
         if (wc != NULL) {
@@ -2174,10 +2174,10 @@ int roadmap_trip_simplify_route
 
 void roadmap_trip_copy_route
         (const route_head *orig_route, route_head *new_route) {
-    queue *elem, *tmp;
+    RoadMapListItem *elem, *tmp;
 
-    QUEUE_FOR_EACH (&orig_route->waypoint_list, elem, tmp) {
-	waypt_add(&new_route->waypoint_list, waypt_dupe( (waypoint *)elem ));
+    ROADMAP_LIST_FOR_EACH (&orig_route->waypoint_list, elem, tmp) {
+        waypt_add(&new_route->waypoint_list, waypt_dupe( (waypoint *)elem ));
     }
 
 }
@@ -2191,9 +2191,9 @@ static void roadmap_trip_route_convert_worker
     new_route = route_head_alloc();
     
     if (simplify) {
-	dropped = roadmap_trip_simplify_route (orig_route, new_route);
+        dropped = roadmap_trip_simplify_route (orig_route, new_route);
     } else {
-	roadmap_trip_copy_route (orig_route, new_route);
+        roadmap_trip_copy_route (orig_route, new_route);
     }
 
     if (!simplify || dropped > 0) {
@@ -2203,12 +2203,12 @@ static void roadmap_trip_route_convert_worker
         }
 
 
-	if (wanttrack) {
-	    new_route->rte_is_track = 1;
+        if (wanttrack) {
+            new_route->rte_is_track = 1;
             route_add(&RoadMapTripTrackHead, new_route);
-	} else {
+        } else {
             route_add(&RoadMapTripRouteHead, new_route);
-	}
+        }
 
         RoadMapCurrentRoute = new_route;
         RoadMapRouteIsReversed = 0;
@@ -2230,11 +2230,11 @@ void roadmap_trip_track_to_route (void) {
     char *namep = NULL;
 
     if (RoadMapCurrentRoute == NULL) {
-	return;
+        return;
     }
 
     if (! RoadMapCurrentRoute->rte_is_track) {
-	return;
+        return;
     }
 
     if (RoadMapCurrentRoute->rte_name) {
@@ -2252,7 +2252,7 @@ void roadmap_trip_route_simplify (void) {
     char *namep = NULL;
 
     if (RoadMapCurrentRoute == NULL) {
-	return;
+        return;
     }
 
     if (RoadMapCurrentRoute->rte_name) {

@@ -73,9 +73,9 @@ static char *snlen = "32";   //  "Length of generated shortnames"
 static char *suppresswhite = NULL; // "Suppress whitespace in generated shortnames"
 static char *urlbase = NULL; //  "Base URL for link tag in output"
 
-static queue *cur_waypoint_list;
-static queue *cur_route_list;
-static queue *cur_track_list;
+static queue_head *cur_waypoint_list;
+static queue_head *cur_route_list;
+static queue_head *cur_track_list;
 
 static int doing_no_waypoints, doing_no_routes, doing_no_tracks;
 
@@ -1021,7 +1021,7 @@ gpx_read_post(void)
 }
 
 int
-gpx_read(FILE *ifile, queue *wq, queue *rq, queue *tq)
+gpx_read(FILE *ifile, queue_head *wq, queue_head *rq, queue_head *tq)
 {
         int len;
         int done = 0;
@@ -1479,7 +1479,7 @@ gpx_waypt_bound_calc(const waypoint *waypointp)
 }
 
 static void
-gpx_write_bounds(FILE *ofd, queue *wq, queue *rq, queue *tq)
+gpx_write_bounds(FILE *ofd, queue_head *wq, queue_head *rq, queue_head *tq)
 {
 #if 0
        bounds *bounds = &all_bounds;
@@ -1507,7 +1507,7 @@ gpx_write_bounds(FILE *ofd, queue *wq, queue *rq, queue *tq)
 
 
 static void
-gpx_write_preamble( FILE *ofd, queue *wq, queue *rq, queue *tq)
+gpx_write_preamble( FILE *ofd, queue_head *wq, queue_head *rq, queue_head *tq)
 {
         time_t now = 0;
         int short_length;
@@ -1571,7 +1571,7 @@ gpx_write_postfix( FILE *ofd)
 }
 
 int
-gpx_write( FILE *ofd, queue *wq, queue *rq, queue *tq)
+gpx_write( FILE *ofd, queue_head *wq, queue_head *rq, queue_head *tq)
 {
 
         mkshort_handle = mkshort_new_handle();

@@ -54,7 +54,7 @@ ifeq ($(strip $(MODE)),DEBUG)
 	# Do not forget to set the trace file using the env. 
 	# variable MALLOC_TRACE, then use the mtrace tool to
 	# analyze the output.
-	CFLAGS += -g -DROADMAP_DEBUG_HEAP
+	CFLAGS += -g -DROADMAP_DEBUG_HEAP -DROADMAP_LISTS_TYPESAFE
 else
 ifeq ($(strip $(MODE)),PROFILE)
 	CFLAGS += -g -pg -fprofile-arcs -g

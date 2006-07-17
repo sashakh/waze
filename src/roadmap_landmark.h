@@ -33,7 +33,7 @@ void roadmap_landmark_merge(void);
 int roadmap_landmark_count();
 void roadmap_landmark_add(waypoint *waypointp);
 void roadmap_landmark_remove(waypoint *waypointp);
-queue * roadmap_landmark_list(void);
+RoadMapList * roadmap_landmark_list(void);
 int roadmap_landmark_is_refresh_needed (void);
 
 #endif // INCLUDE__ROADMAP_LANDMARK__H

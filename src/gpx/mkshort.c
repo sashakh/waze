@@ -45,7 +45,7 @@ typedef struct {
         char *badchars;
         char *goodchars;
         char *defname;
-        queue namelist[PRIME];
+        queue_head namelist[PRIME];
 
         /* Various internal flags at end to allow alignment flexibility. */
         unsigned int mustupper:1;
@@ -131,7 +131,9 @@ mkshort_add_to_list(mkshort_handle *h, char *name)
                 char tbuf[10];
                 size_t l = strlen(name);
                 int hash = hash_string(name);
-                uniq_shortname *s = (uniq_shortname *) h->namelist[hash].next;
+                uniq_shortname *s;
+                
+                s = (uniq_shortname *) QUEUE_FIRST(&h->namelist[hash]);
 
                 s->conflictctr++;
 
@@ -163,7 +165,7 @@ mkshort_del_handle(short_handle *h)
                 queue *e, *t;
                 QUEUE_FOR_EACH(&hdr->namelist[i], e, t) {
                         uniq_shortname *s = (uniq_shortname *) e;
-                        dequeue(e);
+                        roadmap_list_remove(e);
                         xfree(s->orig_shortname);
                         xfree(s);
                 }

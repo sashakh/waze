@@ -57,7 +57,7 @@ void warning (const char *fmt, ...) {
 
 int
 roadmap_gpx_read_file(const char *path,
-        const char *name, queue *w, queue *r, queue *t)
+        const char *name, queue_head *w, queue_head *r, queue_head *t)
 {
 
     queue *elem, *tmp;
@@ -83,7 +83,7 @@ roadmap_gpx_read_file(const char *path,
 
 int
 roadmap_gpx_read_waypoints
-        (const char *path, const char *name, queue *waypoints)
+        (const char *path, const char *name, queue_head *waypoints)
 {
     int ret;
 
@@ -98,8 +98,9 @@ roadmap_gpx_read_one_track(
     const char *path, const char *name, route_head **track)
 {
     int ret;
-    queue tracklist;
+    queue_head tracklist;
     route_head *trk;
+
     QUEUE_INIT(&tracklist);
 
     ret = roadmap_gpx_read_file(path, name, NULL, NULL, &tracklist);
@@ -110,8 +111,8 @@ roadmap_gpx_read_one_track(
     }
 
     trk = (route_head *)QUEUE_FIRST(&tracklist);
-    dequeue(&trk->Q);
-    QUEUE_INIT(&trk->Q);
+    roadmap_list_remove(&trk->Q);
+    QUEUE_INIT((queue_head *)&trk->Q);  /* safety -- no dangling links */
 
     /* In case we read more than one track from the file.  */
     route_flush_queue(&tracklist);
@@ -128,7 +129,7 @@ roadmap_gpx_read_one_route(
     const char *path, const char *name, route_head **route)
 {
     int ret;
-    queue routelist;
+    queue_head routelist;
     route_head *rte;
 
     QUEUE_INIT(&routelist);
@@ -139,8 +140,8 @@ roadmap_gpx_read_one_route(
         return 0;
 
     rte = (route_head *)QUEUE_FIRST(&routelist);
-    dequeue(&rte->Q);
-    QUEUE_INIT(&rte->Q);
+    roadmap_list_remove(&rte->Q);
+    QUEUE_INIT((queue_head *)&rte->Q);  /* safety -- no dangling links */
 
     /* In case we read more than one route from the file.  */
     route_flush_queue(&routelist);
@@ -153,7 +154,7 @@ roadmap_gpx_read_one_route(
 
 int
 roadmap_gpx_write_file(const char *path, const char *name,
-        queue *w, queue *r, queue *t)
+        queue_head *w, queue_head *r, queue_head *t)
 {
     FILE *fp;
     int ret;
@@ -170,7 +171,7 @@ roadmap_gpx_write_file(const char *path, const char *name,
 }
 
 int roadmap_gpx_write_waypoints(const char *path, const char *name,
-        queue *waypoints)
+        queue_head *waypoints)
 {
     FILE *fp;
     int ret;
@@ -191,7 +192,7 @@ int roadmap_gpx_write_route(const char *path, const char *name,
 {
     FILE *fp;
     int ret;
-    queue route_head;
+    queue_head route_head;
 
     QUEUE_INIT(&route_head);
     ENQUEUE_TAIL(&route_head, &route->Q);
@@ -212,7 +213,7 @@ int roadmap_gpx_write_track(const char *path, const char *name,
 {
     FILE *fp;
     int ret;
-    queue track_head;
+    queue_head track_head;
 
     QUEUE_INIT(&track_head);
     ENQUEUE_TAIL(&track_head, &track->Q);

@@ -12,7 +12,6 @@ LIBSRCS=\
           waypt.c \
           route.c \
           util.c \
-          queue.c \
           mkshort.c \
           formspec.c \
           vmem.c

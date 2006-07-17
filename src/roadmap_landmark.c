@@ -33,7 +33,7 @@
 #include "roadmap_gpx.h"
 #include "roadmap_landmark.h"
 
-queue RoadMapLandmarkHead;
+RoadMapList RoadMapLandmarkHead;
 static int RoadMapLandmarkModified;
 static int RoadMapLandmarkRefresh;
 
@@ -68,7 +68,7 @@ void roadmap_landmark_display (void) {
 
 int roadmap_landmark_count() {
 
-    return queue_count(&RoadMapLandmarkHead);
+    return roadmap_list_count(&RoadMapLandmarkHead);
 }
 
 void roadmap_landmark_add(waypoint *waypointp) {
@@ -91,7 +91,7 @@ void roadmap_landmark_remove(waypoint *waypointp) {
 }
 
 
-queue * roadmap_landmark_list(void) {
+RoadMapList * roadmap_landmark_list(void) {
     // hack -- if roadmap_trip asked for the list, it's possible
     // someone is doing an edit.  we don't get informed of the actual
     // edit, which is done generically.  
@@ -146,7 +146,7 @@ void roadmap_landmark_save(void) {
 static void roadmap_landmark_merge_file(const char *name) {
 
     const char *trip_path = NULL;
-    queue tmp_waypoint_list;
+    RoadMapList tmp_waypoint_list;
     int ret;
 
     if (!name || !name[0]) return;
@@ -155,7 +155,7 @@ static void roadmap_landmark_merge_file(const char *name) {
         trip_path = roadmap_path_trips ();
 
 
-    QUEUE_INIT(&tmp_waypoint_list);
+    ROADMAP_LIST_INIT(&tmp_waypoint_list);
 
     ret = roadmap_gpx_read_waypoints(trip_path, name, &tmp_waypoint_list);
 
@@ -164,7 +164,7 @@ static void roadmap_landmark_merge_file(const char *name) {
         return;
     }
 
-    QUEUE_SPLICE(&RoadMapLandmarkHead, &tmp_waypoint_list);
+    ROADMAP_LIST_SPLICE(&RoadMapLandmarkHead, &tmp_waypoint_list);
 
     RoadMapLandmarkModified = 1;
     RoadMapLandmarkRefresh = 1;
@@ -194,14 +194,14 @@ void roadmap_landmark_load(void) {
 
     const char *name;
     const char *path = roadmap_path_user();
-    queue tmp_waypoint_list;
+    RoadMapList tmp_waypoint_list;
     int defaulted, ret;
 
     name = roadmap_landmark_filename (&defaulted);
 
     if ( ! roadmap_file_exists (path, name) && defaulted) return;
 
-    QUEUE_INIT(&tmp_waypoint_list);
+    ROADMAP_LIST_INIT(&tmp_waypoint_list);
 
     ret = roadmap_gpx_read_waypoints(path, name, &tmp_waypoint_list);
 
@@ -216,7 +216,7 @@ void roadmap_landmark_load(void) {
 
     waypt_flush_queue (&RoadMapLandmarkHead);
 
-    QUEUE_MOVE(&RoadMapLandmarkHead, &tmp_waypoint_list);
+    ROADMAP_LIST_MOVE(&RoadMapLandmarkHead, &tmp_waypoint_list);
 
     RoadMapLandmarkModified = 0;
     RoadMapLandmarkRefresh = 1;
@@ -229,6 +229,6 @@ roadmap_landmark_initialize(void) {
     roadmap_config_declare
         ("preferences", &RoadMapConfigLandmarkName, "");
 
-    QUEUE_INIT(&RoadMapLandmarkHead);
+    ROADMAP_LIST_INIT(&RoadMapLandmarkHead);
 
 }

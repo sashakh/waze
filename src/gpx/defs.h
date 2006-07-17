@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include "queue.h"
+#include "roadmap_list.h"
 #include "gbtypes.h"
 
 /*
@@ -282,7 +282,7 @@ typedef struct {
 
 typedef struct {
         queue Q;                /* Link onto parent list. */
-        queue waypoint_list;    /* List of child waypoints */
+        queue_head waypoint_list;    /* List of child waypoints */
         char *rte_name;
         char *rte_desc;
         int rte_num;
@@ -304,24 +304,24 @@ typedef struct {
 typedef void (*waypt_cb) (const waypoint *);
 typedef void (*route_hdr)(const route_head *);
 typedef void (*route_trl)(const route_head *);
-void waypt_add (queue *q, waypoint *);
+void waypt_add (queue_head *q, waypoint *);
 waypoint * waypt_dupe (const waypoint *);
 waypoint * waypt_new(void);
 void waypt_del (waypoint *);
 void waypt_free (waypoint *);
-void waypt_iterator(queue *, waypt_cb);
+void waypt_iterator(queue_head *, waypt_cb);
 void waypt_init_bounds(bounds *bounds);
 int waypt_bounds_valid(bounds *bounds);
 void waypt_add_to_bounds(bounds *bounds, const waypoint *waypointp);
-void waypt_compute_bounds(queue *q, bounds *);
-void waypt_flush_queue(queue *);
+void waypt_compute_bounds(queue_head *qh, bounds *);
+void waypt_flush_queue(queue_head *);
 unsigned int waypt_count(void);
 void set_waypt_count(unsigned int nc);
 void set_waypt_head(queue *wh);
 void free_gpx_extras (xml_tag * tag);
 void xcsv_setup_internal_style(const char *style_buf);
 void xcsv_read_internal_style(const char *style_buf);
-waypoint * waypt_find_waypt_by_name(queue *q, const char *name);
+waypoint * waypt_find_waypt_by_name(queue_head *qh, const char *name);
 void waypt_backup(unsigned int *count, queue **head_bak);
 void waypt_restore(unsigned int count, queue *head_bak);
 
@@ -329,15 +329,15 @@ route_head *route_head_alloc(void);
 void route_add_wpt(route_head *rte, waypoint *next, waypoint *wpt, int after);
 void route_add_wpt_tail(route_head *rte, waypoint *wpt);
 void route_del_wpt(route_head *rte, waypoint *wpt);
-void route_add(queue *q, route_head *rte);
+void route_add(queue_head *q, route_head *rte);
 void route_del(route_head *rte);
 void route_reverse(const route_head *rte_hd);
 waypoint * route_find_waypt_by_name(route_head *rh, const char *name);
 void route_waypt_iterator(const route_head *rte, waypt_cb);
-void route_iterator(queue *qh, route_hdr rh, route_trl rt, waypt_cb wc);
+void route_iterator(queue_head *qh, route_hdr rh, route_trl rt, waypt_cb wc);
 void route_free (route_head *);
-void route_flush_queue( queue *);
-route_head * route_find_route_by_name(queue *routes, const char *name);
+void route_flush_queue( queue_head *);
+route_head * route_find_route_by_name(queue_head *routes, const char *name);
 unsigned int route_count(void);
 unsigned int track_count(void);
 void route_backup(unsigned int *count, queue **head_bak);
@@ -431,8 +431,8 @@ typedef struct arglist {
 NORETURN fatal(const char *, ...) PRINTFLIKE(1, 2);
 void warning(const char *, ...) PRINTFLIKE(1, 2);
 
-int gpx_write( FILE *ofd, queue *w, queue *r, queue *t);
-int gpx_read(FILE *ifile, queue *w, queue *r, queue *t);
+int gpx_write( FILE *ofd, queue_head *w, queue_head *r, queue_head *t);
+int gpx_read(FILE *ifile, queue_head *w, queue_head *r, queue_head *t);
 time_t xml_parse_time( const char *cdatastr );
 
 

@@ -29,17 +29,17 @@
 # include "gpx/defs.h"
 
 int roadmap_gpx_read_file
-        (const char *path, const char *name, queue *w, queue *r, queue *t);
+        (const char *path, const char *name, RoadMapList *w, RoadMapList *r, RoadMapList *t);
 int roadmap_gpx_read_waypoints
-        (const char *path, const char *name, queue *waypoints);
+        (const char *path, const char *name, RoadMapList *waypoints);
 int roadmap_gpx_read_one_track
         ( const char *path, const char *name, route_head **track);
 int roadmap_gpx_read_one_route
         ( const char *path, const char *name, route_head **route);
 int roadmap_gpx_write_file
-        (const char *path, const char *name, queue *w, queue *r, queue *t);
+        (const char *path, const char *name, RoadMapList *w, RoadMapList *r, RoadMapList *t);
 int roadmap_gpx_write_waypoints
-        (const char *path, const char *name, queue *waypoints);
+        (const char *path, const char *name, RoadMapList *waypoints);
 int roadmap_gpx_write_track
         (const char *path, const char *name, route_head *track);
 int roadmap_gpx_write_route

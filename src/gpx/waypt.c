@@ -76,10 +76,10 @@ waypt_dupe(const waypoint *wpt)
 }
 
 void
-waypt_add(queue *q, waypoint *wpt)
+waypt_add(queue_head *qh, waypoint *wpt)
 {
         static int waypt_index;
-        ENQUEUE_TAIL(q, &wpt->Q);
+        ENQUEUE_TAIL(qh, &wpt->Q);
         waypt_index++;
 
         /*
@@ -112,7 +112,7 @@ waypt_add(queue *q, waypoint *wpt)
 void
 waypt_del(waypoint *wpt)
 {
-        dequeue(&wpt->Q);
+        roadmap_list_remove(&wpt->Q);
 }
 
 /*
@@ -134,12 +134,12 @@ waypt_new(void)
 }
 
 void
-waypt_iterator(queue *q, waypt_cb cb)
+waypt_iterator(queue_head *qh, waypt_cb cb)
 {
         queue *elem, *tmp;
         waypoint *waypointp;
 
-        QUEUE_FOR_EACH(q, elem, tmp) {
+        QUEUE_FOR_EACH(qh, elem, tmp) {
                 waypointp = (waypoint *) elem;
                 (*cb) (waypointp);
         }
@@ -186,7 +186,7 @@ waypt_add_to_bounds(bounds *bounds, const waypoint *waypointp)
  */
 
 void
-waypt_compute_bounds(queue *q, bounds *bounds)
+waypt_compute_bounds(queue_head *qh, bounds *bounds)
 {
         queue *elem, *tmp;
         waypoint *waypointp;
@@ -197,7 +197,7 @@ waypt_compute_bounds(queue *q, bounds *bounds)
         bounds->min_lat = 9999;
         bounds->min_lon = 9999;
 
-        QUEUE_FOR_EACH(q, elem, tmp) {
+        QUEUE_FOR_EACH(qh, elem, tmp) {
                 waypointp = (waypoint *) elem;
                 if (waypointp->pos.latitude > bounds->max_lat)
                         bounds->max_lat = waypointp->pos.latitude;
@@ -211,12 +211,12 @@ waypt_compute_bounds(queue *q, bounds *bounds)
 }
 
 waypoint *
-waypt_find_waypt_by_name(queue *q, const char *name)
+waypt_find_waypt_by_name(queue_head *qh, const char *name)
 {
         queue *elem, *tmp;
         waypoint *waypointp;
 
-        QUEUE_FOR_EACH(q, elem, tmp) {
+        QUEUE_FOR_EACH(qh, elem, tmp) {
                 waypointp = (waypoint *) elem;
                 if (0 == strcmp(waypointp->shortname, name)) {
                         return waypointp;
@@ -267,12 +267,12 @@ waypt_free( waypoint *wpt )
 }
 
 void 
-waypt_flush_queue( queue *head )
+waypt_flush_queue( queue_head *qh )
 {
         queue *elem, *tmp;
 
-        QUEUE_FOR_EACH(head, elem, tmp) {
-                waypoint *q = (waypoint *) dequeue(elem);
+        QUEUE_FOR_EACH(qh, elem, tmp) {
+                waypoint *q = (waypoint *) roadmap_list_remove(elem);
                 waypt_free(q);
         }
 }
