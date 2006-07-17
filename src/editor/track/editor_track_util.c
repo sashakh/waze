@@ -347,7 +347,7 @@ static int find_split_point (PluginLine *line,
                   (&split_pos,
                    track_point_pos (i),
                    track_point_pos (i-1),
-                   &intersection);
+                   &intersection, NULL);
 
          if (distance >= min_distance) break;
          min_distance = distance;

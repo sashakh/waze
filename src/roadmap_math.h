@@ -21,8 +21,8 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _ROADMAP_MATH__H_
-#define _ROADMAP_MATH__H_
+#ifndef INCLUDED__ROADMAP_MATH__H
+#define INCLUDED__ROADMAP_MATH__H
 
 
 #include "roadmap_types.h"
@@ -30,6 +30,10 @@
 
 enum { MATH_ZOOM_RESET = -1,
        MATH_ZOOM_NO_RESET = 0
+};
+
+enum { MATH_DIST_ACTUAL = 0,
+       MATH_DIST_SQUARED = 1
 };
 
 void roadmap_math_initialize   (void);
@@ -67,6 +71,7 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
                                           RoadMapGuiPoint *point0,
                                           RoadMapGuiPoint *point1);
 
+
 void roadmap_math_coordinate  (const RoadMapPosition *position,
                                RoadMapGuiPoint *point);
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
@@ -87,6 +92,9 @@ int  roadmap_math_azymuth
         (const RoadMapPosition *point1, const RoadMapPosition *point2);
 int roadmap_math_angle
        (const RoadMapGuiPoint *point1, const RoadMapGuiPoint *point2);
+long roadmap_math_screen_distance
+       (const RoadMapGuiPoint *point1, const RoadMapGuiPoint *point2,
+       int squared);
 
 char *roadmap_math_distance_unit (void);
 char *roadmap_math_trip_unit     (void);
@@ -95,37 +103,45 @@ char *roadmap_math_speed_unit    (void);
 int  roadmap_math_distance
         (const RoadMapPosition *position1, const RoadMapPosition *position2);
 
+int  roadmap_math_distance_convert (const char *string, int *was_explicit);
 int  roadmap_math_to_trip_distance (int distance);
+int  roadmap_math_to_trip_distance_tenths (int distance);
 
 int  roadmap_math_to_speed_unit (int knots);
 
+
 int  roadmap_math_to_current_unit (int value, const char *unit);
+int  roadmap_math_to_cm (int value);
 
 int  roadmap_math_get_distance_from_segment
         (const RoadMapPosition *position,
          const RoadMapPosition *position1,
          const RoadMapPosition *position2,
-               RoadMapPosition *intersection);
+               RoadMapPosition *intersection,
+                           int *which);
 
 int  roadmap_math_intersection (RoadMapPosition *from1,
-                               RoadMapPosition *to1,
-                               RoadMapPosition *from2,
-                               RoadMapPosition *to2,
-                               RoadMapPosition *intersection);
+                                RoadMapPosition *to1,
+                                RoadMapPosition *from2,
+                                RoadMapPosition *to2,
+                                RoadMapPosition *intersection);
+
+int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
+			   RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
+			   RoadMapGuiPoint *isect);
 
 void roadmap_math_screen_edges (RoadMapArea *area);
 
 int  roadmap_math_street_address (const char *image, int length);
 
 int  roadmap_math_compare_points (const RoadMapPosition *p1,
-                                 const RoadMapPosition *p2);
+                                  const RoadMapPosition *p2);
 
 int  roadmap_math_delta_direction (int direction1, int direction2);
-
-int roadmap_math_distance_convert(const char *string, int *_explicit);
 
 void roadmap_math_set_context (RoadMapPosition *position, int zoom);
 
 void roadmap_math_get_context (RoadMapPosition *position, int *zoom);
 
-#endif // _ROADMAP_MATH__H_
+#endif // INCLUDED__ROADMAP_MATH__H
+

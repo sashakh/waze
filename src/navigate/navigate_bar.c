@@ -117,7 +117,7 @@ static int navigate_bar_align_text (char *text, char **line1, char **line2,
    int width, ascent, descent;
 
    roadmap_canvas_get_text_extents
-      (text, size, &width, &ascent, &descent);
+      (text, size, &width, &ascent, &descent, NULL);
 
    if (width >= 2 * NavigatePanel->street_width) return -1;
 
@@ -156,12 +156,12 @@ static int navigate_bar_align_text (char *text, char **line1, char **line2,
          *p1 = 0;
 
          roadmap_canvas_get_text_extents
-            (text_line, size, &width, &ascent, &descent);
+            (text_line, size, &width, &ascent, &descent, NULL);
 
          if (width < NavigatePanel->street_width) {
 
             roadmap_canvas_get_text_extents
-               (text_line, size, &width, &ascent, &descent);
+               (text_line, size, &width, &ascent, &descent, NULL);
 
             if (width < NavigatePanel->street_width) {
 
@@ -362,7 +362,7 @@ void navigate_bar_set_street (const char *street) {
       }
 
       roadmap_canvas_get_text_extents
-         (line, size, &width, &ascent, &descent);
+         (line, size, &width, &ascent, &descent, NULL);
       
       position.x = NavigatePanel->street_width - width + NavigatePanel->street_start;
 
@@ -395,6 +395,6 @@ void navigate_bar_draw (void) {
    if (NavigateBarInitialized != 1) return;
 
    roadmap_canvas_draw_image (NavigateBarImage, &NavigateBarLocation, 0,
-         IMAGE_NORAML);
+         IMAGE_NORMAL);
 }
 

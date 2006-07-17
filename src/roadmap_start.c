@@ -1013,6 +1013,7 @@ void roadmap_start (int argc, char **argv) {
    
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
+   roadmap_label_activate    ();
    roadmap_sprite_initialize ();
    roadmap_screen_obj_initialize ();
 

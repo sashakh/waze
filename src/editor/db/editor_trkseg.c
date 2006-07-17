@@ -302,7 +302,7 @@ int editor_trkseg_split (int trkseg,
       
       distance =
          roadmap_math_get_distance_from_segment
-            (split_position, &from, &to, &intersection);
+            (split_position, &from, &to, &intersection, NULL);
 
       if (distance < smallest_distance) {
          smallest_distance = distance;
@@ -326,7 +326,7 @@ int editor_trkseg_split (int trkseg,
 
    distance =
       roadmap_math_get_distance_from_segment
-      (split_position, &from, &to, &intersection);
+      (split_position, &from, &to, &intersection, NULL);
 
    if (distance < smallest_distance) {
       smallest_distance = distance;

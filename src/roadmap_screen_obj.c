@@ -505,7 +505,7 @@ void roadmap_screen_obj_draw (void) {
 
    for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
       int state = 0;
-      int image_mode = IMAGE_NORAML;
+      int image_mode = IMAGE_NORMAL;
       RoadMapGuiPoint pos;
 
       if (cursor->state_fn) {

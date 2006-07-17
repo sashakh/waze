@@ -25,6 +25,7 @@
  *   See navigate_instr.h
  */
 
+#include <stdlib.h>
 #include "roadmap.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
@@ -113,7 +114,7 @@ static void navigate_fix_line_end (RoadMapPosition *position,
 
          distance =
             roadmap_math_get_distance_from_segment
-            (position, &from, &to, &intersection);
+            (position, &from, &to, &intersection, NULL);
 
          if (distance < smallest_distance) {
 
@@ -139,7 +140,7 @@ static void navigate_fix_line_end (RoadMapPosition *position,
 
    distance =
       roadmap_math_get_distance_from_segment
-      (position, &from, &to, &intersection);
+      (position, &from, &to, &intersection, NULL);
 
    if (distance < smallest_distance) {
 
@@ -393,7 +394,7 @@ int navigate_instr_calc_length (const RoadMapPosition *position,
 
          distance =
             roadmap_math_get_distance_from_segment
-            (position, &from, &to, &intersection);
+            (position, &from, &to, &intersection, NULL);
 
          if (distance < smallest_distance) {
             smallest_distance = distance;
@@ -410,7 +411,7 @@ int navigate_instr_calc_length (const RoadMapPosition *position,
 
    distance =
       roadmap_math_get_distance_from_segment
-      (position, &from, &to, &intersection);
+      (position, &from, &to, &intersection, NULL);
 
    if (distance < smallest_distance) {
 

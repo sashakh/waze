@@ -69,7 +69,7 @@ static int match_distance_from_current
             ((RoadMapPosition *)gps_point,
              track_point_pos (i),
              track_point_pos (i+1),
-             &intersection);
+             &intersection, NULL);
 
       if (distance < smallest_distance) {
          smallest_distance = distance;

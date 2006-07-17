@@ -29,7 +29,9 @@
 #include "roadmap.h"
 #include "roadmap_gui.h"
 
-#define MAX_LABELS 150
+/* should be related by a power of 2 */
+#define MIN_LABELS 256
+#define MAX_LABELS 2048
 
 typedef struct {
 
@@ -38,25 +40,28 @@ typedef struct {
   PluginLine line;
   PluginStreet street;
 
-  int angle; /* degrees */
   RoadMapGuiPoint point; /* label point */
   RoadMapGuiRect bbox; /* label bounding box */
+  RoadMapGuiPoint poly[4];
 
-  int status; /* has this label been drawn or not */
+  short angle; /* degrees */
+  short status; /* has this label been drawn or not */
 
 } labelCacheMemberObj;
 
 typedef struct {
-  labelCacheMemberObj labels[MAX_LABELS];
+  labelCacheMemberObj **labels;
   int numlabels;
+  int maxlabels;
 } labelCacheObj;
 
 
 int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
                        int featuresize, const PluginLine *line);
 
+int roadmap_label_activate (void);
 int roadmap_label_initialize (void);
 
-int roadmap_label_draw_cache (void);
+int roadmap_label_draw_cache (int angles);
 
 #endif // __ROADMAP_LABEL__H

@@ -336,7 +336,7 @@ static void roadgps_screen_format_frame (void) {
    canvas_height = roadmap_canvas_height();
 
    roadmap_canvas_get_text_extents
-       ("09", -1, &text_width, &text_ascent, &text_descent);
+       ("09", -1, &text_width, &text_ascent, &text_descent, NULL);
 
    text_height = text_ascent + text_descent + 2;
 
