@@ -3,7 +3,7 @@ AppName = "Roadmap"
 InstallDir = %CE1%\%AppName%
 
 [Strings]
-CompanyName = "RoadMap"
+CompanyName = "FreeMap"
 
 [Version]
 Signature = "$Chicago$"
@@ -86,7 +86,7 @@ DefaultDestDir = 0,%InstallDir%
 
 [Shortcuts.All]
 %AppName%,0,Roadmap.exe
-RoadGPS,0,RoadGPS.exe
+; RoadGPS,0,RoadGPS.exe
 
 [Files.Config]
 drivers,,,0x00000010

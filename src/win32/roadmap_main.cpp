@@ -54,6 +54,7 @@ extern "C" {
 #include "../roadmap_serial.h"
 #include "../roadmap_messagebox.h"
 #include "../roadmap_screen.h"
+#include "../roadmap_download.h"
 #include "wince_input_mon.h"
 #include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
@@ -95,6 +96,7 @@ static HWND				   RoadMapMainToolbar = NULL;
 static bool				   RoadMapMainFullScreen = false;
 static HANDLE           VirtualSerialHandle = 0;
 static const char *RoadMapMainVirtualSerial;
+static bool             RoadMapMainSync = false;
 
 
 // Global Variables:
@@ -121,10 +123,15 @@ static WCHAR szOtherWindowClass[] = L"RoadGPSClass";
 static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
                         ROADMAP_CONFIG_ITEM("GPS", "Virtual");
 
+#ifndef _ROADGPS
 static void roadmap_main_start_sync (void) {
 
    struct hostent *h;
    int i;
+
+   if (RoadMapMainSync) return;
+
+   RoadMapMainSync = true;
 
    Sleep(1000);
 
@@ -135,8 +142,10 @@ static void roadmap_main_start_sync (void) {
       }
       Sleep(1000);
    }
-}
 
+   RoadMapMainSync = false;
+}
+#endif
 
 static void setup_virtual_serial (void) {
 
@@ -277,12 +286,13 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 	
 #ifdef UNDER_CE
 	SHInitExtraControls();
-#endif
 
    if (!wcscmp(lpCmdLine, APP_RUN_AT_RS232_DETECT)) {
       do_sync = true;
    }
-	
+
+#endif
+   
 	//If it is already running, then focus on the window, and exit
 	hWnd = FindWindow(szWindowClass, NULL);	
 	if (hWnd) 
@@ -311,13 +321,15 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 	
 	char *args[1] = {0};
 
+#ifndef _ROADGPS
    if (do_sync) {
-      roadmap_main_start_sync ();
       roadmap_config_initialize ();
+      roadmap_download_initialize ();
       editor_main_initialize ();
       roadmap_main_start_sync ();
       return 0;
    }
+#endif
 
 	roadmap_start(0, args);
 	
@@ -572,9 +584,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 #endif
 
+#ifndef _ROADGPS
 	case WM_USER_SYNC:
       roadmap_main_start_sync ();
       break;
+#endif
 
 	case WM_USER_READ:
 		{
