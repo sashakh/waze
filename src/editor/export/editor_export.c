@@ -174,7 +174,7 @@ static int create_export_stream (ExportStream *stream, const char *name) {
       stream->stream = file;
    } else {
 
-      gz_file = gzopen(name, "w");
+      gz_file = gzopen(name, "wb");
       if (gz_file == NULL) {
          editor_log (ROADMAP_ERROR, "Can't create file: %s", name);
          roadmap_messagebox ("Export Error", "Can't create file.");
