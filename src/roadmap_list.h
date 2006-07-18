@@ -119,7 +119,8 @@ static inline void roadmap_list_put_after
 #define ROADMAP_LIST_EMPTY(head)   ((head)->list_first == (RoadMapListItem *)(head))
 
 /* Anything attached to oldhead will be re-anchord at newhead.
- * newhead will be cleared, and anything at newhead will be lost.
+ * oldhead will be cleared, and anything previously at newhead
+ * will be lost.
  */
 #define ROADMAP_LIST_MOVE(newhead,oldhead) \
         if ( ROADMAP_LIST_EMPTY(oldhead) ) {\
