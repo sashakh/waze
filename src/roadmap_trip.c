@@ -2183,7 +2183,8 @@ void roadmap_trip_copy_route
 }
 
 static void roadmap_trip_route_convert_worker
-        (route_head *orig_route, char *new_name, int simplify, int wanttrack) {
+        (route_head *orig_route, char *new_name, 
+	    int simplify, int wanttrack, int reverse) {
 
     int dropped = 0;
     route_head *new_route;
@@ -2202,6 +2203,9 @@ static void roadmap_trip_route_convert_worker
             new_route->rte_name = xstrdup(new_name);
         }
 
+	if (reverse) {
+	    route_reverse(new_route);
+	}
 
         if (wanttrack) {
             new_route->rte_is_track = 1;
@@ -2242,7 +2246,7 @@ void roadmap_trip_track_to_route (void) {
         namep = name;
     }
 
-    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep, 0, 0);
+    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep, 0, 0, 0);
 
 }
 
@@ -2260,7 +2264,7 @@ void roadmap_trip_route_simplify (void) {
         namep = name;
     }
 
-    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep, 1, 0);
+    roadmap_trip_route_convert_worker (RoadMapCurrentRoute, namep, 1, 0, 0);
 
 }
 
@@ -2274,7 +2278,7 @@ void roadmap_trip_currenttrack_to_route (void) {
     strftime(name, sizeof(name), "Backtrack-%Y-%m-%d-%H:%M:%S",
                 localtime(&now));
 
-    roadmap_trip_route_convert_worker (RoadMapTrack, name, 0, 0);
+    roadmap_trip_route_convert_worker (RoadMapTrack, name, 0, 0, 1);
 
 }
 
@@ -2288,7 +2292,7 @@ void roadmap_trip_currenttrack_to_track (void) {
     strftime(name, sizeof(name), "Track-%Y-%m-%d-%H:%M:%S",
                 localtime(&now));
 
-    roadmap_trip_route_convert_worker (RoadMapTrack, name, 0, 1);
+    roadmap_trip_route_convert_worker (RoadMapTrack, name, 0, 1, 0);
 
 }
 
