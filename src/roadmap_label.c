@@ -39,9 +39,6 @@
 #include "roadmap_list.h"
 #include "roadmap_label.h"
 
-// #define TRACE(x, ...) roadmap_log(x,__VA_ARGS__)
-#define TRACE(x, ...) 
-
 #define MIN(a, b) (a) < (b) ? (a) : (b)
 #define MAX(a, b) (a) > (b) ? (a) : (b)
 
@@ -217,12 +214,6 @@ void roadmap_label_start (void) {
    RoadMapLabelGenerationFloor = last_generation;
    last_generation = RoadMapLabelGeneration;
 
-   TRACE(ROADMAP_WARNING, "start: cached %d new %d spare %d alloced %d",
-        roadmap_list_count(&RoadMapLabelCache),
-        roadmap_list_count(&RoadMapLabelNew),
-        roadmap_list_count(&RoadMapLabelSpares),
-        RoadMapLabelCacheAlloced);
-
    /* Cheap cache invalidation:  if the previous center of screen
     * is still visible, assume that the cache is still more useful
     * than not.
@@ -305,19 +296,12 @@ int roadmap_label_draw_cache (int angles) {
 
    roadmap_canvas_select_pen (RoadMapLabelPen);
 
-   TRACE(ROADMAP_WARNING, "cached %d new %d spare %d alloced %d",
-        roadmap_list_count(&RoadMapLabelCache),
-        roadmap_list_count(&RoadMapLabelNew),
-        roadmap_list_count(&RoadMapLabelSpares),
-        RoadMapLabelCacheAlloced);
-
    /* We want to process the cache first, in order to render previously
     * rendered labels again.  Only after doing so (checking for updates
     * in the new list as we go), we'll process what's left of the new
     * list -- those are the truly new labels for this repaint.
     */
    for (whichlist = OLDLIST; whichlist <= NEWLIST; whichlist++)  {
-      TRACE(ROADMAP_WARNING, "which %d", whichlist);
 
       ROADMAP_LIST_FOR_EACH 
            (whichlist == OLDLIST ? &RoadMapLabelCache : &RoadMapLabelNew,
@@ -326,10 +310,8 @@ int roadmap_label_draw_cache (int angles) {
          PluginStreetProperties properties;
 
          cPtr = (roadmap_label *)item;
-         TRACE(ROADMAP_WARNING, "considering, gen %d (%d)", cPtr->gen, RoadMapLabelGeneration);
 
          if (cPtr->gen < RoadMapLabelGenerationFloor) {
-            TRACE(ROADMAP_WARNING, "gen expired");
             roadmap_list_insert
                (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
             continue;
@@ -340,10 +322,8 @@ int roadmap_label_draw_cache (int angles) {
           */
          if (whichlist == OLDLIST) {
             ROADMAP_LIST_FOR_EACH (&RoadMapLabelNew, item2, tmp2) {
-               TRACE(ROADMAP_WARNING, "new --");
                ncPtr = (roadmap_label *)item2;
                if (ncPtr->gen == 0) {
-                   TRACE(ROADMAP_WARNING, "new: marked off");
                    continue;
                }
                if (cPtr->line.plugin_id == ncPtr->line.plugin_id &&
@@ -383,7 +363,6 @@ int roadmap_label_draw_cache (int angles) {
                    cPtr->featuresize = ncPtr->featuresize;
                    cPtr->gen = ncPtr->gen;
 
-                   TRACE(ROADMAP_WARNING, "new: found %d (%d)", ncPtr->gen, RoadMapLabelGeneration);
                    roadmap_list_insert
                       (&RoadMapLabelSpares, roadmap_list_remove(&ncPtr->link));
 
@@ -393,16 +372,12 @@ int roadmap_label_draw_cache (int angles) {
          }
 
          if (cPtr->gen != RoadMapLabelGeneration) {
-            TRACE(ROADMAP_WARNING, "wrong gen");
             continue;
          }
-
-         TRACE(ROADMAP_WARNING, "still considering, gen %d (%d)", cPtr->gen, RoadMapLabelGeneration);
 
          roadmap_plugin_get_street_properties (&cPtr->line, &properties);
 
          if (!properties.street || !*properties.street) {
-            TRACE(ROADMAP_WARNING, "no props");
             roadmap_list_insert
                (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
             continue;
@@ -437,8 +412,6 @@ int roadmap_label_draw_cache (int angles) {
 
             /* text is too long for this feature */
             if ((width / 4) > cPtr->featuresize) {
-               cPtr->gen = 0;
-               TRACE(ROADMAP_WARNING, "toosmall");
                roadmap_list_insert
                   (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
                continue;
@@ -474,15 +447,11 @@ int roadmap_label_draw_cache (int angles) {
          if (midpt.x < 0 || midpt.y < 0 ||
                midpt.x > roadmap_canvas_width() ||
                midpt.y > roadmap_canvas_height()) {
-            cPtr->gen = 0;  /* over the edge */
-            TRACE(ROADMAP_WARNING, "off edge");
             roadmap_list_insert
                (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
             continue;
          }
 
-
-         TRACE(ROADMAP_WARNING, "before rendered, considering, gen %d (%d)", cPtr->gen, RoadMapLabelGeneration);
 
          /* compare against already rendered labels */
          if (whichlist == NEWLIST)
@@ -493,18 +462,15 @@ int roadmap_label_draw_cache (int angles) {
          ROADMAP_LIST_FOR_EACH_FROM_TO
                 ( RoadMapLabelCache.list_first, end, item2, tmp2) {
 
-            TRACE(ROADMAP_WARNING, "rendered --");
             ocPtr = (roadmap_label *)item2;
 
             if (ocPtr->gen != RoadMapLabelGeneration) {
-               TRACE(ROADMAP_WARNING, "rendered: wrong gen %d (%d)", ocPtr->gen, RoadMapLabelGeneration);
                continue;
             }
 
             /* street already labelled */
             if(roadmap_plugin_same_street(&cPtr->street, &ocPtr->street)) {
                cPtr->gen = 0;  /* label is a duplicate */
-               TRACE(ROADMAP_WARNING, "rendered: dup");
                break;
             }
 
@@ -514,7 +480,6 @@ int roadmap_label_draw_cache (int angles) {
 
                /* if labels are horizontal, bbox check is sufficient */
                if(!angles) {
-                  TRACE(ROADMAP_WARNING, "rendered: rectovl");
                   cPtr->gen = 0;
                   break;
                }
@@ -525,29 +490,24 @@ int roadmap_label_draw_cache (int angles) {
                 */
                aang = abs(cPtr->angle);
                if (aang < 4 || aang > 86) {
-                  TRACE(ROADMAP_WARNING, "rendered: steep");
                   cPtr->gen = 0;
                   break;
                }
                aang = abs(ocPtr->angle);
                if (aang < 4 || aang > 86) {
-                  TRACE(ROADMAP_WARNING, "rendered: steep");
                   cPtr->gen = 0;
                   break;
                }
 
                /* otherwise we do the full poly check */
                if (poly_overlap (ocPtr, cPtr)) {
-                  TRACE(ROADMAP_WARNING, "rendered: polyover");
                   cPtr->gen = 0;
                   break;
                }
             }
          }
-         TRACE(ROADMAP_WARNING, "after rendered, considering, gen %d (%d)", cPtr->gen, RoadMapLabelGeneration);
 
          if(cPtr->gen == 0) {
-            TRACE(ROADMAP_WARNING, "bagging");
             roadmap_list_insert
                (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
             continue; /* next label */
@@ -574,13 +534,6 @@ int roadmap_label_draw_cache (int angles) {
 
       } /* next label */
    } /* next list */
-
-   TRACE(ROADMAP_WARNING, "e: cached %d new %d spare %d alloced %d",
-        roadmap_list_count(&RoadMapLabelCache),
-        roadmap_list_count(&RoadMapLabelNew),
-        roadmap_list_count(&RoadMapLabelSpares),
-        RoadMapLabelCacheAlloced);
-
 
    RoadMapLabelGeneration++;
    return 0;
