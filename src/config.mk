@@ -39,7 +39,7 @@ DESKTOP = GTK2
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
 # some Familiar builds), set QT_NO_ROTATE.  RoadMap will then use
 # its internal labeling font.  Unfortunately, QT's line drawing
-# makes the internal font is particularly hard to read.  You may
+# makes the internal font particularly hard to read.  You may
 # also wish to add "CFLAGS += -DROADMAP_NO_LINEFONT" to force
 # horizionatl labels.
 # QT_NO_ROTATE = YES
