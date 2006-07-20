@@ -252,6 +252,10 @@ void roadmap_linefont_text (const char *text, int where,
     long scale;
     const char *t;
 
+    if (fontp == 0) {
+        roadmap_load_hershey_font();
+    }
+
     /* scale factor ... */
     scale = 1024 * size / (hf->maxy - hf->miny);
 
