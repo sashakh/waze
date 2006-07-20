@@ -622,7 +622,7 @@ static int roadmap_screen_draw_square
    int fips = roadmap_locator_active ();
    int total_length;
    int *total_length_ptr = 0;
-   int angle = 0;
+   int angle = 90;
    int *angle_ptr = 0;
    RoadMapGuiPoint seg_middle;
    RoadMapGuiPoint loweredge;
@@ -969,6 +969,8 @@ static void roadmap_screen_repaint (void) {
     if (count == 0) {
        roadmap_display_text("Info", "No map available");
     }
+
+    roadmap_label_start();
 
     /* - For each candidate county: */
 
@@ -1351,6 +1353,7 @@ void roadmap_screen_decrease_horizon (void) {
 }
 
 #define FRACMOVE 4
+// #define FRACMOVE 100  // tiny moves: useful for debug
 
 void roadmap_screen_move_up (void) {
 
