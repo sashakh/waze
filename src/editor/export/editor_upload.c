@@ -438,6 +438,7 @@ static int editor_post_file (const char *target,
    if (!user_name[0]) {
       unsigned char digest[16];
       if (roadmap_net_unique_id (digest, sizeof(digest)) != sizeof(digest)) {
+         roadmap_file_close (file);
          return -1;
       }
 
@@ -450,6 +451,7 @@ static int editor_post_file (const char *target,
    fd = editor_http_send_header
          (target, file_name, size, user_name, password, editor_upload_error);
    if (!ROADMAP_NET_IS_VALID(fd)) {
+      roadmap_file_close (file);
       return -1;
    }
 
@@ -481,6 +483,7 @@ static int editor_post_file (const char *target,
    }
 
    roadmap_net_close (fd);
+   roadmap_file_close (file);
    roadmap_dialog_hide ("Uploading");
    buffer[loaded] = 0;
 
@@ -490,6 +493,7 @@ static int editor_post_file (const char *target,
 cancel_upload:
 
    roadmap_net_close (fd);
+   roadmap_file_close (file);
    roadmap_dialog_hide ("Uploading");
 
    return -1;
