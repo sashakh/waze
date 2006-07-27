@@ -230,8 +230,9 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
   HKEY                hkLevel1=NULL;
   LPTSTR              lpFriendlyName=NULL;
   LISTPORTS_PORTINFO  portinfo;
-//  DWORD               index;
+  DWORD               index;
   DWORD               wordSize = sizeof(DWORD);
+  BYTE                found[20] = {0};       
 
   portinfo.lpPortName = (LPTSTR)malloc(64);
 
@@ -270,10 +271,60 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
 
     portinfo.lpTechnology=TEXT(""); /* this information is not available */
 
+    if (swscanf(portinfo.lpPortName, L"COM%d:", &index)) {
+
+       if (index<sizeof(found)/sizeof(found[0])) found[index] = 1;
+    }
+
     if(!lpCbk(lpCbkValue, &portinfo)){
       break;
     }
   } 
+
+  if(hKey!=NULL) {
+     RegCloseKey(hKey);
+     hKey = NULL;
+  }
+
+  if(dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("Drivers\\Builtin"),
+     0,KEY_READ,&hKey)){
+     goto end;
+  } else {
+     
+     DWORD dwIndex = 0;
+     
+     for(;;){
+        TCHAR SubKeyName[20];
+        DWORD cbSubkeyName = 20 * sizeof(TCHAR);
+        FILETIME           filetime;
+        
+        if(!(dwError=RegEnumKeyEx(hKey,dwIndex,SubKeyName,&cbSubkeyName,
+           0,NULL,NULL,&filetime))){
+           
+           if (!wcsncmp(SubKeyName, L"Serial", 6)) {
+              DWORD index = 0;
+              
+              if (swscanf(SubKeyName, L"Serial%d:", &index)) {
+                 
+                 if (index && (index<sizeof(found)/sizeof(found[0]))) {
+                    found[index] = 1;
+
+                    _stprintf((LPTSTR)portinfo.lpPortName, L"COM%u", index);
+                    if(!lpCbk(lpCbkValue, &portinfo)){
+                       break;
+                    }
+                 }
+              }
+           }
+        }
+        else if(dwError!=ERROR_MORE_DATA){ /* not enough space */
+           goto end;
+        }
+
+        dwIndex++;
+     }
+  }
+
 
 end:
   free((LPTSTR)portinfo.lpPortName);
