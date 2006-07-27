@@ -73,6 +73,10 @@ void roadmap_config_declare_color
          RoadMapConfigDescriptor *descriptor, const char *default_value);
 
  
+char *roadmap_config_skip_until (char *p, char c);
+
+char *roadmap_config_skip_spaces (char *p);
+
 char *roadmap_config_extract_data (char *line, int size);
 
 

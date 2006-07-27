@@ -131,6 +131,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_state.c \
           roadmap_driver.c \
           roadmap_adjust.c \
+          roadmap_lang.c \
           roadmap_sunrise.c
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)

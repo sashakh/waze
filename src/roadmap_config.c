@@ -434,19 +434,6 @@ static int roadmap_config_set_item
 }
 
 
-static char *roadmap_config_skip_until (char *p, char c) {
-
-   while (*p != '\n' && *p != c && *p != 0) p++;
-   return p;
-}
-
-static char *roadmap_config_skip_spaces (char *p) {
-
-   while (*p == ' ' || *p == '\t') p++;
-   return p;
-}
-
-
 static int roadmap_config_load
                (const char *path, RoadMapConfig *config, int intended_state) {
 
@@ -554,6 +541,20 @@ static void roadmap_config_update (RoadMapConfig *config, int force) {
          config->state = ROADMAP_CONFIG_CLEAN;
       }
    }
+}
+
+
+char *roadmap_config_skip_until (char *p, char c) {
+
+   while (*p != '\n' && *p != c && *p != 0) p++;
+   return p;
+}
+
+
+char *roadmap_config_skip_spaces (char *p) {
+
+   while (*p == ' ' || *p == '\t') p++;
+   return p;
 }
 
 

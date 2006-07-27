@@ -71,6 +71,8 @@
 #include "roadmap_messagebox.h"
 #include "roadmap_help.h"
 #include "roadmap_pointer.h"
+#include "roadmap_sound.h"
+#include "roadmap_lang.h"
 
 #include "navigate/navigate_main.h"
 #include "editor/editor_main.h"
@@ -993,6 +995,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_adjust_initialize   ();
    roadmap_driver_initialize   ();
    roadmap_config_initialize   ();
+   roadmap_lang_initialize     ();
+   roadmap_sound_initialize    ();
 
    roadmap_gps_register_listener (&roadmap_gps_update);
 
@@ -1049,6 +1053,7 @@ void roadmap_start_exit (void) {
     
     roadmap_plugin_shutdown ();
     roadmap_driver_shutdown ();
+    roadmap_sound_shutdown ();
     roadmap_history_save ();
     roadmap_config_save (0);
     roadmap_start_save_trip ();

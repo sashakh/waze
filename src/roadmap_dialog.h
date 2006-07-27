@@ -87,11 +87,14 @@ void roadmap_dialog_new_color (const char *frame, const char *name);
  * The optional callback is called each time a new selection is being made,
  * not when the OK button is called--that is the job of the OK button
  * callback.
+ * 
+ * Note: A choice widget is expected to be able to retrive its text labels
+ *       from its internal data structures.
  */
 void roadmap_dialog_new_choice (const char *frame,
                                 const char *name,
                                 int count,
-                                char **labels,
+                                const char **labels,
                                 void **values,
                                 RoadMapDialogCallback callback);
 
@@ -112,7 +115,8 @@ void roadmap_dialog_show_list (const char  *frame,
 
 
 /* Add one button to the bottom of the dialog. */
-void roadmap_dialog_add_button (char *label, RoadMapDialogCallback callback);
+void roadmap_dialog_add_button
+         (const char *label, RoadMapDialogCallback callback);
 
 /* When all done with building the dialog, call this to finalize and show: */
 void roadmap_dialog_complete (int use_keyboard);
@@ -122,5 +126,118 @@ void *roadmap_dialog_get_data (const char *frame, const char *name);
 void  roadmap_dialog_set_data (const char *frame, const char *name,
                                const void *data);
 void  roadmap_dialog_protect  (const char *frame, const char *name);
+
+#ifndef ROADMAP_DIALOG_NO_LANG
+#include "roadmap_lang.h"
+
+static __inline int roadmap_dialog_activate_i (const char *name, void *context) {
+   return roadmap_dialog_activate (roadmap_lang_get (name), context);
+}
+
+static __inline void roadmap_dialog_hide_i (const char *name) {
+   roadmap_dialog_hide (roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_new_label_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_new_label
+      (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_new_entry_i
+       (const char *frame, const char *name, RoadMapDialogCallback callback) {
+
+   roadmap_dialog_new_entry
+      (roadmap_lang_get (frame), roadmap_lang_get (name), callback);
+}
+
+static __inline void roadmap_dialog_new_password_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_new_password
+      (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_new_color_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_new_color
+      (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_new_choice_i
+                                          (const char *frame,
+                                           const char *name,
+                                           int count,
+                                           const char **labels,
+                                           void **values,
+                                           RoadMapDialogCallback callback) {
+
+   roadmap_dialog_new_choice (roadmap_lang_get (frame),
+                              roadmap_lang_get (name),
+                              count, labels, values, callback);
+}
+
+static __inline void roadmap_dialog_new_list_i
+                     (const char  *frame, const char  *name) {
+
+   roadmap_dialog_new_list (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_show_list_i
+                                             (const char  *frame,
+                                              const char  *name,
+                                              int    count,
+                                              char **labels,
+                                              void **values,
+                                              RoadMapDialogCallback callback) {
+
+   roadmap_dialog_show_list (roadmap_lang_get (frame),
+                             roadmap_lang_get (name),
+                             count, labels, values, callback);
+}
+
+static __inline void roadmap_dialog_add_button_i
+                     (const char *label, RoadMapDialogCallback callback) {
+
+   roadmap_dialog_add_button (roadmap_lang_get (label), callback);
+}
+
+static __inline void *roadmap_dialog_get_data_i 
+                        (const char *frame, const char *name) {
+
+   return roadmap_dialog_get_data
+               (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_set_data_i
+                      (const char *frame, const char *name, const void *data) {
+
+   roadmap_dialog_set_data
+      (roadmap_lang_get (frame), roadmap_lang_get (name), data);
+}
+
+static __inline void roadmap_dialog_protect_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_protect (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+         
+#define roadmap_dialog_activate     roadmap_dialog_activate_i
+#define roadmap_dialog_hide         roadmap_dialog_hide_i
+#define roadmap_dialog_new_label    roadmap_dialog_new_label_i
+#define roadmap_dialog_new_entry    roadmap_dialog_new_entry_i
+#define roadmap_dialog_new_password roadmap_dialog_new_password_i
+#define roadmap_dialog_new_color    roadmap_dialog_new_color_i
+#define roadmap_dialog_new_choice   roadmap_dialog_new_choice_i
+#define roadmap_dialog_new_list     roadmap_dialog_new_list_i
+#define roadmap_dialog_show_list    roadmap_dialog_show_list_i
+#define roadmap_dialog_add_button   roadmap_dialog_add_button_i
+#define roadmap_dialog_select       roadmap_dialog_select_i
+#define roadmap_dialog_get_data     roadmap_dialog_get_data_i
+#define roadmap_dialog_set_data     roadmap_dialog_set_data_i
+#define roadmap_dialog_protect      roadmap_dialog_protect_i
+#endif
 
 #endif // INCLUDE__ROADMAP_DIALOG__H
