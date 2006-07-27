@@ -49,6 +49,7 @@
 #include "roadmap_navigate.h"
 #include "roadmap_point.h"
 #include "roadmap_layer.h"
+#include "roadmap_sound.h"
 
 #include "navigate_plugin.h"
 #include "navigate_graph.h"
@@ -302,10 +303,14 @@ static void navigate_main_format_messages (void) {
 
 void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
-   int annouce = 0;
+   int announce = 0;
    const NavigateSegment *segment = NavigateSegments + NavigateCurrentSegment;
    int group_id = segment->group_id;
    const char *inst_text = "";
+   const char *inst_voice = NULL;
+   RoadMapSoundList sound_list;
+   const int ANNOUNCES[] = { 800, 200, 50 };
+   int announce_distance = 0;
 
    if (!NavigateTrackEnabled) return;
 
@@ -336,21 +341,26 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
       case TURN_LEFT:
          inst_text = "Turn left";
+         inst_voice = "TurnLeft.wav";
          break;
       case KEEP_LEFT:
          inst_text = "Keep left";
+         inst_voice = "KeepLeft.wav";
          break;
       case TURN_RIGHT:
          inst_text = "Turn right";
+         inst_voice = "TurnRight.wav";
          break;
       case KEEP_RIGHT:
          inst_text = "Keep right";
+         inst_voice = "KeepRight.wav";
          break;
       case APPROACHING_DESTINATION:
          inst_text = "Approaching destination";
          break;
       case CONTINUE:
          inst_text = "Continue straight";
+         inst_voice = "Straight.wav";
          break;
       default:
          break;
@@ -358,6 +368,10 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
    if ((segment->instruction == APPROACHING_DESTINATION) &&
         NavigateDistanceToTurn <= 10) {
+
+      sound_list = roadmap_sound_list_create ();
+      roadmap_sound_list_add (sound_list, "Arrive.wav");
+      roadmap_sound_play_list (sound_list);
 
       NavigateTrackEnabled = 0;
       navigate_bar_set_mode (NavigateTrackEnabled);
@@ -369,17 +383,42 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
    if (NavigateNextAnnounce == -1) {
 
-      NavigateNextAnnounce = 50;
+      unsigned int i;
 
-      annouce = 1;
+      for (i=0; i<sizeof(ANNOUNCES)/sizeof(ANNOUNCES[0]) - 1; i++) {
+         
+         if (NavigateDistanceToTurn > ANNOUNCES[i]) {
+            NavigateNextAnnounce = ANNOUNCES[i];
+            break;
+         }
+      }
+         
+      if (NavigateNextAnnounce == -1) {
+         NavigateNextAnnounce =
+            ANNOUNCES[sizeof(ANNOUNCES)/sizeof(ANNOUNCES[0]) - 1];
+      }
    }
 
-   if (NavigateDistanceToTurn <= NavigateNextAnnounce) {
+   if (NavigateNextAnnounce &&
+      (NavigateDistanceToTurn <= NavigateNextAnnounce)) {
+      unsigned int i;
+
+      announce_distance = NavigateNextAnnounce;
       NavigateNextAnnounce = 0;
-      annouce = 1;
+
+      if (inst_voice) {
+         announce = 1;
+      }
+
+      for (i=0; i<sizeof(ANNOUNCES)/sizeof(ANNOUNCES[0]); i++) {
+         
+         if (NavigateDistanceToTurn > ANNOUNCES[i]) {
+            NavigateNextAnnounce = ANNOUNCES[i];
+         }
+      }
    }
 
-   if (annouce) {
+   if (announce) {
       PluginStreetProperties properties;
 
       if (segment < (NavigateSegments + NavigateNumSegments - 1)) {
@@ -393,23 +432,37 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       roadmap_message_set ('T', properties.street_t2s);
       roadmap_message_set ('C', properties.city);
 
-      if (NavigateDistanceToTurn <= 50) {
+      sound_list = roadmap_sound_list_create ();
+      if (!NavigateNextAnnounce) {
          roadmap_message_unset ('w');
       } else {
 
+         char distance_str[100];
          int distance_far =
-            roadmap_math_to_trip_distance(NavigateDistanceToTurn);
+            roadmap_math_to_trip_distance(announce_distance);
+
+         roadmap_sound_list_add (sound_list, "within.wav");
 
          if (distance_far > 0) {
             roadmap_message_set ('w', "%d %s",
                   distance_far, roadmap_math_trip_unit());
+
+            sprintf(distance_str, "%d", distance_far);
+            roadmap_sound_list_add (sound_list, distance_str);
+            roadmap_sound_list_add (sound_list, roadmap_math_trip_unit());
          } else {
             roadmap_message_set ('w', "%d %s",
-                  NavigateDistanceToTurn, roadmap_math_distance_unit());
+                  announce_distance, roadmap_math_distance_unit());
+
+            sprintf(distance_str, "%d", announce_distance);
+            roadmap_sound_list_add (sound_list, distance_str);
+            roadmap_sound_list_add (sound_list, roadmap_math_distance_unit());
          };
       }
 
-      roadmap_voice_announce ("Driving Instruction");
+      roadmap_sound_list_add (sound_list, inst_voice);
+      //roadmap_voice_announce ("Driving Instruction");
+      roadmap_sound_play_list (sound_list);
    }
 
 }
