@@ -123,6 +123,27 @@ static WCHAR szOtherWindowClass[] = L"RoadGPSClass";
 static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
                         ROADMAP_CONFIG_ITEM("GPS", "Virtual");
 
+static HANDLE g_hMutexAppRunning;
+
+BOOL AppInstanceExists()
+{
+   BOOL bAppRunning = FALSE;
+
+   g_hMutexAppRunning = CreateMutex( NULL, FALSE, 
+                                     L"Global\\FreeMap RoadMap");
+
+   if (( g_hMutexAppRunning != NULL ) && 
+         ( GetLastError() == ERROR_ALREADY_EXISTS))
+   {
+
+      CloseHandle( g_hMutexAppRunning );
+      g_hMutexAppRunning = NULL;
+   }
+
+   return ( g_hMutexAppRunning == NULL );
+}
+
+
 #ifndef _ROADGPS
 static void roadmap_main_start_sync (void) {
 
@@ -287,12 +308,15 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 #ifdef UNDER_CE
 	SHInitExtraControls();
 
-   if (!wcscmp(lpCmdLine, APP_RUN_AT_RS232_DETECT)) {
+   if (!wcscmp(lpCmdLine, APP_RUN_AT_RS232_DETECT) ||
+       !wcscmp(lpCmdLine, APP_RUN_AFTER_SYNC)) {
       do_sync = true;
    }
 
 #endif
    
+   BOOL other_instance = AppInstanceExists ();
+
 	//If it is already running, then focus on the window, and exit
 	hWnd = FindWindow(szWindowClass, NULL);	
 	if (hWnd) 
@@ -309,6 +333,8 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
       }
 	} 
 	
+   if (other_instance) return 0;
+
 	if (!MyRegisterClass(hInstance, szWindowClass))
 	{
 		return FALSE;
