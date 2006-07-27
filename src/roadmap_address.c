@@ -49,7 +49,7 @@
 #include "roadmap_address.h"
 
 #define MAX_NAMES 100
-static char *def_values[2] = {"", "Search"};
+static const char *def_values[2] = {"", ""};
 static int RoadMapAddressSearchCount;
 static char *RoadMapAddressSearchNames[MAX_NAMES];
 
@@ -386,12 +386,13 @@ static void roadmap_address_street_result (const char *result, void *data) {
 
 static void roadmap_address_other_cb (const char *name, void *context) {
 
-   if (roadmap_dialog_get_data ("Address", "City:") == def_values[1]) {
+   if (!strcmp(roadmap_dialog_get_data ("Address", "City:"), def_values[1]) ){
       
       roadmap_dialog_set_data ("Address", "City:", def_values[0]);
       roadmap_address_search_dialog
          (NULL, roadmap_address_city_result, context);
-   } else if (roadmap_dialog_get_data ("Address", "Street:") == def_values[1]) {
+   } else if (!strcmp(roadmap_dialog_get_data ("Address", "Street:"),
+                      def_values[1])) {
       
       roadmap_dialog_set_data ("Address", "Street:", def_values[0]);
 
@@ -402,6 +403,10 @@ static void roadmap_address_other_cb (const char *name, void *context) {
 }
 
 static void roadmap_address_dialog (RoadMapAddressDialog *context) {
+
+   if (!def_values[1][0]) {
+      def_values[1] = roadmap_lang_get ("Search");
+   }
 
    if (roadmap_dialog_activate (context->title, context)) {
 
@@ -434,6 +439,16 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
    context->history = roadmap_history_latest ('A');
 
    if (context->history) {
+      void *history = context->history;
+
+      while (history) {
+         void *prev = context->history;
+
+         roadmap_address_set (context);
+         context->history = roadmap_history_before ('A', context->history);
+         if (context->history == prev) break;
+      }
+      context->history = history;
       roadmap_address_set (context);
    }
 }
