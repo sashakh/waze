@@ -645,7 +645,7 @@ static int roadmap_download_next_county (int ui) {
    source = roadmap_config_get (&RoadMapConfigSource);
    basename = strrchr (source, '/');
    if (basename == NULL) {
-      roadmap_messagebox ("Download Error", "Bad source file name (no path)");
+      roadmap_messagebox (source, "Bad source file name (no path)");
       return -1;
    }
 
