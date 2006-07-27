@@ -377,6 +377,7 @@ static int roadmap_nmea_gll (int argc, char *argv[]) {
 static int roadmap_nmea_vtg (int argc, char *argv[]) {
 
    if (argc <= 5) return 0;
+   if (!argv[1][0] || !argv[5][0]) return 0;
 
    RoadMapNmeaReceived.vtg.steering =
       roadmap_nmea_decode_numeric (argv[1], 1);
@@ -753,6 +754,8 @@ int roadmap_nmea_decode (void *user_context,
                sentence,
                mnea_checksum,
                checksum);
+
+         return 0;
       }
    }
    *p = 0;
