@@ -37,6 +37,9 @@
 #include "../roadmap.h"
 #include "../roadmap_types.h"
 #include "../roadmap_start.h"
+#include "../roadmap_lang.h"
+
+#define ROADMAP_DIALOG_NO_LANG
 #include "../roadmap_dialog.h"
 
 extern HWND RoadMapMainWindow;
@@ -71,7 +74,7 @@ typedef struct {
 	struct roadmap_dialog_item *item;
 	RoadMapDialogCallback callback;
 	char *value;
-	char *label;
+	const char *label;
 
 } RoadMapDialogSelection;
 
@@ -324,7 +327,7 @@ void roadmap_dialog_new_color (const char *frame, const char *name)
 void roadmap_dialog_new_choice (const char *frame,
 								const char *name,
 								int count,
-								char **labels,
+								const char **labels,
 								void **values,
 								RoadMapDialogCallback callback)
 {
@@ -439,7 +442,7 @@ void roadmap_dialog_show_list (const char  *frame,
 }
 
 
-void roadmap_dialog_add_button (char *label,
+void roadmap_dialog_add_button (const char *label,
 								RoadMapDialogCallback callback)
 {
 	RoadMapDialogItem dialog = RoadMapDialogCurrent;
@@ -464,6 +467,34 @@ static int CALLBACK DoPropSheetProc(HWND hWndDlg, UINT uMsg, LPARAM lParam)
 	}
 	return 0;
 } 
+
+
+static char *roadmap_dialog_selection_get(RoadMapDialogItem item, int i)
+{
+   static char *text = NULL;
+   TCHAR data[255];
+   int len;
+
+   if (text) {
+      free(text);
+      text = NULL;
+   }
+
+   len = SendMessage(item->w, CB_GETLBTEXTLEN, (WPARAM)i, 0);
+   if (len >= 255) return "";
+
+   if (SendMessage(item->w, CB_GETLBTEXT, (WPARAM)i, (LPARAM)data) ==
+      CB_ERR) {
+
+      return "";
+   }
+
+   text = ConvertToMultiByte(data, CP_UTF8);
+
+   if (!text) return "";
+
+   return text;
+}
 
 
 void roadmap_dialog_complete (int use_keyboard)
@@ -493,7 +524,11 @@ void roadmap_dialog_complete (int use_keyboard)
 		DialogFunc, (LPARAM)dialog);
 	
 	ShowWindow(dialog->w, SW_HIDE);
-	str = ConvertToWideChar(dialog->title, CP_UTF8);
+   if (dialog->title[0] == '.') {
+      str = ConvertToWideChar(dialog->title+1, CP_UTF8);
+   } else {
+   	str = ConvertToWideChar(dialog->title, CP_UTF8);
+   }
 	SetWindowText(dialog->w, str);
 	free(str);
 	
@@ -504,7 +539,13 @@ void roadmap_dialog_complete (int use_keyboard)
 		psp[count-i].dwFlags = PSP_PREMATURE|PSP_USETITLE;
 		psp[count-i].hInstance = g_hInst;
 		psp[count-i].pszTemplate = MAKEINTRESOURCE(IDD_GENERIC);
-		psp[count-i].pszTitle = ConvertToWideChar(frame->name, CP_UTF8);
+
+      if (frame->name[0] == '.') {
+         psp[count-i].pszTitle = ConvertToWideChar(frame->name+1, CP_UTF8);
+      } else {
+   	   psp[count-i].pszTitle = ConvertToWideChar(frame->name, CP_UTF8);
+      }
+
 		psp[count-i].pfnDlgProc = TabDialogFunc;
 		psp[count-i].lParam = (LPARAM) frame;
 		i++;
@@ -563,15 +604,28 @@ void *roadmap_dialog_get_data (const char *frame, const char *name)
 
    case ROADMAP_WIDGET_PASSWORD:
 	case ROADMAP_WIDGET_ENTRY:
-		{
-			GetWindowText(this_item->w, str, sizeof(str)/sizeof(str[0]));
-			if (this_item->ansi_value != NULL) {
-				free(this_item->ansi_value);
-			}
-			this_item->ansi_value = ConvertToMultiByte(str, CP_UTF8);
-			return this_item->ansi_value;
+		GetWindowText(this_item->w, str, sizeof(str)/sizeof(str[0]));
+		if (this_item->ansi_value != NULL) {
+			free(this_item->ansi_value);
 		}
-		break;
+		this_item->ansi_value = ConvertToMultiByte(str, CP_UTF8);
+		return this_item->ansi_value;
+
+	case ROADMAP_WIDGET_CHOICE:
+      if (this_item->data_is_string) {
+		   if ((this_item->ansi_value != NULL) &&
+            this_item->ansi_value[0]) {
+
+			   free(this_item->ansi_value);
+		   }
+      
+		   this_item->ansi_value =
+            strdup(roadmap_dialog_selection_get(this_item,
+                     SendMessage(this_item->w, CB_GETCURSEL, 0, 0)));
+
+		   return this_item->ansi_value;
+      }
+      break;
 	}
 	
 	return this_item->value;
@@ -605,7 +659,7 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
          for (i=0; i<this_item->num_choices; i++) {
             if ((data == this_item->choice[i].value) ||
                 (this_item->data_is_string &&
-                 !strcmp (this_item->choice[i].value, data))) {
+                 !strcmp (roadmap_dialog_selection_get(this_item, i), data))) {
 
                SendMessage
                   (this_item->w, (UINT) CB_SETCURSEL, (WPARAM) i, (LPARAM) 0);
@@ -1118,10 +1172,18 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 					continue;
 				}
 				if (item->widget_type  == ROADMAP_WIDGET_LIST) {
-					MoveWindow(label,
-						column_edge_width, curr_y + label_y_add,
-						first_column_width, row_height - label_y_add,
-						TRUE);
+               if (!roadmap_lang_rtl ()) {
+					   MoveWindow(label,
+						   column_edge_width, curr_y + label_y_add,
+						   first_column_width, row_height - label_y_add,
+						   TRUE);
+               } else {
+					   MoveWindow(label,
+						   width - column_edge_width - first_column_width,
+                     curr_y + label_y_add,
+						   first_column_width, row_height - label_y_add,
+						   TRUE);
+               }
 					curr_y += row_height;
 					MoveWindow(widget,
 						column_edge_width, curr_y,
@@ -1132,24 +1194,40 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 					if (label != NULL) {
 						unsigned int widget_height = row_height;
 
-						MoveWindow(label,
-							column_edge_width, curr_y + label_y_add,
-							first_column_width, row_height - label_y_add,
-							TRUE);
-
 						if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
 							widget_height = height - curr_y - 2;
 							if (widget_height > MAX_LIST_HEIGHT*2) {
 								widget_height = MAX_LIST_HEIGHT*2;
 							}
 						}
-						MoveWindow(widget,
-							column_edge_width + first_column_width +
-							column_separator,
-							curr_y,
-							width - (column_edge_width*2 +
-							first_column_width + column_separator),
-							widget_height, TRUE);
+
+                  if (!roadmap_lang_rtl ()) {
+						   MoveWindow(label,
+							   column_edge_width, curr_y + label_y_add,
+							   first_column_width, row_height - label_y_add,
+							   TRUE);
+
+						   MoveWindow(widget,
+							   column_edge_width + first_column_width +
+							   column_separator,
+							   curr_y,
+							   width - (column_edge_width*2 +
+							   first_column_width + column_separator),
+							   widget_height, TRUE);
+                  } else {
+						   MoveWindow(label,
+							   width - column_edge_width - first_column_width,
+                        curr_y + label_y_add,
+							   first_column_width, row_height - label_y_add,
+							   TRUE);
+
+						   MoveWindow(widget,
+							   column_edge_width,
+							   curr_y,
+							   width - (column_edge_width*2 +
+							   first_column_width + column_separator),
+							   widget_height, TRUE);
+                  }
 					} else {
 						MoveWindow(widget,
 							column_edge_width, curr_y, first_column_width,
