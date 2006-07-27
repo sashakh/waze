@@ -67,7 +67,7 @@
 #define WaterTlidStart 1100000
 /* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id;";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments;";
 static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM water;";
@@ -313,11 +313,28 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
          buildmap_range_add_no_address (line, street);
       } else {
 
-         buildmap_range_add
-            (line, street, 1, 11, zip, city);
+         const char *fraddl = PQgetvalue(db_result, irec, column++);
+         const char *toaddl = PQgetvalue(db_result, irec, column++);
+         const char *fraddr = PQgetvalue(db_result, irec, column++);
+         const char *toaddr = PQgetvalue(db_result, irec, column++);
 
-         buildmap_range_add
-            (line, street, 2, 12, zip, city);
+         if (fraddl[0] && fraddr[0]) {
+
+            buildmap_range_add
+               (line, street, atoi(fraddl), atoi(toaddl), zip, city);
+            buildmap_range_add
+               (line, street, atoi(fraddr), atoi(toaddr), zip, city);
+            
+         } else {
+
+            buildmap_range_add_no_address (line, street);
+            /*            
+                          buildmap_range_add
+                          (line, street, 1, 11, zip, city);
+                          buildmap_range_add
+                          (line, street, 2, 12, zip, city);
+                          */
+        }
       }
 
       free (lon_arr);
