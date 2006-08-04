@@ -211,7 +211,7 @@ runtime: unix gpx $(RUNTIME) $(DRIVERS)
 		$(MAKE) -C $$module all || exit 1; \
 	done
 
-build: $(BUILD)
+build: unix gpx $(BUILD)
 
 strip:
 	-$(STRIP) $(BUILD) $(DRIVERS)
