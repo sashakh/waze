@@ -178,6 +178,12 @@ void roadmap_pointer_initialize (void) {
 }
 
 
+const RoadMapGuiPoint *roadmap_pointer_position (void) {
+
+   return &last_pointer_point;
+}
+
+
 RoadMapPointerHandler roadmap_pointer_register_short_click
                     (RoadMapPointerHandler handler) {
 
