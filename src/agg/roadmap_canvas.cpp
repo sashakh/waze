@@ -596,12 +596,40 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
    ren_solid.color(CurrentPen->color);
    dbg_time_end(DBG_TIME_TEXT_CNV);
    
-   dbg_time_start(DBG_TIME_TEXT_LOAD);
-   
    double x  = 0;
    double y  = 0;
    
-   dbg_time_end(DBG_TIME_TEXT_LOAD);
+   if ((angle >= 85) && (angle <= 95)) {
+
+      int size = 15;
+
+      /* Use faster drawing for text with no angle */
+      x  = position->x;
+      y  = position->y;
+
+      ren_solid.color(agg::rgba8(0, 0, 0));
+
+      m_image_feng.height(size);
+      m_image_feng.width(size);
+
+      while(*p) {
+         const agg::glyph_cache* glyph = m_image_fman.glyph(*p);
+
+         if(glyph) {
+            m_image_fman.init_embedded_adaptors(glyph, x, y);
+
+            agg::render_scanlines(m_image_fman.gray8_adaptor(), 
+                  m_image_fman.gray8_scanline(), 
+                  ren_solid);      
+
+            // increment pen position
+            x += glyph->advance_x;
+            y += glyph->advance_y;
+         }
+         ++p;
+      }
+   }
+
    while(*p) {
       dbg_time_start(DBG_TIME_TEXT_ONE_LETTER);
       dbg_time_start(DBG_TIME_TEXT_GET_GLYPH);
@@ -719,6 +747,13 @@ RoadMapImage roadmap_canvas_load_image (const char *path,
    return roadmap_canvas_agg_load_image (path, file_name);
 }
 
+
+void roadmap_canvas_free_image (RoadMapImage image) {
+
+   roadmap_canvas_agg_free_image (image);
+}
+
+
 void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
                                 int opacity, int mode) {
 
@@ -803,8 +838,6 @@ void roadmap_canvas_draw_image_text (RoadMapImage image,
 #else   
    const wchar_t* p = wstr;
 #endif
-   
-   ren_solid.color(CurrentPen->color);
    
    double x  = position->x;
    double y  = position->y + size - 7;
