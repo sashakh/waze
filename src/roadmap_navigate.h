@@ -77,11 +77,13 @@ int roadmap_navigate_fuzzify
                 (RoadMapTracking *tracked,
                  RoadMapTracking *previous_street,
                  RoadMapNeighbour *previous_line,
-                 RoadMapNeighbour *line, int direction);
+                 RoadMapNeighbour *line,
+                 int against_direction,
+                 int direction);
 
-int roadmap_navigate_get_current (RoadMapPosition *position,
-                                   PluginLine *line,
-                                   int *direction);
+int roadmap_navigate_get_current (RoadMapGpsPosition *position,
+                                  PluginLine *line,
+                                  int *direction);
 
 void roadmap_navigate_route (RoadMapNavigateRouteCB callbacks);
 void roadmap_navigate_end_route (RoadMapNavigateRouteCB callbacks);

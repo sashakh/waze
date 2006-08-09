@@ -248,6 +248,7 @@ int roadmap_navigate_fuzzify
                  RoadMapTracking *previous_street,
                  RoadMapNeighbour *previous_line,
                  RoadMapNeighbour *line,
+                 int against_direction,
                  int direction) {
 
     RoadMapFuzzy fuzzyfied_distance;
@@ -276,6 +277,12 @@ int roadmap_navigate_fuzzify
     if ((line_direction == ROUTE_DIRECTION_NONE) ||
           (line_direction == ROUTE_DIRECTION_ANY)) {
        symetric = 1;
+    } else if (against_direction) {
+       if (line_direction == ROUTE_DIRECTION_WITH_LINE) {
+          line_direction = ROUTE_DIRECTION_AGAINST_LINE;
+       } else {
+          line_direction = ROUTE_DIRECTION_WITH_LINE;
+       }
     }
 
     if (symetric || (line_direction == ROUTE_DIRECTION_WITH_LINE)) {
@@ -594,10 +601,9 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     if ((RoadMapLatestGpsPosition.latitude == gps_position->latitude) &&
         (RoadMapLatestGpsPosition.longitude == gps_position->longitude)) return;
 
-    RoadMapLatestGpsPosition = *gps_position;
-
     if (gps_position->speed < roadmap_gps_speed_accuracy()) return;
 
+    RoadMapLatestGpsPosition = *gps_position;
 
     roadmap_fuzzy_start_cycle ();
 
@@ -629,6 +635,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
                                &RoadMapConfirmedStreet,
                                &RoadMapConfirmedLine,
                                &RoadMapConfirmedLine,
+                               0,
                                gps_position->steering);
         }
 
@@ -666,6 +673,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
                       &RoadMapConfirmedStreet,
                       &RoadMapConfirmedLine,
                       RoadMapNeighbourhood+i,
+                      0,
                       gps_position->steering);
 
 
@@ -810,11 +818,11 @@ void roadmap_navigate_end_route (RoadMapNavigateRouteCB callbacks) {
 }
 
 
-int roadmap_navigate_get_current (RoadMapPosition *position,
-                                   PluginLine *line,
-                                   int *direction) {
+int roadmap_navigate_get_current (RoadMapGpsPosition *position,
+                                  PluginLine *line,
+                                  int *direction) {
 
-   *position = RoadMapLatestPosition;
+   *position = RoadMapLatestGpsPosition;
    
    if (RoadMapConfirmedStreet.valid) {
       
