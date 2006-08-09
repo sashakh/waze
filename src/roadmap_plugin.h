@@ -212,6 +212,10 @@ int roadmap_plugin_get_closest
 
 int roadmap_plugin_get_direction (PluginLine *line, int who);
 
+int roadmap_plugin_calc_length (const RoadMapPosition *position,
+                                const PluginLine *line,
+                                int *total_length);
+
 void roadmap_plugin_shutdown (void);
 
 #endif /* INCLUDE__ROADMAP_PLUGIN__H */

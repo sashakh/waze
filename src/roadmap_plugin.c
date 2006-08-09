@@ -33,6 +33,7 @@
 #include "roadmap_locator.h"
 #include "roadmap_street.h"
 #include "roadmap_screen.h"
+#include "roadmap_math.h"
 #include "roadmap_shape.h"
 
 #include "roadmap_plugin.h"
@@ -548,6 +549,75 @@ int roadmap_plugin_get_direction (PluginLine *line, int who) {
 }
 
 
+int roadmap_plugin_calc_length (const RoadMapPosition *position,
+                                const PluginLine *line,
+                                int *total_length) {
+
+   RoadMapPosition line_from_pos;
+   RoadMapPosition line_to_pos;
+   int first_shape;
+   int last_shape;
+   RoadMapShapeItr shape_itr;
+   RoadMapPosition from;
+   RoadMapPosition to;
+   RoadMapPosition intersection;
+   int current_length = 0;
+   int length_result = 0;
+   int smallest_distance = 0x7fffffff;
+   int distance;
+   int i;
+
+   roadmap_plugin_get_line_points (line, &line_from_pos, &line_to_pos,
+                                  &first_shape, &last_shape, &shape_itr);
+                                    
+   if (first_shape <= -1) {
+      
+      from = line_from_pos;
+      to = line_to_pos;
+   } else {
+
+      from = line_from_pos;
+      to   = line_from_pos;
+
+      for (i = first_shape; i <= last_shape; i++) {
+
+         shape_itr (i, &to);
+
+         distance =
+            roadmap_math_get_distance_from_segment
+            (position, &from, &to, &intersection, NULL);
+
+         if (distance < smallest_distance) {
+            smallest_distance = distance;
+            length_result = current_length +
+               roadmap_math_distance (&from, &intersection);
+         }
+
+         current_length += roadmap_math_distance (&from, &to);
+         from = to;
+      }
+
+      to = line_to_pos;
+   }
+
+   distance =
+      roadmap_math_get_distance_from_segment
+      (position, &from, &to, &intersection, NULL);
+
+   if (distance < smallest_distance) {
+
+      length_result = current_length +
+                        roadmap_math_distance (&from, &intersection);
+   }
+
+   current_length += roadmap_math_distance (&from, &to);
+
+   if (total_length) *total_length = current_length;
+
+   return length_result;
+}
+
+
 void roadmap_plugin_shutdown (void) {
 
    int i;
@@ -563,5 +633,4 @@ void roadmap_plugin_shutdown (void) {
       }
    }
 }
-
 
