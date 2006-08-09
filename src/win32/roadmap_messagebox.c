@@ -28,6 +28,7 @@
 #include <windows.h>
 #include "../roadmap.h"
 #include "../roadmap_start.h"
+#include "../roadmap_lang.h"
 #include "../roadmap_messagebox.h"
 
 
@@ -35,13 +36,17 @@ void roadmap_messagebox (const char *title, const char *text)
 {
 #ifdef _UNICODE
 	LPWSTR u_title, u_text;
+   title = roadmap_lang_get (title);
+   text  = roadmap_lang_get (text);
 	u_title = ConvertToWideChar(title, CP_UTF8);
 	u_text = ConvertToWideChar(text, CP_UTF8);
-	MessageBox(0, u_text, u_title, MB_OK);
+	MessageBox(GetActiveWindow(), u_text, u_title, MB_OK);
 	free(u_title);
 	free(u_text);
 #else
-	MessageBox(0, text, title, MB_OK);
+   title = roadmap_lang_get (title);
+   text  = roadmap_lang_get (text);
+	MessageBox(GetActiveWindow(), text, title, MB_OK);
 #endif
 }
 

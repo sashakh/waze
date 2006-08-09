@@ -49,6 +49,8 @@
 #include "roadmap_navigate.h"
 #include "roadmap_point.h"
 #include "roadmap_layer.h"
+#include "roadmap_adjust.h"
+#include "roadmap_lang.h"
 #include "roadmap_sound.h"
 
 #include "navigate_plugin.h"
@@ -110,11 +112,12 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
    if (NavigateTrackFollowGPS) {
 
-      RoadMapPosition pos;
+      RoadMapGpsPosition pos;
 
       if (roadmap_navigate_get_current (&pos, &line, &direction) != -1) {
 
-         NavigateSrcPos = pos;
+         roadmap_adjust_position (&pos, &NavigateSrcPos);
+
          roadmap_line_points (line.line_id, &from_tmp, &to_tmp);
 
          if (direction == ROUTE_DIRECTION_WITH_LINE) {
@@ -659,8 +662,13 @@ void navigate_main_calc_route () {
          length += NavigateSegments[i].distance;
       }
 
-      snprintf(msg, sizeof(msg), "Length: %.1f km\nTime: %.1f minutes",
-            length/1000.0, track_time/60.0);
+      snprintf(msg, sizeof(msg), "%s: %.1f %s\n%s: %.1f %s",
+            roadmap_lang_get ("Length"),
+            length/1000.0,
+            roadmap_lang_get ("km"),
+            roadmap_lang_get ("Time"),
+            track_time/60.0,
+            roadmap_lang_get ("minutes"));
 
       NavigateTrackEnabled = 1;
       navigate_bar_set_mode (NavigateTrackEnabled);
@@ -724,7 +732,7 @@ void navigate_main_screen_repaint (int max_pen) {
       roadmap_screen_draw_one_line (&segment->from_pos,
                                     &segment->to_pos,
                                     0,
-                                    &segment->shape_inital_pos,
+                                    &segment->shape_initial_pos,
                                     segment->first_shape,
                                     segment->last_shape,
                                     segment->shape_itr,
@@ -761,4 +769,9 @@ int navigate_main_override_pen (int line,
 #endif
 }
 
+
+int navigate_main_reload_data (void) {
+
+   return navigate_reload_data ();
+}
 

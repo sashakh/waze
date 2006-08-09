@@ -33,6 +33,7 @@
 
 #include "roadmap.h"
 #include "roadmap_start.h"
+#include "roadmap_lang.h"
 
 #include "roadmap_messagebox.h"
 
@@ -57,6 +58,9 @@ void roadmap_messagebox (const char *title, const char *text) {
 #ifdef ROADMAP_USES_GPE
    displaymigration_mark_window (dialog);
 #endif
+
+   title = roadmap_lang_get (title);
+   text  = roadmap_lang_get (text);
 
    label = gtk_label_new(text);
 
