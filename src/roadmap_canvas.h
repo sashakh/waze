@@ -169,5 +169,7 @@ void roadmap_canvas_draw_image_text (RoadMapImage image,
                                      const RoadMapGuiPoint *position,
                                      int size, const char *text);
 
+void roadmap_canvas_free_image (RoadMapImage image);
+
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

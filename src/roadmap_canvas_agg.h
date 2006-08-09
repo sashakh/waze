@@ -51,5 +51,7 @@ agg::rgba8 roadmap_canvas_agg_parse_color (const char *color);
 RoadMapImage roadmap_canvas_agg_load_image (const char *path,
                                             const char *file_name);
 
+void roadmap_canvas_agg_free_image (RoadMapImage image);
+
 #endif // INCLUDE__ROADMAP_CANVAS_AGG__H
 
