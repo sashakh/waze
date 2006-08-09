@@ -30,6 +30,8 @@
 #include "roadmap_io.h"
 #include "roadmap_spawn.h"
 
+struct RoadMapFactoryKeyMap;
+
 typedef void (* RoadMapKeyInput) (char *key);
 typedef void (* RoadMapInput)    (RoadMapIO *io);
 
@@ -37,7 +39,8 @@ typedef void *RoadMapMenu;
 
 void roadmap_main_new (const char *title, int width, int height);
 
-void roadmap_main_set_keyboard   (RoadMapKeyInput callback);
+void roadmap_main_set_keyboard (struct RoadMapFactoryKeyMap *bindings,
+                                RoadMapKeyInput callback);
 
 RoadMapMenu roadmap_main_new_menu (void);
 void roadmap_main_free_menu       (RoadMapMenu menu);

@@ -36,6 +36,7 @@
 #include "roadmap_preferences.h"
 #include "roadmap_help.h"
 #include "roadmap_path.h"
+#include "roadmap_lang.h"
 
 #include "roadmap_factory.h"
 
@@ -50,12 +51,6 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
 const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
-
-struct RoadMapFactoryKeyMap {
-
-   const char          *key;
-   const RoadMapAction *action;
-};
 
 static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 
@@ -92,7 +87,10 @@ static void roadmap_factory_add_help (RoadMapMenu menu) {
         ok;
         ok = roadmap_help_next_topic(&label, &callback)) {
 
-      roadmap_main_add_menu_item (menu, label, label, callback);
+      roadmap_main_add_menu_item (menu,
+                                  roadmap_lang_get (label),
+                                  roadmap_lang_get (label),
+                                  callback);
    }
 }
 
@@ -234,17 +232,18 @@ void roadmap_factory (const char           *name,
       } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
 
          gui_menu = roadmap_main_new_menu ();
-         roadmap_main_add_menu (gui_menu, item + prefix);
+         roadmap_main_add_menu (gui_menu, roadmap_lang_get (item + prefix));
 
       } else {
          const RoadMapAction *this_action;
 
          this_action = roadmap_factory_find_action (actions, item);
          if (this_action != NULL) {
-            roadmap_main_add_menu_item (gui_menu,
-                                        this_action->label_long,
-                                        this_action->tip,
-                                        this_action->callback);
+            roadmap_main_add_menu_item
+                              (gui_menu,
+                               roadmap_lang_get (this_action->label_long),
+                               roadmap_lang_get (this_action->tip),
+                               this_action->callback);
          }
       }
    }
@@ -280,9 +279,12 @@ void roadmap_factory (const char           *name,
       }
    }
 
+   /*
    if (RoadMapFactoryBindings != NULL) {
-      roadmap_main_set_keyboard (roadmap_factory_keyboard);
+      roadmap_main_set_keyboard
+         (RoadMapFactoryBindings, roadmap_factory_keyboard);
    }
+   */
 }
 
 
@@ -346,7 +348,8 @@ void roadmap_factory_keymap (const RoadMapAction  *actions,
       }
       RoadMapFactoryBindings[j].key = NULL;
 
-      roadmap_main_set_keyboard (roadmap_factory_keyboard);
+      roadmap_main_set_keyboard
+         (RoadMapFactoryBindings, roadmap_factory_keyboard);
    }
 }
 
@@ -388,4 +391,44 @@ void roadmap_factory_usage (const char *section, const RoadMapAction *action) {
        }
    }
 }
+
+RoadMapMenu roadmap_factory_menu (const char           *name,
+                                  const char           *items[],
+                                  const RoadMapAction  *actions) {
+
+   int i;
+   RoadMapMenu menu = NULL;
+   const char **menu_items =
+      roadmap_factory_user_config (name, "menu", actions);
+
+   menu = roadmap_main_new_menu ();
+   if (menu_items == NULL) menu_items = items;
+
+   for (i = 0; menu_items[i] != NULL; ++i) {
+
+      const char *item = menu_items[i];
+
+      if (item == RoadMapFactorySeparator) {
+
+         roadmap_main_add_separator (menu);
+
+      } else {
+
+         const RoadMapAction *this_action;
+
+         this_action = roadmap_factory_find_action (actions, item);
+
+         if (this_action != NULL) {
+            roadmap_main_add_menu_item
+                              (menu,
+                               roadmap_lang_get (this_action->label_long),
+                               roadmap_lang_get (this_action->tip),
+                               this_action->callback);
+         }
+      }
+   }
+
+   return menu;
+}
+
 

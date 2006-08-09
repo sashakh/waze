@@ -73,10 +73,12 @@
 #include "roadmap_pointer.h"
 #include "roadmap_sound.h"
 #include "roadmap_lang.h"
+#include "roadmap_start.h"
 
 #include "navigate/navigate_main.h"
 #include "editor/editor_main.h"
 #include "editor/db/editor_db.h"
+#include "editor/static/update_range.h"
 #include "editor/export/editor_export.h"
 #include "editor/export/editor_upload.h"
 #include "editor/export/editor_download.h"
@@ -101,6 +103,7 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
 static RoadMapMenu LongClickMenu;
+static RoadMapMenu QuickMenu;
 
 static RoadMapScreenSubscriber roadmap_start_prev_after_refresh = NULL;
 
@@ -183,7 +186,7 @@ static void roadmap_start_export_reset (void) {
 
 static void roadmap_start_download_map (void) {
 
-   editor_download_update_map (EDITOR_DOWNLOAD_NORMAL);
+   editor_download_update_map (NULL);
 }
 
 static void roadmap_start_upload_gpx (void) {
@@ -308,6 +311,15 @@ static void roadmap_start_detect_receiver (void) {
 static void roadmap_start_sync_data (void) {
     
     export_sync ();
+}
+
+
+static void roadmap_start_quick_menu (void) {
+    
+   if (QuickMenu != NULL) {
+      const RoadMapGuiPoint *point = roadmap_pointer_position ();
+      roadmap_main_popup_menu (QuickMenu, point->x, point->y);
+   }
 }
 
 
@@ -501,6 +513,12 @@ static RoadMapAction RoadMapStartActions[] = {
    {"sync", "Sync", NULL, NULL,
       "Sync map and data", roadmap_start_sync_data},
 
+   {"quickmenu", "Open quick menu", NULL, NULL,
+      "Open quick menu", roadmap_start_quick_menu},
+
+   {"updaterange", "Update street range", NULL, NULL,
+      "Update street range", update_range_dialog},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -653,6 +671,31 @@ static char const *RoadMapStartToolbar[] = {
 };
 
 
+static char const *RoadMapStartLongClickMenu[] = {
+
+   "setasdeparture",
+   "setasdestination",
+   "navigate",
+
+   NULL,
+};
+
+
+static char const *RoadMapStartQuickMenu[] = {
+
+   "address",
+   "updaterange",
+   RoadMapFactorySeparator,
+   "sync",
+   RoadMapFactorySeparator,
+   "detectreceiver",
+   "preferences",
+
+   NULL,
+};
+
+
+#ifndef UNDER_CE
 static char const *RoadMapStartKeyBinding[] = {
 
    "Button-Left"     ROADMAP_MAPPED_TO "left",
@@ -697,6 +740,94 @@ static char const *RoadMapStartKeyBinding[] = {
    /* Z Unused. */
    NULL
 };
+
+#else
+static char const *RoadMapStartKeyBinding[] = {
+
+   "Button-Left"     ROADMAP_MAPPED_TO "counterclockwise",
+   "Button-Right"    ROADMAP_MAPPED_TO "clockwise",
+   "Button-Up"       ROADMAP_MAPPED_TO "zoomin",
+   "Button-Down"     ROADMAP_MAPPED_TO "zoomout",
+
+   "Button-App1"     ROADMAP_MAPPED_TO "",
+   "Button-App2"     ROADMAP_MAPPED_TO "",
+   "Button-App3"     ROADMAP_MAPPED_TO "",
+   "Button-App4"     ROADMAP_MAPPED_TO "",
+
+   NULL
+};
+#endif
+
+
+static void roadmap_start_init_key_cfg (void) {
+
+   const char **keys = RoadMapStartKeyBinding;
+   RoadMapConfigDescriptor config = ROADMAP_CONFIG_ITEM("KeyBinding", "");
+
+   while (*keys) {
+      char *text;
+      char *separator;
+      const RoadMapAction *this_action;
+      const RoadMapAction *actions = RoadMapStartActions;
+      RoadMapConfigItem *item;
+
+      text = strdup (*keys);
+      roadmap_check_allocated(text);
+
+      separator = strstr (text, ROADMAP_MAPPED_TO);
+      if (separator != NULL) {
+
+         const char *new_config = NULL;
+         char *p;
+         for (p = separator; *p <= ' '; --p) *p = 0;
+
+         p = separator + strlen(ROADMAP_MAPPED_TO);
+         while (*p && (*p <= ' ')) ++p;
+
+         this_action = roadmap_start_find_action (p);
+
+         config.name = text;
+         config.reference = NULL;
+
+         if (this_action != NULL) {
+
+            item = roadmap_config_declare_enumeration
+                   ("preferences", &config, this_action->label_long, NULL);
+
+            if (strcmp(this_action->label_long, roadmap_config_get (&config))) {
+               new_config = roadmap_config_get (&config);
+            }
+
+            roadmap_config_add_enumeration_value (item, "");
+         } else {
+
+            item = roadmap_config_declare_enumeration
+                   ("preferences", &config, "", NULL);
+
+            if (strlen(roadmap_config_get (&config))) {
+               new_config = roadmap_config_get (&config);
+            }
+         }
+
+         while (actions->name) {
+            if (new_config && !strcmp(new_config, actions->label_long)) {
+               new_config = actions->name;
+            }
+
+            roadmap_config_add_enumeration_value (item, actions->label_long);
+            actions++;
+         }
+
+         if (new_config != NULL) {
+            char str[100];
+            snprintf(str, sizeof(str), "%s %s %s", text, ROADMAP_MAPPED_TO, new_config);
+            *keys = strdup(str);
+         }
+      }
+
+      keys++;
+   }
+}
 
 
 static void roadmap_start_set_unit (void) {
@@ -813,6 +944,19 @@ static void roadmap_start_set_timeout (RoadMapCallback callback) {
 }
 
 
+static void roadmap_start_long_click (RoadMapGuiPoint *point) {
+   
+   RoadMapPosition position;
+
+   roadmap_math_to_position (point, &position, 1);
+   roadmap_trip_set_point ("Selection", &position);
+   
+   if (LongClickMenu != NULL) {
+      roadmap_main_popup_menu (LongClickMenu, point->x, point->y);
+   }
+}
+ 
+
 static void roadmap_start_window (void) {
 
    roadmap_main_new (RoadMapMainTitle,
@@ -823,6 +967,16 @@ static void roadmap_start_window (void) {
                     RoadMapStartActions,
                     RoadMapStartMenu,
                     RoadMapStartToolbar);
+
+   QuickMenu = roadmap_factory_menu ("quick",
+                                     RoadMapStartQuickMenu,
+                                     RoadMapStartActions);
+
+   LongClickMenu = roadmap_factory_menu ("long_click",
+                                         RoadMapStartLongClickMenu,
+                                         RoadMapStartActions);
+
+   roadmap_pointer_register_long_click (roadmap_start_long_click);
 
    roadmap_main_add_canvas ();
 
@@ -898,36 +1052,6 @@ static void roadmap_start_usage (const char *section) {
 }
 
 
-static void roadmap_start_long_click (RoadMapGuiPoint *point) {
-   
-   RoadMapPosition position;
-
-   roadmap_math_to_position (point, &position, 1);
-   roadmap_trip_set_point ("Selection", &position);
-   
-   if (LongClickMenu != NULL) {
-      roadmap_main_popup_menu (LongClickMenu, point->x, point->y);
-   }
-}
- 
-
-void roadmap_start_add_long_click_item (const char *name,
-                                        const char *description,
-                                        RoadMapCallback callback) {
-   if (LongClickMenu == NULL) {
-      LongClickMenu = roadmap_main_new_menu ();
-   }
-
-   if (name == NULL) {
-      roadmap_main_add_separator (LongClickMenu);
-      return;
-   }
-
-   roadmap_main_add_menu_item (LongClickMenu, name, description, callback);
-
-}
-   
-
 void roadmap_start_freeze (void) {
 
    RoadMapStartFrozen = 1;
@@ -965,20 +1089,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
 
-   roadmap_start_add_long_click_item ("Set as Departure",
-                  "Set current point as Departure point.",
-                  roadmap_start_set_departure);
-
-   roadmap_start_add_long_click_item ("Set as Destination",
-                  "Set current point as Destination point.",
-                  roadmap_start_set_destination);
-
-   roadmap_start_add_long_click_item ("Navigate",
-                  "Calculate a route",
-                  roadmap_start_navigate);
-
-   roadmap_pointer_register_long_click (roadmap_start_long_click);
-
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
@@ -1009,7 +1119,9 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
 
-   roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
+#if UNDER_CE
+   roadmap_start_init_key_cfg ();
+#endif   
 
    roadmap_option (argc, argv, roadmap_start_usage);
 
@@ -1017,6 +1129,7 @@ void roadmap_start (int argc, char **argv) {
    
    roadmap_math_restore_zoom ();
    roadmap_start_window      ();
+   roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
    roadmap_label_activate    ();
    roadmap_sprite_initialize ();
    roadmap_screen_obj_initialize ();
@@ -1036,6 +1149,7 @@ void roadmap_start (int argc, char **argv) {
       roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
    editor_main_initialize ();
+   editor_main_check_map ();
    navigate_main_initialize ();
 
    roadmap_trip_restore_focus ();

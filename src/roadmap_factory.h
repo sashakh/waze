@@ -39,6 +39,11 @@ typedef struct {
 
 } RoadMapAction;
 
+struct RoadMapFactoryKeyMap {
+
+   const char          *key;
+   const RoadMapAction *action;
+};
 
 #define ROADMAP_MENU      "/"
 #define ROADMAP_SUBMENU   "//"
@@ -57,6 +62,10 @@ void roadmap_factory_keymap (const RoadMapAction *actions,
                              const char          *shortcuts[]);
 
 void roadmap_factory_usage (const char *section, const RoadMapAction *action);
+
+RoadMapMenu roadmap_factory_menu (const char           *name,
+                                  const char           *items[],
+                                  const RoadMapAction  *actions);
 
 #endif /* INCLUDE__ROADMAP_FACTORY__H */
 
