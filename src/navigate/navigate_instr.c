@@ -68,12 +68,12 @@ static int navigate_instr_calc_azymuth (NavigateSegment *seg, int type) {
 
          last_shape = seg->first_shape;
          shape_pos  = &end;
-         *shape_pos = seg->shape_inital_pos;
+         *shape_pos = seg->shape_initial_pos;
       } else {
 
          last_shape = seg->last_shape;
          shape_pos  = &start;
-         *shape_pos = seg->shape_inital_pos;
+         *shape_pos = seg->shape_initial_pos;
       }
 
       for (shape = seg->first_shape; shape <= last_shape; shape++) {
@@ -159,7 +159,7 @@ static void navigate_fix_line_end (RoadMapPosition *position,
    if (type == LINE_START) {
       
       segment->from_pos = seg_end_pos;
-      segment->shape_inital_pos = seg_shape_initial;
+      segment->shape_initial_pos = seg_shape_initial;
       if ((seg_shape_end < 0) || (seg_shape_end > segment->last_shape)) {
          segment->first_shape = segment->last_shape = -1;
       } else {
@@ -370,63 +370,18 @@ int navigate_instr_calc_length (const RoadMapPosition *position,
                                 const NavigateSegment *segment,
                                 int type) {
 
-   RoadMapPosition from;
-   RoadMapPosition to;
-   RoadMapPosition intersection;
-   int current_length = 0;
-   int length_result = 0;
-   int smallest_distance = 0x7fffffff;
-   int distance;
-   int i;
+   int total_length = 0;
+   int result = 0;
 
-   if (segment->first_shape <= -1) {
-      
-      from = segment->from_pos;
-      to = segment->to_pos;
-   } else {
-
-      from = segment->from_pos;
-      to   = segment->shape_inital_pos;
-
-      for (i = segment->first_shape; i <= segment->last_shape; i++) {
-
-         segment->shape_itr (i, &to);
-
-         distance =
-            roadmap_math_get_distance_from_segment
-            (position, &from, &to, &intersection, NULL);
-
-         if (distance < smallest_distance) {
-            smallest_distance = distance;
-            length_result = current_length +
-               roadmap_math_distance (&from, &intersection);
-         }
-
-         current_length += roadmap_math_distance (&from, &to);
-         from = to;
-      }
-
-      to = segment->to_pos;
-   }
-
-   distance =
-      roadmap_math_get_distance_from_segment
-      (position, &from, &to, &intersection, NULL);
-
-   if (distance < smallest_distance) {
-
-      length_result = current_length +
-                        roadmap_math_distance (&from, &intersection);
-   }
-
-   current_length += roadmap_math_distance (&from, &to);
+   result =
+      roadmap_plugin_calc_length (position, &segment->line, &total_length);
 
    if (type == LINE_START) {
       
-      return length_result;
+      return result;
    } else {
 
-      return current_length - length_result;
+      return total_length - result;
    }
 }
 
@@ -449,7 +404,7 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
                                       &segments[i].last_shape,
                                       &segments[i].shape_itr);
 
-      segments[i].shape_inital_pos = segments[i].from_pos;
+      segments[i].shape_initial_pos = segments[i].from_pos;
 
       roadmap_plugin_get_street (&segments[i].line, &segments[i].street);
    }
