@@ -45,6 +45,7 @@
 #include "roadmap_layer.h"
 #include "roadmap_locator.h"
 #include "roadmap_hash.h"
+#include "roadmap_lang.h"
 #include "roadmap_main.h"
 
 #include "db/editor_db.h"
@@ -201,10 +202,18 @@ void editor_screen_long_click (RoadMapGuiPoint *point) {
 
    if (menu == NULL) {
       menu = roadmap_main_new_menu ();
-      roadmap_main_add_menu_item (menu, "Properties",
-            "Update road properties", editor_screen_update_segments);
+      roadmap_main_add_menu_item
+                              (menu,
+                               roadmap_lang_get ("Properties"),
+                               roadmap_lang_get ("Update road properties"),
+                               editor_screen_update_segments);
+      
       roadmap_main_add_separator (menu);
-      roadmap_main_add_menu_item (menu, "Delete", "Delete selected roads", editor_screen_delete_segments);
+      roadmap_main_add_menu_item
+                     (menu,
+                      roadmap_lang_get ("Delete"),
+                      roadmap_lang_get ("Delete selected roads"),
+                      editor_screen_delete_segments);
    }
 
    roadmap_main_popup_menu (menu, point->x, point->y);
