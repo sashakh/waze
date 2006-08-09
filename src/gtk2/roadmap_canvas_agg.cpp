@@ -151,6 +151,13 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path,
 }
 
 
+void roadmap_canvas_agg_free_image (RoadMapImage image) {
+   
+   free (image->rbuf.buf());
+   delete image;
+}
+
+
 static gint roadmap_canvas_configure
                (GtkWidget *widget, GdkEventConfigure *event) {
 
