@@ -176,6 +176,7 @@ static int find_split_point (PluginLine *line,
                           NULL,
                           NULL,
                           &result,
+                          0,
                           steering);
 
          if (start_point_id == -1) {
@@ -650,6 +651,7 @@ int editor_track_util_find_street
                   previous_street,
                   previous_line,
                   neighbourhood+i,
+                  0,
                   gps_position->steering);
       
       if (result > *best) {
@@ -675,7 +677,8 @@ int editor_track_util_find_street
                   previous_street,
                   previous_line,
                   neighbourhood+i,
-                  gps_position->steering - 180);
+                  1,
+                  gps_position->steering);
       
       if (!roadmap_fuzzy_is_good (result)) {
          RoadMapPosition connection;

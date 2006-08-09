@@ -213,6 +213,7 @@ static int add_road_connection (int point_id,
    int end_point;
    int line_id;
    NodeNeighbour end_node = NODE_NEIGHBOUR_NULL;
+   int road_type = 0;
 
    editor_log_push ("add_road_connection");
 
@@ -253,6 +254,15 @@ static int add_road_connection (int point_id,
        TrackConfirmedStreet.line_direction,
        &end_node);
 
+   if ((cur_node.plugin_id == ROADMAP_PLUGIN_ID) &&
+       (end_node.plugin_id == ROADMAP_PLUGIN_ID)) {
+
+      /* This a known connection road */
+      road_type = 0;
+   } else {
+      road_type = ED_LINE_CONNECTION;
+   }
+
    if (end_node.plugin_id == ROADMAP_PLUGIN_ID) {
       end_node.id = editor_point_roadmap_to_editor (end_node.id);
       end_node.plugin_id = EditorPluginID;
@@ -260,16 +270,19 @@ static int add_road_connection (int point_id,
 
    line_id = create_new_line (0, end_point, -1, end_node.id, 4);
 
-   if (line_id != -1) {
-      int cfcc;
-      int flags;
+   if (road_type == ED_LINE_CONNECTION) {
 
-      editor_line_get (line_id, NULL, NULL, NULL, &cfcc, &flags);
-      editor_line_modify_properties
-         (line_id, cfcc, flags | ED_LINE_CONNECTION);
+      if (line_id != -1) {
+         int cfcc;
+         int flags;
+
+         editor_line_get (line_id, NULL, NULL, NULL, &cfcc, &flags);
+         editor_line_modify_properties
+            (line_id, cfcc, flags | ED_LINE_CONNECTION);
+      }
+
+      track_reset_points (end_point);
    }
-
-   track_reset_points (end_point);
 
    return 0;
 }
