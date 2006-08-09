@@ -40,6 +40,7 @@
 #include "roadmap_square.h"
 #include "roadmap_locator.h"
 #include "roadmap_address.h"
+#include "roadmap_preferences.h"
 
 #include "../db/editor_db.h"
 #include "../db/editor_line.h"
@@ -59,7 +60,7 @@ typedef struct dialog_selected_lines {
    int           count;
 } DialogSelectedLines;
 
-static char *def_values[2] = {"", "Other"};
+static const char *def_values[2] = {"", "Other"};
 
 /* NOTE: This function modifies the street_range parameter */
 #if 0
@@ -711,7 +712,8 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
          values[i] = i;
       }
 
-      roadmap_dialog_new_choice ("General", "Road type", count, categories,
+      roadmap_dialog_new_choice ("General", "Road type", count,
+                                 (const char **)categories,
                                  (void**)values, NULL);
       free (values);
 
@@ -731,7 +733,7 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
       roadmap_dialog_add_button ("Cancel", editor_segments_cancel);
       roadmap_dialog_add_button ("OK", editor_segments_apply);
 
-      roadmap_dialog_complete (0); /* No need for a keyboard. */
+      roadmap_dialog_complete (roadmap_preferences_use_keyboard ());
    }
 
    editor_segments_fill_dialog (lines, lines_count);
