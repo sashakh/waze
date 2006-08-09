@@ -269,3 +269,11 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path, const char *file_n
    agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_bgr24_to_rgba32());
    return image;
 }
+
+
+void roadmap_canvas_agg_free_image (RoadMapImage image) {
+   
+   free (image->rbuf.buf());
+   delete image;
+}
+
