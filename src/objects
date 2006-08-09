@@ -66,3 +66,10 @@ P 19 60
 S GPS_reception
 R
 
+N menu_button
+I rm_menu.bmp
+P 1 100
+O 160
+A quickmenu
+B -4 -4 28 28
+
