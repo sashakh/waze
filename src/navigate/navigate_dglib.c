@@ -69,6 +69,17 @@ static int  clipper     (
 }
 
 
+int navigate_reload_data (void) {
+   
+   if (fips_data_loaded == 0) return 0;
+      
+   fips_data_loaded = 0;
+   dglRelease (& graph);
+
+   return navigate_load_data ();
+}
+
+   
 int navigate_load_data (void) {
    FILE *fd;
    int nret;

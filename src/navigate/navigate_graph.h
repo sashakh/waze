@@ -27,7 +27,8 @@
 
 #include "navigate_main.h"
 
-int navigate_load_data (void);
+int navigate_reload_data (void);
+int navigate_load_data   (void);
 
 int navigate_get_route_segments (PluginLine *from_line,
                                  int from_point,
