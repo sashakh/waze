@@ -42,6 +42,7 @@
 #include "roadmap_line_route.h"
 #include "roadmap_fileselection.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_download.h"
 #include "roadmap_config.h"
 
 #include "../editor_log.h"
@@ -58,6 +59,7 @@
 
 #include "../track/editor_track_main.h"
 #include "editor_upload.h"
+#include "editor_sync.h"
 #include "editor_export.h"
 
 #define NO_ELEVATION 1000000
@@ -499,7 +501,7 @@ static int export_dirty_lines(ExportStream *stream, const char *name) {
 }
  
 
-int editor_export_data(const char *name, int ui) {
+int editor_export_data(const char *name, RoadMapDownloadCallbacks *callbacks) {
    
    ExportStream stream;
    int trkseg;
@@ -507,13 +509,17 @@ int editor_export_data(const char *name, int ui) {
    int plugin_id;
    int current_trk_open = 0;
    int fips;
+   int exported;
+   int estimated_lines;
 
    stream.type = NULL_STREAM;
 
    fips = roadmap_locator_active ();
 
+   if (callbacks) (*callbacks->size) (100);
+
    if (fips < 0) {
-      if (!ui) {
+      if (callbacks) {
          fips = 77001;
       } else {
          editor_log (ROADMAP_ERROR, "Can't locate current fips");
@@ -523,7 +529,7 @@ int editor_export_data(const char *name, int ui) {
    }
 
    if (editor_db_activate (fips) == -1) {
-      if (ui) {
+      if (!callbacks) {
          roadmap_messagebox ("Export Error", "No editor data to export.");
       }
       return 0;
@@ -535,8 +541,12 @@ int editor_export_data(const char *name, int ui) {
 
    if (trkseg == -1) {
 
+      if (callbacks) (*callbacks->progress) (50);
       if (!export_dirty_lines (&stream, name)) {
-         if (ui) {
+
+         if (callbacks) {
+            (*callbacks->progress) (100);
+         } else {
             editor_log (ROADMAP_INFO, "No trksegs are available for export.");
             roadmap_messagebox ("Export Error", "No new data to export.");
          }
@@ -549,7 +559,7 @@ int editor_export_data(const char *name, int ui) {
       }
       close_export_stream (&stream);
       
-      if (ui) {
+      if (!callbacks) {
          editor_export_upload (name);
       }
       return 1;
@@ -559,6 +569,8 @@ int editor_export_data(const char *name, int ui) {
       return -1;
    }
 
+   estimated_lines = editor_line_get_count ();
+   exported = 0;
    while (trkseg != -1) {
       
       RoadMapPosition from;
@@ -649,6 +661,8 @@ close_trk:
       }
 
 next_trkseg:
+      if (exported < estimated_lines) exported++;
+      if (callbacks) (*callbacks->progress) (85 * exported / estimated_lines);
       trkseg = editor_trkseg_next_in_global (trkseg);
    }
 
@@ -657,11 +671,12 @@ next_trkseg:
    }
 
    export_dirty_lines (&stream, name);
+   if (callbacks) (*callbacks->progress) (100);
    close_export_stream (&stream);
 
    editor_trkseg_reset_next_export ();
 
-   if (ui) {
+   if (!callbacks) {
       editor_export_upload (name);
    }
 
@@ -710,7 +725,7 @@ void editor_export_reset_dirty () {
 static void editor_export_file_dialog_ok
                            (const char *filename, const char *mode) {
 
-   editor_export_data (filename, 1);
+   editor_export_data (filename, NULL);
 }
 
 

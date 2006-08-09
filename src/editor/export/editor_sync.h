@@ -24,6 +24,8 @@
 #ifndef INCLUDE__EDITOR_SYNC_H
 #define INCLUDE__EDITOR_SYNC_H
 
+typedef void (*SyncProgressCallback) (int progress);
+
 int export_sync (void);
 
 #endif // INCLUDE__EDITOR_SYNC_H

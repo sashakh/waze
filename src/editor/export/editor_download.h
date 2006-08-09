@@ -24,10 +24,9 @@
 #ifndef INCLUDE__EDITOR_DOWNLOAD_H
 #define INCLUDE__EDITOR_DOWNLOAD_H
 
-#define EDITOR_DOWNLOAD_NORMAL 1
-#define EDITOR_DOWNLOAD_AUTO   2
+#include "roadmap_download.h"
 
-int editor_download_update_map (int mode);
+int editor_download_update_map (RoadMapDownloadCallbacks *callbacks);
 
 #endif // INCLUDE__EDITOR_DOWNLOAD_H
 

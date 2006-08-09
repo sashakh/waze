@@ -136,13 +136,12 @@ static void editor_upload_progress (int loaded) {
 }
 
 
-#if 0
-static RoadMapDownloadCallbacks RoadMapUploadCallbackFunctions = {
-   roadmap_upload_request,
-   roadmap_upload_progress,
-   roadmap_upload_error
+static RoadMapDownloadCallbacks EditorUploadCallbackFunctions = {
+   editor_upload_request,
+   editor_upload_progress,
+   editor_upload_error
 };
-#endif
+
 
 static int editor_http_send (RoadMapSocket socket,
                              RoadMapDownloadCallbackError error,
@@ -414,7 +413,8 @@ static int editor_http_decode_response (RoadMapSocket fd,
 static int editor_post_file (const char *target,
                              const char *file_name,
                              const char *user_name,
-                             const char *password) {
+                             const char *password,
+                             RoadMapDownloadCallbacks *callbacks) {
 
    RoadMapSocket fd;
    int size;
@@ -422,17 +422,23 @@ static int editor_post_file (const char *target,
    int uploaded;
    char buffer[ROADMAP_HTTP_MAX_CHUNK];
    char digest_hex[100];
+   RoadMapFile file;
 
-   RoadMapFile file = roadmap_file_open (file_name, "r");
+   if (!callbacks) callbacks = &EditorUploadCallbackFunctions;
+
+   file = roadmap_file_open (file_name, "r");
 
    if (!ROADMAP_NET_IS_VALID(file)) {
-      editor_upload_error ("Can't open file: %s\n", file_name);
+      (*callbacks->error) ("Can't open file: %s\n", file_name);
       return -1;
    }
 
    size = roadmap_file_length (NULL, file_name);
 
-   editor_upload_request (size);
+   if ( !(*callbacks->size) (size)) {
+      roadmap_file_close (file);
+      return -1;
+   }
    RoadMapUploadCurrentName = file_name;
 
    if (!user_name[0]) {
@@ -449,14 +455,14 @@ static int editor_post_file (const char *target,
    }
 
    fd = editor_http_send_header
-         (target, file_name, size, user_name, password, editor_upload_error);
+         (target, file_name, size, user_name, password, callbacks->error);
    if (!ROADMAP_NET_IS_VALID(fd)) {
       roadmap_file_close (file);
       return -1;
    }
 
    uploaded = 0;
-   editor_upload_progress (uploaded);
+   (*callbacks->progress) (uploaded);
 
    loaded = uploaded;
 
@@ -466,19 +472,19 @@ static int editor_post_file (const char *target,
       uploaded = roadmap_net_send (fd, buffer, uploaded);
 
       if (uploaded <= 0) {
-         editor_upload_error ("Receive error after %d data bytes", loaded);
+         (*callbacks->error) ("Receive error after %d data bytes", loaded);
          goto cancel_upload;
       }
       loaded += uploaded;
 
-   editor_upload_progress (loaded);
+      (*callbacks->progress) (loaded);
    }
 
-   editor_http_send (fd, editor_upload_error, "\r\n-----------------------------10424402741337131014341297293--\r\n");
+   editor_http_send (fd, callbacks->error, "\r\n-----------------------------10424402741337131014341297293--\r\n");
 
    loaded = sizeof(buffer);
    if (!editor_http_decode_response
-             (fd, buffer, &loaded, editor_upload_error)) {
+             (fd, buffer, &loaded, callbacks->error)) {
       goto cancel_upload;
    }
 
@@ -487,7 +493,9 @@ static int editor_post_file (const char *target,
    roadmap_dialog_hide ("Uploading");
    buffer[loaded] = 0;
 
-   roadmap_messagebox ("Upload done.", buffer);
+   if (callbacks == &EditorUploadCallbackFunctions) {
+      roadmap_messagebox ("Upload done.", buffer);
+   }
    return 0;
 
 cancel_upload:
@@ -520,7 +528,7 @@ static void editor_upload_ok (const char *name, void *context) {
 
    roadmap_dialog_hide (name);
 
-   editor_post_file (target, filename, username, password);
+   editor_post_file (target, filename, username, password, NULL);
 }
 
 
@@ -590,12 +598,14 @@ void editor_upload_initialize (void) {
 }
 
 
-int editor_upload_auto (const char *filename) {
+int editor_upload_auto (const char *filename,
+                        RoadMapDownloadCallbacks *callbacks) {
 
    return editor_post_file (
             roadmap_config_get (&RoadMapConfigTarget),
             filename, 
             roadmap_config_get (&RoadMapConfigUser),
-            roadmap_config_get (&RoadMapConfigPassword));
+            roadmap_config_get (&RoadMapConfigPassword),
+            callbacks);
 }
 
