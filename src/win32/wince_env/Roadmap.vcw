@@ -250,6 +250,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "rdmfriends"=.\rdmfriends\rdmfriends.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "rdmghost"=.\rdmghost\rdmghost.vcp - Package Owner=<4>
 
 Package=<5>
