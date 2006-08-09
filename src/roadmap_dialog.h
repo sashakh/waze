@@ -73,12 +73,18 @@ void roadmap_dialog_hide (const char *name);
 /* Add one text label item to the current dialog. */
 void roadmap_dialog_new_label (const char *frame, const char *name);
 
+/* Add one image item to the current dialog. */
+void roadmap_dialog_new_image (const char *frame, const char *name);
+
 /* Add one text entry item to the current dialog. */
 void roadmap_dialog_new_entry (const char *frame, const char *name,
                                RoadMapDialogCallback callback);
 
 /* Add one hidden text entry item to the current dialog. */
 void roadmap_dialog_new_password (const char *frame, const char *name);
+
+/* Add a progress bar item */
+void roadmap_dialog_new_progress (const char *frame, const char *name);
 
 /* Add one color selection item to to the current dialog. */
 void roadmap_dialog_new_color (const char *frame, const char *name);
@@ -125,6 +131,8 @@ void  roadmap_dialog_select   (const char *dialog);
 void *roadmap_dialog_get_data (const char *frame, const char *name);
 void  roadmap_dialog_set_data (const char *frame, const char *name,
                                const void *data);
+void  roadmap_dialog_set_progress (const char *frame, const char *name,
+                                   int progress);
 void  roadmap_dialog_protect  (const char *frame, const char *name);
 
 #ifndef ROADMAP_DIALOG_NO_LANG
@@ -145,6 +153,13 @@ static __inline void roadmap_dialog_new_label_i
       (roadmap_lang_get (frame), roadmap_lang_get (name));
 }
 
+static __inline void roadmap_dialog_new_image_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_new_image
+      (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
 static __inline void roadmap_dialog_new_entry_i
        (const char *frame, const char *name, RoadMapDialogCallback callback) {
 
@@ -156,6 +171,13 @@ static __inline void roadmap_dialog_new_password_i
                      (const char *frame, const char *name) {
 
    roadmap_dialog_new_password
+      (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+
+static __inline void roadmap_dialog_new_progress_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_new_progress
       (roadmap_lang_get (frame), roadmap_lang_get (name));
 }
 
@@ -218,6 +240,12 @@ static __inline void roadmap_dialog_set_data_i
       (roadmap_lang_get (frame), roadmap_lang_get (name), data);
 }
 
+static __inline void roadmap_dialog_set_progress_i
+                      (const char *frame, const char *name, int progress) {
+   roadmap_dialog_set_progress
+      (roadmap_lang_get (frame), roadmap_lang_get (name), progress);
+}
+
 static __inline void roadmap_dialog_protect_i
                      (const char *frame, const char *name) {
 
@@ -227,7 +255,9 @@ static __inline void roadmap_dialog_protect_i
 #define roadmap_dialog_activate     roadmap_dialog_activate_i
 #define roadmap_dialog_hide         roadmap_dialog_hide_i
 #define roadmap_dialog_new_label    roadmap_dialog_new_label_i
+#define roadmap_dialog_new_image    roadmap_dialog_new_image_i
 #define roadmap_dialog_new_entry    roadmap_dialog_new_entry_i
+#define roadmap_dialog_new_progress roadmap_dialog_new_progress_i
 #define roadmap_dialog_new_password roadmap_dialog_new_password_i
 #define roadmap_dialog_new_color    roadmap_dialog_new_color_i
 #define roadmap_dialog_new_choice   roadmap_dialog_new_choice_i
@@ -237,6 +267,7 @@ static __inline void roadmap_dialog_protect_i
 #define roadmap_dialog_select       roadmap_dialog_select_i
 #define roadmap_dialog_get_data     roadmap_dialog_get_data_i
 #define roadmap_dialog_set_data     roadmap_dialog_set_data_i
+#define roadmap_dialog_set_progress roadmap_dialog_set_progress_i
 #define roadmap_dialog_protect      roadmap_dialog_protect_i
 #endif
 
