@@ -253,7 +253,8 @@ void roadmap_main_new (const char *title, int width, int height) {
 }
 
 
-void roadmap_main_set_keyboard (RoadMapKeyInput callback) {
+void roadmap_main_set_keyboard (struct RoadMapFactoryKeyMap *bindings,
+                                RoadMapKeyInput callback) {
    RoadMapMainInput = callback;
 }
 
