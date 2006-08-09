@@ -327,13 +327,11 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
             
          } else {
 
-            buildmap_range_add_no_address (line, street);
-            /*            
+            //buildmap_range_add_no_address (line, street);
+            buildmap_range_add
+                          (line, street, 0, 0, zip, city);
                           buildmap_range_add
-                          (line, street, 1, 11, zip, city);
-                          buildmap_range_add
-                          (line, street, 2, 12, zip, city);
-                          */
+                          (line, street, 0, 0, zip, city);
         }
       }
 
