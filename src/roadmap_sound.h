@@ -46,4 +46,6 @@ int roadmap_sound_play_list (const RoadMapSoundList list);
 void roadmap_sound_initialize (void);
 void roadmap_sound_shutdown   (void);
 
+int roadmap_sound_record (const char *file_name, int seconds);
+
 #endif // __ROADMAP_SOUND__H
