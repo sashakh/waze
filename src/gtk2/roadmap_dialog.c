@@ -402,6 +402,18 @@ void roadmap_dialog_new_entry (const char *frame, const char *name,
 }
 
 
+void roadmap_dialog_new_progress (const char *frame, const char *name) {
+
+   GtkWidget *w = gtk_entry_new ();
+   name = "Progress";
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
+   child->widget_type = ROADMAP_WIDGET_ENTRY;
+}
+
+
+void roadmap_dialog_new_image (const char *frame, const char *name) {}
+
+
 void roadmap_dialog_new_password (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_entry_new ();
@@ -864,5 +876,22 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
       break;
    }
    this_item->value = (char *)data;
+}
+
+void  roadmap_dialog_set_progress (const char *frame, const char *name,
+                                   int progress) {
+   RoadMapDialogItem this_frame;
+   RoadMapDialogItem this_item;
+   int i;
+   char data[100];
+
+   this_frame  = roadmap_dialog_get (RoadMapDialogCurrent, frame);
+   this_item   = roadmap_dialog_get (this_frame, name);
+
+   if (this_item->widget_type != ROADMAP_WIDGET_ENTRY) return;
+
+   snprintf(data, sizeof(data), "%d", progress);
+
+   gtk_entry_set_text (GTK_ENTRY(this_item->w), (const char *)data);
 }
 
