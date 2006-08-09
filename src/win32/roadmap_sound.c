@@ -29,6 +29,7 @@
 
 #include "../roadmap.h"
 #include "../roadmap_path.h"
+#include "../roadmap_file.h"
 #include "../roadmap_sound.h"
 
 #define MAX_LISTS 2
@@ -36,8 +37,48 @@
 static RoadMapSoundList sound_lists[MAX_LISTS];
 static CRITICAL_SECTION SoundCriticalSection;
 static HANDLE           SoundEvent;
+static HANDLE           SoundRecEvent;
 static HANDLE           sound_thread;
+static HANDLE           sound_rec_thread;
 static int              current_list = -1;
+
+/* Recording stuff */
+static WAVEHDR          WaveHeader;
+static WAVEFORMATEX     PCMfmt;
+static HWAVEIN          hWaveIn;
+static char            *RoadMapSoundRecName;
+
+struct WAVE_FORMAT
+{
+   WORD  wFormatTag;
+   WORD  wChannels;
+   DWORD dwSamplesPerSec;
+   DWORD dwAvgBytesPerSec;
+   WORD  wBlockAlign;
+   WORD  wBitsPerSample;
+};
+
+struct RIFF_HEADER
+{
+   CHAR szRiffID[4];      // 'R','I','F','F'
+   DWORD dwRiffSize;
+   CHAR szRiffFormat[4];  // 'W','A','V','E'
+};
+
+struct FMT_BLOCK
+{
+   CHAR    szFmtID[4]; // 'f','m','t',' '
+   DWORD    dwFmtSize;
+   struct WAVE_FORMAT wavFormat;
+};
+
+struct DATA_BLOCK
+{
+   CHAR szDataID[4];   // 'd','a','t','a'
+   DWORD dwDataSize;
+};
+
+static int save_wav_file (void *data, unsigned int size);
 
 DWORD WINAPI SoundThread (LPVOID lpParam) {
 
@@ -46,7 +87,9 @@ DWORD WINAPI SoundThread (LPVOID lpParam) {
    while (1) {
       int i;
 
-      WaitForSingleObject(SoundEvent, INFINITE);
+      if (WaitForSingleObject(SoundEvent, INFINITE) == WAIT_FAILED) {
+         return 0;
+      }
 
       while (1) {
          RoadMapSoundList list;
@@ -76,6 +119,31 @@ DWORD WINAPI SoundThread (LPVOID lpParam) {
          sound_lists[current_list] = NULL;
       }
 
+   }
+}
+
+
+DWORD WINAPI SoundRecThread (LPVOID lpParam) {
+
+   while (1) {
+
+      DWORD res;
+
+      if (WaitForSingleObject(SoundRecEvent, INFINITE) == WAIT_FAILED) {
+         return 0;
+      }
+
+      res = waveInUnprepareHeader(hWaveIn, &WaveHeader, sizeof(WAVEHDR));
+
+      res = save_wav_file (WaveHeader.lpData, WaveHeader.dwBytesRecorded);
+
+      free(WaveHeader.lpData);
+      WaveHeader.lpData = NULL;
+
+      res = waveInReset(hWaveIn);
+      res = waveInClose(hWaveIn);
+      roadmap_sound_play ("rec_end.wav");
+      res = res;
    }
 }
 
@@ -167,17 +235,127 @@ int roadmap_sound_play_list (const RoadMapSoundList list) {
 
 void roadmap_sound_initialize (void) {
 
-   SoundEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
+   SoundEvent    = CreateEvent (NULL, FALSE, FALSE, NULL);
+   SoundRecEvent = CreateEvent (NULL, FALSE, FALSE, NULL);
    InitializeCriticalSection (&SoundCriticalSection);
 
-	sound_thread = CreateThread(NULL, 0, SoundThread, NULL, 0, NULL);
+   sound_thread = CreateThread(NULL, 0, SoundThread, NULL, 0, NULL);
+
+   /* Recording */
+
+   PCMfmt.cbSize=0;
+   PCMfmt.wFormatTag=WAVE_FORMAT_PCM;
+   PCMfmt.nChannels=1;
+   PCMfmt.nSamplesPerSec=11025;
+   PCMfmt.wBitsPerSample=8;
+   PCMfmt.nBlockAlign=1;
+   PCMfmt.nAvgBytesPerSec=11025;
 }
 
 
 void roadmap_sound_shutdown (void) {
 
+   DWORD res;
+
    CloseHandle (SoundEvent);
+   if (SoundRecEvent) CloseHandle (SoundRecEvent);
    DeleteCriticalSection (&SoundCriticalSection);
+
+   if (hWaveIn != NULL) {
+      res = waveInReset(hWaveIn);
+      res = waveInClose(hWaveIn);
+      hWaveIn = NULL;
+   }
+
 }
 
+
+/* Recording */
+static int allocate_rec_buffer(int seconds) {
+   
+   int length = PCMfmt.nSamplesPerSec*PCMfmt.nChannels*
+                PCMfmt.wBitsPerSample*seconds/8;
+
+   void *buffer = malloc(length);
+
+   if (!buffer) return -1;
+
+   WaveHeader.lpData=buffer;
+   WaveHeader.dwBufferLength=length;
+   WaveHeader.dwBytesRecorded=0;
+   WaveHeader.dwUser=0;
+   WaveHeader.dwFlags=0;
+   WaveHeader.reserved=0;
+   WaveHeader.lpNext=0;
+
+   return 0;
+}
+
+
+static int save_wav_file (void *data, unsigned int size) {
+   struct RIFF_HEADER rh = { {'R', 'I', 'F', 'F'},
+                             size - 8,
+                             {'W', 'A', 'V', 'E'}};
+
+   struct FMT_BLOCK fb = { {'f', 'm', 't', ' '}, sizeof(struct WAVE_FORMAT), {0}};
+   struct DATA_BLOCK db = { {'d', 'a', 't', 'a'}, size};
+
+   FILE *file;
+
+   fb.wavFormat.wFormatTag       = PCMfmt.wFormatTag;
+   fb.wavFormat.wChannels        = PCMfmt.nChannels;
+   fb.wavFormat.dwSamplesPerSec  = PCMfmt.nSamplesPerSec;
+   fb.wavFormat.dwAvgBytesPerSec = PCMfmt.nAvgBytesPerSec;
+   fb.wavFormat.wBlockAlign      = PCMfmt.nBlockAlign;
+   fb.wavFormat.wBitsPerSample   = PCMfmt.wBitsPerSample;
+
+   file = roadmap_file_fopen (NULL, "\\test.wav", "w");
+   if (!file) return -1;
+
+   {
+      int test = sizeof(rh) + sizeof(fb) + sizeof(db);
+      test = test;
+   }
+   fwrite(&rh, sizeof(rh), 1, file);
+   fwrite(&fb, sizeof(fb), 1, file);
+   fwrite(&db, sizeof(db), 1, file);
+
+   fwrite(data, size, 1, file);
+
+   fclose (file);
+
+   return 0;
+}
+
+
+int roadmap_sound_record (const char *file_name, int seconds) {
+
+   DWORD res;
+
+   if (hWaveIn != NULL) return -1;
+
+   if (sound_rec_thread == NULL) {
+      sound_rec_thread = CreateThread(NULL, 0, SoundRecThread, NULL, 0, NULL);
+   }
+   
+   if (RoadMapSoundRecName != NULL) {
+      free(RoadMapSoundRecName);
+   }
+   RoadMapSoundRecName = strdup(file_name);
+
+   res = waveInOpen(&hWaveIn, (UINT) WAVE_MAPPER, &PCMfmt,
+         (DWORD) SoundRecEvent, (DWORD) 0, CALLBACK_EVENT);   
+
+   res = allocate_rec_buffer (seconds);
+
+   res = waveInPrepareHeader(hWaveIn, &WaveHeader, sizeof(WAVEHDR));
+
+   res = waveInAddBuffer(hWaveIn, &WaveHeader, sizeof(WAVEHDR));
+
+   roadmap_sound_play ("rec_start.wav");
+
+   res = waveInStart(hWaveIn);
+
+   return 0;
+}
 
