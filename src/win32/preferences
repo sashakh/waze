@@ -63,5 +63,5 @@ Map.Cache: 8
 General.Icons: yes
 General.Toolbar: no
 Geometry.Main: 800x600
-General.Keyboard: no
+General.Keyboard: yes
 General.Unit: metric
