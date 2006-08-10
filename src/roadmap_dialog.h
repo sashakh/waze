@@ -80,6 +80,10 @@ void roadmap_dialog_new_image (const char *frame, const char *name);
 void roadmap_dialog_new_entry (const char *frame, const char *name,
                                RoadMapDialogCallback callback);
 
+/* Add multiple lines text entry item to the current dialog. */
+void roadmap_dialog_new_mul_entry (const char *frame, const char *name,
+                                   RoadMapDialogCallback callback);
+
 /* Add one hidden text entry item to the current dialog. */
 void roadmap_dialog_new_password (const char *frame, const char *name);
 
@@ -164,6 +168,13 @@ static __inline void roadmap_dialog_new_entry_i
        (const char *frame, const char *name, RoadMapDialogCallback callback) {
 
    roadmap_dialog_new_entry
+      (roadmap_lang_get (frame), roadmap_lang_get (name), callback);
+}
+
+static __inline void roadmap_dialog_new_mul_entry_i
+       (const char *frame, const char *name, RoadMapDialogCallback callback) {
+
+   roadmap_dialog_new_mul_entry
       (roadmap_lang_get (frame), roadmap_lang_get (name), callback);
 }
 
@@ -252,23 +263,24 @@ static __inline void roadmap_dialog_protect_i
    roadmap_dialog_protect (roadmap_lang_get (frame), roadmap_lang_get (name));
 }
          
-#define roadmap_dialog_activate     roadmap_dialog_activate_i
-#define roadmap_dialog_hide         roadmap_dialog_hide_i
-#define roadmap_dialog_new_label    roadmap_dialog_new_label_i
-#define roadmap_dialog_new_image    roadmap_dialog_new_image_i
-#define roadmap_dialog_new_entry    roadmap_dialog_new_entry_i
-#define roadmap_dialog_new_progress roadmap_dialog_new_progress_i
-#define roadmap_dialog_new_password roadmap_dialog_new_password_i
-#define roadmap_dialog_new_color    roadmap_dialog_new_color_i
-#define roadmap_dialog_new_choice   roadmap_dialog_new_choice_i
-#define roadmap_dialog_new_list     roadmap_dialog_new_list_i
-#define roadmap_dialog_show_list    roadmap_dialog_show_list_i
-#define roadmap_dialog_add_button   roadmap_dialog_add_button_i
-#define roadmap_dialog_select       roadmap_dialog_select_i
-#define roadmap_dialog_get_data     roadmap_dialog_get_data_i
-#define roadmap_dialog_set_data     roadmap_dialog_set_data_i
-#define roadmap_dialog_set_progress roadmap_dialog_set_progress_i
-#define roadmap_dialog_protect      roadmap_dialog_protect_i
+#define roadmap_dialog_activate      roadmap_dialog_activate_i
+#define roadmap_dialog_hide          roadmap_dialog_hide_i
+#define roadmap_dialog_new_label     roadmap_dialog_new_label_i
+#define roadmap_dialog_new_image     roadmap_dialog_new_image_i
+#define roadmap_dialog_new_entry     roadmap_dialog_new_entry_i
+#define roadmap_dialog_new_mul_entry roadmap_dialog_new_mul_entry_i
+#define roadmap_dialog_new_progress  roadmap_dialog_new_progress_i
+#define roadmap_dialog_new_password  roadmap_dialog_new_password_i
+#define roadmap_dialog_new_color     roadmap_dialog_new_color_i
+#define roadmap_dialog_new_choice    roadmap_dialog_new_choice_i
+#define roadmap_dialog_new_list      roadmap_dialog_new_list_i
+#define roadmap_dialog_show_list     roadmap_dialog_show_list_i
+#define roadmap_dialog_add_button    roadmap_dialog_add_button_i
+#define roadmap_dialog_select        roadmap_dialog_select_i
+#define roadmap_dialog_get_data      roadmap_dialog_get_data_i
+#define roadmap_dialog_set_data      roadmap_dialog_set_data_i
+#define roadmap_dialog_set_progress  roadmap_dialog_set_progress_i
+#define roadmap_dialog_protect       roadmap_dialog_protect_i
 #endif
 
 #endif // INCLUDE__ROADMAP_DIALOG__H

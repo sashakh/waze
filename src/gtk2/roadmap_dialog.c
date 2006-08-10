@@ -51,6 +51,7 @@
 #define ROADMAP_WIDGET_LIST      4
 #define ROADMAP_WIDGET_LABEL     5
 #define ROADMAP_WIDGET_PASSWORD  6
+#define ROADMAP_WIDGET_MUL_ENTRY 7
 
 enum {
     RM_LIST_WAYPOINT_NAME,
@@ -402,12 +403,26 @@ void roadmap_dialog_new_entry (const char *frame, const char *name,
 }
 
 
+void roadmap_dialog_new_mul_entry (const char *frame, const char *name,
+                                   RoadMapDialogCallback callback) {
+
+   GtkWidget *w = gtk_text_view_new ();
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
+   child->callback = callback;
+   child->widget_type = ROADMAP_WIDGET_MUL_ENTRY;
+
+   g_signal_connect (w, "activate",
+                     (GCallback) roadmap_dialog_action, child);
+
+}
+
+
 void roadmap_dialog_new_progress (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_entry_new ();
    name = "Progress";
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
-   child->widget_type = ROADMAP_WIDGET_ENTRY;
+   child->widget_type = ROADMAP_WIDGET_LABEL;
 }
 
 
@@ -780,6 +795,17 @@ void *roadmap_dialog_get_data (const char *frame, const char *name) {
    case ROADMAP_WIDGET_ENTRY:
 
       return (void *)gtk_entry_get_text (GTK_ENTRY(this_item->w));
+
+   case ROADMAP_WIDGET_MUL_ENTRY:
+      {
+         GtkTextIter start, end;
+         gtk_text_buffer_get_bounds
+            (gtk_text_view_get_buffer (GTK_ENTRY(this_item->w)), &start, &end );
+         return gtk_text_buffer_get_text
+            (gtk_text_view_get_buffer (GTK_ENTRY(this_item->w)),
+                                       &start, &end, TRUE);
+      }
+      break;
    }
 
    return this_item->value;
@@ -803,6 +829,15 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
    case ROADMAP_WIDGET_ENTRY:
 
       gtk_entry_set_text (GTK_ENTRY(this_item->w), (const char *)data);
+      break;
+
+   case ROADMAP_WIDGET_MUL_ENTRY:
+      {
+         GtkTextBuffer *buffer = gtk_text_buffer_new (NULL);
+         gtk_text_buffer_set_text (buffer, (const char *)data, strlen(data));
+         gtk_text_view_set_buffer (GTK_ENTRY(this_item->w), buffer);
+         g_object_unref (buffer);
+      }
       break;
 
    case ROADMAP_WIDGET_LABEL:
