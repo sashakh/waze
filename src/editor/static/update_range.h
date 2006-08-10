@@ -24,7 +24,8 @@
 #ifndef INCLUDE__UPDATE_RANGE__H
 #define INCLUDE__UPDATE_RANGE__H
 
-void update_range_dialog (void);
+void update_range_initialize (void);
+void update_range_dialog     (void);
 
 #endif // INCLUDE__UPDATE_RANGE__H
 

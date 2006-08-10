@@ -25,12 +25,16 @@
  *   See update_range.h
  */
 
+#include <string.h>
+
 #include "roadmap.h"
 #include "roadmap_dialog.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
 #include "roadmap_gps.h"
 #include "roadmap_locator.h"
+#include "roadmap_county.h"
+#include "roadmap_adjust.h"
 #include "roadmap_plugin.h"
 #include "roadmap_preferences.h"
 #include "roadmap_navigate.h"
@@ -39,10 +43,37 @@
 #include "../db/editor_db.h"
 #include "../db/editor_line.h"
 #include "../db/editor_street.h"
+#include "../db/editor_marker.h"
 #include "../editor_main.h"
 #include "../editor_log.h"
 
 #include "update_range.h"
+
+#ifdef _WIN32
+#define NEW_LINE "\r\n"
+#else
+#define NEW_LINE "\n"
+#endif
+
+static int update_range_export (const char *note) {
+
+   return 0;
+}
+
+
+static const char *update_range_verify
+                     (unsigned char *flags, const char *note) {
+
+                        return 0;
+}
+
+
+static int UpdateRangeMarkerType;
+static EditorMarkerType UpdateRangeMarker = {
+   "Street range",
+   update_range_export,
+   update_range_verify
+};
 
 
 static int get_estimated_range (PluginLine *line, RoadMapGpsPosition *pos,
@@ -133,7 +164,70 @@ static int fill_dialog (PluginLine *line, RoadMapGpsPosition *pos,
    roadmap_dialog_set_data ("Update", "Left", str);
    snprintf(str, sizeof(str), "%d", right);
    roadmap_dialog_set_data ("Update", "Right", str);
+
+   roadmap_dialog_set_data ("Update", "Update left", "");
+   roadmap_dialog_set_data ("Update", "Update right", "");
    return 0;
+}
+
+
+static void update_range_apply (const char *name, void *context) {
+
+   const char *updated_left =
+      roadmap_dialog_get_data ("Update", "Update left");
+
+   const char *updated_right =
+      roadmap_dialog_get_data ("Update", "Update right");
+
+   if (!*updated_left && !*updated_right) {
+      roadmap_dialog_hide (name);
+      return;
+      
+   } else {
+      char note[100];
+      RoadMapGpsPosition *gps_pos = (RoadMapGpsPosition *)context;
+      RoadMapPosition position;
+      int fips;
+
+      roadmap_adjust_position (gps_pos, &position);
+      if (roadmap_county_by_position (&position, &fips, 1) < 1) {
+         roadmap_messagebox ("Error", "Can't locate county");
+         return;
+      }
+
+      if (editor_db_activate (fips) == -1) {
+
+         editor_db_create (fips);
+
+         if (editor_db_activate (fips) == -1) {
+
+            roadmap_messagebox ("Error", "Can't update range");
+            return;
+         }
+      }
+
+      if (*updated_left) {
+
+         snprintf(note, sizeof(note), "%s: %s%s",
+                  roadmap_lang_get ("Update left"), updated_left, NEW_LINE);
+      }
+
+      if (*updated_right) {
+
+         snprintf(note + strlen(note), sizeof(note) - strlen(note),
+                  "%s: %s%s", roadmap_lang_get ("Update right"), updated_right,
+                  NEW_LINE);
+      }
+
+      if (editor_marker_add (gps_pos->longitude, gps_pos->latitude,
+                             gps_pos->steering, UpdateRangeMarkerType,
+                             ED_MARKER_UPLOAD, note) == -1) {
+
+         roadmap_messagebox ("Error", "Can't save marker.");
+      }
+   }
+
+   roadmap_dialog_hide (name);
 }
 
 
@@ -143,15 +237,9 @@ static void update_range_cancel (const char *name, void *context) {
 }
 
 
-static void update_range_apply (const char *name, void *context) {
-
-   roadmap_dialog_hide (name);
-}
-
-
 void update_range_dialog (void) {
 
-   RoadMapGpsPosition pos;
+   static RoadMapGpsPosition pos;
    PluginLine line;
    int direction;
 
@@ -161,7 +249,7 @@ void update_range_dialog (void) {
       return;
    }
 
-   if (roadmap_dialog_activate ("Update street range", NULL)) {
+   if (roadmap_dialog_activate ("Update street range", &pos)) {
 
       roadmap_dialog_new_label ("Update", "Street");
       roadmap_dialog_new_label ("Update", "City");
@@ -179,5 +267,10 @@ void update_range_dialog (void) {
    }
 
    fill_dialog (&line, &pos, direction);
+}
+
+
+void update_range_initialize (void) {
+   UpdateRangeMarkerType = editor_marker_reg_type (&UpdateRangeMarker);
 }
 
