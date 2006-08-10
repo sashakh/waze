@@ -79,6 +79,7 @@
 #include "editor/editor_main.h"
 #include "editor/db/editor_db.h"
 #include "editor/static/update_range.h"
+#include "editor/static/edit_marker.h"
 #include "editor/export/editor_export.h"
 #include "editor/export/editor_upload.h"
 #include "editor/export/editor_download.h"
@@ -519,6 +520,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"updaterange", "Update street range", NULL, NULL,
       "Update street range", update_range_dialog},
 
+   {"viewmarkers", "View markers", NULL, NULL,
+      "View / Edit markers", edit_markers_dialog},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -685,6 +689,7 @@ static char const *RoadMapStartQuickMenu[] = {
 
    "address",
    "updaterange",
+   "viewmarkers",
    RoadMapFactorySeparator,
    "sync",
    RoadMapFactorySeparator,
