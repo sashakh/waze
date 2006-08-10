@@ -45,11 +45,13 @@
 #include "roadmap_layer.h"
 #include "roadmap_locator.h"
 #include "roadmap_hash.h"
+#include "roadmap_sprite.h"
 #include "roadmap_lang.h"
 #include "roadmap_main.h"
 
 #include "db/editor_db.h"
 #include "db/editor_point.h"
+#include "db/editor_marker.h"
 #include "db/editor_shape.h"
 #include "db/editor_line.h"
 #include "db/editor_square.h"
@@ -553,6 +555,28 @@ void editor_screen_initialize (void) {
 }
 
 
+static void editor_screen_draw_markers (void) {
+   RoadMapArea screen;
+   int count = editor_marker_count ();
+   int i;
+
+   roadmap_math_screen_edges (&screen);
+
+   for (i=0; i<count; i++) {
+      int steering;
+      RoadMapPosition pos;      
+      RoadMapGuiPoint screen_point;
+
+      editor_marker_position (i, &pos, &steering);
+      if (!roadmap_math_point_is_visible (&pos)) continue;
+
+      roadmap_math_coordinate (&pos, &screen_point);
+      roadmap_math_rotate_coordinates (1, &screen_point);
+      roadmap_sprite_draw ("marker", &screen_point, steering);
+   }
+}
+
+
 static void editor_screen_draw_square
               (int square, int fips, int min_cfcc, int pen_type) {
 
@@ -722,6 +746,8 @@ void editor_screen_repaint (int max_pen) {
             }
 
       }
+
+      editor_screen_draw_markers ();
    }
 
    for (k = 0; k < max_pen; ++k) {
@@ -732,6 +758,7 @@ void editor_screen_repaint (int max_pen) {
          }
       }
    }
+
 }
 
 

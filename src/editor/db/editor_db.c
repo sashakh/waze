@@ -44,6 +44,7 @@
 
 #include "editor_db.h"
 #include "editor_point.h"
+#include "editor_marker.h"
 #include "editor_shape.h"
 #include "editor_line.h"
 #include "editor_square.h"
@@ -166,6 +167,9 @@ static void editor_db_configure (void) {
       EditorDBModel =
          roadmap_db_register
             (EditorDBModel, "points", &EditorPointsHandler);
+      EditorDBModel =
+         roadmap_db_register
+            (EditorDBModel, "markers", &EditorMarkersHandler);
       EditorDBModel =
          roadmap_db_register
             (EditorDBModel, "header", &EditorHeaderHandler);
@@ -364,6 +368,8 @@ int editor_db_create (int fips) {
    add_db_section
       (NULL, "points", NULL, 0, sizeof(editor_db_point), EDITOR_MAX_POINTS);
    add_db_section
+      (NULL, "markers", NULL, 0, sizeof(editor_db_marker), EDITOR_MAX_STREETS);
+   add_db_section
       (NULL, "points_del", NULL, 0,
        sizeof(editor_db_del_point), EDITOR_MAX_POINTS);
    add_db_section
@@ -400,6 +406,7 @@ int editor_db_create (int fips) {
    add_db_string_section (root, "types");
    add_db_string_section (root, "zips");
    add_db_string_section (root, "t2s");
+   add_db_string_section (root, "notes");
 
    root = buildmap_db_add_section (NULL, "data_blocks");
 
