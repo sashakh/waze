@@ -24,9 +24,13 @@
 #ifndef INCLUDED__BUILDMAP_SHAPEFILE__H
 #define INCLUDED__BUILDMAP_SHAPEFILE__H
 
-void buildmap_shapefile_process (const char *source,
+void buildmap_shapefile_dmti_process (const char *source,
                                  const char *county,
                                  int verbose);
+
+void buildmap_shapefile_rnf_process (const char *source,
+                                     const char *county,
+                                     int verbose);
 
 void buildmap_shapefile_dcw_process (const char *source,
                                      const char *county,

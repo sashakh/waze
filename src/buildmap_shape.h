@@ -26,7 +26,7 @@
 
 #include "roadmap_types.h"
 
-int buildmap_shape_add (int line, int sequence, int longitude, int latitude);
+int buildmap_shape_add (int line, int irec, int uid, int sequence, int longitude, int latitude);
 
 #endif // INCLUDED__BUILDMAP_SHAPE__H
 

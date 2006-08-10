@@ -80,6 +80,19 @@
 #define F_RIGHT_MAF "RIGHT_MAF"
 #define F_UID       "UNIQUEID"
 
+// shapefile column names for RNF
+
+#define F_FID           "FID"
+#define F_NGD_ID        "NGD_ID"
+#define F_CLASS         "CLASS"
+#define F_NAME          "NAME"
+#define F_TYPE          "TYPE"
+#define F_DIRECTION     "DIRECTION"
+#define F_ADDR_FM_LE    "ADDR_FM_LE"
+#define F_ADDR_TO_LE    "ADDR_TO_LE"
+#define F_ADDR_FM_RG    "ADDR_FM_RG"
+#define F_ADDR_TO_RG    "ADDR_TO_RG"
+
 // shapefile colum names for DCW
 
 #define F_EXS       "EXS"
@@ -143,7 +156,7 @@ static RoadMapString str2dict (BuildMapDictionary d, const char *string) {
 /* This function returns the roadmap type for a line.
  * If the value is 0, the line will be ignored.
  */
-static char shapefile2type (char cfcc, int carto) {
+static char shapefile2type_dmti (char cfcc, int carto) {
 
    switch (cfcc) {
 
@@ -160,6 +173,43 @@ static char shapefile2type (char cfcc, int carto) {
             default: return BuildMapLayerRamp;
          }
          break;
+
+      case 'H': /* Rivers, lakes and sea. */
+
+         switch (carto) {
+
+            case '0': return BuildMapLayerShoreline;
+            case '1': return BuildMapLayerRiver;
+            case '2': return BuildMapLayerCanal;
+            case '5': return BuildMapLayerSea;
+         }
+         break;
+   }
+   return 0;
+}
+
+static char shapefile2type_rnf (char cfcc, const char *class) {
+
+   if (!strcmp(class, "UTR")) { //  Utility roads
+      return BuildMapLayerTrail;
+   } else if (!strcmp(class, "CON")) { //  Connector roads
+      return BuildMapLayerMain;
+   } else if (!strcmp(class, "UR")) { //  Unclassified roads
+      return BuildMapLayerStreet;
+   } else if (!strcmp(class, "ST")) { //  Streets
+      return BuildMapLayerStreet;
+   } else if (!strcmp(class, "HI")) { //  Highways
+      return BuildMapLayerFreeway;
+   } else if (!strcmp(class, "BT")) { //  Bridges and tunnels
+      return BuildMapLayerMain;
+   }
+
+   return 0;
+}
+
+static char shapefile2type_dcw (char cfcc, int carto) {
+
+   switch (cfcc) {
 
       case 'D': /* DCW Roads. */
 
@@ -218,7 +268,7 @@ static char **buildmap_clean_split_string (const char *string) {
       else if (*(s+1) == '\0')              cnt = 0;
       else {
          s++;
-	 continue;
+         continue;
       }
       if (!cnt) s++;
       len = (s-ss < 128)?s-ss:127;
@@ -247,7 +297,7 @@ static void buildmap_range_add_address (
 
    char **cities, **c;
    char **places, **p;
-   
+
    cities = buildmap_clean_split_string(mun);
    if (strcmp(mun, maf)) {
       places = buildmap_clean_split_string(maf);
@@ -322,11 +372,11 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
    int merged_range;
    int diff_fr;
    int diff_to;
-   
+
    int iCARTO, iFRADDL, iTOADDL, iFRADDR, iTOADDR, iZIPL, iZIPR;
    int iFEDIRP, iFETYPEP, iFENAME, iFETYPES, iFEDIRS;
    int iLEFT_MUN, iRIGHT_MUN, iLEFT_MAF, iRIGHT_MAF, iUID;
-   
+
    DBFHandle hDBF;
    SHPHandle hSHP;
    SHPObject *shp;
@@ -367,8 +417,8 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
    iLEFT_MAF  = DBFGetFieldIndex(hDBF, F_LEFT_MAF);
    iRIGHT_MAF = DBFGetFieldIndex(hDBF, F_RIGHT_MAF);
    iUID       = DBFGetFieldIndex(hDBF, F_UID);
-   
-   
+
+
    record_count = DBFGetRecordCount(hDBF);
    merged_range_count = 0;
 
@@ -376,12 +426,13 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
 
       buildmap_set_line (irec);
 
-      cfcc   = shapefile2type('R', DBFReadIntegerAttribute(hDBF, irec, iCARTO));
+      cfcc   = shapefile2type_dmti
+                ('R', DBFReadIntegerAttribute(hDBF, irec, iCARTO));
       tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
 
       if (cfcc > 0) {
 
-         fedirp = str2dict (DictionaryPrefix, 
+         fedirp = str2dict (DictionaryPrefix,
            DBFReadStringAttribute(hDBF, irec, iFEDIRP));
          fename = str2dict (DictionaryStreet,
            DBFReadStringAttribute(hDBF, irec, iFENAME));
@@ -402,7 +453,7 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
            DBFReadStringAttribute(hDBF, irec, iZIPR));
 
          shp = SHPReadObject(hSHP, irec);
-	 
+
          frlong = shp->padfX[0] * 1000000.0;
          frlat  = shp->padfY[0] * 1000000.0;
 
@@ -462,7 +513,7 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
 
             zip = buildmap_zip_add (zipl, frlong, frlat);
 
-            if (fraddl == 0 && toaddl == 0) 
+            if (fraddl == 0 && toaddl == 0)
                 buildmap_range_add_no_address (line, street);
             else
                 buildmap_range_add_address
@@ -497,7 +548,8 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
 
       buildmap_set_line (irec);
 
-      cfcc   = shapefile2type('R', DBFReadIntegerAttribute(hDBF, irec, iCARTO));
+      cfcc   = shapefile2type_dmti
+                ('R', DBFReadIntegerAttribute(hDBF, irec, iCARTO));
 
       if (cfcc > 0) {
 
@@ -507,14 +559,14 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
          line_index = buildmap_line_find_sorted(tlid);
 
          if (line_index >= 0) {
-	  
+
              // Add the shape points here
 
              for (j=1; j<shp->nVertices-1; j++) {
                  lon = shp->padfX[j] * 1000000.0;
                  if (lon != 0) {
                      lat = shp->padfY[j] * 1000000.0;
-                     buildmap_shape_add(line_index, j-1, lon, lat);
+                     buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
                  }
              }
          }
@@ -551,6 +603,247 @@ static void buildmap_shapefile_read_hyr (const char *source, int verbose) {
 
 }
 
+/******************************** RNF ***************************************/
+
+static void buildmap_shapefile_read_rnf_rte (const char *source, int verbose) {
+
+   int    irec;
+   int    record_count;
+   int    merged_range_count;
+
+   const char  *munl, *munr, *mafl, *mafr;
+
+   int line;
+   int line_index;
+   int street;
+
+   char cfcc;
+   int  tlid;
+   RoadMapString dirp;
+   RoadMapString dirs;
+   RoadMapString name;
+   RoadMapString type;
+   unsigned int fraddl;
+   unsigned int toaddl;
+   unsigned int fraddr;
+   unsigned int toaddr;
+   int frlong;
+   int frlat;
+   int tolong;
+   int tolat;
+   int from_point;
+   int to_point;
+   int j, lat, lon;
+
+   RoadMapZip zip = 0;
+   int zipl, zipr;
+   int merged_range;
+   int diff_fr;
+   int diff_to;
+
+   int iCLASS, iFRADDL, iTOADDL, iFRADDR, iTOADDR;
+   int iDIR, iTYPE, iNAME, iUID;
+
+   DBFHandle hDBF;
+   SHPHandle hSHP;
+   SHPObject *shp;
+
+   char *full_name = malloc(strlen(source) + 4);
+
+   DictionaryPrefix = buildmap_dictionary_open ("prefix");
+   DictionaryStreet = buildmap_dictionary_open ("street");
+   DictionaryType   = buildmap_dictionary_open ("type");
+   DictionarySuffix = buildmap_dictionary_open ("suffix");
+   DictionaryCity   = buildmap_dictionary_open ("city");
+   DictionaryFSA    = buildmap_dictionary_open ("fsa");
+
+   roadmap_check_allocated(full_name);
+
+   strcpy (full_name, source);
+   // strcat (full_name, "rte");
+
+   buildmap_set_source(full_name);
+
+   hDBF = DBFOpen(full_name, "rb");
+   hSHP = SHPOpen(full_name, "rb");
+
+   iCLASS     = DBFGetFieldIndex(hDBF, F_CLASS);
+   iFRADDL    = DBFGetFieldIndex(hDBF, F_ADDR_FM_LE);
+   iTOADDL    = DBFGetFieldIndex(hDBF, F_ADDR_TO_LE);
+   iFRADDR    = DBFGetFieldIndex(hDBF, F_ADDR_FM_RG);
+   iTOADDR    = DBFGetFieldIndex(hDBF, F_ADDR_TO_RG);
+   iDIR       = DBFGetFieldIndex(hDBF, F_DIRECTION);
+   iTYPE      = DBFGetFieldIndex(hDBF, F_TYPE);
+   iNAME     = DBFGetFieldIndex(hDBF, F_NAME);
+   iUID       = DBFGetFieldIndex(hDBF, F_NGD_ID);
+
+
+   record_count = DBFGetRecordCount(hDBF);
+   merged_range_count = 0;
+
+   dirp = str2dict (DictionaryPrefix, "");
+
+   for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      cfcc   = shapefile2type_rnf('R', DBFReadStringAttribute(hDBF, irec, iCLASS));
+      tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
+
+      if (cfcc > 0) {
+
+         dirs = str2dict (DictionarySuffix,
+           DBFReadStringAttribute(hDBF, irec, iDIR));
+         name = str2dict (DictionaryStreet,
+           DBFReadStringAttribute(hDBF, irec, iNAME));
+         type = str2dict (DictionaryType,
+           DBFReadStringAttribute(hDBF, irec, iTYPE));
+
+         fraddl = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iFRADDL);
+         toaddl = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iTOADDL);
+
+         fraddr = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iFRADDR);
+         toaddr = (unsigned int) DBFReadIntegerAttribute(hDBF, irec, iTOADDR);
+
+         shp = SHPReadObject(hSHP, irec);
+
+         frlong = shp->padfX[0] * 1000000.0;
+         frlat  = shp->padfY[0] * 1000000.0;
+
+         tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
+         tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
+
+         from_point = buildmap_point_add (frlong, frlat);
+         to_point   = buildmap_point_add (tolong, tolat);
+
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+
+         SHPDestroyObject(shp);
+
+         street = buildmap_street_add
+                        (cfcc, dirp, name, type, dirs, line);
+
+         /* Check if the two sides of the street can be merged into
+          * a single range (same city/place, same zip, and same range
+          * beside the even/odd difference).
+          */
+         zipl = zipr = 1;  // no zips in RNF file
+         munl = munr = "?";  // no zips in RNF file
+         mafl = mafr = "?";  // no zips in RNF file
+         merged_range = 0;
+         diff_fr = fraddr - fraddl;
+         diff_to = toaddr - toaddl;
+
+         if ((zipl == zipr) &&
+             !strcmp(munl, munr) && !strcmp(mafl, mafr) &&
+             (abs(diff_fr) < 10) &&
+             (abs(diff_to) < 10) &&
+             (fraddl != 0 || toaddl != 0 || fraddr != 0 || toaddr != 0)) {
+
+            unsigned int fradd;
+            unsigned int toadd;
+
+            buildmap_range_merge (fraddl, toaddl,
+                                  fraddr, toaddr,
+                                  &fradd, &toadd);
+
+            zip = buildmap_zip_add (zipl, frlong, frlat);
+
+            if (fradd == 0 && toadd == 0)  {
+                buildmap_range_add_no_address (line, street);
+                continue;
+            } else {
+               buildmap_range_add_address
+                  (munl, mafl, zip, line, street, fradd, toadd);
+
+               merged_range = 1;
+               merged_range_count += 1;
+            }
+         }
+
+         if (! merged_range) {
+
+            zip = buildmap_zip_add (zipl, frlong, frlat);
+
+            if (fraddl == 0 && toaddl == 0)
+                buildmap_range_add_no_address (line, street);
+            else
+                buildmap_range_add_address
+                   (munl, mafl, zip, line, street, fraddl, toaddl);
+
+            if (zipr != zipl)
+               zip = buildmap_zip_add (zipr, frlong, frlat);
+
+            if (fraddr == 0 && toaddr == 0) {
+               if (fraddl != 0 || toaddl != 0) {
+                  buildmap_range_add_no_address (line, street);
+               }
+            } else {
+                buildmap_range_add_address
+                   (munr, mafr, zip, line, street, fraddr, toaddr);
+            }
+         }
+      }
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   buildmap_info("loading shape info ...");
+
+   buildmap_line_sort();
+
+   for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      cfcc   = shapefile2type_rnf
+                ('R', DBFReadStringAttribute(hDBF, irec, iCLASS));
+
+      if (cfcc > 0) {
+
+         shp = SHPReadObject(hSHP, irec);
+
+         tlid = DBFReadIntegerAttribute(hDBF, irec, iUID);
+         line_index = buildmap_line_find_sorted(tlid);
+
+         if (line_index >= 0) {
+
+             // Add the shape points here
+
+             for (j=1; j<shp->nVertices-1; j++) {
+                 lon = shp->padfX[j] * 1000000.0;
+                 if (lon != 0) {
+                     lat = shp->padfY[j] * 1000000.0;
+                     buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+                 }
+             }
+         }
+
+         SHPDestroyObject(shp);
+
+      }
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   DBFClose(hDBF);
+   SHPClose(hSHP);
+
+   shapefile_summary (verbose, record_count);
+   if (merged_range_count > 0) {
+      buildmap_summary (verbose, "%d ranges merged", merged_range_count);
+   }
+
+   free(full_name);
+}
 
 /******************************** DCW ***************************************/
 
@@ -578,7 +871,7 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
    int j, lat, lon;
 
    int iEXS, iMED, iACC, iRTT, iUID;
-   
+
    DBFHandle hDBF;
    SHPHandle hSHP;
    SHPObject *shp;
@@ -618,14 +911,14 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
     *   14 - Primary route
     *   15 - Secondary route
     ****************************************/
-        
+
    iEXS       = DBFGetFieldIndex(hDBF, F_EXS);
    iMED       = DBFGetFieldIndex(hDBF, F_MED);
    iACC       = DBFGetFieldIndex(hDBF, F_ACC);
    iRTT       = DBFGetFieldIndex(hDBF, F_RTT);
    iUID       = DBFGetFieldIndex(hDBF, F_ID);
-   
-   
+
+
    record_count = DBFGetRecordCount(hDBF);
 
    fedirp = str2dict (DictionaryPrefix, "");
@@ -640,13 +933,13 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
       rtt    = DBFReadIntegerAttribute(hDBF, irec, iRTT);
       exs    = DBFReadIntegerAttribute(hDBF, irec, iEXS);
       if (exs < 10) rtt = exs;
-      cfcc   = shapefile2type('D', rtt);
+      cfcc   = shapefile2type_dcw('D', rtt);
       tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
 
       if (cfcc > 0) {
 
          shp = SHPReadObject(hSHP, irec);
-   
+
          frlong = shp->padfX[0] * 1000000.0;
          frlat  = shp->padfY[0] * 1000000.0;
 
@@ -662,7 +955,7 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
 
          street = buildmap_street_add
                         (cfcc, fedirp, fename, fetype, fedirs, line);
-         
+
          buildmap_range_add_no_address (line, street);
       }
 
@@ -684,7 +977,7 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
       rtt    = DBFReadIntegerAttribute(hDBF, irec, iRTT);
       exs    = DBFReadIntegerAttribute(hDBF, irec, iEXS);
       if (exs < 10) rtt = exs;
-      cfcc   = shapefile2type('D', rtt);
+      cfcc   = shapefile2type_dcw('D', rtt);
 
       if (cfcc > 0) {
 
@@ -694,19 +987,20 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
          line_index = buildmap_line_find_sorted(tlid);
 
          if (line_index >= 0) {
-    
+
              // Add the shape points here
 
              for (j=1; j<shp->nVertices-1; j++) {
                  lon = shp->padfX[j] * 1000000.0;
                  if (lon != 0) {
                      lat = shp->padfY[j] * 1000000.0;
-                     buildmap_shape_add(line_index, j-1, lon, lat);
+                     buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
                  }
              }
          }
 
          SHPDestroyObject(shp);
+
       }
 
       if (verbose) {
@@ -734,20 +1028,12 @@ static void buildmap_shapefile_read_dcw_hyr (const char *source, int verbose) {
 
 }
 
-#endif // ROADMAP_USE_SHAPEFILES
 
-
-void buildmap_shapefile_process (const char *source,
+void buildmap_shapefile_dmti_process (const char *source,
                                  const char *county,
                                  int verbose) {
 
-#if ROADMAP_USE_SHAPEFILES
-
    char *base = roadmap_path_remove_extension (source);
-   char *basename = roadmap_path_skip_directories (base);
-
-   /* Remove the "file type", if any, to keep only the province's name. */
-   if (strlen(basename) > 2) basename[2] = 0;
 
    buildmap_shapefile_find_layers ();
 
@@ -757,21 +1043,29 @@ void buildmap_shapefile_process (const char *source,
 
    free (base);
 
-#else
-
-   fprintf (stderr,
-            "cannot process %s: built with no shapefile support.\n",
-            source);
-   exit(1);
-#endif // ROADMAP_USE_SHAPEFILES
 }
 
+/* Canadian Road Network File */
+void buildmap_shapefile_rnf_process (const char *source,
+                                 const char *county,
+                                 int verbose) {
 
+   char *base = roadmap_path_remove_extension (source);
+
+   buildmap_shapefile_find_layers ();
+
+   buildmap_shapefile_read_rnf_rte(base, verbose);
+   buildmap_shapefile_read_hyl(base, verbose);
+   buildmap_shapefile_read_hyr(base, verbose);
+
+   free (base);
+
+}
+
+/* Digital Charts of the World */
 void buildmap_shapefile_dcw_process (const char *source,
                                      const char *county,
                                      int verbose) {
-
-#if ROADMAP_USE_SHAPEFILES
 
    char *base = roadmap_path_remove_extension (source);
 
@@ -783,12 +1077,7 @@ void buildmap_shapefile_dcw_process (const char *source,
 
    free (base);
 
-#else
-
-   fprintf (stderr,
-            "cannot process %s: built with no shapefile support.\n",
-            source);
-   exit(1);
-#endif // ROADMAP_USE_SHAPEFILES
 }
+
+#endif // ROADMAP_USE_SHAPEFILES
 

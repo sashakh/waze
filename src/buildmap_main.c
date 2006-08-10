@@ -55,7 +55,8 @@
 #define BUILDMAP_FORMAT_TIGER     1
 #define BUILDMAP_FORMAT_SHAPE     2
 #define BUILDMAP_FORMAT_DCW       3
-#define BUILDMAP_FORMAT_EMPTY     4
+#define BUILDMAP_FORMAT_RNF       4
+#define BUILDMAP_FORMAT_EMPTY     5
 
 static int   BuildMapFormatFamily = 0;
 
@@ -70,7 +71,7 @@ static struct poptOption BuildMapTigerOptions [] = {
    {"format", 'f',
       POPT_ARG_STRING, &BuildMapFormat, 0,
 #ifdef ROADMAP_USE_SHAPEFILES
-      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|DCW|EMPTY"},
+      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|RNF|DCW|EMPTY"},
 #else
       "Tiger file format (ShapeFile was not enabled)", "2000|2002|EMPTY"},
 #endif
@@ -133,10 +134,17 @@ static void  buildmap_county_select_format (poptContext decoder) {
 #ifdef ROADMAP_USE_SHAPEFILES
    } else if (strcmp (BuildMapFormat, "SHAPE") == 0) {
 
+      // commercial DMTI canadian format
       BuildMapFormatFamily = BUILDMAP_FORMAT_SHAPE;
+
+   } else if (strcmp (BuildMapFormat, "RNF") == 0) {
+
+      // free RNF canadian format
+      BuildMapFormatFamily = BUILDMAP_FORMAT_RNF;
 
    } else if (strcmp (BuildMapFormat, "DCW") == 0) {
 
+      // Digital Charts of the World
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
 #endif
 
@@ -181,7 +189,11 @@ static void buildmap_county_process (const char *source,
 
 #ifdef ROADMAP_USE_SHAPEFILES
       case BUILDMAP_FORMAT_SHAPE:
-         buildmap_shapefile_process (source, county, verbose);
+         buildmap_shapefile_dmti_process (source, county, verbose);
+         break;
+
+      case BUILDMAP_FORMAT_RNF:
+         buildmap_shapefile_rnf_process (source, county, verbose);
          break;
 
       case BUILDMAP_FORMAT_DCW:

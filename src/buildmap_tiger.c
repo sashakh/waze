@@ -675,7 +675,7 @@ static void buildmap_tiger_read_rt2 (const char *source, int verbose) {
                latitude = tiger2int (cursor, location+10, location+18);
 
                buildmap_shape_add
-                  (line_index, (10 * sequence) + i, longitude, latitude);
+                  (line_index, 0, tlid, (10 * sequence) + i, longitude, latitude);
 
                record_count += 1;
             }

@@ -1,13 +1,13 @@
 #!/bin/sh
 #
-# rdmgenshpmaps
+# rdmgendcwmaps
 #
 # Utility to scan a directory for the Digital Charts of the World
 # shapefiles and process them through buildmap
 #
 # Usage:
 #
-# rdmgenshpmaps [maps=<map-directory-path>] [test] [dryrun] <files>...
+# rdmgendcwmaps [maps=<map-directory-path>] [test] [dryrun] <files>...
 #
 
 maps=/usr/local/share/roadmap

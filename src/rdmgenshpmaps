@@ -2,20 +2,26 @@
 #
 # rdmgenshpmaps
 #
-# Utility to scan a directory for Canadian province shapefiles and
-# process them through buildmap
+# Utility to scan a directory for the Canadian shapefile maps, in
+# either DMTI or RNF format, and process them through buildmap.
 #
 # Usage:
 #
 # rdmgenshpmaps <shapefile path> [maps=<map-directory-path>]
 #                                [test]
+#                                [dmti]
 #                                [<province-abbrev> ...]
 
+
+# the RNF format maps are available from:
+#
+# http://geodepot.statcan.ca/Diss/2006Dissemination/Data/FRR_RNF_e.cfm?language=E&format=A
+#
+
 maps=/usr/local/share/roadmap
-prov='*'
 
 if [ $# -eq 0 ] ; then
-    echo 'Usage: rdmgenshpmaps <shapefile path> [maps=<map-directory-path>] [test] [dryrun] [<province-abbrev> ...]'
+    echo 'Usage: rdmgenshpmaps <shapefile path> [maps=<map-directory-path>] [test] [dryrun] [dmti] [<province-abbrev> ...]'
     exit 1
 fi
 
@@ -24,6 +30,7 @@ shift
 
 verbose=''
 gendir=Y
+DRYRUN=N
 
 case $1 in
     maps=*) maps=`expr $1 : 'maps=\(.*\)'`
@@ -44,76 +51,82 @@ case $1 in
             ;;
 esac
 
-if [ -e ./buildmap ] ; then
-    BUILDMAP=./buildmap
-else
-    BUILDMAP=buildmap
+# default to free Road Network Format
+shape=RNF
+filepattern=$SRCDIR/grnf???r05a_e.shp
+case $1 in
+    # DMTI commercial format
+    dmti)   shape=DMTI
+            filepattern=$SRCDIR/??rte.shp
+            shift
+            ;;
+esac
+
+if [ ! "$BUILDMAP" ]
+then
+    if [ -e ./buildmap ] ; then
+       BUILDMAP=./buildmap
+    else
+       BUILDMAP=buildmap
+    fi
 fi
+
 
 
 # AB BC MB NB NL NS NT NU ON PE QC SK YT
 # 87 88 89 90 91 92 93 94 95 96 97 98 99
 
 function get_fips {
-    case $1 in
-        AB) FIPS=87001 ;;
-        BC) FIPS=88001 ;;
-        MB) FIPS=89001 ;;
-        NB) FIPS=90001 ;;
-        NL) FIPS=91001 ;;
-        NS) FIPS=92001 ;;
-        NT) FIPS=93001 ;;
-        NU) FIPS=94001 ;;
-        ON) FIPS=95001 ;;
-        PE) FIPS=96001 ;;
-        QC) FIPS=97001 ;;
-        SK) FIPS=98001 ;;
-        YT) FIPS=99001 ;;
+    # handle either RNF or DMTI naming convention
+    f=`basename $1`
+    case $f in
+        grnf048*|AB*) FIPS=87001; echo Alberta ;;
+        grnf059*|BC*) FIPS=88001; echo British Columbia ;;
+        grnf046*|MB*) FIPS=89001; echo Manitoba ;;
+        grnf013*|NB*) FIPS=90001; echo New Brunswick ;;
+        grnf010*|NL*) FIPS=91001; echo Newfoundland and Labrador ;;
+        grnf012*|NS*) FIPS=92001; echo Nova Scotia ;;
+        grnf061*|NT*) FIPS=93001; echo Northwest Territories ;;
+        grnf062*|NU*) FIPS=94001; echo Nunavit ;;
+        grnf035*|ON*) FIPS=95001; echo Ontario ;;
+        grnf011*|PE*) FIPS=96001; echo Prince Edward Island ;;
+        grnf024*|QC*) FIPS=97001; echo Quebec ;;
+        grnf047*|SK*) FIPS=98001; echo Saskatchewan ;;
+        grnf060*|YT*) FIPS=99001; echo Yukon ;;
         *)  FIPS='' ;;
     esac
 }
 
 if [ $# -gt 0 ] ; then
-
-    for i in $*
-    do
-        get_fips $i
-        echo $BUILDMAP -f SHAPE -m $maps $verbose  $FIPS $SRCDIR/$i
-        if [ $DRYRUN != 'Y' ] ; then
-            $BUILDMAP -f SHAPE -m $maps $verbose  $FIPS $SRCDIR/$i
-        fi
-    done
-
+    files="$*"
 else
-
-    for i in $SRCDIR/??rte.shp
-    do
-        if [ -e $i ] ; then
-            base=`basename $i`
-            prov_id=`expr substr $base 1 2`
-            get_fips $prov_id
-            echo $BUILDMAP -f SHAPE -m $maps $verbose  $FIPS $SRCDIR/$prov_id
-            if [ $DRYRUN != 'Y' ] ; then
-                $BUILDMAP -f SHAPE -m $maps $verbose  $FIPS $SRCDIR/$prov_id
-            fi
-        fi
-    done
-
+    files=`echo $filepattern`
 fi
+
+for file in $files
+do
+    get_fips $file
+    echo $BUILDMAP -f $shape -m $maps $verbose  $FIPS $SRCDIR/$file
+    if [ $DRYRUN != 'Y' ] ; then
+        $BUILDMAP -f $shape -m $maps $verbose  $FIPS $SRCDIR/$file
+    fi
+done
 
 if [ $gendir = 'Y' ] ; then
       
     echo "Generating usdir.rdm, please wait.."
 
-    if [ -e buildus ] ; then
-        echo ./buildus -s --maps=$maps
-        if [ $DRYRUN != 'Y' ] ; then
-            ./buildus -s --maps=$maps
-        fi
-    else
-        echo buildus -s --maps=$maps
-        if [ $DRYRUN != 'Y' ] ; then
-            buildus -s --maps=$maps
-        fi
-    fi 
+    if [ ! "$BUILDUS" ]
+    then
+       if [ -e buildus ] ; then
+          BUILDUS=./buildus
+       else
+          BUILDUS=buildus
+       fi
+    fi
+
+    echo $BUILDUS -s --maps=$maps
+    if [ $DRYRUN != 'Y' ] ; then
+        $BUILDUS -s --maps=$maps
+    fi
 fi 

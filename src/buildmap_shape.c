@@ -91,7 +91,7 @@ static void buildmap_shape_initialize (void) {
 
 
 int buildmap_shape_add
-       (int line, int sequence, int longitude, int latitude) {
+       (int line, int irec, int uid, int sequence, int longitude, int latitude) {
 
    int index;
    int line_exists;
@@ -121,7 +121,7 @@ int buildmap_shape_add
 
             if ((this_shape->longitude != longitude) ||
                 (this_shape->latitude  != latitude )) {
-               buildmap_error (0, "duplicated sequence number");
+               buildmap_error (0, "duplicated sequence number, irec %d, uid %d, %d/%d", irec, uid, longitude, latitude);
             }
 
             return index;
