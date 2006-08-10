@@ -44,6 +44,7 @@
 #include "roadmap_polygon.h"
 #include "roadmap_locator.h"
 #include "roadmap_navigate.h"
+#include "roadmap_lang.h"
 
 #include "roadmap_sprite.h"
 #include "roadmap_object.h"
@@ -1110,7 +1111,7 @@ static void roadmap_screen_repaint (void) {
     count = roadmap_locator_by_position (&RoadMapScreenCenter, &fips);
 
     if (count == 0) {
-       roadmap_display_text("Info", "No map available");
+       roadmap_display_text("Info", roadmap_lang_get ("No map available"));
     }
 
     /* - For each candidate county: */
