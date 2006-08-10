@@ -476,7 +476,7 @@ void roadmap_address_search_dialog (const char *city,
       roadmap_dialog_add_button ("Cancel", roadmap_address_search_cancel);
       roadmap_dialog_add_button ("Done", roadmap_address_search_done);
 
-      roadmap_dialog_complete (0); /* No need for a keyboard. */
+      roadmap_dialog_complete (roadmap_preferences_use_keyboard()); /* No need for a keyboard. */
    }
 
    roadmap_dialog_set_data  (".search", "Name", "");
