@@ -269,7 +269,7 @@ int main (int argc, const char **argv) {
    /* The index path is set to the one directory provided as a "smart"
     * default that is assumed to match the intend in most cases.
     */
-   if ((RdmIndexPath == NULL) && (leftovers[0] != NULL)) {
+   if ((RdmIndexPath == NULL) && leftovers && (leftovers[0] != NULL)) {
       if ((leftovers[1] == NULL) && roadmap_path_is_directory(leftovers[0])) {
          RdmIndexPath = strdup(leftovers[0]);
       }
