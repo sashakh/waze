@@ -3,6 +3,7 @@
 
 #include <windows.h>
 
+#define inline _inline
 #define MENU_ID_START	WM_USER
 #define MAX_MENU_ITEMS	100
 #define TOOL_ID_START	(MENU_ID_START + MAX_MENU_ITEMS + 1)

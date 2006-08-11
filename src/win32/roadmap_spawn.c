@@ -44,7 +44,7 @@ static const char *flite_text;
 
 static char *RoadMapSpawnPath = NULL;
 
-static RoadMapList RoadMapSpawnActive = ROADMAP_LIST_EMPTY;
+static RoadMapList RoadMapSpawnActive;
 
 DWORD WINAPI FliteThread(LPVOID lpParam) {
 
@@ -203,6 +203,7 @@ void roadmap_spawn_initialize (const char *argv0)
 		*tmp = '\0';
 	}
 	RoadMapSpawnPath = path;
+	ROADMAP_LIST_INIT(&RoadMapSpawnActive);
 }
 
 
@@ -246,17 +247,18 @@ int  roadmap_spawn_with_pipe (const char *name,
 
 void roadmap_spawn_check (void)
 {
-	RoadMapFeedback *item;
+	RoadMapListItem *item, *tmp;
+	RoadMapFeedback *feedback;
 
-	for (item = (RoadMapFeedback *)RoadMapSpawnActive.first;
-		item != NULL;
-		item = (RoadMapFeedback *)item->link.next) {
+	ROADMAP_LIST_FOR_EACH (&RoadMapSpawnActive, item, tmp) {
 
-			if (WaitForSingleObject((HANDLE)item->child, 0) == WAIT_OBJECT_0) {
-				CloseHandle((HANDLE)item->child);
-				roadmap_list_remove (&RoadMapSpawnActive, &item->link);
-				item->handler (item->data);
-			}
+		feedback = (RoadMapFeedback *)item;
+
+		if (WaitForSingleObject((HANDLE)feedback->child, 0) == WAIT_OBJECT_0) {
+			CloseHandle((HANDLE)feedback->child);
+			roadmap_list_remove (&feedback->link);
+			feedback->handler (feedback->data);
+		}
 	}
 }
 
