@@ -1143,10 +1143,10 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_history_load ();
    
+   roadmap_spawn_initialize (argv[0]);
+
    roadmap_driver_activate ();
    roadmap_gps_open ();
-
-   roadmap_spawn_initialize (argv[0]);
 
    roadmap_help_initialize ();
 
