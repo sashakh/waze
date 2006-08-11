@@ -1070,7 +1070,7 @@ roadmap_log (ROADMAP_ERROR, "visibility: north=%d south=%d east=%d west=%d\n",
         RoadMapContext.current_screen.north,
         RoadMapContext.current_screen.south,
         RoadMapContext.current_screen.east,
-        RoadMapContext.current_screen.east);
+        RoadMapContext.current_screen.west);
 #endif
    return status;
 }
