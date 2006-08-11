@@ -54,7 +54,7 @@ static RoadMapConfigDescriptor RoadMapConfigLabelsColor =
 typedef struct {
    RoadMapListItem link;
 
-   int featuresize;
+   int featuresize_sq;
 
    PluginLine line;
    PluginStreet street;
@@ -79,6 +79,8 @@ static int RoadMapLabelGeneration = 1;
 static int RoadMapLabelGenerationFloor;
 
 static RoadMapPen RoadMapLabelPen;
+
+static int RoadMapLabelMinFeatSizeSq;
 
 static int rect_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
 
@@ -228,12 +230,11 @@ void roadmap_label_start (void) {
 
 
 int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
-                       int featuresize, const PluginLine *line) {
+                       int featuresize_sq, const PluginLine *line) {
 
    roadmap_label *cPtr = 0;
 
-   if (featuresize <
-         roadmap_config_get_integer (&RoadMapConfigMinFeatureSize)) {
+   if (featuresize_sq < RoadMapLabelMinFeatSizeSq) {
       return -1;
    }
 
@@ -257,7 +258,7 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
    cPtr->bbox.maxx = -1;
 
    cPtr->line = *line;
-   cPtr->featuresize = featuresize;
+   cPtr->featuresize_sq = featuresize_sq;
    cPtr->angle = normalize_angle(angle);
 
    cPtr->point = *point;
@@ -360,7 +361,7 @@ int roadmap_label_draw_cache (int angles) {
 
                    cPtr->point = ncPtr->point;
 
-                   cPtr->featuresize = ncPtr->featuresize;
+                   cPtr->featuresize_sq = ncPtr->featuresize_sq;
                    cPtr->gen = ncPtr->gen;
 
                    roadmap_list_insert
@@ -411,7 +412,8 @@ int roadmap_label_draw_cache (int angles) {
 #endif
 
             /* text is too long for this feature */
-            if ((width / 4) > cPtr->featuresize) {
+	    /* (4 times longer than feature) */
+            if ((width * width / 16) > cPtr->featuresize_sq) {
                roadmap_list_insert
                   (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
                continue;
@@ -547,6 +549,10 @@ int roadmap_label_activate (void) {
 
    /* assume this will only affect our internal line fonts */
    roadmap_canvas_set_thickness (2);
+
+   RoadMapLabelMinFeatSizeSq = roadmap_config_get_integer (&RoadMapConfigMinFeatureSize);
+   RoadMapLabelMinFeatSizeSq *= RoadMapLabelMinFeatSizeSq;
+
     
    return 0;
 }
