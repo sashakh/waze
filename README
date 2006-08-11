@@ -16,11 +16,14 @@ INTRODUCTION
    as a static map viewer and address finder.
 
    Most of the maps are provided by the US Census Bureau, which only cover
-   the US. RoadMap now includes a preliminary support for the Digital Charts
-   of the Words (DCW), a set of world-wide maps produced by the US Department of
-   Defense. The DCW contains only major highways and freeways, for some parts
-   or the world (mostly Europe and japan) and their accuracy does not allow
-   any reliable car navigation.
+   the US.  RoadMap now includes a preliminary support for two other
+   formats:  the Digital Charts of the Words (DCW), a set of world-wide
+   maps produced by the US Department of Defense, and the Canadian RNF
+   (Road Network File) maps.  The DCW contains only major highways and
+   freeways, for some parts or the world (mostly Europe and japan) and
+   their accuracy does not allow any reliable car navigation.  The RNF
+   files contain road data, but currently no water features or municipality
+   information.
 
    RoadMap is released under the GPL (see the COPYING file). The US Census
    Bureau's data is public domain. The DCW data is mostly public domain, but
@@ -444,8 +447,8 @@ INSTALLATION
    (cd /usr/local/bin ; chmod a+rx buildmap buildus dumpmap buildplace)
    cp rdmdownload rdmgetall rdmcompare /usr/local/bin
    (cd /usr/local/bin ; chmod a+rx rdmdownload rdmgetall rdmcompare)
-   cp rdmgenmaps rdmgendcwmaps /usr/local/bin
-   (cd /usr/local/bin ; chmod a+rx rdmgenmaps rdmgendcwmaps)
+   cp rdmgenmaps rdmgendcwmaps rdmgenshpmaps /usr/local/bin
+   (cd /usr/local/bin ; chmod a+rx rdmgenmaps rdmgendcwmaps rdmgenshpmaps)
    cp rdmkismet rdmghost rdmfriends rdmtrace /usr/local/bin
    (cd /usr/local/bin ; chmod a+rx rdmkismet rdmghost rdmfriends rdmtrace)
 ----
@@ -762,7 +765,7 @@ INSTALLATION
      used to create additional maps using the Digital Charts of the World.
      If only the US maps are required, or if the pre-built maps will be used,
      it is possible to build RoadMap without the shapelib, using the option
-     "-SHAPEFILES=NO" in the make command.
+     "SHAPEFILES=NO" in config.mk.
 
    * After RoadMap has been installed, the display only shows the message
      "No map available" or a blank screen. RoadMap must be provided with
@@ -2967,7 +2970,7 @@ IMPLEMENTATION DETAILS
    The maps used by RoadMap define all points using longitude/latitude
    coordinates (WGS 84 datum). This means the coordinates describe the
    position of the point on a reference elipsoid (as close to the Earth's
-   potatoe-like shape as scientifically possible). On the other side the
+   potato-like shape as scientifically possible). On the other side the
    Computer (or PDA) screen is still a plane. Converting a longitude and
    latitude coordinate into a plane X/Y coordinate is traditionally called
    a "projection". There are several standard projection methods. RoadMap
@@ -3167,7 +3170,7 @@ MAP FORMAT
    files, where the features are organized in layers. Each map file contains
    features that belong to one (and only one) class.
 
-   An example of class would be roads. Roads would be organized is layers
+   An example of class would be roads. Roads would be organized in layers
    like freeways, highways, streets and trails. All map files describing
    roads will contain features organized using these same layers.
 
