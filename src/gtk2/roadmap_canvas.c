@@ -213,36 +213,17 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 
    text_height = text_ascent + text_descent;
 
-   switch (corner) {
+   x = position->x;
+   y = position->y;
+   if (corner & ROADMAP_CANVAS_RIGHT)
+      x -= text_width;
+   else if (corner & ROADMAP_CANVAS_CENTER_X)
+      x -= text_width / 2;
 
-   case ROADMAP_CANVAS_TOPLEFT:
-      y = position->y;
-      x = position->x;
-      break;
-
-   case ROADMAP_CANVAS_TOPRIGHT:
-      y = position->y;
-      x = position->x - text_width;
-      break;
-
-   case ROADMAP_CANVAS_BOTTOMRIGHT:
-      y = position->y - text_height;
-      x = position->x - text_width;
-      break;
-
-   case ROADMAP_CANVAS_BOTTOMLEFT:
-      y = position->y - text_height;
-      x = position->x;
-      break;
-
-   case ROADMAP_CANVAS_CENTER:
-      y = position->y - (text_height / 2);
-      x = position->x - (text_width / 2);
-      break;
-
-   default:
-      return;
-   }
+   if (corner & ROADMAP_CANVAS_BOTTOM)
+      y -= text_height;
+   else if (corner & ROADMAP_CANVAS_CENTER_Y)
+      y -= (text_height / 2);
 
    gdk_draw_layout  (RoadMapDrawingBuffer, RoadMapGc, x, y, RoadMapLayout);
 }
