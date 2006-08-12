@@ -599,7 +599,7 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
    double x  = 0;
    double y  = 0;
    
-   if ((angle >= 85) && (angle <= 95)) {
+   if ((angle > -5) && (angle < 5)) {
 
       int size = 15;
 
@@ -607,7 +607,7 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
       x  = position->x;
       y  = position->y;
 
-      ren_solid.color(agg::rgba8(0, 0, 0));
+//      ren_solid.color(agg::rgba8(0, 0, 0));
 
       m_image_feng.height(size);
       m_image_feng.width(size);
