@@ -592,6 +592,37 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
    double x  = 0;
    double y  = 0;
    
+   if ((angle > -5) && (angle < 5)) {
+
+      int size = 15;
+
+      /* Use faster drawing for text with no angle */
+      x  = position->x;
+      y  = position->y;
+
+//      ren_solid.color(agg::rgba8(0, 0, 0));
+
+      m_image_feng.height(size);
+      m_image_feng.width(size);
+
+      while(*p) {
+         const agg::glyph_cache* glyph = m_image_fman.glyph(*p);
+
+         if(glyph) {
+            m_image_fman.init_embedded_adaptors(glyph, x, y);
+
+            agg::render_scanlines(m_image_fman.gray8_adaptor(), 
+                  m_image_fman.gray8_scanline(), 
+                  ren_solid);      
+
+            // increment pen position
+            x += glyph->advance_x;
+            y += glyph->advance_y;
+         }
+         ++p;
+      }
+   }
+
    dbg_time_end(DBG_TIME_TEXT_LOAD);
    while(*p) {
       dbg_time_start(DBG_TIME_TEXT_ONE_LETTER);
