@@ -32,23 +32,29 @@
 #include "roadmap_path.h"
 #include "roadmap_gpx.h"
 #include "roadmap_landmark.h"
+#include "roadmap_label.h"
 
 RoadMapList RoadMapLandmarkHead;
 static int RoadMapLandmarkModified;
 static int RoadMapLandmarkRefresh;
+static RoadMapPen RoadMapLandMarksPen;
 
 static RoadMapConfigDescriptor RoadMapConfigLandmarkName =
                         ROADMAP_CONFIG_ITEM ("Landmarks", "Name");
 
+static RoadMapConfigDescriptor RoadMapConfigLandmarksColor =
+                        ROADMAP_CONFIG_ITEM("Landmarks", "Color");
 
 
-static void roadmap_landmark_draw(const waypoint *waypointp)
-{
+
+#define ROADMAP_LANDMARK_LABEL_SIZE 18
+
+void roadmap_landmark_draw_waypoint
+        (const waypoint *waypointp, const char *sprite) {
+
     RoadMapGuiPoint guipoint;
-    const char *sprite;
-    if (waypointp->icon_descr == NULL) {
-        sprite = "PersonalLandmark";
-    } else {
+
+    if (waypointp->icon_descr) {
         sprite = waypointp->icon_descr;
     }
 
@@ -57,7 +63,24 @@ static void roadmap_landmark_draw(const waypoint *waypointp)
         roadmap_math_coordinate (&waypointp->pos, &guipoint);
         roadmap_math_rotate_coordinates (1, &guipoint);
         roadmap_sprite_draw (sprite, &guipoint, 0);
+
+        roadmap_canvas_select_pen (RoadMapLandMarksPen);
+        guipoint.y += 15; /* space for sprite */
+
+        /* FIXME -- We should do label collision detection, which
+         * means joining in the fun in roadmap_label_add() and
+         * roadmap_label_draw_cache().  Landmark labels should
+	 * probably take priority, and be positioned first.  They
+	 * should probably be drawn last, however, so that their
+	 * labels come out on "top" of other map features.
+         */
+        roadmap_label_draw_text(waypointp->shortname,
+           &guipoint, &guipoint, 0, 0, ROADMAP_LANDMARK_LABEL_SIZE);
     }
+}
+
+static void roadmap_landmark_draw(const waypoint *waypointp) {
+    roadmap_landmark_draw_waypoint(waypointp, "PersonalLandmark");
 }
 
 void roadmap_landmark_display (void) {
@@ -197,6 +220,12 @@ void roadmap_landmark_load(void) {
     RoadMapList tmp_waypoint_list;
     int defaulted, ret;
 
+    RoadMapLandMarksPen = roadmap_canvas_create_pen ("landmarks.labels");
+    roadmap_canvas_set_foreground
+        (roadmap_config_get (&RoadMapConfigLandmarksColor));
+
+    roadmap_canvas_set_thickness (2);
+
     name = roadmap_landmark_filename (&defaulted);
 
     if ( ! roadmap_file_exists (path, name) && defaulted) return;
@@ -228,6 +257,10 @@ roadmap_landmark_initialize(void) {
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigLandmarkName, "");
+
+    roadmap_config_declare
+       ("preferences", &RoadMapConfigLandmarksColor,  "darkred");
+
 
     ROADMAP_LIST_INIT(&RoadMapLandmarkHead);
 

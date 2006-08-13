@@ -64,6 +64,7 @@ static RoadMapConfigDescriptor RoadMapConfigLabelsColor =
 
 /* this is fairly arbitrary */
 #define MAX_LABELS 2048
+#define ROADMAP_LABEL_STREETLABEL_SIZE 16
 
 typedef struct {
    RoadMapListItem link;
@@ -220,6 +221,50 @@ static int normalize_angle(int angle) {
    angle -= 90;
 
    return angle;
+}
+
+void roadmap_label_text_extents(const char *text, int size,
+        int *width, int *ascent, int *descent,
+        int *can_tilt, int *easy_reading)
+{
+#ifdef ROADMAP_USE_LINEFONT
+
+   roadmap_linefont_extents
+        (text, ROADMAP_LABEL_STREETLABEL_SIZE, width, ascent, descent);
+
+   /* The linefont font isn't pretty.  Reading it is hard with
+    * a road running through it, so we don't center labels on
+    * the road.
+    */
+   *easy_reading = 0;
+   if (can_tilt) *can_tilt = 1;
+
+#else
+
+   roadmap_canvas_get_text_extents
+      (text, -1, width, ascent, descent, can_tilt);
+
+   *easy_reading = 1;
+
+#endif
+}
+
+void roadmap_label_draw_text(const char *text,
+        RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        int doing_angles, int angle, int size)
+{
+               
+#ifdef ROADMAP_USE_LINEFONT
+   roadmap_linefont_text
+        (text, doing_angles ? ROADMAP_CANVAS_CENTER_BOTTOM :
+                    ROADMAP_CANVAS_CENTER, center, size, angle);
+#else
+   if (doing_angles) {
+      roadmap_canvas_draw_string_angle (start, center, angle, text);
+   } else {
+      roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+   }
+#endif
 }
 
 /* called when a screen repaint is complete.  keeping track of
@@ -436,29 +481,14 @@ int roadmap_label_draw_cache (int angles) {
 
 
          if (cPtr->bbox.minx > cPtr->bbox.maxx) {
-
-#ifdef ROADMAP_USE_LINEFONT
-
-               roadmap_linefont_extents(cPtr->text, 16, &width, &ascent, &descent);
-
-               /* The linefont font isn't pretty.  Reading it is hard with
-                * a road running through it, so we don't center labels on
-                * the road.  */
-               label_center_y = 0;
-
-#else
-               int i;
-
-               roadmap_canvas_get_text_extents
-                  (cPtr->text, -1, &width, &ascent, &descent, &i);
-
-               angles = angles && i;
-
-               label_center_y = 1;
-#endif
+            int can_tilt;
+            roadmap_label_text_extents
+                    (cPtr->text, ROADMAP_LABEL_STREETLABEL_SIZE ,
+                    &width, &ascent, &descent, &can_tilt, &label_center_y);
+            angles = angles && can_tilt;
 
             /* text is too long for this feature */
-	    /* (4 times longer than feature) */
+            /* (4 times longer than feature) */
             if ((width * width / 16) > cPtr->featuresize_sq) {
                /* Keep this one in the cache as the feature size may change
                 * in the next run.
@@ -583,20 +613,11 @@ int roadmap_label_draw_cache (int angles) {
             continue; /* next label */
          }
 
-#ifdef ROADMAP_USE_LINEFONT
-         roadmap_linefont_text (cPtr->text, 
-           angles ? ROADMAP_LINEFONT_CENTERED_ABOVE : ROADMAP_LINEFONT_CENTERED,
-           &cPtr->center_point, 16, cPtr->angle);
-#else
-         if (angles) {
-            roadmap_canvas_draw_string_angle
-                    (&cPtr->text_point, &cPtr->center_point, cPtr->angle,
-                     cPtr->text);
-         } else {
-            roadmap_canvas_draw_string
-                    (&cPtr->center_point, ROADMAP_CANVAS_CENTER, cPtr->text);
-         }
-#endif
+         roadmap_label_draw_text
+            (cPtr->text, &cPtr->text_point, &cPtr->center_point,
+               angles, angles ? cPtr->angle : 0,
+               ROADMAP_LABEL_STREETLABEL_SIZE );
+
          if (whichlist == NEWLIST) {
             /* move the rendered label to the cache */
             roadmap_list_append
@@ -613,17 +634,16 @@ int roadmap_label_draw_cache (int angles) {
 
 int roadmap_label_activate (void) {
 
+
    RoadMapLabelPen = roadmap_canvas_create_pen ("labels.main");
    roadmap_canvas_set_foreground
       (roadmap_config_get (&RoadMapConfigLabelsColor));
 
-   /* assume this will only affect our internal line fonts */
    roadmap_canvas_set_thickness (2);
 
    RoadMapLabelMinFeatSizeSq = roadmap_config_get_integer (&RoadMapConfigMinFeatureSize);
    RoadMapLabelMinFeatSizeSq *= RoadMapLabelMinFeatSizeSq;
 
-    
    return 0;
 }
 
@@ -635,6 +655,7 @@ int roadmap_label_initialize (void) {
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigLabelsColor,  "#000000");
+
     
    ROADMAP_LIST_INIT(&RoadMapLabelCache);
    ROADMAP_LIST_INIT(&RoadMapLabelSpares);

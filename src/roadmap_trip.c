@@ -1724,20 +1724,7 @@ void roadmap_trip_format_messages (void) {
 
 static void roadmap_trip_standalone_waypoint_draw(const waypoint *waypointp)
 {
-    RoadMapGuiPoint guipoint;
-    const char *sprite;
-    if (waypointp->icon_descr == NULL) {
-        sprite = "TripLandmark";
-    } else {
-        sprite = waypointp->icon_descr;
-    }
-
-    if (roadmap_math_point_is_visible (&waypointp->pos)) {
-
-        roadmap_math_coordinate (&waypointp->pos, &guipoint);
-        roadmap_math_rotate_coordinates (1, &guipoint);
-        roadmap_sprite_draw (sprite, &guipoint, 0);
-    }
+    roadmap_landmark_draw_waypoint(waypointp, "TripLandmark");
 }
 
 static void roadmap_trip_route_waypoint_draw (const waypoint *waypointp)

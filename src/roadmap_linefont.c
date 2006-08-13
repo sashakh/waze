@@ -282,7 +282,7 @@ void roadmap_linefont_text (const char *text, int where,
     else if (where & ROADMAP_LINEFONT_CENTER_X)
         xp -= len / 2;
 
-    if (where & ROADMAP_LINEFONT_LOWER)
+    if (where & ROADMAP_LINEFONT_BOTTOM)
         yp -= height;
     else if (where & ROADMAP_LINEFONT_CENTER_Y)
         yp -= (height / 2);

@@ -28,13 +28,14 @@ void  roadmap_landmark_display (void);
 void  roadmap_landmark_initialize (void);
 void  roadmap_landmark_save (void);
 void  roadmap_landmark_load (void);
-void roadmap_landmark_load(void);
 void roadmap_landmark_merge(void);
 int roadmap_landmark_count();
 void roadmap_landmark_add(waypoint *waypointp);
 void roadmap_landmark_remove(waypoint *waypointp);
 RoadMapList * roadmap_landmark_list(void);
 int roadmap_landmark_is_refresh_needed (void);
+void roadmap_landmark_draw_waypoint
+        (const waypoint *waypointp, const char *sprite);
 
 #endif // INCLUDE__ROADMAP_LANDMARK__H
 
