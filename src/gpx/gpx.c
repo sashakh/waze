@@ -1465,38 +1465,17 @@ static void
 gpx_waypt_bound_calc(const waypoint *waypointp)
 {
         waypt_add_to_bounds(&all_bounds, waypointp);
-#if 0
-        bounds *bounds = &all_bounds;
-        if (waypointp->pos.latitude > bounds->max_lat)
-                bounds->max_lat = waypointp->pos.latitude;
-        if (waypointp->pos.longitude > bounds->max_lon)
-                bounds->max_lon = waypointp->pos.longitude;
-        if (waypointp->pos.latitude < bounds->min_lat)
-                bounds->min_lat = waypointp->pos.latitude;
-        if (waypointp->pos.longitude < bounds->min_lon)
-                bounds->min_lon = waypointp->pos.longitude;
-#endif
 }
 
 static void
 gpx_write_bounds(FILE *ofd, queue_head *wq, queue_head *rq, queue_head *tq)
 {
-#if 0
-       bounds *bounds = &all_bounds;
-
-       /* Set data out of bounds so that even one waypoint will reset */
-       bounds->max_lat = -500000000;
-       bounds->max_lon = -500000000;
-       bounds->min_lat = 500000000;
-       bounds->min_lon = 500000000;
-#endif
         waypt_init_bounds(&all_bounds);
 
         if (wq) waypt_iterator(wq, gpx_waypt_bound_calc);
         if (rq) route_iterator(rq, NULL, NULL, gpx_waypt_bound_calc);
         if (tq) route_iterator(tq, NULL, NULL, gpx_waypt_bound_calc);
         if (waypt_bounds_valid(&all_bounds)) {
-        // if (bounds->max_lat  > -360) {
                fprintf(ofd,
                   "<bounds minlat=\"" FLT_FMT "\" minlon =\"" FLT_FMT "\" "
                   "maxlat=\"" FLT_FMT "\" maxlon=\"" FLT_FMT "\" />\n",
