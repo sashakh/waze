@@ -97,6 +97,9 @@ static RoadMapConfigDescriptor RoadMapConfigStyleObjects =
 static RoadMapConfigDescriptor RoadMapConfigMapLabels =
                         ROADMAP_CONFIG_ITEM("Map", "Labels");
 
+static RoadMapConfigDescriptor RoadMapConfigMapDynamicOrientation =
+                        ROADMAP_CONFIG_ITEM("Map", "DynamicOrientation");
+
 static int RoadMapScreenInitialized = 0;
 static int RoadMapScreenFrozen = 0;
 static int RoadMapScreenDragging = 0;
@@ -105,7 +108,7 @@ static RoadMapGuiPoint RoadMapScreenPointerLocation;
 static RoadMapPosition RoadMapScreenCenter;
 
 static int RoadMapScreenViewMode = VIEW_MODE_2D;
-static int RoadMapScreenOrientationMode = ORIENTATION_DYNAMIC;
+static int RoadMapScreenOrientationDynamic = 1;
 static int RoadMapScreen3dHorizon;
 static int RoadMapScreenLabels;
 static int RoadMapScreenRotation;
@@ -1070,6 +1073,10 @@ static void roadmap_screen_configure (void) {
    RoadMapScreenHeight = roadmap_canvas_height();
 
    RoadMapScreenLabels = ! roadmap_config_match(&RoadMapConfigMapLabels, "off");
+   
+   RoadMapScreenOrientationDynamic = 
+	roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
+roadmap_log (ROADMAP_WARNING, "init dyn %d", RoadMapScreenOrientationDynamic);
 
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
    if (RoadMapScreenInitialized) {
@@ -1187,7 +1194,7 @@ static int roadmap_screen_get_view_mode (void) {
 
 static int roadmap_screen_get_orientation_mode (void) {
    
-   return RoadMapScreenOrientationMode;
+   return RoadMapScreenOrientationDynamic;
 }
 
 static void roadmap_screen_scroll_up (RoadMapGuiPoint *point) {
@@ -1212,7 +1219,7 @@ void roadmap_screen_refresh (void) {
         roadmap_math_set_center (&RoadMapScreenCenter);
         refresh = 1;
         
-        if (RoadMapScreenOrientationMode != ORIENTATION_FIXED) {
+        if (RoadMapScreenOrientationDynamic) {
            roadmap_math_set_orientation (roadmap_trip_get_orientation());
         }
 
@@ -1221,7 +1228,7 @@ void roadmap_screen_refresh (void) {
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_math_set_center (&RoadMapScreenCenter);
 
-        if (RoadMapScreenOrientationMode != ORIENTATION_FIXED) {
+        if (RoadMapScreenOrientationDynamic) {
            refresh |=
               roadmap_math_set_orientation
                  (roadmap_trip_get_orientation() + RoadMapScreenRotation);
@@ -1297,7 +1304,7 @@ void roadmap_screen_rotate (int delta) {
       rotation += 360;
    }
 
-   if (RoadMapScreenOrientationMode == ORIENTATION_DYNAMIC) {
+   if (RoadMapScreenOrientationDynamic) {
       calculated_rotation = roadmap_trip_get_orientation() + rotation;
    } else {
       calculated_rotation = rotation;
@@ -1333,13 +1340,8 @@ void roadmap_screen_toggle_labels (void) {
 
 void roadmap_screen_toggle_orientation_mode (void) {
    
-   if (RoadMapScreenOrientationMode == ORIENTATION_DYNAMIC) {
-
-      RoadMapScreenOrientationMode = ORIENTATION_FIXED;
-      
-   } else {
-      RoadMapScreenOrientationMode = ORIENTATION_DYNAMIC;
-   }
+   RoadMapScreenOrientationDynamic = ! RoadMapScreenOrientationDynamic;
+roadmap_log (ROADMAP_WARNING, "dyn now %d", RoadMapScreenOrientationDynamic);
 
    RoadMapScreenRotation = 0;
    roadmap_state_refresh ();
@@ -1455,6 +1457,11 @@ void roadmap_screen_initialize (void) {
 
    roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigMapLabels, "on", "off", NULL);
+
+   roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigMapDynamicOrientation, "on", "off", NULL);
+
+
 
    roadmap_pointer_register_short_click (&roadmap_screen_short_click);
    roadmap_pointer_register_drag_start (&roadmap_screen_drag_start);

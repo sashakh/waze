@@ -31,10 +31,6 @@ enum { VIEW_MODE_2D = 0,
        VIEW_MODE_3D
 };
 
-enum { ORIENTATION_DYNAMIC = 0,
-       ORIENTATION_FIXED
-};
-
 void roadmap_screen_initialize (void);
 
 void roadmap_screen_set_initial_position (void);
