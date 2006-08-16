@@ -61,6 +61,9 @@ static RoadMapConfigDescriptor RoadMapConfigDisplayBottomLeft =
 static RoadMapConfigDescriptor RoadMapConfigDisplayTopRight =
                         ROADMAP_CONFIG_ITEM("Display", "Top Right");
 
+RoadMapConfigDescriptor RoadMapConfigDisplayTopLeft =
+                        ROADMAP_CONFIG_ITEM("Display", "Top Left");
+
 static RoadMapConfigDescriptor RoadMapConfigConsoleBackground =
                         ROADMAP_CONFIG_ITEM("Console", "Background");
 
@@ -577,6 +580,9 @@ static void roadmap_display_console_box
 
     format = roadmap_config_get (item);
 
+    if (!format || !format[0])
+	return;
+
     if (! roadmap_message_format (text, sizeof(text), format)) {
         return;
     }
@@ -587,8 +593,12 @@ static void roadmap_display_console_box
         frame[2].x = roadmap_canvas_width() - 5;
         frame[0].x = frame[2].x - width - 6;
     } else {
-        frame[0].x = 5;
-        frame[2].x = frame[0].x + width + 6;
+	if (corner & ROADMAP_CANVAS_BOTTOM) {
+            frame[0].x = 5;
+	} else { /* leave room for compass */
+            frame[0].x = 45;
+	}
+	frame[2].x = frame[0].x + width + 6;
     }
     frame[1].x = frame[0].x;
     frame[3].x = frame[2].x;
@@ -660,6 +670,10 @@ void roadmap_display_signs (void) {
         (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
          &RoadMapConfigDisplayTopRight);
 
+    roadmap_display_console_box
+        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_LEFT,
+         &RoadMapConfigDisplayTopLeft);
+
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
 
         if ((sign->page == NULL) ||
@@ -696,6 +710,8 @@ void roadmap_display_initialize (void) {
         ("preferences", &RoadMapConfigDisplayBottomLeft, "%S");
     roadmap_config_declare
         ("preferences", &RoadMapConfigDisplayTopRight, "In %Y, %X|%X");
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigDisplayTopLeft, "");
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigConsoleBackground, "yellow");

@@ -43,6 +43,7 @@
 #include "roadmap_square.h"
 #include "roadmap_state.h"
 #include "roadmap_config.h"
+#include "roadmap_message.h"
 
 #include "roadmap_trigonometry.h"
 
@@ -304,6 +305,13 @@ static void roadmap_math_compute_scale (void) {
    roadmap_math_to_position (&point, &position, 1);
    RoadMapContext.upright_screen.south = position.latitude;
    RoadMapContext.upright_screen.east  = position.longitude;
+
+   roadmap_math_trip_set_distance
+	    ('x', RoadMapContext.width * RoadMapContext.zoom_x *
+		    RoadMapContext.units->unit_per_longitude);
+   roadmap_math_trip_set_distance
+   	    ('y', RoadMapContext.height * RoadMapContext.zoom_y *
+		    RoadMapContext.units->unit_per_latitude);
 
    roadmap_math_set_orientation (orientation);
 }
@@ -1074,7 +1082,7 @@ int roadmap_math_set_orientation (int direction) {
 
    roadmap_math_release_focus ();
 #ifdef DEBUG
-roadmap_log (ROADMAP_ERROR, "visibility: north=%d south=%d east=%d west=%d\n",
+roadmap_log (ROADMAP_DEBUG, "visibility: north=%d south=%d east=%d west=%d\n",
         RoadMapContext.current_screen.north,
         RoadMapContext.current_screen.south,
         RoadMapContext.current_screen.east,
@@ -1163,9 +1171,11 @@ int roadmap_math_azymuth
         result = 0;
     }
     
+#ifdef DEBUG
     roadmap_log (ROADMAP_DEBUG,
                     "azymuth for (x=%f, y=%f): %d",
                     x, y, result);
+#endif
     return result;
 }
 
@@ -1303,6 +1313,24 @@ int roadmap_math_to_trip_distance (int distance) {
 int roadmap_math_to_trip_distance_tenths (int distance) {
     
     return (10 * distance) / RoadMapContext.units->to_trip_unit;
+}
+
+void roadmap_math_trip_set_distance(char which, int distance)
+{
+    int distance_far;
+
+    distance_far = roadmap_math_to_trip_distance_tenths (distance);
+
+    if (distance_far > 0) {
+        roadmap_message_set (which, "%d.%d %s",
+                             distance_far/10,
+                             distance_far%10,
+                             roadmap_math_trip_unit ());
+    } else {
+        roadmap_message_set (which, "%d %s",
+                             distance,
+                             roadmap_math_distance_unit ());
+    }
 }
 
 

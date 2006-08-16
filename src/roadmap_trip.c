@@ -1395,24 +1395,6 @@ static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos) {
     return nextpoint;
 }
 
-static void roadmap_trip_set_distance(char which, int distance)
-{
-    int distance_far;
-
-    distance_far = roadmap_math_to_trip_distance_tenths (distance);
-
-    if (distance_far > 0) {
-        roadmap_message_set (which, "%d.%d %s",
-                             distance_far/10,
-                             distance_far%10,
-                             roadmap_math_trip_unit ());
-    } else {
-        roadmap_message_set (which, "%d %s",
-                             distance,
-                             roadmap_math_distance_unit ());
-    }
-}
-
 static void roadmap_trip_set_directions
         (int dist_to_next, int suppress_dist, waypoint *next) {
 
@@ -1451,7 +1433,7 @@ static void roadmap_trip_set_directions
     if (suppress_dist) {
         roadmap_message_unset ('Y');
     } else {
-        roadmap_trip_set_distance('Y', dist_to_next + rest_of_distance);
+        roadmap_math_trip_set_distance('Y', dist_to_next + rest_of_distance);
     }
 
 }
@@ -1590,7 +1572,7 @@ void roadmap_trip_format_messages (void) {
 
     distance_to_destination =
         roadmap_math_distance (&gps->map, &RoadMapTripDest->pos);
-    roadmap_trip_set_distance('D', distance_to_destination);
+    roadmap_math_trip_set_distance('D', distance_to_destination);
 
     roadmap_log (ROADMAP_DEBUG,
                  "GPS: distance to destination = %d %s",
@@ -1692,7 +1674,7 @@ void roadmap_trip_format_messages (void) {
                 0, RoadMapTripNext);
         }
 
-        roadmap_trip_set_distance ('W', distance_to_next);
+        roadmap_math_trip_set_distance ('W', distance_to_next);
 
     }
 

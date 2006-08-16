@@ -943,10 +943,10 @@ USING ROADMAP
    The final fuzzy value must also be above the same limit. RoadMap then
    selects the street with the highest fuzzy value.
 
-   RoadMap can also display 3 messages at the following corners of the map:
-   bottom left, bottom right and top right (the top left corner is already
-   used to show the orientation of the map). These messages can be defined
-   by the user using RoadMap's specific format strings (see section
+   RoadMap can also display four messages at each of the corners of the
+   map:  the message at top left will be shifted to leave room for the
+   compass, which shows map orientation.  These messages can be defined by
+   the user using RoadMap's specific format strings (see section
    "Configuring the RoadMap text and voice messages").
 
 
@@ -1869,6 +1869,10 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  #: | the street number range to the selected or current street block.
 *-----+-----------------------------------------------------------------+
+|  x: | Distance from one side of the screen to the other.
+*-----+-----------------------------------------------------------------+
+|  y: | Distance from the top to the bottom of the screen.
+*-----+-----------------------------------------------------------------+
    
    Note that the time is always shown using the military format: HH:MM.
 
@@ -2116,6 +2120,12 @@ CONFIGURATION
          <<Format:>> RoadMap format string
 
          <<Default:>> ETA: %A|%T
+
+    [Display.Top Left] Defines the message on the top left corner.
+
+         <<Format:>> RoadMap format string
+
+         <<Default:>> <empty>
 
     [Display.Duration] The time during which a selection or message is shown.
 
