@@ -206,7 +206,7 @@ INSTALLATION
   
   One reason for RoadMap to support a list of directories is to define a
   default system-wide configuration, and at the same time to allow a specific
-  user to install it's own setup. Another reason (for the map files on a PDA)
+  user to install their own setup. Another reason (for the map files on a PDA)
   is to let the users choose the type of hardware storage that is convenient
   for them.
 
@@ -232,7 +232,8 @@ INSTALLATION
 
          * /usr/share/roadmap and
 
-         * ~/.roadmap.
+         * ~/.roadmap (which can be referred to as '&' in other
+         path references).
          
   These directories are searched sequentially: any configuration item found
   in one directory overrides all the same items found in the directories
@@ -250,7 +251,8 @@ INSTALLATION
   The directory <<~/.roadmap>> contains the user configuration: any user change
   to the configuration is written there. The items in the user configuration
   take precedence over the "default" configuration as defined in the "shared"
-  directories.
+  directories.  This directory can be referred to with the shorthand '&'
+  in other parts of the roadmap config.
 
   The directory <<~/.roadmap>> has two subdirectories: <<trips>> and <<maps>>.
 
@@ -269,7 +271,7 @@ INSTALLATION
   (such as computers at an University) the second solution might be the most
   convenient.
 
-  Theses user configuration directories are created when needed, if they do
+  These user configuration directories are created when needed, if they do
   not exist.
 
   Althrough the Sharp Zaurus is a Linux (i.e. UNIX) PDA, it's setup is
@@ -330,7 +332,7 @@ INSTALLATION
   By default, RoadMap is built to search for the following directories on most
   UNIX systems:
   
-         * ~/.roadmap/maps,
+         * ~/.roadmap/maps,   (also known as "&/maps")
 
          * /var/lib/roadmap (preferred path) and
 
@@ -652,7 +654,7 @@ INSTALLATION
    The rdmgenmaps tool is a shell script that extract the TIGER files from
    the downloaded ZIP files, invokes the buildmap tool and then cleans
    up the TIGER files. Last, rdmgenmaps invokes the buildus tool to generate
-   the US states & counties catalog. The main purpose of rdmgenmaps is really
+   the US states and counties catalog. The main purpose of rdmgenmaps is really
    to keep the TIGER files in compressed form, considering their huge size..
 
 
@@ -668,7 +670,7 @@ INSTALLATION
 ----
 
    The <<buildus>> tool creates a catalog of maps that is used by RoadMap
-   to combine all states & counties into a giant US map. It looks for:
+   to combine all states and counties into a giant US map. It looks for:
 
       [[a]] the file AllSt.txt and
 
@@ -2184,7 +2186,7 @@ CONFIGURATION
          <<Default:>> yes
 
          <<Comment:>> chooses whether streets are labelled at startup.
-	 	      They can still be toggled by command.
+                      They can still be toggled by command.
 
     [Map.Signs] Enable/disable the map sprites and street signs.
 
