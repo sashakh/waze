@@ -302,19 +302,19 @@ static int roadmap_factory_load_action_labels (const char *file_name,
       for (i = n; i < 4; ++i) fields[i] = NULL;
 
       if (fields[1] != NULL) {
-         roadmap_log (ROADMAP_DEBUG, "assigning long label '%s' to %s\n",
+         roadmap_log (ROADMAP_DEBUG, "assigning long label '%s' to %s",
                      fields[1], this_action->name);
          this_action->label_long = fields[1];
       }
 
       if (fields[2] != NULL) {
-         roadmap_log (ROADMAP_DEBUG, "assigning terse label '%s' to %s\n",
+         roadmap_log (ROADMAP_DEBUG, "assigning terse label '%s' to %s",
                      fields[2], this_action->name);
          this_action->label_terse = fields[2];
       }
 
       if (fields[3] != NULL) {
-         roadmap_log (ROADMAP_DEBUG, "assigning tip '%s' to %s\n",
+         roadmap_log (ROADMAP_DEBUG, "assigning tip '%s' to %s",
                      fields[3], this_action->name);
          this_action->tip = fields[3];
       }
