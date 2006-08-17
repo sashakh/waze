@@ -1076,7 +1076,6 @@ static void roadmap_screen_configure (void) {
    
    RoadMapScreenOrientationDynamic = 
 	roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
-roadmap_log (ROADMAP_WARNING, "init dyn %d", RoadMapScreenOrientationDynamic);
 
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
    if (RoadMapScreenInitialized) {
@@ -1341,7 +1340,6 @@ void roadmap_screen_toggle_labels (void) {
 void roadmap_screen_toggle_orientation_mode (void) {
    
    RoadMapScreenOrientationDynamic = ! RoadMapScreenOrientationDynamic;
-roadmap_log (ROADMAP_WARNING, "dyn now %d", RoadMapScreenOrientationDynamic);
 
    RoadMapScreenRotation = 0;
    roadmap_state_refresh ();
