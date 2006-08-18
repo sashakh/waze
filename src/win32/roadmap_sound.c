@@ -142,6 +142,7 @@ DWORD WINAPI SoundRecThread (LPVOID lpParam) {
 
       res = waveInReset(hWaveIn);
       res = waveInClose(hWaveIn);
+      hWaveIn = NULL;
       roadmap_sound_play ("rec_end.wav");
       res = res;
    }
@@ -154,10 +155,15 @@ int roadmap_sound_play (const char *file_name) {
    LPWSTR file_name_unicode;
    BOOL res;
 
-   snprintf (full_name, sizeof(full_name), "%s\\sound\\%s",
-             roadmap_path_user (), file_name);
+   if (roadmap_path_is_full_path (file_name)) {
+      file_name_unicode = ConvertToWideChar(file_name, CP_UTF8);
+   } else {
 
-   file_name_unicode = ConvertToWideChar(full_name, CP_UTF8);
+      snprintf (full_name, sizeof(full_name), "%s\\sound\\%s",
+                roadmap_path_user (), file_name);
+
+      file_name_unicode = ConvertToWideChar(full_name, CP_UTF8);
+   }
 
    res = PlaySound(file_name_unicode, NULL, SND_SYNC | SND_FILENAME);
 
@@ -309,7 +315,7 @@ static int save_wav_file (void *data, unsigned int size) {
    fb.wavFormat.wBlockAlign      = PCMfmt.nBlockAlign;
    fb.wavFormat.wBitsPerSample   = PCMfmt.wBitsPerSample;
 
-   file = roadmap_file_fopen (NULL, "\\test.wav", "w");
+   file = roadmap_file_fopen (NULL, RoadMapSoundRecName, "w");
    if (!file) return -1;
 
    {
