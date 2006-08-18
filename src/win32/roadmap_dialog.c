@@ -38,6 +38,7 @@
 #include "../roadmap_types.h"
 #include "../roadmap_start.h"
 #include "../roadmap_lang.h"
+#include "../roadmap_canvas.h"
 
 #define ROADMAP_DIALOG_NO_LANG
 #include "../roadmap_dialog.h"
@@ -276,6 +277,17 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
 }
 
 
+static void show_sip_button (HWND parent) {
+
+   HWND hWndSipButton;
+
+   hWndSipButton = FindWindow(TEXT("MS_SIPBUTTON"), NULL);
+
+   if (hWndSipButton) {
+      SetWindowPos(hWndSipButton, parent, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_SHOWWINDOW);
+   }
+}
+
 int roadmap_dialog_activate (const char *name, void *context)
 {
 	RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
@@ -289,6 +301,7 @@ int roadmap_dialog_activate (const char *name, void *context)
 		RoadMapDialogCurrent = dialog;
 
 		ShowWindow(dialog->w, SW_SHOW);
+      show_sip_button (dialog->w);
 
 #ifdef UNDER_CE		
       if (dialog->use_keyboard) {
@@ -581,6 +594,8 @@ void roadmap_dialog_complete (int use_keyboard)
 	SetWindowText(dialog->w, str);
 	free(str);
 
+   show_sip_button (dialog->w);
+
    if (count == 1) {
 #ifdef UNDER_CE
       if (use_keyboard) {
@@ -664,6 +679,20 @@ void roadmap_dialog_select (const char *dialog)
 }
 
 
+void roadmap_dialog_set_focus (const char *frame, const char *name)
+{
+ 	RoadMapDialogItem this_frame;
+	RoadMapDialogItem this_item;
+	
+	this_frame  = roadmap_dialog_get (RoadMapDialogCurrent, frame);
+	this_item   = roadmap_dialog_get (this_frame, name);
+
+   if (this_item->w) {
+      SetFocus (this_item->w);
+	}
+}
+
+
 void *roadmap_dialog_get_data (const char *frame, const char *name)
 {
 	RoadMapDialogItem this_frame;
@@ -677,6 +706,7 @@ void *roadmap_dialog_get_data (const char *frame, const char *name)
 
    case ROADMAP_WIDGET_PASSWORD:
 	case ROADMAP_WIDGET_ENTRY:
+   case ROADMAP_WIDGET_LABEL:
    case ROADMAP_WIDGET_MUL_ENTRY:
 		GetWindowText(this_item->w, str, sizeof(str)/sizeof(str[0]));
 		if (this_item->ansi_value != NULL) {
@@ -829,7 +859,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		item->label = CreateWindowEx (
 			0,
 			L"STATIC",            // Class name
-			name_unicode,  		  // Window name
+			name_unicode,  		 // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
 			0,                    // y-coordinate of the upper-left corner
@@ -840,12 +870,14 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 			g_hInst,              // The instance handle
 			NULL);                // Specify NULL for this parameter when you 
 
-		dwStyle |= WS_BORDER|ES_AUTOHSCROLL;      
+		dwStyle |= WS_BORDER|ES_AUTOHSCROLL;
 	   
       if (item->widget_type == ROADMAP_WIDGET_PASSWORD) {
          dwStyle |= ES_PASSWORD;
       } else if (item->widget_type == ROADMAP_WIDGET_MUL_ENTRY) {
          dwStyle |= WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL;
+
+         if (roadmap_lang_rtl ()) dwStyle |= ES_RIGHT;
       }
 
 		item->w = CreateWindowEx (
@@ -996,7 +1028,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		item->w = CreateWindowEx (
 			0,
 			L"BUTTON",            // Class name
-			name_unicode,		  // Window name
+			name_unicode,         // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
 			0,                    // y-coordinate of the upper-left corner
@@ -1014,7 +1046,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		item->label = CreateWindowEx (
 			0,
 			L"STATIC",            // Class name
-			name_unicode,		  // Window name
+			name_unicode,         // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
 			0,                    // y-coordinate of the upper-left corner
@@ -1029,7 +1061,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 		item->w = CreateWindowEx (
 			0,
 			L"LISTBOX",           // Class name
-			NULL,		          // Window name
+			NULL,                 // Window name
 			dwStyle,              // Window style
 			0,                    // x-coordinate of the upper-left corner
 			0,                    // y-coordinate of the upper-left corner
@@ -1058,8 +1090,10 @@ static void CreateControllers(HWND hDlg, RoadMapDialogItem frame)
 		child = child->next;
 	}
 
+#ifdef UNDER_CE
    CreateWindow (WC_SIPPREF, TEXT(""), WS_CHILD, -10, -10, 5, 5,
       hDlg, (HMENU) NULL, g_hInst, NULL);
+#endif
 }
 
 
@@ -1103,9 +1137,12 @@ static void MoveControlls (HWND hDlg, RoadMapDialogItem frame, int width, int he
    unsigned int second_column_width;
    int curr_y;
    int label_y_add;
+   RECT rc;
    
    if (frame == NULL) return;
    
+   GetWindowRect(hDlg, &rc);
+
    dc = GetDC(hDlg);
    for (item = frame->children; item != NULL; item = item->next) {
       LPWSTR name;
@@ -1202,7 +1239,9 @@ static void MoveControlls (HWND hDlg, RoadMapDialogItem frame, int width, int he
             unsigned int widget_height = row_height;
             
             if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
-               widget_height = height - curr_y - 2;
+
+               widget_height = roadmap_canvas_height () - rc.top - curr_y - 2;
+
                if (widget_height > MAX_LIST_HEIGHT*2) {
                   widget_height = MAX_LIST_HEIGHT*2;
                }
@@ -1278,15 +1317,12 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			int num_buttons;
          int num_containers = 0;
          int min_height = 0;
+         int has_cancel_button = 0;
 #ifdef UNDER_CE
          SHINITDLGINFO shidi;
-
-			SetWindowLong(hDlg, GWL_STYLE,
-				GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
-            SHDoneButton(hDlg, SHDB_HIDE);
 #else
 			SetWindowLong(hDlg, GWL_STYLE,
-				GetWindowLong(hDlg, GWL_STYLE) | WS_OVERLAPPEDWINDOW);
+			GetWindowLong(hDlg, GWL_STYLE) | WS_OVERLAPPEDWINDOW);
 
 #endif
 			SetWindowLong(hDlg, GWL_USERDATA, (LONG)dialog);
@@ -1296,6 +1332,11 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			for (frame = dialog->children; frame != NULL; frame = frame->next) {
 				if (frame->widget_type != ROADMAP_WIDGET_CONTAINER) {
 					create_item(frame, hDlg);
+
+               if (!strcmp(frame->name, roadmap_lang_get ("Cancel"))) {
+                  has_cancel_button = 1;
+               }
+
 					num_buttons++;
             } else {
                int height = calc_frame_height (frame);
@@ -1306,16 +1347,21 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
             }
 			}
 
+#ifdef UNDER_CE
+         if (has_cancel_button) {
+			   SetWindowLong(hDlg, GWL_STYLE,
+   		      GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
+
+            SHDoneButton(hDlg, SHDB_HIDE);
+         }
+#endif
+
          if (num_containers == 1) {
 			   CreateControllers(hDlg, child_frame);
             child_frame->w = hDlg;
          }
 
          if (min_height < 120) min_height = 120;
-
-         if (!dialog->use_keyboard) {
-            SetWindowPos(hDlg, HWND_TOP, 10, 30, 220, min_height+30, SWP_DRAWFRAME);
-         }
 
 #ifdef UNDER_CE
 
@@ -1324,6 +1370,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			   shidi.dwFlags = SHIDIF_FULLSCREENNOMENUBAR;
          } else {
             shidi.dwFlags = 0;
+            SetWindowPos(hDlg, HWND_TOP, 10, 30, 220, min_height+30, SWP_DRAWFRAME);
          }
 
 			shidi.hDlg = hDlg;
@@ -1414,6 +1461,14 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		break;
 
 	case WM_COMMAND:
+
+      if (((HWND)lParam == hDlg) && (LOWORD(wParam) == IDOK)) {
+
+        roadmap_dialog_hide_window
+            ((RoadMapDialogItem)GetWindowLong((HWND)lParam, GWL_USERDATA));
+        return TRUE;
+      }
+
 		if ((HIWORD(wParam) == BN_CLICKED) ||
 			(HIWORD(wParam) == LBN_SELCHANGE) ||
          (HIWORD(wParam) == EN_CHANGE) ||
@@ -1441,10 +1496,27 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 
 				return TRUE;
 		}
+      
+      return FALSE;
 
 	case WM_CLOSE:
 		EndDialog(hDlg, message);
 		return TRUE;
+
+/*
+   case WM_ERASEBKGND:
+      {
+		   HDC hdc = (HDC)wParam;
+		   HBRUSH brush = CreateSolidBrush (RGB(255,255,224));
+         RECT rc;
+
+		   GetClientRect(hDlg, &rc);
+		   FillRect(hdc, &rc, brush);
+
+		   DeleteObject(brush);
+		   return TRUE;
+      }
+*/
 	}
 
 	return (INT_PTR)FALSE;
