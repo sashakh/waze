@@ -91,7 +91,7 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES -D_WIN32_IE=0x500 -I./zlib
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq -L ./dglib
 
 RDMLIBS=libroadmap.a win32/libosroadmap.a
@@ -158,6 +158,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_download.c \
           roadmap_help.c \
           roadmap_label.c \
+          roadmap_lang.c \
           roadmap_start.c
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)
@@ -167,6 +168,7 @@ RGGUISRCS=roadgps_start.c \
           roadmap_factory.c \
           roadmap_help.c \
           roadgps_screen.c \
+          roadmap_lang.c \
           roadgps_logger.c
 
 RGGUIOBJS=$(RGGUISRCS:.c=.o)
@@ -178,8 +180,12 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/editor_plugin.c \
              editor/editor_screen.c \
              editor/static/editor_dialog.c \
+             editor/static/notes.c \
+             editor/static/edit_marker.c \
+             editor/static/update_range.c \
              editor/db/editor_street.c \
              editor/db/editor_point.c \
+             editor/db/editor_marker.c \
              editor/db/editor_shape.c \
              editor/db/editor_line.c \
              editor/db/editor_square.c \
@@ -192,6 +198,7 @@ RMPLUGINSRCS=roadmap_copy.c \
 				 editor/export/editor_export.c \
              editor/export/editor_download.c \
              editor/export/editor_upload.c \
+             editor/export/editor_sync.c \
              editor/db/editor_trkseg.c \
              editor/track/editor_track_filter.c \
              editor/track/editor_track_util.c \
