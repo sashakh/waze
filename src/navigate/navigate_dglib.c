@@ -46,6 +46,13 @@ static int fips_data_loaded = 0;
 static dglGraph_s graph;
 static dglSPCache_s spCache;
 
+typedef struct {
+   PluginLine from_line;
+   int turn_restrictions;
+} NavigateClip;
+
+NavigateClip NavigateClipData;
+
 static int  clipper     (
                         dglGraph_s *    pgraph ,
                         dglSPClipInput_s * pIn ,
@@ -53,6 +60,22 @@ static int  clipper     (
                         void *          pvarg       /* caller's pointer */
                         )
 {       
+   NavigateClip *info = (NavigateClip *)pvarg;
+   int to_line = dglEdgeGet_Id(pgraph, pIn->pnEdge);
+   int from_line;
+
+   if (pIn->pnPrevEdge != NULL) {
+      
+      from_line = dglEdgeGet_Id(pgraph, pIn->pnPrevEdge);
+   } else {
+      from_line = roadmap_plugin_get_line_id (&info->from_line);
+   }
+
+   /* no U turns */
+   if (from_line == -to_line) return 1;
+   
+   if (!info->turn_restrictions) return 0;
+
    if ( roadmap_turns_find_restriction (
             dglNodeGet_Id(pgraph, pIn->pnNodeFrom),
             pIn->pnPrevEdge != NULL ?
@@ -140,7 +163,8 @@ int navigate_get_route_segments (PluginLine *from_line,
                                  PluginLine *to_line,
                                  int to_point,
                                  NavigateSegment *segments,
-                                 int *size) {
+                                 int *size,
+                                 int *result) {
    
    int i;
    int nret;
@@ -149,12 +173,27 @@ int navigate_get_route_segments (PluginLine *from_line,
 
    if (fips_data_loaded != roadmap_locator_active ()) return -1;
 
+   *result = 0;
+
    /* save places for start & end lines */
    *size -= 2;
 
+   NavigateClipData.from_line = *from_line;
+   NavigateClipData.turn_restrictions = 1;
+
    nret = dglShortestPath (&graph, &pReport, from_point, to_point,
-                           clipper, (void *)from_line->line_id, NULL);
-   if (nret <= 0) return nret;
+                           clipper, &NavigateClipData, NULL);
+   if (nret <= 0) {
+
+      *result = GRAPH_IGNORE_TURNS;
+
+      NavigateClipData.turn_restrictions = 0;
+      nret = dglShortestPath (&graph, &pReport, from_point, to_point,
+                              clipper, &NavigateClipData, NULL);
+      if (nret <= 0) {
+         return nret;
+      }
+   }
 
    if (pReport->cArc > *size) return -1;
    

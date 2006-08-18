@@ -27,6 +27,8 @@
 
 #include "navigate_main.h"
 
+#define GRAPH_IGNORE_TURNS 1
+
 int navigate_reload_data (void);
 int navigate_load_data   (void);
 
@@ -35,7 +37,8 @@ int navigate_get_route_segments (PluginLine *from_line,
                                  PluginLine *to_line,
                                  int to_point,
                                  NavigateSegment *segments,
-                                 int *size);
+                                 int *size,
+                                 int *result);
 
 #endif /* _NAVIGATE_GRAPH_H_ */
 
