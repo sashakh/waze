@@ -102,6 +102,7 @@ static int LinesDrawnCount;
 static int LinesDrawnSize;
 static RoadMapHash *LinesDrawnHash;
 
+static RoadMapScreenSubscriber screen_prev_after_refresh = NULL;
 
 static void init_lines_drawn (void) {
    
@@ -523,43 +524,16 @@ static char *editor_screen_get_pen_color (int pen_type, int road_state) {
 }
 
 
-void editor_screen_initialize (void) {
-    
-   int i;
-   int j;
-   int k;
-   char name[80];
-
-   /* FIXME should only create pens for road class */
-
-   for (i=1; i<MAX_LAYERS; ++i) 
-      for (j=0; j<MAX_PEN_LAYERS; j++) 
-         for (k=0; k<MAX_ROAD_STATES; k++) {
-
-            editor_pen *pen = &EditorPens[i][j][k];
-
-            pen->in_use = 0;
-
-            snprintf (name, sizeof(name), "EditorPen%d", i*100+j*10+k);
-            pen->pen = roadmap_canvas_create_pen (name);
-            roadmap_canvas_set_foreground (editor_screen_get_pen_color(j,k));
-            roadmap_canvas_set_thickness (1);
-         }
-
-   EditorTrackPens[0].pen = roadmap_canvas_create_pen ("EditorTrack0");
-   roadmap_canvas_set_foreground ("black");
-   roadmap_canvas_set_thickness (1);
-   EditorTrackPens[1].pen = roadmap_canvas_create_pen ("EditorTrack1");
-   roadmap_canvas_set_foreground ("blue");
-   roadmap_canvas_set_thickness (1);
-}
-
-
 static void editor_screen_draw_markers (void) {
    RoadMapArea screen;
-   int count = editor_marker_count ();
+   int count;
    int i;
 
+   int fips = roadmap_locator_active ();
+   if (editor_db_activate(fips) == -1) return;
+
+   count = editor_marker_count ();
+   
    roadmap_math_screen_edges (&screen);
 
    for (i=0; i<count; i++) {
@@ -573,6 +547,18 @@ static void editor_screen_draw_markers (void) {
       roadmap_math_coordinate (&pos, &screen_point);
       roadmap_math_rotate_coordinates (1, &screen_point);
       roadmap_sprite_draw ("marker", &screen_point, steering);
+   }
+}
+
+
+static void editor_screen_after_refresh (void) {
+
+   if (editor_is_enabled()) {
+      editor_screen_draw_markers ();
+   }
+
+   if (screen_prev_after_refresh) {
+      (*screen_prev_after_refresh) ();
    }
 }
 
@@ -746,8 +732,6 @@ void editor_screen_repaint (int max_pen) {
             }
 
       }
-
-      editor_screen_draw_markers ();
    }
 
    for (k = 0; k < max_pen; ++k) {
@@ -789,4 +773,41 @@ void editor_screen_reset_selected (void) {
    select_count = 0;
    roadmap_screen_redraw ();
 }
+
+
+void editor_screen_initialize (void) {
+    
+   int i;
+   int j;
+   int k;
+   char name[80];
+
+   /* FIXME should only create pens for road class */
+
+   for (i=1; i<MAX_LAYERS; ++i) 
+      for (j=0; j<MAX_PEN_LAYERS; j++) 
+         for (k=0; k<MAX_ROAD_STATES; k++) {
+
+            editor_pen *pen = &EditorPens[i][j][k];
+
+            pen->in_use = 0;
+
+            snprintf (name, sizeof(name), "EditorPen%d", i*100+j*10+k);
+            pen->pen = roadmap_canvas_create_pen (name);
+            roadmap_canvas_set_foreground (editor_screen_get_pen_color(j,k));
+            roadmap_canvas_set_thickness (1);
+         }
+
+   EditorTrackPens[0].pen = roadmap_canvas_create_pen ("EditorTrack0");
+   roadmap_canvas_set_foreground ("black");
+   roadmap_canvas_set_thickness (1);
+   EditorTrackPens[1].pen = roadmap_canvas_create_pen ("EditorTrack1");
+   roadmap_canvas_set_foreground ("blue");
+   roadmap_canvas_set_thickness (1);
+
+   screen_prev_after_refresh = 
+      roadmap_screen_subscribe_after_refresh (editor_screen_after_refresh);
+}
+
+
 
