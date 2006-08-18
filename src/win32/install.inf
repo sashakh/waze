@@ -83,6 +83,8 @@ Straight.wav = 10
 TurnLeft.wav = 10
 TurnRight.wav = 10
 within.wav = 10
+rec_start.wav = 10
+rec_end.wav = 10
 
 [SourceDisksFiles.ARM]
 Roadmap.exe = 3
@@ -157,6 +159,8 @@ Straight.wav,,,0x00000010
 TurnLeft.wav,,,0x00000010
 TurnRight.wav,,,0x00000010
 within.wav,,,0x00000010
+rec_start.wav,,,0x00000010
+rec_end.wav,,,0x00000010
 
 [Files.Maps]
 usc77001.rdm,,,0x00000010
