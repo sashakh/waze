@@ -410,17 +410,13 @@ void roadmap_dialog_new_mul_entry (const char *frame, const char *name,
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
    child->callback = callback;
    child->widget_type = ROADMAP_WIDGET_MUL_ENTRY;
-
-   g_signal_connect (w, "activate",
-                     (GCallback) roadmap_dialog_action, child);
-
 }
 
 
 void roadmap_dialog_new_progress (const char *frame, const char *name) {
 
-   GtkWidget *w = gtk_entry_new ();
    name = "Progress";
+   GtkWidget *w = gtk_label_new (name);
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, w, 0);
    child->widget_type = ROADMAP_WIDGET_LABEL;
 }
@@ -780,6 +776,10 @@ void roadmap_dialog_select (const char *dialog) {
 }
 
 
+void roadmap_dialog_set_focus (const char *frame, const char *name) {
+}
+
+
 void *roadmap_dialog_get_data (const char *frame, const char *name) {
 
    RoadMapDialogItem this_frame;
@@ -796,13 +796,18 @@ void *roadmap_dialog_get_data (const char *frame, const char *name) {
 
       return (void *)gtk_entry_get_text (GTK_ENTRY(this_item->w));
 
+   case ROADMAP_WIDGET_LABEL:
+      
+      return (void *)gtk_label_get_text (GTK_LABEL(this_item->w));
+      
    case ROADMAP_WIDGET_MUL_ENTRY:
       {
          GtkTextIter start, end;
          gtk_text_buffer_get_bounds
-            (gtk_text_view_get_buffer (GTK_ENTRY(this_item->w)), &start, &end );
+            (gtk_text_view_get_buffer (GTK_TEXT_VIEW(this_item->w)),
+	     &start, &end );
          return gtk_text_buffer_get_text
-            (gtk_text_view_get_buffer (GTK_ENTRY(this_item->w)),
+            (gtk_text_view_get_buffer (GTK_TEXT_VIEW(this_item->w)),
                                        &start, &end, TRUE);
       }
       break;
@@ -835,7 +840,7 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
       {
          GtkTextBuffer *buffer = gtk_text_buffer_new (NULL);
          gtk_text_buffer_set_text (buffer, (const char *)data, strlen(data));
-         gtk_text_view_set_buffer (GTK_ENTRY(this_item->w), buffer);
+         gtk_text_view_set_buffer (GTK_TEXT_VIEW(this_item->w), buffer);
          g_object_unref (buffer);
       }
       break;
@@ -923,10 +928,10 @@ void  roadmap_dialog_set_progress (const char *frame, const char *name,
    this_frame  = roadmap_dialog_get (RoadMapDialogCurrent, frame);
    this_item   = roadmap_dialog_get (this_frame, name);
 
-   if (this_item->widget_type != ROADMAP_WIDGET_ENTRY) return;
+   if (this_item->widget_type != ROADMAP_WIDGET_LABEL) return;
 
    snprintf(data, sizeof(data), "%d", progress);
 
-   gtk_entry_set_text (GTK_ENTRY(this_item->w), (const char *)data);
+   gtk_label_set_text (GTK_LABEL(this_item->w), (const char *)data);
 }
 
