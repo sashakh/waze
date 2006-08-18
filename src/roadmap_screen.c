@@ -61,15 +61,6 @@
 #include "roadmap_screen.h"
 
 
-static RoadMapConfigDescriptor RoadMapConfigDeltaX =
-                        ROADMAP_CONFIG_ITEM("Delta", "X");
-
-static RoadMapConfigDescriptor RoadMapConfigDeltaY =
-                        ROADMAP_CONFIG_ITEM("Delta", "Y");
-
-static RoadMapConfigDescriptor RoadMapConfigDeltaRotate =
-                        ROADMAP_CONFIG_ITEM("Delta", "Rotate");
-
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
@@ -1244,10 +1235,6 @@ static void roadmap_screen_reset_delta (void) {
    RoadMapScreenDeltaX = 0;
    RoadMapScreenDeltaY = 0;
    RoadMapScreenRotation = 0;
-
-   roadmap_config_set_integer (&RoadMapConfigDeltaX, 0);
-   roadmap_config_set_integer (&RoadMapConfigDeltaY, 0);
-   roadmap_config_set_integer (&RoadMapConfigDeltaRotate, 0);
 }
 
 
@@ -1257,9 +1244,6 @@ static void roadmap_screen_record_move (int dx, int dy) {
 
    RoadMapScreenDeltaX += dx;
    RoadMapScreenDeltaY += dy;
-
-   roadmap_config_set_integer (&RoadMapConfigDeltaX, RoadMapScreenDeltaX);
-   roadmap_config_set_integer (&RoadMapConfigDeltaY, RoadMapScreenDeltaY);
 
    center.x = (RoadMapScreenWidth / 2) + dx;
    center.y = (RoadMapScreenHeight / 2) + dy;
@@ -1424,7 +1408,6 @@ void roadmap_screen_rotate (int delta) {
 
    if (roadmap_math_set_orientation (calculated_rotation)) {
       RoadMapScreenRotation = rotation;
-      roadmap_config_set_integer (&RoadMapConfigDeltaRotate, rotation);
       roadmap_screen_repaint ();
    }
 }
@@ -1546,10 +1529,6 @@ void roadmap_screen_zoom_reset (void) {
 
 void roadmap_screen_initialize (void) {
 
-   roadmap_config_declare ("session", &RoadMapConfigDeltaX, "0");
-   roadmap_config_declare ("session", &RoadMapConfigDeltaY, "0");
-   roadmap_config_declare ("session", &RoadMapConfigDeltaRotate, "0");
-
    roadmap_config_declare
        ("preferences", &RoadMapConfigAccuracyMouse,  "20");
 
@@ -1596,16 +1575,21 @@ void roadmap_screen_initialize (void) {
 }
 
 
+void roadmap_screen_shutdown (void) {
+   RoadMapGpsPosition point;
+   point.longitude = RoadMapScreenCenter.longitude;
+   point.latitude  = RoadMapScreenCenter.latitude;
+   point.steering  = RoadMapScreenRotation;
+
+   roadmap_trip_set_mobile ("Hold", &point);
+}
+
+
 void roadmap_screen_set_initial_position (void) {
 
     RoadMapScreenInitialized = 1;
     
     roadmap_layer_initialize();
-
-    RoadMapScreenDeltaX = roadmap_config_get_integer (&RoadMapConfigDeltaX);
-    RoadMapScreenDeltaY = roadmap_config_get_integer (&RoadMapConfigDeltaY);
-    RoadMapScreenRotation =
-       roadmap_config_get_integer (&RoadMapConfigDeltaRotate);
 
     RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
     roadmap_canvas_set_foreground
