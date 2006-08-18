@@ -42,6 +42,9 @@
 #include "roadmap_fuzzy.h"
 #include "roadmap_adjust.h"
 
+//FIXME remove when navigation will support plugin lines
+#include "editor/editor_plugin.h"
+
 #include "roadmap_navigate.h"
 
 static RoadMapConfigDescriptor RoadMapNavigateFlag =
@@ -140,7 +143,7 @@ static int roadmap_navigate_get_neighbours
     RoadMapPosition focus_position;
 
 
-    roadmap_log_push ("roadmap_navigate_retrieve_line");
+    roadmap_log_push ("roadmap_navigate_get_neighbours");
 
     if (roadmap_math_point_is_visible (position)) {
 
@@ -662,6 +665,10 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     /* We must search again for the best street match. */
 
+    //FIXME remove when navigation will support plugin lines
+    if (RoadMapRouteInfo.enabled) {
+       editor_plugin_set_override (0);
+    }
     count = roadmap_navigate_get_neighbours
                 (&RoadMapLatestPosition, roadmap_fuzzy_max_distance(),
                  RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD, LAYER_ALL_ROADS);
@@ -707,6 +714,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
             nominated = candidate;
             nominated_in_route = candidate_in_route;
         }
+    }
+
+    //FIXME remove when navigation will support plugin lines
+    if (RoadMapRouteInfo.enabled) {
+       editor_plugin_set_override (1);
     }
 
     if (roadmap_fuzzy_is_acceptable (best)) {
