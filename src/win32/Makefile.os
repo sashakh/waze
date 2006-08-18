@@ -22,6 +22,7 @@ OSLIBSRCS=roadmap_file.c \
           roadmap_spawn.c \
           roadmap_time.c \
           roadmap_win32.c \
+          roadmap_sound.c \
 	  listports.c \
 	  wince_input_mon.c \
 	  ../md5.c

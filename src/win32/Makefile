@@ -52,7 +52,7 @@ RMLIBSRCS=roadmap_messagebox.c \
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
 
-RUNTIME=gtkroadgps gtkroadmap
+RUNTIME=gtkroadmap
 
 
 # --- Conventional targets ----------------------------------------

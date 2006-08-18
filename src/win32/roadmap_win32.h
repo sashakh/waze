@@ -3,7 +3,13 @@
 
 #include <windows.h>
 
+#if defined(__GNUC__)
+#define __try try
+#define __except(x) catch (...)
+#else
 #define inline _inline
+#endif
+
 #define MENU_ID_START	WM_USER
 #define MAX_MENU_ITEMS	100
 #define TOOL_ID_START	(MENU_ID_START + MAX_MENU_ITEMS + 1)

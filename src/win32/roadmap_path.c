@@ -485,7 +485,11 @@ const char *roadmap_path_search_icon (const char *name)
 
 int roadmap_path_is_full_path (const char *name)
 {
+#ifdef UNDER_CE
    return name[0] == '\\';
+#else
+   return name[1] == ':';
+#endif
 }
 
 
