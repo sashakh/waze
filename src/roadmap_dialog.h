@@ -139,6 +139,8 @@ void  roadmap_dialog_set_progress (const char *frame, const char *name,
                                    int progress);
 void  roadmap_dialog_protect  (const char *frame, const char *name);
 
+void  roadmap_dialog_set_focus (const char *frame, const char *name);
+
 #ifndef ROADMAP_DIALOG_NO_LANG
 #include "roadmap_lang.h"
 
@@ -263,6 +265,12 @@ static __inline void roadmap_dialog_protect_i
    roadmap_dialog_protect (roadmap_lang_get (frame), roadmap_lang_get (name));
 }
          
+static __inline void roadmap_dialog_set_focus_i
+                     (const char *frame, const char *name) {
+
+   roadmap_dialog_set_focus (roadmap_lang_get (frame), roadmap_lang_get (name));
+}
+         
 #define roadmap_dialog_activate      roadmap_dialog_activate_i
 #define roadmap_dialog_hide          roadmap_dialog_hide_i
 #define roadmap_dialog_new_label     roadmap_dialog_new_label_i
@@ -281,6 +289,7 @@ static __inline void roadmap_dialog_protect_i
 #define roadmap_dialog_set_data      roadmap_dialog_set_data_i
 #define roadmap_dialog_set_progress  roadmap_dialog_set_progress_i
 #define roadmap_dialog_protect       roadmap_dialog_protect_i
+#define roadmap_dialog_set_focus     roadmap_dialog_set_focus_i
 #endif
 
 #endif // INCLUDE__ROADMAP_DIALOG__H
