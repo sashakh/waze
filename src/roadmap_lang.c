@@ -49,6 +49,7 @@ static int RoadMapLangSize;
 static int RoadMapLangCount;
 static RoadMapHash *RoadMapLangHash;
 static int RoadMapLangLoaded = 0;
+static int RoadMapLangRTL = 0;
 
 
 static int roadmap_lang_hash_str (const char *str) {
@@ -156,6 +157,7 @@ void roadmap_lang_initialize (void) {
    p = roadmap_path_user ();
 
    RoadMapLangLoaded = roadmap_lang_load (p);
+   RoadMapLangRTL = (strcasecmp(roadmap_lang_get ("RTL"), "Yes") == 0);
 }
 
 
@@ -183,6 +185,6 @@ const char* roadmap_lang_get (const char *name) {
 
 
 int roadmap_lang_rtl (void) {
-   return 1;
+   return RoadMapLangRTL;
 }
 
