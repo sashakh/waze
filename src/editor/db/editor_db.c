@@ -555,6 +555,26 @@ void editor_db_delete (int fips) {
    
    if (roadmap_file_exists (path, name)) {
 
+      char **files;
+      char **cursor;
+      char *directory;
+
+      /* Delete notes wav files */
+      /* FIXME this is broken for multiple counties */
+      directory = roadmap_path_join (roadmap_path_user (), "markers");
+      files = roadmap_path_list (directory, ".wav");
+
+      for (cursor = files; *cursor != NULL; ++cursor) {
+
+         char *full_name = roadmap_path_join (directory, *cursor);
+         roadmap_file_remove (NULL, full_name);
+
+         free (full_name);
+      }
+
+      free (directory);
+
+      /* Remove the actual editor file */
       roadmap_file_remove (path, name);
    }
 }

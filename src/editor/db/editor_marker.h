@@ -24,48 +24,69 @@
 #ifndef INCLUDE__EDITOR_MARKER__H
 #define INCLUDE__EDITOR_MARKER__H
 
+#include <time.h>
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
 #include "editor_dictionary.h"
 
-#define ED_MARKER_UPLOAD  0x1
-#define ED_MARKER_DELETED 0x2
+#define ED_MARKER_DIRTY   0x1
+#define ED_MARKER_UPLOAD  0x2
+#define ED_MARKER_DELETED 0x4
+#define MAX_ATTR 5
 
 typedef struct editor_marker_type {
    const char *name;
-   int (*export_marker) (const char *note);
-   const char *(*update_marker) (unsigned char *flags, const char *note);
+   int (*export_marker)(int          marker,
+                        const char **note,
+                        const char  *keys[MAX_ATTR],
+                        char        *values[MAX_ATTR],
+                        int         *count);
+   int (*update_marker)(int marker, unsigned char *flags, const char **note);
 } EditorMarkerType;
 
 typedef struct editor_db_marker_s {
-   int longitude;
-   int latitude;
-   short steering;
-   unsigned char type;
-   unsigned char flags;
-   EditorString note;
+   int            longitude;
+   int            latitude;
+   short          steering;
+   time_t         time;
+   unsigned char  type;
+   unsigned char  flags;
+   EditorString   note;
 } editor_db_marker;
 
 
 int editor_marker_add (int longitude,
                        int latitude,
                        int steering,
+                       time_t time,
                        unsigned char type,
                        unsigned char flags,
                        const char *note);
    
 int  editor_marker_count (void);
-void editor_marker_position (int marker,
-                             RoadMapPosition *position, int *steering);
 
-const char *editor_marker_type (int marker);
-const char *editor_marker_note (int marker);
+void editor_marker_position(int marker,
+                            RoadMapPosition *position,
+                            int *steering);
 
-unsigned char editor_marker_flags (int marker);
+time_t      editor_marker_time(int marker);
+const char *editor_marker_type(int marker);
+const char *editor_marker_note(int marker);
 
-void editor_marker_update (int marker, unsigned char flags, const char *note);
+unsigned char editor_marker_flags(int marker);
 
-int editor_marker_reg_type (EditorMarkerType *type);
+void editor_marker_update(int marker, unsigned char flags, const char *note);
+
+int editor_marker_reg_type(EditorMarkerType *type);
+
+void editor_marker_voice_file (int marker, char *file, int size);
+
+int editor_marker_export(int marker, const char **description,
+                         const char *keys[MAX_ATTR],
+                         char       *values[MAX_ATTR],
+                         int *count);
+
+int editor_marker_verify(int marker, unsigned char *flags, const char **note);
 
 extern roadmap_db_handler EditorMarkersHandler;
 
