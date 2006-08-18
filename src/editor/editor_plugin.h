@@ -26,6 +26,7 @@
 
 int editor_plugin_register (void);
 void editor_plugin_unregister (int plugin_id);
+void editor_plugin_set_override (int status);
 
 #endif // INCLUDE__EDITOR_PLUGIN__H
 

@@ -42,11 +42,15 @@
 #include "editor_plugin.h"
 
 
+static int EditorPluginOverrideStatus = 1;
+
 static int editor_plugin_override_line (int line, int cfcc, int fips) {
 
    if (editor_db_activate (fips) == -1) {
       return 0;
    }
+
+   if (!EditorPluginOverrideStatus) return 0;
 
    if (editor_override_line_get_flags (line) & ED_LINE_DELETED) {
       return 1;
@@ -167,5 +171,11 @@ int editor_plugin_register (void) {
 void editor_plugin_unregister (int plugin_id) {
 
    roadmap_plugin_unregister (plugin_id);
+}
+
+
+void editor_plugin_set_override (int status) {
+
+   EditorPluginOverrideStatus = status;
 }
 
