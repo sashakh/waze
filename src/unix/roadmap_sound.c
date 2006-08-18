@@ -80,6 +80,12 @@ int roadmap_sound_play_list (const RoadMapSoundList list) {
 }
 
 
+int roadmap_sound_record (const char *file_name, int seconds) {
+
+   return 0;
+}
+
+
 void roadmap_sound_initialize (void) {}
 void roadmap_sound_shutdown   (void) {}
 
