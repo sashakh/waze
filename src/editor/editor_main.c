@@ -36,6 +36,7 @@
 
 #include "editor_screen.h"
 #include "static/update_range.h"
+#include "static/notes.h"
 #include "track/editor_track_main.h"
 #include "export/editor_upload.h"
 #include "export/editor_export.h"
@@ -45,7 +46,7 @@
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.8.0 pre4";
+const char *EDITOR_VERSION = "0.8.0 pre7";
 
 void editor_main_check_map (void) {
 
@@ -85,6 +86,7 @@ void editor_main_initialize (void) {
    editor_screen_initialize ();
    editor_track_initialize  ();
    update_range_initialize  ();
+   editor_notes_initialize  ();
    editor_main_set (1);
 
    EditorPluginID = editor_plugin_register ();
