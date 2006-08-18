@@ -177,6 +177,7 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/static/editor_dialog.c \
              editor/static/update_range.c \
              editor/static/edit_marker.c \
+             editor/static/notes.c \
              editor/db/editor_street.c \
              editor/db/editor_point.c \
              editor/db/editor_shape.c \
