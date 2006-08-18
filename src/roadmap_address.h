@@ -24,11 +24,20 @@
 #ifndef INCLUDE__ROADMAP_ADDRESS__H
 #define INCLUDE__ROADMAP_ADDRESS__H
 
+#include "roadmap.h"
+#include "roadmap_plugin.h"
+
 typedef void (*RoadMapAddressSearchCB) (const char *result, void *context);
+typedef int  (*RoadMapAddressNav) (const RoadMapPosition *point,
+                                   const PluginLine *line,
+                                   int direction);
+
 void roadmap_address_destination_by_city (void);
 void roadmap_address_location_by_city (void);
 void roadmap_address_search_dialog (const char *city,
                                     RoadMapAddressSearchCB callback,
                                     void *data);
+
+void roadmap_address_register_nav (RoadMapAddressNav navigate);
 
 #endif // INCLUDE__ROADMAP_ADDRESS__H
