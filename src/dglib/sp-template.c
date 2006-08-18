@@ -72,7 +72,9 @@ static int DGL_SP_CACHE_DISTANCE_FUNC(
 }
 
 static dglSPReport_s * DGL_SP_CACHE_REPORT_FUNC(
-							dglGraph_s * pgraph, dglSPCache_s * pCache, dglInt32_t nStart, dglInt32_t nDestination
+							dglGraph_s * pgraph, dglSPCache_s * pCache, dglInt32_t nStart, dglInt32_t nDestination,
+						dglSPClip_fn		fnClip,
+						void * 				pvClipArg
 							)
 {
 	dglTreeTouchI32_s  	VisitedItem;
@@ -141,7 +143,19 @@ static dglSPReport_s * DGL_SP_CACHE_REPORT_FUNC(
 			goto spr_error;
 		}
 
-		if ( arc.nFrom == nStart ) break;
+		if ( arc.nFrom == nStart ) {
+			if ( fnClip ) {
+				dglSPClipInput_s 	clipInput;
+				dglSPClipOutput_s	clipOutput;
+				clipInput.pnPrevEdge 	= NULL;
+				clipInput.pnNodeFrom 	= &nStart;
+				clipInput.pnEdge		= pEdge;
+				clipInput.pnNodeTo		= pDestination;
+				clipInput.nFromDistance = 0;
+				if (fnClip( pgraph , & clipInput , & clipOutput , pvClipArg ) ) continue;
+			}
+			break;
+		}
 	}
 
 	if ( pPredistItem == NULL ) {
@@ -322,7 +336,7 @@ int DGL_SP_DIJKSTRA_FUNC	(
 	}
 	else {
 		if ( ppReport ) {
-			if ( (*ppReport = DGL_SP_CACHE_REPORT_FUNC( pgraph, pCache, nStart, nDestination )) != NULL ) {
+			if ( (*ppReport = DGL_SP_CACHE_REPORT_FUNC( pgraph, pCache, nStart, nDestination, fnClip, pvClipArg )) != NULL ) {
 				return 1;
 			}
 		}
@@ -540,7 +554,7 @@ sp_error:
 destination_found: /* path found - build a shortest path report or report the distance only */
 
 	if ( ppReport ) {
-		*ppReport = DGL_SP_CACHE_REPORT_FUNC( pgraph, pCache, nStart, nDestination );
+		*ppReport = DGL_SP_CACHE_REPORT_FUNC( pgraph, pCache, nStart, nDestination, fnClip, pvClipArg );
 		if ( *ppReport == NULL ) {
 			nRet = -pgraph->iErrno;
 		}
