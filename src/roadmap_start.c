@@ -80,6 +80,7 @@
 #include "editor/db/editor_db.h"
 #include "editor/static/update_range.h"
 #include "editor/static/edit_marker.h"
+#include "editor/static/notes.h"
 #include "editor/export/editor_export.h"
 #include "editor/export/editor_upload.h"
 #include "editor/export/editor_download.h"
@@ -523,7 +524,52 @@ static RoadMapAction RoadMapStartActions[] = {
    {"viewmarkers", "View markers", NULL, NULL,
       "View / Edit markers", edit_markers_dialog},
 
+   {"addquicknote", "Add a quick note", NULL, NULL,
+      "Add a quick note", editor_notes_add_quick},
+
+   {"addeditnote", "Add a note", NULL, NULL,
+      "Add a note and open edit dialog", editor_notes_add_edit},
+
+   {"addvoicenote", "Add a voice note", NULL, NULL,
+      "Add a voice note", editor_notes_add_voice},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
+};
+
+
+static const char *RoadMapStartCfgActions[] = {
+
+   "preferences",
+   "mutevoice",
+   "enablevoice",
+   "quit",
+   "zoomin",
+   "zoomout",
+   "zoom1",
+   "up",
+   "left",
+   "right",
+   "down",
+   "toggleview",
+   "toggleorientation",
+   "IncHorizon",
+   "DecHorizon",
+   "clockwise",
+   "counterclockwise",
+   "hold",
+   "address",
+   "destination",
+   "gps",
+   "location",
+   "full",
+   "sync",
+   "quickmenu",
+   "updaterange",
+   "viewmarkers",
+   "addquicknote",
+   "addeditnote",
+   "addvoicenote",
+   NULL
 };
 
 
@@ -689,12 +735,14 @@ static char const *RoadMapStartQuickMenu[] = {
 
    "address",
    "updaterange",
+   "addeditnote",
    "viewmarkers",
    RoadMapFactorySeparator,
    "sync",
    RoadMapFactorySeparator,
    "detectreceiver",
    "preferences",
+   "about",
 
    NULL,
 };
@@ -773,7 +821,7 @@ static void roadmap_start_init_key_cfg (void) {
       char *text;
       char *separator;
       const RoadMapAction *this_action;
-      const RoadMapAction *actions = RoadMapStartActions;
+      const char **cfg_actions = RoadMapStartCfgActions;
       RoadMapConfigItem *item;
 
       text = strdup (*keys);
@@ -797,9 +845,12 @@ static void roadmap_start_init_key_cfg (void) {
          if (this_action != NULL) {
 
             item = roadmap_config_declare_enumeration
-                   ("preferences", &config, this_action->label_long, NULL);
+                   ("preferences", &config,
+                    roadmap_lang_get (this_action->label_long), NULL);
 
-            if (strcmp(this_action->label_long, roadmap_config_get (&config))) {
+            if (strcmp(roadmap_lang_get (this_action->label_long),
+                     roadmap_config_get (&config))) {
+
                new_config = roadmap_config_get (&config);
             }
 
@@ -814,18 +865,24 @@ static void roadmap_start_init_key_cfg (void) {
             }
          }
 
-         while (actions->name) {
-            if (new_config && !strcmp(new_config, actions->label_long)) {
-               new_config = actions->name;
+         while (*cfg_actions) {
+            const RoadMapAction *cfg_action =
+                        roadmap_start_find_action (*cfg_actions);
+            if (new_config &&
+                  !strcmp(new_config,
+                          roadmap_lang_get (cfg_action->label_long))) {
+               new_config = cfg_action->name;
             }
 
-            roadmap_config_add_enumeration_value (item, actions->label_long);
-            actions++;
+            roadmap_config_add_enumeration_value
+                     (item, roadmap_lang_get (cfg_action->label_long));
+            cfg_actions++;
          }
 
          if (new_config != NULL) {
             char str[100];
-            snprintf(str, sizeof(str), "%s %s %s", text, ROADMAP_MAPPED_TO, new_config);
+            snprintf(str, sizeof(str), "%s %s %s", text, ROADMAP_MAPPED_TO,
+                                                   new_config);
             *keys = strdup(str);
          }
       }
@@ -1053,6 +1110,7 @@ static void roadmap_start_after_refresh (void) {
 
 static void roadmap_start_usage (const char *section) {
 
+   roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
    roadmap_factory_usage (section, RoadMapStartActions);
 }
 
@@ -1146,7 +1204,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_spawn_initialize (argv[0]);
 
    roadmap_driver_activate ();
-   roadmap_gps_open ();
 
    roadmap_help_initialize ();
 
@@ -1163,6 +1220,8 @@ void roadmap_start (int argc, char **argv) {
       roadmap_start_create_trip ();
    }
 
+   roadmap_gps_open ();
+
    roadmap_locator_declare (&roadmap_start_no_download);
    roadmap_main_set_periodic (200, roadmap_start_periodic);
 }
@@ -1174,8 +1233,9 @@ void roadmap_start_exit (void) {
     roadmap_driver_shutdown ();
     roadmap_sound_shutdown ();
     roadmap_history_save ();
-    roadmap_config_save (0);
+    roadmap_screen_shutdown ();
     roadmap_start_save_trip ();
+    roadmap_config_save (0);
     roadmap_db_end ();
     roadmap_gps_shutdown ();
 }
