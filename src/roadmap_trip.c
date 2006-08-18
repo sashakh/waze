@@ -329,7 +329,7 @@ static void roadmap_trip_set_dialog_ok (const char *name, void *data) {
 }
 
 
-static void roadmap_trip_set_dialog (RoadMapPosition *position) {
+static void roadmap_trip_set_dialog (const RoadMapPosition *position) {
 
     static RoadMapPosition point_position;
 
@@ -685,7 +685,8 @@ static int roadmap_trip_gps_state (void) {
 }
 
 
-void roadmap_trip_set_point (const char *name, RoadMapPosition *position) {
+void roadmap_trip_set_point (const char *name,
+                             const RoadMapPosition *position) {
 
     if (name == NULL) {
         roadmap_trip_set_dialog (position);

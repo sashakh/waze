@@ -31,7 +31,8 @@
 enum { TRIP_FOCUS_GPS = -1,
        TRIP_FOCUS_NO_GPS = 0};
 
-void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
+void  roadmap_trip_set_point (const char *name,
+                              const RoadMapPosition *position);
 
 void  roadmap_trip_set_mobile (const char *name,
                                const RoadMapGpsPosition *gps_position);
