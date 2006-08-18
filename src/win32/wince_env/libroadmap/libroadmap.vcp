@@ -450,6 +450,7 @@ DEP_CPP_EDIT_=\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_trip.h"\
 	"..\..\..\roadmap_types.h"\
@@ -1176,6 +1177,7 @@ DEP_CPP_EDITOR_E=\
 	"..\..\..\editor\db\editor_db.h"\
 	"..\..\..\editor\db\editor_dictionary.h"\
 	"..\..\..\editor\db\editor_line.h"\
+	"..\..\..\editor\db\editor_marker.h"\
 	"..\..\..\editor\db\editor_override.h"\
 	"..\..\..\editor\db\editor_point.h"\
 	"..\..\..\editor\db\editor_route.h"\
@@ -1610,6 +1612,7 @@ DEP_CPP_EDITOR_M=\
 	"..\..\..\editor\export\editor_export.h"\
 	"..\..\..\editor\export\editor_sync.h"\
 	"..\..\..\editor\export\editor_upload.h"\
+	"..\..\..\editor\static\notes.h"\
 	"..\..\..\editor\static\update_range.h"\
 	"..\..\..\editor\track\editor_track_main.h"\
 	"..\..\..\roadmap.h"\
@@ -1749,6 +1752,7 @@ DEP_CPP_EDITOR_MA=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -4873,6 +4877,212 @@ DEP_CPP_NAVIGATE_=\
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\editor\static\notes.c
+
+!IF  "$(CFG)" == "libroadmap - Win32 (WCE ARM) Release"
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARM) Debug"
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE x86) Release"
+
+DEP_CPP_NOTES=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_dictionary.h"\
+	"..\..\..\editor\db\editor_marker.h"\
+	"..\..\..\editor\editor_log.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\static\edit_marker.h"\
+	"..\..\..\editor\static\notes.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_fuzzy.h"\
+	"..\..\..\roadmap_gps.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_navigate.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
+	"..\..\..\roadmap_trip.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE x86) Debug"
+
+DEP_CPP_NOTES=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_dictionary.h"\
+	"..\..\..\editor\db\editor_marker.h"\
+	"..\..\..\editor\editor_log.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\static\edit_marker.h"\
+	"..\..\..\editor\static\notes.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_fuzzy.h"\
+	"..\..\..\roadmap_gps.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_navigate.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
+	"..\..\..\roadmap_trip.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_NOTES=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_dictionary.h"\
+	"..\..\..\editor\db\editor_marker.h"\
+	"..\..\..\editor\editor_log.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\static\edit_marker.h"\
+	"..\..\..\editor\static\notes.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_fuzzy.h"\
+	"..\..\..\roadmap_gps.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_navigate.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
+	"..\..\..\roadmap_trip.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_NOTES=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_dictionary.h"\
+	"..\..\..\editor\db\editor_marker.h"\
+	"..\..\..\editor\editor_log.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\static\edit_marker.h"\
+	"..\..\..\editor\static\notes.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_fuzzy.h"\
+	"..\..\..\roadmap_gps.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_navigate.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
+	"..\..\..\roadmap_trip.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Profiler"
+
+DEP_CPP_NOTES=\
+	"..\..\..\editor\db\editor_db.h"\
+	"..\..\..\editor\db\editor_dictionary.h"\
+	"..\..\..\editor\db\editor_marker.h"\
+	"..\..\..\editor\editor_log.h"\
+	"..\..\..\editor\editor_main.h"\
+	"..\..\..\editor\static\edit_marker.h"\
+	"..\..\..\editor\static\notes.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_county.h"\
+	"..\..\..\roadmap_db.h"\
+	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dictionary.h"\
+	"..\..\..\roadmap_file.h"\
+	"..\..\..\roadmap_fuzzy.h"\
+	"..\..\..\roadmap_gps.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_list.h"\
+	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_messagebox.h"\
+	"..\..\..\roadmap_navigate.h"\
+	"..\..\..\roadmap_net.h"\
+	"..\..\..\roadmap_plugin.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
+	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_street.h"\
+	"..\..\..\roadmap_trip.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	"..\..\win32_serial.h"\
+	
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\roadmap_adjust.c
 
 !IF  "$(CFG)" == "libroadmap - Win32 (WCE ARM) Release"
@@ -6329,24 +6539,30 @@ DEP_CPP_ROADMAP_IO=\
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Debug"
 
 DEP_CPP_ROADMAP_IO=\
+	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
 
 !ELSEIF  "$(CFG)" == "libroadmap - Win32 (WCE ARMV4) Release"
 
 DEP_CPP_ROADMAP_IO=\
+	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_io.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
 
@@ -8839,6 +9055,7 @@ DEP_CPP_UPDAT=\
 	"..\..\..\roadmap_line_route.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
