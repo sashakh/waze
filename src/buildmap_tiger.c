@@ -754,11 +754,13 @@ static void buildmap_tiger_read_rtc (const char *source, int verbose) {
 
          fips = tiger2int (cursor, 15, 19);
 
-         if (cursor[10] == 'E' || cursor[10] == 'C') {
-            year = 2002;
-         } else {
-            year = tiger2int (cursor, 11, 14);
-         }
+	 if (cursor[10] == 'C') {
+		 year = 2000;
+	 } else if (cursor[10] == 'E') {
+		 year = 2002;
+	 } else {
+		 year = tiger2int (cursor, 11, 14);
+	 }
 
          if (fips > 0) {
 
