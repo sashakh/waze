@@ -708,8 +708,13 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
 
    char font_file[255];
    
-   snprintf(font_file, sizeof(font_file), "%s/%s", roadmap_path_user(),
-      roadmap_config_get (&RoadMapConfigFont));
+   strncpy (font_file,
+            roadmap_config_get (&RoadMapConfigFont),
+	    sizeof(font_file));
+   if (! roadmap_path_is_full_path (font_file)) {
+	   snprintf(font_file, sizeof(font_file), "%s/%s", roadmap_path_user(),
+			   roadmap_config_get (&RoadMapConfigFont));
+   }
 
    if (!RoadMapCanvasFontLoaded) {
 
