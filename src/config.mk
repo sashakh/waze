@@ -65,7 +65,8 @@ SHAPEFILES = NO
 # RoadMap can still do street labels, but they won't look as
 # nice.  (for more information on AGG, see http://antigrain.com)
 # RoadMap requires version 2.4 of agg.  
-# [ Note -- currently, only GTK2 supports AGG builds.  ]
+# [ Note -- currently, AGG is only available with GTK2 builds. AGG
+# also only supports a 16bpp display.  ]
 # AGG = YES
 AGG = NO
 

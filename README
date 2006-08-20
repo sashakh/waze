@@ -136,8 +136,9 @@ INSTALLATION
    AGG = YES.  RoadMap requires version 2.4 of the agg library -- 2.3 is
    incompatible.  If your linux distribution includes 2.3, make sure that
    if you install 2.4 as well, that RoadMap finds both headers and
-   libraries from 2.4.
-
+   libraries from 2.4.  Note:  currently (as of August, 2006) the
+   agg support is only aavailable if you're using the GTK2 build
+   of roadmap.  It also currently requires a 16bpp display.
 
 * WINDOWS SPECIFIC DEPENDENCIES AND LIMITATIONS
 
@@ -1400,10 +1401,9 @@ USING ROADMAP
    reminder of what format they're stored in, this is entirely optional. 
    File suffix doesn't matter.
    
-   Note that although tracks and routes are conceptually
-   separate, either type can be selected at this point, and
-   any of the operations under the "Routes" menu can be
-   applied to either.
+   Note that although tracks and routes are conceptually separate, either
+   type can be selected at this point, and any of the operations under the
+   "Routes" menu can be applied to either.
 
    One of the buttons in this "Manage Routes" dialog is "None", which is a
    quick way of not selecting any route at all.
