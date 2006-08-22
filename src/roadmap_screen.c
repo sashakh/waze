@@ -705,7 +705,7 @@ static int roadmap_screen_draw_square
 
             /* Check if the plugin wants to override the pen. */
             if (! roadmap_plugin_override_pen
-                     (line, layer, fips, pen_index, &pen)) {
+                     (line, layer, pen_index, fips, &pen)) {
                pen = layer_pen;
             }
 
@@ -817,7 +817,7 @@ static int roadmap_screen_draw_square
 
             /* Check if a plugin wants to override the pen */
             if (! roadmap_plugin_override_pen
-                      (real_line, layer, fips, pen_index, &pen)) {
+                      (real_line, layer, pen_index, fips, &pen)) {
                pen = layer_pen;
             }
 
