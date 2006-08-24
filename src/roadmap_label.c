@@ -59,6 +59,7 @@
 #include "roadmap_label.h"
 
 #define POLY_OUTLINE 0
+#define LABEL_USING_LINEID 0
 
 #define MIN(a, b) (a) < (b) ? (a) : (b)
 #define MAX(a, b) (a) > (b) ? (a) : (b)
@@ -207,10 +208,6 @@ static RoadMapGuiPoint get_metrics(roadmap_label *c,
    poly[3].x = x1 + w + buffer; /* lr */
    poly[3].y = -(y1 + buffer);
    roadmap_math_rotate_point (&poly[3], p, angle);
-
-#if POLY_OUTLINE
-   { int lines = 4; roadmap_canvas_draw_multiple_lines(1, &lines, poly, 1); }
-#endif
 
    compute_bbox(poly, &c->bbox);
 
@@ -470,7 +467,13 @@ int roadmap_label_draw_cache (int angles) {
             if (!properties.street || !*properties.street) {
                cPtr->text = "";
             } else {
+#if LABEL_USING_LINEID
+               char buf[40];
+               sprintf(buf, "%d", cPtr->line.line_id);
+               cPtr->text = strdup(buf);
+#else
                cPtr->text = strdup(properties.street);
+#endif
             }
             cPtr->street = properties.plugin_street;
          }
@@ -530,8 +533,9 @@ int roadmap_label_draw_cache (int angles) {
                   r.maxy + cPtr->text_point.y - (r.maxy - r.miny)/2;
             }
          }
+
 #if POLY_OUTLINE
-         else {
+         {
             int lines = 4;
             roadmap_canvas_draw_multiple_lines(1, &lines, cPtr->poly, 1);
          }
