@@ -84,6 +84,9 @@ static struct roadmap_message_descriptor *roadmap_log_find (int level) {
 
 void roadmap_log_push (const char *description) {
 
+#ifdef DEBUG
+   roadmap_log(ROADMAP_DEBUG, "push of %s", description);
+#endif
    if (RoadMapLogStackCursor < ROADMAP_LOG_STACK_SIZE) {
       RoadMapLogStack[RoadMapLogStackCursor++] = description;
    }
@@ -93,6 +96,10 @@ void roadmap_log_pop (void) {
 
    if (RoadMapLogStackCursor > 0) {
       RoadMapLogStackCursor -= 1;
+#ifdef DEBUG
+      roadmap_log(ROADMAP_DEBUG, "pop of %s",
+	 RoadMapLogStack[RoadMapLogStackCursor]);
+#endif
    }
 }
 
