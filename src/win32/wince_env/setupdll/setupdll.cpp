@@ -28,7 +28,7 @@ codeINSTALL_EXIT Install_Exit(
 {
    WCHAR roadmap_exe[255];
    wcscpy(roadmap_exe, pszinstalldir);
-   wcscat(roadmap_exe, L"\\Roadmap.exe");
+   wcscat(roadmap_exe, L"\\FreeMap.exe");
 
    BOOL res = CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_NONE);
    res = CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_RS232_DETECTED);
@@ -64,7 +64,7 @@ codeUNINSTALL_INIT Uninstall_Init(
  
     WCHAR roadmap_exe[255];
     wcscpy(roadmap_exe, pszinstalldir);
-    wcscat(roadmap_exe, L"\\Roadmap.exe");
+    wcscat(roadmap_exe, L"\\FreeMap.exe");
 
     BOOL res = CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_NONE);
 
@@ -101,5 +101,4 @@ codeUNINSTALL_EXIT Uninstall_Exit(HWND hwndparent)
     //return value
     return codeUNINSTALL_EXIT_DONE;
 }
-
 

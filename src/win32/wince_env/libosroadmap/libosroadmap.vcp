@@ -182,7 +182,7 @@ BSC32=bscmake.exe
 # PROP Target_Dir ""
 CPP=clarm.exe
 # ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /Zd /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
@@ -722,6 +722,7 @@ DEP_CPP_ROADMAP_SO=\
 
 DEP_CPP_ROADMAP_SO=\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_types.h"\
@@ -732,6 +733,7 @@ DEP_CPP_ROADMAP_SO=\
 
 DEP_CPP_ROADMAP_SO=\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_types.h"\

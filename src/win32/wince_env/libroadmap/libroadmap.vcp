@@ -182,7 +182,7 @@ BSC32=bscmake.exe
 # PROP Target_Dir ""
 CPP=clarm.exe
 # ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /I "..\..\.." /I "..\..\..\dglib" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /Zd /I "..\..\.." /I "..\..\..\dglib" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /YX /O2 /M$(CECrtMT) /c
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
@@ -485,6 +485,7 @@ DEP_CPP_EDIT_=\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_trip.h"\
 	"..\..\..\roadmap_types.h"\
@@ -1232,6 +1233,7 @@ DEP_CPP_EDITOR_E=\
 	"..\..\..\editor\db\editor_db.h"\
 	"..\..\..\editor\db\editor_dictionary.h"\
 	"..\..\..\editor\db\editor_line.h"\
+	"..\..\..\editor\db\editor_marker.h"\
 	"..\..\..\editor\db\editor_override.h"\
 	"..\..\..\editor\db\editor_point.h"\
 	"..\..\..\editor\db\editor_route.h"\
@@ -1650,6 +1652,7 @@ DEP_CPP_EDITOR_M=\
 	"..\..\..\editor\export\editor_export.h"\
 	"..\..\..\editor\export\editor_sync.h"\
 	"..\..\..\editor\export\editor_upload.h"\
+	"..\..\..\editor\static\notes.h"\
 	"..\..\..\editor\static\update_range.h"\
 	"..\..\..\editor\track\editor_track_main.h"\
 	"..\..\..\roadmap.h"\
@@ -1767,6 +1770,7 @@ DEP_CPP_EDITOR_MA=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -4667,12 +4671,14 @@ DEP_CPP_NAVIGATE=\
 	"..\..\..\dglib\tavl.h"\
 	"..\..\..\dglib\tree.h"\
 	"..\..\..\dglib\type.h"\
+	"..\..\..\editor\editor_plugin.h"\
 	"..\..\..\navigate\navigate_bar.h"\
 	"..\..\..\navigate\navigate_graph.h"\
 	"..\..\..\navigate\navigate_instr.h"\
 	"..\..\..\navigate\navigate_main.h"\
 	"..\..\..\navigate\navigate_plugin.h"\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_address.h"\
 	"..\..\..\roadmap_adjust.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_db.h"\
@@ -4719,12 +4725,14 @@ DEP_CPP_NAVIGATE=\
 	"..\..\..\dglib\tavl.h"\
 	"..\..\..\dglib\tree.h"\
 	"..\..\..\dglib\type.h"\
+	"..\..\..\editor\editor_plugin.h"\
 	"..\..\..\navigate\navigate_bar.h"\
 	"..\..\..\navigate\navigate_graph.h"\
 	"..\..\..\navigate\navigate_instr.h"\
 	"..\..\..\navigate\navigate_main.h"\
 	"..\..\..\navigate\navigate_plugin.h"\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_address.h"\
 	"..\..\..\roadmap_adjust.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_db.h"\
@@ -4972,19 +4980,24 @@ DEP_CPP_NOTES=\
 	"..\..\..\editor\static\edit_marker.h"\
 	"..\..\..\editor\static\notes.h"\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_adjust.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_county.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dialog.h"\
 	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_fuzzy.h"\
 	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_lang.h"\
+	"..\..\..\roadmap_layer.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
@@ -5011,19 +5024,24 @@ DEP_CPP_NOTES=\
 	"..\..\..\editor\static\edit_marker.h"\
 	"..\..\..\editor\static\notes.h"\
 	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_adjust.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_config.h"\
 	"..\..\..\roadmap_county.h"\
 	"..\..\..\roadmap_db.h"\
 	"..\..\..\roadmap_dbread.h"\
+	"..\..\..\roadmap_dialog.h"\
 	"..\..\..\roadmap_dictionary.h"\
 	"..\..\..\roadmap_file.h"\
 	"..\..\..\roadmap_fuzzy.h"\
 	"..\..\..\roadmap_gps.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_io.h"\
+	"..\..\..\roadmap_lang.h"\
+	"..\..\..\roadmap_layer.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
@@ -9101,6 +9119,7 @@ DEP_CPP_UPDAT=\
 	"..\..\..\roadmap_line_route.h"\
 	"..\..\..\roadmap_list.h"\
 	"..\..\..\roadmap_locator.h"\
+	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_messagebox.h"\
 	"..\..\..\roadmap_navigate.h"\
 	"..\..\..\roadmap_net.h"\
