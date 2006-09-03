@@ -35,181 +35,234 @@
 
 
 RoadMapSocket roadmap_net_connect (const char *protocol,
-						 const char *name, int default_port)
+                   const char *name, int default_port)
 {
-	SOCKET fd;
-	char *hostname;
-	char *separator = strchr (name, ':');
+   SOCKET fd;
+   char *hostname;
+   char *separator = strchr (name, ':');
 
-	struct hostent *host;
-	struct sockaddr_in addr;
+   struct hostent *host;
+   struct sockaddr_in addr;
 
-	addr.sin_family = AF_INET;
+   addr.sin_family = AF_INET;
 
-	hostname = strdup(name);
-	roadmap_check_allocated(hostname);
+   hostname = strdup(name);
+   roadmap_check_allocated(hostname);
 
-	if (separator != NULL) {
+   if (separator != NULL) {
 #if 0
-		struct servent *service;
-		service = getservbyname(separator+1, "tcp");
+      struct servent *service;
+      service = getservbyname(separator+1, "tcp");
 #else
-		void *service = NULL;
+      void *service = NULL;
 #endif
-		if (service == NULL) {
+      if (service == NULL) {
 
-			if (isdigit(separator[1])) {
+         if (isdigit(separator[1])) {
 
-				addr.sin_port = htons((unsigned short)atoi(separator+1));
+            addr.sin_port = htons((unsigned short)atoi(separator+1));
 
-				if (addr.sin_port == 0) {
-					roadmap_log (ROADMAP_ERROR, "invalid port in '%s'", name);
-					goto connection_failure;
-				}
+            if (addr.sin_port == 0) {
+               roadmap_log (ROADMAP_ERROR, "invalid port in '%s'", name);
+               goto connection_failure;
+            }
 
-			} else {
-				roadmap_log (ROADMAP_ERROR, "invalid service in '%s'", name);
-				goto connection_failure;
-			}
+         } else {
+            roadmap_log (ROADMAP_ERROR, "invalid service in '%s'", name);
+            goto connection_failure;
+         }
 
-		} else {
+      } else {
 #if 0
-			addr.sin_port = service->s_port;
+         addr.sin_port = service->s_port;
 #endif
-		}
+      }
 
-		*(strchr(hostname, ':')) = 0;
-
-
-	} else {
-		addr.sin_port = htons((unsigned short)default_port);
-	}
+      *(strchr(hostname, ':')) = 0;
 
 
-	host = gethostbyname(hostname);
-
-	if (host == NULL) {
-		if (isdigit(hostname[0])) {
-			addr.sin_addr.s_addr = inet_addr(hostname);
-			if (addr.sin_addr.s_addr == INADDR_NONE) {
-				roadmap_log (ROADMAP_ERROR, "invalid IP address '%s'",
-					hostname);
-				goto connection_failure;
-			}
-		} else {
-			roadmap_log (ROADMAP_ERROR, "invalid host name '%s'", hostname);
-			goto connection_failure;
-		}
-	} else {
-		memcpy (&addr.sin_addr, host->h_addr, host->h_length);
-	}
+   } else {
+      addr.sin_port = htons((unsigned short)default_port);
+   }
 
 
-	if (strcmp (protocol, "udp") == 0) {
-		fd = socket (PF_INET, SOCK_DGRAM, 0);
-	} else if (strcmp (protocol, "tcp") == 0) {
-		fd = socket (PF_INET, SOCK_STREAM, 0);
-	} else {
-		roadmap_log (ROADMAP_ERROR, "unknown protocol %s", protocol);
-		goto connection_failure;
-	}
+   host = gethostbyname(hostname);
 
-	if (fd == SOCKET_ERROR) {
-		roadmap_log (ROADMAP_ERROR, "cannot create socket, errno = %d", WSAGetLastError());
-		goto connection_failure;
-	}
+   if (host == NULL) {
+      if (isdigit(hostname[0])) {
+         addr.sin_addr.s_addr = inet_addr(hostname);
+         if (addr.sin_addr.s_addr == INADDR_NONE) {
+            roadmap_log (ROADMAP_ERROR, "invalid IP address '%s'",
+               hostname);
+            goto connection_failure;
+         }
+      } else {
+         roadmap_log (ROADMAP_ERROR, "invalid host name '%s'", hostname);
+         goto connection_failure;
+      }
+   } else {
+      memcpy (&addr.sin_addr, host->h_addr, host->h_length);
+   }
 
-	/* FIXME: this way of establishing the connection is kind of dangerous
-	* if the server process is not local: we might fail only after a long
-	* delay that will disable RoadMap for a while.
-	*/
-	if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)) == SOCKET_ERROR) {
 
-		/* This is not a local error: the remote application might be
-		* unavailable. This is not our fault, don't cry.
-		*/
-		closesocket(fd);
-		goto connection_failure;
-	}
+   if (strcmp (protocol, "udp") == 0) {
+      fd = socket (PF_INET, SOCK_DGRAM, 0);
+   } else if (strcmp (protocol, "tcp") == 0) {
+      fd = socket (PF_INET, SOCK_STREAM, 0);
+   } else {
+      roadmap_log (ROADMAP_ERROR, "unknown protocol %s", protocol);
+      goto connection_failure;
+   }
 
-	return fd;
+   if (fd == SOCKET_ERROR) {
+      roadmap_log (ROADMAP_ERROR, "cannot create socket, errno = %d", WSAGetLastError());
+      goto connection_failure;
+   }
+
+   /* FIXME: this way of establishing the connection is kind of dangerous
+   * if the server process is not local: we might fail only after a long
+   * delay that will disable RoadMap for a while.
+   */
+   if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)) == SOCKET_ERROR) {
+
+      /* This is not a local error: the remote application might be
+      * unavailable. This is not our fault, don't cry.
+      */
+      closesocket(fd);
+      goto connection_failure;
+   }
+
+   return fd;
 
 
 connection_failure:
 
-	free(hostname);
-	return -1;
+   free(hostname);
+   return -1;
 }
 
 
 int roadmap_net_send (RoadMapSocket socket, const void *data, int length)
 {
-   int sent = 0;
+   int total = length;
+   fd_set fds;
+   struct timeval recv_timeout;
 
-   while (sent < length) {
+   FD_ZERO(&fds);
+   FD_SET(socket, &fds);
 
-      int res = send(socket, data, length, 0);
+   recv_timeout.tv_sec = 60;
+   recv_timeout.tv_usec = 0;
 
-      if (res <= 0) return -1;
+   while (length > 0) {
+      int res;
 
-      sent += res;
+      res = select(0, NULL, &fds, NULL, &recv_timeout);
+
+      if(!res) {
+         roadmap_log (ROADMAP_ERROR,
+               "Timeout waiting for select in roadmap_net_send");
+         return -1;
+      }
+
+      if(res < 0) {
+         roadmap_log (ROADMAP_ERROR,
+               "Error waiting on select in roadmap_net_send, LastError = %d",
+                      WSAGetLastError());
+         return -1;
+      }
+
+      res = send(socket, data, length, 0);
+
+      if (res < 0) {
+         roadmap_log (ROADMAP_ERROR, "Error sending data, LastError = %d",
+                      WSAGetLastError());
+         return -1;
+      }
+
+      length -= res;
+      data = (char *)data + res;
    }
 
-   return sent;
+   return total;
 }
 
 
 int roadmap_net_receive (RoadMapSocket socket, void *data, int size)
 {
-	int res;
-	res = recv(socket, data, size, 0);
+   int res;
+   fd_set fds;
+   struct timeval recv_timeout;
 
-	if (res == 0) return -1;
-	else return res;
+   FD_ZERO(&fds);
+   FD_SET(socket, &fds);
+
+   recv_timeout.tv_sec = 30;
+   recv_timeout.tv_usec = 0;
+
+   res = select(0, &fds, NULL, NULL, &recv_timeout);
+
+   if(!res) {
+      roadmap_log (ROADMAP_ERROR,
+            "Timeout waiting for select in roadmap_net_send");
+      return -1;
+   }
+
+   if(res < 0) {
+      roadmap_log (ROADMAP_ERROR,
+            "Error waiting on select in roadmap_net_send, LastError = %d",
+                   WSAGetLastError());
+      return -1;
+   }
+
+   res = recv(socket, data, size, 0);
+
+   if (res == 0) return -1;
+   else return res;
 }
 
 
 void roadmap_net_close (RoadMapSocket socket)
 {
-	closesocket(socket);
+   closesocket(socket);
 }
 
 
 RoadMapSocket roadmap_net_listen(int port)
 {
-	struct sockaddr_in addr;
-	SOCKET fd;
-	int res;
+   struct sockaddr_in addr;
+   SOCKET fd;
+   int res;
 
-	memset(&addr, 0, sizeof(addr));
+   memset(&addr, 0, sizeof(addr));
 
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons((short)port);
+   addr.sin_family = AF_INET;
+   addr.sin_port = htons((short)port);
 
-	fd = socket (PF_INET, SOCK_STREAM, 0);
-	if (fd == INVALID_SOCKET) return fd;
+   fd = socket (PF_INET, SOCK_STREAM, 0);
+   if (fd == INVALID_SOCKET) return fd;
 
-	res = bind(fd, (struct sockaddr*)&addr, sizeof(addr));
+   res = bind(fd, (struct sockaddr*)&addr, sizeof(addr));
 
-	if (res == SOCKET_ERROR) {
-		closesocket(fd);
-		return INVALID_SOCKET;
-	}
+   if (res == SOCKET_ERROR) {
+      closesocket(fd);
+      return INVALID_SOCKET;
+   }
 
-	res = listen(fd, 10);
+   res = listen(fd, 10);
 
-	if (res == SOCKET_ERROR) {
-		closesocket(fd);
-		return INVALID_SOCKET;
-	}
-	
-	return fd;
+   if (res == SOCKET_ERROR) {
+      closesocket(fd);
+      return INVALID_SOCKET;
+   }
+   
+   return fd;
 }
 
 
 RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket)
 {
-	return accept(server_socket, NULL, NULL);
+   return accept(server_socket, NULL, NULL);
 }
 
 
@@ -305,6 +358,6 @@ int roadmap_net_unique_id(unsigned char *buffer, unsigned int size)
 #else
 int roadmap_net_unique_id(unsigned char *buffer, unsigned int size)
 {
-	return 16;
+   return 16;
 }
 #endif
