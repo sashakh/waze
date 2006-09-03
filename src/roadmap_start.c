@@ -734,19 +734,14 @@ static char const *RoadMapStartLongClickMenu[] = {
 static char const *RoadMapStartQuickMenu[] = {
 
    "address",
-   "updaterange",
-   "addeditnote",
-   "viewmarkers",
-   RoadMapFactorySeparator,
-   "sync",
    RoadMapFactorySeparator,
    "detectreceiver",
    "preferences",
    "about",
+   "quit",
 
    NULL,
 };
-
 
 #ifndef UNDER_CE
 static char const *RoadMapStartKeyBinding[] = {
@@ -1211,7 +1206,6 @@ void roadmap_start (int argc, char **argv) {
       roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
    editor_main_initialize ();
-   editor_main_check_map ();
    navigate_main_initialize ();
 
    roadmap_trip_restore_focus ();
