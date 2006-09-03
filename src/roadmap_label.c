@@ -28,10 +28,17 @@
  *     the cache by throwing out old entries. The age mechanism will keep
  *     the cache clean, but that may not be enough if we get many labels.
  *
- *   - New lables consume space from the label cache. It would be better if
+ *   - New labels consume space from the label cache. It would be better if
  *     we could scan the old labels list when a label is added and just
  *     update its age. This will save us labels cache entries. It may
  *     require the usage of a hash table for doing the scan efficiently.
+ *
+ *   - Currently we keep in the cache labels and lines whose labels
+ *     were not drawn, just in case they can be drawn next time.  These
+ *     also consume space, though it's not wasted.  If we've hit the
+ *     "cache full" condition, we should consider splicing the "undrawn"
+ *     list onto the "spares" list rather than onto the cache, to free
+ *     up cache entries.
  *
  * SYNOPSYS:
  *
@@ -54,6 +61,7 @@
 #include "roadmap_label.h"
 
 #define POLY_OUTLINE 0
+#define LABEL_USING_LINEID 0
 
 #define MIN(a, b) (a) < (b) ? (a) : (b)
 #define MAX(a, b) (a) > (b) ? (a) : (b)
@@ -66,6 +74,7 @@ static RoadMapConfigDescriptor RoadMapConfigLabelsColor =
 
 /* this is fairly arbitrary */
 #define MAX_LABELS 2048
+#define ROADMAP_LABEL_STREETLABEL_SIZE 16
 
 typedef struct {
    RoadMapListItem link;
@@ -85,7 +94,7 @@ typedef struct {
    short angle;  /* degrees */
    short gen;    /* combination "drawn" flag and generation marker */
 
-   unsigned char invalid;
+   unsigned char notext;
 
 } roadmap_label;
 
@@ -202,10 +211,6 @@ static RoadMapGuiPoint get_metrics(roadmap_label *c,
    poly[3].y = -(y1 + buffer);
    roadmap_math_rotate_point (&poly[3], p, angle);
 
-#if POLY_OUTLINE
-   { int lines = 4; roadmap_canvas_draw_multiple_lines(1, &lines, poly, 1); }
-#endif
-
    compute_bbox(poly, &c->bbox);
 
    return q;
@@ -222,6 +227,50 @@ static int normalize_angle(int angle) {
    angle -= 90;
 
    return angle;
+}
+
+void roadmap_label_text_extents(const char *text, int size,
+        int *width, int *ascent, int *descent,
+        int *can_tilt, int *easy_reading)
+{
+#ifdef ROADMAP_USE_LINEFONT
+
+   roadmap_linefont_extents
+        (text, ROADMAP_LABEL_STREETLABEL_SIZE, width, ascent, descent);
+
+   /* The linefont font isn't pretty.  Reading it is hard with
+    * a road running through it, so we don't center labels on
+    * the road.
+    */
+   *easy_reading = 0;
+   if (can_tilt) *can_tilt = 1;
+
+#else
+
+   roadmap_canvas_get_text_extents
+      (text, -1, width, ascent, descent, can_tilt);
+
+   *easy_reading = 1;
+
+#endif
+}
+
+void roadmap_label_draw_text(const char *text,
+        RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        int doing_angles, int angle, int size)
+{
+               
+#ifdef ROADMAP_USE_LINEFONT
+   roadmap_linefont_text
+        (text, doing_angles ? ROADMAP_CANVAS_CENTER_BOTTOM :
+                    ROADMAP_CANVAS_CENTER, center, size, angle);
+#else
+   if (doing_angles) {
+      roadmap_canvas_draw_string_angle (start, center, angle, text);
+   } else {
+      roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+   }
+#endif
 }
 
 /* called when a screen repaint is complete.  keeping track of
@@ -273,7 +322,7 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
       RoadMapLabelCacheAlloced++;
    }
 
-   cPtr->invalid = 0;
+   cPtr->notext = 0;
    cPtr->text = NULL;
 
    cPtr->bbox.minx = 1;
@@ -290,8 +339,7 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
 
 
    /* the "generation" of a label is refreshed when it is re-added.
-    * later, labels cache entries more than a generation old will
-    * be discarded.
+    * later, labels cache entries can be aged, and discarded.
     */
    cPtr->gen = RoadMapLabelGeneration;
 
@@ -307,7 +355,7 @@ int roadmap_label_draw_cache (int angles) {
    RoadMapListItem *item, *tmp;
    RoadMapListItem *item2, *tmp2;
    RoadMapListItem *end;
-   RoadMapList unused_labels;
+   RoadMapList undrawn_labels;
    int width, ascent, descent;
    RoadMapGuiRect r;
    RoadMapGuiPoint midpt;
@@ -317,8 +365,9 @@ int roadmap_label_draw_cache (int angles) {
 #define OLDLIST 0
 #define NEWLIST 1
    int label_center_y;
+   int cannot_label;
 
-   ROADMAP_LIST_INIT(&unused_labels);
+   ROADMAP_LIST_INIT(&undrawn_labels);
    roadmap_canvas_select_pen (RoadMapLabelPen);
 
    /* We want to process the cache first, in order to render previously
@@ -356,7 +405,7 @@ int roadmap_label_draw_cache (int angles) {
                if (roadmap_plugin_same_line (&cPtr->line, &ncPtr->line)) {
                    /* Found a new version of this existing line */
 
-                   if (cPtr->invalid) {
+                   if (cPtr->notext) {
                      cPtr->gen = ncPtr->gen;
 
                      roadmap_list_insert
@@ -407,9 +456,9 @@ int roadmap_label_draw_cache (int angles) {
             }
          }
 
-         if ((cPtr->gen != RoadMapLabelGeneration) || cPtr->invalid) {
-            roadmap_list_insert
-               (&unused_labels, roadmap_list_remove(&cPtr->link));
+         if ((cPtr->gen != RoadMapLabelGeneration) || cPtr->notext) {
+            roadmap_list_append
+               (&undrawn_labels, roadmap_list_remove(&cPtr->link));
             continue;
          }
 
@@ -420,53 +469,45 @@ int roadmap_label_draw_cache (int angles) {
             if (!properties.street || !*properties.street) {
                cPtr->text = "";
             } else {
+#if LABEL_USING_LINEID
+               char buf[40];
+               sprintf(buf, "%d", cPtr->line.line_id);
+               cPtr->text = strdup(buf);
+#else
                cPtr->text = strdup(properties.street);
+#endif
             }
             cPtr->street = properties.plugin_street;
          }
 
          if (!*cPtr->text) {
-            cPtr->invalid = 1;
+            cPtr->notext = 1;
 
-            /* We keep the invalid lines in the cache to avoid repeating
+            /* We keep the no-label lines in the cache to avoid repeating
              * all these tests just to find that it's invalid, again!
              */
             roadmap_list_append
-               (&unused_labels, roadmap_list_remove(&cPtr->link));
+               (&undrawn_labels, roadmap_list_remove(&cPtr->link));
             continue;
          }
 
 
          if (cPtr->bbox.minx > cPtr->bbox.maxx) {
-
-#ifdef ROADMAP_USE_LINEFONT
-
-               roadmap_linefont_extents(cPtr->text, 16, &width, &ascent, &descent);
-
-               /* The linefont font isn't pretty.  Reading it is hard with
-                * a road running through it, so we don't center labels on
-                * the road.  */
-               label_center_y = 0;
-
-#else
-               int i;
-
-               roadmap_canvas_get_text_extents
-                  (cPtr->text, -1, &width, &ascent, &descent, &i);
-
-               angles = angles && i;
-
-               label_center_y = 1;
-#endif
+            int can_tilt;
+            roadmap_label_text_extents
+                    (cPtr->text, ROADMAP_LABEL_STREETLABEL_SIZE ,
+                    &width, &ascent, &descent, &can_tilt, &label_center_y);
+            angles = angles && can_tilt;
 
             /* text is too long for this feature */
-	    /* (4 times longer than feature) */
+            /* (4 times longer than feature) */
             if ((width * width / 16) > cPtr->featuresize_sq) {
                /* Keep this one in the cache as the feature size may change
-                * in the next run.
+                * in the next run.  Keeping it is cheaper than looking it
+                * up again.
                 */
                roadmap_list_append
-                  (&unused_labels, roadmap_list_remove(&cPtr->link));
+                  (&undrawn_labels, roadmap_list_remove(&cPtr->link));
                continue;
             }
 
@@ -494,8 +535,9 @@ int roadmap_label_draw_cache (int angles) {
                   r.maxy + cPtr->text_point.y - (r.maxy - r.miny)/2;
             }
          }
+
 #if POLY_OUTLINE
-         else {
+         {
             int lines = 4;
             roadmap_canvas_draw_multiple_lines(1, &lines, cPtr->poly, 1);
          }
@@ -511,11 +553,12 @@ int roadmap_label_draw_cache (int angles) {
                midpt.x > roadmap_canvas_width() ||
                midpt.y > roadmap_canvas_height()) {
 
-            /* Keep this one in the cache as the feature size may change
-             * in the next run.
+            /* Keep this one in the cache -- it may move further on-screen
+             * in the next run.  Keeping it is cheaper than looking it
+             * up again.
              */
             roadmap_list_append
-               (&unused_labels, roadmap_list_remove(&cPtr->link));
+               (&undrawn_labels, roadmap_list_remove(&cPtr->link));
             continue;
          }
 
@@ -525,6 +568,8 @@ int roadmap_label_draw_cache (int angles) {
             end = (RoadMapListItem *)&RoadMapLabelCache;
          else
             end = item;
+
+         cannot_label = 0;
 
          ROADMAP_LIST_FOR_EACH_FROM_TO
                 ( RoadMapLabelCache.list_first, end, item2, tmp2) {
@@ -537,7 +582,7 @@ int roadmap_label_draw_cache (int angles) {
 
             /* street already labelled */
             if(roadmap_plugin_same_street(&cPtr->street, &ocPtr->street)) {
-               cPtr->gen = 0;  /* label is a duplicate */
+               cannot_label++;  /* label is a duplicate */
                break;
             }
 
@@ -547,7 +592,7 @@ int roadmap_label_draw_cache (int angles) {
 
                /* if labels are horizontal, bbox check is sufficient */
                if(!angles) {
-                  cPtr->gen = 0;
+                  cannot_label++;
                   break;
                }
 
@@ -557,48 +602,38 @@ int roadmap_label_draw_cache (int angles) {
                 */
                aang = abs(cPtr->angle);
                if (aang < 4 || aang > 86) {
-                  cPtr->gen = 0;
+                  cannot_label++;
                   break;
                }
 
                aang = abs(ocPtr->angle);
                if (aang < 4 || aang > 86) {
-                  cPtr->gen = 0;
+                  cannot_label++;
                   break;
                }
 
                /* otherwise we do the full poly check */
                if (poly_overlap (ocPtr, cPtr)) {
-                  cPtr->gen = 0;
+                  cannot_label++;
                   break;
                }
             }
          }
 
-         if(cPtr->gen == 0) {
+         if(cannot_label) {
             /* Keep this one in the cache as we may need it for the next
-             * run.
+             * run.  Keeping it is cheaper than looking it up again.
              */
-            cPtr->gen = RoadMapLabelGeneration;
             roadmap_list_append
-               (&unused_labels, roadmap_list_remove(&cPtr->link));
+               (&undrawn_labels, roadmap_list_remove(&cPtr->link));
             continue; /* next label */
          }
 
-#ifdef ROADMAP_USE_LINEFONT
-         roadmap_linefont_text (cPtr->text, 
-           angles ? ROADMAP_LINEFONT_CENTERED_ABOVE : ROADMAP_LINEFONT_CENTERED,
-           &cPtr->center_point, 16, cPtr->angle);
-#else
-         if (angles) {
-            roadmap_canvas_draw_string_angle
-                    (&cPtr->text_point, &cPtr->center_point, cPtr->angle,
-                     cPtr->text);
-         } else {
-            roadmap_canvas_draw_string
-                    (&cPtr->center_point, ROADMAP_CANVAS_CENTER, cPtr->text);
-         }
-#endif
+         roadmap_label_draw_text
+            (cPtr->text, &cPtr->text_point, &cPtr->center_point,
+               angles, angles ? cPtr->angle : 0,
+               ROADMAP_LABEL_STREETLABEL_SIZE );
+
          if (whichlist == NEWLIST) {
             /* move the rendered label to the cache */
             roadmap_list_append
@@ -608,24 +643,23 @@ int roadmap_label_draw_cache (int angles) {
       } /* next label */
    } /* next list */
 
-   ROADMAP_LIST_SPLICE (&RoadMapLabelCache, &unused_labels);
+   ROADMAP_LIST_SPLICE (&RoadMapLabelCache, &undrawn_labels);
    RoadMapLabelGeneration++;
    return 0;
 }
 
 int roadmap_label_activate (void) {
 
+
    RoadMapLabelPen = roadmap_canvas_create_pen ("labels.main");
    roadmap_canvas_set_foreground
       (roadmap_config_get (&RoadMapConfigLabelsColor));
 
-   /* assume this will only affect our internal line fonts */
    roadmap_canvas_set_thickness (2);
 
    RoadMapLabelMinFeatSizeSq = roadmap_config_get_integer (&RoadMapConfigMinFeatureSize);
    RoadMapLabelMinFeatSizeSq *= RoadMapLabelMinFeatSizeSq;
 
-    
    return 0;
 }
 
@@ -637,6 +671,7 @@ int roadmap_label_initialize (void) {
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigLabelsColor,  "#000000");
+
     
    ROADMAP_LIST_INIT(&RoadMapLabelCache);
    ROADMAP_LIST_INIT(&RoadMapLabelSpares);
