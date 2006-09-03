@@ -628,17 +628,19 @@ void roadmap_gps_initialize (void) {
             continue;
          }
 
+/*         
          if (!source_item) {
             source_item = roadmap_config_declare_enumeration
                      ("preferences", &RoadMapConfigGPSSource, name, NULL);
          } else {
             roadmap_config_add_enumeration_value (source_item, name);
          }
+*/         
       }
 
       if (!source_item) {
-         roadmap_config_declare_enumeration
-            ("preferences", &RoadMapConfigGPSSource, "COM1:", NULL);
+         roadmap_config_declare
+            ("preferences", &RoadMapConfigGPSSource, "COM1:");
       }
 
 
