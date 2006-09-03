@@ -45,6 +45,16 @@
 
 #include "roadmap_screen_obj.h"
 
+typedef struct {
+   const char   *name;
+   int           min_screen_height;
+} ObjectFile;
+
+static ObjectFile RoadMapObjFiles[] = {
+   {"objects",      300},
+   {"objects_wide", 200}
+};
+
 #define MAX_STATES 9
 
 struct RoadMapScreenObjDescriptor {
@@ -476,10 +486,29 @@ void roadmap_screen_obj_initialize (void) {
 
    const char *cursor;
    RoadMapFileContext file;
+   unsigned int i;
+   int height = roadmap_canvas_height ();
+   const char *object_name = NULL;
 
-   for (cursor = roadmap_file_map ("config", "objects", NULL, "r", &file);
+   for (i=0; i<sizeof(RoadMapObjFiles)/sizeof(RoadMapObjFiles[0]); i++) {
+
+      if (height >= RoadMapObjFiles[i].min_screen_height) {
+         object_name = RoadMapObjFiles[i].name;
+         break;
+      }
+   }
+
+   if (!object_name) {
+      roadmap_log
+         (ROADMAP_ERROR, "Can't find object file for screen height: %d",
+          height);
+      return;
+   }
+
+
+   for (cursor = roadmap_file_map ("config", object_name, NULL, "r", &file);
         cursor != NULL;
-        cursor = roadmap_file_map ("config", "objects", cursor, "r", &file)) {
+        cursor = roadmap_file_map ("config", object_name, cursor, "r", &file)) {
 
       roadmap_screen_obj_load (roadmap_file_base(file), roadmap_file_size(file));
 
@@ -487,9 +516,9 @@ void roadmap_screen_obj_initialize (void) {
       return;
    }
 
-   for (cursor = roadmap_file_map ("user", "objects", NULL, "r", &file);
+   for (cursor = roadmap_file_map ("user", object_name, NULL, "r", &file);
         cursor != NULL;
-        cursor = roadmap_file_map ("user", "objects", cursor, "r", &file)) {
+        cursor = roadmap_file_map ("user", object_name, cursor, "r", &file)) {
 
       roadmap_screen_obj_load (roadmap_file_base(file), roadmap_file_size(file));
 
