@@ -244,7 +244,8 @@ static void roadmap_address_show (const char *name, void *data) {
                                     city,
                                     state);
    if (count <= 0) {
-      roadmap_messagebox ("Warning", roadmap_geocode_last_error());
+      roadmap_messagebox (roadmap_lang_get ("Warning"),
+                          roadmap_geocode_last_error());
       free (selections);
       return;
    }

@@ -35,6 +35,7 @@
 #include "roadmap_street.h"
 #include "roadmap_locator.h"
 #include "roadmap_trip.h"
+#include "roadmap_lang.h"
 #include "roadmap_preferences.h"
 
 #include "roadmap_geocode.h"
@@ -75,17 +76,20 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
    case ROADMAP_US_NOSTATE:
 
-      RoadMapGeocodeError = "No state with that name could be found";
+      RoadMapGeocodeError =
+         roadmap_lang_get ("No state with that name could be found");
       return 0;
 
    case ROADMAP_US_NOCITY:
 
-      RoadMapGeocodeError = "No city with that name could be found";
+      RoadMapGeocodeError =
+         roadmap_lang_get ("No city with that name could be found");
       return 0;
 
    default:
 
-      RoadMapGeocodeError = "No related map could not be found";
+      RoadMapGeocodeError =
+         roadmap_lang_get ("No related map could not be found");
       return 0;
    }
 
@@ -93,15 +97,19 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
       switch (count) {
       case ROADMAP_STREET_NOADDRESS:
-         RoadMapGeocodeError = "No such address could be found on that street";
+         RoadMapGeocodeError =
+            roadmap_lang_get ("No such address could be found on that street");
          break;
       case ROADMAP_STREET_NOCITY:
-         RoadMapGeocodeError = "No city with that name could be found";
+         RoadMapGeocodeError =
+            roadmap_lang_get ("No city with that name could be found");
          break;
       case ROADMAP_STREET_NOSTREET:
-         RoadMapGeocodeError = "No street with that name could be found";
+         RoadMapGeocodeError =
+         roadmap_lang_get ("No street with that name could be found");
       default:
-         RoadMapGeocodeError = "The address could not be found";
+         RoadMapGeocodeError =
+         roadmap_lang_get ("The address could not be found");
       }
       return 0;
    }
@@ -193,7 +201,12 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    if (j <= 0) {
 
       free (results);
-      RoadMapGeocodeError = "No valid street was found";
+      if (number_image[0] != 0) {
+         RoadMapGeocodeError =
+            roadmap_lang_get ("No such address could be found on that street");
+      } else {
+         RoadMapGeocodeError = roadmap_lang_get ("No valid street was found");
+      }
 
    } else {
 
