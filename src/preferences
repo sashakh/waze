@@ -19,3 +19,8 @@ Location.Color: red
 Polygons.Declutter: 1300
 Shapes.Declutter: 1300
 Display.Rotate: yes
+Map.Background: #ffffcc
+General.Toolbar: no
+Accuracy.Confidence: 250
+Accuracy.Street: 35
+Help.Browser: \windows\iexplore
