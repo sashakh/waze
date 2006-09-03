@@ -29,6 +29,7 @@
 #include <commctrl.h>
 #include "resource.h"
 #include <winsock.h>
+#include <time.h>
 #ifdef UNDER_CE
 #include <aygshell.h>
 #include <notify.h>
@@ -39,6 +40,8 @@
 #ifndef I_IMAGENONE
 #define I_IMAGENONE (-2)
 #endif
+
+#define MIN_SYNC_TIME 1*3600
 
 #ifdef WIN32_PROFILE
 #include <C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h>
@@ -132,6 +135,8 @@ static RoadMapConfigDescriptor RoadMapConfigMenuBar =
 
 static RoadMapConfigDescriptor RoadMapConfigAutoSync =
                                   ROADMAP_CONFIG_ITEM("FreeMap", "Auto sync");
+static RoadMapConfigDescriptor RoadMapConfigLastSync =
+                                  ROADMAP_CONFIG_ITEM("FreeMap", "Last sync");
 #endif
 
 static HANDLE g_hMutexAppRunning;
@@ -156,6 +161,32 @@ BOOL AppInstanceExists()
 
 
 #ifndef _ROADGPS
+
+static int roadmap_main_should_sync (void) {
+
+   roadmap_config_declare
+      ("session", &RoadMapConfigLastSync, "0");
+
+   if (roadmap_config_match(&RoadMapConfigAutoSync, "No")) {
+      return 0;
+   } else {
+      unsigned int last_sync_time =
+         roadmap_config_get_integer(&RoadMapConfigLastSync);
+
+      if (last_sync_time && 
+         ((last_sync_time + MIN_SYNC_TIME) > time(NULL))) {
+
+         return 0;
+      }
+
+      roadmap_config_set_integer (&RoadMapConfigLastSync, time(NULL));
+      roadmap_config_save (0);
+   }
+
+   return 1;
+}
+
+
 static void roadmap_main_start_sync (void) {
 
    struct hostent *h;
@@ -379,16 +410,14 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
    if (do_sync) {
       roadmap_config_initialize ();
       roadmap_config_declare_enumeration
-         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
-      
-      if (roadmap_config_match(&RoadMapConfigAutoSync, "No")) {
-         return 0;
-      }
+         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);    
 
+      if (!roadmap_main_should_sync ()) return 0;
       roadmap_lang_initialize ();
       roadmap_download_initialize ();
       editor_main_initialize ();
-      roadmap_main_start_sync ();
+      editor_main_set (1);
+      roadmap_main_start_sync ();      
       return 0;
    }
 #endif
@@ -522,6 +551,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 #ifdef UNDER_CE
 		SHMENUBARINFO mbi;
+      bool create_menu;
 		
 		memset(&mbi, 0, sizeof(SHMENUBARINFO));
 		mbi.cbSize     = sizeof(SHMENUBARINFO);
@@ -535,8 +565,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// delete everything in it, to get an empty menu.
 		// If I try to just create an empty menu, it does't work! (can't
 		// add items to it).
-		if (roadmap_config_match (&RoadMapConfigMenuBar, "no") ||
-         !SHCreateMenuBar(&mbi)) 
+#ifdef _ROADGPS
+      create_menu = true;
+#else
+      create_menu = roadmap_config_match (&RoadMapConfigMenuBar, "Yes") != 0;
+#endif
+		if (!create_menu || !SHCreateMenuBar(&mbi)) 
 		{
 			RoadMapMainMenuBar = NULL;
 		}
@@ -797,7 +831,11 @@ extern "C" {
 
 #ifdef UNDER_CE
       roadmap_config_declare_enumeration
-         ("preferences", &RoadMapConfigMenuBar, "no", "yes", NULL);
+         ("preferences", &RoadMapConfigMenuBar, "No", "Yes", NULL);
+      roadmap_config_declare_enumeration
+         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
+      roadmap_config_declare
+         ("session", &RoadMapConfigLastSync, "0");
 #else
 		style |= WS_OVERLAPPEDWINDOW;
 #endif
@@ -828,7 +866,12 @@ extern "C" {
 				rc.bottom-rc.top, FALSE);
 		}
 #endif
-	}
+
+#ifdef FREEMAP_IL      
+      editor_main_check_map ();
+      editor_main_set (1);
+#endif      
+   }
 	
 	
 	void roadmap_main_set_keyboard
@@ -1040,8 +1083,13 @@ extern "C" {
 	
 	void roadmap_main_add_canvas (void)
 	{
+#ifndef _ROADGPS
       roadmap_main_toggle_full_screen ();
+#endif
+      
       roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
+
+#ifdef FREEMAP_IL
       RoadMapImage image = roadmap_canvas_load_image (roadmap_path_user(),
                            "icons\\welcome.bmp");
 
@@ -1098,6 +1146,7 @@ extern "C" {
 
 		  Sleep (1000);
 	  }
+#endif
 	}
 	
 	
