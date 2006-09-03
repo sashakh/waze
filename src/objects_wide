@@ -1,0 +1,74 @@
+N Compass
+I Compass
+I Compass_fixed
+P 20 20
+S orientation_mode
+B -20 -16 20 16
+A toggleorientation
+
+N zoom1_button
+I rm_zoom1.bmp
+P -61 -115
+O 160
+A zoom1
+B -4 -4 28 28
+S zoom_reset
+
+N zoomin_button
+I rm_zoomin.bmp
+P -61 -80
+O 160
+A zoomin
+B -4 -4 28 28
+
+N zoomout_button
+I rm_zoomout.bmp
+P -26 -80
+O 160
+A zoomout
+B -4 -4 28 28
+
+N gps_button
+I rm_gps.bmp
+P -61 -45
+O 160
+A gps
+B -4 -4 28 28
+S GPS_focus
+
+N quit_button
+I rm_quit.bmp
+P -20 -167
+A quit
+B -4 -4 20 20
+
+N full_screen
+I rm_full.bmp
+P -20 -115
+A full
+B -4 -4 20 20
+
+N view_button
+I rm_3d.bmp
+I rm_2d.bmp
+P -26 -45
+O 160
+A toggleview
+B -4 -4 28 28
+S view_mode
+
+N gps_reception
+I Reception_na
+I Reception_none
+I Reception_poor
+I Reception_good
+P 19 56
+S GPS_reception
+R
+
+N menu_button
+I rm_menu.bmp
+P 1 77
+O 160
+A quickmenu
+B -4 -4 28 28
