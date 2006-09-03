@@ -507,6 +507,9 @@ static int roadmap_download_start (const char *name,
             }
          } else {
             error = 1;
+
+            /* empty queue */
+            RoadMapDownloadQueueConsumer = RoadMapDownloadQueueProducer - 1;
          }
          roadmap_download_unblock (fips);
          roadmap_start_unfreeze ();
