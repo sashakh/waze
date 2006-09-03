@@ -46,6 +46,10 @@ typedef struct {
 #define TRACK_ROAD_REG        1
 #define TRACK_ROAD_TURN       2
 #define TRACK_ROAD_ROUNDABOUT 3
+#define TRACK_ROAD_CONNECTION 4
+
+#define POINT_UNKNOWN         0x1
+#define POINT_GAP             0x2
 
 void editor_track_initialize (void);
 int editor_track_point_distance (void);

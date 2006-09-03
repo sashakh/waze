@@ -57,6 +57,7 @@
 
 #define GPS_POINTS_DISTANCE "10m"
 #define MAX_POINTS_IN_SEGMENT 10000
+#define GPS_TIME_GAP 4 /* 4 seconds */
 
 typedef struct {
 
@@ -492,7 +493,16 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
       }
 
       if ((i < (count -1)) || (start_point != (end_point -1))) {
-         create_new_line (start_point, end_point, -1, end_node_id, 4);
+         int line_id =
+            create_new_line (start_point, end_point, -1, end_node_id, 4);
+         if ((line_id != -1) && (type == TRACK_ROAD_CONNECTION)) {
+            int cfcc;
+            int flags;
+
+            editor_line_get (line_id, NULL, NULL, NULL, &cfcc, &flags);
+            editor_line_modify_properties
+               (line_id, cfcc, flags | ED_LINE_CONNECTION);
+         }
       }
 
       start_point = end_point;
@@ -502,13 +512,13 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
 }
 
 
-static void track_rec_locate_point(int point_id, int force_unknown) {
+static void track_rec_locate_point(int point_id, int point_type) {
 
    int i;
    int count;
    TrackNewSegment new_segments[10];
 
-   assert (!force_unknown || cur_active_line);
+   assert (!(point_type & POINT_UNKNOWN) || cur_active_line);
 
    if (!cur_active_line) {
 
@@ -533,7 +543,7 @@ static void track_rec_locate_point(int point_id, int force_unknown) {
 
             for (i=0; i<points_count; i++) {
 
-               track_rec_locate_point (i, 1);
+               track_rec_locate_point (i, POINT_UNKNOWN|point_type);
             }
          }
       }
@@ -547,7 +557,7 @@ static void track_rec_locate_point(int point_id, int force_unknown) {
                 &TrackConfirmedLine,
                 new_segments,
                 sizeof(new_segments) / sizeof(new_segments[0]),
-                force_unknown);
+                point_type);
 
       if (count) {
 
@@ -571,7 +581,7 @@ static void track_rec_locate_point(int point_id, int force_unknown) {
 
          for (i=0; i<points_count; i++) {
 
-            track_rec_locate_point (i, 0);
+            track_rec_locate_point (i, point_type);
          }
       }
    }
@@ -583,19 +593,23 @@ static void track_rec_locate(time_t gps_time,
                              const RoadMapGpsPosition* gps_position) {
 
    static struct GPSFilter *filter;
+   static time_t last_gps_time;
    const RoadMapGpsPosition *filtered_gps_point;
    RoadMapPosition context_save_pos;
    int context_save_zoom;
    int point_id;
+   int point_type = 0;
    int res;
    
    if (filter == NULL) {
 
       filter = editor_track_filter_new 
          (roadmap_math_distance_convert ("1000m", NULL),
-          600, /* 10 minutes */
+          60, /* 1 minute */
           roadmap_math_distance_convert ("10m", NULL));
    }
+
+   if (points_count == 0) last_gps_time = 0;
 
    roadmap_math_get_context (&context_save_pos, &context_save_zoom);
    roadmap_math_set_context ((RoadMapPosition *)gps_position, 20);
@@ -614,6 +628,24 @@ static void track_rec_locate(time_t gps_time,
       goto restore;
    }
 
+   if (last_gps_time && (last_gps_time + GPS_TIME_GAP < gps_time)) {
+      if (cur_active_line) {
+         if (points_count > 2) {
+            TrackNewSegment segment;
+            segment.point_id = points_count - 1;
+            segment.type = TRACK_ROAD_REG;
+            end_unknown_segments (&segment, 1);
+         } else {
+            editor_track_end ();
+         }
+      }
+      point_type = POINT_GAP;
+   } else {
+      point_type = 0;
+   }
+
+   last_gps_time = gps_time;
+
    while ((filtered_gps_point = editor_track_filter_get (filter)) != NULL) {
 
       TrackLastPosition = *filtered_gps_point;
@@ -627,9 +659,17 @@ static void track_rec_locate(time_t gps_time,
 
       roadmap_fuzzy_set_cycle_params (40, 150);
       
-      track_rec_locate_point (point_id, 0);
+      track_rec_locate_point (point_id, point_type);
    }
 
+   if ((point_type == POINT_GAP) && cur_active_line) {
+      TrackNewSegment segment;
+
+      segment.point_id = points_count - 1;
+      segment.type = TRACK_ROAD_CONNECTION;
+
+      end_unknown_segments (&segment, 1);
+   }
 restore:
    editor_track_util_release_focus ();
    roadmap_math_set_context (&context_save_pos, context_save_zoom);

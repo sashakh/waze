@@ -231,7 +231,8 @@ static int is_roundabout (int first_point, int last_point) {
 static int detect_turn(int point_id,
                        const RoadMapGpsPosition *gps_position,
                        TrackNewSegment *new_segment,
-                       int max) {
+                       int max,
+                       int road_type) {
 
    static int last_straight_line_point = -1;
    static int last_straight_azymuth = 0;
@@ -260,7 +261,7 @@ static int detect_turn(int point_id,
               track_point_pos (point_id)),
              last_straight_azymuth) > 60)) {
       
-      new_segment[0].type = TRACK_ROAD_REG;
+      new_segment[0].type = road_type;
       new_segment[0].point_id = point_id - 1;
 
       last_straight_line_point = point_id;
@@ -308,7 +309,7 @@ static int detect_turn(int point_id,
      
       assert (middle1 > 0);
       if (middle1 > 0) {
-         new_segment[0].type = TRACK_ROAD_REG;
+         new_segment[0].type = road_type;
          new_segment[0].point_id = middle1;
       }
 
@@ -331,7 +332,8 @@ static int detect_turn(int point_id,
 static int detect_loop(int point_id,
                        const RoadMapGpsPosition *gps_position,
                        TrackNewSegment *new_segment,
-                       int max) {
+                       int max,
+                       int road_type) {
 
    RoadMapPosition intersection;
    int loop_start_point;
@@ -347,7 +349,7 @@ static int detect_loop(int point_id,
 
       if (is_roundabout (loop_start_point, point_id)) {
          
-         new_segment[0].type = TRACK_ROAD_REG;
+         new_segment[0].type = road_type;
          new_segment[0].point_id = loop_start_point;
 
          new_segment[1].type = TRACK_ROAD_ROUNDABOUT;
@@ -356,7 +358,7 @@ static int detect_loop(int point_id,
          return 2;
       } else {
 
-         new_segment[0].type = TRACK_ROAD_REG;
+         new_segment[0].type = road_type;
          new_segment[0].point_id = point_id;
 
          return 1;
@@ -371,14 +373,20 @@ static int detect_loop(int point_id,
 static int detect_road_segment (int point_id,
                                 const RoadMapGpsPosition *gps_position,
                                 TrackNewSegment *new_segment,
-                                int max) {
+                                int max,
+                                int point_type) {
 
    int count;
    
-   count = detect_loop (point_id, gps_position, new_segment, max);
+   int road_type = TRACK_ROAD_REG;
+   if (point_type & POINT_GAP) {
+      road_type = TRACK_ROAD_CONNECTION;
+   }
+
+   count = detect_loop (point_id, gps_position, new_segment, max, road_type);
    if (count) return count;
 
-   count = detect_turn (point_id, gps_position, new_segment, max);
+   count = detect_turn (point_id, gps_position, new_segment, max, road_type);
    return count;
 }
 
@@ -389,7 +397,7 @@ int editor_track_unknown_locate_point (int point_id,
                                        RoadMapNeighbour *confirmed_line,
                                        TrackNewSegment *new_segment,
                                        int max_segments,
-                                       int force) {
+                                       int point_type) {
 
    RoadMapFuzzy best;
    RoadMapFuzzy second_best;
@@ -397,10 +405,10 @@ int editor_track_unknown_locate_point (int point_id,
    int found;
    int count;
    
-   if (force) {
+   if (point_type & POINT_UNKNOWN) {
       /* this point is already known to be unknown */
       return detect_road_segment
-               (point_id, gps_position, new_segment, max_segments);
+               (point_id, gps_position, new_segment, max_segments, point_type);
    }
 
    /* let's see if we got to a known street line */
@@ -437,7 +445,11 @@ int editor_track_unknown_locate_point (int point_id,
       }
 
 
-      new_segment->type = TRACK_ROAD_REG;
+      if (point_type & POINT_GAP) {
+         new_segment->type = TRACK_ROAD_CONNECTION;
+      } else {
+         new_segment->type = TRACK_ROAD_REG;
+      }
       new_segment->point_id = point_id;
 
       if (best != confirmed_street->fuzzyfied) {
@@ -449,7 +461,8 @@ int editor_track_unknown_locate_point (int point_id,
 
       /* point is unknown, see if we can detect a road segment */
 
-      return detect_road_segment (point_id, gps_position, new_segment, max_segments);
+      return detect_road_segment
+               (point_id, gps_position, new_segment, max_segments, point_type);
    }
 }
 
