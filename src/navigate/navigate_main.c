@@ -311,6 +311,7 @@ static void navigate_main_format_messages (void) {
    int distance_to_destination_far;
    int ETA;
    char str[100];
+   RoadMapGpsPosition pos;
 
    (*NextMessageUpdate) ();
 
@@ -334,6 +335,12 @@ static void navigate_main_format_messages (void) {
 
    sprintf (str, "%d:%02d", ETA / 3600, ETA / 60);
    roadmap_message_set ('T', str);
+
+   roadmap_navigate_get_current (&pos, NULL, NULL);
+   roadmap_message_set ('S', "%3d %s",
+         roadmap_math_to_speed_unit(pos.speed),
+         roadmap_lang_get(roadmap_math_speed_unit()));
+
 }
 
 
@@ -742,7 +749,7 @@ int navigate_main_calc_route () {
             "%s: %.1f %s\n%s: %.1f %s",
             roadmap_lang_get ("Length"),
             length/1000.0,
-            roadmap_lang_get ("km"),
+            roadmap_lang_get ("Km"),
             roadmap_lang_get ("Time"),
             track_time/60.0,
             roadmap_lang_get ("minutes"));
