@@ -333,6 +333,12 @@ int editor_db_create (int fips) {
    
    roadmap_path_create (path);
 
+   if (roadmap_file_exists (path, name)) {
+      editor_log (ROADMAP_ERROR, "Trying to create a new database which already exists! '%s/%s'", path, name);
+      editor_log_pop ();
+      return -1;
+   }
+      
    if (buildmap_db_open (path, name) == -1) {
       editor_log (ROADMAP_ERROR, "Can't create new database: %s/%s",
             path, name);

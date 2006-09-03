@@ -42,6 +42,7 @@
 #include "editor_upload.h"
 #include "editor_export.h"
 #include "editor_download.h"
+#include "../editor_main.h"
 #include "editor_sync.h"
 
 
@@ -190,6 +191,10 @@ int export_sync (void) {
    time_t now_t;
    time_t map_time_t;
 
+   if (!editor_is_enabled ()) {
+      return 0;
+   }
+
    roadmap_download_progress (0);
    roadmap_dialog_set_data ("Sync", "Progress status",
                             roadmap_lang_get ("Preparing export data..."));
@@ -240,6 +245,9 @@ int export_sync (void) {
    roadmap_main_flush ();
    res = editor_download_update_map (&SyncDownloadCallbackFunctions);
 
+   if (res == -1) {
+      roadmap_messagebox ("Download Error", roadmap_lang_get("Error downloading map update"));
+   }
 end_sync:
    roadmap_dialog_hide ("Sync process");
    return 0;

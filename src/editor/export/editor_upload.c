@@ -472,7 +472,7 @@ static int editor_post_file (const char *target,
       uploaded = roadmap_net_send (fd, buffer, uploaded);
 
       if (uploaded <= 0) {
-         (*callbacks->error) ("Receive error after %d data bytes", loaded);
+         (*callbacks->error) ("Send error after %d data bytes", loaded);
          goto cancel_upload;
       }
       loaded += uploaded;

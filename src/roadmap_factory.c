@@ -327,10 +327,10 @@ void roadmap_factory_keymap (const RoadMapAction  *actions,
 
             /* Separate the name of the key from the name of the action. */
 
-            for (p = separator; *p <= ' '; --p) *p = 0;
+            for (p = separator; *p && (*p <= ' '); --p) *p = 0;
 
             p = separator + strlen(ROADMAP_MAPPED_TO);
-            while (*p <= ' ') ++p;
+            while (*p && (*p <= ' ')) ++p;
             this_action = roadmap_factory_find_action (actions, p);
 
             if (this_action != NULL) {

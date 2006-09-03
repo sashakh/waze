@@ -63,7 +63,7 @@ static struct roadmap_cache_entry *RoadMapCountyCache = NULL;
 
 static int RoadMapCountyCacheSize = 0;
 
-static int RoadMapActiveCounty = -1;
+static int RoadMapActiveCounty = -2;
 
 static int RoadMapUsdirActive = 0;
 
