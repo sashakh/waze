@@ -38,11 +38,17 @@
 #include <stdlib.h>
 
 #include "roadmap.h"
+#include "roadmap_net.h"
 
 
 struct delay_buffer {
     char data[256];
 };
+
+static void send_buffer (RoadMapSocket s, char *buffer) {
+
+   if (roadmap_net_send(s, buffer, strlen(buffer)) < 0) exit(-1);
+}
 
 
 int main(int argc, char *argv[]) {
@@ -58,9 +64,13 @@ int main(int argc, char *argv[]) {
    int previous = -1;
    int delay_cursor = 0;
    int delay_length = 0;
+   RoadMapSocket roadmap_socket;
 
    struct delay_buffer *delay_line = NULL;
 
+   roadmap_socket = roadmap_net_connect ("tcp", "localhost", 2007);
+
+   if (!ROADMAP_NET_IS_VALID(roadmap_socket)) exit(-1);
 
    if (argc > 1 && strncmp (argv[1], "--driver=", 9) == 0) {
       driver = argv[1] + 9;
@@ -68,16 +78,20 @@ int main(int argc, char *argv[]) {
    snprintf (config, sizeof(config), "$PXRMCFG,%s,Delay,", driver);
    config_length = strlen(config);
 
-   printf ("$PXRMADD,%s,%s,Friend\n", driver, driver);
-   printf ("$PXRMSUB,RMC\n");
-   printf ("%s10\n", config, driver);
-   fflush(stdout);
+   snprintf (buffer, sizeof(buffer), "$PXRMADD,%s,%s,Friend\n", driver, driver);
+   send_buffer (roadmap_socket, buffer);
+
+   strcpy (buffer, "$PXRMSUB,RMC\n");
+   send_buffer (roadmap_socket, buffer);
+
+   snprintf (buffer, sizeof(buffer), "%s10\n", config, driver);
+   send_buffer (roadmap_socket, buffer);
 
    for(;;) {
 
       /* Retrieve the data from RoadMap. ------------------------------- */
 
-      received = read (0, buffer, sizeof(buffer));
+      received = roadmap_net_receive (roadmap_socket, buffer, sizeof(buffer));
 
       if (received <= 0) {
          exit(0); /* RoadMap cut the pipe. */
@@ -144,12 +158,8 @@ int main(int argc, char *argv[]) {
          p = strchr (p+1, ',');    /* Skip the status. */
          if (p == NULL) continue;
 
-         printf ("$PXRMMOV,%s%s", driver, p);
-         fflush (stdout);
-      }
-
-      if (ferror(stdout)) {
-         exit(0); /* RoadMap closed the pipe. */
+         snprintf (buffer, sizeof(buffer), "$PXRMMOV,%s%s", driver, p);
+         send_buffer (roadmap_socket, buffer);
       }
    }
 
