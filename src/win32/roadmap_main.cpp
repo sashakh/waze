@@ -1315,6 +1315,19 @@ extern "C" {
 		roadmap_start_exit ();
 		SendMessage(RoadMapMainWindow, WM_CLOSE, 0, 0);
 	}
-	
+
+   void roadmap_main_set_cursor (int cursor)
+   {
+      switch (cursor) {
+
+      case ROADMAP_CURSOR_NORMAL:
+         SetCursor(NULL);
+         break;
+
+      case ROADMAP_CURSOR_WAIT:
+         SetCursor(LoadCursor(NULL, IDC_WAIT));
+         break;
+      }
+   }
 } // extern "C"
 

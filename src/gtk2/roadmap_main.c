@@ -522,6 +522,7 @@ void roadmap_main_exit (void) {
    gtk_main_quit();
 }
 
+void roadmap_main_set_cursor (int cursor) {}
 
 int main (int argc, char **argv) {
 
