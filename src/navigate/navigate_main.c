@@ -53,6 +53,7 @@
 #include "roadmap_lang.h"
 #include "roadmap_address.h"
 #include "roadmap_sound.h"
+#include "roadmap_main.h"
 
 //FIXME remove when navigation will support plugin lines
 #include "editor/editor_plugin.h"
@@ -283,10 +284,14 @@ static int navigate_main_recalc_route () {
       return -1;
    }
 
+   roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+
    track_time =
       navigate_get_route_segments
             (&from_line, from_point, &NavigateDestination, NavigateDestPoint,
              NavigateSegments, &NavigateNumSegments, &result_flags);
+
+   roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 
    if (track_time <= 0) {
       return -1;
@@ -711,10 +716,14 @@ int navigate_main_calc_route () {
       return -1;
    }
 
+   roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+
    track_time =
       navigate_get_route_segments
             (&from_line, from_point, &NavigateDestination, NavigateDestPoint,
              NavigateSegments, &NavigateNumSegments, &result_flags);
+
+   roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 
    if (track_time <= 0) {
       NavigateTrackEnabled = 0;
