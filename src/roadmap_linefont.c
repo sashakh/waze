@@ -103,7 +103,7 @@ typedef struct {
 
 typedef struct hershey_font {
     hershey_char hc[MAXCHARS];
-    short nchars;
+    unsigned short nchars;
     unsigned char miny, maxy;
 } hershey_font;
 
@@ -112,6 +112,22 @@ static hershey_font hf[1];
 static const unsigned char *fontp;
 
 const unsigned char romans_font[];
+
+static char isoconv_chars[] = 
+    "AAAAAAECEEEEIIIIDNoooooxOUUUUYPBaaaaaaeceeeeiiiionooooo/ouuuuypy";
+#define ISOCONV_MIN 192
+
+static int
+isoconv(char c)
+{
+#if 0
+    unsigned char uc = (unsigned char)c;
+    if (uc >= ISOCONV_MIN)
+        return isoconv_chars[uc - ISOCONV_MIN];
+    else
+#endif
+        return c;
+}
 
 /* this function scans an integer, using n characters of the input stream,
     ignoring newlines ... */
@@ -219,7 +235,7 @@ void roadmap_linefont_extents
 
     int len, scale;
     const char *t;
-    int k;
+    unsigned int k;
 
     if (fontp == 0) {
         roadmap_load_hershey_font();
@@ -231,7 +247,8 @@ void roadmap_linefont_extents
     len = 0;
 
     for (t = text; *t; t++) {
-        k = *t - ' ';
+
+        k = isoconv(*t) - ' ';
         if (k < hf->nchars) {
             len += hf->hc[k].maxx - hf->hc[k].minx;
         }
@@ -248,9 +265,10 @@ void roadmap_linefont_text (const char *text, int where,
 {
 
     RoadMapGuiPoint *p, points[MAXPOINTS];
-    int i, k, len, height, xp, yp, count;
+    int i, len, height, xp, yp, count;
     long scale;
     const char *t;
+    unsigned int k;
 
     if (fontp == 0) {
         roadmap_load_hershey_font();
@@ -263,7 +281,8 @@ void roadmap_linefont_text (const char *text, int where,
     len = 0;
 
     for (t = text; *t; t++) {
-        k = *t - ' ';
+
+        k = isoconv(*t) - ' ';
         if (k < hf->nchars) {
             len += hf->hc[k].maxx - hf->hc[k].minx;
         }
@@ -293,7 +312,7 @@ void roadmap_linefont_text (const char *text, int where,
     /* loop through each character in the string ... */
     for (t = text; *t; t++) {
 
-        k = *t - ' ';
+        k = isoconv(*t) - ' ';
         if (k >= hf->nchars) {
             continue;
         }
