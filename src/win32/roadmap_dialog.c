@@ -1149,9 +1149,8 @@ static void MoveControlls (HWND hDlg, RoadMapDialogItem frame, int width, int he
    
    if (frame == NULL) return;
    
-   GetWindowRect(hDlg, &rc);
-
-   dc = GetDC(hDlg);
+   GetClientRect(frame->w, &rc);
+   dc = GetDC(frame->w);
    for (item = frame->children; item != NULL; item = item->next) {
       LPWSTR name;
       SIZE text_size;
@@ -1386,7 +1385,9 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 
 	      return (INT_PTR)TRUE;
 #else
-         SetWindowPos(hDlg, HWND_TOP, 10, 30, 220, min_height+30, SWP_NOSIZE|SWP_DRAWFRAME);
+		 if (num_containers < 3) {
+			SetWindowPos(hDlg, HWND_TOP, 10, 30, 300, min_height+100, SWP_NOMOVE|SWP_DRAWFRAME);
+		 }
 #endif
 
 		}
@@ -1395,7 +1396,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		{
 				RECT rc;
 
-				GetWindowRect(hDlg, &rc);
+				GetClientRect(hDlg, &rc);
 		    	lParam = MAKELPARAM(rc.right-rc.left, rc.bottom-rc.top);
 		}
 	
@@ -1615,6 +1616,10 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
          GetClientRect(GetParent(GetParent(hDlg)), &tab);
          width = tab.right - tab.left;
          height = tab.bottom - tab.top - MAX_ROW_HEIGHT;
+#ifndef UNDER_CE
+         width -= 10;
+         height -= 20;
+#endif
 
          MoveControlls (hDlg, frame, width, height-MAX_ROW_HEIGHT);
 		}
