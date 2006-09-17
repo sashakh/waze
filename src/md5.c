@@ -144,7 +144,7 @@ MD5Final(unsigned char digest[16], struct MD5Context *ctx)
     MD5Transform(ctx->buf, (uint32 *) ctx->in);
     byteReverse((unsigned char *) ctx->buf, 4);
     memcpy(digest, ctx->buf, 16);
-    memset((char *) ctx, 0, sizeof(ctx));	/* In case it's sensitive */
+    memset((char *) ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
 }
 
 /* The four core functions - F1 is optimized somewhat */
@@ -258,7 +258,7 @@ void MD5Hex(const unsigned char digest[16], char *buffer)
                                    '8', '9', 'a', 'b',
                                    'c', 'd', 'e', 'f' };
 
-   for (i=0; i<sizeof(digest); i++) {
+   for (i=0; i<16; i++) {
       *buffer = bin2hex[digest[i] >> 4];
       buffer++;
       *buffer = bin2hex[digest[i] & 0xf];
