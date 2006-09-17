@@ -46,6 +46,7 @@ void roadmap_start_add_long_click_item (const char *name,
                                         RoadMapCallback callback);
 
 const RoadMapAction *roadmap_start_find_action (const char *name);
+void roadmap_start_set_title (const char *title);
 
 #endif /* INCLUDE__ROADMAP_START__H */
 

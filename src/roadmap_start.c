@@ -1166,6 +1166,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_lang_initialize     ();
    roadmap_sound_initialize    ();
 
+   roadmap_start_set_title (roadmap_lang_get ("RoadMap"));
    roadmap_gps_register_listener (&roadmap_gps_update);
 
    RoadMapStartGpsID = roadmap_string_new("GPS");
@@ -1245,5 +1246,10 @@ const RoadMapAction *roadmap_start_find_action (const char *name) {
    }
 
    return NULL;
+}
+
+
+void roadmap_start_set_title (const char *title) {
+   RoadMapMainTitle = title;
 }
 
