@@ -131,10 +131,10 @@ static WCHAR szOtherWindowClass[] = L"RoadGPSClass";
 static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
                         ROADMAP_CONFIG_ITEM("GPS", "Virtual");
 
-#ifdef UNDER_CE
 static RoadMapConfigDescriptor RoadMapConfigMenuBar =
                         ROADMAP_CONFIG_ITEM("General", "Menu bar");
 
+#ifdef UNDER_CE
 static RoadMapConfigDescriptor RoadMapConfigAutoSync =
                                   ROADMAP_CONFIG_ITEM("FreeMap", "Auto sync");
 static RoadMapConfigDescriptor RoadMapConfigLastSync =
@@ -575,9 +575,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_CREATE:
+		bool create_menu;
+#ifdef _ROADGPS
+      create_menu = true;
+#else
+      create_menu = roadmap_config_match (&RoadMapConfigMenuBar, "Yes") != 0;
+#endif
+
 #ifdef UNDER_CE
 		SHMENUBARINFO mbi;
-      bool create_menu;
 		
 		memset(&mbi, 0, sizeof(SHMENUBARINFO));
 		mbi.cbSize     = sizeof(SHMENUBARINFO);
@@ -591,11 +597,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// delete everything in it, to get an empty menu.
 		// If I try to just create an empty menu, it does't work! (can't
 		// add items to it).
-#ifdef _ROADGPS
-      create_menu = true;
-#else
-      create_menu = roadmap_config_match (&RoadMapConfigMenuBar, "Yes") != 0;
-#endif
 		if (!create_menu || !SHCreateMenuBar(&mbi)) 
 		{
 			RoadMapMainMenuBar = NULL;
@@ -609,11 +610,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 		}
 #else
-	RoadMapMainMenuBar = CreateMenu ();
-	{
-	DWORD res = SetMenu(hWnd, RoadMapMainMenuBar);
-	res = res;
-	}
+	  if (create_menu) {
+		RoadMapMainMenuBar = CreateMenu ();
+		SetMenu(hWnd, RoadMapMainMenuBar);
+	  }
 #endif
 		
 #ifdef UNDER_CE                
@@ -855,9 +855,9 @@ extern "C" {
 		LPWSTR szTitle = ConvertToWideChar(title, CP_UTF8);
 		DWORD style = WS_VISIBLE;
 
-#ifdef UNDER_CE
       roadmap_config_declare_enumeration
          ("preferences", &RoadMapConfigMenuBar, "No", "Yes", NULL);
+#ifdef UNDER_CE
       roadmap_config_declare_enumeration
          ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
       roadmap_config_declare
