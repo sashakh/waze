@@ -50,6 +50,7 @@
 #include "roadmap_net.h"
 #include "roadmap_file.h"
 
+#include "editor/editor_main.h"
 #include "roadmap_httpcopy.h"
 
 
@@ -128,6 +129,8 @@ static int roadmap_http_send_request (const char *source,
       if (p != NULL) *p = 0; /* remove the port/service info. */
 
       roadmap_http_send (fd, error, "GET %s HTTP/1.1\r\n", path);
+      roadmap_http_send (fd, error, "User-Agent: FreeMap/%s\r\n",
+                         editor_main_get_version() );
       roadmap_http_send (fd, error, "Host: %s\r\n\r\n", host);
    }
 
@@ -210,7 +213,7 @@ static int roadmap_http_decode_header (int   fd,
                return size;
             }
 
-            if (strncmp (buffer,
+            if (strncasecmp (buffer,
                         "Content-Length", sizeof("Content-Length")-1) == 0) {
 
                p = strchr (buffer, ':');
