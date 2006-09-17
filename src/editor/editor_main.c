@@ -46,7 +46,7 @@
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.8.0 pre8";
+const char *EDITOR_VERSION = "0.8.0";
 
 void editor_main_check_map (void) {
 
