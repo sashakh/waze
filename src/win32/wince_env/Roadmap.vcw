@@ -29,6 +29,33 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name agg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name fribidi
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libdgl
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libft
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libguiroadmap
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libosroadmap
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libroadmap
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libwinceguiroadmap
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name zlib
+    End Project Dependency
 }}}
 
 ###############################################################################
