@@ -1029,7 +1029,7 @@ static void roadmap_gps_detect_finalize(void){
    roadmap_main_remove_periodic (roadmap_gps_detect_periodic);
    roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Port", "");
    roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Speed", "");
-   roadmap_dialog_hide ("Auto Detect");
+   roadmap_dialog_hide ("Detect GPS receiver");
 }
 
 
@@ -1101,8 +1101,8 @@ static void roadmap_gps_detect_periodic(void){
          }
          SpeedIndex = -1;
          CurrentPort = -1;
-         roadmap_messagebox("Failure",
-              "GPS Receiver not found\nMake sure your receiver is connected and turned on");
+         roadmap_messagebox(roadmap_lang_get ("Error"),
+            roadmap_lang_get ("GPS Receiver not found. Make sure your receiver is connected and turned on."));
          return;
       }
 
@@ -1131,11 +1131,12 @@ static void roadmap_gps_detect_periodic(void){
    if (RoadMapGpsReception != 0) { /* found */
       roadmap_gps_detect_finalize();
       snprintf (Prompt, sizeof(Prompt),
-             "Found GPS Receiver.\nPort: COM%d:\nSpeed: %s",
+             "%s\nPort: COM%d:\nSpeed: %s",
+             roadmap_lang_get ("Found GPS Receiver."),
              CurrentPort, speeds[SpeedIndex]);
       SpeedIndex = -1;
       CurrentPort = -1;
-      roadmap_messagebox("Success", Prompt);
+      roadmap_messagebox(roadmap_lang_get ("Info"), Prompt);
    }
 }
 
@@ -1143,9 +1144,10 @@ static void roadmap_gps_detect_periodic(void){
 void roadmap_gps_detect_receiver (void) {
 
    if (RoadMapGpsReception != 0) {
-      roadmap_messagebox("Info","GPS already connected !");
+      roadmap_messagebox(roadmap_lang_get ("Info"),
+                         roadmap_lang_get ("GPS already connected!"));
    } else {
-      if (roadmap_dialog_activate ("Auto Detect", NULL)) {
+      if (roadmap_dialog_activate ("Detect GPS receiver", NULL)) {
 
          roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Port");
          roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Speed");
@@ -1155,7 +1157,7 @@ void roadmap_gps_detect_receiver (void) {
       }
 
       roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Status",
-                               "Running, please wait...");
+                               roadmap_lang_get ("Running, please wait..."));
       roadmap_main_set_periodic (200,roadmap_gps_detect_periodic);
    }
 }
