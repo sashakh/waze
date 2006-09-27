@@ -67,6 +67,7 @@ void  roadmap_trip_set_as_destination (void);
 
 void  roadmap_trip_format_messages (void);
 void  roadmap_trip_display (void);
+void  roadmap_trip_toggle_show_inactive(void);
 
 void  roadmap_trip_new (void);
 

@@ -89,6 +89,9 @@ static int RoadMapTripRefresh = 1;      /* Screen needs to be refreshed? */
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved = 1;
 
+static int RoadMapTripDrawingActiveRoute;
+static int RoadMapTripShowInactiveRoutes = 0;
+
 typedef struct roadmap_trip_focal {
 
     char *id;
@@ -1706,7 +1709,8 @@ void roadmap_trip_format_messages (void) {
 
 static void roadmap_trip_standalone_waypoint_draw(const waypoint *waypointp)
 {
-    roadmap_landmark_draw_waypoint(waypointp, "TripLandmark");
+    roadmap_landmark_draw_waypoint
+        (waypointp, "TripLandmark", 0, RoadMapLandmarksPen);
 }
 
 static void roadmap_trip_route_waypoint_draw (const waypoint *waypointp)
@@ -1719,7 +1723,9 @@ static void roadmap_trip_route_waypoint_draw (const waypoint *waypointp)
     int rotate = 1;
     int azymuth = 0;
 
-    if (RoadMapCurrentRoute->rte_is_track) {
+    if ( !RoadMapTripDrawingActiveRoute) {
+        sprite = "Waypoint";
+    } else if (RoadMapCurrentRoute->rte_is_track) {
         sprite = "Track";
         rotate = 0;
     } else if (waypointp == RoadMapTripDest) {
@@ -1751,6 +1757,18 @@ void roadmap_trip_display (void) {
     RoadMapGuiPoint guipoint;
     RoadMapTripFocal *focal;
     RoadMapTripFocal *gps = RoadMapTripGps;
+    RoadMapListItem *elem, *tmp;
+
+    /* Show all the inactive route waypoints first */
+    if (RoadMapTripShowInactiveRoutes) {
+	RoadMapTripDrawingActiveRoute = 0;
+	ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, elem, tmp) {
+	    route_head *rh = (route_head *) elem;
+	    if (rh == RoadMapCurrentRoute) continue;
+            route_waypt_iterator
+        	(rh, roadmap_trip_route_waypoint_draw);
+	}
+    }
 
     /* Show the standalone trip waypoints. */
     waypt_iterator (&RoadMapTripWaypointHead,
@@ -1758,6 +1776,7 @@ void roadmap_trip_display (void) {
 
     /* Show all the on-route waypoints. */
     if (RoadMapCurrentRoute != NULL) {
+	RoadMapTripDrawingActiveRoute = 1;
         route_waypt_iterator
             (RoadMapCurrentRoute, roadmap_trip_route_waypoint_draw);
     }
@@ -1791,6 +1810,13 @@ void roadmap_trip_display (void) {
         roadmap_math_rotate_coordinates (1, &guipoint);
         roadmap_sprite_draw ("Direction", &guipoint, azymuth);
     }
+}
+
+void roadmap_trip_toggle_show_inactive(void) {
+
+    RoadMapTripShowInactiveRoutes  = ! RoadMapTripShowInactiveRoutes;
+    RoadMapTripRefresh = 1;
+    roadmap_screen_refresh();
 }
 
 
@@ -2153,7 +2179,7 @@ void roadmap_trip_copy_route
 
 static void roadmap_trip_route_convert_worker
         (route_head *orig_route, char *new_name, 
-	    int simplify, int wanttrack, int reverse) {
+            int simplify, int wanttrack, int reverse) {
 
     int dropped = 0;
     route_head *new_route;
@@ -2172,9 +2198,9 @@ static void roadmap_trip_route_convert_worker
             new_route->rte_name = xstrdup(new_name);
         }
 
-	if (reverse) {
-	    route_reverse(new_route);
-	}
+        if (reverse) {
+            route_reverse(new_route);
+        }
 
         if (wanttrack) {
             new_route->rte_is_track = 1;

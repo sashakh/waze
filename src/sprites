@@ -31,8 +31,11 @@ A RedArrow
 S Destination
 A RedDotCircle
 
+S PointOfInterest
+A SmallRedDot
+
 S Waypoint
-A GreenDot
+A DarkGreenDot
 
 S Start
 A GreenTrianglePointer
@@ -107,6 +110,10 @@ F black 1
 C 0,0 5
 C 0,0 7
 
+S SmallRedDot
+F red 1
+D 0,0 3
+
 S GreenTrianglePointer
 F green 2
 P 0,-9 -8,4 8,4 0,-9
@@ -118,6 +125,12 @@ L -1,-16 -1,-8
 
 S GreenDot
 F green 1
+D 0,0 5
+F black 1
+C 0,0 5
+
+S DarkGreenDot
+F darkgreen 1
 D 0,0 5
 F black 1
 C 0,0 5

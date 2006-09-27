@@ -48,6 +48,7 @@
 #include "roadmap_voice.h"
 #include "roadmap_gps.h"
 
+#include "roadmap_canvas.h"
 #include "roadmap_time.h"
 #include "roadmap_preferences.h"
 #include "roadmap_address.h"
@@ -58,6 +59,7 @@
 #include "roadmap_trip.h"
 #include "roadmap_track.h"
 #include "roadmap_landmark.h"
+// #include "roadmap_features.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
 #include "roadmap_fuzzy.h"
@@ -501,6 +503,10 @@ static RoadMapAction RoadMapStartActions[] = {
    {"manageroutes", "Manage Current Routes...", "Manage", NULL,
       "Select, rename, or delete routes", roadmap_trip_route_manage_dialog},
 
+   {"allroutetoggle", "Show/Hide Inactive Routes", "AllRoutes", NULL,
+      "Show or Hide currently inactive routes",
+      roadmap_trip_toggle_show_inactive},
+
    {"gpsaswaypoint", "New place from GPS...", "GPS Place", "GW",
       "Create new place using current GPS position",
       roadmap_start_create_gps_waypoint},
@@ -626,6 +632,7 @@ static const char *RoadMapStartMenu[] = {
    "trackroute",
    "createroute",
    "setasdestination",
+   "allroutetoggle", 
 
    ROADMAP_MENU "Places",
 
@@ -999,6 +1006,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_trip_initialize     ();
    roadmap_track_initialize    ();
    roadmap_landmark_initialize ();
+   // roadmap_features_initialize ();
    roadmap_pointer_initialize  ();
    roadmap_screen_initialize   ();
    roadmap_fuzzy_initialize    ();
@@ -1047,6 +1055,7 @@ void roadmap_start (int argc, char **argv) {
 #ifdef ROADMAP_USES_EXPAT
    roadmap_track_autoload ();
    roadmap_landmark_load ();
+   // roadmap_features_load ();
 #endif
 
    roadmap_spawn_initialize (argv[0]);
