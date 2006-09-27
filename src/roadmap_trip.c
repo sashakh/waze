@@ -1425,7 +1425,8 @@ static void roadmap_trip_set_directions
 
         desc = next->description;
         if (desc == NULL) {
-            desc = "Arrive at destination";
+            // desc = "Arrive at destination";
+            desc = "Arrive";
         }
 
         roadmap_message_set ('X', "%s", desc);
