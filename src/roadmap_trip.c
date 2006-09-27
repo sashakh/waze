@@ -1709,8 +1709,7 @@ void roadmap_trip_format_messages (void) {
 
 static void roadmap_trip_standalone_waypoint_draw(const waypoint *waypointp)
 {
-    roadmap_landmark_draw_waypoint
-        (waypointp, "TripLandmark", 0, RoadMapLandmarksPen);
+    roadmap_landmark_draw_waypoint (waypointp, "TripLandmark");
 }
 
 static void roadmap_trip_route_waypoint_draw (const waypoint *waypointp)
