@@ -1819,20 +1819,20 @@ void roadmap_trip_display (void) {
 
     if (RoadMapCurrentRoute != NULL) {
 
-	/* Show the route outline? */
+        /* Show the route outline? */
         if (roadmap_config_match (&RoadMapConfigTripShowRouteLines, "yes")) {
-	    if (RoadMapTripRouteLinesPen == NULL) {
-		RoadMapTripRouteLinesPen =
-		    roadmap_canvas_create_pen ("Map.RouteLines");
-		roadmap_canvas_set_foreground
-		    (roadmap_config_get (&RoadMapConfigTripRouteLineColor));
-	    } else {
-		roadmap_canvas_select_pen (RoadMapTripRouteLinesPen);
-	    }
-	    RoadMapTripFirstRoutePoint = 1;
-	     route_waypt_iterator
-		 (RoadMapCurrentRoute, roadmap_trip_route_routelines_draw);
-	}
+            if (RoadMapTripRouteLinesPen == NULL) {
+                RoadMapTripRouteLinesPen =
+                    roadmap_canvas_create_pen ("Map.RouteLines");
+                roadmap_canvas_set_foreground
+                    (roadmap_config_get (&RoadMapConfigTripRouteLineColor));
+            } else {
+                roadmap_canvas_select_pen (RoadMapTripRouteLinesPen);
+            }
+            RoadMapTripFirstRoutePoint = 1;
+             route_waypt_iterator
+                 (RoadMapCurrentRoute, roadmap_trip_route_routelines_draw);
+        }
  
         /* Show all the on-route waypoint sprites. */
         RoadMapTripDrawingActiveRoute = 1;
