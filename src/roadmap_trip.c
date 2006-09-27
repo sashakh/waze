@@ -61,6 +61,12 @@ static RoadMapConfigDescriptor RoadMapConfigTripName =
 static RoadMapConfigDescriptor RoadMapConfigTripRotate =
                         ROADMAP_CONFIG_ITEM("Display", "Rotate");
 
+static RoadMapConfigDescriptor RoadMapConfigTripShowRouteLines =
+                        ROADMAP_CONFIG_ITEM("Trip", "Connect Route Points");
+
+static RoadMapConfigDescriptor RoadMapConfigTripRouteLineColor =
+                        ROADMAP_CONFIG_ITEM("Trip", "Route Connect Color");
+
 static RoadMapConfigDescriptor RoadMapConfigFocusName =
                         ROADMAP_CONFIG_ITEM("Focus", "Name");
 
@@ -89,6 +95,7 @@ static int RoadMapTripRefresh = 1;      /* Screen needs to be refreshed? */
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved = 1;
 
+static RoadMapPen RoadMapTripRouteLinesPen = NULL;
 static int RoadMapTripDrawingActiveRoute;
 static int RoadMapTripShowInactiveRoutes = 0;
 
@@ -1729,6 +1736,8 @@ static void roadmap_trip_standalone_waypoint_draw(const waypoint *waypointp)
     roadmap_landmark_draw_waypoint (waypointp, "TripLandmark");
 }
 
+static int RoadMapTripFirstRoutePoint;
+
 static void roadmap_trip_route_waypoint_draw (const waypoint *waypointp)
 {
 
@@ -1767,6 +1776,24 @@ static void roadmap_trip_route_waypoint_draw (const waypoint *waypointp)
     }
 }
 
+static void roadmap_trip_route_routelines_draw (const waypoint *waypointp)
+{
+    static RoadMapPosition lastpos;
+
+    if ( !RoadMapTripFirstRoutePoint ) {
+       RoadMapGuiPoint points[2];
+       int count = 2;
+        if (roadmap_math_get_visible_coordinates
+               (&lastpos, &waypointp->pos, &points[0], &points[1])) {
+            roadmap_math_rotate_coordinates (2, points);
+            roadmap_canvas_draw_multiple_lines(1, &count, points, 1);
+       }
+    }
+
+    RoadMapTripFirstRoutePoint = 0;
+    lastpos = waypointp->pos;
+}
+
 void roadmap_trip_display (void) {
 
     int azymuth;
@@ -1790,8 +1817,24 @@ void roadmap_trip_display (void) {
     waypt_iterator (&RoadMapTripWaypointHead,
         roadmap_trip_standalone_waypoint_draw);
 
-    /* Show all the on-route waypoints. */
     if (RoadMapCurrentRoute != NULL) {
+
+	/* Show the route outline? */
+        if (roadmap_config_match (&RoadMapConfigTripShowRouteLines, "yes")) {
+	    if (RoadMapTripRouteLinesPen == NULL) {
+		RoadMapTripRouteLinesPen =
+		    roadmap_canvas_create_pen ("Map.RouteLines");
+		roadmap_canvas_set_foreground
+		    (roadmap_config_get (&RoadMapConfigTripRouteLineColor));
+	    } else {
+		roadmap_canvas_select_pen (RoadMapTripRouteLinesPen);
+	    }
+	    RoadMapTripFirstRoutePoint = 1;
+	     route_waypt_iterator
+		 (RoadMapCurrentRoute, roadmap_trip_route_routelines_draw);
+	}
+ 
+        /* Show all the on-route waypoint sprites. */
         RoadMapTripDrawingActiveRoute = 1;
         route_waypt_iterator
             (RoadMapCurrentRoute, roadmap_trip_route_waypoint_draw);
@@ -1905,6 +1948,12 @@ void roadmap_trip_initialize (void) {
 
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
+
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigTripShowRouteLines, "yes", "no", NULL);
+    roadmap_config_declare
+       ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
+
 
 }
 
