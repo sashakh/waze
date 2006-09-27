@@ -550,7 +550,7 @@ static void roadmap_trip_add_waypoint_dialog
         roadmap_dialog_add_button
                 ("Okay", roadmap_trip_add_waypoint_dialog_okay);
 
-        roadmap_dialog_complete (0);
+        roadmap_dialog_complete (roadmap_preferences_use_keyboard ());
     }
     roadmap_dialog_set_data ("Name", "Name:", name);
 
