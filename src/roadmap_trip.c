@@ -1138,6 +1138,22 @@ void roadmap_trip_set_as_destination(void)
     roadmap_screen_refresh ();
 }
 
+void roadmap_trip_insert_routepoint_best(void)
+{
+    const char *name;
+
+    if (RoadMapCurrentRoute == NULL ||
+       RoadMapTripLastSetPoint == NULL ||
+            !RoadMapTripLastSetPoint->has_value) {
+        return;
+    }
+
+    name = roadmap_trip_last_setpoint_name();
+
+    roadmap_trip_add_waypoint
+       (name, &RoadMapTripLastSetPoint->map, PLACE_ROUTE_MARK_INSERT);
+}
+
 static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos);
 
 void roadmap_trip_add_waypoint
@@ -1761,13 +1777,13 @@ void roadmap_trip_display (void) {
 
     /* Show all the inactive route waypoints first */
     if (RoadMapTripShowInactiveRoutes) {
-	RoadMapTripDrawingActiveRoute = 0;
-	ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, elem, tmp) {
-	    route_head *rh = (route_head *) elem;
-	    if (rh == RoadMapCurrentRoute) continue;
+        RoadMapTripDrawingActiveRoute = 0;
+        ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, elem, tmp) {
+            route_head *rh = (route_head *) elem;
+            if (rh == RoadMapCurrentRoute) continue;
             route_waypt_iterator
-        	(rh, roadmap_trip_route_waypoint_draw);
-	}
+                (rh, roadmap_trip_route_waypoint_draw);
+        }
     }
 
     /* Show the standalone trip waypoints. */
@@ -1776,7 +1792,7 @@ void roadmap_trip_display (void) {
 
     /* Show all the on-route waypoints. */
     if (RoadMapCurrentRoute != NULL) {
-	RoadMapTripDrawingActiveRoute = 1;
+        RoadMapTripDrawingActiveRoute = 1;
         route_waypt_iterator
             (RoadMapCurrentRoute, roadmap_trip_route_waypoint_draw);
     }

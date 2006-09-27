@@ -518,6 +518,10 @@ static RoadMapAction RoadMapStartActions[] = {
    {"editroutewaypoints", "Route Waypoints...", NULL, NULL,
       "Edit current route's waypoints", roadmap_trip_route_waypoint_manage_dialog },
 
+   {"addroutewaypoint", "Add Route Waypoint", NULL, NULL,
+      "Add selection to the current route's waypoints", 
+      roadmap_trip_insert_routepoint_best },
+
    {"edittripwaypoints", "Trip Landmarks...", NULL, NULL,
       "Edit landmarks associated with this trip", roadmap_trip_trip_waypoint_manage_dialog },
 
@@ -638,6 +642,7 @@ static const char *RoadMapStartMenu[] = {
 
    "addaswaypoint",
    "gpsaswaypoint", 
+   "addroutewaypoint",
    "editroutewaypoints",
    "edittripwaypoints",
    "editpersonalwaypoints",

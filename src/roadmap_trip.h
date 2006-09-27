@@ -90,5 +90,7 @@ void roadmap_trip_route_simplify (void);
 void roadmap_trip_currenttrack_to_route (void);
 void roadmap_trip_currenttrack_to_track (void);
 
+void roadmap_trip_insert_routepoint_best(void);
+
 #endif // INCLUDE__ROADMAP_TRIP__H
 
