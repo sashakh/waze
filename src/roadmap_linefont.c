@@ -113,6 +113,9 @@ static const unsigned char *fontp;
 
 const unsigned char romans_font[];
 
+/* This font only supports US ASCII.  Map accented isolatin chars
+ * to the nearest ASCII equivalent.
+ */
 static char isoconv_chars[] = 
     "AAAAAAECEEEEIIIIDNoooooxOUUUUYPBaaaaaaeceeeeiiiionooooo/ouuuuypy";
 #define ISOCONV_MIN 192
@@ -120,12 +123,10 @@ static char isoconv_chars[] =
 static int
 isoconv(char c)
 {
-#if 0
     unsigned char uc = (unsigned char)c;
     if (uc >= ISOCONV_MIN)
         return isoconv_chars[uc - ISOCONV_MIN];
     else
-#endif
         return c;
 }
 
