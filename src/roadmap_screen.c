@@ -51,6 +51,7 @@
 #include "roadmap_trip.h"
 #include "roadmap_track.h"
 #include "roadmap_landmark.h"
+#include "roadmap_features.h"
 #include "roadmap_canvas.h"
 #include "roadmap_state.h"
 #include "roadmap_pointer.h"
@@ -1041,7 +1042,7 @@ static void roadmap_screen_repaint (void) {
     }
 
     if (!RoadMapScreenDragging ||
-        roadmap_config_match(&RoadMapConfigStyleObjects, "yes")) {
+       roadmap_config_match(&RoadMapConfigStyleObjects, "yes")) {
 
        roadmap_object_iterate (roadmap_screen_draw_object);
 
@@ -1052,6 +1053,7 @@ static void roadmap_screen_repaint (void) {
           roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
           roadmap_landmark_display ();
+          roadmap_features_display ();
           roadmap_trip_display ();
           roadmap_track_display ();
           roadmap_display_signs ();
@@ -1075,7 +1077,7 @@ static void roadmap_screen_configure (void) {
    RoadMapScreenLabels = ! roadmap_config_match(&RoadMapConfigMapLabels, "off");
    
    RoadMapScreenOrientationDynamic = 
-	roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
+        roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
 
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
    if (RoadMapScreenInitialized) {
@@ -1369,7 +1371,7 @@ void roadmap_screen_decrease_horizon (void) {
 }
 
 #define FRACMOVE 4
-// #define FRACMOVE 100  // tiny moves: useful for debug
+// #define FRACMOVE 100  // tiny moves:  useful for debug
 
 void roadmap_screen_move_up (void) {
 
