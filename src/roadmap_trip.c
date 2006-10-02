@@ -1505,7 +1505,10 @@ void roadmap_trip_route_resume (void) {
          * below forces GPS to be centered.  so may as well do that
          * when there isn't a route too.  saves key bindings.
          */
-        roadmap_trip_set_focus ("GPS");
+        if (RoadMapTripGps->has_value) {
+            roadmap_trip_set_point_focus (RoadMapTripGps);
+            roadmap_screen_refresh ();
+        }
         return;
     }
 
