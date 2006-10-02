@@ -101,7 +101,7 @@ void roadmap_features_load(void) {
 
     /* the configuration for "features" files is a comma-separated path.
      * each comma-separated path element is itself a semi-colon separated
-     * sequence of filename, spritename, sprite color, and zoom level
+     * sequence of filename, spritename, label color, and zoom level
      * at which label should no longer be printed.  here's an example --
      * the line is broken for clarity.
      *
