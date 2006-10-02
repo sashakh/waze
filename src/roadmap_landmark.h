@@ -35,7 +35,10 @@ void roadmap_landmark_remove(waypoint *waypointp);
 RoadMapList * roadmap_landmark_list(void);
 int roadmap_landmark_is_refresh_needed (void);
 void roadmap_landmark_draw_waypoint
-        (const waypoint *waypointp, const char *sprite);
+        (const waypoint *waypointp, const char *sprite,
+                int override_sprite, RoadMapPen pen);
+
+RoadMapPen RoadMapLandmarksPen;
 
 #endif // INCLUDE__ROADMAP_LANDMARK__H
 

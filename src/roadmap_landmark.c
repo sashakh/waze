@@ -37,7 +37,7 @@
 RoadMapList RoadMapLandmarkHead;
 static int RoadMapLandmarkModified;
 static int RoadMapLandmarkRefresh;
-static RoadMapPen RoadMapLandMarksPen;
+RoadMapPen RoadMapLandmarksPen;
 
 static RoadMapConfigDescriptor RoadMapConfigLandmarkName =
                         ROADMAP_CONFIG_ITEM ("Landmarks", "Name");
@@ -50,29 +50,41 @@ static RoadMapConfigDescriptor RoadMapConfigLandmarksColor =
 #define ROADMAP_LANDMARK_LABEL_SIZE 18
 
 void roadmap_landmark_draw_waypoint
-        (const waypoint *waypointp, const char *sprite) {
+        (const waypoint *waypointp,
+            const char *sprite, int override_sprite, RoadMapPen pen) {
 
     RoadMapGuiPoint guipoint;
 
-    if (waypointp->icon_descr) {
+    if (!roadmap_math_point_is_visible (&waypointp->pos))
+        return;
+
+#if USE_ICON_NAME
+    if ( !override_sprite && waypointp->icon_descr) {
         sprite = waypointp->icon_descr;
     }
+#endif
 
-    if (roadmap_math_point_is_visible (&waypointp->pos)) {
+    if (!sprite && !pen)
+        return;  /* unlikely */
 
-        roadmap_math_coordinate (&waypointp->pos, &guipoint);
-        roadmap_math_rotate_coordinates (1, &guipoint);
+    roadmap_math_coordinate (&waypointp->pos, &guipoint);
+    roadmap_math_rotate_coordinates (1, &guipoint);
+
+    if (sprite) {
         roadmap_sprite_draw (sprite, &guipoint, 0);
+    }
 
-        roadmap_canvas_select_pen (RoadMapLandMarksPen);
-        guipoint.y += 15; /* space for sprite */
+    if (pen) {
+        roadmap_canvas_select_pen (pen);
+        if (sprite)
+            guipoint.y += 15; /* space for sprite */
 
         /* FIXME -- We should do label collision detection, which
          * means joining in the fun in roadmap_label_add() and
          * roadmap_label_draw_cache().  Landmark labels should
-	 * probably take priority, and be positioned first.  They
-	 * should probably be drawn last, however, so that their
-	 * labels come out on "top" of other map features.
+         * probably take priority, and be positioned first.  They
+         * should probably be drawn last, however, so that their
+         * labels come out on "top" of other map features.
          */
         roadmap_label_draw_text(waypointp->shortname,
            &guipoint, &guipoint, 0, 0, ROADMAP_LANDMARK_LABEL_SIZE);
@@ -80,7 +92,8 @@ void roadmap_landmark_draw_waypoint
 }
 
 static void roadmap_landmark_draw(const waypoint *waypointp) {
-    roadmap_landmark_draw_waypoint(waypointp, "PersonalLandmark");
+    roadmap_landmark_draw_waypoint
+        (waypointp, "PersonalLandmark", 0, RoadMapLandmarksPen);
 }
 
 void roadmap_landmark_display (void) {
@@ -220,7 +233,7 @@ void roadmap_landmark_load(void) {
     RoadMapList tmp_waypoint_list;
     int defaulted, ret;
 
-    RoadMapLandMarksPen = roadmap_canvas_create_pen ("landmarks.labels");
+    RoadMapLandmarksPen = roadmap_canvas_create_pen ("landmarks.labels");
     roadmap_canvas_set_foreground
         (roadmap_config_get (&RoadMapConfigLandmarksColor));
 
