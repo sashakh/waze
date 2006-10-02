@@ -69,9 +69,6 @@ static void roadmap_track_add_trackpoint ( int gps_time,
     waypoint *w;
     w = waypt_new ();
 
-    w->shortname = NULL;
-    w->icon_descr = NULL;
-
     w->pos.latitude = gps_position->latitude;
     w->pos.longitude = gps_position->longitude;
 
@@ -188,7 +185,7 @@ static void roadmap_track_gps_update (int gps_time,
             /* The current most recent three points are A, B, and C.
              * Drop point B if dist(A,B)+dist(B,C) is approximately
              * equal to dist (A,C).
-	     */
+             */
             bc_dist = roadmap_math_distance (&pos[1], &pos[2]);
             ac_dist = roadmap_math_distance (&pos[0], &pos[2]);
 
@@ -222,8 +219,8 @@ static void roadmap_track_waypoint_draw (const waypoint *waypointp)
      * GPS arrow.
      */
     if (roadmap_math_point_is_visible (&waypointp->pos) &&
-	(RoadMapTrackGpsPosition.latitude != waypointp->pos.latitude ||
-	 RoadMapTrackGpsPosition.longitude != waypointp->pos.longitude) ) {
+        (RoadMapTrackGpsPosition.latitude != waypointp->pos.latitude ||
+         RoadMapTrackGpsPosition.longitude != waypointp->pos.longitude) ) {
 
         roadmap_math_coordinate (&waypointp->pos, &guipoint);
         roadmap_math_rotate_coordinates (1, &guipoint);
