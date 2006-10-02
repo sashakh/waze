@@ -44,11 +44,12 @@ waypt_dupe(const waypoint *wpt)
                 tmp->description = xstrdup(wpt->description);
         if (wpt->notes)
                 tmp->notes = xstrdup(wpt->notes);
+#if ROADMAP_UNNEEDED
         if (wpt->url)
                 tmp->url = xstrdup(wpt->url);
         if (wpt->url_link_text)
                 tmp->url_link_text = xstrdup(wpt->url_link_text);
-        if (wpt->icon_descr && wpt->wpt_flags.icon_descr_is_dynamic)
+        if (wpt->icon_descr)
                 tmp->icon_descr = xstrdup(wpt->icon_descr);
         if (wpt->gc_data.desc_short.utfstring) {
                 tmp->gc_data.desc_short.utfstring = 
@@ -64,6 +65,7 @@ waypt_dupe(const waypoint *wpt)
         if (wpt->gc_data.hint) {
                 tmp->gc_data.hint = xstrdup(wpt->gc_data.hint);
         }
+#endif
 
         /*
          * It's important that this duplicated waypoint not appear
@@ -127,8 +129,10 @@ waypt_new(void)
         wpt->altitude = unknown_alt;
         wpt->course = -999.0;
         wpt->speed = -999.0;
+#if ROADMAP_UNNEEDED
         wpt->fix = fix_unknown;
         wpt->sat = -1;
+#endif
 
         return wpt;
 }
@@ -241,13 +245,14 @@ waypt_free( waypoint *wpt )
         if (wpt->notes) {
                 xfree(wpt->notes);
         }
+#if ROADMAP_UNNEEDED
         if (wpt->url) {
                 xfree(wpt->url);
         }
         if (wpt->url_link_text) {
                 xfree(wpt->url_link_text);
         }
-        if (wpt->icon_descr && wpt->wpt_flags.icon_descr_is_dynamic) {
+        if (wpt->icon_descr) {
                 xfree((char *)(void *)wpt->icon_descr);
         }
         if (wpt->gc_data.desc_short.utfstring) {
@@ -262,6 +267,7 @@ waypt_free( waypoint *wpt )
         if (wpt->gc_data.hint) {
                 xfree (wpt->gc_data.hint);
         } 
+#endif
         fs_chain_destroy( wpt->fs );
         xfree(wpt);     
 }

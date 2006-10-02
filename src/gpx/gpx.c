@@ -31,7 +31,9 @@ static XML_Parser psr;
 
 static xml_tag *cur_tag;
 static vmem_t cdatastr;
+#if ROADMAP_UNNEEDED
 static char *opt_logpoint = NULL; // "Create waypoints from geocache log entries"
+#endif
 static int logpoint_ct = 0;
 
 static int gpx_tag_found;
@@ -55,7 +57,9 @@ static waypoint *wpt_tmp;
 static route_head *trk_tmp;
 static route_head *rte_tmp;
 
+#if ROADMAP_UNNEEDED
 static int cache_descr_is_html;
+#endif
 static FILE *cb_file;  /* shared between gpx_write and callback functions */
                      /* note:  the name "ofd" is used in all
                       * lower-level output routines (called from
@@ -71,7 +75,9 @@ static time_t file_time;
 
 static char *snlen = "32";   //  "Length of generated shortnames"
 static char *suppresswhite = NULL; // "Suppress whitespace in generated shortnames"
+#if ROADMAP_UNNEEDED
 static char *urlbase = NULL; //  "Base URL for link tag in output"
+#endif
 
 static queue_head *cur_waypoint_list;
 static queue_head *cur_route_list;
@@ -110,19 +116,26 @@ typedef enum {
         tt_wpt_cmt,
         tt_wpt_desc,
         tt_wpt_name,
+#if ROADMAP_UNNEEDED
         tt_wpt_sym,
         tt_wpt_url,
+#endif
         tt_wpt_ele,
         tt_wpt_time,
         tt_wpt_type,
+#if ROADMAP_UNNEEDED
         tt_wpt_urlname,
         tt_wpt_link,            /* New in GPX 1.1 */
         tt_wpt_link_text,       /* New in GPX 1.1 */
+#endif
+#if ROADMAP_UNNEEDED
         tt_pdop,                /* PDOPS are common for all three */
         tt_hdop,                /* PDOPS are common for all three */
         tt_vdop,                /* PDOPS are common for all three */
         tt_fix,
         tt_sat,
+#endif
+#if ROADMAP_UNNEEDED
         tt_cache,
         tt_cache_name,
         tt_cache_container,
@@ -136,6 +149,7 @@ typedef enum {
         tt_cache_log_type,
         tt_cache_log_date,
         tt_cache_placer,
+#endif
         tt_rte,
         tt_rte_name,
         tt_rte_desc,
@@ -145,11 +159,15 @@ typedef enum {
         tt_rte_rtept_ele,
         tt_rte_rtept_name,
         tt_rte_rtept_desc,
+#if ROADMAP_UNNEEDED
         tt_rte_rtept_sym,
+#endif
         tt_rte_rtept_time,
         tt_rte_rtept_cmt,
+#if ROADMAP_UNNEEDED
         tt_rte_rtept_url,
         tt_rte_rtept_urlname,
+#endif
         tt_trk,
         tt_trk_desc,
         tt_trk_name,
@@ -158,9 +176,11 @@ typedef enum {
         tt_trk_trkseg_trkpt,
         tt_trk_trkseg_trkpt_cmt,
         tt_trk_trkseg_trkpt_name,
+#if ROADMAP_UNNEEDED
         tt_trk_trkseg_trkpt_sym,
         tt_trk_trkseg_trkpt_url,
         tt_trk_trkseg_trkpt_urlname,
+#endif
         tt_trk_trkseg_trkpt_desc,
         tt_trk_trkseg_trkpt_ele,
         tt_trk_trkseg_trkpt_time,
@@ -194,12 +214,15 @@ static tag_mapping tag_path_map[] = {
         { tt_wpt_name, 0, "/gpx/wpt/name" },
         { tt_wpt_cmt, 0, "/gpx/wpt/cmt" },
         { tt_wpt_desc, 0, "/gpx/wpt/desc" },
+#if ROADMAP_UNNEEDED
         { tt_wpt_url, 0, "/gpx/wpt/url" },
         { tt_wpt_urlname, 0, "/gpx/wpt/urlname" },
         { tt_wpt_link, 0, "/gpx/wpt/link" },                    /* GPX 1.1 */
         { tt_wpt_link_text, 0, "/gpx/wpt/link/text" },          /* GPX 1.1 */
         { tt_wpt_sym, 0, "/gpx/wpt/sym" },
+#endif
         { tt_wpt_type, 1, "/gpx/wpt/type" },
+#if ROADMAP_UNNEEDED
         { tt_cache, 1, "/gpx/wpt/groundspeak:cache" },
         { tt_cache_name, 1, "/gpx/wpt/groundspeak:cache/groundspeak:name" },
         { tt_cache_container, 1, "/gpx/wpt/groundspeak:cache/groundspeak:container" },
@@ -213,6 +236,7 @@ static tag_mapping tag_path_map[] = {
         { tt_cache_log_type, 1, "/gpx/wpt/groundspeak:cache/groundspeak:logs/groundspeak:log/groundspeak:type" },
         { tt_cache_log_date, 1, "/gpx/wpt/groundspeak:cache/groundspeak:logs/groundspeak:log/groundspeak:date" },
         { tt_cache_placer, 1, "/gpx/wpt/groundspeak:cache/groundspeak:owner" },
+#endif
 
         { tt_rte, 0, "/gpx/rte" },
         { tt_rte_name, 0, "/gpx/rte/name" },
@@ -224,9 +248,11 @@ static tag_mapping tag_path_map[] = {
         { tt_rte_rtept_name, 0, "/gpx/rte/rtept/name" },
         { tt_rte_rtept_cmt, 0, "/gpx/rte/rtept/cmt" },
         { tt_rte_rtept_desc, 0, "/gpx/rte/rtept/desc" },
+#if ROADMAP_UNNEEDED
         { tt_rte_rtept_url, 0, "/gpx/rte/rtept/url" },
         { tt_rte_rtept_urlname, 0, "/gpx/rte/rtept/urlname" },
         { tt_rte_rtept_sym, 0, "/gpx/rte/rtept/sym" },
+#endif
 
         { tt_trk, 0, "/gpx/trk" },
         { tt_trk_name, 0, "/gpx/trk/name" },
@@ -239,12 +265,15 @@ static tag_mapping tag_path_map[] = {
         { tt_trk_trkseg_trkpt_name, 0, "/gpx/trk/trkseg/trkpt/name" },
         { tt_trk_trkseg_trkpt_cmt, 0, "/gpx/trk/trkseg/trkpt/cmt" },
         { tt_trk_trkseg_trkpt_desc, 0, "/gpx/trk/trkseg/trkpt/desc" },
+#if ROADMAP_UNNEEDED
         { tt_trk_trkseg_trkpt_url, 0, "/gpx/trk/trkseg/trkpt/url" },
         { tt_trk_trkseg_trkpt_urlname, 0, "/gpx/trk/trkseg/trkpt/urlname" },
         { tt_trk_trkseg_trkpt_sym, 0, "/gpx/trk/trkseg/trkpt/sym" },
+#endif
         { tt_trk_trkseg_trkpt_course, 0, "/gpx/trk/trkseg/trkpt/course" },
         { tt_trk_trkseg_trkpt_speed, 0, "/gpx/trk/trkseg/trkpt/speed" },
 
+#if ROADMAP_UNNEEDED
         /* Common to tracks, routes, and waypts */
         { tt_fix,  0, "/gpx/wpt/fix" },
         { tt_fix,  0, "/gpx/trk/trkseg/trkpt/fix" },
@@ -261,6 +290,7 @@ static tag_mapping tag_path_map[] = {
         { tt_vdop, 0, "/gpx/wpt/vdop" },
         { tt_vdop, 0, "/gpx/trk/trkseg/trkpt/vdop" },
         { tt_vdop, 0, "/gpx/rte/rtept/hdop" },
+#endif
         { 0, 0, 0 }
 };
 
@@ -323,6 +353,7 @@ tag_wpt(const char **attrv)
         fs_ptr = &wpt_tmp->fs;
 }
 
+#if ROADMAP_UNNEEDED
 static void
 tag_cache_desc(const char ** attrv)
 {
@@ -350,6 +381,7 @@ tag_gs_cache(const char **attrv)
                 }
         }
 }
+#endif // ROADMAP_UNNEEDED
 
 static void
 start_something_else(const char *el, const char **attrv)
@@ -427,6 +459,7 @@ end_something_else()
         }
 }
 
+#if ROADMAP_UNNEEDED
 static void
 tag_log_wpt(const char **attrv)
 {
@@ -465,6 +498,7 @@ tag_log_wpt(const char **attrv)
                 waypt_add(cur_waypoint_list, lwp_tmp);
         } 
 }
+#endif // ROADMAP_UNNEEDED
 
 static void
 gpx_start(void *data, const char *el, const char **attr)
@@ -493,11 +527,13 @@ gpx_start(void *data, const char *el, const char **attr)
         case tt_wpt:
                 tag_wpt(attr);
                 break;
+#if ROADMAP_UNNEEDED
         case tt_wpt_link:
                 if (0 == strcmp(attr[0], "href")) {
                         wpt_tmp->url = xstrdup(attr[1]);
                 }
                 break;
+#endif
         case tt_rte:
                 rte_tmp = route_head_alloc();
                 fs_ptr = &rte_tmp->fs;
@@ -515,6 +551,7 @@ gpx_start(void *data, const char *el, const char **attr)
         case tt_unknown:
                 start_something_else(el, attr);
                 return;
+#if ROADMAP_UNNEEDED
         case tt_cache:
                 tag_gs_cache(attr);
                 break;
@@ -526,6 +563,7 @@ gpx_start(void *data, const char *el, const char **attr)
         case tt_cache_desc_short:
                 tag_cache_desc(attr);
                 break;
+#endif
         default:
                 break;
         }
@@ -534,6 +572,7 @@ gpx_start(void *data, const char *el, const char **attr)
         }
 }
 
+#if ROADMAP_UNNEEDED
 static struct
 gs_type_mapping{
         geocache_type type;
@@ -609,6 +648,7 @@ gs_mkcont(const char *tp)
         }
         return gc_unknown;
 }
+#endif // ROADMAP_UNNEEDED
 
 
 time_t 
@@ -675,10 +715,12 @@ static void
 gpx_end(void *data, const char *el)
 {
         char *s = strrchr(current_tag.mem, '/');
-        float x;
         char *cdatastrp = cdatastr.mem;
         int passthrough;
+#if ROADMAP_UNNEEDED
+        float x;
         static time_t gc_log_date;
+#endif
 
         if (strcmp(s + 1, el)) {
                 fprintf(stderr, "Mismatched tag %s\n", el);
@@ -705,6 +747,7 @@ gpx_end(void *data, const char *el)
         /*
          * Waypoint-specific tags.
          */
+#if ROADMAP_UNNEEDED
         case tt_wpt_url:
                 wpt_tmp->url = xstrdup(cdatastrp);
                 break;
@@ -712,6 +755,7 @@ gpx_end(void *data, const char *el)
         case tt_wpt_link_text:
                 wpt_tmp->url_link_text = xstrdup(cdatastrp);
                 break;
+#endif // ROADMAP_UNNEEDED
         case tt_wpt:
                 if (doing_no_waypoints)
                     waypt_free(wpt_tmp);
@@ -721,6 +765,7 @@ gpx_end(void *data, const char *el)
                 cur_tag = NULL;
                 wpt_tmp = NULL;
                 break;
+#if ROADMAP_UNNEEDED
         case tt_cache_name:
                 if (wpt_tmp->notes != NULL) xfree(wpt_tmp->notes);
                 wpt_tmp->notes = xstrdup(cdatastrp);
@@ -777,6 +822,7 @@ gpx_end(void *data, const char *el)
                 }
                 gc_log_date = 0;
                 break;
+#endif // ROADMAP_UNNEEDED
         /*
          * Route-specific tags.
          */
@@ -843,12 +889,13 @@ gpx_end(void *data, const char *el)
         case tt_trk_trkseg_trkpt_name:
                 wpt_tmp->shortname = xstrdup(cdatastrp);
                 break;
+#if ROADMAP_UNNEEDED
         case tt_wpt_sym:
         case tt_rte_rtept_sym:
         case tt_trk_trkseg_trkpt_sym:
                 wpt_tmp->icon_descr = xstrdup(cdatastrp);
-                wpt_tmp->wpt_flags.icon_descr_is_dynamic = 1;
                 break;
+#endif
         case tt_wpt_time:
         case tt_trk_trkseg_trkpt_time:
         case tt_rte_rtept_time:
@@ -865,6 +912,7 @@ gpx_end(void *data, const char *el)
                 if (wpt_tmp->notes != NULL) xfree(wpt_tmp->notes);
                 wpt_tmp->notes = xstrdup(cdatastrp);
                 break;
+#if ROADMAP_UNNEEDED
         case tt_pdop:
                 wpt_tmp->pdop = atof(cdatastrp);
                 break;
@@ -890,6 +938,7 @@ gpx_end(void *data, const char *el)
                                 wpt_tmp->fix = fix_unknown;
                 }
                 break;
+#endif // ROADMAP_UNNEEDED
         case tt_unknown:
                 end_something_else();
                 *s = 0;
@@ -1126,9 +1175,10 @@ gpx_read(FILE *ifile, queue_head *wq, queue_head *rq, queue_head *tq)
 }
 
 static void
-fprint_tag_and_attrs( FILE *ofd, char *prefix, char *suffix, xml_tag *tag )
+fprint_tag_and_attrs( FILE *ofd, char *prefix, char *suffix, xml_tag *tag, int indent )
 {
         char **pa;
+	while (indent--) fputc(' ', ofd);
         fprintf( ofd, "%s%s", prefix, tag->tagname );
         pa = tag->attributes;
         if ( pa ) {
@@ -1141,15 +1191,17 @@ fprint_tag_and_attrs( FILE *ofd, char *prefix, char *suffix, xml_tag *tag )
 }
 
 static void
-fprint_xml_chain( FILE *ofd, xml_tag *tag, const waypoint *wpt ) 
+fprint_xml_chain( FILE *ofd, xml_tag *tag, const waypoint *wpt, int indent) 
 {
         char *tmp_ent;
+	int i;
         while ( tag ) {
+		i = indent;
                 if ( !tag->cdata && !tag->child ) {
-                        fprint_tag_and_attrs(ofd, "<", " />", tag );
+                        fprint_tag_and_attrs(ofd, "<", " />", tag, i );
                 }
                 else {
-                        fprint_tag_and_attrs(ofd, "<", ">", tag );
+                        fprint_tag_and_attrs(ofd, "<", ">", tag, i );
                 
                         if ( tag->cdata ) {
                                 tmp_ent = xml_entitize( tag->cdata );
@@ -1157,13 +1209,16 @@ fprint_xml_chain( FILE *ofd, xml_tag *tag, const waypoint *wpt )
                                 xfree(tmp_ent);
                         }
                         if ( tag->child ) {
-                                fprint_xml_chain(ofd, tag->child, wpt);
+                                fprint_xml_chain(ofd, tag->child, wpt, i+1);
+				while (i--) fputc(' ', ofd);
                         }
+#if ROADMAP_UNNEEDED
                         if ( wpt && wpt->gc_data.exported &&
                             strcmp(tag->tagname, "groundspeak:cache" ) == 0 ) {
                                 xml_write_time( ofd, wpt->gc_data.exported, 
                                                 "", "groundspeak:exported" );
                         }
+#endif // ROADMAP_UNNEEDED
                         fprintf( ofd, "</%s>\n", tag->tagname);
                 }
                 if ( tag->parentcdata ) {
@@ -1208,6 +1263,7 @@ void free_gpx_extras( xml_tag *tag )
         }
 }
 
+#if ROADMAP_UNNEEDED
 /*
  * Handle the grossness of GPX 1.0 vs. 1.1 handling of linky links.
  */
@@ -1234,7 +1290,9 @@ write_gpx_url( FILE *ofd, const waypoint *waypointp)
                 xfree(tmp_ent);
         }
 }
+#endif // ROADMAP_UNNEEDED
 
+#if ROADMAP_UNNEEDED
 /*
  * Write optional accuracy information for a given (way|track|route)point
  * to the output stream.  Done in one place since it's common for all three.
@@ -1282,6 +1340,7 @@ gpx_write_common_acc( FILE *ofd, const waypoint *waypointp, const char *indent)
                 fprintf(ofd, "%s<pdop>%f</pdop>\n", indent, waypointp->pdop);
         }
 }
+#endif
 
 static void
 gpx_write_common_position( FILE *ofd, const waypoint *waypointp,
@@ -1306,8 +1365,10 @@ gpx_write_common_description( FILE *ofd, const waypoint *waypointp,
                 write_xml_entity(ofd, indent, "desc", waypointp->notes);
         else
                 write_optional_xml_entity(ofd, indent, "desc", waypointp->description);
+#if ROADMAP_UNNEEDED
         write_gpx_url(ofd, waypointp);
         write_optional_xml_entity(ofd, indent , "sym", waypointp->icon_descr);
+#endif
 }
 
 static void
@@ -1338,11 +1399,13 @@ gpx_waypt_pr(const waypoint *waypointp)
 
         gpx_write_common_position(cb_file, waypointp, "  ");
         gpx_write_common_description(cb_file, waypointp, "  ", oname);
+#if ROADMAP_UNNEEDED
         gpx_write_common_acc(cb_file, waypointp, "  ");
+#endif
 
         fs_gpx = (fs_xml *)fs_chain_find( waypointp->fs, FS_GPX );
         if ( fs_gpx ) {
-                fprint_xml_chain(cb_file, fs_gpx->tag, waypointp );
+                fprint_xml_chain(cb_file, fs_gpx->tag, waypointp, 2 );
         }
         fprintf(cb_file, "</wpt>\n");
 }
@@ -1362,7 +1425,7 @@ gpx_track_hdr(const route_head *rte)
 
         fs_gpx = (fs_xml *)fs_chain_find( rte->fs, FS_GPX );
         if ( fs_gpx ) {
-                fprint_xml_chain(cb_file, fs_gpx->tag, NULL );
+                fprint_xml_chain(cb_file, fs_gpx->tag, NULL, 1 );
         }
 }
 
@@ -1396,11 +1459,13 @@ gpx_trkpt_disp(const waypoint *waypointp)
         gpx_write_common_description(cb_file, waypointp, "  ", 
                 waypointp->wpt_flags.shortname_is_synthetic ? 
                         NULL : waypointp->shortname);
+#if ROADMAP_UNNEEDED
         gpx_write_common_acc(cb_file, waypointp, "  ");
+#endif
 
         fs_gpx = (fs_xml *)fs_chain_find( waypointp->fs, FS_GPX );
         if ( fs_gpx ) {
-                fprint_xml_chain(cb_file, fs_gpx->tag, waypointp );
+                fprint_xml_chain(cb_file, fs_gpx->tag, waypointp, 2 );
         }
 
         fprintf(cb_file, "</trkpt>\n");
@@ -1427,7 +1492,7 @@ gpx_route_hdr(const route_head *rte)
 
         fs_gpx = (fs_xml *)fs_chain_find( rte->fs, FS_GPX );
         if ( fs_gpx ) {
-                fprint_xml_chain(cb_file, fs_gpx->tag, NULL );
+                fprint_xml_chain(cb_file, fs_gpx->tag, NULL, 2 );
         }
 }
 
@@ -1445,11 +1510,13 @@ gpx_rtept_disp(const waypoint *waypointp)
         gpx_write_common_description(cb_file, waypointp, "    ",
                 waypointp->wpt_flags.shortname_is_synthetic ? 
                         NULL : waypointp->shortname);
+#if ROADMAP_UNNEEDED
         gpx_write_common_acc(cb_file, waypointp, "    ");
+#endif
 
         fs_gpx = (fs_xml *)fs_chain_find( waypointp->fs, FS_GPX );
         if ( fs_gpx ) {
-                fprint_xml_chain(cb_file, fs_gpx->tag, waypointp );
+                fprint_xml_chain(cb_file, fs_gpx->tag, waypointp, 2 );
         }
 
         fprintf(cb_file, "  </rtept>\n");

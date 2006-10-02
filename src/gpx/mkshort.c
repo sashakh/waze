@@ -472,6 +472,7 @@ mkshort(short_handle h, const char *istring)
 char *
 mkshort_from_wpt(short_handle h, const waypoint *wpt)
 {
+#if ROADMAP_UNNEEDED
         /* This probably came from a Groundspeak Pocket Query
          * so use the 'cache name' instead of the description field
          * which contains placer name, diff, terr, and generally way
@@ -481,6 +482,7 @@ mkshort_from_wpt(short_handle h, const waypoint *wpt)
                 wpt->notes && wpt->notes[0]) {
                 return mkshort(h, wpt->notes);
         }
+#endif
 
         if (wpt->description) {
                 return mkshort(h, wpt->description);

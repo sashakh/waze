@@ -56,11 +56,16 @@
 #  define NORETURN void
 #endif
 
+/* Short or Long XML Times */
+#define XML_SHORT_TIME 1
+#define XML_LONG_TIME 2
+
 /*
  * Common definitions.   There should be no protocol or file-specific
  * data in this file.
  */
 
+#if ROADMAP_UNNEEDED
 typedef enum {
         fix_unknown=-1,
         fix_none=0,
@@ -69,11 +74,6 @@ typedef enum {
         fix_dgps,
         fix_pps
 } fix_type;
-
-
-/* Short or Long XML Times */
-#define XML_SHORT_TIME 1
-#define XML_LONG_TIME 2
 
 /*
  * Extended data if waypoint happens to represent a geocache.  This is 
@@ -123,6 +123,7 @@ typedef struct {
         utf_string desc_short;
         utf_string desc_long; 
 } geocache_data ;
+#endif // ROADMAP_UNNEEDED
 
 typedef struct xml_tag {
         char *tagname;
@@ -169,7 +170,6 @@ fs_xml *fs_xml_alloc( long type );
  * Misc bitfields inside struct waypoint;
  */
 typedef struct {
-        unsigned int icon_descr_is_dynamic:1; 
         unsigned int shortname_is_synthetic:1;
 } wp_flags;
 
@@ -193,29 +193,11 @@ typedef struct {
 typedef struct {
         queue Q;                        /* Master waypoint q.  Not for use
                                            by modules. */
-
         /*
          * RoadMap's representation of lat/long position.
          */
         RoadMapPosition pos;
 
-        double altitude;                /* Meters. */
-
-#if NEEDED
-        /* 
-         * The "thickness" of a waypoint; adds an element of 3D.  Can be
-         * used to construct rudimentary polygons for, say, airspace 
-         * definitions.   The units are meters.
-         */
-        double depth;
-
-        /*
-         * An alarm trigger value that can be considered to be a circle
-         * surrounding a waypoint (or cylinder if depth is also defined).
-         * The units are meters.
-         */
-        double proximity;
-#endif
 
         /* shortname is a waypoint name as stored in receiver.  It should
          * strive to be, well, short, and unique.   Enforcing length and
@@ -223,41 +205,42 @@ typedef struct {
          * minimum length for shortname is 6 characters for NMEA units,
          * 8 for Magellan and 10 for Vista.   These are only guidelines.
          */
-        char *shortname;         
+        char *shortname;
+
+        time_t creation_time;   /* standardized in UTC/GMT */
+
+        wp_flags wpt_flags;
+
+	/* track information -- these three are usually only present
+	 * for data gathered "on the go".
+	 */
+        double altitude;                /* Meters. */
+        float speed;    /* Optional: meters per second. */
+        float course;   /* Optional: degrees true */
+
         /*
          * description is typically a human readable description of the 
          * waypoint.   It may be used as a comment field in some receivers.
          * These are probably under 40 bytes, but that's only a guideline.
+	 * This text comes from the GPX <cmt> tag, and may be sent to
+	 * the GPS unit.
          */
         char *description;
+
         /*
          * notes are relatively long - over 100 characters - prose associated
          * with the above.   Unlike shortname and description, these are never
          * used to compute anything else and are strictly "passed through".
-         * Few formats support this.
+         * This text comes from the GPX <desc> tag, and is strictly for
+	 * the user.  RoadMap currently doesn't use this.
          */
         char *notes;
+
+#if ROADMAP_UNNEEDED
+        const char *icon_descr;
+
         char *url;
         char *url_link_text;
-
-        wp_flags wpt_flags;
-        const char *icon_descr;
-        time_t creation_time;   /* standardized in UTC/GMT */
-#if NEEDED
-        int centiseconds;       /* Optional hundredths of a second. */
-        
-        /*
-         * route priority is for use by the simplify filter.  If we have
-         * some reason to believe that the route point is more important,
-         * we can give it a higher (numerically; 0 is the lowest) priority.
-         * This causes it to be removed last.
-         * This is currently used by the saroute input filter to give named
-         * waypoints (representing turns) a higher priority.
-         * This is also used by the google input filter because they were
-         * nice enough to use exactly the same priority scheme.
-         */
-        int route_priority;
-#endif
 
         /* Optional dilution of precision:  positional, horizontal, veritcal.  
          * 1 <= dop <= 50 
@@ -265,19 +248,14 @@ typedef struct {
         float hdop;             
         float vdop;             
         float pdop;             
-        float course;   /* Optional: degrees true */
-        float speed;    /* Optional: meters per second. */
+
         fix_type fix;   /* Optional: 3d, 2d, etc. */
         int  sat;       /* Optional: number of sats used for fix */
 
-#if NEEDED
-        int heartrate;   /* Beats per minute: likely to get moved to fs. */
-#endif
         geocache_data gc_data;
-        format_specific_data *fs;
-#if NEEDED
-        void *extra_data;       /* Extra data added by, say, a filter. */
 #endif
+
+        format_specific_data *fs;
 } waypoint;
 
 typedef struct {
