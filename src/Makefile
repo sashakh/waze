@@ -54,6 +54,7 @@ RMGUISRCS=roadmap_sprite.c \
 	roadmap_trip.c \
 	roadmap_track.c \
 	roadmap_landmark.c \
+	roadmap_features.c \
 	roadmap_layer.c \
 	roadmap_fuzzy.c \
 	roadmap_navigate.c \
