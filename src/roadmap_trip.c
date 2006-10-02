@@ -998,11 +998,17 @@ static void roadmap_trip_clear (void) {
 }
 
 waypoint * roadmap_trip_new_waypoint
+#if USE_ICON_NAME
         (const char *name, RoadMapPosition * position, const char *sprite) {
+#else
+        (const char *name, RoadMapPosition * position) {
+#endif
     waypoint *w;
     w = waypt_new ();
     if (name) w->shortname = xstrdup (name);
+#if USE_ICON_NAME
     if (sprite) w->icon_descr = xstrdup(sprite);
+#endif
     w->pos = *position;
     w->creation_time = time(NULL);
     return w;
@@ -1106,7 +1112,7 @@ static waypoint *roadmap_trip_last_setpoint_waypoint(void)
     name = roadmap_trip_last_setpoint_name();
 
     return roadmap_trip_new_waypoint
-        (name, &RoadMapTripLastSetPoint->map, NULL);
+        (name, &RoadMapTripLastSetPoint->map);
 
 }
 
@@ -1173,7 +1179,7 @@ void roadmap_trip_add_waypoint
         return;  /* shouldn't happen */
     }
 
-    waypointp = roadmap_trip_new_waypoint (name, position, NULL);
+    waypointp = roadmap_trip_new_waypoint (name, position);
     switch (where) {
     case PLACE_ROUTE_MARK_START:
         /* becomes the new starting point. */
@@ -1495,6 +1501,11 @@ void roadmap_trip_route_start (void) {
 void roadmap_trip_route_resume (void) {
 
     if (RoadMapCurrentRoute == NULL) {
+        /* convenient side effect.  if there _is_ a route, the code
+         * below forces GPS to be centered.  so may as well do that
+         * when there isn't a route too.  saves key bindings.
+         */
+        roadmap_trip_set_focus ("GPS");
         return;
     }
 
@@ -1733,7 +1744,8 @@ void roadmap_trip_format_messages (void) {
 
 static void roadmap_trip_standalone_waypoint_draw(const waypoint *waypointp)
 {
-    roadmap_landmark_draw_waypoint (waypointp, "TripLandmark");
+    roadmap_landmark_draw_waypoint
+        (waypointp, "TripLandmark", 0, RoadMapLandmarksPen);
 }
 
 static int RoadMapTripFirstRoutePoint;
@@ -2356,3 +2368,44 @@ void roadmap_trip_currenttrack_to_track (void) {
 
 }
 
+
+#if WGET_GOOGLE_ROUTE
+/* for fun -- should be cleaned up.  given a route with just
+ * start and a dest, query google for the driving directions
+ * between those endpoints, and populate a new route with the
+ * result.  */
+void roadmap_trip_replace_with_google_route(void) {
+
+
+    char cmdbuf[256];
+    int ret;
+
+    if ( RoadMapCurrentRoute == NULL ||
+        RoadMapCurrentRoute->rte_waypt_ct != 2 ) {
+        return;
+    }
+
+#define FLT_FMT "%0.6lf" 
+#define to_float(x) ((double)((x) / 1000000.0))
+
+    snprintf(cmdbuf, sizeof(cmdbuf), 
+        "wget -O - 'http://maps.google.com/maps?q=" FLT_FMT "," FLT_FMT
+           " to " FLT_FMT "," FLT_FMT "&output=js' 2>/dev/null  |"
+            "gpsbabel -r -i google -f - "
+            "-x simplify,error=0.05 -o gpx "
+            "-F %s/getroute.gpx",
+            RoadMapTripStart->pos.latitude / 1000000.0,
+            RoadMapTripStart->pos.longitude / 1000000.0,
+            RoadMapTripDest->pos.latitude / 1000000.0,
+            RoadMapTripDest->pos.longitude / 1000000.0,
+            roadmap_path_trips ());
+
+    ret = system(cmdbuf);
+
+    if (ret < 0)
+        return;
+
+    roadmap_trip_load_file ("getroute.gpx", 0, 1);
+
+}
+#endif

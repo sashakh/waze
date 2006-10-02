@@ -92,5 +92,9 @@ void roadmap_trip_currenttrack_to_track (void);
 
 void roadmap_trip_insert_routepoint_best(void);
 
+#if WGET_GOOGLE_ROUTE
+void roadmap_trip_replace_with_google_route(void);
+#endif
+
 #endif // INCLUDE__ROADMAP_TRIP__H
 
