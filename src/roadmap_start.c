@@ -59,7 +59,7 @@
 #include "roadmap_trip.h"
 #include "roadmap_track.h"
 #include "roadmap_landmark.h"
-// #include "roadmap_features.h"
+#include "roadmap_features.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
 #include "roadmap_fuzzy.h"
@@ -496,6 +496,12 @@ static RoadMapAction RoadMapStartActions[] = {
       "Start new route using last selected street or place",
       roadmap_start_create_route},
 
+#if WGET_GOOGLE_ROUTE
+   {"getgoogleroute", "Fetch route from google", NULL, NULL,
+      "Fetch google route for current route's start/dest",
+        roadmap_trip_replace_with_google_route},
+#endif
+
    {"setasdestination", "Goto selection", NULL, NULL,
       "Show distance and direction to the last selected street or place",
       roadmap_trip_set_as_destination},
@@ -637,6 +643,7 @@ static const char *RoadMapStartMenu[] = {
    "createroute",
    "setasdestination",
    "allroutetoggle", 
+   "getgoogleroute", 
 
    ROADMAP_MENU "Places",
 
@@ -707,6 +714,8 @@ static char const *RoadMapStartKeyBinding[] = {
    "Button-Right"    ROADMAP_MAPPED_TO "right",
    "Button-Up"       ROADMAP_MAPPED_TO "up",
    "Button-Down"     ROADMAP_MAPPED_TO "down",
+
+   "Enter"           ROADMAP_MAPPED_TO "resumeroute",
 
    /* These binding are for the iPAQ buttons: */
    "Button-Menu"     ROADMAP_MAPPED_TO "zoom1",
@@ -1011,7 +1020,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_trip_initialize     ();
    roadmap_track_initialize    ();
    roadmap_landmark_initialize ();
-   // roadmap_features_initialize ();
+   roadmap_features_initialize ();
    roadmap_pointer_initialize  ();
    roadmap_screen_initialize   ();
    roadmap_fuzzy_initialize    ();
@@ -1060,7 +1069,7 @@ void roadmap_start (int argc, char **argv) {
 #ifdef ROADMAP_USES_EXPAT
    roadmap_track_autoload ();
    roadmap_landmark_load ();
-   // roadmap_features_load ();
+   roadmap_features_load ();
 #endif
 
    roadmap_spawn_initialize (argv[0]);
