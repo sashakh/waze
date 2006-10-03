@@ -96,6 +96,10 @@ RoadMapListItem *roadmap_list_remove(RoadMapListItem *item);
 /* Returns the number of elements in a list */
 int roadmap_list_count(const RoadMapList *list);
 
+/* Sorts the elements in a list */
+void roadmap_list_sort
+    (RoadMapList *lh, int (*cmp)(RoadMapListItem *, RoadMapListItem *));
+
 /* Inline functions (not macros) to help enforce type safety. */
 static inline void roadmap_list_append(RoadMapList *lh, RoadMapListItem *e) {
         roadmap_list_enqueue(e, (RoadMapListItem *)lh->list_last);
