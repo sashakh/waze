@@ -643,7 +643,9 @@ static const char *RoadMapStartMenu[] = {
    "createroute",
    "setasdestination",
    "allroutetoggle", 
+#if WGET_GOOGLE_ROUTE
    "getgoogleroute", 
+#endif
 
    ROADMAP_MENU "Places",
 
