@@ -179,6 +179,10 @@ void roadmap_landmark_save(void) {
 
 }
 
+static int alpha_waypoint_cmp( RoadMapListItem *a, RoadMapListItem *b) {
+    return strcasecmp(((waypoint *)a)->shortname, ((waypoint *)b)->shortname);
+}
+
 static void roadmap_landmark_merge_file(const char *name) {
 
     const char *trip_path = NULL;
@@ -201,6 +205,8 @@ static void roadmap_landmark_merge_file(const char *name) {
     }
 
     ROADMAP_LIST_SPLICE(&RoadMapLandmarkHead, &tmp_waypoint_list);
+
+    roadmap_list_sort(&RoadMapLandmarkHead, alpha_waypoint_cmp);
 
     RoadMapLandmarkModified = 1;
     RoadMapLandmarkRefresh = 1;
@@ -259,6 +265,8 @@ void roadmap_landmark_load(void) {
     waypt_flush_queue (&RoadMapLandmarkHead);
 
     ROADMAP_LIST_MOVE(&RoadMapLandmarkHead, &tmp_waypoint_list);
+
+    roadmap_list_sort(&RoadMapLandmarkHead, alpha_waypoint_cmp);
 
     RoadMapLandmarkModified = 0;
     RoadMapLandmarkRefresh = 1;

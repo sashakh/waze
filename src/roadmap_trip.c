@@ -2008,7 +2008,9 @@ static void roadmap_trip_file_merge_dialog (const char *mode) {
                                mode, roadmap_trip_file_merge_dialog_ok);
 }
 
-
+static int alpha_waypoint_cmp( RoadMapListItem *a, RoadMapListItem *b) {
+    return strcasecmp(((waypoint *)a)->shortname, ((waypoint *)b)->shortname);
+}
 
 static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
@@ -2073,6 +2075,7 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
         roadmap_trip_set_modified(0);
     }
 
+    roadmap_list_sort(&RoadMapTripWaypointHead, alpha_waypoint_cmp);
 
     RoadMapCurrentRoute = NULL;
 
