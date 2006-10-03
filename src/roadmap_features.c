@@ -39,6 +39,7 @@
 
 static struct {
     RoadMapList head;
+    RoadMapListItem *southern;
     RoadMapPen pen;
     char * sprite;
     int declutter;
@@ -79,14 +80,45 @@ static void roadmap_features_find_bounds(const waypoint *w) {
 
 void roadmap_features_display (void) {
 
+    RoadMapListItem *southern, *w;
+    RoadMapArea screen;
+
+    roadmap_math_screen_edges (&screen);
+
     for (RoadMapFeatureList = RoadMapFeatureLists;
           ROADMAP_LIST_FIRST(&RoadMapFeatureList->head) != NULL;
           RoadMapFeatureList++) {
 
-        if (roadmap_math_is_visible (&RoadMapFeatureList->area))
-            waypt_iterator (&RoadMapFeatureList->head, roadmap_features_draw);
+        if (!roadmap_math_is_visible (&RoadMapFeatureList->area))
+            continue;
+
+        southern = RoadMapFeatureList->southern;
+
+        if (!southern) {
+            southern = ROADMAP_LIST_FIRST(&RoadMapFeatureList->head);
+        }
+
+        /* Assumes there are out-of-range "flag" waypoints at the 
+         * start and end of the list */
+        while (((waypoint *)southern)->pos.latitude >=
+                            screen.south)
+            southern = ROADMAP_LIST_PREV(southern);
+        while (((waypoint *)southern)->pos.latitude <
+                            screen.south)
+            southern = ROADMAP_LIST_NEXT(southern);
+
+        RoadMapFeatureList->southern = southern;
+        w = southern;
+        while (((waypoint *)w)->pos.latitude < screen.north) {
+            roadmap_features_draw((waypoint *)w);
+            w = ROADMAP_LIST_NEXT(w);
+        }
     }
 
+}
+
+static int latitude_waypoint_cmp( RoadMapListItem *a, RoadMapListItem *b) {
+    return ((waypoint *)a)->pos.latitude - ((waypoint *)b)->pos.latitude;
 }
 
 void roadmap_features_load(void) {
@@ -145,10 +177,16 @@ void roadmap_features_load(void) {
             continue;
         }
 
+        if (ROADMAP_LIST_EMPTY(&tmp_waypoint_list)) {
+            continue;
+        }
+
         ROADMAP_LIST_INIT(&RoadMapFeatureList->head);
 
         ROADMAP_LIST_MOVE
             (&RoadMapFeatureList->head, &tmp_waypoint_list);
+
+        roadmap_list_sort(&RoadMapFeatureList->head, latitude_waypoint_cmp);
 
         /* default sprite and label pen */
         RoadMapFeatureList->sprite = "PointOfInterest";
@@ -217,14 +255,33 @@ void roadmap_features_load(void) {
     for (RoadMapFeatureList = RoadMapFeatureLists;
           ROADMAP_LIST_FIRST(&RoadMapFeatureList->head) != NULL;
           RoadMapFeatureList++) {
+
+        waypoint *wpt;
+
+        /* Calculate the list's bounding box
+         * (since the list is sorted and we check latitude that way,
+         * we don't really need the whole bounding box, but it's
+         * simpler just to do all four sides the same.)
+         */
+
         RoadMapFeatureList->area.west =  181 * 1000000;
         RoadMapFeatureList->area.east = -181 * 1000000;
         RoadMapFeatureList->area.north = -91 * 1000000;
         RoadMapFeatureList->area.south =  91 * 1000000;
         waypt_iterator
             (&RoadMapFeatureList->head, roadmap_features_find_bounds);
-    }
 
+        /* Insert out-of-range waypoints at front and rear, to make
+         * search algorithm simpler */
+        wpt = waypt_new();
+        wpt->pos.latitude =  -91 * 1000000;
+        roadmap_list_insert(&RoadMapFeatureList->head, &(wpt->Q));
+
+        wpt = waypt_new();
+        wpt->pos.latitude =  91 * 1000000;
+        roadmap_list_append(&RoadMapFeatureList->head, &(wpt->Q));
+
+    }
 
 }
 
