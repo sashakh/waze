@@ -882,7 +882,10 @@ gpx_end(void *data, const char *el)
         case tt_wpt_ele:
         case tt_rte_rtept_ele:
         case tt_trk_trkseg_trkpt_ele:
-                sscanf(cdatastrp, "%lf", &wpt_tmp->altitude);
+                {   double dalt;
+                    sscanf(cdatastrp, "%lf", &dalt);
+                    wpt_tmp->altitude = dalt * 1000.0;
+                }
                 break;
         case tt_wpt_name:
         case tt_rte_rtept_name:
@@ -1178,7 +1181,7 @@ static void
 fprint_tag_and_attrs( FILE *ofd, char *prefix, char *suffix, xml_tag *tag, int indent )
 {
         char **pa;
-	while (indent--) fputc(' ', ofd);
+        while (indent--) fputc(' ', ofd);
         fprintf( ofd, "%s%s", prefix, tag->tagname );
         pa = tag->attributes;
         if ( pa ) {
@@ -1194,9 +1197,9 @@ static void
 fprint_xml_chain( FILE *ofd, xml_tag *tag, const waypoint *wpt, int indent) 
 {
         char *tmp_ent;
-	int i;
+        int i;
         while ( tag ) {
-		i = indent;
+                i = indent;
                 if ( !tag->cdata && !tag->child ) {
                         fprint_tag_and_attrs(ofd, "<", " />", tag, i );
                 }
@@ -1210,7 +1213,7 @@ fprint_xml_chain( FILE *ofd, xml_tag *tag, const waypoint *wpt, int indent)
                         }
                         if ( tag->child ) {
                                 fprint_xml_chain(ofd, tag->child, wpt, i+1);
-				while (i--) fputc(' ', ofd);
+                                while (i--) fputc(' ', ofd);
                         }
 #if ROADMAP_UNNEEDED
                         if ( wpt && wpt->gc_data.exported &&
@@ -1348,7 +1351,7 @@ gpx_write_common_position( FILE *ofd, const waypoint *waypointp,
 {
         if (waypointp->altitude != unknown_alt) {
                 fprintf(ofd, "%s<ele>%f</ele>\n",
-                         indent, waypointp->altitude);
+                         indent, ((double)(waypointp->altitude))/1000.0);
         }
         if (waypointp->creation_time) {
                 xml_write_time(ofd, waypointp->creation_time, indent, "time");

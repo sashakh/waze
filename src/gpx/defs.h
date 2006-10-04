@@ -211,10 +211,10 @@ typedef struct {
 
         wp_flags wpt_flags;
 
-	/* track information -- these three are usually only present
-	 * for data gathered "on the go".
-	 */
-        double altitude;                /* Meters. */
+        /* track information -- these three are usually only present
+         * for data gathered "on the go".
+         */
+        int altitude;   /* centimeters */
         float speed;    /* Optional: meters per second. */
         float course;   /* Optional: degrees true */
 
@@ -222,8 +222,8 @@ typedef struct {
          * description is typically a human readable description of the 
          * waypoint.   It may be used as a comment field in some receivers.
          * These are probably under 40 bytes, but that's only a guideline.
-	 * This text comes from the GPX <cmt> tag, and may be sent to
-	 * the GPS unit.
+         * This text comes from the GPX <cmt> tag, and may be sent to
+         * the GPS unit.
          */
         char *description;
 
@@ -232,7 +232,7 @@ typedef struct {
          * with the above.   Unlike shortname and description, these are never
          * used to compute anything else and are strictly "passed through".
          * This text comes from the GPX <desc> tag, and is strictly for
-	 * the user.  RoadMap currently doesn't use this.
+         * the user.  RoadMap currently doesn't use this.
          */
         char *notes;
 
@@ -458,6 +458,6 @@ char * xml_entitize(const char * str);
  * A constant for unknown altitude.   It's tempting to just use zero
  * but that's not very nice for the folks near sea level.
  */
-#define unknown_alt -99999999.0
+#define unknown_alt 999999999
 
 #endif /* gpsbabel_defs_h_included */

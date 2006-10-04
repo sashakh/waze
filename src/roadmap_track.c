@@ -72,8 +72,8 @@ static void roadmap_track_add_trackpoint ( int gps_time,
     w->pos.latitude = gps_position->latitude;
     w->pos.longitude = gps_position->longitude;
 
-    /* Change whatever we have to meters. */
-    w->altitude = roadmap_math_to_cm (gps_position->altitude) / 100.0;
+    /* Change whatever we have to millimeters. */
+    w->altitude = roadmap_math_to_cm (gps_position->altitude) * 10;
 
     /* We have knots, but want meters per second. */
     w->speed = gps_position->speed / 1.94384449;
