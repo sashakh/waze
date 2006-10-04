@@ -67,6 +67,16 @@ static void roadmap_features_draw(const waypoint *w) {
 
 static void roadmap_features_find_bounds(const waypoint *w) {
 
+    /* some US placename files have historical places listed
+     * with the long/lat zeroed out.  they really throw off
+     * any efficiency we get from our bounding boxes.
+     */
+    if (w->pos.longitude == 0 && w->pos.latitude == 0) {
+        waypt_del ((waypoint *)w);   /* drop const -- this is safe */
+        waypt_free ((waypoint *)w);
+        return;
+    }
+
     if (w->pos.longitude > RoadMapFeatureList->area.east)
         RoadMapFeatureList->area.east = w->pos.longitude;
     if (w->pos.longitude < RoadMapFeatureList->area.west)
@@ -272,7 +282,8 @@ void roadmap_features_load(void) {
             (&RoadMapFeatureList->head, roadmap_features_find_bounds);
 
         /* Insert out-of-range waypoints at front and rear, to make
-         * search algorithm simpler */
+         * the search algorithm simpler.
+         */
         wpt = waypt_new();
         wpt->pos.latitude =  -91 * 1000000;
         roadmap_list_insert(&RoadMapFeatureList->head, &(wpt->Q));
