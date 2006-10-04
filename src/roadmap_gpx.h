@@ -29,9 +29,9 @@
 # include "gpx/defs.h"
 
 int roadmap_gpx_read_file
-        (const char *path, const char *name, RoadMapList *w, RoadMapList *r, RoadMapList *t);
+        (const char *path, const char *name, RoadMapList *w, int wee, RoadMapList *r, RoadMapList *t);
 int roadmap_gpx_read_waypoints
-        (const char *path, const char *name, RoadMapList *waypoints);
+        (const char *path, const char *name, RoadMapList *waypoints, int wee);
 int roadmap_gpx_read_one_track
         ( const char *path, const char *name, route_head **track);
 int roadmap_gpx_read_one_route

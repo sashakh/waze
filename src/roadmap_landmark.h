@@ -37,6 +37,8 @@ int roadmap_landmark_is_refresh_needed (void);
 void roadmap_landmark_draw_waypoint
         (const waypoint *waypointp, const char *sprite,
                 int override_sprite, RoadMapPen pen);
+void roadmap_landmark_draw_weepoint
+        (const weepoint *weepointp, const char *sprite, RoadMapPen pen);
 
 RoadMapPen RoadMapLandmarksPen;
 

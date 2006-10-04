@@ -258,6 +258,20 @@ typedef struct {
         format_specific_data *fs;
 } waypoint;
 
+/*
+ * Smaller version of the waypoint structure with minimal
+ * attributes.  Used only for the read-only feature lists.  If
+ * something like this were used for standard waypoints, we'd
+ * risk losing data when reading from and then writing back to an
+ * XML file -- the full waypoint structure has the ability to
+ * preserve any XML data we don't specifically use or support.
+ */
+typedef struct {
+        queue Q;
+        RoadMapPosition pos;
+        char *name;
+} weepoint;
+
 typedef struct {
         queue Q;                /* Link onto parent list. */
         queue_head waypoint_list;    /* List of child waypoints */
@@ -278,6 +292,10 @@ typedef struct {
         int min_lat;
         int min_lon;
 } bounds;
+
+void weept_add (queue_head *q, weepoint *);
+weepoint * weept_new(void);
+void weept_free (weepoint *);
 
 typedef void (*waypt_cb) (const waypoint *);
 typedef void (*route_hdr)(const route_head *);
@@ -410,7 +428,7 @@ NORETURN fatal(const char *, ...) PRINTFLIKE(1, 2);
 void warning(const char *, ...) PRINTFLIKE(1, 2);
 
 int gpx_write( FILE *ofd, queue_head *w, queue_head *r, queue_head *t);
-int gpx_read(FILE *ifile, queue_head *w, queue_head *r, queue_head *t);
+int gpx_read(FILE *ifile, queue_head *w, int wee, queue_head *r, queue_head *t);
 time_t xml_parse_time( const char *cdatastr );
 
 

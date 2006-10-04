@@ -77,10 +77,11 @@ waypt_dupe(const waypoint *wpt)
         return tmp;
 }
 
+static int waypt_index;
+
 void
 waypt_add(queue_head *qh, waypoint *wpt)
 {
-        static int waypt_index;
         ENQUEUE_TAIL(qh, &wpt->Q);
         waypt_index++;
 
@@ -112,6 +113,19 @@ waypt_add(queue_head *qh, waypoint *wpt)
 }
 
 void
+weept_add(queue_head *qh, weepoint *wpt)
+{
+        ENQUEUE_TAIL(qh, &wpt->Q);
+        waypt_index++;
+
+        if (*wpt->name == '\0') {
+                char cbuf[10];
+                snprintf(cbuf, sizeof(cbuf), "WPT%03d", waypt_index);
+                wpt->name = xstrdup(cbuf);
+        }
+}
+
+void
 waypt_del(waypoint *wpt)
 {
         roadmap_list_remove(&wpt->Q);
@@ -135,6 +149,12 @@ waypt_new(void)
 #endif
 
         return wpt;
+}
+
+weepoint *
+weept_new(void)
+{
+        return (weepoint *) xcalloc(sizeof (weepoint), 1);
 }
 
 void
@@ -269,6 +289,16 @@ waypt_free( waypoint *wpt )
         } 
 #endif
         fs_chain_destroy( wpt->fs );
+        xfree(wpt);     
+}
+
+void 
+weept_free( weepoint *wpt )
+{
+        if (wpt->name) {
+                xfree(wpt->name);
+        }
+
         xfree(wpt);     
 }
 

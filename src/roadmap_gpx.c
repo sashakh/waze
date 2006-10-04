@@ -57,7 +57,7 @@ void warning (const char *fmt, ...) {
 
 int
 roadmap_gpx_read_file(const char *path,
-        const char *name, queue_head *w, queue_head *r, queue_head *t)
+        const char *name, queue_head *w, int wee, queue_head *r, queue_head *t)
 {
 
     queue *elem, *tmp;
@@ -67,7 +67,7 @@ roadmap_gpx_read_file(const char *path,
     ifile = roadmap_file_fopen (path, name, "r");
     if (!ifile) return 0;
 
-    ret = gpx_read(ifile, w, r, t);
+    ret = gpx_read(ifile, w, wee, r, t);
 
     if (t) {
         QUEUE_FOR_EACH (t, elem, tmp) {
@@ -81,13 +81,14 @@ roadmap_gpx_read_file(const char *path,
     return ret;
 }
 
+/* read a list of waypoints (or optionally, weepoints) from a file */
 int
 roadmap_gpx_read_waypoints
-        (const char *path, const char *name, queue_head *waypoints)
+        (const char *path, const char *name, queue_head *waypoints, int wee)
 {
     int ret;
 
-    ret = roadmap_gpx_read_file(path, name, waypoints, NULL, NULL);
+    ret = roadmap_gpx_read_file(path, name, waypoints, wee, NULL, NULL);
 
     return ret;
 
@@ -103,7 +104,7 @@ roadmap_gpx_read_one_track(
 
     QUEUE_INIT(&tracklist);
 
-    ret = roadmap_gpx_read_file(path, name, NULL, NULL, &tracklist);
+    ret = roadmap_gpx_read_file(path, name, NULL, 0, NULL, &tracklist);
 
     if (!ret || QUEUE_EMPTY(&tracklist)) {
         route_flush_queue(&tracklist);
@@ -134,7 +135,7 @@ roadmap_gpx_read_one_route(
 
     QUEUE_INIT(&routelist);
 
-    ret = roadmap_gpx_read_file(path, name, NULL, &routelist, NULL);
+    ret = roadmap_gpx_read_file(path, name, NULL, 0, &routelist, NULL);
 
     if (!ret || QUEUE_EMPTY(&routelist))
         return 0;
@@ -170,6 +171,7 @@ roadmap_gpx_write_file(const char *path, const char *name,
     return ret;
 }
 
+/* write a file of waypoints.  weepoints cannot be written */
 int roadmap_gpx_write_waypoints(const char *path, const char *name,
         queue_head *waypoints)
 {
@@ -244,7 +246,7 @@ static void roadmap_gpx_tell_no_expat (void) {
 
 int
 roadmap_gpx_read_file(const char *path,
-        const char *name, queue *w, queue *r, queue *t)
+        const char *name, queue *w, int wee, queue *r, queue *t)
 {
     roadmap_gpx_tell_no_expat ();
     return 0;

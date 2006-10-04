@@ -43,6 +43,8 @@ static int gpx_wversion_num;
 static const char *gpx_creator;
 static char *xsi_schema_loc = NULL;
 
+static int reading_weepoints;
+
 static int gpx_synthesize_shortnames = 0;
 
 static char *gpx_charset_name = "US-ASCII";
@@ -757,10 +759,22 @@ gpx_end(void *data, const char *el)
                 break;
 #endif // ROADMAP_UNNEEDED
         case tt_wpt:
-                if (doing_no_waypoints)
+                if (doing_no_waypoints) {
                     waypt_free(wpt_tmp);
-                else
+                } else if (reading_weepoints) {
+                    /* copy the minimal info from waypoint to weepoint,
+                     * and discard the temporary waypoint
+                     */
+                    weepoint *weept = weept_new();
+                    weept->pos = wpt_tmp->pos;
+                    if (wpt_tmp->shortname) {
+                        weept->name = strdup(wpt_tmp->shortname);
+                    }
+                    weept_add(cur_waypoint_list, weept);
+                    waypt_free(wpt_tmp);
+                } else {
                     waypt_add(cur_waypoint_list, wpt_tmp);
+                }
                 logpoint_ct = 0;
                 cur_tag = NULL;
                 wpt_tmp = NULL;
@@ -974,28 +988,27 @@ gpx_cdata(void *dta, const XML_Char *s, int len)
         if (!cur_tag) 
                 return;
 
-                if ( cur_tag->child ) {
-                        tmp_tag = cur_tag->child;
-                        while ( tmp_tag->sibling ) {
-                                tmp_tag = tmp_tag->sibling;
-                        }
-                        cdata = &(tmp_tag->parentcdata);
-                        cdatalen = &(tmp_tag->parentcdatalen);
+        if ( cur_tag->child ) {
+                tmp_tag = cur_tag->child;
+                while ( tmp_tag->sibling ) {
+                        tmp_tag = tmp_tag->sibling;
                 }
-                else {
-                        cdata = &(cur_tag->cdata);
-                        cdatalen = &(cur_tag->cdatalen);
-                }
-                estr = *cdata;
-                *cdata = xcalloc( *cdatalen + len + 1, 1);
-                if ( estr ) {
-                        memcpy( *cdata, estr, *cdatalen);
-                        xfree( estr );
-                }
-                estr = *cdata + *cdatalen;
-                memcpy( estr, s, len );
-                *(estr+len) = '\0';
-                *cdatalen += len;
+                cdata = &(tmp_tag->parentcdata);
+                cdatalen = &(tmp_tag->parentcdatalen);
+        } else {
+                cdata = &(cur_tag->cdata);
+                cdatalen = &(cur_tag->cdatalen);
+        }
+        estr = *cdata;
+        *cdata = xcalloc( *cdatalen + len + 1, 1);
+        if ( estr ) {
+                memcpy( *cdata, estr, *cdatalen);
+                xfree( estr );
+        }
+        estr = *cdata + *cdatalen;
+        memcpy( estr, s, len );
+        *(estr+len) = '\0';
+        *cdatalen += len;
 }
 
 static void
@@ -1073,7 +1086,7 @@ gpx_read_post(void)
 }
 
 int
-gpx_read(FILE *ifile, queue_head *wq, queue_head *rq, queue_head *tq)
+gpx_read(FILE *ifile, queue_head *wq, int wee, queue_head *rq, queue_head *tq)
 {
         int len;
         int done = 0;
@@ -1084,6 +1097,7 @@ gpx_read(FILE *ifile, queue_head *wq, queue_head *rq, queue_head *tq)
         doing_no_waypoints = (wq == NULL);
         doing_no_routes = (rq == NULL);
         doing_no_tracks = (tq == NULL);
+        reading_weepoints = wee;
 
         cur_waypoint_list = wq;
         cur_route_list = rq;

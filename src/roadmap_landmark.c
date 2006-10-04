@@ -91,6 +91,41 @@ void roadmap_landmark_draw_waypoint
     }
 }
 
+void roadmap_landmark_draw_weepoint
+        (const weepoint *weepointp, const char *sprite, RoadMapPen pen) {
+
+    RoadMapGuiPoint guipoint;
+
+    if (!roadmap_math_point_is_visible (&weepointp->pos))
+        return;
+
+    if (!sprite && !pen)
+        return;  /* unlikely */
+
+    roadmap_math_coordinate (&weepointp->pos, &guipoint);
+    roadmap_math_rotate_coordinates (1, &guipoint);
+
+    if (sprite) {
+        roadmap_sprite_draw (sprite, &guipoint, 0);
+    }
+
+    if (pen) {
+        roadmap_canvas_select_pen (pen);
+        if (sprite)
+            guipoint.y += 15; /* space for sprite */
+
+        /* FIXME -- We should do label collision detection, which
+         * means joining in the fun in roadmap_label_add() and
+         * roadmap_label_draw_cache().  Landmark labels should
+         * probably take priority, and be positioned first.  They
+         * should probably be drawn last, however, so that their
+         * labels come out on "top" of other map features.
+         */
+        roadmap_label_draw_text(weepointp->name,
+           &guipoint, &guipoint, 0, 0, ROADMAP_LANDMARK_LABEL_SIZE);
+    }
+}
+
 static void roadmap_landmark_draw(const waypoint *waypointp) {
     roadmap_landmark_draw_waypoint
         (waypointp, "PersonalLandmark", 0, RoadMapLandmarksPen);
@@ -197,7 +232,7 @@ static void roadmap_landmark_merge_file(const char *name) {
 
     ROADMAP_LIST_INIT(&tmp_waypoint_list);
 
-    ret = roadmap_gpx_read_waypoints(trip_path, name, &tmp_waypoint_list);
+    ret = roadmap_gpx_read_waypoints(trip_path, name, &tmp_waypoint_list, 0);
 
     if (ret == 0) {
         waypt_flush_queue (&tmp_waypoint_list);
@@ -251,7 +286,7 @@ void roadmap_landmark_load(void) {
 
     ROADMAP_LIST_INIT(&tmp_waypoint_list);
 
-    ret = roadmap_gpx_read_waypoints(path, name, &tmp_waypoint_list);
+    ret = roadmap_gpx_read_waypoints(path, name, &tmp_waypoint_list, 0);
 
     if (ret == 0) {
         waypt_flush_queue (&tmp_waypoint_list);

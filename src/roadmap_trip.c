@@ -2027,7 +2027,7 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
     ROADMAP_LIST_INIT(&tmp_route_list);
     ROADMAP_LIST_INIT(&tmp_track_list);
 
-    ret = roadmap_gpx_read_file (path, name, &tmp_waypoint_list,
+    ret = roadmap_gpx_read_file (path, name, &tmp_waypoint_list, 0,
             &tmp_route_list, &tmp_track_list);
 
     if (ret == 0) {
