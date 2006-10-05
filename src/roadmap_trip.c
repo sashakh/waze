@@ -61,6 +61,9 @@ static RoadMapConfigDescriptor RoadMapConfigTripName =
 static RoadMapConfigDescriptor RoadMapConfigTripRotate =
                         ROADMAP_CONFIG_ITEM("Display", "Rotate");
 
+static RoadMapConfigDescriptor RoadMapConfigTripShowInactiveRoutes =
+                        ROADMAP_CONFIG_ITEM("Trip", "Show Inactive Routes");
+
 static RoadMapConfigDescriptor RoadMapConfigTripShowRouteLines =
                         ROADMAP_CONFIG_ITEM("Trip", "Connect Route Points");
 
@@ -97,7 +100,7 @@ static int RoadMapTripFocusMoved = 1;
 
 static RoadMapPen RoadMapTripRouteLinesPen = NULL;
 static int RoadMapTripDrawingActiveRoute;
-static int RoadMapTripShowInactiveRoutes = 0;
+static int RoadMapTripShowInactiveRoutes;
 
 typedef struct roadmap_trip_focal {
 
@@ -1965,10 +1968,15 @@ void roadmap_trip_initialize (void) {
         ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
 
     roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigTripShowInactiveRoutes, "yes", "no", NULL);
+
+    roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigTripShowRouteLines, "yes", "no", NULL);
     roadmap_config_declare
        ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
 
+    RoadMapTripShowInactiveRoutes =
+	roadmap_config_match (&RoadMapConfigTripShowInactiveRoutes, "yes");
 
 }
 
