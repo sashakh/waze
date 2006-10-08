@@ -893,10 +893,10 @@ extern "C" {
 		}
 #endif
 
-#ifdef FREEMAP_IL      
+#ifdef FREEMAP_IL
       editor_main_check_map ();
       editor_main_set (1);
-#endif      
+#endif
    }
 	
 	
