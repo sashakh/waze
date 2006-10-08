@@ -44,6 +44,7 @@
 #include "roadmap_history.h"
 #include "roadmap_gtkcanvas.h"
 #include "roadmap_gtkmain.h"
+#include "../editor/editor_main.h"
 
 #include "roadmap_main.h"
 
@@ -250,6 +251,10 @@ void roadmap_main_new (const char *title, int width, int height) {
       free(RoadMapMainTitle);
    }
    RoadMapMainTitle = strdup (title);
+#ifdef FREEMAP_IL
+   editor_main_check_map ();
+   editor_main_set (1);
+#endif
 }
 
 

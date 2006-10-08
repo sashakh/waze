@@ -55,6 +55,13 @@ LIBS += -lfribidi
 CFLAGS += -DUSE_FRIBIDI
 endif
 
+RUNTIME=gtkroadmap gtkroadgps
+
+ifeq ($(FREEMAP_IL),YES)
+CFLAGS += -DFREEMAP_IL
+RUNTIME=gtkroadmap
+endif
+
 CXXFLAGS = $(CFLAGS) -I/usr/include/agg2 -I/usr/include/freetype2 -I/usr/include/fribidi
 # --- RoadMap sources & targets -----------------------------------
 
@@ -64,8 +71,6 @@ RMLIBSRCS=roadmap_keyboard.c \
           roadmap_fileselection.c 
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
-
-RUNTIME=gtkroadgps gtkroadmap
 
 
 # --- Conventional targets ----------------------------------------
