@@ -1069,7 +1069,7 @@ int editor_track_util_create_line (int gps_first_point,
    editor_log_push ("editor_track_create_line");
 
    if (gps_first_point == gps_last_point) {
-      editor_log (ROADMAP_ERROR, "first point == gps_last_point");
+      editor_log (ROADMAP_ERROR, "first point == last_point");
       editor_log_pop ();
       return -1;
    }
