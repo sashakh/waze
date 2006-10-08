@@ -101,6 +101,7 @@ int editor_trkseg_get_current_trkseg (void);
 void editor_trkseg_reset_next_export (void);
 int editor_trkseg_get_next_export (void);
 void editor_trkseg_set_next_export (int id);
+int editor_trkseg_get_count (void);
 
 extern roadmap_db_handler EditorTrksegHandler;
 extern editor_db_trkseg_private editor_db_trkseg_private_init;

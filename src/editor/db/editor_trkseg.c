@@ -546,3 +546,13 @@ void editor_trkseg_set_next_export (int id) {
    ActiveTrksegDB->header.next_export = id;
 }
 
+int editor_trkseg_get_count (void) {
+   
+   int count = ActiveTrksegDB->header.last_global_trkseg -
+               ActiveTrksegDB->header.next_export;
+
+   if (count < 0) count = 0;
+
+   return count;
+}
+
