@@ -228,9 +228,16 @@ static unsigned int editor_db_new_access (void) {
 static int editor_db_allocate_new_block
                      (editor_db_section *section, int block_id) {
    
-   if (section->max_blocks == block_id) return -1;
+   if (section->max_blocks == block_id) {
+      editor_log (ROADMAP_ERROR,
+                  "editor_db_allocate_new_block - reached max section blocks.");
+      return -1;
+   }
+
 
    if (ActiveDBHeader->num_used_blocks == ActiveDBHeader->num_total_blocks) {
+      editor_log (ROADMAP_ERROR,
+                  "editor_db_allocate_new_block - no free blocks, need to grow.");
       return -1;
    }
 
@@ -767,6 +774,10 @@ int editor_db_grow (void) {
    int fips = ActiveDBHeader->fips;
    char map_name[255];
    char path[100];
+
+   editor_log (ROADMAP_ERROR, "editor_db_grow - total:%d used:%d.",
+        ActiveDBHeader->num_total_blocks,
+   	ActiveDBHeader->num_used_blocks);
 
    /* NOTE that after the call to editor_db_remove(),
     * ActiveDBHeader pointer becomes invalid.
