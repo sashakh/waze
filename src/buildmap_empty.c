@@ -62,7 +62,7 @@ static int decode_points (const char *str, int *points) {
          }
          itr++;
       }
-      num[i+1] = '\0';
+      num[i] = '\0';
       points[j] = (int) (atof(num) * 1000000);
    }
 
