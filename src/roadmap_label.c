@@ -82,6 +82,9 @@ typedef struct {
    PluginLine line;
    PluginStreet street;
    char *text;
+#if LABEL_USING_LINEID
+   char *otext;
+#endif
 
    RoadMapGuiPoint text_point; /* label point */
    RoadMapGuiPoint center_point; /* label point */
@@ -471,6 +474,7 @@ int roadmap_label_draw_cache (int angles) {
                char buf[40];
                sprintf(buf, "%d", cPtr->line.line_id);
                cPtr->text = strdup(buf);
+               cPtr->otext = strdup(properties.street);
 #else
                cPtr->text = strdup(properties.street);
 #endif
@@ -499,6 +503,7 @@ int roadmap_label_draw_cache (int angles) {
 
             /* text is too long for this feature */
             /* (4 times longer than feature) */
+            // roadmap_log (ROADMAP_WARNING, "%s t: %s, w: %d, fsq: %d, ang: %d", cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
             if ((width * width / 16) > cPtr->featuresize_sq) {
                /* Keep this one in the cache as the feature size may change
                 * in the next run.  Keeping it is cheaper than looking it
@@ -580,7 +585,7 @@ int roadmap_label_draw_cache (int angles) {
 
             /* street already labelled */
             if(roadmap_plugin_same_street(&cPtr->street, &ocPtr->street)) {
-               cannot_label++;  /* label is a duplicate */
+               cannot_label = 1;  /* label is a duplicate */
                break;
             }
 
@@ -590,7 +595,7 @@ int roadmap_label_draw_cache (int angles) {
 
                /* if labels are horizontal, bbox check is sufficient */
                if(!angles) {
-                  cannot_label++;
+                  cannot_label = 2;
                   break;
                }
 
@@ -600,19 +605,19 @@ int roadmap_label_draw_cache (int angles) {
                 */
                aang = abs(cPtr->angle);
                if (aang < 4 || aang > 86) {
-                  cannot_label++;
+                  cannot_label = 3;
                   break;
                }
 
                aang = abs(ocPtr->angle);
                if (aang < 4 || aang > 86) {
-                  cannot_label++;
+                  cannot_label = 4;
                   break;
                }
 
                /* otherwise we do the full poly check */
                if (poly_overlap (ocPtr, cPtr)) {
-                  cannot_label++;
+                  cannot_label = 5;
                   break;
                }
             }
@@ -622,11 +627,13 @@ int roadmap_label_draw_cache (int angles) {
             /* Keep this one in the cache as we may need it for the next
              * run.  Keeping it is cheaper than looking it up again.
              */
+            // roadmap_log (ROADMAP_WARNING, "XX: %d, %s t: %s, w: %d, fsq: %d, ang: %d", cannot_label, cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
             roadmap_list_append
                (&undrawn_labels, roadmap_list_remove(&cPtr->link));
             continue; /* next label */
          }
 
+         // roadmap_log (ROADMAP_WARNING, "KK: %s t: %s, w: %d, fsq: %d, ang: %d", cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
          roadmap_label_draw_text
             (cPtr->text, &cPtr->text_point, &cPtr->center_point,
                angles, angles ? cPtr->angle : 0,
