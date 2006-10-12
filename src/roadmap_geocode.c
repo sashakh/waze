@@ -65,8 +65,9 @@ static int roadmap_geocode_address_county (RoadMapGeocode **selections,
       return ROADMAP_US_NOMAP;
    }
 
-   block_count =
-      roadmap_street_blocks_by_city (street_name, city_name, blocks, 256);
+   block_count = roadmap_street_blocks_by_city
+                    (street_name, city_name,
+                        blocks, ROADMAP_MAX_STREETS);
 
    if (block_count <= 0) {
 
@@ -109,7 +110,7 @@ static int roadmap_geocode_address_county (RoadMapGeocode **selections,
 
          if (range_count > 0) {
 
-            street_number[i] = ranges[0].min;
+            street_number[i] = ranges[0].fradd;
 
             for (k = 1; k < range_count; ++k) {
 
@@ -119,7 +120,7 @@ static int roadmap_geocode_address_county (RoadMapGeocode **selections,
                   break;
                }
                blocks[cursor] = blocks[i];
-               street_number[cursor] = ranges[k].min;
+               street_number[cursor] = ranges[k].fradd;
                cursor += 1;
             }
          }

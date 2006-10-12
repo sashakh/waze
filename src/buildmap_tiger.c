@@ -575,7 +575,30 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
                }
 
             } else {
-               buildmap_range_add_no_address (line, street);
+               RoadMapString cityl;
+               RoadMapString cityr;
+               int added = 0;
+ 
+               /* NB -- no place support here.  the use of places is
+                * disabled in roadmap currently anyway.
+                */
+
+               cityl = buildmap_city_get_name (tiger2int (cursor, 141, 145));
+               if (cityl > 0) {
+                   buildmap_range_add (line, street, 0, 0, 0, cityl);
+                   added = 1;
+               }
+ 
+               cityr = buildmap_city_get_name (tiger2int (cursor, 146, 150));
+               if (cityr > 0 && cityr != cityl) {
+                  buildmap_range_add (line, street, 0, 0, 0, cityr);
+                  added = 1;
+               }
+ 
+               if (!added) {
+                  /* no zip, no city -- fallback list */
+                  buildmap_range_add_no_address (line, street);
+               }
             }
 
          } else if (cursor[55] == 'D') { /* Areas. */
@@ -754,13 +777,13 @@ static void buildmap_tiger_read_rtc (const char *source, int verbose) {
 
          fips = tiger2int (cursor, 15, 19);
 
-	 if (cursor[10] == 'C') {
-		 year = 2000;
-	 } else if (cursor[10] == 'E') {
-		 year = 2002;
-	 } else {
-		 year = tiger2int (cursor, 11, 14);
-	 }
+         if (cursor[10] == 'C') {
+                 year = 2000;
+         } else if (cursor[10] == 'E') {
+                 year = 2002;
+         } else {
+                 year = tiger2int (cursor, 11, 14);
+         }
 
          if (fips > 0) {
 
