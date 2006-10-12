@@ -318,7 +318,9 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
          const char *fraddr = PQgetvalue(db_result, irec, column++);
          const char *toaddr = PQgetvalue(db_result, irec, column++);
 
-         if (fraddl[0] && fraddr[0]) {
+         if (fraddl[0] && fraddr[0] &&
+            (atoi(fraddr) >= 0) && (atoi(toaddr) >= 0) &&
+            (atoi(fraddl) >= 0) && (atoi(toaddl) >= 0)) {
 
             buildmap_range_add
                (line, street, atoi(fraddl), atoi(toaddl), zip, city);
