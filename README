@@ -870,7 +870,8 @@ USING ROADMAP
       equivalent to --geometry=<WIDTHxHEIGHT>. If the window's title includes
       any space, dashes can be used in place of the spaces (the goal here is
       to be shell friendly). This option is sticky (preference item
-      Geometry.<WINDOW> = <WIDTHxHEIGHT>).
+      Geometry.<WINDOW> = <WIDTHxHEIGHT>).  To set the default geometry
+      of all unspecified windows, use --geometry:Default=<WIDTHxHEIGHT>.
 
    [--no-toolbar] Do not show the toolbar. This option is sticky (preference
       item General.Toolbar = "no").
@@ -1231,14 +1232,16 @@ USING ROADMAP
    the address and intersection dialogs. These dialogs follow the same rules
    regarding the format of the names.
 
-   When entering a street name, the street prefix, suffix and type, if provided,
-   must be among the abbreviations listed by the US Census Bureau (N for north,
-   E for east, Blvd for boulevard, etc..). In almost all cases, the US Census
-   Bureau conventions follow the usual abbreviations, so there is no need to
-   worry here. In addition, any of these fields is optional: not providing
-   them only makes the search less selective. If several matches are found,
-   RoadMap shows a list of all matching streets and lets the user select the
-   appropriate one.
+   When entering a street name, the street prefix and suffix, if provided,
+   must be among the abbreviations listed by the US Census Bureau (N for
+   north, SW for southwest, etc..).  The "type" part of the name (i.e.  "Rd",
+   "St", "Pl") can be given using either the Census Bureau abbreviation, or by
+   spelling it out in full (i.e., "Road", "Street", "Place").  In almost all
+   cases, the US Census Bureau conventions follow the usual abbreviations, so
+   there is no need to worry here.  In addition, any of these fields is
+   optional:  not providing them only makes the search less selective.  If
+   several matches are found, RoadMap shows a list of all matching streets and
+   lets the user select the appropriate one.
 
    The exact format of the data expected by RoadMap as a complete street name
    is as follow:
@@ -2099,11 +2102,17 @@ CONFIGURATION
 
          <<Default:>> 800x600
 
-    [Geometry.WINDOW] Sets the size of the RoadMap window named WINDOW.
+    [Geometry.Default] Sets the default size for other RoadMap windows.
 
          <<Format:>> <WIDTH>x<HEIGHT>
 
          <<Default:>> 300x200
+
+    [Geometry.WINDOW] Sets the size of the RoadMap window named WINDOW.
+
+         <<Format:>> <WIDTH>x<HEIGHT>
+
+         <<Default:>> <the value of Geometry.Default >
 
     [Display.Bottom Right] Defines the message on the bottom right corner.
 
