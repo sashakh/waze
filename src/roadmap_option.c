@@ -120,6 +120,11 @@ int roadmap_option_width (const char *name) {
     const char *option = roadmap_option_get_geometry (name);
     
     if (option == NULL || option[0] == 0) {
+	/* assumes no dialog named "default" */
+	option = roadmap_option_get_geometry ("default");
+    }
+
+    if (option == NULL || option[0] == 0) {
         return 300;
     }
     return atoi (option);
@@ -130,6 +135,11 @@ int roadmap_option_height (const char *name) {
 
     const char *option = roadmap_option_get_geometry (name);
     char *separator;
+
+    if (option == NULL || option[0] == 0) {
+	/* assumes no dialog named "default" */
+	option = roadmap_option_get_geometry ("default");
+    }
 
     separator = strchr (option, 'x');
     if (separator == NULL) {
