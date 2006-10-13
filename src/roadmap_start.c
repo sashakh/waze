@@ -95,6 +95,9 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
 static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
                         ROADMAP_CONFIG_ITEM("Geometry", "Main");
 
+static RoadMapConfigDescriptor RoadMapConfigGeometryDefault =
+                        ROADMAP_CONFIG_ITEM("Geometry", "Default");
+
 static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
@@ -1010,6 +1013,9 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigGeometryDefault, "300x200");
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigDisplayRefresh, "");
