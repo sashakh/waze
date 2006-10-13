@@ -106,8 +106,11 @@ static void roadmap_address_selection_ok (const char *name, void *data) {
    RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
 
    roadmap_dialog_hide (name);
-   roadmap_address_selected (name, data);
 
+   /* Don't select anything "by default".  If the user clicked on
+    * a choice, it will already have been selected.  If they didn't,
+    * don't choose one for them.
+    */
    if (context->selections != NULL) {
       free (context->selections);
       context->selections = NULL;
