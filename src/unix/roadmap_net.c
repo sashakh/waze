@@ -153,15 +153,49 @@ connection_failure:
 }
 
 
-int roadmap_net_send (RoadMapSocket s, const void *data, int length) {
+int roadmap_net_send (RoadMapSocket s, const void *data, int length, int wait) {
 
-   int sent = write ((int)s, data, length);
+   int total = length;
+   fd_set fds;
+   struct timeval recv_timeout = {0, 0};
 
-   if (sent != length) {
-      return -1;
+   FD_ZERO(&fds);
+   FD_SET(s, &fds);
+
+   if (wait) {
+      recv_timeout.tv_sec = 60;
    }
 
-   return sent;
+   while (length > 0) {
+      int res;
+
+      res = select(s+1, NULL, &fds, NULL, &recv_timeout);
+
+      if(!res) {
+         roadmap_log (ROADMAP_ERROR,
+               "Timeout waiting for select in roadmap_net_send");
+         if (!wait) return 0;
+         else return -1;
+      }
+
+      if(res < 0) {
+         roadmap_log (ROADMAP_ERROR,
+               "Error waiting on select in roadmap_net_send");
+         return -1;
+      }
+
+      res = send(s, data, length, 0);
+
+      if (res < 0) {
+         roadmap_log (ROADMAP_ERROR, "Error sending data");
+         return -1;
+      }
+
+      length -= res;
+      data = (char *)data + res;
+   }
+
+   return total;
 }
 
 
