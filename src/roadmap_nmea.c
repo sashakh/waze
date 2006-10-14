@@ -139,7 +139,7 @@ static time_t roadmap_nmea_decode_time (const char *hhmmss,
 
    /* FIXME: th time zone might change if we are moving !. */
 
-   return mktime(&tm);
+   return timegm(&tm);
 }
 
 
