@@ -157,7 +157,7 @@ static int editor_http_send (RoadMapSocket socket,
    va_end(ap);
 
    length = strlen(buffer);
-   if (roadmap_net_send (socket, buffer, length) != length) {
+   if (roadmap_net_send (socket, buffer, length, 1) != length) {
       error ("send error on: %s", buffer);
       return -1;
    }
@@ -482,7 +482,7 @@ static int editor_post_file (const char *target,
    while (loaded < size) {
 
       uploaded = roadmap_file_read (file, buffer, sizeof(buffer));
-      uploaded = roadmap_net_send (fd, buffer, uploaded);
+      uploaded = roadmap_net_send (fd, buffer, uploaded, 1);
 
       if (uploaded <= 0) {
          (*callbacks->error) ("Send error after %d data bytes", loaded);

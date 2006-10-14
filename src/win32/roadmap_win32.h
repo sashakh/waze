@@ -29,4 +29,6 @@ LPWSTR ConvertToWideChar(LPCSTR string, UINT nCodePage);
 char* ConvertToMultiByte(const LPCWSTR s, UINT nCodePage);
 const char *roadmap_main_get_virtual_serial (void);
 
+time_t timegm(struct tm *_tm);
+
 #endif /* _ROADMAP_WIN32_H_ */
