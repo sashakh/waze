@@ -601,10 +601,15 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
        }
     }
 
+    if (gps_position->speed < roadmap_gps_speed_accuracy()) {
+
+       RoadMapLatestGpsPosition.speed = gps_position->speed;
+       return;
+    }
+
     if ((RoadMapLatestGpsPosition.latitude == gps_position->latitude) &&
         (RoadMapLatestGpsPosition.longitude == gps_position->longitude)) return;
 
-    if (gps_position->speed < roadmap_gps_speed_accuracy()) return;
 
     RoadMapLatestGpsPosition = *gps_position;
 
