@@ -217,7 +217,7 @@ static void send_position_to_friends (char *sentence, int socket) {
              atoi(argv[7]),
              atoi(argv[8]));
 
-   roadmap_net_send (socket,  buffer, strlen(buffer));
+   roadmap_net_send (socket,  buffer, strlen(buffer), 1);
 }
 
 
@@ -493,7 +493,7 @@ int main(int argc, char *argv[]) {
                p[1] = 0;
             }
             buffer[0] = 'A'; buffer[1] = 'C'; buffer[2] = 'K';
-            roadmap_net_send (socket,  buffer, strlen(buffer));
+            roadmap_net_send (socket,  buffer, strlen(buffer), 1);
 
          } else if (strncmp (buffer, "POS: ", 5) == 0 ||
                     strncmp (buffer, "SRV: ", 5) == 0) {

@@ -420,7 +420,7 @@ static void roadmap_driver_pxrmcfg (void *context,
              descriptor.category,
              descriptor.name,
              value);
-   roadmap_io_write (&driver->output, buffer, strlen(buffer));
+   roadmap_io_write (&driver->output, buffer, strlen(buffer), 0);
 
    /* We do not release the category, name and default value strings,
     * because these are still referenced in the configuration data.
@@ -514,7 +514,7 @@ static void roadmap_driver_send (const char *data, int mask) {
       if ((driver->subscription & mask) &&
           (driver->output.subsystem != ROADMAP_IO_INVALID)) {
           
-         if (roadmap_io_write (&driver->output, data, length) < 0) {
+         if (roadmap_io_write (&driver->output, data, length, 0) < 0) {
             roadmap_driver_onexit (driver);
          }
       }

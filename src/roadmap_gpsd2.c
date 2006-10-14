@@ -106,7 +106,7 @@ RoadMapSocket roadmap_gpsd2_connect (const char *name) {
       static const char request[] = "w+\n";
 
       if (roadmap_net_send
-            (socket, request, sizeof(request)-1) != sizeof(request)-1) {
+            (socket, request, sizeof(request)-1, 1) != sizeof(request)-1) {
 
          roadmap_log (ROADMAP_WARNING, "Lost gpsd server session");
          roadmap_net_close (socket);

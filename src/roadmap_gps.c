@@ -742,7 +742,7 @@ void roadmap_gps_open (void) {
 
       if (ROADMAP_NET_IS_VALID(RoadMapGpsLink.os.socket)) {
 
-         if (roadmap_net_send (RoadMapGpsLink.os.socket, "r\n", 2) == 2) {
+         if (roadmap_net_send (RoadMapGpsLink.os.socket, "r\n", 2, 1) == 2) {
 
             RoadMapGpsLink.subsystem = ROADMAP_IO_NET;
 

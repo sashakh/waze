@@ -47,7 +47,7 @@ struct delay_buffer {
 
 static void send_buffer (RoadMapSocket s, char *buffer) {
 
-   if (roadmap_net_send(s, buffer, strlen(buffer)) < 0) exit(-1);
+   if (roadmap_net_send(s, buffer, strlen(buffer), 1) < 0) exit(-1);
 }
 
 

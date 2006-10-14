@@ -57,7 +57,7 @@ int roadmap_io_read  (RoadMapIO *io, void *data, int size) {
 }
 
 
-int roadmap_io_write (RoadMapIO *io, const void *data, int length) {
+int roadmap_io_write (RoadMapIO *io, const void *data, int length, int wait) {
 
    switch (io->subsystem) {
 
@@ -65,7 +65,7 @@ int roadmap_io_write (RoadMapIO *io, const void *data, int length) {
          return roadmap_file_write (io->os.file, data, length);
 
       case ROADMAP_IO_NET:
-         return roadmap_net_send (io->os.socket, data, length);
+         return roadmap_net_send (io->os.socket, data, length, wait);
 
       case ROADMAP_IO_SERIAL:
          return roadmap_serial_write (io->os.serial, data, length);
