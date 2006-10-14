@@ -34,6 +34,7 @@
 #include "roadmap_path.h"
 #include "roadmap_line.h"
 #include "roadmap_locator.h"
+#include "roadmap_main.h"
 #include "roadmap_turns.h"
 #include "roadmap_metadata.h"
 #include "roadmap_messagebox.h"
@@ -48,6 +49,7 @@ static dglSPCache_s spCache;
 
 typedef struct {
    PluginLine from_line;
+   int from_against_dir;
    int turn_restrictions;
 } NavigateClip;
 
@@ -69,6 +71,7 @@ static int  clipper     (
       from_line = dglEdgeGet_Id(pgraph, pIn->pnPrevEdge);
    } else {
       from_line = roadmap_plugin_get_line_id (&info->from_line);
+      if (info->from_against_dir) from_line = -from_line;
    }
 
    /* no U turns */
@@ -119,6 +122,8 @@ int navigate_load_data (void) {
       return -1;
    }
 
+   roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+
    do {
       snprintf (path, sizeof(path), "%s/usc%05d.dgl", sequence, fips);
       
@@ -130,6 +135,7 @@ int navigate_load_data (void) {
    } while (sequence != NULL);
 
    if ( fd == NULL ) {  
+      roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
       roadmap_messagebox ("Error", "Can't find route data.");
       return -1;
    }
@@ -137,6 +143,8 @@ int navigate_load_data (void) {
    nret = dglRead( & graph , fd );
 
    fclose( fd );
+
+   roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 
    if ( nret < 0 ) {
       roadmap_messagebox ("Error", "Can't load route data.");
@@ -169,6 +177,8 @@ int navigate_get_route_segments (PluginLine *from_line,
    int i;
    int nret;
    int total_cost;
+   int line_from_point;
+   int line_to_point;
    dglSPReport_s *pReport;
 
    if (fips_data_loaded != roadmap_locator_active ()) return -1;
@@ -179,6 +189,15 @@ int navigate_get_route_segments (PluginLine *from_line,
    *size -= 2;
 
    NavigateClipData.from_line = *from_line;
+
+   //FIXME add plugin support
+   roadmap_line_points (from_line->line_id, &line_from_point, &line_to_point);
+   if (from_point == line_from_point) {
+      NavigateClipData.from_against_dir = 1;
+   } else {
+      NavigateClipData.from_against_dir = 0;
+   }
+
    NavigateClipData.turn_restrictions = 1;
 
    nret = dglShortestPath (&graph, &pReport, from_point, to_point,
