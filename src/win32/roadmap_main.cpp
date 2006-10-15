@@ -403,8 +403,10 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 		   return 0;
       }
 	} 
-	
+
+#ifndef _ROADGPS   
    if (other_instance) return 0;
+#endif
 
 	if (!MyRegisterClass(hInstance, szWindowClass))
 	{
