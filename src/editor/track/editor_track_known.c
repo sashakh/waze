@@ -50,8 +50,8 @@
 
 #include "editor_track_known.h"
 
-#define MAX_ENTRIES 5
-#define MAX_PATHS 5
+#define MAX_ENTRIES 7
+#define MAX_PATHS 10
 
 typedef struct {
    RoadMapTracking street;
@@ -472,6 +472,10 @@ int editor_track_known_locate_point (int point_id,
 
             KnownCandidates[KnownCandidatesCount].count = 1;
             KnownCandidatesCount++;
+            if (KnownCandidatesCount == MAX_PATHS) {
+               roadmap_log (ROADMAP_ERROR, "ResolveCandidates - Reached max entries!");
+               break;
+            }
          }
       }
 
