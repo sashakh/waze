@@ -45,6 +45,8 @@
 #include "../editor_main.h"
 #include "editor_sync.h"
 
+#define MAX_MSGS 10
+#define MIN_FREE_SPACE 5000 //Free space in KB
 
 static int SyncProgressItems;
 static int SyncProgressCurrentItem;
@@ -69,6 +71,7 @@ static void roadmap_download_error (const char *format, ...) {
    vsnprintf (message, sizeof(message), format, ap);
    va_end(ap);
 
+   roadmap_log (ROADMAP_ERROR, "Sync error: %s", message);
    roadmap_messagebox ("Download Error", message);
 }
 
@@ -132,8 +135,9 @@ static int sync_do_export (void) {
    time(&now);
    tm = gmtime (&now);
 
-   snprintf (name, sizeof(name), "rm_%02d_%02d_%02d%02d.gpx.gz",
-                     tm->tm_mday, tm->tm_mon, tm->tm_hour, tm->tm_min);
+   snprintf (name, sizeof(name), "rm_%02d_%02d_%02d_%02d%02d.gpx.gz",
+                     tm->tm_mday, tm->tm_mon+1, tm->tm_year-100,
+                     tm->tm_hour, tm->tm_min);
  
    full_name = roadmap_path_join (path, name);
 
@@ -146,7 +150,7 @@ static int sync_do_export (void) {
 }
 
 
-static int sync_do_upload (void) {
+static int sync_do_upload (char *messages[MAX_MSGS], int *num_msgs) {
 
    char **files;
    char **cursor;
@@ -163,17 +167,22 @@ static int sync_do_upload (void) {
 
    SyncProgressItems = count;
    SyncProgressCurrentItem = 0;
+   *num_msgs = 0;
 
    for (cursor = files; *cursor != NULL; ++cursor) {
       
       char *full_name = roadmap_path_join (directory, *cursor);
-      int res = editor_upload_auto (full_name, &SyncDownloadCallbackFunctions);
+      int res = editor_upload_auto (full_name, &SyncDownloadCallbackFunctions,
+                                    messages + *num_msgs);
 
       if (res == 0) {
          roadmap_file_remove (NULL, full_name);
+         if (messages[*num_msgs] != NULL) (*num_msgs)++;
       }
 
       free (full_name);
+
+      if (*num_msgs == MAX_MSGS) break;
    }
 
    roadmap_path_list_free (files);
@@ -184,15 +193,26 @@ static int sync_do_upload (void) {
 
 int export_sync (void) {
 
+   int i;
    int res;
    int fips;
    struct tm now_tm;
    struct tm map_time_tm;
    time_t now_t;
    time_t map_time_t;
+   char *messages[MAX_MSGS];
+   int num_msgs;
 
    if (!editor_is_enabled ()) {
       return 0;
+   }
+
+   res = roadmap_file_free_space (roadmap_path_user());
+
+   if ((res >= 0) && (res < MIN_FREE_SPACE)) {
+      roadmap_messagebox ("Error",
+                  "Please free at least 5MB of space before synchronizing.");
+      return -1;
    }
 
    roadmap_download_progress (0);
@@ -204,7 +224,7 @@ int export_sync (void) {
    roadmap_dialog_set_data ("Sync", "Progress status",
                             roadmap_lang_get ("Uploading data..."));
    roadmap_main_flush ();
-   res = sync_do_upload ();
+   res = sync_do_upload (messages, &num_msgs);
 
    fips = roadmap_locator_active ();
 
@@ -249,6 +269,11 @@ int export_sync (void) {
       roadmap_messagebox ("Download Error", roadmap_lang_get("Error downloading map update"));
    }
 end_sync:
+
+   for (i=0; i<num_msgs; i++) {
+      roadmap_messagebox ("Info", messages[i]);
+      free (messages[i]);
+   }
    roadmap_dialog_hide ("Sync process");
    return 0;
 }
