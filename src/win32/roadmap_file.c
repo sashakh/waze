@@ -569,3 +569,24 @@ void  roadmap_file_close(RoadMapFile file)
    CloseHandle((HANDLE)file);
 }
 
+
+int roadmap_file_free_space (const char *path)
+{
+   ULARGE_INTEGER FreeBytesAvailableToCaller;
+   ULARGE_INTEGER TotalNumberOfBytes;
+   ULARGE_INTEGER TotalNumberOfFreeBytes;
+
+   LPWSTR dir_name = ConvertToWideChar(path, CP_UTF8);
+
+   if (!GetDiskFreeSpaceEx(dir_name,
+         &FreeBytesAvailableToCaller,
+         &TotalNumberOfBytes,
+         &TotalNumberOfFreeBytes)) {
+
+         free (dir_name);
+         return -1;
+   }
+
+   free (dir_name);
+   return (int) (FreeBytesAvailableToCaller.QuadPart / 1024);
+}
