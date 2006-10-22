@@ -54,7 +54,6 @@
 
 #include "roadmap_trip.h"
 
-
 static RoadMapConfigDescriptor RoadMapConfigTripName =
                         ROADMAP_CONFIG_ITEM("Trip", "Name");
 
@@ -284,52 +283,121 @@ static void roadmap_trip_dialog_cancel (const char *name, void *data) {
     roadmap_dialog_hide (name);
 }
 
-/* Edit dialog.
- * Lets user change name and description for waypoints or routes.
- */
-struct namepointers {
-    char **nameptr1;
-    char **nameptr2;
-};
+static void roadmap_trip_dialog_route_edit_okay (const char *name, void *data) {
 
-static void roadmap_trip_dialog_edit_okay (const char *name, void *data) {
+    char *newname = (char *) roadmap_dialog_get_data ("Text", "Name:");
+    char *newdesc = (char *) roadmap_dialog_get_data ("Text", "Comment:");
+    route_head *route = data;
 
-    char *newname = (char *) roadmap_dialog_get_data ("Name", "Name:");
-    char *newdesc = (char *) roadmap_dialog_get_data ("Comment", "Comment:");
-    char **origname = ((struct namepointers *)data)->nameptr1;
-    char **origdesc = ((struct namepointers *)data)->nameptr2;
+    if (route->rte_name) free(route->rte_name);
+    route->rte_name = newname[0] ? strdup(newname) : NULL;
 
-    if (*origname) free(*origname);
-    *origname = newname[0] ? strdup(newname) : NULL;
-
-    if (*origdesc) free(*origdesc);
-    *origdesc = newdesc[0] ? strdup(newdesc) : NULL;
+    if (route->rte_desc) free(route->rte_desc);
+    route->rte_desc = newdesc[0] ? strdup(newdesc) : NULL;
 
     roadmap_dialog_hide (name);
 }
 
-void roadmap_trip_dialog_edit(char **namep, char **commentp, int use_keyboard) {
+static void roadmap_trip_dialog_route_edit
+        (route_head *route, int use_keyboard) {
 
-    static struct namepointers NamePointers;
+    if (roadmap_dialog_activate ("Route Edit", route)) {
 
-    NamePointers.nameptr1 = namep;
-    NamePointers.nameptr2 = commentp;
-
-    if (roadmap_dialog_activate ("Rename", &NamePointers)) {
-
-        roadmap_dialog_new_entry ("Comment", "Comment:");
-        roadmap_dialog_new_entry ("Name", "Name:");
+        roadmap_dialog_new_entry ("Text", "Name:");
+        roadmap_dialog_new_entry ("Text", "Comment:");
 
         roadmap_dialog_add_button ("Cancel",
                 roadmap_trip_dialog_cancel);
         roadmap_dialog_add_button ("Okay",
-                roadmap_trip_dialog_edit_okay);
+                roadmap_trip_dialog_route_edit_okay);
 
         roadmap_dialog_complete (use_keyboard);
     }
 
-    roadmap_dialog_set_data ("Comment", "Comment:", *commentp ? *commentp : "");
-    roadmap_dialog_set_data ("Name", "Name:", *namep ? *namep : "");
+    roadmap_dialog_set_data
+        ("Text", "Name:", route->rte_name ? route->rte_name : "");
+    roadmap_dialog_set_data
+        ("Text", "Comment:", route->rte_desc ? route->rte_desc : "");
+
+}
+
+int
+safe_strcmp(char *s1, char *s2)
+{
+    if (!s1) s1 = "";
+    if (!s2) s2 = "";
+    return strcmp(s1, s2);
+}
+
+static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data) {
+
+    char *newname = (char *) roadmap_dialog_get_data ("Data", "Name:");
+    char *newdesc = (char *) roadmap_dialog_get_data ("Data", "Comment:");
+    char *newlon = (char *) roadmap_dialog_get_data ("Data", "Longitude:");
+    char *newlat = (char *) roadmap_dialog_get_data ("Data", "Latitude:");
+    waypoint *wpt = data;
+    double tmp;
+
+    if (safe_strcmp(wpt->shortname, newname)) {
+        if (wpt->shortname) free(wpt->shortname);
+        wpt->shortname = newname[0] ? strdup(newname) : NULL;
+        RoadMapTripRefresh = 1;
+    }
+
+    if (safe_strcmp(wpt->description, newdesc)) {
+        if (wpt->description) free(wpt->description);
+        wpt->description = newdesc[0] ? strdup(newdesc) : NULL;
+        RoadMapTripRefresh = 1;
+    }
+
+    if (sscanf(newlon, "%lf", &tmp) == 1 && fabs(tmp) <= 180.0) {
+        if (wpt->pos.longitude != from_float(tmp)) {
+            wpt->pos.longitude = from_float(tmp);
+            RoadMapTripRefresh = 1;
+        }
+    }
+    if (sscanf(newlat, "%lf", &tmp) == 1 && fabs(tmp) <= 90.0) {
+        if (wpt->pos.latitude != from_float(tmp)) {
+            wpt->pos.latitude = from_float(tmp);
+            RoadMapTripRefresh = 1;
+        }
+    }
+
+    roadmap_dialog_hide (name);
+
+    if (RoadMapTripRefresh)
+        roadmap_screen_refresh ();
+}
+
+static void roadmap_trip_dialog_waypoint_edit
+        (waypoint *wpt, int use_keyboard) {
+
+    static char lon[20], lat[20];
+
+    if (roadmap_dialog_activate ("Waypoint Edit", wpt)) {
+
+        roadmap_dialog_new_entry ("Data", "Name:");
+        roadmap_dialog_new_entry ("Data", "Comment:");
+        roadmap_dialog_new_entry ("Data", "Longitude:");
+        roadmap_dialog_new_entry ("Data", "Latitude:");
+
+        roadmap_dialog_add_button ("Cancel",
+                roadmap_trip_dialog_cancel);
+        roadmap_dialog_add_button ("Okay",
+                roadmap_trip_dialog_waypoint_edit_okay);
+
+        roadmap_dialog_complete (use_keyboard);
+    }
+
+    roadmap_dialog_set_data
+        ("Data", "Name:", wpt->shortname ? wpt->shortname : "");
+    roadmap_dialog_set_data
+        ("Data", "Comment:", wpt->description ? wpt->description : "");
+
+    sprintf(lon, FLT_FMT, to_float(wpt->pos.longitude));
+    sprintf(lat, FLT_FMT, to_float(wpt->pos.latitude));
+    roadmap_dialog_set_data ("Data", "Longitude:", lon);
+    roadmap_dialog_set_data ("Data", "Latitude:", lat);
 
 }
 
@@ -477,27 +545,6 @@ void roadmap_trip_restore_focus (void) {
 
 /* Add Waypoint dialog */
 
-// FIXME -- Pascal, I'm not confident that i'm using the dialog
-//  routines correctly here.  Feel free to educate me.  :-)
-
-static void roadmap_trip_add_waypoint_dialog_okay
-        (const char *name, void *data) {
-
-    RoadMapPosition *pos = (RoadMapPosition *)data;
-    char *point_name;
-    int where;
-
-    point_name = (char *) roadmap_dialog_get_data ("Name", "Name:");
-
-    /* (long) cast to suppress warning on 64-bit platforms */
-    where = (long) roadmap_dialog_get_data ("Name", ".placements");
-
-    if (point_name && point_name[0] != 0) {
-        roadmap_trip_add_waypoint (point_name, pos, where);
-        roadmap_dialog_hide (name);
-    }
-}
-
 #define PLACE_PERSONAL_MARK         0
 #define PLACE_TRIP_MARK             1
 #define PLACE_NEW_ROUTE             2
@@ -531,6 +578,24 @@ static void *Placement_Vals [] = {
 };
 
 static char **Placements = Placement_Choices;
+
+static void roadmap_trip_add_waypoint_dialog_okay
+        (const char *name, void *data) {
+
+    RoadMapPosition *pos = (RoadMapPosition *)data;
+    char *point_name;
+    int where;
+
+    point_name = (char *) roadmap_dialog_get_data ("Name", "Name:");
+
+    /* (long) cast to suppress warning on 64-bit platforms */
+    where = (long) roadmap_dialog_get_data ("Name", ".placements");
+
+    if (point_name && point_name[0] != 0) {
+        roadmap_trip_add_waypoint (point_name, pos, where);
+        roadmap_dialog_hide (name);
+    }
+}
 
 static void roadmap_trip_add_waypoint_dialog 
         (const char *name, RoadMapPosition * position) {
@@ -693,9 +758,8 @@ static void roadmap_trip_waypoint_manage_dialog_edit
         return;
     }
 
-    roadmap_trip_dialog_edit
-        ( &waypointp->shortname, &waypointp->description,
-            roadmap_preferences_use_keyboard ());
+    roadmap_trip_dialog_waypoint_edit
+        ( waypointp, roadmap_preferences_use_keyboard ());
 
     roadmap_trip_set_modified(1);
 
@@ -871,9 +935,8 @@ static void roadmap_trip_route_manage_dialog_edit
         return;
     }
 
-    roadmap_trip_dialog_edit
-        ( &route->rte_name, &route->rte_desc,
-            roadmap_preferences_use_keyboard ());
+    roadmap_trip_dialog_route_edit
+        ( route, roadmap_preferences_use_keyboard ());
 
     roadmap_trip_set_modified(1);
 
@@ -1891,7 +1954,7 @@ void roadmap_trip_display (void) {
 
 void roadmap_trip_toggle_show_inactive(void) {
 
-    RoadMapTripShowInactiveRoutes  = ! RoadMapTripShowInactiveRoutes;
+    RoadMapTripShowInactiveRoutes = ! RoadMapTripShowInactiveRoutes;
     RoadMapTripRefresh = 1;
     roadmap_screen_refresh();
 }
@@ -1976,7 +2039,7 @@ void roadmap_trip_initialize (void) {
        ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
 
     RoadMapTripShowInactiveRoutes =
-	roadmap_config_match (&RoadMapConfigTripShowInactiveRoutes, "yes");
+        roadmap_config_match (&RoadMapConfigTripShowInactiveRoutes, "yes");
 
 }
 
@@ -2399,8 +2462,6 @@ void roadmap_trip_replace_with_google_route(void) {
         return;
     }
 
-#define FLT_FMT "%0.6lf" 
-#define to_float(x) ((double)((x) / 1000000.0))
 
     snprintf(cmdbuf, sizeof(cmdbuf), 
         "wget -O - 'http://maps.google.com/maps?q=" FLT_FMT "," FLT_FMT
