@@ -100,13 +100,6 @@ static bounds all_bounds;
 #endif
 
 
-/* Format used for floating point formats.  */
-#define FLT_FMT "%0.6lf" 
-
-/* convert to/from roadmap's internal "microdegrees" */
-#define from_float(x) ((x) * 1000000.0)
-#define to_float(x) ((double)((x) / 1000000.0))
-
 typedef enum {
         tt_unknown = 0,
         tt_gpx,

@@ -60,6 +60,13 @@
 #define XML_SHORT_TIME 1
 #define XML_LONG_TIME 2
 
+/* Format used for floating point formats.  */
+#define FLT_FMT "%0.6lf" 
+
+/* convert to/from roadmap's internal "microdegrees" */
+#define from_float(x) ((x) * 1000000.0)
+#define to_float(x) ((double)((x) / 1000000.0))
+
 /*
  * Common definitions.   There should be no protocol or file-specific
  * data in this file.
