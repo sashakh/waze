@@ -1432,6 +1432,13 @@ USING ROADMAP
        segment), as well as a chance to add it as a landmark, to either the
        trip's list, or your personal list.  Continue adding waypoints to
        your route.  
+       
+       (If you do much route creation, you should create a toolbar button for
+       the "addroutewaypoint" command.  Then, the easy way to create a route
+       is to first create a trivial route between the two endpoints as
+       described above, and then points on the map and add them with your
+       toolbar button.  The route will "snap" into place through each new
+       point you add.)
 
        Note that waypoints are always copied.  So if you choose an
        existing waypoint or landmark to use as a route waypoint, you'll
@@ -2824,16 +2831,6 @@ CONFIGURATION
     In addition to the trip files, there are two other important
     files which are also stored in GPX format.
     
-        The "Current Track" file contains waypoints representing
-        where you've been -- a "breadcrumb trail", if you will. 
-        This file (called "currenttrack.gpx" by default) will
-        only contain a single track when written.  When read
-        (on startup, to restore previous state), only the first
-        track in the file will be read.  All other routes or
-        tracks and waypoints will be ignored (and likely lost,
-        when the current track is saved at the end of the
-        session).
-    
         The "Personal Landmarks" files, called "landmarks.gpx" by
         default, contains landmarks (waypoints) which you might
         want to keep handy no matter what trip file you have
@@ -2843,6 +2840,25 @@ CONFIGURATION
         unassociated waypoints are read -- any routes or tracks
         in the file are ignored.
 
+	The "Current Track" file contains waypoints representing
+	where you've been -- a "breadcrumb trail", if you will. 
+	This file (called "currenttrack.gpx" by default) will
+	only contain a single track when written.  When read (on
+	startup, to restore previous state), only the first track
+	in the file will be read.  All other routes or tracks and
+	waypoints will be ignored (and likely lost, when the
+	current track is saved at the end of the session).  Along
+	with the currenttrack.gpx, you may see "recenttrack.csv",
+	and one or more "savetrack-*.gpx" files (which will
+	include a date in their names).  The "savetrack" files are
+	archival -- if the in-memory list gets too big, or if the
+	user "clears" the current track, then excess historical
+	trackpoints will be written to a "savetrack" file.  The
+	"recenttrack.csv" file is a temporary file, used to keep
+	RoadMap from losing any track points in the event that it
+	dies (crashes) unexpectedly.  The goal is to never lose a
+	track point.
+    
     (These files are not stored in the same directory as the other
     trip files, but instead in the same directory in which the
     user's preferences and session file are found.)

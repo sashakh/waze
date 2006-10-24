@@ -464,8 +464,8 @@ static RoadMapAction RoadMapStartActions[] = {
    {"tracksave", "Save Current Track", "Save Track", NULL,
       "Save the current GPS breadcrumb track", roadmap_start_save_track},
 
-   {"trackclear", "Clear Current Track", "Clear Track", NULL,
-      "Clear the current GPS breadcrumb track", roadmap_track_clear},
+   {"trackreset", "Reset Current Track", "Reset Track", NULL,
+      "Reset the current GPS breadcrumb track", roadmap_track_reset},
 
    {"backtrackroute", "Create Backtrack Route", "BackTrack", NULL,
       "Convert the current GPS breadcrumb track to a new route",
@@ -663,7 +663,7 @@ static const char *RoadMapStartMenu[] = {
    RoadMapFactorySeparator,
 
    "tracksave",
-   "trackclear",
+   "trackreset",
    "backtrackroute",
    "addtrack",
    "tracktoggle",
@@ -1074,6 +1074,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_history_load ();
 
+   roadmap_track_activate ();
 #ifdef ROADMAP_USES_EXPAT
    roadmap_track_autoload ();
    roadmap_landmark_load ();
@@ -1114,7 +1115,7 @@ void roadmap_start_exit (void) {
     roadmap_driver_shutdown ();
     roadmap_history_save();
 #ifdef ROADMAP_USES_EXPAT
-    roadmap_track_autosave ();
+    roadmap_track_autowrite ();
     roadmap_landmark_save ();
     roadmap_trip_save (0);
 #endif

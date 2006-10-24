@@ -26,11 +26,12 @@
 
 
 void  roadmap_track_display (void);
-void  roadmap_track_clear (void);
+void  roadmap_track_reset (void);
 void  roadmap_track_initialize (void);
+void  roadmap_track_activate (void);
 void  roadmap_track_save (void);
-void  roadmap_track_autosave (void);
-void roadmap_track_autoload(void);
+void  roadmap_track_autowrite (void);
+void  roadmap_track_autoload(void);
 void  roadmap_track_toggle_display(void);
 int roadmap_track_is_refresh_needed (void);
 

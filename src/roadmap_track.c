@@ -21,6 +21,24 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+
+/*
+ * The trackpoints are stored in a list, like all other
+ * waypoints.  We save the list to the "currenttrack" file on
+ * exit, and read an initial list from it on startup.
+ *
+ * Periodically in between, we save the list entire to disk.  If
+ * the disk file would become too big, we save an initial chunk
+ * of the list to an archive file, and save the rest to the
+ * currenttrack file.
+ *
+ * To protect against trackpoint loss from a crash that migh
+ * occur in between the periodic saves, we write individual
+ * trackpoints to a small CSV file.  On startup, if this file
+ * exists, we appendit to what we got from teh currenttrack file.
+ */
+
+
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_config.h"
@@ -55,20 +73,79 @@ static RoadMapConfigDescriptor RoadMapConfigDistanceInterval =
 static RoadMapConfigDescriptor RoadMapConfigDisplayString =
                         ROADMAP_CONFIG_ITEM("Track", "Initial Display");
 static RoadMapConfigDescriptor RoadMapConfigLength =
-                        ROADMAP_CONFIG_ITEM("Track", "Length");
+                        ROADMAP_CONFIG_ITEM("Track", "Saved Track Points");
+static RoadMapConfigDescriptor RoadMapConfigAutoSaveInterval =
+                        ROADMAP_CONFIG_ITEM("Track", "Autosave Minutes");
 static RoadMapConfigDescriptor RoadMapConfigTrackName =
                         ROADMAP_CONFIG_ITEM ("Track", "Name");
 
 
+#define RECENT_CSV "recenttrack.csv"
+#define ARCHIVED_GPX "savetrack" /* ".gpx" */
+
+FILE *RoadMapTrackRecentCSV;
+
+void roadmap_track_add_recent (waypoint *w) {
+
+    if (!RoadMapTrackRecentCSV) {
+        RoadMapTrackRecentCSV = roadmap_file_fopen
+                (roadmap_path_user(), RECENT_CSV, "a");
+    }
+    fprintf(RoadMapTrackRecentCSV, "%ld, %0.6lf, %0.6lf, %f, %f, %f\n",
+            w->creation_time,
+            to_float(w->pos.longitude),
+            to_float(w->pos.latitude),
+            ((double)(w->altitude)),
+            w->speed,
+            w->course);
+
+    fflush(RoadMapTrackRecentCSV);
+}
+
+void roadmap_track_fetch_recent(const char *path, char *name) {
+
+    char trkpoint[128];
+    time_t t;
+    double lon, lat;
+    float alt, speed, course;
+    waypoint *w;
+
+    /* read .csv file, add contents to RoadMapTrack */
+    if ( roadmap_file_exists(path, name)) {
+
+        RoadMapTrackRecentCSV = roadmap_file_fopen (path, name, "a+");
+        if (!RoadMapTrackRecentCSV) return;
+       
+        while (fgets(trkpoint, sizeof(trkpoint), RoadMapTrackRecentCSV)) {
+            if (sscanf(trkpoint, "%ld, %lf, %lf, %f, %f, %f",
+                &t, &lon, &lat, &alt, &speed, &course) != 6)
+            continue;
+            w = waypt_new();
+            w->creation_time = t;
+            w->pos.latitude = from_float(lat);
+            w->pos.longitude = from_float(lon);
+            w->altitude = alt;
+            w->speed = speed;
+            w->course = course;
+            route_add_wpt_tail (RoadMapTrack, w);
+        }
+
+        /* the csv file will be removed and closed at the end of
+         * the autosave routine.
+         */
+    }
+}
 
 
 static void roadmap_track_add_trackpoint ( int gps_time,
                     const RoadMapGpsPosition *gps_position) {
 
-    int maxtrack;
+    static time_t lastsave = -1;
+    time_t now;
+    int autosaveminutes;
     waypoint *w;
+    
     w = waypt_new ();
-
     w->pos.latitude = gps_position->latitude;
     w->pos.longitude = gps_position->longitude;
 
@@ -80,17 +157,26 @@ static void roadmap_track_add_trackpoint ( int gps_time,
     w->course = gps_position->steering;
     w->creation_time = gps_time;
 
+    /* append to the list */
     route_add_wpt_tail (RoadMapTrack, w);
+
+    /* and write a new line to the interim .csv file */
+    roadmap_track_add_recent(w);
 
     RoadMapTrackGpsPosition = *gps_position;
 
-    maxtrack = roadmap_config_get_integer (&RoadMapConfigLength);
-    while (RoadMapTrack->rte_waypt_ct > maxtrack) {
-        w = (waypoint *) ROADMAP_LIST_FIRST (&RoadMapTrack->waypoint_list);
-        route_del_wpt ( RoadMapTrack, w);
+    RoadMapTrackModified = 1;
+
+    autosaveminutes = roadmap_config_get_integer
+                                (&RoadMapConfigAutoSaveInterval);
+    time(&now);
+    if (lastsave < 0) lastsave = now;
+    if (now - autosaveminutes * 60 > lastsave) {
+        roadmap_track_autowrite();
+        lastsave = now;
     }
 
-    RoadMapTrackModified = 1;
+
 }
 
 static RoadMapTrackPolicy roadmap_track_policy(void)
@@ -255,28 +341,6 @@ int roadmap_track_is_refresh_needed (void) {
     return 0;
 }
 
-void roadmap_track_clear (void) {
-
-    route_free(RoadMapTrack);
-    RoadMapTrack = route_head_alloc();
-    RoadMapTrackRefresh = 1;
-    RoadMapTrackModified = 1;
-    roadmap_screen_refresh();
-}
-
-void roadmap_track_save(void) {
-    char name[40];
-    time_t now;
-
-    time(&now);
-    strftime(name, sizeof(name), "Track-%Y-%m-%d-%H-%M-%S.gpx",
-                localtime(&now));
-
-    roadmap_gpx_write_track(roadmap_path_trips(), name, RoadMapTrack);
-    RoadMapTrackModified = 0;
-
-}
-
 static const char *roadmap_track_filename(int *defaulted) {
     const char *name;
     name = roadmap_config_get (&RoadMapConfigTrackName);
@@ -292,9 +356,32 @@ static const char *roadmap_track_filename(int *defaulted) {
     return name;
 }
 
-void roadmap_track_autosave(void) {
+static int roadmap_track_save_worker
+            (const char *path, const char *prefix, route_head *track) {
+    char name[40];
+    time_t now;
+    int prefixlen;
+
+    prefixlen = sprintf(name, "%s", prefix);
+
+    time(&now);
+    strftime(&name[prefixlen], sizeof(name) - prefixlen,
+                "-%Y-%m-%d-%H-%M-%S.gpx", localtime(&now));
+
+    return roadmap_gpx_write_track(path, name, track);
+
+}
+
+void roadmap_track_save(void) {
+
+    roadmap_track_save_worker(roadmap_path_trips(), "Track-", RoadMapTrack);
+    RoadMapTrackModified = 0;
+}
+
+static void roadmap_track_autosave(int hiwater, int lowater) {
 
     const char *name;
+    const char *path = roadmap_path_user();
     int defaulted, ret;
 
     if (!RoadMapTrackModified) return;
@@ -302,15 +389,72 @@ void roadmap_track_autosave(void) {
     name = roadmap_track_filename (&defaulted);
     if (name == NULL) return;
 
-    ret = roadmap_gpx_write_track(roadmap_path_user(), name, RoadMapTrack);
+    if (RoadMapTrack->rte_waypt_ct > hiwater) {
 
+        route_head *archive = route_head_alloc();
+
+        while (RoadMapTrack->rte_waypt_ct > lowater) {
+                waypoint *w;
+                w = (waypoint *)roadmap_list_remove
+                        (ROADMAP_LIST_FIRST (&RoadMapTrack->waypoint_list));
+                RoadMapTrack->rte_waypt_ct--;
+
+                roadmap_list_append ( &archive->waypoint_list, &w->Q);
+                archive->rte_waypt_ct++;
+        }
+
+        ret = roadmap_track_save_worker(path, ARCHIVED_GPX, archive);
+        if (ret == 0) {  /* write failed -- restore points */
+            /* this looks backwards, due to SPLICE's append behavior */
+            ROADMAP_LIST_SPLICE
+                (&archive->waypoint_list, &RoadMapTrack->waypoint_list);
+            archive->rte_waypt_ct += RoadMapTrack->rte_waypt_ct;
+
+            ROADMAP_LIST_MOVE(&RoadMapTrack->waypoint_list, &archive->waypoint_list);
+            RoadMapTrack->rte_waypt_ct = archive->rte_waypt_ct;
+            archive->rte_waypt_ct = 0;
+        } else {
+            route_free(archive);
+        }
+    }
+
+    ret = roadmap_gpx_write_track(path, name, RoadMapTrack);
     if (ret == 0) return;
+
+    /* we don't need the "recent points" cache anymore */
+    roadmap_file_remove (path, RECENT_CSV);
+    fclose(RoadMapTrackRecentCSV);
+    RoadMapTrackRecentCSV = NULL;
 
     if (defaulted) {
         roadmap_config_set (&RoadMapConfigTrackName, name);
     }
 
     RoadMapTrackModified = 0;
+
+}
+
+void roadmap_track_reset (void) {
+
+    roadmap_track_autosave(0, 0);
+    RoadMapTrackRefresh = 1;
+    RoadMapTrackModified = 1;
+    roadmap_screen_refresh();
+}
+
+
+
+void roadmap_track_autowrite(void) {
+
+    int nominal;
+    
+    /* essentially, if we aquire 25% more points than we've been
+     * asked to save, we tell the autowriter to archive all but
+     * that 75% of what we've been asked for, and continue from
+     * there.
+     */
+    nominal = roadmap_config_get_integer (&RoadMapConfigLength);
+    roadmap_track_autosave (5 * nominal / 4, 3 * nominal / 4);
 
 }
 
@@ -323,16 +467,21 @@ void roadmap_track_autoload(void) {
     name = roadmap_track_filename (&defaulted);
     if (name == NULL) return;
 
-    if (! roadmap_file_exists(path, name)) return; /* not an error. */
+    if ( roadmap_file_exists(path, name)) {
 
-    ret = roadmap_gpx_read_one_track(path, name, &RoadMapTrack);
+        ret = roadmap_gpx_read_one_track(path, name, &RoadMapTrack);
+        if (ret == 0) return;
 
-    if (ret == 0) return;
-
-    if (defaulted) {
-        roadmap_config_set (&RoadMapConfigTrackName, name);
+        if (defaulted) {
+            roadmap_config_set (&RoadMapConfigTrackName, name);
+        }
     }
 
+    /* there may be "recent" trackpoints even if no currenttrack file */
+    if ( roadmap_file_exists(path, RECENT_CSV) ) {
+        roadmap_track_fetch_recent(path, RECENT_CSV);
+        roadmap_track_autowrite();
+    }
 
     RoadMapTrackModified = 0;
 
@@ -340,6 +489,15 @@ void roadmap_track_autoload(void) {
 
 void
 roadmap_track_initialize(void) {
+
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigAutoSaveInterval, "10"); /* minutes */
+
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigLength, "1000");
+
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigTrackName, "");
 
     /* We have to declare both the time and distance intervals,
      * though only one is used at a time.
@@ -354,19 +512,16 @@ roadmap_track_initialize(void) {
         ("preferences", &RoadMapConfigPolicyString,
             "off", "Deviation", "Distance", "Time", NULL);
 
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigLength, "1000");
-
-    roadmap_config_declare
-        ("preferences", &RoadMapConfigTrackName, "");
-
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigDisplayString,
             "on", "off", NULL);
 
-
     RoadMapTrack = route_head_alloc();
     roadmap_gps_register_listener(roadmap_track_gps_update);
+}
+
+void
+roadmap_track_activate(void) {
 
     RoadMapTrackDisplay = roadmap_config_match
                                 (&RoadMapConfigDisplayString, "on");
