@@ -101,16 +101,20 @@ void roadmap_list_sort
     (RoadMapList *lh, int (*cmp)(RoadMapListItem *, RoadMapListItem *));
 
 /* Inline functions (not macros) to help enforce type safety. */
+/* put e at end of list lh */
 static inline void roadmap_list_append(RoadMapList *lh, RoadMapListItem *e) {
         roadmap_list_enqueue(e, (RoadMapListItem *)lh->list_last);
 }
+/* put e at beginning of list lh */
 static inline void roadmap_list_insert(RoadMapList *lh, RoadMapListItem *e) {
         roadmap_list_enqueue(e, (RoadMapListItem *)lh);
 }
+/* put newe before olde */
 static inline void roadmap_list_put_before
                 (RoadMapListItem *olde, RoadMapListItem *newe) {
         roadmap_list_enqueue(newe, olde->prev);
 }
+/* put newe after olde */
 static inline void roadmap_list_put_after
                 (RoadMapListItem *olde, RoadMapListItem *newe) {
         roadmap_list_enqueue(newe, olde);
