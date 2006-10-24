@@ -1290,6 +1290,7 @@ void roadmap_screen_hold (void) {
 
    roadmap_trip_copy_focus ("Hold");
    roadmap_trip_set_focus ("Hold");
+   roadmap_trip_set_focus_position (&RoadMapScreenCenter);
 }
 
 

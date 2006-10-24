@@ -1441,6 +1441,15 @@ const RoadMapPosition * roadmap_trip_get_focus_position (void) {
     return &RoadMapTripDefaultPosition;
 }
 
+void roadmap_trip_set_focus_position (RoadMapPosition *pos ) {
+
+    if (RoadMapTripFocus != NULL) {
+        RoadMapTripFocus->map = *pos;
+        roadmap_config_set_position
+            (&RoadMapTripFocus->config_position, &RoadMapTripFocus->map);
+    }
+}
+
 static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos) {
 
     RoadMapListItem *elem, *tmp;

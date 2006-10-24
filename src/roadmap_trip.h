@@ -55,6 +55,7 @@ int   roadmap_trip_get_orientation (void);
 const char *roadmap_trip_get_focus_name (void);
 
 const RoadMapPosition *roadmap_trip_get_focus_position (void);
+void roadmap_trip_set_focus_position (RoadMapPosition *pos );
 
 void  roadmap_trip_route_start   (void);
 void  roadmap_trip_route_resume  (void);
