@@ -422,9 +422,11 @@ static void roadmap_track_autosave(int hiwater, int lowater) {
     if (ret == 0) return;
 
     /* we don't need the "recent points" cache anymore */
+    if (RoadMapTrackRecentCSV) {
+	fclose(RoadMapTrackRecentCSV);
+	RoadMapTrackRecentCSV = NULL;
+    }
     roadmap_file_remove (path, RECENT_CSV);
-    fclose(RoadMapTrackRecentCSV);
-    RoadMapTrackRecentCSV = NULL;
 
     if (defaulted) {
         roadmap_config_set (&RoadMapConfigTrackName, name);
