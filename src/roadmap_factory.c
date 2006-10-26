@@ -515,6 +515,8 @@ void roadmap_factory (const char           *name,
                      this_action->label_long,
                      this_action->tip,
                      this_action->callback);
+            } else {
+               roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", item);
             }
          }
       }
