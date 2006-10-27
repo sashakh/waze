@@ -89,6 +89,9 @@ static RoadMapConfigDescriptor RoadMapConfigMapRefresh =
 static RoadMapConfigDescriptor RoadMapConfigEventRightClick =
                         ROADMAP_CONFIG_ITEM("Events", "Right Click");
 
+static RoadMapConfigDescriptor RoadMapConfigEventLongClick =
+                        ROADMAP_CONFIG_ITEM("Events", "Long Click");
+
 static RoadMapConfigDescriptor RoadMapConfigStylePrettyDrag =
                   ROADMAP_CONFIG_ITEM("Style", "Pretty Lines when Dragging");
 
@@ -1116,6 +1119,11 @@ static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
    roadmap_factory_popup (&RoadMapConfigEventRightClick, point);
 }
 
+static void roadmap_screen_long_click (RoadMapGuiPoint *point) {
+
+   roadmap_factory_popup (&RoadMapConfigEventLongClick, point);
+}
+
 
 static void roadmap_screen_reset_delta (void) {
 
@@ -1442,7 +1450,10 @@ void roadmap_screen_initialize (void) {
        ("preferences", &RoadMapConfigMapBackground, "LightYellow");
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigEventRightClick,  "Map Menu");
+       ("preferences", &RoadMapConfigEventRightClick,  "Right Click Popup");
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigEventLongClick,  "Long Click Popup");
 
    roadmap_config_declare_enumeration
        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
@@ -1470,6 +1481,7 @@ void roadmap_screen_initialize (void) {
    roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion);
 
    roadmap_pointer_register_right_click (&roadmap_screen_right_click);
+   roadmap_pointer_register_long_click (&roadmap_screen_long_click);
    roadmap_pointer_register_scroll_up (&roadmap_screen_scroll_up);
    roadmap_pointer_register_scroll_down (&roadmap_screen_scroll_down);
 

@@ -1969,6 +1969,12 @@ CONFIGURATION
    "roadgps.popup" and "roadgps.toolbar". These files must be stored in
    the same places as other RoadMap configuration files.
 
+   By default, a long click of mouse button 1 will bring up the menu called
+   "/Long Click Popup" in road{map,gps}.popup, and a right click (button 3)
+   will bring up the menu called "/Right Click Popup".  These bindings can be
+   changed by setting "Events:Long Click" or "Events:Right Click" in the
+   preferences.
+
    There is a different list of possible actions for RoadMap and RoadGps.
    The list of valid action names can be obtained using the command line
    option --help=actions:
@@ -1981,7 +1987,7 @@ CONFIGURATION
    The following is an example of a menus definition file for RoadMap:
 
 ----
-       /File
+       /Right Click Popup
        preferences
        gpsconsole
        -
