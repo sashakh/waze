@@ -56,6 +56,7 @@ FILE *roadmap_file_fopen (const char *path,
 
    int   silent;
    FILE *file;
+   struct stat stat_buffer;
    const char *full_name = roadmap_path_join (path, name);
 
    if (mode[0] == 's') {
@@ -69,6 +70,13 @@ FILE *roadmap_file_fopen (const char *path,
    }
 
    file = fopen (full_name, mode);
+   if (file != NULL && fstat (fileno(file), &stat_buffer) == 0) {
+      /* read-only opens will succeed on directories */
+      if (!S_ISREG(stat_buffer.st_mode)) {
+	 fclose(file);
+	 file = NULL;
+      }
+   }
 
    if ((file == NULL) && (! silent)) {
       roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
@@ -202,7 +210,7 @@ const char *roadmap_file_map (const char *path,
 
    RoadMapFileContext context;
 
-   struct stat state_result;
+   struct stat stat_result;
    int open_mode;
    int map_mode;
    int map_flags;
@@ -243,15 +251,15 @@ const char *roadmap_file_map (const char *path,
       return NULL;
    }
 
-   if (fstat (context->fd, &state_result) != 0) {
+   if (fstat (context->fd, &stat_result) != 0) {
       roadmap_log (ROADMAP_ERROR, "cannot stat file %s", context->name);
       roadmap_file_unmap (&context);
       return NULL;
    }
-   context->size = state_result.st_size;
+   context->size = stat_result.st_size;
 
    context->base = mmap (NULL,
-                         (size_t)state_result.st_size,
+                         (size_t)stat_result.st_size,
                          map_mode,
                          map_flags,
                          context->fd,
