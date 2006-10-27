@@ -168,6 +168,9 @@ roadmap_gpx_write_file(const char *path, const char *name,
     if (fclose(fp) != 0)
         ret = 0;
 
+    if (!ret)
+	roadmap_log (ROADMAP_ERROR, "GPX file save of %s / %s failed", path, name);
+
     return ret;
 }
 
@@ -203,6 +206,8 @@ int roadmap_gpx_write_route(const char *path, const char *name,
     if (!fp) return 0;
 
     ret = gpx_write(fp, NULL, &route_head, NULL);
+    if (ferror(fp))
+	ret = 0;
 
     if (fclose(fp) != 0)
         ret = 0;
@@ -239,7 +244,7 @@ static void roadmap_gpx_tell_no_expat (void) {
     static int roadmap_gpx_told_no_expat = 0;
 
     if (! roadmap_gpx_told_no_expat) {
-       roadmap_log (ROADMAP_ERROR, "No GPX file import (no expat library)");
+       roadmap_log (ROADMAP_ERROR, "No GPX file import/export (no expat library)");
        roadmap_gpx_told_no_expat = 1;
     }
 }
