@@ -623,13 +623,16 @@ void roadmap_factory_popup (RoadMapConfigDescriptor *descriptor,
 
    if (title == NULL || title[0] == 0) return; /* No menu attached. */
 
+   if (RoadMapFactoryPopupList == NULL) return; /* No menus configured */
 
    for (popup = RoadMapFactoryPopupList; popup != NULL; popup = popup->next) {
 
       if (strcmp (popup->title, title) == 0) {
          roadmap_main_popup_menu (popup->menu, position);
+         return;
       }
    }
+   roadmap_log (ROADMAP_ERROR, "Couldn't find configured popup menu '%s'", title);
 }
 
 
