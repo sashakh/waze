@@ -273,6 +273,7 @@ void roadmap_main_popup_menu (RoadMapMenu menu,
                               const RoadMapGuiPoint *position) {
 
    if (menu != NULL) {
+      gtk_widget_show_all(GTK_WIDGET(menu));
       gtk_menu_popup (GTK_MENU(menu),
                       NULL,
                       NULL,
