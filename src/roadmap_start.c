@@ -196,7 +196,7 @@ static void roadmap_start_save_trip (void) {
 }
 
 static void roadmap_start_save_trip_as (void) {
-    roadmap_trip_save_as (1);
+    roadmap_trip_save_as ();
 }
 
 static void roadmap_start_save_track (void) {

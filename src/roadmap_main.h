@@ -35,6 +35,7 @@ typedef void (* RoadMapKeyInput) (char *key);
 typedef void (* RoadMapInput)    (RoadMapIO *io);
 
 void roadmap_main_new (const char *title, int width, int height);
+void roadmap_main_title(char *fmt, ...);
 
 void roadmap_main_set_keyboard   (RoadMapKeyInput callback);
 

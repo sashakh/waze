@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "roadmap.h"
+#include "roadmap_main.h"
 #include "roadmap_types.h"
 #include "roadmap_time.h"
 #include "roadmap_path.h"
@@ -78,6 +79,10 @@ static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
 static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
                         ROADMAP_CONFIG_ITEM("Trip", "Waypoint Radius");
 
+/*
+ * try and put the trip name in the window title
+ */
+#define TRIP_TITLE_FMT " - trip %s"
 
 /* Default location is: 1 Market St, San Francisco, California,
  *  but every effort is made to choose a more "local" initial
@@ -96,6 +101,8 @@ static int RoadMapTripModified = 0;     /* Trip needs to be saved? */
 static int RoadMapTripRefresh = 1;      /* Screen needs to be refreshed? */
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved = 1;
+
+static int RoadMapTripUntitled = 1;
 
 static RoadMapPen RoadMapTripRouteLinesPen = NULL;
 static int RoadMapTripDrawingActiveRoute;
@@ -1976,32 +1983,23 @@ static const char *roadmap_trip_current() {
 
 void roadmap_trip_new (void) {
 
-    const char *path = roadmap_path_trips();
-    char name[50];
-    int i;
-    
-    strcpy (name, "NewTrip");
-
-    i = 1;
-    while (roadmap_file_exists(path, name) && i < 1000) {
-        sprintf(name, "NewTrip-%d", i++);
-    }
-    if (i == 1000) {
-        roadmap_log (ROADMAP_WARNING, "over 1000 new trips!");
-        strcpy (name, "NewTrip");
-    }
-
     if (RoadMapTripModified) {
-        roadmap_trip_save (0);
+        if (!roadmap_trip_save (0)) {
+            return;
+        }
     }
 
     roadmap_trip_clear ();
 
-    roadmap_config_set (&RoadMapConfigTripName, name);
-
-    roadmap_trip_set_modified(1);
+    roadmap_trip_set_modified(0);
 
     roadmap_screen_refresh ();
+
+    roadmap_main_title("");
+
+    /* NB:  there may be a name in config, which couldn't be read
+     * at startup */
+    RoadMapTripUntitled = 1;
 }
 
 
@@ -2027,7 +2025,7 @@ void roadmap_trip_initialize (void) {
 
     }
     roadmap_config_declare
-        ("session", &RoadMapConfigTripName, "default.gpx");
+        ("session", &RoadMapConfigTripName, "");
     roadmap_config_declare
         ("session", &RoadMapConfigFocusName, "GPS");
     roadmap_config_declare
@@ -2052,16 +2050,35 @@ void roadmap_trip_initialize (void) {
 
 }
 
+const char *roadmap_trip_path_relative_to_trips(const char *filename) {
+    const char *p;
+    int pl;
+    p = roadmap_path_trips();
+    pl = strlen(p);
+    if (strncmp(p, filename, pl) == 0) {
+        filename = filename + pl;
+        filename = roadmap_path_skip_separator (filename);
+    }
+    return filename;
+}
+
 /* File dialog support */
 
 static int  roadmap_trip_load_file (const char *name, int silent, int merge);
-static int  roadmap_trip_save_file (const char *name, int force);
+static int  roadmap_trip_save_file (const char *name);
 
 static void roadmap_trip_file_dialog_ok
         (const char *filename, const char *mode) {
 
     if (mode[0] == 'w') {
-        roadmap_trip_save_file (filename, 1);
+        if (roadmap_trip_save_file (filename)) {
+            if ( RoadMapTripUntitled ) {
+                filename = roadmap_trip_path_relative_to_trips(filename);
+                roadmap_config_set (&RoadMapConfigTripName, filename);
+                roadmap_main_title(TRIP_TITLE_FMT, filename);
+                RoadMapTripUntitled = 0;
+            }
+        }
     } else {
         roadmap_trip_load_file (filename, 0, 0);
     }
@@ -2142,7 +2159,9 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
         // delete some stuff, and reload to get it back, that won't
         // work.
         if (RoadMapTripModified) {
-            roadmap_trip_save (0);
+            if (!roadmap_trip_save (0)) {
+                return 0;
+            }
         }
         roadmap_trip_clear();
 
@@ -2151,8 +2170,10 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
         ROADMAP_LIST_MOVE(&RoadMapTripTrackHead, &tmp_track_list);
 
         roadmap_config_set (&RoadMapConfigTripName,
-            roadmap_path_skip_directories(name));
+            roadmap_trip_path_relative_to_trips(name));
         roadmap_trip_set_modified(0);
+        roadmap_main_title(TRIP_TITLE_FMT, name);
+        RoadMapTripUntitled = 0;
     }
 
     roadmap_list_sort(&RoadMapTripWaypointHead, alpha_waypoint_cmp);
@@ -2184,19 +2205,18 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
         roadmap_trip_unset_route_focii ();
     }
     roadmap_screen_refresh ();
+    roadmap_main_title(TRIP_TITLE_FMT, roadmap_trip_current());
 
     return ret;
 }
 
 int roadmap_trip_load (int silent, int merge) {
-    int ret;
+
     const char *name = roadmap_trip_current();
 
-    ret = roadmap_trip_load_file ( name, silent, merge);
+    if (!name || !name[0]) return 0;
 
-    if (ret == 0) return 0;
-
-    return ret;
+    return roadmap_trip_load_file ( name, silent, merge);
 }
 
 int roadmap_trip_load_ask (int merge) {
@@ -2210,7 +2230,7 @@ int roadmap_trip_load_ask (int merge) {
 
 }
 
-static int roadmap_trip_save_file (const char *name, int force) {
+static int roadmap_trip_save_file (const char *name) {
 
     const char *path = NULL;
 
@@ -2218,27 +2238,50 @@ static int roadmap_trip_save_file (const char *name, int force) {
         path = roadmap_path_trips ();
     }
 
-    if (!force && !RoadMapTripModified) return 1;
-
-    /* Always save if user-initiated. */
-    roadmap_log (ROADMAP_DEBUG, "trip save_forced, or modified '%s'", name);
-
     return roadmap_gpx_write_file (path, name, &RoadMapTripWaypointHead,
             &RoadMapTripRouteHead, &RoadMapTripTrackHead);
 
 }
 
-int roadmap_trip_save (int force) {
+int roadmap_trip_save (int manual) {
 
-    int ret;
-    const char *name = roadmap_trip_current();
+    int ret = 1; /* success */
 
-    ret = roadmap_trip_save_file ( name, force);
+    if (RoadMapTripUntitled) {
+        if (manual) {
+            roadmap_trip_save_as();
+        } else if (RoadMapTripModified) { /* need to choose a name */
+            const char *path = roadmap_path_trips();
+            char name[50];
+            int i;
+            
+            strcpy (name, "SavedTrip.gpx");
+
+            i = 1;
+            while (roadmap_file_exists(path, name) && i < 1000) {
+                sprintf(name, "SavedTrip-%d.gpx", i++);
+            }
+            if (i == 1000) {
+                roadmap_log (ROADMAP_WARNING, "over 1000 SavedTrips!");
+                strcpy (name, "SavedTrip.gpx");
+            }
+
+            if (roadmap_trip_save_file (name)) {
+                roadmap_config_set (&RoadMapConfigTripName, name);
+                roadmap_main_title(TRIP_TITLE_FMT, name);
+                RoadMapTripUntitled = 0;
+            }
+        }
+    } else {
+        if (manual || RoadMapTripModified) {
+            ret = roadmap_trip_save_file (roadmap_trip_current());
+        }
+    }
 
     return ret;
 }
 
-void roadmap_trip_save_as(int force) {
+void roadmap_trip_save_as() {
     roadmap_trip_file_dialog ("w");
 }
 

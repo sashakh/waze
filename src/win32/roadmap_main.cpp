@@ -538,6 +538,9 @@ extern "C" {
 		}
 	}
 	
+	void roadmap_main_title(char *fmt, ...) {
+		/* unimplemented */
+	}
 	
 	void roadmap_main_set_keyboard (RoadMapKeyInput callback)
 	{

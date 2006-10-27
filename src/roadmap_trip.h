@@ -80,7 +80,7 @@ void  roadmap_trip_initialize (void);
 int   roadmap_trip_load (int silent, int merge);
 int   roadmap_trip_load_ask (int merge);
 int  roadmap_trip_save (int force);
-void  roadmap_trip_save_as (int force);
+void  roadmap_trip_save_as (void);
 
 void roadmap_trip_save_screenshot (void);
 

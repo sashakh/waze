@@ -27,6 +27,8 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 
 #include <gtk/gtk.h>
@@ -60,6 +62,8 @@ struct roadmap_main_timer {
 #define ROADMAP_MAX_TIMER 16
 static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
+
+static char *RoadMapMainTitle = NULL;
 
 static RoadMapKeyInput RoadMapMainInput = NULL;
 static GtkWidget      *RoadMapMainWindow  = NULL;
@@ -177,6 +181,25 @@ void roadmap_main_new (const char *title, int width, int height) {
    }
 
    gtk_window_set_title (GTK_WINDOW(RoadMapMainWindow), title);
+
+   if (RoadMapMainTitle != NULL) {
+      free(RoadMapMainTitle);
+   }
+   RoadMapMainTitle = strdup (title);
+}
+
+void roadmap_main_title(char *fmt, ...) {
+
+   char newtitle[200];
+   va_list ap;
+   int n;
+
+   n = snprintf(newtitle, 200, "%s", RoadMapMainTitle);
+   va_start(ap, fmt);
+   vsnprintf(&newtitle[n], 200 - n, fmt, ap);
+   va_end(ap);
+
+   gtk_window_set_title (GTK_WINDOW(RoadMapMainWindow), newtitle);
 }
 
 
@@ -468,7 +491,7 @@ void roadmap_main_flush (void) {
 
    while (gtk_events_pending ()) {
       if (gtk_main_iteration ()) {
-	 exit(0);  /* gtk_main_quit() called */
+         exit(0);  /* gtk_main_quit() called */
       }
    }
 }
@@ -484,7 +507,7 @@ int roadmap_main_flush_synchronous (int deadline) {
 
    while (gtk_events_pending ()) {
       if (gtk_main_iteration ()) {
-	 exit(0);  /* gtk_main_quit() called */
+         exit(0);  /* gtk_main_quit() called */
       }
    }
    gdk_flush();
