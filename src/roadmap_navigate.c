@@ -121,71 +121,21 @@ static void roadmap_navigate_trace (const char *format, PluginLine *line) {
 }
 
 
-static void roadmap_navigate_adjust_focus
-                (RoadMapArea *focus, const RoadMapGuiPoint *focused_point) {
-
-    RoadMapPosition focus_position;
-
-    roadmap_math_to_position (focused_point, &focus_position, 1);
-
-    if (focus_position.longitude < focus->west) {
-        focus->west = focus_position.longitude;
-    }
-    if (focus_position.longitude > focus->east) {
-        focus->east = focus_position.longitude;
-    }
-    if (focus_position.latitude < focus->south) {
-        focus->south = focus_position.latitude;
-    }
-    if (focus_position.latitude > focus->north) {
-        focus->north = focus_position.latitude;
-    }
-}
-
-
 static int roadmap_navigate_get_neighbours
-              (const RoadMapPosition *position, int accuracy,
+              (const RoadMapArea *focus,
+               const RoadMapPosition *position,
                RoadMapNeighbour *neighbours, int max) {
 
     int count;
     int layers[128];
 
-    RoadMapArea focus;
-
-    RoadMapGuiPoint focus_point;
-    RoadMapPosition focus_position;
-
-
     roadmap_log_push ("roadmap_navigate_get_neighbours");
-
-    roadmap_math_coordinate (position, &focus_point);
-    roadmap_math_rotate_coordinates (1, &focus_point);
-
-    focus_point.x += accuracy;
-    focus_point.y += accuracy;
-    roadmap_math_to_position (&focus_point, &focus_position, 1);
-
-    focus.west = focus_position.longitude;
-    focus.east = focus_position.longitude;
-    focus.north = focus_position.latitude;
-    focus.south = focus_position.latitude;
-
-    accuracy *= 2;
- 
-    focus_point.x -= accuracy;
-    roadmap_navigate_adjust_focus (&focus, &focus_point);
-
-    focus_point.y -= accuracy;
-    roadmap_navigate_adjust_focus (&focus, &focus_point);
-
-    focus_point.x += accuracy;
-    roadmap_navigate_adjust_focus (&focus, &focus_point);
 
     count = roadmap_layer_navigable (RoadMapCarMode, layers, 128);
     
     if (count > 0) {
 
-        roadmap_math_set_focus (&focus);
+        roadmap_math_set_focus (focus);
 
         count = roadmap_street_get_closest
                     (position, layers, count, neighbours, max);
@@ -217,15 +167,15 @@ void roadmap_navigate_enable  (void) {
 }
 
 
-int roadmap_navigate_retrieve_line (const RoadMapPosition *position,
-                                    int accuracy,
+int roadmap_navigate_retrieve_line (const RoadMapArea *focus,
+                                    const RoadMapPosition *position,
                                     PluginLine *line,
                                     int *distance) {
 
     RoadMapNeighbour closest;
 
     if (roadmap_navigate_get_neighbours
-           (position, accuracy, &closest, 1) <= 0) {
+           (focus, position, &closest, 1) <= 0) {
 
        return -1;
     }
@@ -545,6 +495,8 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     static RoadMapTracking candidate;
     static RoadMapTracking nominated;
 
+    RoadMapArea focus;
+
 
     if (! RoadMapNavigateEnabled) {
        
@@ -597,8 +549,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     /* We must search again for the best street match. */
 
+    roadmap_math_focus_area
+            (&focus, &RoadMapLatestPosition, roadmap_fuzzy_max_distance());
+
     count = roadmap_navigate_get_neighbours
-                (&RoadMapLatestPosition, roadmap_fuzzy_max_distance(),
+                (&focus, &RoadMapLatestPosition,
                  RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD);
 
     for (i = 0, best = roadmap_fuzzy_false(), found = 0; i < count; ++i) {

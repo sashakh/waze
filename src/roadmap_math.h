@@ -52,6 +52,8 @@ int  roadmap_math_set_orientation (int direction);
 int  roadmap_math_get_orientation (void);
 void roadmap_math_set_horizon     (int horizon);
 
+void roadmap_math_focus_area (RoadMapArea *focus,
+                 const RoadMapPosition *position, int accuracy);
 void roadmap_math_set_focus     (const RoadMapArea *focus);
 void roadmap_math_release_focus (void);
 
@@ -129,8 +131,8 @@ int  roadmap_math_intersection (RoadMapPosition *from1,
                                 RoadMapPosition *intersection);
 
 int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
-			   RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
-			   RoadMapGuiPoint *isect);
+                           RoadMapGuiPoint *f2, RoadMapGuiPoint *t2,
+                           RoadMapGuiPoint *isect);
 
 void roadmap_math_screen_edges (RoadMapArea *area);
 

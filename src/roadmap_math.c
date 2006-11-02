@@ -307,11 +307,11 @@ static void roadmap_math_compute_scale (void) {
    RoadMapContext.upright_screen.east  = position.longitude;
 
    roadmap_math_trip_set_distance
-	    ('x', RoadMapContext.width * RoadMapContext.zoom_x *
-		    RoadMapContext.units->unit_per_longitude);
+            ('x', RoadMapContext.width * RoadMapContext.zoom_x *
+                    RoadMapContext.units->unit_per_longitude);
    roadmap_math_trip_set_distance
-   	    ('y', RoadMapContext.height * RoadMapContext.zoom_y *
-		    RoadMapContext.units->unit_per_latitude);
+            ('y', RoadMapContext.height * RoadMapContext.zoom_y *
+                    RoadMapContext.units->unit_per_latitude);
 
    roadmap_math_set_orientation (orientation);
 }
@@ -736,6 +736,58 @@ void roadmap_math_use_metric (void) {
 void roadmap_math_use_imperial (void) {
 
     RoadMapContext.units = &RoadMapImperialSystem;
+}
+
+static void roadmap_math_adjust_focus
+                (RoadMapArea *focus, const RoadMapGuiPoint *focused_point) {
+
+    RoadMapPosition focus_position;
+
+    roadmap_math_to_position (focused_point, &focus_position, 1);
+
+    if (focus_position.longitude < focus->west) {
+        focus->west = focus_position.longitude;
+    }
+    if (focus_position.longitude > focus->east) {
+        focus->east = focus_position.longitude;
+    }
+    if (focus_position.latitude < focus->south) {
+        focus->south = focus_position.latitude;
+    }
+    if (focus_position.latitude > focus->north) {
+        focus->north = focus_position.latitude;
+    }
+}
+
+void
+roadmap_math_focus_area 
+                (RoadMapArea *focus, const RoadMapPosition *position,
+                 int accuracy) {
+
+    RoadMapGuiPoint focus_point;
+    RoadMapPosition focus_position;
+    roadmap_math_coordinate (position, &focus_point);
+    roadmap_math_rotate_coordinates (1, &focus_point);
+
+    focus_point.x += accuracy;
+    focus_point.y += accuracy;
+    roadmap_math_to_position (&focus_point, &focus_position, 1);
+
+    focus->west = focus_position.longitude;
+    focus->east = focus_position.longitude;
+    focus->north = focus_position.latitude;
+    focus->south = focus_position.latitude;
+
+    accuracy *= 2;
+ 
+    focus_point.x -= accuracy;
+    roadmap_math_adjust_focus (focus, &focus_point);
+
+    focus_point.y -= accuracy;
+    roadmap_math_adjust_focus (focus, &focus_point);
+
+    focus_point.x += accuracy;
+    roadmap_math_adjust_focus (focus, &focus_point);
 }
 
 

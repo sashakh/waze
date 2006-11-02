@@ -30,8 +30,8 @@
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
-int roadmap_navigate_retrieve_line (const RoadMapPosition *position,
-                                    int accuracy, 
+int roadmap_navigate_retrieve_line (const RoadMapArea *focus,
+                                    const RoadMapPosition *position,
                                     PluginLine *line,
                                     int *distance);
 
