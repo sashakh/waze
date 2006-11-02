@@ -990,7 +990,8 @@ static void roadmap_screen_repaint (void) {
        RoadMapPosition pos;
        int zoom;
        roadmap_math_get_context (&pos, &zoom);
-       roadmap_display_text("Info", "No map available: %d %d", pos.longitude, pos.latitude);
+       roadmap_display_text("Info", "No map available: " FLT_FMT ", " FLT_FMT,
+             to_float(pos.longitude), to_float(pos.latitude));
     }
 
     roadmap_label_start();
@@ -1094,32 +1095,49 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
     
    PluginLine line;
    int distance;
+   int accuracy;
    RoadMapPosition position;
+   RoadMapArea area;
 
+   if (roadmap_trip_move_last_place_callback(1, point)) {
+       return;
+   }
+
+   accuracy =  roadmap_config_get_integer (&RoadMapConfigAccuracyMouse);
     
    roadmap_math_to_position (point, &position, 1);
-   
-   if (roadmap_navigate_retrieve_line
-               (&position,
-                roadmap_config_get_integer (&RoadMapConfigAccuracyMouse),
-                &line,
-                &distance) != -1) {
+   roadmap_math_focus_area (&area, &position, accuracy);
+
+   if (roadmap_trip_retrieve_area_points(&area, &position)) {
+       ;
+   } else if (roadmap_navigate_retrieve_line
+               (&area, &position, &line, &distance) != -1) {
 
        PluginStreet street;
 
-       roadmap_trip_set_point ("Selection", &position);
        roadmap_display_activate ("Selected Street", &line, &position, &street);
        roadmap_screen_repaint ();
    }
+
+   roadmap_trip_set_point ("Selection", &position);
+
 }
 
 
 static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
 
+   if (roadmap_trip_move_last_place_callback(0, point)) {
+      return;
+   }
+
    roadmap_factory_popup (&RoadMapConfigEventRightClick, point);
 }
 
 static void roadmap_screen_long_click (RoadMapGuiPoint *point) {
+
+   if (roadmap_trip_move_last_place_callback(0, point)) {
+      return;
+   }
 
    roadmap_factory_popup (&RoadMapConfigEventLongClick, point);
 }

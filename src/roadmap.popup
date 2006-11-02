@@ -9,3 +9,20 @@ position
 destination
 gps
 
+/Long Click Popup
+cancel
+-
+lastplacedelete
+lastplaceedit
+lastplacemove
+-
+addroutepointnear
+addroutepointstart
+addroutepointend
+-
+addpersonallandmark
+addtriplandmark
+-
+routepointahead
+routepointback
+

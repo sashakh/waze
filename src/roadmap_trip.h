@@ -25,6 +25,7 @@
 #define INCLUDE__ROADMAP_TRIP__H
 
 #include "roadmap_types.h"
+#include "roadmap_gui.h"
 #include "roadmap_gps.h"
 
 
@@ -92,6 +93,22 @@ void roadmap_trip_currenttrack_to_route (void);
 void roadmap_trip_currenttrack_to_track (void);
 
 void roadmap_trip_insert_routepoint_best(void);
+void roadmap_trip_insert_routepoint_dest(void);
+void roadmap_trip_insert_routepoint_start(void);
+void roadmap_trip_insert_trip_point(void);
+void roadmap_trip_insert_personal_point(void);
+
+int roadmap_trip_retrieve_area_points
+        (RoadMapArea *area, RoadMapPosition *position);
+
+void roadmap_trip_delete_last_place(void);
+void roadmap_trip_edit_last_place(void);
+void roadmap_trip_move_last_place(void);
+void roadmap_trip_move_routepoint_ahead (void);
+void roadmap_trip_move_routepoint_back (void);
+
+int roadmap_trip_move_last_place_callback
+	(int action, const RoadMapGuiPoint *point);
 
 #if WGET_GOOGLE_ROUTE
 void roadmap_trip_replace_with_google_route(void);

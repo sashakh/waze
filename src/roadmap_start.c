@@ -110,6 +110,13 @@ static RoadMapConfigDescriptor RoadMapConfigDisplayRefresh =
 
 /* The menu and toolbar callbacks: --------------------------------------- */
 
+static void roadmap_start_cancel (void) {
+    /* for menus, mainly popups, where the mouse can easily cause
+     * an unwanted action -- putting this at the top of the menu
+     * helps prevent that */;
+}
+
+
 static void roadmap_start_periodic (void);
 
 static void roadmap_start_console (void) {
@@ -315,6 +322,9 @@ static void roadmap_start_toggle_download (void) {
  * will reference an action.
  */
 static RoadMapAction RoadMapStartActions[] = {
+
+   {"cancel", "", NULL, NULL,
+      "Do nothing", roadmap_start_cancel},
 
    {"preferences", "Preferences", "Preferences", "P",
       "Open the preferences editor", roadmap_preferences_edit},
@@ -524,21 +534,57 @@ static RoadMapAction RoadMapStartActions[] = {
       "Create new place using last selected street or place",
       roadmap_start_create_waypoint},
 
-   {"editroutewaypoints", "Route Waypoints...", NULL, NULL,
+   {"editroutepoints", "Route Waypoints...", NULL, NULL,
       "Edit current route's waypoints", roadmap_trip_route_waypoint_manage_dialog },
 
-   {"addroutewaypoint", "Add Route Waypoint", NULL, NULL,
-      "Add selection to the current route's waypoints", 
+   {"addroutepointnear", "Insert Route Waypoint", NULL, NULL,
+      "Insert routepoint into nearest leg of the current route", 
       roadmap_trip_insert_routepoint_best },
 
-   {"edittripwaypoints", "Trip Landmarks...", NULL, NULL,
-      "Edit landmarks associated with this trip", roadmap_trip_trip_waypoint_manage_dialog },
+   {"addroutepointend", "Append Past Route Destination", NULL, NULL,
+      "Add routepoint past the end of current route", 
+      roadmap_trip_insert_routepoint_dest },
 
-   {"editpersonalwaypoints", "Personal Landmarks...", NULL, NULL,
-      "Edit personal landmarks", roadmap_trip_personal_waypoint_manage_dialog },
+   {"addroutepointstart", "Prepend Before Route Start", NULL, NULL,
+      "Add routepoint before the start of current route", 
+      roadmap_trip_insert_routepoint_start },
 
-   {"mergepersonalwaypoints", "Load more Personal Landmarks...", NULL, NULL,
+   {"addtriplandmark", "Add Trip Landmark", NULL, NULL,
+      "Add selection to list of trip landmarks", 
+      roadmap_trip_insert_trip_point },
+
+   {"addpersonallandmark", "Add Personal Landmark", NULL, NULL,
+      "Add selection to list of personal landmarks", 
+      roadmap_trip_insert_personal_point },
+
+   {"edittriplandmarks", "Trip Landmarks...", NULL, NULL,
+      "Edit landmarks associated with this trip",
+      roadmap_trip_trip_waypoint_manage_dialog },
+
+   {"editpersonallandmarks", "Personal Landmarks...", NULL, NULL,
+      "Edit personal landmarks",
+      roadmap_trip_personal_waypoint_manage_dialog },
+
+   {"mergepersonallandmarks", "Load more Personal Landmarks...", NULL, NULL,
       "Merge personal landmarks from file", roadmap_start_merge_landmark },
+
+   {"lastplacedelete", "Delete place", "Delete Selected Place", NULL,
+        "Delete the last selected place", roadmap_trip_delete_last_place },
+
+   {"lastplaceedit", "Edit place", "Edit Selected Place", NULL,
+        "Edit the last selected place", roadmap_trip_edit_last_place },
+
+   {"lastplacemove", "Move place", NULL, NULL,
+        "Relocate the last selected place to the popup location",
+        roadmap_trip_move_last_place },
+
+   {"routepointahead", "Reorder, move ahead", NULL, NULL,
+        "Reorder the route, moving this point later in the route",
+        roadmap_trip_move_routepoint_ahead },
+
+   {"routepointback", "Reorder, move back", NULL, NULL,
+        "Reorder the route, moving this point earlier in the route",
+        roadmap_trip_move_routepoint_back },
 
    {"full", "Full Screen", "Full", "F",
       "Toggle the window full screen mode (depends on the window manager)",
@@ -654,11 +700,11 @@ static const char *RoadMapStartMenu[] = {
 
    "addaswaypoint",
    "gpsaswaypoint", 
-   "addroutewaypoint",
-   "editroutewaypoints",
-   "edittripwaypoints",
-   "editpersonalwaypoints",
-   "mergepersonalwaypoints",
+   "addroutepointnear",
+   "editroutepoints",
+   "edittriplandmarks",
+   "editpersonallandmarks",
+   "mergepersonallandmarks",
 
    RoadMapFactorySeparator,
 

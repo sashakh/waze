@@ -82,7 +82,7 @@ static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
 /*
  * try and put the trip name in the window title
  */
-#define TRIP_TITLE_FMT " - trip %s"
+#define TRIP_TITLE_FMT " - %s"
 
 /* Default location is: 1 Market St, San Francisco, California,
  *  but every effort is made to choose a more "local" initial
@@ -645,19 +645,22 @@ static void roadmap_trip_add_waypoint_dialog
 #define ROUTE_WAYPOINTS (void *)2
 
 #define WAYPOINT_ACTION_DELETE 0
-#define WAYPOINT_ACTION_MOVE_UP 1
-#define WAYPOINT_ACTION_MOVE_DOWN 2
+#define WAYPOINT_ACTION_MOVE_BACK 1
+#define WAYPOINT_ACTION_MOVE_AHEAD 2
 
 static void roadmap_trip_waypoint_manage_dialog_populate
         (int count, void *which);
 
 static void roadmap_trip_waypoint_manage_dialog_action
-        (const char *name, void *data, int action) {
+        (waypoint *waypointp, const char *name, void *data, int action) {
 
     int count;
-    waypoint *waypointp, *neighbor;
+    waypoint *neighbor;
     
-    waypointp = (waypoint *) roadmap_dialog_get_data ("Names", ".Waypoints");
+    if (waypointp == NULL) {
+        waypointp = (waypoint *) roadmap_dialog_get_data
+                                        ("Names", ".Waypoints");
+    }
 
     if (waypointp == NULL) {
         return;
@@ -665,7 +668,9 @@ static void roadmap_trip_waypoint_manage_dialog_action
 
 
     switch(action) {
-    case WAYPOINT_ACTION_MOVE_UP:
+    case WAYPOINT_ACTION_MOVE_BACK:
+        if (data != ROUTE_WAYPOINTS)
+            return;
         if (waypointp == RoadMapTripStart)
             return;
         neighbor = (waypoint *)ROADMAP_LIST_PREV(&waypointp->Q);
@@ -673,7 +678,9 @@ static void roadmap_trip_waypoint_manage_dialog_action
         roadmap_list_put_before(&neighbor->Q, &waypointp->Q);
         break;
 
-    case WAYPOINT_ACTION_MOVE_DOWN:
+    case WAYPOINT_ACTION_MOVE_AHEAD:
+        if (data != ROUTE_WAYPOINTS)
+            return;
         if (waypointp == RoadMapTripDest)
             return;
         neighbor = (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
@@ -697,7 +704,8 @@ static void roadmap_trip_waypoint_manage_dialog_action
                 roadmap_trip_set_modified(1);
                 RoadMapTripRefresh = 1;
                 roadmap_screen_refresh ();
-                roadmap_dialog_hide (name);
+                if (name != NULL)
+                    roadmap_dialog_hide (name);
                 return;
             }
 
@@ -731,29 +739,31 @@ static void roadmap_trip_waypoint_manage_dialog_action
     } else {
         count = roadmap_landmark_count();
     }
-    if (count > 0) {
-        roadmap_trip_waypoint_manage_dialog_populate (count, data);
-    } else {
-        roadmap_dialog_hide (name);
+    if (name != NULL) {
+        if (count > 0) {
+            roadmap_trip_waypoint_manage_dialog_populate (count, data);
+        } else {
+            roadmap_dialog_hide (name);
+        }
     }
 }
 
 static void roadmap_trip_waypoint_manage_dialog_delete
         (const char *name, void *data) {
     roadmap_trip_waypoint_manage_dialog_action
-        (name, data, WAYPOINT_ACTION_DELETE);
+        (NULL, name, data, WAYPOINT_ACTION_DELETE);
 }
 
 static void roadmap_trip_waypoint_manage_dialog_up
         (const char *name, void *data) {
     roadmap_trip_waypoint_manage_dialog_action
-        (name, data, WAYPOINT_ACTION_MOVE_UP);
+        (NULL, name, data, WAYPOINT_ACTION_MOVE_BACK);
 }
 
 static void roadmap_trip_waypoint_manage_dialog_down
         (const char *name, void *data) {
     roadmap_trip_waypoint_manage_dialog_action
-        (name, data, WAYPOINT_ACTION_MOVE_DOWN);
+        (NULL, name, data, WAYPOINT_ACTION_MOVE_AHEAD);
 }
 
 static void roadmap_trip_waypoint_manage_dialog_edit
@@ -1224,7 +1234,7 @@ void roadmap_trip_set_as_destination(void)
     roadmap_screen_refresh ();
 }
 
-void roadmap_trip_insert_routepoint_best(void)
+static void roadmap_trip_insert_routepoint_worker(int where)
 {
     const char *name;
 
@@ -1237,8 +1247,34 @@ void roadmap_trip_insert_routepoint_best(void)
     name = roadmap_trip_last_setpoint_name();
 
     roadmap_trip_add_waypoint
-       (name, &RoadMapTripLastSetPoint->map, PLACE_ROUTE_MARK_INSERT);
+       (name, &RoadMapTripLastSetPoint->map, where);
 }
+
+void roadmap_trip_insert_routepoint_best(void) {
+
+    roadmap_trip_insert_routepoint_worker(PLACE_ROUTE_MARK_INSERT);
+}
+
+void roadmap_trip_insert_routepoint_dest(void) {
+
+    roadmap_trip_insert_routepoint_worker(PLACE_ROUTE_MARK_DEST);
+}
+
+void roadmap_trip_insert_routepoint_start(void) {
+
+    roadmap_trip_insert_routepoint_worker(PLACE_ROUTE_MARK_START);
+}
+
+void roadmap_trip_insert_trip_point(void) {
+
+    roadmap_trip_insert_routepoint_worker(PLACE_TRIP_MARK);
+}
+
+void roadmap_trip_insert_personal_point(void) {
+
+    roadmap_trip_insert_routepoint_worker(PLACE_PERSONAL_MARK);
+}
+
 
 static waypoint * roadmap_trip_choose_best_next (const RoadMapPosition *pos);
 
@@ -2003,53 +2039,6 @@ void roadmap_trip_new (void) {
 }
 
 
-void roadmap_trip_initialize (void) {
-
-    RoadMapTripFocal *focal;
-
-    ROADMAP_LIST_INIT(&RoadMapTripWaypointHead);
-    ROADMAP_LIST_INIT(&RoadMapTripRouteHead);
-    ROADMAP_LIST_INIT(&RoadMapTripTrackHead);
-
-    ROADMAP_LIST_INIT(&RoadMapTripQuickRoute.waypoint_list);
-
-    for (focal = RoadMapTripFocalPoints;
-            focal->id != NULL; focal++) {
-
-        roadmap_config_declare ("session",
-            &focal->config_position, "0,0");
-
-        if (focal->mobile) {
-            roadmap_config_declare ("session", &focal->config_direction, "0");
-        }
-
-    }
-    roadmap_config_declare
-        ("session", &RoadMapConfigTripName, "");
-    roadmap_config_declare
-        ("session", &RoadMapConfigFocusName, "GPS");
-    roadmap_config_declare
-        ("session", &RoadMapConfigFocusRotate, "1");
-
-    roadmap_config_declare_distance
-        ("preferences", &RoadMapConfigWaypointSize, "125 ft");
-
-    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
-
-    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigTripShowInactiveRoutes, "yes", "no", NULL);
-
-    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigTripShowRouteLines, "yes", "no", NULL);
-    roadmap_config_declare
-       ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
-
-    RoadMapTripShowInactiveRoutes =
-        roadmap_config_match (&RoadMapConfigTripShowInactiveRoutes, "yes");
-
-}
-
 const char *roadmap_trip_path_relative_to_trips(const char *filename) {
     const char *p;
     int pl;
@@ -2383,6 +2372,7 @@ void roadmap_trip_copy_route
 
 }
 
+
 static void roadmap_trip_route_convert_worker
         (route_head *orig_route, char *new_name, 
             int simplify, int wanttrack, int reverse) {
@@ -2428,6 +2418,7 @@ static void roadmap_trip_route_convert_worker
     }
 
 }
+
 
 void roadmap_trip_track_to_route (void) {
 
@@ -2498,6 +2489,271 @@ void roadmap_trip_currenttrack_to_track (void) {
 }
 
 
+/* ---- support for finding the clicked-on waypoint ---- */
+
+void roadmap_landmark_iterate(waypt_cb cb) {
+    waypt_iterator (roadmap_landmark_list(), cb);
+}
+
+const char *RoadMapAreaCurListName;
+void *RoadMapAreaCurListType;
+int RoadMapTripPlaceMoving;
+
+typedef struct {
+   RoadMapListItem link;
+   waypoint *wpt;
+   const char *list;
+   void *type;
+} roadmap_point_pointer;
+
+RoadMapList RoadMapTripAreaPoints;
+roadmap_point_pointer *RoadMapTripLastPlace;
+
+void roadmap_trip_landmark_iterate (waypt_cb cb) {
+    waypt_iterator (&RoadMapTripWaypointHead, cb);
+}
+
+void roadmap_trip_routepoint_iterate (waypt_cb cb) {
+
+    RoadMapListItem *relem, *rtmp;
+    RoadMapListItem *elem, *tmp;
+    waypoint *w;
+
+    ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, relem, rtmp) {
+        route_head *rh = (route_head *) relem;
+        RoadMapAreaCurListName = rh->rte_name;
+        RoadMapAreaCurListType = ROUTE_WAYPOINTS;
+        QUEUE_FOR_EACH(&rh->waypoint_list, elem, tmp) {
+                w = (waypoint *) elem;
+                (*cb)(w);
+        }
+    }
+    ROADMAP_LIST_FOR_EACH (&RoadMapTripTrackHead, relem, rtmp) {
+        route_head *rh = (route_head *) relem;
+        RoadMapAreaCurListName = rh->rte_name;
+        RoadMapAreaCurListType = ROUTE_WAYPOINTS;
+        QUEUE_FOR_EACH(&rh->waypoint_list, elem, tmp) {
+                w = (waypoint *) elem;
+                (*cb)(w);
+        }
+    }
+}
+
+void
+roadmap_trip_area_waypoint(const waypoint *waypointp) {
+
+    roadmap_point_pointer *point_ptr;
+
+    if (roadmap_math_point_is_visible (&waypointp->pos)) {
+        point_ptr = malloc(sizeof(*point_ptr));
+        roadmap_check_allocated (point_ptr);
+        point_ptr->wpt = (waypoint *)waypointp;
+        point_ptr->list = RoadMapAreaCurListName;
+        point_ptr->type = RoadMapAreaCurListType;
+        roadmap_list_insert(&RoadMapTripAreaPoints, &point_ptr->link);
+    }
+}
+
+
+int roadmap_trip_retrieve_area_points
+        (RoadMapArea *area, RoadMapPosition *position) {
+
+   RoadMapListItem *element, *tmp;
+   int count;
+
+   /* clear old contents */
+   ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPoints, element, tmp) {
+      free (roadmap_list_remove(element));
+   }
+   RoadMapTripLastPlace = NULL;
+
+   roadmap_math_set_focus (area);
+
+   RoadMapAreaCurListName = "Personal landmark";
+   RoadMapAreaCurListType = PERSONAL_WAYPOINTS;
+   roadmap_landmark_iterate (roadmap_trip_area_waypoint);
+
+   RoadMapAreaCurListName = "Trip landmark";
+   RoadMapAreaCurListType = TRIP_WAYPOINTS;
+   roadmap_trip_landmark_iterate (roadmap_trip_area_waypoint);
+
+   roadmap_trip_routepoint_iterate (roadmap_trip_area_waypoint);
+
+   roadmap_math_release_focus ();
+
+   count = roadmap_list_count(&RoadMapTripAreaPoints);
+
+   if (!count) {
+      roadmap_display_hide("Place");
+      roadmap_screen_redraw ();
+      return 0;
+   }
+
+   if (count) {
+
+      roadmap_point_pointer *pp;
+      waypoint *wpt;
+
+      while (count > 1) { /* find the closest point(s) */
+          int dist, mindist = 999999999;
+          roadmap_point_pointer *minpp = NULL;
+          int ocount = count;
+          ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPoints, element, tmp) {
+             pp = (roadmap_point_pointer *)element;
+             wpt = pp->wpt;
+             dist = roadmap_math_distance (&wpt->pos, position);
+             if (dist < mindist) {
+                mindist = dist;
+                if (minpp) {
+                    free (roadmap_list_remove(&minpp->link));
+                    count--;
+                }
+                minpp = pp;
+             } else if (dist > mindist) {
+                free (roadmap_list_remove(&pp->link));
+                count--;
+             } /* else they're equal, keep both */
+          }
+          /* the loop is in case we have two or more coincident points
+           * that are farther than the one we're searching for.  we
+           * can only remove one point each time through the loop, so
+           * if they're both the same distance, we need to go through
+           * twice.
+           */
+          if (ocount == count) break;
+      }
+
+      pp = (roadmap_point_pointer *)
+            ROADMAP_LIST_FIRST(&RoadMapTripAreaPoints);
+
+      wpt = pp->wpt;
+
+      roadmap_message_set ('R', pp->list ? pp->list : "");
+      roadmap_message_set ('P', wpt->shortname);
+
+      roadmap_display_text("Place", "%s%s%s%s%s%s",
+        pp->list ? pp->list : "",
+        pp->list ? " / " : "",
+        wpt->shortname,
+        wpt->description ? " - " : "",
+        wpt->description ? wpt->description  : "",
+        count > 1 ? " (more)" : "");
+      roadmap_screen_redraw ();
+
+      RoadMapTripLastPlace = pp;
+   }
+
+   return 1;
+}
+
+void roadmap_trip_delete_last_place(void)
+{
+    if (RoadMapTripLastPlace == NULL)
+        return;
+
+    roadmap_trip_waypoint_manage_dialog_action
+        (RoadMapTripLastPlace->wpt, NULL, RoadMapTripLastPlace->type, WAYPOINT_ACTION_DELETE);
+
+    roadmap_list_remove(&RoadMapTripLastPlace->link);
+    RoadMapTripLastPlace = NULL;
+    roadmap_trip_set_modified(1);
+}
+
+void roadmap_trip_edit_last_place(void)
+{
+    if (RoadMapTripLastPlace == NULL)
+        return;
+
+    roadmap_trip_dialog_waypoint_edit
+        ( RoadMapTripLastPlace->wpt, roadmap_preferences_use_keyboard ());
+
+    roadmap_trip_set_modified(1);
+}
+
+/* intended to be called from popup menu -- uses popup location as move dest */
+void roadmap_trip_move_last_place(void)
+{
+    waypoint *w;
+    roadmap_point_pointer *pp;
+
+    if (RoadMapTripLastPlace == NULL)
+        return;
+
+    pp = RoadMapTripLastPlace;
+    w = pp->wpt;
+
+    roadmap_display_hide("Place");
+    roadmap_display_text
+	("Moving", "Moving %s%s%s%s%s (Long or Right Click to Cancel)",
+       pp->list ? pp->list : "",
+       pp->list ? " / " : "",
+       w->shortname,
+       w->description ? " - " : "",
+       w->description ? w->description  : "");
+
+    roadmap_screen_redraw ();
+
+    RoadMapTripPlaceMoving = 1;
+}
+
+int roadmap_trip_move_last_place_callback
+	(int action, const RoadMapGuiPoint *point) {
+
+    int ret;
+                               
+    if (!RoadMapTripPlaceMoving)
+	return 0;
+
+    if (action) {
+	waypoint *w;
+	roadmap_point_pointer *pp;
+
+	if (RoadMapTripLastPlace == NULL)
+	    return 0;
+
+	pp = RoadMapTripLastPlace;
+	w = pp->wpt;
+	roadmap_math_to_position (point, &w->pos, 1);
+	roadmap_trip_set_modified(1);
+	RoadMapTripRefresh = 1;
+	roadmap_screen_refresh ();
+	ret = 1;
+    } else {
+	ret = RoadMapTripPlaceMoving;
+    }
+
+    RoadMapTripPlaceMoving = 0;
+
+    roadmap_display_hide("Moving");
+    roadmap_screen_redraw ();
+
+    return ret;
+}
+
+void roadmap_trip_move_routepoint_ahead (void) {
+
+    if (RoadMapTripLastPlace == NULL)
+        return;
+
+    roadmap_trip_waypoint_manage_dialog_action
+        (RoadMapTripLastPlace->wpt, NULL,
+                RoadMapTripLastPlace->type,  WAYPOINT_ACTION_MOVE_AHEAD);
+
+    roadmap_trip_set_modified(1);
+}
+
+void roadmap_trip_move_routepoint_back (void) {
+
+    if (RoadMapTripLastPlace == NULL)
+        return;
+
+    roadmap_trip_waypoint_manage_dialog_action
+        (RoadMapTripLastPlace->wpt, NULL,
+                RoadMapTripLastPlace->type,  WAYPOINT_ACTION_MOVE_BACK);
+
+    roadmap_trip_set_modified(1);
+}
+
 #if WGET_GOOGLE_ROUTE
 /* for fun -- should be cleaned up.  given a route with just
  * start and a dest, query google for the driving directions
@@ -2536,3 +2792,53 @@ void roadmap_trip_replace_with_google_route(void) {
 
 }
 #endif
+
+void roadmap_trip_initialize (void) {
+
+    RoadMapTripFocal *focal;
+
+    ROADMAP_LIST_INIT(&RoadMapTripWaypointHead);
+    ROADMAP_LIST_INIT(&RoadMapTripRouteHead);
+    ROADMAP_LIST_INIT(&RoadMapTripTrackHead);
+
+    ROADMAP_LIST_INIT(&RoadMapTripAreaPoints);
+
+    ROADMAP_LIST_INIT(&RoadMapTripQuickRoute.waypoint_list);
+
+    for (focal = RoadMapTripFocalPoints;
+            focal->id != NULL; focal++) {
+
+        roadmap_config_declare ("session",
+            &focal->config_position, "0,0");
+
+        if (focal->mobile) {
+            roadmap_config_declare ("session", &focal->config_direction, "0");
+        }
+
+    }
+    roadmap_config_declare
+        ("session", &RoadMapConfigTripName, "");
+    roadmap_config_declare
+        ("session", &RoadMapConfigFocusName, "GPS");
+    roadmap_config_declare
+        ("session", &RoadMapConfigFocusRotate, "1");
+
+    roadmap_config_declare_distance
+        ("preferences", &RoadMapConfigWaypointSize, "125 ft");
+
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
+
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigTripShowInactiveRoutes, "yes", "no", NULL);
+
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigTripShowRouteLines, "yes", "no", NULL);
+    roadmap_config_declare
+       ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
+
+    RoadMapTripShowInactiveRoutes =
+        roadmap_config_match (&RoadMapConfigTripShowInactiveRoutes, "yes");
+
+}
+
