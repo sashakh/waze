@@ -185,7 +185,8 @@ static const char **roadmap_factory_load_config (const char *file_name,
 
          this_action = roadmap_factory_find_action (actions, p);
          if (this_action == NULL) {
-            roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
+            roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s%s%s",
+                p, path ? path : "", path ? "/":"",  file_name);
          } else {
             loaded[count++] = this_action->name;
          }
@@ -286,7 +287,8 @@ static int roadmap_factory_load_action_labels (const char *file_name,
 
       this_action = roadmap_factory_find_action (actions, fields[0]);
       if (this_action == NULL) {
-         roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", p);
+         roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s%s%s",
+                p, path ? path : "", path ? "/":"",  file_name);
          continue;
       }
 
@@ -438,7 +440,8 @@ void roadmap_factory (const char           *name,
                                         this_action->tip,
                                         this_action->callback);
          } else {
-            roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", item);
+            roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s menu",
+                        item, userconfig ? "user" : "built-in");
          }
       }
    }
@@ -473,7 +476,8 @@ void roadmap_factory (const char           *name,
                                       this_action->tip,
                                       this_action->callback);
             } else {
-               roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", item);
+               roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s toolbar",
+                        item, userconfig ? "user" : "built-in");
             }
          }
       }
@@ -516,7 +520,8 @@ void roadmap_factory (const char           *name,
                      this_action->tip,
                      this_action->callback);
             } else {
-               roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", item);
+               roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s popup",
+                        item, userconfig ? "user" : "built-in");
             }
          }
       }
