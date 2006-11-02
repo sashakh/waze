@@ -577,8 +577,6 @@ static void roadmap_layer_sort (RoadMapSet *set) {
    RoadMapClass *sorted[ROADMAP_MAX_LAYERS];
 
 
-   roadmap_check_allocated(sorted);
-
    roadmap_layer_convert_after (set);
    roadmap_layer_convert_before (set);
 
