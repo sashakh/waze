@@ -22,6 +22,8 @@ INSTALL      = install
 INSTALL_DATA = install -m644
 RANLIB       = ranlib
 STRIP        = strip
+# the image conversion tool "convert" comes with ImageMagick.
+# on debian or ubuntu:  "apt-get install imagemagick"
 CONVERT      = convert
 
 # --- Build options ------------------------------------------------
