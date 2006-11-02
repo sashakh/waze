@@ -10,7 +10,7 @@ INTRODUCTION
 
    RoadMap is an open source program for UNIX that displays street maps.
    When a GPS receiver is available RoadMap can track the current location
-   of the vehicule on the screen, continuously adjusting the position of the
+   of the vehicle on the screen, continuously adjusting the position of the
    map; it can also identify the name of the current street as well as the
    name of the next intersection. RoadMap can be used without a GPS receiver,
    as a static map viewer and address finder.
@@ -128,7 +128,9 @@ INSTALLATION
 
    RoadMap uses the expat library to load GPX trip and landmark files. 
    RoadMap can be built without expat, with some loss of functionality, by
-   changing config.mk to say:  EXPAT = NO.
+   changing config.mk to say:  EXPAT = NO.  (On Debian or Ubuntu linux
+   systems, use "apt-get install libexpat1-dev" to install the expat
+   development library.)
 
    Likewise, RoadMap can sometimes use the agg library to render anti-
    aliased maps and street label text.  If you don't have agg, RoadMap
@@ -662,7 +664,9 @@ INSTALLATION
    The <<buildmap>> tool takes a county "FIPS" and a TIGER file as input and
    produces one RoadMap .rdm map file. The tool uses the popt library for
    parsing the command line arguments: the option --help gives more
-   information about the available options.
+   information about the available options.  (On Debian or Ubuntu linux
+   systems, use "apt-get install libpopt-dev" to install the popt development
+   library.)
 
    Here is an example:
 
@@ -791,7 +795,7 @@ INSTALLATION
      QPE not defining color names. Try redefining all colors in schema
      using the RGB syntax ('#' followed by an hexadecimal RGB value).
 
-   * Waypoints, the compass and the vehicule's location all appear as small
+   * Waypoints, the compass and the vehicle's location all appear as small
      black squares. This is typical of a missing "sprites" file. The "sprite"
      file must be located in one of these directories:/urs/local/share/roadmap,
      /usr/share/roadmap or /etc/roadmap.  It is likely the "make install"
@@ -940,7 +944,7 @@ USING ROADMAP
    are several criteria used by RoadMap to "lock" on a street: the distance
    to the street (the closest the better, not more than the value set with
    Accuracy.Street), the direction of the street compare to the direction of
-   the vehicule or if the street is connected to the current "locked" street.
+   the vehicle or if the street is connected to the current "locked" street.
    RoadMap uses fuzzy logic to combine these criteria into one single value.
    None of the fuzzyfied values for the distance and direction may be below
    the value set by Accuracy.Confidence, or else the street is not selected.
@@ -959,7 +963,7 @@ USING ROADMAP
    RoadMap uses mostly one mouse button (the left button on a 3 button mouse).
    This is because RoadMap is designed for a PDA, where pens are used.
 
-   A short mouse Click or pen tap on the map screen displays the name of the
+   A short mouse click or pen tap on the map screen displays the name of the
    closest street (with the selected street block's range of address), road
    or freeway (if any). This display is shown for a limited amount of time
    (see preference "Highlight.Duration").
@@ -1690,7 +1694,7 @@ USING ROADMAP
 
          * rdmghost is the driver test program. It is a silly small
            application that echoes back a previous position of RoadMap.
-           It shows a green ghost vehicule that seems to chase the
+           It shows a green ghost vehicle that seems to chase the
            RoadMap position. The rdmghost driver uses the Ghost.Delay
            preferences items, which sets the delay for echoing the RoadMap
            location (each delay unit generally match one second time).
@@ -1698,7 +1702,7 @@ USING ROADMAP
          * rdmfriends is the driver for the gpsdrive's friends protocol.
            It can connect to a friends server (gpsdrive 2.0.9), advertise
            the RoadMap location and provide RoadMap with the list and
-           location of all vehicules known to the friends server. The
+           location of all vehicles known to the friends server. The
            rdmfriends driver use the Friends.Name and Friend.Server
            preferences items. The first item provides the name that
            rdmfriends must use to identify itself to the friends server.
@@ -1866,6 +1870,10 @@ CONFIGURATION
 |  M: | Next sunrise time (morning), undefined in daylight time.
 *-----+-----------------------------------------------------------------+
 |  N: | the name of the selected or current street.
+*-----+-----------------------------------------------------------------+
+|  P: | the name of the selected or current place.
+*-----+-----------------------------------------------------------------+
+|  R: | the name of the route or list containing the selected place.
 *-----+-----------------------------------------------------------------+
 |  S: | Speed (set only when a trip is active).
 *-----+-----------------------------------------------------------------+
@@ -2369,7 +2377,7 @@ CONFIGURATION
          <<Default:>> 25
 
          <<Comment:>> RoadMap uses fuzzy logic to identify what street
-                  the vehicule is on. This value if a minimum fuzzy result
+                  the vehicle is on. This value if a minimum fuzzy result
                   for RoadMap to select any street. This helps not selecting
                   whatever street is near by when off-road. This also speeds
                   up the identification process by filtering out unlikely
@@ -2419,7 +2427,7 @@ CONFIGURATION
          <<Comment:>> This is the maximum distance to a street for the
                   navigation logic. If a street is at a distance greater than
                   this value, then RoadMap will never consider this street
-                  when searching which street the vehicule is on.
+                  when searching which street the vehicle is on.
 
     [History.Depth] The maximum number of items in the <<find>> history.
 
