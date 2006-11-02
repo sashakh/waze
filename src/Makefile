@@ -352,7 +352,7 @@ buildplace: $(BPOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BPOBJS) -o buildplace $(LIBS)
 
 
-# icon rule -- create xpm from png
+# icon rule -- create xpm from png with "convert" from imagemagick
 %.xpm : %.png
 	$(CONVERT) $< $@
 
