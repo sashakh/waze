@@ -129,6 +129,8 @@ RoadMapSign RoadMapStreetSign[] = {
     ROADMAP_SIGN("GPS", "Current Street",  SIGN_BOTTOM, "%N, %C|%N", "DarkSeaGreen4", "white"),
     ROADMAP_SIGN("GPS", "Approach",        SIGN_TOP, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
     ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "yellow", "black"),
+    ROADMAP_SIGN(NULL, "Place", SIGN_BOTTOM, NULL, "yellow", "black"),
+    ROADMAP_SIGN(NULL, "Moving", SIGN_BOTTOM, NULL, "black", "yellow"),
     ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "yellow", "black"),
     ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "red", "white"),
     ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
@@ -700,12 +702,12 @@ void roadmap_display_signs (void) {
          &RoadMapConfigDisplayBottomLeft);
 
     roadmap_display_console_box
-        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
-         &RoadMapConfigDisplayTopRight);
-
-    roadmap_display_console_box
         (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_LEFT,
          &RoadMapConfigDisplayTopLeft);
+
+    roadmap_display_console_box
+        (ROADMAP_CANVAS_TOP|ROADMAP_CANVAS_RIGHT,
+         &RoadMapConfigDisplayTopRight);
 
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
 
