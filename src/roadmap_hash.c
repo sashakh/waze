@@ -48,7 +48,7 @@
 static RoadMapHash *HashLast = NULL;
 
 
-RoadMapHash *roadmap_hash_new (char *name, int size) {
+RoadMapHash *roadmap_hash_new (const char *name, int size) {
 
    int i;
    RoadMapHash *hash = malloc (sizeof(RoadMapHash));
@@ -229,5 +229,18 @@ void roadmap_hash_reset (void) {
       free (hash);
    }
    HashLast = NULL;
+}
+
+
+int roadmap_hash_string (const char *str) {
+
+   int hash = 0;
+   unsigned int i;
+   
+   for (i=0; i<strlen(str); i++) {
+      hash += str[i]*(i+1);
+   }
+
+   return hash;
 }
 

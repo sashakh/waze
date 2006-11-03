@@ -52,19 +52,6 @@ static int RoadMapLangLoaded = 0;
 static int RoadMapLangRTL = 0;
 
 
-static int roadmap_lang_hash_str (const char *str) {
-
-   int hash = 0;
-   unsigned int i;
-   
-   for (i=0; i<strlen(str); i++) {
-      hash += str[i];
-   }
-
-   return hash;
-}
-
-      
 static void roadmap_lang_allocate (void) {
 
    if (RoadMapLangSize == 0) {
@@ -87,7 +74,7 @@ static void roadmap_lang_allocate (void) {
 
 static void roadmap_lang_new_item (const char *name, const char *value) {
 
-   int hash = roadmap_lang_hash_str (name);
+   int hash = roadmap_hash_string (name);
 
    if (RoadMapLangCount == RoadMapLangSize) {
       roadmap_lang_allocate ();
@@ -168,7 +155,7 @@ const char* roadmap_lang_get (const char *name) {
    
    if (!RoadMapLangLoaded) return name;
    
-   hash = roadmap_lang_hash_str (name);
+   hash = roadmap_hash_string (name);
 
    for (i = roadmap_hash_get_first (RoadMapLangHash, hash);
         i >= 0;
