@@ -32,35 +32,35 @@
 #endif
 
 void roadmap_fileselection_new (const char *title, const char *filter, 
-	const char *path, const char *mode, RoadMapFileCallback callback) {
+   const char *path, const char *mode, RoadMapFileCallback callback) {
 
 #ifdef QWS
 
-	FileSelector fselect(mainWindow, title, filter, path, 
-		mode, callback);
+   FileSelector fselect(mainWindow, title, filter, path, 
+      mode, callback);
 
-	fselect.exec();
+   fselect.exec();
 
 #else
 
-        QFileDialog *dlg = new QFileDialog( path, QString::null, 0, 0, TRUE );
+   QFileDialog *dlg = new QFileDialog( path, QString::null, 0, 0, TRUE );
 
-	dlg->setCaption( QFileDialog::tr( title ) );
-	if (mode[0] == 'w') {
-		dlg->setMode( QFileDialog::AnyFile );
-	} else {
-		dlg->setMode( QFileDialog::ExistingFile );
-	}
+   dlg->setCaption( QFileDialog::tr( title ) );
+   if (mode[0] == 'w') {
+      dlg->setMode( QFileDialog::AnyFile );
+   } else {
+      dlg->setMode( QFileDialog::ExistingFile );
+   }
 
-        if ( dlg->exec() == QDialog::Accepted ) {
+   if ( dlg->exec() == QDialog::Accepted ) {
 
-            QString result;
-            result = dlg->selectedFile();
-            delete dlg;
-            callback (result, mode);
+      QString result;
+      result = dlg->selectedFile();
+      delete dlg;
+      callback (result, mode);
 
-        } else {
-            delete dlg;
-	}
+   } else {
+      delete dlg;
+   }
 #endif
 }

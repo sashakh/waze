@@ -48,30 +48,30 @@ class FileSelector : public QDialog {
 Q_OBJECT
 
 public:
-	FileSelector(QWidget* parent, const char* title, const char* filter, 
-		const char* path, const char* mode, RoadMapFileCallback cb);
+   FileSelector(QWidget* parent, const char* title, const char* filter, 
+      const char* path, const char* mode, RoadMapFileCallback cb);
 
-	~FileSelector();
+   ~FileSelector();
 
 protected:
-	QComboBox* dirList;
-	QListView* fileList;
-	QLineEdit* fileEdit;
-//	QPushButton* okButton;
-//	QPishButton* cancelButton;
-	QDir currentDir;
-	QFile currentFile;
-	RoadMapFileCallback callback;
-	QString filter;
-	const char* mode;
+   QComboBox* dirList;
+   QListView* fileList;
+   QLineEdit* fileEdit;
+// QPushButton* okButton;
+// QPishButton* cancelButton;
+   QDir currentDir;
+   QFile currentFile;
+   RoadMapFileCallback callback;
+   QString filter;
+   const char* mode;
 
-	void populateList();
-	virtual void resizeEvent(QResizeEvent*);
+   void populateList();
+   virtual void resizeEvent(QResizeEvent*);
 
 protected slots:
-	void onDirSelect(const QString& dir);
-	void onFileSelect(QListViewItem* lvi);
-	void accept();
+   void onDirSelect(const QString& dir);
+   void onFileSelect(QListViewItem* lvi);
+   void accept();
 };
 
 #endif

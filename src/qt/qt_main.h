@@ -56,16 +56,16 @@ class RMapInput : public QObject {
 Q_OBJECT
 
 public:
-	RMapInput(int fd1, RoadMapQtInput cb);
-	~RMapInput();
+   RMapInput(int fd1, RoadMapQtInput cb);
+   ~RMapInput();
 
 protected:
-	int fd;
-	RoadMapQtInput callback;
-	QSocketNotifier* nf;
+   int fd;
+   RoadMapQtInput callback;
+   QSocketNotifier* nf;
 
 protected slots:
-	void fire(int);
+   void fire(int);
 };
 
 class RMapCallback : public QObject {
@@ -73,14 +73,14 @@ class RMapCallback : public QObject {
 Q_OBJECT
 
 public:
-	RMapCallback(RoadMapCallback cb);
-	int same (RoadMapCallback cb);
+   RMapCallback(RoadMapCallback cb);
+   int same (RoadMapCallback cb);
 
 protected slots:
-	void fire();
+   void fire();
 
 protected:
-	RoadMapCallback callback;
+   RoadMapCallback callback;
 };
 
 class RMapMainWindow : public QMainWindow {
@@ -88,51 +88,51 @@ class RMapMainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-	RMapMainWindow(const char* name, int width, int height);
-	virtual ~RMapMainWindow();
+   RMapMainWindow(const char* name, int width, int height);
+   virtual ~RMapMainWindow();
 
-	void setKeyboardCallback(RoadMapKeyInput c);
+   void setKeyboardCallback(RoadMapKeyInput c);
 
    QPopupMenu *newMenu(const char *title);
    void freeMenu(QPopupMenu *menu);
 
-	void addMenu(QPopupMenu *menu, const char* label);
+   void addMenu(QPopupMenu *menu, const char* label);
    void popupMenu(QPopupMenu *menu, int x, int y);
 
-	void addMenuItem(QPopupMenu *menu,
+   void addMenuItem(QPopupMenu *menu,
                     const char* label,
                     const char* tip, 
                     RoadMapCallback callback);
 
-	void addMenuSeparator(QPopupMenu *menu);
+   void addMenuSeparator(QPopupMenu *menu);
 
-	void addToolbar(const char* orientation);
+   void addToolbar(const char* orientation);
 
-	void addTool(const char* label, const char *icon, const char* tip,
-		RoadMapCallback callback);
+   void addTool(const char* label, const char *icon, const char* tip,
+      RoadMapCallback callback);
 
-	void addToolSpace(void);
-	void addCanvas(void);
-	void addInput(int fd, RoadMapQtInput callback);
-	void removeInput(int fd);
-	void setStatus(const char* text);
+   void addToolSpace(void);
+   void addCanvas(void);
+   void addInput(int fd, RoadMapQtInput callback);
+   void removeInput(int fd);
+   void setStatus(const char* text);
 
-	void setTimer(int interval, RoadMapCallback callback);
-	void removeTimer(RoadMapCallback callback);
+   void setTimer(int interval, RoadMapCallback callback);
+   void removeTimer(RoadMapCallback callback);
 
 protected:
-	RoadMapKeyInput keyCallback;
-	QMap<int, RMapInput*> inputMap;
-	QToolBar* toolBar;
-	RMapCanvas* canvas;
+   RoadMapKeyInput keyCallback;
+   QMap<int, RMapInput*> inputMap;
+   QToolBar* toolBar;
+   RMapCanvas* canvas;
 
-	QTimer* tm[ROADMAP_MAX_TIMER];
-	RMapCallback* tcb[ROADMAP_MAX_TIMER];
-	bool spacePressed;
+   QTimer* tm[ROADMAP_MAX_TIMER];
+   RMapCallback* tcb[ROADMAP_MAX_TIMER];
+   bool spacePressed;
 
-	virtual void keyPressEvent(QKeyEvent* event);
-	virtual void keyReleaseEvent(QKeyEvent* event);
-	virtual void closeEvent(QCloseEvent* ev);
+   virtual void keyPressEvent(QKeyEvent* event);
+   virtual void keyReleaseEvent(QKeyEvent* event);
+   virtual void closeEvent(QCloseEvent* ev);
 
 };
 

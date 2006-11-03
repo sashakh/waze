@@ -41,69 +41,69 @@
 #include "roadmap_dialog.h"
 
 struct Item {
-	QString label;
-	void* value;
+   QString label;
+   void* value;
 };
 
 class RMapDialog;
-		
+      
 class Entry : public QObject {
 
 Q_OBJECT
 
 protected:
-	RMapDialog* dialog;
-	int type;
-	QString name;
-	RoadMapDialogCallback callback;
-	QVector<Item> items;
+   RMapDialog* dialog;
+   int type;
+   QString name;
+   RoadMapDialogCallback callback;
+   QVector<Item> items;
    int current;
-	QWidget* widget;
+   QWidget* widget;
 
 public:
- 	enum {
-		TextEntry = 1,
-		ColorEntry,
-		ChoiceEntry,
-		ListEntry,
-		ButtonEntry,
-		LabelEntry,
-	};
+   enum {
+      TextEntry = 1,
+      ColorEntry,
+      ChoiceEntry,
+      ListEntry,
+      ButtonEntry,
+      LabelEntry,
+   };
 
-	Entry(RMapDialog* dialog, int type, QString name);
-	Entry(RMapDialog* dialog, int type, QString name, QVector<Item>& items,
-		int current, RoadMapDialogCallback callback);
+   Entry(RMapDialog* dialog, int type, QString name);
+   Entry(RMapDialog* dialog, int type, QString name, QVector<Item>& items,
+      int current, RoadMapDialogCallback callback);
 
-	~Entry();
+   ~Entry();
 
-	QWidget* create(QWidget* parent);
-	QString getName();
+   QWidget* create(QWidget* parent);
+   QString getName();
 
-	void* getValue();
-	void setValue(const void*);
+   void* getValue();
+   void setValue(const void*);
 
-	QWidget* getWidget() {
-		return widget;
-	}
+   QWidget* getWidget() {
+      return widget;
+   }
 
-	void setValues(QVector<Item>& items, 
-		RoadMapDialogCallback callback);
+   void setValues(QVector<Item>& items, 
+      RoadMapDialogCallback callback);
 
 protected slots:
-	void run();
+   void run();
 };
 
 class RMapDialog : public QDialog {
 Q_OBJECT
 
 public:
-	RMapDialog(QWidget* parent, const char* name);
-	virtual ~RMapDialog();
+   RMapDialog(QWidget* parent, const char* name);
+   virtual ~RMapDialog();
 
-	void addTextEntry(const char* frame, const char* name);
-	void addLabelEntry(const char* frame, const char* name);
-	void addColorEntry(const char* frame, const char* name);
-	void addChoiceEntry(const char* frame,
+   void addTextEntry(const char* frame, const char* name);
+   void addLabelEntry(const char* frame, const char* name);
+   void addColorEntry(const char* frame, const char* name);
+   void addChoiceEntry(const char* frame,
                        const char* name,
                        int count,
                        int current,
@@ -111,29 +111,29 @@ public:
                        void** values,
                        RoadMapDialogCallback callback);
 
-	void addListEntry(const char* frame, const char* name);
-	void setListEntryValues(const char* frame, const char* name, int count,
-		char** labels, void** values, RoadMapDialogCallback callback);
+   void addListEntry(const char* frame, const char* name);
+   void setListEntryValues(const char* frame, const char* name, int count,
+      char** labels, void** values, RoadMapDialogCallback callback);
 
-	void addButton(char* label, RoadMapDialogCallback callback);
-	void complete(int use_keyboard);
+   void addButton(char* label, RoadMapDialogCallback callback);
+   void complete(int use_keyboard);
 
-	void* getEntryValue(const char* frame, const char* name);
-	void setEntryValue(const char* frame, const char* name, const void* data);
+   void* getEntryValue(const char* frame, const char* name);
+   void setEntryValue(const char* frame, const char* name, const void* data);
 
-	void setContext(void*);
-	void* getContext() {
-		return context;
-	}
+   void setContext(void*);
+   void* getContext() {
+      return context;
+   }
 
 protected:
-	QMap<QString, QList<Entry> *> frames;
-	QList<QString> frameNames;
-	QList<Entry> buttons;
-	void* context;
+   QMap<QString, QList<Entry> *> frames;
+   QList<QString> frameNames;
+   QList<Entry> buttons;
+   void* context;
 
-	QList<Entry>* getFrame(QString frameName);
-	Entry* getEntry(QString frameName, QString entryName);
-	void initTab(QWidget* w, QList<Entry>* entries);
+   QList<Entry>* getFrame(QString frameName);
+   Entry* getEntry(QString frameName, QString entryName);
+   void initTab(QWidget* w, QList<Entry>* entries);
 };
 

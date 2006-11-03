@@ -28,73 +28,73 @@
 
 // Implementation of RMapInput class
 RMapInput::RMapInput(int fd1, RoadMapQtInput cb) {
-	fd = fd1;
-	callback = cb;
-	nf = new QSocketNotifier(fd, QSocketNotifier::Read, 0);
-	connect(nf, SIGNAL(activated(int)), this, SLOT(fire(int)));
+   fd = fd1;
+   callback = cb;
+   nf = new QSocketNotifier(fd, QSocketNotifier::Read, 0);
+   connect(nf, SIGNAL(activated(int)), this, SLOT(fire(int)));
 }
 
 RMapInput::~RMapInput() {
-	if (nf) {
-		delete nf;
-		nf = 0;
-	}
+   if (nf) {
+      delete nf;
+      nf = 0;
+   }
 }
 
 void RMapInput::fire(int s) {
-	if (callback != 0) {
-		callback(s);
-	}
+   if (callback != 0) {
+      callback(s);
+   }
 }
 
 // Implementation of RMapCallback class
 RMapCallback::RMapCallback(RoadMapCallback cb) {
-	callback = cb;
+   callback = cb;
 }
 
 void RMapCallback::fire() {
-	if (callback != 0) {
-		callback();
-	}
+   if (callback != 0) {
+      callback();
+   }
 }
 
 int  RMapCallback::same(RoadMapCallback cb) {
-	return (callback == cb);
+   return (callback == cb);
 }
 
 // Implementation of RMapMainWindow class
 RMapMainWindow::RMapMainWindow(const char* name, int width, int height) : QMainWindow(0, name) {
-	spacePressed = false;
-	for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
-		tm[i] = 0;
-		tcb[i] = 0;
-	}
-	setCaption(QString::fromUtf8(name));
-	canvas = new RMapCanvas(this);
-	setCentralWidget(canvas);
-	canvas->setFocus();
-	setToolBarsMovable(FALSE);
-	resize(width,height);
+   spacePressed = false;
+   for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
+      tm[i] = 0;
+      tcb[i] = 0;
+   }
+   setCaption(QString::fromUtf8(name));
+   canvas = new RMapCanvas(this);
+   setCentralWidget(canvas);
+   canvas->setFocus();
+   setToolBarsMovable(FALSE);
+   resize(width,height);
    toolBar = 0;
 }
 
 RMapMainWindow::~RMapMainWindow() {
-	QMap<int, RMapInput*>::Iterator it;
+   QMap<int, RMapInput*>::Iterator it;
 
-	for(it = inputMap.begin(); it != inputMap.end(); ++it) {
-		delete it.data();
-		inputMap.remove(it);
-	}
+   for(it = inputMap.begin(); it != inputMap.end(); ++it) {
+      delete it.data();
+      inputMap.remove(it);
+   }
 }
 
 void RMapMainWindow::setKeyboardCallback(RoadMapKeyInput c) {
-	keyCallback = c;
+   keyCallback = c;
 }
 
 
 QPopupMenu *RMapMainWindow::newMenu(const char *title) {
 
-  return new QPopupMenu(this, title);
+   return new QPopupMenu(this, title);
 }
 
 void RMapMainWindow::freeMenu(QPopupMenu *menu) {
@@ -104,7 +104,7 @@ void RMapMainWindow::freeMenu(QPopupMenu *menu) {
 
 void RMapMainWindow::addMenu(QPopupMenu *menu, const char* label) {
 
-	menuBar()->insertItem(label, menu);
+   menuBar()->insertItem(label, menu);
 }
 
 
@@ -119,19 +119,19 @@ void RMapMainWindow::addMenuItem(QPopupMenu *menu,
                                  const char* tip,
                                  RoadMapCallback callback) {
 
-	RMapCallback* cb = new RMapCallback(callback);
-	menu->insertItem(label, cb, SLOT(fire()));
+   RMapCallback* cb = new RMapCallback(callback);
+   menu->insertItem(label, cb, SLOT(fire()));
 }
 
 void RMapMainWindow::addMenuSeparator(QPopupMenu *menu) {
 
-	menu->insertSeparator();
+   menu->insertSeparator();
 }
 
 void RMapMainWindow::addToolbar(const char* orientation) {
 
-	if (toolBar == 0) {
-		toolBar = new QToolBar(this, "map view");
+   if (toolBar == 0) {
+      toolBar = new QToolBar(this, "map view");
 #ifndef QWS
       // moveDockWindow not available on QtE v2.3.10.
       switch (orientation[0]) {
@@ -151,9 +151,9 @@ void RMapMainWindow::addToolbar(const char* orientation) {
                         "Invalid toolbar orientation %s", orientation);
       }
 #endif
-		toolBar->setFocusPolicy(QWidget::NoFocus);
-		toolBar->setHorizontalStretchable(TRUE);
-	}
+      toolBar->setFocusPolicy(QWidget::NoFocus);
+      toolBar->setHorizontalStretchable(TRUE);
+   }
 }
 
 void RMapMainWindow::addTool(const char* label,
@@ -162,14 +162,14 @@ void RMapMainWindow::addTool(const char* label,
                              RoadMapCallback callback) {
 
 #ifndef QWS
-	// For some unknown reason, this toolbar crashes RoadMap
-	// on the Sharp Zaurus.
+   // For some unknown reason, this toolbar crashes RoadMap
+   // on the Sharp Zaurus.
    // This should be fixed and the ifndef removed.
    // Pascal: I believe this has been fixed now.
 
-	if (toolBar == 0) {
-		addToolbar("");
-	}
+   if (toolBar == 0) {
+      addToolbar("");
+   }
 
    if (label != NULL) {
       const char *icopath=roadmap_path_search_icon(icon);
@@ -187,150 +187,150 @@ void RMapMainWindow::addTool(const char* label,
       connect(b, SIGNAL(clicked()), cb, SLOT(fire()));
    }
 #endif
-}	
+}  
 
 void RMapMainWindow::addToolSpace(void) {
 
 #ifndef QWS
-	// For some unknown reason, this toolbar crashes RoadMap
-	// on the Sharp Zaurus. This should be fixed and the ifndef
-	// removed.
+   // For some unknown reason, this toolbar crashes RoadMap
+   // on the Sharp Zaurus. This should be fixed and the ifndef
+   // removed.
 
    addTool (NULL, NULL, NULL, NULL);
 
-	toolBar->addSeparator();
+   toolBar->addSeparator();
 #endif
 }
 
 
 void RMapMainWindow::addCanvas(void) {
-	canvas->configure();
-	adjustSize();
+   canvas->configure();
+   adjustSize();
 }
 
 void RMapMainWindow::addInput(int fd, RoadMapQtInput callback) {
-	RMapInput* rmi = new RMapInput(fd, callback);
-	inputMap.insert(fd, rmi);
+   RMapInput* rmi = new RMapInput(fd, callback);
+   inputMap.insert(fd, rmi);
 }
 
 void RMapMainWindow::removeInput(int fd) {
-	RMapInput* rmi = inputMap[fd];
+   RMapInput* rmi = inputMap[fd];
 
-	if (rmi != 0) {
-		inputMap.remove(fd);
-		delete rmi;
-	}
+   if (rmi != 0) {
+      inputMap.remove(fd);
+      delete rmi;
+   }
 }
 
 void RMapMainWindow::setStatus(const char* text) {
-	statusBar()->message(text);
+   statusBar()->message(text);
 }
 
 void RMapMainWindow::keyReleaseEvent(QKeyEvent* event) {
-	int k = event->key();
+   int k = event->key();
 
-	if (k == ' ') {
-		spacePressed = false;
-	}
+   if (k == ' ') {
+      spacePressed = false;
+   }
 
-	event->accept();
+   event->accept();
 }
 
 void RMapMainWindow::keyPressEvent(QKeyEvent* event) {
-	char* key = 0;
-	char regular_key[2];
-	int k = event->key();
+   char* key = 0;
+   char regular_key[2];
+   int k = event->key();
 
-	switch (k) {
-		case ' ':
-			spacePressed = true;
-			break;
+   switch (k) {
+      case ' ':
+         spacePressed = true;
+         break;
 
-		case Key_Left:
-			if (spacePressed) {
-				key = "Button-Calendar";
-			} else {
-				key = "Button-Left";
-			}
-			break;
+      case Key_Left:
+         if (spacePressed) {
+            key = "Button-Calendar";
+         } else {
+            key = "Button-Left";
+         }
+         break;
 
-		case Key_Right:
-			if (spacePressed) {
-				key = "Button-Contact";
-			} else {
-				key = "Button-Right";
-			}
-			break;
+      case Key_Right:
+         if (spacePressed) {
+            key = "Button-Contact";
+         } else {
+            key = "Button-Right";
+         }
+         break;
 
-		case Key_Up:
-			key = "Button-Up";
-			break;
+      case Key_Up:
+         key = "Button-Up";
+         break;
 
-		case Key_Down:
-			key = "Button-Down";
-			break;
+      case Key_Down:
+         key = "Button-Down";
+         break;
 
-		default:
-			if (k>0 && k<128) {
-				regular_key[0] = k;
-				regular_key[1] = 0;
-				key = regular_key;
-			}
-	}
+      default:
+         if (k>0 && k<128) {
+            regular_key[0] = k;
+            regular_key[1] = 0;
+            key = regular_key;
+         }
+   }
 
-	if (key!=0 && keyCallback!=0) {
-		keyCallback(key);
-	}
+   if (key!=0 && keyCallback!=0) {
+      keyCallback(key);
+   }
 
-	event->accept();
+   event->accept();
 }
 
 void RMapMainWindow::closeEvent(QCloseEvent* ev) {
-	roadmap_main_exit();
-	ev->accept();
+   roadmap_main_exit();
+   ev->accept();
 }
 
 void RMapMainWindow::setTimer(int interval, RoadMapCallback callback) {
 
-	int empty = -1;
+   int empty = -1;
 
-	for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
-		if (tm[i] == 0) {
-			empty = i;
-		} else if (tcb[i]->same(callback)) {
-			return;
-		}
-	}
+   for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
+      if (tm[i] == 0) {
+         empty = i;
+      } else if (tcb[i]->same(callback)) {
+         return;
+      }
+   }
 
-	if (empty < 0) {
-		roadmap_log (ROADMAP_ERROR, "too many timers");
-	}
+   if (empty < 0) {
+      roadmap_log (ROADMAP_ERROR, "too many timers");
+   }
 
-	tm[empty] = new QTimer(this);
-	tcb[empty] = new RMapCallback(callback);
-	connect(tm[empty], SIGNAL(timeout()), tcb[empty], SLOT(fire()));
-	tm[empty]->start(interval, FALSE);
+   tm[empty] = new QTimer(this);
+   tcb[empty] = new RMapCallback(callback);
+   connect(tm[empty], SIGNAL(timeout()), tcb[empty], SLOT(fire()));
+   tm[empty]->start(interval, FALSE);
 }
 
 void RMapMainWindow::removeTimer(RoadMapCallback callback) {
 
-	int found = -1;
+   int found = -1;
 
-	for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
-		if (tcb[i] != 0) {
-			if (tcb[i]->same(callback)) {
-				found = i;
-				break;
-			}
-		}
-	}
-	if (found < 0) return;
+   for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
+      if (tcb[i] != 0) {
+         if (tcb[i]->same(callback)) {
+            found = i;
+            break;
+         }
+      }
+   }
+   if (found < 0) return;
 
-	tm[found]->stop();
-	delete tm[found];
-	delete tcb[found];
+   tm[found]->stop();
+   delete tm[found];
+   delete tcb[found];
 
-	tm[found] = 0;
-	tcb[found] = 0;
+   tm[found] = 0;
+   tcb[found] = 0;
 }
 

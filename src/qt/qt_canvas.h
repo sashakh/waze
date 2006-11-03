@@ -38,9 +38,9 @@ extern "C" {
    
 #include "roadmap_canvas.h"
 
-	struct roadmap_canvas_pen {
-		QPen* pen;
-	};
+   struct roadmap_canvas_pen {
+      QPen* pen;
+   };
 };
 
 class RMapCanvas : public QWidget {
@@ -48,45 +48,45 @@ class RMapCanvas : public QWidget {
 Q_OBJECT
 
 public:
-	RMapCanvas(QWidget* parent);
-	virtual ~RMapCanvas();
+   RMapCanvas(QWidget* parent);
+   virtual ~RMapCanvas();
 
-	RoadMapPen createPen(const char* name);
-	void selectPen(RoadMapPen);
-	void setPenColor(const char* color);
-	void setPenThickness(int thickness);
-	void erase(void);
-	void drawString(RoadMapGuiPoint* position, int corner,
-		const char* text);
-	void drawStringAngle(RoadMapGuiPoint* position,
-		int center, const char* text, int angle);
-	void drawMultiplePoints(int count, RoadMapGuiPoint* points);
-	void drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points);
-	void drawMultiplePolygons(int count, int* polygons, 
-		RoadMapGuiPoint* points, int filled);
-	void drawMultipleCircles(int count, RoadMapGuiPoint* centers, 
-		int* radius, int filled);
+   RoadMapPen createPen(const char* name);
+   void selectPen(RoadMapPen);
+   void setPenColor(const char* color);
+   void setPenThickness(int thickness);
+   void erase(void);
+   void drawString(RoadMapGuiPoint* position, int corner,
+      const char* text);
+   void drawStringAngle(RoadMapGuiPoint* position,
+      int center, const char* text, int angle);
+   void drawMultiplePoints(int count, RoadMapGuiPoint* points);
+   void drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points);
+   void drawMultiplePolygons(int count, int* polygons, 
+      RoadMapGuiPoint* points, int filled);
+   void drawMultipleCircles(int count, RoadMapGuiPoint* centers, 
+      int* radius, int filled);
    void registerButtonPressedHandler(RoadMapCanvasMouseHandler handler);
    void registerButtonReleasedHandler(RoadMapCanvasMouseHandler handler);
    void registerMouseMoveHandler(RoadMapCanvasMouseHandler handler);
    void registerMouseWheelHandler(RoadMapCanvasMouseHandler handler);
 
-	void registerConfigureHandler(RoadMapCanvasConfigureHandler handler);
-	void getTextExtents(const char* text, int* width, int* ascent, 
-		int* descent, int *can_tilt);
+   void registerConfigureHandler(RoadMapCanvasConfigureHandler handler);
+   void getTextExtents(const char* text, int* width, int* ascent, 
+      int* descent, int *can_tilt);
 
-	int getHeight();
-	int getWidth();
-	void refresh(void);
+   int getHeight();
+   int getWidth();
+   void refresh(void);
 
-	void configure();
+   void configure();
 
 protected:
-	QMap<QString, QColor*> colors;
-	QMap<QString, RoadMapPen> pens;
-	QPen* currentPen;
-	QPixmap* pixmap;
-	RoadMapCanvasConfigureHandler configureHandler;
+   QMap<QString, QColor*> colors;
+   QMap<QString, RoadMapPen> pens;
+   QPen* currentPen;
+   QPixmap* pixmap;
+   RoadMapCanvasConfigureHandler configureHandler;
    RoadMapCanvasMouseHandler buttonPressedHandler;
    RoadMapCanvasMouseHandler buttonReleasedHandler;
    RoadMapCanvasMouseHandler mouseMoveHandler;
@@ -95,13 +95,13 @@ protected:
 
    void initColors();
 
-	QColor getColor(const char* color);
-	virtual void mousePressEvent(QMouseEvent*);
+   QColor getColor(const char* color);
+   virtual void mousePressEvent(QMouseEvent*);
    virtual void mouseReleaseEvent(QMouseEvent*);
    virtual void mouseMoveEvent(QMouseEvent*);
    virtual void wheelEvent(QWheelEvent*);
-	virtual void resizeEvent(QResizeEvent*);
-	virtual void paintEvent(QPaintEvent*);
+   virtual void resizeEvent(QResizeEvent*);
+   virtual void paintEvent(QPaintEvent*);
 };
 
 extern RMapCanvas *roadMapCanvas;

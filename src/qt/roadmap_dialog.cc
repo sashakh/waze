@@ -37,41 +37,41 @@ QMap<QString, RMapDialog*> dialogs;
 RMapDialog* currentDialog;
 
 int roadmap_dialog_activate(const char* name, void* context) {
-	RMapDialog* dialog = dialogs[name];
-	int ret = 0;
+   RMapDialog* dialog = dialogs[name];
+   int ret = 0;
 
-	if (dialog != 0) {
-		dialog->show();
-		ret = 0;
-	} else {
-		dialog = new RMapDialog(0, roadmap_start_get_title(name));
+   if (dialog != 0) {
+      dialog->show();
+      ret = 0;
+   } else {
+      dialog = new RMapDialog(0, roadmap_start_get_title(name));
       dialogs[name] = dialog;
-		ret = 1;
-	}
+      ret = 1;
+   }
 
-	currentDialog = dialog;
-	currentDialog->setContext(context);
-	return ret;
+   currentDialog = dialog;
+   currentDialog->setContext(context);
+   return ret;
 }
 
 void roadmap_dialog_hide(const char* name) {
-//	RMapDialog* dialog = dialogs[name];
+// RMapDialog* dialog = dialogs[name];
 
-	if (currentDialog != 0) {
-		currentDialog->hide();
-	}
+   if (currentDialog != 0) {
+      currentDialog->hide();
+   }
 }
 
 void roadmap_dialog_new_entry (const char *frame, const char *name) {
-	currentDialog->addTextEntry(frame, name);
+   currentDialog->addTextEntry(frame, name);
 }
 
 void roadmap_dialog_new_label (const char *frame, const char *name) {
-	currentDialog->addLabelEntry(frame, name);
+   currentDialog->addLabelEntry(frame, name);
 }
 
 void roadmap_dialog_new_color (const char *frame, const char *name) {
-	currentDialog->addColorEntry(frame, name);
+   currentDialog->addColorEntry(frame, name);
 }
 
 void roadmap_dialog_new_choice (const char *frame,
@@ -82,41 +82,41 @@ void roadmap_dialog_new_choice (const char *frame,
                                 void **values,
                                 RoadMapDialogCallback callback) {
 
-	currentDialog->addChoiceEntry
+   currentDialog->addChoiceEntry
       (frame, name, count, current, labels, values, callback);
 }
 
 void roadmap_dialog_new_list (const char  *frame, const char  *name) {
-	currentDialog->addListEntry(frame, name);
+   currentDialog->addListEntry(frame, name);
 }
 
 void roadmap_dialog_show_list (const char* frame, const char* name, int count,
-	char **labels, void **values, RoadMapDialogCallback callback) {
+   char **labels, void **values, RoadMapDialogCallback callback) {
 
-	currentDialog->setListEntryValues(frame, name, count, labels, values, callback);
+   currentDialog->setListEntryValues(frame, name, count, labels, values, callback);
 }
 
 void roadmap_dialog_add_button (char *label, RoadMapDialogCallback callback) {
-	currentDialog->addButton(label, callback);
+   currentDialog->addButton(label, callback);
 }
 
 void roadmap_dialog_complete (int use_keyboard) {
-	currentDialog->complete(use_keyboard);
+   currentDialog->complete(use_keyboard);
 }
 
 void  roadmap_dialog_select(const char *dialog) {
-	RMapDialog* d = dialogs[dialog];
+   RMapDialog* d = dialogs[dialog];
 
-	if (d != 0) {
-		currentDialog = d;
-	}
+   if (d != 0) {
+      currentDialog = d;
+   }
 }
-	
+   
 void *roadmap_dialog_get_data (const char *frame, const char *name) {
-	return currentDialog->getEntryValue(frame, name);
+   return currentDialog->getEntryValue(frame, name);
 }
 
 void roadmap_dialog_set_data (const char *frame, const char *name,
                               const void *data) {
-	currentDialog->setEntryValue(frame, name, data);
+   currentDialog->setEntryValue(frame, name, data);
 }

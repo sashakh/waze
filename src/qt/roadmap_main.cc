@@ -76,53 +76,53 @@ static void roadmap_main_input (int fd) {
 
 void roadmap_main_new(const char* title, int width, int height) {
 
-        mainWindow = new RMapMainWindow(title,width,height);
+   mainWindow = new RMapMainWindow(title,width,height);
 
 #ifdef QWS
-        app->showMainWidget(mainWindow);
+   app->showMainWidget(mainWindow);
 #else
-        app->setMainWidget(mainWindow);
+   app->setMainWidget(mainWindow);
 #endif
 }
 
 void roadmap_main_title(char *fmt, ...) {
-        /* unimplemented */
+   /* unimplemented */
 }
 
 void roadmap_main_set_keyboard(RoadMapKeyInput callback) {
-        if (mainWindow) {
-                mainWindow->setKeyboardCallback(callback);
-        }
+   if (mainWindow) {
+          mainWindow->setKeyboardCallback(callback);
+   }
 }
 
 RoadMapMenu roadmap_main_new_menu (const char *title) {
 
-  if (mainWindow) {
+   if (mainWindow) {
      return (RoadMapMenu) mainWindow->newMenu(title);
-  } else {
+   } else {
       return (RoadMapMenu) NULL;
    }
 }
 
 void roadmap_main_free_menu (RoadMapMenu menu) {
 
-  if (mainWindow) {
-     mainWindow->freeMenu((QPopupMenu *)menu);
-  }
+   if (mainWindow) {
+      mainWindow->freeMenu((QPopupMenu *)menu);
+   }
 }
 
 void roadmap_main_popup_menu (RoadMapMenu menu,
                               const RoadMapGuiPoint *position) {
 
-  if (mainWindow) {
-     mainWindow->popupMenu((QPopupMenu *)menu, position->x, position->y);
-  }
+   if (mainWindow) {
+      mainWindow->popupMenu((QPopupMenu *)menu, position->x, position->y);
+   }
 }
 
 void roadmap_main_add_menu(RoadMapMenu menu, const char* label) {
-        if (mainWindow) {
-                mainWindow->addMenu((QPopupMenu *)menu, label);
-        }
+   if (mainWindow) {
+      mainWindow->addMenu((QPopupMenu *)menu, label);
+   }
 }
 
 void roadmap_main_add_menu_item(RoadMapMenu menu,
@@ -130,22 +130,22 @@ void roadmap_main_add_menu_item(RoadMapMenu menu,
                                 const char* tip,
                                 RoadMapCallback callback) {
 
-        if (mainWindow) {
-                mainWindow->addMenuItem((QPopupMenu *)menu, label, tip, callback);
-        }
+   if (mainWindow) {
+      mainWindow->addMenuItem((QPopupMenu *)menu, label, tip, callback);
+   }
 }
 
 void roadmap_main_add_separator(RoadMapMenu menu) {
-        if (mainWindow) {
-                mainWindow->addMenuSeparator((QPopupMenu *)menu);
-        }
+   if (mainWindow) {
+      mainWindow->addMenuSeparator((QPopupMenu *)menu);
+   }
 }
                           
 void roadmap_main_add_toolbar (const char *orientation) {
 
-        if (mainWindow) {
-                mainWindow->addToolbar(orientation);
-        }
+    if (mainWindow) {
+       mainWindow->addToolbar(orientation);
+    }
 }
 
 void roadmap_main_add_tool(const char* label,
@@ -153,15 +153,15 @@ void roadmap_main_add_tool(const char* label,
                            const char* tip,
                            RoadMapCallback callback) {
 
-        if (mainWindow) {
-                mainWindow->addTool(label, icon, tip, callback);
-        }
+    if (mainWindow) {
+       mainWindow->addTool(label, icon, tip, callback);
+    }
 }
 
 void roadmap_main_add_tool_space(void) {
-        if (mainWindow) {
-                mainWindow->addToolSpace();
-        }
+   if (mainWindow) {
+      mainWindow->addToolSpace();
+   }
 }
 
 void roadmap_main_add_canvas(void) {
@@ -172,18 +172,18 @@ void roadmap_main_add_canvas(void) {
 }
 
 void roadmap_main_add_status(void) {
-        // nothing to be done
+   // nothing to be done
 }
 
 void roadmap_main_show(void) {
-        if (mainWindow) {
-                mainWindow->show();
-        }
+   if (mainWindow) {
+      mainWindow->show();
+   }
 }
 
 void roadmap_main_set_input(RoadMapIO *io, RoadMapInput callback) {
 
-        if (mainWindow) {
+   if (mainWindow) {
 
       int i;
 
@@ -197,7 +197,7 @@ void roadmap_main_set_input(RoadMapIO *io, RoadMapInput callback) {
             break;
          }
       }
-        }
+   }
 }
 
 void roadmap_main_remove_input(RoadMapIO *io) {
@@ -205,7 +205,7 @@ void roadmap_main_remove_input(RoadMapIO *io) {
    int i;
    int fd = io->os.file; /* All the same on UNIX. */
 
-        if (mainWindow) {
+   if (mainWindow) {
       mainWindow->removeInput(fd);
    }
 
@@ -215,35 +215,35 @@ void roadmap_main_remove_input(RoadMapIO *io) {
          RoadMapMainIo[i].io.os.file = -1;
          break;
       }
-        }
+   }
 }
 
 
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
 
-        if (mainWindow) {
-                mainWindow->setTimer(interval, callback);
-        }
+   if (mainWindow) {
+      mainWindow->setTimer(interval, callback);
+   }
 }
 
 
 void roadmap_main_remove_periodic (RoadMapCallback callback) {
 
-        if (mainWindow) {
-                mainWindow->removeTimer(callback);
-        }
+   if (mainWindow) {
+      mainWindow->removeTimer(callback);
+   }
 }
 
 
 void roadmap_main_set_status(const char *text) {
-        if (mainWindow) {
-                mainWindow->setStatus(text);
-        }
+   if (mainWindow) {
+      mainWindow->setStatus(text);
+   }
 }
 
 
 void roadmap_main_toggle_full_screen (void) {
-        // Not yet implemented (how to do this ??)
+   // Not yet implemented (how to do this ??)
 }
 
 
@@ -286,8 +286,8 @@ int roadmap_main_flush_synchronous (int deadline) {
 
 void roadmap_main_exit(void) {
 
-        roadmap_start_exit();
-        exit(0);
+   roadmap_start_exit();
+   exit(0);
 }
 
 int main(int argc, char* argv[]) {
@@ -295,17 +295,17 @@ int main(int argc, char* argv[]) {
    int i;
 
 #ifdef QWS
-        app = new QPEApplication(argc, argv);
+   app = new QPEApplication(argc, argv);
 #else
-        app = new QApplication(argc, argv);
+   app = new QApplication(argc, argv);
 #endif
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
       RoadMapMainIo[i].io.os.file = -1;
-        }
+   }
 
-        roadmap_start(argc, argv);
+   roadmap_start(argc, argv);
 
-        return app->exec();
+   return app->exec();
 }

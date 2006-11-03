@@ -58,7 +58,7 @@ void roadmap_canvas_register_mouse_move_handler(RoadMapCanvasMouseHandler handle
       roadMapCanvas->registerMouseMoveHandler(handler);
    } else {
       mhandler = handler;
-	}
+   }
 }
 
 void roadmap_canvas_register_mouse_scroll_handler
@@ -68,98 +68,98 @@ void roadmap_canvas_register_mouse_scroll_handler
       roadMapCanvas->registerMouseWheelHandler(handler);
    } else {
       whandler = handler;
-	}
+   }
 }
 
 
 void roadmap_canvas_register_configure_handler(
-	RoadMapCanvasConfigureHandler handler) {
+   RoadMapCanvasConfigureHandler handler) {
 
-	if (roadMapCanvas) {
-		roadMapCanvas->registerConfigureHandler(handler);
-	} else {
-		chandler = handler;
-	}
+   if (roadMapCanvas) {
+      roadMapCanvas->registerConfigureHandler(handler);
+   } else {
+      chandler = handler;
+   }
 }
 
 void roadmap_canvas_get_text_extents(const char *text, int size,
-	int *width, int *ascent, int *descent, int *can_tilt) {
+   int *width, int *ascent, int *descent, int *can_tilt) {
 
-	roadMapCanvas->getTextExtents(text, width, ascent, descent, can_tilt);
+   roadMapCanvas->getTextExtents(text, width, ascent, descent, can_tilt);
 }
 
 RoadMapPen roadmap_canvas_create_pen (const char *name) {
-	return roadMapCanvas->createPen(name);
+   return roadMapCanvas->createPen(name);
 }
 
 RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
 
-	static RoadMapPen CurrentPen;
+   static RoadMapPen CurrentPen;
 
-	RoadMapPen old_pen = CurrentPen;
-	CurrentPen = pen;
-	roadMapCanvas->selectPen(pen);
-	return old_pen;
+   RoadMapPen old_pen = CurrentPen;
+   CurrentPen = pen;
+   roadMapCanvas->selectPen(pen);
+   return old_pen;
 }
 
 void roadmap_canvas_set_foreground (const char *color) {
-	roadMapCanvas->setPenColor(color);
+   roadMapCanvas->setPenColor(color);
 }
 
 void roadmap_canvas_set_thickness  (int thickness) {
-	roadMapCanvas->setPenThickness(thickness);
+   roadMapCanvas->setPenThickness(thickness);
 }
 
 void roadmap_canvas_erase (void) {
-	roadMapCanvas->erase();
+   roadMapCanvas->erase();
 }
 
 void roadmap_canvas_draw_string(RoadMapGuiPoint *position, int corner,
-	const char *text) {
+   const char *text) {
 
-	roadMapCanvas->drawString(position, corner, text);
+   roadMapCanvas->drawString(position, corner, text);
 }
 
 void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center,
                                        int angle, const char *text)
 {
-	roadMapCanvas->drawStringAngle(position, 0, text, angle);
+   roadMapCanvas->drawStringAngle(position, 0, text, angle);
 }
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points) {
-	roadMapCanvas->drawMultiplePoints(count, points);
+   roadMapCanvas->drawMultiplePoints(count, points);
 }
 
 void roadmap_canvas_draw_multiple_lines(int count, int *lines, 
-	RoadMapGuiPoint *points, int fast_draw) {
+   RoadMapGuiPoint *points, int fast_draw) {
 
-	roadMapCanvas->drawMultipleLines(count, lines, points);
+   roadMapCanvas->drawMultipleLines(count, lines, points);
 }
 
 void roadmap_canvas_draw_multiple_polygons(int count, int *polygons, 
-	RoadMapGuiPoint *points, int filled, int fast_draw) {
+   RoadMapGuiPoint *points, int filled, int fast_draw) {
 
-	roadMapCanvas->drawMultiplePolygons(count, polygons, points, filled);
+   roadMapCanvas->drawMultiplePolygons(count, polygons, points, filled);
 }
 
 void roadmap_canvas_draw_multiple_circles(int count, RoadMapGuiPoint *centers, 
-	int *radius, int filled, int fast_draw) {
+   int *radius, int filled, int fast_draw) {
 
-	roadMapCanvas->drawMultipleCircles(count, centers, radius, filled);
+   roadMapCanvas->drawMultipleCircles(count, centers, radius, filled);
 }
 
 int roadmap_canvas_width (void) {
-	return roadMapCanvas->getWidth();
+   return roadMapCanvas->getWidth();
 }
 
 int roadmap_canvas_height (void) {
-	return roadMapCanvas->getHeight();
+   return roadMapCanvas->getHeight();
 }
 
 
 void roadmap_canvas_refresh (void) {
-	roadMapCanvas->refresh();
+   roadMapCanvas->refresh();
 }
 
 

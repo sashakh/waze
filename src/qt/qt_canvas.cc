@@ -39,9 +39,9 @@ RoadMapCanvasConfigureHandler chandler = 0;
 
 // Implementation of RMapCanvas class
 RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
-	pixmap = 0;
-	currentPen = 0;
-	roadMapCanvas = this;
+   pixmap = 0;
+   currentPen = 0;
+   roadMapCanvas = this;
 
    initColors();
 
@@ -50,221 +50,221 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
    registerMouseMoveHandler(mhandler);
    registerMouseWheelHandler(whandler);
 
-	registerConfigureHandler(chandler);
-	setBackgroundMode(QWidget::NoBackground);
+   registerConfigureHandler(chandler);
+   setBackgroundMode(QWidget::NoBackground);
 }
 
 RMapCanvas::~RMapCanvas() {
-	if (pixmap != 0) {
-		delete pixmap;
-		pixmap = 0;
-	}
+   if (pixmap != 0) {
+      delete pixmap;
+      pixmap = 0;
+   }
 
-	// TODO: delete pens
+   // TODO: delete pens
 }
 
 RoadMapPen RMapCanvas::createPen(const char* name) {
-	RoadMapPen p = pens[name];
+   RoadMapPen p = pens[name];
 
-	if (p == 0) {
-		QPen* pen = new QPen(Qt::SolidLine/*Qt::DotLine*/);
-		p = new roadmap_canvas_pen();
-		p->pen = pen;
-		pens.insert(name, p);
-	}
+   if (p == 0) {
+      QPen* pen = new QPen(Qt::SolidLine/*Qt::DotLine*/);
+      p = new roadmap_canvas_pen();
+      p->pen = pen;
+      pens.insert(name, p);
+   }
 
-	currentPen = p->pen;
+   currentPen = p->pen;
 
-	return p;
+   return p;
 }
 
 void RMapCanvas::selectPen(RoadMapPen p) {
-	currentPen = p->pen;
+   currentPen = p->pen;
 }
 
 void RMapCanvas::setPenColor(const char* color) {
-	if (currentPen != 0) {
-		currentPen->setColor(getColor(color));
-	}
+   if (currentPen != 0) {
+      currentPen->setColor(getColor(color));
+   }
 
 }
 
 void RMapCanvas::setPenThickness(int thickness) {
-	if (currentPen != 0) {
-		currentPen->setWidth(thickness);
-	}
+   if (currentPen != 0) {
+      currentPen->setWidth(thickness);
+   }
 }
 
 void RMapCanvas::erase() {
-	if (pixmap) {
-		pixmap->fill(currentPen->color());
-	}
+   if (pixmap) {
+      pixmap->fill(currentPen->color());
+   }
 }
 
 void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
-	int* descent, int *can_tilt) {
+   int* descent, int *can_tilt) {
 
-	QFont f("Arial Bold",12);
-	QFontMetrics fm(f);
-	
-	QRect r = fm.boundingRect(QString::fromUtf8(text));
-	*w = r.width();
-	*ascent = fm.ascent();
-	*descent = fm.descent();
+   QFont f("Arial Bold",12);
+   QFontMetrics fm(f);
+   
+   QRect r = fm.boundingRect(QString::fromUtf8(text));
+   *w = r.width();
+   *ascent = fm.ascent();
+   *descent = fm.descent();
 #ifdef QT_NO_ROTATE
-	if (can_tilt) *can_tilt = 0;
+   if (can_tilt) *can_tilt = 0;
 #else
-	if (can_tilt) *can_tilt = 1;
+   if (can_tilt) *can_tilt = 1;
 #endif
 
 }
 
 void RMapCanvas::drawString(RoadMapGuiPoint* position, 
-		int corner, const char* text) {
-	if (!pixmap) {
-		return;
-	}
+      int corner, const char* text) {
+   if (!pixmap) {
+      return;
+   }
 
-	QPainter p(pixmap);
-	if (currentPen != 0) {
-		p.setPen(*currentPen);
-	}
-        QFont f("Arial Bold",12);
-        p.setFont(f);
+   QPainter p(pixmap);
+   if (currentPen != 0) {
+      p.setPen(*currentPen);
+   }
+   QFont f("Arial Bold",12);
+   p.setFont(f);
                 
-	int text_width;
-	int text_ascent;
-	int text_descent;
-	int x, y;
+   int text_width;
+   int text_ascent;
+   int text_descent;
+   int x, y;
 
-	getTextExtents(text, &text_width, &text_ascent, &text_descent, NULL);
+   getTextExtents(text, &text_width, &text_ascent, &text_descent, NULL);
 
-	x = position->x;
-	y = position->y;
-	if (corner & ROADMAP_CANVAS_RIGHT)
-		x -= text_width;
-	else if (corner & ROADMAP_CANVAS_CENTER_X)
-		x -= text_width / 2;
+   x = position->x;
+   y = position->y;
+   if (corner & ROADMAP_CANVAS_RIGHT)
+      x -= text_width;
+   else if (corner & ROADMAP_CANVAS_CENTER_X)
+      x -= text_width / 2;
  
-	if (corner & ROADMAP_CANVAS_BOTTOM)
- 		y -= text_descent;
-	else if (corner & ROADMAP_CANVAS_CENTER_Y)
-		y += (text_ascent / 2);
-	else /* TOP */
-		y += text_ascent;
+   if (corner & ROADMAP_CANVAS_BOTTOM)
+      y -= text_descent;
+   else if (corner & ROADMAP_CANVAS_CENTER_Y)
+      y += (text_ascent / 2);
+   else /* TOP */
+      y += text_ascent;
 
-	p.drawText(x, y, QString::fromUtf8(text));
+   p.drawText(x, y, QString::fromUtf8(text));
 }
 
 void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
-		int center, const char* text, int angle) {
+      int center, const char* text, int angle) {
 #ifndef QT_NO_ROTATE
-	if (!pixmap) {
-		return;
-	}
+   if (!pixmap) {
+      return;
+   }
 
-	QPainter p(pixmap);
-	if (currentPen != 0) {
-		p.setPen(*currentPen);
-	}
+   QPainter p(pixmap);
+   if (currentPen != 0) {
+      p.setPen(*currentPen);
+   }
 
-	QFont f("Arial Bold",12);
+   QFont f("Arial Bold",12);
 
-	p.setFont(f);
-	p.translate(position->x,position->y);
-	p.rotate((double)angle);
-	p.drawText(0, 0, QString::fromUtf8(text));
+   p.setFont(f);
+   p.translate(position->x,position->y);
+   p.rotate((double)angle);
+   p.drawText(0, 0, QString::fromUtf8(text));
 #endif
 }
 
 void RMapCanvas::drawMultiplePoints(int count, RoadMapGuiPoint* points) {
-	QPainter p(pixmap);
-	if (currentPen != 0) {
-		p.setPen(*currentPen);
-	}
+   QPainter p(pixmap);
+   if (currentPen != 0) {
+      p.setPen(*currentPen);
+   }
 
-	QPointArray pa(count);
-	for(int n = 0; n < count; n++) {
-		pa.setPoint(n, points[n].x, points[n].y);
-	}
+   QPointArray pa(count);
+   for(int n = 0; n < count; n++) {
+      pa.setPoint(n, points[n].x, points[n].y);
+   }
 
-	p.drawPoints(pa);
+   p.drawPoints(pa);
 }
 
 void RMapCanvas::drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points) {
-	QPainter p(pixmap);
-	if (currentPen != 0) {
-		p.setPen(*currentPen);
-	}
+   QPainter p(pixmap);
+   if (currentPen != 0) {
+      p.setPen(*currentPen);
+   }
 
-	for(int i = 0; i < count; i++) {
-		int count_of_points = *lines;
-		QPointArray pa(count_of_points);
-		for(int n = 0; n < count_of_points; n++) {
-			pa.setPoint(n, points[n].x, points[n].y);
-		}
+   for(int i = 0; i < count; i++) {
+      int count_of_points = *lines;
+      QPointArray pa(count_of_points);
+      for(int n = 0; n < count_of_points; n++) {
+         pa.setPoint(n, points[n].x, points[n].y);
+      }
 
-		p.drawPolyline(pa);
+      p.drawPolyline(pa);
 
-		lines++;
-		points += count_of_points;
-	}
+      lines++;
+      points += count_of_points;
+   }
 }
 
 void RMapCanvas::drawMultiplePolygons(int count, int* polygons, 
-		RoadMapGuiPoint* points, int filled) {
+      RoadMapGuiPoint* points, int filled) {
 
-	QPainter p(pixmap);
-	if (currentPen != 0) {
+   QPainter p(pixmap);
+   if (currentPen != 0) {
 
-		if (filled) {
-			p.setPen(/* *currentPen*/ QPen(QPen::NoPen));
-			p.setBrush(QBrush(currentPen->color()));
-		} else {
-			p.setPen(*currentPen);
-		}
+      if (filled) {
+         p.setPen(/* *currentPen*/ QPen(QPen::NoPen));
+         p.setBrush(QBrush(currentPen->color()));
+      } else {
+         p.setPen(*currentPen);
+      }
 
-	}
+   }
 
-	for(int i = 0; i < count; i++) {
-		int count_of_points = *polygons;
+   for(int i = 0; i < count; i++) {
+      int count_of_points = *polygons;
 
-		QPointArray pa(count_of_points);
-		for(int n = 0; n < count_of_points; n++) {
-			pa.setPoint(n, points[n].x, points[n].y);
-		}
+      QPointArray pa(count_of_points);
+      for(int n = 0; n < count_of_points; n++) {
+         pa.setPoint(n, points[n].x, points[n].y);
+      }
 
-		p.drawPolygon(pa);
+      p.drawPolygon(pa);
 
-		polygons++;
-		points += count_of_points;
-	}
+      polygons++;
+      points += count_of_points;
+   }
 }
 
 void RMapCanvas::drawMultipleCircles(int count, RoadMapGuiPoint* centers,
-		int* radius, int filled) {
+      int* radius, int filled) {
 
-	QPainter p(pixmap);
-	if (currentPen != 0) {
-		if (filled) {
-			p.setPen(*currentPen);
-			p.setBrush(QBrush(currentPen->color()));
-		} else {
-			p.setPen(*currentPen);
-		}
+   QPainter p(pixmap);
+   if (currentPen != 0) {
+      if (filled) {
+         p.setPen(*currentPen);
+         p.setBrush(QBrush(currentPen->color()));
+      } else {
+         p.setPen(*currentPen);
+      }
 
-	}
+   }
 
-	for(int i = 0; i < count; i++) {
-		int r = radius[i];
+   for(int i = 0; i < count; i++) {
+      int r = radius[i];
 
-		p.drawEllipse(centers[i].x - r, centers[i].y - r, 2*r, 2*r);
-		if (filled) {
-			p.drawChord(centers[i].x - r + 1,
-				centers[i].y - r + 1,
-				2 * r, 2 * r, 0, 16*360);
-		}
-	}
+      p.drawEllipse(centers[i].x - r, centers[i].y - r, 2*r, 2*r);
+      if (filled) {
+         p.drawChord(centers[i].x - r + 1,
+            centers[i].y - r + 1,
+            2 * r, 2 * r, 0, 16*360);
+      }
+   }
 }
 
 void RMapCanvas::registerButtonPressedHandler(RoadMapCanvasMouseHandler handler) {
@@ -285,19 +285,19 @@ void RMapCanvas::registerMouseWheelHandler(RoadMapCanvasMouseHandler handler) {
 
 
 void RMapCanvas::registerConfigureHandler(RoadMapCanvasConfigureHandler handler) {
-	configureHandler = handler;
+   configureHandler = handler;
 }
 
 int RMapCanvas::getHeight() {
-	return height();
+   return height();
 }
 
 int RMapCanvas::getWidth() {
-	return width();
+   return width();
 }
 
 void RMapCanvas::refresh(void) {
-	update();
+   update();
 }
 
 void RMapCanvas::mousePressEvent(QMouseEvent* ev) {
@@ -368,35 +368,35 @@ void RMapCanvas::wheelEvent (QWheelEvent* ev) {
 }
 
 void RMapCanvas::resizeEvent(QResizeEvent* ev) {
-	configure();
+   configure();
 }
 
 void RMapCanvas::paintEvent(QPaintEvent* ev) {
 
-	bitBlt(this, QPoint(0,0), pixmap, QRect(0, 0, pixmap->width(), pixmap->height()));
+   bitBlt(this, QPoint(0,0), pixmap, QRect(0, 0, pixmap->width(), pixmap->height()));
 }
 
 void RMapCanvas::configure() {
-	if (pixmap != 0) {
-		delete pixmap;
-	}
+   if (pixmap != 0) {
+      delete pixmap;
+   }
 
-	pixmap = new QPixmap(width(), height());
+   pixmap = new QPixmap(width(), height());
 
-	if (configureHandler != 0) {
-		configureHandler();
-	}
+   if (configureHandler != 0) {
+      configureHandler();
+   }
 }
 
 QColor RMapCanvas::getColor(const char* color) {
-	QColor *c = colors[color];
+   QColor *c = colors[color];
 
-	if (c == 0) {
-		c = new QColor(color);
+   if (c == 0) {
+      c = new QColor(color);
       colors.insert(color, c);
-	}
+   }
 
-	return *c;
+   return *c;
 }
 
 void RMapCanvas::initColors() {
