@@ -94,6 +94,7 @@ void roadmap_canvas_set_opacity (int opacity);
 /* The functions below draw in the selected buffer using the selected pen: */
 
 void roadmap_canvas_erase (void);
+void roadmap_canvas_erase_area (const RoadMapGuiRect *rect);
 
 /* Draw text on the screen at a given position.
  * A text can be aligned in 4 different ways, defined by which text "corner"
@@ -123,8 +124,9 @@ void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
                                   int corner,
                                   const char *text);
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
-                                       RoadMapGuiPoint *center, int angle,
+void roadmap_canvas_draw_string_angle (const RoadMapGuiPoint *position,
+                                       RoadMapGuiPoint *center,
+                                       int angle, int size,
                                        const char *text);
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points);
@@ -157,7 +159,7 @@ int  roadmap_canvas_image_height (const RoadMapImage image);
 RoadMapImage roadmap_canvas_load_image (const char *path,
                                         const char* file_name);
 
-void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
+void roadmap_canvas_draw_image (RoadMapImage image, const RoadMapGuiPoint *pos,
                                 int opacity, int mode);
 
 void roadmap_canvas_copy_image (RoadMapImage dst_image,

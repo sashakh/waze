@@ -266,7 +266,7 @@ void roadmap_label_draw_text(const char *text,
                     ROADMAP_CANVAS_CENTER, center, size, angle);
 #else
    if (doing_angles) {
-      roadmap_canvas_draw_string_angle (start, center, angle, text);
+      roadmap_canvas_draw_string_angle (start, center, angle, -1, text);
    } else {
       roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
    }
