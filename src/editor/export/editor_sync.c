@@ -232,28 +232,25 @@ int export_sync (void) {
       fips = 77001;
    }
 
-   if (roadmap_locator_activate (fips) == -1) {
-      roadmap_messagebox ("Error", "Can't load map data.");
-      goto end_sync;
-   }
+   if (roadmap_locator_activate (fips) == ROADMAP_US_OK) {
+      now_t = time (NULL);
+      map_time_t = atoi(roadmap_metadata_get_attribute ("Version", "UnixTime"));
 
-   now_t = time (NULL);
-   map_time_t = atoi(roadmap_metadata_get_attribute ("Version", "UnixTime"));
+      if ((map_time_t + 3600*24) > now_t) {
+         /* Map is less than 24 hours old.
+          * A new version may still be available.
+          */
 
-   if ((map_time_t + 3600*24) > now_t) {
-      /* Map is less than 24 hours old.
-       * A new version may still be available.
-       */
+         now_tm = *gmtime(&now_t);
+         map_time_tm = *gmtime(&map_time_t);
 
-      now_tm = *gmtime(&now_t);
-      map_time_tm = *gmtime(&map_time_t);
+         if (now_tm.tm_mday == map_time_tm.tm_mday) {
 
-      if (now_tm.tm_mday == map_time_tm.tm_mday) {
-
-         goto end_sync;
-      } else {
-         /* new day - only download if new maps were already generated. */
-         if (now_tm.tm_hour < 2) goto end_sync;
+            goto end_sync;
+         } else {
+            /* new day - only download if new maps were already generated. */
+            if (now_tm.tm_hour < 2) goto end_sync;
+         }
       }
    }
 

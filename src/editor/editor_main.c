@@ -46,7 +46,7 @@
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.8.2";
+const char *EDITOR_VERSION = "0.9.0 pre1";
 
 void editor_main_check_map (void) {
 
@@ -60,8 +60,9 @@ void editor_main_check_map (void) {
       fips = 77001;
    }
 
-   if (roadmap_locator_activate (fips) == -1) {
+   if (roadmap_locator_activate (fips) != ROADMAP_US_OK) {
       roadmap_messagebox ("Error.", "Can't load map data.");
+      return;
    }
 
    now_t = time (NULL);
