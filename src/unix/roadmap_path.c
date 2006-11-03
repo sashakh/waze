@@ -522,6 +522,7 @@ char **roadmap_path_list (const char *path, const char *extension) {
       }
    }
    *cursor = NULL;
+   closedir(directory);
 
    return result;
 }
