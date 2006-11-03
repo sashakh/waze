@@ -65,6 +65,7 @@ static int  clipper     (
    NavigateClip *info = (NavigateClip *)pvarg;
    int to_line = dglEdgeGet_Id(pgraph, pIn->pnEdge);
    int from_line;
+   int new_cost;
 
    if (pIn->pnPrevEdge != NULL) {
       
@@ -77,6 +78,9 @@ static int  clipper     (
    /* no U turns */
    if (from_line == -to_line) return 1;
    
+   new_cost = roadmap_line_route_get_cross_time (abs(to_line), (to_line < 0));
+   if (new_cost) pOut->nEdgeCost = new_cost;
+
    if (!info->turn_restrictions) return 0;
 
    if ( roadmap_turns_find_restriction (
