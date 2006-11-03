@@ -16,9 +16,6 @@ GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 WARNFLAGS = -W -Wall -Wno-unused-parameter
 
-RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a libgtkroadmap.a
-
-
 ifeq ($(MODE),DEBUG)
    STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
 else
@@ -37,6 +34,13 @@ else
 	GPECFLAGS=
 	GPELDFLAGS=
 endif
+
+ifeq ($(SSD),YES)
+CFLAGS += -DSSD
+SSDLIB=../libssd_widgets.a
+endif
+
+RDMLIBS= ../libroadmap.a libgtkroadmap.a ../unix/libosroadmap.a ../libroadmap.a libgtkroadmap.a
 
 
 HOST=`uname -s`
@@ -75,7 +79,7 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg
 
 # --- Conventional targets ----------------------------------------
 
-.PHONY: all others build runtime clean cleanone install uninstall
+.PHONY: all others build runtime clean cleanone install uninstall ../libssd_widgets.a
 
 all: runtime
 
@@ -114,9 +118,11 @@ libgtkroadmap.a: $(RMLIBOBJS)
 	$(AR) $(ARFLAGS) libgtkroadmap.a $(RMLIBOBJS)
 	$(RANLIB) libgtkroadmap.a
 
-gtkroadmap: roadmap_main.o ../libguiroadmap.a $(RDMLIBS)
-	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap ../libguiroadmap.a $(LIBS)
+gtkroadmap: roadmap_main.o $(SSDLIB) ../libguiroadmap.a $(RDMLIBS)
+	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap $(SSDLIB) ../libguiroadmap.a $(LIBS) $(SSDLIB) ../libguiroadmap.a
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
 	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
 
+../libssd_widgets.a:
+	$(MAKE) -C .. libssd_widgets.a
