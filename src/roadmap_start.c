@@ -578,11 +578,11 @@ static RoadMapAction RoadMapStartActions[] = {
         "Relocate the last selected place to the popup location",
         roadmap_trip_move_last_place },
 
-   {"routepointahead", "Reorder, move ahead", NULL, NULL,
+   {"routepointahead", "Reorder, move ahead", "Ahead", NULL,
         "Reorder the route, moving this point later in the route",
         roadmap_trip_move_routepoint_ahead },
 
-   {"routepointback", "Reorder, move back", NULL, NULL,
+   {"routepointback", "Reorder, move back", "Back", NULL,
         "Reorder the route, moving this point earlier in the route",
         roadmap_trip_move_routepoint_back },
 
