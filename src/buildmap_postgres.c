@@ -53,6 +53,7 @@
 #include "buildmap_point.h"
 #include "buildmap_line.h"
 #include "buildmap_line_route.h"
+#include "buildmap_line_speed.h"
 #include "buildmap_dglib.h"
 #include "buildmap_street.h"
 #include "buildmap_range.h"
@@ -67,7 +68,7 @@
 #define WaterTlidStart 1100000
 /* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM water;";
@@ -215,6 +216,64 @@ static int db_result_ok (PGresult *result) {
 }
 
 
+static void buildmap_postgres_read_speeds (int tlid, int speed_ref,
+                                           int opposite) {
+
+   int    irec;
+   int    record_count;
+
+   BuildMapSpeed *this_speed;
+   PGresult *db_result;
+
+   char speeds_sql[200];
+   
+   sprintf(speeds_sql,
+           "SELECT time, speed FROM today_cross_times WHERE seg_ref_id=%d ORDER BY time;",
+           speed_ref);
+
+   db_result = PQexec(hPGConn, speeds_sql);
+
+   if (!db_result_ok (db_result)) {
+
+      fprintf
+         (stderr, "Can't query database: %s\n", PQerrorMessage(hPGConn));
+      PQfinish(hPGConn);
+      exit(-1);
+   }
+
+   record_count = PQntuples(db_result);
+
+   if (!record_count) return;
+
+   this_speed = buildmap_line_speed_new ();
+
+   for (irec=0; irec<record_count; irec++) {
+
+      int speed;
+      int db_time;
+      int time_slot;
+      int column = 0;
+
+      buildmap_set_line (irec);
+
+      db_time = atoi(PQgetvalue(db_result, irec, column++));
+      speed = atoi(PQgetvalue(db_result, irec, column++));
+
+      speed = (speed / 5) * 5;
+      time_slot = (db_time / 100) * 2;
+      if ((db_time % 100) >= 30) time_slot++;
+
+      buildmap_line_speed_add_slot (this_speed, time_slot, speed);
+   }
+
+   buildmap_line_speed_add (this_speed, tlid, opposite);
+
+   buildmap_line_speed_free (this_speed);
+
+   PQclear(db_result);
+}
+
+
 static void buildmap_postgres_read_roads_lines (int verbose) {
 
    int    irec;
@@ -267,6 +326,7 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
       int num_points;
       int layer;
       int column = 0;
+      int speed_ref;
 
       buildmap_set_line (irec);
 
@@ -311,6 +371,7 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
       if (!city) {
 
          buildmap_range_add_no_address (line, street);
+         column += 4;
       } else {
 
          const char *fraddl = PQgetvalue(db_result, irec, column++);
@@ -340,6 +401,16 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
       free (lon_arr);
       free (lat_arr);
 
+      /* from speed ref */
+      if (!PQgetisnull(db_result, irec, column++)) {
+         speed_ref = atoi(PQgetvalue(db_result, irec, column-1));
+         buildmap_postgres_read_speeds (tlid, speed_ref, 0);
+      }
+
+      if (!PQgetisnull(db_result, irec, column++)) {
+         speed_ref = atoi(PQgetvalue(db_result, irec, column-1));
+         buildmap_postgres_read_speeds (tlid, speed_ref, 1);
+      }
    }
 
    PQclear(db_result);
@@ -363,6 +434,8 @@ static void buildmap_postgres_read_roads_route (int verbose) {
    unsigned short from_cross_time;
    unsigned short to_cross_time;
    unsigned char layer;
+   unsigned short from_speed_ref;
+   unsigned short to_speed_ref;
   
    PGresult *db_result;
 
@@ -401,9 +474,11 @@ static void buildmap_postgres_read_roads_route (int verbose) {
 
       line = buildmap_line_find_sorted(tlid);
 
+      from_speed_ref = buildmap_line_speed_get_ref (tlid, 0);
+      to_speed_ref = buildmap_line_speed_get_ref (tlid, 1);
       buildmap_line_route_add
          (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
-          from_cross_time, to_cross_time,
+          from_speed_ref, to_speed_ref,
           line);
 
       buildmap_dglib_add

@@ -28,8 +28,8 @@
  *        unsigned char to_flags,
  *        unsigned char from_max_speed,
  *        unsigned char to_max_speed,
- *        unsigned short from_cross_time,
- *        unsigned short to_cross_time,
+ *        unsigned short from_speed_ref,
+ *        unsigned short to_speed_ref,
  *        int line);
  *   void buildmap_line_route_sort (void);
  *   int  buildmap_line_route_count (void);
@@ -77,8 +77,8 @@ int  buildmap_line_route_add
          unsigned char to_flags,
          unsigned char from_max_speed,
          unsigned char to_max_speed,
-         unsigned short from_cross_time,
-         unsigned short to_cross_time,
+         unsigned short from_speed_ref,
+         unsigned short to_speed_ref,
          int line) {
 
    int block;
@@ -106,8 +106,8 @@ int  buildmap_line_route_add
    this_route->record.to_flags = to_flags;
    this_route->record.from_max_speed = from_max_speed;
    this_route->record.to_max_speed = to_max_speed;
-   this_route->record.to_cross_time = to_cross_time;
-   this_route->record.from_cross_time = from_cross_time;
+   this_route->record.to_speed_ref = to_speed_ref;
+   this_route->record.from_speed_ref = from_speed_ref;
 
    this_route->line = line;
 

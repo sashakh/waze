@@ -32,8 +32,8 @@ int  buildmap_line_route_add
         unsigned char to_flags,
         unsigned char from_max_speed,
         unsigned char to_max_speed,
-        unsigned short from_cross_time,
-        unsigned short to_cross_time,
+        unsigned short from_speed_ref,
+        unsigned short to_speed_ref,
         int line);
 
 void buildmap_line_route_sort (void);

@@ -1,8 +1,8 @@
-/* roadmap_db_line_route.h - the format of a line's route data
+/* roadmap_line_speed.h - Manage the line speed data.
  *
  * LICENSE:
  *
- *   Copyright 2005 Ehud Shabtai
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -19,31 +19,19 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   RoadMap's lines route data is described by the following table:
- *
- *   line_route for each line its direction and cross time and allowed speed are specified
  */
 
-#ifndef _ROADMAP_DB_LINE_ROUTE__H_
-#define _ROADMAP_DB_LINE_ROUTE__H_
+#ifndef _ROADMAP_LINE_SPEED__H_
+#define _ROADMAP_LINE_SPEED__H_
 
+#include <time.h>
 #include "roadmap_types.h"
+#include "roadmap_dbread.h"
+#include "roadmap_db_line_speed.h"
 
-#define ROUTE_CAR_ALLOWED 0x1
+extern roadmap_db_handler RoadMapLineSpeedHandler;
+int roadmap_line_speed_get_avg (int speed_ref);
+int roadmap_line_speed_get (int speed_ref, int time_slot);
 
-typedef struct {  /* table line_route */
-
-   unsigned char from_flags;
-   unsigned char to_flags;
-   unsigned char from_max_speed;
-   unsigned char to_max_speed;
-   unsigned short from_speed_ref;
-   unsigned short to_speed_ref;
-
-} RoadMapLineRoute;
-
-#endif // _ROADMAP_DB_LINE_ROUTE__H_
+#endif // _ROADMAP_LINE_SPEED__H_
 

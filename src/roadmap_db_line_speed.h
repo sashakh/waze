@@ -1,8 +1,8 @@
-/* roadmap_db_line_route.h - the format of a line's route data
+/* roadmap_db_line_speed.h - the format of a line's speed data
  *
  * LICENSE:
  *
- *   Copyright 2005 Ehud Shabtai
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -22,28 +22,22 @@
  *
  * SYNOPSYS:
  *
- *   RoadMap's lines route data is described by the following table:
+ *   RoadMap's lines speed data is described by the following table:
  *
- *   line_route for each line its direction and cross time and allowed speed are specified
  */
 
-#ifndef _ROADMAP_DB_LINE_ROUTE__H_
-#define _ROADMAP_DB_LINE_ROUTE__H_
+#ifndef _ROADMAP_DB_LINE_SPEED__H_
+#define _ROADMAP_DB_LINE_SPEED__H_
 
-#include "roadmap_types.h"
+#define INVALID_SPEED 0xFFFF
+#define SPEED_EOL 0x40
+//#define SPPED_ 0x80
 
-#define ROUTE_CAR_ALLOWED 0x1
+typedef struct {
 
-typedef struct {  /* table line_route */
+   unsigned char speed;
+   unsigned char time_slot;
+} RoadMapLineSpeed;
 
-   unsigned char from_flags;
-   unsigned char to_flags;
-   unsigned char from_max_speed;
-   unsigned char to_max_speed;
-   unsigned short from_speed_ref;
-   unsigned short to_speed_ref;
-
-} RoadMapLineRoute;
-
-#endif // _ROADMAP_DB_LINE_ROUTE__H_
+#endif // _ROADMAP_DB_LINE_SPEED__H_
 

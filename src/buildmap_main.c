@@ -43,6 +43,7 @@
 #include "buildmap_range.h"
 #include "buildmap_line.h"
 #include "buildmap_line_route.h"
+#include "buildmap_line_speed.h"
 #include "buildmap_dglib.h"
 #include "buildmap_point.h"
 #include "buildmap_shape.h"
@@ -165,6 +166,7 @@ static void buildmap_county_initialize (void) {
    buildmap_range_initialize();
    buildmap_line_initialize();
    buildmap_line_route_initialize();
+   buildmap_line_speed_initialize();
    buildmap_dglib_initialize(creation_time);
    buildmap_polygon_initialize();
    buildmap_shape_initialize();
@@ -179,6 +181,7 @@ static void buildmap_county_sort (void) {
 
    buildmap_line_sort ();
    buildmap_line_route_sort ();
+   buildmap_line_speed_sort ();
    buildmap_dglib_sort ();
    buildmap_street_sort ();
    buildmap_range_sort ();
@@ -209,6 +212,7 @@ static void buildmap_county_save (const char *name) {
    buildmap_square_save ();
    buildmap_line_save ();
    buildmap_line_route_save ();
+   buildmap_line_speed_save ();
    buildmap_dglib_save (BuildMapResult, db_name);
    buildmap_point_save ();
    buildmap_shape_save ();
@@ -229,6 +233,7 @@ static void buildmap_county_reset (void) {
    buildmap_square_reset ();
    buildmap_line_reset ();
    buildmap_line_route_reset ();
+   buildmap_line_speed_reset ();
    buildmap_dglib_reset (creation_time);
    buildmap_point_reset ();
    buildmap_shape_reset ();
@@ -291,6 +296,7 @@ static void buildmap_county_process (const char *source,
       buildmap_street_summary ();
       buildmap_line_summary ();
       buildmap_line_route_summary ();
+      buildmap_line_speed_summary ();
       buildmap_dglib_summary ();
       buildmap_range_summary ();
       buildmap_shape_summary ();
