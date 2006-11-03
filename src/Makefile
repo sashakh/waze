@@ -39,6 +39,13 @@ else
 endif
 endif
 
+ifeq ($(SSD),YES)
+# Small screen devices
+   SSDCFLAGS=-DSSD
+else
+	SSDCFLAGS=
+endif
+
 ifeq ($(SQL),SQLITE)
    SQLCFLAGS=-DROADMAP_USES_SQLITE
 	SQLLDFLAGS=-lsqlite
@@ -87,7 +94,7 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) $(SSDCFLAGS) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq -L ./dglib
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
@@ -114,6 +121,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_point.c \
           roadmap_line.c \
           roadmap_line_route.c \
+          roadmap_line_speed.c \
           roadmap_shape.c \
           roadmap_turns.c \
           roadmap_place.c \
@@ -155,6 +163,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_download.c \
           roadmap_help.c \
           roadmap_label.c \
+          roadmap_res.c \
           roadmap_start.c
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)
@@ -226,6 +235,7 @@ BMSRCS=buildmap_messages.c \
        buildmap_area.c \
        buildmap_line.c \
        buildmap_line_route.c \
+       buildmap_line_speed.c \
        buildmap_dglib.c \
        buildmap_shape.c \
        buildmap_turn_restrictions.c \
@@ -262,6 +272,16 @@ BUSRCS=buildus_main.c \
 
 BUOBJS=$(BUSRCS:.c=.o)
 
+SSD_WIDGETS_SRCS=ssd/ssd_dialog.c \
+					  ssd/ssd_widget.c \
+					  ssd/ssd_container.c \
+					  ssd/ssd_text.c \
+					  ssd/ssd_entry.c \
+					  ssd/ssd_button.c \
+					  ssd/ssd_keyboard.c \
+					  ssd/ssd_menu.c \
+
+SSD_WIDGETS_OBJS=$(SSD_WIDGETS_SRCS:.c=.o)
 
 PKGDATAFILES=sprites preferences schema session drivers
 BUILD=buildmap buildus dumpmap buildplace
@@ -404,3 +424,6 @@ buildus: $(BUOBJS) $(RDMLIBS)
 buildplace: $(BPOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BPOBJS) -o buildplace $(LIBS)
 
+libssd_widgets.a: $(SSD_WIDGETS_OBJS)
+	$(AR) $(ARFLAGS) libssd_widgets.a $(SSD_WIDGETS_OBJS)
+	$(RANLIB) libssd_widgets.a
