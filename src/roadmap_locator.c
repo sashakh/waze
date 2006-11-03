@@ -43,6 +43,7 @@
 #include "roadmap_turns.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
+#include "roadmap_line_speed.h"
 #include "roadmap_street.h"
 #include "roadmap_polygon.h"
 #include "roadmap_county.h"
@@ -109,6 +110,9 @@ static void roadmap_locator_configure (void) {
             (RoadMapCountyModel, "line", &RoadMapLineHandler);
       RoadMapCountyModel =
          roadmap_db_register
+            (RoadMapCountyModel, "line_speed", &RoadMapLineSpeedHandler);
+      RoadMapCountyModel =
+         roadmap_db_register
             (RoadMapCountyModel, "line_route", &RoadMapLineRouteHandler);
       RoadMapCountyModel =
          roadmap_db_register
@@ -138,7 +142,8 @@ static void roadmap_locator_configure (void) {
 
    if (!RoadMapUsdirActive) {
       if (! roadmap_db_open ("usdir", RoadMapUsModel, "r")) {
-         roadmap_log (ROADMAP_FATAL, "cannot open directory database (usdir)");
+         roadmap_log (ROADMAP_ERROR, "cannot open directory database (usdir)");
+         return;
       }
 
       RoadMapUsCityDictionary   = roadmap_dictionary_open ("city");
