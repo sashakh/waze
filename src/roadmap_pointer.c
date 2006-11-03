@@ -32,16 +32,15 @@
 #include "roadmap_pointer.h"
 #include "roadmap_gui.h"
 #include "roadmap_canvas.h"
-#include "roadmap_screen_obj.h"
 #include "roadmap_main.h"
 
 #define LONG_CLICK_TIMEOUT 350
 #define DRAG_FLOW_CONTROL_TIMEOUT 30
 
 static int is_button_down = 0;
+static int cancel_dragging = 0;
 static int is_dragging = 0;
 static int is_drag_flow_control_on = 0;
-static RoadMapScreenObj screen_object;
 
 static RoadMapGuiPoint last_pointer_point;
 
@@ -49,11 +48,20 @@ static RoadMapGuiPoint last_pointer_point;
  * functions, so that we don't care checking if one has been setup.
  */
 static void roadmap_pointer_ignore_event (RoadMapGuiPoint *point) {}
+static int  roadmap_pointer_ignore_click_event (RoadMapGuiPoint *point) {
+   return 0;
+}
 
 static RoadMapPointerHandler RoadMapPointerShortClick =
                                      roadmap_pointer_ignore_event;
 
 static RoadMapPointerHandler RoadMapPointerLongClick =
+                                     roadmap_pointer_ignore_event;
+
+static RoadMapPointerClickHandler RoadMapPointerPressed =
+                                     roadmap_pointer_ignore_click_event;
+
+static RoadMapPointerHandler RoadMapPointerReleased =
                                      roadmap_pointer_ignore_event;
 
 static RoadMapPointerHandler RoadMapPointerDragStart =
@@ -70,11 +78,7 @@ static void roadmap_pointer_button_timeout(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
 
-   if (screen_object != NULL) {
-      roadmap_screen_obj_long_click (screen_object); 
-   } else {
-      RoadMapPointerLongClick(&last_pointer_point);
-   }
+   RoadMapPointerLongClick(&last_pointer_point);
    is_button_down = 0;
 }
  
@@ -87,22 +91,23 @@ static void roadmap_pointer_drag_flow_control(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
 
-   if (screen_object == NULL) {
-      RoadMapPointerDragMotion(&last_pointer_point);
-   }
+   RoadMapPointerDragMotion(&last_pointer_point);
    is_drag_flow_control_on = 0;
 }
    
 
 static void roadmap_pointer_button_pressed (RoadMapGuiPoint *point) {
-   is_button_down = 1;    
    last_pointer_point = *point;
-   screen_object = roadmap_screen_obj_by_pos (point);
 
-   if (screen_object) {
-      roadmap_screen_obj_pressed (screen_object);
+   if (RoadMapPointerPressed (point)) {
+      /* If a handler returns true dragging event is off.
+       */
+      cancel_dragging = 1;
+   } else {
+      cancel_dragging = 0;
    }
 
+   is_button_down = 1;    
    roadmap_main_set_periodic
       (LONG_CLICK_TIMEOUT, roadmap_pointer_button_timeout);
 }
@@ -116,27 +121,19 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
          is_drag_flow_control_on = 0;
       }
 
-      if (screen_object) {
-         roadmap_screen_obj_short_click (screen_object);
-      } else {
-         RoadMapPointerDragEnd(point);
-      }
+      RoadMapPointerDragEnd(point);
       is_dragging = 0;
       is_button_down = 0;
    } else if (is_button_down) {
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
       
-      if (screen_object) {
-         roadmap_screen_obj_short_click (screen_object); 
-      } else {
-         RoadMapPointerShortClick(point);
-      }
+      RoadMapPointerShortClick(point);
       is_button_down = 0;
    }
 }
 
 static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
-   if (!is_button_down && !is_dragging) return;
+   if (cancel_dragging || (!is_button_down && !is_dragging)) return;
 
    if (!is_dragging) {
 
@@ -146,9 +143,7 @@ static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
       
-      if (!screen_object) {
-         RoadMapPointerDragStart(&last_pointer_point);
-      }
+      RoadMapPointerDragStart(&last_pointer_point);
 
       last_pointer_point = *point;
       is_drag_flow_control_on = 1;
@@ -199,6 +194,26 @@ RoadMapPointerHandler roadmap_pointer_register_long_click
 
    RoadMapPointerHandler old = RoadMapPointerLongClick;
    RoadMapPointerLongClick = handler;
+
+   return old;
+}
+
+
+RoadMapPointerClickHandler roadmap_pointer_register_pressed
+                    (RoadMapPointerClickHandler handler) {
+
+   RoadMapPointerClickHandler old = RoadMapPointerPressed;
+   RoadMapPointerPressed = handler;
+
+   return old;
+}
+
+
+RoadMapPointerHandler roadmap_pointer_register_released
+                    (RoadMapPointerHandler handler) {
+
+   RoadMapPointerHandler old = RoadMapPointerReleased;
+   RoadMapPointerReleased = handler;
 
    return old;
 }

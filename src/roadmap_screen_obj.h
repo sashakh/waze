@@ -34,11 +34,5 @@ void roadmap_screen_obj_initialize (void);
 void roadmap_screen_obj_offset (int x, int y);
 void roadmap_screen_obj_draw (void);
 
-RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point);
-
-int roadmap_screen_obj_short_click (RoadMapScreenObj object);
-int roadmap_screen_obj_long_click (RoadMapScreenObj object);
-void roadmap_screen_obj_pressed (RoadMapScreenObj object);
-
 #endif // INCLUDE__ROADMAP_SCREEN_OBJECT__H
 

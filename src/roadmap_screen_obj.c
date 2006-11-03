@@ -42,6 +42,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_start.h"
 #include "roadmap_state.h"
+#include "roadmap_pointer.h"
 
 #include "roadmap_screen_obj.h"
 
@@ -86,6 +87,10 @@ static RoadMapScreenObj RoadMapObjectList = NULL;
 static RoadMapScreenObj RoadMapScreenObjSelected = NULL;
 static int OffsetX = 0;
 static int OffsetY = 0;
+
+static RoadMapPointerClickHandler PrevPressedHandler;
+static RoadMapPointerHandler PrevShortClick;
+static RoadMapPointerHandler PrevLongClick;
 
 static char *roadmap_object_string (const char *data, int length) {
 
@@ -415,6 +420,18 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 }
 
 
+static RoadMapScreenObj roadmap_screen_obj_search (const char *name) {
+
+   RoadMapScreenObj cursor;
+
+   for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
+      if (!strcmp(cursor->name, name)) return cursor;
+   }
+
+   return NULL;
+}
+
+
 static void roadmap_screen_obj_pos (RoadMapScreenObj object,
                                     RoadMapGuiPoint *pos) {
 
@@ -435,17 +452,86 @@ static void roadmap_screen_obj_pos (RoadMapScreenObj object,
 }
 
 
-RoadMapScreenObj roadmap_screen_obj_search (const char *name) {
+static RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
 
    RoadMapScreenObj cursor;
 
    for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
-      if (!strcmp(cursor->name, name)) return cursor;
+
+      RoadMapGuiPoint pos;
+      roadmap_screen_obj_pos (cursor, &pos);
+
+      if ((point->x >= (pos.x + cursor->bbox.minx)) &&
+          (point->x <= (pos.x + cursor->bbox.maxx)) &&
+          (point->y >= (pos.y + cursor->bbox.miny)) &&
+          (point->y <= (pos.y + cursor->bbox.maxy))) {
+
+         return cursor;
+      }
    }
 
    return NULL;
 }
 
+
+static int roadmap_screen_obj_pressed (RoadMapGuiPoint *point) {
+   int state = 0;
+
+   RoadMapScreenObjSelected = roadmap_screen_obj_by_pos (point);
+
+   if (!RoadMapScreenObjSelected) return (*PrevPressedHandler)(point);
+
+   if (RoadMapScreenObjSelected->state_fn) {
+      state = (*RoadMapScreenObjSelected->state_fn) ();
+      if ((state < 0) || (state >= MAX_STATES)) return 1;
+   }
+
+   if (RoadMapScreenObjSelected->images[state]) {
+      RoadMapGuiPoint pos;
+      roadmap_screen_obj_pos (RoadMapScreenObjSelected, &pos);
+
+      roadmap_canvas_draw_image (RoadMapScreenObjSelected->images[state], &pos,
+                           RoadMapScreenObjSelected->opacity, IMAGE_SELECTED);
+   }
+   
+   roadmap_canvas_refresh ();
+
+   return 1;
+}
+
+
+static void roadmap_screen_obj_short_click (RoadMapGuiPoint *point) {
+
+   RoadMapScreenObj object = RoadMapScreenObjSelected;
+
+   if (!RoadMapScreenObjSelected) {
+      (*PrevShortClick)(point);
+      return;
+   }
+
+   RoadMapScreenObjSelected = NULL;
+
+   if (object->action) {
+      (*(object->action->callback)) ();
+   }
+}
+
+
+static void roadmap_screen_obj_long_click (RoadMapGuiPoint *point) {
+
+   RoadMapScreenObj object = RoadMapScreenObjSelected;
+
+   if (!RoadMapScreenObjSelected) {
+      (*PrevLongClick)(point);
+      return;
+   }
+
+   RoadMapScreenObjSelected = NULL;
+
+   if (object->action) {
+      (*(object->action->callback)) ();
+   }
+}
 
 void roadmap_screen_obj_move (const char *name,
                               const RoadMapGuiPoint *position) {
@@ -489,6 +575,13 @@ void roadmap_screen_obj_initialize (void) {
    unsigned int i;
    int height = roadmap_canvas_height ();
    const char *object_name = NULL;
+
+   PrevPressedHandler =
+      roadmap_pointer_register_pressed (roadmap_screen_obj_pressed);
+   PrevShortClick =
+      roadmap_pointer_register_short_click (roadmap_screen_obj_short_click);
+   PrevLongClick =
+      roadmap_pointer_register_long_click (roadmap_screen_obj_long_click);
 
    for (i=0; i<sizeof(RoadMapObjFiles)/sizeof(RoadMapObjFiles[0]); i++) {
 
@@ -567,71 +660,4 @@ void roadmap_screen_obj_draw (void) {
 }
 
 
-RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
-
-   RoadMapScreenObj cursor;
-
-   for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
-
-      RoadMapGuiPoint pos;
-      roadmap_screen_obj_pos (cursor, &pos);
-
-      if ((point->x >= (pos.x + cursor->bbox.minx)) &&
-          (point->x <= (pos.x + cursor->bbox.maxx)) &&
-          (point->y >= (pos.y + cursor->bbox.miny)) &&
-          (point->y <= (pos.y + cursor->bbox.maxy))) {
-
-         return cursor;
-      }
-   }
-
-   return NULL;
-}
-
-
-int roadmap_screen_obj_short_click (RoadMapScreenObj object) {
-
-   RoadMapScreenObjSelected = NULL;
-
-   if (object->action) {
-      (*(object->action->callback)) ();
-      return 1;
-   }
-
-   return 0;
-}
-
-
-void roadmap_screen_obj_pressed (RoadMapScreenObj object) {
-   int state = 0;
-
-   RoadMapScreenObjSelected = object;
-
-   if (object->state_fn) {
-      state = (*object->state_fn) ();
-      if ((state < 0) || (state >= MAX_STATES)) return;
-   }
-
-   if (object->images[state]) {
-      RoadMapGuiPoint pos;
-      roadmap_screen_obj_pos (object, &pos);
-
-      roadmap_canvas_draw_image (object->images[state], &pos,
-                                 object->opacity, IMAGE_SELECTED);
-   }
-   
-   roadmap_canvas_refresh ();
-}
-
-int roadmap_screen_obj_long_click (RoadMapScreenObj object) {
-
-   RoadMapScreenObjSelected = NULL;
-
-   if (object->action) {
-      (*(object->action->callback)) ();
-      return 1;
-   }
-
-   return 0;
-}
 

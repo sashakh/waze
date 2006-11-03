@@ -31,6 +31,7 @@
 
 
 typedef void (*RoadMapPointerHandler)    (RoadMapGuiPoint *point);
+typedef int  (*RoadMapPointerClickHandler)    (RoadMapGuiPoint *point);
 
 void roadmap_pointer_initialize (void);
 const RoadMapGuiPoint *roadmap_pointer_position (void);
@@ -45,6 +46,9 @@ RoadMapPointerHandler roadmap_pointer_register_drag_motion
                                  (RoadMapPointerHandler handler);
 RoadMapPointerHandler roadmap_pointer_register_drag_end
                                  (RoadMapPointerHandler handler);
+
+RoadMapPointerClickHandler roadmap_pointer_register_pressed
+                                 (RoadMapPointerClickHandler handler);
 
 #endif // INCLUDE__ROADMAP_POINTER__H
 
