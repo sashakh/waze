@@ -61,3 +61,19 @@ char* ConvertToMultiByte(const LPCWSTR s, UINT nCodePage)
    }
 }
 
+
+#ifdef UNDER_CE
+
+#include <wchar.h>
+
+size_t __cdecl mbsrtowcs(wchar_t *wc, const char **s, size_t len, mbstate_t *ps)
+{
+   return MultiByteToWideChar(CP_UTF8, 0, *s, strlen(*s), wc, len);
+}
+
+size_t __cdecl wcrtomb(char *s, wchar_t wc, mbstate_t *ps)
+{
+  	return WideCharToMultiByte(CP_UTF8, 0, &wc, 1, s, 10, NULL, NULL);
+}
+
+#endif

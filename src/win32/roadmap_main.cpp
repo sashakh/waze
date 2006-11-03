@@ -1166,7 +1166,7 @@ extern "C" {
 				current_x += width;
 			 }
 
-			 roadmap_canvas_draw_string_angle (&position, &position, 0, str);
+			 roadmap_canvas_draw_string_angle (&position, &position, 0, -1, str);
 			 roadmap_canvas_refresh ();
 
 			 Sleep (30);

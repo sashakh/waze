@@ -246,6 +246,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "libssd"=.\libssd\libssd.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "libwinceguiroadmap"=.\libwinceguiroadmap\libwinceguiroadmap.vcp - Package Owner=<4>
 
 Package=<5>
@@ -303,7 +315,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "zlib"="C:\Projects\zlib-1.2.3\zlib.vcp" - Package Owner=<4>
+Project: "zlib"=.\zlib\zlib.vcp - Package Owner=<4>
 
 Package=<5>
 {{{

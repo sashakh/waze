@@ -152,11 +152,15 @@ void roadmap_canvas_get_text_extents
 
    if (size == -1) {
       /* Use the regular font */
+      *descent = abs((int)m_feng.descender()) + 1;
+      *ascent = (int)m_feng.ascender() + 1;
       fman = &m_fman;
    } else {
 
       m_image_feng.height(size);
       m_image_feng.width(size);
+      *descent = abs((int)m_image_feng.descender()) + 1;
+      *ascent = (int)m_image_feng.ascender() + 1;
       fman = &m_image_fman;
    }
 
@@ -166,7 +170,7 @@ void roadmap_canvas_get_text_extents
       if(glyph) {
          x += glyph->advance_x;
          y += glyph->advance_y;
-         if (-glyph->bounds.y1 > *descent) *descent=-glyph->bounds.y1 - 1;
+         //if (-glyph->bounds.y1 > *descent) *descent=-glyph->bounds.y1 - 1;
       }
       ++p;
    }
@@ -260,6 +264,14 @@ void roadmap_canvas_erase (void) {
 }
 
 
+void roadmap_canvas_erase_area (const RoadMapGuiRect *rect) {
+
+   renderer_pr ren_pr(agg_renb);
+   ren_pr.fill_color (CurrentPen->color);
+   ren_pr.solid_rectangle(rect->minx, rect->miny, rect->maxx, rect->maxy);
+}
+
+
 void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
                                  int corner,
                                  const char *text) {
@@ -307,7 +319,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
    }
 
    RoadMapGuiPoint start = {x, y+text_height};
-   roadmap_canvas_draw_string_angle (&start, position, 0, text);
+   roadmap_canvas_draw_string_angle (&start, position, 0, -1, text);
 }
 
 
@@ -572,9 +584,10 @@ static wchar_t* bidi_string(wchar_t *logical) {
 #endif
 
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
+void roadmap_canvas_draw_string_angle (const RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center,
-                                       int angle, const char *text)
+                                       int angle, int size,
+                                       const char *text)
 {
    
    if (RoadMapCanvasFontLoaded != 1) return;
@@ -601,7 +614,7 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
    
    if ((angle > -5) && (angle < 5)) {
 
-      int size = 15;
+      if (size < 0) size = 15;
 
       /* Use faster drawing for text with no angle */
       x  = position->x;
@@ -754,7 +767,7 @@ void roadmap_canvas_free_image (RoadMapImage image) {
 }
 
 
-void roadmap_canvas_draw_image (RoadMapImage image, RoadMapGuiPoint *pos,
+void roadmap_canvas_draw_image (RoadMapImage image, const RoadMapGuiPoint *pos,
                                 int opacity, int mode) {
 
    if ((mode == IMAGE_SELECTED) || (opacity <= 0) || (opacity >= 255)) {
