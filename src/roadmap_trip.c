@@ -93,17 +93,55 @@ static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
 
 extern route_head *RoadMapTrack;
 
+/* route following flags */
 route_head *RoadMapCurrentRoute = NULL;
 static int RoadMapRouteInProgress = 0;
 static int RoadMapRouteIsReversed = 0;
+
+/* display flags */
 static int RoadMapTripRotate = 1;
-static int RoadMapTripModified = 0;     /* Trip needs to be saved? */
 static int RoadMapTripRefresh = 1;      /* Screen needs to be refreshed? */
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved = 1;
 
+/* trip file related flags */
 static int RoadMapTripUntitled = 1;
+static int RoadMapTripModified = 0;     /* Trip needs to be saved? */
 
+/* support for on-screen waypoint selection */
+typedef struct {
+   RoadMapListItem link;
+   waypoint *wpt;
+   const char *list;
+   void *type;
+} roadmap_place_pointer;
+
+RoadMapList RoadMapTripAreaPlaces;  /* places near the mouse-click */
+roadmap_place_pointer *RoadMapTripSelectedPlace;
+
+const char *RoadMapAreaCurListName;
+void *RoadMapAreaCurListType;
+
+int RoadMapTripPlaceMoving;
+
+/* We use common code to manage the various waypoint lists, even
+ * though they have differing semantics.  These flags help keep
+ * them apart.  We use the address of the flag as the discriminator
+ * (since it gets passed around as a "void *", this is
+ * convenient), and the flag itself indicates whether the list in
+ * the dialog box is up-to-date with the actual data structure.
+ */
+int RoadMapTripWaypointSelectionsNeedRefresh[3];
+#define PERSONAL_WAYPOINTS (&RoadMapTripWaypointSelectionsNeedRefresh[0])
+#define TRIP_WAYPOINTS     (&RoadMapTripWaypointSelectionsNeedRefresh[1])
+#define ROUTE_WAYPOINTS    (&RoadMapTripWaypointSelectionsNeedRefresh[2])
+#define WAYPOINTS_MODIFIED 1
+
+
+static void roadmap_trip_set_selected_place(void *which, waypoint *w);
+static void roadmap_trip_clear_selection_list(void);
+
+/* route display altering flags */
 static RoadMapPen RoadMapTripRouteLinesPen = NULL;
 static int RoadMapTripDrawingActiveRoute;
 static int RoadMapTripShowInactiveRoutes;
@@ -302,6 +340,8 @@ static void roadmap_trip_dialog_route_edit_okay (const char *name, void *data) {
     if (route->rte_desc) free(route->rte_desc);
     route->rte_desc = newdesc[0] ? strdup(newdesc) : NULL;
 
+    roadmap_trip_set_modified(1);
+
     roadmap_dialog_hide (name);
 }
 
@@ -342,6 +382,7 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
     char *newdesc = (char *) roadmap_dialog_get_data ("Data", "Comment:");
     char *newlon = (char *) roadmap_dialog_get_data ("Data", "Longitude:");
     char *newlat = (char *) roadmap_dialog_get_data ("Data", "Latitude:");
+    void *which = roadmap_dialog_get_data ("Data", ".which");
     waypoint *wpt = data;
     double tmp;
 
@@ -370,6 +411,12 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
         }
     }
 
+    if (which == PERSONAL_WAYPOINTS) {
+        roadmap_landmark_set_modified();
+    } else {
+        roadmap_trip_set_modified(1);
+    }
+
     roadmap_dialog_hide (name);
 
     if (RoadMapTripRefresh)
@@ -377,7 +424,7 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
 }
 
 static void roadmap_trip_dialog_waypoint_edit
-        (waypoint *wpt, int use_keyboard) {
+        (waypoint *wpt, void *which, int use_keyboard) {
 
     static char lon[20], lat[20];
 
@@ -393,6 +440,8 @@ static void roadmap_trip_dialog_waypoint_edit
         roadmap_dialog_add_button ("Okay",
                 roadmap_trip_dialog_waypoint_edit_okay);
 
+        roadmap_dialog_new_hidden ("Data", ".which");
+
         roadmap_dialog_complete (use_keyboard);
     }
 
@@ -400,6 +449,8 @@ static void roadmap_trip_dialog_waypoint_edit
         ("Data", "Name:", wpt->shortname ? wpt->shortname : "");
     roadmap_dialog_set_data
         ("Data", "Comment:", wpt->description ? wpt->description : "");
+
+    roadmap_dialog_set_data("Data", ".which", which);
 
     sprintf(lon, FLT_FMT, to_float(wpt->pos.longitude));
     sprintf(lat, FLT_FMT, to_float(wpt->pos.latitude));
@@ -638,74 +689,79 @@ static void roadmap_trip_add_waypoint_dialog
 
 }
 
-/* Edit Waypoint dialog */
-
-#define PERSONAL_WAYPOINTS (void *)0
-#define TRIP_WAYPOINTS (void *)1
-#define ROUTE_WAYPOINTS (void *)2
+/* Manage waypoints dialog */
 
 #define WAYPOINT_ACTION_DELETE 0
 #define WAYPOINT_ACTION_MOVE_BACK 1
 #define WAYPOINT_ACTION_MOVE_AHEAD 2
+#define WAYPOINT_ACTION_EDIT 3
 
-static void roadmap_trip_waypoint_manage_dialog_populate
-        (int count, void *which);
+static int roadmap_trip_waypoint_manage_dialog_populate (void *which);
 
-static void roadmap_trip_waypoint_manage_dialog_action
-        (waypoint *waypointp, const char *name, void *data, int action) {
 
-    int count;
+
+/* Invoked both from the waypoint_manage dialog buttons, and from
+ * the waypoint managing menu items.
+ */
+static void roadmap_trip_waypoint_manage_action
+        (waypoint *waypointp, void *which, int action) {
+
     waypoint *neighbor;
     
-    if (waypointp == NULL) {
-        waypointp = (waypoint *) roadmap_dialog_get_data
-                                        ("Names", ".Waypoints");
-    }
-
-    if (waypointp == NULL) {
-        return;
-    }
-
-
     switch(action) {
     case WAYPOINT_ACTION_MOVE_BACK:
-        if (data != ROUTE_WAYPOINTS)
+        if (which != ROUTE_WAYPOINTS)
             return;
         if (waypointp == RoadMapTripStart)
             return;
+
+        *(int *)which = WAYPOINTS_MODIFIED;
         neighbor = (waypoint *)ROADMAP_LIST_PREV(&waypointp->Q);
         waypt_del (waypointp);
         roadmap_list_put_before(&neighbor->Q, &waypointp->Q);
         break;
 
     case WAYPOINT_ACTION_MOVE_AHEAD:
-        if (data != ROUTE_WAYPOINTS)
+        if (which != ROUTE_WAYPOINTS)
             return;
         if (waypointp == RoadMapTripDest)
             return;
+
+        *(int *)which = WAYPOINTS_MODIFIED;
         neighbor = (waypoint *)ROADMAP_LIST_NEXT(&waypointp->Q);
         waypt_del (waypointp);
         roadmap_list_put_after(&neighbor->Q, &waypointp->Q);
         break;
 
     case WAYPOINT_ACTION_DELETE:
-        if (data == PERSONAL_WAYPOINTS) {
+
+        *(int *)which = WAYPOINTS_MODIFIED;
+
+        roadmap_trip_clear_selection_list();
+
+        if (which == PERSONAL_WAYPOINTS) {
             roadmap_landmark_remove(waypointp);
-        } else if (data == TRIP_WAYPOINTS) {
+            RoadMapTripRefresh = 1;
+            roadmap_screen_refresh ();
+            return;
+        } else if (which == TRIP_WAYPOINTS) {
             waypt_del (waypointp);
             waypt_free (waypointp);
         } else {
-            route_del_wpt( RoadMapCurrentRoute, waypointp);
+            /* NOTE!!!!  this throws off the count in rte_waypt_ct
+             * in whatever route this waypoint belongs to.  but we
+             * don't use that count, ever, so that's okay.
+             */
+            waypt_del (waypointp);
+            waypt_free (waypointp);
             /* last waypoint */
-            if ( RoadMapCurrentRoute->rte_waypt_ct == 0 ) {
+            if ( ROADMAP_LIST_EMPTY(&RoadMapCurrentRoute->waypoint_list)) {
                 route_del (RoadMapCurrentRoute);
                 RoadMapCurrentRoute = NULL;
                 roadmap_trip_unset_route_focii ();
                 roadmap_trip_set_modified(1);
                 RoadMapTripRefresh = 1;
                 roadmap_screen_refresh ();
-                if (name != NULL)
-                    roadmap_dialog_hide (name);
                 return;
             }
 
@@ -716,7 +772,7 @@ static void roadmap_trip_waypoint_manage_dialog_action
         return;
     }
 
-    if (data == ROUTE_WAYPOINTS) {
+    if (which == ROUTE_WAYPOINTS) {
         roadmap_trip_set_route_focii ();
     }
 
@@ -726,142 +782,188 @@ static void roadmap_trip_waypoint_manage_dialog_action
 
     RoadMapTripRefresh = 1;
 
-    if (data != PERSONAL_WAYPOINTS) {
-        roadmap_trip_set_modified(1);
-    }
+    roadmap_trip_set_modified(1);
 
     roadmap_screen_refresh ();
 
-    if (data == ROUTE_WAYPOINTS) {
-        count = RoadMapCurrentRoute->rte_waypt_ct;
-    } else if (data == TRIP_WAYPOINTS) {
-        count = roadmap_list_count(&RoadMapTripWaypointHead);
-    } else {
-        count = roadmap_landmark_count();
-    }
-    if (name != NULL) {
-        if (count > 0) {
-            roadmap_trip_waypoint_manage_dialog_populate (count, data);
-        } else {
-            roadmap_dialog_hide (name);
-        }
-    }
 }
 
-static void roadmap_trip_waypoint_manage_dialog_delete
-        (const char *name, void *data) {
-    roadmap_trip_waypoint_manage_dialog_action
-        (NULL, name, data, WAYPOINT_ACTION_DELETE);
-}
+static void roadmap_trip_waypoint_manage_dialog_action
+        (const char *name, void *which, int action) {
 
-static void roadmap_trip_waypoint_manage_dialog_up
-        (const char *name, void *data) {
-    roadmap_trip_waypoint_manage_dialog_action
-        (NULL, name, data, WAYPOINT_ACTION_MOVE_BACK);
-}
-
-static void roadmap_trip_waypoint_manage_dialog_down
-        (const char *name, void *data) {
-    roadmap_trip_waypoint_manage_dialog_action
-        (NULL, name, data, WAYPOINT_ACTION_MOVE_AHEAD);
-}
-
-static void roadmap_trip_waypoint_manage_dialog_edit
-        (const char *name, void *data) {
-    waypoint *waypointp = (waypoint *) roadmap_dialog_get_data (
-            "Names", ".Waypoints");
-
-    if (waypointp == NULL) {
+    waypoint *w = (waypoint *)roadmap_dialog_get_data ("Names", ".Waypoints");
+    if (w == NULL) {
         return;
     }
 
-    roadmap_trip_dialog_waypoint_edit
-        ( waypointp, roadmap_preferences_use_keyboard ());
 
-    roadmap_trip_set_modified(1);
+    if (*(int *)which == WAYPOINTS_MODIFIED) {
+        
+        roadmap_messagebox ("Note", "Trip modified -- repopulating list");
+        roadmap_trip_waypoint_manage_dialog_populate (which);
+        return;
+    }
 
-    /* It might be nicer to repopulate after the rename, but I'm
-     * not sure how to do that.  This works.
-     */
-    roadmap_dialog_hide (name);
+
+    if (action == WAYPOINT_ACTION_EDIT) {
+
+        /* It might be nicer to repopulate after the rename, but I'm
+         * not sure how to do that.  This works.
+         */
+        roadmap_dialog_hide (name);
+
+        /* Edits are different, in that they invoke a new dialog
+         * to do their work.
+         */
+        roadmap_trip_dialog_waypoint_edit
+            ( w, which, roadmap_preferences_use_keyboard ());
+
+    } else {
+
+        roadmap_trip_waypoint_manage_action (w, which, action);
+
+        if (roadmap_trip_waypoint_manage_dialog_populate (which) == 0) {
+            roadmap_dialog_hide (name);
+        }
+
+    }
+
+
+}
+
+static void roadmap_trip_waypoint_manage_dialog_delete
+        (const char *name, void *which) {
+    
+    roadmap_trip_waypoint_manage_dialog_action
+        (name, which, WAYPOINT_ACTION_DELETE);
+        
+}
+
+static void roadmap_trip_waypoint_manage_dialog_up
+        (const char *name, void *which) {
+
+    roadmap_trip_waypoint_manage_dialog_action
+        (name, which, WAYPOINT_ACTION_MOVE_BACK);
+        
+}
+
+static void roadmap_trip_waypoint_manage_dialog_down
+        (const char *name, void *which) {
+
+    roadmap_trip_waypoint_manage_dialog_action
+        (name, which, WAYPOINT_ACTION_MOVE_AHEAD);
+        
+}
+
+static void roadmap_trip_waypoint_manage_dialog_edit
+        (const char *name, void *which) {
+
+    roadmap_trip_waypoint_manage_dialog_action
+        (name, which, WAYPOINT_ACTION_EDIT);
+
 }
 
 static void roadmap_trip_waypoint_manage_dialog_selected (
         const char *name, void *data) {
 
-    waypoint *waypointp = (waypoint *) roadmap_dialog_get_data (
+    waypoint *waypointp;
+    void *which;
+
+    which = roadmap_dialog_get_data ("Names", ".which");
+
+
+    if (*(int *)which == WAYPOINTS_MODIFIED) {
+        roadmap_messagebox ("Note", "Trip modified -- repopulating list");
+        if (roadmap_trip_waypoint_manage_dialog_populate (which) == 0) {
+            roadmap_dialog_hide(name);
+            return;
+        }
+
+    }
+    
+    waypointp = (waypoint *) roadmap_dialog_get_data (
             "Names", ".Waypoints");
 
     if (waypointp != NULL) {
+        roadmap_trip_set_selected_place(which, waypointp);
         roadmap_trip_set_focus_waypoint (waypointp);
         roadmap_screen_refresh ();
     }
 }
 
 
-static void roadmap_trip_waypoint_manage_dialog_populate
-        (int count, void *which) {
+static int roadmap_trip_waypoint_manage_dialog_populate (void *which) {
 
-    static char **Names = NULL;
-    static waypoint **Waypoints;
+    char **names = NULL;
+    waypoint **waypoints;
     RoadMapList *list = NULL;  /* warning suppression */
-
+    int count;
     int i;
     RoadMapListItem *elem, *tmp;
     waypoint *waypointp;
-
-
-    if (Names != NULL) {
-        free (Names);
-    }
-    if (Waypoints != NULL) {
-        free (Waypoints);
-    }
-    Names = calloc (count, sizeof (*Names));
-    roadmap_check_allocated (Names);
-    Waypoints = calloc (count, sizeof (*Waypoints));
-    roadmap_check_allocated (Waypoints);
 
     if (which == PERSONAL_WAYPOINTS) {
         list = roadmap_landmark_list();
     } else if (which == TRIP_WAYPOINTS) {
         list = &RoadMapTripWaypointHead;
     } else if (which == ROUTE_WAYPOINTS) {
+        if (RoadMapCurrentRoute == NULL) {
+            return 0;
+        }
         list = &RoadMapCurrentRoute->waypoint_list;
     }
+
+    count = roadmap_list_count(list);
+    if (count <= 0)
+        return 0;
+
+    names = calloc (count, sizeof (*names));
+    roadmap_check_allocated (names);
+    waypoints = calloc (count, sizeof (*waypoints));
+    roadmap_check_allocated (waypoints);
+
 
     i = 0;
     ROADMAP_LIST_FOR_EACH (list, elem, tmp) {
         waypointp = (waypoint *) elem;
-        Names[i] = waypointp->shortname;
-        Waypoints[i++] = waypointp;
+        names[i] = waypointp->shortname;
+        waypoints[i++] = waypointp;
     }
 
+
+    *(int *)which = ! WAYPOINTS_MODIFIED;
+
     roadmap_dialog_show_list
-        ("Names", ".Waypoints", count, Names, (void **) Waypoints,
+        ("Names", ".Waypoints", count, names, (void **) waypoints,
             roadmap_trip_waypoint_manage_dialog_selected);
+    free (names);
+    free (waypoints);
+
+    roadmap_dialog_set_data("Names", ".which", which);
+
+    return 1;
 }
 
 
 static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
 
-    int count = 0;      /* warning suppression */
+    int empty = 1;      /* warning suppression */
     const char *name = NULL; /* ditto */
 
     if (which == TRIP_WAYPOINTS) {
-        count = roadmap_list_count(&RoadMapTripWaypointHead);
+        empty = ROADMAP_LIST_EMPTY(&RoadMapTripWaypointHead);
         name = "Trip Landmarks";
     } else if (which == PERSONAL_WAYPOINTS) {
-        count = roadmap_landmark_count();
+        empty = ROADMAP_LIST_EMPTY(roadmap_landmark_list());
         name = "Personal Landmarks";
     } else if (which == ROUTE_WAYPOINTS) {
         if (RoadMapCurrentRoute == NULL) {
             return;     /* Nothing to edit. */
         }
-        count = RoadMapCurrentRoute->rte_waypt_ct;
+        empty = ROADMAP_LIST_EMPTY(&RoadMapCurrentRoute->waypoint_list);
         name = "Route Points";
     }
-    if (count <= 0) {
+    if (empty) {
         return;         /* Nothing to edit. */
     }
 
@@ -872,19 +974,21 @@ static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
             ("Delete", roadmap_trip_waypoint_manage_dialog_delete);
         if (which == ROUTE_WAYPOINTS) {
             roadmap_dialog_add_button
-                ("Up", roadmap_trip_waypoint_manage_dialog_up);
+                ("Back", roadmap_trip_waypoint_manage_dialog_up);
             roadmap_dialog_add_button
-                ("Down", roadmap_trip_waypoint_manage_dialog_down);
+                ("Ahead", roadmap_trip_waypoint_manage_dialog_down);
         }
         roadmap_dialog_add_button
             ("Edit", roadmap_trip_waypoint_manage_dialog_edit);
         roadmap_dialog_add_button
             ("Okay", roadmap_trip_dialog_cancel);
 
+        roadmap_dialog_new_hidden ("Names", ".which");
+
         roadmap_dialog_complete (0);    /* No need for a keyboard. */
     }
 
-    roadmap_trip_waypoint_manage_dialog_populate (count, which);
+    roadmap_trip_waypoint_manage_dialog_populate (which);
 }
 
 void roadmap_trip_personal_waypoint_manage_dialog (void) {
@@ -955,8 +1059,6 @@ static void roadmap_trip_route_manage_dialog_edit
     roadmap_trip_dialog_route_edit
         ( route, roadmap_preferences_use_keyboard ());
 
-    roadmap_trip_set_modified(1);
-
     /* It might be nicer to repopulate after the rename, but I'm
      * not sure how to do that.  This works. */
     roadmap_dialog_hide (name);
@@ -983,41 +1085,36 @@ static void roadmap_trip_route_manage_dialog_selected
 
 static void roadmap_trip_route_manage_dialog_populate (int count) {
 
-    static char **Names = NULL;
-    static route_head **Routes = NULL;
+    char **names = NULL;
+    route_head **routes = NULL;
     RoadMapListItem *elem, *tmp;
     int i;
 
-    if (Names != NULL) {
-        free (Names);
-    }
-    if (Routes != NULL) {
-        free (Routes);
-    }
-
-    Names = calloc (count, sizeof (*Names));
-    roadmap_check_allocated (Names);
-    Routes = calloc (count, sizeof (*Routes));
-    roadmap_check_allocated (Routes);
+    names = calloc (count, sizeof (*names));
+    roadmap_check_allocated (names);
+    routes = calloc (count, sizeof (*routes));
+    roadmap_check_allocated (routes);
 
     i = 0;
     ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, elem, tmp) {
         route_head *rh = (route_head *) elem;
-        Names[i] = (rh->rte_name && rh->rte_name[0]) ?
+        names[i] = (rh->rte_name && rh->rte_name[0]) ?
                 rh->rte_name : "Unnamed Route";
-        Routes[i++] = rh;
+        routes[i++] = rh;
     }
 
     ROADMAP_LIST_FOR_EACH (&RoadMapTripTrackHead, elem, tmp) {
         route_head *th = (route_head *) elem;
-        Names[i] = (th->rte_name && th->rte_name[0]) ?
+        names[i] = (th->rte_name && th->rte_name[0]) ?
                 th->rte_name : "Unnamed Track";
-        Routes[i++] = th;
+        routes[i++] = th;
     }
 
     roadmap_dialog_show_list
-        ("Names", ".Routes", count, Names, (void **) Routes,
+        ("Names", ".Routes", count, names, (void **) routes,
          roadmap_trip_route_manage_dialog_selected);
+    free (names);
+    free (routes);
 }
 
 void roadmap_trip_route_manage_dialog (void) {
@@ -1338,9 +1435,10 @@ void roadmap_trip_add_waypoint
         break;
 
     case PLACE_PERSONAL_MARK:
+        /* this call forces any updating that's necessary, so we can return */
         roadmap_landmark_add(waypointp);
         roadmap_trip_set_focus_waypoint (waypointp);
-        break;
+        return;
 
     case PLACE_NEW_ROUTE:
         roadmap_trip_new_route_waypoint(waypointp);
@@ -2132,6 +2230,9 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
         return 0;
     }
 
+    *TRIP_WAYPOINTS = WAYPOINTS_MODIFIED;
+    *ROUTE_WAYPOINTS = WAYPOINTS_MODIFIED;
+
     if (merge) {
 
         ROADMAP_LIST_SPLICE(&RoadMapTripWaypointHead, &tmp_waypoint_list);
@@ -2227,8 +2328,12 @@ static int roadmap_trip_save_file (const char *name) {
         path = roadmap_path_trips ();
     }
 
-    return roadmap_gpx_write_file (path, name, &RoadMapTripWaypointHead,
-            &RoadMapTripRouteHead, &RoadMapTripTrackHead);
+    if (roadmap_gpx_write_file (path, name, &RoadMapTripWaypointHead,
+            &RoadMapTripRouteHead, &RoadMapTripTrackHead)) {
+        roadmap_trip_set_modified(0);
+        return 1;
+    }
+    return 0;
 
 }
 
@@ -2495,19 +2600,6 @@ void roadmap_landmark_iterate(waypt_cb cb) {
     waypt_iterator (roadmap_landmark_list(), cb);
 }
 
-const char *RoadMapAreaCurListName;
-void *RoadMapAreaCurListType;
-int RoadMapTripPlaceMoving;
-
-typedef struct {
-   RoadMapListItem link;
-   waypoint *wpt;
-   const char *list;
-   void *type;
-} roadmap_point_pointer;
-
-RoadMapList RoadMapTripAreaPoints;
-roadmap_point_pointer *RoadMapTripLastPlace;
 
 void roadmap_trip_landmark_iterate (waypt_cb cb) {
     waypt_iterator (&RoadMapTripWaypointHead, cb);
@@ -2522,7 +2614,6 @@ void roadmap_trip_routepoint_iterate (waypt_cb cb) {
     ROADMAP_LIST_FOR_EACH (&RoadMapTripRouteHead, relem, rtmp) {
         route_head *rh = (route_head *) relem;
         RoadMapAreaCurListName = rh->rte_name;
-        RoadMapAreaCurListType = ROUTE_WAYPOINTS;
         QUEUE_FOR_EACH(&rh->waypoint_list, elem, tmp) {
                 w = (waypoint *) elem;
                 (*cb)(w);
@@ -2531,7 +2622,6 @@ void roadmap_trip_routepoint_iterate (waypt_cb cb) {
     ROADMAP_LIST_FOR_EACH (&RoadMapTripTrackHead, relem, rtmp) {
         route_head *rh = (route_head *) relem;
         RoadMapAreaCurListName = rh->rte_name;
-        RoadMapAreaCurListType = ROUTE_WAYPOINTS;
         QUEUE_FOR_EACH(&rh->waypoint_list, elem, tmp) {
                 w = (waypoint *) elem;
                 (*cb)(w);
@@ -2542,7 +2632,7 @@ void roadmap_trip_routepoint_iterate (waypt_cb cb) {
 void
 roadmap_trip_area_waypoint(const waypoint *waypointp) {
 
-    roadmap_point_pointer *point_ptr;
+    roadmap_place_pointer *point_ptr;
 
     if (roadmap_math_point_is_visible (&waypointp->pos)) {
         point_ptr = malloc(sizeof(*point_ptr));
@@ -2550,22 +2640,27 @@ roadmap_trip_area_waypoint(const waypoint *waypointp) {
         point_ptr->wpt = (waypoint *)waypointp;
         point_ptr->list = RoadMapAreaCurListName;
         point_ptr->type = RoadMapAreaCurListType;
-        roadmap_list_insert(&RoadMapTripAreaPoints, &point_ptr->link);
+        roadmap_list_insert(&RoadMapTripAreaPlaces, &point_ptr->link);
     }
 }
 
+void roadmap_trip_clear_selection_list(void) {
+
+   RoadMapListItem *element, *tmp;
+
+   ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPlaces, element, tmp) {
+      free (roadmap_list_remove(element));
+   }
+   RoadMapTripSelectedPlace = NULL;
+}
 
 int roadmap_trip_retrieve_area_points
         (RoadMapArea *area, RoadMapPosition *position) {
 
-   RoadMapListItem *element, *tmp;
    int count;
 
    /* clear old contents */
-   ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPoints, element, tmp) {
-      free (roadmap_list_remove(element));
-   }
-   RoadMapTripLastPlace = NULL;
+   roadmap_trip_clear_selection_list();
 
    roadmap_math_set_focus (area);
 
@@ -2577,11 +2672,12 @@ int roadmap_trip_retrieve_area_points
    RoadMapAreaCurListType = TRIP_WAYPOINTS;
    roadmap_trip_landmark_iterate (roadmap_trip_area_waypoint);
 
+   RoadMapAreaCurListType = ROUTE_WAYPOINTS;
    roadmap_trip_routepoint_iterate (roadmap_trip_area_waypoint);
 
    roadmap_math_release_focus ();
 
-   count = roadmap_list_count(&RoadMapTripAreaPoints);
+   count = roadmap_list_count(&RoadMapTripAreaPlaces);
 
    if (!count) {
       roadmap_display_hide("Place");
@@ -2591,15 +2687,17 @@ int roadmap_trip_retrieve_area_points
 
    if (count) {
 
-      roadmap_point_pointer *pp;
+      roadmap_place_pointer *pp;
       waypoint *wpt;
 
       while (count > 1) { /* find the closest point(s) */
           int dist, mindist = 999999999;
-          roadmap_point_pointer *minpp = NULL;
+          roadmap_place_pointer *minpp = NULL;
           int ocount = count;
-          ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPoints, element, tmp) {
-             pp = (roadmap_point_pointer *)element;
+          RoadMapListItem *element, *tmp;
+
+          ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPlaces, element, tmp) {
+             pp = (roadmap_place_pointer *)element;
              wpt = pp->wpt;
              dist = roadmap_math_distance (&wpt->pos, position);
              if (dist < mindist) {
@@ -2623,8 +2721,8 @@ int roadmap_trip_retrieve_area_points
           if (ocount == count) break;
       }
 
-      pp = (roadmap_point_pointer *)
-            ROADMAP_LIST_FIRST(&RoadMapTripAreaPoints);
+      pp = (roadmap_place_pointer *)
+            ROADMAP_LIST_FIRST(&RoadMapTripAreaPlaces);
 
       wpt = pp->wpt;
 
@@ -2640,51 +2738,105 @@ int roadmap_trip_retrieve_area_points
         count > 1 ? " (more)" : "");
       roadmap_screen_redraw ();
 
-      RoadMapTripLastPlace = pp;
+      RoadMapTripSelectedPlace = pp;
    }
 
    return 1;
 }
 
+/* normally the SelectedPlace is set via mouse click, but we want
+ * the selection dialog to be able to set it as well.
+ */
+static void roadmap_trip_set_selected_place(void *which, waypoint *w) {
+
+   roadmap_place_pointer *pp;
+
+   /* clear old contents */
+   roadmap_trip_clear_selection_list();
+
+   pp = calloc (1, sizeof (*pp));
+   roadmap_check_allocated (pp);
+
+   pp->wpt = w;
+   pp->type = which;
+
+   if (which == PERSONAL_WAYPOINTS) {
+      pp->list = "Personal landmark";
+   } else if (which == TRIP_WAYPOINTS) {
+      pp->list = "Trip landmark";
+   } else {
+      if ( RoadMapCurrentRoute != NULL)
+         pp->list = RoadMapCurrentRoute->rte_name;
+   }
+
+   roadmap_list_insert(&RoadMapTripAreaPlaces, &pp->link);
+
+   RoadMapTripSelectedPlace = pp;
+
+}
+
+
+
 void roadmap_trip_delete_last_place(void)
 {
-    if (RoadMapTripLastPlace == NULL)
+    if (RoadMapTripSelectedPlace == NULL)
         return;
 
-    roadmap_trip_waypoint_manage_dialog_action
-        (RoadMapTripLastPlace->wpt, NULL, RoadMapTripLastPlace->type, WAYPOINT_ACTION_DELETE);
+    roadmap_trip_waypoint_manage_action
+        (RoadMapTripSelectedPlace->wpt,
+                RoadMapTripSelectedPlace->type, WAYPOINT_ACTION_DELETE);
 
-    roadmap_list_remove(&RoadMapTripLastPlace->link);
-    RoadMapTripLastPlace = NULL;
-    roadmap_trip_set_modified(1);
+}
+
+void roadmap_trip_move_routepoint_ahead (void) {
+
+    if (RoadMapTripSelectedPlace == NULL)
+        return;
+
+    roadmap_trip_waypoint_manage_action
+        (RoadMapTripSelectedPlace->wpt,
+                RoadMapTripSelectedPlace->type,  WAYPOINT_ACTION_MOVE_AHEAD);
+
+}
+
+void roadmap_trip_move_routepoint_back (void) {
+
+    if (RoadMapTripSelectedPlace == NULL)
+        return;
+
+    roadmap_trip_waypoint_manage_action
+        (RoadMapTripSelectedPlace->wpt,
+                RoadMapTripSelectedPlace->type,  WAYPOINT_ACTION_MOVE_BACK);
+
 }
 
 void roadmap_trip_edit_last_place(void)
 {
-    if (RoadMapTripLastPlace == NULL)
+    if (RoadMapTripSelectedPlace == NULL)
         return;
 
     roadmap_trip_dialog_waypoint_edit
-        ( RoadMapTripLastPlace->wpt, roadmap_preferences_use_keyboard ());
+        ( RoadMapTripSelectedPlace->wpt,
+          RoadMapTripSelectedPlace->type,
+          roadmap_preferences_use_keyboard ());
 
-    roadmap_trip_set_modified(1);
 }
 
 /* intended to be called from popup menu -- uses popup location as move dest */
 void roadmap_trip_move_last_place(void)
 {
     waypoint *w;
-    roadmap_point_pointer *pp;
+    roadmap_place_pointer *pp;
 
-    if (RoadMapTripLastPlace == NULL)
+    if (RoadMapTripSelectedPlace == NULL)
         return;
 
-    pp = RoadMapTripLastPlace;
+    pp = RoadMapTripSelectedPlace;
     w = pp->wpt;
 
     roadmap_display_hide("Place");
     roadmap_display_text
-	("Moving", "Moving %s%s%s%s%s (Long or Right Click to Cancel)",
+        ("Moving", "Moving %s%s%s%s%s (Long or Right Click to Cancel)",
        pp->list ? pp->list : "",
        pp->list ? " / " : "",
        w->shortname,
@@ -2697,29 +2849,36 @@ void roadmap_trip_move_last_place(void)
 }
 
 int roadmap_trip_move_last_place_callback
-	(int action, const RoadMapGuiPoint *point) {
+        (int action, const RoadMapGuiPoint *point) {
 
     int ret;
                                
     if (!RoadMapTripPlaceMoving)
-	return 0;
+        return 0;
 
     if (action) {
-	waypoint *w;
-	roadmap_point_pointer *pp;
+        waypoint *w;
+        roadmap_place_pointer *pp;
 
-	if (RoadMapTripLastPlace == NULL)
-	    return 0;
+        if (RoadMapTripSelectedPlace == NULL)
+            return 0;
 
-	pp = RoadMapTripLastPlace;
-	w = pp->wpt;
-	roadmap_math_to_position (point, &w->pos, 1);
-	roadmap_trip_set_modified(1);
-	RoadMapTripRefresh = 1;
-	roadmap_screen_refresh ();
-	ret = 1;
+        pp = RoadMapTripSelectedPlace;
+        w = pp->wpt;
+        roadmap_math_to_position (point, &w->pos, 1);
+
+        if (pp->type == PERSONAL_WAYPOINTS) {
+            roadmap_landmark_set_modified();
+        } else {
+            roadmap_trip_set_modified(1);
+            RoadMapTripRefresh = 1;
+        }
+
+        roadmap_screen_refresh ();
+
+        ret = 1;
     } else {
-	ret = RoadMapTripPlaceMoving;
+        ret = RoadMapTripPlaceMoving;
     }
 
     RoadMapTripPlaceMoving = 0;
@@ -2728,30 +2887,6 @@ int roadmap_trip_move_last_place_callback
     roadmap_screen_redraw ();
 
     return ret;
-}
-
-void roadmap_trip_move_routepoint_ahead (void) {
-
-    if (RoadMapTripLastPlace == NULL)
-        return;
-
-    roadmap_trip_waypoint_manage_dialog_action
-        (RoadMapTripLastPlace->wpt, NULL,
-                RoadMapTripLastPlace->type,  WAYPOINT_ACTION_MOVE_AHEAD);
-
-    roadmap_trip_set_modified(1);
-}
-
-void roadmap_trip_move_routepoint_back (void) {
-
-    if (RoadMapTripLastPlace == NULL)
-        return;
-
-    roadmap_trip_waypoint_manage_dialog_action
-        (RoadMapTripLastPlace->wpt, NULL,
-                RoadMapTripLastPlace->type,  WAYPOINT_ACTION_MOVE_BACK);
-
-    roadmap_trip_set_modified(1);
 }
 
 #if WGET_GOOGLE_ROUTE
@@ -2766,7 +2901,7 @@ void roadmap_trip_replace_with_google_route(void) {
     int ret;
 
     if ( RoadMapCurrentRoute == NULL ||
-        RoadMapCurrentRoute->rte_waypt_ct != 2 ) {
+        roadmap_list_count(&RoadMapCurrentRoute->rte_waypoint_list) != 2) {
         return;
     }
 
@@ -2801,7 +2936,7 @@ void roadmap_trip_initialize (void) {
     ROADMAP_LIST_INIT(&RoadMapTripRouteHead);
     ROADMAP_LIST_INIT(&RoadMapTripTrackHead);
 
-    ROADMAP_LIST_INIT(&RoadMapTripAreaPoints);
+    ROADMAP_LIST_INIT(&RoadMapTripAreaPlaces);
 
     ROADMAP_LIST_INIT(&RoadMapTripQuickRoute.waypoint_list);
 

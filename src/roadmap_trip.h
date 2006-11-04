@@ -108,7 +108,7 @@ void roadmap_trip_move_routepoint_ahead (void);
 void roadmap_trip_move_routepoint_back (void);
 
 int roadmap_trip_move_last_place_callback
-	(int action, const RoadMapGuiPoint *point);
+        (int action, const RoadMapGuiPoint *point);
 
 #if WGET_GOOGLE_ROUTE
 void roadmap_trip_replace_with_google_route(void);
