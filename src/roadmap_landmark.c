@@ -46,6 +46,10 @@ static RoadMapConfigDescriptor RoadMapConfigLandmarksColor =
                         ROADMAP_CONFIG_ITEM("Landmarks", "Color");
 
 
+void roadmap_landmark_set_modified(void) {
+    RoadMapLandmarkModified = 1;
+}
+
 
 #define ROADMAP_LANDMARK_LABEL_SIZE 18
 
@@ -145,7 +149,7 @@ int roadmap_landmark_count() {
 void roadmap_landmark_add(waypoint *waypointp) {
 
     waypt_add(&RoadMapLandmarkHead, waypointp);
-    RoadMapLandmarkModified = 1;
+    roadmap_landmark_set_modified();
     RoadMapLandmarkRefresh = 1;
     roadmap_screen_refresh ();
 
@@ -155,7 +159,7 @@ void roadmap_landmark_remove(waypoint *waypointp) {
 
     waypt_del (waypointp);
     waypt_free (waypointp);
-    RoadMapLandmarkModified = 1;
+    roadmap_landmark_set_modified();
     RoadMapLandmarkRefresh = 1;
     roadmap_screen_refresh ();
 
@@ -163,10 +167,7 @@ void roadmap_landmark_remove(waypoint *waypointp) {
 
 
 RoadMapList * roadmap_landmark_list(void) {
-    // hack -- if roadmap_trip asked for the list, it's possible
-    // someone is doing an edit.  we don't get informed of the actual
-    // edit, which is done generically.  
-    RoadMapLandmarkModified = 1;
+
     return &RoadMapLandmarkHead;
 }
 
@@ -243,7 +244,7 @@ static void roadmap_landmark_merge_file(const char *name) {
 
     roadmap_list_sort(&RoadMapLandmarkHead, alpha_waypoint_cmp);
 
-    RoadMapLandmarkModified = 1;
+    roadmap_landmark_set_modified();
     RoadMapLandmarkRefresh = 1;
 
 }

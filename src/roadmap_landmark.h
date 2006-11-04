@@ -24,6 +24,7 @@
 #ifndef INCLUDE__ROADMAP_LANDMARK__H
 #define INCLUDE__ROADMAP_LANDMARK__H
 
+void  roadmap_landmark_set_modified(void);
 void  roadmap_landmark_display (void);
 void  roadmap_landmark_initialize (void);
 void  roadmap_landmark_save (void);
