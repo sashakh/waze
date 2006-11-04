@@ -1046,7 +1046,6 @@ void roadmap_start (int argc, char **argv) {
    mtrace();
 #endif
 
-   roadmap_log (ROADMAP_WARNING, "RoadMap starting, time %s", roadmap_start_now());
    roadmap_log_redirect (ROADMAP_MESSAGE_ERROR, roadmap_start_error);
    roadmap_log_redirect (ROADMAP_MESSAGE_FATAL, roadmap_start_fatal);
 
@@ -1107,6 +1106,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 
    roadmap_option (argc, argv, roadmap_start_usage);
+
+   roadmap_log (ROADMAP_WARNING, "RoadMap starting, time %s", roadmap_start_now());
 
    roadmap_start_set_unit ();
    

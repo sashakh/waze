@@ -550,11 +550,11 @@ int main (int argc, char **argv) {
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
    }
 
+   roadmap_start (argc, argv);
+
    atexit(roadmap_main_exit);
 
    roadmap_signals_init();
-
-   roadmap_start (argc, argv);
 
    gtk_main();
 
