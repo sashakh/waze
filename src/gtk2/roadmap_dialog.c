@@ -49,6 +49,7 @@
 #define ROADMAP_WIDGET_BUTTON    3
 #define ROADMAP_WIDGET_LIST      4
 #define ROADMAP_WIDGET_LABEL     5
+#define ROADMAP_WIDGET_HIDDEN    6
 
 enum {
     RM_LIST_WAYPOINT_NAME,
@@ -276,6 +277,11 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
    parent = roadmap_dialog_get (RoadMapDialogCurrent, frame);
    child  = roadmap_dialog_get (parent, name);
 
+   if (w == NULL) {
+      child->w = w;
+      return child;
+   }
+
    if (parent->w == NULL) {
 
       /* This is a new frame: create the Gtk table for it. */
@@ -405,6 +411,11 @@ void roadmap_dialog_new_color (const char *frame, const char *name) {
    roadmap_dialog_new_entry (frame, name);
 }
 
+void roadmap_dialog_new_hidden (const char *frame, const char *name) {
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, 0, 0);
+
+   child->widget_type = ROADMAP_WIDGET_HIDDEN;
+}
 
 void roadmap_dialog_new_choice (const char *frame,
                                 const char *name,

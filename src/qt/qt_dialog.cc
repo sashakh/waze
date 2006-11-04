@@ -142,6 +142,13 @@ void RMapDialog::addButton(char* label, RoadMapDialogCallback callback) {
    buttons.append(entry);
 }
 
+void RMapDialog::addHiddenEntry(const char* frameName, const char* name) {
+   QList<Entry>* frame = getFrame(frameName);
+
+   Entry* entry = new Entry(this, Entry::HiddenEntry, name);
+   frame->append(entry);
+}
+
 void RMapDialog::complete(int) {
    QVBoxLayout* main = new QVBoxLayout(this);
    QWidget* topw = 0;
@@ -203,16 +210,18 @@ void RMapDialog::initTab(QWidget* tab, QList<Entry>* entries) {
    QGridLayout* grid = new QGridLayout(tab, entries->count(), 2, 2, 5);
    int i = 0;
 
-        for(Entry* entry = entries->first(); entry != 0; entry = entries->next(), i++) {
+   for(Entry* entry = entries->first(); entry != 0; entry = entries->next(), i++) {
       QWidget* w = entry->create(tab);
       QLabel* l;
       
-      if (entry->getName()[0] == '.') {
-         grid->addMultiCellWidget(w, i, i, 0, 1);
-      } else {
-         l = new QLabel(entry->getName(), tab, entry->getName());
-         grid->addWidget(l, i, 0);
-         grid->addWidget(w, i, 1);
+      if (entry->getWidget() != 0) {
+         if (entry->getName()[0] == '.') {
+            grid->addMultiCellWidget(w, i, i, 0, 1);
+         } else {
+            l = new QLabel(entry->getName(), tab, entry->getName());
+            grid->addWidget(l, i, 0);
+            grid->addWidget(w, i, 1);
+         }
       }
    }
 }
@@ -229,6 +238,7 @@ Entry::Entry(RMapDialog* dlg, int etype, QString ename) {
    callback = 0;
    widget = 0;
    current = 0;
+   value = 0;
 }
 
 Entry::Entry(RMapDialog* dlg, int etype, QString ename, QVector<Item>& eitems,
@@ -239,6 +249,7 @@ Entry::Entry(RMapDialog* dlg, int etype, QString ename, QVector<Item>& eitems,
    name = ename;
    current = ecurrent;
    callback = ecallback;
+   value = 0;
 
    items.resize(eitems.count());
    for(uint i = 0; i < eitems.count(); i++) {
@@ -302,6 +313,9 @@ QWidget* Entry::create(QWidget* parent) {
          widget = new QLabel(parent, name);
          ((QLabel *)widget)->setAlignment (AlignRight|AlignVCenter|ExpandTabs);
          break;
+
+      case HiddenEntry:
+         break;
    }
 
    return widget;
@@ -332,6 +346,10 @@ void* Entry::getValue() {
 
       case ListEntry:
          ret = items[((QListBox*) widget)->currentItem()]->value;
+         break;
+
+      case HiddenEntry:
+         ret = (void *)value;
          break;
    }
 
@@ -368,6 +386,10 @@ void Entry::setValue(const void* val) {
 
       case LabelEntry:
          ((QLabel*) widget)->setText((char *)val);
+         break;
+
+      case HiddenEntry:
+         value = val;
          break;
    }
 }

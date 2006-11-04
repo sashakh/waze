@@ -59,6 +59,7 @@ protected:
    QVector<Item> items;
    int current;
    QWidget* widget;
+   const void* value;
 
 public:
    enum {
@@ -68,6 +69,7 @@ public:
       ListEntry,
       ButtonEntry,
       LabelEntry,
+      HiddenEntry,
    };
 
    Entry(RMapDialog* dialog, int type, QString name);
@@ -102,6 +104,7 @@ public:
 
    void addTextEntry(const char* frame, const char* name);
    void addLabelEntry(const char* frame, const char* name);
+   void addHiddenEntry(const char* frame, const char* name);
    void addColorEntry(const char* frame, const char* name);
    void addChoiceEntry(const char* frame,
                        const char* name,

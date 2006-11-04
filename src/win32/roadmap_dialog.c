@@ -46,6 +46,7 @@ extern HINSTANCE g_hInst;
 #define ROADMAP_WIDGET_BUTTON    3
 #define ROADMAP_WIDGET_LIST      4
 #define ROADMAP_WIDGET_LABEL     5
+#define ROADMAP_WIDGET_HIDDEN    6
 
 const unsigned int MAX_ROW_HEIGHT = 20;
 const unsigned int MAX_ROW_SPACE = 5;
@@ -234,7 +235,7 @@ static int roadmap_dialog_chosen (RoadMapDialogSelection *selection)
 
 
 static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
-												  const char *name)
+						  const char *name)
 {
 	RoadMapDialogItem parent;
 	RoadMapDialogItem child;
@@ -295,6 +296,12 @@ void roadmap_dialog_new_color (const char *frame, const char *name)
 	roadmap_dialog_new_entry (frame, name);
 }
 
+void roadmap_dialog_new_hidden (const char *frame, const char *name)
+{
+	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
+
+	child->widget_type = ROADMAP_WIDGET_HIDDEN;
+}
 
 void roadmap_dialog_new_choice (const char *frame,
 								const char *name,

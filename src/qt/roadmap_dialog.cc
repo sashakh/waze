@@ -90,6 +90,10 @@ void roadmap_dialog_new_list (const char  *frame, const char  *name) {
    currentDialog->addListEntry(frame, name);
 }
 
+void roadmap_dialog_new_hidden (const char  *frame, const char  *name) {
+   currentDialog->addHiddenEntry(frame, name);
+}
+
 void roadmap_dialog_show_list (const char* frame, const char* name, int count,
    char **labels, void **values, RoadMapDialogCallback callback) {
 

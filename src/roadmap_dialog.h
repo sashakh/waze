@@ -111,6 +111,9 @@ void roadmap_dialog_show_list (const char  *frame,
 /* Add one button to the bottom of the dialog. */
 void roadmap_dialog_add_button (char *label, RoadMapDialogCallback callback);
 
+/* Add one hidden data item to the current dialog. */
+void roadmap_dialog_new_hidden (const char *frame, const char *name);
+
 /* When all done with building the dialog, call this to finalize and show: */
 void roadmap_dialog_complete (int use_keyboard);
 
