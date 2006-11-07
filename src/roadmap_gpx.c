@@ -154,11 +154,13 @@ roadmap_gpx_read_one_route(
 }
 
 int
-roadmap_gpx_write_file(const char *path, const char *name,
+roadmap_gpx_write_file(int backup, const char *path, const char *name,
         queue_head *w, queue_head *r, queue_head *t)
 {
     FILE *fp;
     int ret;
+
+    if (backup) roadmap_file_backup(path, name);
 
     fp = roadmap_file_fopen (path, name, "w");
     if (!fp) return 0;
@@ -169,17 +171,19 @@ roadmap_gpx_write_file(const char *path, const char *name,
         ret = 0;
 
     if (!ret)
-	roadmap_log (ROADMAP_ERROR, "GPX file save of %s / %s failed", path, name);
+        roadmap_log (ROADMAP_ERROR, "GPX file save of %s / %s failed", path, name);
 
     return ret;
 }
 
 /* write a file of waypoints.  weepoints cannot be written */
-int roadmap_gpx_write_waypoints(const char *path, const char *name,
+int roadmap_gpx_write_waypoints(int backup, const char *path, const char *name,
         queue_head *waypoints)
 {
     FILE *fp;
     int ret;
+
+    if (backup) roadmap_file_backup(path, name);
 
     fp = roadmap_file_fopen (path, name, "w");
     if (!fp) return 0;
@@ -192,7 +196,7 @@ int roadmap_gpx_write_waypoints(const char *path, const char *name,
     return ret;
 }
 
-int roadmap_gpx_write_route(const char *path, const char *name,
+int roadmap_gpx_write_route(int backup, const char *path, const char *name,
         route_head *route)
 {
     FILE *fp;
@@ -202,12 +206,14 @@ int roadmap_gpx_write_route(const char *path, const char *name,
     QUEUE_INIT(&route_head);
     ENQUEUE_TAIL(&route_head, &route->Q);
 
+    if (backup) roadmap_file_backup(path, name);
+
     fp = roadmap_file_fopen (path, name, "w");
     if (!fp) return 0;
 
     ret = gpx_write(fp, NULL, &route_head, NULL);
     if (ferror(fp))
-	ret = 0;
+        ret = 0;
 
     if (fclose(fp) != 0)
         ret = 0;
@@ -215,7 +221,7 @@ int roadmap_gpx_write_route(const char *path, const char *name,
     return ret;
 }
 
-int roadmap_gpx_write_track(const char *path, const char *name,
+int roadmap_gpx_write_track(int backup, const char *path, const char *name,
         route_head *track)
 {
     FILE *fp;
@@ -224,6 +230,8 @@ int roadmap_gpx_write_track(const char *path, const char *name,
 
     QUEUE_INIT(&track_head);
     ENQUEUE_TAIL(&track_head, &track->Q);
+
+    if (backup) roadmap_file_backup(path, name);
 
     fp = roadmap_file_fopen (path, name, "w");
     if (!fp) return 0;
@@ -284,28 +292,28 @@ roadmap_gpx_read_one_route(
 }
 
 int
-roadmap_gpx_write_file(const char *path, const char *name,
+roadmap_gpx_write_file(int backup, const char *path, const char *name,
         queue *w, queue *r, queue *t)
 {
     roadmap_gpx_tell_no_expat ();
     return 0;
 }
 
-int roadmap_gpx_write_waypoints(const char *path, const char *name,
+int roadmap_gpx_write_waypoints(int backup, const char *path, const char *name,
         queue *waypoints)
 {
     roadmap_gpx_tell_no_expat ();
     return 0;
 }
 
-int roadmap_gpx_write_route(const char *path, const char *name,
+int roadmap_gpx_write_route(int backup, const char *path, const char *name,
         route_head *route)
 {
     roadmap_gpx_tell_no_expat ();
     return 0;
 }
 
-int roadmap_gpx_write_track(const char *path, const char *name,
+int roadmap_gpx_write_track(int backup, const char *path, const char *name,
         route_head *track)
 {
     roadmap_gpx_tell_no_expat ();

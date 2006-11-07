@@ -39,11 +39,17 @@ static int RoadMapLandmarkModified;
 static int RoadMapLandmarkRefresh;
 RoadMapPen RoadMapLandmarksPen;
 
+/* create backup files when writing? */
+extern int RoadMapTripMakeBackups;
+
 static RoadMapConfigDescriptor RoadMapConfigLandmarkName =
                         ROADMAP_CONFIG_ITEM ("Landmarks", "Name");
 
 static RoadMapConfigDescriptor RoadMapConfigLandmarksColor =
                         ROADMAP_CONFIG_ITEM("Landmarks", "Color");
+
+/* in roadmap_trip.c */
+extern RoadMapConfigDescriptor RoadMapConfigBackupFiles;
 
 
 void roadmap_landmark_set_modified(void) {
@@ -202,8 +208,10 @@ void roadmap_landmark_save(void) {
 
     name = roadmap_landmark_filename (&defaulted);
 
-    ret = roadmap_gpx_write_waypoints(roadmap_path_user(), name,
-            &RoadMapLandmarkHead);
+    ret = roadmap_gpx_write_waypoints
+            (roadmap_config_match (&RoadMapConfigBackupFiles, "yes"),
+             roadmap_path_user(), name,
+             &RoadMapLandmarkHead);
 
     if (ret == 0) return;
 

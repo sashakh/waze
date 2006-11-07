@@ -37,11 +37,11 @@ int roadmap_gpx_read_one_track
 int roadmap_gpx_read_one_route
         ( const char *path, const char *name, route_head **route);
 int roadmap_gpx_write_file
-        (const char *path, const char *name, RoadMapList *w, RoadMapList *r, RoadMapList *t);
+        (int backup, const char *path, const char *name, RoadMapList *w, RoadMapList *r, RoadMapList *t);
 int roadmap_gpx_write_waypoints
-        (const char *path, const char *name, RoadMapList *waypoints);
+        (int backup, const char *path, const char *name, RoadMapList *waypoints);
 int roadmap_gpx_write_track
-        (const char *path, const char *name, route_head *track);
+        (int backup, const char *path, const char *name, route_head *track);
 int roadmap_gpx_write_route
-        (const char *path, const char *name, route_head *route);
+        (int backup, const char *path, const char *name, route_head *route);
 

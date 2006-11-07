@@ -79,6 +79,9 @@ static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
 static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
                         ROADMAP_CONFIG_ITEM("Trip", "Waypoint Radius");
 
+RoadMapConfigDescriptor RoadMapConfigBackupFiles =
+                        ROADMAP_CONFIG_ITEM("Files", "Make Backups");
+
 /*
  * try and put the trip name in the window title
  */
@@ -94,7 +97,7 @@ static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
 extern route_head *RoadMapTrack;
 
 /* route following flags */
-route_head *RoadMapCurrentRoute = NULL;
+static route_head *RoadMapCurrentRoute = NULL;
 static int RoadMapRouteInProgress = 0;
 static int RoadMapRouteIsReversed = 0;
 
@@ -116,13 +119,13 @@ typedef struct {
    void *type;
 } roadmap_place_pointer;
 
-RoadMapList RoadMapTripAreaPlaces;  /* places near the mouse-click */
-roadmap_place_pointer *RoadMapTripSelectedPlace;
+static RoadMapList RoadMapTripAreaPlaces;  /* places near the mouse-click */
+static roadmap_place_pointer *RoadMapTripSelectedPlace;
 
-const char *RoadMapAreaCurListName;
-void *RoadMapAreaCurListType;
+static const char *RoadMapAreaCurListName;
+static void *RoadMapAreaCurListType;
 
-int RoadMapTripPlaceMoving;
+static int RoadMapTripPlaceMoving;
 
 /* We use common code to manage the various waypoint lists, even
  * though they have differing semantics.  These flags help keep
@@ -2328,8 +2331,12 @@ static int roadmap_trip_save_file (const char *name) {
         path = roadmap_path_trips ();
     }
 
-    if (roadmap_gpx_write_file (path, name, &RoadMapTripWaypointHead,
-            &RoadMapTripRouteHead, &RoadMapTripTrackHead)) {
+    if (roadmap_gpx_write_file
+            (roadmap_config_match (&RoadMapConfigBackupFiles, "yes"),
+             path, name,
+             &RoadMapTripWaypointHead,
+             &RoadMapTripRouteHead,
+             &RoadMapTripTrackHead)) {
         roadmap_trip_set_modified(0);
         return 1;
     }
@@ -2901,7 +2908,7 @@ void roadmap_trip_replace_with_google_route(void) {
     int ret;
 
     if ( RoadMapCurrentRoute == NULL ||
-        roadmap_list_count(&RoadMapCurrentRoute->rte_waypoint_list) != 2) {
+        roadmap_list_count(&RoadMapCurrentRoute->waypoint_list) != 2) {
         return;
     }
 
@@ -2972,8 +2979,14 @@ void roadmap_trip_initialize (void) {
     roadmap_config_declare
        ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
 
-    RoadMapTripShowInactiveRoutes =
-        roadmap_config_match (&RoadMapConfigTripShowInactiveRoutes, "yes");
+    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigBackupFiles , "yes", "no", NULL);
+
+
+    RoadMapTripShowInactiveRoutes = roadmap_config_match
+                                (&RoadMapConfigTripShowInactiveRoutes, "yes");
+
+    
 
 }
 

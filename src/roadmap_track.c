@@ -368,7 +368,7 @@ static int roadmap_track_save_worker
     strftime(&name[prefixlen], sizeof(name) - prefixlen,
                 "-%Y-%m-%d-%H-%M-%S.gpx", localtime(&now));
 
-    return roadmap_gpx_write_track(path, name, track);
+    return roadmap_gpx_write_track(0, path, name, track);
 
 }
 
@@ -418,13 +418,13 @@ static void roadmap_track_autosave(int hiwater, int lowater) {
         }
     }
 
-    ret = roadmap_gpx_write_track(path, name, RoadMapTrack);
+    ret = roadmap_gpx_write_track(0, path, name, RoadMapTrack);
     if (ret == 0) return;
 
     /* we don't need the "recent points" cache anymore */
     if (RoadMapTrackRecentCSV) {
-	fclose(RoadMapTrackRecentCSV);
-	RoadMapTrackRecentCSV = NULL;
+        fclose(RoadMapTrackRecentCSV);
+        RoadMapTrackRecentCSV = NULL;
     }
     roadmap_file_remove (path, RECENT_CSV);
 
