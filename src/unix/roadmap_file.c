@@ -73,8 +73,8 @@ FILE *roadmap_file_fopen (const char *path,
    if (file != NULL && fstat (fileno(file), &stat_buffer) == 0) {
       /* read-only opens will succeed on directories */
       if (!S_ISREG(stat_buffer.st_mode)) {
-	 fclose(file);
-	 file = NULL;
+         fclose(file);
+         file = NULL;
       }
    }
 
@@ -171,6 +171,42 @@ void roadmap_file_append (const char *path, const char *name,
    }
 }
 
+int roadmap_file_rename (const char *path, const char *name, const char *new) {
+
+   const char *full_name, *full_new;
+   int ret = 1;
+
+   full_name = roadmap_path_join (path, name);
+   full_new = roadmap_path_join (path, new);
+
+   if (rename(full_name, full_new)) ret = 0;
+
+   roadmap_path_free (full_name);
+   roadmap_path_free (full_new);
+
+   return ret;
+}
+
+/*
+ * Make backup file: append "~"
+ */
+void roadmap_file_backup(const char *path, const char *name) {
+
+    int len;
+    char *newname;
+    
+    len = strlen(name);
+    newname = malloc(len + 2);  /* '~' + '\0' */
+
+    roadmap_check_allocated(newname);
+
+    strcpy(newname, name);
+    strcpy(&newname[len], "~");
+
+    roadmap_file_rename(path, name, newname);
+
+    free(newname);
+}
 
 const char *roadmap_file_unique (const char *base) {
 

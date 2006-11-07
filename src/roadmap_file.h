@@ -70,6 +70,8 @@ void  roadmap_file_close (RoadMapFile file);
 void  roadmap_file_remove (const char *path, const char *name);
 int   roadmap_file_exists (const char *path, const char *name);
 int   roadmap_file_length (const char *path, const char *name);
+int   roadmap_file_rename (const char *path, const char *name, const char *new);
+void  roadmap_file_backup (const char *path, const char *name);
 
 void  roadmap_file_save (const char *path, const char *name,
                          void *data, int length);

@@ -195,6 +195,53 @@ void roadmap_file_append (const char *path, const char *name,
 	}
 }
 
+int roadmap_file_rename (const char *path, const char *name, const char *new) {
+
+   const char *full_name, *full_new;
+   int r = 1;
+
+   full_name = roadmap_path_join (path, name);
+   full_new = roadmap_path_join (path, new);
+
+#if NEEDED  /* perhaps under win95, others? */
+   unlink(full_new);
+#endif
+   if (rename(full_name, full_new)) r = 0;
+
+   roadmap_path_free (full_name);
+   roadmap_path_free (full_new);
+
+}
+
+/*
+ * Make backup file:  If suffix is 3 or fewer chars, replace it
+ * with ".bak", else append ".bak"
+ */
+void roadmap_file_backup(const char *path, const char *name) {
+
+    int len;
+    char *newname;
+    char *suffix;
+    
+    len = strlen(name);
+    newname = malloc(len + 5);  /* '.bak' + '\0' */
+
+    roadmap_check_allocated(newname);
+
+    strcpy(newname, name);
+
+    suffix = strrchr(newname, '.');
+    if (suffix != NULL && strlen(suffix) <= 4) { /* short suffix --> ".bak" */
+        strcpy(suffix, ".bak");
+    } else {
+        strcat(newname, ".bak");
+    }
+
+    roadmap_file_rename(path, name, newname);
+
+    free(newname);
+}
+
 
 const char *roadmap_file_unique (const char *base)
 {
