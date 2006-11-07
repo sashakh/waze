@@ -159,7 +159,6 @@ static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
 static void roadmap_dialog_hide_window (RoadMapDialogItem dialog) {
 
    if (dialog->w != NULL) {
-      gtk_grab_remove (dialog->w);
       gtk_widget_hide (dialog->w);
    }
 }
@@ -612,7 +611,6 @@ void roadmap_dialog_complete (int use_keyboard) {
                        GTK_SIGNAL_FUNC(roadmap_dialog_destroyed),
                        dialog);
 
-   gtk_grab_add (dialog->w);
    gtk_widget_show_all (GTK_WIDGET(dialog->w));
 }
 

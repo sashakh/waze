@@ -41,17 +41,7 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
 
    GtkWidget *dialog = (GtkWidget *) data;
 
-   gtk_grab_remove (dialog);
    gtk_widget_destroy (dialog);
-
-   return FALSE;
-}
-
-static gint roadmap_messagebox_ok_modal (GtkWidget *w, gpointer data) {
-
-   GtkWidget *dialog = (GtkWidget *) data;
-
-   gtk_dialog_response (GTK_DIALOG(dialog), 1);
 
    return FALSE;
 }
@@ -78,6 +68,8 @@ static void roadmap_messagebox_show (const char *title,
 
    gtk_window_set_title (GTK_WINDOW(dialog),  roadmap_start_get_title(title));
 
+   gtk_window_set_modal (GTK_WINDOW(dialog), modal);
+
    gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dialog)->vbox),
                        label, TRUE, TRUE, 0);
 
@@ -87,23 +79,14 @@ static void roadmap_messagebox_show (const char *title,
    gtk_container_set_border_width
       (GTK_CONTAINER(GTK_BOX(GTK_DIALOG(dialog)->vbox)), 4);
 
-   g_signal_connect (ok, "clicked",
-                     modal ? (GCallback) roadmap_messagebox_ok_modal :
-                             (GCallback) roadmap_messagebox_ok,
+   g_signal_connect (GTK_OBJECT(ok),
+                     "clicked",
+                     GTK_SIGNAL_FUNC(roadmap_messagebox_ok),
                      dialog);
 
    gtk_widget_grab_default (ok);
 
-   gtk_grab_add (dialog);
-
    gtk_widget_show_all (GTK_WIDGET(dialog));
-
-   if (modal) {
-      gtk_dialog_run (GTK_DIALOG(dialog));
-
-      gtk_grab_remove (dialog);
-      gtk_widget_destroy (dialog);
-   }
 }
 
 

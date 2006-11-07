@@ -37,13 +37,13 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
 
    GtkWidget *dialog = (GtkWidget *) data;
 
-   gtk_grab_remove (dialog);
    gtk_widget_destroy (dialog);
 
    return FALSE;
 }
 
-void roadmap_messagebox (const char *title, const char *text) {
+static void roadmap_messagebox_show (const char *title,
+                                     const char *text, int modal) {
 
    GtkWidget *ok;
    GtkWidget *label;
@@ -58,6 +58,8 @@ void roadmap_messagebox (const char *title, const char *text) {
    GTK_WIDGET_SET_FLAGS (ok, GTK_CAN_DEFAULT);
 
    gtk_window_set_title (GTK_WINDOW(dialog), roadmap_start_get_title(title));
+
+   gtk_window_set_modal (GTK_WINDOW(dialog), modal);
 
    gtk_box_pack_start (GTK_BOX(GTK_DIALOG(dialog)->vbox),
                        label, TRUE, TRUE, 0);
@@ -75,18 +77,17 @@ void roadmap_messagebox (const char *title, const char *text) {
 
    gtk_widget_grab_default (ok);
 
-   gtk_grab_add (dialog);
-
    gtk_widget_show_all (GTK_WIDGET(dialog));
 }
 
 
 void roadmap_messagebox_wait (const char *title, const char *text) {
 
-   /* gtk_window_set_modal does not seem to do the trick (i.e.
-    * halt the application on its course), so we default to
-    * the normal message box.
-    */
-   roadmap_messagebox (title, text);
+   roadmap_messagebox_show (title, text, 1);
+}
+
+void roadmap_messagebox (const char *title, const char *text) {
+
+   roadmap_messagebox_show (title, text, 0);
 }
 
