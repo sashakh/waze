@@ -77,7 +77,7 @@ static RoadMapHash *LineById = NULL;
 static int *SortedLine = NULL;
 static int *SortedLine2 = NULL;
 
-#define MAX_LONG_LINES 500
+#define MAX_LONG_LINES 1000
 static RoadMapLongLine LongLines[MAX_LONG_LINES];
 static int LongLinesCount;
 static RoadMapHash *LongLinesHash = NULL;
