@@ -292,15 +292,16 @@ QWidget* Entry::create(QWidget* parent) {
          }
          break;
 
-      case ListEntry: {
-         QListBox* lb = new QListBox(parent, name);
-         widget = lb;
+      case ListEntry:
+         {
+            QListBox* lb = new QListBox(parent, name);
+            widget = lb;
 
-         // ugly hack ... 
-         lb->setMinimumHeight(200);
-         lb->setMinimumWidth(150);
+            // ugly hack ... 
+            lb->setMinimumHeight(200);
+            lb->setMinimumWidth(150);
 
-         connect(widget, SIGNAL(highlighted(int)), this, SLOT(run()));
+            connect(widget, SIGNAL(highlighted(int)), this, SLOT(run()));
          }
          break;
 
@@ -329,10 +330,11 @@ void* Entry::getValue() {
    void* ret = 0;
 
    switch (type) {
-      case TextEntry: {
-         QString s = ((QLineEdit*) widget)->text();
-         const char* ss = s.latin1();
-         ret = (void *) ss;
+      case TextEntry:
+         {
+            QString s = ((QLineEdit*) widget)->text();
+            const char* ss = s.latin1();
+            ret = (void *) ss;
          }
          break;
 
