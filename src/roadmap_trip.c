@@ -876,21 +876,24 @@ static void roadmap_trip_waypoint_manage_dialog_selected (
 
 
     if (*(int *)which == WAYPOINTS_MODIFIED) {
+
         roadmap_messagebox ("Note", "Trip modified -- repopulating list");
+
         if (roadmap_trip_waypoint_manage_dialog_populate (which) == 0) {
             roadmap_dialog_hide(name);
             return;
         }
 
-    }
+    } else {
     
-    waypointp = (waypoint *) roadmap_dialog_get_data (
-            "Names", ".Waypoints");
+        waypointp = (waypoint *) roadmap_dialog_get_data (
+                "Names", ".Waypoints");
 
-    if (waypointp != NULL) {
-        roadmap_trip_set_selected_place(which, waypointp);
-        roadmap_trip_set_focus_waypoint (waypointp);
-        roadmap_screen_refresh ();
+        if (waypointp != NULL) {
+            roadmap_trip_set_selected_place(which, waypointp);
+            roadmap_trip_set_focus_waypoint (waypointp);
+            roadmap_screen_refresh ();
+        }
     }
 }
 
