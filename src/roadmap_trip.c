@@ -745,7 +745,7 @@ static void roadmap_trip_waypoint_manage_action
         if (which == PERSONAL_WAYPOINTS) {
             roadmap_landmark_remove(waypointp);
             RoadMapTripRefresh = 1;
-            roadmap_screen_refresh ();
+	    roadmap_screen_redraw ();
             return;
         } else if (which == TRIP_WAYPOINTS) {
             waypt_del (waypointp);
@@ -764,7 +764,7 @@ static void roadmap_trip_waypoint_manage_action
                 roadmap_trip_unset_route_focii ();
                 roadmap_trip_set_modified(1);
                 RoadMapTripRefresh = 1;
-                roadmap_screen_refresh ();
+                roadmap_screen_redraw ();
                 return;
             }
 
@@ -787,7 +787,7 @@ static void roadmap_trip_waypoint_manage_action
 
     roadmap_trip_set_modified(1);
 
-    roadmap_screen_refresh ();
+    roadmap_screen_redraw ();
 
 }
 
@@ -1459,7 +1459,7 @@ void roadmap_trip_add_waypoint
     RoadMapTripRefresh = 1;
     roadmap_trip_set_modified(1);
 
-    roadmap_screen_refresh ();
+    roadmap_screen_redraw ();
 }
 
 void roadmap_trip_create_selection_waypoint (void) {
@@ -2883,8 +2883,6 @@ int roadmap_trip_move_last_place_callback
             roadmap_trip_set_modified(1);
             RoadMapTripRefresh = 1;
         }
-
-        roadmap_screen_refresh ();
 
         ret = 1;
     } else {
