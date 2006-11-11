@@ -963,12 +963,16 @@ USING ROADMAP
    RoadMap uses mostly one mouse button (the left button on a 3 button mouse).
    This is because RoadMap is designed for a PDA, where pens are used.
 
-   A short mouse click or pen tap on the map screen displays the name of the
-   closest street (with the selected street block's range of address), road
-   or freeway (if any). This display is shown for a limited amount of time
-   (see preference "Highlight.Duration").
+   A short mouse click (or pen tap) on the map screen displays information
+   (i.e., name, address range, etc, as appropriate) about the closest
+   waypoint, landmark, street, road or freeway.  This display is shown for a
+   limited amount of time (see preference "Highlight.Duration").  Whether or
+   not one of those map features is near enough to be selected, the
+   clicked/tapped point will be remembered as the current "Selection", for
+   the purposes of adding new waypoints or landmarks.
 
-   A long mouse click or pen tap is reserved for future use (popup menu).
+   A long mouse click or pen tap (with no accompanying motion) will bring up
+   a popup menu (see preference item "Events.Long Click").
 
    Dragging the mouse with the button down, or dragging the pen on the
    screen, moves the map display according to the movements of the mouse
@@ -1100,11 +1104,11 @@ USING ROADMAP
    The current bindings that are used by the application are printed after
    the options help information when the --help option is used.
 
-   Note for Familiar 0.7.1 GPE users: the GPE environment has defined the
-   buttons bindings In a way that makes it impossible for RoadMap to use
-   them (the button are mapped to the GPE applications). In this environment
-   it is recommended to enable the toolbar to replace the buttons. the joypad
-   is still available.
+   Note for Familiar 0.7.1 GPE users:  the GPE environment has defined the
+   button bindings in a way that makes it impossible for RoadMap to use them
+   (the buttons are mapped to the GPE applications).  In this environment it
+   is recommended that the toolbar be enabled to replace the buttons.  The
+   joypad is still available.
 
 
 * ON-THE-FLY MAP DOWNLOAD
@@ -1374,7 +1378,8 @@ USING ROADMAP
    saved trip can be reloaded from the trip file, of course.
 
    The last trip created or loaded will be reloaded the next time RoadMap
-   starts.
+   starts.  If the name of the trip has been specifically set by the user, it
+   will appear in the titlebar of the RoadMap window.
 
    A trip is a (usually small, but unlimited) collection of landmarks,
    routes, and tracks which (usually) have some relationship to one
@@ -1452,7 +1457,16 @@ USING ROADMAP
        You can give your new route points names as you go, or wait until
        later and use the "Route Waypoints..." menu item to go back to the
        list, and select the ones you wish to rename or to which you wish to
-       add comments.  Waypoint deletion is done here as well.
+       add comments.  Waypoint deletion can be done here as well.
+
+       It is also possible to delete, edit, or move waypoints and landmarks
+       by directly selecting them with the mouse.  Use a short click to
+       select the place of interest -- its identifying information will be
+       shown along the bottom of the screen.  Then use the appropriate
+       menu command to delete, edit, or move the selection.  These commands
+       are most readily accessed via the "long click" menu.  If doing a
+       move, you'll select the place, then choose the "Move place" command,
+       then click or tap at the new desired location.
 
        Your route doesn't yet have a name.  That's fine -- routes and
        tracks can be unnamed.  If there's only one route in a trip file,
@@ -1464,6 +1478,7 @@ USING ROADMAP
        careful with delete!  There's no undo command.  Note that in
        addition to having no name, multiple routes can have the same name. 
        This will not confuse RoadMap, though it may confuse the user.
+
 
 ** Converting a track to a route:
 
