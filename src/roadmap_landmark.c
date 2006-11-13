@@ -161,13 +161,15 @@ void roadmap_landmark_add(waypoint *waypointp) {
 
 }
 
-void roadmap_landmark_remove(waypoint *waypointp) {
+waypoint *roadmap_landmark_remove(waypoint *waypointp) {
 
     waypt_del (waypointp);
-    waypt_free (waypointp);
+
     roadmap_landmark_set_modified();
     RoadMapLandmarkRefresh = 1;
     roadmap_screen_refresh ();
+
+    return waypointp;
 
 }
 

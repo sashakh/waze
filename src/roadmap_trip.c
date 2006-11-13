@@ -134,10 +134,11 @@ static int RoadMapTripPlaceMoving;
  * convenient), and the flag itself indicates whether the list in
  * the dialog box is up-to-date with the actual data structure.
  */
-int RoadMapTripWaypointSelectionsNeedRefresh[3];
+int RoadMapTripWaypointSelectionsNeedRefresh[4];
 #define PERSONAL_WAYPOINTS (&RoadMapTripWaypointSelectionsNeedRefresh[0])
 #define TRIP_WAYPOINTS     (&RoadMapTripWaypointSelectionsNeedRefresh[1])
 #define ROUTE_WAYPOINTS    (&RoadMapTripWaypointSelectionsNeedRefresh[2])
+#define LOST_WAYPOINTS     (&RoadMapTripWaypointSelectionsNeedRefresh[3])
 #define WAYPOINTS_MODIFIED 1
 
 
@@ -224,6 +225,9 @@ static time_t RoadMapTripGPSTime = 0;
 static RoadMapList RoadMapTripWaypointHead;
 static RoadMapList RoadMapTripRouteHead;
 static RoadMapList RoadMapTripTrackHead;
+
+static RoadMapList RoadMapTripLostRoutesHead;
+static RoadMapList RoadMapTripLostPlacesHead;
 
 static route_head RoadMapTripQuickRoute = {
         {NULL, NULL},
@@ -738,25 +742,32 @@ static void roadmap_trip_waypoint_manage_action
 
     case WAYPOINT_ACTION_DELETE:
 
+        if (which == LOST_WAYPOINTS)
+            return;
+
         *(int *)which = WAYPOINTS_MODIFIED;
 
         roadmap_trip_clear_selection_list();
 
         if (which == PERSONAL_WAYPOINTS) {
-            roadmap_landmark_remove(waypointp);
+            roadmap_list_insert
+                (&RoadMapTripLostPlacesHead,
+                    (RoadMapListItem *)roadmap_landmark_remove(waypointp));
             RoadMapTripRefresh = 1;
-	    roadmap_screen_redraw ();
+            roadmap_screen_redraw ();
             return;
         } else if (which == TRIP_WAYPOINTS) {
-            waypt_del (waypointp);
-            waypt_free (waypointp);
+            roadmap_list_insert
+                (&RoadMapTripLostPlacesHead,
+                    roadmap_list_remove(&waypointp->Q));
         } else {
             /* NOTE!!!!  this throws off the count in rte_waypt_ct
              * in whatever route this waypoint belongs to.  but we
              * don't use that count, ever, so that's okay.
              */
-            waypt_del (waypointp);
-            waypt_free (waypointp);
+            roadmap_list_insert
+                (&RoadMapTripLostPlacesHead,
+                    roadmap_list_remove(&waypointp->Q));
             /* last waypoint */
             if ( ROADMAP_LIST_EMPTY(&RoadMapCurrentRoute->waypoint_list)) {
                 route_del (RoadMapCurrentRoute);
@@ -917,6 +928,8 @@ static int roadmap_trip_waypoint_manage_dialog_populate (void *which) {
             return 0;
         }
         list = &RoadMapCurrentRoute->waypoint_list;
+    } else if (which == LOST_WAYPOINTS) {
+        list = &RoadMapTripLostPlacesHead;
     }
 
     count = roadmap_list_count(list);
@@ -968,7 +981,11 @@ static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
         }
         empty = ROADMAP_LIST_EMPTY(&RoadMapCurrentRoute->waypoint_list);
         name = "Route Points";
+    } else if (which == LOST_WAYPOINTS) {
+        empty = ROADMAP_LIST_EMPTY(roadmap_landmark_list());
+        name = "Deleted Places";
     }
+
     if (empty) {
         return;         /* Nothing to edit. */
     }
@@ -976,8 +993,10 @@ static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
     if (roadmap_dialog_activate ( name, which)) {
 
         roadmap_dialog_new_list ("Names", ".Waypoints");
-        roadmap_dialog_add_button
-            ("Delete", roadmap_trip_waypoint_manage_dialog_delete);
+        if (which != LOST_WAYPOINTS) {
+            roadmap_dialog_add_button
+                ("Delete", roadmap_trip_waypoint_manage_dialog_delete);
+        }
         if (which == ROUTE_WAYPOINTS) {
             roadmap_dialog_add_button
                 ("Back", roadmap_trip_waypoint_manage_dialog_up);
@@ -1009,9 +1028,14 @@ void roadmap_trip_route_waypoint_manage_dialog (void) {
     roadmap_trip_waypoint_manage_dialog_worker (ROUTE_WAYPOINTS);
 }
 
+void roadmap_trip_lost_waypoint_manage_dialog (void) {
+    roadmap_trip_waypoint_manage_dialog_worker (LOST_WAYPOINTS);
+}
+
 /* Route Manage dialog */
 
 static void roadmap_trip_route_manage_dialog_populate (int count);
+static void roadmap_trip_lost_route_manage_dialog_populate (int count);
 
 static void roadmap_trip_route_manage_dialog_none 
         ( const char *name, void *data) {
@@ -1026,13 +1050,17 @@ static void roadmap_trip_route_manage_dialog_none
 static void roadmap_trip_route_manage_dialog_delete
         (const char *name, void *data) {
 
-    int count;
+    int count = 0;
     route_head *route =
         (route_head *) roadmap_dialog_get_data ("Names", ".Routes");
 
     if (route != NULL) {
-        route_del (route);
+
+        roadmap_list_remove( &route->Q );
+        roadmap_list_insert (&RoadMapTripLostRoutesHead, &route->Q);
+
         roadmap_trip_set_modified(1);
+
         if (route == RoadMapCurrentRoute) {
 
             RoadMapRouteInProgress = 0;
@@ -1045,6 +1073,34 @@ static void roadmap_trip_route_manage_dialog_delete
                 roadmap_list_count (&RoadMapTripTrackHead);
         if (count > 0) {
             roadmap_trip_route_manage_dialog_populate (count);
+        } else {
+            roadmap_dialog_hide (name);
+        }
+        roadmap_screen_refresh ();
+    }
+}
+
+static void roadmap_trip_route_manage_dialog_restore
+        (const char *name, void *data) {
+
+    int count = 0;
+    route_head *route =
+        (route_head *) roadmap_dialog_get_data ("Names", ".Routes");
+
+    if (route != NULL) {
+
+        roadmap_list_remove( &route->Q );
+        if (route->rte_is_track) {
+            roadmap_list_insert (&RoadMapTripTrackHead, &route->Q);
+        } else {
+            roadmap_list_insert (&RoadMapTripRouteHead, &route->Q);
+        }
+
+        roadmap_trip_set_modified(1);
+
+        count = roadmap_list_count (&RoadMapTripLostRoutesHead);
+        if (count > 0) {
+            roadmap_trip_lost_route_manage_dialog_populate (count);
         } else {
             roadmap_dialog_hide (name);
         }
@@ -1123,6 +1179,33 @@ static void roadmap_trip_route_manage_dialog_populate (int count) {
     free (routes);
 }
 
+static void roadmap_trip_lost_route_manage_dialog_populate (int count) {
+
+    char **names = NULL;
+    route_head **routes = NULL;
+    RoadMapListItem *elem, *tmp;
+    int i;
+
+    names = calloc (count, sizeof (*names));
+    roadmap_check_allocated (names);
+    routes = calloc (count, sizeof (*routes));
+    roadmap_check_allocated (routes);
+
+    i = 0;
+    ROADMAP_LIST_FOR_EACH (&RoadMapTripLostRoutesHead, elem, tmp) {
+        route_head *rh = (route_head *) elem;
+        names[i] = (rh->rte_name && rh->rte_name[0]) ?
+                rh->rte_name : "Unnamed Route";
+        routes[i++] = rh;
+    }
+
+    roadmap_dialog_show_list
+        ("Names", ".Routes", count, names, (void **) routes,
+         roadmap_trip_route_manage_dialog_selected);
+    free (names);
+    free (routes);
+}
+
 void roadmap_trip_route_manage_dialog (void) {
 
     int count;
@@ -1132,7 +1215,7 @@ void roadmap_trip_route_manage_dialog (void) {
         return;                 /* Nothing to manage. */
     }
 
-    if (roadmap_dialog_activate ("Manage Routes", NULL)) {
+    if (roadmap_dialog_activate ("Select Routes", NULL)) {
 
         roadmap_dialog_new_list ("Names", ".Routes");
 
@@ -1150,10 +1233,35 @@ void roadmap_trip_route_manage_dialog (void) {
 
     count = roadmap_list_count (&RoadMapTripRouteHead) + 
             roadmap_list_count (&RoadMapTripTrackHead);
+
     roadmap_trip_route_manage_dialog_populate (count);
 }
 
+void roadmap_trip_lost_route_manage_dialog (void) {
 
+    int count;
+
+    if (ROADMAP_LIST_EMPTY(&RoadMapTripLostRoutesHead)) {
+        return;                 /* Nothing to manage. */
+    }
+
+    if (roadmap_dialog_activate ("Deleted Routes", NULL)) {
+
+        roadmap_dialog_new_list ("Names", ".Routes");
+
+        roadmap_dialog_add_button ("Restore",
+                                   roadmap_trip_route_manage_dialog_restore);
+
+        roadmap_dialog_add_button ("Okay", roadmap_trip_dialog_cancel);
+
+        roadmap_dialog_complete (0);    /* No need for a keyboard. */
+    }
+
+    count = roadmap_list_count (&RoadMapTripRouteHead) + 
+            roadmap_list_count (&RoadMapTripTrackHead);
+
+    roadmap_trip_lost_route_manage_dialog_populate (count);
+}
 
 
 static void roadmap_trip_activate (void) {
@@ -2943,6 +3051,9 @@ void roadmap_trip_initialize (void) {
     ROADMAP_LIST_INIT(&RoadMapTripWaypointHead);
     ROADMAP_LIST_INIT(&RoadMapTripRouteHead);
     ROADMAP_LIST_INIT(&RoadMapTripTrackHead);
+
+    ROADMAP_LIST_INIT(&RoadMapTripLostRoutesHead);
+    ROADMAP_LIST_INIT(&RoadMapTripLostPlacesHead);
 
     ROADMAP_LIST_INIT(&RoadMapTripAreaPlaces);
 

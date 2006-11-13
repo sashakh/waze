@@ -40,6 +40,7 @@ void  roadmap_trip_set_gps
 
 void  roadmap_trip_copy_focus (const char *name);
 
+void  roadmap_trip_lost_waypoint_manage_dialog(void);
 void  roadmap_trip_route_waypoint_manage_dialog(void);
 void  roadmap_trip_trip_waypoint_manage_dialog(void);
 void  roadmap_trip_personal_waypoint_manage_dialog(void);
@@ -86,6 +87,7 @@ void  roadmap_trip_save_as (void);
 void roadmap_trip_save_screenshot (void);
 
 void roadmap_trip_route_manage_dialog (void);
+void roadmap_trip_lost_route_manage_dialog (void);
 
 void roadmap_trip_track_to_route (void);
 void roadmap_trip_route_simplify (void);

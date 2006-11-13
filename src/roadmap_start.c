@@ -111,9 +111,9 @@ static RoadMapConfigDescriptor RoadMapConfigDisplayRefresh =
 /* The menu and toolbar callbacks: --------------------------------------- */
 
 static void roadmap_start_cancel (void) {
-    /* for menus, mainly popups, where the mouse can easily cause
-     * an unwanted action -- putting this at the top of the menu
-     * helps prevent that */;
+    /* null action -- for menus, mainly popups, where the mouse
+     * can easily cause an unwanted action -- putting this at the
+     * top of the menu helps prevent that */
 }
 
 
@@ -481,7 +481,7 @@ static RoadMapAction RoadMapStartActions[] = {
       "Convert the current GPS breadcrumb track to a new route",
       roadmap_trip_currenttrack_to_route },
 
-   {"trackroute", "Convert Track to Route", "RouteToTrack", NULL,
+   {"tracktoroute", "Convert Track to Route", "RouteToTrack", NULL,
       "Create a new route from the currently selected track",
       roadmap_trip_track_to_route },
 
@@ -519,8 +519,11 @@ static RoadMapAction RoadMapStartActions[] = {
       "Show distance and direction to the last selected street or place",
       roadmap_trip_set_as_destination},
 
-   {"manageroutes", "Manage Current Routes...", "Manage", NULL,
+   {"manageroutes", "Select Route...", "Select Route", NULL,
       "Select, rename, or delete routes", roadmap_trip_route_manage_dialog},
+
+   {"listdeletedroutes", "Deleted Routes...", NULL, NULL,
+      "List and restore deleted routes", roadmap_trip_lost_route_manage_dialog},
 
    {"allroutetoggle", "Show/Hide Inactive Routes", "AllRoutes", NULL,
       "Show or Hide currently inactive routes",
@@ -536,6 +539,9 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"editroutepoints", "Route Waypoints...", NULL, NULL,
       "Edit current route's waypoints", roadmap_trip_route_waypoint_manage_dialog },
+
+   {"listdeletedplaces", "Deleted Places...", NULL, NULL,
+      "List deleted or moved places", roadmap_trip_lost_waypoint_manage_dialog },
 
    {"addroutepointnear", "Insert Route Waypoint", NULL, NULL,
       "Insert routepoint into nearest leg of the current route", 
@@ -683,12 +689,13 @@ static const char *RoadMapStartMenu[] = {
    ROADMAP_MENU "Routes",
 
    "manageroutes",
+   "listdeletedroutes",
    "starttrip",
    "stoptrip",
    "resumeroute",
    "reverseroute",
    "simplifyroute",
-   "trackroute",
+   "tracktoroute",
    "createroute",
    "setasdestination",
    "allroutetoggle", 
@@ -704,6 +711,7 @@ static const char *RoadMapStartMenu[] = {
    "editroutepoints",
    "edittriplandmarks",
    "editpersonallandmarks",
+   "listdeletedplaces",
    "mergepersonallandmarks",
 
    RoadMapFactorySeparator,
