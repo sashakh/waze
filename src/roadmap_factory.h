@@ -42,10 +42,12 @@ typedef struct {
 } RoadMapAction;
 
 
-#define ROADMAP_MENU      "/"
-#define ROADMAP_SUBMENU   "//"
+/* ROADMAP_MENU must be a substring of ROADMAP_SUBMENU */
+#define ROADMAP_MENU            "/"
+#define ROADMAP_SUBMENU         "//"
+#define ROADMAP_INVOKE_SUBMENU  "->"
 
-#define ROADMAP_MAPPED_TO " = "
+#define ROADMAP_MAPPED_TO       " = "
 
 extern const char RoadMapFactorySeparator[];
 extern const char RoadMapFactoryHelpTopics[];
@@ -58,7 +60,7 @@ void roadmap_factory (const char          *name,
 void roadmap_factory_keymap (RoadMapAction *actions,
                              const char    *shortcuts[]);
 
-void roadmap_factory_popup (RoadMapConfigDescriptor *descriptor,
+void roadmap_factory_popup (const char *title,
                             const RoadMapGuiPoint *position);
 
 void roadmap_factory_usage (const char *section, const RoadMapAction *action);

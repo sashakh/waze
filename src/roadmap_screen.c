@@ -988,8 +988,7 @@ static void roadmap_screen_repaint (void) {
 
     if (count == 0) {
        RoadMapPosition pos;
-       int zoom;
-       roadmap_math_get_context (&pos, &zoom);
+       roadmap_math_get_context (&pos, NULL, NULL);
        roadmap_display_text("Info", "No map available: " FLT_FMT ", " FLT_FMT,
              to_float(pos.longitude), to_float(pos.latitude));
     }
@@ -1130,7 +1129,8 @@ static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
       return;
    }
 
-   roadmap_factory_popup (&RoadMapConfigEventRightClick, point);
+   roadmap_factory_popup
+      (roadmap_config_get(&RoadMapConfigEventRightClick), point);
 }
 
 static void roadmap_screen_long_click (RoadMapGuiPoint *point) {
@@ -1139,7 +1139,8 @@ static void roadmap_screen_long_click (RoadMapGuiPoint *point) {
       return;
    }
 
-   roadmap_factory_popup (&RoadMapConfigEventLongClick, point);
+   roadmap_factory_popup
+      (roadmap_config_get(&RoadMapConfigEventLongClick), point);
 }
 
 

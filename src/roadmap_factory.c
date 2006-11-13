@@ -37,6 +37,7 @@
 #include "roadmap_help.h"
 #include "roadmap_path.h"
 #include "roadmap_input.h"
+#include "roadmap_math.h"
 
 #include "roadmap_factory.h"
 
@@ -54,6 +55,77 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
 const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
+typedef struct {
+
+   RoadMapCallback action;
+   const char *title;
+
+} RoadMapFactoryMenuPopup;
+
+/* note relationship to number of action functions declared below */
+#define MAX_MENUPOPUPS 20
+int RoadMapFactoryMenuPopupCount;
+
+void roadmap_factory_menu_popup_n(int n);
+
+void roadmap_factory_menu_popup_00(void) { roadmap_factory_menu_popup_n(0); };
+void roadmap_factory_menu_popup_01(void) { roadmap_factory_menu_popup_n(1); };
+void roadmap_factory_menu_popup_02(void) { roadmap_factory_menu_popup_n(2); };
+void roadmap_factory_menu_popup_03(void) { roadmap_factory_menu_popup_n(3); };
+void roadmap_factory_menu_popup_04(void) { roadmap_factory_menu_popup_n(4); };
+void roadmap_factory_menu_popup_05(void) { roadmap_factory_menu_popup_n(5); };
+void roadmap_factory_menu_popup_06(void) { roadmap_factory_menu_popup_n(6); };
+void roadmap_factory_menu_popup_07(void) { roadmap_factory_menu_popup_n(7); };
+void roadmap_factory_menu_popup_08(void) { roadmap_factory_menu_popup_n(8); };
+void roadmap_factory_menu_popup_09(void) { roadmap_factory_menu_popup_n(9); };
+void roadmap_factory_menu_popup_10(void) { roadmap_factory_menu_popup_n(10); };
+void roadmap_factory_menu_popup_11(void) { roadmap_factory_menu_popup_n(11); };
+void roadmap_factory_menu_popup_12(void) { roadmap_factory_menu_popup_n(12); };
+void roadmap_factory_menu_popup_13(void) { roadmap_factory_menu_popup_n(13); };
+void roadmap_factory_menu_popup_14(void) { roadmap_factory_menu_popup_n(14); };
+void roadmap_factory_menu_popup_15(void) { roadmap_factory_menu_popup_n(15); };
+void roadmap_factory_menu_popup_16(void) { roadmap_factory_menu_popup_n(16); };
+void roadmap_factory_menu_popup_17(void) { roadmap_factory_menu_popup_n(17); };
+void roadmap_factory_menu_popup_18(void) { roadmap_factory_menu_popup_n(18); };
+void roadmap_factory_menu_popup_19(void) { roadmap_factory_menu_popup_n(19); };
+
+RoadMapFactoryMenuPopup RoadMapFactoryMenuPopups[MAX_MENUPOPUPS] = {
+   { roadmap_factory_menu_popup_00, NULL },
+   { roadmap_factory_menu_popup_01, NULL },
+   { roadmap_factory_menu_popup_02, NULL },
+   { roadmap_factory_menu_popup_03, NULL },
+   { roadmap_factory_menu_popup_04, NULL },
+   { roadmap_factory_menu_popup_05, NULL },
+   { roadmap_factory_menu_popup_06, NULL },
+   { roadmap_factory_menu_popup_07, NULL },
+   { roadmap_factory_menu_popup_08, NULL },
+   { roadmap_factory_menu_popup_09, NULL },
+   { roadmap_factory_menu_popup_10, NULL },
+   { roadmap_factory_menu_popup_11, NULL },
+   { roadmap_factory_menu_popup_12, NULL },
+   { roadmap_factory_menu_popup_13, NULL },
+   { roadmap_factory_menu_popup_14, NULL },
+   { roadmap_factory_menu_popup_15, NULL },
+   { roadmap_factory_menu_popup_16, NULL },
+   { roadmap_factory_menu_popup_17, NULL },
+   { roadmap_factory_menu_popup_18, NULL },
+   { roadmap_factory_menu_popup_19, NULL },
+};
+
+void roadmap_factory_menu_popup_n(int n) {
+
+    RoadMapGuiPoint point;
+
+    /* We don't really know where the mouse is right now, so
+     * pretend it's in the center of the screen.  The position
+     * will probably be unused in any case.
+     */
+    roadmap_math_get_context (NULL, NULL, &point);
+    point.x /= 2;
+    point.y /= 2;
+
+    roadmap_factory_popup ( RoadMapFactoryMenuPopups[n].title, &point );
+}
 
 struct RoadMapFactoryKeyMap {
 
@@ -169,7 +241,9 @@ static const char **roadmap_factory_load_config (const char *file_name,
 
       if ((*p == 0) || (*p == '#')) continue; /* Empty line. */
 
-      if (strncmp (p, ROADMAP_MENU, sizeof(ROADMAP_MENU)-1) == 0) {
+      if (strncmp (p, ROADMAP_MENU, sizeof(ROADMAP_MENU)-1) == 0 ||
+          strncmp (p, ROADMAP_SUBMENU, sizeof(ROADMAP_SUBMENU)-1) == 0 ||
+          strncmp (p, ROADMAP_INVOKE_SUBMENU, sizeof(ROADMAP_INVOKE_SUBMENU)-1) == 0) {
 
          p = strdup(p);
          roadmap_check_allocated(p);
@@ -373,23 +447,150 @@ static void roadmap_factory_add_popup (RoadMapMenu menu, const char *title) {
    RoadMapFactoryPopupList = popup;
 }
 
+void roadmap_factory_config_menu
+      (const char **item, RoadMapAction *actions, int doing_popups) {
+
+   RoadMapMenu gui_menu = NULL;
+   int menuprefix = strlen(ROADMAP_MENU);
+   int submenuprefix = strlen(ROADMAP_SUBMENU);
+   int invokemenuprefix = strlen(ROADMAP_INVOKE_SUBMENU);
+   const char *title;
+
+   for (; *item != NULL; item++) {
+
+      if (strncmp (*item, ROADMAP_MENU, menuprefix) == 0) {
+
+         int is_popup = 0;
+
+         /* If processing a popups file, either menu prefix token
+          * gives a popup.  In a menu file, the difference in
+          * tokens is significant
+          */
+         if (strncmp (*item, ROADMAP_SUBMENU, submenuprefix) == 0) {
+            title = *item + submenuprefix;
+            is_popup = 1;
+         } else {
+            title = *item + menuprefix;
+         }
+
+         gui_menu = roadmap_main_new_menu (title);
+
+         if (is_popup || doing_popups) {
+            roadmap_factory_add_popup (gui_menu, title);
+         } else {
+            roadmap_main_add_menu (gui_menu, title);
+         }
+
+
+      } else if ( gui_menu == NULL ) {
+
+         continue;
+
+      } else if (strncmp (*item, ROADMAP_INVOKE_SUBMENU, invokemenuprefix) == 0) {
+
+         int i;
+         char tip[128];
+
+         title = *item + invokemenuprefix;
+
+         /* See if we've already allocated an action routine for
+          * this popup.
+          */
+         for (i = 0; i < RoadMapFactoryMenuPopupCount; i++) {
+            if ( strcmp (RoadMapFactoryMenuPopups[i].title, title) == 0 )
+                break;
+         }
+
+         if (i == MAX_MENUPOPUPS) { /* Not found, and no room for more */
+
+            roadmap_log (ROADMAP_ERROR,
+               "No more room for menu '%s' (%d submenus max)",
+               title, MAX_MENUPOPUPS );
+            continue;
+
+         }
+
+         if (i == RoadMapFactoryMenuPopupCount) {
+            RoadMapFactoryMenuPopups
+                [RoadMapFactoryMenuPopupCount++].title = strdup(title);
+         }
+
+         snprintf(tip, sizeof(tip),
+            "Submenu for %s", RoadMapFactoryMenuPopups[i].title);
+
+         roadmap_main_add_menu_item
+            (gui_menu,
+             RoadMapFactoryMenuPopups[i].title,
+             strdup(tip), RoadMapFactoryMenuPopups[i].action);
+
+
+      } else if (*item == RoadMapFactorySeparator) {
+
+         roadmap_main_add_separator (gui_menu);
+
+      } else if (*item == RoadMapFactoryHelpTopics) {
+
+         roadmap_factory_add_help (gui_menu);
+
+      } else {
+
+         const RoadMapAction *this_action;
+
+         this_action = roadmap_factory_find_action (actions, *item);
+         if (this_action != NULL) {
+            roadmap_main_add_menu_item (gui_menu,
+                  this_action->label_long,
+                  this_action->tip,
+                  this_action->callback);
+         } else {
+            roadmap_log
+               (ROADMAP_ERROR, "invalid action name '%s' in menu", *item);
+         }
+      }
+   }
+}
+
+void roadmap_factory_config_toolbar
+                (const char **item, RoadMapAction  *actions, int use_icons) {
+
+   int prefix = strlen(ROADMAP_MENU);
+
+   roadmap_main_add_toolbar
+      (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
+
+   for (; *item != NULL; item++) {
+
+      if (*item == RoadMapFactorySeparator) {
+
+         roadmap_main_add_tool_space ();
+
+      } else if (strncmp (*item, ROADMAP_MENU, prefix) != 0) {
+
+         const RoadMapAction *this_action;
+
+         this_action = roadmap_factory_find_action (actions, *item);
+
+         if (this_action != NULL) {
+            roadmap_main_add_tool (roadmap_factory_terse(this_action),
+                                   (use_icons) ? this_action->name : NULL,
+                                   this_action->tip,
+                                   this_action->callback);
+         } else {
+            roadmap_log 
+               (ROADMAP_ERROR, "invalid action name '%s' in toolbar", *item);
+         }
+      }
+   }
+}
 
 void roadmap_factory (const char           *name,
                             RoadMapAction  *actions,
                       const char           *menu[],
                       const char           *toolbar[]) {
 
-   int i;
-   int prefix = strlen(ROADMAP_MENU);
-
-   int use_toolbar =
-            roadmap_config_match (&RoadMapConfigGeneralToolbar, "yes");
-
-   int use_icons =
-            roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
+   int use_toolbar;
 
    const char **userconfig;
-   RoadMapMenu gui_menu = NULL;
 
 
    roadmap_config_declare_enumeration ("preferences",
@@ -404,126 +605,29 @@ void roadmap_factory (const char           *name,
    roadmap_factory_user_action_labels (name, "actionlabels", actions);
 
    userconfig = roadmap_factory_user_config (name, "menus", actions);
-
-   if (userconfig == NULL) userconfig = menu;
-
-   for (i = 0; userconfig[i] != NULL; ++i) {
-
-      const char *item = userconfig[i];
-
-      if (item == RoadMapFactorySeparator) {
-
-         if (gui_menu != NULL) {
-            roadmap_main_add_separator (gui_menu);
-         }
-
-      } else if (item == RoadMapFactoryHelpTopics) {
-
-         if (gui_menu != NULL) {
-            roadmap_factory_add_help (gui_menu);
-         }
-
-      } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
-
-         const char *title = item + prefix;
-
-         gui_menu = roadmap_main_new_menu (title);
-         roadmap_main_add_menu (gui_menu, title);
-
-      } else {
-         const RoadMapAction *this_action;
-
-         this_action = roadmap_factory_find_action (actions, item);
-         if (gui_menu != NULL && this_action != NULL) {
-            roadmap_main_add_menu_item (gui_menu,
-                                        this_action->label_long,
-                                        this_action->tip,
-                                        this_action->callback);
-         } else {
-            roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s menu",
-                        item, userconfig ? "user" : "built-in");
-         }
-      }
-   }
-
-   if (use_toolbar) {
-
-      userconfig =
-         roadmap_factory_user_config (name, "toolbar", actions);
-
-      if (userconfig == NULL) userconfig = toolbar;
-
-      roadmap_main_add_toolbar
-         (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
-
-      for (i = 0; userconfig[i] != NULL; ++i) {
-
-         const char *item = userconfig[i];
-
-         if (item == RoadMapFactorySeparator) {
-
-            roadmap_main_add_tool_space ();
-
-         } else if (strncmp (item, ROADMAP_MENU, prefix) != 0) {
-
-            const RoadMapAction *this_action;
-
-            this_action = roadmap_factory_find_action (actions, item);
-
-            if (this_action != NULL) {
-               roadmap_main_add_tool (roadmap_factory_terse(this_action),
-                                      (use_icons) ? this_action->name : NULL,
-                                      this_action->tip,
-                                      this_action->callback);
-            } else {
-               roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s toolbar",
-                        item, userconfig ? "user" : "built-in");
-            }
-         }
-      }
+   if (userconfig != NULL) {
+      roadmap_factory_config_menu(userconfig, actions, 0);
+   } else {
+      roadmap_factory_config_menu(menu, actions, 0);
    }
 
    userconfig = roadmap_factory_user_config (name, "popup", actions);
-
    if (userconfig != NULL) {
+      roadmap_factory_config_menu(userconfig, actions, 1);
+   }
 
-      for (i = 0; userconfig[i] != NULL; ++i) {
 
-         const char *item = userconfig[i];
+   use_toolbar = roadmap_config_match (&RoadMapConfigGeneralToolbar, "yes");
+   if (use_toolbar) {
+      int use_icons;
 
-         if (item == RoadMapFactorySeparator) {
+      use_icons = roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
+      userconfig = roadmap_factory_user_config (name, "toolbar", actions);
 
-            if (gui_menu != NULL) {
-               roadmap_main_add_separator (gui_menu);
-            }
-
-         } else if (item == RoadMapFactoryHelpTopics) {
-
-            if (gui_menu != NULL) {
-               roadmap_factory_add_help (gui_menu);
-            }
-
-         } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
-
-            const char *title = item + prefix;
-
-            gui_menu = roadmap_main_new_menu (title);
-            roadmap_factory_add_popup (gui_menu, title);
-
-         } else {
-            const RoadMapAction *this_action;
-
-            this_action = roadmap_factory_find_action (actions, item);
-            if (gui_menu != NULL && this_action != NULL) {
-               roadmap_main_add_menu_item (gui_menu,
-                     this_action->label_long,
-                     this_action->tip,
-                     this_action->callback);
-            } else {
-               roadmap_log (ROADMAP_ERROR, "invalid action name '%s' in %s popup",
-                        item, userconfig ? "user" : "built-in");
-            }
-         }
+      if (userconfig != NULL) {
+         roadmap_factory_config_toolbar(userconfig, actions, use_icons);
+      } else {
+         roadmap_factory_config_toolbar(toolbar, actions, use_icons);
       }
    }
 
@@ -619,12 +723,10 @@ static void roadmap_factory_show_keymap (void) {
 }
 
 
-void roadmap_factory_popup (RoadMapConfigDescriptor *descriptor,
+void roadmap_factory_popup (const char *title,
                             const RoadMapGuiPoint *position) {
 
    struct RoadMapFactoryPopup *popup;
-
-   const char *title = roadmap_config_get (descriptor);
 
    if (title == NULL || title[0] == 0) return; /* No menu attached. */
 
