@@ -290,7 +290,7 @@ void roadmap_label_start (void) {
       ROADMAP_LIST_SPLICE (&RoadMapLabelSpares, &RoadMapLabelCache);
    }
 
-   roadmap_math_get_context (&last_center, &RoadMapLabelCurrentZoom);
+   roadmap_math_get_context (&last_center, &RoadMapLabelCurrentZoom, NULL);
 
 }
 

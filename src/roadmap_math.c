@@ -1782,9 +1782,14 @@ void roadmap_math_set_context (RoadMapPosition *position, int zoom) {
 }
 
 
-void roadmap_math_get_context (RoadMapPosition *position, int *zoom) {
+void roadmap_math_get_context
+   (RoadMapPosition *position, int *zoom, RoadMapGuiPoint *lowerright) {
 
-   *position = RoadMapContext.center;
-   *zoom = RoadMapContext.zoom;
+   if (position) *position = RoadMapContext.center;
+   if (zoom) *zoom = RoadMapContext.zoom;
+   if (lowerright) {
+      lowerright->x = RoadMapContext.width;
+      lowerright->y = RoadMapContext.height;
+   }
 }
 
