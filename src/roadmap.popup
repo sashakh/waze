@@ -1,4 +1,4 @@
-/Right Click Popup
+//Right Click Popup
 setasdestination
 addaswaypoint
 -
@@ -9,7 +9,7 @@ position
 destination
 gps
 
-/Long Click Popup
+//Long Click Popup
 cancel
 -
 lastplacedelete
