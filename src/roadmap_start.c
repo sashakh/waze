@@ -339,10 +339,10 @@ static RoadMapAction RoadMapStartActions[] = {
       "Enable all voice annoucements", roadmap_voice_enable},
 
    {"nonavigation", "Disable Navigation", "Nav Off", NULL,
-      "Disable all navigation functions", roadmap_navigate_disable},
+      "Disable all navigation feedback", roadmap_navigate_disable},
 
    {"navigation", "Enable Navigation", "Nav On", NULL,
-      "Enable all GPS-based navigation functions", roadmap_navigate_enable},
+      "Enable navigation feedback", roadmap_navigate_enable},
 
    {"logtofile", "Log to File", "Log", NULL,
       "Save future log messages to the postmortem file",
@@ -356,7 +356,7 @@ static RoadMapAction RoadMapStartActions[] = {
       "Delete the current postmortem log file", roadmap_log_purge},
 
    {"purgehistory", "Purge History", "Forget", NULL,
-      "Remove all but the 10 most recent addresses", roadmap_start_purge},
+      "Remove all but the 10 most recent searches", roadmap_start_purge},
 
    {"quit", "Quit", NULL, NULL,
       "Quit RoadMap", roadmap_main_exit},
@@ -416,7 +416,7 @@ static RoadMapAction RoadMapStartActions[] = {
       "Show the last selected address, crossroads, or position",
       roadmap_start_show_location},
 
-   {"mapdownload", "Map Download", "Download", NULL,
+   {"mapdownload", "Toggle Map Download", "Download", NULL,
       "Enable/Disable the map download mode", roadmap_start_toggle_download},
 
    {"mapdiskspace", "Map Disk Space", "Disk", NULL,
@@ -438,7 +438,7 @@ static RoadMapAction RoadMapStartActions[] = {
    {"savetrip", "Save Trip", "Save", "S",
       "Save the current trip", roadmap_start_save_trip},
 
-   {"savescreenshot", "Make a screenshot of the map", "Screenshot", "Y",
+   {"savescreenshot", "Map Screenshot", "Screenshot", "Y",
       "Make a screenshot of the current map under the trip name",
       roadmap_trip_save_screenshot},
 
@@ -605,131 +605,193 @@ static RoadMapAction RoadMapStartActions[] = {
 
 static const char *RoadMapStartMenu[] = {
 
+   /* The "Menus..." popup isn't normally used, but can be useful
+    * for binding to a mouse click or toolbar button, particularly
+    * if the menubar has been suppressed.
+    */
+   ROADMAP_SUBMENU "Menus...",
+
+      ROADMAP_INVOKE_SUBMENU "File",
+      ROADMAP_INVOKE_SUBMENU "View",
+      ROADMAP_INVOKE_SUBMENU "Find",
+      ROADMAP_INVOKE_SUBMENU "Trip",
+      ROADMAP_INVOKE_SUBMENU "Help",
+
+   ROADMAP_SUBMENU "Announcements...",
+      "mutevoice",
+      "enablevoice",
+
+      RoadMapFactorySeparator,
+
+      "nonavigation",
+      "navigation",
+
+      RoadMapFactorySeparator,
+
+      "logtofile",
+      "nolog",
+
+   ROADMAP_SUBMENU "Map Download...",
+
+      "mapdownload",
+      "mapdiskspace",
+      "deletemaps",
+
    ROADMAP_MENU "File",
 
-   "preferences",
-   "gpsconsole",
-   "savescreenshot",
+      "preferences",
+      "gpsconsole",
+      "savescreenshot",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "mutevoice",
-   "enablevoice",
-   "nonavigation",
-   "navigation",
+      ROADMAP_INVOKE_SUBMENU "Announcements...",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "logtofile",
-   "nolog",
-   "purgehistory",
+      ROADMAP_INVOKE_SUBMENU "Map Download...",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "quit",
+      "quit",
 
+
+   ROADMAP_SUBMENU "Display modes..."
+
+      "togglelabels",
+      "toggleorientation",
+      "toggleview",
+      "increasehorizon",
+      "decreasehorizon",
+      "full",
 
    ROADMAP_MENU "View",
 
-   "zoomin",
-   "zoomout",
-   "zoom1",
+      "zoomin",
+      "zoomout",
+      "zoom1",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "up",
-   "left",
-   "right",
-   "down",
-   "togglelabels",
-   "toggleorientation",
-   "toggleview",
-   "increasehorizon",
-   "decreasehorizon",
-   "full",
+      "up",
+      "left",
+      "right",
+      "down",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "clockwise",
-   "counterclockwise",
+      "clockwise",
+      "counterclockwise",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "hold",
+      ROADMAP_INVOKE_SUBMENU "Display modes...",
+
+      RoadMapFactorySeparator,
+
+      "hold",
 
 
    ROADMAP_MENU "Find",
 
-   "address",
-   "intersection",
-   "position",
+      "address",
+      "intersection",
+      "position",
+      "purgehistory",
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "startpoint",
-   "destination",
-   "departure",
-   "gps",
-
-   RoadMapFactorySeparator,
-
-   "mapdownload",
-   "mapdiskspace",
-   "deletemaps",
+      "startpoint",
+      "destination",
+      "departure",
+      "gps",
 
 
    ROADMAP_MENU "Trip",
 
-   "newtrip",
-   "opentrip",
-   "mergetrip",
-   "savetrip",
-   "savetripas",
+      "newtrip",
+      "opentrip",
+      "mergetrip",
+      "savetrip",
+      "savetripas",
 
-   ROADMAP_MENU "Routes",
+      RoadMapFactorySeparator,
 
-   "manageroutes",
-   "listdeletedroutes",
-   "starttrip",
-   "stoptrip",
-   "resumeroute",
-   "reverseroute",
-   "simplifyroute",
-   "tracktoroute",
-   "createroute",
-   "setasdestination",
-   "allroutetoggle", 
+      ROADMAP_INVOKE_SUBMENU "Routes...",
+      ROADMAP_INVOKE_SUBMENU "Places...",
+      ROADMAP_INVOKE_SUBMENU "Edit Place...",
+      ROADMAP_INVOKE_SUBMENU "Tracks...",
+
+   ROADMAP_SUBMENU "Routes...",
+
+      "manageroutes",
+      "listdeletedroutes",
+      "starttrip",
+      "stoptrip",
+      "resumeroute",
+      "reverseroute",
+      "simplifyroute",
+      "createroute",
+      "setasdestination",
+      "allroutetoggle", 
 #if WGET_GOOGLE_ROUTE
-   "getgoogleroute", 
+      "getgoogleroute", 
 #endif
 
-   ROADMAP_MENU "Places",
+   ROADMAP_SUBMENU "Places...",
 
-   "addaswaypoint",
-   "gpsaswaypoint", 
-   "addroutepointnear",
-   "editroutepoints",
-   "edittriplandmarks",
-   "editpersonallandmarks",
-   "listdeletedplaces",
-   "mergepersonallandmarks",
+      "addaswaypoint",
+      "gpsaswaypoint", 
+      "editroutepoints",
+      "edittriplandmarks",
+      "editpersonallandmarks",
+      "listdeletedplaces",
+      "mergepersonallandmarks",
 
-   RoadMapFactorySeparator,
+   ROADMAP_SUBMENU "Tracks...",
 
-   "tracksave",
-   "trackreset",
-   "backtrackroute",
-   "addtrack",
-   "tracktoggle",
+      "tracktoroute",
+
+      RoadMapFactorySeparator,
+
+      "tracktoggle",
+
+      RoadMapFactorySeparator,
+      "backtrackroute",
+      "addtrack",
+      "tracksave",
+      "trackreset",
+
+   ROADMAP_SUBMENU "Edit Places...",
+
+      "lastplacedelete",
+      "lastplaceedit",
+      "lastplacemove",
+
+      RoadMapFactorySeparator,
+
+      "addroutepointnear",
+      "addroutepointstart",
+      "addroutepointend",
+
+      RoadMapFactorySeparator,
+
+      "addpersonallandmark",
+      "addtriplandmark",
+
+      RoadMapFactorySeparator,
+
+      "routepointahead",
+      "routepointback",
 
 
    ROADMAP_MENU "Help",
 
-   RoadMapFactoryHelpTopics,
+      RoadMapFactoryHelpTopics,
 
-   RoadMapFactorySeparator,
+      RoadMapFactorySeparator,
 
-   "about",
+      "about",
 
    NULL
 };
