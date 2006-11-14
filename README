@@ -420,7 +420,7 @@ INSTALLATION
 
    Note: the main GTK RoadMap executables (roadmap and roadgps) are
    built as "gtkroadmap" and "gtkroadgps", while the QT equivalent are
-   built as "qtroadmap" and qtroadgps" to avoid a clash. These executables
+   built as "qtroadmap" and "qtroadgps" to avoid a clash. These executables
    are installed under their "standard" names using symbolic links, so
    that only one version can be installed at a time (the reason is to
    share one roadmap.menu file..).
@@ -853,7 +853,7 @@ USING ROADMAP
    The RoadMap application accepts the following command line options:
    
    [--location=<LONGITUDE,LATITUDE>] Set the location point (see menu entry
-       View/Show Location..). This option is sticky (preference item
+       "Show Location.."). This option is sticky (preference item
        Locations.Location=<LONGITUDE,LATITUDE>).
 
    [--metric] Use the metric system for all units. This option is sticky
@@ -1125,10 +1125,10 @@ USING ROADMAP
    after transfer.
 
    The map download is available in a special RoadMap mode, which can be
-   activated and deactivated using the Find / Map Download menu entry. On
-   startup the download mode is always deactivated. RoadMap shows a red
-   "download" icone on the right top corner of the map screen to indicate
-   that the download mode has been activated.
+   activated and deactivated using the Map Download menu entry.  On startup
+   the download mode is always deactivated.  RoadMap shows a red "download"
+   icon in the right top corner of the map screen to indicate that the
+   download mode has been activated.
 
    In the download mode, if a map is not found by the display engine, the
    user will be asked for the permission to download the file from the
@@ -1164,11 +1164,11 @@ USING ROADMAP
    future.
 
    RoadMap also provides a dialog for deleting maps, activated through the
-   Find / Delete Maps.. menu entry. The dialog shows the number of map files
+   "Delete Maps.." menu entry. The dialog shows the number of map files
    stored locally, the total size of the local maps and the list of maps
    currently visible on the RoadMap screen. The proper way for selecting
-   maps to delete is to view an area you do not need anymore, hit the Find /
-   Delete Maps.. entry, then select a specific county and hit the Delete
+   maps to delete is to view an area you do not need anymore, hit the
+   "Delete Maps.." entry, then select a specific county and hit the Delete
    button. The county will immediately disappear from the map screen and
    the dialog gets updated (i.e. the map statistics and the map list will
    reflect the latest delete action). Several counties can be deleted this
@@ -1227,9 +1227,9 @@ USING ROADMAP
    The location point can be entered in one of three ways:
    - by clicking on a location on the map,
    - by entering a valid USPS address (street number, name, city and state
-     names) in the dialog launched by the "View / Show Location.." menu entry,
+     names) in the dialog launched by the "Show Location.." menu entry,
    - by specifying the intersection of two streets in the dialog launched
-     by the "View / Show intersection.." menu entry.
+     by the "Show intersection.." menu entry.
 
    More details are provided in the following sections.
 
@@ -1329,7 +1329,7 @@ USING ROADMAP
 
 * SELECTING AN INTERSECTION
 
-   The "Find / Intersection.." menu entry activates a dialog that asks for
+   The "Intersection.." menu entry activates a dialog that asks for
    two street names and a state name. RoadMap will search within the given
    state for all intersections between streets that match the street names
    provided. This search may take a few seconds, especially if the maps must
@@ -1343,7 +1343,7 @@ USING ROADMAP
 
 * SELECTING A POSITION
 
-   The "Find / Position.." menu entry activates a dialog that asks for a
+   The "Position.." menu entry activates a dialog that asks for a
    longitude / latitude position. The format for the longitude and latitude
    must conform to the ISO 6709-1983 standard (with some extensions).
  
@@ -1982,9 +1982,12 @@ CONFIGURATION
    name or separator) per line. Empty lines are authorized  and lines starting
    with the '#' character are treated as comments.
 
-   There are two sorts of menus: the menus accessed through the menu bar
-   and the popup menus. The popup menus will be trigerred by events, as
-   specified in the preferences' "Events" section.
+   There are two sorts of menus.  All menus are available as popup menus,
+   which are invoked either in response to an event (as specified in the
+   preferences "Events" section), or by being invoked from a menu entry or
+   toolbar button.  In addition, menus that are specified as menubar menus
+   will appear in the menu bar.  Invoking a popup menu from another menu is
+   how submenus are implemented in RoadMap.
 
    The menus, popup and toolbar configuration files for roadmap are named
    "roadmap.menus", "roadmap.popup" and "roadmap.toolbar", respectively.
@@ -2033,7 +2036,18 @@ CONFIGURATION
         zoomin
         zoomout
         zoom1
+	->Help...
 ----
+   The last item in the toolbar file example will invoke the "Help..." menu.
+
+   It's actually possible to configure RoadMap with no on-screen buttons or
+   menus at all.  By creating an empty "roadmap.menus" file, the internal
+   menubar menus will be suppressed.  Then, configure the Long or Right Click
+   action to invoke the "Menus..." menu.  This special popup contains the same
+   list of menus that would normally appear in the menubar.  This allows full
+   access to RoadMap commands, all via the mouse.  More practically, one might
+   wish to bind the "->Menus..." popup menu to a toolbar button -- then
+   RoadMap could run with a toolbar, but no menubar.
 
    It is also possible to rename the RoadMap actions, with the effect of
    changing the labels used in the menus and the text of the tooltips.

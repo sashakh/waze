@@ -58,13 +58,9 @@ const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 typedef struct {
 
    RoadMapCallback action;
-   const char *title;
+   char *title;
 
 } RoadMapFactoryMenuPopup;
-
-/* note relationship to number of action functions declared below */
-#define MAX_MENUPOPUPS 20
-int RoadMapFactoryMenuPopupCount;
 
 void roadmap_factory_menu_popup_n(int n);
 
@@ -88,8 +84,18 @@ void roadmap_factory_menu_popup_16(void) { roadmap_factory_menu_popup_n(16); };
 void roadmap_factory_menu_popup_17(void) { roadmap_factory_menu_popup_n(17); };
 void roadmap_factory_menu_popup_18(void) { roadmap_factory_menu_popup_n(18); };
 void roadmap_factory_menu_popup_19(void) { roadmap_factory_menu_popup_n(19); };
+void roadmap_factory_menu_popup_20(void) { roadmap_factory_menu_popup_n(20); };
+void roadmap_factory_menu_popup_21(void) { roadmap_factory_menu_popup_n(21); };
+void roadmap_factory_menu_popup_22(void) { roadmap_factory_menu_popup_n(22); };
+void roadmap_factory_menu_popup_23(void) { roadmap_factory_menu_popup_n(23); };
+void roadmap_factory_menu_popup_24(void) { roadmap_factory_menu_popup_n(24); };
+void roadmap_factory_menu_popup_25(void) { roadmap_factory_menu_popup_n(25); };
+void roadmap_factory_menu_popup_26(void) { roadmap_factory_menu_popup_n(26); };
+void roadmap_factory_menu_popup_27(void) { roadmap_factory_menu_popup_n(27); };
+void roadmap_factory_menu_popup_28(void) { roadmap_factory_menu_popup_n(28); };
+void roadmap_factory_menu_popup_29(void) { roadmap_factory_menu_popup_n(29); };
 
-RoadMapFactoryMenuPopup RoadMapFactoryMenuPopups[MAX_MENUPOPUPS] = {
+RoadMapFactoryMenuPopup RoadMapFactoryMenuPopups[] = {
    { roadmap_factory_menu_popup_00, NULL },
    { roadmap_factory_menu_popup_01, NULL },
    { roadmap_factory_menu_popup_02, NULL },
@@ -110,7 +116,23 @@ RoadMapFactoryMenuPopup RoadMapFactoryMenuPopups[MAX_MENUPOPUPS] = {
    { roadmap_factory_menu_popup_17, NULL },
    { roadmap_factory_menu_popup_18, NULL },
    { roadmap_factory_menu_popup_19, NULL },
+   { roadmap_factory_menu_popup_20, NULL },
+   { roadmap_factory_menu_popup_21, NULL },
+   { roadmap_factory_menu_popup_22, NULL },
+   { roadmap_factory_menu_popup_23, NULL },
+   { roadmap_factory_menu_popup_24, NULL },
+   { roadmap_factory_menu_popup_25, NULL },
+   { roadmap_factory_menu_popup_26, NULL },
+   { roadmap_factory_menu_popup_27, NULL },
+   { roadmap_factory_menu_popup_28, NULL },
+   { roadmap_factory_menu_popup_29, NULL },
 };
+
+#define MAX_MENUPOPUPS \
+    ( sizeof(RoadMapFactoryMenuPopups) / sizeof(*RoadMapFactoryMenuPopups) )
+
+int RoadMapFactoryMenuPopupCount;
+
 
 void roadmap_factory_menu_popup_n(int n) {
 
@@ -232,9 +254,10 @@ static const char **roadmap_factory_load_config (const char *file_name,
 
       buffer[sizeof(buffer)-1] = 0;
 
-      /* remove the end-of-line character. */
-      p = strchr (buffer, '\n');
-      if (p != NULL) *p = 0;
+      /* remove the end-of-line character, and trailing whitespace */
+      p = buffer + strlen(buffer);
+      while (p-- > buffer && isspace(*p))
+          *p = '\0';
 
       /* Remove any leading space. */
       for (p = buffer; isspace(*p); ++p) ;
@@ -268,7 +291,9 @@ static const char **roadmap_factory_load_config (const char *file_name,
    }
    fclose(file);
 
-   if (count <= 0) return NULL;
+   /* okay to return with count == 0 -- this allows user to override
+    * builtin configs with empty files
+    */
 
    loaded[count] = NULL;
    return loaded;
@@ -339,9 +364,10 @@ static int roadmap_factory_load_action_labels (const char *file_name,
 
       buffer[sizeof(buffer)-1] = 0;
 
-      /* remove the end-of-line character. */
-      p = strchr (buffer, '\n');
-      if (p != NULL) *p = 0;
+      /* remove the end-of-line character, and trailing whitespace */
+      p = buffer + strlen(buffer);
+      while (p-- > buffer && isspace(*p))
+          *p = '\0';
 
       /* Remove any leading space. */
       for (p = buffer; isspace(*p); ++p) ;
@@ -447,82 +473,90 @@ static void roadmap_factory_add_popup (RoadMapMenu menu, const char *title) {
    RoadMapFactoryPopupList = popup;
 }
 
+static RoadMapAction * roadmap_factory_menu_dummy_action
+        (const char *title) {
+   int i;
+   static char tip[128];
+   static RoadMapAction this_action;
+
+   /* See if we've already allocated an action routine for
+    * this popup.
+    */
+   for (i = 0; i < RoadMapFactoryMenuPopupCount; i++) {
+      if ( strcmp (RoadMapFactoryMenuPopups[i].title, title) == 0 )
+          break;
+   }
+
+   if (i == MAX_MENUPOPUPS) { /* Not found, and no room for more */
+
+      roadmap_log (ROADMAP_ERROR,
+         "No more room for menu '%s' (%d submenus max)",
+         title, MAX_MENUPOPUPS );
+      return NULL;
+
+   }
+
+   if (i == RoadMapFactoryMenuPopupCount) {
+      RoadMapFactoryMenuPopups
+          [RoadMapFactoryMenuPopupCount++].title = strdup(title);
+   }
+
+   snprintf(tip, sizeof(tip),
+      "Submenu for %s", RoadMapFactoryMenuPopups[i].title);
+
+   this_action.label_long = RoadMapFactoryMenuPopups[i].title;
+   this_action.tip = (const char *)tip;
+   this_action.callback = RoadMapFactoryMenuPopups[i].action;
+
+   return &this_action;
+}
+
+static RoadMapAction *roadmap_factory_find_action_or_menu
+                          (RoadMapAction *actions, const char *item) {
+
+   if (strncmp (item, ROADMAP_INVOKE_SUBMENU,
+                sizeof(ROADMAP_INVOKE_SUBMENU)-1) == 0) {
+      return roadmap_factory_menu_dummy_action
+                          (item + sizeof(ROADMAP_INVOKE_SUBMENU)-1);
+   }
+
+   return roadmap_factory_find_action (actions, item);
+}
+
 void roadmap_factory_config_menu
-      (const char **item, RoadMapAction *actions, int doing_popups) {
+      (const char **item, RoadMapAction *actions, int doing_menus) {
 
    RoadMapMenu gui_menu = NULL;
-   int menuprefix = strlen(ROADMAP_MENU);
-   int submenuprefix = strlen(ROADMAP_SUBMENU);
-   int invokemenuprefix = strlen(ROADMAP_INVOKE_SUBMENU);
+   int menuprefix = sizeof(ROADMAP_MENU)-1;
+   int submenuprefix = sizeof(ROADMAP_SUBMENU)-1;
    const char *title;
 
    for (; *item != NULL; item++) {
 
       if (strncmp (*item, ROADMAP_MENU, menuprefix) == 0) {
 
-         int is_popup = 0;
+         int is_menu = 0;
 
-         /* If processing a popups file, either menu prefix token
-          * gives a popup.  In a menu file, the difference in
-          * tokens is significant
-          */
          if (strncmp (*item, ROADMAP_SUBMENU, submenuprefix) == 0) {
             title = *item + submenuprefix;
-            is_popup = 1;
          } else {
             title = *item + menuprefix;
+            is_menu = 1;
          }
 
          gui_menu = roadmap_main_new_menu (title);
 
-         if (is_popup || doing_popups) {
-            roadmap_factory_add_popup (gui_menu, title);
-         } else {
-            roadmap_main_add_menu (gui_menu, title);
-         }
+	 /* all menus are available as popups */
+	 roadmap_factory_add_popup (gui_menu, title);
+
+	 /* but only non-popups go into the menubar */
+         if (doing_menus && is_menu) 
+	    roadmap_main_add_menu (gui_menu, title);
 
 
       } else if ( gui_menu == NULL ) {
 
          continue;
-
-      } else if (strncmp (*item, ROADMAP_INVOKE_SUBMENU, invokemenuprefix) == 0) {
-
-         int i;
-         char tip[128];
-
-         title = *item + invokemenuprefix;
-
-         /* See if we've already allocated an action routine for
-          * this popup.
-          */
-         for (i = 0; i < RoadMapFactoryMenuPopupCount; i++) {
-            if ( strcmp (RoadMapFactoryMenuPopups[i].title, title) == 0 )
-                break;
-         }
-
-         if (i == MAX_MENUPOPUPS) { /* Not found, and no room for more */
-
-            roadmap_log (ROADMAP_ERROR,
-               "No more room for menu '%s' (%d submenus max)",
-               title, MAX_MENUPOPUPS );
-            continue;
-
-         }
-
-         if (i == RoadMapFactoryMenuPopupCount) {
-            RoadMapFactoryMenuPopups
-                [RoadMapFactoryMenuPopupCount++].title = strdup(title);
-         }
-
-         snprintf(tip, sizeof(tip),
-            "Submenu for %s", RoadMapFactoryMenuPopups[i].title);
-
-         roadmap_main_add_menu_item
-            (gui_menu,
-             RoadMapFactoryMenuPopups[i].title,
-             strdup(tip), RoadMapFactoryMenuPopups[i].action);
-
 
       } else if (*item == RoadMapFactorySeparator) {
 
@@ -536,7 +570,8 @@ void roadmap_factory_config_menu
 
          const RoadMapAction *this_action;
 
-         this_action = roadmap_factory_find_action (actions, *item);
+         this_action = roadmap_factory_find_action_or_menu (actions, *item);
+
          if (this_action != NULL) {
             roadmap_main_add_menu_item (gui_menu,
                   this_action->label_long,
@@ -553,8 +588,6 @@ void roadmap_factory_config_menu
 void roadmap_factory_config_toolbar
                 (const char **item, RoadMapAction  *actions, int use_icons) {
 
-   int prefix = strlen(ROADMAP_MENU);
-
    roadmap_main_add_toolbar
       (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
 
@@ -564,11 +597,15 @@ void roadmap_factory_config_toolbar
 
          roadmap_main_add_tool_space ();
 
-      } else if (strncmp (*item, ROADMAP_MENU, prefix) != 0) {
+      } else if (strncmp (*item, ROADMAP_MENU, sizeof(ROADMAP_MENU)-1) == 0) {
+
+         continue;
+
+      } else {
 
          const RoadMapAction *this_action;
 
-         this_action = roadmap_factory_find_action (actions, *item);
+         this_action = roadmap_factory_find_action_or_menu (actions, *item);
 
          if (this_action != NULL) {
             roadmap_main_add_tool (roadmap_factory_terse(this_action),
@@ -606,14 +643,14 @@ void roadmap_factory (const char           *name,
 
    userconfig = roadmap_factory_user_config (name, "menus", actions);
    if (userconfig != NULL) {
-      roadmap_factory_config_menu(userconfig, actions, 0);
+      roadmap_factory_config_menu(userconfig, actions, 1);
    } else {
-      roadmap_factory_config_menu(menu, actions, 0);
+      roadmap_factory_config_menu(menu, actions, 1);
    }
 
    userconfig = roadmap_factory_user_config (name, "popup", actions);
    if (userconfig != NULL) {
-      roadmap_factory_config_menu(userconfig, actions, 1);
+      roadmap_factory_config_menu(userconfig, actions, 0);
    }
 
 
@@ -680,6 +717,7 @@ void roadmap_factory_keymap (RoadMapAction  *actions,
 
             p = separator + strlen(ROADMAP_MAPPED_TO);
             while (*p <= ' ') ++p;
+
             this_action = roadmap_factory_find_action (actions, p);
 
             if (this_action != NULL) {
