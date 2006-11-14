@@ -957,6 +957,7 @@ static void roadmap_screen_repaint (void) {
     int k;
     int count;
     int max_pen = roadmap_layer_max_pen();
+    static int nomap;
     
 
     if (!RoadMapScreenDragging && RoadMapScreenFrozen) return;
@@ -991,6 +992,10 @@ static void roadmap_screen_repaint (void) {
        roadmap_math_get_context (&pos, NULL, NULL);
        roadmap_display_text("Info", "No map available: " FLT_FMT ", " FLT_FMT,
              to_float(pos.longitude), to_float(pos.latitude));
+       nomap = 1;
+    } else if (nomap) {
+       roadmap_display_hide("Info");
+       nomap = 0;
     }
 
     roadmap_label_start();
