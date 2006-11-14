@@ -1098,10 +1098,6 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
    RoadMapPosition position;
    RoadMapArea area;
 
-   if (roadmap_trip_move_last_place_callback(1, point)) {
-       return;
-   }
-
    accuracy =  roadmap_config_get_integer (&RoadMapConfigAccuracyMouse);
     
    roadmap_math_to_position (point, &position, 1);
@@ -1125,19 +1121,11 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
 
 static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
 
-   if (roadmap_trip_move_last_place_callback(0, point)) {
-      return;
-   }
-
    roadmap_factory_popup
       (roadmap_config_get(&RoadMapConfigEventRightClick), point);
 }
 
 static void roadmap_screen_long_click (RoadMapGuiPoint *point) {
-
-   if (roadmap_trip_move_last_place_callback(0, point)) {
-      return;
-   }
 
    roadmap_factory_popup
       (roadmap_config_get(&RoadMapConfigEventLongClick), point);

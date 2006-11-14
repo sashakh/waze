@@ -43,6 +43,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
+#include "roadmap_pointer.h"
 #include "roadmap_message.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_preferences.h"
@@ -144,6 +145,7 @@ int RoadMapTripWaypointSelectionsNeedRefresh[4];
 
 static void roadmap_trip_set_selected_place(void *which, waypoint *w);
 static void roadmap_trip_clear_selection_list(void);
+static void roadmap_trip_move_last_cancel (RoadMapGuiPoint *point);
 
 /* route display altering flags */
 static RoadMapPen RoadMapTripRouteLinesPen = NULL;
@@ -2856,6 +2858,7 @@ int roadmap_trip_retrieve_area_points
         count > 1 ? " (more)" : "");
       roadmap_screen_redraw ();
 
+      roadmap_trip_move_last_cancel (NULL);
       RoadMapTripSelectedPlace = pp;
    }
 
@@ -2889,6 +2892,7 @@ static void roadmap_trip_set_selected_place(void *which, waypoint *w) {
 
    roadmap_list_insert(&RoadMapTripAreaPlaces, &pp->link);
 
+   roadmap_trip_move_last_cancel (NULL);
    RoadMapTripSelectedPlace = pp;
 
 }
@@ -2940,11 +2944,67 @@ void roadmap_trip_edit_last_place(void)
 
 }
 
-/* intended to be called from popup menu -- uses popup location as move dest */
+
+/* When moving a place, we replace the mouse click handlers with
+ * our own.  A short click executes the move, the other two clicks
+ * simply cancel it.
+ */
+
+RoadMapPointerHandler RoadMapTripOldShortClickHandler;
+RoadMapPointerHandler RoadMapTripOldLongClickHandler;
+RoadMapPointerHandler RoadMapTripOldRightClickHandler;
+
+static void roadmap_trip_move_last_cancel (RoadMapGuiPoint *point) {
+
+    if (RoadMapTripOldShortClickHandler != NULL)
+        roadmap_pointer_register_short_click (RoadMapTripOldShortClickHandler);
+    if (RoadMapTripOldLongClickHandler != NULL)
+        roadmap_pointer_register_long_click (RoadMapTripOldLongClickHandler);
+    if (RoadMapTripOldRightClickHandler != NULL)
+        roadmap_pointer_register_right_click (RoadMapTripOldRightClickHandler);
+
+    RoadMapTripOldShortClickHandler = NULL;
+    RoadMapTripOldLongClickHandler = NULL;
+    RoadMapTripOldRightClickHandler = NULL;
+
+    RoadMapTripPlaceMoving = 0;
+
+    roadmap_display_hide("Moving");
+    roadmap_screen_redraw ();
+}
+
+static void roadmap_trip_move_last_handler (RoadMapGuiPoint *point) {
+
+    waypoint *w;
+    roadmap_place_pointer *pp;
+
+    if (RoadMapTripSelectedPlace != NULL) {
+
+        pp = RoadMapTripSelectedPlace;
+        w = pp->wpt;
+        roadmap_math_to_position (point, &w->pos, 1);
+
+        if (pp->type == PERSONAL_WAYPOINTS) {
+            roadmap_landmark_set_modified();
+        } else {
+            roadmap_trip_set_modified(1);
+            RoadMapTripRefresh = 1;
+        }
+    }
+
+    roadmap_trip_move_last_cancel (point);
+}
+
 void roadmap_trip_move_last_place(void)
 {
     waypoint *w;
     roadmap_place_pointer *pp;
+
+    if (RoadMapTripPlaceMoving) {
+        /* Possible if "Move" selected from a button or keyboard. */
+        roadmap_trip_move_last_cancel (NULL);
+        return;
+    }
 
     if (RoadMapTripSelectedPlace == NULL)
         return;
@@ -2964,45 +3024,13 @@ void roadmap_trip_move_last_place(void)
     roadmap_screen_redraw ();
 
     RoadMapTripPlaceMoving = 1;
-}
 
-int roadmap_trip_move_last_place_callback
-        (int action, const RoadMapGuiPoint *point) {
-
-    int ret;
-                               
-    if (!RoadMapTripPlaceMoving)
-        return 0;
-
-    if (action) {
-        waypoint *w;
-        roadmap_place_pointer *pp;
-
-        if (RoadMapTripSelectedPlace == NULL)
-            return 0;
-
-        pp = RoadMapTripSelectedPlace;
-        w = pp->wpt;
-        roadmap_math_to_position (point, &w->pos, 1);
-
-        if (pp->type == PERSONAL_WAYPOINTS) {
-            roadmap_landmark_set_modified();
-        } else {
-            roadmap_trip_set_modified(1);
-            RoadMapTripRefresh = 1;
-        }
-
-        ret = 1;
-    } else {
-        ret = RoadMapTripPlaceMoving;
-    }
-
-    RoadMapTripPlaceMoving = 0;
-
-    roadmap_display_hide("Moving");
-    roadmap_screen_redraw ();
-
-    return ret;
+    RoadMapTripOldShortClickHandler =
+        roadmap_pointer_register_short_click (&roadmap_trip_move_last_handler);
+    RoadMapTripOldLongClickHandler =
+        roadmap_pointer_register_long_click (&roadmap_trip_move_last_cancel);
+    RoadMapTripOldRightClickHandler = 
+        roadmap_pointer_register_right_click (&roadmap_trip_move_last_cancel);
 }
 
 #if WGET_GOOGLE_ROUTE
