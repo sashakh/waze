@@ -1060,12 +1060,13 @@ static void roadmap_screen_repaint (void) {
 
           roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
-          roadmap_landmark_display ();
-          roadmap_features_display ();
-          roadmap_trip_display ();
-          roadmap_track_display ();
           roadmap_display_signs ();
        }
+
+       roadmap_landmark_display ();
+       roadmap_features_display ();
+       roadmap_trip_display ();
+       roadmap_track_display ();
     }
 
     RoadMapScreenAfterRefresh();
