@@ -48,8 +48,8 @@ static RoadMapConfigDescriptor RoadMapConfigLandmarkName =
 static RoadMapConfigDescriptor RoadMapConfigLandmarksColor =
                         ROADMAP_CONFIG_ITEM("Landmarks", "Color");
 
-/* in roadmap_trip.c */
-extern RoadMapConfigDescriptor RoadMapConfigBackupFiles;
+static RoadMapConfigDescriptor RoadMapConfigBackupFiles =
+                        ROADMAP_CONFIG_ITEM("Files", "Make Backups");
 
 
 void roadmap_landmark_set_modified(void) {
