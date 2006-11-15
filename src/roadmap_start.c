@@ -656,7 +656,7 @@ static const char *RoadMapStartMenu[] = {
       "quit",
 
 
-   ROADMAP_SUBMENU "Display modes..."
+   ROADMAP_SUBMENU "Display modes...",
 
       "togglelabels",
       "toggleorientation",
@@ -733,15 +733,15 @@ static const char *RoadMapStartMenu[] = {
       "simplifyroute",
       "createroute",
       "setasdestination",
-      "allroutetoggle", 
+      "allroutetoggle",
 #if WGET_GOOGLE_ROUTE
-      "getgoogleroute", 
+      "getgoogleroute",
 #endif
 
    ROADMAP_SUBMENU "Places...",
 
       "addaswaypoint",
-      "gpsaswaypoint", 
+      "gpsaswaypoint",
       "editroutepoints",
       "edittriplandmarks",
       "editpersonallandmarks",
