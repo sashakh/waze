@@ -51,6 +51,9 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralToolbarOrientation =
 static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
                         ROADMAP_CONFIG_ITEM("General", "Icons");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralTooltips =
+                        ROADMAP_CONFIG_ITEM("General", "Tooltips");
+
 
 const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
@@ -524,7 +527,8 @@ static RoadMapAction *roadmap_factory_find_action_or_menu
 }
 
 void roadmap_factory_config_menu
-      (const char **item, RoadMapAction *actions, int doing_menus) {
+      (const char **item, RoadMapAction *actions,
+       int doing_menus, int use_tips) {
 
    RoadMapMenu gui_menu = NULL;
    int menuprefix = sizeof(ROADMAP_MENU)-1;
@@ -546,12 +550,12 @@ void roadmap_factory_config_menu
 
          gui_menu = roadmap_main_new_menu (title);
 
-	 /* all menus are available as popups */
-	 roadmap_factory_add_popup (gui_menu, title);
+         /* all menus are available as popups */
+         roadmap_factory_add_popup (gui_menu, title);
 
-	 /* but only non-popups go into the menubar */
+         /* but only non-popups go into the menubar */
          if (doing_menus && is_menu) 
-	    roadmap_main_add_menu (gui_menu, title);
+            roadmap_main_add_menu (gui_menu, title);
 
 
       } else if ( gui_menu == NULL ) {
@@ -575,7 +579,7 @@ void roadmap_factory_config_menu
          if (this_action != NULL) {
             roadmap_main_add_menu_item (gui_menu,
                   this_action->label_long,
-                  this_action->tip,
+                  use_tips ? this_action->tip : NULL,
                   this_action->callback);
          } else {
             roadmap_log
@@ -586,7 +590,8 @@ void roadmap_factory_config_menu
 }
 
 void roadmap_factory_config_toolbar
-                (const char **item, RoadMapAction  *actions, int use_icons) {
+                (const char **item, RoadMapAction  *actions,
+                 int use_icons, int use_tips) {
 
    roadmap_main_add_toolbar
       (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
@@ -609,8 +614,8 @@ void roadmap_factory_config_toolbar
 
          if (this_action != NULL) {
             roadmap_main_add_tool (roadmap_factory_terse(this_action),
-                                   (use_icons) ? this_action->name : NULL,
-                                   this_action->tip,
+                                   use_icons ? this_action->name : NULL,
+                                   use_tips ? this_action->tip : NULL,
                                    this_action->callback);
          } else {
             roadmap_log 
@@ -625,10 +630,19 @@ void roadmap_factory (const char           *name,
                       const char           *menu[],
                       const char           *toolbar[]) {
 
-   int use_toolbar;
-
    const char **userconfig;
 
+   int use_toolbar;
+   int use_tips;
+   int use_icons;
+
+   use_toolbar = roadmap_config_match (&RoadMapConfigGeneralToolbar, "yes");
+   use_tips = roadmap_config_match (&RoadMapConfigGeneralTooltips, "yes");
+   use_icons = roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
+
+   roadmap_config_declare_enumeration ("preferences",
+                                       &RoadMapConfigGeneralTooltips,
+                                       "yes", "no", NULL);
 
    roadmap_config_declare_enumeration ("preferences",
                                        &RoadMapConfigGeneralToolbarOrientation,
@@ -646,29 +660,28 @@ void roadmap_factory (const char           *name,
       /* The user supplied config.  Load the internal config
        * anyway, but only as popups, to make those menus available
        * to the user's config.  */
-      roadmap_factory_config_menu(menu, actions, 0);
-      roadmap_factory_config_menu(userconfig, actions, 1);
+      roadmap_factory_config_menu(menu, actions, 0, use_tips);
+      roadmap_factory_config_menu(userconfig, actions, 1, use_tips);
    } else {
-      roadmap_factory_config_menu(menu, actions, 1);
+      roadmap_factory_config_menu(menu, actions, 1, use_tips);
    }
 
    userconfig = roadmap_factory_user_config (name, "popup", actions);
    if (userconfig != NULL) {
-      roadmap_factory_config_menu(userconfig, actions, 0);
+      roadmap_factory_config_menu(userconfig, actions, 0, use_tips);
    }
 
 
-   use_toolbar = roadmap_config_match (&RoadMapConfigGeneralToolbar, "yes");
    if (use_toolbar) {
-      int use_icons;
 
-      use_icons = roadmap_config_match (&RoadMapConfigGeneralIcons, "yes");
       userconfig = roadmap_factory_user_config (name, "toolbar", actions);
 
       if (userconfig != NULL) {
-         roadmap_factory_config_toolbar(userconfig, actions, use_icons);
+         roadmap_factory_config_toolbar
+            (userconfig, actions, use_icons, use_tips);
       } else {
-         roadmap_factory_config_toolbar(toolbar, actions, use_icons);
+         roadmap_factory_config_toolbar
+            (toolbar, actions, use_icons, use_tips);
       }
    }
 
