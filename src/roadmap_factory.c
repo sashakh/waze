@@ -643,6 +643,10 @@ void roadmap_factory (const char           *name,
 
    userconfig = roadmap_factory_user_config (name, "menus", actions);
    if (userconfig != NULL) {
+      /* The user supplied config.  Load the internal config
+       * anyway, but only as popups, to make those menus available
+       * to the user's config.  */
+      roadmap_factory_config_menu(menu, actions, 0);
       roadmap_factory_config_menu(userconfig, actions, 1);
    } else {
       roadmap_factory_config_menu(menu, actions, 1);
