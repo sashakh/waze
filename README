@@ -2146,6 +2146,14 @@ CONFIGURATION
 
          <<Default:>> system default toolbar position (usually on top).
 
+    [General.Tooltips] Show (yes) or hide (no) tooltips on menus and buttons.
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+         <<Comment:>> Tooltips may not work well on a touchscreen device.
+
     [Geometry.Main] Sets the size of the RoadMap main window.
 
          <<Format:>> <WIDTH>x<HEIGHT>
@@ -2180,7 +2188,7 @@ CONFIGURATION
 
          <<Format:>> RoadMap format string
 
-         <<Default:>> ETA: %A|%T
+         <<Default:>> In %Y, %X|%X");
 
     [Display.Top Left] Defines the message on the top left corner.
 
@@ -2201,6 +2209,12 @@ CONFIGURATION
          <<Format:>> boolean
 
          <<Default:>> "yes"
+
+    [Display.Refresh Period] Minimum interval between display refreshes.
+
+         <<Format:>> integer (milliseconds)
+
+         <<Default:>> 200
 
     [Help.Browser] The browser program used to show the help text.
 
@@ -2247,6 +2261,32 @@ CONFIGURATION
          <<Comment:>> chooses whether streets are labelled at startup.
                       They can still be toggled by command.
 
+    [Map.DynamicOrientation] Rotate the map to match the GPS direction.
+
+         <<Format:>> boolean
+
+         <<Default:>> off
+
+         <<Comment:>> chooses whether the map will initially show north,
+		      or the direction of travel, towards the top of the
+		      screen.  Can be toggled by command as well.
+
+    [Map.GPS map offset latitude]
+
+         <<Format:>> integer
+
+         <<Default:>> 0
+
+         <<Comment:>> offset (millionths of a degree) applied to GPS results
+
+    [Map.GPS map offset longitude]
+
+         <<Format:>> integer
+
+         <<Default:>> 0
+
+         <<Comment:>> offset (millionths of a degree) applied to GPS results
+
     [Map.Signs] Enable/disable the map sprites and street signs.
 
          <<Format:>> boolean
@@ -2260,6 +2300,159 @@ CONFIGURATION
          <<Format:>> enumeration (normal / forced)
 
          <<Default:>> normal
+
+    [Labels.MinFeatureSize] The shortest street which may be labeled.
+
+         <<Format:>> integer (in pixels)
+
+         <<Default:>> 25
+
+    [Labels.Color] The color used when labeling streets.
+
+         <<Format:>> color
+
+         <<Default:>> Black
+
+    [Landmarks.Name] The filename used for storing personal landmarks
+
+         <<Format:>> pathname, including & and ~ shortcuts
+
+         <<Default:>> landmarks.gpx, in the '&' (~/.roadmap) directory.
+
+    [Landmarks.Color] The color used when labeling personal landmarks.
+
+         <<Format:>> color
+
+         <<Default:>> dark red
+
+    [Track.Name] The filename used for storing current "breadcrumb" track
+
+         <<Format:>> pathname, including & and ~ shortcuts
+
+         <<Default:>> currenttrack.gpx, in the '&' (~/.roadmap) directory.
+
+	 <<Comment:>> The file is in stored in GPX format.
+
+    [Track.Initial Display] Determines whether the track is displayed when
+                    RoadMap starts.
+
+         <<Format:>> enumeration (on, off)
+
+         <<Default:>> on
+
+	 <<Comment:>> The display can still be toggled by command.
+
+    [Track.Policy] The algorithm used to decide when to store a new trackpoint
+
+         <<Format:>> enumeration ("off", "Deviation", "Distance", "Time")
+
+         <<Default:>> off
+
+	 <<Comment:>> When "off", no track is recorded.  When set to "Time",
+		  a new trackpoint is stored after "Track.Time Delta" time
+		  has passed since the last point was recorded.  Shen set to
+		  "Distance Delta", a new point is stored when the user has
+		  moved Track.Distance from the last point.  "Deviation" is
+		  the optimal setting:  call the most recent three points A,
+		  B, and C.  Point B is dropped if the distance from A to B
+		  and then to C is approximately equal to the distance
+		  directly from A to C.
+
+    [Track.Time Delta] Time interval used when Track.Policy is "Time".
+
+         <<Format:>> integer (seconds)
+
+         <<Default:>> 15
+
+    [Track.Distance Delta] Distance used when Track.Policy is "Distance".
+
+         <<Format:>> integer (with units)
+
+         <<Default:>> 100 m
+
+    [Track.Autosave minutes] Number of minutes between automatic saves of
+		  the current track.
+
+         <<Format:>> integer
+
+         <<Default:>> 1000
+
+    [Track.Saved Track Points] Approximate number of track points saved in
+		  memory, or in a single file.
+
+         <<Format:>> integer
+
+         <<Default:>> 1000
+
+	 <<Comment:>> After "Track.Autosave minutes", if there are 25%
+		  more points in the current track than this number, then
+		  75% are saved to an archive file, and the remainder
+		  are still kept in memory and displayed on the map.
+
+    [Trip.Name] The filename holding the current trip.
+
+         <<Format:>> pathname, including & and ~ shortcuts
+
+         <<Default:>> SavedTrip.gpx, in the '&/trips' (~/.roadmap) directory,
+		  but usually chosen by the user.
+
+	 <<Comment:>> The file is in stored in GPX format.
+
+    [Trip.Show Inactive Routes] Should waypoints in unselected routes be shown.
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+	 <<Comment:>> Can still be toggled by command.
+
+    [Trip.Connect Route Points] Should route waypoints be connected with
+		  straight lines?
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+	 <<Comment:>> Can still be toggled by command.
+
+    [Trip.Route Connect Color] The color used to connect route waypoints.
+
+         <<Format:>> color
+
+         <<Default:>> red
+
+    [Trip.Waypoint Radius] How close does the GPS need to be to a waypoint
+	          to be "on" the waypoint.
+
+         <<Format:>> integer (distance, with units)
+
+         <<Default:>> 125 ft
+
+    [FeatureFiles.Path] List of files containing features to display on map.
+
+         <<Format:>> A comma-separated list of filenames, each accompanied
+	    by their semi-colon-separated list of display parameters:
+	    filename;spritename;labelcolor;declutterlevel,filename;spritename...
+
+         <<Default:>> <empty>
+
+         <<Comment:>> The filename may include & and ~ as path shorthands,
+	    the spritename else should appear in the sprites file, the
+	    labelcolor will be used when writing the feature's name, and the
+	    declutter level is an integer, representing the zoom level above
+	    which the label will not be drawn.  The spritename or the
+	    labelcolor may be the string "NONE", which will suppress the
+	    sprite or the label, respectively.  The declutter value may be
+	    omitted.
+
+    [Files.Make Backups] Enable/disable the creation of backup files.
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+         <<Comment:>> On UNIX, backup files will have a '~' character
+	 	  appended.  Under Windows, a ".bak" suffix will be used.
 
     [GPS.Background] The background color for the RoadGps screen.
 
@@ -2301,12 +2494,19 @@ CONFIGURATION
                   (file://<path>) is also possible, for debug.  If gpsd is not
                   available, one can use a GPS source connected directly to a
                   serial port.  (tty://<device-path>[:baudrate])  An example
-                  would be "tty://dev/ttyS0".  4800 baud is the NMEA standard,
-                  but a different speed can be given: "tty://dev/ttyS0:19200". 
-                  (Note that using direct tty access prevents one from running
-                  both RoadMap and RoadGps at the same time, since there is no
-                  mechanism in place to allow sharing the serial port.  Using
-                  gpsd is recommended.)
+		  would be "tty://dev/ttyS0", or "COM1:" under Windows.  4800
+		  baud is the NMEA standard, but a different speed can be
+		  given:  "tty://dev/ttyS0:19200".  (Note that using direct
+		  tty access prevents one from running both RoadMap and
+		  RoadGps at the same time, since there is no mechanism in
+		  place to allow sharing the serial port.  Using gpsd is
+		  recommended.)
+
+    [GPS.Baud] The baud rate to use if GPS.Source is a serial port
+
+         <<Format:>> integer
+
+         <<Default:>> 4800
 
     [GPS.Color] The color used for the current GPS position symbol.
 
@@ -2414,14 +2614,12 @@ CONFIGURATION
 
     [Accuracy.GPS Position] The GPS's estimated position error (worst case)
 
-         <<Format:>> integer
+         <<Format:>> distance
 
-         <<Default:>> 300
+         <<Default:>> 30m
 
-         <<Comment:>> the unit depends on the selected unit system (feet or
-                  meter). The default shown being tuned for feet. This default
-                  accuracy can be adjusted to the actual GPS estimate if a
-                  Garmin GPS receiver is used.
+	 <<Comment:>> This default accuracy can be adjusted to the actual GPS
+		  estimate if a Garmin GPS receiver is used.
 
     [Accuracy.GPS Speed] GPS's speed accuracy.
 
@@ -2435,7 +2633,7 @@ CONFIGURATION
 
          <<Default:>> 5
 
-    [Accuracy.Mouse] The size of the street selection search area.
+    [Accuracy.Mouse] The size of the street or place selection search area.
 
          <<Format:>> number of pixels
 
@@ -2617,7 +2815,13 @@ CONFIGURATION
 
          <<Format:>> string
 
-         <<Default:>> Map Menu
+         <<Default:>> Right Click Popup
+
+    [Events.Long Click] The name of the menu to open on a mouse long click.
+
+         <<Format:>> string
+
+         <<Default:>> Long Click Popup
          
  (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
 
