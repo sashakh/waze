@@ -2768,10 +2768,111 @@ void roadmap_trip_clear_selection_list(void) {
 
    RoadMapListItem *element, *tmp;
 
+   roadmap_dialog_hide ("Multiple Places");
+
    ROADMAP_LIST_FOR_EACH(&RoadMapTripAreaPlaces, element, tmp) {
       free (roadmap_list_remove(element));
    }
    RoadMapTripSelectedPlace = NULL;
+}
+
+void roadmap_trip_waypoint_show_selected(void) {
+
+      roadmap_place_pointer *pp;
+      waypoint *wpt;
+      pp = (roadmap_place_pointer *)
+            ROADMAP_LIST_FIRST(&RoadMapTripAreaPlaces);
+
+      wpt = pp->wpt;
+
+      roadmap_message_set ('R', pp->list ? pp->list : "");
+      roadmap_message_set ('P', wpt->shortname);
+
+      roadmap_display_text("Place", "%s%s%s%s%s%s",
+        pp->list ? pp->list : "",
+        pp->list ? " / " : "",
+        wpt->shortname,
+        wpt->description ? " - " : "",
+        wpt->description ? wpt->description  : "",
+        roadmap_list_count(&RoadMapTripAreaPlaces) > 1 ? " (more)" : "");
+      roadmap_screen_redraw ();
+
+      roadmap_trip_move_last_cancel (NULL);
+      RoadMapTripSelectedPlace = pp;
+}
+
+static void roadmap_trip_waypoint_selection_dialog_selected (
+        const char *name, void *data) {
+
+    roadmap_place_pointer *pp;
+
+    pp = (roadmap_place_pointer *) roadmap_dialog_get_data ("Names", ".Places");
+
+    if (pp != NULL) {
+	/* force it to the start of the list */
+	roadmap_list_insert
+	    ( &RoadMapTripAreaPlaces, roadmap_list_remove(&pp->link));
+	roadmap_trip_waypoint_show_selected ();
+	roadmap_trip_set_focus_waypoint (pp->wpt);
+	roadmap_screen_refresh ();
+    }
+}
+
+static void roadmap_trip_waypoint_selection_dialog (void) {
+
+    char **names;
+    roadmap_place_pointer **places;
+    int count;
+    int i;
+    RoadMapListItem *elem, *tmp;
+    waypoint *wpt;
+    roadmap_place_pointer *pp;
+
+
+    if (roadmap_dialog_activate ( "Multiple Places", NULL)) {
+
+        roadmap_dialog_new_list ("Names", ".Places");
+        roadmap_dialog_add_button
+            ("Okay", roadmap_trip_dialog_cancel);
+
+        roadmap_dialog_complete (0);    /* No need for a keyboard. */
+    }
+
+    count = roadmap_list_count(&RoadMapTripAreaPlaces);
+    if (count <= 1) {
+        return;
+    }
+
+    names = calloc (count, sizeof (*names));
+    roadmap_check_allocated (names);
+    places = calloc (count, sizeof (*places));
+    roadmap_check_allocated (places);
+
+
+    i = 0;
+    ROADMAP_LIST_FOR_EACH (&RoadMapTripAreaPlaces, elem, tmp) {
+	char buf[128];
+	pp = (roadmap_place_pointer *)elem;
+	wpt = pp->wpt;
+
+	snprintf(buf, sizeof(buf), "%s%s%s%s%s", 
+	    pp->list ? pp->list : "",
+	    pp->list ? " / " : "",
+	    wpt->shortname,
+	    wpt->description ? " - " : "",
+	    wpt->description ? wpt->description  : "");
+        names[i] = strdup(buf);
+        places[i++] = pp;
+    }
+    roadmap_dialog_show_list
+        ("Names", ".Places", count, names, (void **) places,
+            roadmap_trip_waypoint_selection_dialog_selected);
+
+    while (i > 0)
+	free(names[--i]);
+    free (names);
+    free (places);
+
 }
 
 int roadmap_trip_retrieve_area_points
@@ -2841,25 +2942,12 @@ int roadmap_trip_retrieve_area_points
           if (ocount == count) break;
       }
 
-      pp = (roadmap_place_pointer *)
-            ROADMAP_LIST_FIRST(&RoadMapTripAreaPlaces);
+      if (count > 1) {
+	  roadmap_trip_waypoint_selection_dialog ();
+      } else {
+	  roadmap_trip_waypoint_show_selected();
+      }
 
-      wpt = pp->wpt;
-
-      roadmap_message_set ('R', pp->list ? pp->list : "");
-      roadmap_message_set ('P', wpt->shortname);
-
-      roadmap_display_text("Place", "%s%s%s%s%s%s",
-        pp->list ? pp->list : "",
-        pp->list ? " / " : "",
-        wpt->shortname,
-        wpt->description ? " - " : "",
-        wpt->description ? wpt->description  : "",
-        count > 1 ? " (more)" : "");
-      roadmap_screen_redraw ();
-
-      roadmap_trip_move_last_cancel (NULL);
-      RoadMapTripSelectedPlace = pp;
    }
 
    return 1;
