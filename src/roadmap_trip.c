@@ -80,7 +80,7 @@ static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
 static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
                         ROADMAP_CONFIG_ITEM("Trip", "Waypoint Radius");
 
-RoadMapConfigDescriptor RoadMapConfigBackupFiles =
+static RoadMapConfigDescriptor RoadMapConfigBackupFiles =
                         ROADMAP_CONFIG_ITEM("Files", "Make Backups");
 
 /*
