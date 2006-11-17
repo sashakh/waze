@@ -52,7 +52,7 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl -lagg -lfreetype
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl -lagg -lfreetype -lpng
 
 ifeq ($(BIDI),YES)
 LIBS += -lfribidi
@@ -70,11 +70,11 @@ CXXFLAGS = $(CFLAGS) -I/usr/include/agg2 -I/usr/include/freetype2 -I/usr/include
 # --- RoadMap sources & targets -----------------------------------
 
 RMLIBSRCS=roadmap_keyboard.c \
-          roadmap_messagebox.c \
           roadmap_dialog.c \
-          roadmap_fileselection.c 
+          roadmap_fileselection.c \
+#          roadmap_messagebox.c \
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
+RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o ../roadmap_libpng.o
 
 
 # --- Conventional targets ----------------------------------------
