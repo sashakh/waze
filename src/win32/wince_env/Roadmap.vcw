@@ -54,7 +54,13 @@ Package=<4>
     Project_Dep_Name libwinceguiroadmap
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name zlib
+    Project_Dep_Name libssd
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name lpngce
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name zlibce
     End Project Dependency
 }}}
 
@@ -124,9 +130,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name agg
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name zlib
     End Project Dependency
 }}}
 
@@ -273,6 +276,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "lpngce"=.\libpng\lpngce.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name zlibce
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "rdmfriends"=.\rdmfriends\rdmfriends.vcp - Package Owner=<4>
 
 Package=<5>
@@ -315,7 +333,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "zlib"=.\zlib\zlib.vcp - Package Owner=<4>
+Project: "zlibce"=.\zlib\zlibce.vcp - Package Owner=<4>
 
 Package=<5>
 {{{

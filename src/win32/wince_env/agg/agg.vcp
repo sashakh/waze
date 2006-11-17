@@ -324,6 +324,7 @@ DEP_CPP_ROADM=\
 NODEP_CPP_ROADM=\
 	"..\..\..\agg\include\agg_allocator.h"\
 	
+# ADD CPP /D RGB565=1
 # End Source File
 # End Group
 # Begin Group "Header Files"
