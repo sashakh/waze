@@ -31,8 +31,9 @@ struct GPSFilter;
 void editor_track_filter_reset (struct GPSFilter *filter);
 
 struct GPSFilter *editor_track_filter_new (int max_distance,
-                                    		 int max_time,
-                                    		 int point_distance);
+                                           int max_stand_time,
+                                           int timeout,
+                                           int point_distance);
 
 int editor_track_filter_add (struct GPSFilter *filter,
                              time_t gps_time,

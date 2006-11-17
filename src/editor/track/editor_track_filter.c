@@ -45,12 +45,14 @@
 typedef struct GPSFilter {
 
    int max_distance;
-   time_t max_time;
+   time_t max_stand_time;
+   time_t timeout;
    int point_distance;
 
    int first_point;
    RoadMapGpsPosition last_gps_point;
    time_t last_gps_time;
+   time_t last_gps_move_time;
    int last_azymuth;
 
    RoadMapGpsPosition normalized_gps_point;
@@ -65,13 +67,15 @@ void editor_track_filter_reset (GPSFilter *filter) {
 
 
 GPSFilter *editor_track_filter_new (int max_distance,
-                                    int max_time,
+                                    int max_stand_time,
+                                    int timeout,
                                     int point_distance) {
 
    GPSFilter *filter = malloc (sizeof(GPSFilter));
 
    filter->max_distance = max_distance;
-   filter->max_time = max_time;
+   filter->max_stand_time = max_stand_time;
+   filter->timeout = timeout;
    filter->point_distance = point_distance;
 
    editor_track_filter_reset (filter);
@@ -92,10 +96,20 @@ int editor_track_filter_add (GPSFilter *filter,
       filter->first_point = 0;
       filter->last_azymuth = gps_position->steering;
       filter->last_gps_point = *gps_position;
+      filter->last_gps_move_time = gps_time;
       filter->last_gps_time = gps_time;
       filter->normalized_gps_point = *gps_position;
       return 0;
    }
+
+   if ((gps_time - filter->last_gps_time) > filter->timeout) {
+      editor_track_filter_reset (filter);
+      editor_track_filter_add (filter, gps_time, dilution, gps_position);
+
+      return ED_TRACK_END;
+   }
+
+   filter->last_gps_time = gps_time;
 
    if (gps_position->speed == 0) return 0;
 
@@ -111,9 +125,8 @@ int editor_track_filter_add (GPSFilter *filter,
             ((RoadMapPosition *) &filter->last_gps_point,
               (RoadMapPosition*) gps_position) >= filter->max_distance) ||
          
-         (gps_time < filter->last_gps_time) ||
-         
-         ((gps_time - filter->last_gps_time) > filter->max_time)) {
+         (gps_time < filter->last_gps_move_time) ||
+         ((gps_time - filter->last_gps_move_time) > filter->max_stand_time)) {
 
       editor_track_filter_reset (filter);
       editor_track_filter_add (filter, gps_time, dilution, gps_position);
@@ -121,7 +134,7 @@ int editor_track_filter_add (GPSFilter *filter,
       return ED_TRACK_END;
    }
 
-   filter->last_gps_time = gps_time;
+   filter->last_gps_move_time = gps_time;
 
    filter->normalized_gps_point.longitude =
          (filter->normalized_gps_point.longitude +

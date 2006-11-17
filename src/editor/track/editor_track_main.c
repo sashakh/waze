@@ -605,6 +605,7 @@ static void track_rec_locate(time_t gps_time,
 
       filter = editor_track_filter_new 
          (roadmap_math_distance_convert ("1000m", NULL),
+          600, /* 10 minutes */
           60, /* 1 minute */
           roadmap_math_distance_convert ("10m", NULL));
    }
