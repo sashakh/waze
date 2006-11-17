@@ -60,6 +60,7 @@
 
 #include "roadmap_screen.h"
 
+#include "ssd/ssd_dialog.h"
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
@@ -1083,10 +1084,15 @@ static void roadmap_screen_repaint (void) {
     int k;
     int count;
     int max_pen = roadmap_layer_max_pen();
+    static int nomap;
     int use_only_main_pen = 0;
     
 
-    if (!RoadMapScreenInitialized || RoadMapScreenFrozen) return;
+    if (!RoadMapScreenInitialized) return;
+    if (RoadMapScreenFrozen) {
+       ssd_dialog_draw ();
+       return;
+    }
 
     dbg_time_start(DBG_TIME_FULL);
     if (RoadMapScreenDragging &&
@@ -1116,6 +1122,10 @@ static void roadmap_screen_repaint (void) {
 
     if (count == 0) {
        roadmap_display_text("Info", roadmap_lang_get ("No map available"));
+       nomap = 1;
+    } else if (nomap) {
+       roadmap_display_hide("Info");
+       nomap = 0;
     }
 
     roadmap_label_start();
@@ -1183,6 +1193,8 @@ static void roadmap_screen_repaint (void) {
     RoadMapScreenAfterRefresh();
 
     roadmap_display_signs ();
+
+    ssd_dialog_draw ();
     roadmap_canvas_refresh ();
 
     roadmap_log_pop ();

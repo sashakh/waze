@@ -816,6 +816,11 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
    RoadMapPosition intersections[2];
    int max_intersections = 0;
 
+   if (!point0 && (from_visible || to_visible)) {
+      /* This is only a visibility test */
+      return 1;
+   }
+
    if (!from_visible || !to_visible) {
 
       double a;
@@ -844,6 +849,8 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
          return 0;
       }
    }
+
+   if (!point0) return 1;
 
    if (max_intersections == 2) {
       /* Make sure we didn't swap the from/to points */
