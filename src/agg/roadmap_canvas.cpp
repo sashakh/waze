@@ -67,7 +67,11 @@ extern "C" {
 }
 #include "../roadmap_canvas_agg.h"
 
+#ifdef RGB565
 typedef agg::pixfmt_rgb565 pixfmt;
+#else
+typedef agg::pixfmt_bgra32 pixfmt;
+#endif
 typedef agg::renderer_base<pixfmt> renbase_type;
 typedef agg::renderer_primitives<renbase_type> renderer_pr;
 typedef agg::font_engine_freetype_int32 font_engine_type;
@@ -481,12 +485,12 @@ void roadmap_canvas_draw_multiple_circles
          ren_solid.color(CurrentPen->color);
          agg::render_scanlines( ras, sl, ren_solid);
          
-      } else if (fast_draw) {
+/*      } else if (fast_draw) {
          renderer_pr ren_pr(agg_renb);
          agg::rasterizer_outline<renderer_pr> ras_line(ren_pr);
          ren_pr.line_color(CurrentPen->color);
          ras_line.add_path(path);
-         
+*/       
       } else {
          
          raso.add_path(path);
@@ -777,6 +781,12 @@ void roadmap_canvas_draw_image (RoadMapImage image, const RoadMapGuiPoint *pos,
    agg_renb.blend_from(image->pixfmt, 0, pos->x, pos->y, opacity);
 
    if (mode == IMAGE_SELECTED) {
+      static RoadMapPen selection;
+
+      if (!selection) {
+         selection = roadmap_canvas_create_pen("selection");
+         roadmap_canvas_set_foreground ("#000000");
+      }
 
       RoadMapGuiPoint points[5] = {
          {pos->x, pos->y},
@@ -787,7 +797,9 @@ void roadmap_canvas_draw_image (RoadMapImage image, const RoadMapGuiPoint *pos,
 
       int num_points = 5;
 
+      RoadMapPen current = roadmap_canvas_select_pen (selection);
       roadmap_canvas_draw_multiple_lines (1, &num_points, points, 0);
+      roadmap_canvas_select_pen (current);
    }
 }
 
