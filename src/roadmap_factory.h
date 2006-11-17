@@ -67,5 +67,9 @@ RoadMapMenu roadmap_factory_menu (const char           *name,
                                   const char           *items[],
                                   const RoadMapAction  *actions);
 
+const char **roadmap_factory_user_config (const char *name,
+                                          const char *category,
+                                          const RoadMapAction *actions,
+                                          const char **icons);
 #endif /* INCLUDE__ROADMAP_FACTORY__H */
 
