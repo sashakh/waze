@@ -75,6 +75,10 @@
 #include "roadmap_lang.h"
 #include "roadmap_start.h"
 
+#ifdef SSD
+#include "ssd/ssd_menu.h"
+#endif
+
 #include "navigate/navigate_main.h"
 #include "editor/editor_main.h"
 #include "editor/db/editor_db.h"
@@ -105,8 +109,11 @@ static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
 static RoadMapMenu LongClickMenu;
+#ifndef SSD
 static RoadMapMenu QuickMenu;
+#endif
 
+static RoadMapStartSubscriber  RoadMapStartSubscribers = NULL;
 static RoadMapScreenSubscriber roadmap_start_prev_after_refresh = NULL;
 
 /* The menu and toolbar callbacks: --------------------------------------- */
@@ -316,14 +323,7 @@ static void roadmap_start_sync_data (void) {
 }
 
 
-static void roadmap_start_quick_menu (void) {
-    
-   if (QuickMenu != NULL) {
-      const RoadMapGuiPoint *point = roadmap_pointer_position ();
-      roadmap_main_popup_menu (QuickMenu, point->x, point->y);
-   }
-}
-
+static void roadmap_start_quick_menu (void);
 
 /* The RoadMap menu and toolbar items: ----------------------------------- */
 
@@ -807,6 +807,29 @@ static char const *RoadMapStartKeyBinding[] = {
 #endif
 
 
+static void roadmap_start_quick_menu (void) {
+
+#ifdef SSD
+   ssd_menu_activate ("quick", RoadMapStartQuickMenu, RoadMapStartActions);
+   //ssd_keyboard_show ();
+   //ssd_test_list ();
+#else
+   if (QuickMenu == NULL) {
+
+       QuickMenu = roadmap_factory_menu ("quick",
+                                     RoadMapStartQuickMenu,
+                                     RoadMapStartActions);
+   }
+
+   if (QuickMenu != NULL) {
+      const RoadMapGuiPoint *point = roadmap_pointer_position ();
+      roadmap_main_popup_menu (QuickMenu, point->x, point->y);
+   }
+#endif   
+}
+
+
+#ifdef UNDER_CE
 static void roadmap_start_init_key_cfg (void) {
 
    const char **keys = RoadMapStartKeyBinding;
@@ -885,6 +908,7 @@ static void roadmap_start_init_key_cfg (void) {
       keys++;
    }
 }
+#endif
 
 
 static void roadmap_start_set_unit (void) {
@@ -1024,10 +1048,6 @@ static void roadmap_start_window (void) {
                     RoadMapStartActions,
                     RoadMapStartMenu,
                     RoadMapStartToolbar);
-
-   QuickMenu = roadmap_factory_menu ("quick",
-                                     RoadMapStartQuickMenu,
-                                     RoadMapStartActions);
 
    LongClickMenu = roadmap_factory_menu ("long_click",
                                          RoadMapStartLongClickMenu,
@@ -1206,6 +1226,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_prev_after_refresh =
       roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
+   if (RoadMapStartSubscribers) RoadMapStartSubscribers (ROADMAP_START_INIT);
+
    editor_main_initialize ();
    navigate_main_initialize ();
 
@@ -1251,5 +1273,16 @@ const RoadMapAction *roadmap_start_find_action (const char *name) {
 
 void roadmap_start_set_title (const char *title) {
    RoadMapMainTitle = title;
+}
+
+
+RoadMapStartSubscriber roadmap_start_subscribe
+                                 (RoadMapStartSubscriber handler) {
+
+   RoadMapStartSubscriber previous = RoadMapStartSubscribers;
+
+   RoadMapStartSubscribers = handler;
+
+   return previous;
 }
 

@@ -103,12 +103,12 @@ static HMENU			   RoadMapCurrentSubMenu = NULL;
 static HWND				   RoadMapMainToolbar = NULL;
 static bool				   RoadMapMainFullScreen = false;
 static HANDLE           VirtualSerialHandle = 0;
-static const char *RoadMapMainVirtualSerial;
+static const char      *RoadMapMainVirtualSerial;
 static bool             RoadMapMainSync = false;
 
 
 // Global Variables:
-extern "C" HINSTANCE	g_hInst = NULL;
+extern "C" HINSTANCE	   g_hInst = NULL;
 extern "C" HWND			RoadMapMainWindow  = NULL;
 
 // Forward declarations of functions included in this code module:
@@ -172,6 +172,23 @@ static BOOL AppInstanceExists()
    return ( g_hMutexAppRunning == NULL );
 }
 
+
+static void roadmap_start_event (int event) {
+   switch (event) {
+   case ROADMAP_START_INIT:
+#ifdef FREEMAP_IL
+      editor_main_check_map ();
+#endif
+      break;
+   }
+}
+
+static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent,
+                                   DWORD dwTime) {
+#ifdef UNDER_CE
+   CEDevice::wakeUp();
+#endif
+}
 
 #ifndef _ROADGPS
 #ifdef UNDER_CE
@@ -425,21 +442,27 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
    if (do_sync) {
       roadmap_config_initialize ();
       roadmap_config_declare_enumeration
-         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);    
+         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
 
       if (!roadmap_main_should_sync ()) return 0;
+
+      CEDevice::init();
+      SetTimer (NULL, 0, 50000, AvoidSuspend);
+
       roadmap_lang_initialize ();
       roadmap_start_set_title (roadmap_lang_get ("RoadMap"));
       roadmap_download_initialize ();
       editor_main_initialize ();
       editor_main_set (1);
-      roadmap_main_start_sync ();      
+      roadmap_main_start_sync ();
+      CEDevice::end();
       return 0;
    }
 #endif
 #endif
 
 
+   roadmap_start_subscribe (roadmap_start_event);
 	roadmap_start(0, args);
 	
 #ifndef _ROADGPS
@@ -485,14 +508,6 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
 	   return 1;
    }
 	return 0;
-}
-
-
-static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent,
-                                   DWORD dwTime) {
-#ifdef UNDER_CE
-   CEDevice::wakeUp();
-#endif
 }
 
 
@@ -896,7 +911,6 @@ extern "C" {
 #endif
 
 #ifdef FREEMAP_IL
-      editor_main_check_map ();
       editor_main_set (1);
 #endif
    }

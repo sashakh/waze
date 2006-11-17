@@ -81,6 +81,17 @@ static GtkWidget      *RoadMapMainStatus  = NULL;
 static int GtkIconsInitialized = 0;
 
 
+static void roadmap_start_event (int event) {
+   switch (event) {
+   case ROADMAP_START_INIT:
+#ifdef FREEMAP_IL
+      editor_main_check_map ();
+#endif
+      break;
+   }
+}
+
+
 #ifdef ROADMAP_USES_GPE
 
 static struct gpe_icon RoadMapGpeIcons[] = {
@@ -252,7 +263,6 @@ void roadmap_main_new (const char *title, int width, int height) {
    }
    RoadMapMainTitle = strdup (title);
 #ifdef FREEMAP_IL
-   editor_main_check_map ();
    editor_main_set (1);
 #endif
 }
@@ -280,6 +290,7 @@ void roadmap_main_add_menu (RoadMapMenu menu, const char *label) {
 
    GtkWidget *menu_item;
 
+return;
    if (RoadMapMainMenuBar == NULL) {
 
       RoadMapMainMenuBar = gtk_menu_bar_new();
@@ -547,6 +558,7 @@ int main (int argc, char **argv) {
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
    }
 
+   roadmap_start_subscribe (roadmap_start_event);
    roadmap_start (argc, argv);
 
    gtk_main();
