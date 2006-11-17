@@ -32,33 +32,12 @@
 #include "roadmap_canvas.h"
 
 #include "ssd_widget.h"
+#include "ssd_text.h"
 #include "ssd_entry.h"
 
 static int initialized;
 static RoadMapPen bg;
 static RoadMapPen text_pen;
-
-static void draw_text (SsdWidget widget, const RoadMapGuiRect *rect) {
-   int text_width;
-   int text_ascent;
-   int text_descent;
-   int text_height;
-   RoadMapGuiPoint p;
-
-   roadmap_canvas_get_text_extents 
-         (widget->value, -1, &text_width, &text_ascent, &text_descent, NULL);
-   text_height = text_ascent + text_descent;
-
-   if (ssd_widget_rtl()) {
-      p.x = rect->maxx - text_width;
-   } else {
-      p.x = rect->minx;
-   }
-
-   p.y = rect->maxy - text_height / 2;
-   roadmap_canvas_draw_string_angle (&p, NULL, 0, -1, widget->value);
-}
-
 
 static void init (void) {
    bg = roadmap_canvas_create_pen ("ssd_entry_bg");
@@ -71,49 +50,45 @@ static void init (void) {
 }
 
 
-static void draw (SsdWidget widget, const RoadMapGuiPoint *point) {
-   RoadMapGuiRect rect;
+static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
+
    RoadMapGuiPoint points[5];
    int count = 5;
 
-   rect.minx = point->x;
-   rect.miny = point->y;
-   rect.maxx = rect.minx + widget->size.width - 1;
-   rect.maxy = rect.miny + widget->size.height - 1;
+   if (!(flags & SSD_GET_SIZE)) {
+      roadmap_canvas_select_pen (bg);
+      roadmap_canvas_erase_area (rect);
+   }
 
-   roadmap_canvas_select_pen (bg);
-   roadmap_canvas_erase_area (&rect);
-   roadmap_canvas_select_pen (text_pen);
+   points[0].x = rect->minx;
+   points[0].y = rect->miny;
+   points[1].x = rect->maxx;
+   points[1].y = rect->miny;
+   points[2].x = rect->maxx;
+   points[2].y = rect->maxy;
+   points[3].x = rect->minx;
+   points[3].y = rect->maxy;
+   points[4].x = rect->minx;
+   points[4].y = rect->miny;
 
-   points[0].x = rect.minx;
-   points[0].y = rect.miny;
-   points[1].x = rect.maxx;
-   points[1].y = rect.miny;
-   points[2].x = rect.maxx;
-   points[2].y = rect.maxy;
-   points[3].x = rect.minx;
-   points[3].y = rect.maxy;
-   points[4].x = rect.minx;
-   points[4].y = rect.miny;
+   if (!(flags & SSD_GET_SIZE)) {
+      roadmap_canvas_select_pen (text_pen);
+      roadmap_canvas_draw_multiple_lines (1, &count, points, 0);
+   }
 
-   roadmap_canvas_draw_multiple_lines (1, &count, points, 0);
-
-   rect.minx += 2;
-   rect.miny += 2;
-   rect.maxx -= 2;
-   rect.maxy -= 2;
-
-   draw_text (widget, &rect);
+   rect->minx += 1;
+   rect->miny += 1;
+   rect->maxx -= 1;
+   rect->maxy -= 1;
 }
 
 
 static int set_value (SsdWidget widget, const char *value) {
 
-   if (widget->value && *widget->value) free (widget->value);
+   SsdWidget w = ssd_widget_get (widget, "text");
+   w->set_value (w, value);
 
-   if (*value) widget->value = strdup(value);
-   else widget->value = "";
-
+   widget->value = w->value;
 
    return 0;
 }
@@ -134,8 +109,10 @@ SsdWidget ssd_entry_new (const char *name, const char *value, int flags) {
    w->draw = draw;
    w->set_value = set_value;
    w->flags = flags;
-   w->size.height = 20;
-   w->size.width = roadmap_canvas_width() - 6;
+//   w->size.height = 24;
+//   w->size.width = roadmap_canvas_width() - 6;
+
+   w->children = ssd_text_new ("text", value, 20, 0);
 
    set_value (w, value);
 

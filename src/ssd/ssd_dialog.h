@@ -29,19 +29,23 @@
 #include "roadmap_canvas.h"
 #include "ssd_widget.h"
 
-int  ssd_dialog_activate (const char *name, void *context);
+typedef int (*SsdDialogCB) (int type, const char *new_value, void *context);
+
+SsdWidget ssd_dialog_activate (const char *name, void *context);
 void ssd_dialog_hide (const char *name);
-void ssd_dialog_new (const char *name, const char *title, int flags);
+SsdWidget ssd_dialog_new (const char *name, const char *title, int flags);
 void ssd_dialog_new_line (void);
 void ssd_dialog_draw (void);
 void ssd_dialog_new_entry (const char *name, const char *value,
                            int flags, SsdCallback callback);
 
-void ssd_dialog_new_button (const char *name, const char *value,
-                            const char **bitmaps, int num_bitmaps,
-                            int flags, SsdCallback callback);
+SsdWidget ssd_dialog_new_button (const char *name, const char *value,
+                                 const char **bitmaps, int num_bitmaps,
+                                 int flags, SsdCallback callback);
 
 const char *ssd_dialog_get_value (const char *name);
 int ssd_dialog_set_value (const char *name, const char *value);
+
+void ssd_dialog_hide_current (void);
 
 #endif // __SSD_DIALOG_H_

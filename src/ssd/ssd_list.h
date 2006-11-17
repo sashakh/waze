@@ -1,4 +1,4 @@
-/* ssd_text.h - Static text widget
+/* ssd_list.h - List view widget
  *
  * LICENSE:
  *
@@ -22,12 +22,23 @@
  *
  */
 
-#ifndef __SSD_WIDGET_TEXT_H_
-#define __SSD_WIDGET_TEXT_H_
+#ifndef __SSD_WIDGET_LIST_H_
+#define __SSD_WIDGET_LIST_H_
   
 #include "ssd_widget.h"
 
-SsdWidget ssd_text_new (const char *name, const char *value,
-                        int size, int flags);
+SsdWidget ssd_list_new (const char *name,
+                        int width,
+                        int height,
+                        int flags);
 
-#endif // __SSD_WIDGET_TEXT_H_
+void ssd_list_populate (SsdWidget list, int count, const char **labels,
+                        const void **values, SsdCallback callback);
+
+void ssd_list_show (const char *title, int count, const char **labels,
+                    const void **values,
+                    SsdDialogCB callback, void *context);
+
+void ssd_list_hide (void);
+
+#endif // __SSD_WIDGET_LIST_H_

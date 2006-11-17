@@ -37,7 +37,11 @@ size_t __cdecl wcrtomb(char *, wchar_t, mbstate_t *);
 #include "roadmap_lang.h"
 #include "roadmap_path.h"
 #include "ssd_dialog.h"
+#include "ssd_text.h"
+#include "ssd_container.h"
 #include "ssd_button.h"
+
+#include "ssd_keyboard.h"
 
 #define SSD_KEY_CHAR 1
 #define SSD_KEY_WORD 2
@@ -47,29 +51,35 @@ size_t __cdecl wcrtomb(char *, wchar_t, mbstate_t *);
 #define SSD_KEY_BACKSPACE 0x4
 
 typedef struct ssd_keyboard {
-   const char *name;
-   const char *keys;
-   int special_keys;
+   const char   *name;
+   const char   *keys;
+   int           special_keys;
+   SsdWidget     widget;
+   SsdDialogCB   callback;
+   void *context;
 } SsdKeyboard;
 
 SsdKeyboard def_keyboards[] = {
    {"letters_kbd",
     "א1ב2ג3ד4ה5ו6ז7ח8ט9י0כךללמםנןססעעפףצץקקר:ש,ת.",
-    SSD_KEY_CONFIRM | SSD_KEY_SPACE | SSD_KEY_BACKSPACE}
+    SSD_KEY_CONFIRM | SSD_KEY_SPACE | SSD_KEY_BACKSPACE,
+    NULL,
+    NULL,
+    NULL}
 };
 
-static int button_callback (const char *name, const char *new_value,
-                            void *context) {
+static int button_callback (SsdWidget widget, const char *new_value) {
+
    wchar_t wkeys[3];
    char key[20];
    char text[255];
    int count;
    int len;
 
-   if (!strcmp (roadmap_lang_get ("Ok"), name)) {
+   if (!strcmp (roadmap_lang_get ("Ok"), widget->name)) {
       return 0;
 
-   } else if (!strcmp (roadmap_lang_get ("Del"), name)) {
+   } else if (!strcmp (roadmap_lang_get ("Del"), widget->name)) {
       wchar_t wtext[255];
       const char *t = ssd_dialog_get_value ("input");
       int value_len = strlen(t);
@@ -96,13 +106,14 @@ static int button_callback (const char *name, const char *new_value,
 
       return 0;
 
-   } else if (!strcmp (roadmap_lang_get ("SPC"), name)) {
+   } else if (!strcmp (roadmap_lang_get ("SPC"), widget->name)) {
       len = 1;
       strcpy (key, " ");
 
    } else {
 
-      const char *value = ssd_dialog_get_value (name);
+      const char *value = widget->value;
+
       count = mbsrtowcs(wkeys, &value, sizeof(wkeys) / sizeof(wchar_t), NULL);
       if (count <= 0) return 1;
 
@@ -129,6 +140,19 @@ static int button_callback (const char *name, const char *new_value,
    return 0;
 }
 
+
+static int input_callback (SsdWidget widget, const char *new_value) {
+   SsdKeyboard *keyboard;
+   SsdWidget k = widget->parent->parent;
+
+   keyboard = (SsdKeyboard *)k->context;
+
+   if (!keyboard) return 1;
+
+   return (*keyboard->callback) (0, new_value, keyboard->context);
+}
+
+
 static void add_key (const char *key1, const char *key2, int type) {
 
    char name[255];
@@ -138,6 +162,8 @@ static void add_key (const char *key1, const char *key2, int type) {
       "key_button2.bmp"
    };
 
+   SsdWidget button;
+
    strcpy(name, key1);
    strcpy(value, key1);
 
@@ -146,23 +172,57 @@ static void add_key (const char *key1, const char *key2, int type) {
       strcat(value, key2);
    }
 
-   ssd_dialog_new_button (name, value, icons, 2, type, button_callback);
+   button =
+      ssd_dialog_new_button (name, value, icons, 2,
+                             SSD_ALIGN_CENTER|SSD_WIDGET_SPACE,
+                             button_callback);
+   if (type == SSD_BUTTON_KEY) {
+      SsdWidget w = ssd_text_new ("key1", key1, 20, SSD_END_ROW);
+
+      ssd_widget_set_offset (w, 9, 3);
+      ssd_widget_add (button, w);
+   } else {
+      ssd_widget_add (button, ssd_text_new ("key1", key1, 14, SSD_ALIGN_CENTER|SSD_ALIGN_VCENTER|SSD_END_ROW));
+   }
+
+   if ((type == SSD_BUTTON_KEY) && strcmp (key1, key2)) {
+      SsdWidget w = ssd_text_new ("key2", key2, 13, SSD_ALIGN_RIGHT|SSD_END_ROW);
+      ssd_widget_set_color (w, "ffaaff", 0);
+      ssd_widget_set_offset (w, 9, 3);
+      ssd_widget_add (button, w);
+   }
 }
 
 static void ssd_keyboard_new (SsdKeyboard *keyboard) {
+
+   SsdWidget dialog;
+   SsdWidget entry;
+   SsdWidget input;
 
    wchar_t wkeys[100];
    const char *keys = keyboard->keys;
    int count;
    int i;
 
-   if (!ssd_dialog_activate (keyboard->name, NULL)) return;
+   dialog = ssd_dialog_new (keyboard->name, "", SSD_CONTAINER_TITLE);
+   keyboard->widget = dialog;
+
+   ssd_widget_set_color (dialog, "#000000", "#000000");
+
+   entry = ssd_container_new ("entry", NULL, SSD_MAX_SIZE, 19,
+                             SSD_CONTAINER_BORDER|SSD_END_ROW);
+
+   ssd_widget_set_color (entry, "#000000", "#ffffff");
+
+   input = ssd_text_new ("input", "", 15, 0);
+   ssd_widget_set_callback (input, input_callback);
+
+   ssd_widget_add (entry, input);
+
+   ssd_widget_add (dialog, entry);
 
    count = mbsrtowcs(wkeys, &keys,
                          sizeof(wkeys) / sizeof(wchar_t), NULL);
-
-   ssd_dialog_new (keyboard->name, "", 0);
-   ssd_dialog_new_entry ("input", "", 0, NULL);
 
    for (i=0; i<count/2; i++) {
       char key1[20];
@@ -191,12 +251,44 @@ static void ssd_keyboard_new (SsdKeyboard *keyboard) {
    if (keyboard->special_keys & SSD_KEY_SPACE) {
       add_key (roadmap_lang_get ("SPC"), NULL, SSD_BUTTON_TEXT);
    }
+}
+
+
+void set_title (SsdWidget keyboard, const char *title) {
+   keyboard->set_value (keyboard, title);
+}
+
+
+void set_value (SsdWidget keyboard, const char *title) {
+   ssd_widget_set_value (keyboard, "input", title);
+}
+
+
+void ssd_keyboard_show (int type, const char *title, const char *value,
+                        SsdDialogCB callback, void *context) {
+
+   SsdKeyboard *keyboard = &def_keyboards[0];
+
+   if (!keyboard->widget) {
+      ssd_keyboard_new (&def_keyboards[0]);
+   }
+
+   keyboard->callback = callback;
+   keyboard->context = context;
+
+   ssd_widget_set_context (keyboard->widget, keyboard);
+
+   set_title (keyboard->widget, title);
+   set_value (keyboard->widget, value);
 
    ssd_dialog_activate (keyboard->name, NULL);
    ssd_dialog_draw ();
 }
 
-void ssd_keyboard_show (void) {
-   ssd_keyboard_new (&def_keyboards[0]);
+
+void ssd_keyboard_hide (int type) {
+   SsdKeyboard *keyboard = &def_keyboards[0];
+
+   ssd_dialog_hide (keyboard->name);
 }
 

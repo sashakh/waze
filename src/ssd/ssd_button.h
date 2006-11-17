@@ -33,6 +33,6 @@
 
 SsdWidget ssd_button_new (const char *name, const char *value,
                           const char **bitmaps, int num_bitmaps,
-                          int flags);
+                          int flags, SsdCallback callback);
 
 #endif // __SSD_WIDGET_BUTTON_H_

@@ -47,123 +47,14 @@ struct ssd_button_data {
 };
 
 
-static void draw_button_text (SsdWidget widget, const RoadMapGuiPoint *point) {
+static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
+
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
-   char value[255];
-   char *key2 = NULL;
-   RoadMapGuiPoint p = *point;
-   int text_size;
-
-   strncpy(value, widget->value, sizeof(value));
-   value[sizeof(value)-1] = '\0';
-
-
-
-   if (widget->flags & SSD_BUTTON_KEY) {
-      p.x += 14;
-      p.y += 18;
-      text_size = 20;
-
-      key2 = strchr(value, '|');
-      if (key2) {
-         *key2 = '\0';
-         key2++;
-      }
-
-   } else {
-      int text_width;
-      int text_ascent;
-      int text_descent;
-      int text_height;
-
-      text_size = 14;
-
-      roadmap_canvas_get_text_extents 
-         (value, text_size, &text_width, &text_ascent, &text_descent, NULL);
-
-      text_height = text_ascent + text_descent;
-
-      p.x += (widget->size.width - text_width) / 2;
-      p.y += (widget->size.height - text_height) / 2 + text_height / 2;
-   }
-
-   if (data->state == BUTTON_STATE_SELECTED) {
-      p.x += 2;
-      p.y += 2;
-   }
-   roadmap_canvas_draw_string_angle (&p, NULL, 0, text_size, value);
-
-   if (widget->flags & SSD_BUTTON_KEY) {
-      if (key2 && strcmp(value, key2)) {
-         p.x += 13;
-         p.y += 13;
-
-         if (data->state == BUTTON_STATE_SELECTED) {
-            p.x += 2;
-            p.y += 2;
-         }
-         roadmap_canvas_draw_string_angle (&p, NULL, 0, text_size - 5, key2);
-      }
-   }
-}
-
-
-static void format_below_text (char *text, char **lines, int max_lines) {
-   *lines = text;
-   lines++;
-   *lines = NULL;
-}
-
-
-static void draw_button_text_below (SsdWidget widget,
-                                    const RoadMapGuiPoint *point) {
-
-   char text[255];
-   char *lines[2];
-   char **line;
-
-   RoadMapGuiPoint p = *point;
-   int text_size;
-
-   strncpy(text, widget->value, sizeof(text));
-   text[sizeof(text)-1] = '\0';
-
-   format_below_text (text, lines, 2);
-
-   p.y += widget->size.height + 2;
-
-   line = lines;
-
-   while (*line) {
-
-      int text_width;
-      int text_ascent;
-      int text_descent;
-      int text_height;
-      RoadMapGuiPoint text_p = p;
-
-      text_size = 14;
-
-      roadmap_canvas_get_text_extents 
-         (*line, text_size, &text_width, &text_ascent, &text_descent, NULL);
-
-      text_height = text_ascent + text_descent;
-
-      text_p.x += (widget->size.width - text_width) / 2;
-      text_p.y += text_height;
-
-      roadmap_canvas_draw_string_angle (&text_p, NULL, 0, text_size, *line);
-
-      p.y += text_height + 2;
-      line++;
-   }
-}
-
-
-static void draw (SsdWidget widget, const RoadMapGuiPoint *point) {
-   struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
+   RoadMapGuiPoint point = {rect->minx, rect->miny};
    RoadMapImage image;
    int i;
+
+   if ((flags & SSD_GET_SIZE)) return;
 
    for (i=data->state; i>=0; i--) {
       if (data->bitmaps[i] &&
@@ -180,17 +71,18 @@ static void draw (SsdWidget widget, const RoadMapGuiPoint *point) {
 
    switch (data->state) {
    case BUTTON_STATE_NORMAL:
-      roadmap_canvas_draw_image (image, point, 0, IMAGE_NORMAL);
+      roadmap_canvas_draw_image (image, &point, 0, IMAGE_NORMAL);
       break;
    case BUTTON_STATE_SELECTED:
       if (i == data->state) {
-         roadmap_canvas_draw_image (image, point, 0, IMAGE_NORMAL);
+         roadmap_canvas_draw_image (image, &point, 0, IMAGE_NORMAL);
       } else {
-         roadmap_canvas_draw_image (image, point, 0, IMAGE_SELECTED);
+         roadmap_canvas_draw_image (image, &point, 0, IMAGE_SELECTED);
       }
       break;
    }
 
+#if 0
    if ((widget->flags & SSD_BUTTON_KEY) ||
        (widget->flags & SSD_BUTTON_TEXT)) {
 
@@ -201,45 +93,46 @@ static void draw (SsdWidget widget, const RoadMapGuiPoint *point) {
 
       draw_button_text_below (widget, point);
    }
-       
+#endif
 
 }
 
 
-int ssd_button_pointer_down (SsdWidget widget, const RoadMapGuiPoint *point) {
+static int ssd_button_pointer_down (SsdWidget widget,
+                                    const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
 
    data->state = BUTTON_STATE_SELECTED;
 
-   return 0;
+   return 1;
 }
 
 
-int ssd_button_short_click (SsdWidget widget, const RoadMapGuiPoint *point) {
+static int ssd_button_short_click (SsdWidget widget,
+                                   const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
 
    if (widget->callback) {
-      (*widget->callback)
-         (widget->name, SSD_BUTTON_SHORT_CLICK, widget->context);
+      (*widget->callback) (widget, SSD_BUTTON_SHORT_CLICK);
    }
 
    data->state = BUTTON_STATE_NORMAL;
 
-   return 0;
+   return 1;
 }
 
 
-int ssd_button_long_click (SsdWidget widget, const RoadMapGuiPoint *point) {
+static int ssd_button_long_click (SsdWidget widget,
+                                  const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
 
    if (widget->callback) {
-      (*widget->callback)
-         (widget->name, SSD_BUTTON_LONG_CLICK, widget->context);
+      (*widget->callback) (widget, SSD_BUTTON_LONG_CLICK);
    }
 
    data->state = BUTTON_STATE_NORMAL;
 
-   return 0;
+   return 1;
 }
 
 
@@ -264,7 +157,7 @@ static int set_value (SsdWidget widget, const char *value) {
 
 SsdWidget ssd_button_new (const char *name, const char *value,
                           const char **bitmaps, int num_bitmaps,
-                          int flags) {
+                          int flags, SsdCallback callback) {
 
    SsdWidget w;
    struct ssd_button_data *data =
@@ -282,6 +175,7 @@ SsdWidget ssd_button_new (const char *name, const char *value,
    for (i=0; i<num_bitmaps; i++) data->bitmaps[i] = bitmaps[i];
 
    w->data = data;
+   w->callback = callback;
 
    set_value (w, value);
 

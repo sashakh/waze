@@ -27,6 +27,7 @@
   
 #include "ssd_widget.h"
 
-SsdWidget ssd_container_new (const char *name, const char *title, int flags);
+SsdWidget ssd_container_new (const char *name, const char *title,
+                             int width, int height, int flags);
 
 #endif // __SSD_WIDGET_CONTAINER_H_

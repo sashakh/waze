@@ -34,51 +34,191 @@
 #include "ssd_widget.h"
 #include "ssd_text.h"
 
+struct ssd_text_data {
+   int size;
+};
+
 static int initialized;
 static RoadMapPen pen;
+static const char *def_color = "#000000";
 
 static void init_containers (void) {
    pen = roadmap_canvas_create_pen ("ssd_text_pen");
-   roadmap_canvas_set_foreground ("#ffffff");
+   roadmap_canvas_set_foreground (def_color);
 
    initialized = 1;
 }
 
 
-static void draw (SsdWidget widget, const RoadMapGuiPoint *point) {
-   RoadMapGuiPoint p = *point;
-   p.y += widget->size.height / 2 + 2;
-   roadmap_canvas_draw_string_angle (&p, NULL, 0, -1, widget->value);
-}
+static int format_text (SsdWidget widget, int draw,
+                        RoadMapGuiRect *rect) {
 
-
-static int set_value (SsdWidget widget, const char *value) {
-
+   struct ssd_text_data *data = (struct ssd_text_data *) widget->data;
+   char line[255] = {0};
+   const char *text;
    int text_width;
    int text_ascent;
    int text_descent;
-   int text_height;
+   int text_height = 0;
+   int width = rect->maxx - rect->minx + 1;
+   int max_width = 0;
+   RoadMapGuiPoint p;
+   
+   if (draw) {
+      p.x = rect->minx;
+      p.y = rect->miny;
+   }
 
-   if (widget->value && *widget->value) free (widget->value);
+   text = widget->value;
 
-   if (*value) widget->value = strdup(value);
-   else widget->value = "";
+   while (*text || *line) {
+      const char *space = strchr(text, ' ');
+      const char *new_line = strchr(text, '\n');
+      unsigned int len;
+      unsigned int new_len;
 
-   roadmap_canvas_get_text_extents 
-         (value, -1, &text_width, &text_ascent, &text_descent, NULL);
+      if (!*text) {
+         new_len = strlen(line);
 
-   text_height = text_ascent + text_descent;
+      } else {
 
-   widget->size.width = text_width;
-   widget->size.height = text_height;
+         if (new_line && (!space || (new_line < space))) {
+            space = new_line;
+         } else {
+            new_line = NULL;
+         }
+
+         if (space) {
+            len = space - text;
+         } else {
+            len = strlen(text);
+         }
+
+         if (len > (sizeof(line) - strlen(line) - 1)) {
+            len = sizeof(line) - strlen(line) - 1;
+         }
+
+         if (*line) {
+            strcat (line ," ");
+         }
+
+         new_len = strlen(line) + len;
+         strncpy (line + strlen(line), text, len);
+         line[new_len] = '\0';
+
+         text += len;
+
+         if (space) text++;
+      }
+
+      roadmap_canvas_get_text_extents 
+         (line, data->size, &text_width, &text_ascent,
+          &text_descent, NULL);
+
+      if (!*text || new_line || (text_width > width)) {
+         int h;
+
+         if ((text_width > width) && (new_len > len)) {
+            line[new_len - len - 1] = '\0';
+            text -= len;
+            if (space) text--;
+
+            roadmap_canvas_get_text_extents 
+               (line, data->size, &text_width, &text_ascent,
+                &text_descent, NULL);
+         }
+
+         h = text_ascent + text_descent;
+
+         if (draw) {
+            p.y += h;
+            p.x = rect->minx;
+
+            if (widget->flags & SSD_ALIGN_CENTER) {
+               if (ssd_widget_rtl ()) {
+                  p.x += (width - text_width) / 2;
+               } else {
+                  p.x -= (width - text_width) / 2;
+               }
+            } else if (ssd_widget_rtl ()) {
+               p.x += width - text_width;
+            }
+
+            roadmap_canvas_draw_string_angle (&p, NULL, 0, data->size, line);
+         }
+
+         line[0] = '\0';
+
+         if (text_width > max_width) max_width = text_width;
+
+         text_height += h;
+      }
+   }
+
+   rect->maxx = rect->minx + max_width - 1;
+   rect->maxy = rect->miny + text_height - 1;
 
    return 0;
 }
 
 
-SsdWidget ssd_text_new (const char *name, const char *value, int flags) {
+static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
+
+   const char *color = def_color;
+
+   if (flags & SSD_GET_SIZE) {
+      format_text (widget, 0, rect);
+      return;
+   }
+
+   // compensate for descending characters
+   // Doing it dynamically is not good as the text will move vertically.
+   rect->miny -= 2;
+
+   roadmap_canvas_select_pen (pen);
+   if (widget->fg_color) color = widget->fg_color;
+   roadmap_canvas_set_foreground (color);
+
+   format_text (widget, 1, rect);
+
+   rect->miny += 2;
+}
+
+
+static int set_value (SsdWidget widget, const char *value) {
+
+   if (widget->callback && !widget->callback (widget, value)) return -1;
+
+   if (widget->value && *widget->value) free (widget->value);
+
+   if (*value) {
+      int len = strlen(value);
+
+      if (widget->flags & SSD_TEXT_LABEL) {
+         len += 1;
+      }
+
+      widget->value = (char *) malloc (len + 1);
+      strcpy (widget->value, value);
+
+      if (widget->flags & SSD_TEXT_LABEL) strcat (widget->value, ":");
+
+   } else {
+      widget->value = "";
+   }
+
+   ssd_widget_reset_cache (widget);
+
+   return 0;
+}
+
+
+SsdWidget ssd_text_new (const char *name, const char *value,
+                        int size, int flags) {
 
    SsdWidget w;
+   struct ssd_text_data *data =
+      (struct ssd_text_data *)calloc (1, sizeof(*data));
 
    if (!initialized) {
       init_containers();
@@ -91,6 +231,9 @@ SsdWidget ssd_text_new (const char *name, const char *value, int flags) {
    w->draw = draw;
    w->set_value = set_value;
    w->flags = flags;
+
+   data->size = size;
+   w->data = data;
 
    set_value (w, value);
 

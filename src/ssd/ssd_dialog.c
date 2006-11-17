@@ -34,6 +34,7 @@
 #include "roadmap_start.h"
 #include "roadmap_lang.h"
 #include "roadmap_pointer.h"
+#include "roadmap_screen.h"
 
 #include "ssd_widget.h"
 #include "ssd_container.h"
@@ -65,6 +66,8 @@ static RoadMapPointerHandler PrevShortClickHandler;
 static RoadMapPointerHandler PrevLongClickHandler;
 
 static RoadMapGuiPoint LastPointerPoint;
+
+static int RoadMapScreenFrozen = 0;
 
 static SsdDialog ssd_dialog_get (const char *name) {
 
@@ -678,41 +681,48 @@ void  ssd_dialog_set_progress (const char *frame, const char *name,
 static int ssd_dialog_pressed (RoadMapGuiPoint *point) {
    LastPointerPoint = *point;
    ssd_widget_pointer_down (RoadMapDialogCurrent->container, point);
-   ssd_dialog_draw ();
+   roadmap_screen_redraw ();
    return 1;
 }
 
 static void ssd_dialog_short_click (RoadMapGuiPoint *point) {
    ssd_widget_short_click (RoadMapDialogCurrent->container, &LastPointerPoint);
-   ssd_dialog_draw ();
+   roadmap_screen_redraw ();
 }
 
 static void ssd_dialog_long_click (RoadMapGuiPoint *point) {
    ssd_widget_long_click (RoadMapDialogCurrent->container, &LastPointerPoint);
-   ssd_dialog_draw ();
+   roadmap_screen_redraw ();
 }
 
 static void append_child (SsdWidget child) {
 
-   SsdWidget last = RoadMapDialogWindows->container->children;
-
-   while (last->next) last=last->next;
-   last->next = child;
+   ssd_widget_add (RoadMapDialogWindows->container, child);
 }
 
-void ssd_dialog_new (const char *name, const char *title, int flags) {
+SsdWidget ssd_dialog_new (const char *name, const char *title, int flags) {
 
    SsdDialog child;
+   int width = roadmap_canvas_width ();
+   int height = roadmap_canvas_height ();
 
    child = (SsdDialog) malloc (sizeof (*child));
-
    roadmap_check_allocated(child);
 
-   child->name          = strdup(name);
-   child->container     = ssd_container_new (name, title, flags);
+   child->name = strdup(name);
+
+   if (flags & SSD_DIALOG_FLOAT) {
+      width -= 70;
+      height = -1;
+   }
+
+   child->container =
+      ssd_container_new (name, title, SSD_MAX_SIZE, SSD_MAX_SIZE, flags);
 
    child->next = RoadMapDialogWindows;
    RoadMapDialogWindows = child;
+
+   return child->container;
 }
 
 
@@ -725,7 +735,8 @@ void ssd_dialog_draw (void) {
       RoadMapGuiRect rect =
          {0, 0, roadmap_canvas_width() - 1, roadmap_canvas_height() - 1};
 
-      ssd_widget_draw (RoadMapDialogCurrent->container, &rect);
+      ssd_widget_reset_cache (RoadMapDialogCurrent->container);
+      ssd_widget_draw (RoadMapDialogCurrent->container, &rect, 0);
       roadmap_canvas_refresh ();
    }
 }
@@ -741,14 +752,15 @@ void ssd_dialog_new_entry (const char *name, const char *value,
 }
 
 
-void ssd_dialog_new_button (const char *name, const char *value,
-                            const char **bitmaps, int num_bitmaps,
-                            int flags, SsdCallback callback) {
+SsdWidget ssd_dialog_new_button (const char *name, const char *value,
+                                 const char **bitmaps, int num_bitmaps,
+                                 int flags, SsdCallback callback) {
 
-   SsdWidget child = ssd_button_new (name, value, bitmaps, num_bitmaps, flags);
+   SsdWidget child =
+      ssd_button_new (name, value, bitmaps, num_bitmaps, flags, callback);
    append_child (child);
 
-   ssd_widget_set_callback (child, callback);
+   return child;
 }
 
 
@@ -762,12 +774,23 @@ void ssd_dialog_new_line (void) {
 }
 
 
-int ssd_dialog_activate (const char *name, void *context) {
+SsdWidget ssd_dialog_activate (const char *name, void *context) {
 
+   SsdDialog current = RoadMapDialogCurrent;
    SsdDialog dialog = ssd_dialog_get (name);
 
    if (!dialog) {
-      return 1; /* Tell the caller this is a new, undefined, dialog. */
+      return NULL; /* Tell the caller this is a new, undefined, dialog. */
+   }
+
+   while (current && strcmp(current->name, name)) {
+      current = current->activated_prev;
+   }
+
+   if (current) {
+      roadmap_log (ROADMAP_FATAL,
+                   "Trying to activate an already activated dialog: %s",
+                   name);
    }
 
    dialog->context = context;
@@ -786,24 +809,66 @@ int ssd_dialog_activate (const char *name, void *context) {
 
    RoadMapDialogCurrent = dialog;
 
-   return 0; /* Tell the caller the dialog already exists. */
+   if (!RoadMapScreenFrozen && !(dialog->container->flags & SSD_DIALOG_FLOAT)) {
+      roadmap_screen_freeze ();
+      RoadMapScreenFrozen = 1;
+   }
+
+   return dialog->container; /* Tell the caller the dialog already exists. */
 }
 
 
 void ssd_dialog_hide (const char *name) {
 
-   if (!RoadMapDialogCurrent) {
-      roadmap_log (ROADMAP_FATAL,
-         "Trying to hide a dialog, but no active dialogs exist");
+   SsdDialog prev = NULL;
+   SsdDialog dialog = RoadMapDialogCurrent;
+
+   while (dialog && strcmp(dialog->name, name)) {
+      prev = dialog;
+      dialog = dialog->activated_prev;
    }
 
-   RoadMapDialogCurrent = RoadMapDialogCurrent->activated_prev;
+   if (!dialog) {
+      roadmap_log (ROADMAP_FATAL,
+         "Trying to hide dialog '%s', but it is not active.", name);
+   }
+
+   if (prev == NULL) {
+      RoadMapDialogCurrent = RoadMapDialogCurrent->activated_prev;
+   } else {
+      prev->activated_prev = dialog->activated_prev;
+   }
 
    if (!RoadMapDialogCurrent) {
       roadmap_pointer_register_pressed (PrevPressedClickHandler);
       roadmap_pointer_register_short_click (PrevShortClickHandler);
       roadmap_pointer_register_long_click (PrevLongClickHandler);
    }
+
+   if (RoadMapScreenFrozen) {
+      dialog = RoadMapDialogCurrent;
+      while (dialog) {
+         if ( !(dialog->container->flags & SSD_DIALOG_FLOAT)) {
+            ssd_dialog_draw ();
+            return;
+         }
+         dialog = dialog->activated_prev;
+      }
+   }
+
+   RoadMapScreenFrozen = 0;
+   roadmap_screen_unfreeze ();
+}
+
+
+void ssd_dialog_hide_current (void) {
+
+   if (!RoadMapDialogCurrent) {
+      roadmap_log (ROADMAP_FATAL,
+         "Trying to hide a dialog, but no active dialogs exist");
+   }
+
+   ssd_dialog_hide (RoadMapDialogCurrent->name);
 }
 
 
