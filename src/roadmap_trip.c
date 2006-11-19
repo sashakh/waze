@@ -1451,8 +1451,7 @@ static void roadmap_trip_insert_routepoint_worker(int where)
 {
     const char *name;
 
-    if (RoadMapCurrentRoute == NULL ||
-       RoadMapTripLastSetPoint == NULL ||
+    if (RoadMapTripLastSetPoint == NULL ||
             !RoadMapTripLastSetPoint->has_value) {
         return;
     }
@@ -1498,7 +1497,7 @@ void roadmap_trip_add_waypoint
     int putafter;
 
     if (where >= NUM_PLACEMENTS && RoadMapCurrentRoute == NULL) {
-        return;  /* shouldn't happen */
+        return;
     }
 
     waypointp = roadmap_trip_new_waypoint (name, position);
