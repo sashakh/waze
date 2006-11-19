@@ -2036,7 +2036,7 @@ CONFIGURATION
         zoomin
         zoomout
         zoom1
-	->Help...
+        ->Help...
 ----
    The last item in the toolbar file example will invoke the "Help..." menu.
 
@@ -2218,10 +2218,10 @@ CONFIGURATION
 
     [Display.Font Size] The size of the text used for labeling.
 
-	 <<Format:>> integer (pixels)
+         <<Format:>> integer (pixels)
 
-	 <<Comment:>> Currently only honored if the internal "linefont"
-	 	  is being used.
+         <<Comment:>> Currently only honored if the internal "linefont"
+                  is being used.
 
     [Help.Browser] The browser program used to show the help text.
 
@@ -2275,8 +2275,8 @@ CONFIGURATION
          <<Default:>> off
 
          <<Comment:>> chooses whether the map will initially show north,
-		      or the direction of travel, towards the top of the
-		      screen.  Can be toggled by command as well.
+                      or the direction of travel, towards the top of the
+                      screen.  Can be toggled by command as well.
 
     [Map.GPS map offset latitude]
 
@@ -2314,11 +2314,11 @@ CONFIGURATION
 
          <<Default:>> labels
 
-	 <<Comment:>> The internal line font (if available) may be preferable
-		  to the system font since it can draw at angles, and since
-		  its size can be easily scaled.  It is not very pretty,
-		  however.
-		   
+         <<Comment:>> The internal line font (if available) may be preferable
+                  to the system font since it can draw at angles, and since
+                  its size can be easily scaled.  It is not very pretty,
+                  however.
+                   
 
     [Labels.MinFeatureSize] The shortest street which may be labeled.
 
@@ -2334,10 +2334,10 @@ CONFIGURATION
 
     [Labels.Font Size] The size of the text used for labeling.
 
-	 <<Format:>> integer (pixels)
+         <<Format:>> integer (pixels)
 
-	 <<Comment:>> Currently only honored if the internal "linefont"
-	 	  is being used.
+         <<Comment:>> Currently only honored if the internal "linefont"
+                  is being used.
 
     [Landmarks.Name] The filename used for storing personal landmarks
 
@@ -2353,10 +2353,10 @@ CONFIGURATION
 
     [Landmarks.Font Size] The size of the text used for labeling.
 
-	 <<Format:>> integer (pixels)
+         <<Format:>> integer (pixels)
 
-	 <<Comment:>> Currently only honored if the internal "linefont"
-	 	  is being used.
+         <<Comment:>> Currently only honored if the internal "linefont"
+                  is being used.
 
     [Track.Name] The filename used for storing current "breadcrumb" track
 
@@ -2364,7 +2364,7 @@ CONFIGURATION
 
          <<Default:>> currenttrack.gpx, in the '&' (~/.roadmap) directory.
 
-	 <<Comment:>> The file is in stored in GPX format.
+         <<Comment:>> The file is in stored in GPX format.
 
     [Track.Initial Display] Determines whether the track is displayed when
                     RoadMap starts.
@@ -2373,7 +2373,7 @@ CONFIGURATION
 
          <<Default:>> on
 
-	 <<Comment:>> The display can still be toggled by command.
+         <<Comment:>> The display can still be toggled by command.
 
     [Track.Policy] The algorithm used to decide when to store a new trackpoint
 
@@ -2381,15 +2381,15 @@ CONFIGURATION
 
          <<Default:>> off
 
-	 <<Comment:>> When "off", no track is recorded.  When set to "Time",
-		  a new trackpoint is stored after "Track.Time Delta" time
-		  has passed since the last point was recorded.  Shen set to
-		  "Distance Delta", a new point is stored when the user has
-		  moved Track.Distance from the last point.  "Deviation" is
-		  the optimal setting:  call the most recent three points A,
-		  B, and C.  Point B is dropped if the distance from A to B
-		  and then to C is approximately equal to the distance
-		  directly from A to C.
+         <<Comment:>> When "off", no track is recorded.  When set to "Time",
+                  a new trackpoint is stored after "Track.Time Delta" time
+                  has passed since the last point was recorded.  Shen set to
+                  "Distance Delta", a new point is stored when the user has
+                  moved Track.Distance from the last point.  "Deviation" is
+                  the optimal setting:  call the most recent three points A,
+                  B, and C.  Point B is dropped if the distance from A to B
+                  and then to C is approximately equal to the distance
+                  directly from A to C.
 
     [Track.Time Delta] Time interval used when Track.Policy is "Time".
 
@@ -2404,32 +2404,32 @@ CONFIGURATION
          <<Default:>> 100 m
 
     [Track.Autosave minutes] Number of minutes between automatic saves of
-		  the current track.
+                  the current track.
 
          <<Format:>> integer
 
          <<Default:>> 1000
 
     [Track.Saved Track Points] Approximate number of track points saved in
-		  memory, or in a single file.
+                  memory, or in a single file.
 
          <<Format:>> integer
 
          <<Default:>> 1000
 
-	 <<Comment:>> After "Track.Autosave minutes", if there are 25%
-		  more points in the current track than this number, then
-		  75% are saved to an archive file, and the remainder
-		  are still kept in memory and displayed on the map.
+         <<Comment:>> After "Track.Autosave minutes", if there are 25%
+                  more points in the current track than this number, then
+                  75% are saved to an archive file, and the remainder
+                  are still kept in memory and displayed on the map.
 
     [Trip.Name] The filename holding the current trip.
 
          <<Format:>> pathname, including & and ~ shortcuts
 
          <<Default:>> SavedTrip.gpx, in the '&/trips' (~/.roadmap) directory,
-		  but usually chosen by the user.
+                  but usually chosen by the user.
 
-	 <<Comment:>> The file is in stored in GPX format.
+         <<Comment:>> The file is in stored in GPX format.
 
     [Trip.Show Inactive Routes] Should waypoints in unselected routes be shown.
 
@@ -2437,16 +2437,16 @@ CONFIGURATION
 
          <<Default:>> yes
 
-	 <<Comment:>> Can still be toggled by command.
+         <<Comment:>> Can still be toggled by command.
 
     [Trip.Connect Route Points] Should route waypoints be connected with
-		  straight lines?
+                  straight lines?
 
          <<Format:>> boolean
 
          <<Default:>> yes
 
-	 <<Comment:>> Can still be toggled by command.
+         <<Comment:>> Can still be toggled by command.
 
     [Trip.Route Connect Color] The color used to connect route waypoints.
 
@@ -2455,7 +2455,7 @@ CONFIGURATION
          <<Default:>> red
 
     [Trip.Waypoint Radius] How close does the GPS need to be to a waypoint
-	          to be "on" the waypoint.
+                  to be "on" the waypoint.
 
          <<Format:>> integer (distance, with units)
 
@@ -2464,19 +2464,19 @@ CONFIGURATION
     [FeatureFiles.Path] List of files containing features to display on map.
 
          <<Format:>> A comma-separated list of filenames, each accompanied
-	    by their semi-colon-separated list of display parameters:
-	    filename;spritename;labelcolor;declutterlevel,filename;spritename...
+            by their semi-colon-separated list of display parameters:
+            filename;spritename;labelcolor;declutterlevel,filename;spritename...
 
          <<Default:>> <empty>
 
          <<Comment:>> The filename may include & and ~ as path shorthands,
-	    the spritename else should appear in the sprites file, the
-	    labelcolor will be used when writing the feature's name, and the
-	    declutter level is an integer, representing the zoom level above
-	    which the label will not be drawn.  The spritename or the
-	    labelcolor may be the string "NONE", which will suppress the
-	    sprite or the label, respectively.  The declutter value may be
-	    omitted.
+            the spritename else should appear in the sprites file, the
+            labelcolor will be used when writing the feature's name, and the
+            declutter level is an integer, representing the zoom level above
+            which the label will not be drawn.  The spritename or the
+            labelcolor may be the string "NONE", which will suppress the
+            sprite or the label, respectively.  The declutter value may be
+            omitted.
 
     [Files.Make Backups] Enable/disable the creation of backup files.
 
@@ -2485,7 +2485,7 @@ CONFIGURATION
          <<Default:>> yes
 
          <<Comment:>> On UNIX, backup files will have a '~' character
-	 	  appended.  Under Windows, a ".bak" suffix will be used.
+                  appended.  Under Windows, a ".bak" suffix will be used.
 
     [GPS.Background] The background color for the RoadGps screen.
 
@@ -2527,13 +2527,13 @@ CONFIGURATION
                   (file://<path>) is also possible, for debug.  If gpsd is not
                   available, one can use a GPS source connected directly to a
                   serial port.  (tty://<device-path>[:baudrate])  An example
-		  would be "tty://dev/ttyS0", or "COM1:" under Windows.  4800
-		  baud is the NMEA standard, but a different speed can be
-		  given:  "tty://dev/ttyS0:19200".  (Note that using direct
-		  tty access prevents one from running both RoadMap and
-		  RoadGps at the same time, since there is no mechanism in
-		  place to allow sharing the serial port.  Using gpsd is
-		  recommended.)
+                  would be "tty://dev/ttyS0", or "COM1:" under Windows.  4800
+                  baud is the NMEA standard, but a different speed can be
+                  given:  "tty://dev/ttyS0:19200".  (Note that using direct
+                  tty access prevents one from running both RoadMap and
+                  RoadGps at the same time, since there is no mechanism in
+                  place to allow sharing the serial port.  Using gpsd is
+                  recommended.)
 
     [GPS.Baud] The baud rate to use if GPS.Source is a serial port
 
@@ -2651,8 +2651,8 @@ CONFIGURATION
 
          <<Default:>> 30m
 
-	 <<Comment:>> This default accuracy can be adjusted to the actual GPS
-		  estimate if a Garmin GPS receiver is used.
+         <<Comment:>> This default accuracy can be adjusted to the actual GPS
+                  estimate if a Garmin GPS receiver is used.
 
     [Accuracy.GPS Speed] GPS's speed accuracy.
 
@@ -3120,24 +3120,24 @@ CONFIGURATION
         unassociated waypoints are read -- any routes or tracks
         in the file are ignored.
 
-	The "Current Track" file contains waypoints representing
-	where you've been -- a "breadcrumb trail", if you will. 
-	This file (called "currenttrack.gpx" by default) will
-	only contain a single track when written.  When read (on
-	startup, to restore previous state), only the first track
-	in the file will be read.  All other routes or tracks and
-	waypoints will be ignored (and likely lost, when the
-	current track is saved at the end of the session).  Along
-	with the currenttrack.gpx, you may see "recenttrack.csv",
-	and one or more "savetrack-*.gpx" files (which will
-	include a date in their names).  The "savetrack" files are
-	archival -- if the in-memory list gets too big, or if the
-	user "clears" the current track, then excess historical
-	trackpoints will be written to a "savetrack" file.  The
-	"recenttrack.csv" file is a temporary file, used to keep
-	RoadMap from losing any track points in the event that it
-	dies (crashes) unexpectedly.  The goal is to never lose a
-	track point.
+        The "Current Track" file contains waypoints representing
+        where you've been -- a "breadcrumb trail", if you will. 
+        This file (called "currenttrack.gpx" by default) will
+        only contain a single track when written.  When read (on
+        startup, to restore previous state), only the first track
+        in the file will be read.  All other routes or tracks and
+        waypoints will be ignored (and likely lost, when the
+        current track is saved at the end of the session).  Along
+        with the currenttrack.gpx, you may see "recenttrack.csv",
+        and one or more "savetrack-*.gpx" files (which will
+        include a date in their names).  The "savetrack" files are
+        archival -- if the in-memory list gets too big, or if the
+        user "clears" the current track, then excess historical
+        trackpoints will be written to a "savetrack" file.  The
+        "recenttrack.csv" file is a temporary file, used to keep
+        RoadMap from losing any track points in the event that it
+        dies (crashes) unexpectedly.  The goal is to never lose a
+        track point.
     
     (These files are not stored in the same directory as the other
     trip files, but instead in the same directory in which the
