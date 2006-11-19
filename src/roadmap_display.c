@@ -38,7 +38,7 @@
 #include "roadmap_line.h"
 #include "roadmap_street.h"
 #include "roadmap_config.h"
-#include "roadmap_linefont.h"
+#include "roadmap_screen.h"
 #include "roadmap_canvas.h"
 #include "roadmap_message.h"
 #include "roadmap_sprite.h"
@@ -47,7 +47,6 @@
 
 #include "roadmap_display.h"
 
-#define ROADMAP_DISPLAY_SIGN_SIZE 20
 
 static char *RoadMapDisplayPage = NULL;
 
@@ -72,10 +71,15 @@ static RoadMapConfigDescriptor RoadMapConfigConsoleBackground =
 static RoadMapConfigDescriptor RoadMapConfigConsoleForeground =
                         ROADMAP_CONFIG_ITEM("Console", "Foreground");
 
+static RoadMapConfigDescriptor RoadMapConfigDisplayFontSize =
+                        ROADMAP_CONFIG_ITEM("Display", "Font Size");
+
 
 static RoadMapPen RoadMapMessageContour;
 static RoadMapPen RoadMapConsoleBackground;
 static RoadMapPen RoadMapConsoleForeground;
+
+static int RoadMapDisplayFontSize;
 
 
 #define SIGN_BOTTOM   0
@@ -182,9 +186,9 @@ static void roadmap_display_create_pens (void) {
 
     RoadMapMessageContour = roadmap_canvas_create_pen ("message.contour");
     roadmap_canvas_set_foreground ("black");
-#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-    roadmap_canvas_set_thickness (2);
-#endif
+//#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
+//    roadmap_canvas_set_thickness (2);
+//#endif
 
     RoadMapConsoleBackground =
         roadmap_display_new_pen (&RoadMapConfigConsoleBackground);
@@ -239,14 +243,9 @@ static void roadmap_display_string
             char saved = *p1;
             *p1 = 0;
 
-#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-            roadmap_linefont_text
-                (text_line, ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
-                        position, ROADMAP_DISPLAY_SIGN_SIZE, 0);
-#else
-            roadmap_canvas_draw_string
-                (position, ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP, text_line);
-#endif
+            roadmap_screen_text (ROADMAP_TEXT_SIGNS,  position, 
+                ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
+                RoadMapDisplayFontSize, text_line);
 
             *p1 = saved;
             text_line = p1 + 1;
@@ -255,14 +254,9 @@ static void roadmap_display_string
 
     }
 
-#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-    roadmap_linefont_text
-        (text_line, ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
-                position, ROADMAP_DISPLAY_SIGN_SIZE, 0);
-#else
-    roadmap_canvas_draw_string
-        (position, ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP, text_line);
-#endif
+    roadmap_screen_text (ROADMAP_TEXT_SIGNS, position,
+                ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
+                RoadMapDisplayFontSize, text_line);
 }
 
 
@@ -300,16 +294,11 @@ static void roadmap_display_sign (RoadMapSign *sign) {
     int count;
     int lines;
 
-
     roadmap_log_push ("roadmap_display_sign");
 
-#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-   roadmap_linefont_extents
-        (sign->content, ROADMAP_DISPLAY_SIGN_SIZE, &width, &ascent, &descent);
-#else
-    roadmap_canvas_get_text_extents
-        (sign->content, -1, &width, &ascent, &descent, NULL);
-#endif
+   roadmap_screen_text_extents
+        (ROADMAP_TEXT_SIGNS, sign->content, RoadMapDisplayFontSize,
+            &width, &ascent, &descent, NULL);
 
     width += 8; /* Keep some room around the text. */
 
@@ -611,12 +600,9 @@ static void roadmap_display_console_box
         return;
     }
 
-#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-   roadmap_linefont_extents (text, ROADMAP_DISPLAY_SIGN_SIZE,
-        &width, &ascent, &descent);
-#else
-    roadmap_canvas_get_text_extents (text, -1, &width, &ascent, &descent, NULL);
-#endif
+   roadmap_screen_text_extents
+        (ROADMAP_TEXT_SIGNS, text, RoadMapDisplayFontSize,
+            &width, &ascent, &descent, NULL);
 
     if (corner & ROADMAP_CANVAS_RIGHT) {
         frame[2].x = roadmap_canvas_width() - 5;
@@ -652,15 +638,9 @@ static void roadmap_display_console_box
     frame[0].x = frame[3].x - 3;
     frame[0].y = frame[3].y + 3;
 
-#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-    roadmap_linefont_text
-        (text, ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
-                frame, ROADMAP_DISPLAY_SIGN_SIZE, 0);
-#else
-    roadmap_canvas_draw_string (frame,
-                                ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
-                                text);
-#endif
+    roadmap_screen_text(ROADMAP_TEXT_SIGNS, frame,
+                ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
+                RoadMapDisplayFontSize, text);
 }
 
 
@@ -690,6 +670,8 @@ void roadmap_display_signs (void) {
     time_t now = time(NULL);
     RoadMapSign *sign;
 
+    RoadMapDisplayFontSize =
+        roadmap_config_get_integer (&RoadMapConfigDisplayFontSize);
 
     roadmap_display_create_pens ();
 
@@ -769,4 +751,7 @@ void roadmap_display_initialize (void) {
             ("preferences",
              &sign->foreground_descriptor, sign->default_foreground);
     }
+
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigDisplayFontSize, "20");
 }

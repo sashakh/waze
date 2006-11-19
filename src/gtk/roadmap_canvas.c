@@ -197,42 +197,41 @@ void roadmap_canvas_erase (void) {
 
 
 void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
-                                 int corner,
-                                 const char *text) {
+                                 int corner, const char *text) {
 
-   int x;
-   int y;
    int text_width;
    int text_ascent;
    int text_descent;
+   RoadMapGuiPoint start[1];
 
    roadmap_canvas_get_text_extents 
         (text, -1, &text_width, &text_ascent, &text_descent, NULL);
 
-   x = position->x;
-   y = position->y;
+   start->x = position->x;
+   start->y = position->y;
    if (corner & ROADMAP_CANVAS_RIGHT)
-      x -= text_width;
+      start->x -= text_width;
    else if (corner & ROADMAP_CANVAS_CENTER_X)
-      x -= text_width / 2;
+      start->x -= text_width / 2;
 
    if (corner & ROADMAP_CANVAS_BOTTOM)
-      y -= text_descent;
+      start->y -= text_descent;
    else if (corner & ROADMAP_CANVAS_CENTER_Y)
-      y += (text_ascent / 2);
+      start->y = start->y - text_descent + ((text_descent + text_ascent) / 2);
    else /* TOP */
-      y += text_ascent;
+      start->y += text_ascent;
 
-   gdk_draw_string  (RoadMapDrawingBuffer,
-                     RoadMapDrawingArea->style->font, RoadMapGc, x, y, text);
+   roadmap_canvas_draw_string_angle (start, position, 0, text);
 }
 
 void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center,
                                        int angle, const char *text)
 {
-    /* no angle possible, currently.  at least try and center the text */
-    roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+    /* no angle possible */
+   gdk_draw_string  (RoadMapDrawingBuffer,
+                     RoadMapDrawingArea->style->font,
+                     RoadMapGc, position->x, position->y, text);
 }
 
 

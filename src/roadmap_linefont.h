@@ -21,16 +21,23 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef ROADMAP_NO_LINEFONT
-
-#define ROADMAP_USE_LINEFONT 1
+#ifdef ROADMAP_NO_LINEFONT
+# undef ROADMAP_USE_LINEFONT
+# define ROADMAP_USE_LINEFONT 0
+#else
+# define ROADMAP_USE_LINEFONT 1
+#endif
 
 void roadmap_linefont_extents
-        (const char *text, int size, int *width, int *ascent, int *descent);
+        (const char *text, int size,
+         int *width, int *ascent, int *descent, int *can_tilt);
 
 void roadmap_linefont_text
-        (const char *text, int allign, RoadMapGuiPoint *center,
-                int size, int theta);
+        ( RoadMapGuiPoint *center, int where, int size, const char *text);
+
+void roadmap_linefont_text_angle
+        ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+                int theta, int size, const char *text);
 
 /* reuse roadmap canvas values, so callers won't care which text functions
  * are actually eventually called */
@@ -46,4 +53,3 @@ void roadmap_linefont_text
 #define ROADMAP_LINEFONT_CENTERED_ABOVE \
         (ROADMAP_LINEFONT_CENTER_X | ROADMAP_LINEFONT_BOTTOM)
 
-#endif

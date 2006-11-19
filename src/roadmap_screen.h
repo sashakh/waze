@@ -80,4 +80,15 @@ void roadmap_screen_draw_line (const RoadMapPosition *from,
 
 int roadmap_screen_is_dragging (void);
 
+#define ROADMAP_TEXT_SIGNS  0x01
+#define ROADMAP_TEXT_LABELS 0x02
+void roadmap_screen_text
+     (int id, RoadMapGuiPoint *center, int where, int size, const char *text);
+void roadmap_screen_text_angle 
+        (int id, RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+                int theta, int size, const char *text);
+void roadmap_screen_text_extents 
+        (int id, const char *text, int size,
+         int *width, int *ascent, int *descent, int *can_tilt);
+
 #endif // INCLUDE__ROADMAP_SCREEN__H

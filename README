@@ -2216,6 +2216,13 @@ CONFIGURATION
 
          <<Default:>> 200
 
+    [Display.Font Size] The size of the text used for labeling.
+
+	 <<Format:>> integer (pixels)
+
+	 <<Comment:>> Currently only honored if the internal "linefont"
+	 	  is being used.
+
     [Help.Browser] The browser program used to show the help text.
 
          <<Format:>> a program name, with or without path.
@@ -2301,6 +2308,18 @@ CONFIGURATION
 
          <<Default:>> normal
 
+    [Map.Use Linefont] Enables use of the internal linefont.
+
+         <<Format:>> enumeration (off / labels / signs / all)
+
+         <<Default:>> labels
+
+	 <<Comment:>> The internal line font (if available) may be preferable
+		  to the system font since it can draw at angles, and since
+		  its size can be easily scaled.  It is not very pretty,
+		  however.
+		   
+
     [Labels.MinFeatureSize] The shortest street which may be labeled.
 
          <<Format:>> integer (in pixels)
@@ -2313,6 +2332,13 @@ CONFIGURATION
 
          <<Default:>> Black
 
+    [Labels.Font Size] The size of the text used for labeling.
+
+	 <<Format:>> integer (pixels)
+
+	 <<Comment:>> Currently only honored if the internal "linefont"
+	 	  is being used.
+
     [Landmarks.Name] The filename used for storing personal landmarks
 
          <<Format:>> pathname, including & and ~ shortcuts
@@ -2324,6 +2350,13 @@ CONFIGURATION
          <<Format:>> color
 
          <<Default:>> dark red
+
+    [Landmarks.Font Size] The size of the text used for labeling.
+
+	 <<Format:>> integer (pixels)
+
+	 <<Comment:>> Currently only honored if the internal "linefont"
+	 	  is being used.
 
     [Track.Name] The filename used for storing current "breadcrumb" track
 

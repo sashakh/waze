@@ -53,7 +53,7 @@
 #include "roadmap_plugin.h"
 #include "roadmap_canvas.h"
 
-#include "roadmap_linefont.h"
+#include "roadmap_screen.h"
 
 #include "roadmap_list.h"
 #include "roadmap_label.h"
@@ -70,9 +70,11 @@ static RoadMapConfigDescriptor RoadMapConfigMinFeatureSize =
 static RoadMapConfigDescriptor RoadMapConfigLabelsColor =
                         ROADMAP_CONFIG_ITEM("Labels", "Color");
 
+static RoadMapConfigDescriptor RoadMapConfigLabelSize =
+                        ROADMAP_CONFIG_ITEM("Labels", "Font Size");
+
 /* this is fairly arbitrary */
 #define MAX_LABELS 2048
-#define ROADMAP_LABEL_STREETLABEL_SIZE 16
 
 typedef struct {
    RoadMapListItem link;
@@ -113,6 +115,8 @@ static int RoadMapLabelCurrentZoom;
 static RoadMapPen RoadMapLabelPen;
 
 static int RoadMapLabelMinFeatSizeSq;
+
+static int RoadMapLabelFontSize;
 
 static int rect_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
 
@@ -173,8 +177,7 @@ static void compute_bbox(RoadMapGuiPoint *poly, RoadMapGuiRect *bbox) {
 }
 
 
-static RoadMapGuiPoint get_metrics(roadmap_label *c, 
-                                RoadMapGuiRect *rect, int centered_y) {
+static RoadMapGuiPoint get_metrics(roadmap_label *c, RoadMapGuiRect *rect) {
    RoadMapGuiPoint q;
    int x1=0, y1=0;
    RoadMapGuiPoint *poly = c->poly;
@@ -188,8 +191,7 @@ static RoadMapGuiPoint get_metrics(roadmap_label *c,
 
    /* position CC */
    x1 = -(w/2);
-
-   y1 = centered_y ? (h/2) : 0;
+   y1 = 0;
 
    q.x = x1 - rect->minx;
    q.y = rect->miny - y1;
@@ -230,51 +232,23 @@ static int normalize_angle(int angle) {
    return angle;
 }
 
-void roadmap_label_text_extents(const char *text, int size,
-        int *width, int *ascent, int *descent,
-        int *can_tilt, int *easy_reading)
-{
-#ifdef ROADMAP_USE_LINEFONT
-
-   roadmap_linefont_extents
-        (text, ROADMAP_LABEL_STREETLABEL_SIZE, width, ascent, descent);
-
-   /* The linefont font isn't pretty.  Reading it is hard with
-    * a road running through it, so we don't center labels on
-    * the road.
-    */
-   *easy_reading = 0;
-   if (can_tilt) *can_tilt = 1;
-
-#else
-
-   roadmap_canvas_get_text_extents
-      (text, -1, width, ascent, descent, can_tilt);
-
-   *easy_reading = 1;
-
-#endif
-}
 
 void roadmap_label_draw_text(const char *text,
         RoadMapGuiPoint *start, RoadMapGuiPoint *center,
         int doing_angles, int angle, int size)
 {
                
-#ifdef ROADMAP_USE_LINEFONT
-   roadmap_linefont_text
-        (text, doing_angles ? ROADMAP_CANVAS_CENTER_BOTTOM :
-                    ROADMAP_CANVAS_CENTER, center, size, angle);
-#else
    if (doing_angles) {
-      roadmap_canvas_draw_string_angle (start, center, angle, text);
+      roadmap_screen_text_angle
+         (ROADMAP_TEXT_LABELS, start, center, angle, size, text);
    } else {
-      roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+      roadmap_screen_text
+         (ROADMAP_TEXT_LABELS, center, ROADMAP_CANVAS_CENTER, size, text);
    }
-#endif
 }
 
-/* called when a screen repaint is complete.  keeping track of
+
+/* called when a screen repaint commences.  keeping track of
  * label "generations" involves keeping track of full refreshes,
  * not individual calls to roadmap_label_draw_cache().
  */
@@ -291,6 +265,8 @@ void roadmap_label_start (void) {
    }
 
    roadmap_math_get_context (&last_center, &RoadMapLabelCurrentZoom, NULL);
+
+   RoadMapLabelFontSize = roadmap_config_get_integer (&RoadMapConfigLabelSize);
 
 }
 
@@ -365,8 +341,8 @@ int roadmap_label_draw_cache (int angles) {
    int whichlist;
 #define OLDLIST 0
 #define NEWLIST 1
-   int label_center_y;
    int cannot_label;
+   static int can_tilt;
 
    ROADMAP_LIST_INIT(&undrawn_labels);
    roadmap_canvas_select_pen (RoadMapLabelPen);
@@ -495,10 +471,10 @@ int roadmap_label_draw_cache (int angles) {
 
 
          if (cPtr->bbox.minx > cPtr->bbox.maxx) {
-            int can_tilt;
-            roadmap_label_text_extents
-                    (cPtr->text, ROADMAP_LABEL_STREETLABEL_SIZE ,
-                    &width, &ascent, &descent, &can_tilt, &label_center_y);
+            roadmap_screen_text_extents
+                    (ROADMAP_TEXT_LABELS, cPtr->text,
+                       RoadMapLabelFontSize ,
+                       &width, &ascent, &descent, &can_tilt);
             angles = angles && can_tilt;
 
             /* text is too long for this feature */
@@ -521,7 +497,7 @@ int roadmap_label_draw_cache (int angles) {
 
             if (angles) {
 
-               cPtr->text_point = get_metrics (cPtr, &r, label_center_y);
+               cPtr->text_point = get_metrics (cPtr, &r);
 
             } else {
                /* Text will be horizontal, so bypass a lot of math.
@@ -538,10 +514,21 @@ int roadmap_label_draw_cache (int angles) {
                   r.maxy + cPtr->text_point.y - (r.maxy - r.miny)/2;
             }
          }
+         angles = angles && can_tilt;
 
 #if POLY_OUTLINE
          {
             int lines = 4;
+            if (!angles) {
+                cPtr->poly[0].x = cPtr->bbox.minx;
+                cPtr->poly[0].y = cPtr->bbox.miny;
+                cPtr->poly[1].x = cPtr->bbox.minx;
+                cPtr->poly[1].y = cPtr->bbox.maxy;
+                cPtr->poly[2].x = cPtr->bbox.maxx;
+                cPtr->poly[2].y = cPtr->bbox.maxy;
+                cPtr->poly[3].x = cPtr->bbox.maxx;
+                cPtr->poly[3].y = cPtr->bbox.miny;
+            }
             roadmap_canvas_draw_multiple_lines(1, &lines, cPtr->poly, 1);
          }
 #endif
@@ -637,7 +624,7 @@ int roadmap_label_draw_cache (int angles) {
          roadmap_label_draw_text
             (cPtr->text, &cPtr->text_point, &cPtr->center_point,
                angles, angles ? cPtr->angle : 0,
-               ROADMAP_LABEL_STREETLABEL_SIZE );
+               RoadMapLabelFontSize );
 
          if (whichlist == NEWLIST) {
             /* move the rendered label to the cache */
@@ -676,6 +663,9 @@ int roadmap_label_initialize (void) {
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigLabelsColor,  "#000000");
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigLabelSize,  "16");
 
     
    ROADMAP_LIST_INIT(&RoadMapLabelCache);

@@ -57,6 +57,7 @@
 #include "roadmap_pointer.h"
 #include "roadmap_display.h"
 #include "roadmap_label.h"
+#include "roadmap_linefont.h"
 #include "roadmap_plugin.h"
 #include "roadmap_factory.h"
 
@@ -104,6 +105,9 @@ static RoadMapConfigDescriptor RoadMapConfigMapLabels =
 static RoadMapConfigDescriptor RoadMapConfigMapDynamicOrientation =
                         ROADMAP_CONFIG_ITEM("Map", "DynamicOrientation");
 
+static RoadMapConfigDescriptor RoadMapConfigLinefontSelector =
+                        ROADMAP_CONFIG_ITEM("Map", "Use Linefont");
+
 static int RoadMapScreenInitialized = 0;
 static int RoadMapScreenFrozen = 0;
 static int RoadMapScreenDragging = 0;
@@ -118,6 +122,8 @@ static int RoadMapScreenLabels;
 static int RoadMapScreenRotation;
 static int RoadMapScreenWidth;
 static int RoadMapScreenHeight;
+
+static int RoadMapLineFontSelect;
 
 static int RoadMapScreenDeltaX;
 static int RoadMapScreenDeltaY;
@@ -1056,6 +1062,11 @@ static void roadmap_screen_repaint (void) {
 
        roadmap_trip_format_messages ();
     
+       roadmap_landmark_display ();
+       roadmap_features_display ();
+       roadmap_trip_display ();
+       roadmap_track_display ();
+
        if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
 
           roadmap_sprite_draw ("Compass", &CompassPoint, 0);
@@ -1063,10 +1074,6 @@ static void roadmap_screen_repaint (void) {
           roadmap_display_signs ();
        }
 
-       roadmap_landmark_display ();
-       roadmap_features_display ();
-       roadmap_trip_display ();
-       roadmap_track_display ();
     }
 
     RoadMapScreenAfterRefresh();
@@ -1080,6 +1087,8 @@ static void roadmap_screen_repaint (void) {
 
 static void roadmap_screen_configure (void) {
 
+   const char *p;
+
    RoadMapScreenWidth = roadmap_canvas_width();
    RoadMapScreenHeight = roadmap_canvas_height();
 
@@ -1091,6 +1100,18 @@ static void roadmap_screen_configure (void) {
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
    if (RoadMapScreenInitialized) {
       roadmap_screen_repaint ();
+   }
+
+   p = roadmap_config_get(&RoadMapConfigLinefontSelector);
+   if (p == NULL) {
+      RoadMapLineFontSelect |= ROADMAP_TEXT_LABELS;
+   } else {
+      if (strstr(p, "labels") != NULL)
+         RoadMapLineFontSelect |= ROADMAP_TEXT_LABELS;
+      if (strstr(p, "signs") != NULL)
+         RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS;
+      if (strstr(p, "all") != NULL)
+         RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS|ROADMAP_TEXT_LABELS;
    }
 }
 
@@ -1450,6 +1471,36 @@ void roadmap_screen_zoom_reset (void) {
 }
 
 
+void roadmap_screen_text
+     (int id, RoadMapGuiPoint *center, int where, int size, const char *text) {
+    if (ROADMAP_USE_LINEFONT && (RoadMapLineFontSelect & id) != 0) {
+        roadmap_linefont_text ( center, where, size, text);
+    } else {
+        roadmap_canvas_draw_string ( center, where, text);
+    }
+}
+void roadmap_screen_text_angle 
+        (int id, RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+                int theta, int size, const char *text) {
+    if (ROADMAP_USE_LINEFONT && (RoadMapLineFontSelect & id) != 0) {
+        roadmap_linefont_text_angle ( start, center, theta, size, text);
+    } else {
+        roadmap_canvas_draw_string_angle ( start, center, theta, text);
+    }
+}
+void roadmap_screen_text_extents 
+        (int id, const char *text, int size,
+         int *width, int *ascent, int *descent, int *can_tilt) {
+    if (ROADMAP_USE_LINEFONT && (RoadMapLineFontSelect & id) != 0) {
+        roadmap_linefont_extents
+                (text, size, width, ascent, descent, can_tilt);
+    } else {
+        roadmap_canvas_get_text_extents
+                (text, -1, width, ascent, descent, can_tilt);
+    }
+}
+
+
 void roadmap_screen_initialize (void) {
 
    roadmap_config_declare ("session", &RoadMapConfigDeltaX, "0");
@@ -1485,6 +1536,9 @@ void roadmap_screen_initialize (void) {
 
    roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigMapDynamicOrientation, "on", "off", NULL);
+
+   roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigLinefontSelector, "labels", "signs", "all", "off", NULL);
 
 
 

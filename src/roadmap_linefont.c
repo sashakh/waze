@@ -85,7 +85,26 @@
 #include "roadmap_canvas.h"
 #include "roadmap_linefont.h"
 
-#ifdef ROADMAP_USE_LINEFONT
+#ifndef ROADMAP_USE_LINEFONT
+
+void roadmap_linefont_extents
+        (const char *text, int size,
+         int *width, int *ascent, int *descent, int *can_tilt) {
+    /* null */
+}
+
+void roadmap_linefont_text
+        ( RoadMapGuiPoint *center, int where, int size, const char *text) {
+    /* null */
+}
+
+void roadmap_linefont_text_angle
+        ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+                int theta, int size, const char *text) {
+    /* null */
+}
+
+#else
 
 #define MAXCHARS 100
 #define MAXPOINTS 256
@@ -232,7 +251,8 @@ roadmap_load_hershey_font(void)
 }
 
 void roadmap_linefont_extents
-        (const char *text, int size, int *width, int *ascent, int *descent) {
+        (const char *text, int size,
+         int *width, int *ascent, int *descent, int *can_tilt) {
 
     int len, scale;
     const char *t;
@@ -258,55 +278,37 @@ void roadmap_linefont_extents
     *ascent = scale * (hf->maxy - hf->miny)/ 1024;
     *descent = 0;   /* hershey gives no info re: "baseline" */
 
+    if (can_tilt) *can_tilt = 1;
+
 }
 
+
 /* render a string to the screen ... */
-void roadmap_linefont_text (const char *text, int where, 
-        RoadMapGuiPoint *center, int size, int theta)
-{
+void roadmap_linefont_text_angle_worker
+    ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        int theta, int size, const char *text) {
 
     RoadMapGuiPoint *p, points[MAXPOINTS];
-    int i, len, height, xp, yp, count;
+    int i, xp, yp, count;
     long scale;
     const char *t;
     unsigned int k;
+
+    roadmap_canvas_set_thickness (2);
 
     if (fontp == 0) {
         roadmap_load_hershey_font();
     }
 
+    // debugging aids:
+    // roadmap_sprite_draw ("SmallRedDot" , start, 0);
+    // roadmap_sprite_draw ("PurpleCross" , center, 0);
+
     /* scale factor ... */
     scale = 1024 * size / (hf->maxy - hf->miny);
 
-    /* find the length of the string in pixels ... */
-    len = 0;
-
-    for (t = text; *t; t++) {
-
-        k = isoconv(*t) - ' ';
-        if (k < hf->nchars) {
-            len += hf->hc[k].maxx - hf->hc[k].minx;
-        }
-    }
-
-    /* alignment stuff ... */
-
-    xp = center->x + 1;
-    yp = center->y;
-
-    len = scale * len / 1024;
-    height = scale * (hf->maxy - hf->miny) / 1024;
-
-    if (where & ROADMAP_LINEFONT_RIGHT)
-        xp -= len;
-    else if (where & ROADMAP_LINEFONT_CENTER_X)
-        xp -= len / 2;
-
-    if (where & ROADMAP_LINEFONT_BOTTOM)
-        yp -= height;
-    else if (where & ROADMAP_LINEFONT_CENTER_Y)
-        yp -= (height / 2);
-
+    xp = start->x;
+    yp = start->y;
 
     p = points;
     count = 0;
@@ -347,13 +349,58 @@ void roadmap_linefont_text (const char *text, int where,
         }
 
         /* advance the starting coordinate ... */
-        xp += scale * (hf->hc[k].maxx - hf->hc[k].minx) / 1024;
+        xp += ((scale * (hf->hc[k].maxx - hf->hc[k].minx)) + 511) / 1024;
 
     }
 }
 
+void roadmap_linefont_text_angle
+    ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        int theta, int size, const char *text) {
+    int text_width;
+    int text_ascent;
+    int text_descent;
+
+    roadmap_linefont_extents
+        (text, size, &text_width, &text_ascent, &text_descent, NULL);
+
+    start->x = center->x - text_width/2;
+    start->y = center->y - (text_ascent + text_descent);
+
+    roadmap_linefont_text_angle_worker (start, center, theta, size, text);
+}
+
+void roadmap_linefont_text
+        ( RoadMapGuiPoint *position, int where, int size, const char *text) {
+    int text_width;
+    int text_ascent;
+    int text_descent;
+    int text_height;
+    RoadMapGuiPoint start[1];
+
+    roadmap_linefont_extents
+        (text, size, &text_width, &text_ascent, &text_descent, NULL);
+
+    text_height = text_ascent + text_descent;
+
+    start->x = position->x + 1;
+    start->y = position->y;
+    if (where & ROADMAP_CANVAS_RIGHT)
+        start->x -= text_width;
+    else if (where & ROADMAP_CANVAS_CENTER_X)
+        start->x -= text_width / 2;
+
+    if (where & ROADMAP_CANVAS_BOTTOM)
+        start->y -= text_height;
+    else if (where & ROADMAP_CANVAS_CENTER_Y)
+        start->y -= (text_height / 2);
+
+   roadmap_linefont_text_angle_worker (start, position, 0, size, text);
+}
+
+
 /* This string is simply an in-line version of the file "romans",
- * the Roman-Simplex font distributed on Usenet with with Alan
+ * the Roman-Simplex font distributed on Usenet with Alan
  * Richardson's Xrotfont package.  To inline another such font,
  * simply quote each line, escape all '\' characters, and join
  * lines that are clearly continuations lines.  (The data in

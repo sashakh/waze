@@ -201,40 +201,40 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
                                  int corner,
                                  const char *text) {
 
-   int x;
-   int y;
    int text_width;
    int text_ascent;
    int text_descent;
-   int text_height;
+   RoadMapGuiPoint start[1];
 
    roadmap_canvas_get_text_extents 
         (text, -1, &text_width, &text_ascent, &text_descent, NULL);
 
-   text_height = text_ascent + text_descent;
-
-   x = position->x;
-   y = position->y;
+   start->x = position->x;
+   start->y = position->y;
    if (corner & ROADMAP_CANVAS_RIGHT)
-      x -= text_width;
+      start->x -= text_width;
    else if (corner & ROADMAP_CANVAS_CENTER_X)
-      x -= text_width / 2;
+      start->x -= text_width / 2;
 
    if (corner & ROADMAP_CANVAS_BOTTOM)
-      y -= text_height;
+      start->y -= text_descent;
    else if (corner & ROADMAP_CANVAS_CENTER_Y)
-      y -= (text_height / 2);
+      start->y = start->y - text_descent + ((text_descent + text_ascent) / 2);
+   else /* TOP */
+      start->y += text_ascent;
 
-   gdk_draw_layout  (RoadMapDrawingBuffer, RoadMapGc, x, y, RoadMapLayout);
+   roadmap_canvas_draw_string_angle (start, position, 0, text);
 }
 
 void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center,
                                        int angle, const char *text)
 {
-    /* no angle possible, currently.  at least try and center the text */
-    roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+    /* no angle possible */
+   gdk_draw_layout
+      (RoadMapDrawingBuffer, RoadMapGc, position->x, position->y, RoadMapLayout);
 }
+
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points) {
 
@@ -249,7 +249,6 @@ void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points) {
    roadmap_canvas_convert_points (gdkpoints, points, count);
    gdk_draw_points (RoadMapDrawingBuffer, RoadMapGc, gdkpoints, count);
 }
-
 
 void roadmap_canvas_draw_multiple_lines 
          (int count, int *lines, RoadMapGuiPoint *points, int fast_draw) {

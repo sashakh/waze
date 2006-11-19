@@ -149,7 +149,7 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
    if (corner & ROADMAP_CANVAS_BOTTOM)
       y -= text_descent;
    else if (corner & ROADMAP_CANVAS_CENTER_Y)
-      y += (text_ascent / 2);
+      y = y - text_descent + ((text_descent + text_ascent) / 2);
    else /* TOP */
       y += text_ascent;
 
@@ -170,10 +170,15 @@ void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 
    QFont f("Arial Bold",12);
 
+   int text_width;
+   int text_ascent;
+   int text_descent;
+   getTextExtents(text, &text_width, &text_ascent, &text_descent, NULL);
+
    p.setFont(f);
    p.translate(position->x,position->y);
    p.rotate((double)angle);
-   p.drawText(0, 0, QString::fromUtf8(text));
+   p.drawText(0, -text_descent, QString::fromUtf8(text));
 #endif
 }
 

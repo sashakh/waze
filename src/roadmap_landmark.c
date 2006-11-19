@@ -46,10 +46,13 @@ static RoadMapConfigDescriptor RoadMapConfigLandmarkName =
                         ROADMAP_CONFIG_ITEM ("Landmarks", "Name");
 
 static RoadMapConfigDescriptor RoadMapConfigLandmarksColor =
-                        ROADMAP_CONFIG_ITEM("Landmarks", "Color");
+                        ROADMAP_CONFIG_ITEM ("Landmarks", "Color");
+
+static RoadMapConfigDescriptor RoadMapConfigLandmarkSize =
+                        ROADMAP_CONFIG_ITEM ("Landmarks", "Font Size");
 
 static RoadMapConfigDescriptor RoadMapConfigBackupFiles =
-                        ROADMAP_CONFIG_ITEM("Files", "Make Backups");
+                        ROADMAP_CONFIG_ITEM ("Files", "Make Backups");
 
 
 void roadmap_landmark_set_modified(void) {
@@ -57,7 +60,7 @@ void roadmap_landmark_set_modified(void) {
 }
 
 
-#define ROADMAP_LANDMARK_LABEL_SIZE 18
+static int RoadMapLandmarkFontSize;
 
 void roadmap_landmark_draw_waypoint
         (const waypoint *waypointp,
@@ -97,7 +100,7 @@ void roadmap_landmark_draw_waypoint
          * labels come out on "top" of other map features.
          */
         roadmap_label_draw_text(waypointp->shortname,
-           &guipoint, &guipoint, 0, 0, ROADMAP_LANDMARK_LABEL_SIZE);
+           &guipoint, &guipoint, 0, 0, RoadMapLandmarkFontSize);
     }
 }
 
@@ -132,7 +135,7 @@ void roadmap_landmark_draw_weepoint
          * labels come out on "top" of other map features.
          */
         roadmap_label_draw_text(weepointp->name,
-           &guipoint, &guipoint, 0, 0, ROADMAP_LANDMARK_LABEL_SIZE);
+           &guipoint, &guipoint, 0, 0, RoadMapLandmarkFontSize);
     }
 }
 
@@ -142,6 +145,9 @@ static void roadmap_landmark_draw(const waypoint *waypointp) {
 }
 
 void roadmap_landmark_display (void) {
+
+    RoadMapLandmarkFontSize =
+            roadmap_config_get_integer (&RoadMapConfigLandmarkSize);
 
     waypt_iterator (&RoadMapLandmarkHead, roadmap_landmark_draw);
 
@@ -327,6 +333,9 @@ roadmap_landmark_initialize(void) {
 
     roadmap_config_declare
        ("preferences", &RoadMapConfigLandmarksColor,  "darkred");
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigLandmarkSize,  "18");
 
 
     ROADMAP_LIST_INIT(&RoadMapLandmarkHead);
