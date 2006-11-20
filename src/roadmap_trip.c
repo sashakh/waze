@@ -191,7 +191,7 @@ RoadMapTripFocal RoadMapTripFocalPoints[] = {
     ROADMAP_TRIP_ITEM ("Start", NULL, 0, 0, 1),
     ROADMAP_TRIP_ITEM ("WayPoint", NULL, 0, 1, 0),
     ROADMAP_TRIP_ITEM ("Address", NULL, 0, 1, 0),
-    ROADMAP_TRIP_ITEM ("Selection", NULL, 0, 1, 0),
+    ROADMAP_TRIP_ITEM ("Selection", "Selection", 0, 0, 0),
     ROADMAP_TRIP_ITEM ("Departure", "Departure", 0, 0, 1),
     ROADMAP_TRIP_ITEM ("Hold", NULL, 1, 0, 0),
     ROADMAP_TRIP_ITEM (NULL, NULL, 0, 0, 0)
@@ -756,7 +756,7 @@ static void roadmap_trip_waypoint_manage_action
                 (&RoadMapTripLostPlacesHead,
                     (RoadMapListItem *)roadmap_landmark_remove(waypointp));
             RoadMapTripRefresh = 1;
-            roadmap_screen_redraw ();
+            roadmap_screen_refresh ();
             return;
         } else if (which == TRIP_WAYPOINTS) {
             roadmap_list_insert
@@ -777,7 +777,7 @@ static void roadmap_trip_waypoint_manage_action
                 roadmap_trip_unset_route_focii ();
                 roadmap_trip_set_modified(1);
                 RoadMapTripRefresh = 1;
-                roadmap_screen_redraw ();
+                roadmap_screen_refresh ();
                 return;
             }
 
@@ -800,7 +800,7 @@ static void roadmap_trip_waypoint_manage_action
 
     roadmap_trip_set_modified(1);
 
-    roadmap_screen_redraw ();
+    roadmap_screen_refresh ();
 
 }
 
@@ -1326,6 +1326,8 @@ void roadmap_trip_set_point (const char *id, RoadMapPosition * position) {
 
     focal->has_value = 1;
     RoadMapTripLastSetPoint = focal;
+
+    if (focal->sprite != NULL) RoadMapTripRefresh = 1;
 }
 
 
@@ -1546,14 +1548,11 @@ void roadmap_trip_add_waypoint
 
     case PLACE_TRIP_MARK:
         waypt_add(&RoadMapTripWaypointHead, waypointp);
-        roadmap_trip_set_focus_waypoint (waypointp);
         break;
 
     case PLACE_PERSONAL_MARK:
-        /* this call forces any updating that's necessary, so we can return */
         roadmap_landmark_add(waypointp);
-        roadmap_trip_set_focus_waypoint (waypointp);
-        return;
+        break;
 
     case PLACE_NEW_ROUTE:
         roadmap_trip_new_route_waypoint(waypointp);
@@ -1562,13 +1561,22 @@ void roadmap_trip_add_waypoint
 
     if (where >= NUM_PLACEMENTS) { 
         roadmap_trip_set_route_focii ();
-        roadmap_trip_set_focus_waypoint (waypointp);
+    }
+
+    if (!roadmap_math_point_is_visible (&waypointp->pos)) {
+	/* Only set focus if the point we just added is off-screen.  This
+	 * will take us there.
+	 */
+	roadmap_trip_set_focus_waypoint (waypointp);
     }
 
     RoadMapTripRefresh = 1;
-    roadmap_trip_set_modified(1);
 
-    roadmap_screen_redraw ();
+    if (where != PLACE_PERSONAL_MARK) {
+	roadmap_trip_set_modified(1);
+    }
+
+    roadmap_screen_refresh ();
 }
 
 void roadmap_trip_create_selection_waypoint (void) {
@@ -2242,7 +2250,7 @@ void roadmap_trip_new (void) {
 
     roadmap_trip_set_modified(0);
 
-    roadmap_screen_refresh ();
+    roadmap_screen_redraw ();
 
     roadmap_main_title("");
 
@@ -3057,7 +3065,7 @@ static void roadmap_trip_move_last_cancel (RoadMapGuiPoint *point) {
     RoadMapTripPlaceMoving = 0;
 
     roadmap_display_hide("Moving");
-    roadmap_screen_redraw ();
+    roadmap_screen_refresh ();
 }
 
 static void roadmap_trip_move_last_handler (RoadMapGuiPoint *point) {
@@ -3108,7 +3116,7 @@ void roadmap_trip_move_last_place(void)
        w->description ? " - " : "",
        w->description ? w->description  : "");
 
-    roadmap_screen_redraw ();
+    roadmap_screen_refresh ();
 
     RoadMapTripPlaceMoving = 1;
 
