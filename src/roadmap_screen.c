@@ -1142,6 +1142,7 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
    }
 
    roadmap_trip_set_point ("Selection", &position);
+   roadmap_screen_refresh ();
 
 }
 
@@ -1204,7 +1205,8 @@ static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
    RoadMapScreenDragging = 0;
    RoadMapScreenPointerLocation = *point;
-   roadmap_screen_repaint ();
+   roadmap_screen_hold ();
+   roadmap_screen_refresh ();
 }
 
 static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
