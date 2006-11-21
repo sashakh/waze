@@ -63,6 +63,7 @@ extern "C" {
 #include "colors.h"
 }
 
+#include "roadmap_libpng.h"
 #include "../roadmap_canvas_agg.h"
 
 static HWND			RoadMapDrawingArea;
@@ -234,17 +235,14 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
    return RoadMapDrawingArea;
 }
 
-RoadMapImage roadmap_canvas_agg_load_image (const char *path, const char *file_name) {
 
-   char *full_name = roadmap_path_join (path, file_name);
+static RoadMapImage load_bmp (const char *full_name) {
 
    agg::pixel_map pmap_tmp;
+
    if(!pmap_tmp.load_from_bmp(full_name)) {
-      free(full_name);
       return NULL;
    }
-
-   free(full_name);
 
    if (pmap_tmp.bpp() != 24) {
       return NULL;
@@ -267,6 +265,43 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path, const char *file_n
                        width * 4);
 
    agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_bgr24_to_rgba32());
+   return image;
+}
+
+
+static RoadMapImage load_png (const char *full_name) {
+
+   int width;
+   int height;
+   int stride;
+
+   unsigned char *buf = read_png_file(full_name, &width, &height, &stride);
+
+   if (!buf) return NULL;
+
+   RoadMapImage image =  new roadmap_canvas_image();
+   image->rbuf.attach (buf, width, height, stride);
+
+   return image;
+}
+
+
+RoadMapImage roadmap_canvas_agg_load_image (const char *path,
+                                            const char *file_name) {
+
+   char *full_name = roadmap_path_join (path, file_name);
+   RoadMapImage image;
+
+   if ((strlen(file_name) > 4) &&
+      !strcasecmp (file_name + strlen(file_name) - 4, ".png")) {
+
+      image = load_png (full_name);
+   } else {
+      image = load_bmp (full_name);
+   }
+
+   free (full_name);
+
    return image;
 }
 
