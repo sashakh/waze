@@ -149,6 +149,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_object.c \
           roadmap_screen_obj.c \
           roadmap_trip.c \
+          roadmap_skin.c \
           roadmap_layer.c \
           roadmap_fuzzy.c \
           roadmap_navigate.c \
@@ -282,6 +283,7 @@ SSD_WIDGETS_SRCS=ssd/ssd_dialog.c \
 					  ssd/ssd_keyboard.c \
 					  ssd/ssd_menu.c \
 					  ssd/ssd_messagebox.c \
+					  ssd/ssd_choice.c \
 
 SSD_WIDGETS_OBJS=$(SSD_WIDGETS_SRCS:.c=.o)
 
