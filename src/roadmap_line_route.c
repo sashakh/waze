@@ -261,6 +261,23 @@ int roadmap_line_route_get_cross_time (int line, int against_dir) {
 }
 
 
+int roadmap_line_route_get_avg_cross_time (int line, int against_dir) {
+
+   RoadMapLineRoute *route;
+
+   if (RoadMapLineRouteActive == NULL) return -1; /* No data. */
+   if (RoadMapLineRouteActive->LineRouteCount <= line) return -1;
+
+   route = &RoadMapLineRouteActive->LineRoute[line];
+
+   if (!against_dir) {
+      return calc_avg_cross_time (line, route->from_speed_ref);
+   } else {
+      return calc_avg_cross_time (line, route->to_speed_ref);
+   }
+}
+
+
 int roadmap_line_route_get_speed (int line, int against_dir) {
 
    RoadMapLineRoute *route;
@@ -283,5 +300,26 @@ int roadmap_line_route_get_speed (int line, int against_dir) {
    if (speed_ref == INVALID_SPEED) return 0;
 
    return roadmap_line_speed_get (speed_ref, time_slot);
+}
+
+int roadmap_line_route_get_avg_speed (int line, int against_dir) {
+
+   RoadMapLineRoute *route;
+   int speed_ref;
+
+   if (RoadMapLineRouteActive == NULL) return -1; /* No data. */
+   if (RoadMapLineRouteActive->LineRouteCount <= line) return -1;
+
+   route = &RoadMapLineRouteActive->LineRoute[line];
+
+   if (!against_dir) {
+      speed_ref = route->from_speed_ref;
+   } else {
+      speed_ref = route->to_speed_ref;
+   }
+
+   if (speed_ref == INVALID_SPEED) return 0;
+
+   return roadmap_line_speed_get_avg (speed_ref);
 }
 
