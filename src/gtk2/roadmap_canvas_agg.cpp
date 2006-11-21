@@ -1,8 +1,9 @@
-/* roadmap_canvas.c - manage the canvas that is used to draw the map.
+/* roadmap_canvas_agg.c - manage the canvas for agg.
  *
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -64,6 +65,7 @@ extern "C" {
 #include "roadmap_gtkcanvas.h"
 }
 
+#include "roadmap_libpng.h"
 #include "roadmap_canvas_agg.h"
 
 #define GetRValue(x) x.red
@@ -108,13 +110,9 @@ agg::rgba8 roadmap_canvas_agg_parse_color (const char *color) {
 }
 
 
-RoadMapImage roadmap_canvas_agg_load_image (const char *path,
-                                            const char *file_name) {
-
-   char *full_name = roadmap_path_join (path, file_name);
+static RoadMapImage load_bmp (const char *full_name) {
 
    GdkPixbuf* pixbuf = gdk_pixbuf_new_from_file(full_name, NULL);
-   free (full_name);
 
    if (pixbuf == NULL) {
       return NULL;
@@ -146,6 +144,43 @@ RoadMapImage roadmap_canvas_agg_load_image (const char *path,
    agg::color_conv(&image->rbuf, &tmp_rbuf, agg::color_conv_rgb24_to_rgba32());
    
    g_object_unref (pixbuf);
+
+   return image;
+}
+
+
+static RoadMapImage load_png (const char *full_name) {
+
+   int width;
+   int height;
+   int stride;
+
+   unsigned char *buf = read_png_file(full_name, &width, &height, &stride);
+
+   if (!buf) return NULL;
+
+   RoadMapImage image =  new roadmap_canvas_image();
+   image->rbuf.attach (buf, width, height, stride);
+
+   return image;
+}
+
+
+RoadMapImage roadmap_canvas_agg_load_image (const char *path,
+                                            const char *file_name) {
+
+   char *full_name = roadmap_path_join (path, file_name);
+   RoadMapImage image;
+
+   if ((strlen(file_name) > 4) &&
+      !strcasecmp (file_name + strlen(file_name) - 4, ".png")) {
+
+      image = load_png (full_name);
+   } else {
+      image = load_bmp (full_name);
+   }
+
+   free (full_name);
 
    return image;
 }

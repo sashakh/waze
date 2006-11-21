@@ -74,7 +74,7 @@ RMLIBSRCS=roadmap_keyboard.c \
           roadmap_fileselection.c \
 #          roadmap_messagebox.c \
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o ../roadmap_libpng.o
+RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o roadmap_libpng.o
 
 
 # --- Conventional targets ----------------------------------------
