@@ -47,6 +47,7 @@
 #include "roadmap_hash.h"
 #include "roadmap_sprite.h"
 #include "roadmap_lang.h"
+#include "roadmap_start.h"
 #include "roadmap_main.h"
 
 #include "db/editor_db.h"
@@ -92,8 +93,17 @@ SelectedLine SelectedLines[MAX_LINE_SELECTIONS];
 
 static int select_count;
 
-static RoadMapPointerHandler SaveShortClickHandler;
-static RoadMapPointerHandler SaveLongClickHandler;
+static char const *PopupMenuItems[] = {
+
+   "setasdeparture",
+   "setasdestination",
+   "properties",
+   "deleteroads",
+
+   NULL,
+};
+
+
 
 /* track which lines were drawn */
 #define DEFAULT_LINES_DRAWN_SIZE 100
@@ -152,7 +162,9 @@ static int should_draw_line (int line) {
 
 static void editor_screen_update_segments (void) {
 
-   editor_segments_properties (SelectedLines, select_count);
+   if (select_count) {
+      editor_segments_properties (SelectedLines, select_count);
+   }
 }
 
 
@@ -197,11 +209,11 @@ static void editor_screen_delete_segments (void) {
 
 }
 
-void editor_screen_long_click (RoadMapGuiPoint *point) {
+static int editor_screen_long_click (RoadMapGuiPoint *point) {
    
    static RoadMapMenu menu;
 
-   if (select_count == 0) return;
+   if (select_count == 0) return 0;
 
    if (menu == NULL) {
       menu = roadmap_main_new_menu ();
@@ -220,10 +232,17 @@ void editor_screen_long_click (RoadMapGuiPoint *point) {
    }
 
    roadmap_main_popup_menu (menu, point->x, point->y);
+
+   return 1;
 }
  
 
-void editor_screen_short_click (RoadMapGuiPoint *point) {
+static void popup_menu_callback (void) {
+   editor_screen_reset_selected ();
+}
+
+
+static int editor_screen_short_click (RoadMapGuiPoint *point) {
     
    RoadMapPosition position;
    PluginLine line;
@@ -235,11 +254,14 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
    roadmap_math_to_position (point, &position, 1);
    
    if (roadmap_navigate_retrieve_line
-         (&position, 1, &line, &distance, LAYER_ALL_ROADS) == -1) {
+         (&position, 7, &line, &distance, LAYER_ALL_ROADS) == -1) {
        
       roadmap_display_hide ("Selected Street");
+      roadmap_trip_set_point ("Selection", &position);
+      roadmap_start_hide_menu ("Editor Menu");
       editor_screen_reset_selected ();
-      return;
+      roadmap_screen_redraw ();
+      return 1;
    }
 
    for (i=0; i<select_count; i++) {
@@ -256,7 +278,7 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
       select_count--;
 
       if (!select_count) {
-         roadmap_pointer_register_long_click (SaveLongClickHandler);
+         roadmap_pointer_unregister_long_click (editor_screen_long_click);
       }
 
    } else {
@@ -265,8 +287,7 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
 
          SelectedLines[select_count].line = line;
          if (!select_count) {
-            SaveLongClickHandler = roadmap_pointer_register_long_click
-                                    (editor_screen_long_click);
+            roadmap_pointer_register_long_click (editor_screen_long_click);
          }
          select_count++;
       }
@@ -274,7 +295,11 @@ void editor_screen_short_click (RoadMapGuiPoint *point) {
 
    roadmap_trip_set_point ("Selection", &position);
    roadmap_display_activate ("Selected Street", &line, &position, &street);
+   roadmap_start_popup_menu ("Editor Menu", PopupMenuItems,
+                             popup_menu_callback, point);
    roadmap_screen_redraw ();
+
+   return 1;
 }
 
 
@@ -335,13 +360,34 @@ void editor_screen_adjust_layer (int layer, int thickness, int pen_count) {
 }
 
 
-static int editor_screen_get_road_state (int line, int plugin_id, int fips) {
+static int editor_screen_get_road_state (int line, int cfcc,
+                                         int plugin_id, int fips) {
 
    int has_street = 0;
    int has_route = 0;
 
+   return NO_ROAD_STATE;
+
    if (plugin_id == ROADMAP_PLUGIN_ID) {
       
+      if (roadmap_locator_activate (fips) >= 0) {
+         int speed1 = roadmap_line_route_get_speed (line, 0);
+         int speed2 = roadmap_line_route_get_speed (line, 1);
+         int slow = 25;
+
+         if (cfcc == ROADMAP_ROAD_FREEWAY) slow = 45;
+
+         if (!speed1 && !speed2) return NO_ROAD_STATE;
+
+         if (!speed1) speed1 = speed2;
+         else if (!speed2) speed2 = speed1;
+
+         if ((speed1 <= slow) || (speed2 <= slow)) {
+            return NO_DATA_STATE;
+         } else {
+            return NO_ROAD_STATE;
+         }
+      }
       return NO_ROAD_STATE;
       
       if (roadmap_locator_activate (fips) >= 0) {
@@ -435,7 +481,7 @@ int editor_screen_override_pen (int line,
    } else {
       
       if (!roadmap_screen_is_dragging() && (pen_type > 0)) {
-         road_state = editor_screen_get_road_state (line, 0, fips);
+         road_state = editor_screen_get_road_state (line, cfcc, 0, fips);
       } else {
          road_state = NO_ROAD_STATE;
       }
@@ -629,7 +675,7 @@ static void editor_screen_draw_square
             road_state = MISSING_ROUTE_STATE;
          } else {
       
-            road_state = editor_screen_get_road_state (line, 1, fips);
+            road_state = editor_screen_get_road_state (line, cfcc, 1, fips);
          }
 
       } else {
@@ -750,14 +796,13 @@ void editor_screen_set (int status) {
 
    if (status) {
 
-      SaveShortClickHandler = roadmap_pointer_register_short_click
-         (editor_screen_short_click);
+      roadmap_pointer_register_short_click (editor_screen_short_click);
       roadmap_layer_adjust();
    } else {
 
-      roadmap_pointer_register_short_click (SaveShortClickHandler);
+      roadmap_pointer_unregister_short_click (editor_screen_short_click);
       if (select_count) {
-         roadmap_pointer_register_long_click (SaveLongClickHandler);
+         roadmap_pointer_unregister_long_click (editor_screen_long_click);
          select_count = 0;
       }
    }
@@ -767,7 +812,7 @@ void editor_screen_set (int status) {
 void editor_screen_reset_selected (void) {
 
 	if (select_count) {
-      roadmap_pointer_register_long_click (SaveLongClickHandler);
+      roadmap_pointer_unregister_long_click (editor_screen_long_click);
    }
 
    select_count = 0;
@@ -804,6 +849,14 @@ void editor_screen_initialize (void) {
    EditorTrackPens[1].pen = roadmap_canvas_create_pen ("EditorTrack1");
    roadmap_canvas_set_foreground ("blue");
    roadmap_canvas_set_thickness (1);
+
+   roadmap_start_add_action ("properties", "Properties",
+      "Update road properties", NULL, "Update road properties",
+      editor_screen_update_segments);
+
+   roadmap_start_add_action ("deleteroads", "Delete", "Delete selected roads",
+      NULL, "Delete selected roads",
+      editor_screen_delete_segments);
 
    screen_prev_after_refresh = 
       roadmap_screen_subscribe_after_refresh (editor_screen_after_refresh);
