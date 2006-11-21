@@ -75,6 +75,7 @@ struct RoadMapConfigItemRecord {
 struct RoadMapConfigRecord {
 
    char              *name;
+   char              *set;
    int                required;
    int                state; /* CLEAN, SHARED or DIRTY. */
    RoadMapConfigItem *first_item;
@@ -83,13 +84,13 @@ struct RoadMapConfigRecord {
 
 
 static RoadMapConfig RoadMapConfigFiles[] = {
-   {"session",     0, ROADMAP_CONFIG_CLEAN, NULL, NULL},
-   {"preferences", 0, ROADMAP_CONFIG_CLEAN, NULL, NULL},
-   {"schema",      1, ROADMAP_CONFIG_CLEAN, NULL, NULL},
-   {NULL, 0, 0, NULL, NULL}
+   {"session",     "config", 0, ROADMAP_CONFIG_CLEAN, NULL, NULL},
+   {"preferences", "config", 0, ROADMAP_CONFIG_CLEAN, NULL, NULL},
+   {"schema",      "skin",   1, ROADMAP_CONFIG_CLEAN, NULL, NULL},
+   {NULL, "", 0, 0, NULL, NULL}
 };
 
-
+static int RoadMapConfigAge = 1;
 
 static RoadMapConfig *roadmap_config_search_file (const char *name) {
 
@@ -137,7 +138,11 @@ static RoadMapConfigItem *roadmap_config_retrieve
         return NULL;
     }
     
-    if (descriptor->reference == NULL) {
+    if ((descriptor->age != RoadMapConfigAge) ||
+         (descriptor->reference == NULL)) {
+
+        descriptor->reference = NULL;
+        descriptor->age = RoadMapConfigAge;
         
         for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
 
@@ -214,6 +219,7 @@ static RoadMapConfigItem *roadmap_config_new_item
         file->first_item = new_item;
     }
 
+   descriptor->age = RoadMapConfigAge;
    descriptor->reference = new_item;
    
    return new_item;
@@ -333,6 +339,7 @@ int roadmap_config_first (const char *config,
     descriptor->category = file->first_item->category;
     descriptor->name = file->first_item->name;
     descriptor->reference = file->first_item;
+    descriptor->age = RoadMapConfigAge;
     
     return 1;
 }
@@ -355,6 +362,7 @@ int roadmap_config_next (RoadMapConfigDescriptor *descriptor) {
    
     descriptor->category  = descriptor->reference->category;
     descriptor->name      = descriptor->reference->name;
+    descriptor->age       = RoadMapConfigAge;
 
     return 1;
 }
@@ -575,33 +583,58 @@ char *roadmap_config_extract_data (char *line, int size) {
 }
 
 
-void  roadmap_config_initialize (void) {
+int  roadmap_config_reload (const char *name) {
 
-    const char *p;
-    RoadMapConfig *file;
+   const char *p;
+   RoadMapConfig *file;
 
+   RoadMapConfigAge++;
 
    for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
+      if (!strcmp (file->name, name)) break;
+   }
+
+   if (file->name == NULL) {
+      roadmap_log
+         (ROADMAP_ERROR,
+          "config_reload found no '%s' config file", name);
+
+      return -1;
+
+   } else {
 
       int loaded = 0;
 
-      for (p = roadmap_path_last("config");
+      for (p = roadmap_path_first(file->set);
            p != NULL;
-           p = roadmap_path_previous("config", p)) {
+           p = roadmap_path_next(file->set, p)) {
 
-         loaded |=
-            roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
+         loaded = roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
+         
+         if (loaded) break;
       }
-
-      loaded |=
-         roadmap_config_load (roadmap_path_user(), file, ROADMAP_CONFIG_CLEAN);
 
       if (file->required && (!loaded)) {
          roadmap_log
             (ROADMAP_ERROR,
              "found no '%s' config file, check RoadMap installation",
              file->name);
+         return -1;
       }
+
+      return 0;
+   }
+}
+
+
+void  roadmap_config_initialize (void) {
+
+    RoadMapConfig *file;
+
+
+   for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
+
+      roadmap_config_reload (file->name);
    }
 }
 

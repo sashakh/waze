@@ -42,6 +42,7 @@
 #include "roadmap_message.h"
 #include "roadmap_sprite.h"
 #include "roadmap_voice.h"
+#include "roadmap_skin.h"
 #include "roadmap_plugin.h"
 
 #include "roadmap_display.h"
@@ -113,9 +114,9 @@ typedef struct {
 #define ROADMAP_SIGN(p,n,w,t,b,f) \
     {p, n, NULL, NULL, 0, 0, 0, 0, {0, 0},{{0,0}, {0,0}}, NULL, NULL, \
    PLUGIN_LINE_NULL, \
-        {n, "Text", NULL}, \
-        {n, "Background", NULL}, \
-        {n, "Foreground", NULL}, \
+        {n, "Text", 0, NULL}, \
+        {n, "Background", 0, NULL}, \
+        {n, "Foreground", 0, NULL}, \
      w, t, b, f, PLUGIN_STREET_NULL}
 
 
@@ -728,9 +729,9 @@ void roadmap_display_initialize (void) {
         ("preferences", &RoadMapConfigDisplayTopRight, "ETA: %A|%T");
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigConsoleBackground, "yellow");
+        ("schema", &RoadMapConfigConsoleBackground, "yellow");
     roadmap_config_declare
-        ("preferences", &RoadMapConfigConsoleForeground, "black");
+        ("schema", &RoadMapConfigConsoleForeground, "black");
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
         
@@ -748,4 +749,6 @@ void roadmap_display_initialize (void) {
             ("preferences",
              &sign->foreground_descriptor, sign->default_foreground);
     }
+
+    roadmap_skin_register (roadmap_display_create_pens);
 }

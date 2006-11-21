@@ -42,15 +42,16 @@ typedef struct {
     
     const char *category;
     const char *name;
+    int         age;
     
     RoadMapConfigItem *reference;
     
 } RoadMapConfigDescriptor;
 
 
-#define ROADMAP_CONFIG_ITEM_EMPTY  {NULL, NULL, NULL}
-#define ROADMAP_CONFIG_ITEM(c,n)   {c, n, NULL}
-#define ROADMAP_CONFIG_LOCATION(n) {"Locations", n, NULL}
+#define ROADMAP_CONFIG_ITEM_EMPTY  {NULL, NULL, 0, NULL}
+#define ROADMAP_CONFIG_ITEM(c,n)   {c, n, 0, NULL}
+#define ROADMAP_CONFIG_LOCATION(n) {"Locations", n, 0, NULL}
 
 
 void roadmap_config_declare
@@ -110,5 +111,7 @@ void  roadmap_config_get_position
         (RoadMapConfigDescriptor *descriptor, RoadMapPosition *position);
 void  roadmap_config_set_position
         (RoadMapConfigDescriptor *descriptor, const RoadMapPosition *position);
+
+int  roadmap_config_reload (const char *name);
 
 #endif // _ROADMAP_CONFIG__H_

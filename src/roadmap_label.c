@@ -57,6 +57,7 @@
 #include "roadmap_linefont.h"
 #endif
 
+#include "roadmap_skin.h"
 #include "roadmap_list.h"
 #include "roadmap_label.h"
 
@@ -648,7 +649,7 @@ int roadmap_label_draw_cache (int angles) {
    return 0;
 }
 
-int roadmap_label_activate (void) {
+void roadmap_label_activate (void) {
 
 
    RoadMapLabelPen = roadmap_canvas_create_pen ("labels.main");
@@ -659,24 +660,22 @@ int roadmap_label_activate (void) {
 
    RoadMapLabelMinFeatSizeSq = roadmap_config_get_integer (&RoadMapConfigMinFeatureSize);
    RoadMapLabelMinFeatSizeSq *= RoadMapLabelMinFeatSizeSq;
-
-   return 0;
 }
-
 
 int roadmap_label_initialize (void) {
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigMinFeatureSize,  "25");
+       ("schema", &RoadMapConfigMinFeatureSize,  "25");
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigLabelsColor,  "#000000");
+       ("schema", &RoadMapConfigLabelsColor,  "#000000");
 
     
    ROADMAP_LIST_INIT(&RoadMapLabelCache);
    ROADMAP_LIST_INIT(&RoadMapLabelSpares);
    ROADMAP_LIST_INIT(&RoadMapLabelNew);
 
+   roadmap_skin_register (roadmap_label_activate);
    return 0;
 }
 

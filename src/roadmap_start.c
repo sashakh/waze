@@ -73,9 +73,11 @@
 #include "roadmap_pointer.h"
 #include "roadmap_sound.h"
 #include "roadmap_lang.h"
+#include "roadmap_skin.h"
 #include "roadmap_start.h"
 
 #ifdef SSD
+#include "ssd/ssd_widget.h"
 #include "ssd/ssd_menu.h"
 #endif
 
@@ -91,6 +93,7 @@
 #include "editor/export/editor_sync.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
+#define MAX_ACTIONS 100
 
 static int RoadMapStartFrozen = 0;
 
@@ -246,6 +249,7 @@ static void roadmap_start_set_destination (void) {
 
     roadmap_trip_set_selection_as ("Destination");
     roadmap_screen_refresh();
+    navigate_main_calc_route ();
 }
 
 static void roadmap_start_set_departure (void) {
@@ -332,7 +336,7 @@ static void roadmap_start_quick_menu (void);
  * Any other part of the user interface (menu, toolbar, etc..)
  * will reference an action.
  */
-static RoadMapAction RoadMapStartActions[] = {
+static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 
    {"preferences", "Preferences", "Preferences", "P",
       "Open the preferences editor", roadmap_preferences_edit},
@@ -392,6 +396,9 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"toggleview", "Toggle view mode", "M", NULL,
       "Toggle view mode 2D / 3D", roadmap_screen_toggle_view_mode},
+
+   {"toggleskin", "Toggle skin", "", NULL,
+      "Toggle skin (day / night)", roadmap_skin_toggle},
 
    {"toggleorientation", "Toggle orientation mode", "", NULL,
       "Toggle orientation mode dynamic / fixed",
@@ -479,6 +486,10 @@ static RoadMapAction RoadMapStartActions[] = {
    {"setasdestination", "Set as Destination", NULL, NULL,
       "Set the selected street block as the trip's destination",
       roadmap_start_set_destination},
+
+   {"traffic", "Traffic data", NULL, NULL,
+      "Chage Traffic data settings",
+      roadmap_start_navigate},
 
    {"navigate", "Navigate", NULL, NULL,
       "Calculate route",
@@ -725,7 +736,6 @@ static char const *RoadMapStartLongClickMenu[] = {
 
    "setasdeparture",
    "setasdestination",
-   "navigate",
 
    NULL,
 };
@@ -810,9 +820,8 @@ static char const *RoadMapStartKeyBinding[] = {
 static void roadmap_start_quick_menu (void) {
 
 #ifdef SSD
-   ssd_menu_activate ("quick", RoadMapStartQuickMenu, RoadMapStartActions);
-   //ssd_keyboard_show ();
-   //ssd_test_list ();
+   ssd_menu_activate ("Main Menu", "quick", RoadMapStartQuickMenu, NULL,
+          RoadMapStartActions, SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE);
 #else
    if (QuickMenu == NULL) {
 
@@ -1025,7 +1034,7 @@ static void roadmap_start_set_timeout (RoadMapCallback callback) {
 }
 
 
-static void roadmap_start_long_click (RoadMapGuiPoint *point) {
+static int roadmap_start_long_click (RoadMapGuiPoint *point) {
    
    RoadMapPosition position;
 
@@ -1035,6 +1044,8 @@ static void roadmap_start_long_click (RoadMapGuiPoint *point) {
    if (LongClickMenu != NULL) {
       roadmap_main_popup_menu (LongClickMenu, point->x, point->y);
    }
+
+   return 1;
 }
  
 
@@ -1286,3 +1297,67 @@ RoadMapStartSubscriber roadmap_start_subscribe
    return previous;
 }
 
+
+int roadmap_start_add_action (const char *name, const char *label_long,
+                              const char *label_short, const char *label_terse,
+                              const char *tip, RoadMapCallback callback) {
+   RoadMapAction action =
+         {name, label_long, label_short, label_terse, tip, callback};
+
+   int i;
+
+   for (i=0; i<MAX_ACTIONS; i++) {
+      if (RoadMapStartActions[i].name == NULL) break;
+   }
+
+   if (i == MAX_ACTIONS) {
+      roadmap_log (ROADMAP_ERROR, "Too many actions.");
+      return -1;
+   }
+
+   RoadMapStartActions[i] = action;
+   RoadMapStartActions[i+1].name = NULL;
+
+   return 0;
+}
+ 
+
+void roadmap_start_context_menu (const RoadMapGuiPoint *point) {
+   
+#ifdef SSD
+   ssd_menu_activate ("Menu", "context", RoadMapStartLongClickMenu,
+      NULL, RoadMapStartActions,
+      SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE|SSD_DIALOG_FLOAT);
+#else   
+   if (LongClickMenu == NULL) return;
+
+   roadmap_main_popup_menu (LongClickMenu, point->x, point->y);
+#endif   
+}
+ 
+
+void roadmap_start_popup_menu (const char *name,
+                               const char *items[],
+                               RoadMapCallback callback,
+                               const RoadMapGuiPoint *point) {
+   
+   int height = roadmap_canvas_height();
+   int flags = 0;
+#ifdef SSD
+   if (point->y > height / 2) {
+      flags = SSD_ALIGN_BOTTOM;
+   }
+
+   ssd_menu_activate (name, "", items, callback, RoadMapStartActions,
+                      SSD_DIALOG_FLOAT|flags);
+#endif   
+}
+
+
+void roadmap_start_hide_menu (const char *name) {
+#ifdef SSD
+   ssd_menu_hide (name);
+#endif
+}
+
+ 

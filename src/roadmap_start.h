@@ -56,5 +56,18 @@ void roadmap_start_set_title (const char *title);
 RoadMapStartSubscriber roadmap_start_subscribe
                                  (RoadMapStartSubscriber handler);
 
+void roadmap_start_context_menu (const RoadMapGuiPoint *point);
+
+int roadmap_start_add_action (const char *name, const char *label_long,
+                              const char *label_short, const char *label_terse,
+                              const char *tip, RoadMapCallback callback);
+
+void roadmap_start_popup_menu (const char *name,
+                               const char *items[],
+                               RoadMapCallback callback,
+                               const RoadMapGuiPoint *point);
+
+void roadmap_start_hide_menu (const char *name);
+
 #endif /* INCLUDE__ROADMAP_START__H */
 

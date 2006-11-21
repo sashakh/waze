@@ -26,6 +26,7 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "roadmap_canvas.h"
@@ -71,17 +72,25 @@ static void allocate_resource (unsigned int type) {
 static void *load_resource (unsigned int type, unsigned int flags,
                             const char *name, int *mem) {
 
-   char *path;
+   const char *cursor;
+   void *data = NULL;
 
-   switch (type) {
-   case RES_BITMAP:
-      path = roadmap_path_join (roadmap_path_user(), "icons");
-      *mem = 0;
+   for (cursor = roadmap_path_first ("skin");
+         cursor != NULL;
+         cursor = roadmap_path_next ("skin", cursor)) {
 
-      return roadmap_canvas_load_image (path, name);
+      switch (type) {
+         case RES_BITMAP:
+            *mem = 0;
+
+            data = roadmap_canvas_load_image (cursor, name);
+      }
+
+      if (data) break; 
+
    }
 
-   return NULL;
+   return data;
 }
 
 
@@ -115,18 +124,40 @@ void *roadmap_res_get (unsigned int type, unsigned int flags,
    int mem;
    RoadMapResource *res = &Resources[type];
 
-   data = find_resource (type, name);
+   if (! (flags & RES_NOCACHE)) {
+      data = find_resource (type, name);
 
-   if (data) return data;
+      if (data) return data;
 
-   if (!Resources[type].count) allocate_resource (type);
+      if (!Resources[type].count) allocate_resource (type);
 
-   //TODO implement grow (or old deletion)
-   if (Resources[type].count == Resources[type].max) return NULL;
+      //TODO implement grow (or old deletion)
+      if (Resources[type].count == Resources[type].max) return NULL;
+   }
 
-   data = load_resource (type, flags, name, &mem);
+   switch (type) {
+   case RES_BITMAP:
+      if (strchr (name, '.')) {
+         data = load_resource (type, flags, name, &mem);
+      } else {
+         char *full_name = malloc (strlen (name) + 5);
+         sprintf(full_name, "%s.png", name);
+         data = load_resource (type, flags, full_name, &mem);
+         if (!data) {
+            sprintf(full_name, "%s.bmp", name);
+            data = load_resource (type, flags, full_name, &mem);
+         }
+         free (full_name);
+      }
+      break;
+
+   default:
+      data = load_resource (type, flags, name, &mem);
+   }
 
    if (!data) return NULL;
+
+   if (flags & RES_NOCACHE) return data;
 
    res->slots[res->count].data = data;
    res->slots[res->count].name = name;

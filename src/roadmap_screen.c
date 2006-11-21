@@ -57,6 +57,7 @@
 #include "roadmap_display.h"
 #include "roadmap_label.h"
 #include "roadmap_plugin.h"
+#include "roadmap_skin.h"
 
 #include "roadmap_screen.h"
 
@@ -1217,13 +1218,12 @@ static void roadmap_screen_configure (void) {
 
 
 
-static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
+static int roadmap_screen_short_click (RoadMapGuiPoint *point) {
     
    PluginLine line;
    int distance;
    RoadMapPosition position;
 
-    
    roadmap_math_to_position (point, &position, 1);
    
     if (roadmap_navigate_retrieve_line
@@ -1239,6 +1239,8 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
        roadmap_display_activate ("Selected Street", &line, &position, &street);
        roadmap_screen_repaint ();
    }
+
+   return 1;
 }
 
 
@@ -1265,14 +1267,17 @@ static void roadmap_screen_record_move (int dx, int dy) {
 }
 
 
-static void roadmap_screen_drag_start (RoadMapGuiPoint *point) {
+static int roadmap_screen_drag_start (RoadMapGuiPoint *point) {
 
    RoadMapScreenDragging = 1;
    RoadMapScreenPointerLocation = *point;
    roadmap_screen_hold (); /* We don't want to move with the GPS position. */
+   roadmap_screen_refresh ();
+
+   return 1;
 }
 
-static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
+static int roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
    roadmap_screen_record_move
       (RoadMapScreenPointerLocation.x - point->x,
@@ -1281,9 +1286,11 @@ static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
    RoadMapScreenDragging = 0;
    RoadMapScreenPointerLocation = *point;
    roadmap_screen_repaint ();
+
+   return 1;
 }
 
-static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
+static int roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
    if (RoadMapScreenViewMode == VIEW_MODE_3D) {
 
@@ -1304,6 +1311,8 @@ static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
    roadmap_screen_repaint ();
    RoadMapScreenPointerLocation = *point;
+
+   return 1;
 }
 
 static int roadmap_screen_get_view_mode (void) {
@@ -1314,6 +1323,13 @@ static int roadmap_screen_get_view_mode (void) {
 static int roadmap_screen_get_orientation_mode (void) {
    
    return RoadMapScreenOrientationMode;
+}
+
+static void roadmap_screen_reset_pens (void) {
+
+    RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
+    roadmap_canvas_set_foreground
+        (roadmap_config_get (&RoadMapConfigMapBackground));
 }
 
 
@@ -1545,7 +1561,7 @@ void roadmap_screen_initialize (void) {
        ("preferences", &RoadMapConfigAccuracyMouse,  "20");
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigMapBackground, "LightYellow");
+       ("schema", &RoadMapConfigMapBackground, "LightYellow");
 
    roadmap_config_declare_enumeration
        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
@@ -1583,6 +1599,8 @@ void roadmap_screen_initialize (void) {
    roadmap_state_add ("view_mode", &roadmap_screen_get_view_mode);
    roadmap_state_add ("orientation_mode",
             &roadmap_screen_get_orientation_mode);
+   roadmap_skin_register (roadmap_screen_reset_pens);
+
    roadmap_state_monitor (&roadmap_screen_repaint);
 }
 

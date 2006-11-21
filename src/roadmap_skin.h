@@ -1,11 +1,9 @@
-/* roadmap_label.h - Manage map labels.
+/* roadmap_skin.h - manage skins.
  *
  * LICENSE:
  *
  *   Copyright 2006 Ehud Shabtai
  *
- *   This code was mostly taken from UMN Mapserver
- *   
  *   This file is part of RoadMap.
  *
  *   RoadMap is free software; you can redistribute it and/or modify
@@ -23,21 +21,14 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef __ROADMAP_LABEL__H
-#define __ROADMAP_LABEL__H
+#ifndef INCLUDE__ROADMAP_SKIN__H
+#define INCLUDE__ROADMAP_SKIN__H
 
 #include "roadmap.h"
-#include "roadmap_gui.h"
 
+void roadmap_skin_register (RoadMapCallback listener);
+void roadmap_skin_set_subskin (const char *sub_skin);
+void roadmap_skin_toggle (void);
 
-int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
-                       int featuresize, const PluginLine *line);
+#endif // INCLUDE__ROADMAP_SKIN__H
 
-void roadmap_label_activate (void);
-int roadmap_label_initialize (void);
-
-int roadmap_label_draw_cache (int angles);
-
-void roadmap_label_start (void);
-
-#endif // __ROADMAP_LABEL__H

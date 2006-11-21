@@ -27,6 +27,10 @@
 #define RES_BITMAP 0
 #define MAX_RESOURCES 1
 
+/* Flags */
+#define RES_SKIN     0x1
+#define RES_NOCACHE  0x2
+
 void *roadmap_res_get (unsigned int type, unsigned int flags,
                        const char *name);
 

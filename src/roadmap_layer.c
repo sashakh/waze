@@ -34,6 +34,7 @@
 #include "roadmap_config.h"
 #include "roadmap_canvas.h"
 #include "roadmap_plugin.h"
+#include "roadmap_skin.h"
 
 #include "roadmap_layer.h"
 
@@ -116,6 +117,106 @@ static RoadMapClass RoadMapClasses[] = {
 
 static RoadMapClass *RoadMapLineClass = &(RoadMapClasses[1]);
 static RoadMapClass *RoadMapRoadClass = &(RoadMapClasses[1]);
+
+
+static void roadmap_layer_reload (void) {
+    
+    int i;
+    int j;
+    RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
+
+    for (i = 1; i <= RoadMapCategoryCount; ++i) {
+
+        struct roadmap_canvas_category *category = RoadMapCategory + i;
+
+        const char *name = RoadMapDefaultCategoryTable[i-1];
+        const char *color[ROADMAP_LAYER_PENS];
+
+        int  thickness;
+        int  other_pens_length = strlen(name) + 64;
+        char *other_pens = malloc(other_pens_length);
+
+        descriptor.category = name;
+        descriptor.name = "Class";
+        descriptor.age = 0;
+        descriptor.reference = NULL;
+
+
+        /* Retrieve the category thickness & declutter. */
+
+        category->thickness.reference = NULL;
+        thickness = roadmap_config_get_integer (&category->thickness);
+
+        category->declutter.reference = NULL;
+
+        /* Retrieve the first pen's color (mandatory). */
+
+        descriptor.name = "Color";
+        descriptor.reference = NULL;
+
+        color[0] = roadmap_config_get (&descriptor);
+
+        /* Retrieve the category's other colors (optional). */
+
+        for (j = 1; j < ROADMAP_LAYER_PENS; ++j) {
+
+           snprintf (other_pens, other_pens_length, "Delta%d", j);
+
+           descriptor.name = other_pens;
+           descriptor.reference = NULL;
+
+           category->delta_thickness[j] =
+              roadmap_config_get_integer (&descriptor);
+
+           if (category->delta_thickness[j] == 0) break;
+
+           snprintf (other_pens, other_pens_length, "Color%d", j);
+
+           descriptor.name = other_pens;
+           descriptor.reference = NULL;
+
+           color[j] = roadmap_config_get (&descriptor);
+
+           if (*color[j] == 0) break;
+        }
+        category->pen_count = j;
+        if (j > RoadMapMaxUsedPen) RoadMapMaxUsedPen = j;
+
+
+        /* Create all necessary pens. */
+
+        category->pen[0] = roadmap_canvas_create_pen (name);
+
+        roadmap_canvas_set_thickness
+            (roadmap_config_get_integer (&category->thickness));
+
+        if (color[0] != NULL && *(color[0]) > ' ') {
+            roadmap_canvas_set_foreground (color[0]);
+        }
+
+        for (j = 1; j < category->pen_count; ++j) {
+
+           snprintf (other_pens, other_pens_length, "%s%d", name, j);
+
+           category->pen[j] = roadmap_canvas_create_pen (other_pens);
+
+           if (category->delta_thickness[j] < 0) {
+              thickness += category->delta_thickness[j];
+           } else {
+              thickness = category->delta_thickness[j];
+           }
+
+           roadmap_canvas_set_foreground (color[j]);
+           if (thickness > 0) {
+              roadmap_canvas_set_thickness (thickness);
+           }
+        }
+
+        free (other_pens);
+    }
+
+    roadmap_layer_adjust ();
+}
 
 
 int roadmap_layer_max_pen(void) {
@@ -455,7 +556,11 @@ void roadmap_layer_initialize (void) {
               roadmap_canvas_set_thickness (thickness);
            }
         }
+
+        free (other_pens);
     }
+
+    roadmap_skin_register (roadmap_layer_reload);
 }
 
 

@@ -136,5 +136,7 @@ int roadmap_path_is_full_path (const char *name);
 
 const char *roadmap_path_temporary (void);
 
+int roadmap_path_is_directory (const char *name);
+
 #endif // INCLUDE__ROADMAP_PATH__H
 
