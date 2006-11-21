@@ -1,4 +1,4 @@
-/* ssd_button.h - Button widget
+/* ssd_choice.h - Combo box widget
  *
  * LICENSE:
  *
@@ -22,20 +22,16 @@
  *
  */
 
-#ifndef __SSD_WIDGET_BUTTON_H_
-#define __SSD_WIDGET_BUTTON_H_
+#ifndef __SSD_CHOICE_LIST_H_
+#define __SSD_CHOICE_LIST_H_
   
-#include "roadmap_canvas.h"
 #include "ssd_widget.h"
 
-#define SSD_BUTTON_SHORT_CLICK "short_click"
-#define SSD_BUTTON_LONG_CLICK  "long_click"
+SsdWidget ssd_choice_new (const char *name, int count,
+                          const char **labels,
+                          const void **values,
+                          int flags,
+                          SsdCallback callback);
 
-SsdWidget ssd_button_new (const char *name, const char *value,
-                          const char **bitmaps, int num_bitmaps,
-                          int flags, SsdCallback callback);
 
-SsdWidget ssd_button_label (const char *name, const char *label,
-                            int flags, SsdCallback callback);
-
-#endif // __SSD_WIDGET_BUTTON_H_
+#endif // __SSD_CHOICE_LIST_H_

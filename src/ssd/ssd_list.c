@@ -93,14 +93,14 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 
    if (!strcmp(widget->name, "scroll_down")) {
       if ((data->first_row_index + data->num_rows) >= data->num_values) {
-         return -1;
+         return 0;
       }
 
       data->first_row_index += data->num_rows;
       return setup_rows (list);
    }
 
-   return 0;
+   return 1;
 }
 
 
@@ -190,9 +190,8 @@ static void resize (SsdWidget list) {
 
 SsdWidget ssd_list_new (const char *name, int width, int height, int flags) {
 
-   const char *scroll_up_icons[]   = {"up.bmp"};
-   const char *scroll_down_icons[] = {"down.bmp"};
-   SsdSize   scroll_size;
+   const char *scroll_up_icons[]   = {"up"};
+   const char *scroll_down_icons[] = {"down"};
    SsdSize   button_size;
    SsdWidget list;
    SsdWidget scroll;
@@ -225,7 +224,7 @@ SsdWidget ssd_list_new (const char *name, int width, int height, int flags) {
 
    scroll_bar = ssd_container_new ("scroll_bar", NULL,
                                    button_size.width,
-                                   scroll_size.height - button_size.height*2,
+                                   0,
                                    SSD_CONTAINER_BORDER|SSD_END_ROW);
 
    ssd_widget_add (scroll, scroll_bar);

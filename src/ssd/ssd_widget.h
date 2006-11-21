@@ -39,6 +39,7 @@
 #define SSD_GET_SIZE        0x40
 #define SSD_WIDGET_SPACE    0x80
 #define SSD_WIDGET_HIDE     0x100
+#define SSD_ALIGN_BOTTOM    0x200
 
 /* Buttons flags */
 #define SSD_BUTTON_KEY        0x1000
@@ -98,7 +99,11 @@ struct ssd_widget {
    RoadMapGuiPoint position;
    void *data; /* Widget specific data */
 
+   const char * (*get_value) (SsdWidget widget);
+   const void * (*get_data)  (SsdWidget widget);
+
    int  (*set_value)    (SsdWidget widget, const char *value);
+   int  (*set_data)     (SsdWidget widget, const void *value);
    void (*draw)         (SsdWidget widget, RoadMapGuiRect *rect, int flags);
    int  (*pointer_down) (SsdWidget widget, const RoadMapGuiPoint *point);
    int  (*short_click)  (SsdWidget widget, const RoadMapGuiPoint *point);
@@ -117,11 +122,15 @@ int ssd_widget_short_click  (SsdWidget widget, const RoadMapGuiPoint *point);
 int ssd_widget_long_click   (SsdWidget widget, const RoadMapGuiPoint *point);
 
 const char *ssd_widget_get_value (const SsdWidget widget, const char *name);
+const void *ssd_widget_get_data (const SsdWidget widget, const char *name);
 int ssd_widget_set_value (const SsdWidget widget, const char *name,
                           const char *value);
+int ssd_widget_set_data (const SsdWidget widget, const char *name,
+                          const void *value);
 
 void ssd_widget_add (SsdWidget parent, SsdWidget child);
 
+void ssd_widget_set_flags   (SsdWidget widget, int flags);
 void ssd_widget_set_size    (SsdWidget widget, int width, int height);
 void ssd_widget_set_offset  (SsdWidget widget, int x, int y);
 void ssd_widget_set_context (SsdWidget widget, void *context);
@@ -137,5 +146,8 @@ void ssd_widget_reset_cache (SsdWidget w);
 
 void ssd_widget_hide (SsdWidget w);
 void ssd_widget_show (SsdWidget w);
+
+SsdWidget ssd_widget_find_by_pos (SsdWidget widget,
+                                  const RoadMapGuiPoint *point);
 
 #endif // __SSD_WIDGET_H_

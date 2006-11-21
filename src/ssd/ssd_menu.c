@@ -80,21 +80,30 @@ static int long_click (SsdWidget widget, const RoadMapGuiPoint *point) {
 
 
 static void ssd_menu_new (const char           *name,
+                          const char           *items_file,
                           const char           *items[],
-                          const RoadMapAction  *actions) {
+                          const RoadMapAction  *actions,
+                          int                   flags) {
 
    int i;
-   const char *icons[255] = {0};
+   int next_item_flags = 0;
 
    const char **menu_items =
-      roadmap_factory_user_config (name, "menu", actions, icons);
+      roadmap_factory_user_config (items_file, "menu", actions);
 
-   SsdWidget dialog = ssd_dialog_new (name, "תפריט ראשי",
-                                      SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE);
+   SsdWidget dialog = ssd_dialog_new (name, roadmap_lang_get (name), flags);
    SsdWidget container;
 
-   container = ssd_container_new (name, NULL, SSD_MAX_SIZE, SSD_MAX_SIZE,
+   if (flags & SSD_DIALOG_FLOAT) {
+      container = ssd_container_new (name, NULL, SSD_MAX_SIZE,
+                                     SSD_MIN_SIZE, 0);
+      ssd_widget_set_size (dialog, SSD_MIN_SIZE, SSD_MIN_SIZE);
+      ssd_widget_set_color (dialog, "#000000", "#ffffffaa");
+      ssd_widget_set_color (container, "#000000", NULL);
+   } else {
+      container = ssd_container_new (name, NULL, SSD_MAX_SIZE, SSD_MAX_SIZE,
                                   SSD_ALIGN_GRID);
+   }
 
    /* Override short and long click */
    container->short_click = short_click;
@@ -107,32 +116,41 @@ static void ssd_menu_new (const char           *name,
       const char *item = menu_items[i];
 
       if (item == RoadMapFactorySeparator) {
+         next_item_flags = SSD_START_NEW_ROW;
 
       } else {
 
          SsdWidget text_box;
+         SsdSize size;
          const RoadMapAction *this_action = find_action (actions, item);
          const char *button_icon[] = {
-            icons[i],
+            item,
             NULL
          };
 
          SsdWidget w = ssd_container_new (item, NULL,
-                           SSD_MIN_SIZE, SSD_MIN_SIZE, SSD_ALIGN_CENTER);
+                           SSD_MIN_SIZE, SSD_MIN_SIZE,
+                           SSD_ALIGN_CENTER|next_item_flags);
          SsdWidget button;
          SsdWidget text;
 
-         if (!icons[i]) continue;
+         ssd_widget_set_color (w, "#000000", NULL);
 
          button = ssd_button_new
                     (item, item, button_icon, 1, SSD_ALIGN_CENTER|SSD_END_ROW,
                      button_callback);
 
+         ssd_widget_get_size (button ,&size, NULL);
+
          ssd_widget_set_context (button, this_action->callback);
          ssd_widget_add (w, button);
 
-         text_box = ssd_container_new ("text_box", NULL, 60, SSD_MIN_SIZE,
+         text_box = ssd_container_new ("text_box", NULL,
+                                       size.width + size.width / 4,
+                                       SSD_MIN_SIZE,
                                        SSD_ALIGN_CENTER|SSD_END_ROW);
+
+         ssd_widget_set_color (text_box, "#000000", NULL);
 
          text = ssd_text_new (item,
                               roadmap_lang_get (this_action->label_long),
@@ -141,6 +159,8 @@ static void ssd_menu_new (const char           *name,
          ssd_widget_add (w, text_box);
 
          ssd_widget_add (container, w);
+
+         next_item_flags = 0;
       }
    }
 
@@ -149,17 +169,31 @@ static void ssd_menu_new (const char           *name,
 
 
 void ssd_menu_activate (const char           *name,
+                        const char           *items_file,
                         const char           *items[],
-                        const RoadMapAction  *actions) {
+                        RoadMapCallback       callback,
+                        const RoadMapAction  *actions,
+                        int                   flags) {
 
-   if (ssd_dialog_activate (name, NULL)) {
+   SsdWidget dialog = ssd_dialog_activate (name, NULL);
+
+   if (dialog) {
+      ssd_dialog_set_callback (callback);
+      ssd_widget_set_flags (dialog, flags);
       ssd_dialog_draw ();
       return;
    }
 
-   ssd_menu_new (name, items, actions);
+   ssd_menu_new (name, items_file, items, actions, flags);
 
    ssd_dialog_activate (name, NULL);
+   ssd_dialog_set_callback (callback);
    ssd_dialog_draw ();
+}
+
+
+void ssd_menu_hide (const char *name) {
+
+   ssd_dialog_hide (name);
 }
 

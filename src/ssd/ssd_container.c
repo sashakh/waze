@@ -135,7 +135,7 @@ static int short_click (SsdWidget widget, const RoadMapGuiPoint *point) {
 
 static void add_title (SsdWidget w, int flags) {
    SsdWidget title;
-   const char *close_icon[] = {"rm_quit.bmp"};
+   const char *close_icon[] = {"rm_quit"};
 
    title = ssd_container_new ("title_bar", NULL, SSD_MAX_SIZE, SSD_MIN_SIZE,
                               SSD_END_ROW);

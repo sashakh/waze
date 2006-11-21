@@ -26,6 +26,7 @@
 #ifndef __SSD_DIALOG_H_
 #define __SSD_DIALOG_H_
 
+#include "roadmap.h"
 #include "roadmap_canvas.h"
 #include "ssd_widget.h"
 
@@ -44,8 +45,14 @@ SsdWidget ssd_dialog_new_button (const char *name, const char *value,
                                  int flags, SsdCallback callback);
 
 const char *ssd_dialog_get_value (const char *name);
+const void *ssd_dialog_get_data  (const char *name);
 int ssd_dialog_set_value (const char *name, const char *value);
+int ssd_dialog_set_data  (const char *name, const void *value);
+
+void *ssd_dialog_context (void);
 
 void ssd_dialog_hide_current (void);
+
+void ssd_dialog_set_callback (RoadMapCallback callback);
 
 #endif // __SSD_DIALOG_H_

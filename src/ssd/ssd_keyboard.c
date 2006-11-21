@@ -76,8 +76,15 @@ static int button_callback (SsdWidget widget, const char *new_value) {
    int count;
    int len;
 
+   SsdKeyboard *keyboard;
+   SsdWidget k = widget->parent;
+
+   keyboard = (SsdKeyboard *)k->context;
+
    if (!strcmp (roadmap_lang_get ("Ok"), widget->name)) {
-      return 0;
+      return (*keyboard->callback)
+               (SSD_KEYBOARD_OK, ssd_dialog_get_value ("input"),
+               keyboard->context);
 
    } else if (!strcmp (roadmap_lang_get ("Del"), widget->name)) {
       wchar_t wtext[255];
@@ -94,7 +101,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 
       if (len == value_len) {
          ssd_dialog_set_value ("input", "");
-         return 0;
+         return 1;
       }
 
       strncpy(text, ssd_dialog_get_value ("input"), sizeof(text));
@@ -104,7 +111,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 
       ssd_dialog_set_value ("input", text);
 
-      return 0;
+      return 1;
 
    } else if (!strcmp (roadmap_lang_get ("SPC"), widget->name)) {
       len = 1;
@@ -137,7 +144,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 
    ssd_dialog_set_value ("input", text);
 
-   return 0;
+   return 1;
 }
 
 
@@ -158,8 +165,8 @@ static void add_key (const char *key1, const char *key2, int type) {
    char name[255];
    char value[255];
    const char *icons[] = {
-      "key_button1.bmp",
-      "key_button2.bmp"
+      "key_button1",
+      "key_button2"
    };
 
    SsdWidget button;
@@ -187,7 +194,7 @@ static void add_key (const char *key1, const char *key2, int type) {
 
    if ((type == SSD_BUTTON_KEY) && strcmp (key1, key2)) {
       SsdWidget w = ssd_text_new ("key2", key2, 13, SSD_ALIGN_RIGHT|SSD_END_ROW);
-      ssd_widget_set_color (w, "ffaaff", 0);
+      ssd_widget_set_color (w, "ffff00ff", 0);
       ssd_widget_set_offset (w, 9, 3);
       ssd_widget_add (button, w);
    }

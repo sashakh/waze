@@ -1,4 +1,4 @@
-/* ssd_entry.c - Text entry widget
+/* ssd_entry.c - entry widget
  *
  * LICENSE:
  *
@@ -22,101 +22,84 @@
  *
  * SYNOPSYS:
  *
- *   See ssd_entry.h
+ *   See ssd_entry.h.
  */
 
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
-#include "roadmap.h"
-#include "roadmap_canvas.h"
-
-#include "ssd_widget.h"
+#include "ssd_dialog.h"
+#include "ssd_container.h"
 #include "ssd_text.h"
+#include "ssd_button.h"
+#include "ssd_keyboard.h"
+
 #include "ssd_entry.h"
 
-static int initialized;
-static RoadMapPen bg;
-static RoadMapPen text_pen;
 
-static void init (void) {
-   bg = roadmap_canvas_create_pen ("ssd_entry_bg");
-   roadmap_canvas_set_foreground ("#ffffff");
-
-   text_pen = roadmap_canvas_create_pen ("ssd_entry_txt");
-   roadmap_canvas_set_foreground ("#000000");
-
-   initialized = 1;
+static int keyboard_callback (int type, const char *new_value, void *context) {
+   if (type == SSD_KEYBOARD_OK) {
+      ((SsdWidget)context)->set_value ((SsdWidget)context, new_value);
+      ssd_keyboard_hide (SSD_KEYBOARD_LETTERS);
+   }
+   return 1;
 }
 
 
-static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
+static int edit_callback (SsdWidget widget, const char *new_value) {
 
-   RoadMapGuiPoint points[5];
-   int count = 5;
+   const char *value;
 
-   if (!(flags & SSD_GET_SIZE)) {
-      roadmap_canvas_select_pen (bg);
-      roadmap_canvas_erase_area (rect);
-   }
+   /* Get the entry widget */
+   widget = widget->parent;
 
-   points[0].x = rect->minx;
-   points[0].y = rect->miny;
-   points[1].x = rect->maxx;
-   points[1].y = rect->miny;
-   points[2].x = rect->maxx;
-   points[2].y = rect->maxy;
-   points[3].x = rect->minx;
-   points[3].y = rect->maxy;
-   points[4].x = rect->minx;
-   points[4].y = rect->miny;
+   value = widget->get_value (widget);
 
-   if (!(flags & SSD_GET_SIZE)) {
-      roadmap_canvas_select_pen (text_pen);
-      roadmap_canvas_draw_multiple_lines (1, &count, points, 0);
-   }
+   ssd_keyboard_show (SSD_KEYBOARD_LETTERS, "", value, keyboard_callback,
+                        widget);
 
-   rect->minx += 1;
-   rect->miny += 1;
-   rect->maxx -= 1;
-   rect->maxy -= 1;
+   return 1;
 }
 
 
 static int set_value (SsdWidget widget, const char *value) {
-
-   SsdWidget w = ssd_widget_get (widget, "text");
-   w->set_value (w, value);
-
-   widget->value = w->value;
-
-   return 0;
+   return ssd_widget_set_value (widget, "Text", value);
 }
 
 
-SsdWidget ssd_entry_new (const char *name, const char *value, int flags) {
+const char *get_value (SsdWidget widget) {
+   return ssd_widget_get_value (widget, "Text");
+}
 
-   SsdWidget w;
 
-   if (!initialized) {
-      init ();
-   }
+SsdWidget ssd_entry_new (const char *name,
+                         const char *value,
+                         int flags) {
 
-   w = ssd_widget_new (name, flags);
+   const char *edit_button[] = {"edit"};
 
-   w->typeid = "Entry";
+   SsdWidget entry =
+      ssd_container_new (name, NULL, SSD_MIN_SIZE, SSD_MIN_SIZE, flags);
 
-   w->draw = draw;
-   w->set_value = set_value;
-   w->flags = flags;
-//   w->size.height = 24;
-//   w->size.width = roadmap_canvas_width() - 6;
+   SsdWidget text_box =
+      ssd_container_new ("text_box", NULL, SSD_MIN_SIZE,
+                         SSD_MIN_SIZE, SSD_CONTAINER_BORDER|SSD_ALIGN_VCENTER);
 
-   w->children = ssd_text_new ("text", value, 20, 0);
+   entry->get_value = get_value;
+   entry->set_value = set_value;
 
-   set_value (w, value);
+   entry->bg_color = NULL;
 
-   return w;
+   text_box->callback = edit_callback;
+   text_box->bg_color = NULL;
+
+   ssd_widget_add (text_box, ssd_text_new ("Text", value, -1, 0));
+   ssd_widget_add (entry, text_box);
+   ssd_widget_add (entry,
+         ssd_button_new ("edit_button", "", edit_button, 1,
+                         SSD_ALIGN_VCENTER, edit_callback));
+
+   return entry;
 }
 
 

@@ -155,9 +155,12 @@ static void ssd_widget_draw_one (SsdWidget w, int x, int y, int height) {
 
    ssd_widget_get_size (w, &size, NULL);
 
+   if (w->flags & SSD_ALIGN_VCENTER) {
+      y += (height - size.height) / 2;
+   }
+
    w->position.x = x;
    w->position.y = y;
-   w->position.y += (height - size.height) / 2;
 
    if (size.width && size.height) {
       rect.minx = x;
@@ -180,6 +183,7 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
    int total_width;
    int space;
    int vcenter = 0;
+   int bottom = 0;
    int i;
    SsdWidget prev_widget;
 
@@ -192,9 +196,13 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
 
       if (size.height > row_height) row_height = size.height;
       if (w[i]->flags & SSD_ALIGN_VCENTER) vcenter = 1;
+      if (w[i]->flags & SSD_ALIGN_BOTTOM) bottom = 1;
    }
 
-   if (vcenter) {
+   if (bottom) {
+      y += (height - row_height);
+
+   } else if (vcenter) {
       y += (height - row_height) / 2 - 1;
    }
 
@@ -334,28 +342,6 @@ static int ssd_widget_draw_grid_row (SsdWidget *w, int count,
    }
 
    return height;
-}
-
-
-static SsdWidget ssd_widget_find_by_pos (SsdWidget widget,
-                                         const RoadMapGuiPoint *point) {
-
-   while (widget != NULL) {
-      SsdSize size;
-      ssd_widget_get_size (widget, &size, NULL);
-
-      if ((widget->position.x <= point->x) &&
-          ((widget->position.x + size.width) >= point->x) &&
-          (widget->position.y <= point->y) &&
-          ((widget->position.y + size.height) >= point->y)) {
-
-         return widget;
-      }
-
-      widget = widget->next;
-   }
-
-   return NULL;
 }
 
 
@@ -547,6 +533,28 @@ SsdWidget ssd_widget_new (const char *name, int flags) {
 }
 
 
+SsdWidget ssd_widget_find_by_pos (SsdWidget widget,
+                                  const RoadMapGuiPoint *point) {
+
+   while (widget != NULL) {
+      SsdSize size;
+      ssd_widget_get_size (widget, &size, NULL);
+
+      if ((widget->position.x <= point->x) &&
+          ((widget->position.x + size.width) >= point->x) &&
+          (widget->position.y <= point->y) &&
+          ((widget->position.y + size.height) >= point->y)) {
+
+         return widget;
+      }
+
+      widget = widget->next;
+   }
+
+   return NULL;
+}
+
+
 void ssd_widget_set_callback (SsdWidget widget, SsdCallback callback) {
    widget->callback = callback;
 }
@@ -615,7 +623,18 @@ const char *ssd_widget_get_value (const SsdWidget widget, const char *name) {
    SsdWidget w = ssd_widget_get (widget, name);
    if (!w) return "";
 
+   if (w->get_value) return w->get_value (w);
+
    return w->value;
+}
+
+
+const void *ssd_widget_get_data (const SsdWidget widget, const char *name) {
+   SsdWidget w = ssd_widget_get (widget, name);
+   if (!w) return "";
+
+   if (w->get_data) return w->get_data (w);
+   else return NULL;
 }
 
 
@@ -627,6 +646,17 @@ int ssd_widget_set_value (const SsdWidget widget, const char *name,
 
    return w->set_value(w, value);
 }
+
+
+int ssd_widget_set_data (const SsdWidget widget, const char *name,
+                          const void *value) {
+
+   SsdWidget w = ssd_widget_get (widget, name);
+   if (!w || !w->set_data) return -1;
+
+   return w->set_data(w, value);
+}
+
 
 void ssd_widget_add (SsdWidget parent, SsdWidget child) {
 
@@ -687,8 +717,8 @@ void ssd_widget_get_size (SsdWidget w, SsdSize *size, const SsdSize *max) {
    }
 
    if (w->flags & SSD_DIALOG_FLOAT) {
-      size->width = max->width - 70;
-      size->height = SSD_MIN_SIZE;
+      if (size->width == SSD_MAX_SIZE) size->width = max->width - 70;
+      if (size->height == SSD_MAX_SIZE) size->height = max->height;
 
    } else {
 
@@ -808,4 +838,8 @@ void ssd_widget_show (SsdWidget w) {
    w->flags &= ~SSD_WIDGET_HIDE;
 }
 
+
+void ssd_widget_set_flags (SsdWidget widget, int flags) {
+   widget->flags = flags;
+}
 

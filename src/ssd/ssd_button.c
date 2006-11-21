@@ -33,6 +33,7 @@
 #include "roadmap_canvas.h"
 
 #include "ssd_widget.h"
+#include "ssd_text.h"
 #include "ssd_button.h"
 
 /* Buttons states */
@@ -58,7 +59,7 @@ static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
 
    for (i=data->state; i>=0; i--) {
       if (data->bitmaps[i] &&
-         (image = roadmap_res_get (RES_BITMAP, 0, data->bitmaps[i]))) {
+         (image = roadmap_res_get (RES_BITMAP, RES_SKIN, data->bitmaps[i]))) {
          break;
       }
    }
@@ -145,8 +146,12 @@ static int set_value (SsdWidget widget, const char *value) {
    if (*value) widget->value = strdup(value);
    else widget->value = "";
 
-   bmp = roadmap_res_get (RES_BITMAP, 0, data->bitmaps[0]);
-   if (!bmp) return -1;
+   bmp = roadmap_res_get (RES_BITMAP, RES_SKIN, data->bitmaps[0]);
+   if (!bmp) {
+      widget->size.height = widget->size.width = 0;
+
+      return -1;
+   }
 
    widget->size.height = roadmap_canvas_image_height(bmp);
    widget->size.width  = roadmap_canvas_image_width(bmp);
@@ -187,4 +192,16 @@ SsdWidget ssd_button_new (const char *name, const char *value,
    return w;
 }
 
+
+SsdWidget ssd_button_label (const char *name, const char *label,
+                            int flags, SsdCallback callback) {
+
+   const char *button_icon[]   = {"button"};
+   SsdWidget button = ssd_button_new (name, "", button_icon, 1,
+                                      flags, callback);
+   ssd_widget_add (button,
+      ssd_text_new ("label", label, -1, SSD_ALIGN_VCENTER| SSD_ALIGN_CENTER));
+
+   return button;
+}
 

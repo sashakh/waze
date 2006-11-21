@@ -44,8 +44,6 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 static void create_messagebox (void) {
 
    SsdWidget dialog;
-   SsdWidget button;
-   const char *ok_button[]   = {"button.bmp"};
 
    dialog = ssd_dialog_new ("message_box", "",
          SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE|SSD_DIALOG_FLOAT|
@@ -58,14 +56,9 @@ static void create_messagebox (void) {
    ssd_widget_add (dialog,
       ssd_container_new ("spacer1", NULL, 0, 20, SSD_END_ROW));
 
-   button = ssd_button_new ("confirm", "", ok_button, 1,
-                       SSD_ALIGN_CENTER|SSD_START_NEW_ROW, button_callback);
-
-   ssd_widget_add (button,
-      ssd_text_new ("ok", roadmap_lang_get ("Ok"), 16,
-                    SSD_ALIGN_VCENTER| SSD_ALIGN_CENTER));
-
-   ssd_widget_add (dialog, button);
+   ssd_widget_add (dialog,
+      ssd_button_label ("confirm", roadmap_lang_get ("Ok"),
+                        SSD_ALIGN_CENTER|SSD_START_NEW_ROW, button_callback));
 }
 
 

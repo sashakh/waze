@@ -54,16 +54,13 @@ struct ssd_dialog_item {
 
    void *context;  /* References a caller-specific context. */
 
+   RoadMapCallback callback; /* Called before hide */
 
    SsdWidget container;
 };
 
 static SsdDialog RoadMapDialogWindows = NULL;
 static SsdDialog RoadMapDialogCurrent = NULL;
-
-static RoadMapPointerClickHandler PrevPressedClickHandler;
-static RoadMapPointerHandler PrevShortClickHandler;
-static RoadMapPointerHandler PrevLongClickHandler;
 
 static RoadMapGuiPoint LastPointerPoint;
 
@@ -679,20 +676,36 @@ void  ssd_dialog_set_progress (const char *frame, const char *name,
 #endif
 
 static int ssd_dialog_pressed (RoadMapGuiPoint *point) {
+   SsdWidget container = RoadMapDialogCurrent->container;
+   if (!ssd_widget_find_by_pos (container, point)) {
+      LastPointerPoint.x = -1;
+      return 0;
+   }
+
    LastPointerPoint = *point;
    ssd_widget_pointer_down (RoadMapDialogCurrent->container, point);
    roadmap_screen_redraw ();
    return 1;
 }
 
-static void ssd_dialog_short_click (RoadMapGuiPoint *point) {
+static int ssd_dialog_short_click (RoadMapGuiPoint *point) {
+   if (LastPointerPoint.x < 0) {
+      return 0;
+   }
    ssd_widget_short_click (RoadMapDialogCurrent->container, &LastPointerPoint);
    roadmap_screen_redraw ();
+
+   return 1;
 }
 
-static void ssd_dialog_long_click (RoadMapGuiPoint *point) {
+static int ssd_dialog_long_click (RoadMapGuiPoint *point) {
+   if (!LastPointerPoint.x < 0) {
+      return 0;
+   }
    ssd_widget_long_click (RoadMapDialogCurrent->container, &LastPointerPoint);
    roadmap_screen_redraw ();
+
+   return 1;
 }
 
 static void append_child (SsdWidget child) {
@@ -703,21 +716,21 @@ static void append_child (SsdWidget child) {
 SsdWidget ssd_dialog_new (const char *name, const char *title, int flags) {
 
    SsdDialog child;
-   int width = roadmap_canvas_width ();
-   int height = roadmap_canvas_height ();
+   int width = SSD_MAX_SIZE;
+   int height = SSD_MAX_SIZE;
 
-   child = (SsdDialog) malloc (sizeof (*child));
+   child = (SsdDialog) calloc (sizeof (*child), 1);
    roadmap_check_allocated(child);
 
    child->name = strdup(name);
 
    if (flags & SSD_DIALOG_FLOAT) {
-      width -= 70;
-      height = -1;
+      width = SSD_MAX_SIZE;
+      height = SSD_MIN_SIZE;
    }
 
    child->container =
-      ssd_container_new (name, title, SSD_MAX_SIZE, SSD_MAX_SIZE, flags);
+      ssd_container_new (name, title, width, height, flags);
 
    child->next = RoadMapDialogWindows;
    RoadMapDialogWindows = child;
@@ -788,9 +801,7 @@ SsdWidget ssd_dialog_activate (const char *name, void *context) {
    }
 
    if (current) {
-      roadmap_log (ROADMAP_FATAL,
-                   "Trying to activate an already activated dialog: %s",
-                   name);
+      return current->container;
    }
 
    dialog->context = context;
@@ -799,12 +810,9 @@ SsdWidget ssd_dialog_activate (const char *name, void *context) {
 
    if (!RoadMapDialogCurrent) {
       /* Grab pointer hooks */
-      PrevPressedClickHandler =
-         roadmap_pointer_register_pressed (ssd_dialog_pressed);
-      PrevShortClickHandler =
-         roadmap_pointer_register_short_click (ssd_dialog_short_click);
-      PrevLongClickHandler =
-         roadmap_pointer_register_long_click (ssd_dialog_long_click);
+      roadmap_pointer_register_pressed (ssd_dialog_pressed);
+      roadmap_pointer_register_short_click (ssd_dialog_short_click);
+      roadmap_pointer_register_long_click (ssd_dialog_long_click);
    }
 
    RoadMapDialogCurrent = dialog;
@@ -829,8 +837,7 @@ void ssd_dialog_hide (const char *name) {
    }
 
    if (!dialog) {
-      roadmap_log (ROADMAP_FATAL,
-         "Trying to hide dialog '%s', but it is not active.", name);
+      return;
    }
 
    if (prev == NULL) {
@@ -840,9 +847,13 @@ void ssd_dialog_hide (const char *name) {
    }
 
    if (!RoadMapDialogCurrent) {
-      roadmap_pointer_register_pressed (PrevPressedClickHandler);
-      roadmap_pointer_register_short_click (PrevShortClickHandler);
-      roadmap_pointer_register_long_click (PrevLongClickHandler);
+      roadmap_pointer_unregister_pressed     (ssd_dialog_pressed);
+      roadmap_pointer_unregister_short_click (ssd_dialog_short_click);
+      roadmap_pointer_unregister_long_click  (ssd_dialog_long_click);
+   }
+
+   if (dialog->callback) {
+      (*dialog->callback) ();
    }
 
    if (RoadMapScreenFrozen) {
@@ -878,9 +889,41 @@ const char *ssd_dialog_get_value (const char *name) {
 }
 
 
+const void *ssd_dialog_get_data (const char *name) {
+
+   return ssd_widget_get_data (RoadMapDialogCurrent->container, name);
+}
+
+
 int ssd_dialog_set_value (const char *name, const char *value) {
 
    return ssd_widget_set_value (RoadMapDialogCurrent->container, name, value);
+}
+
+
+int ssd_dialog_set_data  (const char *name, const void *value) {
+   return ssd_widget_set_data (RoadMapDialogCurrent->container, name, value);
+}
+
+
+void ssd_dialog_set_callback (RoadMapCallback callback) {
+
+   if (!RoadMapDialogCurrent) {
+      roadmap_log (ROADMAP_FATAL,
+         "Trying to set a dialog callback, but no active dialogs exist");
+   }
+
+   RoadMapDialogCurrent->callback = callback;
+}
+
+
+void *ssd_dialog_context (void) {
+   if (!RoadMapDialogCurrent) {
+      roadmap_log (ROADMAP_FATAL,
+         "Trying to get dialog context, but no active dialogs exist");
+   }
+
+   return RoadMapDialogCurrent->context;
 }
 
 

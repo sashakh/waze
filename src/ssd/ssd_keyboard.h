@@ -1,4 +1,4 @@
-/* ssd_button.h - Button widget
+/* ssd_keyboard.h - Full screen keyboard
  *
  * LICENSE:
  *
@@ -22,20 +22,20 @@
  *
  */
 
-#ifndef __SSD_WIDGET_BUTTON_H_
-#define __SSD_WIDGET_BUTTON_H_
-  
-#include "roadmap_canvas.h"
-#include "ssd_widget.h"
+#ifndef __SSD_KEYBOARD_H_
+#define __SSD_KEYBOARD_H_
+ 
+#define SSD_KEYBOARD_LETTERS 1
+#define SSD_KEYBOARD_DIGITS  2
 
-#define SSD_BUTTON_SHORT_CLICK "short_click"
-#define SSD_BUTTON_LONG_CLICK  "long_click"
+/* key types */
+#define SSD_KEYBOARD_OK 0x1
 
-SsdWidget ssd_button_new (const char *name, const char *value,
-                          const char **bitmaps, int num_bitmaps,
-                          int flags, SsdCallback callback);
+#include "ssd_dialog.h"
 
-SsdWidget ssd_button_label (const char *name, const char *label,
-                            int flags, SsdCallback callback);
+void ssd_keyboard_show (int type, const char *title, const char *value,
+                        SsdDialogCB callback, void *context);
 
-#endif // __SSD_WIDGET_BUTTON_H_
+void ssd_keyboard_hide (int type);
+
+#endif // __SSD_KEYBOARD_H_

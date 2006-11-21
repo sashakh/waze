@@ -28,7 +28,12 @@
 #include "roadmap_factory.h"
 
 void ssd_menu_activate (const char           *name,
+                        const char           *items_file,
                         const char           *items[],
-                        const RoadMapAction  *actions);
+                        RoadMapCallback       callback,
+                        const RoadMapAction  *actions,
+                        int                   flags);
+
+void ssd_menu_hide (const char *name);
 
 #endif // __SSD_MENU_H_
