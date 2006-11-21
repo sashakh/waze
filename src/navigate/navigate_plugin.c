@@ -46,7 +46,7 @@ static RoadMapPluginHooks navigate_plugin_hooks = {
       NULL,
       NULL,
       NULL,
-      NULL,
+      &navigate_main_adjust_layer,
       NULL,
       NULL,
       NULL

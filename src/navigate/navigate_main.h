@@ -70,5 +70,6 @@ int navigate_main_override_pen (int line,
                                 int pen_type,
                                 RoadMapPen *override_pen);
 
+void navigate_main_adjust_layer (int layer, int thickness, int pen_count);
 #endif /* INCLUDE__NAVIGATE_MAIN__H */
 
