@@ -30,25 +30,24 @@
 #include "roadmap_gui.h"
 
 
-typedef void (*RoadMapPointerHandler)    (RoadMapGuiPoint *point);
-typedef int  (*RoadMapPointerClickHandler)    (RoadMapGuiPoint *point);
+typedef int (*RoadMapPointerHandler) (RoadMapGuiPoint *point);
 
 void roadmap_pointer_initialize (void);
 const RoadMapGuiPoint *roadmap_pointer_position (void);
 
-RoadMapPointerHandler roadmap_pointer_register_short_click
-                                 (RoadMapPointerHandler handler);
-RoadMapPointerHandler roadmap_pointer_register_long_click
-                                 (RoadMapPointerHandler handler);
-RoadMapPointerHandler roadmap_pointer_register_drag_start
-                                 (RoadMapPointerHandler handler);
-RoadMapPointerHandler roadmap_pointer_register_drag_motion
-                                 (RoadMapPointerHandler handler);
-RoadMapPointerHandler roadmap_pointer_register_drag_end
-                                 (RoadMapPointerHandler handler);
+void roadmap_pointer_register_short_click (RoadMapPointerHandler handler);
+void roadmap_pointer_register_long_click  (RoadMapPointerHandler handler);
+void roadmap_pointer_register_drag_start  (RoadMapPointerHandler handler);
+void roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler);
+void roadmap_pointer_register_drag_end    (RoadMapPointerHandler handler);
+void roadmap_pointer_register_pressed     (RoadMapPointerHandler handler);
 
-RoadMapPointerClickHandler roadmap_pointer_register_pressed
-                                 (RoadMapPointerClickHandler handler);
+void roadmap_pointer_unregister_short_click (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_long_click  (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_drag_start  (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_drag_motion (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_drag_end    (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_pressed     (RoadMapPointerHandler handler);
 
 #endif // INCLUDE__ROADMAP_POINTER__H
 
