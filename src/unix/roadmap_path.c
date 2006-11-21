@@ -66,6 +66,14 @@ static const char *RoadMapPathUser[] = {
 static const char *RoadMapPathUserPreferred = "~/.roadmap";
 
 
+/* Skins directories */
+static const char *RoadMapPathSkin[] = {
+   "~/.roadmap/skins/default/day",
+   "~/.roadmap/skins/default",
+   NULL
+};
+static const char *RoadMapPathSkinPreferred = "~/.roadmap/skins";
+
 /* The hardcoded path for configuration files (the "config" path).
  * (Note that the user directory (~/.roadmap) does not appear here
  * as it is implicitely used by the callers--see above.)
@@ -78,6 +86,7 @@ static const char *RoadMapPathConfig[] = {
    "/mnt/card/QtPalmtop/share/roadmap",
 #else
    /* This is for standard Unix configurations. */
+   "~/.roadmap",
    "/etc/roadmap",
    "/usr/local/share/roadmap",
    "/usr/share/roadmap",
@@ -88,7 +97,7 @@ static const char *RoadMapPathConfigPreferred =
 #ifdef QWS
                       "/mnt/cf/QtPalmtop/share/roadmap";
 #else
-                      "/usr/local/share/roadmap";
+                      "~/.roadmap";
 #endif
 
 
@@ -165,6 +174,9 @@ static RoadMapPathList roadmap_path_find (const char *name) {
 
       roadmap_path_list_create ("config", RoadMapPathConfig,
                                           RoadMapPathConfigPreferred);
+
+      roadmap_path_list_create ("skin",   RoadMapPathSkin,
+                                          RoadMapPathSkinPreferred);
 
       roadmap_path_list_create ("maps",   RoadMapPathMaps,
                                           RoadMapPathMapsPreferred);

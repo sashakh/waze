@@ -55,7 +55,6 @@ Style.Show Objects when Dragging: yes
 Style.Pretty Lines when Dragging: yes
 Map.Refresh: normal
 Map.Signs: yes
-Map.Background: #ffffcc
 Accuracy.Mouse: 20
 Display.Rotate: yes
 General.Default Zoom: 20

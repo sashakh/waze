@@ -30,8 +30,8 @@
 #include "roadmap.h"
 #include "roadmap_canvas.h"
 #include "roadmap_screen_obj.h"
-#include "roadmap_path.h"
 #include "roadmap_file.h"
+#include "roadmap_res.h"
 #include "roadmap_math.h"
 
 #include "navigate_main.h"
@@ -49,8 +49,8 @@ typedef struct {
 } NavigateBarPanel;
 
 static NavigateBarPanel NavigateBarDefaultPanels[] = {
-   {"nav_panel_wide.bmp", 320, {0, 0}, {0, 65, 48, 110}, {3, 70}, {3, 95}, 75, 230},
-   {"nav_panel.bmp", 240, {0, 0}, {55, 0, 95, 50}, {55, 5}, {58, 30}, 98, 133}
+   {"nav_panel_wide", 320, {0, 0}, {0, 65, 48, 110}, {3, 70}, {3, 95}, 75, 230},
+   {"nav_panel", 240, {0, 0}, {55, 0, 95, 50}, {55, 5}, {58, 30}, 98, 133}
 };
 
 
@@ -59,12 +59,12 @@ static RoadMapScreenSubscriber navigate_prev_after_refresh = NULL;
 
 
 const char NAVIGATE_DIR_IMG[][40] = {
-   "nav_turn_left.bmp",
-   "nav_turn_right.bmp",
-   "nav_keep_left.bmp",
-   "nav_keep_right.bmp",
-   "nav_continue.bmp",
-   "nav_approaching.bmp"
+   "nav_turn_left",
+   "nav_turn_right",
+   "nav_keep_left",
+   "nav_keep_right",
+   "nav_continue",
+   "nav_approaching"
 };
 
 static RoadMapImage NavigateBarImage;
@@ -76,40 +76,6 @@ static RoadMapGuiPoint NavigateBarLocation;
 static enum NavigateInstr NavigateBarCurrentInstr = LAST_DIRECTION;
 static int  NavigateBarCurrentDistance = -1;
 static int  NavigateBarEnabled = 0;
-
-static RoadMapImage navigate_bar_load_image (const char *name) {
-
-   RoadMapImage image = NULL;
-   const char *cursor;
-   char *file = roadmap_path_join ("icons", name);
-
-   for (cursor = roadmap_path_first ("config");
-         cursor != NULL;
-         cursor = roadmap_path_next ("config", cursor)) {
-
-      if (roadmap_file_exists (cursor, file)) {
-         image = roadmap_canvas_load_image (cursor, file);
-         break;
-      }
-   }
-
-   if (!image) {
-      for (cursor = roadmap_path_first ("user");
-            cursor != NULL;
-            cursor = roadmap_path_next ("user", cursor)) {
-
-         if (roadmap_file_exists (cursor, file)) {
-            image = roadmap_canvas_load_image (cursor, file);
-            break;
-         }
-      }
-   }
-
-   free (file);
-
-   return image;
-}
-
 
 static int navigate_bar_align_text (char *text, char **line1, char **line2,
                                     int size) {
@@ -217,12 +183,21 @@ void navigate_bar_initialize (void) {
       NavigateBarInitialized = -1;
    }
 
-   NavigateBarBG    = navigate_bar_load_image (NavigatePanel->image_file);
-   NavigateBarImage = navigate_bar_load_image (NavigatePanel->image_file);
+   NavigateBarBG =
+      (RoadMapImage) roadmap_res_get
+         (RES_BITMAP, RES_SKIN|RES_NOCACHE, NavigatePanel->image_file);
+
+   NavigateBarImage =
+      (RoadMapImage) roadmap_res_get
+         (RES_BITMAP, RES_SKIN, NavigatePanel->image_file);
+
    if (!NavigateBarBG || !NavigateBarImage) goto error;
 
    for (i=0; i<LAST_DIRECTION; i++) {
-      NavigateDirections[i] = navigate_bar_load_image (NAVIGATE_DIR_IMG[i]);
+      NavigateDirections[i] =
+         (RoadMapImage) roadmap_res_get
+               (RES_BITMAP, RES_SKIN, NAVIGATE_DIR_IMG[i]);
+
       if (!NavigateDirections[i]) goto error;
    }
       
