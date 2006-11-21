@@ -50,15 +50,15 @@ CFG=libwinceguiroadmap - Win32 (WCE ARM) Debug
 # PROP CPU_ID "{D6518FFC-710F-11D3-99F2-00105A0DF099}"
 # PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
 # PROP Target_Dir ""
-CPP=clarm.exe
-# ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /Oxs /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /I "./wince_os" /I "../../" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /Oxs /M$(CECrtMT) /c
-LIB32=link.exe -lib
-# ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo
+# ADD LIB32 /nologo
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /Oxs /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /I "./wince_os" /I "../../" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /Oxs /M$(CECrtMT) /c
 
 !ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARM) Debug"
 
@@ -76,15 +76,15 @@ BSC32=bscmake.exe
 # PROP CPU_ID "{D6518FFC-710F-11D3-99F2-00105A0DF099}"
 # PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
 # PROP Target_Dir ""
-CPP=clarm.exe
-# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /M$(CECrtMTDebug) /c
-# ADD CPP /nologo /W3 /Zi /Od /I "../../" /D "DEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /M$(CECrtMTDebug) /c
-LIB32=link.exe -lib
-# ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo
+# ADD LIB32 /nologo
+CPP=clarm.exe
+# ADD BASE CPP /nologo /W3 /Zi /Od /D "DEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /M$(CECrtMTDebug) /c
+# ADD CPP /nologo /W3 /Zi /Od /I "../../" /D "DEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /M$(CECrtMTDebug) /c
 
 !ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE x86) Release"
 
@@ -405,6 +405,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\colors.h"\
+	"..\..\roadmap_libpng.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\roadmap_wincecanvas.h"\
 	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
@@ -467,6 +468,7 @@ DEP_CPP_ROADM=\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\colors.h"\
+	"..\..\roadmap_libpng.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\roadmap_wincecanvas.h"\
 	"C:\Program Files\Windows CE Tools\Common\Platman\sdk\wce500\include\cecap.h"\
@@ -669,11 +671,11 @@ DEP_CPP_ROADMA=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
-	{$(INCLUDE)}"aygshell.h"\
-	{$(INCLUDE)}"sipapi.h"\
-	{$(INCLUDE)}"winuserm.h"\
 	
 NODEP_CPP_ROADMA=\
+	".\inuserm.h"\
+	".\ipapi.h"\
+	".\ygshell.h"\
 	"C:\Program Files\Windows CE Tools\wce420\POCKET PC 2003\Include\ARMV4\vibrate.h"\
 	
 
@@ -753,6 +755,83 @@ DEP_CPP_ROADMAP=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\roadmap_libpng.c
+
+!IF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARM) Release"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARM) Debug"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE x86) Release"
+
+DEP_CPP_ROADMAP_=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_libpng.h"\
+	"..\..\roadmap_win32.h"\
+	
+# ADD CPP /I "../../../zlib" /I "../../../libpng"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE x86) Debug"
+
+DEP_CPP_ROADMAP_=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_libpng.h"\
+	"..\..\roadmap_win32.h"\
+	
+# ADD CPP /I "../../../zlib" /I "../../../libpng"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_ROADMAP_=\
+	"..\..\..\libpng\png.h"\
+	"..\..\..\libpng\pngconf.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\..\zlib\zconf.h"\
+	"..\..\..\zlib\zlib.h"\
+	"..\..\roadmap_libpng.h"\
+	"..\..\roadmap_win32.h"\
+	
+NODEP_CPP_ROADMAP_=\
+	"..\..\..\libpng\config.h"\
+	"..\..\..\libpng\pngusr.h"\
+	
+# ADD CPP /I "../../../zlib" /I "../../../libpng"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_ROADMAP_=\
+	"..\..\..\libpng\png.h"\
+	"..\..\..\libpng\pngconf.h"\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\..\zlib\zconf.h"\
+	"..\..\..\zlib\zlib.h"\
+	"..\..\roadmap_libpng.h"\
+	"..\..\roadmap_win32.h"\
+	
+NODEP_CPP_ROADMAP_=\
+	"..\..\..\libpng\config.h"\
+	"..\..\..\libpng\pngusr.h"\
+	
+# ADD CPP /I "../../../zlib" /I "../../../libpng"
+
+!ELSEIF  "$(CFG)" == "libwinceguiroadmap - Win32 (WCE ARMV4) Profiler"
+
+DEP_CPP_ROADMAP_=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_libpng.h"\
+	"..\..\roadmap_win32.h"\
+	
+# ADD CPP /I "../../../zlib" /I "../../../libpng"
 
 !ENDIF 
 

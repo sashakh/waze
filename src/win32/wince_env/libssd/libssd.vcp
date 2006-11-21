@@ -124,6 +124,25 @@ DEP_CPP_SSD_B=\
 	"..\..\..\roadmap_res.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\..\ssd\ssd_button.h"\
+	"..\..\..\ssd\ssd_text.h"\
+	"..\..\..\ssd\ssd_widget.h"\
+	"..\..\roadmap_win32.h"\
+	
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\ssd\ssd_choice.c
+DEP_CPP_SSD_C=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\..\ssd\ssd_button.h"\
+	"..\..\..\ssd\ssd_choice.h"\
+	"..\..\..\ssd\ssd_container.h"\
+	"..\..\..\ssd\ssd_dialog.h"\
+	"..\..\..\ssd\ssd_list.h"\
+	"..\..\..\ssd\ssd_text.h"\
 	"..\..\..\ssd\ssd_widget.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -131,7 +150,8 @@ DEP_CPP_SSD_B=\
 # Begin Source File
 
 SOURCE=..\..\..\ssd\ssd_container.c
-DEP_CPP_SSD_C=\
+DEP_CPP_SSD_CO=\
+	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_types.h"\
@@ -140,6 +160,7 @@ DEP_CPP_SSD_C=\
 	"..\..\..\ssd\ssd_dialog.h"\
 	"..\..\..\ssd\ssd_text.h"\
 	"..\..\..\ssd\ssd_widget.h"\
+	"..\..\roadmap_win32.h"\
 	
 # End Source File
 # Begin Source File
@@ -179,7 +200,11 @@ DEP_CPP_SSD_E=\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_types.h"\
+	"..\..\..\ssd\ssd_button.h"\
+	"..\..\..\ssd\ssd_container.h"\
+	"..\..\..\ssd\ssd_dialog.h"\
 	"..\..\..\ssd\ssd_entry.h"\
+	"..\..\..\ssd\ssd_keyboard.h"\
 	"..\..\..\ssd\ssd_text.h"\
 	"..\..\..\ssd\ssd_widget.h"\
 	"..\..\roadmap_win32.h"\
@@ -189,6 +214,7 @@ DEP_CPP_SSD_E=\
 
 SOURCE=..\..\..\ssd\ssd_keyboard.c
 DEP_CPP_SSD_K=\
+	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_lang.h"\
@@ -200,12 +226,14 @@ DEP_CPP_SSD_K=\
 	"..\..\..\ssd\ssd_keyboard.h"\
 	"..\..\..\ssd\ssd_text.h"\
 	"..\..\..\ssd\ssd_widget.h"\
+	"..\..\roadmap_win32.h"\
 	
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\ssd\ssd_list.c
 DEP_CPP_SSD_L=\
+	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_types.h"\
@@ -215,6 +243,7 @@ DEP_CPP_SSD_L=\
 	"..\..\..\ssd\ssd_list.h"\
 	"..\..\..\ssd\ssd_text.h"\
 	"..\..\..\ssd\ssd_widget.h"\
+	"..\..\roadmap_win32.h"\
 	
 # End Source File
 # Begin Source File
@@ -249,6 +278,7 @@ DEP_CPP_SSD_M=\
 
 SOURCE=..\..\..\ssd\ssd_messagebox.c
 DEP_CPP_SSD_ME=\
+	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_lang.h"\
@@ -259,6 +289,7 @@ DEP_CPP_SSD_ME=\
 	"..\..\..\ssd\ssd_dialog.h"\
 	"..\..\..\ssd\ssd_text.h"\
 	"..\..\..\ssd\ssd_widget.h"\
+	"..\..\roadmap_win32.h"\
 	
 # End Source File
 # Begin Source File

@@ -352,6 +352,7 @@ DEP_CPP_ROADM=\
 
 !ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Debug"
 
+# PROP Exclude_From_Build 1
 DEP_CPP_ROADM=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_address.h"\
@@ -1335,6 +1336,7 @@ DEP_CPP_ROADMAP_D=\
 	"..\..\..\roadmap_message.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_types.h"\
@@ -1358,6 +1360,7 @@ DEP_CPP_ROADMAP_D=\
 	"..\..\..\roadmap_message.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_street.h"\
 	"..\..\..\roadmap_types.h"\
@@ -2167,6 +2170,7 @@ DEP_CPP_ROADMAP_L=\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -2186,6 +2190,7 @@ DEP_CPP_ROADMAP_L=\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -2282,6 +2287,7 @@ DEP_CPP_ROADMAP_LA=\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -2297,6 +2303,7 @@ DEP_CPP_ROADMAP_LA=\
 	"..\..\..\roadmap_math.h"\
 	"..\..\..\roadmap_plugin.h"\
 	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	
@@ -3162,6 +3169,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_shape.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_square.h"\
@@ -3210,6 +3218,7 @@ DEP_CPP_ROADMAP_S=\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_shape.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
 	"..\..\..\roadmap_square.h"\
@@ -3353,6 +3362,7 @@ DEP_CPP_ROADMAP_SC=\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_pointer.h"\
+	"..\..\..\roadmap_res.h"\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
@@ -3381,6 +3391,7 @@ DEP_CPP_ROADMAP_SC=\
 	"..\..\..\roadmap_net.h"\
 	"..\..\..\roadmap_path.h"\
 	"..\..\..\roadmap_pointer.h"\
+	"..\..\..\roadmap_res.h"\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
 	"..\..\..\roadmap_spawn.h"\
@@ -3419,6 +3430,87 @@ DEP_CPP_ROADMAP_SC=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
+	
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\roadmap_skin.c
+
+!IF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARM) Release"
+
+!ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARM) Debug"
+
+!ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE x86) Release"
+
+DEP_CPP_ROADMAP_SK=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE x86) Debug"
+
+DEP_CPP_ROADMAP_SK=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Debug"
+
+DEP_CPP_ROADMAP_SK=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Release"
+
+DEP_CPP_ROADMAP_SK=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
+	
+
+!ELSEIF  "$(CFG)" == "libguiroadmap - Win32 (WCE ARMV4) Profiler"
+
+DEP_CPP_ROADMAP_SK=\
+	"..\..\..\roadmap.h"\
+	"..\..\..\roadmap_canvas.h"\
+	"..\..\..\roadmap_config.h"\
+	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_path.h"\
+	"..\..\..\roadmap_screen.h"\
+	"..\..\..\roadmap_skin.h"\
+	"..\..\..\roadmap_types.h"\
+	"..\..\roadmap_win32.h"\
 	
 
 !ENDIF 
@@ -3772,6 +3864,7 @@ DEP_CPP_ROADMAP_ST=\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
@@ -3782,6 +3875,7 @@ DEP_CPP_ROADMAP_ST=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\..\roadmap_voice.h"\
 	"..\..\..\ssd\ssd_menu.h"\
+	"..\..\..\ssd\ssd_widget.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
@@ -3840,6 +3934,7 @@ DEP_CPP_ROADMAP_ST=\
 	"..\..\..\roadmap_screen.h"\
 	"..\..\..\roadmap_screen_obj.h"\
 	"..\..\..\roadmap_serial.h"\
+	"..\..\..\roadmap_skin.h"\
 	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_spawn.h"\
 	"..\..\..\roadmap_sprite.h"\
@@ -3850,6 +3945,7 @@ DEP_CPP_ROADMAP_ST=\
 	"..\..\..\roadmap_types.h"\
 	"..\..\..\roadmap_voice.h"\
 	"..\..\..\ssd\ssd_menu.h"\
+	"..\..\..\ssd\ssd_widget.h"\
 	"..\..\roadmap_win32.h"\
 	"..\..\win32_serial.h"\
 	
