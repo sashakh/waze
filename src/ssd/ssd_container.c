@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "roadmap_canvas.h"
+#include "roadmap_sound.h"
 
 #include "ssd_widget.h"
 #include "ssd_text.h"
@@ -125,6 +126,11 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 static int short_click (SsdWidget widget, const RoadMapGuiPoint *point) {
 
    if (widget->callback) {
+      RoadMapSoundList list = roadmap_sound_list_create ();
+      if (roadmap_sound_list_add (list, "click.wav") != -1) {
+         roadmap_sound_play_list (list);
+      }
+
       (*widget->callback) (widget, SSD_BUTTON_SHORT_CLICK);
       return 1;
    }
