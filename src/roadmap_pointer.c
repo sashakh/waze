@@ -49,15 +49,20 @@ enum POINTER_EVENT {SHORT_CLICK = 0, LONG_CLICK, PRESSED, RELEASED, DRAG_START, 
 
 #define MAX_CALLBACKS 10
 
-static RoadMapPointerHandler pointer_callbacks[MAX_EVENTS][MAX_CALLBACKS];
+typedef struct pointer_callback {
+   RoadMapPointerHandler handler;
+   int                   priority;
+} PointerCallback;
+
+static PointerCallback pointer_callbacks[MAX_EVENTS][MAX_CALLBACKS];
 
 
 static int exec_callbacks (int event, RoadMapGuiPoint *point) {
    int i = 0;
    int res = 0;
 
-   while ((i<MAX_CALLBACKS) && pointer_callbacks[event][i]) {
-      res = (pointer_callbacks[event][i]) (point);
+   while ((i<MAX_CALLBACKS) && pointer_callbacks[event][i].handler) {
+      res = (pointer_callbacks[event][i].handler) (point);
       if (res) break;
       i++;
    }
@@ -159,7 +164,7 @@ static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
 static void remove_callback (int event, void *handler) {
    int i=0;
    for (i=0; i<MAX_CALLBACKS; i++) {
-      if (pointer_callbacks[event][i] == handler) break;
+      if (pointer_callbacks[event][i].handler == handler) break;
    }
 
    if (i==MAX_CALLBACKS) {
@@ -168,21 +173,29 @@ static void remove_callback (int event, void *handler) {
    }
 
    memmove (&pointer_callbacks[event][i], &pointer_callbacks[event][i+1],
-            sizeof(void*) * (MAX_CALLBACKS - i - 1));
+            sizeof(PointerCallback) * (MAX_CALLBACKS - i - 1));
 
-   pointer_callbacks[event][MAX_CALLBACKS - 1] = NULL;
+   pointer_callbacks[event][MAX_CALLBACKS - 1].handler = NULL;
 }
 
 
-static void queue_callback (int event, void *handler) {
-   if (pointer_callbacks[event][MAX_CALLBACKS-1]) {
+static void queue_callback (int event, void *handler, int priority) {
+   int i;
+
+   if (pointer_callbacks[event][MAX_CALLBACKS-1].handler) {
       roadmap_log (ROADMAP_FATAL, "Too many callbacks for event: %d", event);
    }
 
-   memmove (&pointer_callbacks[event][1], &pointer_callbacks[event][0],
-            sizeof(void*) * (MAX_CALLBACKS-1));
+   for (i=0; i<MAX_CALLBACKS; i++) {
+      if (pointer_callbacks[event][i].priority <= priority) break;
+   }
 
-   pointer_callbacks[event][0] = handler;
+   
+   memmove (&pointer_callbacks[event][i+1], &pointer_callbacks[event][i],
+            sizeof(PointerCallback) * (MAX_CALLBACKS - i - 1));
+
+   pointer_callbacks[event][i].handler = handler;
+   pointer_callbacks[event][i].priority = priority;
 }
 
 
@@ -203,45 +216,52 @@ const RoadMapGuiPoint *roadmap_pointer_position (void) {
 }
 
 
-void roadmap_pointer_register_short_click (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_short_click (RoadMapPointerHandler handler,
+                                           int priority) {
 
-   queue_callback (SHORT_CLICK, handler);
+   queue_callback (SHORT_CLICK, handler, priority);
 }
 
 
-void roadmap_pointer_register_long_click (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_long_click (RoadMapPointerHandler handler,
+                                          int priority) {
 
-   queue_callback (LONG_CLICK, handler);
+   queue_callback (LONG_CLICK, handler, priority);
 }
 
 
-void roadmap_pointer_register_pressed (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_pressed (RoadMapPointerHandler handler,
+                                       int priority) {
 
-   queue_callback (PRESSED, handler);
+   queue_callback (PRESSED, handler, priority);
 }
 
 
-void roadmap_pointer_register_released (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_released (RoadMapPointerHandler handler,
+                                        int priority) {
 
-   queue_callback (RELEASED, handler);
+   queue_callback (RELEASED, handler, priority);
 }
 
 
-void roadmap_pointer_register_drag_start (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_drag_start (RoadMapPointerHandler handler,
+                                          int priority) {
 
-   queue_callback (DRAG_START, handler);
+   queue_callback (DRAG_START, handler, priority);
 }
 
 
-void roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler,
+                                           int priority) {
 
-   queue_callback (DRAG_MOTION, handler);
+   queue_callback (DRAG_MOTION, handler, priority);
 }
 
 
-void roadmap_pointer_register_drag_end (RoadMapPointerHandler handler) {
+void roadmap_pointer_register_drag_end (RoadMapPointerHandler handler,
+                                        int priority) {
 
-   queue_callback (DRAG_END, handler);
+   queue_callback (DRAG_END, handler, priority);
 }
 
 

@@ -29,18 +29,28 @@
 
 #include "roadmap_gui.h"
 
+#define POINTER_DEFAULT 0
+#define POINTER_NORMAL  1
+#define POINTER_HIGH    2
+#define POINTER_HIGHEST 3
 
 typedef int (*RoadMapPointerHandler) (RoadMapGuiPoint *point);
 
 void roadmap_pointer_initialize (void);
 const RoadMapGuiPoint *roadmap_pointer_position (void);
 
-void roadmap_pointer_register_short_click (RoadMapPointerHandler handler);
-void roadmap_pointer_register_long_click  (RoadMapPointerHandler handler);
-void roadmap_pointer_register_drag_start  (RoadMapPointerHandler handler);
-void roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler);
-void roadmap_pointer_register_drag_end    (RoadMapPointerHandler handler);
-void roadmap_pointer_register_pressed     (RoadMapPointerHandler handler);
+void roadmap_pointer_register_short_click (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_long_click  (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_drag_start  (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_drag_end    (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_pressed     (RoadMapPointerHandler handler,
+                                           int priority);
 
 void roadmap_pointer_unregister_short_click (RoadMapPointerHandler handler);
 void roadmap_pointer_unregister_long_click  (RoadMapPointerHandler handler);

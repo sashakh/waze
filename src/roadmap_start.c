@@ -487,10 +487,6 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
       "Set the selected street block as the trip's destination",
       roadmap_start_set_destination},
 
-   {"traffic", "Traffic data", NULL, NULL,
-      "Chage Traffic data settings",
-      roadmap_start_navigate},
-
    {"navigate", "Navigate", NULL, NULL,
       "Calculate route",
       roadmap_start_navigate},
@@ -1064,7 +1060,8 @@ static void roadmap_start_window (void) {
                                          RoadMapStartLongClickMenu,
                                          RoadMapStartActions);
 
-   roadmap_pointer_register_long_click (roadmap_start_long_click);
+   roadmap_pointer_register_long_click
+      (roadmap_start_long_click, POINTER_DEFAULT);
 
    roadmap_main_add_canvas ();
 
@@ -1222,7 +1219,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
    roadmap_label_activate    ();
    roadmap_sprite_initialize ();
-   roadmap_screen_obj_initialize ();
 
    roadmap_screen_set_initial_position ();
 
@@ -1242,6 +1238,7 @@ void roadmap_start (int argc, char **argv) {
    editor_main_initialize ();
    navigate_main_initialize ();
 
+   roadmap_screen_obj_initialize ();
    roadmap_trip_restore_focus ();
 
    if (! roadmap_trip_load (roadmap_trip_current(), 1)) {

@@ -287,7 +287,8 @@ static int editor_screen_short_click (RoadMapGuiPoint *point) {
 
          SelectedLines[select_count].line = line;
          if (!select_count) {
-            roadmap_pointer_register_long_click (editor_screen_long_click);
+            roadmap_pointer_register_long_click
+               (editor_screen_long_click, POINTER_NORMAL);
          }
          select_count++;
       }
@@ -366,28 +367,8 @@ static int editor_screen_get_road_state (int line, int cfcc,
    int has_street = 0;
    int has_route = 0;
 
-   return NO_ROAD_STATE;
-
    if (plugin_id == ROADMAP_PLUGIN_ID) {
       
-      if (roadmap_locator_activate (fips) >= 0) {
-         int speed1 = roadmap_line_route_get_speed (line, 0);
-         int speed2 = roadmap_line_route_get_speed (line, 1);
-         int slow = 25;
-
-         if (cfcc == ROADMAP_ROAD_FREEWAY) slow = 45;
-
-         if (!speed1 && !speed2) return NO_ROAD_STATE;
-
-         if (!speed1) speed1 = speed2;
-         else if (!speed2) speed2 = speed1;
-
-         if ((speed1 <= slow) || (speed2 <= slow)) {
-            return NO_DATA_STATE;
-         } else {
-            return NO_ROAD_STATE;
-         }
-      }
       return NO_ROAD_STATE;
       
       if (roadmap_locator_activate (fips) >= 0) {
@@ -796,7 +777,8 @@ void editor_screen_set (int status) {
 
    if (status) {
 
-      roadmap_pointer_register_short_click (editor_screen_short_click);
+      roadmap_pointer_register_short_click
+            (editor_screen_short_click, POINTER_NORMAL);
       roadmap_layer_adjust();
    } else {
 

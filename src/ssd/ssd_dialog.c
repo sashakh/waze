@@ -810,9 +810,12 @@ SsdWidget ssd_dialog_activate (const char *name, void *context) {
 
    if (!RoadMapDialogCurrent) {
       /* Grab pointer hooks */
-      roadmap_pointer_register_pressed (ssd_dialog_pressed);
-      roadmap_pointer_register_short_click (ssd_dialog_short_click);
-      roadmap_pointer_register_long_click (ssd_dialog_long_click);
+      roadmap_pointer_register_pressed
+         (ssd_dialog_pressed, POINTER_HIGHEST);
+      roadmap_pointer_register_short_click
+         (ssd_dialog_short_click, POINTER_HIGHEST);
+      roadmap_pointer_register_long_click
+         (ssd_dialog_long_click, POINTER_HIGHEST);
    }
 
    RoadMapDialogCurrent = dialog;

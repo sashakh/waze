@@ -1578,10 +1578,14 @@ void roadmap_screen_initialize (void) {
    roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigMapLabels, "on", "off", NULL);
 
-   roadmap_pointer_register_short_click (&roadmap_screen_short_click);
-   roadmap_pointer_register_drag_start (&roadmap_screen_drag_start);
-   roadmap_pointer_register_drag_end (&roadmap_screen_drag_end);
-   roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion);
+   roadmap_pointer_register_short_click
+      (&roadmap_screen_short_click, POINTER_DEFAULT);
+   roadmap_pointer_register_drag_start
+      (&roadmap_screen_drag_start, POINTER_DEFAULT);
+   roadmap_pointer_register_drag_end
+      (&roadmap_screen_drag_end, POINTER_DEFAULT);
+   roadmap_pointer_register_drag_motion
+      (&roadmap_screen_drag_motion, POINTER_DEFAULT);
 
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
 

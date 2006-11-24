@@ -155,16 +155,21 @@ static void roadmap_screen_obj_decode_icon
 
       roadmap_screen_obj_decode_arg (arg, sizeof(arg), argv[i], argl[i]);
 
+      if (!object->images[object->states_count]) {
 
-      image = roadmap_res_get (RES_BITMAP, RES_SKIN, arg);
+         image = roadmap_res_get (RES_BITMAP, RES_SKIN, arg);
 
-      if (image == NULL) {
-         roadmap_log (ROADMAP_ERROR,
-               "screen object:'%s' can't load image:%s.",
-               object->name,
-               arg);
+         if (image == NULL) {
+            roadmap_log (ROADMAP_ERROR,
+                  "screen object:'%s' can't load image:%s.",
+                  object->name,
+                  arg);
+         }
+         object->images[object->states_count] = image;
+      } else {
+         object->sprites[object->states_count] =
+            roadmap_object_string (arg, argl[i]);
       }
-      object->images[object->states_count] = image;
    }
 
    ++object->states_count;
@@ -623,9 +628,12 @@ void roadmap_object_iterate (RoadMapObjectAction action) {
 
 void roadmap_screen_obj_initialize (void) {
 
-   roadmap_pointer_register_pressed (roadmap_screen_obj_pressed);
-   roadmap_pointer_register_short_click (roadmap_screen_obj_short_click);
-   roadmap_pointer_register_long_click (roadmap_screen_obj_long_click);
+   roadmap_pointer_register_pressed
+      (roadmap_screen_obj_pressed, POINTER_HIGH);
+   roadmap_pointer_register_short_click
+      (roadmap_screen_obj_short_click, POINTER_HIGH);
+   roadmap_pointer_register_long_click
+      (roadmap_screen_obj_long_click, POINTER_HIGH);
 
    roadmap_screen_obj_reload ();
 }
