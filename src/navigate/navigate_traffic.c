@@ -365,7 +365,7 @@ int navigate_traffic_override_pen (int line,
             return 0;
          }
 
-         if (speed1 < (avg1 / 2)) {
+         if (speed1 < (avg1 * 2 / 3)) {
             *override_pen = TrafficPens[cfcc][pen_type];
             cache_set (fips, line, STATE_CONGESTION);
             return 1;
@@ -381,7 +381,7 @@ int navigate_traffic_override_pen (int line,
             return 0;
          }
 
-         if (speed2 < (avg2 / 2)) {
+         if (speed2 < (avg2 * 2 / 3)) {
             *override_pen = TrafficPens[cfcc][pen_type];
             cache_set (fips, line, STATE_CONGESTION);
             return 1;
