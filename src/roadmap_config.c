@@ -609,7 +609,7 @@ int  roadmap_config_reload (const char *name) {
            p != NULL;
            p = roadmap_path_next(file->set, p)) {
 
-         loaded = roadmap_config_load (p, file, ROADMAP_CONFIG_SHARED);
+         loaded = roadmap_config_load (p, file, ROADMAP_CONFIG_CLEAN);
          
          if (loaded) break;
       }
