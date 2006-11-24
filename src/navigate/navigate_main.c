@@ -63,12 +63,10 @@
 #include "navigate_graph.h"
 #include "navigate_bar.h"
 #include "navigate_instr.h"
+#include "navigate_traffic.h"
 #include "navigate_main.h"
 
 #define ROUTE_PEN_WIDTH 4
-#define MAX_LAYERS (ROADMAP_ROAD_LAST + 1)
-#define MAX_PEN_LAYERS 2
-#define MAX_ROAD_COLORS 2
 
 int NavigateEnabled = 0;
 int NavigatePluginID = -1;
@@ -76,7 +74,6 @@ static int NavigateTrackEnabled = 0;
 static int NavigateTrackFollowGPS = 0;
 static RoadMapPen NavigatePen;
 static RoadMapPen NavigatePenEst;
-static RoadMapPen TrafficPens[MAX_LAYERS][MAX_PEN_LAYERS];
 
 static void navigate_update (RoadMapPosition *position, PluginLine *current);
 static void navigate_get_next_line
@@ -106,64 +103,6 @@ static int NavigateDestPoint;
 static RoadMapPosition NavigateDestPos;
 static RoadMapPosition NavigateSrcPos;
 static int NavigateNextAnnounce;
-
-
-static void create_pens (void) {
-
-   int i;
-   int j;
-   char name[80];
-
-   /* FIXME should only create pens for road class */
-
-   for (i=1; i<MAX_LAYERS; ++i) 
-      for (j=0; j<MAX_PEN_LAYERS; j++) {
-
-         RoadMapPen *pen = &TrafficPens[i][j];
-
-         snprintf (name, sizeof(name), "TrafficPen%d", i*100+j*10);
-         *pen = roadmap_canvas_create_pen (name);
-
-         if (!j) {
-            roadmap_canvas_set_foreground ("#000000");
-         } else {
-            roadmap_canvas_set_foreground ("dark red");
-         }
-         roadmap_canvas_set_thickness (1);
-      }
-}
-
-
-/* TODO: this is a bad callback which is called from roadmap_layer_adjust().
- * This should be changed. Currently when the editor is enabled, an explicit
- * call to roadmap_layer_adjust() is called. When this is fixed, that call
- * should be removed.
- */
-void navigate_main_adjust_layer (int layer, int thickness, int pen_count) {
-    
-   int i;
-
-   if (layer > ROADMAP_ROAD_LAST) return;
-
-   if (thickness < 1) thickness = 1;
-   if ((pen_count > 1) && (thickness < 3)) {
-      pen_count = 1;
-   }
-
-   for (i=0; i<MAX_PEN_LAYERS; i++) {
-
-      RoadMapPen *pen = &TrafficPens[layer][i];
-
-      roadmap_canvas_select_pen (*pen);
-
-      if (i == 1) {
-         roadmap_canvas_set_thickness (thickness - 2);
-      } else {
-         roadmap_canvas_set_thickness (thickness);
-      }
-
-   }
-}
 
 
 static int navigate_find_track_points (PluginLine *from_line, int *from_point,
@@ -716,11 +655,9 @@ void navigate_main_initialize (void) {
    roadmap_canvas_set_opacity (160);
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
 
-   create_pens ();
-
    navigate_bar_initialize ();
-
    NavigatePluginID = navigate_plugin_register ();
+   navigate_traffic_initialize ();
 
    navigate_main_set (1);
 
@@ -740,10 +677,6 @@ void navigate_main_set (int status) {
    }
 
    NavigateEnabled = status;
-
-   if (NavigateEnabled) {
-      roadmap_layer_adjust ();
-   }
 }
 
 
@@ -921,70 +854,9 @@ void navigate_main_screen_repaint (int max_pen) {
 }
 
 
-int navigate_main_override_pen (int line,
-                                int cfcc,
-                                int fips,
-                                int pen_type,
-                                RoadMapPen *override_pen) {
-
-   if (pen_type > 1) return 0;
-
-   if (cfcc > 3) return 0;
-
-   return 0;
-
-   if (roadmap_locator_activate (fips) >= 0) {
-      int avg1;
-      int avg2;
-      int speed1;
-      int speed2;
-
-      speed1 = roadmap_line_route_get_speed (line, 0);
-
-      if (speed1) {
-         avg1 = roadmap_line_route_get_avg_speed (line, 0);
-         if (avg1 < 20) return 0;
-
-         if (speed1 < (avg1 / 2)) {
-            *override_pen = TrafficPens[cfcc][pen_type];
-            return 1;
-         }
-      }
-
-      speed2 = roadmap_line_route_get_speed (line, 1);
-
-      if (speed2) {
-         avg2   = roadmap_line_route_get_avg_speed (line, 1);
-         if (avg2 < 20) return 0;
-
-         if (speed2 < (avg2 / 2)) {
-            *override_pen = TrafficPens[cfcc][pen_type];
-            return 1;
-         }
-      }
-   }
-
-   return 0;
-
-#if 0
-   int j;
-
-   for (j=0; j<NavigateNumSegments; j++) {
-
-      if (line == NavigateSegments[j]) {
-         *override_pen = NavigatePen;
-         return 1;
-      }
-   }
-
-   *override_pen = NULL;
-   return 0;
-#endif
-}
-
-
 int navigate_main_reload_data (void) {
 
+   navigate_traffic_refresh ();
    return navigate_reload_data ();
 }
 

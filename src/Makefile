@@ -215,6 +215,7 @@ RMPLUGINSRCS=roadmap_copy.c \
 				 navigate/navigate_instr.c \
 				 navigate/navigate_bar.c \
 				 navigate/navigate_plugin.c \
+				 navigate/navigate_traffic.c \
 				 navigate/navigate_dglib.c \
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)

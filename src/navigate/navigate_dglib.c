@@ -41,6 +41,7 @@
 #include "roadmap_line_route.h"
 
 #include "navigate_main.h"
+#include "navigate_traffic.h"
 #include "navigate_graph.h"
 
 static int fips_data_loaded = 0;
@@ -78,7 +79,7 @@ static int  clipper     (
    /* no U turns */
    if (from_line == -to_line) return 1;
    
-   new_cost = roadmap_line_route_get_cross_time (abs(to_line), (to_line < 0));
+   new_cost = navigate_traffic_get_cross_time (abs(to_line), (to_line < 0));
    if (new_cost) pOut->nEdgeCost = new_cost;
 
    if (!info->turn_restrictions) return 0;

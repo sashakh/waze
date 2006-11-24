@@ -1,8 +1,8 @@
-/* navigate_plugin.c - implement plugin interfaces
+/* navigate_traffic.h - MAnage traffic statistics
  *
  * LICENSE:
  *
- *   Copyright 2005 Ehud Shabtai
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -19,49 +19,22 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See navigate_plugin.h
  */
 
-#include <stdlib.h>
+#ifndef INCLUDE__NAVIGATE_TRAFFIC__H
+#define INCLUDE__NAVIGATE_TRAFFIC__H
 
-#include "roadmap_plugin.h"
+#include "roadmap_canvas.h"
 
-#include "navigate_main.h"
-#include "navigate_traffic.h"
-#include "navigate_plugin.h"
+void navigate_traffic_initialize (void);
+void navigate_traffic_adjust_layer (int layer, int thickness, int pen_count);
+void navigate_traffic_display (int status);
+int navigate_traffic_override_pen (int line, int cfcc, int fips, int pen_type,
+                                   RoadMapPen *override_pen);
 
+void navigate_traffic_refresh (void);
 
-static RoadMapPluginHooks navigate_plugin_hooks = {
+int navigate_traffic_get_cross_time (int line, int direction);
 
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      &navigate_traffic_override_pen,
-      &navigate_main_screen_repaint,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      &navigate_traffic_adjust_layer,
-      NULL,
-      NULL,
-      NULL
-};
-
-
-int navigate_plugin_register (void) {
-
-   return roadmap_plugin_register (&navigate_plugin_hooks);
-}
-
-
-void navigate_plugin_unregister (int plugin_id) {
-
-   roadmap_plugin_unregister (plugin_id);
-}
+#endif // INCLUDE__NAVIGATE_TRAFFIC__H
 
