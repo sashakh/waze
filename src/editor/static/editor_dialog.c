@@ -344,6 +344,15 @@ static void activate_dialog (const char *name,
       ssd_widget_add (group, ssd_text_new ("Length", "", -1, 0));
       ssd_widget_add (dialog, group);
 
+      group = ssd_container_new ("Speed group", NULL,
+                  SSD_MIN_SIZE, SSD_MIN_SIZE, SSD_WIDGET_SPACE|SSD_END_ROW);
+      ssd_widget_set_color (group, NULL, NULL);
+      ssd_widget_add (group,
+         ssd_text_new ("Label", roadmap_lang_get("Speed"), -1,
+                        SSD_TEXT_LABEL));
+      ssd_widget_add (group, ssd_text_new ("Speed", "", -1, 0));
+      ssd_widget_add (dialog, group);
+
       group = ssd_container_new ("Time group", NULL,
                   SSD_MIN_SIZE, SSD_MIN_SIZE, SSD_WIDGET_SPACE|SSD_END_ROW);
       ssd_widget_set_color (group, NULL, NULL);
@@ -984,6 +993,20 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
 
       total_length += line_length;
    }
+
+#ifdef SSD
+   if (selected_lines->lines[0].line.plugin_id == ROADMAP_PLUGIN_ID) {
+      int line = selected_lines->lines[0].line.line_id;
+      int avg_speed = roadmap_line_route_get_avg_speed (line, 0);
+      int cur_speed = roadmap_line_route_get_speed (line, 0);
+
+      snprintf (str, sizeof(str), "%d (%d)",
+                avg_speed, cur_speed);
+      ssd_dialog_set_value ("Speed", str);
+   } else {
+      ssd_dialog_set_value ("Speed", "");
+   }
+#endif   
 
    snprintf (str, sizeof(str), "%d %s",
              total_length, roadmap_lang_get("meters"));
