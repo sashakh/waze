@@ -52,6 +52,12 @@ D 0,0 5
 F black 1
 C 0,0 5
 
+S Selection
+F blue 1
+D 0,0 5
+F black 1
+C 0,0 5
+
 S Highlight
 F yellow 1
 D 0,0 5
@@ -175,3 +181,10 @@ L 7,1 6,3 3,6 1,7
 L 10,1 9,3 3,9 1,10
 L 13,1 12,3 3,12 1,13 
 
+S Marker
+F blue 1
+D 0,0 5
+F black 1
+C 0,0 6
+F yellow 1
+P -3,1 0,-6 3,1
