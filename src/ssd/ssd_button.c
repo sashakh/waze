@@ -31,6 +31,7 @@
 #include "roadmap.h"
 #include "roadmap_res.h"
 #include "roadmap_canvas.h"
+#include "roadmap_sound.h"
 
 #include "ssd_widget.h"
 #include "ssd_text.h"
@@ -113,6 +114,11 @@ static int ssd_button_short_click (SsdWidget widget,
                                    const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
 
+   RoadMapSoundList list = roadmap_sound_list_create ();
+   if (roadmap_sound_list_add (list, "click.wav") != -1) {
+      roadmap_sound_play_list (list);
+   }
+
    if (widget->callback) {
       (*widget->callback) (widget, SSD_BUTTON_SHORT_CLICK);
    }
@@ -126,6 +132,11 @@ static int ssd_button_short_click (SsdWidget widget,
 static int ssd_button_long_click (SsdWidget widget,
                                   const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
+
+   RoadMapSoundList list = roadmap_sound_list_create ();
+   if (roadmap_sound_list_add (list, "click_long.wav") != -1) {
+      roadmap_sound_play_list (list);
+   }
 
    if (widget->callback) {
       (*widget->callback) (widget, SSD_BUTTON_LONG_CLICK);
@@ -196,8 +207,8 @@ SsdWidget ssd_button_new (const char *name, const char *value,
 SsdWidget ssd_button_label (const char *name, const char *label,
                             int flags, SsdCallback callback) {
 
-   const char *button_icon[]   = {"button"};
-   SsdWidget button = ssd_button_new (name, "", button_icon, 1,
+   const char *button_icon[]   = {"button_up", "button_down"};
+   SsdWidget button = ssd_button_new (name, "", button_icon, 2,
                                       flags, callback);
    ssd_widget_add (button,
       ssd_text_new ("label", label, -1, SSD_ALIGN_VCENTER| SSD_ALIGN_CENTER));
