@@ -40,6 +40,8 @@
 #include "roadmap_gps.h"
 #include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
+#include "roadmap_start.h"
+#include "roadmap_state.h"
 #include "roadmap_screen.h"
 
 #include "../editor_main.h"
@@ -78,6 +80,7 @@ static RoadMapNeighbour TrackConfirmedLine = ROADMAP_NEIGHBOUR_NULL;
 static NodeNeighbour cur_node = {-1, -1};
 
 static int is_new_track = 1;
+static int EditorAllowNewRoads = 0;
 
 RoadMapPosition* track_point_pos (int index) {
 
@@ -261,6 +264,10 @@ static int add_road_connection (int point_id,
       /* This a known connection road */
       road_type = 0;
    } else {
+      road_type = ED_LINE_CONNECTION;
+   }
+
+   if (!EditorAllowNewRoads) {
       road_type = ED_LINE_CONNECTION;
    }
 
@@ -495,7 +502,8 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
       if ((i < (count -1)) || (start_point != (end_point -1))) {
          int line_id =
             create_new_line (start_point, end_point, -1, end_node_id, 4);
-         if ((line_id != -1) && (type == TRACK_ROAD_CONNECTION)) {
+         if ((line_id != -1) && 
+               ((type == TRACK_ROAD_CONNECTION) || !EditorAllowNewRoads)) {
             int cfcc;
             int flags;
 
@@ -688,8 +696,24 @@ editor_gps_update (time_t gps_time,
    }
 }
 
+static void editor_track_toggle_new_roads (void) {
+   if (EditorAllowNewRoads) EditorAllowNewRoads = 0;
+   else EditorAllowNewRoads = 1;
+   roadmap_screen_redraw ();
+}
+
+static int editor_allow_new_roads_state (void) {
+
+   return EditorAllowNewRoads;
+}
 
 void editor_track_initialize (void) {
+
+   roadmap_start_add_action ("togglenewroads", "Toggle new roads creation", NULL, NULL,
+      "Allow / prevent automatic creation of new roads",
+      editor_track_toggle_new_roads);
+
+   roadmap_state_add ("new_roads", &editor_allow_new_roads_state);
 
    roadmap_gps_register_listener(editor_gps_update);
 }
