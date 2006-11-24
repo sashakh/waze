@@ -1015,18 +1015,15 @@ int  roadmap_download_enabled (void) {
 
 void roadmap_download_initialize (void) {
 
-   char default_destination[1024];
+   char *default_destination = roadmap_path_join (roadmap_path_user(), "maps");
 
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
       "http://www.freemap.co.il/roadmap/maps/" ROADMAP_FILE_NAME_FORMAT);
 
-   snprintf (default_destination, sizeof(default_destination),
-             "%s\\maps", roadmap_path_user());
-
    roadmap_config_declare
       ("preferences",
-      &RoadMapConfigDestination, strdup(default_destination));
+      &RoadMapConfigDestination, default_destination);
 }
 
