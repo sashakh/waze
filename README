@@ -59,10 +59,10 @@ INTRODUCTION
    RoadMap is at an early stage of development. At this time all the
    features have not been implemented yet. RoadMap can display the map
    around a specified street address, track a GPS position and identify
-   the current street and the next intersection. A basic trip support is
-   provided (waypoints and destination). RoadMap detects what is the next
-   waypoint, provides a direction arrow and show the distance to this
-   waypoint (and/or to the destination).
+   the current street and the next intersection.  Trip support is
+   provided (waypoints, route following, and general landmarks).
+   Large sets of "Point of Interest" features also can be displayed
+   on the map.
 
    The plan for the future is to implement some navigation features similar
    to those found in commercial car navigation systems, and to port RoadMap
@@ -114,11 +114,6 @@ INSTALLATION
    section "VOICE INTERFACE" for more information.
 
    RoadMap uses aptconvert to format the documentation (see previous section).
-
-   Support for a "Point of Interest" feature is in the way, where the plan
-   is to store the points in a SQLite database. RoadMap is not at this time
-   dependent on SQLite, even while using SQLite will be an option in the
-   future.
 
    RoadMap can use the shapelib library (to decode the shape file format). 
    The shape file format is only used for converting the Digital Charts of
@@ -183,9 +178,9 @@ INSTALLATION
    Downloading maps on the fly is not available on Windows, due to the lack
    of gzip and tar tools on PocketPC.
 
-   The screenshots feature of RoadMap is not available on Windows.
+   The screenshots feature of RoadMap is not available on Windows or GTK
 
-   The full-screen mode of RoadMap is not available on Windows.
+   The full-screen mode of RoadMap is not available on Windows or GTK.
 
 
 * {DIRECTORIES}
@@ -575,9 +570,6 @@ INSTALLATION
 
       [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
       also generates the necessary information and code for profiling.
-
-      [SQL=SQLITE] Use the sqlite library. This option has no practical effect
-      at this time.
 
       [DESKTOP=GTK2|GPE|GTK|QT|QPE] Compiles RoadMap for a specific GUI
       environment. By default GTK, GTK2 and QT are built. The GPE environment
@@ -2265,7 +2257,7 @@ CONFIGURATION
 
          <<Default:>> yes
 
-         <<Comment:>> chooses whether streets are labelled at startup.
+         <<Comment:>> chooses whether streets are labeled at startup.
                       They can still be toggled by command.
 
     [Map.DynamicOrientation] Rotate the map to match the GPS direction.
@@ -2461,22 +2453,25 @@ CONFIGURATION
 
          <<Default:>> 125 ft
 
-    [FeatureFiles.Path] List of files containing features to display on map.
+    [FeatureFiles.Path] List of files containing "Point of Interest" features
+            to display on map.
 
-         <<Format:>> A comma-separated list of filenames, each accompanied
-            by their semi-colon-separated list of display parameters:
-            filename;spritename;labelcolor;declutterlevel,filename;spritename...
+	 <<Format:>> A comma-separated list of featurefile specifiers.
+		  A featurefile specifier is a semi-colon-separated list of
+		  display parameters:
+		  filename;spritename;labelcolor;labellevel;spritelevel,filename;spritename...
 
          <<Default:>> <empty>
 
-         <<Comment:>> The filename may include & and ~ as path shorthands,
-            the spritename else should appear in the sprites file, the
-            labelcolor will be used when writing the feature's name, and the
-            declutter level is an integer, representing the zoom level above
-            which the label will not be drawn.  The spritename or the
-            labelcolor may be the string "NONE", which will suppress the
-            sprite or the label, respectively.  The declutter value may be
-            omitted.
+         <<Comment:>> The filename may include & and ~ as path shorthands.
+                  The spritename should appear in the sprites file.  The
+                  labelcolor will be used when writing the feature's name. 
+                  The label and sprite levels are integers, representing the
+                  zoom level above which the label or sprite, respectively,
+		  will not be drawn.  Either the sprite name or the label
+		  color may be the string "NONE", which will suppress the
+		  sprite or the label, respectively.  Either declutter level
+		  may be omitted.
 
     [Files.Make Backups] Enable/disable the creation of backup files.
 
@@ -3143,6 +3138,37 @@ CONFIGURATION
     trip files, but instead in the same directory in which the
     user's preferences and session file are found.)
 
+* FEATURE FILES
+
+     Like the RoadMap trip data, feature data is stored in GPX format.  Each
+     feature file should represent a related set of points of interest, like
+     ice cream shops, motels, campgrounds, or mountaintops.  A single sprite
+     can be associated with each file, and will be used to represent its
+     contents on the map.  Features will be labeled using the pen color
+     specified.  Either or both of the sprite and label can be suppressed by
+     specifying the name "NONE".  Feature labels and sprites can also be
+     selectively disabled as the map is zoomed out.  An example feature file
+     specification, which uses ';' as its delimiter, might be:
+        &/icecream.gpx;ConeSprite;darkblue;350;750
+     This says that the ice cream shops listed in the given file should
+     be drawn with the ConeSprite, labeled with a "darkblue" pen, the labels
+     should be eliminated above zoom level 350, and the sprites should
+     disappear above zoom 750.  Likewise:
+        &/towns.gpx;NONE;black;350;350
+     says that towns should be labeled in black, with no sprite, up to
+     zoom level 350.  If a higher sprite declutter level is specified:
+        &/towns.gpx;NONE;black;350;1000
+     then a small default sprite (with the name "PointOfInterest") will be
+     shown, up to the higher level.
+
+     Multiple file specifications (including each file's associated (and
+     semicolon-separated) sprite name, pen color, and declutter levels)
+     should be separated by ',' characters. 
+
+     Note that unlike the maps, which are read and cached on an as-needed
+     basis, the feature files are read into memory in their entirety when
+     RoadMap starts, so there is a memory penalty for using large feature
+     files.
 
 TOOLS
 
