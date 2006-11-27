@@ -2456,10 +2456,10 @@ CONFIGURATION
     [FeatureFiles.Path] List of files containing "Point of Interest" features
             to display on map.
 
-	 <<Format:>> A comma-separated list of featurefile specifiers.
-		  A featurefile specifier is a semi-colon-separated list of
-		  display parameters:
-		  filename;spritename;labelcolor;labellevel;spritelevel,filename;spritename...
+         <<Format:>> A comma-separated list of featurefile specifiers.
+                  A featurefile specifier is a semi-colon-separated list of
+                  display parameters:
+                  filename;spritename;labelcolor;labellevel;spritelevel,filename;spritename...
 
          <<Default:>> <empty>
 
@@ -2468,10 +2468,10 @@ CONFIGURATION
                   labelcolor will be used when writing the feature's name. 
                   The label and sprite levels are integers, representing the
                   zoom level above which the label or sprite, respectively,
-		  will not be drawn.  Either the sprite name or the label
-		  color may be the string "NONE", which will suppress the
-		  sprite or the label, respectively.  Either declutter level
-		  may be omitted.
+                  will not be drawn.  Either the sprite name or the label
+                  color may be the string "NONE", which will suppress the
+                  sprite or the label, respectively.  Either declutter level
+                  may be omitted.
 
     [Files.Make Backups] Enable/disable the creation of backup files.
 
