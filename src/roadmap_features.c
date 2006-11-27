@@ -54,7 +54,8 @@ static struct {
     weepoint *southern;
     RoadMapPen pen;
     char * sprite;
-    int declutter;
+    int label_declutter;
+    int sprite_declutter;
     RoadMapArea area;
 } RoadMapFeatureLists[MAX_FEATUREFILES], *RoadMapFeatureList;
 
@@ -64,16 +65,24 @@ static RoadMapConfigDescriptor RoadMapConfigFeatureFiles =
 
 static void roadmap_features_draw(const weepoint *w) {
 
-    if (roadmap_math_declutter(RoadMapFeatureList->declutter)) {
-        roadmap_landmark_draw_weepoint
-            (w, RoadMapFeatureList->sprite, RoadMapFeatureList->pen);
-    } else {
-        /* Above a certain zoom level, turn off labels, and draw only
-         * the sprite.  If there was normally no sprite, provide one.
-         */
-        roadmap_landmark_draw_weepoint
-            (w, RoadMapFeatureList->sprite ?
-                RoadMapFeatureList->sprite  : "PointOfInterest", NULL);
+    RoadMapPen pen = RoadMapFeatureList->pen;
+    char *sprite = RoadMapFeatureList->sprite;
+
+    if ( ! roadmap_math_declutter(RoadMapFeatureList->label_declutter)) {
+        pen = NULL;
+        /* not drawing label?  make sure there's a sprite */
+        if (sprite == NULL) {
+            sprite = "PointOfInterest";
+        }
+    }
+
+    if ( RoadMapFeatureList->sprite_declutter >= 0 &&
+        ! roadmap_math_declutter(RoadMapFeatureList->sprite_declutter)) {
+        sprite = NULL;
+    }
+
+    if (sprite != NULL || pen != NULL) {
+        roadmap_landmark_draw_weepoint (w, sprite, pen);
     }
 }
 
@@ -153,7 +162,7 @@ void roadmap_features_load(void) {
     RoadMapList tmp_waypoint_list;
     int ret;
     char pen_name[256];
-    char *color, *sprite, *declutter;
+    char *color, *sprite, *l_declutter, *s_declutter;
     const char *p;
 
 
@@ -222,7 +231,8 @@ void roadmap_features_load(void) {
         /* default sprite and label pen */
         RoadMapFeatureList->sprite = "PointOfInterest";
         RoadMapFeatureList->pen = RoadMapLandmarksPen;
-        RoadMapFeatureList->declutter = 550;
+        RoadMapFeatureList->label_declutter = 550;
+        RoadMapFeatureList->sprite_declutter = -1;
 
         if (semi && *semi) {  /* sprite info */
 
@@ -258,20 +268,36 @@ void roadmap_features_load(void) {
                 }
                 if (semi) *semi++ = ';';
 
-                if (semi && *semi) {  /* declutter info */
+                if (semi && *semi) {  /* label declutter info */
 
-                    declutter = semi;
-                    semi = strchr(declutter, ';');
+                    l_declutter = semi;
+                    semi = strchr(l_declutter, ';');
                     if (semi) *semi = '\0';
 
-                    if (*declutter) {
+                    if (*l_declutter) {
                         int de;
-                        de = atoi(declutter);
+                        de = atoi(l_declutter);
                         if (de != 0) {
-                            RoadMapFeatureList->declutter = de;
+                            RoadMapFeatureList->label_declutter = de;
                         }
                     }
                     if (semi) *semi++ = ';';
+
+                    if (semi && *semi) {  /* label declutter info */
+
+                        s_declutter = semi;
+                        semi = strchr(s_declutter, ';');
+                        if (semi) *semi = '\0';
+
+                        if (*s_declutter) {
+                            int de;
+                            de = atoi(s_declutter);
+                            if (de != 0) {
+                                RoadMapFeatureList->sprite_declutter = de;
+                            }
+                        }
+                        if (semi) *semi++ = ';';
+                    }
                 }
             }
         }
