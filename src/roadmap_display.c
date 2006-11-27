@@ -296,7 +296,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
 
     roadmap_log_push ("roadmap_display_sign");
 
-   roadmap_screen_text_extents
+    roadmap_screen_text_extents
         (ROADMAP_TEXT_SIGNS, sign->content, RoadMapDisplayFontSize,
             &width, &ascent, &descent, NULL);
 
@@ -587,6 +587,7 @@ static void roadmap_display_console_box
     char text[256];
     int count;
     int width, ascent, descent;
+    int canvas_width, canvas_height, left_side;
 
     RoadMapGuiPoint frame[4];
 
@@ -600,33 +601,44 @@ static void roadmap_display_console_box
         return;
     }
 
-   roadmap_screen_text_extents
+    roadmap_screen_text_extents
         (ROADMAP_TEXT_SIGNS, text, RoadMapDisplayFontSize,
             &width, &ascent, &descent, NULL);
 
+    canvas_width = roadmap_canvas_width();
+    canvas_height = roadmap_canvas_height();
+
+    if (corner & ROADMAP_CANVAS_BOTTOM) {
+        left_side = 5;
+    } else { /* leave room for compass */
+        left_side = 45;
+    }
     if (corner & ROADMAP_CANVAS_RIGHT) {
-        frame[2].x = roadmap_canvas_width() - 5;
+        frame[2].x = canvas_width - 5;
         frame[0].x = frame[2].x - width - 6;
-    } else {
-        if (corner & ROADMAP_CANVAS_BOTTOM) {
-            frame[0].x = 5;
-        } else { /* leave room for compass */
-            frame[0].x = 45;
+        if (frame[0].x < left_side) {
+            frame[0].x = left_side;
         }
+    } else {
+        frame[0].x = left_side;
         frame[2].x = frame[0].x + width + 6;
+        if (frame[2].x > canvas_width) {
+            frame[2].x = canvas_width - 5;
+        }
     }
     frame[1].x = frame[0].x;
     frame[3].x = frame[2].x;
 
     if (corner & ROADMAP_CANVAS_BOTTOM) {
-        frame[0].y = roadmap_canvas_height () - ascent - descent - 11;
-        frame[1].y = roadmap_canvas_height () - 6;
+        frame[0].y = canvas_height - ascent - descent - 11;
+        frame[1].y = canvas_height - 6;
     } else {
         frame[0].y = 6;
         frame[1].y = ascent + descent + 11;
     }
     frame[2].y = frame[1].y;
     frame[3].y = frame[0].y;
+
 
     count = 4;
     roadmap_canvas_select_pen (RoadMapConsoleBackground);
@@ -635,11 +647,11 @@ static void roadmap_display_console_box
     roadmap_canvas_select_pen (RoadMapConsoleForeground);
     roadmap_canvas_draw_multiple_polygons (1, &count, frame, 0, 0);
 
-    frame[0].x = frame[3].x - 3;
-    frame[0].y = frame[3].y + 3;
+    frame[0].x += 3;
+    frame[0].y += 3;
 
     roadmap_screen_text(ROADMAP_TEXT_SIGNS, frame,
-                ROADMAP_CANVAS_RIGHT|ROADMAP_CANVAS_TOP,
+                ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
                 RoadMapDisplayFontSize, text);
 }
 
