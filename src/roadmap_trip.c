@@ -1564,16 +1564,16 @@ void roadmap_trip_add_waypoint
     }
 
     if (!roadmap_math_point_is_visible (&waypointp->pos)) {
-	/* Only set focus if the point we just added is off-screen.  This
-	 * will take us there.
-	 */
-	roadmap_trip_set_focus_waypoint (waypointp);
+        /* Only set focus if the point we just added is off-screen.  This
+         * will take us there.
+         */
+        roadmap_trip_set_focus_waypoint (waypointp);
     }
 
     RoadMapTripRefresh = 1;
 
     if (where != PLACE_PERSONAL_MARK) {
-	roadmap_trip_set_modified(1);
+        roadmap_trip_set_modified(1);
     }
 
     roadmap_screen_refresh ();
@@ -2816,12 +2816,12 @@ static void roadmap_trip_waypoint_selection_dialog_selected (
     pp = (roadmap_place_pointer *) roadmap_dialog_get_data ("Names", ".Places");
 
     if (pp != NULL) {
-	/* force it to the start of the list */
-	roadmap_list_insert
-	    ( &RoadMapTripAreaPlaces, roadmap_list_remove(&pp->link));
-	roadmap_trip_waypoint_show_selected ();
-	roadmap_trip_set_focus_waypoint (pp->wpt);
-	roadmap_screen_refresh ();
+        /* force it to the start of the list */
+        roadmap_list_insert
+            ( &RoadMapTripAreaPlaces, roadmap_list_remove(&pp->link));
+        roadmap_trip_waypoint_show_selected ();
+        roadmap_trip_set_focus_waypoint (pp->wpt);
+        roadmap_screen_refresh ();
     }
 }
 
@@ -2858,16 +2858,16 @@ static void roadmap_trip_waypoint_selection_dialog (void) {
 
     i = 0;
     ROADMAP_LIST_FOR_EACH (&RoadMapTripAreaPlaces, elem, tmp) {
-	char buf[128];
-	pp = (roadmap_place_pointer *)elem;
-	wpt = pp->wpt;
+        char buf[128];
+        pp = (roadmap_place_pointer *)elem;
+        wpt = pp->wpt;
 
-	snprintf(buf, sizeof(buf), "%s%s%s%s%s", 
-	    pp->list ? pp->list : "",
-	    pp->list ? " / " : "",
-	    wpt->shortname,
-	    wpt->description ? " - " : "",
-	    wpt->description ? wpt->description  : "");
+        snprintf(buf, sizeof(buf), "%s%s%s%s%s", 
+            pp->list ? pp->list : "",
+            pp->list ? " / " : "",
+            wpt->shortname,
+            wpt->description ? " - " : "",
+            wpt->description ? wpt->description  : "");
         names[i] = strdup(buf);
         places[i++] = pp;
     }
@@ -2876,7 +2876,7 @@ static void roadmap_trip_waypoint_selection_dialog (void) {
             roadmap_trip_waypoint_selection_dialog_selected);
 
     while (i > 0)
-	free(names[--i]);
+        free(names[--i]);
     free (names);
     free (places);
 
@@ -2950,9 +2950,9 @@ int roadmap_trip_retrieve_area_points
       }
 
       if (count > 1) {
-	  roadmap_trip_waypoint_selection_dialog ();
+          roadmap_trip_waypoint_selection_dialog ();
       } else {
-	  roadmap_trip_waypoint_show_selected();
+          roadmap_trip_waypoint_show_selected();
       }
 
    }
@@ -3115,6 +3115,8 @@ void roadmap_trip_move_last_place(void)
        w->shortname,
        w->description ? " - " : "",
        w->description ? w->description  : "");
+
+    RoadMapTripRefresh = 1;
 
     roadmap_screen_refresh ();
 
