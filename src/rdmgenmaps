@@ -31,7 +31,7 @@
 # Default setup: preferred map path is used, latest format, all states.
 
 FORMAT="--format=2002"
-MAPPATH=""
+MAPPATH="/var/lib/roadmap"
 OPTIONS=""
 TMPDIR=/var/tmp
 state=''
