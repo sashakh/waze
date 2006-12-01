@@ -92,6 +92,7 @@ void roadmap_canvas_set_foreground (const char *color);
 void roadmap_canvas_set_thickness  (int thickness);
 int  roadmap_canvas_get_thickness  (RoadMapPen pen);
 void roadmap_canvas_set_opacity (int opacity);
+void roadmap_canvas_set_linestyle (const char *style);
 
 
 /* The functions below draw in the selected buffer using the selected pen: */

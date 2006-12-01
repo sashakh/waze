@@ -47,6 +47,7 @@ struct roadmap_canvas_pen {
    struct roadmap_canvas_pen *next;
 
    char  *name;
+   GdkLineStyle style;
    GdkGC *gc;
 };
 
@@ -56,6 +57,8 @@ static struct roadmap_canvas_pen *RoadMapPenList = NULL;
 static GtkWidget  *RoadMapDrawingArea;
 static GdkPixmap  *RoadMapDrawingBuffer;
 static GdkGC      *RoadMapGc;
+
+static RoadMapPen CurrentPen;
 
 static PangoLayout  *RoadMapLayout = NULL;
 
@@ -121,8 +124,6 @@ void roadmap_canvas_get_text_extents
 
 RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
 
-   static RoadMapPen CurrentPen;
-
    RoadMapPen old_pen = CurrentPen;
    CurrentPen = pen;
    RoadMapGc = pen->gc;
@@ -154,6 +155,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name) {
 
       pen->name = strdup (name);
       pen->gc   = gc;
+      pen->style = GDK_LINE_SOLID;
       pen->next = RoadMapPenList;
 
       RoadMapPenList = pen;
@@ -179,12 +181,22 @@ void roadmap_canvas_set_foreground (const char *color) {
 }
 
 
+void roadmap_canvas_set_linestyle (const char *style) {
+
+   if (strcasecmp (style, "dashed") == 0) {
+      CurrentPen->style = GDK_LINE_ON_OFF_DASH;
+   } else {
+      CurrentPen->style = GDK_LINE_SOLID;
+   }
+}
+
 void roadmap_canvas_set_thickness  (int thickness) {
 
    gdk_gc_set_line_attributes
-      (RoadMapGc, thickness, GDK_LINE_SOLID, GDK_CAP_ROUND, GDK_JOIN_ROUND);
+      (RoadMapGc, thickness, CurrentPen->style,
+       CurrentPen->style == GDK_LINE_SOLID ? GDK_CAP_ROUND : GDK_CAP_BUTT,
+       GDK_JOIN_ROUND);
 }
-
 
 void roadmap_canvas_erase (void) {
 

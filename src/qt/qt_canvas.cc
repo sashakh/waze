@@ -89,6 +89,17 @@ void RMapCanvas::setPenColor(const char* color) {
 
 }
 
+void RMapCanvas::setPenLineStyle(const char* style) {
+   if (currentPen != 0) {
+      if (strcasecmp (style, "dashed") == 0) {
+        currentPen->setStyle(Qt::DashLine);
+      } else {
+        currentPen->setStyle(Qt::SolidLine);
+      }
+   }
+
+}
+
 void RMapCanvas::setPenThickness(int thickness) {
    if (currentPen != 0) {
       currentPen->setWidth(thickness);

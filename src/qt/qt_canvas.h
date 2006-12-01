@@ -54,6 +54,7 @@ public:
    RoadMapPen createPen(const char* name);
    void selectPen(RoadMapPen);
    void setPenColor(const char* color);
+   void setPenLineStyle(const char* style);
    void setPenThickness(int thickness);
    void erase(void);
    void drawString(RoadMapGuiPoint* position, int corner,

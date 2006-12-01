@@ -303,8 +303,11 @@ void roadmap_layer_adjust (void) {
                }
             }
 
-            roadmap_canvas_select_pen (layer->pen[0]);
-            roadmap_canvas_set_thickness (thickness);
+            if (thickness > 0) {
+               roadmap_canvas_select_pen (layer->pen[0]);
+               roadmap_canvas_set_thickness (thickness);
+            }
+
             layer->in_use[0] = 1;
 
             for (pen_index = 1; pen_index < layer->pen_count; ++pen_index) {
@@ -717,6 +720,7 @@ static void roadmap_layer_load_file (const char *class_file) {
         RoadMapLayer *layer = new_class->layers + i;
 
         const char *color[ROADMAP_MAX_LAYER_PENS];
+        const char *style[ROADMAP_MAX_LAYER_PENS];
 
         int  thickness;
         int  other_pen_length = strlen(layers[i]) + 64;
@@ -745,8 +749,11 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         color[0] = roadmap_config_get_from (class_config, layers[i], "Color");
 
+        /* Retrieve the first pen's style (optional). */
+        style[0] = roadmap_config_get_from (class_config, layers[i], "Style");
 
-        /* Retrieve the layer's other colors (optional). */
+
+        /* Retrieve the layer's other colors and styles (optional). */
 
         for (pen_index = 1; pen_index < ROADMAP_MAX_LAYER_PENS; ++pen_index) {
 
@@ -767,6 +774,12 @@ static void roadmap_layer_load_file (const char *class_file) {
               roadmap_config_get_from (class_config, layers[i], other_pen);
 
            if (color[pen_index] == NULL || *color[pen_index] == 0) break;
+
+           snprintf (other_pen, other_pen_length, "Style%d", pen_index);
+
+           style[pen_index] =
+              roadmap_config_get_from (class_config, layers[i], other_pen);
+
         }
         layer->pen_count = pen_index;
         if (pen_index > RoadMapMaxUsedPen) RoadMapMaxUsedPen = pen_index;
@@ -776,11 +789,15 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         layer->pen[0] = roadmap_canvas_create_pen (layers[i]);
 
+        if (style[0] != NULL && *(style[0]) > ' ') {
+           roadmap_canvas_set_linestyle (style[0]);
+        }
+
         thickness = roadmap_config_get_integer (&layer->thickness);
         roadmap_canvas_set_thickness (thickness);
 
         if (color[0] != NULL && *(color[0]) > ' ') {
-            roadmap_canvas_set_foreground (color[0]);
+           roadmap_canvas_set_foreground (color[0]);
         }
 
         if (i >= lines_count) { /* This is a polygon. */
@@ -793,12 +810,18 @@ static void roadmap_layer_load_file (const char *class_file) {
 
            layer->pen[pen_index] = roadmap_canvas_create_pen (other_pen);
 
+           if (style[pen_index] != NULL && *(style[pen_index]) > ' ') {
+              roadmap_canvas_set_linestyle (style[pen_index]);
+           }
+
            if (layer->delta_thickness[pen_index] < 0) {
               thickness += layer->delta_thickness[pen_index];
            } else {
               thickness = layer->delta_thickness[pen_index];
            }
-           roadmap_canvas_set_thickness (thickness);
+           if (thickness > 0) {
+              roadmap_canvas_set_thickness (thickness);
+           }
            roadmap_canvas_set_foreground (color[pen_index]);
 
            if (i >= lines_count) { /* This is a polygon. */

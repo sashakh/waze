@@ -232,6 +232,12 @@ void roadmap_canvas_set_foreground (const char *color) {
    roadmap_canvas_select_pen(CurrentPen);
 }
 
+void roadmap_canvas_set_linestyle (const char *style) {
+
+   // unimplemented
+
+}
+
 
 int  roadmap_canvas_get_thickness  (RoadMapPen pen) {
 

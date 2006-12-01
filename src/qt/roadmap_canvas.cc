@@ -106,6 +106,10 @@ void roadmap_canvas_set_foreground (const char *color) {
    roadMapCanvas->setPenColor(color);
 }
 
+void roadmap_canvas_set_linestyle (const char *style) {
+   roadMapCanvas->setPenLineStyle(style);
+}
+
 void roadmap_canvas_set_thickness  (int thickness) {
    roadMapCanvas->setPenThickness(thickness);
 }

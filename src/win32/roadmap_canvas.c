@@ -39,6 +39,7 @@
 struct roadmap_canvas_pen {	
 	struct roadmap_canvas_pen *next;
 	char  *name;
+	int  style;
 	COLORREF color;
 	int thinkness;
 };
@@ -105,8 +106,10 @@ RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
 	
 	CurrentPen = pen;
 	
-	old = SelectObject(RoadMapDrawingBuffer, CreatePen(PS_SOLID,
-		CurrentPen->thinkness, CurrentPen->color));
+	old = SelectObject(RoadMapDrawingBuffer,
+		CreatePen(CurrentPen->style,
+			CurrentPen->thinkness,
+			CurrentPen->color));
 	
 	if (OldHPen == NULL) OldHPen = old;
 	else DeleteObject(old);
@@ -132,6 +135,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name)
 		pen->name = strdup (name);
 		pen->color = RGB(0, 0, 0);
 		pen->thinkness = 1;
+		pen->style = PS_SOLID;
 		pen->next = RoadMapPenList;
 		
 		RoadMapPenList = pen;
@@ -172,6 +176,16 @@ void roadmap_canvas_set_foreground (const char *color)
 	roadmap_canvas_select_pen(CurrentPen);
 }
 
+void roadmap_canvas_set_linestyle (const char *style)
+{
+	if (CurrentPen != NULL) {
+		if (strcasecmp (style, "dashed") == 0) {
+			CurrentPen->style = PS_DASH;
+		} else {
+			CurrentPen->style = PS_SOLID;
+		}
+	}
+}
 
 void roadmap_canvas_set_thickness(int thickness)
 {
