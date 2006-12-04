@@ -1,5 +1,5 @@
 Class.Name: All
-Class.Lines: Freeways Ramps Highways Streets Trails Rivers Shore
+Class.Lines: Freeways Ramps Highways Streets Trails Rivers Shore Railroads 
 Class.Polygons: Lakes Sea Parks Hospitals Airports Stations Malls
 Navigation.Car: Freeways Ramps Highways Streets Trails
 Freeways.Color: black
@@ -27,6 +27,10 @@ Streets.Thickness: 2
 Trails.Color: DarkGrey
 Trails.Declutter: 160
 Trails.Thickness: 1
+Railroads.Color: black
+Railroads.Declutter: 250
+Railroads.Style: dashed
+Railroads.Thickness: 1
 Rivers.Color: LightBlue
 Rivers.Declutter: 300
 Rivers.Thickness: 3

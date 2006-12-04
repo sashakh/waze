@@ -77,6 +77,7 @@ static int BuildMapLayerRamp = 0;
 static int BuildMapLayerMain = 0;
 static int BuildMapLayerStreet = 0;
 static int BuildMapLayerTrail = 0;
+static int BuildMapLayerRail = 0;
 
 /* Area layers. */
 
@@ -124,6 +125,7 @@ static void buildmap_tiger_set_layers (int verbose) {
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerMain,      "highways");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerStreet,    "streets");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerTrail,     "trails");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerRail,      "railroads");
 
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerParc,      "parks");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerHospital,  "hospitals");
@@ -293,6 +295,18 @@ static char tiger2type (char *line, int start, int end) {
             default:  return BuildMapLayerTrail;
          }
          break;
+
+      case 'B': /* Railroads. */
+
+         if ((line[start] == '4') ||  /* rail on ferry */
+             (line[start] == '1' &&
+              (line[start+1] == '4' ||  /* various abandoned */
+               line[start+1] == '5' ||
+               line[start+1] == '6'))) {
+               break;
+         }
+
+         return BuildMapLayerRail;
 
       case 'H': /* Rivers, lakes and sea. */
 
