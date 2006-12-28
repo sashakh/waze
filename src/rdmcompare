@@ -4,16 +4,20 @@
 # to point out counties that have not yet been translated (or for which the
 # translation failed).
 #
-# USAGE:
-# ------
-#
-# rdmcompare <tiger-path> [maps=<map-directory-path>]
-#
+
+usage()
+{
+   echo "usage: rdmcompare <tiger-path> [maps=<map-directory-path>]" >&2
+   echo "  Used to check the translation of tiger data." >&2
+   exit 1
+}
+
 
 MAPSDIR=/usr/local/share/roadmap
 
 STARTDIR=`pwd`
 TIGERDIR=$1
+test -d "$TIGERDIR" || usage
 shift
 
 case $1 in
@@ -23,7 +27,7 @@ case $1 in
 esac
 
 
-function check_one_county {
+check_one_county() {
 
    base=`basename $1`
    fips=`expr substr $base 4 5`

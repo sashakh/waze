@@ -5,12 +5,17 @@
 # Utility to scan a directory for the Canadian shapefile maps, in
 # either DMTI or RNF format, and process them through buildmap.
 #
-# Usage:
-#
-# rdmgenshpmaps <shapefile path> [maps=<map-directory-path>]
-#                                [test]
-#                                [dmti]
-#                                [<province-abbrev> ...]
+
+usage()
+{
+    cat >&2 <<EOF
+rdmgenshpmaps <shapefile path> [maps=<map-directory-path>]
+                               [test]
+                               [dmti]
+                               [<province-abbrev> ...]
+EOF
+   exit 1
+}
 
 
 # the RNF format maps are available from:
@@ -21,8 +26,7 @@
 maps=/usr/local/share/roadmap
 
 if [ $# -eq 0 ] ; then
-    echo 'Usage: rdmgenshpmaps <shapefile path> [maps=<map-directory-path>] [test] [dryrun] [dmti] [<province-abbrev> ...]'
-    exit 1
+    usage
 fi
 
 SRCDIR=$1
@@ -76,7 +80,7 @@ fi
 # AB BC MB NB NL NS NT NU ON PE QC SK YT
 # 87 88 89 90 91 92 93 94 95 96 97 98 99
 
-function get_fips {
+get_fips() {
     # handle either RNF or DMTI naming convention
     f=`basename $1`
     case $f in

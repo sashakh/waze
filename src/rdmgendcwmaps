@@ -10,12 +10,17 @@
 # rdmgendcwmaps [maps=<map-directory-path>] [test] [dryrun] <files>...
 #
 
+usage()
+{
+   echo 'Usage: rdmgendcwmaps [maps=<map-directory-path>] [test] [dryrun] [<files> ...]' >&2
+   exit 1
+}
+
 maps=/usr/local/share/roadmap
 prov='*'
 
 if [ $# -eq 0 ] ; then
-  echo 'Usage: rdmgendcwmaps [maps=<map-directory-path>] [test] [dryrun] [<files> ...]'
-  exit 1
+  usage
 fi
 
 verbose=''

@@ -2,22 +2,29 @@
 #
 # This script download the most recent version of the complete set of
 # TIGER files from the US Census Bureau's web site.
-#
-# USAGE:
-# ------
-#
-# rdmdownload <destination-path> [format=2004|2005] [<state> ..]
-#
-#    Example: rdmdownload /var/tmp/maps CA
-#
-# PLEASE NOTE THE TIGER FILES ARE HUGE: THIS DOWNLOAD IS LIKELY
-# TO TAKE A VERY LONG TIME TO COMPLETE AND THE TIGER FILES WILL
-# USE A AWFUL LOT OF SPACE ON YOUR LOCAL HARD DRIVE.
-#
-# Now you know...
+
+usage()
+{
+    cat >&2 <<EOF
+usage: rdmdownload <tiger-destination-path> [format=2004|2005] [<state> ..]
+
+  All 2005 tiger maps will be downloaded to the specified directory,
+  or, optionally, just for the specified states.
+
+   Example: rdmdownload /var/tmp/maps CA
+
+  Please note the tiger files are HUGE: this download is likely
+  to take a very long time to complete and the tiger files will
+  use an awful lot of space on your local hard drive.
+EOF
+   exit 1
+}
 
 TIGERDIR=$1
+test -d "$TIGERDIR" || usage
+
 shift
+
 
 TIGERURL=http://www2.census.gov/geo/tiger/tiger2005se
 TIGEROPT1="-nd -np -r -N -P $TIGERDIR -A.zip"

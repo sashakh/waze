@@ -5,29 +5,32 @@
 # The main purpose of this script is to avoid keeping the TIGER
 # files in uncompressed form, waisting large amounts of disk space.
 #
-# USAGE:
-# ------
-#
-# rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000|2002|2004|2005]
-#                         [state=<state-id>]
-#                         [verbose|test]
-#
-#   or
-#
-# rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-#                         [format=2000|2002|2004|2005]
-#                         [verbose|test]
-#                         county-fips ...
-#
-#    Example: rdmgenmaps /var/lib/roadmap state=06
-#
-#
 # The buildmap and buildus programs will be found either in the
 # current directory, or via $PATH.  Pass in $BUILDMAP and/or
 # $BUILDUS to override.
 #
 #
+
+usage()
+{
+   cat >&2 <<EOF
+rdmgenmaps <tiger-path> [maps=<map-directory-path>]
+                       [format=2000|2002|2004|2005]
+                       [state=<state-id>]
+                       [verbose|test]
+
+ or
+
+rdmgenmaps <tiger-path> [maps=<map-directory-path>]
+                       [format=2000|2002|2004|2005]
+                       [verbose|test]
+                       county-fips ...
+
+  Example: rdmgenmaps /var/lib/roadmap state=06
+EOF
+   exit 1
+}
+
 # Default setup: preferred map path is used, latest format, all states.
 
 FORMAT="--format=2002"
@@ -40,6 +43,7 @@ state=''
 # Analyze the command line arguments.
 
 TIGERDIR=$1
+test -d "$TIGERDIR" || usage
 shift
 
 cleanup=Y
@@ -97,7 +101,7 @@ then
     fi
 fi
 
-function process_one_county {
+process_one_county() {
 
    if [ -e $TIGERDIR/TGR$1.ZIP ] ; then
       unzip $TIGERDIR/TGR$1.ZIP -d $TMPDIR/roadmap > /dev/null
@@ -152,9 +156,9 @@ if [ $gendir = 'Y' ] ; then
    if [ ! "$BUILDUS" ]
    then
        if [ -e buildus ] ; then
-	  BUILDUS=./buildus
+          BUILDUS=./buildus
        else
-	  BUILDUS=buildus
+          BUILDUS=buildus
        fi
    fi
    $BUILDUS -s $MAPPATH
