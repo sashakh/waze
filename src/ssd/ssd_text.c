@@ -135,12 +135,12 @@ static int format_text (SsdWidget widget, int draw,
             p.x = rect->minx;
 
             if (widget->flags & SSD_ALIGN_CENTER) {
-               if (ssd_widget_rtl ()) {
+               if (ssd_widget_rtl (NULL)) {
                   p.x += (width - text_width) / 2;
                } else {
                   p.x -= (width - text_width) / 2;
                }
-            } else if (ssd_widget_rtl ()) {
+            } else if (ssd_widget_rtl (NULL)) {
                p.x += width - text_width;
             }
 

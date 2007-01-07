@@ -56,6 +56,7 @@ extern "C" {
 #include "../roadmap_canvas.h"
 #include "../roadmap_io.h"
 #include "../roadmap_main.h"
+#include "../roadmap_res.h"
 #include "../roadmap_serial.h"
 #include "../roadmap_messagebox.h"
 #include "../roadmap_screen.h"
@@ -403,7 +404,11 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 
 #endif
    
-   BOOL other_instance = AppInstanceExists ();
+   BOOL other_instance = false;
+
+#ifndef _ROADGPS   
+   other_instance = AppInstanceExists ();
+#endif
 
 	//If it is already running, then focus on the window, and exit
 	hWnd = FindWindow(szWindowClass, NULL);	
@@ -421,9 +426,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
       }
 	} 
 
-#ifndef _ROADGPS   
    if (other_instance) return 0;
-#endif
 
 	if (!MyRegisterClass(hInstance, szWindowClass))
 	{
@@ -455,6 +458,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
       editor_main_initialize ();
       editor_main_set (1);
       roadmap_main_start_sync ();
+      roadmap_res_shutdown ();
       CEDevice::end();
       return 0;
    }
@@ -1133,7 +1137,7 @@ extern "C" {
 
 #ifdef FREEMAP_IL
       RoadMapImage image = roadmap_canvas_load_image (roadmap_path_user(),
-                           "icons\\welcome.bmp");
+                           "skins\\default\\welcome.png");
 
 	  if (image) {
 		  RoadMapGuiPoint pos;

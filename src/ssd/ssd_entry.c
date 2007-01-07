@@ -40,7 +40,7 @@
 static int keyboard_callback (int type, const char *new_value, void *context) {
    if (type == SSD_KEYBOARD_OK) {
       ((SsdWidget)context)->set_value ((SsdWidget)context, new_value);
-      ssd_keyboard_hide (SSD_KEYBOARD_LETTERS);
+      ssd_keyboard_hide ();
    }
    return 1;
 }
@@ -55,8 +55,8 @@ static int edit_callback (SsdWidget widget, const char *new_value) {
 
    value = widget->get_value (widget);
 
-   ssd_keyboard_show (SSD_KEYBOARD_LETTERS, "", value, keyboard_callback,
-                        widget);
+   ssd_keyboard_show (SSD_KEYBOARD_LETTERS, "", value, NULL,
+                      keyboard_callback, widget);
 
    return 1;
 }

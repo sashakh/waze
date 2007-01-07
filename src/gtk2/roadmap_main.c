@@ -290,7 +290,6 @@ void roadmap_main_add_menu (RoadMapMenu menu, const char *label) {
 
    GtkWidget *menu_item;
 
-return;
    if (RoadMapMainMenuBar == NULL) {
 
       RoadMapMainMenuBar = gtk_menu_bar_new();

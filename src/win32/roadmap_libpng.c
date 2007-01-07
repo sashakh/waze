@@ -114,6 +114,9 @@ unsigned char *read_png_file(const char* file_name, int *width, int *height,
    }
 
 	png_read_image(png_ptr, row_pointers);
+   png_read_end(png_ptr, NULL);
+   png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+   free (row_pointers);
 
    CloseHandle(fp);
 

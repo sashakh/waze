@@ -29,13 +29,15 @@
 #define SSD_KEYBOARD_DIGITS  2
 
 /* key types */
-#define SSD_KEYBOARD_OK 0x1
+#define SSD_KEYBOARD_OK    0x1
+#define SSD_KEYBOARD_EXTRA 0x2
 
 #include "ssd_dialog.h"
 
 void ssd_keyboard_show (int type, const char *title, const char *value,
-                        SsdDialogCB callback, void *context);
+                        const char *extra_key, SsdDialogCB callback,
+                        void *context);
 
-void ssd_keyboard_hide (int type);
+void ssd_keyboard_hide (void);
 
 #endif // __SSD_KEYBOARD_H_

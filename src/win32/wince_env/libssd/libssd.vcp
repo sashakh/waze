@@ -46,7 +46,7 @@ CPP=clarm.exe
 # PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /I "..\..\..\\" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /Zd /I "..\..\..\\" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /O2 /M$(CECrtMT) /c
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
@@ -122,6 +122,7 @@ DEP_CPP_SSD_B=\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
 	"..\..\..\roadmap_res.h"\
+	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\..\ssd\ssd_button.h"\
 	"..\..\..\ssd\ssd_text.h"\
@@ -154,6 +155,7 @@ DEP_CPP_SSD_CO=\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_gui.h"\
+	"..\..\..\roadmap_sound.h"\
 	"..\..\..\roadmap_types.h"\
 	"..\..\..\ssd\ssd_button.h"\
 	"..\..\..\ssd\ssd_container.h"\

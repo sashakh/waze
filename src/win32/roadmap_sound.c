@@ -30,6 +30,7 @@
 #include "../roadmap.h"
 #include "../roadmap_path.h"
 #include "../roadmap_file.h"
+#include "../roadmap_res.h"
 #include "../roadmap_sound.h"
 
 #define MAX_LISTS 2
@@ -112,10 +113,19 @@ DWORD WINAPI SoundThread (LPVOID lpParam) {
 
          for (i=0; i<roadmap_sound_list_count (list); i++) {
 
-            roadmap_sound_play (roadmap_sound_list_get (list, i));
+            const char *name = roadmap_sound_list_get (list, i);
+            RoadMapSound sound =
+                           roadmap_res_get (RES_SOUND, RES_NOCREATE, name);
+            if (sound) {
+               roadmap_sound_play (sound);
+            } else {
+               roadmap_sound_play_file (name);
+            }
          }
 
-         roadmap_sound_list_free (list);
+         if (!(list->flags & SOUND_LIST_NO_FREE)) {
+            roadmap_sound_list_free (list);
+         }
          sound_lists[current_list] = NULL;
       }
 
@@ -143,13 +153,28 @@ DWORD WINAPI SoundRecThread (LPVOID lpParam) {
       res = waveInReset(hWaveIn);
       res = waveInClose(hWaveIn);
       hWaveIn = NULL;
-      roadmap_sound_play ("rec_end.wav");
+      roadmap_sound_play_file ("rec_end.wav");
       res = res;
    }
 }
 
 
-int roadmap_sound_play (const char *file_name) {
+int roadmap_sound_play (RoadMapSound sound) {
+
+   BOOL res;
+   void *mem;
+
+   if (!sound) return -1;
+   mem = roadmap_file_base ((RoadMapFileContext)sound);
+
+   res = PlaySound((LPWSTR)mem, NULL, SND_SYNC | SND_MEMORY);
+
+   if (res == TRUE) return 0;
+   else return -1;
+}
+
+
+int roadmap_sound_play_file (const char *file_name) {
 
    char full_name[256];
    LPWSTR file_name_unicode;
@@ -174,9 +199,42 @@ int roadmap_sound_play (const char *file_name) {
 }
 
 
-RoadMapSoundList roadmap_sound_list_create (void) {
+RoadMapSound roadmap_sound_load (const char *path, const char *file, int *mem) {
 
-   return (RoadMapSoundList) calloc (1, sizeof(struct roadmap_sound_list_t));
+   char *full_name = roadmap_path_join (path, file);
+   RoadMapFileContext sound;
+
+   roadmap_file_map (NULL, full_name, NULL, "r", &sound);
+
+   roadmap_path_free (full_name);
+
+   if (sound == NULL) {
+      *mem = 0;
+      return NULL;
+   }
+
+   *mem = roadmap_file_size (sound);
+
+   return (RoadMapSound) sound;
+}
+
+
+int roadmap_sound_free (RoadMapSound sound) {
+
+   roadmap_file_unmap (&(RoadMapFileContext)sound);
+
+   return 0;
+}
+
+
+RoadMapSoundList roadmap_sound_list_create (int flags) {
+
+   RoadMapSoundList list =
+         (RoadMapSoundList) calloc (1, sizeof(struct roadmap_sound_list_t));
+
+   list->flags = flags;
+
+   return list;
 }
 
 
@@ -358,7 +416,7 @@ int roadmap_sound_record (const char *file_name, int seconds) {
 
    res = waveInAddBuffer(hWaveIn, &WaveHeader, sizeof(WAVEHDR));
 
-   roadmap_sound_play ("rec_start.wav");
+   roadmap_sound_play_file ("rec_start.wav");
 
    res = waveInStart(hWaveIn);
 

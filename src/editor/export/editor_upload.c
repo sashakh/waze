@@ -628,9 +628,9 @@ void editor_upload_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigTarget,
-      "http://www.freemap.co.il/upload/upload_rm.php");
+      "http://www.freemap.co.il/upload/upload_rm.php", NULL);
 
-   roadmap_config_declare ("preferences", &RoadMapConfigUser, "");
+   roadmap_config_declare ("preferences", &RoadMapConfigUser, "", NULL);
    roadmap_config_declare_password ("preferences", &RoadMapConfigPassword, "");
 }
 

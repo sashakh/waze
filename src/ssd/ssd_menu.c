@@ -103,6 +103,8 @@ static void ssd_menu_new (const char           *name,
    } else {
       container = ssd_container_new (name, NULL, SSD_MAX_SIZE, SSD_MAX_SIZE,
                                   SSD_ALIGN_GRID);
+      ssd_widget_set_color (dialog, "#000000", "#ffffffee");
+      ssd_widget_set_color (container, "#000000", NULL);
    }
 
    /* Override short and long click */

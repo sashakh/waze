@@ -70,7 +70,7 @@ typedef struct dialog_selected_lines {
    int           count;
 } DialogSelectedLines;
 
-static const char *def_values[2] = {"", ""};
+static const char *def_values[3] = {"", "", ""};
 
 static void editor_dialog_city_result (const char *result, void *data) {
 
@@ -80,10 +80,11 @@ static void editor_dialog_city_result (const char *result, void *data) {
    roadmap_dialog_activate ("Segment Properties", data);
 #endif   
 
-   if ((result == NULL) || !strlen (result)) return;
+   if (result == NULL) return;
 
 #ifdef SSD
    ssd_dialog_set_value ("City", result);
+   def_values[0] = ssd_dialog_get_value ("City");
 #else
    roadmap_dialog_set_data ("General", "City", result);
 #endif   
@@ -94,13 +95,15 @@ static void editor_dialog_city_result (const char *result, void *data) {
 static int editor_dialog_city_cb (SsdWidget widget, const char *new_value) {
    if (!strcmp(new_value, def_values[1])) {
 
-      ssd_dialog_set_value ("City", def_values[0]);
-
       roadmap_address_search_dialog
          (NULL, editor_dialog_city_result, widget->context);
 
       return 0;
    }
+
+//   ssd_dialog_set_value ("City", new_value);
+//   def_values[0] = ssd_dialog_get_value ("City");
+   def_values[0] = new_value;
 
    return 1;
 }
@@ -716,7 +719,7 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
 
          roadmap_street_get_properties (lines[i].line.line_id, &properties);
     
-         this_name = roadmap_street_get_street_fename (&properties);
+         this_name = roadmap_street_get_street_name (&properties);
          this_type = roadmap_street_get_street_fetype (&properties);
          this_t2s = roadmap_street_get_street_t2s (&properties);
 
@@ -877,6 +880,8 @@ void editor_segments_fill_dialog (SelectedLine *lines, int lines_count) {
       ssd_dialog_set_value ("City", r_city);
    }
 
+   def_values[0] = ssd_dialog_get_value ("City");
+
 #else
    roadmap_dialog_set_data
       ("General", "Road type", (void *) (cfcc - ROADMAP_ROAD_FIRST));
@@ -1021,6 +1026,7 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
 
 #ifdef SSD
    ssd_dialog_set_value ("Time", str);
+   ssd_dialog_draw ();
 #else   
    roadmap_dialog_set_data ("Info", "Time", str);
 #endif   

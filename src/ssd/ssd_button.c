@@ -114,10 +114,15 @@ static int ssd_button_short_click (SsdWidget widget,
                                    const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
 
-   RoadMapSoundList list = roadmap_sound_list_create ();
-   if (roadmap_sound_list_add (list, "click.wav") != -1) {
-      roadmap_sound_play_list (list);
+   static RoadMapSoundList list;
+   
+   if (!list) {
+      list = roadmap_sound_list_create (SOUND_LIST_NO_FREE);
+      roadmap_sound_list_add (list, "click.wav");
+      roadmap_res_get (RES_SOUND, 0, "click.wav");
    }
+
+   roadmap_sound_play_list (list);
 
    if (widget->callback) {
       (*widget->callback) (widget, SSD_BUTTON_SHORT_CLICK);
@@ -133,10 +138,14 @@ static int ssd_button_long_click (SsdWidget widget,
                                   const RoadMapGuiPoint *point) {
    struct ssd_button_data *data = (struct ssd_button_data *) widget->data;
 
-   RoadMapSoundList list = roadmap_sound_list_create ();
-   if (roadmap_sound_list_add (list, "click_long.wav") != -1) {
-      roadmap_sound_play_list (list);
+   static RoadMapSoundList list;
+   if (!list) {
+      list = roadmap_sound_list_create (SOUND_LIST_NO_FREE);
+      roadmap_sound_list_add (list, "click_long.wav");
+      roadmap_res_get (RES_SOUND, 0, "click_long.wav");
    }
+
+   roadmap_sound_play_list (list);
 
    if (widget->callback) {
       (*widget->callback) (widget, SSD_BUTTON_LONG_CLICK);

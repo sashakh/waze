@@ -33,9 +33,6 @@ Package=<4>
     Project_Dep_Name agg
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name fribidi
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name libdgl
     End Project Dependency
     Begin Project Dependency
@@ -61,6 +58,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name zlibce
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libfribidi
     End Project Dependency
 }}}
 
@@ -94,6 +94,15 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name agg
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libssd
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name lpngce
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name zlibce
     End Project Dependency
 }}}
 
@@ -178,6 +187,18 @@ Package=<4>
 ###############################################################################
 
 Project: "libdgl"=.\libdgl\libdgl.vcp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libfribidi"=.\libfribidi\libfribidi.vcp - Package Owner=<4>
 
 Package=<5>
 {{{

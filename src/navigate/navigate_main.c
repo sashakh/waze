@@ -429,7 +429,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    if ((segment->instruction == APPROACHING_DESTINATION) &&
         NavigateDistanceToTurn <= 10) {
 
-      sound_list = roadmap_sound_list_create ();
+      sound_list = roadmap_sound_list_create (0);
       roadmap_sound_list_add (sound_list, "Arrive.wav");
       roadmap_sound_play_list (sound_list);
 
@@ -493,7 +493,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       roadmap_message_set ('T', properties.street_t2s);
       roadmap_message_set ('C', properties.city);
 
-      sound_list = roadmap_sound_list_create ();
+      sound_list = roadmap_sound_list_create (0);
       if (!NavigateNextAnnounce) {
          roadmap_message_unset ('w');
       } else {

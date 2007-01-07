@@ -31,10 +31,10 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
-#include "roadmap_start.h"
 #include "roadmap_lang.h"
+#include "roadmap_main.h"
 #include "roadmap_pointer.h"
-#include "roadmap_screen.h"
+#include "roadmap_start.h"
 
 #include "ssd_widget.h"
 #include "ssd_container.h"
@@ -65,6 +65,7 @@ static SsdDialog RoadMapDialogCurrent = NULL;
 static RoadMapGuiPoint LastPointerPoint;
 
 static int RoadMapScreenFrozen = 0;
+static int RoadMapDialogKeyEnabled = 0;
 
 static SsdDialog ssd_dialog_get (const char *name) {
 
@@ -675,6 +676,19 @@ void  ssd_dialog_set_progress (const char *frame, const char *name,
 /***********************************************************************/
 #endif
 
+
+static void ssd_dialog_enable_callback (void) {
+   RoadMapDialogKeyEnabled = 1;
+   roadmap_main_remove_periodic (ssd_dialog_enable_callback);
+}
+
+
+static void ssd_dialog_disable_key (void) {
+   RoadMapDialogKeyEnabled = 0;
+   roadmap_main_set_periodic (350, ssd_dialog_enable_callback);
+}
+
+
 static int ssd_dialog_pressed (RoadMapGuiPoint *point) {
    SsdWidget container = RoadMapDialogCurrent->container;
    if (!ssd_widget_find_by_pos (container, point)) {
@@ -682,28 +696,43 @@ static int ssd_dialog_pressed (RoadMapGuiPoint *point) {
       return 0;
    }
 
+   if (!RoadMapDialogKeyEnabled) {
+      LastPointerPoint.x = -1;
+      return 1;
+   }
+
    LastPointerPoint = *point;
    ssd_widget_pointer_down (RoadMapDialogCurrent->container, point);
-   roadmap_screen_redraw ();
+   roadmap_start_redraw ();
    return 1;
 }
 
 static int ssd_dialog_short_click (RoadMapGuiPoint *point) {
    if (LastPointerPoint.x < 0) {
-      return 0;
+      SsdWidget container = RoadMapDialogCurrent->container;
+      if (ssd_widget_find_by_pos (container, point)) {
+         return 1;
+      } else {
+         return 0;
+      }
    }
    ssd_widget_short_click (RoadMapDialogCurrent->container, &LastPointerPoint);
-   roadmap_screen_redraw ();
+   roadmap_start_redraw ();
 
    return 1;
 }
 
 static int ssd_dialog_long_click (RoadMapGuiPoint *point) {
    if (!LastPointerPoint.x < 0) {
-      return 0;
+      SsdWidget container = RoadMapDialogCurrent->container;
+      if (ssd_widget_find_by_pos (container, point)) {
+         return 1;
+      } else {
+         return 0;
+      }
    }
    ssd_widget_long_click (RoadMapDialogCurrent->container, &LastPointerPoint);
-   roadmap_screen_redraw ();
+   roadmap_start_redraw ();
 
    return 1;
 }
@@ -789,6 +818,7 @@ void ssd_dialog_new_line (void) {
 
 SsdWidget ssd_dialog_activate (const char *name, void *context) {
 
+   SsdDialog prev = NULL;
    SsdDialog current = RoadMapDialogCurrent;
    SsdDialog dialog = ssd_dialog_get (name);
 
@@ -797,10 +827,16 @@ SsdWidget ssd_dialog_activate (const char *name, void *context) {
    }
 
    while (current && strcmp(current->name, name)) {
+      prev = current;
       current = current->activated_prev;
    }
 
    if (current) {
+      if (prev) {
+         prev->activated_prev = current->activated_prev;
+         current->activated_prev = RoadMapDialogCurrent;
+         RoadMapDialogCurrent = current;
+      }
       return current->container;
    }
 
@@ -821,10 +857,11 @@ SsdWidget ssd_dialog_activate (const char *name, void *context) {
    RoadMapDialogCurrent = dialog;
 
    if (!RoadMapScreenFrozen && !(dialog->container->flags & SSD_DIALOG_FLOAT)) {
-      roadmap_screen_freeze ();
+      roadmap_start_screen_refresh (0);
       RoadMapScreenFrozen = 1;
    }
 
+   ssd_dialog_disable_key ();
    return dialog->container; /* Tell the caller the dialog already exists. */
 }
 
@@ -849,7 +886,9 @@ void ssd_dialog_hide (const char *name) {
       prev->activated_prev = dialog->activated_prev;
    }
 
-   if (!RoadMapDialogCurrent) {
+   if (RoadMapDialogCurrent) {
+      ssd_dialog_disable_key ();
+   } else {
       roadmap_pointer_unregister_pressed     (ssd_dialog_pressed);
       roadmap_pointer_unregister_short_click (ssd_dialog_short_click);
       roadmap_pointer_unregister_long_click  (ssd_dialog_long_click);
@@ -871,7 +910,7 @@ void ssd_dialog_hide (const char *name) {
    }
 
    RoadMapScreenFrozen = 0;
-   roadmap_screen_unfreeze ();
+   roadmap_start_screen_refresh (1);
 }
 
 

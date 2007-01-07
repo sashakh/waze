@@ -40,6 +40,7 @@
 #define SSD_WIDGET_SPACE    0x80
 #define SSD_WIDGET_HIDE     0x100
 #define SSD_ALIGN_BOTTOM    0x200
+#define SSD_ALIGN_LTR       0x400
 
 /* Buttons flags */
 #define SSD_BUTTON_KEY        0x1000
@@ -115,7 +116,7 @@ SsdWidget ssd_widget_get (SsdWidget child, const char *name);
 void ssd_widget_draw (SsdWidget w, const RoadMapGuiRect *rect,
                       int parent_flags);
 void ssd_widget_set_callback (SsdWidget widget, SsdCallback callback);
-int  ssd_widget_rtl (void);
+int  ssd_widget_rtl (SsdWidget parent);
 
 int ssd_widget_pointer_down (SsdWidget widget, const RoadMapGuiPoint *point);
 int ssd_widget_short_click  (SsdWidget widget, const RoadMapGuiPoint *point);

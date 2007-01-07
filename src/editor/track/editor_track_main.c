@@ -569,6 +569,8 @@ static void track_rec_locate_point(int point_id, int point_type) {
 
       if (count) {
 
+         int num_points;
+
          if ((point_id == 0) && TrackConfirmedStreet.valid) {
             cur_active_line = 0;
             return;
@@ -587,9 +589,15 @@ static void track_rec_locate_point(int point_id, int point_type) {
           * point_is still unknown.
           */
 
+         num_points = points_count;
          for (i=0; i<points_count; i++) {
 
             track_rec_locate_point (i, point_type);
+            if (points_count != num_points) {
+               // The inner call has created a new line and further processed
+               // all existing points.
+               break;
+            }
          }
       }
    }

@@ -242,7 +242,7 @@ static void notes_add(int mode, RoadMapPosition *point) {
 
    switch (mode) {
       case NOTES_MODE_QUICK:
-         roadmap_sound_play ("rec_end.wav");
+         roadmap_sound_play_file ("rec_end.wav");
          break;
       case NOTES_MODE_VOICE:
          editor_marker_voice_file (marker, file_name, sizeof(file_name));
@@ -260,7 +260,7 @@ void editor_notes_initialize(void) {
    NotesMarkerType = editor_marker_reg_type (&NotesMarker);
 
    roadmap_config_declare
-       ("preferences", &ConfigVoiceLength,  "10");
+       ("preferences", &ConfigVoiceLength,  "10", NULL);
 }
 
 

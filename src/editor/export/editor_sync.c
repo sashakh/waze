@@ -80,7 +80,7 @@ static void roadmap_download_progress (int loaded) {
 
    if (roadmap_dialog_activate ("Sync process", NULL)) {
 
-      const char *icon = roadmap_path_join (roadmap_path_user(), "icons/sync.bmp");
+      const char *icon = roadmap_path_join (roadmap_path_user(), "skins/default/sync.bmp");
       roadmap_dialog_new_image  ("Sync", icon);
       roadmap_dialog_new_label  ("Sync", "Progress status");
       roadmap_dialog_new_progress  ("Sync", "Progress");

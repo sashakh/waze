@@ -224,6 +224,7 @@ const char *roadmap_file_map (const char *set,
    } else {
       roadmap_log (ROADMAP_ERROR,
                    "%s: invalid file access mode %s", name, mode);
+      free (context);
       return NULL;
    }
 
@@ -247,6 +248,7 @@ const char *roadmap_file_map (const char *set,
          sequence = roadmap_path_next(set, sequence);
       }
       if (sequence == NULL) {
+         free (context);
          return NULL;
       }
 

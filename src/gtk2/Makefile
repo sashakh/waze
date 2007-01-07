@@ -122,7 +122,7 @@ gtkroadmap: roadmap_main.o $(SSDLIB) ../libguiroadmap.a $(RDMLIBS)
 	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap $(SSDLIB) ../libguiroadmap.a $(LIBS) $(SSDLIB) ../libguiroadmap.a
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
-	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps ../libguiroadgps.a $(LIBS)
+	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps $(SSDLIB) ../libguiroadgps.a $(LIBS) $(SSDLIB) ../libguiroadgps.a $(RDMLIBS)
 
 ../libssd_widgets.a:
 	$(MAKE) -C .. libssd_widgets.a

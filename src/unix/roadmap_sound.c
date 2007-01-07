@@ -30,9 +30,13 @@
 #include "roadmap.h"
 #include "roadmap_sound.h"
 
-RoadMapSoundList roadmap_sound_list_create (void) {
+RoadMapSoundList roadmap_sound_list_create (int flags) {
 
-   return (RoadMapSoundList) calloc (1, sizeof(struct roadmap_sound_list_t));
+   RoadMapSoundList list =
+            (RoadMapSoundList) calloc (1, sizeof(struct roadmap_sound_list_t));
+   list->flags = flags;
+
+   return list;
 }
 
 
@@ -68,7 +72,25 @@ void roadmap_sound_list_free (RoadMapSoundList list) {
 }
 
 
-int roadmap_sound_play      (const char *file_name) {
+RoadMapSound roadmap_sound_load (const char *path, const char *file, int *mem) {
+
+   return 0;
+}
+
+
+int roadmap_sound_free (RoadMapSound sound) {
+
+   return 0;
+}
+
+
+int roadmap_sound_play      (RoadMapSound sound) {
+
+   return 0;
+}
+
+
+int roadmap_sound_play_file (const char *file_name) {
 
    return 0;
 }

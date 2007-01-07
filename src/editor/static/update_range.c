@@ -124,7 +124,7 @@ static int update_range_export(int marker,
                                char        *values[MAX_ATTR],
                                int         *count) {
    
-   char field[100];
+   char field[255];
    const char *note = editor_marker_note (marker);
    *count = 0;
    *description = NULL;
@@ -183,7 +183,7 @@ static int update_range_verify(int marker,
                                unsigned char *flags,
                                const char **note) {
 
-   char field[100]; 
+   char field[255]; 
    int found_update = 0;
    
    if (extract_field (*note, STREET_PREFIX, field, sizeof(field)) == -1) {
@@ -234,7 +234,7 @@ static EditorMarkerType UpdateRangeMarker = {
 static void update_range (const char *updated_left, const char *updated_right,
                          const char *city, const char *street) {
 
-   char note[100];
+   char note[500];
    int fips;
 
    if (!*updated_left && !*updated_right) {
@@ -303,7 +303,7 @@ static int keyboard_callback (int type, const char *new_value, void *context) {
       ssd_widget_set_value (button->parent, UPDATE_RIGHT, new_value);
    }
 
-   ssd_keyboard_hide (SSD_KEYBOARD_DIGITS);
+   ssd_keyboard_hide ();
    return 1;
 }
 
@@ -332,7 +332,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
    }
 
    ssd_keyboard_show (SSD_KEYBOARD_DIGITS,
-                      title, value, keyboard_callback, (void *)widget);
+                      title, value, NULL, keyboard_callback, (void *)widget);
 
    return 1;
 }
@@ -385,7 +385,7 @@ static void create_ssd_dialog (void) {
       ssd_container_new ("spacer1", NULL, 0, 16, SSD_END_ROW));
 
    /* Left side */
-   if (ssd_widget_rtl ()) {
+   if (ssd_widget_rtl (NULL)) {
       align = SSD_ALIGN_RIGHT;
    }
 
@@ -410,7 +410,7 @@ static void create_ssd_dialog (void) {
    ssd_widget_add (left, text);
 
    /* Right side */
-   if (ssd_widget_rtl ()) align = 0;
+   if (ssd_widget_rtl (NULL)) align = 0;
    else align = SSD_ALIGN_RIGHT;
 
    right = ssd_container_new ("right", NULL, -1, -1, align);
@@ -432,7 +432,7 @@ static void create_ssd_dialog (void) {
    ssd_widget_set_color (text, "#ff0000", 0);
    ssd_widget_add (right, text);
 
-   if (ssd_widget_rtl ()) {
+   if (ssd_widget_rtl (NULL)) {
       ssd_widget_add (dialog, right);
       ssd_widget_add (dialog, left);
    } else {
@@ -550,6 +550,9 @@ static int fill_dialog(PluginLine *line, RoadMapPosition *pos,
    ssd_dialog_set_value ("estimated_left", str);
    sprintf(str, "%d", right);
    ssd_dialog_set_value ("estimated_right", str);
+   ssd_dialog_set_value (UPDATE_LEFT, "");
+   ssd_dialog_set_value (UPDATE_RIGHT, "");
+   ssd_dialog_draw ();
 #endif
    return 0;
 }
@@ -623,7 +626,6 @@ void update_range_dialog(void) {
    if (!ssd_dialog_activate ("Update street range", NULL)) {
       create_ssd_dialog();
       ssd_dialog_activate ("Update street range", NULL);
-      ssd_dialog_draw ();
    }
 #endif
    fill_dialog (&line, &CurrentFixedPosition, direction);

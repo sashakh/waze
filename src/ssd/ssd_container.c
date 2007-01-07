@@ -126,7 +126,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 static int short_click (SsdWidget widget, const RoadMapGuiPoint *point) {
 
    if (widget->callback) {
-      RoadMapSoundList list = roadmap_sound_list_create ();
+      RoadMapSoundList list = roadmap_sound_list_create (0);
       if (roadmap_sound_list_add (list, "click.wav") != -1) {
          roadmap_sound_play_list (list);
       }
@@ -166,6 +166,14 @@ static int set_value (SsdWidget widget, const char *value) {
 }
 
 
+static const char *get_value (SsdWidget widget) {
+
+   if (!(widget->flags & SSD_CONTAINER_TITLE)) return "";
+
+   return ssd_widget_get_value (widget, "title_text");
+}
+
+
 SsdWidget ssd_container_new (const char *name, const char *title,
                              int width, int height, int flags) {
 
@@ -186,6 +194,7 @@ SsdWidget ssd_container_new (const char *name, const char *title,
    w->size.width = width;
    w->size.height = height;
 
+   w->get_value = get_value;
    w->set_value = set_value;
    w->short_click = short_click;
 

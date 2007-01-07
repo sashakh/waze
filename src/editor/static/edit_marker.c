@@ -146,7 +146,7 @@ static void edit_marker_play (const char *name, void *context) {
       return;
    } else {
 
-      roadmap_sound_play (file);
+      roadmap_sound_play_file (file);
    }
 }
 

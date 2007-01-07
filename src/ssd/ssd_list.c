@@ -47,6 +47,7 @@ struct ssd_list_data {
    const char **labels;
    const void **data;
    int first_row_index;
+   int selected_row;
 };
 
 
@@ -108,10 +109,20 @@ static int label_callback (SsdWidget widget, const char *new_value) {
    SsdWidget list = widget->parent->parent;
    SsdWidget text = ssd_widget_get (widget, "label");
    struct ssd_list_data *data;
+   int i;
 
    data = (struct ssd_list_data *) list->data;
 
    if (!data->callback) return 0;
+
+   data->selected_row = -1;
+
+   for (i=0; i<data->num_values; i++) {
+      if (!strcmp(data->labels[i], text->value)) {
+         data->selected_row = i;
+         break;
+      }
+   }
 
    return (*data->callback) (list, text->value);
 }
@@ -188,6 +199,15 @@ static void resize (SsdWidget list) {
 }
 
 
+static const void *get_data (SsdWidget widget) {
+   struct ssd_list_data *data = (struct ssd_list_data *) widget->data;
+
+   if (!data || (data->selected_row == -1)) return NULL;
+
+   return data->data[data->selected_row];
+}
+
+
 SsdWidget ssd_list_new (const char *name, int width, int height, int flags) {
 
    const char *scroll_up_icons[]   = {"up"};
@@ -238,6 +258,8 @@ SsdWidget ssd_list_new (const char *name, int width, int height, int flags) {
 
    ssd_widget_add (list_container, scroll);
    ssd_widget_add (list_container, list);
+
+   list_container->get_data = get_data;
 
    return list_container;
 }
@@ -303,7 +325,7 @@ void ssd_list_show (const char *title, int count, const char **labels,
    ssd_widget_reset_cache (list->parent);
    resize (list);
 
-   ssd_list_populate (list, count, labels, NULL, list_callback);
+   ssd_list_populate (list, count, labels, values, list_callback);
 
    ssd_dialog_draw ();
 }

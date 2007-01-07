@@ -30,16 +30,16 @@ unsigned char *read_png_file(const char* file_name, int *width, int *height,
    png_bytep* row_pointers;
    int y;
 
-	char header[8];	// 8 is the maximum size that can be checked
-	unsigned char *buf;
+   char header[8];   // 8 is the maximum size that can be checked
+   unsigned char *buf;
    FILE *fp;
 
-	/* open file and test for it being a png */
-	fp = fopen(file_name, "rb");
-	if (!fp) return NULL;
+   /* open file and test for it being a png */
+   fp = fopen(file_name, "rb");
+   if (!fp) return NULL;
 
-	fread(header, 1, 8, fp);
-	if (png_sig_cmp(header, 0, 8)) {
+   fread(header, 1, 8, fp);
+   if (png_sig_cmp(header, 0, 8)) {
       roadmap_log (ROADMAP_ERROR,
          "[read_png_file] File %s is not recognized as a PNG file",
          file_name);
@@ -47,63 +47,66 @@ unsigned char *read_png_file(const char* file_name, int *width, int *height,
       return NULL;
    }
 
-	/* initialize stuff */
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	
-	if (!png_ptr) {
+   /* initialize stuff */
+   png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+   
+   if (!png_ptr) {
       roadmap_log (ROADMAP_ERROR,
                   "[read_png_file] png_create_read_struct failed");
       fclose(fp);
       return NULL;
    }
 
-	info_ptr = png_create_info_struct(png_ptr);
+   info_ptr = png_create_info_struct(png_ptr);
 
-	if (!info_ptr) {
+   if (!info_ptr) {
       roadmap_log (ROADMAP_ERROR,
-		      "[read_png_file] png_create_info_struct failed");
+            "[read_png_file] png_create_info_struct failed");
       fclose(fp);
       return NULL;
    }
 
-	if (setjmp(png_jmpbuf(png_ptr))) {
+   if (setjmp(png_jmpbuf(png_ptr))) {
       roadmap_log (ROADMAP_ERROR, "[read_png_file] Error during init_io");
       fclose(fp);
       return NULL;
    }
 
-	png_init_io(png_ptr, fp);
-	png_set_sig_bytes(png_ptr, 8);
+   png_init_io(png_ptr, fp);
+   png_set_sig_bytes(png_ptr, 8);
 
-	png_read_info(png_ptr, info_ptr);
+   png_read_info(png_ptr, info_ptr);
 
-	*width = info_ptr->width;
-	*height = info_ptr->height;
+   *width = info_ptr->width;
+   *height = info_ptr->height;
    *stride = info_ptr->rowbytes;
-	color_type = info_ptr->color_type;
-	bit_depth = info_ptr->bit_depth;
+   color_type = info_ptr->color_type;
+   bit_depth = info_ptr->bit_depth;
 
-	number_of_passes = png_set_interlace_handling(png_ptr);
-	png_read_update_info(png_ptr, info_ptr);
+   number_of_passes = png_set_interlace_handling(png_ptr);
+   png_read_update_info(png_ptr, info_ptr);
 
-	/* read file */
-	if (setjmp(png_jmpbuf(png_ptr))) {
+   /* read file */
+   if (setjmp(png_jmpbuf(png_ptr))) {
       roadmap_log (ROADMAP_ERROR, "[read_png_file] Error during read_image");
       fclose(fp);
       return NULL;
    }
 
-	row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * *height);
-	buf = malloc (*height * info_ptr->rowbytes);
-	for (y=0; y<*height; y++) {
-		row_pointers[y] = (png_byte*) (buf + y * info_ptr->rowbytes);
+   row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * *height);
+   buf = malloc (*height * info_ptr->rowbytes);
+   for (y=0; y<*height; y++) {
+      row_pointers[y] = (png_byte*) (buf + y * info_ptr->rowbytes);
    }
 
-	png_read_image(png_ptr, row_pointers);
+   png_read_image(png_ptr, row_pointers);
+   png_read_end(png_ptr, NULL);
+   png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+   free (row_pointers);
 
    fclose(fp);
 
-	return buf;
+   return buf;
 }
 
 

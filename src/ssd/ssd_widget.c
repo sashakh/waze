@@ -38,6 +38,8 @@
 
 SsdWidget ssd_widget_get (SsdWidget child, const char *name) {
 
+   if (!name) return child;
+
    while (child != NULL) {
       if (strcmp (child->name, name) == 0) {
          return child;
@@ -185,9 +187,12 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
    int vcenter = 0;
    int bottom = 0;
    int i;
+   int rtl = ssd_widget_rtl(w[0]->parent);
    SsdWidget prev_widget;
 
-   if (ssd_widget_rtl ()) cur_x = x;
+   if (w[0]->flags & SSD_ALIGN_LTR) rtl = 0;
+
+   if (rtl) cur_x = x;
    else cur_x = x + width;
 
    for (i=0; i<count; i++) {
@@ -212,7 +217,7 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
 
       if (w[i]->flags & SSD_ALIGN_RIGHT) {
          cur_x += w[i]->offset_x;
-         if (ssd_widget_rtl ()) {
+         if (rtl) {
             if ((i < (count-1)) && (w[i+1]->flags & SSD_WIDGET_SPACE)) {
                cur_x += SSD_WIDGET_SEP;
             }
@@ -236,7 +241,7 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
       }
    }
 
-   if (ssd_widget_rtl ()) cur_x = x + width;
+   if (rtl) cur_x = x + width;
    else cur_x = x;
 
    prev_widget = NULL;
@@ -250,7 +255,7 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
 
       ssd_widget_get_size (w[0], &size, NULL);
 
-      if (ssd_widget_rtl ()) {
+      if (rtl) {
          cur_x -= size.width;
          cur_x -= w[0]->offset_x;
          if (prev_widget && (prev_widget->flags & SSD_WIDGET_SPACE)) {
@@ -293,7 +298,7 @@ static int ssd_widget_draw_row (SsdWidget *w, int count,
       SsdSize size;
       ssd_widget_get_size (w[i], &size, NULL);
 
-      if (ssd_widget_rtl ()) {
+      if (rtl) {
          cur_x -= space;
          cur_x -= size.width;
          cur_x -= w[i]->offset_x;
@@ -318,17 +323,19 @@ static int ssd_widget_draw_grid_row (SsdWidget *w, int count,
    int cur_x;
    int space;
    int i;
+   int rtl = ssd_widget_rtl (w[0]->parent);
+
+   if (w[0]->flags & SSD_ALIGN_LTR) rtl = 0;
 
    /* align center */
-
    space = (width - avg_width*count) / (count + 1);
 
-   if (ssd_widget_rtl ()) cur_x = x + width;
+   if (rtl) cur_x = x + width;
    else cur_x = x;
 
    for (i=0; i<count; i++) {
 
-      if (ssd_widget_rtl ()) {
+      if (rtl) {
          cur_x -= space;
          cur_x -= avg_width;
          cur_x -= w[i]->offset_x;
@@ -433,6 +440,11 @@ static void ssd_widget_draw_pack (SsdWidget w, const RoadMapGuiRect *rect) {
 
       SsdSize size;
       SsdSize max_size;
+
+      if (w->flags & SSD_WIDGET_HIDE) {
+         w = w->next;
+         continue;
+      }
 
       if (!count) {
          width  = rect->maxx - rect->minx + 1;
@@ -560,8 +572,10 @@ void ssd_widget_set_callback (SsdWidget widget, SsdCallback callback) {
 }
 
 
-int ssd_widget_rtl (void) {
-   return roadmap_lang_rtl ();
+int ssd_widget_rtl (SsdWidget parent) {
+
+   if (parent && (parent->flags & SSD_ALIGN_LTR)) return 0;
+   else return roadmap_lang_rtl ();
 }
 
 
@@ -620,7 +634,9 @@ int ssd_widget_long_click (SsdWidget widget, const RoadMapGuiPoint *point) {
 
 
 const char *ssd_widget_get_value (const SsdWidget widget, const char *name) {
-   SsdWidget w = ssd_widget_get (widget, name);
+   SsdWidget w = widget;
+
+   if (name) w = ssd_widget_get (w, name);
    if (!w) return "";
 
    if (w->get_value) return w->get_value (w);
@@ -631,7 +647,7 @@ const char *ssd_widget_get_value (const SsdWidget widget, const char *name) {
 
 const void *ssd_widget_get_data (const SsdWidget widget, const char *name) {
    SsdWidget w = ssd_widget_get (widget, name);
-   if (!w) return "";
+   if (!w) return NULL;
 
    if (w->get_data) return w->get_data (w);
    else return NULL;
@@ -707,8 +723,12 @@ void ssd_widget_get_size (SsdWidget w, SsdSize *size, const SsdSize *max) {
    }
 
    if (!max && (w->cached_size.width < 0)) {
-      roadmap_log (ROADMAP_FATAL,
-             "ssd_widget_get_size called without max, and no size cache!");
+   /*      roadmap_log (ROADMAP_FATAL,
+             "ssd_widget_get_size called without max, and no size cache!");*/
+       static SsdSize canvas_size;
+       canvas_size.width = roadmap_canvas_width();
+       canvas_size.height = roadmap_canvas_height();
+       max = &canvas_size;
    }
 
    if ((w->cached_size.width >= 0) && (w->cached_size.height >= 0)) {
