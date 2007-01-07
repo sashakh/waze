@@ -67,7 +67,7 @@
 #define WaterTlidStart 1100000
 /* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types ON street_types.id = streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM water;";
@@ -103,9 +103,16 @@ static int pg2layer (int layer) {
    switch (layer) {
       case 1: return ROADMAP_ROAD_STREET;
       case 2: return ROADMAP_ROAD_MAIN;
-      case 3: return ROADMAP_ROAD_FREEWAY;
+      case 3:
+      case 6:
+      case 7:
+         return ROADMAP_ROAD_FREEWAY;
       case 4: return ROADMAP_ROAD_RAMP;
-      case 5: return ROADMAP_ROAD_TRAIL;
+      case 5:
+      case 8:
+      case 9:
+      case 10:
+         return ROADMAP_ROAD_TRAIL;
    }
 
    return ROADMAP_ROAD_STREET;
@@ -267,6 +274,8 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
       int num_points;
       int layer;
       int column = 0;
+      char street_name[255] = {0};
+      char *prefix;
 
       buildmap_set_line (irec);
 
@@ -289,13 +298,21 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
 
       fedirp = str2dict (DictionaryPrefix, "");
       
-      fename =
-         str2dict (DictionaryStreet, PQgetvalue(db_result, irec, column++));
+      prefix = PQgetvalue(db_result, irec, column++);
+
+      if (strlen(prefix)) {
+         sprintf(street_name, "%s ", prefix);
+      }
+
+      strcat(street_name, PQgetvalue(db_result, irec, column++));
+
+      fename = str2dict (DictionaryStreet, street_name);
+
       t2s =
          str2dict (DictionaryText2Speech, PQgetvalue(db_result, irec, column++));
 
-      fetype = str2dict (DictionaryPrefix, "");
-      fedirs = str2dict (DictionaryPrefix, "");
+      fetype = str2dict (DictionaryType, "");
+      fedirs = str2dict (DictionarySuffix, "");
 
       from_point = buildmap_point_add (frlong, frlat, from_node_id);
       to_point   = buildmap_point_add (tolong, tolat, to_node_id);
