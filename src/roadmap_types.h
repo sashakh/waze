@@ -50,6 +50,7 @@ typedef struct {
    int south;
 } RoadMapArea;
 
+typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 
 /* The cfcc category codes: */
 

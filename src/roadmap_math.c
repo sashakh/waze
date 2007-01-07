@@ -1707,3 +1707,70 @@ void roadmap_math_get_context (RoadMapPosition *position, int *zoom) {
    *zoom = RoadMapContext.zoom;
 }
 
+
+int roadmap_math_calc_line_length (const RoadMapPosition *position,
+                                   const RoadMapPosition *from_pos,
+                                   const RoadMapPosition *to_pos,
+                                   int                    first_shape,
+                                   int                    last_shape,
+                                   RoadMapShapeItr        shape_itr,
+                                   int *total_length) {
+
+   RoadMapPosition from;
+   RoadMapPosition to;
+   RoadMapPosition intersection;
+   int current_length = 0;
+   int length_result = 0;
+   int smallest_distance = 0x7fffffff;
+   int distance;
+   int i;
+
+   if (first_shape <= -1) {
+      
+      from = *from_pos;
+      to = *to_pos;
+   } else {
+
+      from = *from_pos;
+      to   = *from_pos;
+
+      for (i = first_shape; i <= last_shape; i++) {
+
+         shape_itr (i, &to);
+
+         distance =
+            roadmap_math_get_distance_from_segment
+            (position, &from, &to, &intersection, NULL);
+
+         if (distance < smallest_distance) {
+            smallest_distance = distance;
+            length_result = current_length +
+               roadmap_math_distance (&from, &intersection);
+         }
+
+         current_length += roadmap_math_distance (&from, &to);
+         from = to;
+      }
+
+      to = *to_pos;
+   }
+
+   distance =
+      roadmap_math_get_distance_from_segment
+      (position, &from, &to, &intersection, NULL);
+
+   if (distance < smallest_distance) {
+
+      length_result = current_length +
+                        roadmap_math_distance (&from, &intersection);
+   }
+
+   current_length += roadmap_math_distance (&from, &to);
+
+   if (total_length) *total_length = current_length;
+
+   return length_result;
+}
+
+
+

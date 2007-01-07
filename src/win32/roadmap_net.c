@@ -132,6 +132,7 @@ RoadMapSocket roadmap_net_connect (const char *protocol,
       goto connection_failure;
    }
 
+   free(hostname);
    return fd;
 
 

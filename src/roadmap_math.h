@@ -143,5 +143,13 @@ void roadmap_math_set_context (RoadMapPosition *position, int zoom);
 
 void roadmap_math_get_context (RoadMapPosition *position, int *zoom);
 
+int roadmap_math_calc_line_length (const RoadMapPosition *position,
+                                   const RoadMapPosition *from_pos,
+                                   const RoadMapPosition *to_pos,
+                                   int                    first_shape,
+                                   int                    last_shape,
+                                   RoadMapShapeItr        shape_itr,
+                                   int *total_length);
+
 #endif // INCLUDED__ROADMAP_MATH__H
 

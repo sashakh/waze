@@ -640,7 +640,7 @@ void roadmap_gps_initialize (void) {
 
       if (!source_item) {
          roadmap_config_declare
-            ("preferences", &RoadMapConfigGPSSource, "COM1:");
+            ("preferences", &RoadMapConfigGPSSource, "COM1:", NULL);
       }
 
 

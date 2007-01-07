@@ -66,7 +66,6 @@ void roadmap_screen_unfreeze (void); /* Enable screen refresh. */
 void roadmap_screen_get_center (RoadMapPosition *center);
 
 typedef void (*RoadMapScreenSubscriber) (void);
-typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 
 RoadMapScreenSubscriber roadmap_screen_subscribe_after_refresh
                                     (RoadMapScreenSubscriber handler);

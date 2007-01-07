@@ -196,7 +196,7 @@ static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent,
 static int roadmap_main_should_sync (void) {
 
    roadmap_config_declare
-      ("session", &RoadMapConfigLastSync, "0");
+      ("session", &RoadMapConfigLastSync, "0", NULL);
 
    if (roadmap_config_match(&RoadMapConfigAutoSync, "No")) {
       return 0;
@@ -882,7 +882,7 @@ extern "C" {
       roadmap_config_declare_enumeration
          ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
       roadmap_config_declare
-         ("session", &RoadMapConfigLastSync, "0");
+         ("session", &RoadMapConfigLastSync, "0", NULL);
 #else
 		style |= WS_OVERLAPPEDWINDOW;
 #endif
@@ -1399,7 +1399,7 @@ static void wizard_detect_gps (const char *name, void *context) {
 void first_time_wizard (void) {
    if (roadmap_dialog_activate ("Setup wizard", NULL)) {
 
-      roadmap_config_declare ("preferences", &RoadMapConfigUser, "");
+      roadmap_config_declare ("preferences", &RoadMapConfigUser, "", NULL);
       roadmap_config_declare_password ("preferences", &RoadMapConfigPassword, "");
       roadmap_dialog_new_label  ("main", ".Welcome to FreeMap!");
       roadmap_dialog_new_label  ("main", ".Enter your user name if you registered one.");
