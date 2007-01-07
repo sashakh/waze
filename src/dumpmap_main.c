@@ -192,7 +192,7 @@ static void dumpmap_searchstring_activate (void *context) {
 
       } while (strchr (choices, input) == NULL);
 
-      roadmap_dictionary_move_cursor (cursor, input);
+      roadmap_dictionary_move_cursor (cursor, input, NULL);
       roadmap_dictionary_get_next (cursor, choices);
    }
 

@@ -378,10 +378,10 @@ RoadMapString roadmap_locator_get_state (const char *state) {
 }
 
 
-void roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
-                                  void *data) {
+int roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
+                                 void *data) {
 
-   roadmap_dictionary_search_all
-            (RoadMapUsCityDictionary, str, cb, data);
+   return roadmap_dictionary_search_all
+            (RoadMapUsCityDictionary, NULL, str, 1, cb, data);
 }
 

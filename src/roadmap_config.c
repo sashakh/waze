@@ -138,8 +138,8 @@ static RoadMapConfigItem *roadmap_config_retrieve
         return NULL;
     }
     
-    if ((descriptor->age != RoadMapConfigAge) ||
-         (descriptor->reference == NULL)) {
+    if ((descriptor->reference == NULL) ||
+        (descriptor->age != RoadMapConfigAge)) {
 
         descriptor->reference = NULL;
         descriptor->age = RoadMapConfigAge;
@@ -162,7 +162,8 @@ static RoadMapConfigItem *roadmap_config_new_item
                              (RoadMapConfig *file,
                               RoadMapConfigDescriptor *descriptor,
                               const char    *default_value,
-                              unsigned char  item_type) {
+                              unsigned char  item_type,
+            int *is_new) {
 
     RoadMapConfigItem *new_item;
 
@@ -188,6 +189,8 @@ static RoadMapConfigItem *roadmap_config_new_item
                 new_item->type = item_type;
             }
         }
+
+        if (is_new) *is_new = 0;
 
     } else {
 
@@ -217,6 +220,8 @@ static RoadMapConfigItem *roadmap_config_new_item
             file->last_item = new_item;
         }
         file->first_item = new_item;
+
+        if (is_new) *is_new = 1;
     }
 
    descriptor->age = RoadMapConfigAge;
@@ -253,12 +258,12 @@ void roadmap_config_add_enumeration_value (RoadMapConfigItem *item,
 
 void roadmap_config_declare (const char *config,
                              RoadMapConfigDescriptor *descriptor,
-                             const char *default_value) {
+                             const char *default_value, int *is_new) {
 
    RoadMapConfig *file = roadmap_config_search_file (config);
 
    roadmap_config_new_item
-      (file, descriptor, default_value, ROADMAP_CONFIG_STRING);
+      (file, descriptor, default_value, ROADMAP_CONFIG_STRING, is_new);
 }
 
 
@@ -269,7 +274,7 @@ void roadmap_config_declare_password (const char *config,
    RoadMapConfig *file = roadmap_config_search_file (config);
 
    roadmap_config_new_item
-      (file, descriptor, default_value, ROADMAP_CONFIG_PASSWORD);
+      (file, descriptor, default_value, ROADMAP_CONFIG_PASSWORD, NULL);
 }
 
 
@@ -286,7 +291,7 @@ RoadMapConfigItem *roadmap_config_declare_enumeration (const char *config,
 
 
    item = roadmap_config_new_item
-             (file, descriptor, enumeration_value, ROADMAP_CONFIG_ENUM);
+             (file, descriptor, enumeration_value, ROADMAP_CONFIG_ENUM, NULL);
 
    /* Replace the enumeration list. */
 
@@ -318,7 +323,7 @@ void roadmap_config_declare_color (const char *config,
    RoadMapConfig *file = roadmap_config_search_file (config);
 
    roadmap_config_new_item
-      (file, descriptor, default_value, ROADMAP_CONFIG_COLOR);
+      (file, descriptor, default_value, ROADMAP_CONFIG_COLOR, NULL);
 }
 
 
@@ -464,6 +469,7 @@ static int roadmap_config_load
 
    while (!feof(file)) {
 
+        int new_item;
         /* Read the next line, skip empty lines and comments. */
 
         if (fgets (line, sizeof(line), file) == NULL) break;
@@ -504,7 +510,12 @@ static int roadmap_config_load
         /* Retrieve or create this configuration item. */
         
         item = roadmap_config_new_item
-                    (config, &descriptor, "", ROADMAP_CONFIG_STRING);
+                    (config, &descriptor, "", ROADMAP_CONFIG_STRING, &new_item);
+        if (!new_item) {
+          free ((void *)descriptor.name);
+          free ((void *)descriptor.category);
+        }
+
         if (item->value != NULL) {
             free(item->value);
         }

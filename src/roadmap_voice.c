@@ -364,6 +364,7 @@ void roadmap_voice_initialize (void) {
     for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
         roadmap_config_declare
             ("preferences",
-             &RoadMapVoiceText[i].config, RoadMapVoiceText[i].default_text);
+             &RoadMapVoiceText[i].config, RoadMapVoiceText[i].default_text,
+             NULL);
     }
 }

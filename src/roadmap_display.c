@@ -720,34 +720,34 @@ void roadmap_display_initialize (void) {
     RoadMapSign *sign;
     
     roadmap_config_declare
-        ("preferences", &RoadMapConfigDisplayDuration, "10");
+        ("preferences", &RoadMapConfigDisplayDuration, "10", NULL);
     roadmap_config_declare
-        ("preferences", &RoadMapConfigDisplayBottomRight, "%D (%W)|%D");
+        ("preferences", &RoadMapConfigDisplayBottomRight, "%D (%W)|%D", NULL);
     roadmap_config_declare
-        ("preferences", &RoadMapConfigDisplayBottomLeft, "%S");
+        ("preferences", &RoadMapConfigDisplayBottomLeft, "%S", NULL);
     roadmap_config_declare
-        ("preferences", &RoadMapConfigDisplayTopRight, "ETA: %A|%T");
+        ("preferences", &RoadMapConfigDisplayTopRight, "ETA: %A|%T", NULL);
 
     roadmap_config_declare
-        ("schema", &RoadMapConfigConsoleBackground, "yellow");
+        ("schema", &RoadMapConfigConsoleBackground, "yellow", NULL);
     roadmap_config_declare
-        ("schema", &RoadMapConfigConsoleForeground, "black");
+        ("schema", &RoadMapConfigConsoleForeground, "black", NULL);
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
         
         if (sign->default_format != NULL) {
            roadmap_config_declare
               ("preferences",
-               &sign->format_descriptor, sign->default_format);
+               &sign->format_descriptor, sign->default_format, NULL);
         }
 
         roadmap_config_declare
             ("preferences",
-             &sign->background_descriptor, sign->default_background);
+             &sign->background_descriptor, sign->default_background, NULL);
 
         roadmap_config_declare
             ("preferences",
-             &sign->foreground_descriptor, sign->default_foreground);
+             &sign->foreground_descriptor, sign->default_foreground, NULL);
     }
 
     roadmap_skin_register (roadmap_display_create_pens);

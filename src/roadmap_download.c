@@ -445,8 +445,6 @@ static int roadmap_download_start (const char *name,
    const char *format;
    const char *directory;
 
-   if (!callbacks) callbacks = &RoadMapDownloadCallbackFunctions;
-
    format = RoadMapDownloadFrom;
    roadmap_config_set (&RoadMapConfigSource, format);
    snprintf (source, sizeof(source), format, fips);
@@ -456,7 +454,9 @@ static int roadmap_download_start (const char *name,
 
    if (!callbacks) {
       roadmap_dialog_hide (name);
+      callbacks = &RoadMapDownloadCallbackFunctions;
    }
+
 
    directory = roadmap_path_parent (NULL, destination);
    roadmap_path_create (directory);
@@ -1020,10 +1020,11 @@ void roadmap_download_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
-      "http://www.freemap.co.il/roadmap/maps/" ROADMAP_FILE_NAME_FORMAT);
+      "http://www.freemap.co.il/roadmap/maps/dev1/" ROADMAP_FILE_NAME_FORMAT,
+      NULL);
 
    roadmap_config_declare
       ("preferences",
-      &RoadMapConfigDestination, default_destination);
+      &RoadMapConfigDestination, default_destination, NULL);
 }
 

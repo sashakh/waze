@@ -1558,10 +1558,10 @@ void roadmap_screen_zoom_reset (void) {
 void roadmap_screen_initialize (void) {
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigAccuracyMouse,  "20");
+       ("preferences", &RoadMapConfigAccuracyMouse,  "20", NULL);
 
    roadmap_config_declare
-       ("schema", &RoadMapConfigMapBackground, "LightYellow");
+       ("schema", &RoadMapConfigMapBackground, "LightYellow", NULL);
 
    roadmap_config_declare_enumeration
        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);

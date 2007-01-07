@@ -343,6 +343,8 @@ void roadmap_factory_keymap (const RoadMapAction  *actions,
                RoadMapFactoryBindings[j].key = text;
                RoadMapFactoryBindings[j].action = this_action;
                ++j;
+            } else {
+               free (text);
             }
          }
       }

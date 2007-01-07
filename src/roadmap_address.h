@@ -40,4 +40,8 @@ void roadmap_address_search_dialog (const char *city,
 
 void roadmap_address_register_nav (RoadMapAddressNav navigate);
 
+#ifdef SSD
+void roadmap_address_history (void);
+#endif
+
 #endif // INCLUDE__ROADMAP_ADDRESS__H

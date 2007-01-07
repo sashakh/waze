@@ -115,10 +115,10 @@ static void roadmap_address_done (RoadMapGeocode *selected,
 }
 
 
-static void roadmap_address_show (const char *city,
-                                  const char *street_name,
-                                  const char *street_number_image,
-                                  RoadMapAddressDialog *context) {
+static int roadmap_address_show (const char *city,
+                                 const char *street_name,
+                                 const char *street_number_image,
+                                 RoadMapAddressDialog *context) {
 
    int i;
    int count;
@@ -131,7 +131,7 @@ static void roadmap_address_show (const char *city,
    state         = "IL";
 
    if (context->use_zip) {
-      return; /* TBD: how to select by ZIP ? Need one more table in usdir. */
+      return 0; /* TBD: how to select by ZIP ? Need one more table in usdir. */
    }
 
    count = roadmap_geocode_address (&selections,
@@ -143,7 +143,7 @@ static void roadmap_address_show (const char *city,
       roadmap_messagebox (roadmap_lang_get ("Warning"),
                           roadmap_geocode_last_error());
       free (selections);
-      return;
+      return 0;
    }
 
    argv[0] = street_number_image;
@@ -151,7 +151,7 @@ static void roadmap_address_show (const char *city,
    argv[2] = city;
    argv[3] = state;
 
-   //roadmap_history_add ('A', argv);
+   roadmap_history_add ('A', argv);
 
    roadmap_address_done (selections, context);
 
@@ -161,6 +161,8 @@ static void roadmap_address_show (const char *city,
    }
 
    free (selections);
+
+   return 1;
 }
 
 
@@ -177,22 +179,33 @@ static int roadmap_address_populate_list (RoadMapString index,
 }
 
 
+static int roadmap_address_search_count (const char *str,
+                                         RoadMapAddressSearch *search) {
+                                         
+   int count;
+
+   if (search->city) {
+      count = roadmap_street_search (search->city, str, NULL, NULL);
+   } else {
+      count = roadmap_locator_search_city (str, NULL, NULL);
+   }
+
+   return count;
+}
+
+
 static void roadmap_address_search_populate (const char *str,
-                                             RoadMapAddressSearch *search,
-                                             int force) {
+                                             RoadMapAddressSearch *search) {
 
    RoadMapAddressSearchCount = 0;
 
-   if (force || strlen(str)) {
-
-      if (search->city) {
-         roadmap_street_search (search->city,
-                                str,
-                                roadmap_address_populate_list,
-                                NULL);
-      } else {
-         roadmap_locator_search_city (str, roadmap_address_populate_list, NULL);
-      }
+   if (search->city) {
+           roadmap_street_search (search->city,
+                           str,
+                           roadmap_address_populate_list,
+                           NULL);
+   } else {
+           roadmap_locator_search_city (str, roadmap_address_populate_list, NULL);
    }
 }
 
@@ -201,20 +214,41 @@ static int list_callback (int type, const char *new_value, void *context) {
 
    RoadMapAddressSearch *search = (RoadMapAddressSearch *)context;
 
-   ssd_keyboard_hide (SSD_KEYBOARD_LETTERS);
-   ssd_list_hide ();
+   if ((strlen(new_value) > 3) &&
+       !strcmp(new_value + strlen(new_value) - 3, " - ")) {
+
+       char str[255];
+
+       ssd_list_hide ();
+
+       strcpy(str, new_value);
+       str[strlen(str) - 2] = '\0';
+
+       ssd_dialog_set_value ("input", str);
+
+       return 1;
+   }
+
+   ssd_keyboard_hide ();
 
    search->callback (new_value, search->data);
    free (search);
+
+   ssd_list_hide ();
 
    return 1;
 }
 
 
+static int cmpstring(const void *p1, const void *p2) {
+   return strcmp(* (char * const *) p1, * (char * const *) p2);
+}
+
 static int keyboard_callback (int type, const char *new_value, void *context) {
    RoadMapAddressSearch *search = (RoadMapAddressSearch *)context;
 
    const char *title;
+   int count;
 
    if (!search->city) {
       title = roadmap_lang_get ("City");
@@ -222,14 +256,18 @@ static int keyboard_callback (int type, const char *new_value, void *context) {
       title = roadmap_lang_get ("Street");
    }
 
-   roadmap_address_search_populate (new_value, search,
-                                    type == SSD_KEYBOARD_OK);
+   count = roadmap_address_search_count (new_value, search);
 
-   if (*new_value && !RoadMapAddressSearchCount) return 0;
-   if (!RoadMapAddressSearchCount) return 1;
+   if (*new_value && !count) return 0;
+   if (!count) return 1;
 
-   if ((RoadMapAddressSearchCount <= MAX_LIST_RESULTS) || 
+   if ((count <= MAX_LIST_RESULTS) || 
        (type == SSD_KEYBOARD_OK)) {
+
+      roadmap_address_search_populate (new_value, search);
+
+      qsort (RoadMapAddressSearchNames, RoadMapAddressSearchCount,
+             sizeof(RoadMapAddressSearchNames[0]), cmpstring);
 
       ssd_list_show (title,
                      RoadMapAddressSearchCount,
@@ -239,6 +277,31 @@ static int keyboard_callback (int type, const char *new_value, void *context) {
                      search);
    }
 
+
+   return 1;
+}
+
+
+static int house_keyboard_callback (int type, const char *new_value,
+                                    void *data) {
+
+   RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
+
+   if (type == SSD_KEYBOARD_EXTRA) {
+      context->navigate = 1;
+      if (roadmap_address_show (context->city_name, context->street_name,
+                                new_value, context)) {
+         ssd_keyboard_hide ();
+      }
+      context->navigate = 0;
+   }
+
+   if (type == SSD_KEYBOARD_OK) {
+      if (roadmap_address_show (context->city_name, context->street_name,
+                                new_value, context)) {
+         ssd_keyboard_hide ();
+      }
+   }
 
    return 1;
 }
@@ -261,13 +324,22 @@ static void roadmap_address_street_result (const char *result, void *data) {
    *tmp = 0;
    tmp += 2;
 
-   roadmap_address_show (tmp, name, "", context);
+   if (context->street_name) free(context->street_name);
+   context->street_name = strdup(name);
+
+   ssd_keyboard_show (SSD_KEYBOARD_DIGITS,
+                      roadmap_lang_get ("House number"),
+                      "",
+                      roadmap_lang_get ("Navigate"),
+                      house_keyboard_callback,
+                      context);
 }
 
 
 static void roadmap_address_city_result (const char *result, void *data) {
 
    RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
+   if (context->city_name) free(context->city_name);
    context->city_name = strdup(result);
 
    roadmap_address_search_dialog
@@ -279,6 +351,46 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 
    roadmap_address_search_dialog
       (NULL, roadmap_address_city_result, context);
+}
+
+
+static int history_callback (int type, const char *new_value, void *data) {
+   RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
+
+   if (!new_value[0] || !strcmp(new_value, roadmap_lang_get ("New address"))) {
+      roadmap_address_search_dialog
+         (NULL, roadmap_address_city_result, data);
+
+   } else if (!strchr(new_value, ',')) {
+      /* We only got a city */
+      if (context->city_name) free(context->city_name);
+      context->city_name = strdup (new_value);
+      roadmap_address_search_dialog
+         (context->city_name, roadmap_address_street_result, data);
+   } else {
+      /* We got a full address */
+      char *argv[4];
+
+      roadmap_history_get ('A', (void *) ssd_dialog_get_data ("list"), argv);
+
+      context->navigate = 1;
+      if (context->city_name) free(context->city_name);
+      if (context->street_name) free(context->street_name);
+      context->city_name = strdup (argv[2]);
+      context->street_name = strdup (argv[1]);
+
+      if (roadmap_address_show (context->city_name, context->street_name,
+                                argv[0], context)) {
+         ssd_list_hide ();
+      }
+      context->navigate = 0;
+
+      return 1;
+   }
+
+   ssd_list_hide ();
+
+   return 1;
 }
 
 
@@ -303,30 +415,64 @@ void roadmap_address_search_dialog (const char *city,
    ssd_keyboard_show (SSD_KEYBOARD_LETTERS,
                       title,
                       "",
+                      NULL,
                       keyboard_callback,
                       context);
+}
 
-#if 0
-   if (roadmap_dialog_activate ("Search Address", context)) {
 
-      roadmap_dialog_new_entry  (".search", "Name",
-                                 roadmap_address_search_populate);
-      roadmap_dialog_new_label  (".search", "found");
+void roadmap_address_history (void) {
 
-      roadmap_dialog_new_list   (".search", ".results");
+#define MAX_HISTORY_ENTRIES 100
+   static char *labels[MAX_HISTORY_ENTRIES];
+   static char *values[MAX_HISTORY_ENTRIES];
+   static int count = -1;
+   void *history;
+   static RoadMapAddressDialog context = {"Location", 0, 0, NULL, NULL,
+                                           NULL, NULL, 0};
 
-      roadmap_dialog_add_button ("Cancel", roadmap_address_search_cancel);
-      roadmap_dialog_add_button ("Done", roadmap_address_search_done);
-
-      roadmap_dialog_complete (roadmap_preferences_use_keyboard()); /* No need for a keyboard. */
+   if (count == -1) {
+      roadmap_history_declare ('A', 4);
+      labels[0] = (char *)roadmap_lang_get ("New address");
    }
 
-   roadmap_dialog_set_data  (".search", "Name", "");
-   roadmap_dialog_set_data  (".search", "found", "");
-   roadmap_dialog_set_focus (".search", "Name");
+   history = roadmap_history_latest ('A');
 
-   roadmap_address_search_populate ("Search Address", context);
-#endif   
+   count = 1;
+
+   while (history && (count < MAX_HISTORY_ENTRIES)) {
+      void *prev = history;
+
+      char *argv[4];
+      char str[100];
+
+      roadmap_history_get ('A', history, argv);
+
+      if (count == 1) {
+         /* Add special city entry */
+         if (labels[1]) free (labels[1]);
+         labels[1] = strdup (argv[2]);
+         count++;
+      }
+
+      snprintf (str, sizeof(str), "%s %s, %s", argv[1], argv[0], argv[2]);
+
+      if (labels[count]) free (labels[count]);
+      labels[count] = strdup(str);
+
+      values[count] = history;
+
+      count++;
+      history = roadmap_history_before ('A', history);
+      if (history == prev) break;
+   }
+      
+   ssd_list_show (roadmap_lang_get ("History"),
+                  count,
+                  (const char **)labels,
+                  (const void **)values,
+                  history_callback,
+                  &context);
 }
 
 

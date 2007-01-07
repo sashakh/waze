@@ -517,9 +517,9 @@ static void roadmap_math_project (RoadMapGuiPoint *point) {
 
    /* make the Y coordinate converge on the horizon as the
     * distance from the center goes to infinity */
-   point->y = RoadMapContext.height - 
+   point->y = (short) (RoadMapContext.height - 
                (DistFromCenterY * VisibleRange) /
-                        (abs(DistFromCenterY) + VisibleRange) ;
+                        (abs(DistFromCenterY) + VisibleRange));
 
    /* X distance from center of the screen */
    DistFromCenterX = point->x - RoadMapContext.width / 2;
@@ -563,7 +563,7 @@ void roadmap_math_unproject (RoadMapGuiPoint *point) {
    D = (DistFromBottom * VisibleRange) / ( (VisibleRange - DistFromBottom) );
 
    /* center on screen */
-   point2.y = RoadMapContext.height - D;
+   point2.y = (short) (RoadMapContext.height - D);
 
    *point = point2;
 }
@@ -703,9 +703,9 @@ void roadmap_math_rotate_object
 
 void roadmap_math_initialize (void) {
 
-    roadmap_config_declare ("session", &RoadMapConfigGeneralZoom, "0");
+    roadmap_config_declare ("session", &RoadMapConfigGeneralZoom, "0", NULL);
     roadmap_config_declare
-        ("preferences", &RoadMapConfigGeneralDefaultZoom, "20");
+        ("preferences", &RoadMapConfigGeneralDefaultZoom, "20", NULL);
 
     roadmap_state_add ("zoom_reset", &roadmap_math_zoom_state);
 
@@ -1644,7 +1644,7 @@ int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
    } else {
       isect->y = (b2 + x * a2) / 1024;
    }
-   isect->x = x;
+   isect->x = (short)x;
 #endif
 
    return 1;

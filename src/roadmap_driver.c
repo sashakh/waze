@@ -412,7 +412,7 @@ static void roadmap_driver_pxrmcfg (void *context,
 
    roadmap_config_declare ("preferences",
                            &descriptor,
-                           roadmap_string_get(fields->pxrmcfg.value));
+                           roadmap_string_get(fields->pxrmcfg.value), NULL);
 
    value = roadmap_config_get (&descriptor);
 
@@ -727,7 +727,7 @@ void roadmap_driver_initialize (void) {
       ("XRM", "CFG", roadmap_driver_pxrmcfg, RoadMapDriverAccount);
 
    roadmap_config_declare
-      ("preferences", &RoadMapDriverConfigPort, "2007");
+      ("preferences", &RoadMapDriverConfigPort, "2007", NULL);
 
 
    roadmap_driver_configure (roadmap_path_user());

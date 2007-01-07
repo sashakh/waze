@@ -89,7 +89,7 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
    default:
 
       RoadMapGeocodeError =
-         roadmap_lang_get ("No related map could not be found");
+         roadmap_lang_get ("No related map could be found");
       return 0;
    }
 

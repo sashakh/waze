@@ -606,12 +606,12 @@ void roadmap_gps_initialize (void) {
    if (! RoadMapGpsInitialized) {
 
       roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSSpeedAccuracy, "4");
+         ("preferences", &RoadMapConfigGPSSpeedAccuracy, "4", NULL);
       roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSAccuracy, "30");
+         ("preferences", &RoadMapConfigGPSAccuracy, "30", NULL);
 #ifndef _WIN32
       roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost");
+         ("preferences", &RoadMapConfigGPSSource, "gpsd://localhost", NULL);
 #else
 
       virtual_item = roadmap_config_declare_enumeration
@@ -655,7 +655,7 @@ void roadmap_gps_initialize (void) {
 
 #endif
       roadmap_config_declare
-         ("preferences", &RoadMapConfigGPSTimeout, "3");
+         ("preferences", &RoadMapConfigGPSTimeout, "3", NULL);
 
       RoadMapGpsInitialized = 1;
 

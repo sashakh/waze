@@ -206,9 +206,9 @@ int roadmap_help_next_topic (const char **label,
 void roadmap_help_initialize (void) {
 
    roadmap_config_declare
-      ("preferences", &RoadMapConfigBrowserOptions, "%s");
+      ("preferences", &RoadMapConfigBrowserOptions, "%s", NULL);
 
    roadmap_config_declare
-      ("preferences", &RoadMapConfigBrowser, ROADMAP_BROWSER);
+      ("preferences", &RoadMapConfigBrowser, ROADMAP_BROWSER, NULL);
 }
 

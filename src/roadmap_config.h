@@ -56,7 +56,8 @@ typedef struct {
 
 void roadmap_config_declare
         (const char *file,
-         RoadMapConfigDescriptor *descriptor, const char *default_value);
+         RoadMapConfigDescriptor *descriptor, const char *default_value,
+         int *is_new);
 
 void roadmap_config_declare_password
         (const char *file,

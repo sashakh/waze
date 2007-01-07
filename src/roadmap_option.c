@@ -198,7 +198,7 @@ static void roadmap_option_set_geometry2 (const char *value) {
     descriptor.category = "Geometry";
     descriptor.name = strdup(buffer);
     descriptor.reference = NULL;
-    roadmap_config_declare ("preferences", &descriptor, "300x200");
+    roadmap_config_declare ("preferences", &descriptor, "300x200", NULL);
     roadmap_config_set (&descriptor, geometry);
 }
 
@@ -413,6 +413,6 @@ void roadmap_option_initialize (void) {
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralIcons, "yes", "no", NULL);
 
-   roadmap_config_declare ("preferences", &RoadMapConfigMapCache, "8");
+   roadmap_config_declare ("preferences", &RoadMapConfigMapCache, "8", NULL);
 }
 

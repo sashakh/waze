@@ -30,6 +30,7 @@
 #include <stdlib.h>
 
 #include "roadmap_canvas.h"
+#include "roadmap_sound.h"
 #include "roadmap_hash.h"
 #include "roadmap_list.h"
 #include "roadmap_path.h"
@@ -39,7 +40,8 @@
 #define BLOCK_SIZE 100
 
 const char *ResourceName[] = {
-   "bitmap_res"
+   "bitmap_res",
+   "sound_res"
 };
 
 struct resource_slot {
@@ -75,22 +77,61 @@ static void *load_resource (unsigned int type, unsigned int flags,
    const char *cursor;
    void *data = NULL;
 
-   for (cursor = roadmap_path_first ("skin");
-         cursor != NULL;
-         cursor = roadmap_path_next ("skin", cursor)) {
+   if (flags & RES_SKIN) {
+      for (cursor = roadmap_path_first ("skin");
+            cursor != NULL;
+            cursor = roadmap_path_next ("skin", cursor)) {
 
+         switch (type) {
+            case RES_BITMAP:
+               *mem = 0;
+
+               data = roadmap_canvas_load_image (cursor, name);
+               break;
+            case RES_SOUND:
+               data = roadmap_sound_load (cursor, name, mem);
+               break;
+         }
+
+         if (data) break; 
+      }
+
+   } else {
+
+      const char *user_path = roadmap_path_user ();
+      char *path;
       switch (type) {
          case RES_BITMAP:
             *mem = 0;
-
-            data = roadmap_canvas_load_image (cursor, name);
+            path = roadmap_path_join (user_path, "icons");
+            data = roadmap_canvas_load_image (path, name);
+            roadmap_path_free (path);
+            break;
+         case RES_SOUND:
+            path = roadmap_path_join (user_path, "sound");
+            data = roadmap_sound_load (path, name, mem);
+            roadmap_path_free (path);
+            break;
       }
-
-      if (data) break; 
-
    }
 
    return data;
+}
+
+
+static void free_resource (unsigned int type, int slot) {
+
+   void *data = Resources[type].slots[slot].data;
+
+   switch (type) {
+      case RES_BITMAP:
+         roadmap_canvas_free_image ((RoadMapImage)data);
+         break;
+      case RES_SOUND:
+         roadmap_sound_free ((RoadMapSound)data);
+         break;
+   }
+
 }
 
 
@@ -135,6 +176,8 @@ void *roadmap_res_get (unsigned int type, unsigned int flags,
       if (Resources[type].count == Resources[type].max) return NULL;
    }
 
+   if (flags & RES_NOCREATE) return NULL;
+
    switch (type) {
    case RES_BITMAP:
       if (strchr (name, '.')) {
@@ -169,4 +212,20 @@ void *roadmap_res_get (unsigned int type, unsigned int flags,
 
    return data;
 }
+
+
+void roadmap_res_shutdown (void) {
+   int type;
+
+   for (type=0; type<MAX_RESOURCES; type++) {
+
+      int i;
+
+      for (i=0; i<Resources[type].count; i++) {
+
+         free_resource (type, i);
+      }
+   }
+}
+
 

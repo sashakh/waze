@@ -173,6 +173,8 @@ RMGUIOBJS=$(RMGUISRCS:.c=.o)
 RGGUISRCS=roadgps_start.c \
           roadmap_factory.c \
           roadmap_help.c \
+          roadmap_pointer.c \
+          roadmap_res.c \
           roadgps_screen.c \
           roadgps_logger.c
 

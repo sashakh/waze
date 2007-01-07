@@ -61,6 +61,7 @@ struct roadmap_dictionary_tree {  /* tables string.*.tree */
    unsigned short first;
    unsigned char  count;
    unsigned char  position;
+   unsigned char  num_strings;
 };
 
 typedef struct roadmap_dictionary_reference RoadMapDictionaryReference;

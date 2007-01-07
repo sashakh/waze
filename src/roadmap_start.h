@@ -69,5 +69,8 @@ void roadmap_start_popup_menu (const char *name,
 
 void roadmap_start_hide_menu (const char *name);
 
+void roadmap_start_screen_refresh (int refresh);
+void roadmap_start_redraw (void);
+
 #endif /* INCLUDE__ROADMAP_START__H */
 

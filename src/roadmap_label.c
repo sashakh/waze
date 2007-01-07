@@ -665,10 +665,10 @@ void roadmap_label_activate (void) {
 int roadmap_label_initialize (void) {
 
    roadmap_config_declare
-       ("schema", &RoadMapConfigMinFeatureSize,  "25");
+       ("schema", &RoadMapConfigMinFeatureSize,  "25", NULL);
 
    roadmap_config_declare
-       ("schema", &RoadMapConfigLabelsColor,  "#000000");
+       ("schema", &RoadMapConfigLabelsColor,  "#000000", NULL);
 
     
    ROADMAP_LIST_INIT(&RoadMapLabelCache);

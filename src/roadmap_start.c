@@ -67,6 +67,7 @@
 #include "roadmap_download.h"
 #include "roadmap_driver.h"
 #include "roadmap_factory.h"
+#include "roadmap_res.h"
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_help.h"
@@ -419,8 +420,13 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
    {"hold", "Hold Map", "Hold", "H",
       "Hold the map view in its current position", roadmap_start_hold_map},
 
+#ifndef SSD
    {"address", "Address...", "Addr", "A",
       "Show a specified address", roadmap_address_location_by_city},
+#else      
+   {"address", "Address...", "Addr", "A",
+      "Show a specified address", roadmap_address_history},
+#endif      
 
    {"intersection", "Intersection...", "X", NULL,
       "Show a specified street intersection", roadmap_crossing_dialog},
@@ -1152,6 +1158,15 @@ void roadmap_start_unfreeze (void) {
    roadmap_screen_unfreeze ();
 }
 
+void roadmap_start_screen_refresh (int refresh) {
+
+   if (refresh) {
+      roadmap_screen_unfreeze ();
+   } else {
+      roadmap_screen_freeze ();
+   }
+}
+
 int roadmap_start_is_frozen (void) {
 
    return RoadMapStartFrozen;
@@ -1173,7 +1188,7 @@ void roadmap_start (int argc, char **argv) {
       ("preferences", &RoadMapConfigGeneralKeyboard, "yes", "no", NULL);
 
    roadmap_config_declare
-      ("preferences", &RoadMapConfigGeometryMain, "800x600");
+      ("preferences", &RoadMapConfigGeometryMain, "800x600", NULL);
 
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
@@ -1263,6 +1278,7 @@ void roadmap_start_exit (void) {
     roadmap_config_save (0);
     roadmap_db_end ();
     roadmap_gps_shutdown ();
+    roadmap_res_shutdown ();
 }
 
 
@@ -1358,3 +1374,7 @@ void roadmap_start_hide_menu (const char *name) {
 }
 
  
+void roadmap_start_redraw (void) {
+   roadmap_screen_redraw ();
+}
+

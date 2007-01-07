@@ -1033,12 +1033,12 @@ void roadmap_trip_initialize (void) {
             roadmap_config_declare
                 ("session",
                  &RoadMapTripPredefined[i].config_position,
-       ROADMAP_DEFAULT_POSITION);
+                 ROADMAP_DEFAULT_POSITION, NULL);
 
             if (RoadMapTripPredefined[i].mobile) {
                 roadmap_config_declare
                     ("session",
-                     &RoadMapTripPredefined[i].config_direction, "0");
+                     &RoadMapTripPredefined[i].config_direction, "0", NULL);
             }
         }
         if (strcmp (RoadMapTripPredefined[i].id, "GPS") == 0) {
@@ -1046,13 +1046,13 @@ void roadmap_trip_initialize (void) {
         }
     }
     roadmap_config_declare
-        ("session", &RoadMapConfigTripName, "default");
+        ("session", &RoadMapConfigTripName, "default", NULL);
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
     roadmap_config_declare
-        ("session", &RoadMapConfigFocusName, "GPS");
+        ("session", &RoadMapConfigFocusName, "GPS", NULL);
     roadmap_config_declare
-        ("session", &RoadMapConfigFocusRotate, "1");
+        ("session", &RoadMapConfigFocusRotate, "1", NULL);
 
     RoadMapTripNextMessageUpdate =
        roadmap_message_register (roadmap_trip_format_messages);

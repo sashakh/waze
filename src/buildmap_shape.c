@@ -186,9 +186,6 @@ int buildmap_shape_get
        (int line, int sequence, int *longitude, int *latitude) {
 
    int index;
-   int line_exists;
-   int block;
-   int offset;
    BuildMapShape *this_shape;
 
    for (index = roadmap_hash_get_first (ShapeByLine, line);

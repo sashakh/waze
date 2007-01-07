@@ -25,14 +25,18 @@
 #define _ROADMAP_RES__H_
 
 #define RES_BITMAP 0
-#define MAX_RESOURCES 1
+#define RES_SOUND  1
+#define MAX_RESOURCES 2
 
 /* Flags */
-#define RES_SKIN     0x1
-#define RES_NOCACHE  0x2
+#define RES_SKIN      0x1
+#define RES_NOCACHE   0x2
+#define RES_NOCREATE  0x4
 
 void *roadmap_res_get (unsigned int type, unsigned int flags,
                        const char *name);
+
+void roadmap_res_shutdown (void);
 
 #endif // _ROADMAP_RES__H_
 

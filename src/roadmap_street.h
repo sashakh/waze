@@ -165,7 +165,7 @@ int roadmap_street_replace
               (RoadMapNeighbour *neighbours, int count, int max,
                const RoadMapNeighbour *this);
 
-void roadmap_street_search (const char *city, const char *str,
+int  roadmap_street_search (const char *city, const char *str,
                             RoadMapDictionaryCB cb,
                             void *data);
 

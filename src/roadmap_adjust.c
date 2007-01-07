@@ -85,9 +85,9 @@ void roadmap_adjust_position
 void roadmap_adjust_initialize (void) {
 
    roadmap_config_declare
-      ("preferences", &RoadMapConfigGPSOffsetLat, "0");
+      ("preferences", &RoadMapConfigGPSOffsetLat, "0", NULL);
 
    roadmap_config_declare
-      ("preferences", &RoadMapConfigGPSOffsetLong, "0");
+      ("preferences", &RoadMapConfigGPSOffsetLong, "0", NULL);
 }
 

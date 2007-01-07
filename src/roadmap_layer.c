@@ -47,10 +47,16 @@ static RoadMapConfigDescriptor RoadMapConfigStylePretty =
  */
 static char *RoadMapDefaultCategoryTable[] = {
    "Freeways",
+   "Primary",
+   "Secondary",
    "Ramps",
    "Highways",
+   "Exit",
    "Streets",
+   "Pedestrian",
+   "4X4 Trails",
    "Trails",
+   "Walkway",
    "Parks",
    "Hospitals",
    "Airports",
@@ -462,7 +468,7 @@ void roadmap_layer_initialize (void) {
         descriptor.name = "Class";
         descriptor.reference = NULL;
 
-        roadmap_config_declare ("schema", &descriptor, "");
+        roadmap_config_declare ("schema", &descriptor, "", NULL);
         class_name = roadmap_config_get (&descriptor);
 
         for (p = RoadMapClasses; p->name != NULL; ++p) {
@@ -479,15 +485,14 @@ void roadmap_layer_initialize (void) {
 
         category->thickness.category = name;
         category->thickness.name     = "Thickness";
-        roadmap_config_declare
-            ("schema", &category->thickness, "1");
+        roadmap_config_declare ("schema", &category->thickness, "1", NULL);
 
         thickness = roadmap_config_get_integer (&category->thickness);
 
         category->declutter.category = name;
         category->declutter.name     = "Declutter";
         roadmap_config_declare
-            ("schema", &category->declutter, "2024800000");
+               ("schema", &category->declutter, "2024800000", NULL);
 
 
         /* Retrieve the first pen's color (mandatory). */
@@ -495,32 +500,37 @@ void roadmap_layer_initialize (void) {
         descriptor.name = "Color";
         descriptor.reference = NULL;
 
-        roadmap_config_declare ("schema", &descriptor, "black");
+        roadmap_config_declare ("schema", &descriptor, "black", NULL);
         color[0] = roadmap_config_get (&descriptor);
 
 
         /* Retrieve the category's other colors (optional). */
 
         for (j = 1; j < ROADMAP_LAYER_PENS; ++j) {
+           int is_new;
 
            snprintf (other_pens, other_pens_length, "Delta%d", j);
 
-           descriptor.name = other_pens;
+           descriptor.name = strdup(other_pens);
            descriptor.reference = NULL;
 
-           roadmap_config_declare ("schema", &descriptor, "0");
+           roadmap_config_declare ("schema", &descriptor, "0", &is_new);
+
            category->delta_thickness[j] =
               roadmap_config_get_integer (&descriptor);
+
+           if (!is_new) free ((void *)descriptor.name);
 
            if (category->delta_thickness[j] == 0) break;
 
            snprintf (other_pens, other_pens_length, "Color%d", j);
 
-           descriptor.name = other_pens;
+           descriptor.name = strdup(other_pens);
            descriptor.reference = NULL;
 
-           roadmap_config_declare ("schema", &descriptor, "");
+           roadmap_config_declare ("schema", &descriptor, "", &is_new);
            color[j] = roadmap_config_get (&descriptor);
+           if (!is_new) free ((void *)descriptor.name);
 
            if (*color[j] == 0) break;
         }

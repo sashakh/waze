@@ -28,6 +28,7 @@
 #include "roadmap_dbread.h"
 
 typedef struct dictionary_volume *RoadMapDictionary;
+typedef struct roadmap_dictionary_mask *RoadMapDictionaryMask;
 typedef int (*RoadMapDictionaryCB)
    (RoadMapString index, const char *string, void *data);
 
@@ -40,18 +41,22 @@ int   roadmap_dictionary_count (RoadMapDictionary d);
 typedef struct dictionary_cursor *RoadMapDictionaryCursor;
 
 RoadMapDictionaryCursor roadmap_dictionary_new_cursor (RoadMapDictionary d);
-int  roadmap_dictionary_move_cursor (RoadMapDictionaryCursor c, char input);
+int  roadmap_dictionary_move_cursor (RoadMapDictionaryCursor c, char input,
+                                     RoadMapDictionaryMask mask);
 int  roadmap_dictionary_completable (RoadMapDictionaryCursor c);
 void roadmap_dictionary_completion  (RoadMapDictionaryCursor c, char *data);
 void roadmap_dictionary_get_next    (RoadMapDictionaryCursor c, char *set);
 int  roadmap_dictionary_get_result  (RoadMapDictionaryCursor c);
 void roadmap_dictionary_get_all_results (RoadMapDictionaryCursor c,
+                                         RoadMapDictionaryMask mask,
                                          RoadMapDictionaryCB callback,
                                          void *data);
 void roadmap_dictionary_free_cursor (RoadMapDictionaryCursor c);
 
-void roadmap_dictionary_search_all
-            (RoadMapDictionary dictionary, const char *str,
+int  roadmap_dictionary_search_all
+            (RoadMapDictionary dictionary, RoadMapDictionaryMask mask,
+             const char *str,
+             int word_search,
              RoadMapDictionaryCB callback,
              void *data);
 
@@ -59,6 +64,13 @@ RoadMapString roadmap_dictionary_locate (RoadMapDictionary d,
                                          const char *string);
 void          roadmap_dictionary_dump   (void);
 void          roadmap_dictionary_dump_volume (char *name);
+
+RoadMapDictionaryMask roadmap_dictionary_mask_new
+                                  (RoadMapDictionary dictionary);
+void roadmap_dictionary_mask_free (RoadMapDictionaryMask mask);
+void roadmap_dictionary_mask_set  (RoadMapDictionary d,
+                                   RoadMapString index,
+                                   RoadMapDictionaryMask mask);
 
 extern roadmap_db_handler RoadMapDictionaryHandler;
 

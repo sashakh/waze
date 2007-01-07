@@ -58,39 +58,45 @@ typedef struct {
 #define ROADMAP_ROAD_FIRST       1
 
 #define ROADMAP_ROAD_FREEWAY     1
-#define ROADMAP_ROAD_RAMP        2
-#define ROADMAP_ROAD_MAIN        3
-#define ROADMAP_ROAD_STREET      4
-#define ROADMAP_ROAD_TRAIL       5
+#define ROADMAP_ROAD_PRIMARY     2
+#define ROADMAP_ROAD_SECONDARY   3
+#define ROADMAP_ROAD_RAMP        4
+#define ROADMAP_ROAD_MAIN        5
+#define ROADMAP_ROAD_EXIT        6
+#define ROADMAP_ROAD_STREET      7
+#define ROADMAP_ROAD_PEDESTRIAN  8
+#define ROADMAP_ROAD_4X4         9
+#define ROADMAP_ROAD_TRAIL      10 
+#define ROADMAP_ROAD_WALKWAY    11
 
-#define ROADMAP_ROAD_LAST        5
+#define ROADMAP_ROAD_LAST       11
 
 
 /* Category: area. */
 
-#define ROADMAP_AREA_FIRST       6
+#define ROADMAP_AREA_FIRST      12
 
-#define ROADMAP_AREA_PARC        6
-#define ROADMAP_AREA_HOSPITAL    7
-#define ROADMAP_AREA_AIRPORT     8
-#define ROADMAP_AREA_STATION     9
-#define ROADMAP_AREA_MALL       10
+#define ROADMAP_AREA_PARC       12
+#define ROADMAP_AREA_HOSPITAL   13
+#define ROADMAP_AREA_AIRPORT    14
+#define ROADMAP_AREA_STATION    15
+#define ROADMAP_AREA_MALL       16
 
-#define ROADMAP_AREA_LAST       10
+#define ROADMAP_AREA_LAST       16
 
 
 /* Category: water. */
 
-#define ROADMAP_WATER_FIRST     11
+#define ROADMAP_WATER_FIRST     17
 
-#define ROADMAP_WATER_SHORELINE 11
-#define ROADMAP_WATER_RIVER     12
-#define ROADMAP_WATER_LAKE      13
-#define ROADMAP_WATER_SEA       14
+#define ROADMAP_WATER_SHORELINE 17
+#define ROADMAP_WATER_RIVER     18
+#define ROADMAP_WATER_LAKE      19
+#define ROADMAP_WATER_SEA       20
 
-#define ROADMAP_WATER_LAST      14
+#define ROADMAP_WATER_LAST      20
 
-#define ROADMAP_CATEGORY_RANGE  14
+#define ROADMAP_CATEGORY_RANGE  20
 
 #endif // INCLUDED__ROADMAP_TYPES__H
 

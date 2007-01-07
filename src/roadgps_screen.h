@@ -25,6 +25,7 @@
 #define INCLUDE__ROADGPS_SCREEN__H
 
 void roadgps_screen_initialize (void);
+void roadgps_screen_draw (void);
 
 #endif /* INCLUDE__ROADGPS_SCREEN__H */
 

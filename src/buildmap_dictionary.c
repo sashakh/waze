@@ -340,6 +340,9 @@ static void  buildmap_dictionary_optimize
          buildmap_error (0, "corrupted tree count when optimizing");
          buildmap_dictionary_fatal (dictionary, tree);
       }
+      if (reference->character == ' ') {
+         break; /* Keep space trees for word search. */
+      }
       if (reference->type != ROADMAP_DICTIONARY_TREE) {
          break; /* Not a subtree: stop here. */
       }
@@ -378,6 +381,7 @@ static int buildmap_dictionary_save_subtree
                 struct dictionary_tree *tree,
                 int *tree_cursor,
                 int *reference_cursor,
+                int *num_strings,
                 struct roadmap_dictionary_tree *db_tree,
                 struct roadmap_dictionary_reference *db_reference) {
 
@@ -386,6 +390,8 @@ static int buildmap_dictionary_save_subtree
    int next_reference;
    struct dictionary_tree *subtree;
    struct dictionary_reference *reference;
+
+   *num_strings = 0;
 
    /* Allocate space for this tree and its references: */
 
@@ -407,6 +413,8 @@ static int buildmap_dictionary_save_subtree
         reference != NULL;
         reference = reference->next) {
 
+      int subtrees_strings;
+
       db_reference[this_reference].character = reference->character;
       db_reference[this_reference].type = reference->type;
 
@@ -415,6 +423,7 @@ static int buildmap_dictionary_save_subtree
       case ROADMAP_DICTIONARY_STRING:
 
          db_reference[this_reference].index = reference->child;
+	 (*num_strings)++;
 
          break;
 
@@ -424,8 +433,10 @@ static int buildmap_dictionary_save_subtree
 
          db_reference[this_reference].index =
             buildmap_dictionary_save_subtree
-               (dictionary, subtree,
-                tree_cursor, reference_cursor, db_tree, db_reference);
+               (dictionary, subtree, tree_cursor, reference_cursor,
+               &subtrees_strings, db_tree, db_reference);
+
+         *num_strings += subtrees_strings;
       }
 
       this_reference += 1;
@@ -434,6 +445,14 @@ static int buildmap_dictionary_save_subtree
    if (this_reference != next_reference) {
       buildmap_error (0, "corrupted tree count when saving to disk");
       buildmap_dictionary_fatal (dictionary, tree);
+   }
+
+   // We only user an unsigned char to store the number of strings, so only
+   // count up to 255
+   if (*num_strings >= 255) {
+        db_tree[this_tree].num_strings = 255;
+   } else {
+        db_tree[this_tree].num_strings = *num_strings;
    }
 
    return this_tree;
@@ -446,6 +465,7 @@ static void  buildmap_dictionary_save_one
 
    int tree_count = 0;
    int reference_count = 0;
+   int strings_count = 0;
 
    buildmap_db *child;
    buildmap_db *table_tree;
@@ -496,7 +516,7 @@ static void  buildmap_dictionary_save_one
 
    buildmap_dictionary_save_subtree
       (dictionary, dictionary->tree,
-       &tree_count, &reference_count, db_tree, db_reference);
+       &tree_count, &reference_count, &strings_count, db_tree, db_reference);
 
    memcpy (db_index, dictionary->string_index,
            dictionary->string_count * sizeof(unsigned int));
@@ -705,6 +725,26 @@ RoadMapString buildmap_dictionary_add
              referenced[tree->position], ROADMAP_DICTIONARY_STRING, existing);
 
          reference = buildmap_dictionary_get_reference (tree, character);
+      }
+
+      while (strchr(string + tree->position, ' ')) {
+
+         int position = tree->position;
+
+         buildmap_dictionary_add_reference
+            (dictionary,
+             tree,
+             string[position], ROADMAP_DICTIONARY_TREE,
+             dictionary->tree_count);
+
+         tree = dictionary->tree + dictionary->tree_count;
+         tree->count = 0;
+         tree->first = NULL;
+         tree->position = position + 1;
+
+         dictionary->tree_count++;
+
+         character = string[tree->position];
       }
 
       buildmap_dictionary_add_reference

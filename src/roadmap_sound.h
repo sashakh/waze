@@ -27,20 +27,30 @@
 #define MAX_SOUND_LIST 20
 #define MAX_SOUND_NAME 30
 
+#define SOUND_LIST_NO_FREE 0x1
+
 struct roadmap_sound_list_t {
+   int flags;
    int count;
    char list[MAX_SOUND_LIST][MAX_SOUND_NAME];
 };
 
 typedef struct roadmap_sound_list_t *RoadMapSoundList;
 
-RoadMapSoundList roadmap_sound_list_create (void);
+struct roadmap_sound_st;
+typedef struct roadmap_sound_st *RoadMapSound;
+
+RoadMapSoundList roadmap_sound_list_create (int flags);
 int roadmap_sound_list_add (RoadMapSoundList list, const char *name);
 int roadmap_sound_list_count (const RoadMapSoundList list);
 const char *roadmap_sound_list_get (const RoadMapSoundList list, int i);
 void roadmap_sound_list_free (RoadMapSoundList list);
 
-int roadmap_sound_play      (const char *file_name);
+RoadMapSound roadmap_sound_load (const char *path, const char *file, int *mem);
+int roadmap_sound_free (RoadMapSound sound);
+
+int roadmap_sound_play      (RoadMapSound sound);
+int roadmap_sound_play_file (const char *file_name);
 int roadmap_sound_play_list (const RoadMapSoundList list);
 
 void roadmap_sound_initialize (void);

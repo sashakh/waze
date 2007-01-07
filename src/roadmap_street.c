@@ -50,6 +50,13 @@ static char *RoadMapRangeType  = "RoadMapRangeContext";
 
 typedef struct {
 
+   RoadMapString prefix;
+   RoadMapString city;
+
+} StreetSearchContext;
+
+typedef struct {
+
    char *type;
 
    RoadMapStreet        *RoadMapStreets;
@@ -543,6 +550,52 @@ static int roadmap_street_block_by_county_subdivision
       }
    }
    return count;
+}
+
+
+static RoadMapDictionaryMask roadmap_street_get_city_search_mask (int city) {
+
+   static int current_mask_city = -1;
+   static RoadMapDictionaryMask mask;
+   int i;
+   int j;
+   int range_count = RoadMapRangeActive->RoadMapByStreetCount;
+
+   if (current_mask_city == city) return mask;
+
+   if (mask) roadmap_dictionary_mask_free (mask);
+   mask = roadmap_dictionary_mask_new (RoadMapRangeActive->RoadMapStreetNames);
+
+   for (i = 0; i < range_count; i++) {
+
+      RoadMapStreet *this_street = RoadMapStreetActive->RoadMapStreets + i;
+      RoadMapRangeByStreet *by_street = RoadMapRangeActive->RoadMapByStreet + i;
+
+      if (by_street->count_range >= 0) {
+
+         int range_index;
+         int range_end;
+
+         range_index = by_street->first_range;
+         range_end  =
+             by_street->first_range + by_street->count_range;
+
+         for (j = by_street->first_city; range_index < range_end; j++) {
+
+            RoadMapRangeByCity *by_city = RoadMapRangeActive->RoadMapByCity + j;
+
+            if (by_city->city == city) {
+               roadmap_dictionary_mask_set
+                  (RoadMapRangeActive->RoadMapStreetNames,
+                   this_street->fename, mask);
+            }
+
+            range_index += by_city->count;
+         }
+      }
+   }
+
+   return mask;
 }
 
 
@@ -1980,18 +2033,18 @@ void roadmap_street_get_street_range
 
 static int roadmap_street_search_results (RoadMapString index,
                                           const char *string,
-                                          void *context) {
+                                          void *data) {
 
    RoadMapStreetIdentifier street = {0, index, 0, 0};
    RoadMapBlocks blocks[MAX_SEARCH_NAMES];
-   int city = (int)context;
+   StreetSearchContext *context = (StreetSearchContext *)data;
    int i;
    int count;
 
    if (RoadMapStreetSearchCount == MAX_SEARCH_NAMES) return 0;
 
    count = roadmap_street_block_by_county_subdivision
-                                (&street, city, blocks, MAX_SEARCH_NAMES);
+                          (&street, context->city, blocks, MAX_SEARCH_NAMES);
 
    if (count <= 0) return 1;
 
@@ -2003,8 +2056,12 @@ static int roadmap_street_search_results (RoadMapString index,
       this_street =
          RoadMapStreetActive->RoadMapStreets + blocks[i].street;
     
+      if ((context->prefix != ROADMAP_INVALID_STRING) &&
+          (context->prefix != this_street->fedirp)) continue;
 
-      snprintf (tmp, sizeof(tmp), "%s, %s",
+      snprintf (tmp, sizeof(tmp), "%s %s, %s",
+         roadmap_dictionary_get
+            (RoadMapRangeActive->RoadMapStreetPrefix, this_street->fedirp),
          roadmap_dictionary_get
             (RoadMapRangeActive->RoadMapStreetNames, this_street->fename),
          roadmap_dictionary_get
@@ -2021,33 +2078,101 @@ static int roadmap_street_search_results (RoadMapString index,
    return 1;
 }
 
+static int roadmap_street_prefix_search_results (RoadMapString index,
+                                                 const char *string,
+                                                 void *context) {
+   char str[255];
 
-void roadmap_street_search (const char *city, const char *str,
-                            RoadMapDictionaryCB cb,
-                            void *data) {
+   if (RoadMapStreetSearchCount == MAX_SEARCH_NAMES) return 0;
+
+   snprintf (str, sizeof(str), "%s - ", string);
+
+   if (RoadMapStreetSearchNames[RoadMapStreetSearchCount]) {
+      free (RoadMapStreetSearchNames[RoadMapStreetSearchCount]);
+   }
+
+   RoadMapStreetSearchNames[RoadMapStreetSearchCount++] = strdup(str);
+
+   if (RoadMapStreetSearchCount == MAX_SEARCH_NAMES) return 0;
+
+   return 1;
+}
+
+
+int roadmap_street_search (const char *city, const char *str,
+                           RoadMapDictionaryCB cb,
+                           void *data) {
 
    int i;
+   int count = 0;
 
-   int city_index;
+   StreetSearchContext context =
+      {ROADMAP_INVALID_STRING, ROADMAP_INVALID_STRING};
+
+   RoadMapDictionaryMask mask;
+   char *space;
 
    if (!strlen(city)) {
-      city_index = -1;
+      context.city = -1;
+      mask = NULL;
    } else {
-      city_index = roadmap_dictionary_locate
+      context.city = roadmap_dictionary_locate
          (RoadMapRangeActive->RoadMapCityNames, city);
 
-      if (city_index == ROADMAP_INVALID_STRING) return;
+      if (context.city == ROADMAP_INVALID_STRING) return 0;
+      mask = roadmap_street_get_city_search_mask (context.city);
    }
 
    RoadMapStreetSearchCount = 0;
 
-   roadmap_dictionary_search_all (RoadMapRangeActive->RoadMapStreetNames,
-                                  str, roadmap_street_search_results,
-                                  (void *)city_index);
+   /* Search for a prefix. If found, remove the prefix from the name
+    * by shifting the name's pointer.
+    */
+   space = strchr (str, ' ');
+
+   if (space != NULL) {
+
+      unsigned  length;
+      char  buffer[255];
+
+      length = (unsigned)(space - str);
+
+      if (length < sizeof(buffer)) {
+
+         strncpy (buffer, str, length);
+         buffer[length] = 0;
+
+         context.prefix = roadmap_dictionary_locate
+                            (RoadMapRangeActive->RoadMapStreetPrefix, buffer);
+         if (context.prefix != ROADMAP_INVALID_STRING) {
+            str = str + length;
+            while (*str == ' ') ++str;
+         }
+      }
+   }
+
+   count += roadmap_dictionary_search_all
+                      (RoadMapRangeActive->RoadMapStreetNames,
+                       mask,
+                       str,
+                       1,
+                       cb != NULL ? roadmap_street_search_results : NULL,
+                       (void *)&context);
+
+   if (context.prefix == ROADMAP_INVALID_STRING) {
+      count += roadmap_dictionary_search_all
+                      (RoadMapRangeActive->RoadMapStreetPrefix,
+                       NULL,
+                       str,
+                       0,
+                       cb != NULL ? roadmap_street_prefix_search_results : NULL,
+                       NULL);
+   }
 
    for (i=0; i<RoadMapStreetSearchCount; i++) {
       (*cb) (-1, RoadMapStreetSearchNames[i], data);
    }
 
+   return count;
 }
 

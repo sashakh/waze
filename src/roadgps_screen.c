@@ -230,7 +230,7 @@ static void roadgps_screen_draw_frame (void) {
 }
 
 
-static void roadgps_screen_draw (void) {
+void roadgps_screen_draw (void) {
 
    int i;
    
@@ -422,9 +422,9 @@ static void roadgps_screen_configure (void) {
 void roadgps_screen_initialize (void) {
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigGPSBackground, "LightYellow");
+       ("preferences", &RoadMapConfigGPSBackground, "LightYellow", NULL);
    roadmap_config_declare
-       ("preferences", &RoadMapConfigGPSForeground, "black");
+       ("preferences", &RoadMapConfigGPSForeground, "black", NULL);
 
    roadmap_gps_register_monitor (roadgps_screen_monitor);
 

@@ -189,7 +189,8 @@ static void roadmap_history_save_entries
 
 void roadmap_history_initialize (void) {
 
-   roadmap_config_declare ("preferences", &RoadMapConfigHistoryDepth, "100");
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigHistoryDepth, "100", NULL);
 }
 
 

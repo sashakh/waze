@@ -93,7 +93,7 @@ void roadgps_logger_start (void) {
 void roadgps_logger_initialize (void) {
 
    roadmap_config_declare
-      ("session", &RoadMapConfigLogPath, roadmap_path_temporary());
+      ("session", &RoadMapConfigLogPath, roadmap_path_temporary(), NULL);
 
    roadmap_gps_register_logger (roadgps_logger);
 }

@@ -37,6 +37,10 @@
 #include "roadmap_config.h"
 #include "roadmap_gps.h"
 #include "roadmap_factory.h"
+#include "roadmap_pointer.h"
+#include "roadmap_sound.h"
+#include "roadmap_lang.h"
+#include "roadmap_res.h"
 #include "roadmap_math.h"
 #include "roadmap_main.h"
 
@@ -50,6 +54,8 @@ static const char *RoadGpsMainTitle = "GPS Console";
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
                         ROADMAP_CONFIG_ITEM("General", "Toolbar");
+
+static RoadMapStartSubscriber  RoadMapStartSubscribers = NULL;
 
 /* The RoadGps menu and toolbar items: ----------------------------------- */
 
@@ -208,6 +214,7 @@ const char *roadmap_start_get_title (const char *name) {
 void roadmap_start_exit (void) {
     
     roadmap_config_save (0);
+    roadmap_res_shutdown ();
 }
 
 
@@ -221,6 +228,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
 
+   roadmap_pointer_initialize  ();
+   roadmap_lang_initialize    ();
+   roadmap_sound_initialize    ();
    roadmap_gps_initialize    ();
    roadgps_screen_initialize ();
    roadmap_config_initialize ();
@@ -235,6 +245,25 @@ void roadmap_start (int argc, char **argv) {
 
    roadgps_start_window ();
 
+   if (RoadMapStartSubscribers) RoadMapStartSubscribers (ROADMAP_START_INIT);
+
    roadmap_gps_open ();
 }
 
+
+RoadMapStartSubscriber roadmap_start_subscribe
+                                 (RoadMapStartSubscriber handler) {
+
+   RoadMapStartSubscriber previous = RoadMapStartSubscribers;
+
+   RoadMapStartSubscribers = handler;
+
+   return previous;
+}
+
+
+void roadmap_start_redraw (void) {
+   roadgps_screen_draw ();
+}
+
+void roadmap_start_screen_refresh (int refresh) {}
