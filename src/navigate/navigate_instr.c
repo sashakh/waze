@@ -374,7 +374,11 @@ int navigate_instr_calc_length (const RoadMapPosition *position,
    int result = 0;
 
    result =
-      roadmap_plugin_calc_length (position, &segment->line, &total_length);
+      roadmap_math_calc_line_length (position,
+                                     &segment->from_pos, &segment->to_pos,
+                                     segment->first_shape, segment->last_shape,
+                                     segment->shape_itr,
+                                     &total_length);
 
    if (type == LINE_START) {
       
