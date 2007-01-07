@@ -51,7 +51,6 @@
 
 #ifdef USE_FRIBIDI
 #include <fribidi.h>
-#define MAX_STR_LEN 65000
 #endif
 
 extern "C" {
@@ -67,6 +66,7 @@ extern "C" {
 }
 #include "../roadmap_canvas_agg.h"
 
+//#define RGB565
 #ifdef RGB565
 typedef agg::pixfmt_rgb565 pixfmt;
 #else
@@ -721,13 +721,13 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
    
    agg_renb.attach(agg_pixf);
    agg_renb.reset_clipping(true);
-   ras.clip_box(0, 0, agg_renb.width(), agg_renb.height());
+   ras.clip_box(0, 0, agg_renb.width() - 1, agg_renb.height() - 1);
 
    agg::glyph_rendering gren = agg::glyph_ren_outline; 
    agg::glyph_rendering image_gren = agg::glyph_ren_agg_gray8; 
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigFont, "font.ttf");
+       ("preferences", &RoadMapConfigFont, "font.ttf", NULL);
 
    char font_file[255];
    

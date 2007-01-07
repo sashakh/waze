@@ -1,16 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #ifndef AGG_PIXFMT_AMASK_ADAPTOR_INCLUDED
@@ -65,6 +74,13 @@ namespace agg
 
         void attach_pixfmt(pixfmt_type& pixf)          { m_pixf = &pixf; }
         void attach_alpha_mask(const amask_type& mask) { m_mask = &mask; }
+
+        //--------------------------------------------------------------------
+        template<class PixFmt2>
+        bool attach_pixfmt(PixFmt2& pixf, int x1, int y1, int x2, int y2)
+        {
+            return m_pixf->attach(pixf, x1, y1, x2, y2);
+        }
 
         //--------------------------------------------------------------------
         unsigned width()  const { return m_pixf->width();  }
@@ -172,6 +188,13 @@ namespace agg
             m_pixf->blend_color_hspan(x, y, len, colors, &m_span[0], cover_full);
         }
 
+        //--------------------------------------------------------------------
+        void copy_color_vspan(int x, int y, unsigned len, const color_type* colors)
+        {
+            realloc_span(len);
+            m_mask->fill_vspan(x, y, &m_span[0], len);
+            m_pixf->blend_color_vspan(x, y, len, colors, &m_span[0], cover_full);
+        }
 
         //--------------------------------------------------------------------
         void blend_color_hspan(int x, int y,

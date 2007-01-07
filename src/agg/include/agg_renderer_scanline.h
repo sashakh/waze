@@ -1,16 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #ifndef AGG_RENDERER_SCANLINE_INCLUDED
@@ -111,7 +120,7 @@ namespace agg
 
         //--------------------------------------------------------------------
         renderer_scanline_aa_solid() : m_ren(0) {}
-        renderer_scanline_aa_solid(base_ren_type& ren) : m_ren(&ren) {}
+        explicit renderer_scanline_aa_solid(base_ren_type& ren) : m_ren(&ren) {}
         void attach(base_ren_type& ren)
         {
             m_ren = &ren;
@@ -311,7 +320,7 @@ namespace agg
 
         //--------------------------------------------------------------------
         renderer_scanline_bin_solid() : m_ren(0) {}
-        renderer_scanline_bin_solid(base_ren_type& ren) : m_ren(&ren) {}
+        explicit renderer_scanline_bin_solid(base_ren_type& ren) : m_ren(&ren) {}
         void attach(base_ren_type& ren)
         {
             m_ren = &ren;
@@ -473,9 +482,6 @@ namespace agg
 
 
 
-
-
-
     //=============================================render_scanlines_compound
     template<class Rasterizer, 
              class ScanlineAA, 
@@ -590,7 +596,14 @@ namespace agg
                                         covers = span_aa->covers;
                                         do
                                         {
-                                            colors->add(c, *covers);
+                                            if(*covers == cover_full) 
+                                            {
+                                                *colors = c;
+                                            }
+                                            else
+                                            {
+                                                colors->add(c, *covers);
+                                            }
                                             ++colors;
                                             ++covers;
                                         }
@@ -616,7 +629,14 @@ namespace agg
                                         covers = span_aa->covers;
                                         do
                                         {
-                                            colors->add(*cspan, *covers);
+                                            if(*covers == cover_full) 
+                                            {
+                                                *colors = *cspan;
+                                            }
+                                            else
+                                            {
+                                                colors->add(*cspan, *covers);
+                                            }
                                             ++cspan;
                                             ++colors;
                                             ++covers;
@@ -644,11 +664,195 @@ namespace agg
                             if(--num_spans == 0) break;
                             ++span_bin;
                         }
+                    } // if(ras.sweep_scanline(sl_bin, -1))
+                } // if(num_styles == 1) ... else
+            } // while((num_styles = ras.sweep_styles()) > 0)
+        } // if(ras.rewind_scanlines())
+    }
 
+    //=======================================render_scanlines_compound_layered
+    template<class Rasterizer, 
+             class ScanlineAA, 
+             class BaseRenderer, 
+             class SpanAllocator,
+             class StyleHandler>
+    void render_scanlines_compound_layered(Rasterizer& ras, 
+                                           ScanlineAA& sl_aa,
+                                           BaseRenderer& ren,
+                                           SpanAllocator& alloc,
+                                           StyleHandler& sh)
+    {
+        if(ras.rewind_scanlines())
+        {
+            int min_x = ras.min_x();
+            int len = ras.max_x() - min_x + 2;
+            sl_aa.reset(min_x, ras.max_x());
+
+            typedef typename BaseRenderer::color_type color_type;
+            color_type* color_span   = alloc.allocate(len * 2);
+            color_type* mix_buffer   = color_span + len;
+            cover_type* cover_buffer = ras.allocate_cover_buffer(len);
+            unsigned num_spans;
+
+            unsigned num_styles;
+            unsigned style;
+            bool     solid;
+            while((num_styles = ras.sweep_styles()) > 0)
+            {
+                typename ScanlineAA::const_iterator span_aa;
+                if(num_styles == 1)
+                {
+                    // Optimization for a single style. Happens often
+                    //-------------------------
+                    if(ras.sweep_scanline(sl_aa, 0))
+                    {
+                        style = ras.style(0);
+                        if(sh.is_solid(style))
+                        {
+                            // Just solid fill
+                            //-----------------------
+                            render_scanline_aa_solid(sl_aa, ren, sh.color(style));
+                        }
+                        else
+                        {
+                            // Arbitrary span generator
+                            //-----------------------
+                            span_aa   = sl_aa.begin();
+                            num_spans = sl_aa.num_spans();
+                            for(;;)
+                            {
+                                len = span_aa->len;
+                                sh.generate_span(color_span, 
+                                                 span_aa->x, 
+                                                 sl_aa.y(), 
+                                                 len, 
+                                                 style);
+
+                                ren.blend_color_hspan(span_aa->x, 
+                                                      sl_aa.y(), 
+                                                      span_aa->len,
+                                                      color_span,
+                                                      span_aa->covers);
+                                if(--num_spans == 0) break;
+                                ++span_aa;
+                            }
+                        }
                     }
                 }
-            }
-        }
+                else
+                {
+                    int      sl_start = ras.scanline_start();
+                    unsigned sl_len   = ras.scanline_length();
+
+                    if(sl_len)
+                    {
+                        memset(mix_buffer + sl_start - min_x, 
+                               0, 
+                               sl_len * sizeof(color_type));
+
+                        memset(cover_buffer + sl_start - min_x, 
+                               0, 
+                               sl_len * sizeof(cover_type));
+
+                        int sl_y = 0x7FFFFFFF;
+                        unsigned i;
+                        for(i = 0; i < num_styles; i++)
+                        {
+                            style = ras.style(i);
+                            solid = sh.is_solid(style);
+
+                            if(ras.sweep_scanline(sl_aa, i))
+                            {
+                                unsigned    cover;
+                                color_type* colors;
+                                color_type* cspan;
+                                cover_type* src_covers;
+                                cover_type* dst_covers;
+                                span_aa   = sl_aa.begin();
+                                num_spans = sl_aa.num_spans();
+                                sl_y      = sl_aa.y();
+                                if(solid)
+                                {
+                                    // Just solid fill
+                                    //-----------------------
+                                    for(;;)
+                                    {
+                                        color_type c = sh.color(style);
+                                        len    = span_aa->len;
+                                        colors = mix_buffer + span_aa->x - min_x;
+                                        src_covers = span_aa->covers;
+                                        dst_covers = cover_buffer + span_aa->x - min_x;
+                                        do
+                                        {
+                                            cover = *src_covers;
+                                            if(*dst_covers + cover > cover_full)
+                                            {
+                                                cover = cover_full - *dst_covers;
+                                            }
+                                            if(cover)
+                                            {
+                                                colors->add(c, cover);
+                                                *dst_covers += cover;
+                                            }
+                                            ++colors;
+                                            ++src_covers;
+                                            ++dst_covers;
+                                        }
+                                        while(--len);
+                                        if(--num_spans == 0) break;
+                                        ++span_aa;
+                                    }
+                                }
+                                else
+                                {
+                                    // Arbitrary span generator
+                                    //-----------------------
+                                    for(;;)
+                                    {
+                                        len = span_aa->len;
+                                        colors = mix_buffer + span_aa->x - min_x;
+                                        cspan  = color_span;
+                                        sh.generate_span(cspan, 
+                                                         span_aa->x, 
+                                                         sl_aa.y(), 
+                                                         len, 
+                                                         style);
+                                        src_covers = span_aa->covers;
+                                        dst_covers = cover_buffer + span_aa->x - min_x;
+                                        do
+                                        {
+                                            cover = *src_covers;
+                                            if(*dst_covers + cover > cover_full)
+                                            {
+                                                cover = cover_full - *dst_covers;
+                                            }
+                                            if(cover)
+                                            {
+                                                colors->add(*cspan, cover);
+                                                *dst_covers += cover;
+                                            }
+                                            ++cspan;
+                                            ++colors;
+                                            ++src_covers;
+                                            ++dst_covers;
+                                        }
+                                        while(--len);
+                                        if(--num_spans == 0) break;
+                                        ++span_aa;
+                                    }
+                                }
+                            }
+                        }
+                        ren.blend_color_hspan(sl_start, 
+                                              sl_y, 
+                                              sl_len,
+                                              mix_buffer + sl_start - min_x,
+                                              0,
+                                              cover_full);
+                    } //if(sl_len)
+                } //if(num_styles == 1) ... else
+            } //while((num_styles = ras.sweep_styles()) > 0)
+        } //if(ras.rewind_scanlines())
     }
 
 

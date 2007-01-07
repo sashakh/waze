@@ -298,7 +298,7 @@ namespace agg
 
         if(dvc_width != bmp_width || dvc_height != bmp_height)
         {
-            //::SetStretchBltMode(h_dc, COLORONCOLOR);
+//            ::SetStretchBltMode(h_dc, COLORONCOLOR);
             ::StretchDIBits(
                 h_dc,            // handle of device context 
                 dvc_x,           // x-coordinate of upper-left corner of source rect. 

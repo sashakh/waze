@@ -1,27 +1,32 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
-//----------------------------------------------------------------------------
-//
-// static tables for fast integer sqrt
-//
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #include "agg_basics.h"
 
 namespace agg
 {
-    int16u g_sqrt_table[1024] = 
+    int16u g_sqrt_table[1024] =                       //----------g_sqrt_table
     {
         0,
         2048,2896,3547,4096,4579,5017,5418,5793,6144,6476,6792,7094,7384,7663,7932,8192,8444,
@@ -100,7 +105,7 @@ namespace agg
     };
 
 
-    int8 g_elder_bit_table[256] = 
+    int8 g_elder_bit_table[256] =          //---------g_elder_bit_table
     {
         0,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
         5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,

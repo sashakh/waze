@@ -1,16 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 //
 // Adaptation for high precision colors has been sponsored by 
@@ -128,7 +137,9 @@ namespace agg
             base_shift = color_type::base_shift,
             base_scale = color_type::base_scale,
             base_mask  = color_type::base_mask,
-            pix_width  = sizeof(value_type)
+            pix_width  = sizeof(value_type),
+            pix_step   = Step,
+            pix_offset = Offset
         };
 
     private:
@@ -171,31 +182,46 @@ namespace agg
 
     public:
         //--------------------------------------------------------------------
-        pixfmt_alpha_blend_gray(rbuf_type& rb) :
+        explicit pixfmt_alpha_blend_gray(rbuf_type& rb) :
             m_rbuf(&rb)
         {}
         void attach(rbuf_type& rb) { m_rbuf = &rb; }
+        //--------------------------------------------------------------------
+
+        template<class PixFmt>
+        bool attach(PixFmt& pixf, int x1, int y1, int x2, int y2)
+        {
+            rect_i r(x1, y1, x2, y2);
+            if(r.clip(rect_i(0, 0, pixf.width()-1, pixf.height()-1)))
+            {
+                int stride = pixf.stride();
+                m_rbuf->attach(pixf.pix_ptr(r.x1, stride < 0 ? r.y2 : r.y1), 
+                               (r.x2 - r.x1) + 1,
+                               (r.y2 - r.y1) + 1,
+                               stride);
+                return true;
+            }
+            return false;
+        }
 
         //--------------------------------------------------------------------
         AGG_INLINE unsigned width()  const { return m_rbuf->width();  }
         AGG_INLINE unsigned height() const { return m_rbuf->height(); }
+        AGG_INLINE int      stride() const { return m_rbuf->stride(); }
 
         //--------------------------------------------------------------------
-        const int8u* row_ptr(int y) const
-        {
-            return m_rbuf->row_ptr(y);
-        }
+              int8u* row_ptr(int y)       { return m_rbuf->row_ptr(y); }
+        const int8u* row_ptr(int y) const { return m_rbuf->row_ptr(y); }
+        row_data     row(int y)     const { return m_rbuf->row(y); }
 
-        //--------------------------------------------------------------------
         const int8u* pix_ptr(int x, int y) const
         {
-            return m_rbuf->row_ptr(y) + x * pix_width;
+            return m_rbuf->row_ptr(y) + x * Step + Offset;
         }
 
-        //--------------------------------------------------------------------
-        row_data row(int y) const
+        int8u* pix_ptr(int x, int y)
         {
-            return m_rbuf->row(y);
+            return m_rbuf->row_ptr(y) + x * Step + Offset;
         }
 
         //--------------------------------------------------------------------
@@ -207,7 +233,7 @@ namespace agg
         //--------------------------------------------------------------------
         AGG_INLINE color_type pixel(int x, int y) const
         {
-            value_type* p = (value_type*)m_rbuf->row(y) + x * Step + Offset;
+            value_type* p = (value_type*)m_rbuf->row_ptr(y) + x * Step + Offset;
             return color_type(*p);
         }
 
@@ -400,12 +426,28 @@ namespace agg
 
             do 
             {
-                *p++ = colors->v;
+                *p = colors->v;
+                p += Step;
                 ++colors;
             }
             while(--len);
         }
 
+
+        //--------------------------------------------------------------------
+        void copy_color_vspan(int x, int y,
+                              unsigned len, 
+                              const color_type* colors)
+        {
+            do 
+            {
+                value_type* p = (value_type*)
+                    m_rbuf->row_ptr(x, y++, 1) + x * Step + Offset;
+                *p = colors->v;
+                ++colors;
+            }
+            while(--len);
+        }
 
 
         //--------------------------------------------------------------------
@@ -563,6 +605,58 @@ namespace agg
                 memmove(m_rbuf->row_ptr(xdst, ydst, len) + xdst * pix_width, 
                         p + xsrc * pix_width, 
                         len * pix_width);
+            }
+        }
+
+        //--------------------------------------------------------------------
+        template<class SrcPixelFormatRenderer>
+        void blend_from_color(const SrcPixelFormatRenderer& from, 
+                              const color_type& color,
+                              int xdst, int ydst,
+                              int xsrc, int ysrc,
+                              unsigned len,
+                              int8u cover)
+        {
+            typedef typename SrcPixelFormatRenderer::value_type src_value_type;
+            const src_value_type* psrc = (src_value_type*)from.row_ptr(ysrc);
+            if(psrc)
+            {
+                value_type* pdst = 
+                    (value_type*)m_rbuf->row_ptr(xdst, ydst, len) + xdst;
+                do 
+                {
+                    copy_or_blend_pix(pdst, 
+                                      color, 
+                                      (*psrc * cover + base_mask) >> base_shift);
+                    ++psrc;
+                    ++pdst;
+                }
+                while(--len);
+            }
+        }
+
+        //--------------------------------------------------------------------
+        template<class SrcPixelFormatRenderer>
+        void blend_from_lut(const SrcPixelFormatRenderer& from, 
+                            const color_type* color_lut,
+                            int xdst, int ydst,
+                            int xsrc, int ysrc,
+                            unsigned len,
+                            int8u cover)
+        {
+            typedef typename SrcPixelFormatRenderer::value_type src_value_type;
+            const src_value_type* psrc = (src_value_type*)from.row_ptr(ysrc);
+            if(psrc)
+            {
+                value_type* pdst = 
+                    (value_type*)m_rbuf->row_ptr(xdst, ydst, len) + xdst;
+                do 
+                {
+                    copy_or_blend_pix(pdst, color_lut[*psrc], cover);
+                    ++psrc;
+                    ++pdst;
+                }
+                while(--len);
             }
         }
 

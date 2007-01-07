@@ -1,20 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
-//----------------------------------------------------------------------------
-//
-// class renderer_base
-//
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #ifndef AGG_RENDERER_BASE_INCLUDED
@@ -36,7 +41,7 @@ namespace agg
 
         //--------------------------------------------------------------------
         renderer_base() : m_ren(0), m_clip_box(1, 1, 0, 0) {}
-        renderer_base(pixfmt_type& ren) :
+        explicit renderer_base(pixfmt_type& ren) :
             m_ren(&ren),
             m_clip_box(0, 0, ren.width() - 1, ren.height() - 1)
         {}
@@ -327,6 +332,30 @@ namespace agg
             m_ren->copy_color_hspan(x, y, len, colors);
         }
 
+
+        //--------------------------------------------------------------------
+        void copy_color_vspan(int x, int y, int len, const color_type* colors)
+        {
+            if(x > xmax()) return;
+            if(x < xmin()) return;
+
+            if(y < ymin())
+            {
+                int d = ymin() - y;
+                len -= d;
+                if(len <= 0) return;
+                colors += d;
+                y = ymin();
+            }
+            if(y + len > ymax())
+            {
+                len = ymax() - y + 1;
+                if(len <= 0) return;
+            }
+            m_ren->copy_color_vspan(x, y, len, colors);
+        }
+
+
         //--------------------------------------------------------------------
         void blend_color_hspan(int x, int y, int len, 
                                const color_type* colors, 
@@ -529,6 +558,150 @@ namespace agg
                                                   x1src, rsrc.y1,
                                                   len,
                                                   cover);
+                            }
+                        }
+                    }
+                    rdst.y1 += incy;
+                    rsrc.y1 += incy;
+                    --rc.y2;
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------
+        template<class SrcPixelFormatRenderer>
+        void blend_from_color(const SrcPixelFormatRenderer& src, 
+                              const color_type& color,
+                              const rect_i* rect_src_ptr = 0, 
+                              int dx = 0, 
+                              int dy = 0,
+                              cover_type cover = agg::cover_full)
+        {
+            rect_i rsrc(0, 0, src.width(), src.height());
+            if(rect_src_ptr)
+            {
+                rsrc.x1 = rect_src_ptr->x1; 
+                rsrc.y1 = rect_src_ptr->y1;
+                rsrc.x2 = rect_src_ptr->x2 + 1;
+                rsrc.y2 = rect_src_ptr->y2 + 1;
+            }
+
+            // Version with xdst, ydst (absolute positioning)
+            //rect_i rdst(xdst, ydst, xdst + rsrc.x2 - rsrc.x1, ydst + rsrc.y2 - rsrc.y1);
+
+            // Version with dx, dy (relative positioning)
+            rect_i rdst(rsrc.x1 + dx, rsrc.y1 + dy, rsrc.x2 + dx, rsrc.y2 + dy);
+            rect_i rc = clip_rect_area(rdst, rsrc, src.width(), src.height());
+
+            if(rc.x2 > 0)
+            {
+                int incy = 1;
+                if(rdst.y1 > rsrc.y1)
+                {
+                    rsrc.y1 += rc.y2 - 1;
+                    rdst.y1 += rc.y2 - 1;
+                    incy = -1;
+                }
+                while(rc.y2 > 0)
+                {
+                    typename SrcPixelFormatRenderer::row_data rw = src.row(rsrc.y1);
+                    if(rw.ptr)
+                    {
+                        int x1src = rsrc.x1;
+                        int x1dst = rdst.x1;
+                        int len   = rc.x2;
+                        if(rw.x1 > x1src)
+                        {
+                            x1dst += rw.x1 - x1src;
+                            len   -= rw.x1 - x1src;
+                            x1src  = rw.x1;
+                        }
+                        if(len > 0)
+                        {
+                            if(x1src + len-1 > rw.x2)
+                            {
+                                len -= x1src + len - rw.x2 - 1;
+                            }
+                            if(len > 0)
+                            {
+                                m_ren->blend_from_color(src,
+                                                        color,
+                                                        x1dst, rdst.y1,
+                                                        x1src, rsrc.y1,
+                                                        len,
+                                                        cover);
+                            }
+                        }
+                    }
+                    rdst.y1 += incy;
+                    rsrc.y1 += incy;
+                    --rc.y2;
+                }
+            }
+        }
+
+        //--------------------------------------------------------------------
+        template<class SrcPixelFormatRenderer>
+        void blend_from_lut(const SrcPixelFormatRenderer& src, 
+                            const color_type* color_lut,
+                            const rect_i* rect_src_ptr = 0, 
+                            int dx = 0, 
+                            int dy = 0,
+                            cover_type cover = agg::cover_full)
+        {
+            rect_i rsrc(0, 0, src.width(), src.height());
+            if(rect_src_ptr)
+            {
+                rsrc.x1 = rect_src_ptr->x1; 
+                rsrc.y1 = rect_src_ptr->y1;
+                rsrc.x2 = rect_src_ptr->x2 + 1;
+                rsrc.y2 = rect_src_ptr->y2 + 1;
+            }
+
+            // Version with xdst, ydst (absolute positioning)
+            //rect_i rdst(xdst, ydst, xdst + rsrc.x2 - rsrc.x1, ydst + rsrc.y2 - rsrc.y1);
+
+            // Version with dx, dy (relative positioning)
+            rect_i rdst(rsrc.x1 + dx, rsrc.y1 + dy, rsrc.x2 + dx, rsrc.y2 + dy);
+            rect_i rc = clip_rect_area(rdst, rsrc, src.width(), src.height());
+
+            if(rc.x2 > 0)
+            {
+                int incy = 1;
+                if(rdst.y1 > rsrc.y1)
+                {
+                    rsrc.y1 += rc.y2 - 1;
+                    rdst.y1 += rc.y2 - 1;
+                    incy = -1;
+                }
+                while(rc.y2 > 0)
+                {
+                    typename SrcPixelFormatRenderer::row_data rw = src.row(rsrc.y1);
+                    if(rw.ptr)
+                    {
+                        int x1src = rsrc.x1;
+                        int x1dst = rdst.x1;
+                        int len   = rc.x2;
+                        if(rw.x1 > x1src)
+                        {
+                            x1dst += rw.x1 - x1src;
+                            len   -= rw.x1 - x1src;
+                            x1src  = rw.x1;
+                        }
+                        if(len > 0)
+                        {
+                            if(x1src + len-1 > rw.x2)
+                            {
+                                len -= x1src + len - rw.x2 - 1;
+                            }
+                            if(len > 0)
+                            {
+                                m_ren->blend_from_lut(src,
+                                                      color_lut,
+                                                      x1dst, rdst.y1,
+                                                      x1src, rsrc.y1,
+                                                      len,
+                                                      cover);
                             }
                         }
                     }

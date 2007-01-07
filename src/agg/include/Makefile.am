@@ -8,7 +8,8 @@ agginclude_HEADERS = \
 	agg_arrowhead.h              agg_image_filters.h             agg_span_gouraud_gray.h \
 	agg_basics.h                 agg_line_aa_basics.h            agg_span_gouraud_rgba.h \
 	agg_bezier_arc.h             agg_math.h                      agg_span_gradient.h \
-	agg_bitset_iterator.h        agg_math_stroke.h               agg_span_gradient_alpha.h \
+	agg_bitset_iterator.h        agg_blur.h                      agg_math_stroke.h \
+	agg_span_gradient_alpha.h    agg_gradient_lut.h \
 	agg_bounding_rect.h          agg_path_length.h               agg_span_image_filter.h \
 	agg_bspline.h                agg_path_storage.h              agg_span_image_filter_gray.h \
 	agg_clip_liang_barsky.h      agg_path_storage_integer.h      agg_span_image_filter_rgb.h \
@@ -17,7 +18,8 @@ agginclude_HEADERS = \
 	agg_config.h                 agg_pixfmt_gray.h               agg_span_interpolator_linear.h \
 	agg_conv_adaptor_vcgen.h     agg_pixfmt_rgb.h                agg_span_interpolator_persp.h \
 	agg_conv_adaptor_vpgen.h     agg_pixfmt_rgb_packed.h         agg_span_interpolator_trans.h \
-	agg_conv_bspline.h           agg_pixfmt_rgba.h               agg_span_pattern_gray.h \
+	agg_conv_bspline.h           agg_pixfmt_rgba.h               agg_pixfmt_transposer.h \
+	agg_span_pattern_gray.h \
 	agg_conv_clip_polygon.h      agg_rasterizer_cells_aa.h       agg_span_pattern_rgb.h \
 	agg_conv_clip_polyline.h     agg_rasterizer_compound_aa.h    agg_span_pattern_rgba.h \
 	agg_conv_close_polygon.h     agg_rasterizer_outline.h        agg_span_solid.h \
@@ -25,7 +27,7 @@ agginclude_HEADERS = \
 	agg_conv_contour.h           agg_rasterizer_scanline_aa.h    agg_trans_affine.h \
 	agg_conv_curve.h             agg_rasterizer_sl_clip.h        agg_trans_bilinear.h \
 	agg_conv_dash.h              agg_renderer_base.h             agg_trans_double_path.h \
-	agg_conv_gpc.h               agg_renderer_markers.h          agg_trans_lens.h \
+	agg_conv_gpc.h               agg_renderer_markers.h \
 	agg_conv_marker.h            agg_renderer_mclip.h            agg_trans_perspective.h \
 	agg_conv_marker_adaptor.h    agg_renderer_outline_aa.h       agg_trans_single_path.h \
 	agg_conv_segmentator.h       agg_renderer_outline_image.h    agg_trans_viewport.h \

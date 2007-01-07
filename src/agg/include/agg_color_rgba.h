@@ -1,12 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
+// Contact: mcseem@antigrain.com
+//          mcseemagg@yahoo.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 //
 // Adaptation for high precision colors has been sponsored by 
@@ -443,32 +456,43 @@ namespace agg
     }
 
 
-    //-----------------------------------------------------------rgb8_packed
+    //-------------------------------------------------------------rgb8_packed
     inline rgba8 rgb8_packed(unsigned v)
     {
         return rgba8((v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF);
     }
 
-    //-----------------------------------------------------------bgr8_packed
+    //-------------------------------------------------------------bgr8_packed
     inline rgba8 bgr8_packed(unsigned v)
     {
         return rgba8(v & 0xFF, (v >> 8) & 0xFF, (v >> 16) & 0xFF);
     }
 
-    //----------------------------------------------------------argb8_packed
+    //------------------------------------------------------------argb8_packed
     inline rgba8 argb8_packed(unsigned v)
     {
         return rgba8((v >> 16) & 0xFF, (v >> 8) & 0xFF, v & 0xFF, v >> 24);
+    }
+
+    //---------------------------------------------------------rgba8_gamma_dir
+    template<class GammaLUT>
+    rgba8 rgba8_gamma_dir(rgba8 c, const GammaLUT& gamma)
+    {
+        return rgba8(gamma.dir(c.r), gamma.dir(c.g), gamma.dir(c.b), c.a);
+    }
+
+    //---------------------------------------------------------rgba8_gamma_inv
+    template<class GammaLUT>
+    rgba8 rgba8_gamma_inv(rgba8 c, const GammaLUT& gamma)
+    {
+        return rgba8(gamma.inv(c.r), gamma.inv(c.g), gamma.inv(c.b), c.a);
     }
 
 
 
 
 
-
-
-
-    //=================================================================rgba16
+    //==================================================================rgba16
     struct rgba16
     {
         typedef int16u value_type;
@@ -708,6 +732,22 @@ namespace agg
     {
         return rgba16(c,a).premultiply();
     }
+
+
+    //------------------------------------------------------rgba16_gamma_dir
+    template<class GammaLUT>
+    rgba16 rgba16_gamma_dir(rgba16 c, const GammaLUT& gamma)
+    {
+        return rgba16(gamma.dir(c.r), gamma.dir(c.g), gamma.dir(c.b), c.a);
+    }
+
+    //------------------------------------------------------rgba16_gamma_inv
+    template<class GammaLUT>
+    rgba16 rgba16_gamma_inv(rgba16 c, const GammaLUT& gamma)
+    {
+        return rgba16(gamma.inv(c.r), gamma.inv(c.g), gamma.inv(c.b), c.a);
+    }
+
 
 }
 

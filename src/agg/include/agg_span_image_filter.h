@@ -1,21 +1,27 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
-//
-// Image transformations with filtering. Span generator base class
-//
-//----------------------------------------------------------------------------
+
 #ifndef AGG_SPAN_IMAGE_FILTER_INCLUDED
 #define AGG_SPAN_IMAGE_FILTER_INCLUDED
 
@@ -136,33 +142,29 @@ namespace agg
 
             base_type::interpolator().transformer().scaling_abs(&scale_x, &scale_y);
 
-            m_rx     = image_subpixel_scale;
-            m_ry     = image_subpixel_scale;
-            m_rx_inv = image_subpixel_scale;
-            m_ry_inv = image_subpixel_scale;
-
-            scale_x *= m_blur_x;
-            scale_y *= m_blur_y;
-
             if(scale_x * scale_y > m_scale_limit)
             {
                 scale_x = scale_x * m_scale_limit / (scale_x * scale_y);
                 scale_y = scale_y * m_scale_limit / (scale_x * scale_y);
             }
 
-            if(scale_x > 1.0001)
-            {
-                if(scale_x > m_scale_limit) scale_x = m_scale_limit;
-                m_rx     = uround(    scale_x * double(image_subpixel_scale));
-                m_rx_inv = uround(1.0/scale_x * double(image_subpixel_scale));
-            }
+            if(scale_x < 1) scale_x = 1;
+            if(scale_y < 1) scale_y = 1;
 
-            if(scale_y > 1.0001)
-            {
-                if(scale_y > m_scale_limit) scale_y = m_scale_limit;
-                m_ry     = uround(    scale_y * double(image_subpixel_scale));
-                m_ry_inv = uround(1.0/scale_y * double(image_subpixel_scale));
-            }
+            if(scale_x > m_scale_limit) scale_x = m_scale_limit;
+            if(scale_y > m_scale_limit) scale_y = m_scale_limit;
+
+            scale_x *= m_blur_x;
+            scale_y *= m_blur_y;
+
+            if(scale_x < 1) scale_x = 1;
+            if(scale_y < 1) scale_y = 1;
+
+            m_rx     = uround(    scale_x * double(image_subpixel_scale));
+            m_rx_inv = uround(1.0/scale_x * double(image_subpixel_scale));
+
+            m_ry     = uround(    scale_y * double(image_subpixel_scale));
+            m_ry_inv = uround(1.0/scale_y * double(image_subpixel_scale));
         }
 
     protected:
@@ -219,6 +221,24 @@ namespace agg
                                 m_blur_y = uround(v * double(image_subpixel_scale)); }
 
     protected:
+        AGG_INLINE void adjust_scale(int* rx, int* ry)
+        {
+            if(*rx < image_subpixel_scale) *rx = image_subpixel_scale;
+            if(*ry < image_subpixel_scale) *ry = image_subpixel_scale;
+            if(*rx > image_subpixel_scale * m_scale_limit) 
+            {
+                *rx = image_subpixel_scale * m_scale_limit;
+            }
+            if(*ry > image_subpixel_scale * m_scale_limit) 
+            {
+                *ry = image_subpixel_scale * m_scale_limit;
+            }
+            *rx = (*rx * m_blur_x) >> image_subpixel_shift;
+            *ry = (*ry * m_blur_y) >> image_subpixel_shift;
+            if(*rx < image_subpixel_scale) *rx = image_subpixel_scale;
+            if(*ry < image_subpixel_scale) *ry = image_subpixel_scale;
+        }
+
         int m_scale_limit;
         int m_blur_x;
         int m_blur_y;

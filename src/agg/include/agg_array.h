@@ -1,17 +1,27 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
+
 #ifndef AGG_ARRAY_INCLUDED
 #define AGG_ARRAY_INCLUDED
 
@@ -1044,7 +1054,6 @@ namespace agg
         return j;
     }
 
-
     //--------------------------------------------------------invert_container
     template<class Array> void invert_container(Array& arr)
     {
@@ -1055,7 +1064,6 @@ namespace agg
             swap_elements(arr[i++], arr[j--]);
         }
     }
-
 
     //------------------------------------------------------binary_search_pos
     template<class Array, class Value, class Less>
@@ -1082,6 +1090,40 @@ namespace agg
         return end;
     }
 
+    //----------------------------------------------------------range_adaptor
+    template<class Array> class range_adaptor
+    {
+    public:
+        typedef typename Array::value_type value_type;
+
+        range_adaptor(Array& array, unsigned start, unsigned size) :
+            m_array(array), m_start(start), m_size(size)
+        {}
+
+        unsigned size() const { return m_size; }
+        const value_type& operator [] (unsigned i) const { return m_array[m_start + i]; }
+              value_type& operator [] (unsigned i)       { return m_array[m_start + i]; }
+        const value_type& at(unsigned i) const           { return m_array[m_start + i]; }
+              value_type& at(unsigned i)                 { return m_array[m_start + i]; }
+        value_type  value_at(unsigned i) const           { return m_array[m_start + i]; }
+
+    private:
+        Array& m_array;
+        unsigned m_start;
+        unsigned m_size;
+    };
+
+    //---------------------------------------------------------------int_less
+    inline bool int_less(int a, int b) { return a < b; }
+
+    //------------------------------------------------------------int_greater
+    inline bool int_greater(int a, int b) { return a > b; }
+
+    //----------------------------------------------------------unsigned_less
+    inline bool unsigned_less(unsigned a, unsigned b) { return a < b; }
+
+    //-------------------------------------------------------unsigned_greater
+    inline bool unsigned_greater(unsigned a, unsigned b) { return a > b; }
 }
 
 #endif

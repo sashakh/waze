@@ -1,16 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #ifndef AGG_BASICS_INCLUDED
@@ -257,15 +266,18 @@ namespace agg
     //----------------------------------------------------------------rect_base
     template<class T> struct rect_base
     {
+        typedef T            value_type;
         typedef rect_base<T> self_type;
-        T x1;
-        T y1;
-        T x2;
-        T y2;
+        T x1, y1, x2, y2;
 
         rect_base() {}
         rect_base(T x1_, T y1_, T x2_, T y2_) :
             x1(x1_), y1(y1_), x2(x2_), y2(y2_) {}
+
+        void init(T x1_, T y1_, T x2_, T y2_) 
+        {
+            x1 = x1_; y1 = y1_; x2 = x2_; y2 = y2_; 
+        }
 
         const self_type& normalize()
         {
@@ -287,6 +299,11 @@ namespace agg
         bool is_valid() const
         {
             return x1 <= x2 && y1 <= y2;
+        }
+
+        bool hit_test(T x, T y) const
+        {
+            return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
         }
     };
 
@@ -489,6 +506,31 @@ namespace agg
     typedef vertex_base<int>    vertex_i; //-----vertex_i
     typedef vertex_base<float>  vertex_f; //-----vertex_f
     typedef vertex_base<double> vertex_d; //-----vertex_d
+
+    //----------------------------------------------------------------row_info
+    template<class T> struct row_info
+    {
+        int x1, x2;
+        T* ptr;
+        row_info() {}
+        row_info(int x1_, int x2_, T* ptr_) : x1(x1_), x2(x2_), ptr(ptr_) {}
+    };
+
+    //----------------------------------------------------------const_row_info
+    template<class T> struct const_row_info
+    {
+        int x1, x2;
+        const T* ptr;
+        const_row_info() {}
+        const_row_info(int x1_, int x2_, const T* ptr_) : 
+            x1(x1_), x2(x2_), ptr(ptr_) {}
+    };
+
+    //------------------------------------------------------------is_equal_eps
+    template<class T> inline bool is_equal_eps(T v1, T v2, T epsilon)
+    {
+        return fabs(v1 - v2) <= double(epsilon);
+    }
 
 }
 

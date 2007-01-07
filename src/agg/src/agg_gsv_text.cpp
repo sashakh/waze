@@ -1,24 +1,32 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
-//
-// Class gsv_text
-//
-//----------------------------------------------------------------------------
+
 #include <string.h>
 #include <stdio.h>
 #include "agg_gsv_text.h"
+#include "agg_bounding_rect.h"
+
 
 
 namespace agg
@@ -504,8 +512,6 @@ namespace agg
         if(*(char*)&t == 0) m_big_endian = true;
     }
 
-
-
     //-------------------------------------------------------------------------
     void gsv_text::font(const void* font)
     {
@@ -540,7 +546,6 @@ namespace agg
         //if(m_flip) m_y += m_height;
     }
 
-
     //-------------------------------------------------------------------------
     void gsv_text::load_font(const char* file)
     {
@@ -563,7 +568,6 @@ namespace agg
         }
     }
 
-
     //-------------------------------------------------------------------------
     void gsv_text::text(const char* text)
     {
@@ -582,8 +586,6 @@ namespace agg
         m_text = &m_text_buf[0];
     }
 
-
-
     //-------------------------------------------------------------------------
     void gsv_text::rewind(unsigned)
     {
@@ -600,7 +602,6 @@ namespace agg
         m_cur_chr = m_text;
     }
 
-
     //-------------------------------------------------------------------------
     unsigned gsv_text::vertex(double* x, double* y)
     {
@@ -608,7 +609,6 @@ namespace agg
         int8 yc, yf;
         int dx, dy;
         bool quit = false;
-
         
         while(!quit)
         {
@@ -669,6 +669,13 @@ namespace agg
         return path_cmd_stop;
     }
 
+    //-------------------------------------------------------------------------
+    double gsv_text::text_width()
+    {
+        double x1, y1, x2, y2;
+        bounding_rect_single(*this, 0, &x1, &y1, &x2, &y2);
+        return x2 - x1;
+    }
 
 
 }

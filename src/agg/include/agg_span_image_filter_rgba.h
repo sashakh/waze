@@ -1,16 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 //
 // Adaptation for high precision colors has been sponsored by 
@@ -832,35 +841,10 @@ namespace agg
                 int ry_inv = image_subpixel_scale;
                 base_type::interpolator().coordinates(&x,  &y);
                 base_type::interpolator().local_scale(&rx, &ry);
+                base_type::adjust_scale(&rx, &ry);
 
-                rx = (rx * base_type::m_blur_x) >> image_subpixel_shift;
-                ry = (ry * base_type::m_blur_y) >> image_subpixel_shift;
-
-                if(rx < image_subpixel_scale)
-                {
-                    rx = image_subpixel_scale;
-                }
-                else
-                {
-                    if(rx > image_subpixel_scale * base_type::m_scale_limit) 
-                    {
-                        rx = image_subpixel_scale * base_type::m_scale_limit;
-                    }
-                    rx_inv = image_subpixel_scale * image_subpixel_scale / rx;
-                }
-
-                if(ry < image_subpixel_scale)
-                {
-                    ry = image_subpixel_scale;
-                }
-                else
-                {
-                    if(ry > image_subpixel_scale * base_type::m_scale_limit) 
-                    {
-                        ry = image_subpixel_scale * base_type::m_scale_limit;
-                    }
-                    ry_inv = image_subpixel_scale * image_subpixel_scale / ry;
-                }
+                rx_inv = image_subpixel_scale * image_subpixel_scale / rx;
+                ry_inv = image_subpixel_scale * image_subpixel_scale / ry;
 
                 int radius_x = (diameter * rx) >> 1;
                 int radius_y = (diameter * ry) >> 1;

@@ -1,16 +1,25 @@
 //----------------------------------------------------------------------------
-// Anti-Grain Geometry - Version 2.4
-// Copyright (C) 2002-2005 Maxim Shemanarev (http://www.antigrain.com)
-//
-// Permission to copy, use, modify, sell and distribute this software 
-// is granted provided this copyright notice appears in all copies. 
-// This software is provided "as is" without express or implied
-// warranty, and with no claim as to its suitability for any purpose.
-//
-//----------------------------------------------------------------------------
+// Anti-Grain Geometry (AGG) - Version 2.5
+// A high quality rendering engine for C++
+// Copyright (C) 2002-2006 Maxim Shemanarev
 // Contact: mcseem@antigrain.com
 //          mcseemagg@yahoo.com
-//          http://www.antigrain.com
+//          http://antigrain.com
+// 
+// AGG is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// 
+// AGG is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with AGG; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+// MA 02110-1301, USA.
 //----------------------------------------------------------------------------
 
 #ifndef AGG_IMAGE_ACCESSORS_INCLUDED
@@ -32,7 +41,8 @@ namespace agg
         enum pix_width_e { pix_width = pixfmt_type::pix_width };
 
         image_accessor_clip() {}
-        image_accessor_clip(const pixfmt_type& pixf, const color_type& bk) : 
+        explicit image_accessor_clip(const pixfmt_type& pixf, 
+                                     const color_type& bk) : 
             m_pixf(&pixf)
         {
             pixfmt_type::make_pix(m_bk_buf, bk);
@@ -65,7 +75,7 @@ namespace agg
             m_x = m_x0 = x;
             m_y = y;
             if(y >= 0 && y < (int)m_pixf->height() &&
-               x >= 0 && x+len <= (int)m_pixf->width())
+               x >= 0 && x+(int)len <= (int)m_pixf->width())
             {
                 return m_pix_ptr = m_pixf->pix_ptr(x, y);
             }
@@ -114,7 +124,9 @@ namespace agg
         enum pix_width_e { pix_width = pixfmt_type::pix_width };
 
         image_accessor_no_clip() {}
-        image_accessor_no_clip(const pixfmt_type& pixf) : m_pixf(&pixf) {}
+        explicit image_accessor_no_clip(const pixfmt_type& pixf) : 
+            m_pixf(&pixf) 
+        {}
 
         void attach(const pixfmt_type& pixf)
         {
@@ -159,7 +171,9 @@ namespace agg
         enum pix_width_e { pix_width = pixfmt_type::pix_width };
 
         image_accessor_clone() {}
-        image_accessor_clone(const pixfmt_type& pixf) : m_pixf(&pixf) {}
+        explicit image_accessor_clone(const pixfmt_type& pixf) : 
+            m_pixf(&pixf) 
+        {}
 
         void attach(const pixfmt_type& pixf)
         {
@@ -233,7 +247,7 @@ namespace agg
         enum pix_width_e { pix_width = pixfmt_type::pix_width };
 
         image_accessor_wrap() {}
-        image_accessor_wrap(const pixfmt_type& pixf) : 
+        explicit image_accessor_wrap(const pixfmt_type& pixf) : 
             m_pixf(&pixf), 
             m_wrap_x(pixf.width()), 
             m_wrap_y(pixf.height())
