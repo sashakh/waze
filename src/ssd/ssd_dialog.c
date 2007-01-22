@@ -856,7 +856,8 @@ SsdWidget ssd_dialog_activate (const char *name, void *context) {
 
    RoadMapDialogCurrent = dialog;
 
-   if (!RoadMapScreenFrozen && !(dialog->container->flags & SSD_DIALOG_FLOAT)) {
+   if (!RoadMapScreenFrozen &&
+      !(dialog->container->flags & (SSD_DIALOG_FLOAT|SSD_DIALOG_TRANSPARENT))) {
       roadmap_start_screen_refresh (0);
       RoadMapScreenFrozen = 1;
    }
@@ -901,7 +902,8 @@ void ssd_dialog_hide (const char *name) {
    if (RoadMapScreenFrozen) {
       dialog = RoadMapDialogCurrent;
       while (dialog) {
-         if ( !(dialog->container->flags & SSD_DIALOG_FLOAT)) {
+         if ( !(dialog->container->flags &
+                (SSD_DIALOG_FLOAT|SSD_DIALOG_TRANSPARENT))) {
             ssd_dialog_draw ();
             return;
          }

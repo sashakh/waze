@@ -48,7 +48,8 @@
 #define SSD_BUTTON_TEXT_BELOW 0x4000
 
 /* Dialogs */
-#define SSD_DIALOG_FLOAT      0x10000
+#define SSD_DIALOG_FLOAT        0x10000
+#define SSD_DIALOG_TRANSPARENT  0x20000
 
 /* Container flags */
 #define SSD_CONTAINER_BORDER 0x1000

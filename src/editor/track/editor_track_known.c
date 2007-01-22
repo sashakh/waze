@@ -359,7 +359,8 @@ int editor_track_known_locate_point (int point_id,
                             gps_position->steering);
       }
 
-      if ((new_street->line_direction == confirmed_street->line_direction) &&
+      if (current_fuzzy &&
+            (new_street->line_direction == confirmed_street->line_direction) &&
             ((current_fuzzy >= before) ||
             roadmap_fuzzy_is_certain(current_fuzzy))) {
 
@@ -447,8 +448,9 @@ int editor_track_known_locate_point (int point_id,
       
          if (roadmap_fuzzy_is_good (result)) {
 
-            if (roadmap_plugin_same_line (&confirmed_line->line,
-                     &RoadMapNeighbourhood[i].line)) {
+            if (confirmed_street->valid &&
+                roadmap_plugin_same_line (&confirmed_line->line,
+                &RoadMapNeighbourhood[i].line)) {
                
                if (result < best) {
                

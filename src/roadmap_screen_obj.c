@@ -44,6 +44,7 @@
 #include "roadmap_state.h"
 #include "roadmap_pointer.h"
 #include "roadmap_res.h"
+#include "roadmap_sound.h"
 
 #include "roadmap_screen_obj.h"
 
@@ -527,6 +528,16 @@ static int roadmap_screen_obj_short_click (RoadMapGuiPoint *point) {
    RoadMapScreenObjSelected = NULL;
 
    if (object->action) {
+      static RoadMapSoundList list;
+   
+      if (!list) {
+         list = roadmap_sound_list_create (SOUND_LIST_NO_FREE);
+         roadmap_sound_list_add (list, "click.wav");
+         roadmap_res_get (RES_SOUND, 0, "click.wav");
+      }
+
+      roadmap_sound_play_list (list);
+
       (*(object->action->callback)) ();
    }
 
@@ -536,6 +547,7 @@ static int roadmap_screen_obj_short_click (RoadMapGuiPoint *point) {
 
 static int roadmap_screen_obj_long_click (RoadMapGuiPoint *point) {
 
+   static RoadMapSoundList list;
    RoadMapScreenObj object = RoadMapScreenObjSelected;
 
    if (!RoadMapScreenObjSelected) {
@@ -544,10 +556,18 @@ static int roadmap_screen_obj_long_click (RoadMapGuiPoint *point) {
 
    RoadMapScreenObjSelected = NULL;
 
+   if (!list) {
+      list = roadmap_sound_list_create (SOUND_LIST_NO_FREE);
+      roadmap_sound_list_add (list, "click_long.wav");
+      roadmap_res_get (RES_SOUND, 0, "click_long.wav");
+   }
+
    if (object->long_action) {
+      roadmap_sound_play_list (list);
       (*(object->long_action->callback)) ();
 
    } else if (object->action) {
+      roadmap_sound_play_list (list);
       (*(object->action->callback)) ();
    }
 

@@ -96,7 +96,7 @@ SsdKeyboard keyboards[] = {
    {"letters",
     SSD_KEYBOARD_LETTERS,
     SSD_KEYBOARD_MULTI, 
-    "א1ב2ג3ד4ה5ו6ז7ח8ט9י0כךללמםנןס-ע\"פףצץקקר:ש,ת.||",
+    "א1ב2ג3ד4ה5ו6ז7ח8ט9י0כךללמםנןס-ע\"פףצץק'ר:ש,ת.||",
     SSD_KEY_CONFIRM | SSD_KEY_SPACE | SSD_KEY_BACKSPACE | SSD_KEY_SWITCH,
     NULL,
     NULL,

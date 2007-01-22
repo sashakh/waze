@@ -98,6 +98,9 @@ int roadmap_sound_play_file (const char *file_name) {
 
 int roadmap_sound_play_list (const RoadMapSoundList list) {
 
+   if (!(list->flags & SOUND_LIST_NO_FREE)) {
+      roadmap_sound_list_free  (list);
+   }
    return 0;
 }
 

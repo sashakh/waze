@@ -667,7 +667,8 @@ int editor_track_util_find_street
     }
 
    if (roadmap_fuzzy_is_acceptable (*best) &&
-         !previous_street->opposite_street_direction) return count;
+         (!previous_street->valid ||
+          !previous_street->opposite_street_direction)) return count;
 
    /* search for a line in the opposite direction */
    for (i = 0; i < count; ++i) {

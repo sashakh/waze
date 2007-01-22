@@ -356,6 +356,8 @@ void roadmap_layer_adjust (void) {
                    roadmap_config_get_integer (&category->declutter),
                    category->pen_count > 1);
 
+            if (thickness > 40) thickness = 40;
+
             roadmap_plugin_adjust_layer (i, thickness, category->pen_count);
             /* As a matter of taste, I do dislike roads with a filler
              * of 1 pixel. Lets force at least a filler of 2.

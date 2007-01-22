@@ -727,14 +727,18 @@ int roadmap_dictionary_search_all
       if (!dictionary->subtrees) {
             roadmap_dictionary_build_substrees (dictionary);
       }
-      subtrees_count = dictionary->subtrees_count;
-      subtree_str[0] = ' ';
-      strncpy(subtree_str + 1, str, sizeof(subtree_str) - 2);
-      subtree_str[sizeof(subtree_str)-1] = '\0';
+
+      if (strlen(str)) {
+         subtrees_count = dictionary->subtrees_count;
+         subtree_str[0] = ' ';
+         strncpy(subtree_str + 1, str, sizeof(subtree_str) - 2);
+         subtree_str[sizeof(subtree_str)-1] = '\0';
+      }
    }
 
    for (subtree_index = -1; subtree_index < subtrees_count; subtree_index++) {
       int status;
+      int subtree_start_pos;
 
       itr = str;
       if (subtree_index == -1) {
@@ -743,6 +747,7 @@ int roadmap_dictionary_search_all
       } else {
          cursor.tree_index = dictionary->subtrees[subtree_index];
          cursor.position   = (dictionary->tree + cursor.tree_index)->position;
+         subtree_start_pos = cursor.position;
       }
 
       cursor.complete   = 0;
@@ -768,7 +773,9 @@ int roadmap_dictionary_search_all
             (cursor.volume, cursor.completion);
 
          if (((subtree_index == -1) && !strncmp (str, name, strlen(str))) ||
-             ((subtree_index != -1) && strstr (name, subtree_str))) {
+             ((subtree_index != -1) &&
+                !strncmp (name + subtree_start_pos, subtree_str,
+                          strlen(subtree_str)))) {
             RoadMapString string;
 
             match_count += 1;
@@ -781,13 +788,13 @@ int roadmap_dictionary_search_all
          }
 
          continue;
-      }
 
-      if (subtree_index != -1) {
+      } else {
+
          /* Make sure that this path really leads to strings which match */
+         const char *name;
          struct roadmap_dictionary_tree *tree =
                   dictionary->tree + cursor.tree_index;
-         RoadMapString string;
 
          while ((dictionary->reference[tree->first].type & 0x0f) ==
                   ROADMAP_DICTIONARY_TREE) {
@@ -802,10 +809,13 @@ int roadmap_dictionary_search_all
                   dictionary->reference[tree->first].type & 0x0f);
          }
 
-         string = dictionary->reference[tree->first].index;
+         name = roadmap_dictionary_get
+                  (dictionary, dictionary->reference[tree->first].index);
 
-         if (!strstr(roadmap_dictionary_get (dictionary, string),
-                     subtree_str)) {
+         if (((subtree_index == -1) && strncmp (str, name, strlen(str))) ||
+             ((subtree_index != -1) &&
+                  strncmp(name + subtree_start_pos, subtree_str,
+                          strlen(subtree_str)))) {
             continue;
          }
       }

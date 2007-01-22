@@ -823,7 +823,8 @@ static void roadmap_start_quick_menu (void) {
 
 #ifdef SSD
    ssd_menu_activate ("Main Menu", "quick", RoadMapStartQuickMenu, NULL,
-          RoadMapStartActions, SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE);
+          RoadMapStartActions,
+	  SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE|SSD_DIALOG_TRANSPARENT);
 #else
    if (QuickMenu == NULL) {
 

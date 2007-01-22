@@ -556,12 +556,14 @@ static int roadmap_street_block_by_county_subdivision
 static RoadMapDictionaryMask roadmap_street_get_city_search_mask (int city) {
 
    static int current_mask_city = -1;
+   static int current_mask_fips = -1;
    static RoadMapDictionaryMask mask;
    int i;
    int j;
    int range_count = RoadMapRangeActive->RoadMapByStreetCount;
 
-   if (current_mask_city == city) return mask;
+   if ((current_mask_city == city) &&
+         (current_mask_fips == roadmap_locator_active ())) return mask;
 
    if (mask) roadmap_dictionary_mask_free (mask);
    mask = roadmap_dictionary_mask_new (RoadMapRangeActive->RoadMapStreetNames);
@@ -595,6 +597,8 @@ static RoadMapDictionaryMask roadmap_street_get_city_search_mask (int city) {
       }
    }
 
+   current_mask_city = city;
+   current_mask_fips = roadmap_locator_active ();
    return mask;
 }
 

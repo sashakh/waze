@@ -276,7 +276,8 @@ static int add_road_connection (int point_id,
       end_node.plugin_id = EditorPluginID;
    }
 
-   line_id = create_new_line (0, end_point, -1, end_node.id, 4);
+   line_id = create_new_line (0, end_point, -1, end_node.id,
+                              ROADMAP_ROAD_STREET);
 
    if (road_type == ED_LINE_CONNECTION) {
 
@@ -471,8 +472,8 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
                cur_node.plugin_id = EditorPluginID;
             }
 
-            create_new_line
-               (start_point, end_point, cur_node.id, cur_node.id, 4);
+            create_new_line (start_point, end_point, cur_node.id, cur_node.id,
+                             ROADMAP_ROAD_STREET);
 
             start_point = end_point;
             continue;
@@ -500,8 +501,8 @@ static void end_unknown_segments (TrackNewSegment *new_segments, int count) {
       }
 
       if ((i < (count -1)) || (start_point != (end_point -1))) {
-         int line_id =
-            create_new_line (start_point, end_point, -1, end_node_id, 4);
+         int line_id = create_new_line (start_point, end_point, -1,
+                                        end_node_id, ROADMAP_ROAD_STREET);
          if ((line_id != -1) && 
                ((type == TRACK_ROAD_CONNECTION) || !EditorAllowNewRoads)) {
             int cfcc;

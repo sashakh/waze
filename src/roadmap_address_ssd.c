@@ -75,6 +75,7 @@ typedef struct {
    RoadMapAddressSearchCB callback;
    void *data;
    const char *city;
+   char *prefix;
 } RoadMapAddressSearch;
 
 
@@ -226,6 +227,9 @@ static int list_callback (int type, const char *new_value, void *context) {
 
        ssd_dialog_set_value ("input", str);
 
+       str[strlen(str) - 1] = '\0';
+       search->prefix = strdup(str);
+
        return 1;
    }
 
@@ -254,6 +258,13 @@ static int keyboard_callback (int type, const char *new_value, void *context) {
       title = roadmap_lang_get ("City");
    } else {
       title = roadmap_lang_get ("Street");
+      if (search->prefix && !strcmp(search->prefix, new_value)) {
+         ssd_dialog_set_value ("input", "");
+
+         free (search->prefix);
+         search->prefix = NULL;
+         return 0;
+      }
    }
 
    count = roadmap_address_search_count (new_value, search);
@@ -405,6 +416,7 @@ void roadmap_address_search_dialog (const char *city,
    context->callback = callback;
    context->data = data;
    context->city = city;
+   context->prefix = NULL;
 
    if (!context->city) {
       title = roadmap_lang_get ("City");

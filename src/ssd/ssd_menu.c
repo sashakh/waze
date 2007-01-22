@@ -38,6 +38,13 @@
 
 #include "ssd_menu.h"
 
+static int close_button_callback (SsdWidget widget, const char *new_value) {
+
+   ssd_dialog_hide_current ();
+   return 0;
+}
+
+
 static int button_callback (SsdWidget widget, const char *new_value) {
 
    RoadMapCallback callback = (RoadMapCallback) widget->context;
@@ -79,11 +86,11 @@ static int long_click (SsdWidget widget, const RoadMapGuiPoint *point) {
 }
 
 
-static void ssd_menu_new (const char           *name,
-                          const char           *items_file,
-                          const char           *items[],
-                          const RoadMapAction  *actions,
-                          int                   flags) {
+static SsdWidget ssd_menu_new (const char           *name,
+                               const char           *items_file,
+                               const char           *items[],
+                               const RoadMapAction  *actions,
+                               int                   flags) {
 
    int i;
    int next_item_flags = 0;
@@ -95,11 +102,18 @@ static void ssd_menu_new (const char           *name,
    SsdWidget container;
 
    if (flags & SSD_DIALOG_FLOAT) {
-      container = ssd_container_new (name, NULL, SSD_MAX_SIZE,
-                                     SSD_MIN_SIZE, 0);
+      container = ssd_container_new (name, NULL, SSD_MAX_SIZE, SSD_MIN_SIZE, 0);
       ssd_widget_set_size (dialog, SSD_MIN_SIZE, SSD_MIN_SIZE);
       ssd_widget_set_color (dialog, "#000000", "#ffffffaa");
       ssd_widget_set_color (container, "#000000", NULL);
+
+      if (!(flags & SSD_CONTAINER_TITLE)) {
+         const char *close_icon[] = {"rm_quit"};
+
+         ssd_widget_add (container,
+                  ssd_button_new ("close", "", close_icon, 1,
+                                  SSD_ALIGN_RIGHT, close_button_callback));
+      }
    } else {
       container = ssd_container_new (name, NULL, SSD_MAX_SIZE, SSD_MAX_SIZE,
                                   SSD_ALIGN_GRID);
@@ -167,6 +181,8 @@ static void ssd_menu_new (const char           *name,
    }
 
    ssd_widget_add (dialog, container);
+
+   return dialog;
 }
 
 
@@ -186,7 +202,7 @@ void ssd_menu_activate (const char           *name,
       return;
    }
 
-   ssd_menu_new (name, items_file, items, actions, flags);
+   dialog = ssd_menu_new (name, items_file, items, actions, flags);
 
    ssd_dialog_activate (name, NULL);
    ssd_dialog_set_callback (callback);
