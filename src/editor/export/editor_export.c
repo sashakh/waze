@@ -665,6 +665,8 @@ int editor_export_data(const char *name, RoadMapDownloadCallbacks *callbacks) {
          return 0;
       }
 
+      editor_db_sync (fips);
+
       if (callbacks) (*callbacks->progress) (100);
       close_export_stream (&stream);
       
@@ -787,6 +789,8 @@ next_trkseg:
    close_export_stream (&stream);
 
    editor_trkseg_reset_next_export ();
+
+   editor_db_sync (fips);
 
    if (!callbacks) {
       editor_export_upload (name);
