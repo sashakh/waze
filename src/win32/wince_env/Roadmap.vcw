@@ -87,9 +87,6 @@ Package=<4>
     Project_Dep_Name libwinceguiroadmap
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name fribidi
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name libft
     End Project Dependency
     Begin Project Dependency
@@ -103,6 +100,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name zlibce
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libfribidi
     End Project Dependency
 }}}
 

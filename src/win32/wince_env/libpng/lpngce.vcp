@@ -64,24 +64,24 @@ CFG=lpngce - Win32 (WCE MIPS) Debug
 # PROP Output_Dir "WMIPSRel"
 # PROP Intermediate_Dir "WMIPSRel"
 # PROP Target_Dir ""
+CPP=clmips.exe
+# ADD BASE CPP /nologo /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /QMRWCE /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O2 /I "..\..\..\zlib" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /QMRWCE /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-CPP=clmips.exe
-# ADD BASE CPP /nologo /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /QMRWCE /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O2 /I "..\..\..\zlib" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /QMRWCE /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE MIPS) Debug"
 
@@ -95,24 +95,24 @@ CPP=clmips.exe
 # PROP Output_Dir "WMIPSDbg"
 # PROP Intermediate_Dir "WMIPSDbg"
 # PROP Target_Dir ""
+CPP=clmips.exe
+# ADD BASE CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /QMRWCE /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /QMRWCE /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-CPP=clmips.exe
-# ADD BASE CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /QMRWCE /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /QMRWCE /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE SH4) Release"
 
@@ -250,24 +250,24 @@ LINK32=link.exe
 # PROP Output_Dir "WCEARMRel"
 # PROP Intermediate_Dir "WCEARMRel"
 # PROP Target_Dir ""
+CPP=clarm.exe
+# ADD BASE CPP /nologo /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "NDEBUG" /D "ARM" /D "_ARM_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 coredll.lib commctrl.lib /nologo /dll /machine:ARM /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 coredll.lib commctrl.lib /nologo /dll /machine:ARM /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-CPP=clarm.exe
-# ADD BASE CPP /nologo /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "NDEBUG" /D "ARM" /D "_ARM_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE ARM) Debug"
 
@@ -281,24 +281,24 @@ CPP=clarm.exe
 # PROP Output_Dir "WCEARMDbg"
 # PROP Intermediate_Dir "WCEARMDbg"
 # PROP Target_Dir ""
+CPP=clarm.exe
+# ADD BASE CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "ARM" /D "_ARM_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 coredll.lib commctrl.lib /nologo /dll /debug /machine:ARM /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 coredll.lib commctrl.lib /nologo /dll /debug /machine:ARM /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0x411 /r /d "ARM" /d "_ARM_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-CPP=clarm.exe
-# ADD BASE CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "ARM" /D "_ARM_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "ARM" /D "_ARM_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE MIPSFP) Release"
 
@@ -312,24 +312,24 @@ CPP=clarm.exe
 # PROP Output_Dir "WMIPSFPRel"
 # PROP Intermediate_Dir "WMIPSFPRel"
 # PROP Target_Dir ""
+CPP=clmips.exe
+# ADD BASE CPP /nologo /QMFWCE /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /QMFWCE /M$(CECrtMT) /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-CPP=clmips.exe
-# ADD BASE CPP /nologo /QMFWCE /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /QMFWCE /M$(CECrtMT) /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "NDEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE MIPSFP) Debug"
 
@@ -343,24 +343,24 @@ CPP=clmips.exe
 # PROP Output_Dir "WMIPSFPDbg"
 # PROP Intermediate_Dir "WMIPSFPDbg"
 # PROP Target_Dir ""
+CPP=clmips.exe
+# ADD BASE CPP /nologo /QMFWCE /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /QMFWCE /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:MIPS /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0x411 /r /d "MIPS" /d "_MIPS_" /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-CPP=clmips.exe
-# ADD BASE CPP /nologo /QMFWCE /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "MIPS" /D "_MIPS_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /QMFWCE /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "MIPS" /D "_MIPS_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE x86) Release"
 
@@ -434,22 +434,22 @@ LINK32=link.exe
 # PROP Output_Dir "x86emRel"
 # PROP Intermediate_Dir "x86emRel"
 # PROP Target_Dir ""
-LINK32=link.exe
-# ADD BASE LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
-# ADD LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
-# ADD RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
 CPP=cl.exe
 # ADD BASE CPP /nologo /W3 /O2 /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_X86_" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE /Gz
 # ADD CPP /nologo /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "_UNICODE" /D "WIN32" /D "STRICT" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "NDEBUG" /D "x86" /D "i486" /D "_X86_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE /Gz
 # SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+# ADD RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
+# ADD LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE x86em) Debug"
 
@@ -463,22 +463,22 @@ CPP=cl.exe
 # PROP Output_Dir "x86emDbg"
 # PROP Intermediate_Dir "x86emDbg"
 # PROP Target_Dir ""
-LINK32=link.exe
-# ADD BASE LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /debug /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
-# ADD LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /debug /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_X86_"
-# ADD RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_X86_"
 CPP=cl.exe
 # ADD BASE CPP /nologo /W3 /Gm /Zi /Od /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "WIN32" /D "STRICT" /D _WIN32_WCE=$(CEVersion) /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_X86_" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE /Gz
 # ADD CPP /nologo /W3 /Gm /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "_UNICODE" /D "WIN32" /D "STRICT" /D "_WIN32_WCE_EMULATION" /D "INTERNATIONAL" /D "USA" /D "INTLMSG_CODEPAGE" /D "_DEBUG" /D "x86" /D "i486" /D "_X86_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE /Gz
 # SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_X86_"
+# ADD RSC /l 0x411 /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "_UNICODE" /d "WIN32" /d "STRICT" /d _WIN32_WCE=$(CEVersion) /d "_WIN32_WCE_EMULATION" /d "INTERNATIONAL" /d "USA" /d "INTLMSG_CODEPAGE" /d "_DEBUG" /d "x86" /d "i486" /d "_X86_"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /debug /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
+# ADD LINK32 $(CEx86Corelibc) commctrl.lib coredll.lib /nologo /stack:0x10000,0x1000 /dll /debug /machine:I386 /nodefaultlib:"$(CENoDefaultLib)" /windowsce:emulation
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE PPC) Release"
 
@@ -492,24 +492,24 @@ CPP=cl.exe
 # PROP Output_Dir "WCEPPCRel"
 # PROP Intermediate_Dir "WCEPPCRel"
 # PROP Target_Dir ""
+CPP=clppc.exe
+# ADD BASE CPP /nologo /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "PPC" /D "_PPC_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /M$(CECrtMT) /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "NDEBUG" /D "PPC" /D "_PPC_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+# ADD RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /machine:PPC /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /machine:PPC /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-# ADD RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "NDEBUG"
-CPP=clppc.exe
-# ADD BASE CPP /nologo /M$(CECrtMT) /W3 /O2 /D _WIN32_WCE=$(CEVersion) /D "NDEBUG" /D "PPC" /D "_PPC_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /M$(CECrtMT) /W3 /O2 /I "..\.." /I "..\..\..\zlib" /D "NDEBUG" /D "PPC" /D "_PPC_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE PPC) Debug"
 
@@ -523,24 +523,24 @@ CPP=clppc.exe
 # PROP Output_Dir "WCEPPCDbg"
 # PROP Intermediate_Dir "WCEPPCDbg"
 # PROP Target_Dir ""
+CPP=clppc.exe
+# ADD BASE CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "PPC" /D "_PPC_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
+# ADD CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "PPC" /D "_PPC_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
+# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
+RSC=rc.exe
+# ADD BASE RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+# ADD RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "DEBUG"
+MTL=midl.exe
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:PPC /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT BASE LINK32 /pdb:none /nodefaultlib
 # ADD LINK32 commctrl.lib coredll.lib /nologo /dll /debug /machine:PPC /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /STACK:65536,4096
 # SUBTRACT LINK32 /pdb:none /nodefaultlib
-BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-MTL=midl.exe
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-RSC=rc.exe
-# ADD BASE RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-# ADD RSC /l 0x411 /r /d "ppc" /d "_ppc_" /d _WIN32_WCE=$(CEVersion) /d UNDER_CE=$(CEVersion) /d "UNICODE" /d "DEBUG"
-CPP=clppc.exe
-# ADD BASE CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /D _WIN32_WCE=$(CEVersion) /D "DEBUG" /D "PPC" /D "_PPC_" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_USRDLL" /D "LPNGCE_EXPORTS" /YX /c /D $(CePlatform) /D _UNICODE
-# ADD CPP /nologo /M$(CECrtMTDebug) /W3 /Zi /Od /I "..\.." /I "..\..\..\zlib" /D "DEBUG" /D "PPC" /D "_PPC_" /D _WIN32_WCE=$(CEVersion) /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "PNG_BUILD_DLL" /c /D $(CePlatform) /D _UNICODE
-# SUBTRACT CPP /YX /D $(CePlatform) /D UNICODE /D _UNICODE
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE ARMV4) Release"
 
@@ -557,13 +557,14 @@ CPP=clppc.exe
 # PROP Intermediate_Dir "ARMV4Rel"
 # PROP CPU_ID "{ECBEA43D-CD7B-4852-AD55-D4227B5D624B}"
 # PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 RSC=rc.exe
 # ADD BASE RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
 # ADD RSC /l 0x409 /d UNDER_CE=$(CEVersion) /d _WIN32_WCE=$(CEVersion) /d "NDEBUG" /d "UNICODE" /d "_UNICODE" /d "$(CePlatform)" /d "ARM" /d "_ARM_" /d "ARMV4" /r
 CPP=clarm.exe
 # ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /I "..\..\..\zlib" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /YX /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /Zd /I "..\..\..\zlib" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /YX /O2 /M$(CECrtMT) /c
 MTL=midl.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
@@ -572,7 +573,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 commctrl.lib coredll.lib /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
-# ADD LINK32 commctrl.lib coredll.lib /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
+# ADD LINK32 commctrl.lib coredll.lib /nologo /base:"0x00100000" /stack:0x10000,0x1000 /entry:"_DllMainCRTStartup" /dll /map /nodefaultlib:"$(CENoDefaultLib)" /subsystem:$(CESubsystem) /align:"4096" /MACHINE:ARM
 
 !ELSEIF  "$(CFG)" == "lpngce - Win32 (WCE ARMV4) Debug"
 
