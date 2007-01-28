@@ -1251,8 +1251,8 @@ void roadmap_start (int argc, char **argv) {
 
    if (RoadMapStartSubscribers) RoadMapStartSubscribers (ROADMAP_START_INIT);
 
-   editor_main_initialize ();
    navigate_main_initialize ();
+   editor_main_initialize ();
 
    roadmap_screen_obj_initialize ();
    roadmap_trip_restore_focus ();
