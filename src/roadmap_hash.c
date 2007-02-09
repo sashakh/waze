@@ -179,6 +179,7 @@ void *roadmap_hash_get_value (RoadMapHash *hash, int index) {
 }
 
 
+#ifndef J2ME
 void  roadmap_hash_summary (void) {
 
    RoadMapHash *hash;
@@ -211,6 +212,8 @@ void  roadmap_hash_summary (void) {
       fprintf (stderr, "\n");
    }
 }
+
+#endif
 
 
 void roadmap_hash_reset (void) {

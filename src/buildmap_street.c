@@ -304,6 +304,19 @@ void  buildmap_street_save (void) {
       db_streets[i] = one_street->record;
       db_cfcc[i] = one_street->cfcc;
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<StreetCount; i++) {
+
+         switch_endian_short(&db_streets[i].fedirp);
+         switch_endian_short(&db_streets[i].fename);
+         switch_endian_short(&db_streets[i].fetype);
+         switch_endian_short(&db_streets[i].fedirs);
+         switch_endian_short(&db_streets[i].t2s);
+      }
+   }
 }
 
 

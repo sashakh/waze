@@ -322,6 +322,26 @@ void buildmap_turn_restrictions_save (void) {
                             "total = %d, saved = %d",
                          TurnsNodeCount, node_index+1);
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<square_count; i++) {
+         switch_endian_int(&db_bysquare[i].first);
+         switch_endian_int(&db_bysquare[i].count);
+      }
+
+      for (i=0; i<TurnsNodeCount; i++) {
+         switch_endian_int(&db_by_node[i].node);
+         switch_endian_int(&db_by_node[i].first);
+         switch_endian_int(&db_by_node[i].count);
+      }
+
+      for (i=0; i<TurnsCount; i++) {
+         switch_endian_int(&db_turns[i].from_line);
+         switch_endian_int(&db_turns[i].to_line);
+      }
+   }
 }
 
 

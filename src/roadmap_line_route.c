@@ -116,11 +116,15 @@ roadmap_db_handler RoadMapLineRouteHandler = {
 static int roadmap_line_route_time_slot (time_t when) {
 
    int time_slot;
+#ifndef J2ME   
    struct tm *t = localtime (&when);
 
    time_slot = t->tm_hour * 2;
 
    if (t->tm_min >= 30) time_slot++;
+#else
+   time_slot = 24;
+#endif   
 
    //time_slot = 18;
    return time_slot;

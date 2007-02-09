@@ -924,6 +924,55 @@ void  buildmap_range_save (void) {
       }
       db_square[k].noaddr_count += 1;
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<buildmap_street_count(); i++) {
+         switch_endian_int(&db_streets[i].first_range);
+         switch_endian_int(&db_streets[i].first_city);
+         switch_endian_int(&db_streets[i].first_zip);
+         switch_endian_int(&db_streets[i].count_range);
+      }
+
+      for (i=0; i<city_count; i++) {
+         switch_endian_short(&db_city[i].city);
+         switch_endian_short(&db_city[i].count);
+      }
+
+      for (i=0; i<RangePlaceCount; i++) {
+         switch_endian_short(&db_place[i].place);
+         switch_endian_short(&db_place[i].city);
+      }
+
+      for (i=0; i<zip_count; i++) {
+         switch_endian_short(&db_zip[i].zip);
+         switch_endian_short(&db_zip[i].count);
+      }
+
+      for (i=0; i<RangeCount; i++) {
+         switch_endian_int(&db_ranges[i].line);
+         switch_endian_short(&db_ranges[i].fradd);
+         switch_endian_short(&db_ranges[i].toadd);
+      }
+
+      for (i=0; i<RangeNoAddressCount; i++) {
+         switch_endian_int(&db_noaddr[i].line);
+         switch_endian_int(&db_noaddr[i].street);
+      }
+
+      for (i=0; i<square_count; i++) {
+         int j;
+
+         for (j=0; j<ROADMAP_RANGE_HOLES; j++) {
+            switch_endian_short(&db_square[i].hole[j].excluded);
+            switch_endian_short(&db_square[i].hole[j].included);
+         }
+
+         switch_endian_int(&db_square[i].noaddr_start);
+         switch_endian_int(&db_square[i].noaddr_count);
+      }
+   }
 }
 
 

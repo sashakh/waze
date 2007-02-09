@@ -503,6 +503,26 @@ void buildmap_shape_save (void) {
                             "total = %d, saved = %d",
                          ShapeLineCount, line_index+1);
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<square_count; i++) {
+         switch_endian_int(&db_bysquare[i].first);
+         switch_endian_int(&db_bysquare[i].count);
+      }
+
+      for (i=0; i<ShapeLineCount; i++) {
+         switch_endian_int(&db_byline[i].line);
+         switch_endian_int(&db_byline[i].first);
+         switch_endian_int(&db_byline[i].count);
+      }
+      
+      for (i=0; i<shape_count; i++) {
+         switch_endian_short(&db_shape[i].delta_longitude);
+         switch_endian_short(&db_shape[i].delta_latitude);
+      }
+   }
 }
 
 

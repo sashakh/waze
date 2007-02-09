@@ -43,7 +43,7 @@
 
 #include "buildmap.h"
 
-
+int switch_endian = 1;
 #define BUILDMAP_DB_BLOCK_SIZE 0x100000
 
 
@@ -142,6 +142,26 @@ static void buildmap_db_update_tree
       }
       buildmap_db_update_tree (section, child);
    }
+}
+
+
+static void buildmap_db_switch_endian
+               (buildmap_db *parent, buildmap_db *section) {
+
+   buildmap_db *child;
+   struct roadmap_db_section *db;
+
+   for (child = section->first; child != NULL; child = child->next) {
+
+      buildmap_db_switch_endian (section, child);
+   }
+
+   db = section->head;
+
+   switch_endian_int(&db->first);
+   switch_endian_int(&db->next);
+   switch_endian_int(&db->size);
+   switch_endian_int(&db->count);
 }
 
 
@@ -306,6 +326,10 @@ void buildmap_db_close (void) {
       actual_size = sizeof(*BuildmapDbRoot.head) + BuildmapDbRoot.head->size;
 
       buildmap_db_update_tree (NULL, &BuildmapDbRoot);
+
+      if (switch_endian) {
+         buildmap_db_switch_endian (NULL, &BuildmapDbRoot);
+      }
 
       roadmap_file_unmap (&BuildmapCurrentDbBaseMapContext);
       BuildmapCurrentDbBaseMapContext = NULL;

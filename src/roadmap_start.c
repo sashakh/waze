@@ -83,15 +83,6 @@
 #endif
 
 #include "navigate/navigate_main.h"
-#include "editor/editor_main.h"
-#include "editor/db/editor_db.h"
-#include "editor/static/update_range.h"
-#include "editor/static/edit_marker.h"
-#include "editor/static/notes.h"
-#include "editor/export/editor_export.h"
-#include "editor/export/editor_upload.h"
-#include "editor/export/editor_download.h"
-#include "editor/export/editor_sync.h"
 
 static const char *RoadMapMainTitle = "RoadMap";
 #define MAX_ACTIONS 100
@@ -124,6 +115,7 @@ static RoadMapScreenSubscriber roadmap_start_prev_after_refresh = NULL;
 
 static void roadmap_start_periodic (void);
 
+#ifndef J2ME
 static void roadmap_start_console (void) {
 
    const char *url = roadmap_gps_source();
@@ -136,9 +128,12 @@ static void roadmap_start_console (void) {
       roadmap_spawn ("roadgps", arguments);
    }
 }
+#endif
 
 static void roadmap_start_purge (void) {
+#ifndef J2ME
    roadmap_history_purge (10);
+#endif
 }
 
 static void roadmap_start_show_destination (void) {
@@ -180,30 +175,38 @@ static void roadmap_start_about (void) {
                        "(c) Ehud Shabtai\n"
                        "eshabtai@gmail.com\n"
                        "A Street navigation system\n"
-                       "for Linux, UNIX & WinCE"
-                       "\n\nEditor Plugin %s\n",
-                       editor_main_get_version ());
+                       "for Linux, UNIX & WinCE");
 
+#ifndef J2ME
    roadmap_messagebox ("About", about);
+#endif
 }
 
 static void roadmap_start_export_data (void) {
 
+#ifndef J2ME
    editor_export_gpx ();
+#endif
 }
 
 static void roadmap_start_export_reset (void) {
 
+#ifndef J2ME
    editor_export_reset_dirty ();
+#endif
 }
 
 static void roadmap_start_download_map (void) {
 
+#ifndef J2ME
    editor_download_update_map (NULL);
+#endif
 }
 
 static void roadmap_start_upload_gpx (void) {
+#ifndef J2ME
    editor_upload_select ();
+#endif
 }
 
 static void roadmap_start_create_trip (void) {
@@ -243,14 +246,18 @@ static void roadmap_start_trip_reverse (void) {
 
 static void roadmap_start_navigate (void) {
     
+#ifndef J2ME
     navigate_main_calc_route ();
+#endif
 }
 
 static void roadmap_start_set_destination (void) {
 
+#ifndef J2ME
     roadmap_trip_set_selection_as ("Destination");
     roadmap_screen_refresh();
     navigate_main_calc_route ();
+#endif
 }
 
 static void roadmap_start_set_departure (void) {
@@ -276,13 +283,16 @@ static void roadmap_start_delete_waypoint (void) {
 
 static int roadmap_start_no_download (int fips) {
 
+#ifndef J2ME
    if (! roadmap_download_blocked (fips)) {
       roadmap_log (ROADMAP_WARNING, "cannot open map database usc%05d", fips);
       roadmap_download_block (fips);
    }
+#endif
    return 0;
 }
 
+#ifndef J2ME
 static void roadmap_start_toggle_download (void) {
 
    if (roadmap_download_enabled()) {
@@ -314,6 +324,7 @@ static void roadmap_start_toggle_download (void) {
 
    roadmap_screen_redraw ();
 }
+#endif
 
 
 static void roadmap_start_detect_receiver (void) {
@@ -324,7 +335,9 @@ static void roadmap_start_detect_receiver (void) {
 
 static void roadmap_start_sync_data (void) {
     
+#ifndef J2ME
     export_sync ();
+#endif
 }
 
 
@@ -339,6 +352,7 @@ static void roadmap_start_quick_menu (void);
  */
 static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 
+#ifndef J2ME
    {"preferences", "Preferences", "Preferences", "P",
       "Open the preferences editor", roadmap_preferences_edit},
 
@@ -350,6 +364,7 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 
    {"enablevoice", "Enable Voice", "Mute Off", NULL,
       "Enable all voice annoucements", roadmap_voice_enable},
+#endif
 
    {"nonavigation", "Disable Navigation", "Nav Off", NULL,
       "Disable all navigation functions", roadmap_navigate_disable},
@@ -420,19 +435,22 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
    {"hold", "Hold Map", "Hold", "H",
       "Hold the map view in its current position", roadmap_start_hold_map},
 
+#ifndef J2ME
+
 #ifndef SSD
    {"address", "Address...", "Addr", "A",
       "Show a specified address", roadmap_address_location_by_city},
 #else      
    {"address", "Address...", "Addr", "A",
       "Show a specified address", roadmap_address_history},
-#endif      
+#endif
 
    {"intersection", "Intersection...", "X", NULL,
       "Show a specified street intersection", roadmap_crossing_dialog},
 
    {"position", "Position...", "P", NULL,
       "Show a position at the specified coordinates", roadmap_coord_dialog},
+#endif
 
    {"destination", "Destination", "D", NULL,
       "Show the current destination point", roadmap_start_show_destination},
@@ -444,6 +462,7 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
       "Center the map on the last selected location",
       roadmap_start_show_location},
 
+#ifndef J2ME
    {"mapdownload", "Map Download", "Download", NULL,
       "Enable/Disable the map download mode", roadmap_start_toggle_download},
 
@@ -453,6 +472,7 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 
    {"deletemaps", "Delete Maps...", "Delete", "Del",
       "Delete maps that are currently visible", roadmap_download_delete},
+#endif      
 
    {"newtrip", "New Trip", "New", NULL,
       "Create a new trip", roadmap_start_create_trip},
@@ -531,6 +551,7 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
    {"quickmenu", "Open quick menu", NULL, NULL,
       "Open quick menu", roadmap_start_quick_menu},
 
+#ifndef J2ME
    {"updaterange", "Update street range", NULL, NULL,
       "Update street range", update_range_dialog},
 
@@ -545,11 +566,13 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 
    {"addvoicenote", "Add a voice note", NULL, NULL,
       "Add a voice note", editor_notes_add_voice},
+#endif      
 
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 
+#ifndef J2ME
 static const char *RoadMapStartCfgActions[] = {
 
    "preferences",
@@ -584,8 +607,21 @@ static const char *RoadMapStartCfgActions[] = {
    "addvoicenote",
    NULL
 };
+#endif
 
-
+#ifdef J2ME
+static const char *RoadMapStartMenu[] = {
+   "hold",
+   "toggleorientation",
+   "toggleview",
+   "detectreceiver",
+   "destination",
+   "location",
+   "gps",
+   "quit",
+   NULL
+};
+#else
 static const char *RoadMapStartMenu[] = {
 
    ROADMAP_MENU "File",
@@ -700,6 +736,7 @@ static const char *RoadMapStartMenu[] = {
 
    NULL
 };
+#endif
 
 
 static char const *RoadMapStartToolbar[] = {
@@ -821,6 +858,7 @@ static char const *RoadMapStartKeyBinding[] = {
 
 static void roadmap_start_quick_menu (void) {
 
+#ifndef J2ME
 #ifdef SSD
    ssd_menu_activate ("Main Menu", "quick", RoadMapStartQuickMenu, NULL,
           RoadMapStartActions,
@@ -838,6 +876,7 @@ static void roadmap_start_quick_menu (void) {
       roadmap_main_popup_menu (QuickMenu, point->x, point->y);
    }
 #endif   
+#endif
 }
 
 
@@ -986,7 +1025,9 @@ static void roadmap_gps_update
 
 static void roadmap_start_periodic (void) {
 
+#ifndef J2ME
    roadmap_spawn_check ();
+#endif
 
    if (RoadMapStartGpsRefresh) {
 
@@ -1009,6 +1050,7 @@ static void roadmap_start_remove_gps (RoadMapIO *io) {
 }
 
 
+#ifndef J2ME
 static void roadmap_start_add_driver (RoadMapIO *io) {
 
    roadmap_main_set_input (io, roadmap_driver_input);
@@ -1031,12 +1073,6 @@ static void roadmap_start_remove_driver_server (RoadMapIO *io) {
 }
 
 
-static void roadmap_start_set_timeout (RoadMapCallback callback) {
-
-   roadmap_main_set_periodic (3000, callback);
-}
-
-
 static int roadmap_start_long_click (RoadMapGuiPoint *point) {
    
    RoadMapPosition position;
@@ -1050,7 +1086,14 @@ static int roadmap_start_long_click (RoadMapGuiPoint *point) {
 
    return 1;
 }
+#endif
  
+
+static void roadmap_start_set_timeout (RoadMapCallback callback) {
+
+   roadmap_main_set_periodic (3000, callback);
+}
+
 
 static void roadmap_start_window (void) {
 
@@ -1063,12 +1106,14 @@ static void roadmap_start_window (void) {
                     RoadMapStartMenu,
                     RoadMapStartToolbar);
 
+#ifndef J2ME
    LongClickMenu = roadmap_factory_menu ("long_click",
                                          RoadMapStartLongClickMenu,
                                          RoadMapStartActions);
 
    roadmap_pointer_register_long_click
       (roadmap_start_long_click, POINTER_DEFAULT);
+#endif
 
    roadmap_main_add_canvas ();
 
@@ -1080,11 +1125,13 @@ static void roadmap_start_window (void) {
    roadmap_gps_register_periodic_control
       (roadmap_start_set_timeout, roadmap_main_remove_periodic);
 
+#ifndef J2ME   
    roadmap_driver_register_link_control
       (roadmap_start_add_driver, roadmap_start_remove_driver);
 
    roadmap_driver_register_server_control
       (roadmap_start_add_driver_server, roadmap_start_remove_driver_server);
+#endif
 }
 
 
@@ -1120,6 +1167,7 @@ const char *roadmap_start_get_title (const char *name) {
 
 static void roadmap_start_after_refresh (void) {
 
+#ifndef J2ME
    if (roadmap_download_enabled()) {
 
       RoadMapGuiPoint download_point = {0, 20};
@@ -1131,6 +1179,7 @@ static void roadmap_start_after_refresh (void) {
       roadmap_sprite_draw
          ("Download", &download_point, 0 - roadmap_math_get_orientation());
    }
+#endif
 
    if (roadmap_start_prev_after_refresh) {
       (*roadmap_start_prev_after_refresh) ();
@@ -1176,6 +1225,7 @@ int roadmap_start_is_frozen (void) {
 
 void roadmap_start (int argc, char **argv) {
 
+   roadmap_log (ROADMAP_DEBUG, "In roadmap_start\n");
 #ifdef ROADMAP_DEBUG_HEAP
    /* Do not forget to set the trace file using the env. variable MALLOC_TRACE,
     * then use the mtrace tool to analyze the output.
@@ -1194,24 +1244,30 @@ void roadmap_start (int argc, char **argv) {
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
+#ifndef J2ME   
    roadmap_pointer_initialize  ();
+#endif
    roadmap_screen_initialize   ();
    roadmap_fuzzy_initialize    ();
    roadmap_navigate_initialize ();
    roadmap_label_initialize    ();
    roadmap_display_initialize  ();
-   roadmap_voice_initialize    ();
+   roadmap_adjust_initialize   ();
+   roadmap_log (ROADMAP_DEBUG, "b4 config init.\n");
+   roadmap_config_initialize   ();
+   roadmap_log (ROADMAP_DEBUG, "after config init.\n");
+   roadmap_lang_initialize     ();
    roadmap_gps_initialize      ();
+#ifndef J2ME   
+   roadmap_voice_initialize    ();
    roadmap_history_initialize  ();
    roadmap_download_initialize ();
-   roadmap_adjust_initialize   ();
    roadmap_driver_initialize   ();
-   roadmap_config_initialize   ();
-   roadmap_lang_initialize     ();
    roadmap_sound_initialize    ();
+#endif
+   roadmap_gps_register_listener (&roadmap_gps_update);
 
    roadmap_start_set_title (roadmap_lang_get ("RoadMap"));
-   roadmap_gps_register_listener (&roadmap_gps_update);
 
    RoadMapStartGpsID = roadmap_string_new("GPS");
 
@@ -1226,7 +1282,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_init_key_cfg ();
 #endif   
 
+#ifndef J2ME
    roadmap_option (argc, argv, roadmap_start_usage);
+#endif
 
    roadmap_start_set_unit ();
    
@@ -1238,6 +1296,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_screen_set_initial_position ();
 
+#ifndef J2ME   
    roadmap_history_load ();
    
    roadmap_spawn_initialize (argv[0]);
@@ -1245,16 +1304,19 @@ void roadmap_start (int argc, char **argv) {
    roadmap_driver_activate ();
 
    roadmap_help_initialize ();
-
+#endif
    roadmap_start_prev_after_refresh =
       roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
    if (RoadMapStartSubscribers) RoadMapStartSubscribers (ROADMAP_START_INIT);
 
-   navigate_main_initialize ();
+#ifndef J2ME
    editor_main_initialize ();
+   navigate_main_initialize ();
+#endif
 
    roadmap_screen_obj_initialize ();
+
    roadmap_trip_restore_focus ();
 
    if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
@@ -1271,15 +1333,19 @@ void roadmap_start (int argc, char **argv) {
 void roadmap_start_exit (void) {
     
     roadmap_plugin_shutdown ();
+#ifndef J2ME    
     roadmap_driver_shutdown ();
     roadmap_sound_shutdown ();
     roadmap_history_save ();
+#endif
     roadmap_screen_shutdown ();
     roadmap_start_save_trip ();
     roadmap_config_save (0);
     roadmap_db_end ();
     roadmap_gps_shutdown ();
+#ifndef J2ME
     roadmap_res_shutdown ();
+#endif
 }
 
 
@@ -1355,9 +1421,10 @@ void roadmap_start_popup_menu (const char *name,
                                RoadMapCallback callback,
                                const RoadMapGuiPoint *point) {
    
+#ifdef SSD
    int height = roadmap_canvas_height();
    int flags = 0;
-#ifdef SSD
+
    if (point->y > height / 2) {
       flags = SSD_ALIGN_BOTTOM;
    }

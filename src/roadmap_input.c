@@ -30,10 +30,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
-#include <errno.h>
-#endif
-
 #include "roadmap.h"
 #include "roadmap_input.h"
 

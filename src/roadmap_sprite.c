@@ -384,8 +384,12 @@ void roadmap_sprite_draw
    RoadMapSprite sprite = roadmap_sprite_search (name);
    RoadMapSpritePlane *plane;
 
+   roadmap_log (ROADMAP_DEBUG, "In roadmap_sprite_draw.\n");
 
    if (sprite == NULL) return;
+
+   roadmap_log (ROADMAP_DEBUG, "Drawing %s in %d,%d.\n",
+                                sprite->name, location->x, location->y);
 
    for (plane = &(sprite->first); plane != NULL; plane = plane->next) {
 

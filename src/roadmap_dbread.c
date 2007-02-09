@@ -98,6 +98,8 @@ static void roadmap_db_make_tree
       return;
    }
 
+   roadmap_log (ROADMAP_DEBUG, "In roadmap_db_make_tree: first: %d, next: %d, size: %d, count:%d\n",
+   parent->head->first, parent->head->next, parent->head->size, parent->head->count);
    parent->first = NULL;
 
    for (child_offset = parent->head->first;
@@ -338,8 +340,9 @@ roadmap_db_model *roadmap_db_register
       }
 
       if (strcasecmp (section, registered->section) == 0) {
+         printf ("test1: %s, %s\n", section, registered->section);
          roadmap_log (ROADMAP_FATAL,
-                      "handler %s conflicts with %s for section %s",
+                      "STRCASECMP: handler %s conflicts with %s for section %s",
                       handler->name,
                       registered->handler->name,
                       section);

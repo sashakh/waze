@@ -1,4 +1,4 @@
-/* roadmap_gui.h - general definitions used by the RoadMap GUI module.
+/* roadmap_time.c - Manage time information & display.
  *
  * LICENSE:
  *
@@ -19,29 +19,32 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * SYNOPSYS:
+ *
+ *   See roadmap_time.h
  */
 
-#ifndef _ROADMAP_GUI__H_
-#define _ROADMAP_GUI__H_
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-#include "roadmap_types.h"
+#include "roadmap.h"
+#include "roadmap_time.h"
 
 
-typedef struct {
+char *roadmap_time_get_hours_minutes (time_t gmt) {
+    
+    return "00:00";
+#if 0
+    static char image[16];
+    
+    struct tm *tm;
+    
+    tm = localtime (&gmt);
+    snprintf (image, sizeof(image), "%2d:%02d", tm->tm_hour, tm->tm_min);
 
-   int x;
-   int y;
-
-} RoadMapGuiPoint;
-
-typedef struct {
-
-   int minx;
-   int miny;
-   int maxx;
-   int maxy;
-
-} RoadMapGuiRect;
-
-#endif /* _ROADMAP_GUI__H_ */
-
+    return image;
+#endif    
+}

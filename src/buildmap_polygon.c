@@ -968,6 +968,24 @@ void buildmap_polygon_save (void) {
       buildmap_polygon_fill_bounding_box
          (db_point, db_head + polygon_current);
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<PolygonCount; i++) {
+         switch_endian_short(&db_head[i].first);
+         switch_endian_short(&db_head[i].count);
+         switch_endian_short(&db_head[i].name);
+         switch_endian_int(&db_head[i].north);
+         switch_endian_int(&db_head[i].west);
+         switch_endian_int(&db_head[i].east);
+         switch_endian_int(&db_head[i].south);
+      }
+
+      for (i=0; i<PolygonLineCount; i++) {
+         switch_endian_int(&db_point[i].point);
+      }
+   }
 }
 
 

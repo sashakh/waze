@@ -533,9 +533,11 @@ int roadmap_display_activate
     }
 
 
+#ifndef J2ME
     if (street_has_changed) {
         roadmap_voice_announce (sign->title);
     }
+#endif    
 
     if (message_has_changed) {
 

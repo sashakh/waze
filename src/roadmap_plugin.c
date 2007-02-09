@@ -27,6 +27,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "roadmap.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"

@@ -150,6 +150,15 @@ void  buildmap_line_route_save (void) {
          db_route[i] = one_route->record;
       }
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<RoutesCount; i++) {
+         switch_endian_short(&db_route[i].from_speed_ref);
+         switch_endian_short(&db_route[i].to_speed_ref);
+      }
+   }
 }
 
 

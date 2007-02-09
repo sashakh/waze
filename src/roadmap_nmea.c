@@ -30,10 +30,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
-#include <errno.h>
-#endif
-
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_preferences.h"
@@ -41,7 +37,6 @@
 
 
 #define TIGER_COORDINATE_UNIT 1000000
-
 
 struct RoadMapNmeaAccountRecord {
 
@@ -97,6 +92,9 @@ static int dec2bin (char c) {
 static time_t roadmap_nmea_decode_time (const char *hhmmss,
                                         const char *ddmmyy) {
 
+#ifdef J2ME
+  return 0;
+#else
    static struct tm tm;
 
 
@@ -140,6 +138,7 @@ static time_t roadmap_nmea_decode_time (const char *hhmmss,
    /* FIXME: th time zone might change if we are moving !. */
 
    return timegm(&tm);
+#endif   
 }
 
 

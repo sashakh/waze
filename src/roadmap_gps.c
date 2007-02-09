@@ -50,6 +50,10 @@
 
 #include "roadmap_gps.h"
 
+#ifdef J2ME
+#include <javax/microedition/midlet.h>
+#include <gps_manager.h>
+#endif
 
 static RoadMapConfigDescriptor RoadMapConfigGPSAccuracy =
                         ROADMAP_CONFIG_ITEM("Accuracy", "GPS Position");
@@ -182,6 +186,8 @@ static void roadmap_gps_update_status (char status) {
 static void roadmap_gps_process_position (void) {
 
    int i;
+
+   roadmap_log (ROADMAP_ERROR, "Position: %d, %d\n", RoadMapGpsReceivedPosition.latitude, RoadMapGpsReceivedPosition.longitude);
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -461,7 +467,7 @@ static void roadmap_gps_nmea (void) {
 
 
 /* GPSD (or other) protocol support ------------------------------------ */
-
+#ifndef J2ME
 static void roadmap_gps_navigation (char status,
                                     int gmt_time,
                                     int latitude,
@@ -560,10 +566,11 @@ static void roadmap_gps_dilution (int dimension,
    roadmap_message_set ('h', "%.2f", RoadMapGpsQuality.dilution_horizontal);
    roadmap_message_set ('v', "%.2f", RoadMapGpsQuality.dilution_vertical);
 }
-
+#endif /* J2ME */
 /* End of GPSD protocol support ---------------------------------------- */
 
 
+#ifndef J2ME
 /* OBJECTS pseudo protocol support ------------------------------------- */
 
 static RoadMapObjectListener RoadMapGpsNextObjectListener;
@@ -589,7 +596,7 @@ static void roadmap_gps_object_monitor (RoadMapDynamicString id) {
 }
 
 /* End of OBJECT protocol support -------------------------------------- */
-
+#endif
 
 void roadmap_gps_initialize (void) {
 
@@ -706,7 +713,6 @@ void roadmap_gps_open (void) {
 
    const char *url;
 
-
    /* Check if we have a gps interface defined: */
 
    roadmap_gps_update_reception ();
@@ -736,6 +742,7 @@ void roadmap_gps_open (void) {
    RoadMapGpsLink.subsystem = ROADMAP_IO_INVALID;
    RoadMapGpsProtocol = ROADMAP_GPS_NMEA; /* This is the default. */
 
+#ifndef J2ME
    if (strncasecmp (url, "gpsd://", 7) == 0) {
 
       RoadMapGpsLink.os.socket = roadmap_net_connect ("tcp", url+7, 2947);
@@ -836,6 +843,16 @@ void roadmap_gps_open (void) {
       roadmap_log (ROADMAP_ERROR, "invalid protocol in url %s", url);
       return;
    }
+#else
+   if (1) {
+      RoadMapGpsLink.os.serial = roadmap_serial_open ("", "r", 0);
+
+      if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
+         RoadMapGpsLink.subsystem = ROADMAP_IO_SERIAL;
+      }
+   }
+
+#endif
 
    if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) {
       if (! RoadMapGpsRetryPending) {
@@ -869,12 +886,14 @@ void roadmap_gps_open (void) {
          roadmap_gps_nmea();
          break;
 
+#ifndef J2ME
       case ROADMAP_GPS_GPSD2:
 
          roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_navigation);
          roadmap_gpsd2_subscribe_to_satellites (roadmap_gps_satellites);
          roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
          break;
+#endif	 
 
       case ROADMAP_GPS_OBJECT:
          break;
@@ -925,7 +944,6 @@ void roadmap_gps_input (RoadMapIO *io) {
    static RoadMapInputContext decode;
    int res;
 
-
    if (decode.title == NULL) {
 
       decode.title    = RoadMapGpsTitle;
@@ -943,11 +961,13 @@ void roadmap_gps_input (RoadMapIO *io) {
 
          break;
 
+#ifndef J2ME
       case ROADMAP_GPS_GPSD2:
 
          decode.decoder = roadmap_gpsd2_decode;
          decode.decoder_context = NULL;
          break;
+#endif	 
 
       case ROADMAP_GPS_OBJECT:
 
@@ -1163,8 +1183,16 @@ void roadmap_gps_detect_receiver (void) {
 }
 
 #else
+#ifdef J2ME
+void roadmap_gps_detect_receiver (void) {
+   NOPH_GpsManager_t gps_mgr = NOPH_GpsManager_getInstance();
+   NOPH_MIDlet_t m = NOPH_MIDlet_get();
+   NOPH_GpsManager_searchGps(gps_mgr, m);
+}
+#else
 /* Unix */
 
 void roadmap_gps_detect_receiver (void) {}
+#endif
 #endif
 

@@ -61,7 +61,9 @@
 
 #include "roadmap_screen.h"
 
+#ifdef SSD
 #include "ssd/ssd_dialog.h"
+#endif
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
@@ -124,6 +126,9 @@ static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
 #ifndef ROADMAP_MAX_VISIBLE
 #define ROADMAP_MAX_VISIBLE  20000
 #endif
+
+#define SQUARE_IN_VIEW 0x1
+#define SQUARE_DRAWN   0x2
 
 static struct {
 
@@ -724,11 +729,11 @@ static int roadmap_screen_draw_square
 
       int last_real_square = -1;
       int real_square  = 0;
+      int real_square_drawn  = 0;
       RoadMapArea edges = {0, 0, 0, 0};
 
       int real_line;
       int square_count = roadmap_square_count();
-      char *on_canvas  = calloc (square_count, sizeof(char));
 
       for (line = first_line; line <= last_line; ++line) {
 
@@ -761,14 +766,9 @@ static int roadmap_screen_draw_square
 
             last_real_square = real_square;
 
-            if (on_canvas[real_square]) {
-               /* Either it has already been drawn, or it will be soon. */
-               continue;
-            }
-
             if (roadmap_math_is_visible (&edges)) {
 
-               on_canvas[real_square] = 1;
+               real_square_drawn = 1;
                continue;
             }
 
@@ -781,7 +781,7 @@ static int roadmap_screen_draw_square
             }
          }
 
-         if (on_canvas[real_square]) {
+         if (real_square_drawn) {
             /* Either it has already been drawn, or it will be soon. */
             continue;
          }
@@ -827,8 +827,6 @@ static int roadmap_screen_draw_square
             drawn += 1;
          }
       }
-
-      free (on_canvas);
    }
 
    roadmap_log_pop ();
@@ -987,7 +985,7 @@ static void roadmap_screen_draw_object
                (const char *name,
                 const char *sprite,
                 const RoadMapGpsPosition *gps_position) {
-
+#ifndef J2ME
    RoadMapPosition position;
    RoadMapGuiPoint screen_point;
 
@@ -1003,17 +1001,22 @@ static void roadmap_screen_draw_object
       roadmap_math_rotate_coordinates (1, &screen_point);
       roadmap_sprite_draw (sprite, &screen_point, gps_position->steering);
    }
+#endif
 }
 
 
-static void roadmap_screen_reset_square_mask (void) {
+static void roadmap_screen_alloc_square_mask (void) {
 
-   if (SquareOnScreen != NULL) {
-      free(SquareOnScreen);
+   int count = roadmap_square_count();
+
+   if (count != SquareOnScreenCount) {
+      if (SquareOnScreen != NULL) {
+         free(SquareOnScreen);
+      }
+      SquareOnScreenCount = count;
+      SquareOnScreen = malloc (SquareOnScreenCount * sizeof(char));
+      roadmap_check_allocated(SquareOnScreen);
    }
-   SquareOnScreenCount = roadmap_square_count();
-   SquareOnScreen = calloc (SquareOnScreenCount, sizeof(char));
-   roadmap_check_allocated(SquareOnScreen);
 }
 
 
@@ -1090,10 +1093,13 @@ static void roadmap_screen_repaint (void) {
     
 
     if (!RoadMapScreenInitialized) return;
+
+#ifdef SSD    
     if (RoadMapScreenFrozen) {
        ssd_dialog_draw ();
        return;
     }
+#endif
 
     dbg_time_start(DBG_TIME_FULL);
     if (RoadMapScreenDragging &&
@@ -1138,6 +1144,7 @@ static void roadmap_screen_repaint (void) {
         /* -- Access the county's database. */
 
         if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
+        roadmap_screen_alloc_square_mask();
 
         /* -- Look for the square that are currently visible. */
 
@@ -1151,7 +1158,10 @@ static void roadmap_screen_repaint (void) {
            int layers[256];
            int pen_type = k;
 
-           roadmap_screen_reset_square_mask();
+	   /* Reset square mask */
+           for (j = 0; j < count; j++) {
+	      SquareOnScreen[in_view[j]] = 0;
+           }
 
            layer_count = roadmap_layer_visible_lines (layers, 256, k);
            if (!layer_count) continue;
@@ -1195,7 +1205,9 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_display_signs ();
 
+#ifdef SSD
     ssd_dialog_draw ();
+#endif
     roadmap_canvas_refresh ();
 
     roadmap_log_pop ();
@@ -1523,6 +1535,7 @@ void roadmap_screen_move_right (void) {
 
 void roadmap_screen_move_left (void) {
 
+   roadmap_log (ROADMAP_DEBUG, "In roadmap_screen_move_left.\n");
    roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
    roadmap_screen_repaint ();
 }
@@ -1578,6 +1591,7 @@ void roadmap_screen_initialize (void) {
    roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigMapLabels, "on", "off", NULL);
 
+#ifndef J2ME
    roadmap_pointer_register_short_click
       (&roadmap_screen_short_click, POINTER_DEFAULT);
    roadmap_pointer_register_drag_start
@@ -1586,6 +1600,7 @@ void roadmap_screen_initialize (void) {
       (&roadmap_screen_drag_end, POINTER_DEFAULT);
    roadmap_pointer_register_drag_motion
       (&roadmap_screen_drag_motion, POINTER_DEFAULT);
+#endif
 
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
 
@@ -1615,7 +1630,9 @@ void roadmap_screen_shutdown (void) {
    point.latitude  = RoadMapScreenCenter.latitude;
    point.steering  = RoadMapScreenRotation;
 
+#ifndef J2ME
    roadmap_trip_set_mobile ("Hold", &point);
+#endif
 }
 
 
@@ -1660,6 +1677,7 @@ RoadMapScreenSubscriber roadmap_screen_subscribe_after_refresh
 }
 
 
+#ifndef J2ME
 /* TODO: ugly hack (both the hack and the drawing itself are ugly!).
  * This should be rewritten to allow specifying a sprite for
  * the direction mark.
@@ -1746,7 +1764,7 @@ roadmap_screen_draw_direction (RoadMapGuiPoint *point0,
       }
    }
 }
-
+#endif
 
 /* TODO: this function should either be implemented in
  * roadmap_screen_draw_one_line(), or common parts should be extracted.
@@ -1759,7 +1777,7 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
                                          RoadMapShapeItr shape_itr,
                                          int width,
                                          int direction) {
-
+#ifndef J2ME
    static RoadMapPen direction_pen = NULL;
 
    RoadMapGuiPoint point0;
@@ -1819,6 +1837,7 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
    roadmap_screen_flush_lines ();
    roadmap_screen_flush_points ();
    RoadMapScreenLastPen = NULL;
+#endif
 }
 
 

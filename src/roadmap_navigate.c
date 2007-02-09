@@ -670,10 +670,12 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     /* We must search again for the best street match. */
 
+#ifndef J2ME
     //FIXME remove when navigation will support plugin lines
     if (RoadMapRouteInfo.enabled) {
        editor_plugin_set_override (0);
     }
+#endif
     count = roadmap_navigate_get_neighbours
                 (&RoadMapLatestPosition, roadmap_fuzzy_max_distance(),
                  RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD, LAYER_ALL_ROADS);
@@ -721,10 +723,12 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         }
     }
 
+#ifndef J2ME
     //FIXME remove when navigation will support plugin lines
     if (RoadMapRouteInfo.enabled) {
        editor_plugin_set_override (1);
     }
+#endif    
 
     if (roadmap_fuzzy_is_acceptable (best)) {
 

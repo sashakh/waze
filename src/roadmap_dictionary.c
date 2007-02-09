@@ -98,7 +98,7 @@ static char *roadmap_dictionary_get_string
              + dictionary->string_index[dictionary->reference[index].index];
 }
 
-
+#ifndef J2ME
 static void roadmap_dictionary_print_subtree
                (struct dictionary_volume *dictionary, int tree_index) {
 
@@ -150,7 +150,7 @@ static void roadmap_dictionary_print_subtree
       }
    }
 }
-
+#endif
 
 static void roadmap_dictionary_walk
                (struct dictionary_volume *dictionary, int tree_index,
@@ -680,7 +680,7 @@ RoadMapString roadmap_dictionary_locate (RoadMapDictionary d,
    return (RoadMapString)result;
 }
 
-
+#ifndef J2ME
 void roadmap_dictionary_dump (void) {
 
    struct dictionary_volume *volume;
@@ -706,6 +706,7 @@ void roadmap_dictionary_dump_volume (char *name) {
    }
 }
 
+#endif
 
 int roadmap_dictionary_search_all
             (RoadMapDictionary dictionary, RoadMapDictionaryMask mask,
@@ -738,7 +739,7 @@ int roadmap_dictionary_search_all
 
    for (subtree_index = -1; subtree_index < subtrees_count; subtree_index++) {
       int status;
-      int subtree_start_pos;
+      int subtree_start_pos = 0;
 
       itr = str;
       if (subtree_index == -1) {

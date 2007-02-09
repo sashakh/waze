@@ -688,6 +688,42 @@ void buildmap_line_save (void) {
 
    memcpy (db_long_lines, LongLines, LongLinesCount * sizeof (RoadMapLongLine));
 
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<LineCount; i++) {
+         switch_endian_int(&db_lines[i].from);
+         switch_endian_int(&db_lines[i].to);
+      }
+
+      for (i=0; i<square_count; i++) {
+         int j;
+         for (j=0; j<ROADMAP_CATEGORY_RANGE; j++) {
+            switch_endian_int(&db_square1[i].first[j]);
+         }
+         switch_endian_int(&db_square1[i].last);
+      }
+
+      for (i=0; i<LineCrossingCount; i++) {
+         switch_endian_int(db_index2 + i);
+      }
+
+      for (i=0; i<square_count; i++) {
+         int j;
+         for (j=0; j<ROADMAP_CATEGORY_RANGE; j++) {
+            switch_endian_int(&db_square2[i].first[j]);
+         }
+         switch_endian_int(&db_square2[i].last);
+      }
+
+      for (i=0; i<LongLinesCount; i++) {
+         switch_endian_int(&db_long_lines[i].line);
+         switch_endian_int(&db_long_lines[i].area.east);
+         switch_endian_int(&db_long_lines[i].area.west);
+         switch_endian_int(&db_long_lines[i].area.north);
+         switch_endian_int(&db_long_lines[i].area.south);
+      }
+   }
 }
 
 

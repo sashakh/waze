@@ -302,6 +302,14 @@ void  buildmap_line_speed_save (void) {
       }
       db_speed[slot_count-1].time_slot |= SPEED_EOL;
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<SpeedsCount; i++) {
+         switch_endian_int(db_index + i);
+      }
+   }
 }
 
 

@@ -61,14 +61,20 @@ static void roadmap_factory_keyboard (char *key) {
 
    const struct RoadMapFactoryKeyMap *binding;
 
+   roadmap_log (ROADMAP_DEBUG, "In roadmap_factory_keyboard.\n");
+
    if (RoadMapFactoryBindings == NULL) return;
 
+   roadmap_log (ROADMAP_DEBUG, "Searching for action...\n");
    for (binding = RoadMapFactoryBindings; binding->key != NULL; ++binding) {
 
+      roadmap_log (ROADMAP_DEBUG, "Key: %s, name:%s\n", binding->key, binding->action->name);
       if (strcasecmp (binding->key, key) == 0) {
+         roadmap_log (ROADMAP_DEBUG, "Found action.\n");
          if (binding->action != NULL) {
             RoadMapCallback callback = binding->action->callback;
             if (callback != NULL) {
+               roadmap_log (ROADMAP_DEBUG, "Calling callback...\n");
                (*callback) ();
                break;
             }
@@ -77,6 +83,7 @@ static void roadmap_factory_keyboard (char *key) {
    }
 }
 
+#ifndef J2ME
 static void roadmap_factory_add_help (RoadMapMenu menu) {
 
    int ok;
@@ -93,7 +100,7 @@ static void roadmap_factory_add_help (RoadMapMenu menu) {
                                   callback);
    }
 }
-
+#endif
 
 static const RoadMapAction *roadmap_factory_find_action
                               (const RoadMapAction *actions, const char *item) {
@@ -227,7 +234,9 @@ void roadmap_factory (const char           *name,
 
       } else if (item == RoadMapFactoryHelpTopics) {
 
+#ifndef J2ME
          roadmap_factory_add_help (gui_menu);
+#endif
 
       } else if (strncmp (item, ROADMAP_MENU, prefix) == 0) {
 
@@ -321,6 +330,8 @@ void roadmap_factory_keymap (const RoadMapAction  *actions,
          roadmap_check_allocated(text);
 
          separator = strstr (text, ROADMAP_MAPPED_TO);
+         roadmap_log (ROADMAP_DEBUG, "In roadmap_factory_keymap: text:%s, separator: %s\n", text, separator);
+
          if (separator != NULL) {
 
             char *p;
@@ -328,6 +339,8 @@ void roadmap_factory_keymap (const RoadMapAction  *actions,
             /* Separate the name of the key from the name of the action. */
 
             for (p = separator; *p && (*p <= ' '); --p) *p = 0;
+
+            roadmap_log (ROADMAP_DEBUG, "After separation: text:%s, p: %s\n", text, p);
 
             p = separator + strlen(ROADMAP_MAPPED_TO);
             while (*p && (*p <= ' ')) ++p;

@@ -430,6 +430,21 @@ void buildmap_point_save (void) {
 
       db_ids[i] = one_point->db_id;
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<PointCount; i++) {
+         switch_endian_short(&db_points[i].longitude);
+         switch_endian_short(&db_points[i].latitude);
+         switch_endian_int(db_ids + i);
+      }
+
+      for (i=0; i<buildmap_square_get_count(); i++) {
+         switch_endian_int(&db_bysquare[i].first);
+         switch_endian_int(&db_bysquare[i].count);
+      }
+   }
 }
 
 

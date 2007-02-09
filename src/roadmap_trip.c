@@ -292,6 +292,7 @@ static RoadMapTripPoint *roadmap_trip_update
 }
 
 
+#ifndef J2ME
 static void roadmap_trip_dialog_cancel (const char *name, void *data) {
     
     roadmap_dialog_hide (name);
@@ -428,7 +429,6 @@ static void roadmap_trip_remove_dialog (void) {
     roadmap_trip_remove_dialog_populate (count);
 }
 
-
 static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
 
     FILE *file;
@@ -450,7 +450,7 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
     return file;
 }
 
-
+#endif
 static void roadmap_trip_set_point_focus (RoadMapTripPoint *point) {
 
     int rotate;
@@ -642,6 +642,7 @@ static void roadmap_trip_format_messages (void) {
                              gps->gps.altitude,
                              roadmap_math_distance_unit());
 
+#ifndef J2ME        
         sun = roadmap_sunset (&gps->gps);
         if (sun > now) {
 
@@ -656,7 +657,7 @@ static void roadmap_trip_format_messages (void) {
            sun = roadmap_sunrise (&gps->gps);
            roadmap_message_set ('M', roadmap_time_get_hours_minutes(sun));
         }
-
+#endif
     } else {
 
         RoadMapTripNextWaypoint = NULL;
@@ -687,12 +688,13 @@ static int roadmap_trip_gps_state (void) {
 
 void roadmap_trip_set_point (const char *name,
                              const RoadMapPosition *position) {
-
+#ifndef J2ME
     if (name == NULL) {
         roadmap_trip_set_dialog (position);
     } else {
         roadmap_trip_update (name, position, NULL, "Waypoint");
     }
+#endif
 }
 
 
@@ -744,7 +746,9 @@ void roadmap_trip_remove_point (const char *name) {
     RoadMapTripPoint *result;
 
     if (name == NULL) {
+#ifndef J2ME
         roadmap_trip_remove_dialog ();
+#endif
         return;
     }
     
@@ -1063,6 +1067,9 @@ void roadmap_trip_initialize (void) {
 
 int roadmap_trip_load (const char *name, int silent) {
     
+#ifdef J2ME
+    return 0;
+#else
     FILE *file;
     int   i;
     char *p;
@@ -1118,6 +1125,7 @@ int roadmap_trip_load (const char *name, int silent) {
       
     roadmap_screen_refresh();
     return 1;
+#endif
 }
 
 
@@ -1132,6 +1140,7 @@ static void roadmap_trip_printf (FILE *file, const RoadMapTripPoint *point) {
 
 void roadmap_trip_save (const char *name) {
     
+#ifndef J2ME
     RoadMapTripPoint *point;
     RoadMapListItem *item, *tmp;
 
@@ -1165,6 +1174,7 @@ void roadmap_trip_save (const char *name) {
         fclose (file);
         RoadMapTripModified = 0;
     }
+#endif
 }
 
 

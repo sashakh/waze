@@ -465,8 +465,6 @@ static int roadmap_config_load
    file = roadmap_file_fopen (path, config->name, "sr");
    if (file == NULL) return 0;
 
-   /* DEBUG: printf ("Loading %s from %s ..\n", config->name, path); */
-
    while (!feof(file)) {
 
         int new_item;

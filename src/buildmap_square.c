@@ -384,6 +384,30 @@ void buildmap_square_save (void) {
       db_square[i].position      = SortedSquare[i];
       db_square[i].count_points  = one_square->count;
    }
+
+   if (switch_endian) {
+      int i;
+
+      switch_endian_int(&db_global->edges.east);
+      switch_endian_int(&db_global->edges.west);
+      switch_endian_int(&db_global->edges.north);
+      switch_endian_int(&db_global->edges.south);
+      switch_endian_int(&db_global->step_longitude);
+      switch_endian_int(&db_global->step_latitude);
+      switch_endian_int(&db_global->count_longitude);
+      switch_endian_int(&db_global->count_latitude);
+      switch_endian_int(&db_global->count_squares);
+
+      for (i=0; i<SquareCount; i++) {
+
+         switch_endian_int(&db_square[i].edges.east);
+         switch_endian_int(&db_square[i].edges.west);
+         switch_endian_int(&db_square[i].edges.north);
+         switch_endian_int(&db_square[i].edges.south);
+         switch_endian_int(&db_square[i].count_points);
+         switch_endian_int(&db_square[i].position);
+      }
+   }
 }
 
 

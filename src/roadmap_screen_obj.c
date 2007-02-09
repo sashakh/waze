@@ -55,7 +55,8 @@ typedef struct {
 
 static ObjectFile RoadMapObjFiles[] = {
    {"objects",      300},
-   {"objects_wide", 200}
+   {"objects_wide", 200},
+   {"objects",      100}
 };
 
 #define MAX_STATES 9
@@ -140,6 +141,7 @@ static void roadmap_screen_obj_decode_icon
                         (RoadMapScreenObj object,
                          int argc, const char **argv, int *argl) {
 
+#ifndef J2ME
    int i;
 
    argc -= 1;
@@ -174,6 +176,7 @@ static void roadmap_screen_obj_decode_icon
    }
 
    ++object->states_count;
+#endif
 }
 
 
@@ -469,6 +472,7 @@ static void roadmap_screen_obj_pos (RoadMapScreenObj object,
 }
 
 
+#ifndef J2ME
 static RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
 
    RoadMapScreenObj cursor;
@@ -573,6 +577,7 @@ static int roadmap_screen_obj_long_click (RoadMapGuiPoint *point) {
 
    return 1;
 }
+#endif
 
 
 static void roadmap_screen_obj_reload (void) {
@@ -648,13 +653,14 @@ void roadmap_object_iterate (RoadMapObjectAction action) {
 
 void roadmap_screen_obj_initialize (void) {
 
+#ifndef J2ME
    roadmap_pointer_register_pressed
       (roadmap_screen_obj_pressed, POINTER_HIGH);
    roadmap_pointer_register_short_click
       (roadmap_screen_obj_short_click, POINTER_HIGH);
    roadmap_pointer_register_long_click
       (roadmap_screen_obj_long_click, POINTER_HIGH);
-
+#endif
    roadmap_screen_obj_reload ();
 }
 

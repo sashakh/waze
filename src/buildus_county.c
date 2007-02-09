@@ -538,6 +538,37 @@ void buildus_county_save (void) {
           db_state[i].edges = State[state].edges;
       }
    }
+
+   if (switch_endian) {
+      int i;
+      for (i=0; i<CountyCount; i++) {
+         switch_endian_int(&db_county[i].fips);
+         switch_endian_short(&db_county[i].reserved);
+         switch_endian_short(&db_county[i].name);
+         switch_endian_int(&db_county[i].edges.east);
+         switch_endian_int(&db_county[i].edges.west);
+         switch_endian_int(&db_county[i].edges.north);
+         switch_endian_int(&db_county[i].edges.south);
+      }
+
+      for (i=0; i<CountyCityCount; i++) {
+         switch_endian_short(&db_city[i].county);
+         switch_endian_short(&db_city[i].city);
+      }
+
+      for (i=0; i<state_max + 1; i++) {
+         switch_endian_short(&db_state[i].name);
+         switch_endian_short(&db_state[i].symbol);
+         switch_endian_short(&db_state[i].first_county);
+         switch_endian_short(&db_state[i].last_county);
+         switch_endian_short(&db_state[i].first_city);
+         switch_endian_short(&db_state[i].last_city);
+         switch_endian_int(&db_state[i].edges.east);
+         switch_endian_int(&db_state[i].edges.west);
+         switch_endian_int(&db_state[i].edges.north);
+         switch_endian_int(&db_state[i].edges.south);
+      }
+   }
 }
 
 

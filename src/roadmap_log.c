@@ -120,6 +120,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
    int i;
 
+#ifndef J2ME
 #ifndef _WIN32
    time_t now;
    struct tm *tms;
@@ -127,7 +128,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
    time (&now);
    tms = localtime (&now);
 
-   fprintf (file, "%d:%d:%d %c%s %s, line %d ",
+   printf ("%d:%d:%d %c%s %s, line %d ",
          tms->tm_hour, tms->tm_min, tms->tm_sec,
          saved, category->prefix, source, line);
 #else
@@ -135,25 +136,26 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
    SYSTEMTIME st;
 	GetSystemTime(&st);
 
-   fprintf (file, "%d/%d %d:%d:%d %c%s %s, line %d ",
+   printf ("%d/%d %d:%d:%d %c%s %s, line %d ",
          st.wDay, st.wMonth, st.wHour, st.wMinute, st.wSecond,
          saved, category->prefix, source, line);
 
 #endif
+#endif
    if (!category->show_stack && (RoadMapLogStackCursor > 0)) {
-      fprintf (file, "(%s): ", RoadMapLogStack[RoadMapLogStackCursor-1]);
+      printf ("(%s): ", RoadMapLogStack[RoadMapLogStackCursor-1]);
    }
-   vfprintf(file, format, ap);
-   fprintf (file, "\n");
+   vprintf(format, ap);
+   printf ("\n");
 
    if (category->show_stack && RoadMapLogStackCursor > 0) {
 
       int indent = 8;
 
-      fprintf (file, "   Call stack:\n");
+      printf ("   Call stack:\n");
 
       for (i = 0; i < RoadMapLogStackCursor; ++i) {
-          fprintf (file, "%*.*s %s\n", indent, indent, "", RoadMapLogStack[i]);
+          printf ("%*.*s %s\n", indent, indent, "", RoadMapLogStack[i]);
           indent += 3;
       }
    }
@@ -167,6 +169,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
    struct roadmap_message_descriptor *category;
    char *debug;
 
+   return;
    if (level < roadmap_verbosity()) return;
 
 #ifdef DEBUG
@@ -183,6 +186,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    va_start(ap, format);
 
+#ifndef J2ME
    if (category->save_to_file) {
 
       if (file == NULL) {
@@ -202,7 +206,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
          saved = 's';
       }
    }
-
+#endif
    roadmap_log_one (category, stderr, saved, source, line, format, ap);
 
    va_end(ap);
