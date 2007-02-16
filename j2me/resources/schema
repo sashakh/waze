@@ -11,7 +11,7 @@ Freeways.Thickness: 6
 Primary.Class: Road
 Primary.Color: #000000
 Primary.Color1: #ae0a34
-Primary.Declutter: 2147483647
+Primary.Declutter: 4000
 Primary.Delta1: -2
 Primary.Thickness: 6
 Secondary.Class: Road
