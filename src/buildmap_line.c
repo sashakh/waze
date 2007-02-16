@@ -729,9 +729,18 @@ void buildmap_line_save (void) {
 
 void buildmap_line_summary (void) {
 
+   int total_bytes = 0;
+   int square_count = buildmap_square_get_count();
+
+   total_bytes += LineCount * sizeof(RoadMapLine);
+   total_bytes += square_count * sizeof(RoadMapLineBySquare);
+   total_bytes += LineCrossingCount * sizeof(int);
+   total_bytes += square_count * sizeof(RoadMapLineBySquare);
+   total_bytes += LongLinesCount * sizeof(RoadMapLongLine);
+
    fprintf (stderr,
-            "-- line table statistics: %d lines, %d crossing\n",
-            LineCount, LineCrossingCount);
+            "-- line table statistics: %d lines, %d crossing, bytes %d\n",
+            LineCount, LineCrossingCount, total_bytes);
 }
 
 

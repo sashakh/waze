@@ -991,9 +991,13 @@ void buildmap_polygon_save (void) {
 
 void buildmap_polygon_summary (void) {
 
+   int total_bytes = 0;
+   total_bytes += PolygonCount * sizeof(RoadMapPolygon);
+   total_bytes += PolygonLineCount * sizeof(RoadMapPolygonPoint);
+
    fprintf (stderr,
-            "-- polygon table statistics: %d polygons, %d lines\n",
-            PolygonCount, PolygonLineCount);
+            "-- polygon table statistics: %d polygons, %d lines, bytes %d\n",
+            PolygonCount, PolygonLineCount, total_bytes);
 }
 
 

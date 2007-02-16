@@ -451,7 +451,11 @@ void buildmap_point_save (void) {
 void buildmap_point_summary (void) {
 
    fprintf (stderr, "-- point table statistics: %d points, %d bytes used\n",
-                    PointCount, PointCount * sizeof(RoadMapPoint));
+                    PointCount, PointCount * sizeof(RoadMapPoint) +
+		    		PointCount * sizeof(int) +
+				buildmap_square_get_count() *
+				 sizeof(RoadMapSortedList));
+
 }
 
 

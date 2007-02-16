@@ -299,6 +299,7 @@ static void buildmap_county_process (const char *source,
       buildmap_line_speed_summary ();
       buildmap_dglib_summary ();
       buildmap_range_summary ();
+      buildmap_point_summary ();
       buildmap_shape_summary ();
       buildmap_turn_restrictions_summary ();
       buildmap_polygon_summary ();
