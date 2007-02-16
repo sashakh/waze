@@ -714,7 +714,7 @@ static int roadmap_screen_draw_square
                     cutoff_dist > roadmap_math_screen_distance
                             (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
                PluginLine l = {ROADMAP_PLUGIN_ID, line, cfcc, fips};
-               roadmap_label_add (&seg_middle, angle, total_length, &l);
+               //roadmap_label_add (&seg_middle, angle, total_length, &l);
             }
 
             drawn += 1;
@@ -821,7 +821,7 @@ static int roadmap_screen_draw_square
                     cutoff_dist > roadmap_math_screen_distance
                             (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
                PluginLine l = {ROADMAP_PLUGIN_ID, real_line, cfcc, fips};
-               roadmap_label_add (&seg_middle, angle, total_length, &l);
+               //roadmap_label_add (&seg_middle, angle, total_length, &l);
             }
 
             drawn += 1;
@@ -968,7 +968,7 @@ static int roadmap_screen_draw_long_lines (int pen_type) {
             if (total_length_ptr) {
 
                PluginLine l = {ROADMAP_PLUGIN_ID, real_line, cfcc, fips};
-               roadmap_label_add (&seg_middle, angle, total_length, &l);
+               //roadmap_label_add (&seg_middle, angle, total_length, &l);
             }
 
             drawn += 1;
