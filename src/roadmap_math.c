@@ -1127,15 +1127,13 @@ void roadmap_math_to_position (const RoadMapGuiPoint *point,
 void roadmap_math_coordinate (const RoadMapPosition *position,
                               RoadMapGuiPoint *point) {
 
-   int scale = 1;
-
    point->x =
       ((position->longitude - RoadMapContext.upright_screen.west)
-             / (RoadMapContext.zoom_x / scale));
+             / RoadMapContext.zoom_x);
 
    point->y =
       ((RoadMapContext.upright_screen.north - position->latitude)
-             / (RoadMapContext.zoom_y / scale));
+             / RoadMapContext.zoom_y);
 }
 
 
