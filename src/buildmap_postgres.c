@@ -350,8 +350,11 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
 
       layer = pg2layer (atoi(PQgetvalue(db_result, irec, column++)));
 
-      from_node_id = atoi(PQgetvalue(db_result, irec, column++));
-      to_node_id = atoi(PQgetvalue(db_result, irec, column++));
+      from_node_id = atoi(PQgetvalue(db_result, irec, column));
+      if (PQgetisnull(db_result, irec, column++)) from_node_id = -1;
+
+      to_node_id = atoi(PQgetvalue(db_result, irec, column));
+      if (PQgetisnull(db_result, irec, column++)) to_node_id = -1;
 
       fedirp = 
          str2dict (DictionaryPrefix, PQgetvalue(db_result, irec, column++));
