@@ -158,7 +158,6 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_display.c \
           roadmap_factory.c \
           roadmap_preferences.c \
-          roadmap_address_ssd.c \
           roadmap_crossing.c \
           roadmap_coord.c \
           roadmap_download.c \
@@ -166,6 +165,12 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_label.c \
           roadmap_res.c \
           roadmap_start.c
+
+ifneq ($(SSD),YES)
+	RMLIBSRCS += roadmap_address.c
+else
+	RMLIBSRCS += roadmap_address_ssd.c
+endif
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)
 

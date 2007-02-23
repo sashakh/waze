@@ -93,6 +93,7 @@ SelectedLine SelectedLines[MAX_LINE_SELECTIONS];
 
 static int select_count;
 
+#ifdef SSD
 static char const *PopupMenuItems[] = {
 
    "setasdeparture",
@@ -102,7 +103,7 @@ static char const *PopupMenuItems[] = {
 
    NULL,
 };
-
+#endif
 
 
 /* track which lines were drawn */
@@ -237,9 +238,11 @@ static int editor_screen_long_click (RoadMapGuiPoint *point) {
 }
  
 
+#ifdef SSD
 static void popup_menu_callback (void) {
    editor_screen_reset_selected ();
 }
+#endif
 
 
 static int editor_screen_short_click (RoadMapGuiPoint *point) {
@@ -258,7 +261,9 @@ static int editor_screen_short_click (RoadMapGuiPoint *point) {
        
       roadmap_display_hide ("Selected Street");
       roadmap_trip_set_point ("Selection", &position);
+#ifdef SSD      
       roadmap_start_hide_menu ("Editor Menu");
+#endif      
       editor_screen_reset_selected ();
       roadmap_screen_redraw ();
       return 1;
@@ -296,8 +301,10 @@ static int editor_screen_short_click (RoadMapGuiPoint *point) {
 
    roadmap_trip_set_point ("Selection", &position);
    roadmap_display_activate ("Selected Street", &line, &position, &street);
+#ifdef SSD
    roadmap_start_popup_menu ("Editor Menu", PopupMenuItems,
                              popup_menu_callback, point);
+#endif			     
    roadmap_screen_redraw ();
 
    return 1;

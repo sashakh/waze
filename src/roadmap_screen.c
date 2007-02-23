@@ -1091,7 +1091,9 @@ static void roadmap_screen_repaint (void) {
 
     if (!RoadMapScreenInitialized) return;
     if (RoadMapScreenFrozen) {
+#ifdef SSD
        ssd_dialog_draw ();
+#endif
        return;
     }
 
@@ -1195,7 +1197,9 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_display_signs ();
 
+#ifdef SSD
     ssd_dialog_draw ();
+#endif
     roadmap_canvas_refresh ();
 
     roadmap_log_pop ();

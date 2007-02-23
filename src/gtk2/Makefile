@@ -71,8 +71,12 @@ CXXFLAGS = $(CFLAGS) -I/usr/include/agg2 -I/usr/include/freetype2 -I/usr/include
 
 RMLIBSRCS=roadmap_keyboard.c \
           roadmap_dialog.c \
-          roadmap_fileselection.c \
-#          roadmap_messagebox.c \
+          roadmap_fileselection.c
+
+ifneq ($(SSD),YES)
+RMLIBSRCS += roadmap_messagebox.c
+endif
+
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o roadmap_libpng.o
 
