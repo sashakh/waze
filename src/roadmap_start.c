@@ -550,6 +550,7 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 };
 
 
+#ifdef UNDER_CE
 static const char *RoadMapStartCfgActions[] = {
 
    "preferences",
@@ -584,6 +585,7 @@ static const char *RoadMapStartCfgActions[] = {
    "addvoicenote",
    NULL
 };
+#endif
 
 
 static const char *RoadMapStartMenu[] = {
@@ -1251,8 +1253,11 @@ void roadmap_start (int argc, char **argv) {
 
    if (RoadMapStartSubscribers) RoadMapStartSubscribers (ROADMAP_START_INIT);
 
-   navigate_main_initialize ();
+   /* due to the automatic sync on WinCE, the editor plugin must register
+    * first
+    */
    editor_main_initialize ();
+   navigate_main_initialize ();
 
    roadmap_screen_obj_initialize ();
    roadmap_trip_restore_focus ();
@@ -1350,6 +1355,7 @@ void roadmap_start_context_menu (const RoadMapGuiPoint *point) {
 }
  
 
+#ifdef SSD
 void roadmap_start_popup_menu (const char *name,
                                const char *items[],
                                RoadMapCallback callback,
@@ -1357,22 +1363,22 @@ void roadmap_start_popup_menu (const char *name,
    
    int height = roadmap_canvas_height();
    int flags = 0;
-#ifdef SSD
+
    if (point->y > height / 2) {
       flags = SSD_ALIGN_BOTTOM;
    }
 
    ssd_menu_activate (name, "", items, callback, RoadMapStartActions,
                       SSD_DIALOG_FLOAT|flags);
+}
 #endif   
-}
 
 
-void roadmap_start_hide_menu (const char *name) {
 #ifdef SSD
+void roadmap_start_hide_menu (const char *name) {
    ssd_menu_hide (name);
-#endif
 }
+#endif
 
  
 void roadmap_start_redraw (void) {
