@@ -37,6 +37,7 @@
 #include "roadmap_locator.h"
 #include "roadmap_config.h"
 #include "roadmap_start.h"
+#include "roadmap_skin.h"
 #include "roadmap_main.h"
 
 #include "navigate_traffic.h"
@@ -45,7 +46,10 @@
 #define MAX_PEN_LAYERS 2
 #define MAX_ROAD_COLORS 2
 
-static RoadMapConfigDescriptor NavigateUseTrafficCfg =
+static RoadMapConfigDescriptor TrafficConfigJamColor =
+                    ROADMAP_CONFIG_ITEM("Traffic", "JamRoadColor");
+
+static RoadMapConfigDescriptor TrafficUseTrafficCfg =
                   ROADMAP_CONFIG_ITEM("Traffic", "Use for calculating routes");
 static RoadMapConfigDescriptor TrafficDisplayEnabledCfg =
                   ROADMAP_CONFIG_ITEM("Traffic", "Display traffic information");
@@ -82,7 +86,7 @@ static const char *yesno[2];
 static int button_callback (SsdWidget widget, const char *new_value) {
 
    if (!strcmp(widget->name, "OK")) {
-      roadmap_config_set (&NavigateUseTrafficCfg,
+      roadmap_config_set (&TrafficUseTrafficCfg,
                            (const char *)ssd_dialog_get_data ("navigate"));
       roadmap_config_set (&TrafficDisplayEnabledCfg,
                            (const char *)ssd_dialog_get_data ("display"));
@@ -165,7 +169,7 @@ void traffic_preferences (void) {
       ssd_dialog_activate ("traffic_prefs", NULL);
    }
 
-   if (roadmap_config_match(&NavigateUseTrafficCfg, "yes")) value = yesno[0];
+   if (roadmap_config_match(&TrafficUseTrafficCfg, "yes")) value = yesno[0];
    else value = yesno[1];
 
    ssd_dialog_set_data ("navigate", (void *) value);
@@ -198,9 +202,9 @@ static void create_pens (void) {
          if (!j) {
             roadmap_canvas_set_foreground ("#000000");
          } else {
-            roadmap_canvas_set_foreground ("dark red");
+            roadmap_canvas_set_foreground
+               (roadmap_config_get (&TrafficConfigJamColor));
          }
-         roadmap_canvas_set_thickness (1);
       }
 }
 
@@ -296,12 +300,15 @@ void navigate_traffic_initialize (void) {
       CacheMask = (CacheMask << 1) | 1;
    }
 
-   create_pens ();
-
+   roadmap_config_declare
+       ("schema", &TrafficConfigJamColor, "#8b0000", NULL);
    roadmap_config_declare_enumeration
        ("preferences", &TrafficDisplayEnabledCfg, "no", "yes", NULL);
    roadmap_config_declare_enumeration
-       ("preferences", &NavigateUseTrafficCfg, "yes", "no", NULL);
+       ("preferences", &TrafficUseTrafficCfg, "yes", "no", NULL);
+
+   create_pens ();
+   roadmap_skin_register (create_pens);
 
    navigate_traffic_display
       (roadmap_config_match(&TrafficDisplayEnabledCfg, "yes"));
@@ -338,7 +345,7 @@ int navigate_traffic_override_pen (int line,
 
    if (pen_type > 1) return 0;
 
-   if (cfcc > 3) return 0;
+   if (cfcc > 5) return 0;
 
    if (roadmap_locator_activate (fips) >= 0) {
       int avg1;
@@ -405,7 +412,7 @@ void navigate_traffic_refresh (void) {
 
 int navigate_traffic_get_cross_time (int line, int direction) {
    
-   if (!roadmap_config_match(&NavigateUseTrafficCfg, "yes")) return 0;
+   if (!roadmap_config_match(&TrafficUseTrafficCfg, "yes")) return 0;
 
    return roadmap_line_route_get_cross_time (line, direction);
 }

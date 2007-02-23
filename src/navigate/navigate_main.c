@@ -46,7 +46,6 @@
 #include "roadmap_screen.h"
 #include "roadmap_line_route.h"
 #include "roadmap_math.h"
-#include "roadmap_navigate.h"
 #include "roadmap_point.h"
 #include "roadmap_layer.h"
 #include "roadmap_adjust.h"
@@ -54,6 +53,8 @@
 #include "roadmap_address.h"
 #include "roadmap_sound.h"
 #include "roadmap_locator.h"
+#include "roadmap_config.h"
+#include "roadmap_skin.h"
 #include "roadmap_main.h"
 
 //FIXME remove when navigation will support plugin lines
@@ -67,6 +68,12 @@
 #include "navigate_main.h"
 
 #define ROUTE_PEN_WIDTH 4
+
+static RoadMapConfigDescriptor NavigateConfigRouteColor =
+                    ROADMAP_CONFIG_ITEM("Navigation", "RouteColor");
+
+static RoadMapConfigDescriptor NavigateConfigPossibleRouteColor =
+                    ROADMAP_CONFIG_ITEM("Navigation", "PossibleRouteColor");
 
 int NavigateEnabled = 0;
 int NavigatePluginID = -1;
@@ -643,17 +650,28 @@ int navigate_is_enabled (void) {
 }
 
 
-void navigate_main_initialize (void) {
+static void navigate_main_init_pens (void) {
 
    NavigatePen = roadmap_canvas_create_pen ("NavigatePen1");
-   roadmap_canvas_set_foreground ("blue");
-   roadmap_canvas_set_opacity (160);
+   roadmap_canvas_set_foreground
+      (roadmap_config_get (&NavigateConfigRouteColor));
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
 
    NavigatePenEst = roadmap_canvas_create_pen ("NavigatePen2");
-   roadmap_canvas_set_foreground ("red");
-   roadmap_canvas_set_opacity (160);
+   roadmap_canvas_set_foreground
+      (roadmap_config_get (&NavigateConfigPossibleRouteColor));
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
+}
+
+
+void navigate_main_initialize (void) {
+
+   roadmap_config_declare
+       ("schema", &NavigateConfigRouteColor,  "#0000ffa0", NULL);
+   roadmap_config_declare
+       ("schema", &NavigateConfigPossibleRouteColor,  "#ff0000a0", NULL);
+
+   navigate_main_init_pens ();
 
    navigate_bar_initialize ();
    NavigatePluginID = navigate_plugin_register ();
@@ -665,6 +683,7 @@ void navigate_main_initialize (void) {
       roadmap_message_register (navigate_main_format_messages);
 
    roadmap_address_register_nav (navigate_address_cb);
+   roadmap_skin_register (navigate_main_init_pens);
 }
 
 
