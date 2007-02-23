@@ -290,8 +290,9 @@ static int add_road_connection (int point_id,
             (line_id, cfcc, flags | ED_LINE_CONNECTION);
       }
 
-      track_reset_points (end_point);
    }
+
+   track_reset_points (end_point);
 
    return 0;
 }
