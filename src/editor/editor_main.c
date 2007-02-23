@@ -26,6 +26,8 @@
  */
 
 #include <stdlib.h>
+#include <assert.h>
+
 #include "../roadmap.h"
 #include "../roadmap_pointer.h"
 #include "../roadmap_plugin.h"
@@ -46,7 +48,7 @@
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.9.0";
+const char *EDITOR_VERSION = "0.9.1";
 
 void editor_main_check_map (void) {
 
@@ -90,6 +92,8 @@ void editor_main_initialize (void) {
    editor_notes_initialize  ();
 
    EditorPluginID = editor_plugin_register ();
+   /* This is due to the WinCE auto sync */
+   assert(EditorPluginID == 1);
 
    roadmap_layer_adjust ();
 }
