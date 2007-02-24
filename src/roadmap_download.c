@@ -360,7 +360,7 @@ static int roadmap_download_uncompress (const char *tmp_file,
                                         const char *destination) {
    char *p;
    RoadMapFile source_file;
-   gzFile      source_file_gz;
+   gzFile      source_file_gz = NULL;
    RoadMapFile dest_file;
    char *dest_name = strdup(destination);
    int is_gz_file = 0;

@@ -98,7 +98,7 @@ static char   RoadMapLastKnownStatus = 'A';
 static time_t RoadMapGpsLatestData = 0;
 static int    RoadMapGpsEstimatedError = 0;
 static int    RoadMapGpsRetryPending = 0;
-static int    RoadMapGpsReceivedTime = 0;
+static time_t RoadMapGpsReceivedTime = 0;
 static int    RoadMapGpsReception = 0;
 
 static RoadMapGpsPosition RoadMapGpsReceivedPosition;

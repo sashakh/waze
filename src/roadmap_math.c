@@ -529,8 +529,8 @@ static void roadmap_math_project (RoadMapGuiPoint *point) {
 
    /* squeeze the X axis, make it a point at the horizon and
     * normal sized at the bottom of the screen */
-   point->x = (DistFromCenterX * DistFromHorizon) / VisibleRange
-                        + (RoadMapContext.width / 2);
+   point->x = (short) ((DistFromCenterX * DistFromHorizon) / VisibleRange
+                        + (RoadMapContext.width / 2));
 }
 
 void roadmap_math_unproject (RoadMapGuiPoint *point) {
@@ -553,8 +553,8 @@ void roadmap_math_unproject (RoadMapGuiPoint *point) {
    }
 
    /* unsqueeze the X axis */
-   point2.x = DistFromCenterX * VisibleRange / DistFromHorizon +
-                RoadMapContext.width / 2;
+   point2.x = (short) (DistFromCenterX * VisibleRange / DistFromHorizon +
+                RoadMapContext.width / 2);
 
    /* distance from bottom of screen */
    DistFromBottom = RoadMapContext.height - point->y;
@@ -1640,9 +1640,9 @@ int roadmap_math_screen_intersect (RoadMapGuiPoint *f1, RoadMapGuiPoint *t1,
 
    x = (b1 - b2) / (a2 - a1);
    if (abs(a1) < abs(a2)) {
-      isect->y = (b1 + x * a1) / 1024;
+      isect->y = (short) ((b1 + x * a1) / 1024);
    } else {
-      isect->y = (b2 + x * a2) / 1024;
+      isect->y = (short) ((b2 + x * a2) / 1024);
    }
    isect->x = (short)x;
 #endif

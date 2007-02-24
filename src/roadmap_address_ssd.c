@@ -437,7 +437,7 @@ void roadmap_address_history (void) {
 
 #define MAX_HISTORY_ENTRIES 100
    static char *labels[MAX_HISTORY_ENTRIES];
-   static char *values[MAX_HISTORY_ENTRIES];
+   static void *values[MAX_HISTORY_ENTRIES];
    static int count = -1;
    void *history;
    static RoadMapAddressDialog context = {"Location", 0, 0, NULL, NULL,
