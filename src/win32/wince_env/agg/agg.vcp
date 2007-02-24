@@ -46,7 +46,7 @@ CPP=clarm.exe
 # PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "NDEBUG" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /Zd /I "../../../agg/include" /I "../../../freetype/include" /I "../../../fribidi" /D "NDEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /D "USE_FRIBIDI" /YX /O2 /M$(CECrtMT) /c
+# ADD CPP /nologo /W3 /Zd /I "../../../agg/include" /I "../../../freetype/include" /I "../../../libfribidi" /D "NDEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /D "USE_FRIBIDI" /YX /O2 /M$(CECrtMT) /c
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
@@ -96,7 +96,7 @@ BSC32=bscmake.exe
 # PROP Platform_ID "{8A9A2F80-6887-11D3-842E-005004848CBA}"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /D "NDEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /D "USE_FRIBIDI" /YX /O2 /M$(CECrtMT) /c
-# ADD CPP /nologo /W3 /Zi /I "../../../agg/include" /I "../../../freetype/include" /I "../../../fribidi" /D "NDEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /D "USE_FRIBIDI" /YX /O2 /M$(CECrtMT) /fastcap /c
+# ADD CPP /nologo /W3 /Zi /I "../../../agg/include" /I "../../../freetype/include" /I "../../../libfribidi" /D "NDEBUG" /D _WIN32_WCE=$(CEVersion) /D "$(CePlatform)" /D "ARM" /D "_ARM_" /D "ARMV4" /D UNDER_CE=$(CEVersion) /D "UNICODE" /D "_UNICODE" /D "_LIB" /D "USE_FRIBIDI" /YX /O2 /M$(CECrtMT) /fastcap /c
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
@@ -294,20 +294,20 @@ DEP_CPP_ROADM=\
 	"..\..\..\agg\include\agg_vertex_sequence.h"\
 	"..\..\..\freetype\include\freetype\config\ftheader.h"\
 	"..\..\..\freetype\include\ft2build.h"\
-	"..\..\..\fribidi\fribidi.h"\
-	"..\..\..\fribidi\fribidi_char_sets.h"\
-	"..\..\..\fribidi\fribidi_char_sets.i"\
-	"..\..\..\fribidi\fribidi_char_sets_cap_rtl.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1255.h"\
-	"..\..\..\fribidi\fribidi_char_sets_cp1256.h"\
-	"..\..\..\fribidi\fribidi_char_sets_isiri_3342.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_6.h"\
-	"..\..\..\fribidi\fribidi_char_sets_iso8859_8.h"\
-	"..\..\..\fribidi\fribidi_char_sets_utf8.h"\
-	"..\..\..\fribidi\fribidi_config.h"\
-	"..\..\..\fribidi\fribidi_types.h"\
-	"..\..\..\fribidi\fribidi_types.i"\
-	"..\..\..\fribidi\fribidi_unicode.h"\
+	"..\..\..\libfribidi\fribidi.h"\
+	"..\..\..\libfribidi\fribidi_char_sets.h"\
+	"..\..\..\libfribidi\fribidi_char_sets.i"\
+	"..\..\..\libfribidi\fribidi_char_sets_cap_rtl.h"\
+	"..\..\..\libfribidi\fribidi_char_sets_cp1255.h"\
+	"..\..\..\libfribidi\fribidi_char_sets_cp1256.h"\
+	"..\..\..\libfribidi\fribidi_char_sets_isiri_3342.h"\
+	"..\..\..\libfribidi\fribidi_char_sets_iso8859_6.h"\
+	"..\..\..\libfribidi\fribidi_char_sets_iso8859_8.h"\
+	"..\..\..\libfribidi\fribidi_char_sets_utf8.h"\
+	"..\..\..\libfribidi\fribidi_config.h"\
+	"..\..\..\libfribidi\fribidi_types.h"\
+	"..\..\..\libfribidi\fribidi_types.i"\
+	"..\..\..\libfribidi\fribidi_unicode.h"\
 	"..\..\..\roadmap.h"\
 	"..\..\..\roadmap_canvas.h"\
 	"..\..\..\roadmap_canvas_agg.h"\
