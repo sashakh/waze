@@ -28,25 +28,6 @@
 #include <windows.h>
 #include <time.h>
 
-#define SECS_PER_HOUR   (60 * 60)
-#define SECS_PER_DAY    (SECS_PER_HOUR * 24)
-
-/* Nonzero if YEAR is a leap year (every 4 years,
- * except every 100th isn't, and every 400th is).
- */
-# define __isleap(year) \
-((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
-
-
-static const unsigned short int __mon_yday[2][13] =
-{
-    /* Normal years.  */
-    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
-		/* Leap years.  */
-    { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
-};
-
-
 static unsigned long
 _mktime (unsigned int year, unsigned int mon,
          unsigned int day, unsigned int hour,
@@ -65,6 +46,27 @@ _mktime (unsigned int year, unsigned int mon,
 		)*60 + min /* now have minutes */
         )*60 + sec; /* finally seconds */
 }
+
+
+#ifdef UNDER_CE
+
+#define SECS_PER_HOUR   (60 * 60)
+#define SECS_PER_DAY    (SECS_PER_HOUR * 24)
+
+/* Nonzero if YEAR is a leap year (every 4 years,
+ * except every 100th isn't, and every 400th is).
+ */
+# define __isleap(year) \
+((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0))
+
+
+static const unsigned short int __mon_yday[2][13] =
+{
+    /* Normal years.  */
+    { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
+		/* Leap years.  */
+    { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
+};
 
 
 time_t time(time_t *t)
@@ -195,3 +197,13 @@ time_t timegm(struct tm *_tm)
 	return _mktime(_tm->tm_year + 1900, _tm->tm_mon + 1, _tm->tm_mday, _tm->tm_hour,
 		_tm->tm_min, _tm->tm_sec);
 }
+
+#else
+
+time_t timegm(struct tm *_tm)
+{
+	return _mktime(_tm->tm_year + 1900, _tm->tm_mon + 1, _tm->tm_mday, _tm->tm_hour,
+		_tm->tm_min, _tm->tm_sec);
+}
+
+#endif

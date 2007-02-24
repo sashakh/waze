@@ -202,13 +202,14 @@ int roadmap_sound_play_file (const char *file_name) {
 RoadMapSound roadmap_sound_load (const char *path, const char *file, int *mem) {
 
    char *full_name = roadmap_path_join (path, file);
+   const char *seq;
    RoadMapFileContext sound;
 
-   roadmap_file_map (NULL, full_name, NULL, "r", &sound);
+   seq = roadmap_file_map (NULL, full_name, NULL, "r", &sound);
 
    roadmap_path_free (full_name);
 
-   if (sound == NULL) {
+   if (seq == NULL) {
       *mem = 0;
       return NULL;
    }
@@ -285,7 +286,9 @@ int roadmap_sound_play_list (const RoadMapSoundList list) {
       int next = (current_list + 1) % MAX_LISTS;
 
       if (sound_lists[next] != NULL) {
-         roadmap_sound_list_free (sound_lists[next]);
+		  if (!(sound_lists[next]->flags & SOUND_LIST_NO_FREE)) {
+			  roadmap_sound_list_free (sound_lists[next]);
+		  }
       }
 
       sound_lists[next] = list;

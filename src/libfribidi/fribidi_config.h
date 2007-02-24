@@ -17,6 +17,7 @@
 
 #ifdef WIN32
 
+#ifdef UNDER_CE
 #ifdef FRIBIDI_EXPORTS
 #define FRIBIDI_API __declspec(dllexport)
 #else
@@ -24,6 +25,10 @@
 #endif
 
 #define snprintf _snprintf
+
+#else
+#define FRIBIDI_API
+#endif
 
 #else /* NOT WIN32 */
 
