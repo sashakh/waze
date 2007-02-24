@@ -70,6 +70,7 @@ Section "MainSection" SEC01
 SectionEnd
 
 Section "Config" SEC02
+  SetOverwrite on
   File "L:\shared\roadmap_editor\src\drivers"
   File "L:\shared\roadmap_editor\src\win32\preferences"
   File "L:\shared\roadmap_editor\src\win32\session"
