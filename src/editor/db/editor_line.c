@@ -688,7 +688,7 @@ int editor_line_get_cross_time (int line, int direction) {
 
    if (start_time == end_time) return -1;
 
-   return  end_time - start_time;
+   return  (int) (end_time - start_time);
 }
 
 

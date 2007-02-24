@@ -438,7 +438,7 @@ static int editor_post_file (const char *target,
 
    file = roadmap_file_open (file_name, "r");
 
-   if (!ROADMAP_NET_IS_VALID(file)) {
+   if (!ROADMAP_FILE_IS_VALID(file)) {
       (*callbacks->error) ("Can't open file: %s\n", file_name);
       return -1;
    }

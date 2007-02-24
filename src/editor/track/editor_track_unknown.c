@@ -336,7 +336,7 @@ static int detect_loop(int point_id,
                        int road_type) {
 
    RoadMapPosition intersection;
-   int loop_start_point;
+   int loop_start_point = 0;
 
    /* see if we can match the position to the current line */
    if ((point_id > 4)  &&

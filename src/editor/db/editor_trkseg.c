@@ -255,7 +255,7 @@ int editor_trkseg_split (int trkseg,
    split_shape_point = -1;
 
    if (first_shape == -1) {
-      int trk_middle_time;
+      time_t trk_middle_time;
 
       editor_point_position (trk_from, &from);
 

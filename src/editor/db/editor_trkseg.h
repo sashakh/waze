@@ -55,8 +55,8 @@ typedef struct editor_db_trkseg_s {
    int point_to;
    int first_shape;
    int last_shape;
-   int gps_start_time;
-   int gps_end_time;
+   time_t gps_start_time;
+   time_t gps_end_time;
    int flags;
    int next_road_trkseg;
    int next_global_trkseg;
