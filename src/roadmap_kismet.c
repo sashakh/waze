@@ -108,7 +108,7 @@ static void convert_to_nmea (double kismet, int *nmea_ddmm, int *nmea_mmmm) {
                kismet_data);
       exit(1);
    }
-   *nmea_mmmm = (int) (kismet * 10000.0);
+   *nmea_mmmm = (int) (converting * 10000.0);
    *nmea_ddmm = (nmea_dd * 100) + nmea_mm;
 }
 
