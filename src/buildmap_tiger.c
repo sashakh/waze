@@ -799,7 +799,9 @@ static void buildmap_tiger_read_rtc (const char *source, int verbose) {
                  year = tiger2int (cursor, 11, 14);
          }
 
-         if (fips > 0) {
+         /* Ignore when no FIPS or the "balance of county" FIPS. */
+
+         if (fips > 0 && fips != 99999) {
 
             if (BuildMapFormat == 2002) {
                city = tiger2string (DictionaryCity, cursor, 63, 122);
