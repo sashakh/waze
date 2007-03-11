@@ -98,8 +98,8 @@ void buildmap_city_add (int fips, int year, RoadMapString name) {
        if (this_city->fips == fips) {
 
           if (this_city->year == year && this_city->name != name) {
-             buildmap_fatal (0, "non unique city FIPS code (years %d and %d)",
-                                this_city->year, year);
+             buildmap_fatal (0, "non unique city FIPS code %d (years %d and %d)",
+                                fips, this_city->year, year);
           }
 
           if (year > this_city->year) {
