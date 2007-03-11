@@ -6,9 +6,9 @@
 usage()
 {
     cat >&2 <<EOF
-usage: rdmdownload <tiger-destination-path> [format=2004|2005] [<state> ..]
+usage: rdmdownload <tiger-destination-path> [format=2004|2005|2006] [<state> ..]
 
-  All 2005 tiger maps will be downloaded to the specified directory,
+  All tiger maps will be downloaded to the specified directory,
   or, optionally, just for the specified states.
 
    Example: rdmdownload /var/tmp/maps CA
@@ -26,7 +26,7 @@ test -d "$TIGERDIR" || usage
 shift
 
 
-TIGERURL=http://www2.census.gov/geo/tiger/tiger2005se
+TIGERURL=http://www2.census.gov/geo/tiger/tiger2006se
 TIGEROPT1="-nd -np -r -N -P $TIGERDIR -A.zip"
 TIGEROPT2="-nd -np -r -N -P $TIGERDIR -A.ZIP"
 
@@ -34,7 +34,10 @@ case $1 in
    format=2004) TIGERURL=http://www2.census.gov/geo/tiger/tiger2004se
                 shift
                 ;;
-   format=2005)
+   format=2005) TIGERURL=http://www2.census.gov/geo/tiger/tiger2005se
+                shift
+                ;;
+   format=2006)
                 shift
                 ;;
 esac
