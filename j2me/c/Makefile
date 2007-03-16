@@ -6,7 +6,7 @@
 ## Author:        Simon Kagstrom <ska@bth.se>
 ## Description:   Generic Makefile
 ##
-## $Id: Makefile,v 1.1.2.2 2007/02/10 16:03:55 eshabtai Exp $
+## $Id: Makefile,v 1.1.2.3 2007/03/16 16:09:38 eshabtai Exp $
 ##
 ######################################################################
 SUBDIRS =
@@ -55,16 +55,28 @@ OBJS    = ../../src/roadmap_dbread.o \
 	  ../../src/roadmap_nmea.o \
 	  ../../src/roadmap_input.o \
 	  ../../src/roadmap_io.o \
+	  ../../src/roadmap_geocode.o \
+	  ../../src/roadmap_history.o \
 	  ./roadmap_path.o \
 	  ./roadmap_file.o \
 	  ./roadmap_canvas.o \
 	  ./roadmap_time.o \
 	  ./roadmap_serial.o \
 	  ./roadmap_main.o \
+	  ./roadmap_dialog.o \
+	  ./roadmap_address.o \
+	  ./roadmap_sound.o \
+	  ../../src/navigate/navigate_main.o \
+	  ../../src/navigate/navigate_instr.o \
+	  ../../src/navigate/navigate_bar.o \
+	  ../../src/navigate/navigate_plugin.o \
+	  ../../src/navigate/navigate_traffic.o \
+	  ../../src/navigate/navigate_rdm.o \
+	  ../../src/navigate/fib-1.1/fib.o \
 	  ./stubs.o
 
 LDLIBS  = -lc -lsoftfloat -lm
-CFLAGS  = -DJ2ME
+CFLAGS  = -DJ2ME -DJ2MEMAP
 INCLUDES = -I../../src -I../include
 
 CIBYL_MIPS2JAVA_OPTS ?=-I../include

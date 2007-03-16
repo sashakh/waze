@@ -37,6 +37,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <time.h>
+#include "javax/microedition/lcdui.h"
 
 #include "roadmap.h"
 #include "roadmap_path.h"
@@ -54,4 +55,15 @@ void roadmap_net_close  (RoadMapSocket s) {}
 int  roadmap_spawn_write_pipe (RoadMapPipe pipe, const void *data, int length) { return -1; }
 int  roadmap_spawn_read_pipe  (RoadMapPipe pipe, void *data, int size) { return -1; }
 void roadmap_spawn_close_pipe (RoadMapPipe pipe) {}
+
+void roadmap_messagebox (const char *title, const char *text) { 
+  NOPH_Alert_t msg = NOPH_Alert_new(title, text, 0, NOPH_AlertType_get(NOPH_AlertType_INFO));
+  NOPH_Alert_setTimeout(msg, NOPH_Alert_FOREVER);
+  NOPH_Display_setCurrent(NOPH_Display_getDisplay(NOPH_MIDlet_get()), msg);
+}
+
+void *roadmap_res_get (unsigned int type, unsigned int flags,
+                       const char *name) { return NULL; }
+
+int roadmap_preferences_use_keyboard() { return 0; }
 

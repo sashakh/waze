@@ -61,16 +61,21 @@ public class BLUElet  implements CommandListener
   private LocalDevice device;
   private DiscoveryAgent agent;
 
+  static String m_wait_msg = "Please wait...";
+  static String m_not_found_msg = "No Bluetooth device found.";
 
   /**
    * Creae a new BLUElet.
    * @param host MIDlet
    * @param listener CommandListener
    */
-  public BLUElet(MIDlet host, CommandListener listener)
+  public BLUElet(MIDlet host, CommandListener listener, String wait_msg,
+                 String not_found_msg)
   {
     this.host = host;
     this.callback = listener;
+    this.m_wait_msg = wait_msg;
+    this.m_not_found_msg = not_found_msg;
     instance = this;
   }
 
@@ -214,7 +219,7 @@ public class BLUElet  implements CommandListener
       boolean result = agent.startInquiry( mode, new Listener() );
 
       // update screen with "Please Wait" message
-      remotedeviceui.setMsg("[Please Wait...]");
+      remotedeviceui.setMsg(m_wait_msg);
 
     } catch ( BluetoothStateException e )
     {
@@ -242,6 +247,8 @@ public class BLUElet  implements CommandListener
     {
       // get selected device
       selectedDevice = remotedeviceui.getSelectedIndex();
+      if (selectedDevice >= devices.size()) return;
+      System.out.println("Selected:" + selectedDevice + " size:" + devices.size());
       RemoteDevice remoteDevice = (RemoteDevice) devices.elementAt( selectedDevice );
 
       // remove all existing record first
@@ -256,6 +263,7 @@ public class BLUElet  implements CommandListener
 
         // tell callback device selected
         display.callSerially(new Worker(ID_DEVICE_SELECTED));
+        remotedeviceui.setMsg(m_wait_msg);
 
       } catch (BluetoothStateException ex)
       {
@@ -290,7 +298,7 @@ public class BLUElet  implements CommandListener
 
       if ( devices.size() == 0 )
       {
-        Alert alert = new Alert( "Bluetooth", "No Bluetooth device found", null, AlertType.INFO );
+        Alert alert = new Alert( "Bluetooth", m_not_found_msg, null, AlertType.INFO );
         alert.setTimeout(3000);
         remotedeviceui.showui();
         display.setCurrent( alert, remotedeviceui );

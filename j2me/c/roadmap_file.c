@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <javax/microedition/io.h>
+
 #include "roadmap.h"
 #include "roadmap_path.h"
 #include "roadmap_file.h"
@@ -255,7 +257,15 @@ const char *roadmap_file_map (const char *set,
          strcat (full_name, "/");
          strcat (full_name, name);
 
-         context->fd = fopen (full_name, mode);
+         if (!strncmp(full_name, "file:", 5)) {
+            printf ("Trying to open: %s %x\n", full_name, (int)context->fd);
+            context->fd = NOPH_Connector_openFILEInputStream(full_name);
+            if (context->fd) {
+               printf ("Open ok!, size: %d\n", favail(context->fd));
+            }
+         } else {
+            context->fd = fopen (full_name, mode);
+         }
 
          if (context->fd > 0) break;
 

@@ -1,49 +1,50 @@
 Style.Use Pretty Lines: yes
 Shapes.Declutter: 1300
 Polygons.Declutter: 1300
-Location.Color: red
+Location.Color: #ff0000
 Highlight.Thickness: 4
 Highlight.Duration: 10
-Highlight.Background: yellow
+Highlight.Background: #ffff00
 Help.Browser: \windows\iexplore
 Help.Arguments: %s
-GPS.Foreground: black
-GPS.Color: red
-GPS.Background: LightYellow
-Destination.Color: red
+GPS.Foreground: #000000
+GPS.Color: #ff0000
+GPS.Background: #ffffe0
+Destination.Color: #ff0000
 Drivers.Trace: Disabled
 Drivers.Kismet: Disabled
 Drivers.Friends: Disabled
 Drivers.Ghost2: Disabled
 Drivers.Ghost1: Disabled
 Drivers.Port: 2007
+Map.Static County: 77001
 Map.GPS map offset longitude: 0
 Map.GPS map offset latitude: 0
 History.Depth: 100
 GPS.Timeout: 10
 GPS.Baud Rate: 4800
-GPS.Source: com1:
+GPS.Source:
 Accuracy.GPS Position: 30
 Accuracy.GPS Speed: 4
 Voice.Selected Street: flite -t 'Selected %T'
 Voice.Next Intersection: flite -t 'Next intersection: %T'
 Voice.Current Street: 
 Voice.Approach: flite -t 'Approaching %T'
-Error.Foreground: white
-Error.Background: red
-Info.Foreground: black
-Info.Background: yellow
-Selected Street.Foreground: black
-Selected Street.Background: yellow
+Error.Foreground: #ffffff
+Error.Background: #ff0000
+Info.Foreground: #000000
+Info.Background: #ffff00
+Selected Street.Foreground: #000000
+Selected Street.Background: #ffff00
 Selected Street.Text: %F
-Approach.Foreground: white
-Approach.Background: DarkSeaGreen4
+Approach.Foreground: #ffffff
+Approach.Background: #698b69
 Approach.Text: מתקרב ל-%N, %C|מתקרב ל- %N
-Current Street.Foreground: white
-Current Street.Background: DarkSeaGreen4
+Current Street.Foreground: #ffffff
+Current Street.Background: #698b69
 Current Street.Text: %N, %C|%N
-Console.Foreground: black
-Console.Background: yellow
+Console.Foreground: #000000
+Console.Background: #ffff00
 Display.Top Right: ETA: %A|%T
 Display.Bottom Left: %S
 Display.Bottom Right: %D (%W)|%D

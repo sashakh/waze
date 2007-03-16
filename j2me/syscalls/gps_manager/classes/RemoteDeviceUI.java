@@ -21,7 +21,9 @@ class RemoteDeviceUI extends List
   {
     super("Bluetooth devices", List.IMPLICIT);
 
-    addCommand( new Command( "Select", Command.SCREEN, 1 ) );
+    Command select = new Command( "Select", Command.SCREEN, 1 );
+    addCommand(select);
+    setSelectCommand(select);
     addCommand( new Command( "Search", Command.SCREEN, 2 ) );
     addCommand( BLUElet.BACK );
 
@@ -52,9 +54,12 @@ class RemoteDeviceUI extends List
         try
         {
           RemoteDevice device = (RemoteDevice) BLUElet.devices.elementAt(i);
-          String name = device.getFriendlyName(false);
-          append(name, null);
-
+	  try {
+            String name = device.getFriendlyName(false);
+            append(name, null);
+	  } catch (Exception e) {
+	    append("Unknown device", null);
+	  }
         } catch (Exception e)
         {
           e.printStackTrace();
@@ -62,7 +67,7 @@ class RemoteDeviceUI extends List
       }
     } else
     {
-      append("[No Device Found]", null);
+      append(BLUElet.m_not_found_msg, null);
     }
   }
 

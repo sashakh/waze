@@ -45,22 +45,22 @@ Streets.Declutter: 100
 Streets.Delta1: -2
 Streets.Thickness: 2
 Pedestrian.Class: Road
-Pedestrian.Color: 0xa9a9a9
+Pedestrian.Color: #a9a9a9
 Pedestrian.Declutter: 160
 Pedestrian.Delta1: 0
 Pedestrian.Thickness: 1
 4X4 Trails.Class: Road
-4X4 Trails.Color: 0xa9a9a9
+4X4 Trails.Color: #a9a9a9
 4X4 Trails.Declutter: 160
 4X4 Trails.Delta1: 0
 4X4 Trails.Thickness: 1
 Trails.Class: Road
-Trails.Color: 0xa9a9a9
+Trails.Color: #a9a9a9
 Trails.Declutter: 160
 Trails.Delta1: 0
 Trails.Thickness: 1
 Walkway.Class: Road
-Walkway.Color: 0xa9a9a9
+Walkway.Color: #a9a9a9
 Walkway.Declutter: 160
 Walkway.Delta1: 0
 Walkway.Thickness: 1

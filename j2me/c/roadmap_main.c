@@ -29,7 +29,10 @@
 #include <javax/microedition/lcdui.h>
 #include <javax/microedition/lcdui/game.h>
 #include <command_mgr.h>
+#include <form_command_mgr.h>
 #include <gps_manager.h>
+#include <timer_mgr.h>
+#include <device_specific.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -40,13 +43,14 @@
 #include "roadmap_config.h"
 #include "roadmap_history.h"
 #include "roadmap_canvas.h"
+#include "roadmap_dialog.h"
 
 #include "roadmap_main.h"
 
 extern void roadmap_canvas_configure (void);
 
 struct roadmap_main_io {
-   int id;
+   int active;
    RoadMapIO io;
    RoadMapInput callback;
 };
@@ -56,20 +60,21 @@ static struct roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO];
 
 
 struct roadmap_main_timer {
-   int id;
    RoadMapCallback callback;
 };
 
-#define ROADMAP_MAX_TIMER 16
+#define ROADMAP_MAX_TIMER 10
 static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
-
-static char *RoadMapMainTitle = NULL;
 
 static RoadMapKeyInput RoadMapMainInput = NULL;
 
 volatile static int command_addr = 0;
+volatile static int form_command_addr = 0;
+volatile static char *form_command_name[255];
+volatile static int form_command_context = 0;
 static NOPH_GpsManager_t gps_mgr = 0;
+static NOPH_TimerMgr_t timer_mgr = 0;
 
 static void roadmap_start_event (int event) {
    switch (event) {
@@ -83,24 +88,35 @@ static void roadmap_main_process_key (int keys) {
 
    char *k = NULL;
 
-   if (keys & NOPH_GameCanvas_LEFT_PRESSED)
-           k = "J";
-   else if (keys & NOPH_GameCanvas_RIGHT_PRESSED)
-           k = "K";
-   else if (keys & NOPH_GameCanvas_UP_PRESSED)
-           k = "+";
-   else if (keys & NOPH_GameCanvas_DOWN_PRESSED)
-           k = "-";
-   else if (keys & NOPH_GameCanvas_FIRE_PRESSED)
-           k = "Q";
-   else if (keys & NOPH_GameCanvas_GAME_A_PRESSED)
-           k = "Button-Left";
-   else if (keys & NOPH_GameCanvas_GAME_B_PRESSED)
-           k = "Button-Right";
-   else if (keys & NOPH_GameCanvas_GAME_C_PRESSED)
-           k = "Button-Up";
-   else if (keys & NOPH_GameCanvas_GAME_D_PRESSED)
-           k = "Button-Down";
+   switch (keys) {
+   case 2:
+      k = "+";
+      break;
+   case 4:
+      k = "J";
+      break;
+   case 6:
+      k = "K";
+      break;
+   case 8:
+      k = "-";
+      break;
+   case 92:
+      k = "Button-Up";
+      break;
+   case 95:
+      k = NULL;
+      break;
+   case 96:
+      k = "Button-Right";
+      break;
+   case 98:
+      k = "Button-Down";
+      break;
+   case 94:
+      k = "Button-Left";
+      break;
+   }
 
    roadmap_log (ROADMAP_DEBUG, "In roadmap_main_process_key, keys:%d, k:%s, RoadMapMainInput:0x%x\n",
                 keys, k, RoadMapMainInput);
@@ -180,7 +196,19 @@ void roadmap_main_add_tool_space (void) {
 
 
 void roadmap_main_add_canvas (void) {
+   RoadMapImage image;
    roadmap_canvas_configure ();
+
+   image = roadmap_canvas_load_image (NULL, "welcome.png");
+
+   if (image) {
+      RoadMapGuiPoint pos;
+      pos.x = (roadmap_canvas_width () - roadmap_canvas_image_width(image)) / 2;
+      pos.y = (roadmap_canvas_height () - roadmap_canvas_image_height(image)) / 2;
+      roadmap_canvas_draw_image (image, &pos, 0, IMAGE_NORMAL);
+      roadmap_canvas_free_image (image);
+      roadmap_canvas_refresh ();
+   }
 }
 
 
@@ -200,22 +228,9 @@ void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback) {
       if (!gps_mgr) gps_mgr = NOPH_GpsManager_getInstance();
       RoadMapMainIo[0].io = *io;
       RoadMapMainIo[0].callback = callback;
+      RoadMapMainIo[0].active = 1;
       NOPH_GpsManager_start(gps_mgr);
    }
-
-#if 0
-   int i;
-   int fd = io->os.serial;
-
-   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      if (RoadMapMainIo[i].io.subsystem == ROADMAP_IO_INVALID) {
-         RoadMapMainIo[i].io = *io;
-         RoadMapMainIo[i].callback = callback;
-         RoadMapMainIo[i].id = 0;
-         break;
-      }
-   }
-#endif
 }
 
 
@@ -224,48 +239,24 @@ void roadmap_main_remove_input (RoadMapIO *io) {
    if (io->subsystem == ROADMAP_IO_SERIAL) {
       /* We currently only support GPS input */
       if (gps_mgr) NOPH_GpsManager_stop(gps_mgr);
-      RoadMapMainIo[0].callback = NULL;
-      RoadMapMainIo[0].io.subsystem = ROADMAP_IO_INVALID;
+      RoadMapMainIo[0].active = 0;
    }
-
-#if 0
-   int i;
-   int fd = io->os.file; /* All the same on UNIX. */
-
-   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      if (RoadMapMainIo[i].io.os.file == fd) {
-         RoadMapMainIo[i].io.os.file = -1;
-         RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
-         break;
-      }
-   }
-#endif
 }
 
 
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
 
    int index;
-   struct roadmap_main_timer *timer = NULL;
 
-   for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
+   if (!timer_mgr) timer_mgr = NOPH_TimerMgr_getInstance();
+   index = NOPH_TimerMgr_set (timer_mgr, interval);
 
-      if (RoadMapMainPeriodicTimer[index].callback == callback) {
-         return;
-      }
-      if (timer == NULL) {
-         if (RoadMapMainPeriodicTimer[index].callback == NULL) {
-            timer = RoadMapMainPeriodicTimer + index;
-         }
-      }
+   if ((index == -1) || (RoadMapMainPeriodicTimer[index].callback != NULL)) {
+      roadmap_log (ROADMAP_FATAL, "Can't create a new timer!");
    }
 
-   if (timer == NULL) {
-      roadmap_log (ROADMAP_FATAL, "Timer table saturated");
-   }
 
-   timer->id = 0;
-   timer->callback = callback;
+   RoadMapMainPeriodicTimer[index].callback = callback;
 }
 
 
@@ -278,6 +269,7 @@ void roadmap_main_remove_periodic (RoadMapCallback callback) {
       if (RoadMapMainPeriodicTimer[index].callback == callback) {
 
          RoadMapMainPeriodicTimer[index].callback = NULL;
+         NOPH_TimerMgr_remove (timer_mgr, index);
 
          return;
       }
@@ -300,41 +292,122 @@ void roadmap_main_flush (void) {
 void roadmap_main_exit (void) {
 
    roadmap_start_exit ();
+   exit(0);
 }
 
-void roadmap_main_set_cursor (int cursor) {}
+void roadmap_main_set_cursor (int cursor) {
+   if (cursor == ROADMAP_CURSOR_WAIT) {
 
-/* Wait until some key is pressed */
-static int wait_for_events(NOPH_GameCanvas_t canvas)
+      if (roadmap_dialog_activate("Please wait", NULL, 1)) {
+         roadmap_dialog_new_progress ("Please wait", "Please wait...");
+         roadmap_dialog_complete (0);
+      }
+
+   } else if (cursor == ROADMAP_CURSOR_NORMAL) {
+      roadmap_dialog_hide ("Please wait");
+   }
+}
+
+static int KeyCode = 0;
+
+static void keyPressed(int code)
 {
-  static int counter = 0;
-  int out = 0;
-
-  while (1) {
-     counter++;
-     if (command_addr) break; /* Menu command */
-     if (gps_mgr) {
-       while ((RoadMapMainIo[0].io.subsystem != ROADMAP_IO_INVALID) &&
-       	      (NOPH_GpsManager_read(gps_mgr, 0, 0) != 0)) {
-         /* GPS data is ready */
-         RoadMapInput callback = RoadMapMainIo[0].callback;
-         if (callback) (*callback)(&RoadMapMainIo[0].io);
-       }
-     }
-     if ((out = NOPH_GameCanvas_getKeyStates(canvas)) != 0) break;
-     if ((counter % 300) == 0) {
-       int i;
-       for (i=0; i<ROADMAP_MAX_TIMER; i++) {
-         if (RoadMapMainPeriodicTimer[i].callback) {
-	   (*RoadMapMainPeriodicTimer[i].callback) ();
-	 }  
-       }
-     }
-
-     NOPH_Thread_sleep( 10 );
+  if ((code >= 48) && (code <=57)) {
+     KeyCode = code - 48;
+     return;
   }
 
-  return out;
+  switch (code) {
+  case -1:
+     KeyCode = 92;
+     break;
+  case -4:
+     KeyCode = 96;
+     break;
+  case -2:
+     KeyCode = 98;
+     break;
+  case -3:
+     KeyCode = 94;
+     break;
+  case -5:
+     KeyCode = 95;
+     break;
+  }
+}
+
+static void keyReleased(int code)
+{
+  KeyCode = 0;
+}
+
+static void wait_for_events(NOPH_GameCanvas_t canvas)
+{
+#ifdef DEBUG_TIME
+  int start_time = NOPH_System_currentTimeMillis();
+  int end_time;
+#endif
+
+  while (1) {
+     if (command_addr || form_command_addr) break; /* Menu command */
+     if (gps_mgr) {
+#ifdef DEBUG_TIME
+        int has_data = 0;
+#endif
+        while (RoadMapMainIo[0].active &&
+              (NOPH_GpsManager_read(gps_mgr, 0, 0) != 0)) {
+#ifdef DEBUG_TIME
+           if (!has_data) {
+              printf("MAIN LOOP: got gps data...\n");
+              has_data = 1;
+           }
+#endif
+           /* GPS data is ready */
+           RoadMapInput callback = RoadMapMainIo[0].callback;
+           if (callback) (*callback)(&RoadMapMainIo[0].io);
+        }
+#ifdef DEBUG_TIME
+        if (has_data) {
+           end_time = NOPH_System_currentTimeMillis();
+           printf("MAIN LOOP: finished processing GPS data in %d ms\n",
+                  end_time - start_time);
+           start_time = end_time;
+        }
+#endif
+     }
+
+     if (KeyCode != 0) break;
+
+     if (timer_mgr) {
+        int index;
+#ifdef DEBUG_TIME
+        int has_timer = 0;
+#endif
+        while ((index = NOPH_TimerMgr_getExpired(timer_mgr)) != -1) {
+#ifdef DEBUG_TIME
+           if (!has_timer) {
+              printf("MAIN LOOP: executing timer callbacks...\n");
+              has_timer = 1;
+           }
+#endif
+           (*RoadMapMainPeriodicTimer[index].callback) ();
+        }
+#ifdef DEBUG_TIME
+        if (has_timer) {
+           index = NOPH_System_currentTimeMillis();
+           printf("MAIN LOOP: finished callbacks in %d ms\n", index - start_time);
+           start_time = index;
+        }
+#endif
+     }
+
+     NOPH_Thread_sleep( 50 );
+#ifdef DEBUG_TIME
+     end_time = NOPH_System_currentTimeMillis();
+     if ((end_time - start_time) > 100) printf("MAIN LOOP: Slept for %d ms!\n", end_time - start_time);
+     start_time = end_time;
+#endif
+  }
 }
 
 #define SLEEP_PERIOD 100
@@ -344,7 +417,10 @@ int main (int argc, char **argv) {
    int should_exit = 0;
    NOPH_GameCanvas_t canvas;
 
-   printf ("**** test: %d\n", strlen("sdfsdf"));
+   NOPH_DeviceSpecific_init();
+
+   NOPH_Canvas_registerKeyPressedCallback(keyPressed);
+   NOPH_Canvas_registerKeyReleasedCallback(keyReleased);
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
       RoadMapMainIo[i].io.os.file = -1;
@@ -361,22 +437,65 @@ int main (int argc, char **argv) {
       exit(1);
    }
 
-   NOPH_CommandMgr_setResultMem(NOPH_CommandMgr_getInstance(), &command_addr);
+   NOPH_CommandMgr_setResultMem(NOPH_CommandMgr_getInstance(), (int *)&command_addr);
+   NOPH_FormCommandMgr_setCallBackNotif((int *)&form_command_addr, (void *)form_command_name, (void *)&form_command_context);
 
    /* The main game loop */
    while(!should_exit)
    {
-      int keys;
+#ifdef DEBUG_TIME
+      int start_time;
+      int end_time;
+#endif
 
-      /* Wait for a keypress */
-      keys = wait_for_events(canvas);
+      /* Wait for an event */
+      wait_for_events(canvas);
 
+#ifdef DEBUG_TIME
+      start_time = NOPH_System_currentTimeMillis();
+#endif
       if (command_addr) {
-        ((RoadMapCallback)command_addr)();
-	command_addr = 0;
+#ifdef DEBUG_TIME
+         printf("MAIN LOOP: processing command...\n");
+#endif
+         ((RoadMapCallback)command_addr)();
+         command_addr = 0;
+#ifdef DEBUG_TIME
+         end_time = NOPH_System_currentTimeMillis();
+         printf("MAIN LOOP: finished processing command in %d ms\n",
+                  end_time - start_time);
+         start_time = end_time;
+#endif
       }
 
-      roadmap_main_process_key (keys);
+      if (form_command_addr) {
+#ifdef DEBUG_TIME
+         printf("MAIN LOOP: processing form command...\n");
+         roadmap_log (ROADMAP_ERROR,
+            "Form command: addr:%x, name:%s, context:%x",
+            form_command_addr, form_command_name, form_command_context);
+#endif
+         ((RoadMapDialogCallback)form_command_addr)((char *)form_command_name,
+                                          (void *)form_command_context);
+         form_command_addr = 0;
+#ifdef DEBUG_TIME
+         end_time = NOPH_System_currentTimeMillis();
+         printf("MAIN LOOP: finished processing form command in %d ms\n",
+                  end_time - start_time);
+         start_time = end_time;
+#endif
+      }
+
+#ifdef DEBUG_TIME
+      printf("MAIN LOOP: processing key command...\n");
+#endif
+      if (KeyCode) roadmap_main_process_key (KeyCode);
+#ifdef DEBUG_TIME
+      end_time = NOPH_System_currentTimeMillis();
+      printf("MAIN LOOP: finished processing key command in %d ms\n",
+            end_time - start_time);
+      start_time = end_time;
+#endif
    }
 
    return 0;

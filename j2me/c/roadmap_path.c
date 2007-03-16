@@ -75,8 +75,8 @@ static const char *RoadMapPathSkinPreferred = "./roadmap/skins";
  */ 
 static const char *RoadMapPathConfig[] = {
    /* This is for standard Unix configurations. */
+   "rs://",
    ".",
-   "./roadmap",
    NULL
 };
 static const char *RoadMapPathConfigPreferred =
@@ -87,11 +87,12 @@ static const char *RoadMapPathConfigPreferred =
 static const char *RoadMapPathMaps[] = {
    /* This is for standard Unix configurations. */
    ".",
-   "./roadmap/maps",
+   "file:///e:/Other/FreeMap",
+   "file:///root1/RoadMap",
    NULL
 };
 static const char *RoadMapPathMapsPreferred =
-                      "./roadmap/maps";
+                      ".";
 
 
 static char *roadmap_path_expand (const char *item, size_t length);
@@ -231,12 +232,7 @@ static const char *roadmap_path_home (void) {
 
 const char *roadmap_path_user (void) {
 
-    static char *RoadMapUser = NULL;
-
-    if (RoadMapUser == NULL) {
-        RoadMapUser = roadmap_path_cat (roadmap_path_home(), "/roadmap");
-    }
-    return RoadMapUser;
+    return "rs://";
 }
 
 

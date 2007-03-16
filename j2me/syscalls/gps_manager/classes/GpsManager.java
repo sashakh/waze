@@ -11,11 +11,13 @@ import java.io.*;
 public class GpsManager implements CommandListener, Runnable
 {
   private static final int MAX_GPS_INPUT = 100;
-  private String url;
+  private String url = "";
   private static GpsManager instance;
   private BLUElet bluelet = null;
   private MIDlet midlet;
-  private Vector data = new Vector();
+  private byte[][] data = new byte[MAX_GPS_INPUT][];
+  private int data_head = 0;
+  private int data_tail = 0;
 
   private GpsManager() {}
 
@@ -34,9 +36,20 @@ public class GpsManager implements CommandListener, Runnable
     return instance;
   }
 
-  public void searchGps(MIDlet m) {
+  public int getURL(int addr, int size) {
+    int len = url.length();
+    size--;
+    if ((len == 0) || (len > size)) return -1;
+
+    CRunTime.memcpy(addr, url.getBytes(), 0, len);
+    CRunTime.memoryWriteByte(addr + len, 0);
+
+    return 0;
+  }
+
+  public void searchGps(MIDlet m, String wait_msg, String not_found_msg) {
     if (bluelet == null) {
-      bluelet = new BLUElet(m, this);
+      bluelet = new BLUElet(m, this, wait_msg, not_found_msg);
       this.midlet = m;
     }
 
@@ -86,20 +99,10 @@ public class GpsManager implements CommandListener, Runnable
   }
 
   public synchronized int connect(String url) {
-    if (url.length() <= 1) url = this.url;
-    if (url == null) return -1;
+    if ((url == null) || (url.length() == 0)) return -1;
+    this.url = url;
 
-    try {
-      connection = (StreamConnection) Connector.open(url, Connector.READ);
-      reader = connection.openInputStream();
-      connection_err = false;
-      return 0;
-    }
-    catch (Exception e) {
-      System.out.println(e.getMessage());
-      connection = null;
-      return -1;
-    }
+    return 0;
   }
 
   /**
@@ -108,10 +111,10 @@ public class GpsManager implements CommandListener, Runnable
    */
   public synchronized void disconnect() {
     System.out.println("GPSManager: In disconnect.");
+    stop();
     try {
-      synchronized (data) {
-        data.removeAllElements();
-      }
+      data_head = 0;
+      data_tail = 0;
       if (reader != null)
         reader.close();
       if (connection != null)
@@ -132,26 +135,49 @@ public class GpsManager implements CommandListener, Runnable
    * errors.
    */
   public void run() {
+    try {
+      connection = (StreamConnection) Connector.open(this.url, Connector.READ);
+      if (connection != null) {
+        reader = connection.openInputStream();
+      }
+    }
+    catch (Exception e) {
+      System.out.println(e.getMessage());
+      return;
+    }
+
+    if (Thread.currentThread() != runner) return;
+    if (connection == null) {
+       // Sleep to avoid a busy loop as RoadMap will try to reconnect
+       // as soon as a connection error is discovered.
+       try {
+          Thread.sleep(2000);
+       } catch (InterruptedException e) {}
+       connection_err = true;
+       return;
+    }
+
     while (Thread.currentThread() == runner) {
       try {
         byte[] output = new byte[100];
         int count = reader.read(output, 1, output.length-1);
-	if (count == -1) {
-	  connection_err = true;
-	  return;
-	}
-
-	output[0] = (byte)count;
-
-        synchronized(data) {
-          if (data.size() >= MAX_GPS_INPUT) {
-	    data.removeElementAt(0);
-            System.err.println("GPSManager: Data overflow.");
-	  }
-          data.addElement(output);
+        if (Thread.currentThread() != runner) return;
+        if (count == -1) {
+          connection_err = true;
+          return;
         }
+
+        output[0] = (byte)count;
+
+        if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
+          data_tail = (data_tail + 1) % MAX_GPS_INPUT;
+          System.err.println("GPSManager: Data overflow.");
+        }
+        data[data_head] = output;
+        data_head = (data_head + 1) % MAX_GPS_INPUT;
       }
       catch (IOException ie) {
+        if (Thread.currentThread() != runner) return;
         ie.printStackTrace();
         connection_err = true;
         return;
@@ -179,21 +205,16 @@ public class GpsManager implements CommandListener, Runnable
   }
 
   public int read(int addr, int size) {
-    if (connection == null) return -1;
-    if (data.isEmpty()) {
+    if (data_head == data_tail) {
       if (connection_err) {
-        disconnect();
-	return -1;
+        return -1;
       }
       return 0;
     }
     if (size == 0) return 1;
 
-    byte[] bytes;
-    synchronized(data) {
-      bytes = (byte[]) data.firstElement();
-      data.removeElementAt(0);
-    }
+    byte[] bytes = (byte[]) data[data_tail];
+    data_tail = (data_tail + 1) % MAX_GPS_INPUT;
 
     int count = bytes[0] & 0xff;
 
@@ -201,44 +222,6 @@ public class GpsManager implements CommandListener, Runnable
     CRunTime.memcpy(addr, bytes, 1, count);
 
     return count;
-
-/*
-    while (((addr & 0x3) != 0) && (size > 0)) {
-      byte b = bytes[count++];
-      CRunTime.memoryWriteByte(addr, b);
-      addr++;
-      size--;
-      if ((b == 0) || (size == 0)) return count;
-    }
-
-    while (size > 3) {
-      int i = 0;
-      for (int j=0; j<4; j++) {
-        i = i << 8;
-        byte b = bytes[count++];
-        size--;
-        i |= b;
-        if (b == 0) {
-          i = i << 8*(3-j);
-          CRunTime.memoryWriteWord(addr, i);
-          return count;
-        }
-      }
-
-      CRunTime.memoryWriteWord(addr, i);
-      addr += 4;
-    }
-
-    while (size > 0) {
-      byte b = bytes[count++];
-      CRunTime.memoryWriteByte(addr, b);
-      addr++;
-      size--;
-      if (b == 0) break;
-    }
-
-    return count;
-  */
   }
 }
 
