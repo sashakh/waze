@@ -28,6 +28,7 @@
 
 void buildmap_turn_restrictions_initialize (void);
 int buildmap_turn_restrictions_add (int node, int from_line, int to_line);
+int buildmap_turn_restrictions_exists (int node, int from_line, int to_line);
 
 void buildmap_turn_restrictions_sort (void);
 

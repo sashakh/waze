@@ -65,7 +65,7 @@ typedef void (*RoadMapDialogCallback) (const char *name, void *context);
  * roadmap_dialog_activate() returns 0.
  * This function never fails. The given dialog becomes the curent dialog.
  */
-int roadmap_dialog_activate (const char *name, void *context);
+int roadmap_dialog_activate (const char *name, void *context, int show);
 
 /* Hide the given dialog, if it exists. */
 void roadmap_dialog_hide (const char *name);
@@ -144,8 +144,8 @@ void  roadmap_dialog_set_focus (const char *frame, const char *name);
 #ifndef ROADMAP_DIALOG_NO_LANG
 #include "roadmap_lang.h"
 
-static __inline int roadmap_dialog_activate_i (const char *name, void *context) {
-   return roadmap_dialog_activate (roadmap_lang_get (name), context);
+static __inline int roadmap_dialog_activate_i (const char *name, void *context, int show) {
+   return roadmap_dialog_activate (roadmap_lang_get (name), context, show);
 }
 
 static __inline void roadmap_dialog_hide_i (const char *name) {

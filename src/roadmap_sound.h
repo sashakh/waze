@@ -29,6 +29,7 @@
 
 #define SOUND_LIST_NO_FREE 0x1
 
+#ifndef J2ME
 struct roadmap_sound_list_t {
    int flags;
    int count;
@@ -36,6 +37,11 @@ struct roadmap_sound_list_t {
 };
 
 typedef struct roadmap_sound_list_t *RoadMapSoundList;
+
+#else
+
+typedef int RoadMapSoundList;
+#endif
 
 struct roadmap_sound_st;
 typedef struct roadmap_sound_st *RoadMapSound;

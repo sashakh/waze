@@ -336,7 +336,7 @@ static void roadmap_trip_set_dialog (const RoadMapPosition *position) {
 
     point_position = *position;
     
-    if (roadmap_dialog_activate ("Add Waypoint", &point_position)) {
+    if (roadmap_dialog_activate ("Add Waypoint", &point_position, 1)) {
 
         roadmap_dialog_new_entry  ("Name", "Name:", NULL);
         roadmap_dialog_add_button ("OK", roadmap_trip_set_dialog_ok);
@@ -417,7 +417,7 @@ static void roadmap_trip_remove_dialog (void) {
         return; /* Nothing to delete. */
     }
     
-    if (roadmap_dialog_activate ("Delete Waypoints", NULL)) {
+    if (roadmap_dialog_activate ("Delete Waypoints", NULL, 1)) {
 
         roadmap_dialog_new_list   ("Names", ".Waypoints");
         roadmap_dialog_add_button ("Delete", roadmap_trip_remove_dialog_delete);
@@ -573,7 +573,9 @@ static void roadmap_trip_format_messages (void) {
         RoadMapTripDestination->has_value) {
     
         time_t now = time(NULL);
+#ifndef J2ME
         time_t sun;
+#endif
 
         roadmap_message_set ('T', roadmap_time_get_hours_minutes(now));
 
@@ -688,13 +690,13 @@ static int roadmap_trip_gps_state (void) {
 
 void roadmap_trip_set_point (const char *name,
                              const RoadMapPosition *position) {
-#ifndef J2ME
     if (name == NULL) {
+#ifndef J2ME
         roadmap_trip_set_dialog (position);
+#endif
     } else {
         roadmap_trip_update (name, position, NULL, "Waypoint");
     }
-#endif
 }
 
 
@@ -1129,6 +1131,7 @@ int roadmap_trip_load (const char *name, int silent) {
 }
 
 
+#ifndef J2ME
 static void roadmap_trip_printf (FILE *file, const RoadMapTripPoint *point) {
 
    fprintf (file, "%s,%s,%d,%d\n",
@@ -1137,6 +1140,7 @@ static void roadmap_trip_printf (FILE *file, const RoadMapTripPoint *point) {
          point->map.longitude,
          point->map.latitude);
 }
+#endif
 
 void roadmap_trip_save (const char *name) {
     

@@ -66,7 +66,9 @@ typedef struct {   /* table range.noaddr */
 typedef struct {  /* table range.bystreet */
    int first_range;
    int first_city;
+#ifndef J2MEMAP
    int first_zip;
+#endif   
    int count_range;
 } RoadMapRangeByStreet;
 

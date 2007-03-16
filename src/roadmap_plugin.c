@@ -214,8 +214,8 @@ void roadmap_plugin_get_line_points (const PluginLine *line,
 
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
 
-      roadmap_line_shapes (line->line_id, first_shape, last_shape);
-      *shape_itr = roadmap_shape_get_position;
+      roadmap_line_shapes (line->line_id, -1, first_shape, last_shape);
+      *shape_itr = &roadmap_shape_get_position;
    } else {
       RoadMapPluginHooks *hooks = get_hooks (line->plugin_id);
       
@@ -425,11 +425,21 @@ const char *roadmap_plugin_street_full_name (const PluginLine *line) {
 
 
 void roadmap_plugin_get_street_properties (const PluginLine *line,
-                                           PluginStreetProperties *props) {
+                                           PluginStreetProperties *props,
+                                           int type) {
    
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
 
       RoadMapStreetProperties rm_properties;
+
+      if (type == PLUGIN_STREET_ONLY) {
+         roadmap_street_get_street (line->line_id, &rm_properties);
+         props->street = roadmap_street_get_street_name (&rm_properties);
+         props->plugin_street.plugin_id = ROADMAP_PLUGIN_ID;
+         props->plugin_street.street_id = rm_properties.street;
+         return;
+      }
+
       roadmap_street_get_properties (line->line_id, &rm_properties);
 
       props->address = roadmap_street_get_street_address (&rm_properties);
@@ -456,7 +466,7 @@ void roadmap_plugin_get_street_properties (const PluginLine *line,
       }
 
       if (hooks->get_street_properties != NULL) {
-         (*hooks->get_street_properties) (line, props);
+         (*hooks->get_street_properties) (line, props, type);
       }
 
       return;

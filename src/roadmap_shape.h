@@ -27,9 +27,6 @@
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
 
-int  roadmap_shape_in_square (int square, int *first, int *last);
-int  roadmap_shape_of_line   (int line, int begin, int end,
-                                        int *first, int *last);
 void roadmap_shape_get_position (int shape, RoadMapPosition *position);
 
 extern roadmap_db_handler RoadMapShapeHandler;

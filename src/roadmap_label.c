@@ -465,7 +465,8 @@ int roadmap_label_draw_cache (int angles) {
 
          if (!cPtr->text) {
 
-            roadmap_plugin_get_street_properties (&cPtr->line, &properties);
+            roadmap_plugin_get_street_properties
+                  (&cPtr->line, &properties, PLUGIN_STREET_ONLY);
 
             if (!properties.street || !*properties.street) {
                cPtr->text = "";

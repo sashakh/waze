@@ -348,7 +348,7 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
 }
 
 
-int roadmap_dialog_activate (const char *name, void *context) {
+int roadmap_dialog_activate (const char *name, void *context, int show) {
 
    RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
 

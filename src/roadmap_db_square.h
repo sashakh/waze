@@ -45,9 +45,9 @@
 typedef struct {
 
    RoadMapArea edges;
-
-   int count_points;
    int position;
+   int first_point;
+   int first_shape;
 
 } RoadMapSquare;
 

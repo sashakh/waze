@@ -32,16 +32,14 @@
 
 #include "roadmap_types.h"
 
-#define ROUTE_CAR_ALLOWED 0x1
+#define ROUTE_CAR_ALLOWED 0x80
 
 typedef struct {  /* table line_route */
 
-   unsigned char from_flags;
-   unsigned char to_flags;
-   unsigned char from_max_speed;
-   unsigned char to_max_speed;
-   unsigned short from_speed_ref;
-   unsigned short to_speed_ref;
+   unsigned char from_avg_speed;
+   unsigned char from_turn_res;
+   unsigned char to_avg_speed;
+   unsigned char to_turn_res;
 
 } RoadMapLineRoute;
 

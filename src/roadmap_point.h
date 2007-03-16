@@ -31,6 +31,7 @@ int  roadmap_point_in_square (int square, int *first, int *last);
 void roadmap_point_position  (int point, RoadMapPosition *position);
 int roadmap_point_db_id (int point);
 int roadmap_point_count (void);
+int roadmap_point_square (int point);
 
 extern roadmap_db_handler RoadMapPointHandler;
 

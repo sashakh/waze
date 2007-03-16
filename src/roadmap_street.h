@@ -129,6 +129,8 @@ int roadmap_street_intersection (const char *state,
 void roadmap_street_get_properties
         (int line, RoadMapStreetProperties *properties);
 
+void roadmap_street_get_street (int line, RoadMapStreetProperties *properties);
+
 const char *roadmap_street_get_street_address
                 (const RoadMapStreetProperties *properties);
                 
@@ -168,6 +170,9 @@ int roadmap_street_replace
 int  roadmap_street_search (const char *city, const char *str,
                             RoadMapDictionaryCB cb,
                             void *data);
+
+int roadmap_street_search_city (const char *str, RoadMapDictionaryCB cb,
+                                void *data);
 
 extern roadmap_db_handler RoadMapStreetHandler;
 extern roadmap_db_handler RoadMapZipHandler;

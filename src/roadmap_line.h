@@ -32,10 +32,16 @@ int  roadmap_line_in_square2 (int square, int cfcc, int *first, int *last);
 int  roadmap_line_get_from_index2 (int index);
 int  roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc);
 
-int roadmap_line_shapes (int line, int *first_shape, int *last_shape);
-void roadmap_line_points (int line, int *from, int *to);
+int roadmap_line_shapes (int line, int square,
+                         int *first_shape, int *last_shape);
+int roadmap_line_get_street (int line);
+
 void roadmap_line_from (int line, RoadMapPosition *position);
 void roadmap_line_to   (int line, RoadMapPosition *position);
+
+void roadmap_line_points     (int line, int *from, int *to);
+void roadmap_line_from_point (int line, int *from);
+void roadmap_line_to_point   (int line, int *from);
 
 int roadmap_line_length (int line);
 

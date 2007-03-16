@@ -35,10 +35,15 @@ void buildmap_line_get_points_sorted (int line, int *from, int *to);
 int  buildmap_line_get_square_sorted (int line);
 void buildmap_line_get_position_sorted
         (int line, int *longitude, int *latitude);
+void buildmap_line_set_first_shape_sorted (int line, int first_shape);
+int buildmap_line_first_shape_sorted (int line);
+void buildmap_line_set_street_sorted (int line, int street);
+
 void buildmap_line_sort          (void);
 int buildmap_line_length         (int line);
 
 void buildmap_line_test_long (int line, int longitude, int latitude);
+void buildmap_line_lines_by_node (int node_id, int *lines, int *size);
    
 void buildmap_line_save    (void);
 void buildmap_line_summary (void);

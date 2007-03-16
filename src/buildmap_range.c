@@ -51,7 +51,6 @@
 
 #include "buildmap.h"
 #include "buildmap_zip.h"
-#include "buildmap_square.h"
 #include "buildmap_range.h"
 #include "buildmap_line.h"
 #include "buildmap_street.h"
@@ -478,14 +477,18 @@ void buildmap_range_sort (void) {
 
    for (i = 0; i < RangeCount; i++) {
 
+      int line;
+
       SortedRange[i] = i;
       this_range = Range[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
 
       this_range->street = buildmap_street_get_sorted (this_range->street);
 
-      this_range->line =
-         buildmap_line_get_sorted (this_range->line & (~ CONTINUATION_FLAG))
-            | (this_range->line & CONTINUATION_FLAG);
+      line = buildmap_line_get_sorted
+                  (this_range->line & (~ CONTINUATION_FLAG));
+
+      buildmap_line_set_street_sorted (line, this_range->street);
+      this_range->line = line | (this_range->line & CONTINUATION_FLAG);
    }
 
    qsort (SortedRange, RangeCount, sizeof(int), buildmap_range_compare);
@@ -503,6 +506,7 @@ void buildmap_range_sort (void) {
 
       this_noaddr->street = buildmap_street_get_sorted (this_noaddr->street);
       this_noaddr->line   = buildmap_line_get_sorted (this_noaddr->line);
+      buildmap_line_set_street_sorted (this_noaddr->line, this_noaddr->street);
    }
 
    qsort (SortedNoAddress, RangeNoAddressCount, sizeof(int),
@@ -513,7 +517,6 @@ void buildmap_range_sort (void) {
 void  buildmap_range_save (void) {
 
    int i;
-   int k;
    int unsorted_index = -1;
    int street_index;
 
@@ -525,14 +528,11 @@ void  buildmap_range_save (void) {
    int zip_current;
    int zip_count;
 
-   int square_current;
-
    int first_range_in_city;
    int first_range;
    int is_continuation;
 
    BuildMapRange         *this_range;
-   RoadMapRangeNoAddress *this_noaddr;
 
    RoadMapRangeByZip     *db_zip;
    RoadMapRange          *db_ranges;
@@ -540,7 +540,6 @@ void  buildmap_range_save (void) {
    RoadMapRangeByStreet  *db_streets;
    RoadMapRangeByCity    *db_city;
    RoadMapRangePlace     *db_place;
-   RoadMapRangeBySquare  *db_square;
 
    buildmap_db *root;
    buildmap_db *table_street;
@@ -549,114 +548,9 @@ void  buildmap_range_save (void) {
    buildmap_db *table_zip;
    buildmap_db *table_city;
    buildmap_db *table_place;
-   buildmap_db *table_square;
-
-
-   int delta;
-   int square;
-   int square_count = buildmap_square_get_count();
-
-   struct {
-      int last;
-      int low;
-      int smallest;
-
-      struct {
-         int start;
-         int count;
-      } holes[ROADMAP_RANGE_HOLES];
-
-   } *square_info;
-
-
-   buildmap_info ("building the street search accelerator...");
 
    root  = buildmap_db_add_section (NULL, "range");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");
-
-   square_info = calloc (square_count, sizeof(*square_info));
-   if (square_info == NULL) {
-      buildmap_fatal (0, "no more memory");
-   }
-
-   for (i = 0; i < square_count; i++) {
-      square_info[i].last = -1;
-      for (k = 0; k < ROADMAP_RANGE_HOLES; k++) {
-         square_info[i].holes[k].start = -1;
-      }
-   }
-
-   /* Keep a list of "holes" per square (contiguous chunk of streets that
-    * does not appear in the square). This list will be used to accelerate
-    * searchs by not checking streets not in the current square.
-    */
-   for (i = 0; i < RangeCount; i++) {
-
-      unsorted_index = SortedRange[i];
-      this_range = Range[unsorted_index / BUILDMAP_BLOCK]
-                      + (unsorted_index % BUILDMAP_BLOCK);
-
-      square =
-         buildmap_line_get_square_sorted
-            (this_range->line & (~CONTINUATION_FLAG));
-
-      delta = this_range->street - square_info[square].last - 1;
-
-      if (delta > square_info[square].low) {
-
-         /* This hole is worth remembering: replace the smallest hole
-          * with this one and then retrieve what is the new smallest hole.
-          */
-         k = square_info[square].smallest;
-         square_info[square].holes[k].start = square_info[square].last + 1;
-         square_info[square].holes[k].count = delta;
-
-         square_info[square].low = delta;
-
-         for (k = 0; k < ROADMAP_RANGE_HOLES; k++) {
-
-            if (square_info[square].holes[k].start < 0) break;
-
-            if (square_info[square].holes[k].count < delta) {
-               square_info[square].smallest = k;
-               square_info[square].low = square_info[square].holes[k].count;
-               delta = square_info[square].low;
-             }
-         }
-      }
-      square_info[square].last = this_range->street;
-   }
-
-   /* Sort the holes. */
-
-   for (i = 0; i < square_count; i++) {
-
-      int sorted = 0;
-
-      while (! sorted) {
-
-         sorted = 1;
-
-         for (k = 0; k < ROADMAP_RANGE_HOLES-1; k++) {
-
-            if (square_info[i].holes[k+1].start < 0) break;
-
-            if (square_info[i].holes[k].start >
-                square_info[i].holes[k+1].start) {
-
-               int start = square_info[i].holes[k].start;
-               int count = square_info[i].holes[k].count;
-
-               square_info[i].holes[k] = square_info[i].holes[k+1];
-               square_info[i].holes[k+1].start = start;
-               square_info[i].holes[k+1].count = count;
-
-               sorted = 0;
-            }
-         }
-      }
-   }
-
 
    buildmap_info ("saving ranges...");
 
@@ -717,16 +611,12 @@ void  buildmap_range_save (void) {
    table_noaddr = buildmap_db_add_child
          (root, "noaddr", RangeNoAddressCount, sizeof(RoadMapRangeNoAddress));
 
-   table_square = buildmap_db_add_child
-               (root, "bysquare", square_count, sizeof(RoadMapRangeBySquare));
-
    db_streets = (RoadMapRangeByStreet *) buildmap_db_get_data (table_street);
    db_city    = (RoadMapRangeByCity *) buildmap_db_get_data (table_city);
    db_place   = (RoadMapRangePlace *) buildmap_db_get_data (table_place);
    db_ranges  = (RoadMapRange *) buildmap_db_get_data (table_addr);
    db_noaddr  = (RoadMapRangeNoAddress *) buildmap_db_get_data (table_noaddr);
    db_zip     = (RoadMapRangeByZip *) buildmap_db_get_data (table_zip);
-   db_square  = (RoadMapRangeBySquare *) buildmap_db_get_data (table_square);
 
 
    /* Fill in the index and the range data. */
@@ -765,14 +655,18 @@ void  buildmap_range_save (void) {
          while (street_index < this_range->street) {
             db_streets[street_index].first_range = 0;
             db_streets[street_index].first_city  = 0;
+#ifndef J2MEMAP
             db_streets[street_index].first_zip   = 0;
+#endif            
             db_streets[street_index].count_range = 0;
             street_index += 1;
          }
 
          db_streets[street_index].first_range = i;
          db_streets[street_index].first_city  = city_index + 1;
+#ifndef J2MEMAP
          db_streets[street_index].first_zip   = zip_index + 1;
+#endif         
          first_range = i;
 
          city_current = -1; /* Force a city change. */
@@ -842,96 +736,15 @@ void  buildmap_range_save (void) {
       db_place[i] = RangePlace[i / BUILDMAP_BLOCK][i % BUILDMAP_BLOCK];
    }
 
-   for (i = 0; i < square_count; i++) {
-
-      int last = -1;
-      int excluded;
-      int included;
-
-      int j = 0;
-
-      for (k = 0; j < ROADMAP_RANGE_HOLES && k < ROADMAP_RANGE_HOLES; k++) {
-
-         if (square_info[i].holes[k].start < 0) break;
-
-         included = square_info[i].holes[k].start - last - 1;
-         excluded = square_info[i].holes[k].count;
-
-         last = square_info[i].holes[k].start + excluded - 1;
-
-         if ((included | excluded) & (~0xffff)) {
-
-            while (included > 0xffff) {
-
-               db_square[i].hole[j].included = 0xffff;
-               db_square[i].hole[j].excluded = 0;
-               included -= 0xffff;
-
-               if (++j >= ROADMAP_RANGE_HOLES) goto next_square;
-            }
-            while (excluded > 0xffff) {
-
-               db_square[i].hole[j].included = included;
-               db_square[i].hole[j].excluded = 0xffff;
-               included  = 0;
-               excluded -= 0xffff;
-
-               if (++j >= ROADMAP_RANGE_HOLES) goto next_square;
-            }
-         }
-         if ((included | excluded )!= 0) {
-            db_square[i].hole[j].included = (unsigned short) included;
-            db_square[i].hole[j].excluded = (unsigned short) excluded;
-            j += 1;
-         }
-      }
-
-      for (; j < ROADMAP_RANGE_HOLES; j++) {
-         db_square[i].hole[j].included = 0;
-         db_square[i].hole[j].excluded = 0;
-      }
-
-      next_square: continue;
-   }
-
-
-   square_current = -1;
-
-   for (i = 0; i < RangeNoAddressCount; i++) {
-
-      unsorted_index = SortedNoAddress[i];
-
-      this_noaddr = RangeNoAddress[unsorted_index / BUILDMAP_BLOCK]
-                                + (unsorted_index % BUILDMAP_BLOCK);
-
-      db_noaddr[i] = *this_noaddr;
-
-      k = buildmap_line_get_square_sorted (this_noaddr->line);
-
-      if (k >= square_count) {
-         buildmap_fatal (0, "invalid square index %d", k);
-      }
-
-      if (k != square_current) {
-
-         if (k < square_current) {
-            buildmap_fatal (0, "no-address line out of order (square)");
-         }
-         db_square[k].noaddr_start = i;
-         db_square[k].noaddr_count = 0;
-
-         square_current = k;
-      }
-      db_square[k].noaddr_count += 1;
-   }
-
    if (switch_endian) {
       int i;
 
       for (i=0; i<buildmap_street_count(); i++) {
          switch_endian_int(&db_streets[i].first_range);
          switch_endian_int(&db_streets[i].first_city);
+#ifndef J2MEMAP
          switch_endian_int(&db_streets[i].first_zip);
+#endif
          switch_endian_int(&db_streets[i].count_range);
       }
 
@@ -959,18 +772,6 @@ void  buildmap_range_save (void) {
       for (i=0; i<RangeNoAddressCount; i++) {
          switch_endian_int(&db_noaddr[i].line);
          switch_endian_int(&db_noaddr[i].street);
-      }
-
-      for (i=0; i<square_count; i++) {
-         int j;
-
-         for (j=0; j<ROADMAP_RANGE_HOLES; j++) {
-            switch_endian_short(&db_square[i].hole[j].excluded);
-            switch_endian_short(&db_square[i].hole[j].included);
-         }
-
-         switch_endian_int(&db_square[i].noaddr_start);
-         switch_endian_int(&db_square[i].noaddr_count);
       }
    }
 }

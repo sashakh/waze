@@ -109,7 +109,7 @@ static const char *editor_plugin_street_full_name (const PluginLine *line) {
 }
 
 static void editor_plugin_street_properties
-           (const PluginLine *line, PluginStreetProperties *props) {
+           (const PluginLine *line, PluginStreetProperties *props, int type) {
 
    EditorStreetProperties properties;
    int line_id = roadmap_plugin_get_line_id (line);

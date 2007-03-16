@@ -33,6 +33,7 @@ struct roadmap_db_section {
    int  next;
    int  size;
    int  count;  /* .. of records, when applicable. */
+   int data_offset;
 };
 
 #endif // _ROADMAP_DB__H_

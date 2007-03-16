@@ -82,6 +82,7 @@ int roadmap_io_write (RoadMapIO *io, const void *data, int length, int wait) {
 
 void  roadmap_io_close (RoadMapIO *io) {
 
+   printf("In roadmap_io_close: subsystem: %d\n", io->subsystem);
    switch (io->subsystem) {
 
       case ROADMAP_IO_FILE:

@@ -35,11 +35,15 @@
 #define _ROADMAP_DB_LINE__H_
 
 #include "roadmap_types.h"
+#define ROADMAP_LINE_NO_SHAPES ((unsigned short)-1)
+#define ROADMAP_LINE_NO_STREET ((unsigned short)-1)
 
 typedef struct {  /* table line */
 
    int from;
    int to;
+   unsigned short first_shape;
+   unsigned short street;
 
 } RoadMapLine;
 

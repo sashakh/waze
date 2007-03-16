@@ -121,12 +121,12 @@ typedef struct {
 
 
 RoadMapSign RoadMapStreetSign[] = {
-    ROADMAP_SIGN("GPS", "Current Street",  SIGN_BOTTOM, "%N, %C|%N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN("GPS", "Approach",        SIGN_TOP, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
-    ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "yellow", "black"),
-    ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "yellow", "black"),
-    ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "red", "white"),
-    ROADMAP_SIGN("GPS", "Driving Instruction", SIGN_TOP, "In %D %I", "red", "white"),
+    ROADMAP_SIGN("GPS", "Current Street",  SIGN_BOTTOM, "%N, %C|%N", "#698b69", "#ffffff"),
+    ROADMAP_SIGN("GPS", "Approach",        SIGN_TOP, "Approaching %N, %C|Approaching %N", "#698b69", "#ffffff"),
+    ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "#ffff00", "#000000"),
+    ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "#ffff00", "#000000"),
+    ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "#ff0000", "#ffffff"),
+    ROADMAP_SIGN("GPS", "Driving Instruction", SIGN_TOP, "In %D %I", "#ff0000", "#ffffff"),
     ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
 };
 
@@ -136,7 +136,7 @@ static RoadMapPen roadmap_display_new_pen
 
     const char *color = roadmap_config_get (descriptor);
                             
-    if (strcasecmp (color, "black") != 0) {
+    if (strcasecmp (color, "#000000") != 0) {
         
         RoadMapPen pen;
         char pen_name[256];
@@ -175,7 +175,7 @@ static void roadmap_display_create_pens (void) {
 
 
     RoadMapMessageContour = roadmap_canvas_create_pen ("message.contour");
-    roadmap_canvas_set_foreground ("black");
+    roadmap_canvas_set_foreground ("#000000");
     
     RoadMapConsoleBackground =
         roadmap_display_new_pen (&RoadMapConfigConsoleBackground);
@@ -507,7 +507,7 @@ int roadmap_display_activate
 
     roadmap_message_set ('F', sign->id);
     
-    roadmap_plugin_get_street_properties (line, &properties);
+    roadmap_plugin_get_street_properties (line, &properties, 0);
 
     roadmap_message_set ('#', properties.address);
     roadmap_message_set ('N', properties.street);
@@ -731,9 +731,9 @@ void roadmap_display_initialize (void) {
         ("preferences", &RoadMapConfigDisplayTopRight, "ETA: %A|%T", NULL);
 
     roadmap_config_declare
-        ("schema", &RoadMapConfigConsoleBackground, "yellow", NULL);
+        ("schema", &RoadMapConfigConsoleBackground, "#ffff00", NULL);
     roadmap_config_declare
-        ("schema", &RoadMapConfigConsoleForeground, "black", NULL);
+        ("schema", &RoadMapConfigConsoleForeground, "#000000", NULL);
     
     for (sign = RoadMapStreetSign; sign->title != NULL; ++sign) {
         

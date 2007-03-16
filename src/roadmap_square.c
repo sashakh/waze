@@ -271,22 +271,6 @@ void  roadmap_square_min (int square, RoadMapPosition *position) {
 
    if (RoadMapSquareActive == NULL) return;
 
-   /* Default values. */
-   position->longitude = RoadMapSquareActive->SquareGlobal->edges.west;
-   position->latitude  = RoadMapSquareActive->SquareGlobal->edges.south;
-
-   if (square == ROADMAP_SQUARE_GLOBAL) {
-      return;
-   }
-
-   if (! roadmap_square_is_valid (square)) {
-      return;
-   }
-
-   square = RoadMapSquareActive->SquareGrid[square];
-   if (square < 0) {
-      return;
-   }
    position->longitude = RoadMapSquareActive->Square[square].edges.west;
    position->latitude  = RoadMapSquareActive->Square[square].edges.south;
 }
@@ -421,5 +405,25 @@ int roadmap_square_view (int *square, int size) {
    }
 
    return count;
+}
+
+
+int roadmap_square_first_point (int square) {
+
+   return RoadMapSquareActive->Square[square].first_point;
+}
+
+
+int roadmap_square_has_shapes (int square) {
+
+   square = RoadMapSquareActive->SquareGrid[square];
+   return RoadMapSquareActive->Square[square].first_shape != -1;
+}
+
+
+int roadmap_square_first_shape (int square) {
+
+   square = RoadMapSquareActive->SquareGrid[square];
+   return RoadMapSquareActive->Square[square].first_shape;
 }
 

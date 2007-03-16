@@ -163,13 +163,14 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
 void roadmap_log (int level, char *source, int line, char *format, ...) {
 
+#ifndef J2ME
    static FILE *file;
+#endif
    va_list ap;
    char saved = ' ';
    struct roadmap_message_descriptor *category;
    char *debug;
 
-   return;
    if (level < roadmap_verbosity()) return;
 
 #ifdef DEBUG

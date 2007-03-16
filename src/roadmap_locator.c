@@ -34,6 +34,7 @@
 #include <stdlib.h>
 
 #include "roadmap.h"
+#include "roadmap_config.h"
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
@@ -79,8 +80,13 @@ static int roadmap_locator_no_download (int fips) {return 0;}
 
 static RoadMapInstaller  RoadMapDownload = roadmap_locator_no_download;
 
+static RoadMapConfigDescriptor RoadMapConfigStaticCounty =
+                        ROADMAP_CONFIG_ITEM("Map", "Static County");
 
 static void roadmap_locator_configure (void) {
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigStaticCounty, "0", NULL);
 
    if (RoadMapCountyCache == NULL) {
 
@@ -139,6 +145,8 @@ static void roadmap_locator_configure (void) {
          calloc (RoadMapCountyCacheSize, sizeof(struct roadmap_cache_entry));
       roadmap_check_allocated (RoadMapCountyCache);
    }
+
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) return;
 
    if (!RoadMapUsdirActive) {
       if (! roadmap_db_open ("usdir", RoadMapUsModel, "r")) {
@@ -256,6 +264,8 @@ void roadmap_locator_close (int fips) {
 
    int i;
 
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) return;
+
    for (i = RoadMapCountyCacheSize-1; i >= 0; --i) {
 
       if (RoadMapCountyCache[i].fips == fips) {
@@ -271,6 +281,8 @@ void roadmap_locator_close (int fips) {
 
 void roadmap_locator_close_dir (void) {
 
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) return;
+
    if (RoadMapUsdirActive) {
       roadmap_db_close ("usdir");
       RoadMapUsdirActive = 0;
@@ -284,7 +296,11 @@ static int roadmap_locator_allocate (int **fips) {
 
    roadmap_locator_configure();
 
-   count = roadmap_county_count();
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) {
+      count = 1;
+   } else {
+      count = roadmap_county_count();
+   }
 
    if (*fips == NULL) {
       *fips = calloc (count, sizeof(int));
@@ -311,6 +327,12 @@ int roadmap_locator_by_position
    int count;
 
    count = roadmap_locator_allocate (fips);
+
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) {
+      *fips[0] = roadmap_config_get_integer(&RoadMapConfigStaticCounty);
+      return 1;
+   }
+
    return roadmap_county_by_position (position, *fips, count);
 }
 
@@ -321,6 +343,11 @@ int roadmap_locator_by_state (const char *state_symbol, int **fips) {
    RoadMapString state;
 
    count = roadmap_locator_allocate (fips);
+
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) {
+      *fips[0] = roadmap_config_get_integer(&RoadMapConfigStaticCounty);
+      return 1;
+   }
 
    state = roadmap_dictionary_locate (RoadMapUsStateDictionary, state_symbol);
    if (state == ROADMAP_INVALID_STRING) {
@@ -336,6 +363,11 @@ int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
    RoadMapString state;
 
    roadmap_locator_configure();
+
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) {
+      return roadmap_locator_open
+                (roadmap_config_get_integer(&RoadMapConfigStaticCounty));
+   }
 
    state = roadmap_dictionary_locate (RoadMapUsStateDictionary, state_symbol);
    if (state == ROADMAP_INVALID_STRING) {
@@ -380,6 +412,10 @@ RoadMapString roadmap_locator_get_state (const char *state) {
 
 int roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
                                  void *data) {
+
+   if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) {
+      return roadmap_street_search_city (str, cb, data);
+   }
 
    return roadmap_dictionary_search_all
             (RoadMapUsCityDictionary, NULL, str, 1, cb, data);

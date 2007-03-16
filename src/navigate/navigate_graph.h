@@ -29,6 +29,9 @@
 
 #define GRAPH_IGNORE_TURNS 1
 
+#define NEW_ROUTE 1
+#define RECALC_ROUTE 2
+
 int navigate_reload_data (void);
 int navigate_load_data   (void);
 

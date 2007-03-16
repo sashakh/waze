@@ -46,6 +46,13 @@ else
 	SSDCFLAGS=
 endif
 
+ifeq ($(J2ME),YES)
+# Small screen devices
+   J2MECFLAGS=-DJ2MEMAP
+else
+	J2MECFLAGS=
+endif
+
 ifeq ($(SQL),SQLITE)
    SQLCFLAGS=-DROADMAP_USES_SQLITE
 	SQLLDFLAGS=-lsqlite
@@ -94,7 +101,7 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) $(SSDCFLAGS) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) $(SSDCFLAGS) $(J2MECFLAGS) -I/usr/local/include -I$(PWD) -I./dglib -DROADMAP_USE_POSTGRES
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq -L ./dglib
 
 RDMLIBS=libroadmap.a unix/libosroadmap.a
@@ -158,7 +165,7 @@ RMGUISRCS=roadmap_sprite.c \
           roadmap_display.c \
           roadmap_factory.c \
           roadmap_preferences.c \
-          roadmap_address_ssd.c \
+          roadmap_address.c \
           roadmap_crossing.c \
           roadmap_coord.c \
           roadmap_download.c \
@@ -218,7 +225,9 @@ RMPLUGINSRCS=roadmap_copy.c \
 				 navigate/navigate_bar.c \
 				 navigate/navigate_plugin.c \
 				 navigate/navigate_traffic.c \
-				 navigate/navigate_dglib.c \
+				 navigate/navigate_rdm.c \
+				 navigate/bst.c \
+				 navigate/fib-1.1/fib.c \
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 

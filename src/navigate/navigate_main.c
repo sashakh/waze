@@ -28,8 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "type.h"
-#include "graph.h"
 
 #include "roadmap.h"
 #include "roadmap_pointer.h"
@@ -124,8 +122,10 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
       RoadMapGpsPosition pos;
 
+#ifndef J2ME
       //FIXME remove when navigation will support plugin lines
       editor_plugin_set_override (0);
+#endif
 
       if (roadmap_navigate_get_current (&pos, &line, &direction) != -1) {
 
@@ -146,8 +146,10 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
          NavigateSrcPos = *position;
       }
 
+#ifndef J2ME
       //FIXME remove when navigation will support plugin lines
       editor_plugin_set_override (1);
+#endif
 
    } else {
 
@@ -159,15 +161,19 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
       if (!position) return -1;
 
+#ifndef J2ME
       //FIXME remove when navigation will support plugin lines
       editor_plugin_set_override (0);
+#endif
 
       if ((roadmap_navigate_retrieve_line
                (position, 20, &line, &distance, LAYER_ALL_ROADS) == -1) ||
             (roadmap_plugin_get_id (&line) != ROADMAP_PLUGIN_ID)) {
 
+#ifndef J2ME
          //FIXME remove when navigation will support plugin lines
          editor_plugin_set_override (1);
+#endif
 
          roadmap_messagebox
             ("Error", "Can't find a road near departure point.");
@@ -175,8 +181,10 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
          return -1;
       }
 
+#ifndef J2ME
       //FIXME remove when navigation will support plugin lines
       editor_plugin_set_override (1);
+#endif
 
    }
 
@@ -220,22 +228,28 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
 
    NavigateDestPos = *position;
 
+#ifndef J2ME
    //FIXME remove when navigation will support plugin lines
    editor_plugin_set_override (0);
+#endif
 
    if ((roadmap_navigate_retrieve_line
             (position, 20, &line, &distance, LAYER_ALL_ROADS) == -1) ||
          (roadmap_plugin_get_id (&line) != ROADMAP_PLUGIN_ID)) {
 
       roadmap_messagebox ("Error", "Can't find a road near destination point.");
+#ifndef J2ME
       //FIXME remove when navigation will support plugin lines
       editor_plugin_set_override (1);
+#endif
 
       return -1;
    }
 
+#ifndef J2ME
    //FIXME remove when navigation will support plugin lines
    editor_plugin_set_override (1);
+#endif
    *to_line = line;
 
    switch (roadmap_plugin_get_direction (to_line, ROUTE_CAR_ALLOWED)) {
@@ -271,7 +285,7 @@ static int navigate_main_recalc_route () {
    int track_time;
    PluginLine from_line;
    int from_point;
-   int result_flags;
+   int flags;
 
    NavigateNumSegments = MAX_NAV_SEGEMENTS;
 
@@ -288,10 +302,11 @@ static int navigate_main_recalc_route () {
 
    roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
 
+   flags = RECALC_ROUTE;
    track_time =
       navigate_get_route_segments
             (&from_line, from_point, &NavigateDestination, NavigateDestPoint,
-             NavigateSegments, &NavigateNumSegments, &result_flags);
+             NavigateSegments, &NavigateNumSegments, &flags);
 
    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 
@@ -299,7 +314,7 @@ static int navigate_main_recalc_route () {
       return -1;
    }
 
-   NavigateFlags = result_flags;
+   NavigateFlags = flags;
 
    navigate_instr_prepare_segments (NavigateSegments, NavigateNumSegments,
                                    &NavigateSrcPos, &NavigateDestPos);
@@ -401,26 +416,26 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
       case TURN_LEFT:
          inst_text = "Turn left";
-         inst_voice = "TurnLeft.wav";
+         inst_voice = "TurnLeft.mp3";
          break;
       case KEEP_LEFT:
          inst_text = "Keep left";
-         inst_voice = "KeepLeft.wav";
+         inst_voice = "KeepLeft.mp3";
          break;
       case TURN_RIGHT:
          inst_text = "Turn right";
-         inst_voice = "TurnRight.wav";
+         inst_voice = "TurnRight.mp3";
          break;
       case KEEP_RIGHT:
          inst_text = "Keep right";
-         inst_voice = "KeepRight.wav";
+         inst_voice = "KeepRight.mp3";
          break;
       case APPROACHING_DESTINATION:
          inst_text = "Approaching destination";
          break;
       case CONTINUE:
          inst_text = "Continue straight";
-         inst_voice = "Straight.wav";
+         inst_voice = "Straight.mp3";
          break;
       default:
          break;
@@ -430,7 +445,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
         NavigateDistanceToTurn <= 10) {
 
       sound_list = roadmap_sound_list_create (0);
-      roadmap_sound_list_add (sound_list, "Arrive.wav");
+      roadmap_sound_list_add (sound_list, "Arrive.mp3");
       roadmap_sound_play_list (sound_list);
 
       NavigateTrackEnabled = 0;
@@ -486,7 +501,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
          segment++;
       }
 
-      roadmap_plugin_get_street_properties (&segment->line, &properties);
+      roadmap_plugin_get_street_properties (&segment->line, &properties, 0);
 
       roadmap_message_set ('#', properties.address);
       roadmap_message_set ('N', properties.street);
@@ -502,7 +517,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
          int distance_far =
             roadmap_math_to_trip_distance(announce_distance);
 
-         roadmap_sound_list_add (sound_list, "within.wav");
+         roadmap_sound_list_add (sound_list, "within.mp3");
 
          if (distance_far > 0) {
             roadmap_message_set ('w', "%d %s",
@@ -515,9 +530,10 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
             roadmap_message_set ('w', "%d %s",
                   announce_distance, roadmap_math_distance_unit());
 
-            sprintf(distance_str, "%d", announce_distance);
+            sprintf(distance_str, "%d.mp3", announce_distance);
             roadmap_sound_list_add (sound_list, distance_str);
-            roadmap_sound_list_add (sound_list, roadmap_math_distance_unit());
+            sprintf(distance_str, "%s.mp3", roadmap_math_distance_unit());
+            roadmap_sound_list_add (sound_list, distance_str);
          };
       }
 
@@ -611,7 +627,7 @@ void navigate_get_next_line
          /* we need the name of the next street */
          segment++;
       }
-      roadmap_plugin_get_street_properties (&segment->line, &properties);
+      roadmap_plugin_get_street_properties (&segment->line, &properties, 0);
       navigate_bar_set_street (properties.street);
 
       NavigateNextAnnounce = -1;
@@ -646,12 +662,12 @@ int navigate_is_enabled (void) {
 void navigate_main_initialize (void) {
 
    NavigatePen = roadmap_canvas_create_pen ("NavigatePen1");
-   roadmap_canvas_set_foreground ("blue");
+   roadmap_canvas_set_foreground ("#0000ff");
    roadmap_canvas_set_opacity (160);
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
 
    NavigatePenEst = roadmap_canvas_create_pen ("NavigatePen2");
-   roadmap_canvas_set_foreground ("red");
+   roadmap_canvas_set_foreground ("#ff0000");
    roadmap_canvas_set_opacity (160);
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
 
@@ -685,7 +701,7 @@ int navigate_main_calc_route () {
    int track_time;
    PluginLine from_line;
    int from_point;
-   int result_flags;
+   int flags;
 
    const char *focus = roadmap_trip_get_focus_name ();
 
@@ -721,10 +737,11 @@ int navigate_main_calc_route () {
 
    roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
 
+   flags = NEW_ROUTE;
    track_time =
       navigate_get_route_segments
             (&from_line, from_point, &NavigateDestination, NavigateDestPoint,
-             NavigateSegments, &NavigateNumSegments, &result_flags);
+             NavigateSegments, &NavigateNumSegments, &flags);
 
    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 
@@ -750,9 +767,9 @@ int navigate_main_calc_route () {
          length += NavigateSegments[i].distance;
       }
 
-      NavigateFlags = result_flags;
+      NavigateFlags = flags;
 
-      if (result_flags & GRAPH_IGNORE_TURNS) {
+      if (flags & GRAPH_IGNORE_TURNS) {
          snprintf(msg, sizeof(msg), "%s\n",
             roadmap_lang_get ("The calculated route may have incorrect turn instructions."));
       }

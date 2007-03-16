@@ -160,7 +160,7 @@ static void roadmap_address_selection (void  *data,
    }
 
 
-   if (roadmap_dialog_activate ("Street Select", data)) {
+   if (roadmap_dialog_activate ("Street Select", data, 1)) {
 
       roadmap_dialog_new_list ("List", ".Streets");
 
@@ -366,7 +366,7 @@ static void roadmap_address_city_result (const char *result, void *data) {
 
    RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
       
-   roadmap_dialog_activate (context->title, context);
+   roadmap_dialog_activate (context->title, context, 1);
 
    if ((result == NULL) || !strlen (result)) return;
 
@@ -380,7 +380,7 @@ static void roadmap_address_street_result (const char *result, void *data) {
    char name[255];
    char *tmp;
       
-   roadmap_dialog_activate (context->title, context);
+   roadmap_dialog_activate (context->title, context, 1);
 
    if ((result == NULL) || !strlen (result)) return;
 
@@ -424,7 +424,7 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
       def_values[1] = roadmap_lang_get ("Search");
    }
 
-   if (roadmap_dialog_activate (context->title, context)) {
+   if (roadmap_dialog_activate (context->title, context, 1)) {
 
       if (context->use_zip) {
          roadmap_dialog_new_entry ("Address", "Zip", NULL);
@@ -483,7 +483,7 @@ void roadmap_address_search_dialog (const char *city,
    context->data = data;
    context->city = city;
 
-   if (roadmap_dialog_activate ("Search Address", context)) {
+   if (roadmap_dialog_activate ("Search Address", context, 1)) {
 
       roadmap_dialog_new_entry  (".search", "Name",
                                  roadmap_address_search_populate);

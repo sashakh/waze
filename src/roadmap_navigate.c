@@ -90,7 +90,7 @@ static void roadmap_navigate_trace (const char *format, PluginLine *line) {
 
     roadmap_plugin_get_street (line, &street);
 
-    roadmap_plugin_get_street_properties (line, &properties);
+    roadmap_plugin_get_street_properties (line, &properties, 0);
     
     roadmap_message_set ('#', properties.address);
     roadmap_message_set ('N', properties.street);
@@ -395,6 +395,10 @@ static RoadMapFuzzy roadmap_navigate_is_intersection
  * Once we know where we are going, we select a street that intersects
  * this point and seems the best guess as an intersection.
  */
+#ifdef DEBUG_TIME
+#include "java/lang.h"
+#endif
+
 static int roadmap_navigate_find_intersection
                   (const RoadMapGpsPosition *position, PluginLine *found) {
 
@@ -417,6 +421,12 @@ static int roadmap_navigate_find_intersection
     PluginLine plugin_lines[100];
     int count;
     int i;
+    #ifdef DEBUG_TIME
+    int start_time;
+
+    start_time = NOPH_System_currentTimeMillis();
+    #endif
+    printf("In roadmap_navigate_find_intersection...\n");
 
     delta_from =
         roadmap_math_delta_direction
@@ -435,6 +445,10 @@ static int roadmap_navigate_find_intersection
     } else if (delta_from < delta_to - 30) {
        roadmap_plugin_line_from (&RoadMapConfirmedLine.line, &crossing);
     } else {
+       #ifdef DEBUG_TIME
+       printf("Done. Not sure in %d ms\n",
+               NOPH_System_currentTimeMillis() - start_time);
+       #endif
        return 0; /* Not sure enough. */
     }
 
@@ -556,6 +570,11 @@ static int roadmap_navigate_find_intersection
 
     if (! roadmap_fuzzy_is_acceptable (best_match)) {
         roadmap_display_hide ("Current Street");
+
+       #ifdef DEBUG_TIME
+       printf("Done. Did not find a match in %d ms\n",
+               NOPH_System_currentTimeMillis() - start_time);
+       #endif
         return 0;
     }
 
@@ -572,9 +591,12 @@ static int roadmap_navigate_find_intersection
        }
     }
 
+    #ifdef DEBUG_TIME
+    printf("Done. Found a match in %d ms\n",
+            NOPH_System_currentTimeMillis() - start_time);
+    #endif
     return 1;
 }
-
 
 void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
@@ -589,6 +611,12 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     static RoadMapTracking candidate;
     static RoadMapTracking nominated;
+
+#ifdef DEBUG_TIME
+    int start_time;
+    int other_time = 0;
+    int tmp_time;
+#endif
 
 
     if (! RoadMapNavigateEnabled) {
@@ -610,6 +638,10 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     if ((RoadMapLatestGpsPosition.latitude == gps_position->latitude) &&
         (RoadMapLatestGpsPosition.longitude == gps_position->longitude)) return;
 
+    #ifdef DEBUG_TIME
+    start_time = NOPH_System_currentTimeMillis();
+    printf ("In roadmap_navigate_locate\n");
+    #endif
 
     RoadMapLatestGpsPosition = *gps_position;
 
@@ -620,6 +652,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     if (RoadMapConfirmedStreet.valid) {
 
         /* We have an existing street match: check it is still valid. */
+        printf ("We have an existing street match, check if it's valid...\n");
 
         RoadMapFuzzy before = RoadMapConfirmedStreet.fuzzyfied;
         RoadMapFuzzy current_fuzzy;
@@ -653,19 +686,27 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
             RoadMapConfirmedStreet.fuzzyfied = current_fuzzy;
    
-            if (! roadmap_navigate_confirm_intersection (gps_position)) {
-                PluginLine p_line;
-                roadmap_navigate_find_intersection (gps_position, &p_line);
-            }
-
             if (RoadMapRouteInfo.enabled) {
 
                RoadMapRouteInfo.callbacks.update
                            (&RoadMapLatestPosition,
                             &RoadMapConfirmedLine.line);
+
+            } else if (!roadmap_navigate_confirm_intersection (gps_position)) {
+                PluginLine p_line;
+                roadmap_navigate_find_intersection (gps_position, &p_line);
             }
+
+            #ifdef DEBUG_TIME
+            printf ("roadmap_navigate_locate SAME STREET. %d ms\n",
+                     NOPH_System_currentTimeMillis() - start_time);
+            #endif
             return; /* We are on the same street. */
         }
+        #ifdef DEBUG_TIME
+        other_time = NOPH_System_currentTimeMillis() - start_time;
+        printf ("Not valid in %d ms.\n", other_time);
+        #endif
     }
 
     /* We must search again for the best street match. */
@@ -676,10 +717,17 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
        editor_plugin_set_override (0);
     }
 #endif
+    printf ("Calling roadmap_navigate_get_neighbours...\n");
     count = roadmap_navigate_get_neighbours
                 (&RoadMapLatestPosition, roadmap_fuzzy_max_distance(),
                  RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD, LAYER_ALL_ROADS);
+    #ifdef DEBUG_TIME
+    tmp_time = NOPH_System_currentTimeMillis() - start_time - other_time;
+    printf ("Result %d, in %d ms\n", count, tmp_time);
+    other_time += tmp_time;
 
+    printf ("Processing results...\n");
+    #endif
     for (i = 0, best = roadmap_fuzzy_false(), found = 0; i < count; ++i) {
 
         result = roadmap_navigate_fuzzify
@@ -723,6 +771,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         }
     }
 
+    #ifdef DEBUG_TIME
+    tmp_time = NOPH_System_currentTimeMillis() - start_time - other_time;
+    printf ("Done. Best:%d, in %d ms\n", best, tmp_time);
+    other_time += tmp_time;
+    #endif
 #ifndef J2ME
     //FIXME remove when navigation will support plugin lines
     if (RoadMapRouteInfo.enabled) {
@@ -730,6 +783,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     }
 #endif    
 
+    printf ("Process best result...\n");
     if (roadmap_fuzzy_is_acceptable (best)) {
 
         PluginLine old_line = RoadMapConfirmedLine.line;
@@ -775,9 +829,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
             }
         }
 
-        if (gps_position->speed > roadmap_gps_speed_accuracy()) {
-           PluginLine p_line;
-           roadmap_navigate_find_intersection (gps_position, &p_line);
+        if (!RoadMapRouteInfo.enabled) {
+           if (gps_position->speed > roadmap_gps_speed_accuracy()) {
+              PluginLine p_line;
+              roadmap_navigate_find_intersection (gps_position, &p_line);
+           }
         }
 
     } else {
@@ -804,6 +860,13 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
           (&RoadMapLatestPosition,
            &RoadMapConfirmedLine.line);
     }
+    #ifdef DEBUG_TIME
+    tmp_time = NOPH_System_currentTimeMillis() - start_time - other_time;
+    printf ("Done.in %d ms\n", tmp_time);
+    other_time += tmp_time;
+    printf ("roadmap_navigate_locate NEW STREET. %d ms\n",
+          NOPH_System_currentTimeMillis() - start_time);
+    #endif
 }
 
 

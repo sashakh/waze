@@ -165,8 +165,14 @@ static void roadmap_gps_update_reception (void) {
 
    if (RoadMapGpsReception != new_state) {
 
+      int old_state = RoadMapGpsReception;
       RoadMapGpsReception = new_state;
-      roadmap_state_refresh ();
+
+      if ((old_state <= GPS_RECEPTION_NONE) ||
+            (new_state <= GPS_RECEPTION_NONE)) {
+
+         roadmap_state_refresh ();
+      }
    }
 }
 
@@ -187,7 +193,9 @@ static void roadmap_gps_process_position (void) {
 
    int i;
 
+#ifdef DEBUG_TIME
    roadmap_log (ROADMAP_ERROR, "Position: %d, %d\n", RoadMapGpsReceivedPosition.latitude, RoadMapGpsReceivedPosition.longitude);
+#endif
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -729,12 +737,14 @@ void roadmap_gps_open (void) {
       url = roadmap_config_get (&RoadMapConfigGPSSource);
 #endif
 
+#ifndef J2ME
       if (url == NULL) {
          return;
       }
       if (*url == 0) {
          return;
       }
+#endif
    }
 
    /* We do have a gps interface: */
@@ -843,9 +853,18 @@ void roadmap_gps_open (void) {
       roadmap_log (ROADMAP_ERROR, "invalid protocol in url %s", url);
       return;
    }
-#else
+#else /* J2ME */
    if (1) {
-      RoadMapGpsLink.os.serial = roadmap_serial_open ("", "r", 0);
+      char mgr_url[255];
+      NOPH_GpsManager_t gps_mgr = NOPH_GpsManager_getInstance();
+
+      if (NOPH_GpsManager_getURL (gps_mgr, mgr_url, sizeof(mgr_url)) != -1) {
+         if (strcmp (url, mgr_url)) {
+            roadmap_config_set (&RoadMapConfigGPSSource, mgr_url);
+            url = mgr_url;
+         }
+      }
+      RoadMapGpsLink.os.serial = roadmap_serial_open (url, "r", 0);
 
       if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
          RoadMapGpsLink.subsystem = ROADMAP_IO_SERIAL;
@@ -1187,7 +1206,11 @@ void roadmap_gps_detect_receiver (void) {
 void roadmap_gps_detect_receiver (void) {
    NOPH_GpsManager_t gps_mgr = NOPH_GpsManager_getInstance();
    NOPH_MIDlet_t m = NOPH_MIDlet_get();
-   NOPH_GpsManager_searchGps(gps_mgr, m);
+   const char *wait_msg = roadmap_lang_get("Please wait...");
+   const char *not_found_msg = roadmap_lang_get("GPS Receiver not found. Make sure your receiver is connected and turned on.");
+
+   printf("m: %d\n", m);
+   NOPH_GpsManager_searchGps(gps_mgr, m, wait_msg, not_found_msg);
 }
 #else
 /* Unix */

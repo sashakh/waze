@@ -43,7 +43,12 @@
 
 #include "buildmap.h"
 
+#ifdef J2MEMAP
 int switch_endian = 1;
+#else
+int switch_endian = 0;
+#endif
+
 #define BUILDMAP_DB_BLOCK_SIZE 0x100000
 
 

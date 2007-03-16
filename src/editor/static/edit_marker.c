@@ -177,7 +177,7 @@ void edit_marker_dialog (int marker) {
 
    context = marker;
 
-   if (roadmap_dialog_activate ("View markers", &context)) {
+   if (roadmap_dialog_activate ("View markers", &context, 1)) {
 
       roadmap_dialog_new_label ("Marker", "Type");
 

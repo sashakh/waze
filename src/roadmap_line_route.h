@@ -52,6 +52,8 @@ int roadmap_line_route_get_speed (int line, int against_dir);
 
 int roadmap_line_route_get_avg_speed (int line, int against_dir);
 
+int roadmap_line_route_get_restrictions (int line, int against_dir);
+
 extern roadmap_db_handler RoadMapLineRouteHandler;
 
 #endif // _ROADMAP_LINE_ROUTE__H_

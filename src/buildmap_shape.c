@@ -210,6 +210,113 @@ int buildmap_shape_get
 }
 
 
+static void buildmap_shape_update_refs (void) {
+
+   int i;
+   int j;
+   int square;
+   int last_line = -1;
+   int shape_index;
+   int last_square = -1;
+   int square_count;
+
+   int longitude = 0;
+   int latitude = 0;
+   BuildMapShape *one_shape;
+
+   square_count = buildmap_square_get_count();
+
+   for (i = 0, shape_index = 0; i < ShapeCount; i++, shape_index++) {
+
+      j = SortedShape[i];
+
+      one_shape = Shape[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
+
+      if (one_shape->line != last_line) {
+
+         if (last_line > one_shape->line) {
+            buildmap_fatal (0, "decreasing line order in shape table");
+         }
+
+         buildmap_line_get_position_sorted
+            (one_shape->line, &longitude, &latitude);
+
+         last_line = one_shape->line;
+
+         square = buildmap_line_get_square_sorted (one_shape->line);
+
+         if (square != last_square) {
+
+            if (square < last_square) {
+               buildmap_fatal (0, "decreasing square order in shape table");
+            }
+
+            last_square = square;
+            buildmap_square_set_first_shape_sorted (square, shape_index);
+         }
+
+         buildmap_line_set_first_shape_sorted (last_line,
+            shape_index - buildmap_square_first_shape_sorted (square));
+
+         shape_index++;
+      }
+
+      while ((abs(one_shape->longitude - longitude) > 0x7fff) ||
+             (abs(one_shape->latitude - latitude) > 0x7fff)) {
+
+         short delta_longitude;
+         short delta_latitude;
+
+
+         if (one_shape->longitude == longitude) {
+
+            delta_longitude = 0;
+
+            if (one_shape->latitude - latitude > 0x7fff) {
+               delta_latitude = 0x7fff;
+            } else {
+               delta_latitude = 0 - 0x7fff;
+            }
+
+         } else {
+
+            double a = (1.0 * (one_shape->latitude - latitude))
+                                  / (one_shape->longitude - longitude);
+
+            if ((a <= 1) && (a >= -1)) {
+
+               if (one_shape->longitude - longitude > 0x7fff) {
+                  delta_longitude = 0x7fff;
+                  delta_latitude  = (a * 0x7fff);
+               } else {
+                  delta_longitude = 0 - 0x7fff;
+                  delta_latitude  = 0 - (short) (a * 0x7fff);
+               }
+
+            } else {
+
+               if (one_shape->latitude - latitude > 0x7fff) {
+                  delta_latitude = 0x7fff;
+                  delta_longitude = (short) (0x7fff / a);
+               } else {
+                  delta_latitude = 0 - 0x7fff;
+                  delta_longitude = 0 - (short) (0x7fff / a);
+               }
+            }
+         }
+
+         latitude  += delta_latitude;
+         longitude += delta_longitude;
+
+         shape_index += 1;
+      }
+
+      longitude = one_shape->longitude;
+      latitude  = one_shape->latitude;
+   }
+}
+
+
 static int buildmap_shape_compare (const void *r1, const void *r2) {
 
    int index1 = *((int *)r1);
@@ -247,6 +354,8 @@ void buildmap_shape_sort (void) {
    }
 
    qsort (SortedShape, ShapeCount, sizeof(int), buildmap_shape_compare);
+
+   buildmap_shape_update_refs ();
 }
 
 
@@ -267,12 +376,8 @@ void buildmap_shape_save (void) {
 
    RoadMapShape *db_shape;
    BuildMapShape *one_shape;
-   RoadMapShapeByLine *db_byline;
-   RoadMapShapeBySquare *db_bysquare;
 
    buildmap_db *root;
-   buildmap_db *table_square;
-   buildmap_db *table_line;
    buildmap_db *table_data;
 
 
@@ -301,6 +406,7 @@ void buildmap_shape_save (void) {
             (one_shape->line, &longitude, &latitude);
 
          last_line = one_shape->line;
+         shape_count++;
       }
 
       while ((abs(one_shape->longitude - longitude) > 0x7fff) ||
@@ -360,17 +466,9 @@ void buildmap_shape_save (void) {
 
    /* Create the database space. */
 
-   table_square = buildmap_db_add_child
-               (root, "bysquare", square_count, sizeof(RoadMapShapeBySquare));
-
-   table_line = buildmap_db_add_child
-                  (root, "byline", ShapeLineCount, sizeof(RoadMapShapeByLine));
-
    table_data = buildmap_db_add_child
                   (root, "data", shape_count, sizeof(RoadMapShape));
 
-   db_bysquare = (RoadMapShapeBySquare *) buildmap_db_get_data (table_square);
-   db_byline = (RoadMapShapeByLine *) buildmap_db_get_data (table_line);
    db_shape  = (RoadMapShape *) buildmap_db_get_data (table_data);
 
 
@@ -388,10 +486,16 @@ void buildmap_shape_save (void) {
             buildmap_fatal (0, "decreasing line order in shape table");
          }
 
-         line_index += 1;
-         db_byline[line_index].line = one_shape->line;
-         db_byline[line_index].first = shape_index;
-         db_byline[line_index].count = 0;
+         if (last_line >= 0) {
+            RoadMapShape count_pos;
+            int shape_counter = buildmap_line_first_shape_sorted (last_line);
+            shape_counter += buildmap_square_first_shape_sorted (square);
+            count_pos.delta_latitude = shape_index - shape_counter - 1;
+            count_pos.delta_longitude = 0;
+            db_shape[shape_counter] = count_pos;
+         }
+
+         shape_index++;
 
          buildmap_line_get_position_sorted
             (one_shape->line, &longitude, &latitude);
@@ -406,13 +510,10 @@ void buildmap_shape_save (void) {
             if (square < last_square) {
                buildmap_fatal (0, "decreasing square order in shape table");
             }
-            while (last_square < square) {
-               last_square += 1;
-               db_bysquare[last_square].first = line_index;
-               db_bysquare[last_square].count = 0;
-            }
+            last_square = square;
          }
-         db_bysquare[last_square].count += 1;
+
+         line_index++;
       }
 
       while ((abs(one_shape->longitude - longitude) > 0x7fff) ||
@@ -459,8 +560,6 @@ void buildmap_shape_save (void) {
             }
          }
 
-         db_byline[line_index].count += 1;
-
          db_shape[shape_index].delta_latitude = delta_latitude;
          db_shape[shape_index].delta_longitude = delta_longitude;
 
@@ -469,8 +568,6 @@ void buildmap_shape_save (void) {
 
          shape_index += 1;
       }
-
-      db_byline[line_index].count += 1;
 
       db_shape[shape_index].delta_longitude =
           (short) (one_shape->longitude - longitude);
@@ -493,11 +590,6 @@ void buildmap_shape_save (void) {
                          square_count, last_square+1);
    }
 
-   for (last_square += 1; last_square < square_count; last_square += 1) {
-      db_bysquare[last_square].first = line_index;
-      db_bysquare[last_square].count = 0;
-   }
-
    if (line_index+1 != ShapeLineCount) {
       buildmap_fatal (0, "inconsistent count of lines: "
                             "total = %d, saved = %d",
@@ -507,17 +599,6 @@ void buildmap_shape_save (void) {
    if (switch_endian) {
       int i;
 
-      for (i=0; i<square_count; i++) {
-         switch_endian_int(&db_bysquare[i].first);
-         switch_endian_int(&db_bysquare[i].count);
-      }
-
-      for (i=0; i<ShapeLineCount; i++) {
-         switch_endian_int(&db_byline[i].line);
-         switch_endian_int(&db_byline[i].first);
-         switch_endian_int(&db_byline[i].count);
-      }
-      
       for (i=0; i<shape_count; i++) {
          switch_endian_short(&db_shape[i].delta_longitude);
          switch_endian_short(&db_shape[i].delta_latitude);
@@ -532,8 +613,7 @@ void buildmap_shape_summary (void) {
             "-- shape table: %d items, %d add, %d bytes used\n"
             "                %d lines (range %d), max %d points per line\n",
             ShapeCount, ShapeAddCount,
-            ShapeCount * sizeof(RoadMapShape)
-               + (ShapeMaxLine + 1) * sizeof(RoadMapShapeByLine),
+            ShapeCount * sizeof(RoadMapShape),
             ShapeLineCount, ShapeMaxLine, ShapeMaxSequence);
 }
 

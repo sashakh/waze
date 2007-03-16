@@ -78,7 +78,7 @@ static void roadmap_download_error (const char *format, ...) {
 
 static void roadmap_download_progress (int loaded) {
 
-   if (roadmap_dialog_activate ("Sync process", NULL)) {
+   if (roadmap_dialog_activate ("Sync process", NULL, 1)) {
 
       const char *icon = roadmap_path_join (roadmap_path_user(), "skins/default/sync.bmp");
       roadmap_dialog_new_image  ("Sync", icon);

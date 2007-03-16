@@ -77,7 +77,7 @@ static void editor_dialog_city_result (const char *result, void *data) {
 #ifdef SSD
    ssd_dialog_activate ("Segment Properties", data);
 #else
-   roadmap_dialog_activate ("Segment Properties", data);
+   roadmap_dialog_activate ("Segment Properties", data, 1);
 #endif   
 
    if (result == NULL) return;
@@ -438,7 +438,7 @@ static void activate_dialog (const char *name,
 static void activate_dialog (const char *name,
                              DialogSelectedLines *selected_lines) {
 
-   if (roadmap_dialog_activate ("Segment Properties", selected_lines)) {
+   if (roadmap_dialog_activate ("Segment Properties", selected_lines, 1)) {
 
       int *values;
       int count = ROADMAP_ROAD_LAST - ROADMAP_ROAD_FIRST + 1;

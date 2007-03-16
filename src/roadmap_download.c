@@ -202,7 +202,7 @@ static void roadmap_download_progress (int loaded) {
 
    fips = RoadMapDownloadQueue[RoadMapDownloadQueueConsumer];
 
-   if (roadmap_dialog_activate ("Downloading", NULL)) {
+   if (roadmap_dialog_activate ("Downloading", NULL, 1)) {
 
       roadmap_dialog_new_label  (".file", "County");
       roadmap_dialog_new_label  (".file", "State");
@@ -664,7 +664,7 @@ int roadmap_download_next_county (RoadMapDownloadCallbacks *callbacks) {
    }
 
    if (!callbacks) {
-      if (roadmap_dialog_activate ("Download a Map", NULL)) {
+      if (roadmap_dialog_activate ("Download a Map", NULL, 1)) {
 
          roadmap_dialog_new_label  (".file", "County");
          roadmap_dialog_new_label  (".file", "State");
@@ -788,7 +788,7 @@ void roadmap_download_show_space (void) {
    char image[32];
 
 
-   if (roadmap_dialog_activate ("Disk Usage", NULL)) {
+   if (roadmap_dialog_activate ("Disk Usage", NULL, 1)) {
 
       roadmap_dialog_new_label  (".file", "Files");
       roadmap_dialog_new_label  (".file", "Space");
@@ -961,7 +961,7 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
 
 void roadmap_download_delete (void) {
 
-   if (roadmap_dialog_activate ("Delete Maps", NULL)) {
+   if (roadmap_dialog_activate ("Delete Maps", NULL, 1)) {
 
       roadmap_dialog_new_label  (".delete", "Files");
       roadmap_dialog_new_label  (".delete", "Space");
@@ -1020,7 +1020,7 @@ void roadmap_download_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
-      "http://www.freemap.co.il/roadmap/maps/v2/" ROADMAP_FILE_NAME_FORMAT,
+      "http://www.freemap.co.il/roadmap/maps/dev3/" ROADMAP_FILE_NAME_FORMAT,
       NULL);
 
    roadmap_config_declare

@@ -96,8 +96,8 @@ static void navigate_fix_line_end (RoadMapPosition *position,
    int smallest_distance = 0x7fffffff;
    int distance;
    int seg_shape_end = -1;
-   RoadMapPosition seg_end_pos;
-   RoadMapPosition seg_shape_initial;
+   RoadMapPosition seg_end_pos = {0, 0};
+   RoadMapPosition seg_shape_initial = {0, 0};
    int i;
 
    if (segment->first_shape <= -1) {
@@ -408,7 +408,8 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
                                       &segments[i].last_shape,
                                       &segments[i].shape_itr);
 
-      segments[i].shape_initial_pos = segments[i].from_pos;
+      segments[i].shape_initial_pos.longitude = segments[i].from_pos.longitude;
+      segments[i].shape_initial_pos.latitude = segments[i].from_pos.latitude;
 
       roadmap_plugin_get_street (&segments[i].line, &segments[i].street);
    }

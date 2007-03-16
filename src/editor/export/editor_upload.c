@@ -116,7 +116,7 @@ static void editor_upload_progress (int loaded) {
 
    RoadMapUploadUploaded = progress;
 
-   if (roadmap_dialog_activate ("Uploading", NULL)) {
+   if (roadmap_dialog_activate ("Uploading", NULL, 1)) {
 
       roadmap_dialog_new_label  (".file", "Name");
       roadmap_dialog_new_label  (".file", "Size");
@@ -581,7 +581,7 @@ void editor_upload_file (const char *filename) {
    strncpy (s_file, filename, sizeof(s_file));
    s_file[sizeof(s_file)-1] = 0;
 
-   if (roadmap_dialog_activate ("Upload gpx file", NULL)) {
+   if (roadmap_dialog_activate ("Upload gpx file", NULL, 1)) {
 
       roadmap_dialog_new_label  (".file", "Name");
       roadmap_dialog_new_entry  (".file", "To", NULL);

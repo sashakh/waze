@@ -24,7 +24,11 @@
 #ifndef _ROADMAP_HASH__H_
 #define _ROADMAP_HASH__H_
 
+#ifndef J2ME
 #define ROADMAP_HASH_MODULO 4093
+#else
+#define ROADMAP_HASH_MODULO 397
+#endif
 
 struct roadmap_hash_struct {
 

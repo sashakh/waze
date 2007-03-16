@@ -138,7 +138,7 @@ void roadmap_canvas_get_text_extents
 
    *ascent = 0;
    *descent = 0;
-   if (can_tilt) *can_tilt = 1;
+   if (can_tilt) *can_tilt = 0;
 
    wchar_t wstr[255];
    int length = roadmap_canvas_agg_to_wchar (text, wstr, 255);
@@ -610,6 +610,7 @@ void roadmap_canvas_draw_string_angle (const RoadMapGuiPoint *position,
    const wchar_t* p = wstr;
 #endif
    
+   angle = 0;
    ren_solid.color(CurrentPen->color);
    dbg_time_end(DBG_TIME_TEXT_CNV);
    

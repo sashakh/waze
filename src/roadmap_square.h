@@ -40,6 +40,9 @@ int   roadmap_square_index (int square);
 int   roadmap_square_from_index (int index);
 
 int   roadmap_square_view (int *square, int size);
+int   roadmap_square_first_point (int square);
+int   roadmap_square_has_shapes  (int square);
+int   roadmap_square_first_shape (int square);
 
 extern roadmap_db_handler RoadMapSquareHandler;
 
