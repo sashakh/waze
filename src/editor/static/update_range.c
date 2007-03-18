@@ -587,6 +587,7 @@ void update_range_dialog(void) {
    RoadMapPosition from;
    RoadMapPosition to;
    PluginLine line;
+   RoadMapNeighbour result;
    int direction;
 
    if (roadmap_navigate_get_current
@@ -599,13 +600,14 @@ void update_range_dialog(void) {
    roadmap_plugin_line_from (&line, &from);
    roadmap_plugin_line_to   (&line, &to);
 
-   if (roadmap_math_get_distance_from_segment
-            ((RoadMapPosition *)&CurrentGpsPoint, &from, &to,
-             &CurrentFixedPosition, NULL) > 100) {
+   if (!roadmap_plugin_get_distance
+        ((RoadMapPosition *)&CurrentGpsPoint, &line, &result)) {
 
       roadmap_messagebox ("Error", "Can't find a road near point.");
       return;
    }
+
+   CurrentFixedPosition = result.intersection;
 
 #ifndef SSD
    if (roadmap_dialog_activate ("Update street range", NULL)) {
