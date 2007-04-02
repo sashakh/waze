@@ -117,7 +117,7 @@ int roadmap_input (RoadMapInputContext *context) {
     */
    line_start = context->data;
    data_end   = context->data + context->cursor;
-   while ((*line_start < ' ') && (line_start < data_end)) ++line_start;
+   while ((line_start < data_end) && (*line_start < ' ')) ++line_start;
 
 
    /* process each complete line in this buffer. */
@@ -151,7 +151,19 @@ int roadmap_input (RoadMapInputContext *context) {
          /* This line is not complete: shift the remaining data
           * to the beginning of the buffer and then stop.
           */
-         roadmap_input_shift_to_next_line (context, line_start);
+
+         if (line_start + strlen(line_start) != data_end) {
+            roadmap_log (ROADMAP_WARNING, "GPS input has null characters.");
+            roadmap_input_shift_to_next_line
+                (context, line_start + strlen(line_start) + 1);
+
+            line_start = context->data;
+            data_end   = context->data + context->cursor;
+            while ((line_start < data_end) && (*line_start < ' ')) ++line_start;
+            continue;
+         } else {
+            roadmap_input_shift_to_next_line (context, line_start);
+         }
          return result;
       }
 
