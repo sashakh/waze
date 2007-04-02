@@ -623,14 +623,14 @@ void navigate_get_next_line
 
       NavigateNextAnnounce = -1;
 
+      NavigateDistanceToDest = 0;
+      NavigateETA = 0;
+
       if (segment->group_id != group_id) {
 
          /* Update distance to destination and ETA
           * excluding current group (computed in navigate_update)
           */
-
-         NavigateDistanceToDest = 0;
-         NavigateETA = 0;
 
          while (segment < NavigateSegments + NavigateNumSegments) {
 
@@ -765,8 +765,10 @@ int navigate_main_calc_route () {
       navigate_instr_prepare_segments (NavigateSegments, NavigateNumSegments,
                                       &NavigateSrcPos, &NavigateDestPos);
 
+      track_time = 0;
       for (i=0; i<NavigateNumSegments; i++) {
          length += NavigateSegments[i].distance;
+         track_time += NavigateSegments[i].cross_time;
       }
 
       NavigateFlags = result_flags;
