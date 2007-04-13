@@ -174,6 +174,17 @@ void buildmap_metadata_save (void) {
       db_attributes[i] = *one_attribute;
       db_attributes[i].filler = 0;
    }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<AttributeCount; i++) {
+         switch_endian_short(&db_attributes[i].category);
+         switch_endian_short(&db_attributes[i].name);
+         switch_endian_short(&db_attributes[i].value);
+         switch_endian_short(&db_attributes[i].filler);
+      }
+   }
 }
 
 

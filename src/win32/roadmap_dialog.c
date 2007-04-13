@@ -288,7 +288,7 @@ static void show_sip_button (HWND parent) {
    }
 }
 
-int roadmap_dialog_activate (const char *name, void *context)
+int roadmap_dialog_activate (const char *name, void *context, int show)
 {
 	RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
 	

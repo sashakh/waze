@@ -61,7 +61,9 @@
 
 #include "roadmap_screen.h"
 
+#ifdef SSD
 #include "ssd/ssd_dialog.h"
+#endif
 
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
@@ -124,6 +126,9 @@ static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
 #ifndef ROADMAP_MAX_VISIBLE
 #define ROADMAP_MAX_VISIBLE  20000
 #endif
+
+#define SQUARE_IN_VIEW 0x1
+#define SQUARE_DRAWN   0x2
 
 static struct {
 
@@ -614,8 +619,6 @@ static int roadmap_screen_draw_square
    int line;
    int first_line;
    int last_line;
-   int first_shape_line;
-   int last_shape_line;
    int first_shape;
    int last_shape;
    RoadMapPen layer_pen;
@@ -661,11 +664,13 @@ static int roadmap_screen_draw_square
    /* Draw each line that belongs to this square. */
 
    if (roadmap_line_in_square (square, cfcc, &first_line, &last_line) > 0) {
+      int has_shapes;
 
-      if (roadmap_shape_in_square (square, &first_shape_line,
-                                            &last_shape_line) <= 0) {
-         first_shape_line = last_shape_line = -1;
-         first_shape = last_shape = -1;
+      if (roadmap_square_has_shapes (square)) {
+         has_shapes = 1;
+      } else {
+         has_shapes = 0;
+	 first_shape = last_shape = -1;
       }
 
       for (line = first_line; line <= last_line; ++line) {
@@ -681,12 +686,10 @@ static int roadmap_screen_draw_square
             RoadMapPen pen = layer_pen;
 
             
-            if (first_shape_line >= 0) {
+            if (has_shapes) {
 
-               first_shape = last_shape = -1;
-               roadmap_shape_of_line (line,
-                                   first_shape_line, last_shape_line,
-                                  &first_shape, &last_shape);
+               roadmap_line_shapes (line, square,
+                                   &first_shape, &last_shape);
             }
 
             /* Check if the plugin wants to override the pen. */
@@ -724,11 +727,12 @@ static int roadmap_screen_draw_square
 
       int last_real_square = -1;
       int real_square  = 0;
+      int real_square_drawn  = 0;
+      int has_shapes = 0;
       RoadMapArea edges = {0, 0, 0, 0};
 
       int real_line;
       int square_count = roadmap_square_count();
-      char *on_canvas  = calloc (square_count, sizeof(char));
 
       for (line = first_line; line <= last_line; ++line) {
 
@@ -761,27 +765,21 @@ static int roadmap_screen_draw_square
 
             last_real_square = real_square;
 
-            if (on_canvas[real_square]) {
-               /* Either it has already been drawn, or it will be soon. */
-               continue;
-            }
-
             if (roadmap_math_is_visible (&edges)) {
 
-               on_canvas[real_square] = 1;
+               real_square_drawn = 1;
                continue;
             }
 
-            if (roadmap_shape_in_square
-                                 (real_square,
-                                  &first_shape_line, &last_shape_line) <= 0) {
-
-               first_shape_line = last_shape_line = -1;
-               first_shape = last_shape = -1;
+            if (roadmap_square_has_shapes (real_square)) {
+               has_shapes = 1;
+            } else {
+               has_shapes = 0;
+	       first_shape = last_shape = -1;
             }
          }
 
-         if (on_canvas[real_square]) {
+         if (real_square_drawn) {
             /* Either it has already been drawn, or it will be soon. */
             continue;
          }
@@ -792,12 +790,10 @@ static int roadmap_screen_draw_square
             RoadMapPosition to;
             RoadMapPen pen;
 
-            if (first_shape_line >= 0) {
+            if (has_shapes) {
 
-               first_shape = last_shape = -1;
-               roadmap_shape_of_line (real_line,
-                                      first_shape_line, last_shape_line,
-                                     &first_shape, &last_shape);
+               roadmap_line_shapes (real_line, real_square,
+                                   &first_shape, &last_shape);
             }
 
 
@@ -827,8 +823,6 @@ static int roadmap_screen_draw_square
             drawn += 1;
          }
       }
-
-      free (on_canvas);
    }
 
    roadmap_log_pop ();
@@ -843,8 +837,6 @@ static int roadmap_screen_draw_long_lines (int pen_type) {
    int real_line;
    int real_square = -2;
    int cfcc;
-   int first_shape_line;
-   int last_shape_line;
    int first_shape;
    int last_shape;
    RoadMapPen layer_pen = NULL;
@@ -856,6 +848,7 @@ static int roadmap_screen_draw_long_lines (int pen_type) {
    RoadMapArea area;
    int last_real_square = -1;
    RoadMapArea edges = {0, 0, 0, 0};
+   int has_shapes = 0;
 
    int drawn = 0;
 
@@ -923,12 +916,11 @@ static int roadmap_screen_draw_long_lines (int pen_type) {
                continue;
             }
 
-            if (roadmap_shape_in_square
-                                 (real_square,
-                                  &first_shape_line, &last_shape_line) <= 0) {
-
-               first_shape_line = last_shape_line = -1;
-               first_shape = last_shape = -1;
+            if (roadmap_square_has_shapes (real_square)) {
+               has_shapes = 1;
+            } else {
+               has_shapes = 0;
+	       first_shape = last_shape = -1;
             }
          }
 
@@ -943,12 +935,10 @@ static int roadmap_screen_draw_long_lines (int pen_type) {
             RoadMapPosition to;
             RoadMapPen pen;
 
-            if (first_shape_line >= 0) {
+            if (has_shapes) {
 
-               first_shape = last_shape = -1;
-               roadmap_shape_of_line (real_line,
-                     first_shape_line, last_shape_line,
-                     &first_shape, &last_shape);
+               roadmap_line_shapes (real_line, real_square,
+                                   &first_shape, &last_shape);
             }
 
 
@@ -1006,14 +996,18 @@ static void roadmap_screen_draw_object
 }
 
 
-static void roadmap_screen_reset_square_mask (void) {
+static void roadmap_screen_alloc_square_mask (void) {
 
-   if (SquareOnScreen != NULL) {
-      free(SquareOnScreen);
+   int count = roadmap_square_count();
+
+   if (count != SquareOnScreenCount) {
+      if (SquareOnScreen != NULL) {
+         free(SquareOnScreen);
+      }
+      SquareOnScreenCount = count;
+      SquareOnScreen = malloc (SquareOnScreenCount * sizeof(char));
+      roadmap_check_allocated(SquareOnScreen);
    }
-   SquareOnScreenCount = roadmap_square_count();
-   SquareOnScreen = calloc (SquareOnScreenCount, sizeof(char));
-   roadmap_check_allocated(SquareOnScreen);
 }
 
 
@@ -1090,12 +1084,13 @@ static void roadmap_screen_repaint (void) {
     
 
     if (!RoadMapScreenInitialized) return;
+
+#ifdef SSD    
     if (RoadMapScreenFrozen) {
-#ifdef SSD
        ssd_dialog_draw ();
-#endif
        return;
     }
+#endif
 
     dbg_time_start(DBG_TIME_FULL);
     if (RoadMapScreenDragging &&
@@ -1111,17 +1106,24 @@ static void roadmap_screen_repaint (void) {
 
     roadmap_log_push ("roadmap_screen_repaint");
 
-    /* Clean the drawing buffer. */
-
-    roadmap_canvas_select_pen (RoadMapBackground);
-    roadmap_canvas_erase ();
-    RoadMapScreenLastPen = NULL;
-
     /* Repaint the drawing buffer. */
     
     /* - Identifies the candidate counties. */
 
     count = roadmap_locator_by_position (&RoadMapScreenCenter, &fips);
+
+    /* Activate the first fips before erasing the canvas. This is useful
+     * for small devices which it may take some time to load the fips
+     * data.
+     */
+
+    if (count) roadmap_locator_activate (fips[0]);
+
+    /* Clean the drawing buffer. */
+
+    roadmap_canvas_select_pen (RoadMapBackground);
+    roadmap_canvas_erase ();
+    RoadMapScreenLastPen = NULL;
 
     if (count == 0) {
        roadmap_display_text("Info", roadmap_lang_get ("No map available"));
@@ -1140,6 +1142,7 @@ static void roadmap_screen_repaint (void) {
         /* -- Access the county's database. */
 
         if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
+        roadmap_screen_alloc_square_mask();
 
         /* -- Look for the square that are currently visible. */
 
@@ -1153,7 +1156,10 @@ static void roadmap_screen_repaint (void) {
            int layers[256];
            int pen_type = k;
 
-           roadmap_screen_reset_square_mask();
+	   /* Reset square mask */
+           for (j = 0; j < count; j++) {
+	      SquareOnScreen[in_view[j]] = 0;
+           }
 
            layer_count = roadmap_layer_visible_lines (layers, 256, k);
            if (!layer_count) continue;
@@ -1565,7 +1571,7 @@ void roadmap_screen_initialize (void) {
        ("preferences", &RoadMapConfigAccuracyMouse,  "20", NULL);
 
    roadmap_config_declare
-       ("schema", &RoadMapConfigMapBackground, "LightYellow", NULL);
+       ("schema", &RoadMapConfigMapBackground, "#ffffe0", NULL);
 
    roadmap_config_declare_enumeration
        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
@@ -1635,7 +1641,7 @@ void roadmap_screen_set_initial_position (void) {
 
     RoadMapPenEdges = roadmap_canvas_create_pen ("Map.Edges");
     roadmap_canvas_set_thickness (4);
-    roadmap_canvas_set_foreground ("grey");
+    roadmap_canvas_set_foreground ("#bebebe");
 
     roadmap_layer_adjust ();
 }
@@ -1664,6 +1670,7 @@ RoadMapScreenSubscriber roadmap_screen_subscribe_after_refresh
 }
 
 
+#ifndef J2ME
 /* TODO: ugly hack (both the hack and the drawing itself are ugly!).
  * This should be rewritten to allow specifying a sprite for
  * the direction mark.
@@ -1781,7 +1788,7 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
    if (direction_pen == NULL) {
       direction_pen = roadmap_canvas_create_pen ("direction_mark");
       roadmap_canvas_set_thickness (1);
-      roadmap_canvas_set_foreground ("black");
+      roadmap_canvas_set_foreground ("#000000");
    } else {
      roadmap_canvas_select_pen (direction_pen);
    }
@@ -1824,7 +1831,7 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
    roadmap_screen_flush_points ();
    RoadMapScreenLastPen = NULL;
 }
-
+#endif
 
 int roadmap_screen_is_dragging (void) {
 

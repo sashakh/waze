@@ -142,7 +142,9 @@ static GtkWidget *roadmap_main_toolbar_icon (const char *icon) {
 #endif // ROADMAP_USES_GPE
 
 
-static void roadmap_main_close (GtkWidget *widget, gpointer data) {
+static void roadmap_main_close (GtkWidget *widget,
+                                GdkEvent *event,
+                                gpointer data) {
 
    roadmap_main_exit ();
 }
@@ -168,6 +170,8 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
       case GDK_Right:  key = "Button-Right";          break;
       case GDK_Up:     key = "Button-Up";             break;
       case GDK_Down:   key = "Button-Down";           break;
+
+      case GDK_Return: key = "Enter";                 break;
 
       /* These binding are for the iPAQ buttons: */
       case 0x1008ff1a: key = "Button-Menu";           break;
@@ -240,8 +244,8 @@ void roadmap_main_new (const char *title, int width, int height) {
 
       roadmap_main_set_window_size (RoadMapMainWindow, width, height);
 
-      g_signal_connect (RoadMapMainWindow, "destroy",
-                        (GCallback)gtk_widget_destroyed,
+      g_signal_connect (RoadMapMainWindow, "destroy_event",
+                        (GCallback)roadmap_main_close,
                         RoadMapMainWindow);
 
       g_signal_connect (RoadMapMainWindow, "delete_event",
@@ -526,15 +530,21 @@ void roadmap_main_set_status (const char *text) {
 void roadmap_main_flush (void) {
 
    while (gtk_events_pending ()) {
-      gtk_main_iteration ();
+      if (gtk_main_iteration ()) {
+         exit(0);  /* gtk_main_quit() called */
+      }
    }
 }
 
 
 void roadmap_main_exit (void) {
 
-   roadmap_start_exit ();
-   gtk_main_quit();
+   static int exit_done;
+
+   if (!exit_done++) {
+      roadmap_start_exit ();
+      gtk_main_quit();
+   }
 }
 
 void roadmap_main_set_cursor (int cursor) {}

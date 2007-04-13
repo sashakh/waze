@@ -141,7 +141,11 @@ void roadmap_lang_initialize (void) {
 
    roadmap_lang_allocate ();
 
+#ifndef J2ME
    p = roadmap_path_user ();
+#else
+   p = NULL;
+#endif
 
    RoadMapLangLoaded = roadmap_lang_load (p);
    RoadMapLangRTL = (strcasecmp(roadmap_lang_get ("RTL"), "Yes") == 0);

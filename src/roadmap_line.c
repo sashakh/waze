@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <ctype.h>
 
 #include "roadmap.h"
@@ -47,6 +48,8 @@
 #include "roadmap_math.h"
 #include "roadmap_shape.h"
 #include "roadmap_square.h"
+#include "roadmap_layer.h"
+#include "roadmap_locator.h"
 
 
 static char *RoadMapLineType = "RoadMapLineContext";
@@ -314,8 +317,6 @@ int roadmap_line_length (int line) {
    int length = 0;
 
    int square;
-   int first_shape_line;
-   int last_shape_line;
    int first_shape;
    int last_shape;
    int i;
@@ -323,20 +324,14 @@ int roadmap_line_length (int line) {
    roadmap_point_position (RoadMapLineActive->Line[line].from, &p1);
    square = roadmap_square_search (&p1);
 
-   if (roadmap_shape_in_square (square, &first_shape_line,
-                                        &last_shape_line) > 0) {
+   if (roadmap_line_shapes (line, square, &first_shape, &last_shape) > 0) {
 
-      if (roadmap_shape_of_line (line, first_shape_line,
-                                       last_shape_line,
-                                       &first_shape, &last_shape) > 0) {
+      p2 = p1;
+      for (i = first_shape; i <= last_shape; i++) {
 
-         p2 = p1;
-         for (i = first_shape; i <= last_shape; i++) {
-
-            roadmap_shape_get_position (i, &p2);
-            length += roadmap_math_distance (&p1, &p2);
-            p1 = p2;
-         }
+         roadmap_shape_get_position (i, &p2);
+         length += roadmap_math_distance (&p1, &p2);
+         p1 = p2;
       }
    }
 
@@ -347,30 +342,54 @@ int roadmap_line_length (int line) {
 }
 
 
-int roadmap_line_shapes (int line, int *first_shape, int *last_shape) {
+int roadmap_line_shapes (int line, int square,
+                         int *first_shape, int *last_shape) {
 
-   RoadMapPosition p1;
+   int shape;
+   RoadMapPosition count = {0, 0};
 
-   int square;
-   int first_shape_line;
-   int last_shape_line;
+#ifdef DEBUG
+   if (line < 0 || line >= RoadMapLineActive->LineCount) {
+      roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+   }
+#endif
 
    *first_shape = *last_shape = -1;
-   roadmap_point_position (RoadMapLineActive->Line[line].from, &p1);
-   square = roadmap_square_search (&p1);
 
-   if (roadmap_shape_in_square (square, &first_shape_line,
-                                        &last_shape_line) > 0) {
+   shape = RoadMapLineActive->Line[line].first_shape;
+   if (shape == ROADMAP_LINE_NO_SHAPES) return -1;
 
-      if (roadmap_shape_of_line (line, first_shape_line,
-                                       last_shape_line,
-                                       first_shape, last_shape) > 0) {
-
-         return 0;
-      }
+   if (square == -1) {
+      RoadMapPosition p1;
+      roadmap_point_position (RoadMapLineActive->Line[line].from, &p1);
+      square = roadmap_square_search (&p1);
    }
 
-   return -1;
+   shape += roadmap_square_first_shape (square);
+
+   /* the first shape is actually the count */
+   roadmap_shape_get_position (shape, &count);
+
+   *first_shape = shape + 1;
+   *last_shape = *first_shape + count.latitude - 1;
+
+   return count.latitude;
+}
+
+
+int roadmap_line_get_street (int line) {
+   int street;
+
+#ifdef DEBUG
+   if (line < 0 || line >= RoadMapLineActive->LineCount) {
+      roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+   }
+#endif
+
+   street = RoadMapLineActive->Line[line].street;
+   if (street == ROADMAP_LINE_NO_STREET) return -1;
+
+   return street;
 }
 
 
@@ -387,6 +406,30 @@ void roadmap_line_points (int line, int *from, int *to) {
 }
 
 
+void roadmap_line_from_point (int line, int *from) {
+
+#ifdef DEBUG
+   if (line < 0 || line >= RoadMapLineActive->LineCount) {
+      roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+   }
+#endif
+
+   *from = RoadMapLineActive->Line[line].from;
+}
+
+
+void roadmap_line_to_point (int line, int *to) {
+
+#ifdef DEBUG
+   if (line < 0 || line >= RoadMapLineActive->LineCount) {
+      roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+   }
+#endif
+
+   *to = RoadMapLineActive->Line[line].to;
+}
+
+
 int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
 
    if (index >= RoadMapLineActive->LongLinesCount) return 0;
@@ -396,5 +439,55 @@ int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
    *cfcc = RoadMapLineActive->LongLines[index].cfcc;
 
    return 1;
+}
+
+int roadmap_line_cfcc (int line_id) {
+
+   int *index;
+   int  first;
+   int  next;
+   int cfcc;
+   int cur_cfcc;
+   int square;
+
+   if (RoadMapLineActive == NULL) return 0; /* No line. */
+   square = roadmap_point_square (RoadMapLineActive->Line[line_id].from);
+
+   square = roadmap_square_index(square);
+   if (square < 0) {
+      assert(1);
+      return 0;   /* This square is empty. */
+   }
+
+   index = RoadMapLineActive->LineBySquare1[square].first;
+
+   for (cfcc = 1, first = -1; cfcc <= ROADMAP_ROAD_LAST; cfcc++) {
+      first = index[cfcc-1];
+      if (first >= 0) break;
+   }
+
+   assert (cfcc <= ROADMAP_ROAD_LAST);
+
+   while (cfcc <= ROADMAP_ROAD_LAST) {
+
+      cur_cfcc = cfcc;
+      for (next = -1, cfcc++; cfcc <= ROADMAP_ROAD_LAST; cfcc++) {
+
+         next = index[cfcc-1];
+         if (next >= 0) break;
+      }
+
+      if (next < 0) {
+         next = RoadMapLineActive->LineBySquare1[square].last + 1;
+      }
+
+      if ((line_id >= first) && (line_id < next)) return cur_cfcc;
+
+      first = next;
+   }
+
+   assert(1);
+
+   return 0;
 }
 

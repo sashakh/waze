@@ -313,9 +313,11 @@ void navigate_traffic_initialize (void) {
    navigate_traffic_display
       (roadmap_config_match(&TrafficDisplayEnabledCfg, "yes"));
 
+   /*
    roadmap_start_add_action ("traffic", "Traffic data", NULL, NULL,
       "Chage Traffic data settings",
       traffic_preferences);
+   */
 }
 
 
@@ -345,7 +347,7 @@ int navigate_traffic_override_pen (int line,
 
    if (pen_type > 1) return 0;
 
-   if (cfcc > 5) return 0;
+   if (cfcc > ROADMAP_ROAD_MAIN) return 0;
 
    if (roadmap_locator_activate (fips) >= 0) {
       int avg1;
@@ -407,14 +409,6 @@ void navigate_traffic_refresh (void) {
       memset(Cache.bits, 0,
                Cache.size / (8/CACHE_ENTRY*sizeof(int)) * sizeof(int));
    }
-}
-
-
-int navigate_traffic_get_cross_time (int line, int direction) {
-   
-   if (!roadmap_config_match(&TrafficUseTrafficCfg, "yes")) return 0;
-
-   return roadmap_line_route_get_cross_time (line, direction);
 }
 
 

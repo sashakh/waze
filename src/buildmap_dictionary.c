@@ -459,6 +459,42 @@ static int buildmap_dictionary_save_subtree
 }
 
 
+static void buildmap_dictionary_subtree_switch_endian
+                (struct roadmap_dictionary_tree *db_tree,
+                 struct roadmap_dictionary_reference *db_reference,
+                 int tree_index) {
+
+   int index;
+   struct roadmap_dictionary_tree *tree = db_tree + tree_index;
+
+   for (index = tree->first;
+        index < tree->first + tree->count;
+        index++) {
+
+      switch (db_reference[index].type & 0x0f) {
+
+      case ROADMAP_DICTIONARY_STRING:
+         break;
+
+      case ROADMAP_DICTIONARY_TREE:
+
+         buildmap_dictionary_subtree_switch_endian
+                  (db_tree, db_reference, db_reference[index].index);
+         break;
+
+      default:
+         buildmap_fatal (0,
+                      "corrupted node type %d",
+                      db_reference[index].type & 0x0f);
+      }
+
+      switch_endian_short(&db_reference[index].index);
+   }
+
+   switch_endian_short(&tree->first);
+}
+
+
 static void  buildmap_dictionary_save_one
                 (struct dictionary_volume *dictionary,
                  buildmap_db *parent) {
@@ -520,7 +556,23 @@ static void  buildmap_dictionary_save_one
 
    memcpy (db_index, dictionary->string_index,
            dictionary->string_count * sizeof(unsigned int));
+
    memcpy (db_data, dictionary->data, dictionary->cursor);
+
+   if (switch_endian) {
+      int i;
+      for (i=0; i<tree_count; i++) {
+         switch_endian_short(&db_tree[i].first);
+      }
+
+      for (i=0; i<reference_count; i++) {
+         switch_endian_short(&db_reference[i].index);
+      }
+
+      for (i=0; i<dictionary->string_count; i++) {
+         switch_endian_int(db_index+i);
+      }
+   }
 }
 
 

@@ -255,6 +255,11 @@ static int keyboard_callback (int type, const char *new_value, void *context) {
    int count;
 
    if (!search->city) {
+      if (!*new_value && (type == SSD_KEYBOARD_OK)) {
+         search->callback ("", search->data);
+         free (search);
+         return 1;
+      }
       title = roadmap_lang_get ("City");
    } else {
       title = roadmap_lang_get ("Street");
@@ -330,10 +335,15 @@ static void roadmap_address_street_result (const char *result, void *data) {
    name [sizeof(name) - 1] = 0;
 
    tmp = strrchr (name, ',');
-   if (!tmp) return;
+   if (tmp) {
+      *tmp = 0;
+      tmp += 2;
 
-   *tmp = 0;
-   tmp += 2;
+      if (*tmp && !*context->city_name) {
+         free (context->city_name);
+         context->city_name = strdup (tmp);
+      }
+   }
 
    if (context->street_name) free(context->street_name);
    context->street_name = strdup(name);

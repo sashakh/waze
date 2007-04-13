@@ -271,7 +271,7 @@ static void roadmap_preferences_show (const char *file, const char *title) {
         RoadMapConfigurationDialogs = context;
     }
 
-    if (roadmap_dialog_activate (title, context)) {
+    if (roadmap_dialog_activate (title, context, 1)) {
 
         roadmap_preferences_new_dialog (context, &cursor);
     }

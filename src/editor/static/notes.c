@@ -141,7 +141,7 @@ static void notes_add_dialog (const RoadMapGpsPosition *pos) {
    roadmap_check_allocated(note_pos);
    *note_pos = *pos;
 
-   if (roadmap_dialog_activate ("Add note", note_pos)) {
+   if (roadmap_dialog_activate ("Add note", note_pos, 1)) {
 
       roadmap_dialog_new_label ("Notes", "Type");
 

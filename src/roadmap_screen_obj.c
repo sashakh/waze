@@ -55,7 +55,8 @@ typedef struct {
 
 static ObjectFile RoadMapObjFiles[] = {
    {"objects",      300},
-   {"objects_wide", 200}
+   {"objects_wide", 200},
+   {"objects",      100}
 };
 
 #define MAX_STATES 9

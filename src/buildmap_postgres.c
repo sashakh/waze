@@ -68,10 +68,10 @@
 #define WaterTlidStart 1100000
 /* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00002)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name AS street_type, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types on street_types.id=streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.0001)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name AS street_type, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types on street_types.id=streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
-static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM borders;";
-static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.00002)) AS the_geom FROM water;";
+static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM borders;";
+static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM water;";
 static const char *turn_restrictions_sql = "SELECT node_id, seg1_id, seg2_id FROM turn_restrictions;";
 static const char *cities_sql = "SELECT name FROM cities;";
 
@@ -299,7 +299,7 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
    int to_node_id;
    RoadMapString fedirp;
    RoadMapString fename;
-   RoadMapString t2s;
+   RoadMapString t2s = 0;
    RoadMapString fetype;
    RoadMapString fedirs;
    RoadMapString city;
@@ -363,8 +363,12 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
 
       fename =
          str2dict (DictionaryStreet, PQgetvalue(db_result, irec, column++));
+#ifndef J2MEMAP
       t2s =
          str2dict (DictionaryText2Speech, PQgetvalue(db_result, irec, column++));
+#else
+      column++;
+#endif
 
       fedirs = str2dict (DictionarySuffix, "");
 
@@ -412,6 +416,7 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
       free (lon_arr);
       free (lat_arr);
 
+#ifndef J2MEMAP
       /* from speed ref */
       if (!PQgetisnull(db_result, irec, column++)) {
          speed_ref = atoi(PQgetvalue(db_result, irec, column-1));
@@ -422,6 +427,7 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
          speed_ref = atoi(PQgetvalue(db_result, irec, column-1));
          buildmap_postgres_read_speeds (tlid, speed_ref, 1);
       }
+#endif
    }
 
    PQclear(db_result);
@@ -465,6 +471,9 @@ static void buildmap_postgres_read_roads_route (int verbose) {
    for (irec=0; irec<record_count; irec++) {
 
       int column = 0;
+      int from_avg_speed;
+      int to_avg_speed;
+      int length;      
 
       buildmap_set_line (irec);
 
@@ -485,17 +494,29 @@ static void buildmap_postgres_read_roads_route (int verbose) {
 
       line = buildmap_line_find_sorted(tlid);
 
+      length = buildmap_line_length(line);
+      if (!from_cross_time) from_cross_time = 1;
+      if (!to_cross_time) to_cross_time = 1;
+
+      from_avg_speed = (int) (length * 3.6 / from_cross_time) + 1;
+      to_avg_speed = (int) (length * 3.6 / to_cross_time) + 1;
+
+      if (from_avg_speed > 255) from_avg_speed = 255;
+      if (to_avg_speed > 255) to_avg_speed = 255;
+
       from_speed_ref = buildmap_line_speed_get_ref (tlid, 0);
       to_speed_ref = buildmap_line_speed_get_ref (tlid, 1);
       buildmap_line_route_add
-         (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
+         (from_car_allowed, to_car_allowed, from_avg_speed, to_avg_speed,
           from_speed_ref, to_speed_ref,
           line);
 
+/*
       buildmap_dglib_add
          (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
           from_cross_time, to_cross_time, layer,
           line);
+*/	  
    }
 
    PQclear(db_result);
@@ -950,8 +971,8 @@ void buildmap_postgres_process (const char *source,
    buildmap_postgres_read_borders_shape_points (verbose);
 
    if (!empty) {
-      buildmap_postgres_read_roads_route (verbose);
       buildmap_postgres_read_roads_shape_points (verbose);
+      buildmap_postgres_read_roads_route (verbose);
       buildmap_postgres_read_turn_restrictions (verbose);
    }
    //buildmap_postgres_read_water_shape_points (verbose);

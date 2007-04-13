@@ -106,7 +106,7 @@ static int editor_download_map (RoadMapDownloadCallbacks *callbacks) {
 
       editor_db_close (fips[i]);
       editor_db_delete (fips[i]);
-      res = roadmap_download_get_county (fips[i], i ? 0 : 1, callbacks);
+      res = roadmap_download_get_county (fips[i], 0, callbacks);
 
       if (res != 0) return -1;
    }

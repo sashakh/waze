@@ -1,4 +1,4 @@
-/* buildmap_turn_restrictions.h - Build a turn restrictions table & index for RoadMap.
+/* navigate_graph.h - generic navigate functions
  *
  * LICENSE:
  *
@@ -19,22 +19,29 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 
-#ifndef _BUILDMAP_TURN_REST_H_
-#define _BUILDMAP_TURN_REST_H_
+#ifndef _NAVIGATE_ROUTE_H_
+#define _NAVIGATE_ROUTE_H_
 
-#include "roadmap_types.h"
+#include "navigate_main.h"
 
-void buildmap_turn_restrictions_initialize (void);
-int buildmap_turn_restrictions_add (int node, int from_line, int to_line);
-int buildmap_turn_restrictions_exists (int node, int from_line, int to_line);
+#define GRAPH_IGNORE_TURNS 1
 
-void buildmap_turn_restrictions_sort (void);
+#define NEW_ROUTE 1
+#define RECALC_ROUTE 2
 
-void buildmap_turn_restrictions_save    (void);
-void buildmap_turn_restrictions_summary (void);
-void buildmap_turn_restrictions_reset   (void);
+int navigate_route_reload_data (void);
+int navigate_route_load_data   (void);
 
-#endif // _BUILDMAP_TURN_REST_H_
+int navigate_route_get_segments (PluginLine *from_line,
+                                 int from_point,
+                                 PluginLine *to_line,
+                                 int to_point,
+                                 NavigateSegment *segments,
+                                 int *size,
+                                 int *result);
+
+#endif /* _NAVIGATE_ROUTE_H_ */
 

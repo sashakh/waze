@@ -45,7 +45,7 @@ const char *ResourceName[] = {
 };
 
 struct resource_slot {
-   const char *name;
+   char *name;
    void *data;
 };
 
@@ -132,6 +132,7 @@ static void free_resource (unsigned int type, int slot) {
          break;
    }
 
+   free (Resources[type].slots[slot].name);
 }
 
 
@@ -203,7 +204,7 @@ void *roadmap_res_get (unsigned int type, unsigned int flags,
    if (flags & RES_NOCACHE) return data;
 
    res->slots[res->count].data = data;
-   res->slots[res->count].name = name;
+   res->slots[res->count].name = strdup(name);
 
    res->used_mem += mem;
 

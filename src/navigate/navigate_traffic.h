@@ -34,7 +34,5 @@ int navigate_traffic_override_pen (int line, int cfcc, int fips, int pen_type,
 
 void navigate_traffic_refresh (void);
 
-int navigate_traffic_get_cross_time (int line, int direction);
-
 #endif // INCLUDE__NAVIGATE_TRAFFIC__H
 

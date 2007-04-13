@@ -610,7 +610,7 @@ void update_range_dialog(void) {
    CurrentFixedPosition = result.intersection;
 
 #ifndef SSD
-   if (roadmap_dialog_activate ("Update street range", NULL)) {
+   if (roadmap_dialog_activate ("Update street range", NULL, 1)) {
 
       roadmap_dialog_new_label ("Update", STREET_PREFIX);
       roadmap_dialog_new_label ("Update", CITY_PREFIX);

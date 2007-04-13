@@ -52,5 +52,7 @@ RoadMapString roadmap_locator_get_state (const char *state);
 int  roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
                                   void *data);
 
+int roadmap_locator_static_county (void);
+
 #endif // _ROADMAP_LOCATOR__H_
 

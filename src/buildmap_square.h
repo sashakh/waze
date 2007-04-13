@@ -35,6 +35,11 @@ int   buildmap_square_get_count (void);
 void  buildmap_square_get_reference_sorted
          (int square, int *longitude, int *latitude);
 
+void buildmap_square_set_first_point_sorted (int square, int point);
+int buildmap_square_first_point_sorted (int square);
+void buildmap_square_set_first_shape_sorted (int square, int shape);
+int buildmap_square_first_shape_sorted (int shape);
+
 int buildmap_square_is_long_line (int from_point, int to_point,
 		  		                      int longitude, int latitude);
 

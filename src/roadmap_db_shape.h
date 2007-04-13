@@ -40,16 +40,5 @@ typedef struct {  /* table shape.data */
    short delta_latitude;
 } RoadMapShape;
 
-typedef struct {  /* table shape.byline */
-   int line;
-   int first;
-   int count;
-} RoadMapShapeByLine;
-
-typedef struct {  /* table shape.bysquare */
-   int first;
-   int count;
-} RoadMapShapeBySquare;
-
 #endif // _ROADMAP_DB_SHAPE__H_
 

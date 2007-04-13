@@ -36,6 +36,7 @@
 #include "roadmap_layer.h"
 
 #include "navigate_main.h"
+#include "navigate_cost.h"
 #include "navigate_instr.h"
 
 static int navigate_instr_azymuth_delta (int az1, int az2) {
@@ -96,8 +97,8 @@ static void navigate_fix_line_end (RoadMapPosition *position,
    int smallest_distance = 0x7fffffff;
    int distance;
    int seg_shape_end = -1;
-   RoadMapPosition seg_end_pos;
-   RoadMapPosition seg_shape_initial;
+   RoadMapPosition seg_end_pos = {0, 0};
+   RoadMapPosition seg_shape_initial = {0, 0};
    int i;
 
    if (segment->first_shape <= -1) {
@@ -398,6 +399,9 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
    int i;
    int group_id = 0;
    NavigateSegment *segment;
+   int cur_cost;
+   int prev_line_id;
+   int is_prev_reversed;
 
    for (i=0; i < count; i++) {
 
@@ -408,7 +412,8 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
                                       &segments[i].last_shape,
                                       &segments[i].shape_itr);
 
-      segments[i].shape_initial_pos = segments[i].from_pos;
+      segments[i].shape_initial_pos.longitude = segments[i].from_pos.longitude;
+      segments[i].shape_initial_pos.latitude = segments[i].from_pos.latitude;
 
       roadmap_plugin_get_street (&segments[i].line, &segments[i].street);
    }
@@ -469,13 +474,23 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
 
    /* Calculate lengths and ETA for each segment */
    segment = segments;
-   while (segment < segments + count) {
-      LineRouteTime from_cross_time;
-      LineRouteTime to_cross_time;
+   cur_cost = 0;
+   prev_line_id = -1;
+   is_prev_reversed = 0;
+   navigate_cost_reset ();
 
-      /* TODO no plugin support */
-      roadmap_line_route_get_cross_times
-         (segment->line.line_id, &from_cross_time, &to_cross_time);
+   while (segment < segments + count) {
+
+      segment->cross_time = 
+         navigate_cost_time (segment->line.line_id,
+                 segment->line_direction != ROUTE_DIRECTION_WITH_LINE,
+                 cur_cost,
+                 prev_line_id,
+                 is_prev_reversed);
+
+      cur_cost += segment->cross_time;
+      prev_line_id = segment->line.line_id;
+      is_prev_reversed = segment->line_direction != ROUTE_DIRECTION_WITH_LINE;
 
       if ((segment == segments) || (segment == (segments + count -1))) {
 
@@ -484,29 +499,19 @@ int navigate_instr_prepare_segments (NavigateSegment *segments,
                navigate_instr_calc_length
                   (&segment->from_pos, segment, LINE_END);
 
-            /* calculate cross time using the line length */
-            segment->cross_time = (int) (1.0 * from_cross_time * segment->distance /
-               (roadmap_line_length (segment->line.line_id)+1));
          } else {
             segment->distance =
                navigate_instr_calc_length
                   (&segment->to_pos, segment, LINE_START);
-
-            segment->cross_time = (int) (1.0 * to_cross_time * segment->distance /
-               (roadmap_line_length (segment->line.line_id)+1));
          }
 
+         /* adjust cross time using the line length */
+         segment->cross_time =
+            (int) (1.0 * segment->cross_time * segment->distance /
+               (roadmap_line_length (segment->line.line_id)+1));
       } else {
 
          segment->distance = roadmap_line_length (segment->line.line_id);
-         roadmap_line_route_get_cross_times
-            (segment->line.line_id, &from_cross_time, &to_cross_time);
-         
-         if (segment->line_direction == ROUTE_DIRECTION_WITH_LINE) {
-            segment->cross_time = from_cross_time;
-         } else {
-            segment->cross_time = to_cross_time;
-         }
       }
 
       segment++;

@@ -55,18 +55,12 @@ typedef struct {   /* table range.addr */
 } RoadMapRange;
 
 
-typedef struct {   /* table range.noaddr */
-
-   int line;
-   int street;
-
-} RoadMapRangeNoAddress;
-
-
 typedef struct {  /* table range.bystreet */
    int first_range;
    int first_city;
+#ifndef J2MEMAP
    int first_zip;
+#endif   
    int count_range;
 } RoadMapRangeByStreet;
 

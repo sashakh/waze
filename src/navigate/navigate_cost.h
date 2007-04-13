@@ -1,8 +1,8 @@
-/* buildmap_turn_restrictions.h - Build a turn restrictions table & index for RoadMap.
+/* navigate_cost.h - generic navigate cost functions
  *
  * LICENSE:
  *
- *   Copyright 2006 Ehud Shabtai
+ *   Copyright 2007 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -19,22 +19,28 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
  */
 
-#ifndef _BUILDMAP_TURN_REST_H_
-#define _BUILDMAP_TURN_REST_H_
+#ifndef _NAVIGATE_COST_H_
+#define _NAVIGATE_COST_H_
 
-#include "roadmap_types.h"
+#define COST_FASTEST 1
+#define COST_SHORTEST 2
 
-void buildmap_turn_restrictions_initialize (void);
-int buildmap_turn_restrictions_add (int node, int from_line, int to_line);
-int buildmap_turn_restrictions_exists (int node, int from_line, int to_line);
+typedef int (*NavigateCostFn) (int line_id, int is_revesred, int cur_cost,
+                               int prev_line_id, int is_prev_reversed,
+                               int node_id);
 
-void buildmap_turn_restrictions_sort (void);
+void navigate_cost_reset (void);
+NavigateCostFn navigate_cost_get (void);
 
-void buildmap_turn_restrictions_save    (void);
-void buildmap_turn_restrictions_summary (void);
-void buildmap_turn_restrictions_reset   (void);
+int navigate_cost_time (int line_id, int is_revesred, int cur_cost,
+                        int prev_line_id, int is_prev_reversed);
 
-#endif // _BUILDMAP_TURN_REST_H_
+void navigate_cost_initialize (void);
+
+int navigate_cost_type (void);
+
+#endif /* _NAVIGATE_COST_H_ */
 

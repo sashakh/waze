@@ -26,8 +26,8 @@
  *   int  buildmap_line_route_add
  *       (unsigned char from_flags,
  *        unsigned char to_flags,
- *        unsigned char from_max_speed,
- *        unsigned char to_max_speed,
+ *        unsigned char from_avg_speed,
+ *        unsigned char to_avg_speed,
  *        unsigned short from_speed_ref,
  *        unsigned short to_speed_ref,
  *        int line);
@@ -45,10 +45,11 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "buildmap.h"
 #include "roadmap_db_line_route.h"
 #include "roadmap_hash.h"
-
-#include "buildmap.h"
+#include "buildmap_line.h"
+#include "buildmap_turn_restrictions.h"
 #include "buildmap_line_route.h"
 
 
@@ -75,8 +76,8 @@ void buildmap_line_route_initialize (void) {
 int  buildmap_line_route_add
         (unsigned char from_flags,
          unsigned char to_flags,
-         unsigned char from_max_speed,
-         unsigned char to_max_speed,
+         unsigned char from_avg_speed,
+         unsigned char to_avg_speed,
          unsigned short from_speed_ref,
          unsigned short to_speed_ref,
          int line) {
@@ -104,8 +105,8 @@ int  buildmap_line_route_add
 
    this_route->record.from_flags = from_flags;
    this_route->record.to_flags = to_flags;
-   this_route->record.from_max_speed = from_max_speed;
-   this_route->record.to_max_speed = to_max_speed;
+   this_route->record.from_avg_speed = from_avg_speed;
+   this_route->record.to_avg_speed = to_avg_speed;
    this_route->record.to_speed_ref = to_speed_ref;
    this_route->record.from_speed_ref = from_speed_ref;
 
@@ -128,6 +129,9 @@ void  buildmap_line_route_save (void) {
    buildmap_db *root;
    buildmap_db *table_data;
 
+   int lines_at_node[50];
+   int count;
+
 
    buildmap_info ("saving line route...");
 
@@ -145,7 +149,61 @@ void  buildmap_line_route_save (void) {
          memset (&db_route[i], 0, sizeof (RoadMapLineRoute));
 
       } else {
+         int j;
+         int from_point_id;
+         int to_point_id;
+         int point_id;
+
          one_route = Routes[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+
+         buildmap_line_get_points_sorted
+            (one_route->line, &from_point_id, &to_point_id);
+
+         for (j=0; j<2; j++) {
+
+            int res;
+            int res_bit = 0;
+            if (j == 0) point_id = from_point_id;
+            else point_id = to_point_id;
+
+            count = sizeof(lines_at_node) / sizeof(lines_at_node[0]);
+            buildmap_line_lines_by_node (point_id, lines_at_node, &count);
+
+            for (res=0; res<count; res++) {
+               int line_from;
+               int line_to;
+               int line;
+               int flags;
+               BuildMapRoute *line_route;
+
+               line = lines_at_node[res];
+               line_route = Routes[line/BUILDMAP_BLOCK] +
+                                 (line % BUILDMAP_BLOCK);
+               buildmap_line_get_points_sorted (line, &line_from, &line_to);
+               if (line_from == point_id) {
+                  flags = line_route->record.from_flags;
+               } else if (line_to == point_id) {
+                  flags = line_route->record.to_flags;
+               } else {
+                  buildmap_fatal (0, "Error in route graph!");
+               }
+
+               if (flags & ROUTE_CAR_ALLOWED) {
+                  if ((res_bit < 8) &&
+                     buildmap_turn_restrictions_exists
+                        (point_id, one_route->line, line)) {
+
+                     if (j==0) one_route->record.from_turn_res |= 1<<res_bit;
+                     else one_route->record.to_turn_res |= 1<<res_bit;
+
+                  }
+                  res_bit++;
+                  if (res_bit > 8) {
+                     buildmap_error (0, "Too many possible turns %d in node:%d", res_bit, point_id);
+                  }
+               }
+            }
+         }
 
          db_route[i] = one_route->record;
       }

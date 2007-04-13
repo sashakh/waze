@@ -90,7 +90,7 @@ static void roadmap_navigate_trace (const char *format, PluginLine *line) {
 
     roadmap_plugin_get_street (line, &street);
 
-    roadmap_plugin_get_street_properties (line, &properties);
+    roadmap_plugin_get_street_properties (line, &properties, 0);
     
     roadmap_message_set ('#', properties.address);
     roadmap_message_set ('N', properties.street);
@@ -653,16 +653,15 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
             RoadMapConfirmedStreet.fuzzyfied = current_fuzzy;
    
-            if (! roadmap_navigate_confirm_intersection (gps_position)) {
-                PluginLine p_line;
-                roadmap_navigate_find_intersection (gps_position, &p_line);
-            }
-
             if (RoadMapRouteInfo.enabled) {
 
                RoadMapRouteInfo.callbacks.update
                            (&RoadMapLatestPosition,
                             &RoadMapConfirmedLine.line);
+
+            } else if (!roadmap_navigate_confirm_intersection (gps_position)) {
+                PluginLine p_line;
+                roadmap_navigate_find_intersection (gps_position, &p_line);
             }
             return; /* We are on the same street. */
         }
@@ -670,10 +669,12 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     /* We must search again for the best street match. */
 
+#ifndef J2ME
     //FIXME remove when navigation will support plugin lines
     if (RoadMapRouteInfo.enabled) {
        editor_plugin_set_override (0);
     }
+#endif
     count = roadmap_navigate_get_neighbours
                 (&RoadMapLatestPosition, roadmap_fuzzy_max_distance(),
                  RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD, LAYER_ALL_ROADS);
@@ -721,10 +722,12 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         }
     }
 
+#ifndef J2ME
     //FIXME remove when navigation will support plugin lines
     if (RoadMapRouteInfo.enabled) {
        editor_plugin_set_override (1);
     }
+#endif    
 
     if (roadmap_fuzzy_is_acceptable (best)) {
 
@@ -771,9 +774,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
             }
         }
 
-        if (gps_position->speed > roadmap_gps_speed_accuracy()) {
-           PluginLine p_line;
-           roadmap_navigate_find_intersection (gps_position, &p_line);
+        if (!RoadMapRouteInfo.enabled) {
+           if (gps_position->speed > roadmap_gps_speed_accuracy()) {
+              PluginLine p_line;
+              roadmap_navigate_find_intersection (gps_position, &p_line);
+           }
         }
 
     } else {

@@ -89,7 +89,7 @@ RoadMapZip  buildmap_zip_add (int zip, int longitude, int latitude) {
 
    int i;
 
-   for (i = 1; i < ZipCodeCount; i++) {
+   for (i = 0; i < ZipCodeCount; i++) {
 
       if (ZipCode[i].zip_code == zip) {
 
@@ -191,6 +191,13 @@ void buildmap_zip_save (void) {
 
    for (i = 1; i < ZipCodeCount; i++) {
       db_zip[i] = ZipCode[i].zip_code;
+   }
+
+   if (switch_endian) {
+      int i;
+      for (i=0; i<ZipCodeCount; i++) {
+         switch_endian_int(db_zip + i);
+      }
    }
 }
 

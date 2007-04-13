@@ -1,6 +1,6 @@
 Map.Background: #ffffcc
-Labels.Color: black
-Console.Foreground: black
+Labels.Color: #000000
+Console.Foreground: #000000
 
 Freeways.Class: Road
 Freeways.Color: #000000
@@ -11,7 +11,7 @@ Freeways.Thickness: 6
 Primary.Class: Road
 Primary.Color: #000000
 Primary.Color1: #ae0a34
-Primary.Declutter: 2147483647
+Primary.Declutter: 4000
 Primary.Delta1: -2
 Primary.Thickness: 6
 Secondary.Class: Road
@@ -40,72 +40,72 @@ Exit.Delta1: -2
 Exit.Thickness: 3
 Streets.Class: Road
 Streets.Color: #000000
-Streets.Color1: white
+Streets.Color1: #ffffff
 Streets.Declutter: 100
 Streets.Delta1: -2
 Streets.Thickness: 2
 Pedestrian.Class: Road
-Pedestrian.Color: DarkGrey
+Pedestrian.Color: #a9a9a9
 Pedestrian.Declutter: 160
 Pedestrian.Delta1: 0
 Pedestrian.Thickness: 1
 4X4 Trails.Class: Road
-4X4 Trails.Color: DarkGrey
+4X4 Trails.Color: #a9a9a9
 4X4 Trails.Declutter: 160
 4X4 Trails.Delta1: 0
 4X4 Trails.Thickness: 1
 Trails.Class: Road
-Trails.Color: DarkGrey
+Trails.Color: #a9a9a9
 Trails.Declutter: 160
 Trails.Delta1: 0
 Trails.Thickness: 1
 Walkway.Class: Road
-Walkway.Color: DarkGrey
+Walkway.Color: #a9a9a9
 Walkway.Declutter: 160
 Walkway.Delta1: 0
 Walkway.Thickness: 1
 Airports.Class: Area
-Airports.Color: grey
+Airports.Color: #bebebe
 Airports.Declutter: 4096
 Airports.Delta1: 0
 Airports.Thickness: 1
 Hospitals.Class: Area
-Hospitals.Color: red
+Hospitals.Color: #ff0000
 Hospitals.Declutter: 4096
 Hospitals.Delta1: 0
 Hospitals.Thickness: 1
 Lakes.Class: Area
-Lakes.Color: LightBlue
+Lakes.Color: #add8e6
 Lakes.Declutter: 1300
 Lakes.Delta1: 0
 Lakes.Thickness: 1
 Malls.Class: Area
-Malls.Color: yellow
+Malls.Color: #ffff00
 Malls.Declutter: 4096
 Malls.Delta1: 0
 Malls.Thickness: 1
 Parks.Class: Area
-Parks.Color: green
+Parks.Color: #00ff00
 Parks.Declutter: 4096
 Parks.Delta1: 0
 Parks.Thickness: 1
 Rivers.Class: Feature
-Rivers.Color: LightBlue
+Rivers.Color: #add8e6
 Rivers.Declutter: 300
 Rivers.Delta1: 0
 Rivers.Thickness: 3
 Sea.Class: Area
-Sea.Color: SlateBlue
+Sea.Color: #6a5acd
 Sea.Declutter: 2147483647
 Sea.Delta1: 0
 Sea.Thickness: 1
 Shore.Class: Feature
-Shore.Color: LightSlateBlue
+Shore.Color: #8d70ff
 Shore.Declutter: 2147483647
 Shore.Delta1: 0
 Shore.Thickness: 2
 Stations.Class: Area
-Stations.Color: grey
+Stations.Color: #bebebe
 Stations.Declutter: 4096
 Stations.Delta1: 0
 Stations.Thickness: 1

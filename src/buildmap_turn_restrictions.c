@@ -163,6 +163,29 @@ int buildmap_turn_restrictions_add
 }
 
 
+int buildmap_turn_restrictions_exists (int node, int from_line, int to_line) {
+   int index;
+   BuildMapTurns *this_turn;
+
+   for (index = roadmap_hash_get_first (TurnsByNode, node);
+        index >= 0;
+        index = roadmap_hash_get_next (TurnsByNode, index)) {
+
+      this_turn = Turns[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
+
+      if (this_turn->node == node) {
+
+         if ((this_turn->from_line == from_line) &&
+             (this_turn->to_line  == to_line )) {
+            return 1;
+         }
+      }
+   }
+
+   return 0;
+}
+
+
 static int buildmap_turns_compare (const void *r1, const void *r2) {
 
    int index1 = *((int *)r1);
@@ -231,6 +254,7 @@ void buildmap_turn_restrictions_save (void) {
    buildmap_db *table_node;
    buildmap_db *table_data;
 
+   return;
 
    buildmap_info ("saving turn restrictions...");
 
@@ -321,6 +345,26 @@ void buildmap_turn_restrictions_save (void) {
       buildmap_fatal (0, "inconsistent count of nodes: "
                             "total = %d, saved = %d",
                          TurnsNodeCount, node_index+1);
+   }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<square_count; i++) {
+         switch_endian_int(&db_bysquare[i].first);
+         switch_endian_int(&db_bysquare[i].count);
+      }
+
+      for (i=0; i<TurnsNodeCount; i++) {
+         switch_endian_int(&db_by_node[i].node);
+         switch_endian_int(&db_by_node[i].first);
+         switch_endian_int(&db_by_node[i].count);
+      }
+
+      for (i=0; i<TurnsCount; i++) {
+         switch_endian_int(&db_turns[i].from_line);
+         switch_endian_int(&db_turns[i].to_line);
+      }
    }
 }
 

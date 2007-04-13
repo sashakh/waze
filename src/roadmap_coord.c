@@ -274,7 +274,7 @@ static void roadmap_coord_cancel (const char *name, void *data) {
 
 void roadmap_coord_dialog (void) {
 
-   if (roadmap_dialog_activate ("Position", NULL)) {
+   if (roadmap_dialog_activate ("Position", NULL, 1)) {
 
       roadmap_dialog_new_entry ("Coordinates", RoadMapLongitudeLabel, NULL);
       roadmap_dialog_new_entry ("Coordinates", RoadMapLatitudeLabel, NULL);

@@ -143,7 +143,7 @@ static RoadMapConfigDescriptor RoadMapConfigLastSync =
 #endif
 
 static RoadMapConfigDescriptor RoadMapConfigFirstTime =
-                                  ROADMAP_CONFIG_ITEM("FreeMap", "First time");
+                                  ROADMAP_CONFIG_ITEM("FreeMap", "Welcome wizard");
 
 static RoadMapConfigDescriptor RoadMapConfigUser =
                                   ROADMAP_CONFIG_ITEM("FreeMap", "User Name");
@@ -473,7 +473,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 #ifdef FREEMAP_IL
 
    roadmap_config_declare_enumeration
-      ("session", &RoadMapConfigFirstTime, "Yes", "No", NULL);    
+      ("preferences", &RoadMapConfigFirstTime, "Yes", "No", NULL);    
 
    if (roadmap_config_match(&RoadMapConfigFirstTime, "Yes")) {
       first_time_wizard();
@@ -1397,7 +1397,7 @@ static void wizard_detect_gps (const char *name, void *context) {
 }
 
 void first_time_wizard (void) {
-   if (roadmap_dialog_activate ("Setup wizard", NULL)) {
+   if (roadmap_dialog_activate ("Setup wizard", NULL, 1)) {
 
       roadmap_config_declare ("preferences", &RoadMapConfigUser, "", NULL);
       roadmap_config_declare_password ("preferences", &RoadMapConfigPassword, "");

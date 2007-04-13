@@ -16,7 +16,7 @@
 /*                                                                         */
 /***************************************************************************/
 
-//#define FT_BITMAP_H
+#define FT_BITMAP_H
 #include <ft2build.h>
 #include FT_BITMAP_H
 #include FT_INTERNAL_OBJECTS_H

@@ -335,7 +335,7 @@ static void roadmap_trip_set_dialog (const RoadMapPosition *position) {
 
     point_position = *position;
     
-    if (roadmap_dialog_activate ("Add Waypoint", &point_position)) {
+    if (roadmap_dialog_activate ("Add Waypoint", &point_position, 1)) {
 
         roadmap_dialog_new_entry  ("Name", "Name:", NULL);
         roadmap_dialog_add_button ("OK", roadmap_trip_set_dialog_ok);
@@ -416,7 +416,7 @@ static void roadmap_trip_remove_dialog (void) {
         return; /* Nothing to delete. */
     }
     
-    if (roadmap_dialog_activate ("Delete Waypoints", NULL)) {
+    if (roadmap_dialog_activate ("Delete Waypoints", NULL, 1)) {
 
         roadmap_dialog_new_list   ("Names", ".Waypoints");
         roadmap_dialog_add_button ("Delete", roadmap_trip_remove_dialog_delete);

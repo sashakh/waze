@@ -62,6 +62,8 @@ typedef struct {
    int maxlatitude;
    int sorted;
    int count;
+   int first_point;
+   int first_shape;
 } BuildMapSquare;
 
 
@@ -191,6 +193,8 @@ void buildmap_square_initialize
          Square[k].maxlatitude  = latitude;
 
          Square[k].count = 0;
+         Square[k].first_point = -1;
+         Square[k].first_shape = -1;
       }
 
       Square[k-1].maxlatitude = maxlatitude;
@@ -272,6 +276,66 @@ void  buildmap_square_get_reference_sorted
 
    *longitude = Square[square].minlongitude;
    *latitude  = Square[square].minlatitude;
+}
+
+
+void buildmap_square_set_first_point_sorted (int square, int point) {
+   if (SortedSquare == NULL) {
+      buildmap_fatal (0, "squares have not been sorted yet");
+   }
+
+   if ((square < 0) || (square > SquareCount)) {
+      buildmap_fatal (0, "invalid square index %d", square);
+   }
+
+   square = SortedSquare[square];
+
+   Square[square].first_point = point;
+}
+
+
+int buildmap_square_first_point_sorted (int square) {
+   if (SortedSquare == NULL) {
+      buildmap_fatal (0, "squares have not been sorted yet");
+   }
+
+   if ((square < 0) || (square > SquareCount)) {
+      buildmap_fatal (0, "invalid square index %d", square);
+   }
+
+   square = SortedSquare[square];
+
+   return Square[square].first_point;
+}
+
+
+void buildmap_square_set_first_shape_sorted (int square, int shape) {
+   if (SortedSquare == NULL) {
+      buildmap_fatal (0, "squares have not been sorted yet");
+   }
+
+   if ((square < 0) || (square > SquareCount)) {
+      buildmap_fatal (0, "invalid square index %d", square);
+   }
+
+   square = SortedSquare[square];
+
+   Square[square].first_shape = shape;
+}
+
+
+int buildmap_square_first_shape_sorted (int square) {
+   if (SortedSquare == NULL) {
+      buildmap_fatal (0, "squares have not been sorted yet");
+   }
+
+   if ((square < 0) || (square > SquareCount)) {
+      buildmap_fatal (0, "invalid square index %d", square);
+   }
+
+   square = SortedSquare[square];
+
+   return Square[square].first_shape;
 }
 
 
@@ -375,14 +439,42 @@ void buildmap_square_save (void) {
 
       one_square = Square + SortedSquare[i];
 
-      db_square[i].edges.east = one_square->maxlongitude;
-      db_square[i].edges.north  = one_square->maxlatitude;
+      db_square[i].edges.east  = one_square->maxlongitude;
+      db_square[i].edges.north = one_square->maxlatitude;
 
-      db_square[i].edges.west = one_square->minlongitude;
-      db_square[i].edges.south  = one_square->minlatitude;
+      db_square[i].edges.west  = one_square->minlongitude;
+      db_square[i].edges.south = one_square->minlatitude;
 
-      db_square[i].position      = SortedSquare[i];
-      db_square[i].count_points  = one_square->count;
+      db_square[i].first_point = one_square->first_point;
+      db_square[i].first_shape = one_square->first_shape;
+
+      db_square[i].position    = SortedSquare[i];
+
+   }
+
+   if (switch_endian) {
+      int i;
+
+      switch_endian_int(&db_global->edges.east);
+      switch_endian_int(&db_global->edges.west);
+      switch_endian_int(&db_global->edges.north);
+      switch_endian_int(&db_global->edges.south);
+      switch_endian_int(&db_global->step_longitude);
+      switch_endian_int(&db_global->step_latitude);
+      switch_endian_int(&db_global->count_longitude);
+      switch_endian_int(&db_global->count_latitude);
+      switch_endian_int(&db_global->count_squares);
+
+      for (i=0; i<SquareCount; i++) {
+
+         switch_endian_int(&db_square[i].edges.east);
+         switch_endian_int(&db_square[i].edges.west);
+         switch_endian_int(&db_square[i].edges.north);
+         switch_endian_int(&db_square[i].edges.south);
+         switch_endian_int(&db_square[i].first_point);
+         switch_endian_int(&db_square[i].first_shape);
+         switch_endian_int(&db_square[i].position);
+      }
    }
 }
 

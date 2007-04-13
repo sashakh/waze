@@ -47,7 +47,7 @@
 #include "agg_renderer_outline_aa.h"
 #include "agg_pixfmt_rgb_packed.h"
 #include "agg_path_storage.h"
-#include "../agg/font_freetype/agg_font_freetype.h"
+#include "agg_font_freetype.h"
 
 #ifdef USE_FRIBIDI
 #include <fribidi.h>

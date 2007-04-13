@@ -238,8 +238,6 @@ int editor_line_copy (int line, int cfcc, int fips) {
    int trkseg;
    int j;
    int square;
-   int first_shape_line;
-   int last_shape_line;
    int first;
    int last;
    int editor_first_shape = -1;
@@ -281,11 +279,7 @@ int editor_line_copy (int line, int cfcc, int fips) {
 
    //TODO get avg speed and compute time for this trkseg
    if ((square >= 0) &&
-         (roadmap_shape_in_square (square, &first_shape_line,
-                                 &last_shape_line) > 0) &&
-         (roadmap_shape_of_line (line, first_shape_line,
-                                 last_shape_line,
-                                 &first, &last) > 0)) {
+         (roadmap_line_shapes (line, square, &first, &last) > 0)) {
 
       RoadMapPosition shape_pos;
 

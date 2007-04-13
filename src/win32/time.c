@@ -87,14 +87,22 @@ time_t time(time_t *t)
 
 static int get_bias(int *is_dst)
 {
-	TIME_ZONE_INFORMATION tzi;
-	if (GetTimeZoneInformation(&tzi) == TIME_ZONE_ID_DAYLIGHT) {
-      *is_dst = 1;
-		return tzi.Bias + tzi.DaylightBias;
-	} else {
-      *is_dst = 0;
-		return tzi.Bias;
-	}
+   static int bias = -999999;
+   static int dst;
+
+   if (bias == -999999) {
+	   TIME_ZONE_INFORMATION tzi;
+	   if (GetTimeZoneInformation(&tzi) == TIME_ZONE_ID_DAYLIGHT) {
+         dst = 1;
+		   bias = tzi.Bias + tzi.DaylightBias;
+	   } else {
+         dst = 0;
+		   bias = tzi.Bias;
+	   }
+   }
+
+   *is_dst = dst;
+   return bias;
 }
 
 

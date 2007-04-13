@@ -25,6 +25,7 @@
 #define INCLUDE__NAVIGATE_BAR__H
 
 #include "roadmap_canvas.h"
+#include "navigate_main.h"
 
 void navigate_bar_initialize (void);
 void navigate_bar_set_mode (int mode);

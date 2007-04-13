@@ -43,6 +43,8 @@
 #include "roadmap_dbread.h"
 #include "roadmap_db_county.h"
 #include "roadmap_dictionary.h"
+#include "roadmap_locator.h"
+#include "roadmap_square.h"
 
 #include "roadmap_county.h"
 
@@ -181,6 +183,23 @@ int roadmap_county_by_position
 
    if (RoadMapCountyActive == NULL) {
 
+      int static_fips = roadmap_locator_static_county ();
+
+      if (static_fips &&
+            (roadmap_locator_activate (static_fips) == ROADMAP_US_OK)) {
+
+         RoadMapArea edges;
+         roadmap_square_edges (ROADMAP_SQUARE_GLOBAL, &edges);
+
+         if (position->longitude > edges.east) return 0;
+         if (position->longitude < edges.west) return 0;
+         if (position->latitude  > edges.north)  return 0;
+         if (position->latitude  < edges.south)  return 0;
+
+         fips[0] = static_fips;
+         return 1;
+      }
+
       /* There is no point of looking for a county if none is available. */
       return 0;
    }
@@ -305,7 +324,12 @@ int roadmap_county_by_state(RoadMapString state, int *fips, int count) {
    int last_county;
    RoadMapCountyByState *this_state;
 
-   if (RoadMapCountyActive == NULL) return 0;
+   if (RoadMapCountyActive == NULL) {
+      fips[0] = roadmap_locator_static_county ();
+
+      if (fips[0] != 0) return 1;
+      else return 0;
+   }
 
    this_state = roadmap_county_search_state (state);
    if (this_state == NULL) {
@@ -432,7 +456,20 @@ const RoadMapArea *roadmap_county_get_edges (int fips) {
 
    int i;
 
-   if (RoadMapCountyActive == NULL) return NULL;
+   if (RoadMapCountyActive == NULL) {
+
+      int static_fips = roadmap_locator_static_county ();
+      if ((static_fips == fips) &&
+            (roadmap_locator_activate (fips) == ROADMAP_US_OK)) {
+
+         static RoadMapArea edges;
+         roadmap_square_edges (ROADMAP_SQUARE_GLOBAL, &edges);
+
+         return &edges;
+      }
+
+      return NULL;
+   }
 
    i = roadmap_county_search_index (fips);
    if (i < 0) {

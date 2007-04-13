@@ -219,7 +219,7 @@ static void roadmap_crossing_ok (const char *name, void *data) {
        names[i] = strdup(buffer);
    }
 
-   if (roadmap_dialog_activate ("Choose Intersection", NULL)) {
+   if (roadmap_dialog_activate ("Choose Intersection", NULL, 1)) {
 
       roadmap_dialog_new_list ("List", ".Intersections");
 
@@ -245,7 +245,7 @@ static void roadmap_crossing_cancel (const char *name, void *data) {
 
 void roadmap_crossing_dialog (void) {
 
-   if (roadmap_dialog_activate ("Intersection", NULL)) {
+   if (roadmap_dialog_activate ("Intersection", NULL, 1)) {
 
       roadmap_dialog_new_entry ("Crossing", "Street 1:", NULL);
       roadmap_dialog_new_entry ("Crossing", "Street 2:", NULL);

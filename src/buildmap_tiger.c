@@ -56,7 +56,8 @@
 #include "buildmap_area.h"
 #include "buildmap_shape.h"
 #include "buildmap_polygon.h"
-#include "buildmap_dglib.h"
+#include "buildmap_line_route.h"
+#include "buildmap_line_speed.h"
 
 
 static BuildMapDictionary DictionaryPrefix;
@@ -494,9 +495,6 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
                         (line, street, fraddr, toaddr, zip, city);
                   }
                }
-
-            } else {
-               buildmap_range_add_no_address (line, street);
             }
 
          } else if (cfcc >= ROADMAP_AREA_FIRST &&
@@ -568,10 +566,8 @@ static void buildmap_tiger_gen_route (const char *source, int verbose) {
 
          int from_car_allowed = 1;
          int to_car_allowed = 0;
-         int from_max_speed = 0;
-         int to_max_speed = 0;
-         int from_cross_time = 0;
-         int to_cross_time = 0;
+         int from_avg_speed = 0;
+         int to_avg_speed = 0;
          int line_length;
 
          line = buildmap_line_find_sorted(tlid);
@@ -580,26 +576,26 @@ static void buildmap_tiger_gen_route (const char *source, int verbose) {
 
          switch (cfcc) {
             case ROADMAP_ROAD_FREEWAY:
-               from_cross_time = to_cross_time = line_length / 30;
+               from_avg_speed = 100;
                to_car_allowed = 1;
                break;
 
             case ROADMAP_ROAD_RAMP:
-               from_cross_time = line_length / 10;
+               from_avg_speed = 70;
                break;
 
             case ROADMAP_ROAD_MAIN:
-               from_cross_time = to_cross_time = line_length / 15;
+               from_avg_speed = 50;
                to_car_allowed = 1;
                break;
 
             case ROADMAP_ROAD_STREET:
-               from_cross_time = to_cross_time = line_length / 7;
+               from_avg_speed = 30;
                to_car_allowed = 1;
                break;
 
             case ROADMAP_ROAD_TRAIL:
-               from_cross_time = to_cross_time = line_length / 5;
+               from_avg_speed = 20;
                to_car_allowed = 1;
                break;
 
@@ -607,10 +603,9 @@ static void buildmap_tiger_gen_route (const char *source, int verbose) {
                buildmap_fatal (0, "Should not be here!");
          }
 
-         buildmap_dglib_add
-            (from_car_allowed, to_car_allowed, from_max_speed, to_max_speed,
-             from_cross_time, to_cross_time, cfcc,
-             line);
+         buildmap_line_route_add
+            (from_car_allowed, to_car_allowed, from_avg_speed, to_avg_speed,
+             INVALID_SPEED, INVALID_SPEED, line);
       }
 
       record_count += 1;

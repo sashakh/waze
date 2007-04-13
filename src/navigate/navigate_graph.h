@@ -25,20 +25,22 @@
 #ifndef _NAVIGATE_GRAPH_H_
 #define _NAVIGATE_GRAPH_H_
 
-#include "navigate_main.h"
+#define REVERSED (1 << 31)
 
-#define GRAPH_IGNORE_TURNS 1
+typedef unsigned char PrevItem;
 
-int navigate_reload_data (void);
-int navigate_load_data   (void);
+struct successor {
+   int line_id;
+   unsigned char reversed;
+   int to_point;
+};
 
-int navigate_get_route_segments (PluginLine *from_line,
-                                 int from_point,
-                                 PluginLine *to_line,
-                                 int to_point,
-                                 NavigateSegment *segments,
-                                 int *size,
-                                 int *result);
+int get_connected_segments (int seg_line_id, int is_seg_reversed,
+                            int node_id, struct successor *successors,
+                            int max, int use_restrictions,
+                            PrevItem *prev_item);
+
+int navigate_graph_get_line (int node, int line_no);
 
 #endif /* _NAVIGATE_GRAPH_H_ */
 

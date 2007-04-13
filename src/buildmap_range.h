@@ -35,7 +35,9 @@ void buildmap_range_merge (int frleft,  int toleft,
 int  buildmap_range_add
         (int line, int street,
          int fradd, int toadd, RoadMapZip zip, RoadMapString city);
+
 void buildmap_range_add_no_address (int line, int street);
+
 void buildmap_range_add_place      (RoadMapString place, RoadMapString city);
 
 void buildmap_range_sort (void);

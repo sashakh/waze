@@ -33,9 +33,6 @@ Package=<4>
     Project_Dep_Name agg
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libdgl
-    End Project Dependency
-    Begin Project Dependency
     Project_Dep_Name libft
     End Project Dependency
     Begin Project Dependency

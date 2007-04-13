@@ -29,17 +29,17 @@
 
 typedef struct {
 
-   short x;
-   short y;
+   int x;
+   int y;
 
 } RoadMapGuiPoint;
 
 typedef struct {
 
-   short minx;
-   short miny;
-   short maxx;
-   short maxy;
+   int minx;
+   int miny;
+   int maxx;
+   int maxy;
 
 } RoadMapGuiRect;
 

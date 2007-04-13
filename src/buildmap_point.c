@@ -212,32 +212,60 @@ int buildmap_point_get_latitude  (int pointid) {
 
 int buildmap_point_get_sorted (int pointid) {
 
+   int p_id;
+   int square;
+
    if (SortedPoint == NULL) {
       buildmap_fatal (0, "points have not been sorted yet");
    }
 
-   return buildmap_point_get(pointid)->sorted;
+   p_id = buildmap_point_get(pointid)->sorted;
+   square = buildmap_point_get(pointid)->square;
+   p_id -= buildmap_square_first_point_sorted (square);
+   if (p_id < 0) {
+      buildmap_fatal (0, "invalid point index %d", pointid);
+   }
+   return (square << 16) | (p_id & 0xffff);
 }
 
 
 int buildmap_point_get_square_sorted (int point) {
 
+   int square;
+   int p_id;
+
    if (SortedPoint == NULL) {
       buildmap_fatal (0, "points have not been sorted yet");
    }
-   if ((point < 0) || (point > PointCount)) {
-      buildmap_fatal (0, "invalid point index %d", point);
+
+   square = (point >> 16) & 0xffff;
+   p_id = point & 0xffff;
+   p_id += buildmap_square_first_point_sorted (square);
+
+   if ((p_id < 0) || (p_id > PointCount)) {
+      buildmap_fatal (0, "invalid point index %x", point);
    }
 
-   return buildmap_point_get(SortedPoint[point])->square;
+   if (square != buildmap_point_get(SortedPoint[p_id])->square) {
+      buildmap_fatal (0, "invalid point index %x", point);
+   }
+
+   return square;
 }
 
 
 int  buildmap_point_get_longitude_sorted (int point) {
 
+   int square;
+
    if (SortedPoint == NULL) {
       buildmap_fatal (0, "points have not been sorted yet");
    }
+
+   square = (point >> 16) & 0xffff;
+   point = point & 0xffff;
+   point += buildmap_square_first_point_sorted (square);
+
    if ((point < 0) || (point > PointCount)) {
       buildmap_fatal (0, "invalid point index %d", point);
    }
@@ -248,9 +276,16 @@ int  buildmap_point_get_longitude_sorted (int point) {
 
 int  buildmap_point_get_latitude_sorted  (int point) {
 
+   int square;
+
    if (SortedPoint == NULL) {
       buildmap_fatal (0, "points have not been sorted yet");
    }
+
+   square = (point >> 16) & 0xffff;
+   point = point & 0xffff;
+   point += buildmap_square_first_point_sorted (square);
+
    if ((point < 0) || (point > PointCount)) {
       buildmap_fatal (0, "invalid point index %d", point);
    }
@@ -275,7 +310,13 @@ int  buildmap_point_find_sorted (int db_id) {
       this_point = Point[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
 
       if (this_point->db_id == db_id) {
-         return this_point->sorted;
+         int p_id = this_point->sorted;
+         int square = this_point->square;
+         p_id -= buildmap_square_first_point_sorted (square);
+         if (p_id < 0) {
+            buildmap_fatal (0, "invalid point index %d", index);
+         }
+         return (square << 16) | (p_id & 0xffff);
       }
    }
 
@@ -317,6 +358,7 @@ void buildmap_point_sort (void) {
 
    int i;
    int j;
+   int last_square = -1;
    BuildMapPoint *record;
 
    if (SortedPoint != NULL) return; /* Sort was already performed. */
@@ -353,10 +395,21 @@ void buildmap_point_sort (void) {
 
    qsort (SortedPoint, PointCount, sizeof(int), buildmap_point_compare);
 
+   /* Create by square list and sort translation */
+
    for (i = 0; i < PointCount; i++) {
       j = SortedPoint[i];
       record = Point[j / BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
       record->sorted = i;
+
+      if (record->square != last_square) {
+         if (record->square != last_square + 1) {
+            buildmap_fatal (0, "decreasing square order in point table");
+         }
+         last_square = record->square;
+	 buildmap_square_set_first_point_sorted (last_square, i);
+
+      }
    }
 }
 
@@ -372,16 +425,14 @@ void buildmap_point_save (void) {
 
    BuildMapPoint *one_point;
    RoadMapPoint  *db_points;
-   int           *db_ids;
-   RoadMapSortedList *db_bysquare;
-
-   
+  
    buildmap_db *root;
    buildmap_db *table_data;
+#ifndef J2MEMAP
+   int         *db_ids;
    buildmap_db *table_id;
-   buildmap_db *table_bysquare;
-
-
+#endif
+ 
    buildmap_info ("saving points...");
 
    root = buildmap_db_add_section (NULL, "point");
@@ -390,18 +441,14 @@ void buildmap_point_save (void) {
    table_data = buildmap_db_add_child
                   (root, "data", PointCount, sizeof(RoadMapPoint));
 
+#ifndef J2MEMAP
    table_id = buildmap_db_add_child
                   (root, "id", PointCount, sizeof(int));
 
-   table_bysquare = buildmap_db_add_child
-                     (root,
-                      "bysquare",
-                      buildmap_square_get_count(),
-                      sizeof(RoadMapSortedList));
+   db_ids      = (int *) buildmap_db_get_data (table_id);
+#endif
 
    db_points   = (RoadMapPoint *) buildmap_db_get_data (table_data);
-   db_ids      = (int *) buildmap_db_get_data (table_id);
-   db_bysquare = (RoadMapSortedList *) buildmap_db_get_data (table_bysquare);
 
 
    for (i = 0; i < PointCount; i++) {
@@ -415,20 +462,31 @@ void buildmap_point_save (void) {
             buildmap_fatal (0, "decreasing square order in point table");
          }
          last_square = one_point->square;
-         db_bysquare[last_square].first = i;
-         db_bysquare[last_square].count = 0;
 
          buildmap_square_get_reference_sorted
               (last_square, &reference_longitude, &reference_latitude);
       }
-      db_bysquare[last_square].count += 1;
 
       db_points[i].longitude =
          (unsigned short) (one_point->longitude - reference_longitude);
       db_points[i].latitude =
          (unsigned short) (one_point->latitude - reference_latitude);
 
+#ifndef J2MEMAP
       db_ids[i] = one_point->db_id;
+#endif
+   }
+
+   if (switch_endian) {
+      int i;
+
+      for (i=0; i<PointCount; i++) {
+         switch_endian_short(&db_points[i].longitude);
+         switch_endian_short(&db_points[i].latitude);
+#ifndef J2MEMAP
+         switch_endian_int(db_ids + i);
+#endif
+      }
    }
 }
 
@@ -436,7 +494,13 @@ void buildmap_point_save (void) {
 void buildmap_point_summary (void) {
 
    fprintf (stderr, "-- point table statistics: %d points, %d bytes used\n",
-                    PointCount, PointCount * sizeof(RoadMapPoint));
+                    PointCount, PointCount * sizeof(RoadMapPoint)
+#ifndef J2MEMAP
+		    		+ PointCount * sizeof(int));
+#else
+);
+#endif
+
 }
 
 

@@ -167,7 +167,6 @@ static void buildmap_county_initialize (void) {
    buildmap_line_initialize();
    buildmap_line_route_initialize();
    buildmap_line_speed_initialize();
-   buildmap_dglib_initialize(creation_time);
    buildmap_polygon_initialize();
    buildmap_shape_initialize();
    buildmap_turn_restrictions_initialize();
@@ -182,7 +181,6 @@ static void buildmap_county_sort (void) {
    buildmap_line_sort ();
    buildmap_line_route_sort ();
    buildmap_line_speed_sort ();
-   buildmap_dglib_sort ();
    buildmap_street_sort ();
    buildmap_range_sort ();
    buildmap_shape_sort ();
@@ -213,7 +211,6 @@ static void buildmap_county_save (const char *name) {
    buildmap_line_save ();
    buildmap_line_route_save ();
    buildmap_line_speed_save ();
-   buildmap_dglib_save (BuildMapResult, db_name);
    buildmap_point_save ();
    buildmap_shape_save ();
    buildmap_turn_restrictions_save ();
@@ -234,7 +231,6 @@ static void buildmap_county_reset (void) {
    buildmap_line_reset ();
    buildmap_line_route_reset ();
    buildmap_line_speed_reset ();
-   buildmap_dglib_reset (creation_time);
    buildmap_point_reset ();
    buildmap_shape_reset ();
    buildmap_turn_restrictions_reset ();
@@ -297,8 +293,8 @@ static void buildmap_county_process (const char *source,
       buildmap_line_summary ();
       buildmap_line_route_summary ();
       buildmap_line_speed_summary ();
-      buildmap_dglib_summary ();
       buildmap_range_summary ();
+      buildmap_point_summary ();
       buildmap_shape_summary ();
       buildmap_turn_restrictions_summary ();
       buildmap_polygon_summary ();

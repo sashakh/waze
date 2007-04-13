@@ -37,6 +37,8 @@
 #define PLUGIN_VALID(plugin) (plugin.plugin_id >= 0)
 #define INVALIDATE_PLUGIN(plugin) (plugin.plugin_id = -1)
 
+#define PLUGIN_STREET_ONLY 0x1
+
 /* plugin types */
 
 typedef struct {
@@ -136,7 +138,8 @@ typedef const char *(*plugin_street_full_name_func)
                        (const PluginLine *line);
 
 typedef void (*plugin_street_properties_func)
-              (const PluginLine *line, PluginStreetProperties *props);
+              (const PluginLine *line, PluginStreetProperties *props,
+               int type);
 
 typedef int (*plugin_find_connected_lines_func)
                   (const RoadMapPosition *crossing,
@@ -194,7 +197,8 @@ void roadmap_plugin_screen_repaint (int max_pen);
 const char *roadmap_plugin_street_full_name (const PluginLine *line);
 
 void roadmap_plugin_get_street_properties (const PluginLine *line,
-                                           PluginStreetProperties *props);
+                                           PluginStreetProperties *props,
+                                           int type);
 
 int roadmap_plugin_find_connected_lines (RoadMapPosition *crossing,
                                          PluginLine *plugin_lines,

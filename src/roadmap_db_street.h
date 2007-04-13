@@ -38,7 +38,9 @@ typedef struct {
    RoadMapString fename;
    RoadMapString fetype;
    RoadMapString fedirs;
+#ifndef J2MEMAP
    RoadMapString t2s;
+#endif
 
 } RoadMapStreet;
 
