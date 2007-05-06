@@ -427,8 +427,8 @@ static void add_line_data(ExportStream *stream,
    char *trk_type;
    int from_point_id;
    int to_point_id;
-   int roadmap_from_id;
-   int roadmap_to_id;
+   int roadmap_from_id = -1;
+   int roadmap_to_id = -1;
    int route_id;
    /* LineRouteMax speed_limit; */
 
@@ -443,6 +443,8 @@ static void add_line_data(ExportStream *stream,
          trk_type = "fake";
       } else if (trkseg_flags & ED_TRKSEG_IGNORE) {
          trk_type = "ignore";
+      } else if (trkseg_flags & ED_TRKSEG_LOW_CONFID) {
+         trk_type = "valid_update";
       } else {
          trk_type = "valid";
       }
@@ -467,9 +469,11 @@ static void add_line_data(ExportStream *stream,
       if (roadmap_to_id == -1) roadmap_to_id = -to_point_id-2;
    } else {
 
-      roadmap_line_points (line_id, &roadmap_from_id, &roadmap_to_id);
-      roadmap_from_id = roadmap_point_db_id (roadmap_from_id);
-      roadmap_to_id = roadmap_point_db_id (roadmap_to_id);
+      if (!(trkseg_flags & ED_TRKSEG_LOW_CONFID)) {
+         roadmap_line_points (line_id, &roadmap_from_id, &roadmap_to_id);
+         roadmap_from_id = roadmap_point_db_id (roadmap_from_id);
+         roadmap_to_id = roadmap_point_db_id (roadmap_to_id);
+      }
    }
 
    export_write (stream, "<freemap:line from_id=\"%d\" to_id=\"%d\">\n",

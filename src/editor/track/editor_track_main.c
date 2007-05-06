@@ -237,7 +237,9 @@ static int add_road_connection (int point_id,
 
    if (editor_track_known_end_segment
          (&TrackPreviousLine.line, from_point,
-          &TrackConfirmedLine.line, is_new_track)) {
+          &TrackConfirmedLine.line,
+          &TrackConfirmedStreet,
+          is_new_track)) {
 
       is_new_track = 0;
    }
@@ -341,7 +343,8 @@ static void end_known_segment (int point_id,
          
          if (editor_track_known_end_segment
                (&TrackPreviousLine.line, split_point,
-                &TrackConfirmedLine.line, is_new_track)) {
+                &TrackConfirmedLine.line,
+                &TrackConfirmedStreet, is_new_track)) {
 
             is_new_track = 0;
             
@@ -396,7 +399,9 @@ static void end_known_segment (int point_id,
       if (split_point != -1) {
          if (editor_track_known_end_segment
                (&TrackPreviousLine.line, split_point,
-                &TrackConfirmedLine.line, is_new_track)) {
+                &TrackConfirmedLine.line,
+                &TrackConfirmedStreet,
+                is_new_track)) {
 
             is_new_track = 0;
             TrackPreviousLine = TrackConfirmedLine;
@@ -534,30 +539,36 @@ static void track_rec_locate_point(int point_id, int point_type) {
 
       RoadMapTracking new_street;
       RoadMapNeighbour new_line;
+      
+      do {
          
-      count = editor_track_known_locate_point
-               (point_id,
-                &TrackLastPosition,
-                &TrackConfirmedStreet,
-                &TrackConfirmedLine,
-                &new_street,
-                &new_line);
+         count = editor_track_known_locate_point
+            (point_id,
+             &TrackLastPosition,
+             &TrackConfirmedStreet,
+             &TrackConfirmedLine,
+             &new_street,
+             &new_line);
 
-      if (count) {
-         end_known_segment (count, &new_street, &new_line);
+         if (count) {
+            end_known_segment (count, &new_street, &new_line);
 
-         if (!new_street.valid) {
-            /* the current point does not belong to a known street */
+            if (!new_street.valid) {
+               /* the current point does not belong to a known street */
 
-            cur_active_line = 1;
+               cur_active_line = 1;
 
-            for (i=0; i<points_count; i++) {
+               for (i=0; i<points_count; i++) {
 
-               track_rec_locate_point (i, POINT_UNKNOWN|point_type);
+                  track_rec_locate_point (i, POINT_UNKNOWN|point_type);
+               }
             }
          }
-      }
-            
+
+         point_id -= count;
+
+      } while (count && editor_track_known_resolve());
+
    } else {
 
       count = editor_track_unknown_locate_point
@@ -762,6 +773,7 @@ void editor_track_end (void) {
                (&TrackPreviousLine.line,
                 points_count - 1,
                 &TrackConfirmedLine.line,
+                &TrackConfirmedStreet,
                 is_new_track);
          }
       }

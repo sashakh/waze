@@ -27,6 +27,8 @@
 #include "roadmap_navigate.h"
 #include "editor_track_main.h"
 
+int editor_track_known_resolve (void);
+
 int editor_track_known_locate_point (int point_id,
                                      const RoadMapGpsPosition *gps_position,
                                      RoadMapTracking *confirmed_street,
@@ -37,6 +39,7 @@ int editor_track_known_locate_point (int point_id,
 int editor_track_known_end_segment (PluginLine *previous_line,
                                     int last_point_id,
                                     PluginLine *line,
+                                    RoadMapTracking *street,
                                     int is_new_track);
 
 #endif // INCLUDE__EDITOR_TRACK_KNOWN__H

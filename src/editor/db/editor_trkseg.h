@@ -35,6 +35,7 @@
 #define ED_TRKSEG_NEW_TRACK    0x8
 #define ED_TRKSEG_OPPOSITE_DIR 0x10
 #define ED_TRKSEG_NO_GLOBAL    0x20
+#define ED_TRKSEG_LOW_CONFID   0x40
 
 
 typedef struct editor_db_trkseg_private_s {

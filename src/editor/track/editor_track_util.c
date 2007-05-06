@@ -140,7 +140,7 @@ static int find_split_point (PluginLine *line,
       split_pos = to_pos;
    }
 
-   if ((min_distance > max_distance_allowed) && !(split_type & SPLIT_NODE)) {
+   if ((min_distance >= max_distance_allowed) && !(split_type & SPLIT_NODE)) {
       /* End points are not good. Check recent gps points. */
       int i;
       RoadMapTracking candidate;
@@ -659,7 +659,6 @@ int editor_track_util_find_street
          *second_best = *best;
          *best = result;
          *nominated = candidate;
-         nominated->opposite_street_direction = 0;
          
       } else if (result > *second_best) {
          *second_best = result;
@@ -722,7 +721,6 @@ int editor_track_util_find_street
          *second_best = *best;
          *best = result;
          *nominated = candidate;
-         nominated->opposite_street_direction = 1;
       } else if (result > *second_best) {
          *second_best = result;
       }

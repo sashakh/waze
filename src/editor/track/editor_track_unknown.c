@@ -425,14 +425,15 @@ int editor_track_unknown_locate_point (int point_id,
       /* delay ending the line until we find the best location to end it */
       if (roadmap_fuzzy_is_good (best) &&
                ( !confirmed_street->valid ||
-                 (best > confirmed_street->fuzzyfied))) {
+                 (best > confirmed_street->cur_fuzzyfied))) {
 //                 RoadMapNeighbourhood[found].distance <
 //                 confirmed_line->distance)) {
 
          *confirmed_line   = RoadMapNeighbourhood[found];
          *confirmed_street = nominated;
          confirmed_street->valid = 1;
-         confirmed_street->fuzzyfied = best;
+         confirmed_street->entry_fuzzyfied = best;
+         confirmed_street->cur_fuzzyfied = best;
 
 /*         
          if (!roadmap_fuzzy_is_certain (best)) {
@@ -452,7 +453,7 @@ int editor_track_unknown_locate_point (int point_id,
       }
       new_segment->point_id = point_id;
 
-      if (best != confirmed_street->fuzzyfied) {
+      if (best != confirmed_street->cur_fuzzyfied) {
          new_segment->point_id--;
       }
 

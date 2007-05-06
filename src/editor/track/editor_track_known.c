@@ -50,7 +50,7 @@
 
 #include "editor_track_known.h"
 
-#define MAX_ENTRIES 7
+#define MAX_ENTRIES 15
 #define MAX_PATHS 10
 
 typedef struct {
@@ -62,6 +62,7 @@ typedef struct {
 typedef struct {
    KnownCandidateEntry entries[MAX_ENTRIES];
    int count;
+   int low_confidence;
 } KnownCandidatePath;
 
 static KnownCandidatePath KnownCandidates[MAX_PATHS];
@@ -69,6 +70,43 @@ static int KnownCandidatesCount;
 
 #define ROADMAP_NEIGHBOURHOUD  16
 static RoadMapNeighbour RoadMapNeighbourhood[ROADMAP_NEIGHBOURHOUD];
+
+
+static int resolve_add (KnownCandidatePath *path, int point_id,
+                        RoadMapNeighbour *candidate,
+                        RoadMapFuzzy fuzzy,
+                        RoadMapTracking *street) {
+
+   KnownCandidateEntry *entry = path->entries + path->count - 1;
+
+   if (!roadmap_plugin_same_line
+         (&entry->line.line, &candidate->line)) {
+
+      int p = 0;
+      int i;
+
+      for (i=0; i<path->count; i++) {
+         p += path->entries[i].point_id;
+      }
+
+      p = point_id - p;
+
+      if (++path->count == MAX_ENTRIES) {
+         return -1;
+      }
+
+      entry++;
+      entry->point_id = p;
+      entry->line = *candidate;
+      entry->street = *street;
+      entry->street.entry_fuzzyfied = entry->street.cur_fuzzyfied = fuzzy;
+      entry->street.valid = 1;
+   } else {
+      entry->street.cur_fuzzyfied = fuzzy;
+   }
+
+   return 0;
+}
 
 
 static int resolve_candidates (const RoadMapGpsPosition *gps_position,
@@ -82,13 +120,12 @@ static int resolve_candidates (const RoadMapGpsPosition *gps_position,
    int i;
    int j;
 
-   for (c = 0; c < KnownCandidatesCount; c++) {
+   for (c = KnownCandidatesCount - 1; c >= 0; c--) {
 
       RoadMapTracking new_street;
 
       KnownCandidateEntry *entry =
          KnownCandidates[c].entries + KnownCandidates[c].count - 1;
-   
    
       count = editor_track_util_find_street
          (gps_position, &new_street,
@@ -99,46 +136,71 @@ static int resolve_candidates (const RoadMapGpsPosition *gps_position,
 
       if (!roadmap_fuzzy_is_good (best)) {
 
-         /* remove this entry */
+         if (KnownCandidatesCount == 1) {
+            /* This is the last path, force use it, but lower its confidence */
+            KnownCandidates[0].low_confidence = 1;
+
+            return 0;
+         }
+
          memmove (KnownCandidates + c, KnownCandidates + c + 1,
                (KnownCandidatesCount - c - 1) * sizeof (KnownCandidatePath));
 
          KnownCandidatesCount--;
-         c--;
          continue;
       }
 
-      if (roadmap_fuzzy_is_good (best) &&
-            roadmap_fuzzy_is_good (second_best)) {
+      if (roadmap_fuzzy_is_good (second_best) &&
+         !roadmap_plugin_same_line
+               (&entry->line.line, &RoadMapNeighbourhood[found].line)) {
 
-         /* We got too many good candidates. Wait before deciding. */
+         /* We need to create new paths */
 
-         continue;
+         for (i = 0; i < count; ++i) {
+            RoadMapTracking candidate;
+            int result;
+
+            /* We handle the best result below this block */
+            if (i == found) continue;
+
+            result = roadmap_navigate_fuzzify
+               (&candidate,
+                &entry->street,
+                &entry->line,
+                RoadMapNeighbourhood+i,
+                0,
+                gps_position->steering);
+
+            if (roadmap_fuzzy_is_good (result)) {
+
+               if (roadmap_plugin_same_line
+                  (&entry->line.line, &RoadMapNeighbourhood[i].line)) {
+
+                  /* Skip the current line */
+                  continue;
+               }
+
+               if (KnownCandidatesCount == MAX_PATHS) return -1;
+
+               memcpy (KnownCandidates + KnownCandidatesCount,
+                       KnownCandidates + c, sizeof (KnownCandidatePath));
+
+               resolve_add (&KnownCandidates[KnownCandidatesCount],
+                     point_id,
+                     &RoadMapNeighbourhood[i],
+                     result,
+                     &candidate);
+
+               KnownCandidatesCount++;
+            }
+         }
       }
 
-      if (!roadmap_plugin_same_line
-            (&entry->line.line, &RoadMapNeighbourhood[found].line)) {
-         
-         int p;
-
-         if (KnownCandidates[c].count == 1) {
-            p = point_id - entry->point_id;
-         } else {
-            p = KnownCandidates[c].entries[KnownCandidates[c].count-2].
-                  point_id - entry->point_id;
-         }
-
-         if (++KnownCandidates[c].count == MAX_ENTRIES) {
-            return -1;
-         }
-
-         entry++;
-         entry->point_id = p;
-         entry->line = RoadMapNeighbourhood[found];
-         entry->street = new_street;
-         entry->street.fuzzyfied = best;
-         entry->street.valid = 1;
-      }
+      resolve_add (&KnownCandidates[c],
+                   point_id,
+                   &RoadMapNeighbourhood[found],
+                   best,
+                   &new_street);
    }
 
    /* check for duplicates */
@@ -155,11 +217,63 @@ static int resolve_candidates (const RoadMapGpsPosition *gps_position,
          if (roadmap_plugin_same_line
                (&entry2->line.line, &entry1->line.line)) {
 
-            return -1;
+            int entry1_score = 0;
+            int entry2_score = 0;
+            int do_switch = 0;
+            int k;
+            int entries_count;
+
+            if (KnownCandidates[i].count == KnownCandidates[j].count) {
+               /* don't count the last entry which is the same one */
+               entries_count = KnownCandidates[i].count - 1;
+
+            } else if (KnownCandidates[i].count < KnownCandidates[j].count) {
+               entries_count = KnownCandidates[i].count;
+            } else {
+               entries_count = KnownCandidates[j].count;
+            }
+
+            for (k=0; k<entries_count; k++) {
+               entry1_score +=
+                  KnownCandidates[i].entries[k].street.entry_fuzzyfied;
+               entry2_score +=
+                  KnownCandidates[j].entries[k].street.entry_fuzzyfied;
+            }
+
+            if (entries_count) {
+               entry1_score /= entries_count;
+               entry2_score /= entries_count;
+            }
+
+            if ((abs(entry1_score - entry2_score) <
+                  (roadmap_fuzzy_good () / 10)) &&
+               (KnownCandidates[i].count != KnownCandidates[j].count)) {
+               
+               if (KnownCandidates[j].count < KnownCandidates[i].count) {
+                  do_switch = 1;
+               }
+
+            } else if (entry2_score > entry1_score) {
+               do_switch = 1;
+            }
+               
+            if (do_switch) {
+               memcpy (KnownCandidates + i, KnownCandidates + j,
+                  sizeof (KnownCandidatePath));
+            }
+
+            /* remove the obsolete entry */
+            memmove (KnownCandidates + j, KnownCandidates + j + 1,
+                  (KnownCandidatesCount - j - 1) * sizeof (KnownCandidatePath));
+
+            KnownCandidatesCount--;
+            j--;
+
+            KnownCandidates[i].low_confidence = 1;
          }
       }
    }
-      
+
    return 0;
 }
 
@@ -167,9 +281,12 @@ static int resolve_candidates (const RoadMapGpsPosition *gps_position,
 int editor_track_known_end_segment (PluginLine *previous_line,
                                     int last_point_id,
                                     PluginLine *line,
+                                    RoadMapTracking *street,
                                     int is_new_track) {
    //TODO: add stuff
    //Notice that previous_line may not be valid (only at first)
+   //
+   //check for low confidence & in static update, do not use a trkseg with low confidence!
 
    RoadMapPosition from;
    RoadMapPosition to;
@@ -243,7 +360,7 @@ int editor_track_known_end_segment (PluginLine *previous_line,
 
          trkseg = editor_track_util_create_trkseg
                      (trkseg_line_id, trkseg_plugin_id, 0, last_point_id,
-                      flags|ED_TRKSEG_IGNORE|ED_TRKSEG_END_TRACK);
+                      flags|ED_TRKSEG_LOW_CONFID);
 
          editor_track_add_trkseg
             (line, trkseg, ROUTE_DIRECTION_NONE, ROUTE_CAR_ALLOWED);
@@ -263,6 +380,12 @@ int editor_track_known_end_segment (PluginLine *previous_line,
 
    if (is_new_track) {
       flags |= ED_TRKSEG_NEW_TRACK;
+   }
+
+   if (!roadmap_fuzzy_is_good (street->entry_fuzzyfied) ||
+      !roadmap_fuzzy_is_good (street->cur_fuzzyfied)) {
+
+      flags |= ED_TRKSEG_LOW_CONFID;
    }
 
    trkseg =
@@ -285,6 +408,11 @@ int editor_track_known_end_segment (PluginLine *previous_line,
    editor_log_pop ();
 
    return 1;
+}
+
+
+int editor_track_known_resolve (void) {
+   return (KnownCandidatesCount == 1);
 }
 
 
@@ -331,10 +459,27 @@ int editor_track_known_locate_point (int point_id,
 
       *new_line = entry->line;
       *new_street = entry->street;
+      if (KnownCandidates[0].low_confidence)
+         new_street->entry_fuzzyfied = roadmap_fuzzy_acceptable ();
+
       point_id = entry->point_id;
 
       memmove (entry, entry+1,
-            KnownCandidatesCount * sizeof(KnownCandidateEntry));
+            KnownCandidates[0].count * sizeof(KnownCandidateEntry));
+
+      if (!point_id) {
+
+         if (confirmed_street->valid &&
+            roadmap_plugin_same_line (&confirmed_line->line, &new_line->line)) {
+
+            return 0;
+         }
+
+         assert(!confirmed_street->valid);
+         *confirmed_street = *new_street;
+         *confirmed_line = *new_line;
+         confirmed_street->valid = 1;
+      }
 
       return point_id;
    }
@@ -342,7 +487,7 @@ int editor_track_known_locate_point (int point_id,
    if (confirmed_street->valid) {
       /* We have an existing street match: check if it is still valid. */
       
-      before = confirmed_street->fuzzyfied;
+      before = confirmed_street->cur_fuzzyfied;
         
       if (!editor_track_util_get_distance (position,
                                            &confirmed_line->line,
@@ -364,7 +509,7 @@ int editor_track_known_locate_point (int point_id,
             ((current_fuzzy >= before) ||
             roadmap_fuzzy_is_certain(current_fuzzy))) {
 
-         confirmed_street->fuzzyfied = current_fuzzy;
+         confirmed_street->cur_fuzzyfied = current_fuzzy;
          return 0; /* We are on the same street. */
       }
    }
@@ -409,31 +554,38 @@ int editor_track_known_locate_point (int point_id,
          KnownCandidates[0].entries[0].line = *confirmed_line;
          KnownCandidates[0].entries[0].point_id = 0;
          KnownCandidates[0].count = 1;
+         KnownCandidates[0].low_confidence = 0;
 
          /* new line */
-         candidate.opposite_street_direction = 0;
-         candidate.valid = 1;
-         candidate.fuzzyfied = roadmap_navigate_fuzzify
+         candidate.entry_fuzzyfied = roadmap_navigate_fuzzify
                                  (&candidate, confirmed_street,
                                   confirmed_line, RoadMapNeighbourhood+found,
                                   0,
                                   gps_position->steering);
+         candidate.cur_fuzzyfied = candidate.entry_fuzzyfied;
+         candidate.valid = 1;
          KnownCandidates[1].entries[0].street = candidate;
          KnownCandidates[1].entries[0].line = RoadMapNeighbourhood[found];
          KnownCandidates[1].entries[0].point_id = point_id;
          KnownCandidates[1].count = 1;
+         KnownCandidates[1].low_confidence = 0;
          KnownCandidatesCount = 2;
          return 0;
       }
    }
 
-   if (roadmap_fuzzy_is_good (best) &&
-            roadmap_fuzzy_is_good (second_best)) {
+   if ((roadmap_fuzzy_is_good (best) &&
+        roadmap_fuzzy_is_good (second_best)) ||
+       (!roadmap_fuzzy_is_good (best) &&
+         roadmap_fuzzy_is_acceptable (second_best))) {
 
-      /* We got too many good candidates. Wait before deciding. */
+      /* We got too many options. Wait before deciding. */
 
       int i;
       RoadMapFuzzy result;
+      int use_acceptable = 0;
+
+      if (!roadmap_fuzzy_is_good (best)) use_acceptable = 1;
 
       for (i = 0; i < count; ++i) {
          RoadMapTracking candidate;
@@ -446,7 +598,8 @@ int editor_track_known_locate_point (int point_id,
                      0,
                      gps_position->steering);
       
-         if (roadmap_fuzzy_is_good (result)) {
+         if (roadmap_fuzzy_is_good (result) ||
+            (use_acceptable && roadmap_fuzzy_is_acceptable (result))) {
 
             if (confirmed_street->valid &&
                 roadmap_plugin_same_line (&confirmed_line->line,
@@ -462,9 +615,8 @@ int editor_track_known_locate_point (int point_id,
                }
             }
 
-            candidate.opposite_street_direction = 0;
             candidate.valid = 1;
-            candidate.fuzzyfied = result;
+            candidate.entry_fuzzyfied = candidate.cur_fuzzyfied = result;
             KnownCandidates[KnownCandidatesCount].entries[0].street = candidate;
             KnownCandidates[KnownCandidatesCount].entries[0].line =
                                                    RoadMapNeighbourhood[i];
@@ -473,6 +625,7 @@ int editor_track_known_locate_point (int point_id,
                                                    point_id;
 
             KnownCandidates[KnownCandidatesCount].count = 1;
+            KnownCandidates[KnownCandidatesCount].low_confidence = 0;
             KnownCandidatesCount++;
             if (KnownCandidatesCount == MAX_PATHS) {
                roadmap_log (ROADMAP_ERROR, "ResolveCandidates - Reached max entries!");
@@ -502,15 +655,18 @@ int editor_track_known_locate_point (int point_id,
 
          *new_line = RoadMapNeighbourhood[found];
          new_street->valid = 1;
-         new_street->fuzzyfied = best;
+         new_street->entry_fuzzyfied = new_street->cur_fuzzyfied = best;
 
          return point_id;
       }
 
       *confirmed_line   = RoadMapNeighbourhood[found];
+
+      if (!confirmed_street->valid) confirmed_street->entry_fuzzyfied = best;
+      new_street->entry_fuzzyfied = confirmed_street->entry_fuzzyfied;
       *confirmed_street = *new_street;
       
-      confirmed_street->fuzzyfied = best;
+      confirmed_street->cur_fuzzyfied = best;
       confirmed_street->valid = 1;
 
       return 0;
