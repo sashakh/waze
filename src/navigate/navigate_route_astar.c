@@ -133,7 +133,6 @@ static void update_progress (int progress) {
    roadmap_main_flush ();
 }
 
-
 static int astar(int start_node, int start_segment, int is_reversed,
                  int goal_node, int *route_total_cost, int recalc)
 {
@@ -279,12 +278,12 @@ static int astar(int start_node, int start_segment, int is_reversed,
          if (is_reversed) segment |= REVERSED;
          fh_insertkey(q, total_cost, (void *)segment);
 
-         if (distance_to_goal < cur_min_distance) {
+         if ((distance_to_goal << 2 ) < (cur_min_distance << 2)) {
             cur_min_distance = distance_to_goal;
-            printf("Current distance: %d\n", cur_min_distance);
             if (!recalc) update_progress
                                (100 - (cur_min_distance * 100 / goal_distance));
-         } 
+         }
+
       }
    }
    fh_deleteheap(q);
@@ -308,6 +307,7 @@ int navigate_route_get_segments (PluginLine *from_line,
    int line_to_point;
    int line;
    int line_reversed;
+   int start_line_reversed;
    int recalc = *flags & RECALC_ROUTE;
 
    *flags = 0;
@@ -315,12 +315,12 @@ int navigate_route_get_segments (PluginLine *from_line,
    //FIXME add plugin support
    line = from_line->line_id;
    roadmap_line_points (line, &line_from_point, &line_to_point);
-   if (from_point == line_from_point) line_reversed = REVERSED;
-   else line_reversed = 0;
+   if (from_point == line_from_point) start_line_reversed = 1;
+   else start_line_reversed = 0;
 
    if (!recalc) show_progress_dialog ();
 
-   line = astar (from_point, line, line_reversed, to_point, &total_cost,
+   line = astar (from_point, line, start_line_reversed, to_point, &total_cost,
                  recalc);
 
    if (line == -1) {
@@ -330,7 +330,10 @@ int navigate_route_get_segments (PluginLine *from_line,
    
    line_reversed = line & REVERSED;
    
-   if (line_reversed) line = line & ~REVERSED;
+   if (line_reversed) {
+      line = line & ~REVERSED;
+      line_reversed = 1;
+   }
 
    i=0;
 
@@ -359,7 +362,7 @@ int navigate_route_get_segments (PluginLine *from_line,
    }
 
 
-   printf("Route: ");
+   //printf("Route: ");
    while (1) {
       int prev_node;
       PrevItem *prev;
@@ -367,7 +370,7 @@ int navigate_route_get_segments (PluginLine *from_line,
 
       segments[*size-i].line.plugin_id = ROADMAP_PLUGIN_ID;
       segments[*size-i].line.line_id = line;
-      printf("%d, ", line);
+      //printf("%d, ", line);
       segments[*size-i].line.fips = roadmap_locator_active ();
       segments[*size-i].line.cfcc = roadmap_line_cfcc (line);
       if (line_reversed) {
@@ -384,7 +387,8 @@ int navigate_route_get_segments (PluginLine *from_line,
       }
 
       /* Check if we got to the first line */
-      if (line == from_line->line_id) break;
+      if ((line == from_line->line_id) &&
+          (line_reversed == start_line_reversed)) break;
 
       if (!line_reversed) prev = GraphPrevList + line;
       else prev = GraphOppositePrevList + line;
@@ -400,7 +404,7 @@ int navigate_route_get_segments (PluginLine *from_line,
          line_reversed = 1;
       }
    }
-   printf("\n");
+   //printf("\n");
 
    /* add starting line */
    if (segments[*size-i].line.line_id != from_line->line_id) {

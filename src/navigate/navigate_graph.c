@@ -46,13 +46,12 @@
 
 #include "navigate_graph.h"
 
-#define MAX_GRAPH_CACHE 50
+#define MAX_GRAPH_CACHE 75
 
 struct SquareGraphItem {
    int square_id;
    unsigned short lines_count;
    unsigned short nodes_count;
-   unsigned short *nodes;
    unsigned short *nodes_index;
    int *lines;
    unsigned short *lines_index;
@@ -70,7 +69,6 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
    int lines2_count;
    struct SquareGraphItem *cache;
    int cur_line = 0;
-   int cur_node = 0;
 
    for (i=0,slot=SquareGraphHead; i<MAX_GRAPH_CACHE;
         i++, slot=((slot+1) % MAX_GRAPH_CACHE)) {
@@ -85,7 +83,6 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
 
    if (i == MAX_GRAPH_CACHE) {
       /* Free a cache slot */
-      free (SquareGraphCache[SquareGraphHead]->nodes);
       free (SquareGraphCache[SquareGraphHead]->nodes_index);
       free (SquareGraphCache[SquareGraphHead]->lines);
       free (SquareGraphCache[SquareGraphHead]->lines_index);
@@ -124,9 +121,8 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
    cache->lines_index = calloc(cache->lines_count, sizeof(unsigned short));
 
    /* assume that the number of nodes equals the number of lines */
-   cache->nodes_count = cache->lines_count + 4;
-   cache->nodes = malloc(cache->nodes_count * sizeof(unsigned short));
-   cache->nodes_index = malloc(cache->nodes_count * sizeof(unsigned short));
+   cache->nodes_count = roadmap_square_points_count (square_id);
+   cache->nodes_index = calloc(cache->nodes_count, sizeof(unsigned short));
 
    for (i = ROADMAP_ROAD_FIRST; i < ROADMAP_ROAD_LAST; ++i) {
 
@@ -140,62 +136,37 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
 
             int from_point_id;
             int to_point_id;
-            int j;
+            int l;
 
             roadmap_line_points (line, &from_point_id, &to_point_id);
             from_point_id &= 0xffff;
 
-            for (j=cur_node-1; j>=0; j--) {
-               if (cache->nodes[j] == from_point_id) {
-                  int l = cache->nodes_index[j];
-                  while (cache->lines_index[l]) l=cache->lines_index[l];
-                  cache->lines_index[l] = cur_line;
-                  cache->lines[cur_line] = line;
-                  cur_line++;
-                  break;
-               }
+            l = cache->nodes_index[from_point_id];
+            if (l) {
+               l--;
+               while (cache->lines_index[l]) l=cache->lines_index[l];
+               cache->lines_index[l] = cur_line;
+            } else {
+               cache->nodes_index[from_point_id] = cur_line + 1;
             }
 
-            if (j<0) {
-               cache->nodes[cur_node] = from_point_id;
-               cache->nodes_index[cur_node] = cur_line;
-               cache->lines[cur_line] = line;
-               cur_node++;
-               cur_line++;
-
-            }
+            cache->lines[cur_line] = line;
+            cur_line++;
 
             if (roadmap_point_square(to_point_id) == square_id) {
 
                to_point_id &= 0xffff;
 
-               for (j=cur_node-1; j>=0; j--) {
-                  if (cache->nodes[j] == to_point_id) {
-                     int l = cache->nodes_index[j];
-                     while (cache->lines_index[l]) l=cache->lines_index[l];
-                     cache->lines_index[l] = cur_line;
-                     cache->lines[cur_line] = line|REVERSED;
-                     cur_line++;
-                     break;
-                  }
+               l = cache->nodes_index[to_point_id];
+               if (l) {
+                  l--;
+                  while (cache->lines_index[l]) l=cache->lines_index[l];
+                  cache->lines_index[l] = cur_line;
+               } else {
+                  cache->nodes_index[to_point_id] = cur_line + 1;
                }
-
-               if (j<0) {
-                  cache->nodes[cur_node] = to_point_id;
-                  cache->nodes_index[cur_node] = cur_line;
-                  cache->lines[cur_line] = line|REVERSED;
-                  cur_node++;
-                  cur_line++;
-               }
-
-            }
-
-            if ((cur_node + 2) >= cache->nodes_count) {
-               cache->nodes_count *= 2;
-               cache->nodes = realloc(cache->nodes,
-                     cache->nodes_count * sizeof(unsigned short));
-               cache->nodes_index = realloc(cache->nodes_index,
-                     cache->nodes_count * sizeof(unsigned short));
+               cache->lines[cur_line] = line|REVERSED;
+               cur_line++;
             }
          }
       }
@@ -204,19 +175,11 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
             (square_id, i, &first_line, &last_line) > 0) {
 
          int line_cursor;
+         int l;
 
          for (line_cursor = first_line; line_cursor <= last_line;
                ++line_cursor) {
             int to_point_id;
-            int j;
-
-            if (cur_node == cache->nodes_count) {
-               cache->nodes_count *= 2;
-               cache->nodes = realloc(cache->nodes,
-                                cache->nodes_count * sizeof(unsigned short));
-               cache->nodes_index = realloc(cache->nodes_index,
-                                cache->nodes_count * sizeof(unsigned short));
-            }
 
             line = roadmap_line_get_from_index2 (line_cursor);
 
@@ -224,39 +187,22 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
 
             to_point_id &= 0xffff;
 
-            for (j=cur_node-1; j>=0; j--) {
-               if (cache->nodes[j] == to_point_id) {
-                  int l = cache->nodes_index[j];
-                  while (cache->lines_index[l]) l=cache->lines_index[l];
-                  cache->lines_index[l] = cur_line;
-                  cache->lines[cur_line] = line|REVERSED;
-                  cur_line++;
-                  break;
-               }
-            }
+            l = cache->nodes_index[to_point_id];
 
-            if (j<0) {
-               cache->nodes[cur_node] = to_point_id;
-               cache->nodes_index[cur_node] = cur_line;
-               cache->lines[cur_line] = line|REVERSED;
-               cur_node++;
-               cur_line++;
-
-               if (cur_node == cache->nodes_count) {
-                  cache->nodes_count *= 2;
-                  cache->nodes = realloc(cache->nodes,
-                        cache->nodes_count * sizeof(unsigned short));
-                  cache->nodes_index = realloc(cache->nodes_index,
-                        cache->nodes_count * sizeof(unsigned short));
-               }
+            if (l) {
+               l--;
+               while (cache->lines_index[l]) l=cache->lines_index[l];
+               cache->lines_index[l] = cur_line;
+            } else {
+               cache->nodes_index[to_point_id] = cur_line + 1;
             }
+            cache->lines[cur_line] = line|REVERSED;
+            cur_line++;
          }
       }
    }
 
    assert(cur_line <= cache->lines_count);
-   assert(cur_node <= cache->nodes_count);
-   cache->nodes_count = cur_node;
 
    return cache;
 }
@@ -289,11 +235,9 @@ int get_connected_segments (int seg_line_id, int is_seg_reversed,
 
    node_id &= 0xffff;
 
-   for (i = 0; i < cache->nodes_count; ++i) {
-      if (cache->nodes[i] == node_id) break;
-   }
-
-   assert (i < cache->nodes_count);
+   i = cache->nodes_index[node_id];
+   assert (i > 0);
+   i--;
 
    if (use_restrictions) {
       if (is_seg_reversed) {
@@ -302,8 +246,6 @@ int get_connected_segments (int seg_line_id, int is_seg_reversed,
          seg_res_bits = roadmap_line_route_get_restrictions (seg_line_id, 0);
       }
    }
-
-   i = cache->nodes_index[i];
 
    while (!index || i) {
 
@@ -318,7 +260,10 @@ int get_connected_segments (int seg_line_id, int is_seg_reversed,
       if (line == seg_line_id) {
          *prev_item = index;
          index++;
-         res_index++;
+         if (roadmap_line_route_get_direction
+               (seg_line_id, ROUTE_CAR_ALLOWED) == ROUTE_DIRECTION_ANY) {
+            res_index++;
+         }
          continue;
       }
 
@@ -364,12 +309,9 @@ int navigate_graph_get_line (int node, int line_no) {
 
    node &= 0xffff;
 
-   for (i=0; i<cache->nodes_count; i++) {
-      if (cache->nodes[i] == node) break;
-   }
-   assert (i<cache->nodes_count);
-
-   i = cache->nodes_index[i];
+   i = cache->nodes_index[node];
+   assert (i > 0);
+   i--;
 
    skip = line_no;
    while (skip) {
