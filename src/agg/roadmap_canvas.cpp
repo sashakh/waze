@@ -355,7 +355,7 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
    }
 //   raso.accurate_join(true);
 
-   agg::path_storage path;
+   static agg::path_storage path;
    
    for (i = 0; i < count; ++i) {
       
@@ -414,7 +414,7 @@ void roadmap_canvas_draw_multiple_polygons
    int i;
    int count_of_points;
    
-   agg::path_storage path;
+   static agg::path_storage path;
    
    for (i = 0; i < count; ++i) {
       
@@ -466,7 +466,7 @@ void roadmap_canvas_draw_multiple_circles
 
    int i;
    
-   agg::path_storage path;
+   static agg::path_storage path;
    
    for (i = 0; i < count; ++i) {
       
