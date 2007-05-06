@@ -240,3 +240,14 @@ void roadmap_fuzzy_initialize (void) {
         ("preferences", &RoadMapConfigConfidence, "25", NULL);
 }
 
+
+RoadMapFuzzy roadmap_fuzzy_good (void) {
+   return FUZZY_TRUTH_MAX / 2;
+}
+
+
+RoadMapFuzzy roadmap_fuzzy_acceptable (void) {
+   return RoadMapConfidence;
+}
+
+

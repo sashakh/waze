@@ -1156,13 +1156,13 @@ static void roadmap_screen_repaint (void) {
            int layers[256];
            int pen_type = k;
 
-	   /* Reset square mask */
-           for (j = 0; j < count; j++) {
-	      SquareOnScreen[in_view[j]] = 0;
-           }
-
            layer_count = roadmap_layer_visible_lines (layers, 256, k);
            if (!layer_count) continue;
+
+           /* Reset square mask */
+           for (j = 0; j < count; j++) {
+              SquareOnScreen[in_view[j]] = 0;
+           }
 
            if (use_only_main_pen) {
               pen_type = -1;
@@ -1842,7 +1842,8 @@ int roadmap_screen_is_dragging (void) {
 static unsigned long dbg_time_rec[DBG_TIME_LAST_COUNTER];
 static unsigned long dbg_time_tmp[DBG_TIME_LAST_COUNTER];
 
-#ifdef _WIN32
+//#ifdef _WIN32
+#if 0
 void dbg_time_start(int type) {
    dbg_time_tmp[type] = GetTickCount();
 }
@@ -1852,10 +1853,8 @@ void dbg_time_end(int type) {
 }
 #else
 void dbg_time_start(int type) {
-   dbg_time_tmp[type] = 0;
 }
 
 void dbg_time_end(int type) {
-   dbg_time_rec[type] += 0;
 }
 #endif

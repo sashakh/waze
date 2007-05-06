@@ -38,6 +38,7 @@
 #include "roadmap_math.h"
 #include "roadmap_dbread.h"
 #include "roadmap_db_square.h"
+#include "roadmap_point.h"
 
 #include "roadmap_square.h"
 
@@ -312,13 +313,21 @@ void  roadmap_square_edges (int square, RoadMapArea *edges) {
 
 int roadmap_square_index (int square) {
 
+   static int last_square = -2;
+   static int last_index;
+
+   if (last_square == square) return last_index;
+
    if (RoadMapSquareActive == NULL) return -1;
 
    if (! roadmap_square_is_valid (square)) {
       return -1;
    }
 
-   return RoadMapSquareActive->SquareGrid[square];
+   last_square = square;
+   last_index = RoadMapSquareActive->SquareGrid[square];
+
+   return last_index;
 }
 
 
@@ -410,9 +419,38 @@ int roadmap_square_view (int *square, int size) {
 
 int roadmap_square_first_point (int square) {
 
-   return RoadMapSquareActive->Square[square].first_point;
+   static int last_square = -2;
+   static int last_point;
+
+   if (square == last_square) return last_point;
+
+   last_square = square;
+   last_point =  RoadMapSquareActive->Square[square].first_point;
+
+   return last_point;
 }
 
+
+int roadmap_square_points_count (int square) {
+
+   int first;
+   int last = -1;
+   square = RoadMapSquareActive->SquareGrid[square];
+   first = RoadMapSquareActive->Square[square].first_point;
+
+   do {
+      square++;
+
+      if (square == RoadMapSquareActive->SquareGlobal->count_squares) {
+         last = roadmap_point_count ();
+      } else {
+         last = RoadMapSquareActive->Square[square].first_point;
+         if (last >= 0) last--;
+      }
+   } while (last == -1);
+
+   return last - first + 1;
+}
 
 int roadmap_square_has_shapes (int square) {
 

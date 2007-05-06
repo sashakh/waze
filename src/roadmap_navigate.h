@@ -43,7 +43,8 @@ typedef struct {
     int line_direction;
     int opposite_street_direction;
 
-    RoadMapFuzzy fuzzyfied;
+    RoadMapFuzzy entry_fuzzyfied;
+    RoadMapFuzzy cur_fuzzyfied;
 
     PluginLine intersection;
 
@@ -53,7 +54,7 @@ typedef struct {
 
 } RoadMapTracking;
 
-#define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
+#define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, 0, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
 
 typedef struct {
    void (*update) (RoadMapPosition *position, PluginLine *current);

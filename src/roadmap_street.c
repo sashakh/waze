@@ -966,7 +966,14 @@ int roadmap_street_replace
 
    int farthest;
    int distance;
+   int i;
 
+   for (i = 0; i < count; i++) {
+
+      if (roadmap_plugin_same_line (&neighbours[i].line, &this->line)) {
+         return count;
+      }
+   }
 
    if (count < max) {
 

@@ -57,6 +57,9 @@ int          roadmap_fuzzy_is_acceptable (RoadMapFuzzy a);
 int          roadmap_fuzzy_is_good       (RoadMapFuzzy a);
 int          roadmap_fuzzy_is_certain    (RoadMapFuzzy a);
 
+RoadMapFuzzy roadmap_fuzzy_good (void);
+RoadMapFuzzy roadmap_fuzzy_acceptable (void);
+
 void roadmap_fuzzy_initialize (void);
 
 #endif // INCLUDE__ROADMAP_FUZZY__H

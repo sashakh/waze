@@ -264,6 +264,8 @@ int roadmap_navigate_fuzzify
     int azymuth_against_line = 0;
     int symetric = 0;
 
+    tracked->opposite_street_direction = against_direction;
+
     if (!previous_street || !previous_street->valid) {
        previous_line = NULL;
     }
@@ -621,7 +623,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
         /* We have an existing street match: check it is still valid. */
 
-        RoadMapFuzzy before = RoadMapConfirmedStreet.fuzzyfied;
+        RoadMapFuzzy before = RoadMapConfirmedStreet.cur_fuzzyfied;
         RoadMapFuzzy current_fuzzy;
         int previous_direction = RoadMapConfirmedStreet.line_direction;
 
@@ -651,7 +653,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
             ((current_fuzzy >= before) ||
             roadmap_fuzzy_is_certain(current_fuzzy))) {
 
-            RoadMapConfirmedStreet.fuzzyfied = current_fuzzy;
+            RoadMapConfirmedStreet.cur_fuzzyfied = current_fuzzy;
    
             if (RoadMapRouteInfo.enabled) {
 
@@ -742,7 +744,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         RoadMapConfirmedStreet = nominated;
 
         RoadMapConfirmedStreet.valid = 1;
-        RoadMapConfirmedStreet.fuzzyfied = best;
+        RoadMapConfirmedStreet.cur_fuzzyfied = best;
         INVALIDATE_PLUGIN(RoadMapConfirmedStreet.intersection);
 
         roadmap_display_activate
@@ -753,6 +755,9 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
         if (!roadmap_plugin_same_line
               (&RoadMapConfirmedLine.line, &old_line)) {
+
+            RoadMapConfirmedStreet.entry_fuzzyfied = best;
+
             if (PLUGIN_VALID(old_line)) {
                 roadmap_navigate_trace
                     ("Quit street %N", &old_line);

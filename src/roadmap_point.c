@@ -150,13 +150,18 @@ void roadmap_point_position (int point, RoadMapPosition *position) {
 
 int roadmap_point_db_id (int point) {
 
+   int point_id = point & 0xffff;
+   int point_square = (point >> 16) & 0xffff;
+
    if ((RoadMapPointActive == NULL) ||
-         (RoadMapPointActive->PointID == NULL) ||
-         (RoadMapPointActive->PointIDCount <= point)) {
+         (RoadMapPointActive->PointID == NULL)) {
+
       return -1;
    }
 
-   return RoadMapPointActive->PointID[point];
+   point_id += roadmap_square_first_point(point_square);
+
+   return RoadMapPointActive->PointID[point_id];
 }
 
 
