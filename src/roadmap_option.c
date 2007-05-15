@@ -50,6 +50,9 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralIcons =
 static RoadMapConfigDescriptor RoadMapConfigMapCache =
                         ROADMAP_CONFIG_ITEM("Map", "Cache");
 
+static RoadMapConfigDescriptor RoadMapConfigTripName =
+                        ROADMAP_CONFIG_ITEM("Trip", "Name");
+
 
 static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
 static int roadmap_option_no_area = 0;
@@ -158,6 +161,11 @@ int roadmap_option_is_synchronous (void) {
 static void roadmap_option_set_location (const char *value) {
 
     roadmap_config_set (&RoadMapConfigAddressPosition, value);
+}
+
+static void roadmap_option_set_tripname (const char *value) {
+
+    roadmap_config_set (&RoadMapConfigTripName, value);
 }
 
 
@@ -344,6 +352,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
 
     {"--gps-sync", "", roadmap_option_set_synchronous,
         "Update the map synchronously when receiving each GPS position"},
+
+    {"--trip=", "FILE", roadmap_option_set_tripname,
+        "Set the pathname of the current trip"},
 
     {"--cache=", "INTEGER", roadmap_option_set_cache,
         "Set the number of entries in the RoadMap's map cache"},

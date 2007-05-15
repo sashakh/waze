@@ -883,6 +883,8 @@ USING ROADMAP
        setting is not modified. The main use of this option is to rerun GPS
        logs created using roadgps.
 
+   [--trip=<FILENAME>] tells roadmap to make the given GPX tripfile current.
+
    [--debug] Print all informational and debug traces.
 
    [--debug=<source>,...] Print all informational and debug traces for the
@@ -2418,8 +2420,8 @@ CONFIGURATION
 
          <<Format:>> pathname, including & and ~ shortcuts
 
-         <<Default:>> SavedTrip.gpx, in the '&/trips' (~/.roadmap) directory,
-                  but usually chosen by the user.
+         <<Default:>> SavedTrip.gpx, in the '&/trips' (~/.roadmap/trips)
+		  directory, but usually chosen by the user.
 
          <<Comment:>> The file is in stored in GPX format.
 
