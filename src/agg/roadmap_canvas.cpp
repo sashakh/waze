@@ -66,6 +66,8 @@ extern "C" {
 }
 #include "../roadmap_canvas_agg.h"
 
+#define MAX_THICKNESS 50
+
 //#define RGB565
 #ifdef RGB565
 typedef agg::pixfmt_rgb565 pixfmt;
@@ -82,9 +84,10 @@ agg::rendering_buffer agg_rbuf;
 static pixfmt agg_pixf(agg_rbuf);
 static agg::renderer_base<pixfmt> agg_renb;
 
-static agg::line_profile_aa profile(2, agg::gamma_none());
+static agg::line_profile_aa def_profile(2, agg::gamma_none());
+static agg::line_profile_aa *profiles[MAX_THICKNESS];
 
-static agg::renderer_outline_aa<renbase_type> reno(agg_renb, profile);
+static agg::renderer_outline_aa<renbase_type> reno(agg_renb, def_profile);
 static agg::rasterizer_outline_aa< agg::renderer_outline_aa<renbase_type> >  raso(reno);
 
 static agg::rasterizer_scanline_aa<> ras;
@@ -105,6 +108,7 @@ struct roadmap_canvas_pen {
    char  *name;
    agg::rgba8 color;
    int thickness;
+   agg::line_profile_aa *profile;
 };
 
 static struct roadmap_canvas_pen *RoadMapPenList = NULL;
@@ -187,12 +191,9 @@ RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen)
 {
    RoadMapPen old_pen = CurrentPen;
    dbg_time_start(DBG_TIME_SELECT_PEN);
-   if (!CurrentPen || (pen->thickness != CurrentPen->thickness)) {
-      profile.width(pen->thickness);
-   }
-   CurrentPen = pen;
-
+   reno.profile(*pen->profile);
    reno.color(pen->color);
+   CurrentPen = pen;
 
    dbg_time_end(DBG_TIME_SELECT_PEN);
 
@@ -210,8 +211,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name)
    
    if (pen == NULL) {
       
-      pen = (struct roadmap_canvas_pen *)
-         malloc (sizeof(struct roadmap_canvas_pen));
+      pen = new roadmap_canvas_pen();
       roadmap_check_allocated(pen);
       
       pen->name = strdup (name);
@@ -223,6 +223,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name)
    }
    
    roadmap_canvas_select_pen (pen);
+   roadmap_canvas_set_thickness (pen->thickness);
    
    return pen;
 }
@@ -247,10 +248,15 @@ int  roadmap_canvas_get_thickness  (RoadMapPen pen) {
 
 void roadmap_canvas_set_thickness (int thickness) {
 
-   if (CurrentPen && (CurrentPen->thickness != thickness)) {
-      CurrentPen->thickness = thickness;
-      profile.width(thickness);
+   if (thickness >= MAX_THICKNESS) thickness = MAX_THICKNESS - 1;
+
+   CurrentPen->thickness = thickness;
+   if (!profiles[thickness]) {
+      profiles[thickness] =
+         new agg::line_profile_aa(thickness, agg::gamma_none());
    }
+
+   CurrentPen->profile = profiles[thickness];
 }
 
 
@@ -349,10 +355,23 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
    ResumeCAPAll();
 #endif
 
-   raso.round_cap(true);
-   if (!fast_draw) {
-      raso.line_join(agg::outline_miter_accurate_join);
+#ifdef _WIN32_
+   if (fast_draw) {
+      roadmap_canvas_native_draw_multiple_lines (count, lines, points,
+         CurrentPen->color.r, CurrentPen->color.g, CurrentPen->color.b,
+         CurrentPen->thickness);
+      return;
    }
+#endif
+
+   if (!fast_draw) {
+      raso.round_cap(true);
+      raso.line_join(agg::outline_miter_accurate_join);
+   } else {
+      raso.round_cap(false);
+      raso.line_join(agg::outline_no_join);
+   }
+
 //   raso.accurate_join(true);
 
    static agg::path_storage path;
@@ -382,6 +401,7 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
       dbg_time_end(DBG_TIME_CREATE_PATH);
       dbg_time_start(DBG_TIME_ADD_PATH);
       
+#if 0
       if (fast_draw) {
          renderer_pr ren_pr(agg_renb);
          agg::rasterizer_outline<renderer_pr> ras_line(ren_pr);
@@ -389,9 +409,9 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
          ras_line.add_path(path);
          
       } else {
-         
+     #endif    
          raso.add_path(path);
-      }
+      //}
       
       path.remove_all ();
       dbg_time_end(DBG_TIME_ADD_PATH);
@@ -467,7 +487,7 @@ void roadmap_canvas_draw_multiple_circles
    int i;
    
    static agg::path_storage path;
-   
+
    for (i = 0; i < count; ++i) {
       
       int r = radius[i];
