@@ -208,6 +208,15 @@ buildmap_dictionary_get_reference (struct dictionary_tree *tree, char c) {
    return NULL;
 }
 
+/* strnchr() -- borrowed from kernel source. */
+char *strnchr(const char *s, size_t count, int c)
+{
+   for (; count-- && *s != '\0'; ++s)
+      if (*s == (char) c)
+         return (char *) s;
+   return NULL;
+}
+
 
 static void
 buildmap_dictionary_add_reference (struct dictionary_volume *dictionary,
@@ -779,7 +788,7 @@ RoadMapString buildmap_dictionary_add
          reference = buildmap_dictionary_get_reference (tree, character);
       }
 
-      while (strchr(string + tree->position, ' ')) {
+      while (strnchr(string + tree->position, length - tree->position, ' ')) {
 
          int position = tree->position;
 
