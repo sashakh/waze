@@ -41,7 +41,7 @@ Exit.Thickness: 3
 Streets.Class: Road
 Streets.Color: #000000
 Streets.Color1: #ffffff
-Streets.Declutter: 100
+Streets.Declutter: 120
 Streets.Delta1: -2
 Streets.Thickness: 2
 Pedestrian.Class: Road

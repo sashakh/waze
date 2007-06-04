@@ -20,6 +20,7 @@ P -61 -80
 O 160
 A zoomin
 B -4 -4 28 28
+T
 
 N zoomout_button
 I rm_zoomout
@@ -27,6 +28,7 @@ P -26 -80
 O 160
 A zoomout
 B -4 -4 28 28
+T
 
 N gps_button
 I rm_gps
