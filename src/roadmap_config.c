@@ -585,10 +585,12 @@ char *roadmap_config_extract_data (char *line, int size) {
     
     line = roadmap_config_skip_spaces (line);
 
-    if (*line == '\n' || *line == '#') return NULL;
+    /* deal with any termination style */
+    if (*line == '\r' || *line == '\n' || *line == '#') return NULL;
         
-    p = strchr (line, '\n');
-    if (p != NULL) *p = 0;
+    for (p = line; *p && *p != '\n' && *p != '\r'; p++)
+	/* empty */ ;
+    *p = 0;
         
     return line;
 }
