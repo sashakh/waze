@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 
+#include "roadmap.h"
 #include "roadmap_types.h"
 
 
@@ -65,7 +66,9 @@ void roadmap_config_declare_password
 
 RoadMapConfigItem *roadmap_config_declare_enumeration
         (const char *file,
-         RoadMapConfigDescriptor *descriptor, const char *enumeration_value, ...);
+         RoadMapConfigDescriptor *descriptor,
+         RoadMapCallback callback,
+         const char *enumeration_value, ...);
 
 void roadmap_config_add_enumeration_value (RoadMapConfigItem *item,
                                            const char *value);

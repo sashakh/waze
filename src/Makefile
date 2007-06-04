@@ -224,10 +224,12 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/track/editor_track_main.c \
              editor/track/editor_track_unknown.c \
              editor/track/editor_track_known.c \
+             editor/track/editor_gps_data.c \
 				 editor/db/editor_db.c \
 				 navigate/navigate_main.c \
 				 navigate/navigate_instr.c \
 				 navigate/navigate_bar.c \
+				 navigate/navigate_zoom.c \
 				 navigate/navigate_plugin.c \
 				 navigate/navigate_traffic.c \
 				 navigate/navigate_graph.c \

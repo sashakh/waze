@@ -66,9 +66,9 @@
 
 #define BordersTlidStart 1000000
 #define WaterTlidStart 1100000
-/* ROADS */
 
-static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.0001)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name AS street_type, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types on street_types.id=streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
+/* ROADS */
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  0.00005)) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name AS street_type, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types on street_types.id=streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
 static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM water;";

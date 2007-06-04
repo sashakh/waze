@@ -630,7 +630,7 @@ static void roadmap_driver_configure (const char *path) {
          roadmap_driver_install (driver);
 
          roadmap_config_declare_enumeration
-            ("preferences", &driver->enable, "Disabled", "Enabled", NULL);
+            ("preferences", &driver->enable, NULL, "Disabled", "Enabled", NULL);
       }
 
       fclose(file);

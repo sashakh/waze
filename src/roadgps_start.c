@@ -226,7 +226,7 @@ void roadmap_start (int argc, char **argv) {
 #endif
 
    roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralToolbar, NULL, "yes", "no", NULL);
 
    roadmap_pointer_initialize  ();
    roadmap_lang_initialize    ();

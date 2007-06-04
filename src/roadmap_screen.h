@@ -49,6 +49,8 @@ void roadmap_screen_move_down  (void);
 void roadmap_screen_move_right (void);
 void roadmap_screen_move_left  (void);
 
+void roadmap_screen_move_center (int dy);
+
 void roadmap_screen_toggle_view_mode (void);
 void roadmap_screen_toggle_orientation_mode (void);
 void roadmap_screen_increase_horizon (void);
@@ -77,7 +79,8 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
                                    int first_shape,
                                    int last_shape,
                                    RoadMapShapeItr shape_itr,
-                                   RoadMapPen pen,
+                                   RoadMapPen *pens,
+                                   int num_pens,
                                    int *total_length,
                                    RoadMapGuiPoint *middle,
                                    int *angle);
@@ -91,7 +94,7 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
                                          int width,
                                          int direction);
 
-int roadmap_screen_is_dragging (void);
+int roadmap_screen_fast_refresh (void);
 
 #define DBG_TIME_FULL 0
 #define DBG_TIME_DRAW_SQUARE 1

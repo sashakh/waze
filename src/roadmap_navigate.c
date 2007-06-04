@@ -816,7 +816,7 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 void roadmap_navigate_initialize (void) {
 
     roadmap_config_declare_enumeration
-        ("session", &RoadMapNavigateFlag, "yes", "no", NULL);
+        ("session", &RoadMapNavigateFlag, NULL, "yes", "no", NULL);
 }
 
 

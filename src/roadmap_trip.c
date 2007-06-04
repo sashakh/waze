@@ -1048,7 +1048,7 @@ void roadmap_trip_initialize (void) {
     roadmap_config_declare
         ("session", &RoadMapConfigTripName, "default", NULL);
     roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
+        ("preferences", &RoadMapConfigTripRotate, NULL, "yes", "no", NULL);
     roadmap_config_declare
         ("session", &RoadMapConfigFocusName, "GPS", NULL);
     roadmap_config_declare

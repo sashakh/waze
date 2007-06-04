@@ -25,6 +25,7 @@
  *   See roadmap_config.h.
  */
 
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -65,6 +66,8 @@ struct RoadMapConfigItemRecord {
     unsigned char  state; /* CLEAN, SHARED, DIRTY. */
     unsigned char  cached_valid;
     int            cached_value;
+
+    RoadMapCallback callback;
 
     union {
         RoadMapConfigEnum *enumeration_values;
@@ -163,7 +166,8 @@ static RoadMapConfigItem *roadmap_config_new_item
                               RoadMapConfigDescriptor *descriptor,
                               const char    *default_value,
                               unsigned char  item_type,
-            int *is_new) {
+                              RoadMapCallback callback,
+                              int *is_new) {
 
     RoadMapConfigItem *new_item;
 
@@ -172,6 +176,11 @@ static RoadMapConfigItem *roadmap_config_new_item
     if (new_item != NULL) {
 
         /* Not so new. Update the type & default value, if any. */
+
+        /* Make sure we don't try to assign two callbacks */
+        assert (!new_item->callback || !callback);
+
+        if (callback) new_item->callback = callback;
 
         if ((default_value[0] != 0) && (new_item->default_value[0] == 0)) {
             new_item->default_value = strdup(default_value);
@@ -213,6 +222,8 @@ static RoadMapConfigItem *roadmap_config_new_item
         new_item->type  = item_type;
    
         new_item->cached_valid = 0;
+
+        if (callback) new_item->callback = callback;
 
         new_item->next = file->first_item;
 
@@ -263,7 +274,8 @@ void roadmap_config_declare (const char *config,
    RoadMapConfig *file = roadmap_config_search_file (config);
 
    roadmap_config_new_item
-      (file, descriptor, default_value, ROADMAP_CONFIG_STRING, is_new);
+      (file, descriptor, default_value, ROADMAP_CONFIG_STRING, NULL,
+       is_new);
 }
 
 
@@ -274,12 +286,13 @@ void roadmap_config_declare_password (const char *config,
    RoadMapConfig *file = roadmap_config_search_file (config);
 
    roadmap_config_new_item
-      (file, descriptor, default_value, ROADMAP_CONFIG_PASSWORD, NULL);
+      (file, descriptor, default_value, ROADMAP_CONFIG_PASSWORD, NULL, NULL);
 }
 
 
 RoadMapConfigItem *roadmap_config_declare_enumeration (const char *config,
                                          RoadMapConfigDescriptor *descriptor,
+                                         RoadMapCallback callback,
                                          const char *enumeration_value, ...) {
 
    char *p;
@@ -291,7 +304,8 @@ RoadMapConfigItem *roadmap_config_declare_enumeration (const char *config,
 
 
    item = roadmap_config_new_item
-             (file, descriptor, enumeration_value, ROADMAP_CONFIG_ENUM, NULL);
+             (file, descriptor, enumeration_value, ROADMAP_CONFIG_ENUM,
+              callback, NULL);
 
    /* Replace the enumeration list. */
 
@@ -323,7 +337,7 @@ void roadmap_config_declare_color (const char *config,
    RoadMapConfig *file = roadmap_config_search_file (config);
 
    roadmap_config_new_item
-      (file, descriptor, default_value, ROADMAP_CONFIG_COLOR, NULL);
+      (file, descriptor, default_value, ROADMAP_CONFIG_COLOR, NULL, NULL);
 }
 
 
@@ -442,6 +456,8 @@ static int roadmap_config_set_item
 
     item->state = ROADMAP_CONFIG_DIRTY;
     item->cached_valid = 0;
+
+    if (item->callback) (*item->callback)();
     
     return 1;
 }
@@ -510,7 +526,8 @@ static int roadmap_config_load
         /* Retrieve or create this configuration item. */
         
         item = roadmap_config_new_item
-                    (config, &descriptor, "", ROADMAP_CONFIG_STRING, &new_item);
+                    (config, &descriptor, "", ROADMAP_CONFIG_STRING,
+                     NULL, &new_item);
         if (!new_item) {
           free ((void *)descriptor.name);
           free ((void *)descriptor.category);

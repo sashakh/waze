@@ -633,6 +633,8 @@ static const char *RoadMapStartMenu[] = {
    "right",
    "down",
    "toggleorientation",
+   "IncHorizon",
+   "DecHorizon",
    "toggleview",
    "full",
 
@@ -877,7 +879,7 @@ static void roadmap_start_init_key_cfg (void) {
          if (this_action != NULL) {
 
             item = roadmap_config_declare_enumeration
-                   ("preferences", &config,
+                   ("preferences", &config, NULL,
                     roadmap_lang_get (this_action->label_long), NULL);
 
             if (strcmp(roadmap_lang_get (this_action->label_long),
@@ -890,7 +892,7 @@ static void roadmap_start_init_key_cfg (void) {
          } else {
 
             item = roadmap_config_declare_enumeration
-                   ("preferences", &config, "", NULL);
+                   ("preferences", &config, NULL, "", NULL);
 
             if (strlen(roadmap_config_get (&config))) {
                new_config = roadmap_config_get (&config);
@@ -1186,9 +1188,9 @@ void roadmap_start (int argc, char **argv) {
 #endif
 
    roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigGeneralUnit, "imperial", "metric", NULL);
+      ("preferences", &RoadMapConfigGeneralUnit, NULL, "imperial", "metric", NULL);
    roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigGeneralKeyboard, "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralKeyboard, NULL, "yes", "no", NULL);
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600", NULL);
@@ -1285,6 +1287,7 @@ void roadmap_start_exit (void) {
     roadmap_db_end ();
     roadmap_gps_shutdown ();
     roadmap_res_shutdown ();
+    editor_main_shutdown ();
 }
 
 

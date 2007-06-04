@@ -67,9 +67,10 @@ void  roadmap_file_save (const char *path, const char *name,
 void roadmap_file_append (const char *path, const char *name,
                           void *data, int length);
 
+int roadmap_file_rename (const char *old_name, const char *new_name);
+
 int roadmap_file_truncate (const char *path, const char *name,
                            int length);
-
 
 FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode);
 

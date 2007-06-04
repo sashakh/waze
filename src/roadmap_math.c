@@ -43,14 +43,18 @@
 #include "roadmap_square.h"
 #include "roadmap_state.h"
 #include "roadmap_config.h"
+#include "roadmap_layer.h"
 
 #include "roadmap_trigonometry.h"
 
 #define ROADMAP_BASE_IMPERIAL 0
 #define ROADMAP_BASE_METRIC   1
 
-#define MIN_ZOOM_IN     2
+#define MIN_ZOOM_IN     6
 #define MAX_ZOOM_OUT    0x10000
+
+#define DOTS_PER_INCH 72
+#define INCHES_PER_DEGREE 4374754
 
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralDefaultZoom =
@@ -424,7 +428,26 @@ static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
 }
 
 
-static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
+static int roadmap_math_area_zoom (int area) {
+
+   int i;
+   int zoom = RoadMapContext.zoom;
+
+   if (RoadMapContext._3D_horizon == 0) {
+      return zoom;
+   }
+
+   for (i=1; i<=area; i++) {
+      zoom = (3 * zoom) / 2;
+   }
+
+   if (i == LAYER_PROJ_AREAS) zoom *= 2;
+
+   return zoom;
+}
+
+
+void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
 
    int x = point->x - RoadMapContext.center_x;
    int y = RoadMapContext.center_y - point->y;
@@ -442,7 +465,7 @@ static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
 
 
 #if USE_FLOAT  /* for reference, until we're sure integer version works */
-static void roadmap_math_project (RoadMapGuiPoint *point) {
+void roadmap_math_project (RoadMapGuiPoint *point) {
 
    /* how far away is this point along the Y axis */
    float fDistFromCenterY = RoadMapContext.height - point->y;
@@ -504,7 +527,7 @@ void roadmap_math_unproject (RoadMapGuiPoint *point) {
    *point = point2;
 }
 #else
-static void roadmap_math_project (RoadMapGuiPoint *point) {
+void roadmap_math_project (RoadMapGuiPoint *point) {
 
    /* how far away is this point along the Y axis */
    long DistFromCenterY = RoadMapContext.height - point->y;
@@ -580,6 +603,38 @@ static int roadmap_math_zoom_state (void) {
 
       return MATH_ZOOM_NO_RESET;
    }
+}
+
+
+int roadmap_math_get_scale (int use_map_units) {
+
+   int res;
+   int scale;
+
+   res = RoadMapContext.zoom_x > RoadMapContext.zoom_y ?
+                  RoadMapContext.zoom_x: RoadMapContext.zoom_y;
+
+   if (use_map_units) {
+      scale = res * RoadMapContext.units->unit_per_latitude * use_map_units;
+   } else {
+      scale = res * (1.0 * DOTS_PER_INCH * INCHES_PER_DEGREE / 1000000);
+   }
+
+   return scale;
+}
+
+
+void roadmap_math_set_scale (int scale, int use_map_units) {
+
+   int res;
+
+   if (use_map_units) {
+      res = scale / (RoadMapContext.units->unit_per_latitude * use_map_units);
+   } else {
+      res = scale / (1.0 * DOTS_PER_INCH * INCHES_PER_DEGREE / 1000000);
+   }
+
+   roadmap_math_zoom_set (res);
 }
 
 
@@ -921,6 +976,20 @@ void roadmap_math_zoom_in (void) {
 }
 
 
+void roadmap_math_zoom_set (int zoom) {
+
+   RoadMapContext.zoom = zoom;
+   if (RoadMapContext.zoom < MIN_ZOOM_IN) {
+      RoadMapContext.zoom = MIN_ZOOM_IN;
+   } else if (zoom > MAX_ZOOM_OUT) {
+      RoadMapContext.zoom = 0xffff;
+   }
+
+   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
+   roadmap_math_compute_scale ();
+}
+
+
 void roadmap_math_zoom_reset (void) {
 
    RoadMapContext.zoom =
@@ -932,17 +1001,22 @@ void roadmap_math_zoom_reset (void) {
 }
 
 
-int roadmap_math_declutter (int level) {
+int roadmap_math_declutter (int level, int area) {
 
-   return (RoadMapContext.zoom < level);
+   int zoom = roadmap_math_area_zoom (area);
+
+   return (zoom < level);
 }
 
 
-int roadmap_math_thickness (int base, int declutter, int use_multiple_pens) {
+int roadmap_math_thickness (int base, int declutter, int zoom_level,
+                            int use_multiple_pens) {
 
    float ratio;
+   //int zoom = roadmap_math_area_zoom (zoom_level - 1);
+   int zoom = RoadMapContext.zoom;
 
-   ratio = ((2.5 * ROADMAP_REFERENCE_ZOOM) * base) / RoadMapContext.zoom;
+   ratio = ((2.5 * ROADMAP_REFERENCE_ZOOM) * base) / zoom;
 
    if (ratio < 0.1 / base) {
       return 1;
@@ -957,11 +1031,15 @@ int roadmap_math_thickness (int base, int declutter, int use_multiple_pens) {
       /* Use the declutter value to decide how fast should a line shrink.
        * This way, a street shrinks faster than a freeway when we zoom out.
        */
-      ratio += (base-ratio) * (0.30*declutter/RoadMapContext.zoom);
+      ratio += (base-ratio) * (0.30*declutter/ zoom);
       if (ratio > base) {
          ratio = base;
       }
+   } else {
+      //ratio = (int) (1.0 * ROADMAP_REFERENCE_ZOOM / zoom + base);
    }
+
+   if (zoom_level > 1) ratio -= zoom_level - 2;
 
    if (use_multiple_pens && (ratio < 3)) {
       ratio = 1;

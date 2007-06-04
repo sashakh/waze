@@ -626,7 +626,7 @@ void roadmap_gps_initialize (void) {
 #else
 
       virtual_item = roadmap_config_declare_enumeration
-               ("preferences", &RoadMapConfigGPSVirtual, "", NULL);
+               ("preferences", &RoadMapConfigGPSVirtual, NULL, "", NULL);
 
       serial_ports = roadmap_serial_enumerate ();
       for (i=0; i<MAX_SERIAL_ENUMS; ++i) {
@@ -656,7 +656,7 @@ void roadmap_gps_initialize (void) {
 
 
       speed_item = roadmap_config_declare_enumeration
-               ("preferences", &RoadMapConfigGPSBaudRate, "", NULL);
+               ("preferences", &RoadMapConfigGPSBaudRate, NULL, "", NULL);
       speeds = roadmap_serial_get_speeds ();
       i = 0;
       while (speeds[i] != NULL) {

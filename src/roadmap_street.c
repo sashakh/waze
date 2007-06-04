@@ -786,6 +786,56 @@ int roadmap_street_get_ranges
 }
 
 
+static void roadmap_street_distance_position (int line, int distance,
+                                              RoadMapPosition *position) {
+
+   RoadMapPosition from;
+   RoadMapPosition to;
+   int first_shape;
+   int last_shape;
+   int segment_length;
+
+   roadmap_line_from (line, &from);
+
+   if (distance == 0) {
+      *position = from;
+      return;
+   }
+
+   roadmap_line_to (line, &to);
+   roadmap_line_shapes (line, -1, &first_shape, &last_shape);
+
+   if (first_shape >= 0) {
+      int i;
+      to = from;
+      for (i=first_shape; i<=last_shape; i++) {
+         roadmap_shape_get_position (i, &to);
+
+         segment_length = roadmap_math_distance (&from, &to);
+
+         if (segment_length >= distance) break;
+         distance -= segment_length;
+
+         from = to;
+      }
+
+      if (i > last_shape) roadmap_line_to (line, &to);
+   }
+
+   segment_length = roadmap_math_distance (&from, &to);
+   if (distance >= segment_length) {
+      *position = to;
+      return;
+   }
+
+   position->longitude = from.longitude +
+         distance * (to.longitude - from.longitude) / segment_length;
+
+   position->latitude = from.latitude +
+         distance * (to.latitude - from.latitude) / segment_length;
+}
+
+
 int roadmap_street_get_position (RoadMapBlocks *blocks,
                                  int number,
                                  RoadMapPosition *position) {
@@ -797,10 +847,6 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
    int fradd;
    int toadd;
-
-   RoadMapPosition from;
-   RoadMapPosition to;
-
 
    if (RoadMapRangeActive == NULL) return -1;
 
@@ -838,26 +884,19 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
 
          int line = this_addr->line & (~ CONTINUATION_FLAG);
 
-         roadmap_line_from (line, &from);
-         roadmap_line_to   (line, &to);
+         int length = roadmap_line_length (line);
+         int distance;
 
          if (number_max == number_min) {
-
-            position->longitude = (from.longitude + to.longitude) / 2;
-            position->latitude  = (from.latitude + to.latitude) / 2;
+            distance = length / 2;
 
          } else {
 
-            position->longitude =
-               from.longitude -
-                  ((from.longitude - to.longitude)
-                      * abs(fradd - number)) / (number_max - number_min);
-
-            position->latitude =
-               from.latitude -
-                  ((from.latitude - to.latitude)
-                     * abs(fradd - number)) / (number_max - number_min);
+            distance = length * (fradd - number) / (number_max - number_min);
+            if (distance < 0) distance += length;
          }
+
+         roadmap_street_distance_position (line, distance, position);
 
          return line;
       }

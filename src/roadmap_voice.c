@@ -359,7 +359,7 @@ void roadmap_voice_initialize (void) {
     int i;
     
     roadmap_config_declare_enumeration
-               ("session", &RoadMapVoiceMute, "no", "yes", NULL);
+               ("session", &RoadMapVoiceMute, NULL, "no", "yes", NULL);
     
     for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
         roadmap_config_declare

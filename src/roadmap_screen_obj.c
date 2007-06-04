@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -45,6 +46,7 @@
 #include "roadmap_pointer.h"
 #include "roadmap_res.h"
 #include "roadmap_sound.h"
+#include "roadmap_main.h"
 
 #include "roadmap_screen_obj.h"
 
@@ -61,6 +63,11 @@ static ObjectFile RoadMapObjFiles[] = {
 
 #define MAX_STATES 9
 
+#define OBJ_FLAG_NO_ROTATE 0x1
+#define OBJ_FLAG_REPEAT    0x2
+
+#define OBJ_REPEAT_TIMEOUT 100
+
 struct RoadMapScreenObjDescriptor {
 
    char                *name; /* Unique name of the object. */
@@ -73,7 +80,7 @@ struct RoadMapScreenObjDescriptor {
    short                pos_x; /* position on screen */
    short                pos_y; /* position on screen */
 
-   int                  disable_rotate; /* rotate with screen? */
+   int                  flags;
 
    int                  opacity;
 
@@ -108,11 +115,9 @@ static char *roadmap_object_string (const char *data, int length) {
 static RoadMapScreenObj roadmap_screen_obj_new
           (int argc, const char **argv, int *argl) {
 
-   RoadMapScreenObj object = malloc(sizeof(*object));
+   RoadMapScreenObj object = calloc(sizeof(*object), 1);
 
    roadmap_check_allocated(object);
-
-   memset (object, 0, sizeof(*object));
 
    object->name = roadmap_object_string (argv[1], argl[1]);
 
@@ -423,7 +428,12 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 
       case 'R':
 
-         object->disable_rotate = 1;
+         object->flags |= OBJ_FLAG_NO_ROTATE;
+         break;
+
+      case 'T':
+
+         object->flags |= OBJ_FLAG_REPEAT;
          break;
 
       case 'N':
@@ -492,6 +502,15 @@ static RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
 }
 
 
+static void roadmap_screen_obj_repeat (void) {
+   assert(RoadMapScreenObjSelected);
+
+   if (RoadMapScreenObjSelected && RoadMapScreenObjSelected->action) {
+      (*(RoadMapScreenObjSelected->action->callback)) ();
+   }
+}
+
+
 static int roadmap_screen_obj_pressed (RoadMapGuiPoint *point) {
    int state = 0;
 
@@ -514,6 +533,31 @@ static int roadmap_screen_obj_pressed (RoadMapGuiPoint *point) {
    
    roadmap_canvas_refresh ();
 
+   if (RoadMapScreenObjSelected->flags & OBJ_FLAG_REPEAT) {
+      if (RoadMapScreenObjSelected->action) {
+         (*(RoadMapScreenObjSelected->action->callback)) ();
+      }
+
+      roadmap_main_set_periodic (OBJ_REPEAT_TIMEOUT,
+            roadmap_screen_obj_repeat);
+   }
+
+   return 1;
+}
+
+
+static int roadmap_screen_obj_released (RoadMapGuiPoint *point) {
+   RoadMapScreenObj object = RoadMapScreenObjSelected;
+
+   if (!RoadMapScreenObjSelected) {
+      return 0;
+   }
+
+   if (object->flags & OBJ_FLAG_REPEAT) {
+      roadmap_main_remove_periodic (roadmap_screen_obj_repeat);
+      RoadMapScreenObjSelected = 0;
+   }
+
    return 1;
 }
 
@@ -525,6 +569,8 @@ static int roadmap_screen_obj_short_click (RoadMapGuiPoint *point) {
    if (!RoadMapScreenObjSelected) {
       return 0;
    }
+
+   if (object->flags & OBJ_FLAG_REPEAT) return 1;
 
    RoadMapScreenObjSelected = NULL;
 
@@ -554,6 +600,8 @@ static int roadmap_screen_obj_long_click (RoadMapGuiPoint *point) {
    if (!RoadMapScreenObjSelected) {
       return 0;
    }
+
+   if (RoadMapScreenObjSelected->flags & OBJ_FLAG_REPEAT) return 1;
 
    RoadMapScreenObjSelected = NULL;
 
@@ -651,6 +699,8 @@ void roadmap_screen_obj_initialize (void) {
 
    roadmap_pointer_register_pressed
       (roadmap_screen_obj_pressed, POINTER_HIGH);
+   roadmap_pointer_register_released
+      (roadmap_screen_obj_released, POINTER_HIGH);
    roadmap_pointer_register_short_click
       (roadmap_screen_obj_short_click, POINTER_HIGH);
    roadmap_pointer_register_long_click
@@ -688,7 +738,7 @@ void roadmap_screen_obj_draw (void) {
 
       if (cursor->sprites[state]) {
          
-         if (cursor->disable_rotate) {
+         if (cursor->flags & OBJ_FLAG_NO_ROTATE) {
             roadmap_sprite_draw (cursor->sprites[state], &pos,
                                  -roadmap_math_get_orientation());
          } else {

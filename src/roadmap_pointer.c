@@ -129,6 +129,8 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
       exec_callbacks (SHORT_CLICK, point);
       is_button_down = 0;
    }
+
+   exec_callbacks (RELEASED, point);
 }
 
 static void roadmap_pointer_moved (RoadMapGuiPoint *point) {

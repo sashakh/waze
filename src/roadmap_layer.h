@@ -29,15 +29,20 @@
 #define LAYER_VISIBLE_ROADS   1
 #define LAYER_ALL_ROADS       2
 
+/* In 3D mode we devide the screen into PROJ_AREAS each with a
+ * different zoom
+ */
+#define LAYER_PROJ_AREAS 6
+
 int  roadmap_layer_max_pen(void);
 
 int roadmap_layer_all_roads (int *layers, int size);
 int  roadmap_layer_visible_roads (int *layers, int size);
 int  roadmap_layer_visible_lines (int *layers, int size, int pen_type);
 
-int  roadmap_layer_is_visible (int layer);
+int  roadmap_layer_is_visible (int layer, int area);
 
-RoadMapPen roadmap_layer_get_pen (int layer, int pen_type);
+RoadMapPen roadmap_layer_get_pen (int layer, int pen_type, int area);
 
 void roadmap_layer_adjust (void);
 

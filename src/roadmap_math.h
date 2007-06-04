@@ -45,6 +45,9 @@ void roadmap_math_restore_zoom (void);
 void roadmap_math_zoom_in      (void);
 void roadmap_math_zoom_out     (void);
 void roadmap_math_zoom_reset   (void);
+void roadmap_math_zoom_set     (int zoom);
+void roadmap_math_set_scale    (int scale, int use_map_units);
+int  roadmap_math_get_scale    (int use_map_units);
 
 void roadmap_math_set_center      (RoadMapPosition *position);
 void roadmap_math_set_size        (int width, int height);
@@ -55,8 +58,9 @@ void roadmap_math_set_horizon     (int horizon);
 void roadmap_math_set_focus     (const RoadMapArea *focus);
 void roadmap_math_release_focus (void);
 
-int  roadmap_math_declutter (int level);
-int  roadmap_math_thickness (int base, int declutter, int use_multiple_pens);
+int  roadmap_math_declutter (int level, int area);
+int  roadmap_math_thickness (int base, int declutter, int zoom_level,
+                             int use_multiple_pens);
 
 /* These 2 functions return: 0 (not visible), 1 (fully visible) or
  * -1 (partially visible).
@@ -77,9 +81,12 @@ void roadmap_math_coordinate  (const RoadMapPosition *position,
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
                                RoadMapPosition *position,
                                int projected);
+
+void roadmap_math_project     (RoadMapGuiPoint *point);
 void roadmap_math_unproject   (RoadMapGuiPoint *point);
 
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points);
+void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point);
 
 void roadmap_math_rotate_point (RoadMapGuiPoint *points,
                                 RoadMapGuiPoint *center, int angle);

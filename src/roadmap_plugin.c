@@ -306,6 +306,8 @@ int roadmap_plugin_override_line (int line, int cfcc, int fips) {
 
    int i;
 
+   return hooks[1]->override_line (line, cfcc, fips);
+
    for (i=1; i<=PluginCount; i++) {
 
       RoadMapPluginHooks *hooks = get_hooks (i);
@@ -328,6 +330,13 @@ int roadmap_plugin_override_pen (int line,
                                  int fips,
                                  int pen_type,
                                  RoadMapPen *override_pen) {
+   return 0;
+
+   #if 0
+   int res = hooks[1]->override_pen
+                     (line, cfcc, fips, pen_type, override_pen);
+   return res;
+
    int i;
 
    for (i=1; i<=PluginCount; i++) {
@@ -345,6 +354,7 @@ int roadmap_plugin_override_pen (int line,
    }
 
    return 0;
+#endif
 }
 
 

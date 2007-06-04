@@ -408,10 +408,10 @@ void roadmap_option (int argc, char **argv, RoadMapUsage usage) {
 void roadmap_option_initialize (void) {
 
    roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralToolbar, NULL, "yes", "no", NULL);
 
    roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigGeneralIcons, "yes", "no", NULL);
+      ("preferences", &RoadMapConfigGeneralIcons, NULL, "yes", "no", NULL);
 
    roadmap_config_declare ("preferences", &RoadMapConfigMapCache, "8", NULL);
 }

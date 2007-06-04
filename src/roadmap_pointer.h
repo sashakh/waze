@@ -51,6 +51,8 @@ void roadmap_pointer_register_drag_end    (RoadMapPointerHandler handler,
                                            int priority);
 void roadmap_pointer_register_pressed     (RoadMapPointerHandler handler,
                                            int priority);
+void roadmap_pointer_register_released    (RoadMapPointerHandler handler,
+                                           int priority);
 
 void roadmap_pointer_unregister_short_click (RoadMapPointerHandler handler);
 void roadmap_pointer_unregister_long_click  (RoadMapPointerHandler handler);
