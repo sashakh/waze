@@ -445,7 +445,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
    if (do_sync) {
       roadmap_config_initialize ();
       roadmap_config_declare_enumeration
-         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
+         ("preferences", &RoadMapConfigAutoSync, NULL, "Yes", "No", NULL);
 
       if (!roadmap_main_should_sync ()) return 0;
 
@@ -473,7 +473,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 #ifdef FREEMAP_IL
 
    roadmap_config_declare_enumeration
-      ("preferences", &RoadMapConfigFirstTime, "Yes", "No", NULL);    
+      ("preferences", &RoadMapConfigFirstTime, NULL, "Yes", "No", NULL);    
 
    if (roadmap_config_match(&RoadMapConfigFirstTime, "Yes")) {
       first_time_wizard();
@@ -809,6 +809,31 @@ static struct tb_icon RoadMapIcons[] = {
 };
 
 
+static void config_auto_sync () {
+   WCHAR roadmap_exe[255];
+   LPWSTR dir_unicode = ConvertToWideChar(roadmap_path_user (), CP_UTF8);
+   BOOL res;
+
+   wcscpy(roadmap_exe, dir_unicode);
+   free (dir_unicode);
+
+   wcscat(roadmap_exe, L"\\FreeMap.exe");
+
+   if (roadmap_config_match(&RoadMapConfigAutoSync, "No")) {
+      res = CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_NONE);
+      if (!res) roadmap_log (ROADMAP_ERROR, "Can't reset WinCE event notification.");
+   } else {
+      CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_NONE);
+      res = CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_RS232_DETECTED);
+      res |= CeRunAppAtEvent(roadmap_exe, NOTIFICATION_EVENT_SYNC_END);
+
+      if (!res) roadmap_log (ROADMAP_ERROR, "Can't set WinCE event notification.");
+   }
+
+   roadmap_config_save (1);
+}
+
+
 static int roadmap_main_toolbar_icon (const char *icon)
 {
 	if (icon == NULL) return NULL;
@@ -877,10 +902,10 @@ extern "C" {
 		DWORD style = WS_VISIBLE;
 
       roadmap_config_declare_enumeration
-         ("preferences", &RoadMapConfigMenuBar, "No", "Yes", NULL);
+         ("preferences", &RoadMapConfigMenuBar, NULL, "No", "Yes", NULL);
 #ifdef UNDER_CE
       roadmap_config_declare_enumeration
-         ("preferences", &RoadMapConfigAutoSync, "Yes", "No", NULL);
+         ("preferences", &RoadMapConfigAutoSync, config_auto_sync, "Yes", "No", NULL);
       roadmap_config_declare
          ("session", &RoadMapConfigLastSync, "0", NULL);
 #else

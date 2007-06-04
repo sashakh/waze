@@ -49,7 +49,6 @@ objects_wide = 7
 lang = 1
 font.ttf = 1
 usc77001.rdm = 2
-usdir.rdm = 2
 apt_toc.gif = 6
 manual.html = 6
 200.wav = 10
@@ -261,7 +260,6 @@ click_long.wav,,,0x40000000
 
 [Files.Maps]
 usc77001.rdm,,,0x40000000
-usdir.rdm,,,0x40000000
 
 [Files.ARM]
 FreeMap.exe,,,0

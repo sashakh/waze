@@ -245,6 +245,22 @@ int roadmap_file_truncate (const char *path, const char *name,
 }
 
 
+int roadmap_file_rename (const char *old_name, const char *new_name) {
+
+   LPWSTR old_name_unicode = ConvertToWideChar(old_name, CP_UTF8);
+   LPWSTR new_name_unicode = ConvertToWideChar(new_name, CP_UTF8);
+   int res = 0;
+
+   if (!MoveFile(old_name_unicode, new_name_unicode)) {
+      res = -1;
+   }
+
+   free (old_name_unicode);
+   free (new_name_unicode);
+   return res;
+}
+
+
 const char *roadmap_file_unique (const char *base)
 {
    static int   UniqueNameCounter = 0;
@@ -520,6 +536,8 @@ RoadMapFile roadmap_file_open(const char *name, const char *mode)
       os_mode = GENERIC_READ;
    } else if (strchr (mode, 'w') != NULL) {
       os_mode = GENERIC_READ | GENERIC_WRITE;
+   } else if (strchr (mode, 'a') != NULL) {
+      os_mode = GENERIC_READ | GENERIC_WRITE;
    } else {
       roadmap_log (ROADMAP_ERROR,
          "%s: invalid file access mode %s", name, mode);
@@ -536,6 +554,14 @@ RoadMapFile roadmap_file_open(const char *name, const char *mode)
       0,
       NULL);
    
+      if (strchr(mode, 'a') && 
+         (SetFilePointer (file, 0, NULL, FILE_END) == 
+                           INVALID_SET_FILE_POINTER)) {
+
+         CloseHandle((HANDLE)file);
+         file =  INVALID_HANDLE_VALUE;
+      }
+
    free(url_unicode);
 
    return file;
