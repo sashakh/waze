@@ -146,6 +146,10 @@ int roadmap_file_truncate (const char *path, const char *name,
    return res;
 }
 
+int roadmap_file_rename (const char *old_name, const char *new_name) {
+
+   return rename (old_name, new_name);
+}
 
 void roadmap_file_append (const char *path, const char *name,
                           void *data, int length) {
@@ -364,6 +368,8 @@ RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
       unix_mode = O_RDONLY;
    } else if (strchr (mode, 'w') != NULL) {
       unix_mode = O_RDWR|O_CREAT;
+   } else if (strchr (mode, 'a') != NULL) {
+      unix_mode = O_RDWR|O_CREAT|O_APPEND;
    } else {
       roadmap_log (ROADMAP_ERROR,
                    "%s: invalid file access mode %s", name, mode);
