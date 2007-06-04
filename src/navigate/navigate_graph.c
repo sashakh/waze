@@ -124,7 +124,7 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
    cache->nodes_count = roadmap_square_points_count (square_id);
    cache->nodes_index = calloc(cache->nodes_count, sizeof(unsigned short));
 
-   for (i = ROADMAP_ROAD_FIRST; i < ROADMAP_ROAD_LAST; ++i) {
+   for (i = ROADMAP_ROAD_FIRST; i <= ROADMAP_ROAD_LAST; ++i) {
 
       int first_line;
       int last_line;

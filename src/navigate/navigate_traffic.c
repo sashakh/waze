@@ -303,9 +303,9 @@ void navigate_traffic_initialize (void) {
    roadmap_config_declare
        ("schema", &TrafficConfigJamColor, "#8b0000", NULL);
    roadmap_config_declare_enumeration
-       ("preferences", &TrafficDisplayEnabledCfg, "no", "yes", NULL);
+       ("preferences", &TrafficDisplayEnabledCfg, NULL, "no", "yes", NULL);
    roadmap_config_declare_enumeration
-       ("preferences", &TrafficUseTrafficCfg, "yes", "no", NULL);
+       ("preferences", &TrafficUseTrafficCfg, NULL, "yes", "no", NULL);
 
    create_pens ();
    roadmap_skin_register (create_pens);

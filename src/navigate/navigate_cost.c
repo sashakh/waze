@@ -223,19 +223,19 @@ int navigate_cost_time (int line_id, int is_revesred, int cur_cost,
 void navigate_cost_initialize (void) {
 
    roadmap_config_declare_enumeration
-      ("preferences", &CostUseTrafficCfg, "yes", "no", NULL);
+      ("preferences", &CostUseTrafficCfg, NULL, "yes", "no", NULL);
 
    roadmap_config_declare_enumeration
-      ("preferences", &CostTypeCfg, "Fastest", "Shortest", NULL);
+      ("preferences", &CostTypeCfg, NULL, "Fastest", "Shortest", NULL);
 
    roadmap_config_declare_enumeration
-      ("preferences", &CostAvoidPrimaryCfg, "no", "yes", NULL);
+      ("preferences", &CostAvoidPrimaryCfg, NULL, "no", "yes", NULL);
 
    roadmap_config_declare_enumeration
-      ("preferences", &PreferSameStreetCfg, "no", "yes", NULL);
+      ("preferences", &PreferSameStreetCfg, NULL, "no", "yes", NULL);
 
    roadmap_config_declare_enumeration
-       ("preferences", &CostAvoidTrailCfg, "yes", "no", "Long trails", NULL);
+       ("preferences", &CostAvoidTrailCfg, NULL, "yes", "no", "Long trails", NULL);
    roadmap_start_add_action ("traffic", "Routing preferences", NULL, NULL,
       "Change routing preferences",
       cost_preferences);

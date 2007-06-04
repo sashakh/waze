@@ -64,6 +64,7 @@
 #include "navigate_traffic.h"
 #include "navigate_cost.h"
 #include "navigate_route.h"
+#include "navigate_zoom.h"
 #include "navigate_main.h"
 
 #define ROUTE_PEN_WIDTH 4
@@ -74,12 +75,15 @@ static RoadMapConfigDescriptor NavigateConfigRouteColor =
 static RoadMapConfigDescriptor NavigateConfigPossibleRouteColor =
                     ROADMAP_CONFIG_ITEM("Navigation", "PossibleRouteColor");
 
+static RoadMapConfigDescriptor NavigateConfigAutoZoom =
+                  ROADMAP_CONFIG_ITEM("Routing", "Auto zoom");
+
 int NavigateEnabled = 0;
 int NavigatePluginID = -1;
 static int NavigateTrackEnabled = 0;
 static int NavigateTrackFollowGPS = 0;
-static RoadMapPen NavigatePen;
-static RoadMapPen NavigatePenEst;
+static RoadMapPen NavigatePen[2];
+static RoadMapPen NavigatePenEst[2];
 
 static void navigate_update (RoadMapPosition *position, PluginLine *current);
 static void navigate_get_next_line
@@ -135,7 +139,8 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
       editor_plugin_set_override (0);
 #endif
 
-      if (roadmap_navigate_get_current (&pos, &line, &direction) != -1) {
+      if ((roadmap_navigate_get_current (&pos, &line, &direction) != -1) &&
+          (roadmap_plugin_get_id(&line) == ROADMAP_PLUGIN_ID)) {
 
          roadmap_adjust_position (&pos, &NavigateSrcPos);
 
@@ -152,6 +157,7 @@ static int navigate_find_track_points (PluginLine *from_line, int *from_point,
       } else {
          position = roadmap_trip_get_position ("GPS");
          NavigateSrcPos = *position;
+         direction = ROUTE_DIRECTION_NONE;
       }
 
 #ifndef J2ME
@@ -396,6 +402,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    RoadMapSoundList sound_list;
    const int ANNOUNCES[] = { 800, 200, 50 };
    int announce_distance = 0;
+   int distance_to_prev;
 
    if (!NavigateTrackEnabled) return;
 
@@ -409,6 +416,8 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
          navigate_instr_calc_length (position, segment, LINE_START);
    }
 
+   distance_to_prev = segment->distance - NavigateDistanceToTurn;
+
    NavigateETAToTurn = (int) (1.0 * segment->cross_time * NavigateDistanceToTurn /
                              (segment->distance + 1));
 
@@ -419,6 +428,16 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       NavigateETAToTurn += segment->cross_time;
    }
 
+   if (roadmap_config_match(&NavigateConfigAutoZoom, "yes")) {
+      const char *focus = roadmap_trip_get_focus_name ();
+
+      if (focus && !strcmp (focus, "GPS")) {
+
+         navigate_zoom_update (position, NavigateSegments,
+                               NavigateCurrentSegment, segment,
+                               distance_to_prev);
+      }
+   }
       
    navigate_bar_set_distance (NavigateDistanceToTurn);
 
@@ -569,6 +588,12 @@ void navigate_get_next_line
       return;
    }
 
+   /* Ugly hack as we don't support navigation through editor lines */
+   if (roadmap_plugin_get_id (current) != ROADMAP_PLUGIN_ID) {
+      *next = NavigateSegments[NavigateCurrentSegment+1].line;
+      return;
+   }
+
    if (!roadmap_plugin_same_line
          (current, &NavigateSegments[NavigateCurrentSegment].line)) {
 
@@ -670,24 +695,42 @@ int navigate_is_enabled (void) {
 
 static void navigate_main_init_pens (void) {
 
-   NavigatePen = roadmap_canvas_create_pen ("NavigatePen1");
+   RoadMapPen pen;
+
+   pen = roadmap_canvas_create_pen ("NavigatePen1");
    roadmap_canvas_set_foreground
       (roadmap_config_get (&NavigateConfigRouteColor));
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
+   NavigatePen[0] = pen;
 
-   NavigatePenEst = roadmap_canvas_create_pen ("NavigatePen2");
+   pen = roadmap_canvas_create_pen ("NavigatePen2");
+   roadmap_canvas_set_foreground
+      (roadmap_config_get (&NavigateConfigRouteColor));
+   roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
+   NavigatePen[1] = pen;
+
+   pen = roadmap_canvas_create_pen ("NavigatePenEst1");
    roadmap_canvas_set_foreground
       (roadmap_config_get (&NavigateConfigPossibleRouteColor));
    roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
+   NavigatePenEst[0] = pen;
+
+   pen = roadmap_canvas_create_pen ("NavigatePenEst2");
+   roadmap_canvas_set_foreground
+      (roadmap_config_get (&NavigateConfigPossibleRouteColor));
+   roadmap_canvas_set_thickness (ROUTE_PEN_WIDTH);
+   NavigatePenEst[1] = pen;
 }
 
 
 void navigate_main_initialize (void) {
 
    roadmap_config_declare
-       ("schema", &NavigateConfigRouteColor,  "#0000ffa0", NULL);
+       ("schema", &NavigateConfigRouteColor,  "#3dedada0", NULL);
    roadmap_config_declare
        ("schema", &NavigateConfigPossibleRouteColor,  "#ff0000a0", NULL);
+   roadmap_config_declare_enumeration
+      ("preferences", &NavigateConfigAutoZoom, NULL, "yes", "no", NULL);
 
    navigate_main_init_pens ();
 
@@ -827,14 +870,15 @@ void navigate_main_screen_repaint (int max_pen) {
    int i;
    int current_width = -1;
    int last_cfcc = -1;
-   RoadMapPen pen;
+   RoadMapPen *pens;
+   int current_pen = 0;
 
    if (!NavigateTrackEnabled) return;
 
    if (NavigateFlags & GRAPH_IGNORE_TURNS) {
-      pen = NavigatePenEst;
+      pens = NavigatePenEst;
    } else {
-      pen = NavigatePen;
+      pens = NavigatePen;
    }
 
    if (!NavigateTrackFollowGPS && 
@@ -855,8 +899,12 @@ void navigate_main_screen_repaint (int max_pen) {
       NavigateSegment *segment = NavigateSegments + i;
 
       if (segment->line.cfcc != last_cfcc) {
-         RoadMapPen layer_pen = roadmap_layer_get_pen (segment->line.cfcc, 0);
-         int width = roadmap_canvas_get_thickness (layer_pen);
+         RoadMapPen layer_pen =
+               roadmap_layer_get_pen (segment->line.cfcc, 0, 0);
+         int width;
+         
+         if (layer_pen) width = roadmap_canvas_get_thickness (layer_pen) + 4;
+         else width = ROUTE_PEN_WIDTH;
 
          if (width < ROUTE_PEN_WIDTH) {
             width = ROUTE_PEN_WIDTH;
@@ -865,7 +913,8 @@ void navigate_main_screen_repaint (int max_pen) {
          if (width != current_width) {
 
             RoadMapPen previous_pen;
-            previous_pen = roadmap_canvas_select_pen (pen);
+            current_pen = (current_pen+1)%2;
+            previous_pen = roadmap_canvas_select_pen (pens[current_pen]);
             roadmap_canvas_set_thickness (width);
             current_width = width;
 
@@ -884,11 +933,11 @@ void navigate_main_screen_repaint (int max_pen) {
                                     segment->first_shape,
                                     segment->last_shape,
                                     segment->shape_itr,
-                                    pen,
+                                    pens + current_pen,
+                                    1,
                                     NULL,
                                     NULL,
                                     NULL);
-
    }
 }
 

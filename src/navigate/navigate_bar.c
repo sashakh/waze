@@ -255,7 +255,8 @@ void navigate_bar_set_distance (int distance) {
 
    if (distance_far > 0) {
 
-      snprintf (str, sizeof(str), "%d", distance_far);
+      int tenths = roadmap_math_to_trip_distance_tenths(distance);
+      snprintf (str, sizeof(str), "%d.%d", distance_far, tenths % 10);
       snprintf (unit_str, sizeof(unit_str), "%s", roadmap_math_trip_unit());
    } else {
 
@@ -357,8 +358,10 @@ void navigate_bar_set_mode (int mode) {
 
    if (mode) {
       roadmap_screen_obj_offset (x_offset, y_offset);
+      roadmap_screen_move_center (-y_offset / 2);
    } else {
       roadmap_screen_obj_offset (-x_offset, -y_offset);
+      roadmap_screen_move_center (y_offset / 2);
    }
    
    NavigateBarEnabled = mode;
