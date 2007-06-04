@@ -432,6 +432,6 @@ void cost_preferences (void) {
 }
 
 #else
-   void traffic_preferences (void) {}
+   void cost_preferences (void) {}
 #endif
 

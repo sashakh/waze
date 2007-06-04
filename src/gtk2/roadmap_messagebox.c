@@ -47,7 +47,7 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
    return FALSE;
 }
 
-void roadmap_messagebox (const char *title, const char *text) {
+void roadmap_messagebox_show (const char *title, const char *text, int modal) {
 
    GtkWidget *ok;
    GtkWidget *label;
