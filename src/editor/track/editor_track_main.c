@@ -42,6 +42,7 @@
 #include "roadmap_navigate.h"
 #include "roadmap_start.h"
 #include "roadmap_state.h"
+#include "roadmap_layer.h"
 #include "roadmap_screen.h"
 
 #include "../editor_main.h"
@@ -826,8 +827,7 @@ int editor_track_draw_current (RoadMapPen pen) {
 
    roadmap_screen_draw_one_line
                (from, to, 0, from, first_shape, last_shape,
-                editor_track_shape_position, pen, 0, 0 ,0);
-
+                editor_track_shape_position, &pen, 1, 0, 0 ,0);
    return 1;
 }
 

@@ -519,11 +519,11 @@ int editor_db_activate (int fips) {
 
    int res;
 
-   if (fips == -1) return -1;
-
    if (EditorActiveCounty == fips) {
        return 0;
    }
+
+   if (fips == -1) return -1;
 
    if (EditorNoCounty == fips) {
       return -1;

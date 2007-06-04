@@ -163,7 +163,7 @@ static int find_split_point (PluginLine *line,
             continue;
          }
 
-         if (line_direction) {
+         if (line_direction == ROUTE_DIRECTION_AGAINST_LINE) {
             steering = steering - 180;
          }
             
@@ -831,9 +831,9 @@ int editor_track_util_connect_roads (PluginLine *from,
 
       if (roads_connected) {
          editor_log (ROADMAP_INFO,
-               "'from' line has no node but roads are connected. Do nothing.");
+               "'to' line has no node but roads are connected. Do nothing.");
          editor_log_pop ();
-         return to_point;
+         return from_point;
       }
 
       connect_node = from_node;
@@ -849,9 +849,9 @@ int editor_track_util_connect_roads (PluginLine *from,
 
       if (roads_connected) {
          editor_log (ROADMAP_INFO,
-               "'to' line has no node but roads are connected. Do nothing.");
+               "'from' line has no node but roads are connected. Do nothing.");
          editor_log_pop ();
-         return from_point;
+         return to_point;
       }
  
       connect_node = to_node;

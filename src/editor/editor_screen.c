@@ -468,7 +468,7 @@ int editor_screen_override_pen (int line,
       road_state = SELECTED_STATE;
    } else {
       
-      if (!roadmap_screen_is_dragging() && (pen_type > 0)) {
+      if (!roadmap_screen_fast_refresh() && (pen_type > 0)) {
          road_state = editor_screen_get_road_state (line, cfcc, 0, fips);
       } else {
          road_state = NO_ROAD_STATE;
@@ -588,7 +588,6 @@ static void editor_screen_draw_markers (void) {
 static void editor_screen_after_refresh (void) {
 
    if (editor_is_enabled()) {
-      editor_screen_draw_markers ();
    }
 
    if (screen_prev_after_refresh) {
@@ -672,7 +671,7 @@ static void editor_screen_draw_square
 
       if (road_state == NO_ROAD_STATE) {
 
-         pen = roadmap_layer_get_pen (cfcc, pen_type);
+         pen = roadmap_layer_get_pen (cfcc, pen_type, 0);
       } else {
 
          if (pen_type > 1) continue;
@@ -689,7 +688,7 @@ static void editor_screen_draw_square
       roadmap_screen_draw_one_line
                (&from, &to, fully_visible,
                 &trk_from_pos, first_shape, last_shape,
-                editor_shape_position, pen, 0, 0, 0);
+                editor_shape_position, &pen, 1, 0, 0, 0);
 
       if ((EditorPens[cfcc][pen_type][0].thickness > 20) &&
          (pen_type == 1)) {
@@ -777,6 +776,35 @@ void editor_screen_repaint (int max_pen) {
       }
    }
 
+   for (k=0; k<select_count; k++) {
+
+      if (SelectedLines[k].line.plugin_id == ROADMAP_PLUGIN_ID) {
+
+         RoadMapPosition from;
+         RoadMapPosition to;
+         int first_shape;
+         int last_shape;
+         RoadMapShapeItr shape_itr;
+         RoadMapPen *pen;
+         int i;
+
+         roadmap_plugin_get_line_points (&SelectedLines[k].line,
+                                         &from, &to,
+                                         &first_shape, &last_shape,
+                                         &shape_itr);
+
+         for (i=0; i<1; i++) {
+            pen = &EditorPens[SelectedLines[k].line.cfcc][i][SELECTED_STATE].pen;
+
+            roadmap_screen_draw_one_line
+               (&from, &to, 0,
+                &from, first_shape, last_shape,
+                shape_itr, pen, 1, 0, 0, 0);
+         }
+      }
+   }
+
+   editor_screen_draw_markers ();
 }
 
 

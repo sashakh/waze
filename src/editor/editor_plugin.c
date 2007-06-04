@@ -46,13 +46,19 @@ static int EditorPluginOverrideStatus = 1;
 
 static int editor_plugin_override_line (int line, int cfcc, int fips) {
 
+   int flags;
+
    if (editor_db_activate (fips) == -1) {
       return 0;
    }
 
    if (!EditorPluginOverrideStatus) return 0;
 
-   if (editor_override_line_get_flags (line) & ED_LINE_DELETED) {
+   flags = editor_override_line_get_flags (line);
+   
+   if (!flags) return 0;
+   
+   if (flags & ED_LINE_DELETED) {
       return 1;
    }
 

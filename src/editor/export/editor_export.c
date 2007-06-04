@@ -59,6 +59,7 @@
 #include "../db/editor_marker.h"
 
 #include "../track/editor_track_main.h"
+#include "../track/editor_gps_data.h"
 #include "editor_upload.h"
 #include "editor_sync.h"
 #include "editor_export.h"
@@ -616,6 +617,7 @@ int editor_export_data(const char *name, RoadMapDownloadCallbacks *callbacks) {
    int fips;
    int exported;
    int estimated_exports;
+   char *gps_name;
 
    stream.type = NULL_STREAM;
 
@@ -641,6 +643,15 @@ int editor_export_data(const char *name, RoadMapDownloadCallbacks *callbacks) {
    }
 
    editor_track_end ();
+
+   gps_name = strdup (roadmap_path_skip_directories(name));
+   if (strstr(gps_name, ".gpx")) {
+      char *suffix = strstr(gps_name, ".gpx");
+      *suffix = '\0';
+   }
+
+   editor_gps_data_export (gps_name);
+   free (gps_name);
 
    trkseg = editor_trkseg_get_next_export ();
 
@@ -710,7 +721,7 @@ int editor_export_data(const char *name, RoadMapDownloadCallbacks *callbacks) {
 
          editor_line_get (line_id, &from, &to, NULL, &cfcc, &flags);
 
-         if (flags & (ED_LINE_DELETED|ED_LINE_CONNECTION)) {
+         if (flags & ED_LINE_DELETED) {
 
             editor_line_modify_properties
                (line_id, cfcc, flags & ~ED_LINE_DIRTY);
@@ -733,6 +744,8 @@ int editor_export_data(const char *name, RoadMapDownloadCallbacks *callbacks) {
 
       editor_trkseg_get
          (trkseg, NULL, NULL, NULL, &trkseg_flags);
+
+      if (flags & ED_LINE_CONNECTION) trkseg_flags |= ED_TRKSEG_LOW_CONFID;
 
       if (trkseg_flags & ED_TRKSEG_NEW_TRACK) {
 
@@ -895,7 +908,7 @@ int editor_export_empty(int fips) {
 void editor_export_initialize(void) {
 
    roadmap_config_declare_enumeration
-       ("preferences", &RoadMapConfigAutoUpload, "no", "yes", NULL);
+       ("preferences", &RoadMapConfigAutoUpload, NULL, "no", "yes", NULL);
 }
 
 

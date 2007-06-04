@@ -40,15 +40,17 @@
 #include "static/update_range.h"
 #include "static/notes.h"
 #include "track/editor_track_main.h"
+#include "track/editor_gps_data.h"
 #include "export/editor_upload.h"
 #include "export/editor_export.h"
 #include "editor_plugin.h"
+#include "db/editor_db.h"
 #include "editor_main.h"
 
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.10.0 pre1";
+const char *EDITOR_VERSION = "0.10.0 rc1";
 
 void editor_main_check_map (void) {
 
@@ -84,12 +86,13 @@ int editor_is_enabled (void) {
 
 void editor_main_initialize (void) {
 
-   editor_upload_initialize ();
-   editor_export_initialize ();
-   editor_screen_initialize ();
-   editor_track_initialize  ();
-   update_range_initialize  ();
-   editor_notes_initialize  ();
+   editor_upload_initialize   ();
+   editor_gps_data_initialize ();
+   editor_export_initialize   ();
+   editor_screen_initialize   ();
+   editor_track_initialize    ();
+   update_range_initialize    ();
+   editor_notes_initialize    ();
 
    EditorPluginID = editor_plugin_register ();
    /* This is due to the WinCE auto sync */
@@ -98,6 +101,11 @@ void editor_main_initialize (void) {
    roadmap_layer_adjust ();
 }
 
+
+void editor_main_shutdown (void) {
+   editor_gps_data_shutdown ();
+   editor_db_close (roadmap_locator_active ());
+}
 
 void editor_main_set (int status) {
 
