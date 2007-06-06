@@ -637,7 +637,7 @@ void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points) {
 void roadmap_math_rotate_point (RoadMapGuiPoint *point,
                                 RoadMapGuiPoint *center, int angle) {
 
-   static int cached_angle = 0;
+   static int cached_angle = -99999;
    static int sin_orientation;
    static int cos_orientation;
 
