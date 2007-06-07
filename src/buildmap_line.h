@@ -37,5 +37,7 @@ void buildmap_line_get_position_sorted
 
 void buildmap_line_sort (void);
 
+void buildmap_line_test_long (int line, int longitude, int latitude);
+
 #endif // INCLUDED__BUILDMAP_LINE__H
 

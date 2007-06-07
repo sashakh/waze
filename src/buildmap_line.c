@@ -77,10 +77,69 @@ static int *SortedLine2 = NULL;
 
 static void buildmap_line_register (void);
 
+#define MAX_LONG_LINES 150000
+static RoadMapLongLine LongLines[MAX_LONG_LINES];
+static int LongLinesCount;
+static RoadMapHash *LongLinesHash = NULL;
+
+
+static void buildmap_shape_update_long_line (RoadMapLongLine *line,
+                                             int longitude, int latitude) {
+
+
+   if (line->area.west > longitude) {
+      line->area.west = longitude;
+   }
+   if (line->area.east < longitude) {
+      line->area.east = longitude;
+   }
+   if (line->area.north < latitude) {
+      line->area.north = latitude;
+   }
+   if (line->area.south > latitude) {
+      line->area.south = latitude;
+   }
+}
+
+
+static BuildMapLine *buildmap_line_get_record (int line) {
+
+   if ((line < 0) || (line > LineCount)) {
+      buildmap_fatal (0, "invalid line index %d", line);
+   }
+
+   return Line[line/BUILDMAP_BLOCK] + (line % BUILDMAP_BLOCK);
+}
+
+
+static BuildMapLine *buildmap_line_get_record_sorted (int line) {
+
+   if ((line < 0) || (line > LineCount)) {
+      buildmap_fatal (0, "invalid line index %d", line);
+   }
+
+   if (SortedLine == NULL) {
+      buildmap_fatal (0, "lines not sorted yet");
+   }
+
+   line = SortedLine[line];
+
+   return Line[line/BUILDMAP_BLOCK] + (line % BUILDMAP_BLOCK);
+}
+
+
+static int buildmap_line_get_layer_sorted (int line) {
+
+   BuildMapLine *this_line = buildmap_line_get_record_sorted (line);
+
+   return this_line->layer;
+}
+
 
 static void buildmap_line_initialize (void) {
 
    LineById = roadmap_hash_new ("LineById", BUILDMAP_BLOCK);
+   LongLinesHash = roadmap_hash_new ("LongLines", MAX_LONG_LINES);
 
    Line[0] = calloc (BUILDMAP_BLOCK, sizeof(BuildMapLine));
    if (Line[0] == NULL) {
@@ -88,6 +147,7 @@ static void buildmap_line_initialize (void) {
    }
 
    LineCount = 0;
+   LongLinesCount = 0;
 
    buildmap_line_register();
 }
@@ -137,6 +197,76 @@ int buildmap_line_add (int tlid, int layer, int from, int to) {
 }
 
 
+static void buildmap_line_new_long
+        (int sorted_line, BuildMapLine *this_line)
+   
+{
+    int from;
+    int to;
+    RoadMapLongLine *this_long_line;
+
+    if (LongLinesCount == MAX_LONG_LINES) {
+       buildmap_fatal (0, "Too many long lines.");
+    }
+
+    this_long_line = LongLines + LongLinesCount;
+
+    this_long_line->line = sorted_line;
+
+    if (this_line != NULL) {
+       this_long_line->layer = this_line->layer;
+    } else {
+       this_long_line->layer = buildmap_line_get_layer_sorted (sorted_line);
+    }
+
+    buildmap_line_get_points_sorted (sorted_line, &from, &to);
+
+    this_long_line->area.west = buildmap_point_get_longitude_sorted (from);
+    this_long_line->area.north = buildmap_point_get_latitude_sorted (from);
+
+    buildmap_shape_update_long_line
+             (this_long_line,
+              buildmap_point_get_longitude_sorted (to),
+              buildmap_point_get_latitude_sorted (to));
+
+    roadmap_hash_add (LongLinesHash, sorted_line, LongLinesCount);
+    LongLinesCount++;
+}
+
+void buildmap_line_test_long (int sorted_line, int longitude, int latitude) {
+   RoadMapLongLine *this_long_line;
+   int from;
+   int to;
+
+   buildmap_line_get_points_sorted (sorted_line, &from, &to);
+
+   if (buildmap_square_is_long_line (from, to, longitude, latitude)) {
+      int index;
+
+      this_long_line = NULL;
+
+      for (index = roadmap_hash_get_first (LongLinesHash, sorted_line);
+            index >= 0;
+            index = roadmap_hash_get_next (LongLinesHash, index)) {
+
+         this_long_line = LongLines + index;
+
+         if (this_long_line->line == sorted_line) {
+            buildmap_shape_update_long_line
+                     (this_long_line, longitude, latitude);
+            return;
+         } else {
+            this_long_line = NULL;
+         }
+      }
+
+      buildmap_line_new_long(sorted_line, NULL);
+
+   }
+
+}
+
+
 int  buildmap_line_find_sorted (int tlid) {
 
    int index;
@@ -158,32 +288,6 @@ int  buildmap_line_find_sorted (int tlid) {
    }
 
    return -1;
-}
-
-
-static BuildMapLine *buildmap_line_get_record (int line) {
-
-   if ((line < 0) || (line > LineCount)) {
-      buildmap_fatal (0, "invalid line index %d", line);
-   }
-
-   return Line[line/BUILDMAP_BLOCK] + (line % BUILDMAP_BLOCK);
-}
-
-
-static BuildMapLine *buildmap_line_get_record_sorted (int line) {
-
-   if ((line < 0) || (line > LineCount)) {
-      buildmap_fatal (0, "invalid line index %d", line);
-   }
-
-   if (SortedLine == NULL) {
-      buildmap_fatal (0, "lines not sorted yet");
-   }
-
-   line = SortedLine[line];
-
-   return Line[line/BUILDMAP_BLOCK] + (line % BUILDMAP_BLOCK);
 }
 
 
@@ -324,8 +428,8 @@ static int buildmap_line_compare2 (const void *r1, const void *r2) {
 
 void buildmap_line_sort (void) {
 
-   int i;
-   int j;
+   int i, j;
+   int to_square, from_square;
    BuildMapLine *one_line;
 
    if (SortedLine != NULL) return; /* Sort was already performed. */
@@ -380,10 +484,13 @@ void buildmap_line_sort (void) {
 
       one_line = Line[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
 
-      if (buildmap_point_get_square_sorted (one_line->record.to) !=
-          buildmap_point_get_square_sorted (one_line->record.from)) {
+      to_square = buildmap_point_get_square_sorted (one_line->record.to);
+      from_square = buildmap_point_get_square_sorted (one_line->record.from);
+      if (to_square != from_square) {
          SortedLine2[j++] = i;
       }
+      if (!buildmap_square_is_adjacent (from_square, to_square))
+         buildmap_line_new_long(i, one_line);
    }
    if (j != LineCrossingCount) {
       buildmap_fatal (0, "non matching crossing count");
@@ -413,12 +520,14 @@ static void buildmap_line_save (void) {
    RoadMapLine *db_lines;
    RoadMapLineBySquare *db_square1;
    RoadMapLineBySquare *db_square2;
+   RoadMapLongLine *db_long_lines;
 
    buildmap_db *root;
    buildmap_db *data_table;
    buildmap_db *square1_table;
    buildmap_db *layer1_table;
    buildmap_db *square2_table;
+   buildmap_db *long_lines_table;
    buildmap_db *layer2_table;
    buildmap_db *index2_table;
 
@@ -555,6 +664,12 @@ static void buildmap_line_save (void) {
    buildmap_db_add_data (square2_table,
                          square_count, sizeof(RoadMapLineBySquare));
 
+   long_lines_table = buildmap_db_add_section (root, "longlines");
+   if (long_lines_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (long_lines_table,
+                         LongLinesCount, sizeof(RoadMapLongLine));
+
+
    layer2_table = buildmap_db_add_section (root, "bylayer2");
    if (layer2_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (layer2_table, layer2_count, sizeof(int));
@@ -567,6 +682,7 @@ static void buildmap_line_save (void) {
    db_square1 = (RoadMapLineBySquare *) buildmap_db_get_data (square1_table);
    db_layer1  = (int *) buildmap_db_get_data (layer1_table);
    db_square2 = (RoadMapLineBySquare *) buildmap_db_get_data (square2_table);
+   db_long_lines = (RoadMapLongLine *) buildmap_db_get_data (long_lines_table);
    db_layer2  = (int *) buildmap_db_get_data (layer2_table);
    db_index2  = (int *) buildmap_db_get_data (index2_table);
 
@@ -682,14 +798,17 @@ static void buildmap_line_save (void) {
          buildmap_fatal (0, "invalid line/bylayer2 count");
       }
    }
+
+   memcpy (db_long_lines, LongLines, LongLinesCount * sizeof (RoadMapLongLine));
+
 }
 
 
 static void buildmap_line_summary (void) {
 
    fprintf (stderr,
-            "-- line table statistics: %d lines, %d crossing\n",
-            LineCount, LineCrossingCount);
+            "-- line table statistics: %d lines, %d crossing %d long lines\n",
+            LineCount, LineCrossingCount, LongLinesCount);
 }
 
 

@@ -24,9 +24,8 @@
 #ifndef INCLUDED__BUILDMAP_SQUARE__H
 #define INCLUDED__BUILDMAP_SQUARE__H
 
-void  buildmap_square_initialize
-         (int minlongitude, int maxlongitude,
-          int minlatitude,  int maxlatitude);
+void  buildmap_square_initialize(void);
+void  buildmap_square_adjust_limits(int longitude, int latitude);
 
 int   buildmap_square_add  (int longitude, int latitude);
 
@@ -34,6 +33,10 @@ short buildmap_square_get_sorted (int squareid);
 int   buildmap_square_get_count (void);
 void  buildmap_square_get_reference_sorted
          (int square, int *longitude, int *latitude);
+
+int buildmap_square_is_long_line (int from_point, int to_point,
+					  int longitude, int latitude);
+int buildmap_square_is_adjacent (int from_point, int to_point);
 
 void  buildmap_square_sort (void);
 

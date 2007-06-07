@@ -63,6 +63,14 @@ typedef struct { /* tables line/bysquare1 and line/bysquare2 */
 
 } RoadMapLineBySquare;
 
+typedef struct {
+
+   int line;
+   unsigned char layer;
+
+   RoadMapArea area;
+} RoadMapLongLine;
+
 /* Table line/bylayer1 is an array of int. */
 
 /* Table line/bylayer2 is an array of int. */

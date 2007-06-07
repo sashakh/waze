@@ -48,6 +48,7 @@
 #include "roadmap_db_square.h"
 
 #include "buildmap.h"
+#include "buildmap_point.h"
 #include "buildmap_line.h"
 #include "buildmap_square.h"
 
@@ -59,6 +60,7 @@ typedef struct {
    int maxlatitude;
    int sorted;
    int count;
+   int north, south, east, west;
 } BuildMapSquare;
 
 
@@ -68,10 +70,11 @@ static BuildMapSquare *Square = NULL;
 
 static int *SortedSquare = NULL;
 
-static int SortMaxLongitude;
-static int SortMinLongitude;
-static int SortMaxLatitude;
-static int SortMinLatitude;
+static int SortMaxLongitude = -0x7fffffff;
+static int SortMinLongitude =  0x7fffffff;
+static int SortMaxLatitude  = -0x7fffffff;
+static int SortMinLatitude  =  0x7fffffff;
+
 
 static int SortStepLongitude;
 static int SortStepLatitude;
@@ -82,6 +85,22 @@ static int SortCountLatitude;
 
 static void buildmap_square_register (void);
 
+void buildmap_square_adjust_limits(int longitude, int latitude) {
+
+   if (longitude < SortMinLongitude) {
+      SortMinLongitude = longitude;
+   }
+   if (longitude > SortMaxLongitude) {
+      SortMaxLongitude = longitude;
+   }
+
+   if (latitude < SortMinLatitude) {
+      SortMinLatitude = latitude;
+   }
+   if (latitude > SortMaxLatitude) {
+      SortMaxLatitude = latitude;
+   }
+}
 
 static int buildmap_square_search (int longitude, int latitude) {
 
@@ -124,20 +143,19 @@ static int buildmap_square_search (int longitude, int latitude) {
        (Square[index].minlatitude > latitude) ||
        (Square[index].maxlatitude < latitude)) {
 
-      buildmap_fatal (0, "point %d (%dx%d) does not fit in any square",
-                         index,
-                         longitude,
-                         latitude);
+      return -1;
    }
 
    return index;
 }
 
 
-void buildmap_square_initialize
-        (int minlongitude, int maxlongitude,
-         int minlatitude,  int maxlatitude) {
+void buildmap_square_initialize(void) {
 
+   int minlongitude;
+   int maxlongitude;
+   int minlatitude;
+   int maxlatitude;
    int i;
    int k;
    int latitude;
@@ -147,6 +165,11 @@ void buildmap_square_initialize
    int count_longitude;
 
    SquareCount = 0;
+
+   maxlongitude = SortMaxLongitude;
+   minlongitude = SortMinLongitude;
+   maxlatitude = SortMaxLatitude;
+   minlatitude = SortMinLatitude;
 
    count_longitude = (maxlongitude - minlongitude + 0x7fef) / 0x7ff0;
    count_latitude  = (maxlatitude - minlatitude + 0x7fef) / 0x7ff0;
@@ -162,11 +185,6 @@ void buildmap_square_initialize
 
    size_longitude = (maxlongitude - minlongitude) / count_longitude;
    size_latitude = (maxlatitude - minlatitude) / count_latitude;
-
-   SortMaxLongitude = maxlongitude;
-   SortMinLongitude = minlongitude;
-   SortMaxLatitude  = maxlatitude;
-   SortMinLatitude  = minlatitude;
 
    SortStepLongitude = size_longitude;
    SortStepLatitude  = size_latitude;
@@ -192,6 +210,23 @@ void buildmap_square_initialize
 
          Square[k].maxlongitude = minlongitude + size_longitude;
          Square[k].maxlatitude  = latitude;
+
+         /* n/s/e/w give square adjacency, which helps us find long lines */
+         Square[k].north = k - count_latitude;
+         if (Square[k].north < 0)
+            Square[k].north = -1;
+
+         Square[k].south = k + count_latitude;
+         if (Square[k].south > SquareTableSize)
+            Square[k].south = -1;
+
+         Square[k].west = k - 1;
+         if (Square[k].west < 0)
+            Square[k].west = -1;
+
+         Square[k].east = k + 1;
+         if (Square[k].east > SquareTableSize)
+            Square[k].east = -1;
 
          Square[k].count = 0;
       }
@@ -220,6 +255,13 @@ int buildmap_square_add (int longitude, int latitude) {
 
    squareid = buildmap_square_search (longitude, latitude);
 
+   if (squareid == -1) {
+      buildmap_fatal (0, "point %d (%dx%d) does not fit in any square",
+                         index,
+                         longitude,
+                         latitude);
+   }
+
    Square[squareid].count += 1;
 
    return squareid;
@@ -235,6 +277,10 @@ short buildmap_square_get_sorted (int squareid) {
 
    if ((squareid < 0) || (squareid > SquareTableSize)) {
       buildmap_fatal (0, "invalid square index %d", squareid);
+   }
+
+   if (Square[squareid].count == 0) {
+      return -1;
    }
 
    return Square[squareid].sorted;
@@ -266,6 +312,50 @@ void  buildmap_square_get_reference_sorted
 
    *longitude = Square[square].minlongitude;
    *latitude  = Square[square].minlatitude;
+}
+
+int buildmap_square_is_adjacent (int from_square_index, int to_square_index) {
+
+   BuildMapSquare *from_square;
+
+   if (from_square_index == to_square_index)
+        return 1;
+
+   from_square = &Square[SortedSquare[from_square_index]];
+   to_square_index = SortedSquare[to_square_index];
+
+   return ( from_square->north == to_square_index ||
+        from_square->south == to_square_index ||
+        from_square->east == to_square_index ||
+        from_square->west == to_square_index);
+}
+
+int buildmap_square_is_long_line (int from_point, int to_point,
+                                          int longitude, int latitude) {
+
+   int shape_square;
+   int from_square, to_square;
+
+   shape_square = buildmap_square_search (longitude, latitude);
+
+   if (shape_square == -1) {
+      return 1;
+   }
+
+   shape_square = buildmap_square_get_sorted (shape_square);
+
+   if (shape_square == -1) {
+      return 1;
+   }
+
+   from_square = buildmap_point_get_square_sorted (from_point);
+   to_square = buildmap_point_get_square_sorted (to_point);
+
+   if (shape_square != from_square && shape_square != to_square)
+      return 1;
+
+   return !buildmap_square_is_adjacent (from_square, to_square);
+
 }
 
 
@@ -375,10 +465,10 @@ static void buildmap_square_reset (void) {
    free (SortedSquare);
    SortedSquare = NULL;
 
-   SortMaxLongitude = 0;
-   SortMinLongitude = 0;
-   SortMaxLatitude = 0;
-   SortMinLatitude = 0;
+   SortMaxLongitude = -0x7fffffff;
+   SortMinLongitude =  0x7fffffff;
+   SortMaxLatitude  = -0x7fffffff;
+   SortMinLatitude  =  0x7fffffff;
 
    SortStepLongitude = 0;
    SortStepLatitude = 0;

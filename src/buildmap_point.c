@@ -68,12 +68,6 @@ static RoadMapHash *PointByPosition = NULL;
 
 static int *SortedPoint = NULL;
 
-static int SortMaxLongitude = -0x7fffffff;
-static int SortMinLongitude =  0x7fffffff;
-static int SortMaxLatitude  = -0x7fffffff;
-static int SortMinLatitude  =  0x7fffffff;
-
-
 static void buildmap_point_register (void);
 
 static void buildmap_point_initialize (void) {
@@ -87,11 +81,6 @@ static void buildmap_point_initialize (void) {
    }
 
    PointCount = 0;
-
-   SortMaxLongitude = -0x7fffffff;
-   SortMinLongitude =  0x7fffffff;
-   SortMaxLatitude  = -0x7fffffff;
-   SortMinLatitude  =  0x7fffffff;
 
    buildmap_point_register();
 }
@@ -155,19 +144,7 @@ int buildmap_point_add (int longitude, int latitude) {
     * to compute the list of squares.
     */
 
-   if (longitude < SortMinLongitude) {
-      SortMinLongitude = longitude;
-   }
-   if (longitude > SortMaxLongitude) {
-      SortMaxLongitude = longitude;
-   }
-
-   if (latitude < SortMinLatitude) {
-      SortMinLatitude = latitude;
-   }
-   if (latitude > SortMaxLatitude) {
-      SortMaxLatitude = latitude;
-   }
+   buildmap_square_adjust_limits(longitude, latitude);
 
    return PointCount++;
 }
@@ -294,8 +271,7 @@ void buildmap_point_sort (void) {
 
    buildmap_info ("generating squares...");
 
-   buildmap_square_initialize (SortMinLongitude, SortMaxLongitude,
-                               SortMinLatitude,  SortMaxLatitude);
+   buildmap_square_initialize ();
 
    for (i = PointCount - 1; i >= 0; i--) {
       record = Point[i / BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
@@ -427,10 +403,6 @@ static void buildmap_point_reset (void) {
    roadmap_hash_delete (PointByPosition);
    PointByPosition = NULL;
 
-   SortMaxLongitude = -0x7fffffff;
-   SortMinLongitude =  0x7fffffff;
-   SortMaxLatitude  = -0x7fffffff;
-   SortMinLatitude  =  0x7fffffff;
 }
 
 

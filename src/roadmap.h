@@ -94,34 +94,5 @@ void roadmap_check_allocated_with_source_line
 
 typedef void (* RoadMapCallback) (void);
 
-#ifdef ROADMAP_DBG_TIME
-
-#define DBG_TIME_FULL 0
-#define DBG_TIME_DRAW_SQUARE 1
-#define DBG_TIME_DRAW_ONE_LINE 2
-#define DBG_TIME_SELECT_PEN 3
-#define DBG_TIME_DRAW_LINES 4
-#define DBG_TIME_CREATE_PATH 5
-#define DBG_TIME_ADD_PATH 6
-#define DBG_TIME_FLIP 7
-#define DBG_TIME_TEXT_FULL 8
-#define DBG_TIME_TEXT_CNV 9
-#define DBG_TIME_TEXT_LOAD 10
-#define DBG_TIME_TEXT_ONE_LETTER 11
-#define DBG_TIME_TEXT_GET_GLYPH 12
-#define DBG_TIME_TEXT_ONE_RAS 13
-
-#define DBG_TIME_LAST_COUNTER 14
-
-void dbg_time_start(int type);
-void dbg_time_end(int type);
-
-#else
-
-#define dbg_time_start(x)
-#define dbg_time_end(x)
-
-#endif  // ROADMAP_DBG_TIME
-
 #endif // INCLUDE__ROADMAP__H
 

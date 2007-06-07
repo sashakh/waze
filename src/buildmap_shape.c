@@ -121,7 +121,9 @@ int buildmap_shape_add
 
             if ((this_shape->longitude != longitude) ||
                 (this_shape->latitude  != latitude )) {
-               buildmap_error (0, "duplicated sequence number, irec %d, uid %d, %d/%d", irec, uid, longitude, latitude);
+	       buildmap_error
+		(0, "duplicated sequence number %d, irec %d, uid %d, %d/%d",
+			sequence, irec, uid, longitude, latitude);
             }
 
             return index;
@@ -129,6 +131,8 @@ int buildmap_shape_add
          line_exists = 1;
       }
    }
+
+   buildmap_line_test_long (line, longitude, latitude);
 
    /* This shape was not known yet: create a new one. */
 

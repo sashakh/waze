@@ -69,6 +69,9 @@ typedef struct {
    RoadMapLineBySquare *LineBySquare2;
    int                  LineBySquare2Count;
 
+   RoadMapLongLine     *LongLines;
+   int                  LongLinesCount;
+
    int                 *LineByLayer2;
    int                  LineByLayer2Count;
 
@@ -90,6 +93,7 @@ static void *roadmap_line_map (roadmap_db *root) {
    roadmap_db *square2_table;
    roadmap_db *layer1_table;
    roadmap_db *layer2_table;
+   roadmap_db *long_lines_table;
 
 
    context = (RoadMapLineContext *) malloc (sizeof(RoadMapLineContext));
@@ -105,6 +109,7 @@ static void *roadmap_line_map (roadmap_db *root) {
    square2_table = roadmap_db_get_subsection (root, "bysquare2");
    layer2_table = roadmap_db_get_subsection (root, "bylayer2");
    index2_table  = roadmap_db_get_subsection (root, "index2");
+   long_lines_table  = roadmap_db_get_subsection (root, "longlines");
 
    context->Line = (RoadMapLine *) roadmap_db_get_data (line_table);
    context->LineCount = roadmap_db_get_count (line_table);
@@ -160,6 +165,20 @@ static void *roadmap_line_map (roadmap_db *root) {
        context->LineBySquare2Count * sizeof(RoadMapLineBySquare)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/bysquare2 structure");
       goto roadmap_line_map_abort;
+   }
+
+   if (long_lines_table) {
+      context->LongLines =
+         (RoadMapLongLine *) roadmap_db_get_data (long_lines_table);
+      context->LongLinesCount = roadmap_db_get_count (long_lines_table);
+
+      if (roadmap_db_get_size (long_lines_table) !=
+         context->LongLinesCount * sizeof(RoadMapLongLine)) {
+	 roadmap_log (ROADMAP_ERROR, "invalid long lines structure");
+	 goto roadmap_line_map_abort;
+      }
+   } else {
+      context->LongLinesCount = 0;
    }
 
    return context;
@@ -338,5 +357,16 @@ void roadmap_line_points (int line, int *from, int *to) {
 
    *from = RoadMapLineActive->Line[line].from;
    *to = RoadMapLineActive->Line[line].to;
+}
+
+int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
+
+   if (index >= RoadMapLineActive->LongLinesCount) return 0;
+
+   *line_id = RoadMapLineActive->LongLines[index].line;
+   *area = RoadMapLineActive->LongLines[index].area;
+   *cfcc = RoadMapLineActive->LongLines[index].layer;
+
+   return 1;
 }
 

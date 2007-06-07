@@ -30,6 +30,7 @@
 int  roadmap_line_in_square (int square, int cfcc, int *first, int *last);
 int  roadmap_line_in_square2 (int square, int cfcc, int *first, int *last);
 int  roadmap_line_get_from_index2 (int index);
+int  roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc);
 
 void roadmap_line_points (int line, int *from, int *to);
 void roadmap_line_from (int line, RoadMapPosition *position);

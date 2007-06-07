@@ -1233,6 +1233,79 @@ static int roadmap_street_get_closest_in_square
    return count;
 }
 
+static int roadmap_street_get_closest_in_long_lines
+              (const RoadMapPosition *position, int cfcc,
+               RoadMapNeighbour *neighbours, int count, int max) {
+
+   int index = 0;
+   int found;
+   int first_shape_line;
+   int last_shape_line;
+   int first_shape;
+   int last_shape;
+   int line_cfcc;
+   RoadMapArea area;
+   int line;
+   int previous_square = -1;
+
+   RoadMapNeighbour this;
+
+   int fips = roadmap_locator_active ();
+
+   while (roadmap_line_long (index++, &line, &area, &line_cfcc)) {
+      int shape_count = 0;
+      int real_square;
+      RoadMapPosition reference_position;
+      RoadMapPosition to_position;
+
+      if (cfcc != line_cfcc) continue;
+
+      if (!roadmap_math_is_visible (&area)) {
+         continue;
+      }
+
+      roadmap_line_to (line, &to_position);
+
+      if (roadmap_math_point_is_visible (&to_position)) {
+         continue;
+      }
+
+      roadmap_line_from (line, &reference_position);
+      real_square = roadmap_square_search (&reference_position);
+
+      if (real_square != previous_square) {
+	 shape_count =
+	    roadmap_shape_in_square
+	    (real_square, &first_shape_line, &last_shape_line);
+         previous_square = real_square;
+      }
+
+      if (roadmap_plugin_override_line (line, cfcc, fips)) continue;
+
+      if (shape_count > 0 &&
+            roadmap_shape_of_line (line, first_shape_line,
+               last_shape_line,
+               &first_shape, &last_shape) > 0) {
+
+         found =
+            roadmap_street_get_distance_with_shape
+            (position, line, cfcc, first_shape, last_shape, &this);
+
+      } else {
+         found =
+            roadmap_street_get_distance_no_shape
+            (position, line, cfcc, &this);
+      }
+
+      if (found) {
+         count = roadmap_street_replace (neighbours, count, max, &this);
+      }
+   }
+
+   return count;
+}
+
+
 
 int roadmap_street_get_closest
        (const RoadMapPosition *position,
@@ -1276,6 +1349,13 @@ int roadmap_street_get_closest
                roadmap_street_get_closest_in_square
                   (position, square, categories[i], neighbours, count, max);
          }
+      }
+
+      for (i = 0; i < categories_count; ++i) {
+
+         count =
+            roadmap_street_get_closest_in_long_lines
+            (position, categories[i], neighbours, count, max);
       }
    }
 
