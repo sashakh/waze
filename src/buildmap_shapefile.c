@@ -101,6 +101,17 @@
 #define F_RTT       "RTT"
 #define F_ID        "ID"
 
+// shapefile column names for US state boundaries
+#define F_AREA         "AREA"
+#define F_PERIMETER    "PERIMETER"
+#define F_ST99_D00_    "ST99_D00_"
+#define F_ST99_D00_ID  "ST99_D00_I"
+#define F_STATE        "STATE"
+#define F_NAME         "NAME"
+#define F_LSAD         "LSAD"
+#define F_REGION       "REGION"
+#define F_DIVISION     "DIVISION"
+#define F_LSAD_TRANS   "LSAD_TRANS"   
 
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
@@ -108,6 +119,8 @@ static BuildMapDictionary DictionaryType;
 static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
 static BuildMapDictionary DictionaryFSA;
+
+static BuildMapDictionary DictionaryBounds;
 
 
 /* Road layers. */
@@ -126,6 +139,7 @@ static int BuildMapLayerCanal = 0;
 static int BuildMapLayerLake = 0;
 static int BuildMapLayerSea = 0;
 
+static int BuildMapLayerBoundary = 0;
 
 static void buildmap_shapefile_find_layers (void) {
 
@@ -140,6 +154,8 @@ static void buildmap_shapefile_find_layers (void) {
    BuildMapLayerCanal     = buildmap_layer_get ("canals");
    BuildMapLayerLake      = buildmap_layer_get ("lakes");
    BuildMapLayerSea       = buildmap_layer_get ("sea");
+
+   BuildMapLayerBoundary = buildmap_layer_get ("boundaries");
 }
 
 
@@ -236,6 +252,10 @@ static char shapefile2type_dcw (char cfcc, int carto) {
    return 0;
 }
 
+static char shapefile2type_states (char cfcc) {
+
+   return BuildMapLayerBoundary;
+}
 
 static void shapefile_summary (int verbose, int count) {
 
@@ -869,6 +889,7 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
    int from_point;
    int to_point;
    int j, lat, lon;
+   char *full_name;
 
    int iEXS, iMED, iACC, iRTT, iUID;
 
@@ -883,7 +904,7 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
    DictionaryCity   = buildmap_dictionary_open ("city");
    DictionaryFSA    = buildmap_dictionary_open ("fsa");
 
-   char *full_name = malloc(strlen(source) + 4);
+   full_name = malloc(strlen(source) + 4);
    roadmap_check_allocated(full_name);
 
    strcpy (full_name, source);
@@ -1018,6 +1039,153 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
    free(full_name);
 }
 
+/******************************** state boundaries **************************/
+
+static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   int line;
+   int line_index;
+   int tlid, cfcc;
+
+   int frlong;
+   int frlat;
+   int tolong;
+   int tolat;
+   int from_point;
+   int to_point;
+   int j, lat, lon;
+   char *full_name;
+
+   int iUID;
+
+   DBFHandle hDBF;
+   SHPHandle hSHP;
+   SHPObject *shp;
+
+   DictionaryBounds = buildmap_dictionary_open ("boundaries");
+
+   full_name = malloc(strlen(source) + 4);
+   roadmap_check_allocated(full_name);
+
+   strcpy (full_name, source);
+   buildmap_set_source(full_name);
+
+   hDBF = DBFOpen(full_name, "rb");
+   hSHP = SHPOpen(full_name, "rb");
+
+   iUID       = DBFGetFieldIndex(hDBF, F_ST99_D00_ID);
+
+   record_count = DBFGetRecordCount(hDBF);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      cfcc   = shapefile2type_states('D');
+      tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
+
+      if (cfcc > 0) {
+
+         shp = SHPReadObject(hSHP, irec);
+
+	 if (shp->padfX && shp->padfY) {
+         frlong = shp->padfX[0] * 1000000.0;
+         frlat  = shp->padfY[0] * 1000000.0;
+
+         tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
+         tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
+
+         from_point = buildmap_point_add (frlong, frlat);
+         to_point   = buildmap_point_add (tolong, tolat);
+
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+	 }
+
+         SHPDestroyObject(shp);
+
+      }
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   buildmap_info("loading shape info ...");
+
+   for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      shp = SHPReadObject(hSHP, irec);
+
+      for (j=1; j<shp->nVertices-1; j++) {
+	 if (shp->padfX && shp->padfY) {
+	  lon = shp->padfX[j] * 1000000.0;
+	  if (lon != 0) {
+	      lat = shp->padfY[j] * 1000000.0;
+	      buildmap_square_adjust_limits(lon, lat);
+	  }
+	 }
+      }
+
+      SHPDestroyObject(shp);
+
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   buildmap_line_sort();
+
+   for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      shp = SHPReadObject(hSHP, irec);
+
+      tlid = DBFReadIntegerAttribute(hDBF, irec, iUID);
+      line_index = buildmap_line_find_sorted(tlid);
+ 
+      if (line_index >= 0) {
+
+	 // Add the shape points here
+
+	 for (j=1; j<shp->nVertices-1; j++) {
+	 if (shp->padfX && shp->padfY) {
+	     lon = shp->padfX[j] * 1000000.0;
+	     if (lon != 0) {
+		 lat = shp->padfY[j] * 1000000.0;
+		 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+	     }
+	 }
+	 }
+      }
+
+      SHPDestroyObject(shp);
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   DBFClose(hDBF);
+   SHPClose(hSHP);
+
+   shapefile_summary (verbose, record_count);
+
+   free(full_name);
+}
+
 
 static void buildmap_shapefile_read_dcw_hyl (const char *source, int verbose) {
 
@@ -1074,6 +1242,21 @@ void buildmap_shapefile_dcw_process (const char *source,
    buildmap_shapefile_read_dcw_roads(base, verbose);
    buildmap_shapefile_read_dcw_hyl(base, verbose);
    buildmap_shapefile_read_dcw_hyr(base, verbose);
+
+   free (base);
+
+}
+
+/* US State boundaries */
+void buildmap_shapefile_st99_process (const char *source,
+                                     const char *county,
+                                     int verbose) {
+
+   char *base = roadmap_path_remove_extension (source);
+
+   buildmap_shapefile_find_layers ();
+
+   buildmap_shapefile_read_st99(base, verbose);
 
    free (base);
 

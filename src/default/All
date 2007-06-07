@@ -1,5 +1,5 @@
 Class.Name: All
-Class.Lines: Freeways Ramps Highways Streets Trails Rivers Shore Railroads 
+Class.Lines: Freeways Ramps Highways Streets Trails Rivers Shore Railroads Boundaries
 Class.Polygons: Lakes Sea Parks Hospitals Airports Stations Malls
 Navigation.Car: Freeways Ramps Highways Streets Trails
 Freeways.Color: black
@@ -7,7 +7,7 @@ Freeways.Color1: IndianRed
 Freeways.Delta1: -2
 Freeways.Color2: black
 Freeways.Delta2: 1
-Freeways.Declutter: 2147483647
+Freeways.Declutter: 10000
 Freeways.Thickness: 6
 Ramps.Color: black
 Ramps.Color1: red
@@ -35,7 +35,7 @@ Rivers.Color: LightBlue
 Rivers.Declutter: 300
 Rivers.Thickness: 3
 Shore.Color: LightSlateBlue
-Shore.Declutter: 2147483647
+Shore.Declutter: 2000
 Shore.Thickness: 2
 Hospitals.Color: red
 Hospitals.Declutter: 4096
@@ -58,3 +58,6 @@ Parks.Thickness: 1
 Sea.Color: SlateBlue
 Sea.Declutter: 2147483647
 Sea.Thickness: 1
+Boundaries.Color: darkgreen
+Boundaries.Thickness: 2
+Boundaries.Declutter: 2147483647

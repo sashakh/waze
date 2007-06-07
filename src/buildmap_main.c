@@ -56,7 +56,8 @@
 #define BUILDMAP_FORMAT_SHAPE     2
 #define BUILDMAP_FORMAT_DCW       3
 #define BUILDMAP_FORMAT_RNF       4
-#define BUILDMAP_FORMAT_EMPTY     5
+#define BUILDMAP_FORMAT_ST99      5
+#define BUILDMAP_FORMAT_EMPTY     6
 
 static int   BuildMapFormatFamily = 0;
 
@@ -146,6 +147,11 @@ static void  buildmap_county_select_format (poptContext decoder) {
 
       // Digital Charts of the World
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
+
+   } else if (strcmp (BuildMapFormat, "STATES") == 0) {
+
+      // US state boundaries
+      BuildMapFormatFamily = BUILDMAP_FORMAT_ST99;
 #endif
 
    } else if (strcmp (BuildMapFormat, "EMPTY") == 0) {
@@ -198,6 +204,10 @@ static void buildmap_county_process (const char *source,
 
       case BUILDMAP_FORMAT_DCW:
          buildmap_shapefile_dcw_process (source, county, verbose);
+         break;
+
+      case BUILDMAP_FORMAT_ST99:
+         buildmap_shapefile_st99_process (source, county, verbose);
          break;
 #endif
 
