@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh 
 #
 # rdmgenstatemaps
 #
@@ -38,31 +38,37 @@ verbose=''
 gendir=Y
 DRYRUN=N
 
+#default to just continental usa
 shape='STATES=continental'
 base=st99_d00.shp
-FIPS=81001
+FIPS=81002
 case $1 in
     which=*)
 	which=`expr $1 : 'which=\(.*\)'`
 	case $which in
+	    ALL|all)
+		echo Generating all USA
+		base=st99_d00.shp
+		shape='STATES'
+		FIPS=81001
+		;;
+	    CONTINENTAL|continental)
+		echo Generating just continental USA
+		shape='STATES=continental'
+		base=st99_d00.shp
+		FIPS=81002
+		;;
 	    AK_HI|ak_hi)
 		echo Generating just Alaska and Hawaii
 		shape='STATES=AK_HI'
 		base=st99_d00.shp
-		FIPS=81002
+		FIPS=81003
 		;;
 	    PROVINCES|provinces)
 		echo Generating just Canada provinces
 		shape='PROVINCES'
 		base=prov_ab_p_geo83_e.shp
 		FIPS=81061
-		shift
-		;;
-	    ALL|all)
-		echo Generating just continental USA
-		shape='STATES=continental'
-		base=st99_d00.shp
-		FIPS=81001
 		;;
 	esac
 	shift
