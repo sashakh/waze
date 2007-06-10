@@ -3234,7 +3234,9 @@ FIPS          County     State
 78     010     St. Croix     VI
 78     020     St. John     VI
 78     030     St. Thomas     VI
-81     001     State Boundaries     SB
+81     001     Continental US State Boundaries     SB
+81     002     Alaska and Hawaii State Boundaries     SB
+81     061     Canadian Provincial Boundaries     SB
 82     001     Placenames     PN
 83     010     DCW Europe and North Asia     DW
 83     011     DCW Europe and North Asia     DW

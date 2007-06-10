@@ -56,8 +56,9 @@
 #define BUILDMAP_FORMAT_SHAPE     2
 #define BUILDMAP_FORMAT_DCW       3
 #define BUILDMAP_FORMAT_RNF       4
-#define BUILDMAP_FORMAT_ST99      5
-#define BUILDMAP_FORMAT_EMPTY     6
+#define BUILDMAP_FORMAT_STATE     5
+#define BUILDMAP_FORMAT_PROVINCE  6
+#define BUILDMAP_FORMAT_EMPTY     7
 
 static int   BuildMapFormatFamily = 0;
 
@@ -148,10 +149,24 @@ static void  buildmap_county_select_format (poptContext decoder) {
       // Digital Charts of the World
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
 
-   } else if (strcmp (BuildMapFormat, "STATES") == 0) {
+   } else if (strncmp (BuildMapFormat, "STATES", strlen("STATES")) == 0) {
+      extern int which_states;
+
+      if (strcmp (BuildMapFormat, "STATES=AK_HI") == 0) {
+	which_states = 1;
+      } else if (strcmp (BuildMapFormat, "STATES=continental") == 0) {
+	which_states = 2;
+      } else if (strcmp (BuildMapFormat, "STATES=all") == 0 ||
+	    strcmp (BuildMapFormat, "STATES") == 0) {
+	which_states = 0;
+      }
+      // US state boundaries
+      BuildMapFormatFamily = BUILDMAP_FORMAT_STATE;
+
+   } else if (strcmp (BuildMapFormat, "PROVINCES") == 0) {
 
       // US state boundaries
-      BuildMapFormatFamily = BUILDMAP_FORMAT_ST99;
+      BuildMapFormatFamily = BUILDMAP_FORMAT_PROVINCE;
 #endif
 
    } else if (strcmp (BuildMapFormat, "EMPTY") == 0) {
@@ -206,8 +221,12 @@ static void buildmap_county_process (const char *source,
          buildmap_shapefile_dcw_process (source, county, verbose);
          break;
 
-      case BUILDMAP_FORMAT_ST99:
-         buildmap_shapefile_st99_process (source, county, verbose);
+      case BUILDMAP_FORMAT_STATE:
+         buildmap_shapefile_state_process (source, county, verbose);
+         break;
+
+      case BUILDMAP_FORMAT_PROVINCE:
+         buildmap_shapefile_province_process (source, county, verbose);
          break;
 #endif
 

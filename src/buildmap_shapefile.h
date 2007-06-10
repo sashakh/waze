@@ -36,7 +36,11 @@ void buildmap_shapefile_dcw_process (const char *source,
                                      const char *county,
                                      int verbose);
 
-void buildmap_shapefile_st99_process (const char *source,
+void buildmap_shapefile_state_process (const char *source,
+                                     const char *county,
+                                     int verbose);
+
+void buildmap_shapefile_province_process (const char *source,
                                      const char *county,
                                      int verbose);
 

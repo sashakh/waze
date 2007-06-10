@@ -113,6 +113,15 @@
 #define F_DIVISION     "DIVISION"
 #define F_LSAD_TRANS   "LSAD_TRANS"   
 
+// shapefile column names for Canadian provincial boundaries
+#define F_UUID         "UUID"
+#define F_TYPE_E       "TYPE_E"
+#define F_NAME         "NAME"
+#define F_SRC_AGENCY   "SRC_AGENCY"
+#define F_L_UPD_DATE   "L_UPD_DATE"
+#define F_L_UPD_TYPE   "L_UPD_TYPE"
+#define F_P_UPD_DATE   "P_UPD_DATE"
+
 static BuildMapDictionary DictionaryPrefix;
 static BuildMapDictionary DictionaryStreet;
 static BuildMapDictionary DictionaryType;
@@ -253,6 +262,11 @@ static char shapefile2type_dcw (char cfcc, int carto) {
 }
 
 static char shapefile2type_states (char cfcc) {
+
+   return BuildMapLayerBoundary;
+}
+
+static char shapefile2type_provinces (char cfcc) {
 
    return BuildMapLayerBoundary;
 }
@@ -1041,7 +1055,27 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
 
 /******************************** state boundaries **************************/
 
-static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
+/* 0 == all, 1 == just alaska/hawaii, 2 == just continental */
+int which_states;
+#define JUST_AK_HI 1
+#define JUST_CONTINENTAL 2
+
+/* fips codes for alaska and hawaii */
+#define AK 02
+#define HI 15
+
+static int exclude_state(int state) {
+      if (which_states == JUST_CONTINENTAL) {
+	 if (state == AK || state == HI)
+	    return 1;
+      } else if (which_states == JUST_AK_HI) {
+	 if (state != AK && state != HI)
+	    return 1;
+      }
+      return 0;
+}
+
+static void buildmap_shapefile_read_state (const char *source, int verbose) {
 
    int    irec;
    int    record_count;
@@ -1058,8 +1092,10 @@ static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
    int to_point;
    int j, lat, lon;
    char *full_name;
+   int state;
 
    int iUID;
+   int iSTATE;
 
    DBFHandle hDBF;
    SHPHandle hSHP;
@@ -1077,6 +1113,7 @@ static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
    hSHP = SHPOpen(full_name, "rb");
 
    iUID       = DBFGetFieldIndex(hDBF, F_ST99_D00_ID);
+   iSTATE     = DBFGetFieldIndex(hDBF, F_STATE);
 
    record_count = DBFGetRecordCount(hDBF);
 
@@ -1084,6 +1121,10 @@ static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
 
       buildmap_set_line (irec);
 
+      state = DBFReadIntegerAttribute(hDBF, irec, iSTATE);
+      if (exclude_state(state))
+	 continue;
+       
       cfcc   = shapefile2type_states('D');
       tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
 
@@ -1121,6 +1162,10 @@ static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
 
       buildmap_set_line (irec);
 
+      state = DBFReadIntegerAttribute(hDBF, irec, iSTATE);
+      if (exclude_state(state))
+	 continue;
+       
       shp = SHPReadObject(hSHP, irec);
 
       for (j=1; j<shp->nVertices-1; j++) {
@@ -1146,6 +1191,174 @@ static void buildmap_shapefile_read_st99 (const char *source, int verbose) {
    buildmap_line_sort();
 
    for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      state = DBFReadIntegerAttribute(hDBF, irec, iSTATE);
+      if (exclude_state(state))
+	 continue;
+       
+      shp = SHPReadObject(hSHP, irec);
+
+      tlid = DBFReadIntegerAttribute(hDBF, irec, iUID);
+      line_index = buildmap_line_find_sorted(tlid);
+ 
+      if (line_index >= 0) {
+
+	 // Add the shape points here
+
+	 for (j=1; j<shp->nVertices-1; j++) {
+	 if (shp->padfX && shp->padfY) {
+	     lon = shp->padfX[j] * 1000000.0;
+	     if (lon != 0) {
+		 lat = shp->padfY[j] * 1000000.0;
+		 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+	     }
+	 }
+	 }
+      }
+
+      SHPDestroyObject(shp);
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   DBFClose(hDBF);
+   SHPClose(hSHP);
+
+   shapefile_summary (verbose, record_count);
+
+   free(full_name);
+}
+
+/******************************** provincial boundaries **********************/
+
+static void buildmap_shapefile_read_province (const char *source, int verbose) {
+
+   int    irec;
+   int    record_count;
+
+   int line;
+   int line_index;
+   int tlid, cfcc;
+
+   int frlong;
+   int frlat;
+   int tolong;
+   int tolat;
+   int from_point;
+   int to_point;
+   int j, lat, lon;
+   char *full_name;
+   const char *type;
+
+   int iUID, iTYPE;
+
+   DBFHandle hDBF;
+   SHPHandle hSHP;
+   SHPObject *shp;
+
+   DictionaryBounds = buildmap_dictionary_open ("boundaries");
+
+   full_name = malloc(strlen(source) + 4);
+   roadmap_check_allocated(full_name);
+
+   strcpy (full_name, source);
+   buildmap_set_source(full_name);
+
+   hDBF = DBFOpen(full_name, "rb");
+   hSHP = SHPOpen(full_name, "rb");
+
+   iUID       = DBFGetFieldIndex(hDBF, F_UUID);
+   iTYPE      = DBFGetFieldIndex(hDBF, F_TYPE_E);
+
+   record_count = DBFGetRecordCount(hDBF);
+
+   for (irec=0; irec<record_count; irec++) {
+
+      buildmap_set_line (irec);
+
+      cfcc   = shapefile2type_provinces('D');
+      type = DBFReadStringAttribute(hDBF, irec, iTYPE);
+
+      if (strcmp(type, "TERR") == 0)
+	 continue;  /* provinces only.  no roads up there anyways.  ;-) */
+
+      tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
+
+      if (cfcc > 0) {
+
+         shp = SHPReadObject(hSHP, irec);
+
+	 if (shp->padfX && shp->padfY) {
+         frlong = shp->padfX[0] * 1000000.0;
+         frlat  = shp->padfY[0] * 1000000.0;
+
+         tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
+         tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
+
+         from_point = buildmap_point_add (frlong, frlat);
+         to_point   = buildmap_point_add (tolong, tolat);
+
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+	 }
+
+         SHPDestroyObject(shp);
+
+      }
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   buildmap_info("loading shape info ...");
+
+   for (irec=0; irec<record_count; irec++) {
+
+      type = DBFReadStringAttribute(hDBF, irec, iTYPE);
+
+      if (strcmp(type, "TERR") == 0)
+	 continue;  /* provinces only.  no roads up there anyways.  ;-) */
+
+      buildmap_set_line (irec);
+
+      shp = SHPReadObject(hSHP, irec);
+
+      for (j=1; j<shp->nVertices-1; j++) {
+	 if (shp->padfX && shp->padfY) {
+	  lon = shp->padfX[j] * 1000000.0;
+	  if (lon != 0) {
+	      lat = shp->padfY[j] * 1000000.0;
+	      buildmap_square_adjust_limits(lon, lat);
+	  }
+	 }
+      }
+
+      SHPDestroyObject(shp);
+
+
+      if (verbose) {
+         if ((irec & 0xff) == 0) {
+            buildmap_progress (irec, record_count);
+         }
+      }
+   }
+
+   buildmap_line_sort();
+
+   for (irec=0; irec<record_count; irec++) {
+
+      type = DBFReadStringAttribute(hDBF, irec, iTYPE);
+
+      if (strcmp(type, "TERR") == 0)
+	 continue;  /* provinces only.  no roads up there anyways.  ;-) */
 
       buildmap_set_line (irec);
 
@@ -1248,7 +1461,7 @@ void buildmap_shapefile_dcw_process (const char *source,
 }
 
 /* US State boundaries */
-void buildmap_shapefile_st99_process (const char *source,
+void buildmap_shapefile_state_process (const char *source,
                                      const char *county,
                                      int verbose) {
 
@@ -1256,7 +1469,22 @@ void buildmap_shapefile_st99_process (const char *source,
 
    buildmap_shapefile_find_layers ();
 
-   buildmap_shapefile_read_st99(base, verbose);
+   buildmap_shapefile_read_state(base, verbose);
+
+   free (base);
+
+}
+
+/* Canada Provincial boundaries */
+void buildmap_shapefile_province_process (const char *source,
+                                     const char *county,
+                                     int verbose) {
+
+   char *base = roadmap_path_remove_extension (source);
+
+   buildmap_shapefile_find_layers ();
+
+   buildmap_shapefile_read_province(base, verbose);
 
    free (base);
 

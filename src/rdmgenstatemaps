@@ -1,29 +1,34 @@
-#!/bin/sh
+#!/bin/sh -x
 #
 # rdmgenstatemaps
 #
-# Process the US state boundary map through buildmap.
+# Process the US state or Canadian province boundary map through buildmap.
 #
 
 usage()
 {
     cat >&2 <<EOF
-rdmgenstatemaps src=<path-to-st99-files> [maps=<map-directory-path>] [test]
+rdmgenstatemaps [which=<which>] src=<path-to-.shp-file> \\
+	[maps=<map-directory-path>] [test]
   where the src=<> parameter points to a directory containing the unpacked
   contents of st99_d00_shp.zip, available from:
     http://www.census.gov/geo/cob/bdy/st/st00shp/st99_d00_shp.zip
+    (for states:  use "which=AK_HI" to generate alaska/hawaii)
+  or from BND1_shape.zip, available from:
+    http://www.geobase.ca/geobase/en/search.do?produit=cgb1
+    (for provinces: use 'which=PROVINCES')
 EOF
    exit 1
 }
 
 
 # the state boundary map data is available from:
-#
 # http://www.census.gov/geo/www/cob/st2000.html
-#
 # specifically, 
 # http://www.census.gov/geo/cob/bdy/st/st00shp/st99_d00_shp.zip
 #
+# the provincial boundary map data is available from:
+# http://www.geobase.ca/geobase/en/data/cgb/index.html
 
 if [ $# -eq 0 ] ; then
     usage
@@ -33,13 +38,43 @@ verbose=''
 gendir=Y
 DRYRUN=N
 
-srcpath=.
+shape='STATES=continental'
+base=st99_d00.shp
+FIPS=81001
+case $1 in
+    which=*)
+	which=`expr $1 : 'which=\(.*\)'`
+	case $which in
+	    AK_HI|ak_hi)
+		echo Generating just Alaska and Hawaii
+		shape='STATES=AK_HI'
+		base=st99_d00.shp
+		FIPS=81002
+		;;
+	    PROVINCES|provinces)
+		echo Generating just Canada provinces
+		shape='PROVINCES'
+		base=prov_ab_p_geo83_e.shp
+		FIPS=81061
+		shift
+		;;
+	    ALL|all)
+		echo Generating just continental USA
+		shape='STATES=continental'
+		base=st99_d00.shp
+		FIPS=81001
+		;;
+	esac
+	shift
+    ;;
+esac
+
 case $1 in
     src=*) srcpath=`expr $1 : 'src=\(.*\)'`
             shift
             ;;
 esac
-file=$srcpath/st99_d00.shp
+file=$srcpath/$base
 
 if [ ! -f $file ]
 then
@@ -72,8 +107,6 @@ case $1 in
             ;;
 esac
 
-# default to free Road Network Format
-shape=STATES
 
 if [ ! "$BUILDMAP" ]
 then
@@ -85,12 +118,11 @@ then
 fi
 
 
-FIPS=81001
 
 
-echo $BUILDMAP -f STATES -m $maps $verbose $FIPS $file
+echo $BUILDMAP -f $shape -m $maps $verbose $FIPS $file
 if [ $DRYRUN != 'Y' ] ; then
-    $BUILDMAP -f STATES -m $maps $verbose $FIPS $file
+    $BUILDMAP -f $shape -m $maps $verbose $FIPS $file
 fi
 
 if [ $gendir = 'Y' ] ; then
