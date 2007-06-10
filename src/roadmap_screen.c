@@ -44,6 +44,7 @@
 #include "roadmap_polygon.h"
 #include "roadmap_locator.h"
 #include "roadmap_navigate.h"
+#include "roadmap_county.h"
 
 #include "roadmap_sprite.h"
 #include "roadmap_object.h"
@@ -148,7 +149,7 @@ static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
  * for some memory-starved targets.
  */
 #ifndef ROADMAP_MAX_VISIBLE
-#define ROADMAP_MAX_VISIBLE  20000
+#define ROADMAP_MAX_VISIBLE  30000
 #endif
 
 static struct {
@@ -480,12 +481,12 @@ void roadmap_screen_draw_line (const RoadMapPosition *from,
 
 
 
-static void roadmap_screen_flush_polygons (void) {
+static int roadmap_screen_flush_polygons (void) {
 
    int count = RoadMapScreenObjects.cursor - RoadMapScreenObjects.data;
     
    if (count == 0) {
-       return;
+       return 0;
    }
    
    roadmap_math_rotate_coordinates
@@ -498,10 +499,11 @@ static void roadmap_screen_flush_polygons (void) {
 
    RoadMapScreenObjects.cursor = RoadMapScreenObjects.data;
    RoadMapScreenLinePoints.cursor  = RoadMapScreenLinePoints.data;
+   return 1;
 }
 
 
-static void roadmap_screen_draw_polygons (void) {
+static int roadmap_screen_draw_polygons (void) {
 
    static RoadMapGuiPoint null_point = {0, 0};
 
@@ -510,6 +512,7 @@ static void roadmap_screen_draw_polygons (void) {
    int size;
    int category;
    int *geo_point;
+   int drew = 0;
    RoadMapPosition position;
    RoadMapGuiPoint *graphic_point;
    RoadMapGuiPoint *previous_point;
@@ -522,7 +525,7 @@ static void roadmap_screen_draw_polygons (void) {
 
    RoadMapScreenLastPen = NULL;
 
-   if (! roadmap_is_visible (ROADMAP_SHOW_AREA)) return;
+   if (! roadmap_is_visible (ROADMAP_SHOW_AREA)) return 0;
 
 
    for (i = roadmap_polygon_count() - 1; i >= 0; --i) {
@@ -533,7 +536,7 @@ static void roadmap_screen_draw_polygons (void) {
       if (pen == NULL) continue;
 
       if (RoadMapScreenLastPen != pen) {
-         roadmap_screen_flush_polygons ();
+         drew |= roadmap_screen_flush_polygons ();
          roadmap_canvas_select_pen (pen);
          RoadMapScreenLastPen = pen;
       }
@@ -566,7 +569,7 @@ static void roadmap_screen_draw_polygons (void) {
 
       if (size <= 0) {
 
-         roadmap_screen_flush_polygons ();
+         drew |= roadmap_screen_flush_polygons ();
 
          size = roadmap_polygon_points
                    (i,
@@ -606,7 +609,7 @@ static void roadmap_screen_draw_polygons (void) {
       }
    }
 
-   roadmap_screen_flush_polygons ();
+   return drew + roadmap_screen_flush_polygons ();
 }
 
 
@@ -792,7 +795,7 @@ static int roadmap_screen_draw_square
 
       int iline;
       int square_count = roadmap_square_count();
-      char *on_canvas  = calloc (square_count, sizeof(char));
+      char *on_canvas  = calloc (square_count/8, sizeof(char));
 
       for (iline = first_line; iline <= last_line; ++iline) {
 
@@ -825,14 +828,14 @@ static int roadmap_screen_draw_square
 
             last_real_square = real_square;
 
-            if (on_canvas[real_square]) {
+	    if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
                /* Either it has already been drawn, or it will be soon. */
                continue;
             }
 
             if (roadmap_math_is_visible (&edges)) {
 
-               on_canvas[real_square] = 1;
+	       on_canvas[real_square / 8] |= (1 << (real_square % 8));
                continue;
             }
 
@@ -844,7 +847,7 @@ static int roadmap_screen_draw_square
             }
          }
 
-         if (on_canvas[real_square]) {
+	 if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
             /* Either it has already been drawn, or it will be soon. */
             continue;
          }
@@ -1096,6 +1099,7 @@ static void roadmap_screen_repaint (void) {
     int j;
     int k;
     int count;
+    int drawn;
     int max_pen = roadmap_layer_max_pen();
     static int nomap;
     
@@ -1144,15 +1148,20 @@ static void roadmap_screen_repaint (void) {
 
     for (i = count-1; i >= 0; --i) {
 
+	/* -- nothing to draw at this zoom? -- */
+	if (roadmap_county_get_decluttered(fips[i]))
+	    continue;
+
         /* -- Access the county's database. */
 
         if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
 
+	drawn = 0;
+        drawn += roadmap_screen_draw_polygons ();
+
         /* -- Look for the squares that are currently visible. */
 
         count = roadmap_square_view (in_view, ROADMAP_MAX_VISIBLE);
-
-        roadmap_screen_draw_polygons ();
 
         for (k = 0; k < max_pen; ++k) {
 
@@ -1175,20 +1184,23 @@ static void roadmap_screen_repaint (void) {
                if (!layer_count) continue;
 
                for (j = count - 1; j >= 0; --j) {
-                  roadmap_screen_repaint_square (in_view[j], pen_type,
+                  drawn += roadmap_screen_repaint_square (in_view[j], pen_type,
                     layer_count, layers);
                }
             }
-            roadmap_screen_draw_long_lines (k);
+            drawn += roadmap_screen_draw_long_lines (k);
         }
 
         roadmap_plugin_screen_repaint (max_pen);
         roadmap_screen_flush_lines ();
         roadmap_screen_flush_points ();
         
-        if (!RoadMapScreenDragging) {
+        if (drawn && !RoadMapScreenDragging) {
             roadmap_label_draw_cache (RoadMapScreen3dHorizon == 0);
         }
+
+	if (!drawn)
+	    roadmap_county_set_decluttered(fips[i]);
     }
 
     if (!RoadMapScreenDragging ||

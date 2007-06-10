@@ -67,6 +67,8 @@ typedef struct {
    RoadMapDictionary names;
    RoadMapDictionary states;
 
+   short *county_no_draw;
+
 } RoadMapCountyContext;
 
 static RoadMapCountyContext *RoadMapCountyActive = NULL;
@@ -443,5 +445,61 @@ const RoadMapArea *roadmap_county_get_edges (int fips) {
    }
 
    return &RoadMapCountyActive->county[i].edges;
+}
+
+int roadmap_county_get_decluttered(int fips) {
+
+   int zoom;
+   int i;
+
+   if (RoadMapCountyActive->county_no_draw == NULL) {
+      return 0;
+   }
+
+   i = roadmap_county_search_index (fips);
+   if (i < 0) {
+      return 0;
+   }
+
+   if (RoadMapCountyActive->county_no_draw[i] == 0) {
+      return 0;
+   }
+
+   roadmap_math_get_context(0, &zoom, 0);
+
+   if (zoom >= RoadMapCountyActive->county_no_draw[i]) {
+      return 1;
+   }
+   return 0;
+}
+
+void roadmap_county_set_decluttered(int fips) {
+
+   int zoom;
+   int i;
+
+   i = roadmap_county_search_index (fips);
+   if (i < 0) {
+      return;
+   }
+
+   if (RoadMapCountyActive->county_no_draw == NULL) {
+      RoadMapCountyActive->county_no_draw =
+	 calloc(RoadMapCountyActive->county_count, sizeof(short));
+      roadmap_check_allocated(RoadMapCountyActive->county_no_draw);
+   }
+
+   roadmap_math_get_context(0, &zoom, 0);
+
+   if (RoadMapCountyActive->county_no_draw[i] == 0 ||
+	zoom < RoadMapCountyActive->county_no_draw[i]) {
+
+      /* must be _fully_ visible to mark it declutterable */
+      if (roadmap_math_is_visible
+	    (&RoadMapCountyActive->county[i].edges) == 1) {
+
+	 RoadMapCountyActive->county_no_draw[i] = zoom;
+      }
+   }
 }
 

@@ -38,6 +38,9 @@ int  roadmap_county_by_state(RoadMapString state, int *fips, int count);
 const char *roadmap_county_get_name (int fips);
 const char *roadmap_county_get_state (int fips);
 
+int roadmap_county_get_decluttered(int fips);
+void roadmap_county_set_decluttered(int fips);
+
 int  roadmap_county_count (void);
 
 const RoadMapArea *roadmap_county_get_edges (int fips);
