@@ -120,6 +120,7 @@ static void *roadmap_county_map (roadmap_db *root) {
    }
 
    context->names = NULL; /* Map it later (on the 1st activation. */
+   context->county_no_draw = NULL; /* later */
 
    return context;
 }
