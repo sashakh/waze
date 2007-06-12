@@ -1,8 +1,8 @@
-/* roadmap_gpsd2.h - a module to interact with gpsd using its library.
+/* roadmap_gpsj2me.h - a module to interact with j2me location API.
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2007 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -21,30 +21,24 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- * DESCRIPTION:
- *
- *   This module hides the gpsd library API (version 2).
  */
 
-#ifndef INCLUDE__ROADMAP_GPSD2__H
-#define INCLUDE__ROADMAP_GPSD2__H
+#ifndef INCLUDE__ROADMAP_GPSJ2ME__H
+#define INCLUDE__ROADMAP_GPSJ2ME__H
 
 #include "roadmap_net.h"
 #include "roadmap_gps.h"
 #include "roadmap_input.h"
 
 
-void roadmap_gpsd2_subscribe_to_navigation (RoadMapGpsdNavigation navigation);
+void roadmap_gpsj2me_subscribe_to_navigation (RoadMapGpsdNavigation navigation);
 
-void roadmap_gpsd2_subscribe_to_satellites (RoadMapGpsdSatellite satellite);
+void roadmap_gpsj2me_subscribe_to_satellites (RoadMapGpsdSatellite satellite);
 
-void roadmap_gpsd2_subscribe_to_dilution   (RoadMapGpsdDilution dilution);
+void roadmap_gpsj2me_subscribe_to_dilution   (RoadMapGpsdDilution dilution);
 
+int roadmap_gpsj2me_decode (void *user_context,
+                            void *decoder_context, char *sentence, int length);
 
-RoadMapSocket roadmap_gpsd2_connect (const char *name);
-
-int roadmap_gpsd2_decode (void *user_context,
-                          void *decoder_context, char *sentence, int length);
-
-#endif // INCLUDE__ROADMAP_GPSD2__H
+#endif // INCLUDE__ROADMAP_GPSJ2ME__H
 

@@ -51,6 +51,7 @@
 #include "roadmap_gps.h"
 
 #ifdef J2ME
+#include "roadmap_gpsj2me.h"
 #include <javax/microedition/midlet.h>
 #include <gps_manager.h>
 #endif
@@ -93,6 +94,7 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 #define ROADMAP_GPS_NMEA     1
 #define ROADMAP_GPS_GPSD2    2
 #define ROADMAP_GPS_OBJECT   3
+#define ROADMAP_GPS_J2ME     4
 static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 
 
@@ -152,7 +154,7 @@ static void roadmap_gps_update_reception (void) {
    if (!roadmap_gps_active ()) {
       new_state = GPS_RECEPTION_NA;
 
-   } else if (RoadMapGpsActiveSatelliteCount == 0) {
+   } else if (RoadMapLastKnownStatus != 'A') {
       new_state = GPS_RECEPTION_NONE;
 
    } else if ((RoadMapGpsActiveSatelliteCount <= 3) ||
@@ -470,7 +472,6 @@ static void roadmap_gps_nmea (void) {
 /* End of NMEA protocol support ---------------------------------------- */
 
 
-#ifndef J2ME
 /* GPSD (or other) protocol support ------------------------------------ */
 
 static void roadmap_gps_navigation (char status,
@@ -600,7 +601,6 @@ static void roadmap_gps_object_monitor (RoadMapDynamicString id) {
 }
 
 /* End of OBJECT protocol support -------------------------------------- */
-#endif
 
 void roadmap_gps_initialize (void) {
 
@@ -861,6 +861,7 @@ void roadmap_gps_open (void) {
             url = mgr_url;
          }
       }
+      RoadMapGpsProtocol = ROADMAP_GPS_J2ME;
       RoadMapGpsLink.os.serial = roadmap_serial_open (url, "r", 0);
 
       if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
@@ -908,6 +909,13 @@ void roadmap_gps_open (void) {
          roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_navigation);
          roadmap_gpsd2_subscribe_to_satellites (roadmap_gps_satellites);
          roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
+         break;
+#else
+      case ROADMAP_GPS_J2ME:
+
+         roadmap_gpsj2me_subscribe_to_navigation (roadmap_gps_navigation);
+         //roadmap_gpsj2me_subscribe_to_satellites (roadmap_gps_satellites);
+         //roadmap_gpsj2me_subscribe_to_dilution   (roadmap_gps_dilution);
          break;
 #endif	 
 
@@ -984,6 +992,13 @@ void roadmap_gps_input (RoadMapIO *io) {
          decode.decoder = roadmap_gpsd2_decode;
          decode.decoder_context = NULL;
          break;
+#else
+      case ROADMAP_GPS_J2ME:
+
+         decode.decoder = roadmap_gpsj2me_decode;
+         decode.decoder_context = NULL;
+         decode.is_binary = 1;
+         break;
 #endif	 
 
       case ROADMAP_GPS_OBJECT:
@@ -1054,6 +1069,7 @@ int  roadmap_gps_is_nmea (void) {
       case ROADMAP_GPS_NMEA:              return 1;
       case ROADMAP_GPS_GPSD2:             return 0;
       case ROADMAP_GPS_OBJECT:            return 0;
+      case ROADMAP_GPS_J2ME:              return 0;
    }
 
    return 0; /* safe bet in case of something wrong. */
@@ -1070,7 +1086,7 @@ static void roadmap_gps_detect_finalize(void){
 }
 
 
-static void roadmap_gps_detect_periodic(void){
+static void roadmap_gps_detect_periodic(void) {
 
    static const int *serial_ports;
    static const char **speeds;

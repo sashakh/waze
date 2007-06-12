@@ -51,7 +51,8 @@
 
 typedef void (*RoadMapInputLogger)  (const char *data);
 typedef int  (*RoadMapInputDecode)  (void *user_context,
-                                     void *decoder_context, char *line);
+                                     void *decoder_context, char *line,
+				     int length);
 
 typedef struct roadmap_input_context {
 
@@ -61,6 +62,7 @@ typedef struct roadmap_input_context {
 
    void       *user_context;
    void       *decoder_context;
+   int         is_binary;
 
    RoadMapInputLogger  logger;
    RoadMapInputDecode  decoder;

@@ -30,7 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
+#if ! defined (_WIN32) && ! defined (J2ME)
 #include <errno.h>
 #endif
 
@@ -85,6 +85,7 @@ int roadmap_input (RoadMapInputContext *context) {
 
    int result;
    int received;
+   int is_binary = context->is_binary;
 
    char *line_start;
    char *data_end;
@@ -109,7 +110,8 @@ int roadmap_input (RoadMapInputContext *context) {
          context->cursor += received;
       }
    }
-   context->data[context->cursor] = 0;
+
+   if (!is_binary) context->data[context->cursor] = 0;
 
 
    /* Remove the leading end of line characters, if any.
@@ -117,7 +119,10 @@ int roadmap_input (RoadMapInputContext *context) {
     */
    line_start = context->data;
    data_end   = context->data + context->cursor;
-   while ((line_start < data_end) && (*line_start < ' ')) ++line_start;
+
+   if (!is_binary) {
+      while ((line_start < data_end) && (*line_start < ' ')) ++line_start;
+   }
 
 
    /* process each complete line in this buffer. */
@@ -126,58 +131,75 @@ int roadmap_input (RoadMapInputContext *context) {
 
    while (line_start < data_end) {
 
-      char *new_line;
-      char *carriage_return;
-      char *line_end;
+      int cur_res;
+      char *line_end = data_end;
+
+      if (!is_binary) {
+         char *new_line;
+         char *carriage_return;
 
 
-      /* Find the first end of line character coming after this line. */
+         /* Find the first end of line character coming after this line. */
 
-      new_line = strchr (line_start, '\n');
-      carriage_return = strchr (line_start, '\r');
+         new_line = strchr (line_start, '\n');
+         carriage_return = strchr (line_start, '\r');
 
-      if (new_line == NULL) {
-         line_end = carriage_return;
-      } else if (carriage_return == NULL) {
-         line_end = new_line;
-      } else if (new_line < carriage_return) {
-         line_end = new_line;
-      } else {
-         line_end = carriage_return;
-      }
-
-      if (line_end == NULL) {
-
-         /* This line is not complete: shift the remaining data
-          * to the beginning of the buffer and then stop.
-          */
-
-         if (line_start + strlen(line_start) != data_end) {
-            roadmap_log (ROADMAP_WARNING, "GPS input has null characters.");
-            roadmap_input_shift_to_next_line
-                (context, line_start + strlen(line_start) + 1);
-
-            line_start = context->data;
-            data_end   = context->data + context->cursor;
-            while ((line_start < data_end) && (*line_start < ' ')) ++line_start;
-            continue;
+         if (new_line == NULL) {
+            line_end = carriage_return;
+         } else if (carriage_return == NULL) {
+            line_end = new_line;
+         } else if (new_line < carriage_return) {
+            line_end = new_line;
          } else {
-            roadmap_input_shift_to_next_line (context, line_start);
+            line_end = carriage_return;
          }
-         return result;
+
+         if (line_end == NULL) {
+
+            /* This line is not complete: shift the remaining data
+             * to the beginning of the buffer and then stop.
+             */
+
+            if (line_start + strlen(line_start) != data_end) {
+               roadmap_log (ROADMAP_WARNING, "GPS input has null characters.");
+               roadmap_input_shift_to_next_line
+                  (context, line_start + strlen(line_start) + 1);
+
+               line_start = context->data;
+               data_end   = context->data + context->cursor;
+               while ((line_start < data_end) && (*line_start < ' ')) ++line_start;
+               continue;
+            } else {
+               roadmap_input_shift_to_next_line (context, line_start);
+            }
+            return result;
+         }
+
+         /* Process this line. */
+
+         *line_end = 0; /* Separate this line from the next. */
       }
-
-
-      /* Process this line. */
-
-      *line_end = 0; /* Separate this line from the next. */
 
       if (context->logger != NULL) {
          context->logger (line_start);
       }
-      result |= context->decoder (context->user_context,
-                                  context->decoder_context, line_start);
 
+      cur_res = context->decoder (context->user_context,
+                                  context->decoder_context, line_start,
+                                  line_end - line_start);
+
+      if (is_binary) {
+         line_start += cur_res;
+         context->cursor -= cur_res;
+
+         if (context->cursor) {
+            memmove (context->data, line_start, context->cursor);
+         }
+
+         return 0;
+      }
+
+      result |= cur_res;
 
       /* Move to the next line. */
 

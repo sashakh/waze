@@ -30,7 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifndef _WIN32
+#if ! defined (_WIN32) && ! defined (J2ME)
 #include <errno.h>
 #endif
 
@@ -97,6 +97,11 @@ static int dec2bin (char c) {
 static time_t roadmap_nmea_decode_time (const char *hhmmss,
                                         const char *ddmmyy) {
 
+#ifdef J2ME
+  /* FIXME fix J2ME time decoding */
+  return 0;
+#else
+
    static struct tm tm;
 
 
@@ -140,6 +145,7 @@ static time_t roadmap_nmea_decode_time (const char *hhmmss,
    /* FIXME: th time zone might change if we are moving !. */
 
    return timegm(&tm);
+#endif
 }
 
 
@@ -716,7 +722,7 @@ static int roadmap_nmea_call (void *user_context,
 
 
 int roadmap_nmea_decode (void *user_context,
-                         void *decoder_context, char *sentence) {
+                         void *decoder_context, char *sentence, int length) {
 
    RoadMapNmeaAccount account = (RoadMapNmeaAccount) decoder_context;
 

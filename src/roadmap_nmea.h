@@ -169,7 +169,7 @@ void roadmap_nmea_subscribe (const char *vendor, /* NULL means standard. */
 
 
 int roadmap_nmea_decode (void *user_context,
-                         void *decoder_context, char *sentence);
+                         void *decoder_context, char *sentence, int length);
 
 #endif // INCLUDED__ROADMAP_NMEA__H
 

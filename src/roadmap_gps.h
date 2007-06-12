@@ -135,5 +135,29 @@ void roadmap_gps_shutdown (void);
 
 void roadmap_gps_detect_receiver (void);
 
+/* Generic protocols */
+#define ROADMAP_NO_VALID_DATA    -512000000
+
+typedef void (*RoadMapGpsdNavigation) (char status,
+                                       int gps_time,
+                                       int latitude,
+                                       int longitude,
+                                       int altitude,
+                                       int speed,
+                                       int steering);
+
+typedef void (*RoadMapGpsdSatellite)  (int sequence,
+                                       int id,
+                                       int elevation,
+                                       int azimuth,
+                                       int strength,
+                                       int active);
+
+typedef void (*RoadMapGpsdDilution )  (int dimension,
+                                       double position,
+                                       double horizontal,
+                                       double vertical);
+
+
 #endif // INCLUDE__ROADMAP_GPS__H
 
