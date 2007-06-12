@@ -292,6 +292,8 @@ static RoadMapTripPoint *roadmap_trip_update
 }
 
 
+/* TODO remove the dialog stuff to another file */
+#ifndef J2ME
 static void roadmap_trip_dialog_cancel (const char *name, void *data) {
     
     roadmap_dialog_hide (name);
@@ -449,6 +451,7 @@ static FILE *roadmap_trip_fopen (const char *name, const char *mode) {
     }
     return file;
 }
+#endif
 
 
 static void roadmap_trip_set_point_focus (RoadMapTripPoint *point) {
@@ -689,7 +692,9 @@ void roadmap_trip_set_point (const char *name,
                              const RoadMapPosition *position) {
 
     if (name == NULL) {
+#ifndef J2ME
         roadmap_trip_set_dialog (position);
+#endif
     } else {
         roadmap_trip_update (name, position, NULL, "Waypoint");
     }
@@ -743,11 +748,13 @@ void roadmap_trip_remove_point (const char *name) {
     
     RoadMapTripPoint *result;
 
+#ifndef J2ME
     if (name == NULL) {
         roadmap_trip_remove_dialog ();
         return;
     }
-    
+#endif
+
     result = roadmap_trip_search (name);
     
     if (result == NULL) {
@@ -1061,6 +1068,7 @@ void roadmap_trip_initialize (void) {
 }
 
 
+#ifndef J2ME
 int roadmap_trip_load (const char *name, int silent) {
     
     FILE *file;
@@ -1200,5 +1208,5 @@ void roadmap_trip_save_screenshot (void) {
    roadmap_canvas_save_screenshot (picture_name);
    free (picture_name);
 }
-
+#endif
 

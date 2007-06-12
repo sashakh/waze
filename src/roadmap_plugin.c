@@ -306,8 +306,12 @@ int roadmap_plugin_override_line (int line, int cfcc, int fips) {
 
    int i;
 
+#ifdef J2ME
+   return 0;
+#else
    return hooks[1]->override_line (line, cfcc, fips);
-
+#endif   
+#if 0
    for (i=1; i<=PluginCount; i++) {
 
       RoadMapPluginHooks *hooks = get_hooks (i);
@@ -322,6 +326,7 @@ int roadmap_plugin_override_line (int line, int cfcc, int fips) {
    }
 
    return 0;
+#endif   
 }
 
 

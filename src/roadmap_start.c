@@ -588,6 +588,21 @@ static const char *RoadMapStartCfgActions[] = {
 #endif
 
 
+#ifdef J2ME
+static const char *RoadMapStartMenu[] = {
+   "about",
+   "address",
+   "gps",
+   "hold",
+   "toggleview",
+   "toggleorientation",
+   "detectreceiver",
+   "destination",
+   "quit",
+   NULL
+};
+#else
+
 static const char *RoadMapStartMenu[] = {
 
    ROADMAP_MENU "File",
@@ -704,6 +719,7 @@ static const char *RoadMapStartMenu[] = {
 
    NULL
 };
+#endif
 
 
 static char const *RoadMapStartToolbar[] = {
@@ -1271,12 +1287,18 @@ void roadmap_start (int argc, char **argv) {
    roadmap_gps_open ();
 
    roadmap_locator_declare (&roadmap_start_no_download);
+
+#ifdef J2ME
+   roadmap_main_set_periodic (750, roadmap_start_periodic);
+#else
    roadmap_main_set_periodic (200, roadmap_start_periodic);
+#endif
 }
 
 
 void roadmap_start_exit (void) {
     
+    roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
     roadmap_plugin_shutdown ();
     roadmap_driver_shutdown ();
     roadmap_sound_shutdown ();
@@ -1288,6 +1310,7 @@ void roadmap_start_exit (void) {
     roadmap_gps_shutdown ();
     roadmap_res_shutdown ();
     editor_main_shutdown ();
+    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 }
 
 

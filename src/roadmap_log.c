@@ -120,7 +120,20 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 
    int i;
 
-#ifndef _WIN32
+#ifdef J2ME
+   fprintf (file, "%c%s %s, line %d ",
+         saved, category->prefix, source, line);
+
+#elif defined (_WIN32)
+
+   SYSTEMTIME st;
+   GetSystemTime(&st);
+
+   fprintf (file, "%d/%d %d:%d:%d %c%s %s, line %d ",
+         st.wDay, st.wMonth, st.wHour, st.wMinute, st.wSecond,
+         saved, category->prefix, source, line);
+
+#else
    time_t now;
    struct tm *tms;
 
@@ -130,21 +143,13 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
    fprintf (file, "%d:%d:%d %c%s %s, line %d ",
          tms->tm_hour, tms->tm_min, tms->tm_sec,
          saved, category->prefix, source, line);
-#else
-
-   SYSTEMTIME st;
-	GetSystemTime(&st);
-
-   fprintf (file, "%d/%d %d:%d:%d %c%s %s, line %d ",
-         st.wDay, st.wMonth, st.wHour, st.wMinute, st.wSecond,
-         saved, category->prefix, source, line);
-
 #endif
    if (!category->show_stack && (RoadMapLogStackCursor > 0)) {
       fprintf (file, "(%s): ", RoadMapLogStack[RoadMapLogStackCursor-1]);
    }
+
    vfprintf(file, format, ap);
-   fprintf (file, "\n");
+   fprintf (file, " \n");
 
    if (category->show_stack && RoadMapLogStackCursor > 0) {
 
@@ -183,6 +188,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    va_start(ap, format);
 
+#ifndef J2ME
    if (category->save_to_file) {
 
       if (file == NULL) {
@@ -202,6 +208,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
          saved = 's';
       }
    }
+#endif
 
    roadmap_log_one (category, stderr, saved, source, line, format, ap);
 
