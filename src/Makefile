@@ -210,11 +210,11 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/db/editor_route.c \
              editor/db/editor_marker.c \
              editor/db/editor_dictionary.c \
-				 buildmap_dbwrite.c \
-				 buildmap_metadata.c \
-				 buildmap_messages.c \
-				 editor/db/editor_override.c \
-				 editor/export/editor_export.c \
+             buildmap_dbwrite.c \
+             buildmap_metadata.c \
+             buildmap_messages.c \
+             editor/db/editor_override.c \
+             editor/export/editor_export.c \
              editor/export/editor_download.c \
              editor/export/editor_upload.c \
              editor/export/editor_sync.c \
@@ -225,17 +225,17 @@ RMPLUGINSRCS=roadmap_copy.c \
              editor/track/editor_track_unknown.c \
              editor/track/editor_track_known.c \
              editor/track/editor_gps_data.c \
-				 editor/db/editor_db.c \
-				 navigate/navigate_main.c \
-				 navigate/navigate_instr.c \
-				 navigate/navigate_bar.c \
-				 navigate/navigate_zoom.c \
-				 navigate/navigate_plugin.c \
-				 navigate/navigate_traffic.c \
-				 navigate/navigate_graph.c \
-				 navigate/navigate_cost.c \
-				 navigate/navigate_route_astar.c \
-				 navigate/fib-1.1/fib.c \
+             editor/db/editor_db.c \
+             navigate/navigate_main.c \
+             navigate/navigate_instr.c \
+             navigate/navigate_bar.c \
+             navigate/navigate_zoom.c \
+             navigate/navigate_plugin.c \
+             navigate/navigate_traffic.c \
+             navigate/navigate_graph.c \
+             navigate/navigate_cost.c \
+             navigate/navigate_route_astar.c \
+             navigate/fib-1.1/fib.c \
 
 RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
 
@@ -293,16 +293,16 @@ BUSRCS=buildus_main.c \
 BUOBJS=$(BUSRCS:.c=.o)
 
 SSD_WIDGETS_SRCS=ssd/ssd_dialog.c \
-					  ssd/ssd_widget.c \
-					  ssd/ssd_container.c \
-					  ssd/ssd_text.c \
-					  ssd/ssd_entry.c \
-					  ssd/ssd_button.c \
-					  ssd/ssd_list.c \
-					  ssd/ssd_keyboard.c \
-					  ssd/ssd_menu.c \
-					  ssd/ssd_messagebox.c \
-					  ssd/ssd_choice.c \
+                 ssd/ssd_widget.c \
+                 ssd/ssd_container.c \
+                 ssd/ssd_text.c \
+                 ssd/ssd_entry.c \
+                 ssd/ssd_button.c \
+                 ssd/ssd_list.c \
+                 ssd/ssd_keyboard.c \
+                 ssd/ssd_menu.c \
+                 ssd/ssd_messagebox.c \
+                 ssd/ssd_choice.c \
 
 SSD_WIDGETS_OBJS=$(SSD_WIDGETS_SRCS:.c=.o)
 
