@@ -1436,8 +1436,8 @@ int  roadmap_math_get_distance_from_segment
 
       /* The equation of the perpendicular is: y = - (x / a). */
 
-      x3 = 0.0 - (b / (a + (1.0 / a)));
       y3 = b / ((a * a) + 1.0);
+      x3 = -a * y3;
 
       if (intersection != NULL) {
          intersection->longitude =
