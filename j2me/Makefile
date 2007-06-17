@@ -6,12 +6,12 @@
 ## Author:        Simon Kagstrom <ska@bth.se>
 ## Description:   Generic Makefile
 ##
-## $Id: Makefile,v 1.2 2007/06/12 06:56:53 eshabtai Exp $
+## $Id: Makefile,v 1.3 2007/06/17 16:43:42 eshabtai Exp $
 ##
 ######################################################################
 SUBDIRS = c
 RESOURCES=res/program.data.bin res/lang res/preferences res/schema res/sprites res/objects res/objects_wide res/roadmap-24.png res/welcome.png res/200.mp3 res/800.mp3 res/Arrive.mp3 res/KeepLeft.mp3 res/KeepRight.mp3 res/m.mp3 res/rec_end.mp3 res/rec_start.mp3 res/Straight.mp3 res/TurnLeft.mp3 res/TurnRight.mp3 res/within.mp3 \
-res/usc77001.rdm
+#res/usc77001.rdm
 #RESOURCES=res/program.data.bin res/preferences res/schema res/sprites res/objects res/objects_wide res/usdir.rdm res/usc77001.rdm
 TARGET   =src/CompiledProgram.class FreeMap.jar FreeMap.jad
 
