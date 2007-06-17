@@ -321,14 +321,14 @@ static int roadmap_math_check_point_in_segment (const RoadMapPosition *from,
 
    if (!roadmap_math_point_is_visible (point)) return count;
 
-   if ( (((from->longitude >= point->longitude) &&
-           (point->longitude >= to->longitude))    ||
-         ((from->longitude <= point->longitude) &&
-          (point->longitude <= to->longitude)))       &&
-        (((from->latitude >= point->latitude)   &&
-          (point->latitude >= to->latitude))       ||
-         ((from->latitude <= point->latitude)   &&
-          (point->latitude <= to->latitude))) ) {
+   if ( (((from->longitude >= (point->longitude - 1)) &&
+           ((point->longitude + 1) >= to->longitude))    ||
+         ((from->longitude <= (point->longitude + 1)) &&
+          ((point->longitude - 1) <= to->longitude)))       &&
+        (((from->latitude >= (point->latitude - 1))   &&
+          ((point->latitude + 1) >= to->latitude))       ||
+         ((from->latitude <= (point->latitude + 1))   &&
+          ((point->latitude - 1) <= to->latitude))) ) {
 
       intersections[count] = *point;
       count++;
@@ -395,28 +395,28 @@ static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
    } else {
       
       point.latitude = RoadMapContext.focus.north;
-      point.longitude = (int) ((point.latitude - b) / a + 0.5);
+      point.longitude = (int) ((point.latitude - b) / a);
       count =
          roadmap_math_check_point_in_segment
                (from, to, &point, count, intersections);
       if (count == max_intersections) return count;
 
       point.latitude = RoadMapContext.focus.south;
-      point.longitude = (int) ((point.latitude - b) / a + 0.5);
+      point.longitude = (int) ((point.latitude - b) / a);
       count =
          roadmap_math_check_point_in_segment
                (from, to, &point, count, intersections);
       if (count == max_intersections) return count;
 
       point.longitude = RoadMapContext.focus.west;
-      point.latitude = (int) (b + a * point.longitude + 0.5);
+      point.latitude = (int) (b + a * point.longitude);
       count =
          roadmap_math_check_point_in_segment
                (from, to, &point, count, intersections);
       if (count == max_intersections) return count;
 
       point.longitude = RoadMapContext.focus.east;
-      point.latitude = (int) (b + a * point.longitude + 0.5);
+      point.latitude = (int) (b + a * point.longitude);
       count =
          roadmap_math_check_point_in_segment
                (from, to, &point, count, intersections);
