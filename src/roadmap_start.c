@@ -1288,11 +1288,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_locator_declare (&roadmap_start_no_download);
 
-#ifdef J2ME
-   roadmap_main_set_periodic (750, roadmap_start_periodic);
-#else
    roadmap_main_set_periodic (200, roadmap_start_periodic);
-#endif
 }
 
 
@@ -1310,7 +1306,7 @@ void roadmap_start_exit (void) {
     roadmap_gps_shutdown ();
     roadmap_res_shutdown ();
     editor_main_shutdown ();
-    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
+    //roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 }
 
 
