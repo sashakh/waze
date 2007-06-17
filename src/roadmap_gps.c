@@ -327,7 +327,9 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
 static void roadmap_gps_vtg (void *context, const RoadMapNmeaFields *fields) {
    RoadMapGpsReceivedPosition.speed = fields->vtg.speed;
-   RoadMapGpsReceivedPosition.steering = fields->vtg.steering;
+   if (fields->vtg.speed > roadmap_gps_speed_accuracy()) {
+      RoadMapGpsReceivedPosition.steering = fields->vtg.steering;
+   }
 }
 
 
@@ -861,7 +863,13 @@ void roadmap_gps_open (void) {
             url = mgr_url;
          }
       }
-      RoadMapGpsProtocol = ROADMAP_GPS_J2ME;
+
+      if (!strchr(url, ':')) {
+         /* Location API protocol */
+         RoadMapGpsProtocol = ROADMAP_GPS_J2ME;
+      } else {
+         RoadMapGpsProtocol = ROADMAP_GPS_NMEA;
+      }
       RoadMapGpsLink.os.serial = roadmap_serial_open (url, "r", 0);
 
       if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
@@ -983,6 +991,7 @@ void roadmap_gps_input (RoadMapIO *io) {
 
          decode.decoder = roadmap_nmea_decode;
          decode.decoder_context = (void *)RoadMapGpsNmeaAccount;
+         decode.is_binary = 0;
 
          break;
 
@@ -991,6 +1000,7 @@ void roadmap_gps_input (RoadMapIO *io) {
 
          decode.decoder = roadmap_gpsd2_decode;
          decode.decoder_context = NULL;
+         decode.is_binary = 0;
          break;
 #else
       case ROADMAP_GPS_J2ME:
@@ -1223,7 +1233,6 @@ void roadmap_gps_detect_receiver (void) {
    const char *wait_msg = roadmap_lang_get("Please wait...");
    const char *not_found_msg = roadmap_lang_get("GPS Receiver not found. Make sure your receiver is connected and turned on.");
 
-   printf("m: %d\n", m);
    NOPH_GpsManager_searchGps(gps_mgr, m, wait_msg, not_found_msg);
 }
 #else

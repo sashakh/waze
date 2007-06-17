@@ -89,17 +89,14 @@ int roadmap_gpsj2me_decode (void *user_context,
                             void *decoder_context, char *data, int length) {
 
    struct GpsData *d = (struct GpsData *)data;
-   char status;
    int altitude;
 
    /* default value (invalid value): */
-   status = 'V';
 
-   status = 'A';
    altitude  = ROADMAP_NO_VALID_DATA;
 
    RoadmapGpsJ2meNavigationListener
-         (status, d->time, d->latitude, d->longitude, altitude, d->speed, d->azymuth);
+         ((char)d->status, d->time, d->latitude, d->longitude, altitude, d->speed, d->azymuth);
 
    return length;
 }
