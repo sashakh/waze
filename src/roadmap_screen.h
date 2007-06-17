@@ -96,6 +96,8 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
 
 int roadmap_screen_fast_refresh (void);
 
+int roadmap_screen_height (void);
+
 #define DBG_TIME_FULL 0
 #define DBG_TIME_DRAW_SQUARE 1
 #define DBG_TIME_DRAW_ONE_LINE 2
