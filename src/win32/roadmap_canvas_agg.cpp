@@ -176,7 +176,7 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
    
    memset(bmp_info, 0, sizeof(BITMAPINFO) + sizeof(RGBQUAD)*3);
 
-   if ((RoadMapDrawingBuffer != NULL) && IsWindowVisible(tool_bar)) {
+   if (RoadMapDrawingBuffer != NULL) {
       
       DeleteObject(SelectObject(RoadMapDrawingBuffer, OldBitmap));
       DeleteDC(RoadMapDrawingBuffer);
@@ -198,8 +198,8 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
    RoadMapDrawingBuffer = CreateCompatibleDC(hdc);
    
    bmp_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
-   bmp_info->bmiHeader.biWidth = ClientRect.right - ClientRect.left + 1;
-   bmp_info->bmiHeader.biHeight = ClientRect.bottom - ClientRect.top + 1; 
+   bmp_info->bmiHeader.biWidth = ClientRect.right;
+   bmp_info->bmiHeader.biHeight = ClientRect.bottom; 
    bmp_info->bmiHeader.biPlanes = 1; 
    bmp_info->bmiHeader.biBitCount = 16; 
    bmp_info->bmiHeader.biCompression = BI_BITFIELDS; 
@@ -221,10 +221,10 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
       0 
       ); 
    
-   int stride = (((ClientRect.right - ClientRect.left + 1) * 2 + 3) >> 2) << 2;
+   int stride = ((ClientRect.right * 2 + 3) >> 2) << 2;
    roadmap_canvas_agg_configure((unsigned char*)buf,
-      ClientRect.right - ClientRect.left + 1,
-      ClientRect.bottom - ClientRect.top + 1,
+      ClientRect.right,
+      ClientRect.bottom,
       -stride);
       
    OldBitmap = (HBITMAP)SelectObject(RoadMapDrawingBuffer, bmp);
