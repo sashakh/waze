@@ -436,6 +436,9 @@ void editor_trkseg_set_line (int trkseg, int line_id, int plugin_id) {
       assert (track != NULL);
       if (track == NULL) return;
 
+      if (track->plugin_id == ROADMAP_PLUGIN_ID) {
+         track->flags |= ED_TRKSEG_LOW_CONFID;
+      }
       track->line_id = line_id;
       track->plugin_id = plugin_id;
 

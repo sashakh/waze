@@ -349,6 +349,7 @@ int editor_line_copy (int line, int cfcc, int fips) {
    editor_override_line_get_trksegs (line, &first, &last);
 
    if (first != -1) {
+      editor_trkseg_set_line (first, line_id, EditorPluginID);
       line_db->last_trkseg = last;
       editor_trkseg_connect_roads (j, first);
    } else {

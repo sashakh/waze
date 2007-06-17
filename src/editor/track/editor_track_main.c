@@ -693,7 +693,7 @@ static void track_rec_locate(time_t gps_time,
       track_rec_locate_point (point_id, point_type);
    }
 
-   if ((point_type == POINT_GAP) && cur_active_line) {
+   if ((point_type == POINT_GAP) && cur_active_line && (points_count > 2)) {
       TrackNewSegment segment;
 
       segment.point_id = points_count - 1;

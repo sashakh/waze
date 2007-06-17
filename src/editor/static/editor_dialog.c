@@ -46,6 +46,7 @@
 #include "roadmap_layer.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
+#include "roadmap_line_speed.h"
 #include "roadmap_shape.h"
 #include "roadmap_square.h"
 #include "roadmap_locator.h"
@@ -976,7 +977,7 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
          LineRouteTime to_cross_time;
 
          line_length = roadmap_line_length (line->line.line_id);
-         if (roadmap_line_route_get_cross_times
+         if (roadmap_line_speed_get_cross_times
                (line->line.line_id, &from_cross_time, &to_cross_time) == -1) {
             time = -1; //TODO get real speed
          } else {
@@ -1002,8 +1003,8 @@ void editor_segments_properties (SelectedLine *lines, int lines_count) {
 #ifdef SSD
    if (selected_lines->lines[0].line.plugin_id == ROADMAP_PLUGIN_ID) {
       int line = selected_lines->lines[0].line.line_id;
-      int avg_speed = roadmap_line_route_get_avg_speed (line, 0);
-      int cur_speed = roadmap_line_route_get_speed (line, 0);
+      int avg_speed = roadmap_line_speed_get_avg_speed (line, 0);
+      int cur_speed = roadmap_line_speed_get_speed (line, 0);
 
       snprintf (str, sizeof(str), "%d (%d)",
                 avg_speed, cur_speed);

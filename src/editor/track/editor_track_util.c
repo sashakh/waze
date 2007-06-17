@@ -339,6 +339,7 @@ static int find_split_point (PluginLine *line,
       RoadMapPosition intersection;
       int i;
 
+      start_point_id = points_count-1;
       for (i=points_count-1;
             (i > (points_count-MAX_RECENT_POINTS)) && (i > 0);
             i--) {
@@ -797,7 +798,7 @@ int editor_track_util_connect_roads (PluginLine *from,
 
    if ((from_point == -1) && (to_point == -1)) {
 
-      if (roads_connected) {
+      if (roads_connected && !roadmap_plugin_same_line(from, to)) {
          editor_log (ROADMAP_INFO,
                "Neither lines have a node near connection but the roads are connected. We need a connection road.");
 

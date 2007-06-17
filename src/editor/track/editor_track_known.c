@@ -388,6 +388,8 @@ int editor_track_known_end_segment (PluginLine *previous_line,
       flags |= ED_TRKSEG_LOW_CONFID;
    }
 
+   if (trkseg_plugin_id != ROADMAP_PLUGIN_ID) flags |= ED_TRKSEG_LOW_CONFID;
+
    trkseg =
       editor_track_util_create_trkseg
          (trkseg_line_id, trkseg_plugin_id, 0, last_point_id, flags);

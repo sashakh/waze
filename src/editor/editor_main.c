@@ -50,7 +50,7 @@
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.10.0 rc1";
+const char *EDITOR_VERSION = "0.10.0 rc2";
 
 void editor_main_check_map (void) {
 
