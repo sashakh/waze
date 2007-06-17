@@ -38,10 +38,6 @@ typedef struct {  /* table line_route */
 
    unsigned char from_flags;
    unsigned char to_flags;
-   unsigned char from_avg_speed;
-   unsigned char to_avg_speed;
-   unsigned short from_speed_ref;
-   unsigned short to_speed_ref;
    unsigned char from_turn_res;
    unsigned char to_turn_res;
 

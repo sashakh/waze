@@ -26,10 +26,6 @@
  *   int  buildmap_line_route_add
  *       (unsigned char from_flags,
  *        unsigned char to_flags,
- *        unsigned char from_avg_speed,
- *        unsigned char to_avg_speed,
- *        unsigned short from_speed_ref,
- *        unsigned short to_speed_ref,
  *        int line);
  *   void buildmap_line_route_sort (void);
  *   int  buildmap_line_route_count (void);
@@ -64,11 +60,8 @@ typedef struct buildmap_line_route_struct BuildMapRoute;
 static int RoutesCount = 0;
 static BuildMapRoute *Routes[BUILDMAP_BLOCK] = {NULL};
 
-static int RouteAddCount = 0;
-
 void buildmap_line_route_initialize (void) {
 
-   RouteAddCount = 0;
    RoutesCount = 0;
 }
 
@@ -76,17 +69,11 @@ void buildmap_line_route_initialize (void) {
 int  buildmap_line_route_add
         (unsigned char from_flags,
          unsigned char to_flags,
-         unsigned char from_avg_speed,
-         unsigned char to_avg_speed,
-         unsigned short from_speed_ref,
-         unsigned short to_speed_ref,
          int line) {
 
    int block;
    int offset;
    BuildMapRoute *this_route;
-
-   RouteAddCount += 1;
 
    block = line / BUILDMAP_BLOCK;
    offset = line % BUILDMAP_BLOCK;
@@ -105,10 +92,6 @@ int  buildmap_line_route_add
 
    this_route->record.from_flags = from_flags;
    this_route->record.to_flags = to_flags;
-   this_route->record.from_avg_speed = from_avg_speed;
-   this_route->record.to_avg_speed = to_avg_speed;
-   this_route->record.to_speed_ref = to_speed_ref;
-   this_route->record.from_speed_ref = from_speed_ref;
 
    this_route->line = line;
 
@@ -231,7 +214,5 @@ void buildmap_line_route_reset (void) {
    }
 
    RoutesCount = 0;
-
-   RouteAddCount = 0;
 }
 

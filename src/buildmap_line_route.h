@@ -30,10 +30,6 @@ void buildmap_line_route_initialize (void);
 int  buildmap_line_route_add
        (unsigned char from_flags,
         unsigned char to_flags,
-        unsigned char from_avg_speed,
-        unsigned char to_avg_speed,
-        unsigned short from_speed_ref,
-        unsigned short to_speed_ref,
         int line);
 
 void buildmap_line_route_sort (void);

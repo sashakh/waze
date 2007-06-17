@@ -35,9 +35,20 @@
 
 typedef struct {
 
+   unsigned char from_avg_speed;
+   unsigned char to_avg_speed;
+} RoadMapLineSpeedAvg;
+
+typedef struct {
+   unsigned short from_speed_ref;
+   unsigned short to_speed_ref;
+} RoadMapLineSpeed;
+
+typedef struct {
+
    unsigned char speed;
    unsigned char time_slot;
-} RoadMapLineSpeed;
+} RoadMapLineSpeedRef;
 
 #endif // _ROADMAP_DB_LINE_SPEED__H_
 

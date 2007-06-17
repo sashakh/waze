@@ -27,7 +27,7 @@
 #include "roadmap_db_line_speed.h"
 struct buildmap_line_speeds_struct {
 
-   RoadMapLineSpeed *speeds;
+   RoadMapLineSpeedRef *speeds;
    int count;
 };
 
@@ -37,10 +37,13 @@ BuildMapSpeed *buildmap_line_speed_new (void);
 void buildmap_line_speed_free (BuildMapSpeed *speed);
 void buildmap_line_speed_add_slot (BuildMapSpeed *speeds, int time_slot,
                                    int speed);
-unsigned short buildmap_line_speed_get_ref (int line, int against_dir);
 
 void buildmap_line_speed_initialize (void);
 int  buildmap_line_speed_add (BuildMapSpeed *speeds, int line, int opposite);
+int  buildmap_line_speed_add_avg (unsigned char from_avg_speed,
+                                  unsigned char to_avg_speed,
+                                  int line);
+
 void buildmap_line_speed_sort (void);
 
 int  buildmap_line_speed_count (void);

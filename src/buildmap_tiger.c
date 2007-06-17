@@ -567,7 +567,6 @@ static void buildmap_tiger_gen_route (const char *source, int verbose) {
          int from_car_allowed = 1;
          int to_car_allowed = 0;
          int from_avg_speed = 0;
-         int to_avg_speed = 0;
          int line_length;
 
          line = buildmap_line_find_sorted(tlid);
@@ -604,8 +603,10 @@ static void buildmap_tiger_gen_route (const char *source, int verbose) {
          }
 
          buildmap_line_route_add
-            (from_car_allowed, to_car_allowed, from_avg_speed, to_avg_speed,
-             INVALID_SPEED, INVALID_SPEED, line);
+            (from_car_allowed, to_car_allowed, line);
+
+         buildmap_line_speed_add_avg
+            (from_avg_speed, from_avg_speed, line);
       }
 
       record_count += 1;

@@ -41,20 +41,6 @@ int roadmap_line_route_get_flags
 int roadmap_line_route_get_speed_limit
       (int line, LineRouteMax *from, LineRouteMax *to);
 
-int roadmap_line_route_get_cross_times
-      (int line, LineRouteTime *from, LineRouteTime *to);
-
-int roadmap_line_route_get_cross_time_at (int line, int against_dir,
-                                          int time_slot);
-
-int roadmap_line_route_get_avg_cross_time (int line, int against_dir);
-
-int roadmap_line_route_get_cross_time (int line, int against_dir);
-
-int roadmap_line_route_get_speed (int line, int against_dir);
-
-int roadmap_line_route_get_avg_speed (int line, int against_dir);
-
 int roadmap_line_route_get_restrictions (int line, int against_dir);
 
 extern roadmap_db_handler RoadMapLineRouteHandler;

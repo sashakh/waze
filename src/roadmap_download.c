@@ -1001,7 +1001,7 @@ void roadmap_download_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
-      "http://www.freemap.co.il/roadmap/maps/dev1/" ROADMAP_FILE_NAME_FORMAT,
+      "http://www.freemap.co.il/roadmap/maps/dev2/" ROADMAP_FILE_NAME_FORMAT,
       NULL);
 
    roadmap_config_declare

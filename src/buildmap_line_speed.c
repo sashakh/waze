@@ -32,6 +32,7 @@
 #include "roadmap_hash.h"
 
 #include "buildmap.h"
+#include "buildmap_line.h"
 #include "buildmap_line_speed.h"
 
 #define MAX_SPEED_SLOTS 48
@@ -44,6 +45,17 @@ struct buildmap_line_speeds_line_struct {
 };
 
 typedef struct buildmap_line_speeds_line_struct BuildMapSpeedLine;
+
+struct buildmap_line_speed_avg_struct {
+
+   RoadMapLineSpeedAvg record;
+   int line;
+};
+
+typedef struct buildmap_line_speed_avg_struct BuildMapSpeedAvg;
+
+static int SpeedAvgCount = 0;
+static BuildMapSpeedAvg *SpeedsAvg[BUILDMAP_BLOCK] = {NULL};
 
 static int MaxSlotsPerLine = 0;
 static int SpeedsCount = 0;
@@ -68,10 +80,10 @@ static int hash_speeds (const BuildMapSpeed *speeds) {
 }
 
 
-static RoadMapLineSpeed *dup_speeds(RoadMapLineSpeed *speeds, int count) {
+static RoadMapLineSpeedRef *dup_speeds(RoadMapLineSpeedRef *speeds, int count) {
 
    int i;
-   RoadMapLineSpeed *dup = calloc (count, sizeof(RoadMapLineSpeed));
+   RoadMapLineSpeedRef *dup = calloc (count, sizeof(RoadMapLineSpeedRef));
 
    for (i=0; i<count; i++) {
       dup[i] = speeds[i];
@@ -81,12 +93,35 @@ static RoadMapLineSpeed *dup_speeds(RoadMapLineSpeed *speeds, int count) {
 }
 
 
+static unsigned short buildmap_line_speed_get_ref (int tlid, int against_dir) {
+
+   int index;
+
+   BuildMapSpeedLine *this_line;
+
+   for (index = roadmap_hash_get_first (SpeedByLine, tlid);
+        index >= 0;
+        index = roadmap_hash_get_next (SpeedByLine, index)) {
+
+      this_line = Lines[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
+
+      if ((this_line->tlid == tlid) &&
+          (this_line->against_dir == against_dir)) {
+
+         return this_line->speed_ref;
+      }
+   }
+
+   return INVALID_SPEED;
+}
+
+
 BuildMapSpeed *buildmap_line_speed_new (void) {
 
    static BuildMapSpeed speed;
 
    if (speed.speeds == NULL) {
-      speed.speeds = calloc (MAX_SPEED_SLOTS, sizeof(RoadMapLineSpeed));
+      speed.speeds = calloc (MAX_SPEED_SLOTS, sizeof(RoadMapLineSpeedRef));
    }
 
    speed.count = 0;
@@ -132,8 +167,43 @@ void buildmap_line_speed_initialize (void) {
    SpeedsHash  = roadmap_hash_new ("SpeedsHash", BUILDMAP_BLOCK);
 
    SpeedsCount = 0;
+   SpeedAvgCount = 0;
    SpeedSlotsCount = 0;
    LinesCount = 0;
+}
+
+
+int  buildmap_line_speed_add_avg
+        (unsigned char from_avg_speed,
+         unsigned char to_avg_speed,
+         int line) {
+
+   int block;
+   int offset;
+   BuildMapSpeedAvg *this_avg;
+
+   block = line / BUILDMAP_BLOCK;
+   offset = line % BUILDMAP_BLOCK;
+
+   if (SpeedsAvg[block] == NULL) {
+
+      /* We need to add a new block to the table. */
+
+      SpeedsAvg[block] = calloc (BUILDMAP_BLOCK, sizeof(BuildMapSpeedAvg));
+      if (SpeedsAvg[block] == NULL) {
+         buildmap_fatal (0, "no more memory");
+      }
+   }
+
+   this_avg = SpeedsAvg[block] + offset;
+
+   this_avg->record.from_avg_speed = from_avg_speed;
+   this_avg->record.to_avg_speed = to_avg_speed;
+   this_avg->line = line;
+
+   if (line >= SpeedAvgCount) SpeedAvgCount = line + 1;
+
+   return SpeedAvgCount;
 }
 
 
@@ -180,7 +250,7 @@ int  buildmap_line_speed_add (BuildMapSpeed *speeds, int tlid, int opposite) {
    if (speed_ref == -1) {
       /* We need to create a new speed series */
 
-      if (SpeedsCount == INVALID_SPEED) {
+      if (SpeedsCount == 0xffff) {
          buildmap_fatal (0, "Too many speed series.");
       }
 
@@ -242,29 +312,6 @@ int  buildmap_line_speed_add (BuildMapSpeed *speeds, int tlid, int opposite) {
 }
 
 
-unsigned short buildmap_line_speed_get_ref (int tlid, int against_dir) {
-
-   int index;
-
-   BuildMapSpeedLine *this_line;
-
-   for (index = roadmap_hash_get_first (SpeedByLine, tlid);
-        index >= 0;
-        index = roadmap_hash_get_next (SpeedByLine, index)) {
-
-      this_line = Lines[index / BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
-
-      if ((this_line->tlid == tlid) &&
-          (this_line->against_dir == against_dir)) {
-
-         return this_line->speed_ref;
-      }
-   }
-
-   return INVALID_SPEED;
-}
-
-
 void buildmap_line_speed_sort (void) {}
 
 void  buildmap_line_speed_save (void) {
@@ -272,42 +319,102 @@ void  buildmap_line_speed_save (void) {
    int i;
    int slot;
    int slot_count = 0;
-   BuildMapSpeed     *one_speed;
-   RoadMapLineSpeed  *db_speed;
-   int               *db_index;
+   RoadMapLineSpeed     *db_speed;
+   BuildMapSpeedAvg     *one_avg_speed;
+   RoadMapLineSpeedAvg  *db_avg;
+   BuildMapSpeed        *one_speed_ref;
+   RoadMapLineSpeedRef  *db_speed_ref;
+   int                  *db_index;
 
    buildmap_db *root;
+   buildmap_db *table_avg;
+   buildmap_db *table_line_speed;
    buildmap_db *table_index;
    buildmap_db *table_data;
 
+   int max_line_id = 0;
+
+   /* Find the max line id, as we need it to calculate the size of the
+    * speed ref index for each line.
+    */
+   for (i = 0; i < LinesCount; i++) {
+      if (Lines[i/BUILDMAP_BLOCK] != NULL) {
+         int line_id;
+
+         BuildMapSpeedLine *this_line =
+            Lines[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+
+         line_id = buildmap_line_find_sorted(this_line->tlid);
+         if (line_id > max_line_id) max_line_id = line_id;
+      }
+   }
 
    buildmap_info ("saving line speed...");
 
    root = buildmap_db_add_section (NULL, "line_speed");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
-   table_index = buildmap_db_add_child
-                  (root, "index", SpeedsCount, sizeof(int));
-   table_data = buildmap_db_add_child
-                  (root, "data", SpeedSlotsCount, sizeof(RoadMapLineSpeed));
-
-   db_index = (int *) buildmap_db_get_data (table_index);
-   db_speed = (RoadMapLineSpeed *) buildmap_db_get_data (table_data);
-
-   for (i = 0; i < SpeedsCount; i++) {
-      one_speed = Speeds[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
-      db_index[i] = slot_count;
-      for (slot = 0; slot < one_speed->count; slot++) {
-         db_speed[slot_count++] = one_speed->speeds[slot];
-      }
-      db_speed[slot_count-1].time_slot |= SPEED_EOL;
+   if (SpeedAvgCount) {
+      table_avg = buildmap_db_add_child
+                  (root, "avg", SpeedAvgCount, sizeof(RoadMapLineSpeedAvg));
+      db_avg   = (RoadMapLineSpeedAvg *) buildmap_db_get_data (table_avg);
    }
 
-   if (switch_endian) {
-      int i;
+   if (max_line_id) {
 
-      for (i=0; i<SpeedsCount; i++) {
-         switch_endian_int(db_index + i);
+      table_line_speed = buildmap_db_add_child
+                  (root, "line_speed", max_line_id, sizeof(RoadMapLineSpeed));
+      db_speed = (RoadMapLineSpeed *) buildmap_db_get_data (table_line_speed);
+
+      table_index = buildmap_db_add_child
+                  (root, "index", SpeedsCount, sizeof(int));
+      table_data = buildmap_db_add_child
+                  (root, "data", SpeedSlotsCount, sizeof(RoadMapLineSpeedRef));
+
+      db_index = (int *) buildmap_db_get_data (table_index);
+      db_speed_ref = (RoadMapLineSpeedRef *) buildmap_db_get_data (table_data);
+   }
+
+   if (SpeedsAvg) {
+      buildmap_info ("saving line speed avg...");
+
+      for (i = 0; i < SpeedAvgCount; i++) {
+
+         if (SpeedsAvg[i/BUILDMAP_BLOCK] == NULL) {
+            memset (&db_avg[i], 0, sizeof (RoadMapLineSpeedAvg));
+         } else {
+            one_avg_speed = SpeedsAvg[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+            db_avg[i] = one_avg_speed->record;
+         }
+      }
+   }
+
+   if (max_line_id) {
+
+      buildmap_info ("saving line speed slots...");
+
+      for (i = 0; i < max_line_id; i++) {
+         RoadMapLineSpeed *this_speed = db_speed + i;
+         int tlid = buildmap_line_get_id_sorted (i);
+         this_speed->from_speed_ref = buildmap_line_speed_get_ref (tlid, 0);
+         this_speed->to_speed_ref   = buildmap_line_speed_get_ref (tlid, 1);
+      }
+
+      for (i = 0; i < SpeedsCount; i++) {
+         one_speed_ref = Speeds[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+         db_index[i] = slot_count;
+         for (slot = 0; slot < one_speed_ref->count; slot++) {
+            db_speed_ref[slot_count++] = one_speed_ref->speeds[slot];
+         }
+         db_speed_ref[slot_count-1].time_slot |= SPEED_EOL;
+      }
+
+      if (switch_endian) {
+         int i;
+
+         for (i=0; i<SpeedsCount; i++) {
+            switch_endian_int(db_index + i);
+         }
       }
    }
 }
@@ -321,6 +428,13 @@ void buildmap_line_speed_summary (void) {
 void buildmap_line_speed_reset (void) {
 
    int i;
+
+   for (i = 0; i < BUILDMAP_BLOCK; i++) {
+      if (SpeedsAvg[i] != NULL) {
+         free (SpeedsAvg[i]);
+         SpeedsAvg[i] = NULL;
+      }
+   }
 
    for (i = 0; i < SpeedsCount; i++) {
       BuildMapSpeed *this_speed;
@@ -343,6 +457,7 @@ void buildmap_line_speed_reset (void) {
    }
 
    SpeedsCount = 0;
+   SpeedAvgCount = 0;
    SpeedSlotsCount = 0;
 
    LinesCount = 0;

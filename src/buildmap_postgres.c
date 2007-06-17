@@ -457,8 +457,6 @@ static void buildmap_postgres_read_roads_route (int verbose) {
    unsigned short from_cross_time;
    unsigned short to_cross_time;
    unsigned char layer;
-   unsigned short from_speed_ref;
-   unsigned short to_speed_ref;
   
    PGresult *db_result;
 
@@ -510,12 +508,12 @@ static void buildmap_postgres_read_roads_route (int verbose) {
       if (from_avg_speed > 255) from_avg_speed = 255;
       if (to_avg_speed > 255) to_avg_speed = 255;
 
-      from_speed_ref = buildmap_line_speed_get_ref (tlid, 0);
-      to_speed_ref = buildmap_line_speed_get_ref (tlid, 1);
-      buildmap_line_route_add
-         (from_car_allowed, to_car_allowed, from_avg_speed, to_avg_speed,
-          from_speed_ref, to_speed_ref,
-          line);
+//      from_speed_ref = buildmap_line_speed_get_ref (tlid, 0);
+//      to_speed_ref = buildmap_line_speed_get_ref (tlid, 1);
+
+      buildmap_line_route_add (from_car_allowed, to_car_allowed, line);
+
+      buildmap_line_speed_add_avg (from_avg_speed, to_avg_speed, line);
 
 /*
       buildmap_dglib_add
