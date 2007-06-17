@@ -10,6 +10,15 @@ public class DeviceSpecific implements Runnable {
 	        new DeviceSpecific();
 	}
 
+	public static void getPlatform(int addr, int size) {
+      String p = System.getProperty("microedition.platform");
+      byte[] bytes = p.getBytes();
+      size--;
+      if (size > bytes.length) size = bytes.length;
+      CRunTime.memcpy(addr, bytes, 0, size);
+      CRunTime.memoryWriteByte(addr+size, 0);
+	}
+
 	public DeviceSpecific() {	
 		cycleTimeout = 20000;
 		threadRunning = true;

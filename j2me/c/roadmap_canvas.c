@@ -34,6 +34,7 @@
 #include <javax/microedition/lcdui.h>
 #include <javax/microedition/lcdui/game.h>
 #include <jmicropolygon.h>
+#include <device_specific.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -61,6 +62,7 @@ static RoadMapPen CurrentPen = 0;
 static NOPH_GameCanvas_t canvas = 0;
 static NOPH_Graphics_t graphics = 0;
 static NOPH_Graphics_t graphicsBuffer = 0;
+static int isDeviceSE = 0; /* Is this SonyErricson? (bidi fix) */
 
 /* The canvas callbacks: all callbacks are initialized to do-nothing
  * functions, so that we don't care checking if one has been setup.
@@ -527,7 +529,11 @@ void roadmap_canvas_draw_string_angle (const RoadMapGuiPoint *position,
    
    char bidi_text[500];
 
-   //bidi_string(bidi_text, text);
+   if (isDeviceSE) {
+      bidi_string(bidi_text, text);
+      text = bidi_text;
+   }
+
    NOPH_Graphics_drawString (graphicsBuffer, text,
                              position->x, position->y,
                              NOPH_Graphics_BASELINE|NOPH_Graphics_LEFT);
@@ -715,6 +721,9 @@ void roadmap_canvas_refresh (void) {
 
 void roadmap_canvas_configure (void) {
 
+   char platform[100];
+   NOPH_DeviceSpecific_getPlatform (platform, sizeof(platform));
+   isDeviceSE = strstr(platform, "SonyEricsson") != NULL;
    roadmap_log (ROADMAP_DEBUG, "***** In roadmap_canvas_configure *****\n");
    canvas = NOPH_GameCanvas_get();
    graphics = NOPH_GameCanvas_getGraphics(canvas);

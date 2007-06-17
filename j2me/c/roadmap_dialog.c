@@ -104,6 +104,7 @@ struct roadmap_dialog_item {
 
 static RoadMapDialogItem RoadMapDialogWindows = NULL;
 static RoadMapDialogItem RoadMapDialogCurrent = NULL;
+static NOPH_Display_t RoadMapDialogDisplay;
 
 
 static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
@@ -177,9 +178,9 @@ static void roadmap_dialog_hide_window (RoadMapDialogItem dialog) {
    RoadMapDialogCurrent = RoadMapDialogCurrent->prev_dialog;
 
    if (!RoadMapDialogCurrent) {
-      NOPH_Display_setCurrent(NOPH_Display_getDisplay(NOPH_MIDlet_get()), NOPH_GameCanvas_get());
+      NOPH_Display_setCurrent(RoadMapDialogDisplay, NOPH_GameCanvas_get());
    } else {
-      NOPH_Display_setCurrent(NOPH_Display_getDisplay(NOPH_MIDlet_get()), RoadMapDialogCurrent->form);
+      NOPH_Display_setCurrent(RoadMapDialogDisplay, RoadMapDialogCurrent->form);
    }
 }
 
@@ -206,8 +207,7 @@ static void roadmap_dialog_chosen (char *name, void *context) {
    RoadMapDialogItem item = (RoadMapDialogItem)context;
    RoadMapDialogCallback callback = item->callback;
 
-   printf("In roadmap_dialog_chosen: name: %s item:%x type:%s - %d\n", name,
-                (unsigned int)item, item->typeid, item->widget_type);
+   printf("In roadmap_dialog_chosen: type:%s - %d\n", item->typeid, item->widget_type);
    switch (item->widget_type) {
 
    case ROADMAP_WIDGET_PASSWORD:
@@ -302,7 +302,9 @@ static void roadmap_dialog_chosen (char *name, void *context) {
 int roadmap_dialog_activate (const char *name, void *context, int show) {
 
    RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
-   printf ("In roadmap_dialog_activate: %s\n", name);
+
+   if (!RoadMapDialogDisplay)
+   	RoadMapDialogDisplay = NOPH_Display_getDisplay(NOPH_MIDlet_get());
 
    dialog->context = context;
 
@@ -314,7 +316,7 @@ int roadmap_dialog_activate (const char *name, void *context, int show) {
          dialog->prev_dialog = RoadMapDialogCurrent;
          RoadMapDialogCurrent = dialog;
       }
-      if (show) NOPH_Display_setCurrent(NOPH_Display_getDisplay(NOPH_MIDlet_get()), dialog->form);
+      if (show) NOPH_Display_setCurrent(RoadMapDialogDisplay, dialog->form);
 
       return 0; /* Tell the caller the dialog already exists. */
    }
@@ -330,7 +332,6 @@ int roadmap_dialog_activate (const char *name, void *context, int show) {
 
 void roadmap_dialog_hide (const char *name) {
 
-   printf ("In roadmap_dialog_hide: %s\n", name);
    roadmap_dialog_hide_window (roadmap_dialog_get (NULL, name));
 }
 
@@ -407,18 +408,10 @@ void roadmap_dialog_new_choice (const char *frame,
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, (NOPH_Item_t)item);
    RoadMapDialogSelection *choice;
 
-   printf ("new item:%s ptr:%x\n", name, child);
    NOPH_Item_setLayout((NOPH_Item_t)item, NOPH_Item_LAYOUT_EXPAND);
 
    child->widget_type = ROADMAP_WIDGET_CHOICE;
 
-   i = (int)child;
-
-   fputc (i, -1);
-   if (i != 0) printf ("i != 0\n");
-   printf ("widget: %d\n", i);
-
-   printf ("Adding choice callback: widget:%d, type: %d\n", (unsigned int)child, child->widget_type);
    if ((void **)labels == values) {
       child->data_is_string = 1;
    }
@@ -446,7 +439,6 @@ void roadmap_dialog_new_choice (const char *frame,
       child->value = strdup(child->value);
    }
 
-   printf ("Adding choice callback: widget:%x, type: %d\n", (unsigned int)child, child->widget_type);
    NOPH_FormCommandMgr_addCallback(RoadMapDialogCurrent->cmd_mgr, (NOPH_Item_t)item, roadmap_dialog_chosen, "", child);
 }
 
@@ -550,9 +542,8 @@ void roadmap_dialog_add_button (const char *label,
 void roadmap_dialog_complete (int use_keyboard) {
 
    RoadMapDialogItem dialog = RoadMapDialogCurrent;
-   printf ("In roadmap_dialog_complete\n");
 
-   NOPH_Display_setCurrent(NOPH_Display_getDisplay(NOPH_MIDlet_get()), dialog->form);
+   NOPH_Display_setCurrent(RoadMapDialogDisplay, dialog->form);
 
 #if 0
 

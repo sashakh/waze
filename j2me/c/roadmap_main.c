@@ -310,6 +310,7 @@ void roadmap_main_exit (void) {
       }
    }
 
+   exit(0);
 }
 
 void roadmap_main_set_cursor (int cursor) {
@@ -358,7 +359,7 @@ static void keyReleased(int code)
   KeyCode = 0;
 }
 
-#define  DEBUG_TIME
+//#define  DEBUG_TIME
 static void wait_for_events(NOPH_GameCanvas_t canvas)
 {
 #ifdef DEBUG_TIME
@@ -419,7 +420,7 @@ static void wait_for_events(NOPH_GameCanvas_t canvas)
 
      if (KeyCode != 0) break;
 
-     NOPH_Thread_sleep( 50 );
+     NOPH_Thread_sleep( 10 );
 #ifdef DEBUG_TIME
      end_time = NOPH_System_currentTimeMillis();
      if ((end_time - start_time) > 100) printf("MAIN LOOP: Slept for %d ms!\n", end_time - start_time);
