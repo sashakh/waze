@@ -808,10 +808,8 @@ void buildmap_line_lines_by_node (int node_id, int *lines, int *size) {
       int line_cursor;
       int line;
 
-      first_line = BuildMapLineDBSquare1[square_id].first[cfcc];
+      first_line = BuildMapLineDBSquare1[square_id].first[cfcc-1];
       if (first_line >= 0) {
-
-         cfcc++;
 
          for (last_line = -1; last_line < 0 && cfcc < ROADMAP_CATEGORY_RANGE;
                cfcc++) {
@@ -841,10 +839,9 @@ void buildmap_line_lines_by_node (int node_id, int *lines, int *size) {
       }
 
       cfcc = i;
-      first_line = BuildMapLineDBSquare2[square_id].first[cfcc];
+      first_line = BuildMapLineDBSquare2[square_id].first[cfcc-1];
       if (first_line < 0) continue;
 
-      cfcc++;
       for (last_line = -1; last_line < 0 && cfcc < ROADMAP_CATEGORY_RANGE;
            cfcc++) {
          last_line = BuildMapLineDBSquare2[square_id].first[cfcc];

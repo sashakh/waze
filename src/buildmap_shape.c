@@ -370,6 +370,8 @@ void buildmap_shape_save (void) {
    int last_square = -1;
    int square_count;
    int shape_count;
+   int shape_counter;
+   RoadMapShape count_pos;
 
    int longitude = 0;
    int latitude = 0;
@@ -487,8 +489,7 @@ void buildmap_shape_save (void) {
          }
 
          if (last_line >= 0) {
-            RoadMapShape count_pos;
-            int shape_counter = buildmap_line_first_shape_sorted (last_line);
+            shape_counter = buildmap_line_first_shape_sorted (last_line);
             shape_counter += buildmap_square_first_shape_sorted (square);
             count_pos.delta_latitude = shape_index - shape_counter - 1;
             count_pos.delta_longitude = 0;
@@ -577,6 +578,12 @@ void buildmap_shape_save (void) {
       longitude = one_shape->longitude;
       latitude  = one_shape->latitude;
    }
+
+   shape_counter = buildmap_line_first_shape_sorted (last_line);
+   shape_counter += buildmap_square_first_shape_sorted (square);
+   count_pos.delta_latitude = shape_index - shape_counter - 1;
+   count_pos.delta_longitude = 0;
+   db_shape[shape_counter] = count_pos;
 
    if (shape_index != shape_count) {
       buildmap_fatal (0, "inconsistent count of shapes: "
