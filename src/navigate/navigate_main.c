@@ -75,7 +75,7 @@ static RoadMapConfigDescriptor NavigateConfigRouteColor =
 static RoadMapConfigDescriptor NavigateConfigPossibleRouteColor =
                     ROADMAP_CONFIG_ITEM("Navigation", "PossibleRouteColor");
 
-static RoadMapConfigDescriptor NavigateConfigAutoZoom =
+RoadMapConfigDescriptor NavigateConfigAutoZoom =
                   ROADMAP_CONFIG_ITEM("Routing", "Auto zoom");
 
 int NavigateEnabled = 0;
@@ -396,6 +396,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
    int announce = 0;
    const NavigateSegment *segment = NavigateSegments + NavigateCurrentSegment;
+   const NavigateSegment *next_turn_segment;
    int group_id = segment->group_id;
    const char *inst_text = "";
    const char *inst_voice = NULL;
@@ -403,6 +404,7 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    const int ANNOUNCES[] = { 800, 200, 50 };
    int announce_distance = 0;
    int distance_to_prev;
+   int distance_to_next;
 
    if (!NavigateTrackEnabled) return;
 
@@ -428,6 +430,19 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       NavigateETAToTurn += segment->cross_time;
    }
 
+   distance_to_next = 0;
+
+   if (segment <  (NavigateSegments + NavigateNumSegments - 1)) {
+      next_turn_segment = segment + 1;
+      group_id = next_turn_segment->group_id;
+      distance_to_next = next_turn_segment->distance;
+      while (next_turn_segment < (NavigateSegments + NavigateNumSegments - 1)) {
+         if ((next_turn_segment+1)->group_id != group_id) break;
+         next_turn_segment++;
+         distance_to_next += next_turn_segment->distance;
+      }
+   }
+
    if (roadmap_config_match(&NavigateConfigAutoZoom, "yes")) {
       const char *focus = roadmap_trip_get_focus_name ();
 
@@ -435,7 +450,8 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
          navigate_zoom_update (position, NavigateSegments,
                                NavigateCurrentSegment, segment,
-                               distance_to_prev);
+                               distance_to_prev,
+                               distance_to_next);
       }
    }
       
@@ -479,6 +495,17 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
 
       NavigateTrackEnabled = 0;
       navigate_bar_set_mode (NavigateTrackEnabled);
+
+      if (roadmap_config_match(&NavigateConfigAutoZoom, "yes")) {
+         const char *focus = roadmap_trip_get_focus_name ();
+         /* We used auto zoom, so now we need to reset it */
+
+         if (focus && !strcmp (focus, "GPS")) {
+
+            roadmap_screen_zoom_reset ();
+         }
+      }
+
       roadmap_navigate_end_route (NavigateCallbacks);
       return;
    }
@@ -726,11 +753,11 @@ static void navigate_main_init_pens (void) {
 void navigate_main_initialize (void) {
 
    roadmap_config_declare
-       ("schema", &NavigateConfigRouteColor,  "#3dedada0", NULL);
+       ("schema", &NavigateConfigRouteColor,  "#00ff00a0", NULL);
    roadmap_config_declare
        ("schema", &NavigateConfigPossibleRouteColor,  "#ff0000a0", NULL);
    roadmap_config_declare_enumeration
-      ("preferences", &NavigateConfigAutoZoom, NULL, "yes", "no", NULL);
+      ("preferences", &NavigateConfigAutoZoom, NULL, "no", "yes", NULL);
 
    navigate_main_init_pens ();
 
@@ -761,6 +788,130 @@ void navigate_main_set (int status) {
 }
 
 
+#ifdef TEST_ROUTE_CALC
+int navigate_main_test () {
+
+   int track_time;
+   PluginLine from_line;
+   int from_point;
+   int line;
+   int lines_count = roadmap_line_count();
+   RoadMapPosition pos;
+   int flags;
+   int itr = 0;
+
+   NavigateTrackFollowGPS = 0;
+   srand(0);
+
+   if (navigate_route_load_data () < 0) {
+
+      roadmap_messagebox("Error", "Error loading navigation data.");
+      return -1;
+   }
+
+   while (1) {
+      int first_shape, last_shape;
+
+      printf ("Iteration: %d\n", itr++);
+
+      line = (int) (lines_count * (rand() / (RAND_MAX + 1.0)));
+      roadmap_line_from (line, &pos);
+      roadmap_line_shapes (line, -1, &first_shape, &last_shape);
+      if (first_shape != -1) {
+         last_shape = (first_shape + last_shape) / 2;
+         roadmap_shape_get_position (first_shape, &pos);
+         while (first_shape != last_shape) {
+            roadmap_shape_get_position (++first_shape, &pos);
+         }
+      }
+      roadmap_trip_set_point ("Departure", &pos);
+
+      line = (int) (lines_count * (rand() / (RAND_MAX + 1.0)));
+      roadmap_line_from (line, &pos);
+      roadmap_line_shapes (line, -1, &first_shape, &last_shape);
+      if (first_shape != -1) {
+         last_shape = (first_shape + last_shape) / 2;
+         roadmap_shape_get_position (first_shape, &pos);
+         while (first_shape != last_shape) {
+            roadmap_shape_get_position (++first_shape, &pos);
+         }
+      }
+      roadmap_trip_set_point ("Destination", &pos);
+      if (itr < 4000) continue;
+
+      NavigateDestination.plugin_id = INVALID_PLUGIN_ID;
+      NavigateTrackEnabled = 0;
+      navigate_bar_set_mode (NavigateTrackEnabled);
+
+      NavigateNumSegments = MAX_NAV_SEGEMENTS;
+
+      if (navigate_find_track_points
+            (&from_line, &from_point, &NavigateDestination, &NavigateDestPoint)) {
+
+         printf ("Error finding navigate points.\n");
+         continue;
+      }
+
+      flags = NEW_ROUTE|RECALC_ROUTE;
+      navigate_cost_reset ();
+      track_time =
+         navigate_route_get_segments
+         (&from_line, from_point, &NavigateDestination, NavigateDestPoint,
+          NavigateSegments, &NavigateNumSegments,
+          &flags);
+
+      if (track_time <= 0) {
+         NavigateTrackEnabled = 0;
+         navigate_bar_set_mode (NavigateTrackEnabled);
+         if (track_time < 0) {
+            printf("Error calculating route.\n");
+         } else {
+            printf("Error - Can't find a route.\n");
+         }
+
+         continue;
+      } else {
+         char msg[200] = {0};
+         int i;
+         int length = 0;
+
+         navigate_instr_prepare_segments (NavigateSegments, NavigateNumSegments,
+               &NavigateSrcPos, &NavigateDestPos);
+
+         track_time = 0;
+         for (i=0; i<NavigateNumSegments; i++) {
+            length += NavigateSegments[i].distance;
+            track_time += NavigateSegments[i].cross_time;
+         }
+
+         NavigateFlags = flags;
+
+         if (flags & GRAPH_IGNORE_TURNS) {
+            snprintf(msg, sizeof(msg), "%s\n",
+                  roadmap_lang_get ("The calculated route may have incorrect turn instructions."));
+         }
+
+         snprintf(msg + strlen(msg), sizeof(msg) - strlen(msg),
+               "%s: %.1f %s\n%s: %.1f %s",
+               roadmap_lang_get ("Length"),
+               length/1000.0,
+               roadmap_lang_get ("Km"),
+               roadmap_lang_get ("Time"),
+               track_time/60.0,
+               roadmap_lang_get ("minutes"));
+
+         NavigateTrackEnabled = 1;
+         navigate_bar_set_mode (NavigateTrackEnabled);
+
+         roadmap_screen_redraw ();
+         printf ("Route found!\n%s\n\n", msg);
+      }
+   }
+
+   return 0;
+}
+#endif
+
 int navigate_main_calc_route () {
 
    int track_time;
@@ -769,6 +920,10 @@ int navigate_main_calc_route () {
    int flags;
 
    const char *focus = roadmap_trip_get_focus_name ();
+
+#ifdef TEST_ROUTE_CALC
+   navigate_main_test();
+#endif
 
    NavigateTrackFollowGPS = focus && !strcmp (focus, "GPS");
 

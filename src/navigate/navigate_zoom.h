@@ -29,7 +29,8 @@ void navigate_zoom_update (RoadMapPosition *pos,
                            NavigateSegment *segments,
                            int current_segment,
                            const NavigateSegment *last_group_seg,
-                           int distance_to_prev);
+                           int distance_to_prev,
+                           int distance_to_next);
 
 #endif /* _NAVIGATE_ZOOM_H_ */
 

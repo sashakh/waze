@@ -40,7 +40,8 @@ void navigate_zoom_update (RoadMapPosition *pos,
                            NavigateSegment *segments,
                            int current_segment,
                            const NavigateSegment *last_group_seg,
-                           int distance_to_prev) {
+                           int distance_to_prev,
+                           int distance_to_next) {
 
    const RoadMapPosition *turn_pos;
    int distance;
@@ -67,7 +68,13 @@ void navigate_zoom_update (RoadMapPosition *pos,
       }
    }
 
-   roadmap_math_set_scale (distance, roadmap_canvas_height() / 2 * 3 / 4);
+   if ((distance_to_next <= 300) && (distance < distance_to_next)) {
+      distance = distance_to_next;
+   }
+
+   if (distance < 100) distance = 100;
+
+   roadmap_math_set_scale (distance, roadmap_screen_height() / 3);
 
    roadmap_layer_adjust ();
    

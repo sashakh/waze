@@ -32,6 +32,7 @@
 #include "roadmap.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
+#include "roadmap_line_speed.h"
 #include "roadmap_lang.h"
 #include "roadmap_layer.h"
 #include "roadmap_locator.h"
@@ -365,10 +366,10 @@ int navigate_traffic_override_pen (int line,
          return 1;
       }
 
-      speed1 = roadmap_line_route_get_speed (line, 0);
+      speed1 = roadmap_line_speed_get_speed (line, 0);
 
       if (speed1) {
-         avg1 = roadmap_line_route_get_avg_speed (line, 0);
+         avg1 = roadmap_line_speed_get_avg_speed (line, 0);
          if (avg1 < 15) {
             cache_set (fips, line, STATE_NORMAL);
             return 0;
@@ -381,10 +382,10 @@ int navigate_traffic_override_pen (int line,
          }
       }
 
-      speed2 = roadmap_line_route_get_speed (line, 1);
+      speed2 = roadmap_line_speed_get_speed (line, 1);
 
       if (speed2) {
-         avg2   = roadmap_line_route_get_avg_speed (line, 1);
+         avg2   = roadmap_line_speed_get_avg_speed (line, 1);
          if (avg2 < 15) {
             cache_set (fips, line, STATE_NORMAL);
             return 0;

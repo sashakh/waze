@@ -35,6 +35,7 @@
 #include "roadmap_lang.h"
 #include "roadmap_start.h"
 #include "roadmap_line_route.h"
+#include "roadmap_line_speed.h"
 
 #include "navigate_traffic.h"
 #include "navigate_main.h"
@@ -56,6 +57,8 @@ static RoadMapConfigDescriptor CostAvoidPrimaryCfg =
                   ROADMAP_CONFIG_ITEM("Routing", "Avoid primaries");
 static RoadMapConfigDescriptor CostAvoidTrailCfg =
                   ROADMAP_CONFIG_ITEM("Routing", "Avoid trails");
+
+extern RoadMapConfigDescriptor NavigateConfigAutoZoom;
 
 static void cost_preferences (void);
 
@@ -178,11 +181,11 @@ static int cost_fastest_traffic (int line_id, int is_revesred, int cur_cost,
    
    if (node_id != -1) penalty = calc_penalty (line_id, cfcc, prev_line_id);
 
-   cross_time = roadmap_line_route_get_cross_time_at (line_id, is_revesred,
+   cross_time = roadmap_line_speed_get_cross_time_at (line_id, is_revesred,
                        start_time + cur_cost);
 
    if (!cross_time) cross_time =
-         roadmap_line_route_get_avg_cross_time (line_id, is_revesred);
+         roadmap_line_speed_get_avg_cross_time (line_id, is_revesred);
 
    switch (penalty) {
       case PENALTY_AVOID:
@@ -272,6 +275,8 @@ static int button_callback (SsdWidget widget, const char *new_value) {
                            (const char *)ssd_dialog_get_data ("samestreet"));
       roadmap_config_set (&CostAvoidTrailCfg,
                            (const char *)ssd_dialog_get_data ("avoidtrails"));
+      roadmap_config_set (&NavigateConfigAutoZoom,
+                           (const char *)ssd_dialog_get_data ("autozoom"));
       ssd_dialog_hide_current ();
 
       if (!strcmp(widget->name, "Recalculate")) {
@@ -392,6 +397,21 @@ static void create_ssd_dialog (void) {
         
    ssd_widget_add (dialog, box);
 
+   box = ssd_container_new ("autozoom group", NULL, SSD_MIN_SIZE, SSD_MIN_SIZE,
+                            SSD_WIDGET_SPACE|SSD_END_ROW);
+   ssd_widget_add (box,
+      ssd_text_new ("autozoom_label",
+                     roadmap_lang_get ("Auto zoom"),
+                    -1, SSD_TEXT_LABEL|SSD_ALIGN_VCENTER|SSD_WIDGET_SPACE));
+
+    ssd_widget_add (box,
+         ssd_choice_new ("autozoom", 2,
+                         (const char **)yesno_label,
+                         (const void **)yesno,
+                         SSD_END_ROW, NULL));
+        
+   ssd_widget_add (dialog, box);
+
    ssd_widget_add (dialog,
       ssd_button_label ("OK", roadmap_lang_get ("Ok"),
                         SSD_ALIGN_CENTER|SSD_START_NEW_ROW, button_callback));
@@ -429,6 +449,10 @@ void cost_preferences (void) {
    else if (roadmap_config_match(&CostAvoidTrailCfg, "no")) value = trails_value[1];
    else value = trails_value[2];
    ssd_dialog_set_data ("avoidtrails", (void *) value);
+
+   if (roadmap_config_match(&NavigateConfigAutoZoom, "yes")) value = yesno[0];
+   else value = yesno[1];
+   ssd_dialog_set_data ("autozoom", (void *) value);
 }
 
 #else

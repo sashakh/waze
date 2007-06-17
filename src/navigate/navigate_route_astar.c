@@ -315,7 +315,8 @@ int navigate_route_get_segments (PluginLine *from_line,
    //FIXME add plugin support
    line = from_line->line_id;
    roadmap_line_points (line, &line_from_point, &line_to_point);
-   if (from_point == line_from_point) start_line_reversed = 1;
+   if (line_from_point == line_to_point) start_line_reversed = 0;
+   else if (from_point == line_from_point) start_line_reversed = 1;
    else start_line_reversed = 0;
 
    if (!recalc) show_progress_dialog ();
