@@ -34,7 +34,7 @@ public class GpsManager implements CommandListener
 
   public void commandAction (Command c, Displayable d) {
     if (c == List.SELECT_COMMAND) {
-     if (menu.getSelectedIndex() == 1) gps = GpsLocation.getInstance();
+     if (menu.getSelectedIndex() == 0) gps = GpsLocation.getInstance();
      else gps = GpsBT.getInstance();
 
      gps.searchGps(midlet, wait_msg, not_found_msg);
@@ -60,8 +60,8 @@ public class GpsManager implements CommandListener
       if (isLocationApiSupported()) {
         if (menu == null) {
            menu = new List("GPS", Choice.IMPLICIT);
-           menu.append("External GPS", null);
            menu.append("Internal GPS", null);
+           menu.append("External GPS", null);
            //menu.addCommand(exitCommand);
            menu.setCommandListener(this);
         }

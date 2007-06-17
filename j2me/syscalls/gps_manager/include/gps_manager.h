@@ -12,6 +12,7 @@ struct GpsData {
   int azymuth;
   int horizontal_accuracy;
   int vertical_accuracy;
+  int status;
 };
 
 /* GpsManager class (this is not in J2ME) */

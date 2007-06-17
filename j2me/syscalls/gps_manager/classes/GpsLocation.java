@@ -22,9 +22,10 @@ public class GpsLocation implements LocationListener, GpsIntr
     int azymuth;
     int horizontal_accuracy;
     int vertical_accuracy;
+    int status;
   };
 
-  private static final int MAX_GPS_INPUT = 100;
+  private static final int MAX_GPS_INPUT = 50;
   private String url = "";
   private static GpsLocation instance;
   private MIDlet midlet;
@@ -71,12 +72,40 @@ public class GpsLocation implements LocationListener, GpsIntr
        //cr.setPreferredResponseTime(1000);
        cr.setSpeedAndCourseRequired(true);
 
-       return LocationProvider.getInstance(cr);
+       return LocationProvider.getInstance(null);
     } catch (LocationException e) {
        e.printStackTrace();
     }
 
     return null;
+  }
+
+  private void addGpsData(int status, final Location location)
+  {
+    if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
+      synchronized(data[data_tail]) {
+        data_tail = (data_tail + 1) % MAX_GPS_INPUT;
+      }
+      System.err.println("GPSManager: Data overflow.");
+    }
+
+    if (data[data_head] == null) data[data_head] = new GpsData();
+    GpsData d = data[data_head];
+    data_head = (data_head + 1) % MAX_GPS_INPUT;
+
+    d.status = status;
+
+    if (status == 'A') {
+      QualifiedCoordinates coord = location.getQualifiedCoordinates();
+      float speed = location.getSpeed();
+      d.time = (int)(location.getTimestamp() / 1000);
+      d.longitude = (int)(coord.getLongitude() * 1000000);
+      d.latitude = (int)(coord.getLatitude() * 1000000);
+      d.speed = (int)speed * 2; /* Convert to ~knots */
+      d.azymuth = (int)location.getCourse();
+      d.horizontal_accuracy = (int)coord.getHorizontalAccuracy();
+      d.vertical_accuracy = (int)coord.getVerticalAccuracy();
+    }
   }
 
   public void searchGps(MIDlet m, String wait_msg, String not_found_msg) {
@@ -138,6 +167,7 @@ public class GpsLocation implements LocationListener, GpsIntr
          int maxage = 0; // parameter has no effect.
 
          provider.setLocationListener(null, interval, timeout, maxage);
+         data_head = data_tail = 0;
      }
   }
 
@@ -164,6 +194,7 @@ public class GpsLocation implements LocationListener, GpsIntr
         dout.writeInt(d.azymuth);
         dout.writeInt(d.horizontal_accuracy);
         dout.writeInt(d.vertical_accuracy);
+        dout.writeInt(d.status);
         dout.close();
       } catch (IOException e) {
         e.printStackTrace();
@@ -191,30 +222,11 @@ public class GpsLocation implements LocationListener, GpsIntr
     {
        if (location != null && location.isValid())
        {
-               if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
-                 synchronized(data[data_tail]) {
-                       data_tail = (data_tail + 1) % MAX_GPS_INPUT;
-                 }
-                 System.err.println("GPSManager: Data overflow.");
-               }
-
-               if (data[data_head] == null) data[data_head] = new GpsData();
-               GpsData d = data[data_head];
-               data_head = (data_head + 1) % MAX_GPS_INPUT;
-
-               QualifiedCoordinates coord = location.getQualifiedCoordinates();
-               float speed = location.getSpeed();
-               d.time = (int)(location.getTimestamp() / 1000);
-               d.longitude = (int)(coord.getLongitude() * 1000000);
-               d.latitude = (int)(coord.getLatitude() * 1000000);
-               d.speed = (int)speed * 2; /* Convert to ~knots */
-               d.azymuth = (int)location.getCourse();
-               d.horizontal_accuracy = (int)coord.getHorizontalAccuracy();
-               d.vertical_accuracy = (int)coord.getVerticalAccuracy();
+          addGpsData('A', location);
        }
        else
        {
-               System.out.println("Not valid location data");
+          addGpsData('V', null);
        }
     }
 
@@ -229,19 +241,16 @@ public class GpsLocation implements LocationListener, GpsIntr
     public void providerStateChanged(LocationProvider provider,
             final int newState)
     {
-        System.out.print("providerStateChanged:");
         switch (newState) {
                 case LocationProvider.AVAILABLE:
-                        System.out.println("Available");
                         break;
                 case LocationProvider.OUT_OF_SERVICE:
-                        System.out.println("Out of service");
+                        addGpsData('V', null);
                         break;
                 case LocationProvider.TEMPORARILY_UNAVAILABLE:
-                        System.out.println("Temporarily unavailable");
+                        addGpsData('V', null);
                         break;
                 default:
-                        System.out.println("Unknown");
                         break;
         }
     }
