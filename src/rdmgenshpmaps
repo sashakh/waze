@@ -12,7 +12,7 @@ usage()
 rdmgenshpmaps <shapefile path> [maps=<map-directory-path>]
                                [test]
                                [dmti]
-                               [<province-abbrev> ...]
+                               [<specific files> ...]
 EOF
    exit 1
 }
@@ -40,6 +40,12 @@ case $1 in
     maps=*) maps=`expr $1 : 'maps=\(.*\)'`
             shift
             ;;
+esac
+
+case $1 in
+    verbose) verbose=-v
+          shift
+          ;;
 esac
 
 case $1 in
@@ -110,6 +116,7 @@ fi
 for file in $files
 do
     get_fips $file
+    : <$SRCDIR/$file || exit 1
     echo $BUILDMAP -f $shape -m $maps $verbose  $FIPS $SRCDIR/$file
     if [ $DRYRUN != 'Y' ] ; then
         $BUILDMAP -f $shape -m $maps $verbose  $FIPS $SRCDIR/$file
