@@ -21,10 +21,18 @@ man1dir=$(mandir)/man1
 INSTALL      = install
 INSTALL_DATA = install -m644
 RANLIB       = ranlib
-STRIP        = strip
+STRIP        = $(CROSS_COMPILE)strip
 # the image conversion tool "convert" comes with ImageMagick.
 # on debian or ubuntu:  "apt-get install imagemagick"
 CONVERT      = convert
+
+AR = $(CROSS_COMPILE)ar
+CC = $(CROSS_COMPILE)gcc
+LD = $(CROSS_COMPILE)ld
+AS = $(CROSS_COMPILE)as
+CXX = $(CROSS_COMPILE)g++
+
+export CC AR LD AS CROSS_COMPILE
 
 # --- Build options ------------------------------------------------
 
@@ -40,10 +48,18 @@ else
 ifeq ($(DESKTOP),QT)
 	RDMODULES=qt
 else
+ifeq ($(DESKTOP),QT4)
+	RDMODULES=qt4
+else
 ifeq ($(DESKTOP),QPE)
 	RDMODULES=qt
 else
-	RDMODULES=gtk gtk2 qt
+ifeq ($(DESKTOP),QPE4)
+	RDMODULES=qt4
+else
+	RDMODULES=gtk gtk2 qt3 qt4
+endif
+endif
 endif
 endif
 endif
@@ -103,7 +119,13 @@ else
 ifeq ($(strip $(DESKTOP)),QT)
 	CFLAGS += -DROADMAP_NO_LINEFONT
 endif
+ifeq ($(strip $(DESKTOP)),QT4)
+	CFLAGS += -DROADMAP_NO_LINEFONT
+endif
 ifeq ($(strip $(DESKTOP)),QPE)
+	CFLAGS += -DROADMAP_NO_LINEFONT
+endif
+ifeq ($(strip $(DESKTOP)),QPE4)
 	CFLAGS += -DROADMAP_NO_LINEFONT
 endif
 endif

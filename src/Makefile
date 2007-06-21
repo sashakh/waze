@@ -180,7 +180,7 @@ TOOLS=sunrise $(SQLTOOLS)
 
 # --- Conventional targets ----------------------------------------
 
-.PHONY: all gtk gtk2 qt rebuild build \
+.PHONY: all gtk gtk2 qt3 qt4 qpe4 rebuild build \
          topclean clean strip install uninstall unix gpx
 
 all: runtime build $(TOOLS) icons
@@ -194,8 +194,14 @@ gtk:
 gtk2:
 	$(MAKE) DESKTOP=GTK2
 
-qt:
+qt3:
 	$(MAKE) DESKTOP=QT
+
+qt4:
+	$(MAKE) DESKTOP=QT4
+
+qpe4:
+	$(MAKE) DESKTOP=QPE4
 
 rebuild: clean all
 

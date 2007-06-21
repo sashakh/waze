@@ -10,26 +10,26 @@
 # you'll need to do a "make clean" before trying your build again.
 # (In other words, it may appear to build correctly, and in some
 # cases might, but there are no guarantees.)
-
 # Basic building mode
-MODE =		# blank for "normal" build
+MODE = 		# blank for "normal" build
 # MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # Add any other special local CFLAGS values here
-CFLAGS =
+# CFLAGS =
 
 # If you know you need other libraries for your build, you can
 # add those here as well.  For example:
-# LIBS += -L$(QTDIR)/lib64
-LIBS =
+# LIBS += -L$(QTDIR)/lib
 
 # Choose a desktop
 # DESKTOP = GTK
 DESKTOP = GTK2
 # DESKTOP = GPE
 # DESKTOP = QT
+# DESKTOP = QT4
 # DESKTOP = QPE
+# DESKTOP = QPE4
 
 # If you select QT or QPE above, you might also want to set
 # QTDIR here.  (But it might already be set in your environment.)
