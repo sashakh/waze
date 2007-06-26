@@ -94,6 +94,9 @@ static RoadMapConfigDescriptor RoadMapConfigEventRightClick =
 static RoadMapConfigDescriptor RoadMapConfigEventLongClick =
                         ROADMAP_CONFIG_ITEM("Events", "Long Click");
 
+static RoadMapConfigDescriptor RoadMapConfigScrollZoomEnable =
+                        ROADMAP_CONFIG_ITEM("Events", "ScrollZoom");
+
 static RoadMapConfigDescriptor RoadMapConfigStylePrettyDrag =
                   ROADMAP_CONFIG_ITEM("Style", "Pretty Lines when Dragging");
 
@@ -1391,11 +1394,15 @@ static int roadmap_screen_get_orientation_mode (void) {
 }
 
 static void roadmap_screen_scroll_up (RoadMapGuiPoint *point) {
-   roadmap_screen_zoom_in ();
+   if ( ! roadmap_config_match(&RoadMapConfigScrollZoomEnable, "off") ) {
+      roadmap_screen_zoom_in ();
+   }
 }
 
 static void roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
-   roadmap_screen_zoom_out ();
+   if ( ! roadmap_config_match(&RoadMapConfigScrollZoomEnable, "off") ) {
+      roadmap_screen_zoom_out ();
+   }
 }
 
 
@@ -1668,6 +1675,9 @@ void roadmap_screen_initialize (void) {
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigEventLongClick,  "Long Click Popup");
+
+   roadmap_config_declare_enumeration
+       ("preferences", &RoadMapConfigScrollZoomEnable, "on", "off", NULL);
 
    roadmap_config_declare_enumeration
        ("preferences", &RoadMapConfigMapSigns, "yes", "no", NULL);
