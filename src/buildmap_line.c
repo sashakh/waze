@@ -542,6 +542,7 @@ static void buildmap_line_save (void) {
     * checks, which adds to the code.
     */
    square_current = -1;
+   square = -1;  /* warning suppression */
    layer_current  = 0;
    layer1_count   = 0;
 
