@@ -36,12 +36,12 @@
 
 typedef struct {  /* table polygon/head */
 
-   unsigned short first;
-   unsigned short count;
+   unsigned short first;  /* low 16 bits */
+   unsigned short count;  /* low 16 bits */
 
    RoadMapString name;
-   char  cfcc;
-   unsigned char filler;
+   unsigned char  cfcc;
+   unsigned char hi_f_c;  /* high 4 bits of "first" and "count" values */
 
    /* TBD: replace these with a RoadMapArea (not compatible!). */
    int   north;
@@ -56,6 +56,33 @@ typedef struct {  /* table polygon/points */
    int point;
 
 } RoadMapPolygonPoint;
+
+/* these accessors for the "count" and "first" values, which
+ * are 10 bits each -- 16 in an unsigned short, and 4 in each
+ * nibble of the "hi_f_c" element.
+ */
+
+#define hifirst(t) (((t)->hi_f_c >> 4) & 0xf)
+#define hicount(t) (((t)->hi_f_c >> 0) & 0xf)
+
+#define sethifirst(t,i) { (t)->hi_f_c = \
+        ((t)->hi_f_c & 0x0f) + (((i) & 0xf) << 4); }
+#define sethicount(t,i) { (t)->hi_f_c = \
+        ((t)->hi_f_c & 0xf0) + (((i) & 0xf) << 0); }
+
+#define roadmap_polygon_get_count(this) \
+        ((this)->count + (hicount(this) * 65536))
+#define roadmap_polygon_get_first(this) \
+        ((this)->first + (hifirst(this) * 65536))
+
+#define buildmap_polygon_set_count(this, c) do { \
+                (this)->count = (c) % 65536; \
+                sethicount(this, (c) / 65536); \
+        } while(0)
+#define buildmap_polygon_set_first(this, f) do { \
+                (this)->first = (f) % 65536; \
+                sethifirst(this, (f) / 65536); \
+        } while(0)
 
 #endif // INCLUDED__ROADMAP_DB_POLYGON__H
 

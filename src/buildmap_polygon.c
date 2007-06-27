@@ -917,7 +917,7 @@ static void buildmap_polygon_save (void) {
    BuildMapPolygon *one_polygon;
    BuildMapPolygonLine *one_line;
 
-   RoadMapPolygon *db_head;
+   RoadMapPolygon *db_head, *db_poly;
    RoadMapPolygonPoint *db_point;
 
    buildmap_db *root;
@@ -950,6 +950,7 @@ static void buildmap_polygon_save (void) {
 
    square_current = -1;
    polygon_current = -1;
+   db_poly = NULL;
 
    for (i = 0; i < PolygonLineCount; i++) {
 
@@ -971,30 +972,30 @@ static void buildmap_polygon_save (void) {
 
          if (polygon_current >= 0) {
 
-            if (db_head[polygon_current].count <= 1) {
+            if (roadmap_polygon_get_count(db_poly) <= 1) {
                buildmap_fatal (0, "empty polygon");
             }
 
             buildmap_polygon_fill_in_drawing_order
                (db_point,
-                db_head[polygon_current].first,
-                db_head[polygon_current].count);
+                roadmap_polygon_get_first(db_poly),
+                roadmap_polygon_get_count(db_poly));
 
             buildmap_polygon_fill_bounding_box
-               (db_point, db_head + polygon_current);
+               (db_point, db_poly);
          }
 
          polygon_current = one_polygon->sorted;
+         db_poly = &db_head[polygon_current];
 
-         db_head[polygon_current].name  = one_polygon->name;
-         db_head[polygon_current].first = i;
-         db_head[polygon_current].cfcc  = one_polygon->cfcc;
-         db_head[polygon_current].filler = 0;
+         db_poly->name  = one_polygon->name;
+         buildmap_polygon_set_first(db_poly, i);
+         db_poly->cfcc  = one_polygon->cfcc;
 
-         if (one_polygon->count > 0xffff) {
+         if (one_polygon->count > 0xfffff) {
             buildmap_fatal (0, "too many polygon lines");
          }
-         db_head[polygon_current].count = (unsigned short) one_polygon->count;
+         buildmap_polygon_set_count(db_poly, one_polygon->count);
 
          square = one_polygon->square[0];
 
@@ -1013,11 +1014,11 @@ static void buildmap_polygon_save (void) {
 
       buildmap_polygon_fill_in_drawing_order
          (db_point,
-          db_head[polygon_current].first,
-          db_head[polygon_current].count);
+          roadmap_polygon_get_first(db_poly),
+          roadmap_polygon_get_count(db_poly));
 
       buildmap_polygon_fill_bounding_box
-         (db_point, db_head + polygon_current);
+         (db_point, db_poly);
    }
 }
 

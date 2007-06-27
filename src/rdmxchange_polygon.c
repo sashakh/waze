@@ -152,7 +152,8 @@ static void rdmxchange_polygon_export_data (FILE *file) {
    polygon = RoadMapPolygonActive->Polygon;
 
    for (i = 0; i < RoadMapPolygonActive->PolygonCount; ++i, ++polygon) {
-      fprintf (file, "%.0d,%.0d,", polygon->first, polygon->count);
+      fprintf (file, "%.0d,%.0d,", roadmap_polygon_get_first(polygon),
+                                   roadmap_polygon_get_count(polygon));
       fprintf (file, "%.0d,%.0d,", polygon->name, polygon->cfcc);
       fprintf (file, "%.0d,%.0d,%.0d,%.0d\n", polygon->east,
                                               polygon->north,
@@ -321,8 +322,10 @@ static void rdmxchange_polygon_import_data (int table,
          }
          polygon = &(Polygon[PolygonCursor++]);
 
-         polygon->first = rdmxchange_import_int (fields[0]);
-         polygon->count = rdmxchange_import_int (fields[1]);
+         buildmap_polygon_set_first(polygon,
+                    rdmxchange_import_int (fields[0]));
+         buildmap_polygon_set_count(polygon,
+                    rdmxchange_import_int (fields[1]));
          polygon->name  = (RoadMapString) rdmxchange_import_int (fields[2]);
          polygon->cfcc  = (char) rdmxchange_import_int (fields[3]);
          polygon->east  = rdmxchange_import_int (fields[4]);

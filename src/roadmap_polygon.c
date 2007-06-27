@@ -157,17 +157,24 @@ int  roadmap_polygon_points (int polygon, int *list, int size) {
    RoadMapPolygon      *this_polygon;
    RoadMapPolygonPoint *this_point;
 
-   this_polygon = RoadMapPolygonActive->Polygon + polygon;
-   this_point   = RoadMapPolygonActive->PolygonPoint + this_polygon->first;
+   int count;
+   int first;
 
-   if (size < this_polygon->count) {
+   this_polygon = RoadMapPolygonActive->Polygon + polygon;
+
+   count = roadmap_polygon_get_count(this_polygon);
+   first = roadmap_polygon_get_first(this_polygon);
+
+   this_point   = RoadMapPolygonActive->PolygonPoint + first;
+
+   if (size < count) {
       return -1; /* Not enough space. */
    }
 
-   for (i = this_polygon->count; i > 0; --i, ++list, ++this_point) {
+   for (i = count; i > 0; --i, ++list, ++this_point) {
       *list = this_point->point;
    }
 
-   return this_polygon->count;
+   return count;
 }
 
