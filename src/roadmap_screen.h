@@ -66,18 +66,6 @@ typedef void (*RoadMapShapeIterator) (int shape, RoadMapPosition *position);
 
 void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler);
 
-void roadmap_screen_draw_line (const RoadMapPosition *from,
-                               const RoadMapPosition *to,
-                               int fully_visible,
-                               const RoadMapPosition *shape_start,
-                               int first_shape,
-                               int last_shape,
-                               RoadMapShapeIterator shape_next,
-                               RoadMapPen pen,
-                               int *total_length,
-                               RoadMapGuiPoint *middle,
-                               int *angle);
-
 int roadmap_screen_is_dragging (void);
 
 #define ROADMAP_TEXT_SIGNS  0x01
