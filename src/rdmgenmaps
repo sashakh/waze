@@ -15,7 +15,7 @@ usage()
 {
    cat >&2 <<EOF
 rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-                       [format=2000|2002|2004|2005]
+                       [format=2000|2002|2004|2005|2006]
                        [state=<state-id>]
                        [verbose|test]
 
@@ -34,7 +34,7 @@ EOF
 # Default setup: preferred map path is used, latest format, all states.
 
 FORMAT="--format=2002"
-MAPPATH="/var/lib/roadmap"
+MAPPATH="--maps=/var/lib/roadmap"
 OPTIONS=""
 TMPDIR=/var/tmp
 state=''
@@ -67,6 +67,9 @@ case $1 in
                 shift
                 ;;
    format=2005) FORMAT="--format=2002"
+                shift
+                ;;
+   format=2006) FORMAT="--format=2002"
                 shift
                 ;;
 esac
