@@ -675,15 +675,52 @@ static void buildmap_tiger_read_rt2 (const char *source, int verbose) {
 
    estimated_lines = size / 209;
 
-   line_count = 0;
-   record_count = 0;
    end_of_data = data + size;
+
+   /* since lines are sorted by square, we need to have all the
+    * square limits before we sort the lines
+    */
+   line_count = 0;
+   for (cursor = data; cursor < end_of_data; cursor += 209) {
+
+      line_count += 1;
+      buildmap_set_line (line_count);
+
+      if (cursor[0] != '2') {
+         buildmap_error (0, "bad type %c", cursor[0]);
+         continue;
+      }
+
+      tlid = tiger2int (cursor, 6, 15);
+
+      for (i = 0; i < 10; i++) {
+
+         location  = LocationOfPoint[i];
+         longitude = tiger2int (cursor, location, location + 9);
+
+         if (longitude != 0) {
+
+            latitude = tiger2int (cursor, location+10, location+18);
+
+            buildmap_square_adjust_limits(longitude, latitude);
+         }
+      }
+
+      if (cursor[208] == '\r') {
+         cursor += 1;   /* Case of an MS-DOS format file. */
+      }
+      if (cursor[208] != '\n') {
+         buildmap_error (0, "bad end of line");
+      }
+   }
 
    /* We need the lines to be sorted, because we will order the shape
     * according to the orders of the lines.
     */
    buildmap_line_sort();
 
+   line_count = 0;
+   record_count = 0;
    for (cursor = data; cursor < end_of_data; cursor += 209) {
 
       line_count += 1;
