@@ -16,17 +16,11 @@ usage()
    cat >&2 <<EOF
 rdmgenmaps <tiger-path> [maps=<map-directory-path>]
                        [format=2000|2002|2004|2005|2006]
-                       [state=<state-id>]
                        [verbose|test]
-
- or
-
-rdmgenmaps <tiger-path> [maps=<map-directory-path>]
-                       [format=2000|2002|2004|2005]
-                       [verbose|test]
-                       county-fips ...
+                       [state=<state-id> | county-fips... ]
 
   Example: rdmgenmaps /var/lib/roadmap state=06
+       or: rdmgenmaps /var/lib/roadmap 06037
 EOF
    exit 1
 }
@@ -75,12 +69,6 @@ case $1 in
 esac
 
 case $1 in
-   state=*) state=`expr $1 : 'state=\(.*\)'`
-            shift
-            ;;
-esac
-
-case $1 in
    verbose) verbose=Y
          OPTIONS="-v $OPTIONS"
          shift
@@ -92,6 +80,12 @@ case $1 in
          OPTIONS="-v $OPTIONS"
          shift
          ;;
+esac
+
+case $1 in
+   state=*) state=`expr $1 : 'state=\(.*\)'`
+            shift
+            ;;
 esac
 
 
