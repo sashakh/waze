@@ -59,9 +59,6 @@
 static RoadMapConfigDescriptor RoadMapConfigTripName =
                         ROADMAP_CONFIG_ITEM("Trip", "Name");
 
-static RoadMapConfigDescriptor RoadMapConfigTripRotate =
-                        ROADMAP_CONFIG_ITEM("Display", "Rotate");
-
 static RoadMapConfigDescriptor RoadMapConfigTripShowInactiveRoutes =
                         ROADMAP_CONFIG_ITEM("Trip", "Show Inactive Routes");
 
@@ -73,9 +70,6 @@ static RoadMapConfigDescriptor RoadMapConfigTripRouteLineColor =
 
 static RoadMapConfigDescriptor RoadMapConfigFocusName =
                         ROADMAP_CONFIG_ITEM("Focus", "Name");
-
-static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
-                        ROADMAP_CONFIG_ITEM("Focus", "Rotate");
 
 static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
                         ROADMAP_CONFIG_ITEM("Trip", "Waypoint Radius");
@@ -103,7 +97,6 @@ static int RoadMapRouteInProgress = 0;
 static int RoadMapRouteIsReversed = 0;
 
 /* display flags */
-static int RoadMapTripRotate = 1;
 static int RoadMapTripRefresh = 1;      /* Screen needs to be refreshed? */
 static int RoadMapTripFocusChanged = 1;
 static int RoadMapTripFocusMoved = 1;
@@ -473,26 +466,14 @@ static void roadmap_trip_dialog_waypoint_edit
 
 static void roadmap_trip_set_point_focus (RoadMapTripFocal * focal) {
 
-    int rotate;
-
     if (focal == NULL || !focal->has_value) {
         return;
-    }
-
-    if (!focal->mobile) {
-        rotate = 0;             /* Fixed point, no rotation no matter what. */
-    } else {
-        rotate = roadmap_config_match (&RoadMapConfigTripRotate, "yes");
     }
 
     RoadMapTripRefresh = 1;
     RoadMapTripFocusChanged = 1;
 
 
-    if (RoadMapTripRotate != rotate) {
-        roadmap_config_set_integer (&RoadMapConfigFocusRotate, rotate);
-        RoadMapTripRotate = rotate;
-    }
     if (RoadMapTripFocus != focal) {
         roadmap_config_set (&RoadMapConfigFocusName, focal->id);
         RoadMapTripFocus = focal;
@@ -1679,7 +1660,7 @@ int roadmap_trip_is_refresh_needed (void) {
 
 int roadmap_trip_get_orientation (void) {
 
-    if (RoadMapTripRotate && (RoadMapTripFocus != NULL)) {
+    if (RoadMapTripFocus != NULL) {
         return 360 - RoadMapTripFocus->gps.steering;
     }
 
@@ -3200,14 +3181,9 @@ void roadmap_trip_initialize (void) {
         ("session", &RoadMapConfigTripName, "");
     roadmap_config_declare
         ("session", &RoadMapConfigFocusName, "GPS");
-    roadmap_config_declare
-        ("session", &RoadMapConfigFocusRotate, "1");
 
     roadmap_config_declare_distance
         ("preferences", &RoadMapConfigWaypointSize, "125 ft");
-
-    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigTripRotate, "yes", "no", NULL);
 
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigTripShowInactiveRoutes, "yes", "no", NULL);
