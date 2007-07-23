@@ -796,7 +796,7 @@ static int roadmap_screen_draw_square
 
       int iline;
       int square_count = roadmap_square_count();
-      char *on_canvas  = calloc (square_count/8, sizeof(char));
+      char *on_canvas  = calloc ((square_count+7)/8, sizeof(char));
 
       for (iline = first_line; iline <= last_line; ++iline) {
 
