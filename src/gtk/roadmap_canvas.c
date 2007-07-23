@@ -168,10 +168,11 @@ RoadMapPen roadmap_canvas_create_pen (const char *name) {
 
 void roadmap_canvas_set_foreground (const char *color) {
 
-   GdkColor *native_color;
+   static GdkColor *native_color;
 
-
-   native_color = (GdkColor *) g_malloc (sizeof(GdkColor));
+   if (native_color == NULL) {
+      native_color = (GdkColor *) g_malloc (sizeof(GdkColor));
+   }
 
    gdk_color_parse (color, native_color);
    gdk_color_alloc (gdk_colormap_get_system(), native_color);

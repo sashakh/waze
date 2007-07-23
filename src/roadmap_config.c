@@ -210,8 +210,8 @@ static RoadMapConfigItem *roadmap_config_new_item
 
         roadmap_check_allocated(new_item);
 
-        new_item->name     = descriptor->name;
-        new_item->category = descriptor->category;
+        new_item->name     = strdup(descriptor->name);
+        new_item->category = strdup(descriptor->category);
         new_item->file     = file;
 
         if (default_value[0] == 0) {
@@ -570,6 +570,8 @@ static int roadmap_config_load_file
         item->state = intended_state;
       
         item->cached_valid = 0;
+        free((void *)descriptor.name);
+        free((void *)descriptor.category);
     }
     fclose (file);
 

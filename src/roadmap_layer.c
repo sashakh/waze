@@ -724,8 +724,9 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         int  thickness;
         int  other_pen_length = strlen(layers[i]) + 64;
-        char *other_pen = malloc(other_pen_length);
-
+        static char *other_pen;
+        
+        other_pen = realloc(other_pen, other_pen_length);
 
         layer->name = layers[i];
         layer->class = new_class;

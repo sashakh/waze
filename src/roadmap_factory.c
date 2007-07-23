@@ -747,6 +747,8 @@ void roadmap_factory_keymap (RoadMapAction  *actions,
                RoadMapFactoryBindings[j].key = text;
                RoadMapFactoryBindings[j].action = this_action;
                ++j;
+            } else {
+               free(text);
             }
          }
       }
