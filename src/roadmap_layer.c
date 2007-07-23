@@ -688,8 +688,8 @@ static void roadmap_layer_load_file (const char *class_file) {
     /* Create the new class. */
 
     new_class =
-       malloc (sizeof(RoadMapClass) + 
-                  ((polygons_count + lines_count) * sizeof(RoadMapLayer)));
+       calloc (sizeof(RoadMapClass) + 
+                  ((polygons_count + lines_count) * sizeof(RoadMapLayer)), 1);
     roadmap_check_allocated(new_class);
 
     new_class->name = class_name;
