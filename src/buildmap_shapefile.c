@@ -56,7 +56,6 @@
 #include "buildmap_range.h"
 #include "buildmap_area.h"
 #include "buildmap_shape.h"
-#include "buildmap_polygon.h"
 
 #include "buildmap_layer.h"
 
