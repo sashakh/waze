@@ -66,11 +66,11 @@ clean:
 	$(RM) .#*
 
 # icon rules -- use "convert" from imagemagick
-%.png : %.xpm
+rm_%.png : rm_%.xpm
 	$(CONVERT) -transparent yellow $< temp.png
 	$(CONVERT) -scale 16x16 temp.png $@
 	rm -f temp.png
 
-%.xpm : %.png
+road%.xpm : road%.png
 	$(CONVERT) $< $@
 
