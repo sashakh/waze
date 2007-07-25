@@ -197,8 +197,7 @@ int buildmap_line_add (int tlid, int layer, int from, int to) {
 }
 
 
-static void buildmap_line_new_long
-        (int sorted_line, BuildMapLine *this_line)
+static void buildmap_line_new_long (int sorted_line)
    
 {
     int from;
@@ -213,11 +212,7 @@ static void buildmap_line_new_long
 
     this_long_line->line = sorted_line;
 
-    if (this_line != NULL) {
-       this_long_line->layer = this_line->layer;
-    } else {
-       this_long_line->layer = buildmap_line_get_layer_sorted (sorted_line);
-    }
+    this_long_line->layer = buildmap_line_get_layer_sorted (sorted_line);
 
     buildmap_line_get_points_sorted (sorted_line, &from, &to);
 
@@ -255,12 +250,10 @@ void buildmap_line_test_long (int sorted_line, int longitude, int latitude) {
             buildmap_shape_update_long_line
                      (this_long_line, longitude, latitude);
             return;
-         } else {
-            this_long_line = NULL;
          }
       }
 
-      buildmap_line_new_long(sorted_line, NULL);
+      buildmap_line_new_long(sorted_line);
 
    }
 
@@ -490,7 +483,7 @@ void buildmap_line_sort (void) {
          SortedLine2[j++] = i;
       }
       if (!buildmap_square_is_adjacent (from_square, to_square))
-         buildmap_line_new_long(i, one_line);
+         buildmap_line_new_long(i);
    }
    if (j != LineCrossingCount) {
       buildmap_fatal (0, "non matching crossing count");
