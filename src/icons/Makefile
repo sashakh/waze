@@ -2,18 +2,21 @@
 TOP = ..
 include $(TOP)/options.mk
 
-# hand-made icons (the other rm_*.png icons are official road signs):
-# the source for these is .xpm
-RM_ICONS_XPM= rm_hold.xpm \
-	rm_gps.xpm \
-	rm_zoom1.xpm \
-	rm_zoomin.xpm \
-	rm_zoomout.xpm
+# the rm_*.png icons are used by roadmap itself.  these must be
+# in PNG format.  the original source for some of them is in XPM
+# format, but we keep the PNG results around as well.  (so that
+# the "convert" program can be optional.)
 
-RM_ICONS_PNG_FROM_XPM=$(RM_ICONS_XPM:.xpm=.png)
+# the source for the hand-made icons is .xpm
+RM_ICONS_PNG_BUILDABLE = \
+	rm_hold.png \
+	rm_gps.png \
+	rm_zoom1.png \
+	rm_zoomin.png \
+	rm_zoomout.png
 
-# the source for these is .png
-RM_ICONS_PNG_FROM_CVS = \
+# the "official road signs" are .png
+RM_ICONS_PNG_CVS_ONLY = \
 	rm_clockwise.png \
 	rm_counterclockwise.png \
 	rm_destination.png \
@@ -27,10 +30,12 @@ RM_ICONS_PNG_FROM_CVS = \
 	rm_stop.png \
 	rm_up.png
 
-# the rm_* icons we install are all .png
-RM_ICONS_PNG = $(RM_ICONS_PNG_FROM_CVS) $(RM_ICONS_PNG_FROM_XPM) 
+RM_ICONS_PNG = $(RM_ICONS_PNG_CVS_ONLY) $(RM_ICONS_PNG_BUILDABLE) 
 
-# the source for the roadmap* icons is all .png
+
+# the roadmap_* icons are for "system" use -- for the menu system,
+# etc.  the source for the roadmap* icons is all .png, but we try
+# to install XPM versions as well, if "convert" is available.
 ROADMAP_ICONS_PNG = \
 	roadmap-16.png \
 	roadmap-32.png \
@@ -45,27 +50,38 @@ ROADMAP_ICONS_XPM=$(ROADMAP_ICONS_PNG:.png=.xpm)
 # the roadmap* icons we install are both the .png and .xpm variants
 ROADMAP_ICONS_ALL = $(ROADMAP_ICONS_PNG) $(ROADMAP_ICONS_XPM)
 
+# the only pieces we try to build are the roadmap*.xpm files, and
+# these are optional if the "convert" program is missing.
+all:
+	@echo
+	@echo "If the $(CONVERT) program is missing, this next step(s)"
+	@echo "  may fail.  These errors can be ignored."
+	@echo
+	-$(MAKE) $(ROADMAP_ICONS_XPM)
 
-.PHONY: all install uninstall icons clean
+clean:
+	$(RM) $(ROADMAP_ICONS_XPM)
 
-all: icons
+# manually invoking this target will cause "convert" to be
+# used to bring the .png versions of the rm_*.xpm files up-to-date.
+rm_icons: $(RM_ICONS_PNG_BUILDABLE)
+rm_icons_clean:
+	$(RM) $(RM_ICONS_PNG_BUILDABLE)
 
-icons: $(RM_ICONS_PNG_FROM_XPM) $(ROADMAP_ICONS_XPM)
 
-install: $(RM_ICONS_PNG_FROM_XPM)
+install: $(RM_ICONS_PNG)
 	mkdir -p $(DESTDIR)$(ICONDIR)
-	cp -f $(RM_ICONS_PNG) $(ROADMAP_ICONS_ALL) $(DESTDIR)$(ICONDIR)
+	cp -f $(RM_ICONS_PNG) 	    $(DESTDIR)$(ICONDIR)
+	cp -f $(ROADMAP_ICONS_PNG)  $(DESTDIR)$(ICONDIR)
+	@echo
+	@echo "The next copy command may fail."
+	@echo
+	-cp -f $(ROADMAP_ICONS_XPM) $(DESTDIR)$(ICONDIR)
 
 uninstall:
 	cd $(DESTDIR)$(ICONDIR) && rm -f $(RM_ICONS_PNG) $(ROADMAP_ICONS_ALL)
 
-
-clean:
-	$(RM) $(RM_ICONS_PNG_FROM_XPM) $(ROADMAP_ICONS_XPM)
-	# Clean up CVS backup files as well.
-	$(RM) .#*
-
-# icon rules -- use "convert" from imagemagick
+# create .png from our hand-made .xpm sources
 rm_%.png : rm_%.xpm
 	$(CONVERT) -transparent yellow $< temp.png
 	$(CONVERT) -scale 16x16 temp.png $@
@@ -73,4 +89,6 @@ rm_%.png : rm_%.xpm
 
 road%.xpm : road%.png
 	$(CONVERT) $< $@
+
+.PHONY: all install uninstall icons clean rm_icons
 
