@@ -159,16 +159,6 @@ XCHGSRCS=rdmxchange_main.c \
 
 XCHGOBJS=$(XCHGSRCS:.c=.o)
 
-ICONS_PNG = roadmap-16.png \
-	roadmap-32.png \
-	roadmap-48.png \
-	roadmap-64.png \
-	roadmap-right.png \
-	roadmap-small.png \
-	roadmap.png
-
-ICONS_XPM=$(ICONS_PNG:.png=.xpm)
-
 
 PKGDATAFILES=sprites preferences session drivers roadmap.popup
 BUILD=buildmap buildus dumpmap buildplace
@@ -227,12 +217,11 @@ strip:
 		$(MAKE) -C $$module strip || exit 1; \
 	done
 
-icons: $(ICONS_XPM)
+icons:
 	$(MAKE) -C icons all
 
 topclean:
 	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
-	rm -f $(ICONS_XPM)
 	# Clean up CVS backup files as well.
 	$(RM) .#*
 
@@ -277,9 +266,7 @@ installdesktop:
 	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
 
 installicons:
-	mkdir -p $(DESTDIR)$(ICONDIR)
 	$(MAKE) -C icons install
-	cp -f $(ICONS_PNG) $(ICONS_XPM) $(DESTDIR)$(ICONDIR)/.
 
 installdoc:
 	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
@@ -292,7 +279,6 @@ uninstall:
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS) $(DRIVERS)
 	if [ -d $(menudir) ] ; then rm -f $(menudir)/roadmap; fi
 	$(MAKE) -C icons uninstall
-	cd $(DESTDIR)$(ICONDIR) && rm -f roadmap*.png
 	cd $(DESTDIR)$(desktopdir) && rm -f roadmap.desktop
 	cd $(DESTDIR)$(man1dir) && rm -f roadgps.1 roadmap.1
 	for module in $(RDMODULES) ; \
@@ -357,8 +343,4 @@ buildus: $(BUOBJS) $(RDMLIBS)
 buildplace: $(BPOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BPOBJS) -o buildplace $(LIBS)
 
-
-# icon rule -- create xpm from png with "convert" from imagemagick
-%.xpm : %.png
-	$(CONVERT) $< $@
 
