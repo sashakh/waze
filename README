@@ -2268,7 +2268,7 @@ CONFIGURATION
                       or the direction of travel, towards the top of the
                       screen.  Can be toggled by command as well.
 
-    [Map.GPS map offset latitude]
+    [Map.GPS map offset latitude] Allows tuning of GPS latitude results.
 
          <<Format:>> integer
 
@@ -2276,7 +2276,7 @@ CONFIGURATION
 
          <<Comment:>> offset (millionths of a degree) applied to GPS results
 
-    [Map.GPS map offset longitude]
+    [Map.GPS map offset longitude] Allows tuning of GPS longitude results.
 
          <<Format:>> integer
 
