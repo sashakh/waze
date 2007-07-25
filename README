@@ -106,9 +106,11 @@ INSTALLATION
    toolkits must be installed. RoadMap can be built for QT/QPE, but the
    RoadMap makefile for QT must be modified.
 
-   RoadMap uses the ImageMagick package to generate the PNG files for some
-   icons of its toolbar. ImageMagick is only required for building RoadMap,
-   it is not necessary when running RoadMap.
+   RoadMap uses the "convert" program from the ImageMagick package to
+   generate the PNG files for some of the icons on its toolbar.  Pre-built
+   copies of these PNG files are distributed, so ImageMagick is optional,
+   and in any case is only required for building RoadMap, it is not
+   necessary when running RoadMap.
 
    RoadMap uses flite (festival lite) to generate voice messages. See
    section "VOICE INTERFACE" for more information.
@@ -440,7 +442,7 @@ INSTALLATION
    (cd /usr/local/share/roadmap ; chmod a+r sprites preferences schema session)
    cp roadmap.1 roadgps.1 /usr/local/share/man/man1
    (cd  /usr/local/share/man/man1 ; chmod a+r roadmap.1 roadgps.1)
-   cp roadmap*.png icons/rm_*.png /usr/local/share/pixmaps
+   cp icons/roadmap*.png icons/rm_*.png /usr/local/share/pixmaps
    (cd /usr/local/share/pixmaps ; chmod a+r roadmap*.png rm_*.png)
 
    cp buildmap buildus dumpmap buildplace /usr/local/bin
@@ -1615,9 +1617,9 @@ USING ROADMAP
        When a route is active, RoadMap tracks the GPS position in realtime
        and updates the map accordingly.  The GPS position can be shown in
        two modes:  either North up or GPS direction up depending on the
-       "Display.Rotate" preference item.  In the second case, the map is
-       rotated according to the direction information received from the
-       GPS, and is convenient as it matches the driver's or passenger's
+       "Map.DynamicOrientation" preference item.  In the second case, the
+       map is rotated according to the direction information received from
+       the GPS, and is convenient as it matches the driver's or passenger's
        view.  (This dynamic rotation is in addition to the map manual
        rotation.) Some people find it disconcerting, however, and will wish
        to retain "North up" mode.
@@ -2197,12 +2199,6 @@ CONFIGURATION
          <<Default:>> 10
 
          <<Comment:>> the selection is only removed when the map is redrawn.
-
-    [Display.Rotate] Does the display rotate when tracking mobile objects?
-
-         <<Format:>> boolean
-
-         <<Default:>> "yes"
 
     [Display.Refresh Period] Minimum interval between display refreshes.
 
@@ -3744,7 +3740,7 @@ MAP FORMAT
                   module.
 
    [point]        A spatially sorted list of position points used to
-                  define lines an polygonal areas. This section is defined
+                  define lines and polygonal areas. This section is defined
                   in the roadmap_db_point.h header, handled by the
                   roadmap_point.c module and created by the buildmap_point.c
                   module.
