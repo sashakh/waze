@@ -268,11 +268,16 @@ installdesktop:
 installicons:
 	$(MAKE) -C icons install
 
-installdoc:
+installdoc: ../web/manual.html 
 	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
-webdoc:
-	aptconvert -toc -enc ASCII ../web/manual.html ../README
+webdoc: ../web/manual.html ../web/makemaps.html
+
+../web/manual.html: ../README
+	aptconvert -toc -enc ASCII $@ $<
+
+../web/makemaps.html: ../howtos/makemaps.txt
+	aptconvert -toc -enc ASCII $@ $<
 
 uninstall:
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
