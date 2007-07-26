@@ -8,7 +8,7 @@
 
 INTRODUCTION
 
-   This HOWTO describes how to create a new map for RoadMap. The intend is
+   This HOWTO describes how to create a new map for RoadMap. The intent is
    not to provide a complete description of the RoadMap map format, only
    to guide the authors of new maps in the complicated process of gathering
    and organizing the data.
