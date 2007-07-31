@@ -39,7 +39,7 @@
  *   char       *roadmap_db_get_name  (roadmap_db *section);
  *   unsigned    roadmap_db_get_size  (roadmap_db *section);
  *   int         roadmap_db_get_count (roadmap_db *section);
- *   char       *roadmap_db_get_data  (roadmap_db *section);
+ *   void       *roadmap_db_get_data  (roadmap_db *section);
  *   roadmap_db *roadmap_db_get_next  (roadmap_db *section);
  *
  *   void roadmap_db_close (const char *path, const char *name);
@@ -63,7 +63,7 @@ typedef struct roadmap_db_database_s {
    char *path;
 
    RoadMapFileContext file;
-   char *base;
+   void *base;
    int   size;
    roadmap_db root;
 
@@ -553,9 +553,9 @@ int roadmap_db_get_count (roadmap_db *section) {
 }
 
 
-char *roadmap_db_get_data  (roadmap_db *section) {
+void *roadmap_db_get_data  (roadmap_db *section) {
 
-   return (char *)(section->head + 1);
+   return (void *)(section->head + 1);
 }
 
 

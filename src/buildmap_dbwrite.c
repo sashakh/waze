@@ -49,7 +49,7 @@
 
 
 static char         *BuildmapCurrentDbName = NULL;
-static char         *BuildmapCurrentDbBase = NULL;
+static void         *BuildmapCurrentDbBase = NULL;
 static int           BuildmapCurrentDbSize = 0;
 RoadMapFileContext   BuildmapCurrentDbBaseMapContext = NULL;
 static buildmap_db   BuildmapDbRoot;

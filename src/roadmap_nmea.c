@@ -379,9 +379,9 @@ static int roadmap_nmea_gsv (int argc, char *argv[]) {
 
    if (argc <= 3) return 0;
 
-   RoadMapNmeaReceived.gsv.total = (char) atoi(argv[1]);
-   RoadMapNmeaReceived.gsv.index = (char) atoi(argv[2]);
-   RoadMapNmeaReceived.gsv.count = (char) atoi(argv[3]);
+   RoadMapNmeaReceived.gsv.total = atoi(argv[1]);
+   RoadMapNmeaReceived.gsv.index = atoi(argv[2]);
+   RoadMapNmeaReceived.gsv.count = atoi(argv[3]);
 
    if (RoadMapNmeaReceived.gsv.count < 0) {
       roadmap_log (ROADMAP_ERROR, "%d is an invalid number of satellites",

@@ -400,7 +400,7 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
    int street;
    RoadMapZip zip = 0;
 
-   char cfcc;
+   int cfcc;
    int  tlid;
    RoadMapString fedirp;
    RoadMapString fename;
@@ -484,7 +484,7 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
          from_point = buildmap_point_add (frlong, frlat);
          to_point   = buildmap_point_add (tolong, tolat);
 
-         BuildMapTigerLayerStatistics[(int)cfcc].line_count += 1;
+         BuildMapTigerLayerStatistics[cfcc].line_count += 1;
 
          line = buildmap_line_add (tlid, cfcc, from_point, to_point);
 
@@ -887,7 +887,7 @@ static void buildmap_tiger_read_rt7 (const char *source, int verbose) {
    char  *end_of_data;
 
    int    landid;
-   char   cfcc;
+   int    cfcc;
    short  landname;
 
 
@@ -917,7 +917,7 @@ static void buildmap_tiger_read_rt7 (const char *source, int verbose) {
 
       if (cfcc > 0) {
 
-         BuildMapTigerLayerStatistics[(int)cfcc].landmark_count += 1;
+         BuildMapTigerLayerStatistics[cfcc].landmark_count += 1;
 
          landid   = tiger2int (cursor, 11, 20);
          landname = tiger2string (DictionaryLandmark, cursor, 25, 54);

@@ -496,7 +496,7 @@ static void buildmap_polygon_initialize (void) {
 
 
 int  buildmap_polygon_add_landmark
-        (int landid, char cfcc, RoadMapString name) {
+        (int landid, int cfcc, RoadMapString name) {
 
    int block;
    int offset;
@@ -506,7 +506,7 @@ int  buildmap_polygon_add_landmark
    if (LandmarkById == NULL) buildmap_polygon_initialize ();
 
 
-   if (cfcc < 0) {
+   if (cfcc < 0 || cfcc > 255) {
       buildmap_fatal (0, "invalid cfcc");
    }
 

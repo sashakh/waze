@@ -29,7 +29,7 @@
 
 int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid);
 int  buildmap_polygon_add_landmark
-        (int landid, char cfcc, RoadMapString name);
+        (int landid, int cfcc, RoadMapString name);
 int  buildmap_polygon_add_line
         (RoadMapString cenid, int polyid, int tlid, int side);
 

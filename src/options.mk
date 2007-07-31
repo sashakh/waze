@@ -86,9 +86,10 @@ WARNFLAGS = -W \
 	-Wall \
 	-Wno-unused-parameter \
 	-Wcast-align \
-	-Wpointer-arith \
 	-Wreturn-type \
 	-Wsign-compare
+
+#	 -Wpointer-arith \
 
 CFLAGS += $(WARNFLAGS) 
 

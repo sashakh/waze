@@ -87,9 +87,9 @@ typedef union {
    } gsa;
 
    struct {
-      char  total;
-      char  index;
-      char  count;
+      int  total;
+      int  index;
+      int  count;
       char  reserved0;
       char  satellite[4];
       char  elevation[4];
