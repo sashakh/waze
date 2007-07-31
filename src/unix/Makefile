@@ -29,6 +29,9 @@ install:
 
 uninstall:
 
+sourcelist:
+	@echo Makefile $(LIBSRCS)
+
 
 # --- The real targets --------------------------------------------
 

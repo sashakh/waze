@@ -7,7 +7,7 @@ include $(TOP)/options.mk
 
 # --- RoadMap sources & targets --------------------------------------------
 
-RMLIBSRCS=roadmap_log.c \
+RMLIBSRC = roadmap_log.c \
 	roadmap_message.c \
 	roadmap_string.c \
 	roadmap_voice.c \
@@ -46,10 +46,10 @@ RMLIBSRCS=roadmap_log.c \
 	roadmap_gpx.c \
 	roadmap_linefont.c
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o)
+RMLIBOBJS = $(RMLIBSRC:.c=.o)
 
 
-RMGUISRCS=roadmap_sprite.c \
+RMGUISRC = roadmap_sprite.c \
 	roadmap_object.c \
 	roadmap_trip.c \
 	roadmap_track.c \
@@ -71,29 +71,29 @@ RMGUISRCS=roadmap_sprite.c \
 	roadmap_label.c \
 	roadmap_start.c
 
-RMGUIOBJS=$(RMGUISRCS:.c=.o)
+RMGUIOBJS = $(RMGUISRC:.c=.o)
 
 
-RGGUISRCS=roadgps_start.c \
+RGGUISRC = roadgps_start.c \
 	roadmap_factory.c \
 	roadmap_help.c \
 	roadgps_screen.c \
 	roadgps_logger.c
 
-RGGUIOBJS=$(RGGUISRCS:.c=.o)
+RGGUIOBJS = $(RGGUISRC:.c=.o)
 
 
-RMPLUGINSRCS=roadmap_copy.c roadmap_httpcopy.c
+RMPLUGINSRC = roadmap_copy.c roadmap_httpcopy.c
 
-RMPLUGINOBJS=$(RMPLUGINSRCS:.c=.o)
-
-
-DMSRCS=dumpmap_main.c
-
-DMOBJS=$(DMSRCS:.c=.o)
+RMPLUGINOBJS=$(RMPLUGINSRC:.c=.o)
 
 
-BMLIBSRCS=buildmap_messages.c \
+DMSRC = dumpmap_main.c
+
+DMOBJS = $(DMSRC:.c=.o)
+
+
+BMLIBSRC = buildmap_messages.c \
 	buildmap_dictionary.c \
 	buildmap_dbwrite.c \
 	buildmap_metadata.c \
@@ -114,14 +114,14 @@ BMLIBSRCS=buildmap_messages.c \
 	buildmap_place.c \
 	buildmap_index.c \
 
-BMLIBOBJS=$(BMLIBSRCS:.c=.o)
+BMLIBOBJS = $(BMLIBSRC:.c=.o)
 
-BMSRCS=buildmap_main.c
+BMSRC = buildmap_main.c
 
-BMOBJS=$(BMSRCS:.c=.o)
+BMOBJS = $(BMSRC:.c=.o)
 
 
-BPSRCS=buildmap_messages.c \
+BPSRC = buildmap_messages.c \
 	buildmap_dictionary.c \
 	buildmap_dbwrite.c \
 	buildmap_square.c \
@@ -129,20 +129,20 @@ BPSRCS=buildmap_messages.c \
 	buildmap_place.c \
 	buildplace_main.c
 
-BPOBJS=$(BPSRCS:.c=.o)
+BPOBJS = $(BPSRC:.c=.o)
 
 
-BUSRCS=buildus_main.c \
+BUSRC = buildus_main.c \
 	buildus_fips.c \
 	buildus_county.c \
 	buildmap_dictionary.c \
 	buildmap_dbwrite.c \
 	buildmap_messages.c
 
-BUOBJS=$(BUSRCS:.c=.o)
+BUOBJS = $(BUSRC:.c=.o)
 
 
-XCHGSRCS=rdmxchange_main.c \
+XCHGSRC = rdmxchange_main.c \
 	rdmxchange_dictionary.c \
 	rdmxchange_index.c \
 	rdmxchange_metadata.c \
@@ -157,18 +157,162 @@ XCHGSRCS=rdmxchange_main.c \
 	buildmap_messages.c \
 	buildmap_dbwrite.c
 
-XCHGOBJS=$(XCHGSRCS:.c=.o)
+XCHGOBJS = $(XCHGSRC:.c=.o)
 
 
-PKGDATAFILES=sprites preferences session drivers roadmap.popup
-SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
-RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
-DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace rdmxchange
-TOOLS=sunrise $(SQLTOOLS)
+MISCSRC = \
+	rdmindex_main.c \
+	roadmap_kismet.c \
+	roadmap_ghost.c \
+	roadmap_friends.c \
+	roadmap_trace.c
+
+BMHEADERS = \
+	buildmap.h \
+	buildmap_area.h \
+	buildmap_city.h \
+	buildmap_empty.h \
+	buildmap_index.h \
+	buildmap_layer.h \
+	buildmap_line.h \
+	buildmap_metadata.h \
+	buildmap_place.h \
+	buildmap_point.h \
+	buildmap_polygon.h \
+	buildmap_range.h \
+	buildmap_shape.h \
+	buildmap_shapefile.h \
+	buildmap_square.h \
+	buildmap_street.h \
+	buildmap_tiger.h \
+	buildmap_zip.h \
+	buildus_county.h \
+	buildus_fips.h
+
+XCHGHEADERS = \
+	rdmxchange.h
+
+RGHEADERS = \
+	roadgps_logger.h \
+	roadgps_screen.h \
+	roadmap.h
+
+RMHEADERS = \
+	roadmap_address.h \
+	roadmap_adjust.h \
+	roadmap_canvas.h \
+	roadmap_config.h \
+	roadmap_coord.h \
+	roadmap_copy.h \
+	roadmap_copyright.h \
+	roadmap_county.h \
+	roadmap_crossing.h \
+	roadmap_dialog.h \
+	roadmap_dictionary.h \
+	roadmap_display.h \
+	roadmap_download.h \
+	roadmap_driver.h \
+	roadmap_factory.h \
+	roadmap_features.h \
+	roadmap_file.h \
+	roadmap_fileselection.h \
+	roadmap_fuzzy.h \
+	roadmap_geocode.h \
+	roadmap_gps.h \
+	roadmap_gpsd2.h \
+	roadmap_gpx.h \
+	roadmap_gui.h \
+	roadmap_hash.h \
+	roadmap_help.h \
+	roadmap_history.h \
+	roadmap_httpcopy.h \
+	roadmap_index.h \
+	roadmap_input.h \
+	roadmap_io.h \
+	roadmap_label.h \
+	roadmap_landmark.h \
+	roadmap_layer.h \
+	roadmap_library.h \
+	roadmap_line.h \
+	roadmap_linefont.h \
+	roadmap_list.h \
+	roadmap_locator.h \
+	roadmap_main.h \
+	roadmap_math.h \
+	roadmap_message.h \
+	roadmap_messagebox.h \
+	roadmap_metadata.h \
+	roadmap_navigate.h \
+	roadmap_net.h \
+	roadmap_nmea.h \
+	roadmap_object.h \
+	roadmap_path.h \
+	roadmap_place.h \
+	roadmap_plugin.h \
+	roadmap_point.h \
+	roadmap_pointer.h \
+	roadmap_polygon.h \
+	roadmap_preferences.h \
+	roadmap_scan.h \
+	roadmap_screen.h \
+	roadmap_serial.h \
+	roadmap_shape.h \
+	roadmap_spawn.h \
+	roadmap_sprite.h \
+	roadmap_square.h \
+	roadmap_start.h \
+	roadmap_state.h \
+	roadmap_street.h \
+	roadmap_string.h \
+	roadmap_sunrise.h \
+	roadmap_time.h \
+	roadmap_track.h \
+	roadmap_trigonometry.h \
+	roadmap_trip.h \
+	roadmap_types.h \
+	roadmap_voice.h
+
+RMDBHEADERS = \
+	roadmap_db.h \
+	roadmap_db_county.h \
+	roadmap_db_dictionary.h \
+	roadmap_db_index.h \
+	roadmap_db_line.h \
+	roadmap_db_metadata.h \
+	roadmap_db_place.h \
+	roadmap_db_point.h \
+	roadmap_db_polygon.h \
+	roadmap_db_range.h \
+	roadmap_db_shape.h \
+	roadmap_db_square.h \
+	roadmap_db_street.h \
+	roadmap_dbread.h
+
+HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
+
+# more sources
+PKGDATAFILES = sprites preferences session drivers roadmap.popup default/All
+MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1
+SCRIPTS = rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
+MKFILES = Makefile config.mk options.mk
+
+# more products
 ifneq ($(strip $(POPT)),NO)
   BUILD = buildmap buildus dumpmap buildplace rdmindex 
 endif
 
+RUNTIME = $(RDMLIBS) libguiroadgps.a libguiroadmap.a
+DRIVERS = rdmkismet rdmghost rdmfriends rdmtrace rdmxchange
+TOOLS = sunrise
+
+# the "ALL_..." variables are important in that they drive the
+# creation of the release tarballs.
+ALL_SRC = $(MKFILES) $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
+	$(RMPLUGINSRC) $(DMSRC) $(BMLIBSRC) $(BMSRC) \
+	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC) $(HEADERS) \
+	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS)
+
+ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support
 
 # --- Conventional targets ----------------------------------------
 
@@ -179,7 +323,8 @@ all: runtime build $(TOOLS) icons
 
 
 # --- Convenience targets, to force a specific desktop build ------
-#     (overrides setting in config.mk)
+# (These targets override the default setting in config.mk, but
+# you may need other settings from there anyway, so they may not work.)
 gtk:
 	$(MAKE) DESKTOP=GTK
 
@@ -316,9 +461,6 @@ libguiroadgps.a: $(RGGUIOBJS)
 sunrise: roadmap_sunrise.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -DSUNRISE_PROGRAM roadmap_sunrise.c -o sunrise -lm
 
-sqliteload: sqliteload.o
-	$(CC) sqliteload.o $(SQLCFLAGS) $(SQLLDFLAGS) -o sqliteload -lm
-
 rdmindex : rdmindex_main.o libbuildmap.a $(RDMLIBS)
 	$(CC) $(LDFLAGS) rdmindex_main.o -o rdmindex libbuildmap.a $(RDMLIBS) $(LIBS)
 
@@ -351,3 +493,44 @@ buildplace: $(BPOBJS) $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BPOBJS) -o buildplace $(LIBS)
 
 
+# --- distribution preparation targets
+
+# the variable "$DOTVERSION" must be in the environment before
+# this makefile is invoked.  e.g.:
+#   DOTVERSION=1.1-rc1 make tarball
+
+RELNAME = roadmap-$(DOTVERSION)
+
+.PHONY: checkdotversion sourcelist linkdir tarball
+
+# source files from "..", i.e. the real top-level.  these go into tarball.
+UPPER_SRC = README AUTHORS BUGS COPYING INSTALL TODO howtos/makemaps.txt 
+
+# the contents of the tarball are listed explicitly, using the UPPER_SRC
+# variable and the output of "make sourcelist".  an appropriate path
+# prefix is added to make all relative paths correct.
+tarball: linkdir 
+	@tar --dereference -czvf $(RELNAME).tar.gz \
+	    $(addprefix $(RELNAME)/, $(UPPER_SRC)) \
+	    $(addprefix $(RELNAME)/src/, $(shell \
+		  $(MAKE) -C $(RELNAME)/src --no-print-directory sourcelist) \
+	    )
+	rm $(RELNAME)
+	
+# create a symlink to our own top-level directory, for the purposes of tarring
+# up a tree with a reasonable name.
+linkdir: checkdotversion
+	rm -f $(RELNAME)
+	ln -sf $(shell cd ..; pwd) $(RELNAME)
+
+# force failure if the DOTVERSION environment variable is not set
+checkdotversion:
+	@echo Checking that \$$DOTVERSION is set
+	test "$(DOTVERSION)"
+
+# emit a list of the source at this and all lower levels
+sourcelist:
+	@echo $(ALL_SRC)
+	@echo $(foreach dir, $(ALL_SUBDIRS), \
+	    $(addprefix $(dir)/, \
+		$(shell $(MAKE) -C $(dir) --no-print-directory sourcelist)))

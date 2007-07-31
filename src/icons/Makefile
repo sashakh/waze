@@ -48,7 +48,7 @@ ROADMAP_ICONS_PNG = \
 ROADMAP_ICONS_XPM=$(ROADMAP_ICONS_PNG:.png=.xpm)
 
 # the roadmap* icons we install are both the .png and .xpm variants
-ROADMAP_ICONS_ALL = $(ROADMAP_ICONS_PNG) $(ROADMAP_ICONS_XPM)
+ROADMAP_ICONS_ALL = $(RM_ICONS_PNG) $(ROADMAP_ICONS_PNG)
 
 # the only pieces we try to build are the roadmap*.xpm files, and
 # these are optional if the "convert" program is missing.
@@ -80,6 +80,9 @@ install: $(RM_ICONS_PNG)
 
 uninstall:
 	cd $(DESTDIR)$(ICONDIR) && rm -f $(RM_ICONS_PNG) $(ROADMAP_ICONS_ALL)
+
+sourcelist:
+	@echo Makefile $(ROADMAP_ICONS_ALL)
 
 # create .png from our hand-made .xpm sources
 rm_%.png : rm_%.xpm

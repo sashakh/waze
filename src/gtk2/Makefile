@@ -26,6 +26,11 @@ RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.c=.o)
 
 TARGETS = gtkroadgps gtkroadmap
 
+HEADERS = \
+	roadmap_gtkcanvas.h \
+	roadmap_gtkmain.h \
+	roadmap_keyboard.h
+
 # --- Conventional targets ----------------------------------------
 
 .PHONY: all strip clean install uninstall
@@ -48,6 +53,11 @@ install:
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
+
+sourcelist:
+	@echo Makefile roadmap_main.c \
+	    roadmap_canvas.c roadmap_canvas_agg.cpp \
+	    $(RMLIBSRCS) $(HEADERS)
 
 # --- The real targets --------------------------------------------
 

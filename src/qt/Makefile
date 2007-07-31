@@ -27,20 +27,32 @@ endif
 
 # --- QT sources & targets --------------------------------------------
 
-RMLIBSRCS = qt_main.cc \
-           moc_qt_main.cc \
-           qt_canvas.cc \
-           moc_qt_canvas.cc \
-           qt_dialog.cc \
-           moc_qt_dialog.cc \
-           roadmap_dialog.cc \
-           qt_fileselection.cc \
-           moc_qt_fileselection.cc \
-           roadmap_fileselection.cc \
-           roadmap_messagebox.c
+MOC_RMLIBSRCS = \
+	qt_main.cc \
+	qt_canvas.cc \
+	qt_dialog.cc
+
+NO_MOC_RMLIBSRCS = \
+	qt_fileselection.cc \
+	roadmap_fileselection.cc \
+	roadmap_dialog.cc \
+	roadmap_messagebox.cc
+
+SOURCE = $(MOC_RMLIBSRCS) $(NO_MOC_RMLIBSRCS)
+
+RMLIBSRCS = \
+	$(addprefix moc_, $(MOC_RMLIBSRCS)) \
+	$(MOC_RMLIBSRCS) \
+	$(NO_MOC_RMLIBSRCS)
 
 RMLIBOBJS1 = $(RMLIBSRCS:.cc=.o)
 RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBOBJS1:.c=.o)
+
+HEADERS = \
+	qt_canvas.h \
+	qt_dialog.h \
+	qt_fileselection.h \
+	qt_main.h
 
 TARGETS = qtroadgps qtroadmap
 
@@ -78,6 +90,9 @@ install-ipkg: install
 
 uninstall:
 	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
+
+sourcelist:
+	@echo Makefile roadmap_main.cc roadmap_canvas.cc $(SOURCE) $(HEADERS)
 
 # temporary
 roadmap_canvas_agg.o:

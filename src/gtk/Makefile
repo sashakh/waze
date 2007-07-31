@@ -18,6 +18,11 @@ RMLIBSRCS=roadmap_keyboard.c \
 
 RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.c=.o)
 
+HEADERS = \
+	roadmap_gtkcanvas.h \
+	roadmap_gtkmain.h \
+	roadmap_keyboard.h
+
 TARGETS = gtkroadgps gtkroadmap
 
 # --- Conventional targets ----------------------------------------
@@ -42,6 +47,9 @@ install:
 
 uninstall:
 	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
+
+sourcelist:
+	@echo Makefile roadmap_main.c roadmap_canvas.c $(RMLIBSRCS) $(HEADERS)
 
 # hopefully temporary
 roadmap_canvas_agg.o:

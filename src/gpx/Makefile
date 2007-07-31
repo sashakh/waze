@@ -18,6 +18,9 @@ LIBSRCS=\
 
 LIBOBJS=$(LIBSRCS:.c=.o)
 
+HEADERS = \
+	defs.h \
+	gbtypes.h
 
 # --- Conventional targets ----------------------------------------
 
@@ -32,6 +35,8 @@ install:
 
 uninstall:
 
+sourcelist:
+	@echo Makefile $(LIBSRCS) $(HEADERS)
 
 # --- The real targets --------------------------------------------
 
