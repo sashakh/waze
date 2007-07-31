@@ -275,11 +275,22 @@ static int roadmap_nmea_gga (int argc, char *argv[]) {
    RoadMapNmeaReceived.gga.dilution =
       roadmap_nmea_decode_numeric (argv[8], 100);
 
-   RoadMapNmeaReceived.gga.altitude =
-      roadmap_nmea_decode_numeric (argv[9], 100);
-
-   strcpy (RoadMapNmeaReceived.gga.altitude_unit,
+   if (argv[9] && *argv[9]) {
+      RoadMapNmeaReceived.gga.altitude =
+         roadmap_nmea_decode_numeric (argv[9], 100);
+      strcpy (RoadMapNmeaReceived.gga.altitude_unit,
            roadmap_nmea_decode_unit (argv[10]));
+   } else {
+        /* per gpsd source, SiRF chipsets up to version 2.2
+         * report a null altitude field.  See
+         * <http://www.sirf.com/Downloads/Technical/apnt0033.pdf>.
+         */
+      // roadmap_log (ROADMAP_WARNING, "fixing altitude at 0");
+      RoadMapNmeaReceived.gga.altitude = 0;
+      strcpy (RoadMapNmeaReceived.gga.altitude_unit,
+           roadmap_nmea_decode_unit ("M"));
+
+   }
 
    return 1;
 }
@@ -698,6 +709,7 @@ int roadmap_nmea_decode (void *user_context,
 
    unsigned char checksum = 0;
 
+   // roadmap_log (ROADMAP_WARNING, "sentence %s\n", sentence);
 
    /* We skip any leftover from previous transmission problems,
     * check that the '$' is really here, compute the checksum
