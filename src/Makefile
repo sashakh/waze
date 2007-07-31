@@ -312,7 +312,7 @@ ALL_SRC = $(MKFILES) $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
 	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC) $(HEADERS) \
 	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS)
 
-ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support
+ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support win32
 
 # --- Conventional targets ----------------------------------------
 
