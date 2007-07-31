@@ -109,13 +109,16 @@ void roadmap_linefont_text_angle
 #define MAXCHARS 100
 #define MAXPOINTS 256
 
-typedef struct {
-    unsigned char x, y;
-} hpoint;
 
 /* hershey font stuff ... */
 typedef struct {
-    hpoint *pt;
+    // "pt" is a pointer to a set of x/y pairs.  we used to define it
+    // as a pointer to an array of two element structs, but that
+    // gives alignment warnings which could be real errors on some
+    // architectures.
+    const unsigned char *pt;
+#define X 0
+#define Y 1
     unsigned char npnt;
     unsigned char minx, maxx;
 } hershey_char;
@@ -193,9 +196,9 @@ roadmap_load_hershey_font(void)
             /* get the number of vertices in this figure ... */
             np = scanint(3);
 
-            /* point directly at the ASCII font data */
-            hf->hc[j].pt = (hpoint *)fontp;
-            fontp += np * sizeof(hpoint);
+            /* index directly into the ASCII font data */
+            hf->hc[j].pt = fontp;
+            fontp += np * 2;  // 2 bytes (i.e., x and y) per point
 
             if (np > MAXPOINTS) {
                 roadmap_log(ROADMAP_WARNING,
@@ -226,15 +229,15 @@ roadmap_load_hershey_font(void)
         hf->hc[j].minx = 255;
         hf->hc[j].maxx = 0;
         for (i = 1; i < hf->hc[j].npnt; i++) {
-            if (hf->hc[j].pt[i].x != ' ') {
-                if (hf->hc[j].pt[i].x < hf->hc[j].minx)
-                    hf->hc[j].minx = hf->hc[j].pt[i].x;
-                if (hf->hc[j].pt[i].x > hf->hc[j].maxx)
-                    hf->hc[j].maxx = hf->hc[j].pt[i].x;
-                if (hf->hc[j].pt[i].y < hf->miny)
-                    hf->miny = hf->hc[j].pt[i].y;
-                if (hf->hc[j].pt[i].y > hf->maxy)
-                    hf->maxy = hf->hc[j].pt[i].y;
+            if (hf->hc[j].pt[i * 2 + X] != ' ') {
+                if (hf->hc[j].pt[i * 2 + X] < hf->hc[j].minx)
+                    hf->hc[j].minx = hf->hc[j].pt[i * 2 + X];
+                if (hf->hc[j].pt[i * 2 + X] > hf->hc[j].maxx)
+                    hf->hc[j].maxx = hf->hc[j].pt[i * 2 + X];
+                if (hf->hc[j].pt[i * 2 + Y] < hf->miny)
+                    hf->miny = hf->hc[j].pt[i * 2 + Y];
+                if (hf->hc[j].pt[i * 2 + Y] > hf->maxy)
+                    hf->maxy = hf->hc[j].pt[i * 2 + Y];
             }
         }
     }
@@ -322,15 +325,15 @@ void roadmap_linefont_text_angle_worker
 
         /* loop through each vertex ... */
         for (i = 1; i < hf->hc[k].npnt; i++) {
-            if (hf->hc[k].pt[i].x == ' ') {
+            if (hf->hc[k].pt[i * 2 + X] == ' ') {
                 if (count) {
                     roadmap_canvas_draw_multiple_lines (1, &count, points, 1);
                     p = points;
                     count = 0;
                 }
             } else {
-                p->x = xp + scale * (hf->hc[k].pt[i].x - hf->hc[k].minx) / 1024;
-                p->y = yp + scale * (hf->hc[k].pt[i].y - hf->miny) / 1024;
+                p->x = xp + scale * (hf->hc[k].pt[i * 2 + X] - hf->hc[k].minx) / 1024;
+                p->y = yp + scale * (hf->hc[k].pt[i * 2 + Y] - hf->miny) / 1024;
 
                 p->x = p->x - center->x;
                 p->y = center->y - p->y;
