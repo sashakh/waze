@@ -21,20 +21,24 @@ man1dir=$(mandir)/man1
 INSTALL      = install
 INSTALL_DATA = install -m644
 RANLIB       = ranlib
-STRIP        = $(CROSS_COMPILE)strip
 # the image conversion tool "convert" comes with ImageMagick.
 # on debian or ubuntu:  "apt-get install imagemagick"
 CONVERT      = convert
 
-AR = $(CROSS_COMPILE)ar
-CC = $(CROSS_COMPILE)gcc
-LD = $(CROSS_COMPILE)ld
-AS = $(CROSS_COMPILE)as
-CXX = $(CROSS_COMPILE)g++
+# if you want to cross-compile, define CROSS in config.mk.  you
+# may also have to add paths to libraries (with -L) in LDFLAGS.
+CC =    $(CROSS)gcc
+CXX =   $(CROSS)g++
+AS =    $(CROSS)as
+AR =    $(CROSS)ar
+LD =    $(CROSS)ld
+STRIP = $(CROSS)strip
 
 export CC AR LD AS CROSS_COMPILE
 
 # --- Build options ------------------------------------------------
+
+ALL_RDMODULES = gtk gtk2 qt qt4
 
 ifeq ($(DESKTOP),GTK2)
 	RDMODULES=gtk2
@@ -57,7 +61,7 @@ else
 ifeq ($(DESKTOP),QPE4)
 	RDMODULES=qt4
 else
-	RDMODULES=gtk gtk2 qt3 qt4
+	RDMODULES=$(ALL_RDMODULES)
 endif
 endif
 endif
@@ -72,6 +76,11 @@ ifeq ($(strip $(MODE)),DEBUG)
 	# Do not forget to set the trace file using the env. 
 	# variable MALLOC_TRACE, then use the mtrace tool to
 	# analyze the output.
+	#
+	# (another excellent tool for this purpose, by the way,
+	#  is "valgrind", which needs no special compilation --
+	#  it works by replacing shared libraries.)
+	#
 	CFLAGS += -g -DROADMAP_DEBUG_HEAP -DROADMAP_LISTS_TYPESAFE
 else
 ifeq ($(strip $(MODE)),PROFILE)
@@ -107,7 +116,7 @@ ifneq ($(strip $(EXPAT)),NO)
 	CFLAGS += -DROADMAP_USES_EXPAT
 endif
 
-# shapefiles for some mapsets
+# shapefile support needed for building some mapsets
 ifneq ($(strip $(SHAPEFILES)),NO)
 	CFLAGS += -DROADMAP_USE_SHAPEFILES
 	LIBS += -lshp
