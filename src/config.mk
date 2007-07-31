@@ -16,6 +16,7 @@ MODE = 		# blank for "normal" build
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # Add any other special local CFLAGS values here
+# e.g., CFLAGS = -DWGET_GOOGLE_ROUTE
 # CFLAGS =
 
 # If you know you need other libraries for your build, you can
@@ -34,6 +35,7 @@ DESKTOP = GTK2
 # If you select QT or QPE above, you might also want to set
 # QTDIR here.  (But it might already be set in your environment.)
 # QTDIR = /usr
+# QTDIR = /usr/share/qt3
 
 # If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
@@ -50,6 +52,13 @@ DESKTOP = GTK2
 # won't be able to import or export your route and waypoint data.
 EXPAT = YES
 # EXPAT = NO
+
+# RoadMap uses the "popt" library when parsing arguments in some
+# of the utility programs, primarily those concerned with
+# building the maps.  If you don't have libpopt (and the popt.h),
+# you can still build and run RoadMap, but not those utilities.
+POPT = YES
+# POPT = NO
 
 # RoadMap users in the USA will probably use the Tiger maps from
 # the US Census bureau.  These maps do not requre "shapefile"

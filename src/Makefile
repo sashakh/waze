@@ -161,11 +161,13 @@ XCHGOBJS=$(XCHGSRCS:.c=.o)
 
 
 PKGDATAFILES=sprites preferences session drivers roadmap.popup
-BUILD=buildmap buildus dumpmap buildplace
 SCRIPTS=rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
-RUNTIME=rdmindex $(RDMLIBS) libguiroadgps.a libguiroadmap.a
+RUNTIME=$(RDMLIBS) libguiroadgps.a libguiroadmap.a
 DRIVERS=rdmkismet rdmghost rdmfriends rdmtrace rdmxchange
 TOOLS=sunrise $(SQLTOOLS)
+ifneq ($(strip $(POPT)),NO)
+  BUILD = buildmap buildus dumpmap buildplace rdmindex 
+endif
 
 
 # --- Conventional targets ----------------------------------------
