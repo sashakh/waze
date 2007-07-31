@@ -2,7 +2,7 @@
 Comment=RoadMap
 Comment=Car Navigation System
 Exec=roadmap
-Icon=roadmap.xpm
+Icon=roadmap.png
 Type=Application
 Name=RoadMap
 GenericName=Map Viewer
