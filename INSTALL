@@ -4,6 +4,10 @@
               Pascal Martin (pascal.martin@iname.com)
                           -----------
 
+[ To build RoadMap for a "standard" linux/unix environment, edit
+  config.mk to select your build options, and then type "make",
+  followed by "make install".  -pgf 8/1/2007 ]
+
 INTRODUCTION
 
    This document describes the installation of RoadMap, a car navigation
