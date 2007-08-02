@@ -291,8 +291,8 @@ RMDBHEADERS = \
 HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
 
 # more sources
-PKGDATAFILES = sprites preferences session drivers roadmap.popup default/All
-MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1
+PKGDATAFILES = sprites preferences session drivers roadmap.popup
+MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All
 SCRIPTS = rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 MKFILES = Makefile config.mk options.mk
 
