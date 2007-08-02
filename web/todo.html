@@ -13,7 +13,6 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="screenshots.html">Screenshots</a>
 <a class="normal" href="history.html">History</a>
 <a class="normal" href="maps.html">Maps</a>
-<a class="normal" href="hardware.html">Hardware</a>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
@@ -42,16 +41,39 @@ with a "[1.1]" sign.)
 Here is the detail description of the changes planned so far:
 <UL>
   <LI><b>Error messages on screen</b>. The error messages are logged on
-  the standard output. This is bad when RoadMap is started from a menu,
-  since there is no way the user could read the message. Errors should
-  be shown on the screen. It would be nice to have a log window for all
-  messages, error or not.
+  the standard output, and to individual dialog boxes.  Standard output
+  isn't very useful in a GUI app, and the dialog boxes can multiply
+  much too fast with recurring errors. Some sort of an "error log" window
+  would be a good compromise.
 
   One issue is fonts: should be big enough to be readable in a car.
 
   <LI><b>Use checkbox widget in the menus and toolbars</b>. Some menu and
   toolbar entries are of the "start & stop" kind. Instead of having 2 entries
-  it would be nice to use a single checkbox one.
+  it would be nice to use a single checkbox one.  Other entries are already
+  toggles, but their state can't be determined visually.
+
+  <LI><b>A "busy" indicator</b>.  Some commands and screen refresh
+  operations can take a long time, depending on the hardware, and the
+  speed of the connection to the PC (in the case of ssh, remote X11,
+  VNC, etc).  A busy hourglass, or other indication that RoadMap is not
+  yet ready for a new command, would be useful.
+
+  <LI><b>More message formats, and message data</b>  Users have requested
+  that more types of data be available on-screen:
+  <OL>
+    <LI>speed should be available all the time, not just when a
+    route is active
+    <LI> course (bearing), altitude
+    <LI> wallclock, and elapsed, and projected "trip time"
+    <LI> distance traveled since program start
+    <LI> distance since route start
+    <LI> perhaps a shell escape, for getting data from external programs?
+  </OL>
+  In addition message signs that are too long should wrap, rather than
+  truncate.
+  <LI><b>Key bindings should be rebindable by the user.</b>This would
+  make the UI fully customizable.
 
   <LI><b>Show GPS location and speed</b>. The speed shows on RoadMap, but
   not on RoadGps. The location shows on none. There should be a way to show
@@ -60,20 +82,6 @@ Here is the detail description of the changes planned so far:
   <LI><b>Show when the GPS source is not available</b>. RoadMap gives no
   feedback regarding its connection to the GPS source. The feedback should
   be somewhat graphical (an icon?) and not a dialog (in a car?).
-
-  <LI><b>Show the waypoints names on the screen</b> (next to the waypoint).
-  This would be controlled by an on/off button and key (Z?).
-
-  <LI><b>Show the X and Y scales</b> of the map in a way that does not
-  obscure the map.
-
-  <LI><b>More natural street naming</b>. RoadMap requires the street names to
-  be entered using the US Census Bureau's own conventions (ST for streets, AVE
-  for avenues and so on..). It would be more friendly to authorize some
-  alternate conventions (such as AV for avenues), or even plain words. The
-  idea would be to let the user set a list of aliases for each USCB acronym.
-  These aliases would be stored in a text file loaded either from the user's
-  environment, or else from the shared one.
 
   <LI><b>[1.1] Use GPS time and map's timezone</b>. The GPS receiver provides a
   reliable universal time as well as the current location. This is all what
@@ -98,6 +106,7 @@ Here is the detail description of the changes planned so far:
   In addition the current set of maps could be cut in two (separating the
   street shapes from the street names) to lower the amount of data mapped by
   RoadMap when displaying the map on the screen (especially when zoomed out).
+  Essentially, layers could be assigned to each of the split-up county files.
 
   <LI><b>[1.1] Modular map rendering</b>. the RoadMap map rendering code
   should be made more modular so that a new type of data can be defined,
@@ -107,10 +116,25 @@ Here is the detail description of the changes planned so far:
   to track alternate GPS sources as defined by the user (like GpsDrive's
   friendsd).
 
+  <LI><b>Navigation</b>.  While the TIGER data doesn't have the necessary
+  data to make navigation with RoadMap feasible currently, other datasets
+  do, and the roadmap_editor branch has proven that it can be done.
+  OpenStreetMap is starting to work with TIGER maps, and perhaps that
+  work can be used as a shared resource for adding the necessary meta-data.
+
+  <LI><b>Places</b>.  Work was begun to add "places" support (i.e. landmark)
+  names to the RoadMap database.  This should be finished.
+
   <LI><b>Interface with address book applications</b>. RoadMap should be
   able to interface with address book databases to get street addresses
   from there. Instead of specifying a destination address, one would
   provide the name of a person.
+
+  <LI><b>Cross-platform widgets</b>.  While the current home-grown widgets work
+  pretty well, it's probably time to implement a version of the RoadMap
+  API in something like WxWidgets.  If this were successful, and the extra
+  cost of such a widget set weren't too great, then over time we could
+  switch to it exclusively.
 </UL>
 </BODY></HTML>
 

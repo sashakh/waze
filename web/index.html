@@ -17,24 +17,20 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="screenshots.html">Screenshots</a>
 <a class="normal" href="history.html">History</a>
 <a class="normal" href="maps.html">Maps</a>
-<a class="normal" href="hardware.html">Hardware</a>
 <a class="normal" href="bugs.html">Bugs</a>     
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR>
-<P>
-<b>E-MAIL LIST DISASTER OF FEBRUARY 2005:</b> Due to technical problems during
-a server upgrade, the RoadMap e-mail list has been lost. Please subscribe to
-the list again if you have not done so already. Sorry for the inconvenience.
-<HR>
 <H2>Credits</H2>
 <P>
-The original RoadMap was (and still is) developped by Pascal Martin (pascal
+The original RoadMap was (and still is) developed by Pascal Martin (pascal
 dot martin at iname dot com). A version of RoadMap for the Sharp Zaurus was
-developped by Latchesar Ionkov (who wrote the original QT support). The
+developed by Latchesar Ionkov (who wrote the original QT support). The
 support for the Digital Charts of the World was contributed by Stephen
-Woodbridge. The version of RoadMap for Windows (PocketPC) is developped and
-supported by Ehud Shabtai (eshabtai at gmail dot com).
+Woodbridge. The version of RoadMap for Windows (PocketPC) is developed and
+supported by Ehud Shabtai (eshabtai at gmail dot com).  Paul Fox has added
+GPX data interchange support for trips, routes, landmark, and points-of-interest.
+Ehud and Paul have added street labeling and other features as well.
 <P>
 The latest Roadmap sources are also available from <A class=normal
 href="http://sourceforge.net/projects/roadmap/">Sourceforge's CVS</A>.
@@ -48,6 +44,8 @@ href="http://sourceforge.net/projects/roadmap/">Sourceforge's CVS</A>.
    (c) Copyright Stephen Woodbridge, 2004
 <BR>
    (c) Copyright Ehud Shabtai, 2005 (eshabtai at gmail dot com)
+<BR>
+   (c) Copyright Paul Fox, 2006
 </CENTER>
 
 <P>The following is a short description of RoadMap. More information is
@@ -59,36 +57,50 @@ Linux, UNIX and now Windows CE (a.k.a. PocketPC).
 It displays a map of the streets, tracks the position provided by a
 NMEA-compliant GPS receiver, identifies the street matching this GPS position
 and announces the name of the crossing street at the next intersection. A
-rudimentary trip feature allows RoadMap to display some basic navigation
-information (distance to the destination, direction, speed, etc..). Voice
-messages are generated that duplicate some of the screen information.
+trip feature allows RoadMap to display routes, tracks, and provide some
+basic navigation information (distance to the next waypoint, direction,
+speed, etc..).  Voice messages are generated that duplicate some of the
+screen information.
 
 <P>It is possible to display a specific area by providing a (complete or
 incomplete) postal address, the intersection of two streets or an exact
 position (longitude / latitude).
 
-<P>The map files used by RoadMap are generated from the TIGER files provided
-by the US Census Bureau, and thus cover the USA only.  The RoadMap map format
-is a binary format that is sensitive to the endianness of the processor. Maps
-available on this site cover all the USA and have been generated for a little
-endian processor (such as the Intel Pentium and StrongARM processors).
+<P>Most of the map files used by RoadMap are generated from the TIGER files
+provided by the US Census Bureau, and from the RNF files provided by
+Statistics Canada, and thus cover northern North America only.  The RoadMap
+map format is a binary format that is currently sensitive to the endianness
+of the processor.  Maps available on this site cover all the USA and have
+been generated for a little endian processor (such as the Intel Pentium and
+StrongARM processors).
 
 <P>RoadMap has been designed to be usable on both a desktop or laptop PC, 
 or on a PDA such as the iPAQ from HP (formely from COMPAQ). It can use either
-the Gtk 1.2 , Gtk 2.0 or QT graphic library for its user interface. The Qt
-interface supports the Sharp's Zaurus PDA. All these machines share the same
-endianness and can use the maps provided on this site.
+the Gtk 1.2 , Gtk 2.0 or QT (QT3 or QT4) graphic library for its user
+interface.  The Qt interface supports the Sharp's Zaurus PDA.  All these
+machines share the same endianness and can use the maps provided on this
+site.
 
-<P>RoadMap is at an early stage of development. At this time there are no 
-routing features implemented yet. The plan for the future is to implement
-some navigation features similar to those found in commercial street
-navigation systems.  The main limit for implementing routing is the lack of
-navigation information in the US Census Bureau database (for example one-way
-street are not indicated). The US Census Bureau has clearly indicated that
-it does not plan to add these information in the future (the USCB does
-not need them).
+<P>The on-screen user interface is very customizable.  All command actions
+can be bound to arbitrary menu entries or toolbar buttons.  (Some are also
+bound to keystrokes, but this binding is currently fixed.) The menu layout
+and the toolbar position and layout can be changed.  Popup menus are
+available (activated by another menu or toolbar button, a right-click, or a
+long-click).  All of these can be used at once, or a minimalist
+configuration can consist of a screen containing nothing but a map -- a
+long- or right-click can bring up the "master popup".
 
-<P>RoadMap uses <b>gpsd</b> for the GPS link and <a class="normal"
+<P>At this time there are no routing features implemented yet in the main
+codebase.  The plan for the future is to implement some navigation features
+similar to those found in commercial street navigation systems.  The main
+limit for implementing routing is the lack of navigation information in the
+US Census Bureau database (for example one-way street are not indicated). 
+The US Census Bureau has clearly indicated that it does not plan to add
+these information in the future (the USCB does not need them).  The RoadMap
+"editor" project, maintained by Ehud Shabtai, does support navigation --
+the data used in that project supports the feature.
+
+<P>RoadMap usually uses <b>gpsd</b> for the GPS link and <a class="normal"
 href="http://www.speech.cs.cmu.edu/flite/">flite</a> (festival lite) for
 the voice messages. Note that flite can be rebuilt with better voices than
 the default one (such as a US voice instead of a british one--some may
@@ -101,10 +113,12 @@ courtesy of Scot Wilcoxon:
    ./configure --with-vox=cmu_us_kal16
 </listing>
 
-<P>RoadMap comes with its own GPS status screen, which provides an overview of 
-the satellites received and highlights those the GPS has a fix on. This status 
-screen allows for placing the GPS device in a position that optimizes satellite 
-reception, even if that means making the GPS device's screen not accessible. 
+<P>RoadMap comes with its own GPS status screen ("RoadGPS"), which provides
+an overview of the satellites received and highlights those the GPS has a
+fix on.  This status screen allows for placing the GPS device in a position
+that optimizes satellite reception, even if that means making the GPS
+device's screen not accessible.  Obviously it's also useful with
+"displayless" GPS units.
 
 <P>RoadMap uses a binary file format for representing the maps that is compact 
 enough to allow the storage of many maps on a Compact Flash or MultiMedia card. 
