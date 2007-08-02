@@ -478,7 +478,7 @@ void roadmap_dialog_complete (int use_keyboard)
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags =
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 		PSH_PROPSHEETPAGE|PSH_MAXIMIZE|PSH_USECALLBACK|PSH_MODELESS;
 #else
@@ -779,7 +779,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	case WM_INITDIALOG:
 		{
 #warning
-#warning important code ifdefed for arm-wince-mingw32 toolchain
+#warning important code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 			SHINITDLGINFO shidi;
 			RoadMapDialogItem dialog;
@@ -897,7 +897,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	case WM_INITDIALOG:
 		{
 #warning
-#warning important code ifdefed for arm-wince-mingw32 toolchain
+#warning important code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 			SHINITDLGINFO sid;
 			PROPSHEETPAGE *psp;

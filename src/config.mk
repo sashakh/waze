@@ -34,7 +34,7 @@ DESKTOP = GTK2
 
 # if you select WINCE, you'll need to turn off POPT, and maybe
 # EXPAT as well, both below.  you'll also need the
-# arm-wince-mingw32 cross-compiler.  and even after all that,
+# arm-wince-mingw32ce cross-compiler.  and even after all that,
 # wroadmap probably won't work on your WinCE device.  you may
 # have better luck with a windows-based devkit.  there are some
 # more comments in win32/Makefile

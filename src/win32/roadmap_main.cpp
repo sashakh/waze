@@ -142,7 +142,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 #endif
 
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 	__try 
 #endif
@@ -209,7 +209,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 	
 #ifdef UNDER_CE
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 	SHInitExtraControls();
 #endif
@@ -252,7 +252,7 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
 	
 #ifdef UNDER_CE
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 	switch (wParam)
 	{
@@ -289,9 +289,9 @@ static int roadmap_main_vkey_pressed(HWND w, WPARAM wParam, LPARAM lParam)
 	case VK_RIGHT:	key = "Button-Right";	break;
 	case VK_UP:		key = "Button-Up";	   break;
 	case VK_DOWN:	key = "Button-Down";	   break;
-#ifdef UNDER_CE // mingw32 doesn't provide
+#ifdef UNDER_CE // mingw32ce doesn't provide
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 	case VK_APP1:	key = "Button-App1";	   break;
 	case VK_APP2:	key = "Button-App2";	   break;
@@ -329,7 +329,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #endif
 	
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
    __try 
 #endif
@@ -567,7 +567,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       
 	case WM_SETTINGCHANGE:
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
 		SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
 #endif
@@ -596,7 +596,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
     }
 #warning
-#warning code ifdefed for arm-wince-mingw32 toolchain
+#warning code ifdefed for arm-wince-mingw32ce toolchain
 #if LATER
     __except (handleException(GetExceptionInformation())) {}
 #endif
@@ -883,7 +883,7 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32 doesn't provide
+#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32ce doesn't provide
 		res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
 #else
 		res = SendMessage(RoadMapMainToolbar,
@@ -913,7 +913,7 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32 doesn't provide
+#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32ce doesn't provide
 		CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
 #else
 		SendMessage(RoadMapMainToolbar,
