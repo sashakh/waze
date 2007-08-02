@@ -20,7 +20,6 @@ man1dir=$(mandir)/man1
 
 INSTALL      = install
 INSTALL_DATA = install -m644
-RANLIB       = ranlib
 # the image conversion tool "convert" comes with ImageMagick.
 # on debian or ubuntu:  "apt-get install imagemagick"
 CONVERT      = convert
@@ -33,8 +32,8 @@ AS =    $(CROSS)as
 AR =    $(CROSS)ar
 LD =    $(CROSS)ld
 STRIP = $(CROSS)strip
+RANLIB = $(CROSS)ranlib
 
-export CC AR LD AS CROSS_COMPILE
 
 # --- Build options ------------------------------------------------
 
@@ -61,6 +60,9 @@ else
 ifeq ($(DESKTOP),QPE4)
 	RDMODULES=qt4
 else
+ifeq ($(DESKTOP),WINCE)
+	RDMODULES=win32
+else
 	RDMODULES=$(ALL_RDMODULES)
 endif
 endif
@@ -68,6 +70,12 @@ endif
 endif
 endif
 endif
+endif
+endif
+
+ifneq ($(DESKTOP),WINCE)
+	LIBOS = $(TOP)/unix/libosroadmap.a
+	OSDIR = unix
 endif
 
 
@@ -104,7 +112,7 @@ CFLAGS += $(WARNFLAGS)
 
 
 RDMLIBS= $(TOP)/libroadmap.a \
-	$(TOP)/unix/libosroadmap.a  \
+	$(LIBOS) \
 	$(TOP)/gpx/libgpx.a \
 	$(TOP)/libroadmap.a 
 

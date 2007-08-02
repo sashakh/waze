@@ -28,6 +28,10 @@
 #include <windows.h>
 #include "roadmap_win32.h"
 
+#ifndef _T
+#define _T(x) L ## x
+#endif
+
 
 LPWSTR ConvertToUNICODE(LPCSTR string)
 {

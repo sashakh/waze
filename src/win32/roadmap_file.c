@@ -211,6 +211,8 @@ int roadmap_file_rename (const char *path, const char *name, const char *new) {
    roadmap_path_free (full_name);
    roadmap_path_free (full_new);
 
+   return 0;
+
 }
 
 /*
@@ -269,7 +271,7 @@ const char *roadmap_file_unique (const char *base)
 	GetThreadTimes(GetCurrentThread(), &ft[0], &ft[1], &ft[2], &ft[3]);
 
 	sprintf (UniqueNameBuffer,
-		"%s%d_%d", base, ft[0].dwLowDateTime%10000, UniqueNameCounter);
+		"%s%ld_%d", base, ft[0].dwLowDateTime%10000, UniqueNameCounter);
 
 	UniqueNameCounter += 1;
 
@@ -284,7 +286,7 @@ const char *roadmap_file_map (const char *path,
 {
 	RoadMapFileContext context;
 	DWORD file_size;
-   char *full_name;
+	const char *full_name;
 
 
 	context = malloc (sizeof(*context));
@@ -296,11 +298,11 @@ const char *roadmap_file_map (const char *path,
 	context->size = 0;
 
 	if (name[0] == '\\') {
-      full_name = name;
-   } else {
-      full_name = roadmap_path_join (path, name);
-   }
-	context->name = ConvertToUNICODE(name);
+	   full_name = name;
+        } else {
+	   full_name = roadmap_path_join (path, name);
+        }
+	context->name = ConvertToUNICODE(full_name);
 
 	context->hFile = CreateFileForMapping(
 			context->name,
@@ -309,7 +311,7 @@ const char *roadmap_file_map (const char *path,
 			FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (context->hFile == INVALID_HANDLE_VALUE ) {
-		roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
+		roadmap_log (ROADMAP_INFO, "cannot open file %s", full_name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}
@@ -317,7 +319,7 @@ const char *roadmap_file_map (const char *path,
 	file_size = GetFileSize(context->hFile, NULL);
 
 	if (file_size == INVALID_FILE_SIZE) {
-		roadmap_log (ROADMAP_ERROR, "cannot get size of file %s", name);
+		roadmap_log (ROADMAP_ERROR, "cannot get size of file %s", full_name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}
@@ -330,7 +332,7 @@ const char *roadmap_file_map (const char *path,
 		0,0,0);
 
 	if (context->hFile == INVALID_HANDLE_VALUE) {
-		roadmap_log (ROADMAP_INFO, "cannot open file %s", name);
+		roadmap_log (ROADMAP_INFO, "cannot open file %s", full_name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}
@@ -338,7 +340,7 @@ const char *roadmap_file_map (const char *path,
 	context->base = MapViewOfFile(context->hFile, FILE_MAP_READ, 0, 0, 0 );
 
 	if (context->base == NULL) {
-		roadmap_log (ROADMAP_ERROR, "cannot map file %s", name);
+		roadmap_log (ROADMAP_ERROR, "cannot map file %s", full_name);
 		roadmap_file_unmap (&context);
 		return NULL;
 	}

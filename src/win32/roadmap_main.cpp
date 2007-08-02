@@ -27,9 +27,17 @@
 
 #include <windows.h>
 #include <commctrl.h>
-#include <aygshell.h>
 #include "resource.h"
-#include <Winsock.h>
+#include <winsock.h>
+#include <time.h>
+#ifdef UNDER_CE
+#include <aygshell.h>
+// #include <notify.h>
+#endif
+
+#ifndef I_IMAGENONE
+#define I_IMAGENONE (-2)
+#endif
 
 extern "C" {
 #include "../roadmap.h"
@@ -40,10 +48,21 @@ extern "C" {
 #include "../roadmap_canvas.h"
 #include "../roadmap_io.h"
 #include "../roadmap_main.h"
-#include "../roadmap_serial.h"
+// #include "../roadmap_res.h"
+#include "../roadmap_messagebox.h"
+#include "../roadmap_screen.h"
+#include "../roadmap_download.h"
+// #include "../roadmap_lang.h"
+#include "../roadmap_dialog.h"
+#include "../roadmap_gps.h"
 #include "wince_input_mon.h"
+#include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
 }
+
+#ifndef _T
+#define _T(x) L ## x
+#endif
 
 
 // Menu & toolbar defines
@@ -68,46 +87,73 @@ static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
 // IO stuff
 #define ROADMAP_MAX_IO 16
-static roadmap_main_io RoadMapMainIo[ROADMAP_MAX_IO] = {0};
+extern "C" { static roadmap_main_io *RoadMapMainIo[ROADMAP_MAX_IO] = {0}; }
 
 // varibles used across this module
 static RoadMapKeyInput	RoadMapMainInput = NULL;
-static HWND				RoadMapMainMenuBar = NULL;
+#ifdef UNDER_CE
+static HWND				   RoadMapMainMenuBar = NULL;
+#else
+static HMENU			   RoadMapMainMenuBar = NULL;
+#endif
 static HMENU			RoadMapCurrentSubMenu = NULL;
 static HWND				RoadMapMainToolbar = NULL;
+static bool				   RoadMapMainFullScreen = false;
 
 // Global Variables:
-extern "C" HINSTANCE	g_hInst = NULL;
-extern "C" HWND			RoadMapMainWindow  = NULL;
+extern "C" { HINSTANCE	g_hInst = NULL; }
+extern "C" { HWND			RoadMapMainWindow  = NULL; }
 
 // Forward declarations of functions included in this code module:
 static ATOM				MyRegisterClass(HINSTANCE, LPTSTR);
-static BOOL				InitInstance(HINSTANCE);
+static BOOL				   InitInstance(HINSTANCE, LPTSTR);
 static LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-static INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 #define MAX_LOADSTRING 100
 
 // class name definition
 #ifdef _ROADGPS
-static TCHAR szWindowClass[] = _T("RoadGPSClass");
+static WCHAR szWindowClass[] = L"RoadGPSClass";
 #else
-static TCHAR szWindowClass[] = _T("RoadMapClass");
+static WCHAR szWindowClass[] = L"RoadMapClass";
 #endif
 
+static RoadMapConfigDescriptor RoadMapConfigMenuBar =
+                        ROADMAP_CONFIG_ITEM("General", "Menu bar");
+
 // our main function
+#ifdef UNDER_CE
 int WINAPI WinMain(HINSTANCE hInstance,
 				   HINSTANCE hPrevInstance,
 				   LPTSTR    lpCmdLine,
 				   int       nCmdShow)
+#else
+int WINAPI WinMain(HINSTANCE hInstance,
+				   HINSTANCE hPrevInstance,
+				   LPSTR     lpCmdLine,
+				   int       nCmdShow)
+#endif
 {
 	MSG msg;
+	LPTSTR cmd_line = L"";
 	
-	// Perform application initialization:
-	if (!InitInstance(hInstance))
-	{
-		return FALSE;
-	}
+#ifdef UNDER_CE
+	cmd_line = lpCmdLine;
+#endif
+
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
+	__try 
+#endif
+        {
+	    
+	    // Perform application initialization:
+	    if (!InitInstance(hInstance, cmd_line))
+	    {
+		    return FALSE;
+	    }
+        }
 		
 	ShowWindow(RoadMapMainWindow, nCmdShow);
 	UpdateWindow(RoadMapMainWindow);
@@ -124,6 +170,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			DispatchMessage(&msg);
 		}
 	}
+
 	
 	WSACleanup();
 	return (int) msg.wParam;
@@ -153,14 +200,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance, LPTSTR szWindowClass)
 }
 
 
-BOOL InitInstance(HINSTANCE hInstance)
+BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 {
 	HWND hWnd;
 	WSADATA wsaData;
 	
 	g_hInst = hInstance; // Store instance handle in our global variable
 	
+#ifdef UNDER_CE
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
 	SHInitExtraControls();
+#endif
+#endif
 	
 	//If it is already running, then focus on the window, and exit
 	hWnd = FindWindow(szWindowClass, NULL);	
@@ -197,13 +250,30 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
 	char *key = NULL;
 	char regular_key[2];
 	
-	if (wParam > 0 && wParam < 128) {
+#ifdef UNDER_CE
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
+	switch (wParam)
+	{
+	case VK_APP1:	key = "Button-App1";	   break;
+	case VK_APP2:	key = "Button-App2";	   break;
+	case VK_APP3:	key = "Button-App3";	   break;
+	case VK_APP4:	key = "Button-App4";	   break;
+   }
+#endif
+#endif
+
+	if (key == NULL && (wParam > 0 && wParam < 128)) {
 		regular_key[0] = wParam;
 		regular_key[1] = 0;
 		key = regular_key;
-		(*RoadMapMainInput) (key);
-		return 1;
 	}
+
+        if (key != NULL) {
+	        (*RoadMapMainInput) (key);
+	        return 1;
+        }
 	
 	return 0;
 }
@@ -215,10 +285,20 @@ static int roadmap_main_vkey_pressed(HWND w, WPARAM wParam, LPARAM lParam)
 	
 	switch (wParam)
 	{
-	case VK_LEFT:	key = "J";	break;
-	case VK_RIGHT:	key = "K";	break;
-	case VK_UP:		key = "+";	break;
-	case VK_DOWN:	key = "-";	break;
+	case VK_LEFT:	key = "Button-Left";	   break;
+	case VK_RIGHT:	key = "Button-Right";	break;
+	case VK_UP:		key = "Button-Up";	   break;
+	case VK_DOWN:	key = "Button-Down";	   break;
+#ifdef UNDER_CE // mingw32 doesn't provide
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
+	case VK_APP1:	key = "Button-App1";	   break;
+	case VK_APP2:	key = "Button-App2";	   break;
+	case VK_APP3:	key = "Button-App3";	   break;
+	case VK_APP4:	key = "Button-App4";	   break;
+#endif
+#endif
 #if 0
 		/* These binding are for the iPAQ buttons: */
 	case 0x1008ff1a: key = "Button-Menu";           break;
@@ -244,8 +324,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	
+#ifdef UNDER_CE
 	static SHACTIVATEINFO s_sai;
+#endif
 	
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
+   __try 
+#endif
+   {
 	switch (message) 
 	{
 	case WM_COMMAND:
@@ -281,6 +369,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_CREATE:
+		bool create_menu;
+#ifdef _ROADGPS
+      create_menu = true;
+#else
+      create_menu = roadmap_config_match (&RoadMapConfigMenuBar, "Yes") != 0;
+#endif
+
+#ifdef UNDER_CE
 		SHMENUBARINFO mbi;
 		
 		memset(&mbi, 0, sizeof(SHMENUBARINFO));
@@ -295,7 +391,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// delete everything in it, to get an empty menu.
 		// If I try to just create an empty menu, it does't work! (can't
 		// add items to it).
-		if (!SHCreateMenuBar(&mbi)) 
+		if (!create_menu || !SHCreateMenuBar(&mbi)) 
 		{
 			RoadMapMainMenuBar = NULL;
 		}
@@ -307,10 +403,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				SendMessage(RoadMapMainMenuBar, (UINT) TB_DELETEBUTTON, 0, 0);
 			}
 		}
+#else
+		if (create_menu) {
+		      RoadMapMainMenuBar = CreateMenu ();
+		      SetMenu(hWnd, RoadMapMainMenuBar);
+		}
+#endif
 		
+#ifdef UNDER_CE                
 		// Initialize the shell activate info structure
 		memset(&s_sai, 0, sizeof (s_sai));
 		s_sai.cbSize = sizeof (s_sai);
+#endif
 		break;
 		
 	case WM_PAINT:
@@ -325,12 +429,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		
 	case WM_DESTROY:
 		if (RoadMapMainMenuBar != NULL) {
+#ifdef UNDER_CE			
 			DestroyWindow(RoadMapMainMenuBar);
+#else
+			DestroyMenu(RoadMapMainMenuBar);
+#endif
 		}
-		
+	
+#ifdef UNDER_CE
 		if (RoadMapMainToolbar != NULL) {
 			CommandBar_Destroy(RoadMapMainToolbar);
 		}
+#endif
 		PostQuitMessage(0);
 		break;
 		
@@ -417,7 +527,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			roadmap_canvas_mouse_move(&point);
 		}
 		break;
-				
+
 	case WM_MOUSEWHEEL:
 		{
 			POINT point;
@@ -440,18 +550,43 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		else return DefWindowProc(hWnd, message, wParam, lParam);
 		break;
 		
+#ifdef UNDER_CE
 	case WM_ACTIVATE:
-		// Notify shell of our activate message
-		SHHandleWMActivate(hWnd, wParam, lParam, &s_sai, FALSE);
+      		if ((LOWORD(wParam)!=WA_INACTIVE) && RoadMapMainFullScreen) {
+        		SHFullScreen (RoadMapMainWindow,
+				SHFS_HIDETASKBAR|SHFS_HIDESIPBUTTON);
+         		MoveWindow(RoadMapMainWindow, 0, 0,
+            			GetSystemMetrics(SM_CXSCREEN),
+				GetSystemMetrics(SM_CYSCREEN),
+            			TRUE);
+      		} else {
+			// Notify shell of our activate message
+			SHHandleWMActivate(hWnd, wParam, lParam, &s_sai, FALSE);
+      		}
 		break;
-		
+      
 	case WM_SETTINGCHANGE:
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
 		SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
+#endif
 		break;
+#endif
 		
 	case WM_USER_READ:
 		{
 			roadmap_main_io *context = (roadmap_main_io *) wParam;
+			 if (!context->is_valid) break;
+
+			 if (lParam != 1) {
+			    Win32SerialConn *conn = (Win32SerialConn *) lParam;
+			 
+			    if (!ROADMAP_SERIAL_IS_VALID (conn)) {
+			       /* An old input which was removed */
+			       break;
+			    }
+			 }
 			(*context->callback) (context->io);
 			break;
 		}
@@ -459,6 +594,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
+    }
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
+    __except (handleException(GetExceptionInformation())) {}
+#endif
 	return 0;
 }
 
@@ -487,7 +628,7 @@ static struct tb_icon RoadMapIcons[] = {
 
 static int roadmap_main_toolbar_icon (const char *icon)
 {
-	if (icon == NULL) return NULL;
+	if (icon == NULL) return 0;
 	
 	tb_icon *itr = RoadMapIcons;
 	
@@ -507,12 +648,57 @@ extern "C" {
 	void roadmap_main_toggle_full_screen (void)
 	{
 		// TODO: implement
+#ifdef UNDER_CE
+	      RECT rc;
+	      int menu_height = 0;
+
+	      if (RoadMapMainMenuBar != NULL) {
+		 menu_height = 26;
+	      }
+
+	      //get window size
+	      GetWindowRect(RoadMapMainWindow, &rc);
+
+	      if (!RoadMapMainFullScreen) {
+		 SHFullScreen(RoadMapMainWindow, SHFS_HIDETASKBAR|SHFS_HIDESIPBUTTON);
+		 if (RoadMapMainMenuBar != NULL) ShowWindow(RoadMapMainMenuBar, SW_HIDE);
+
+		 MoveWindow(RoadMapMainWindow,
+			      rc.left, 
+			      rc.top-26,
+			      rc.right, 
+			      rc.bottom+menu_height,
+			      TRUE);
+
+		 RoadMapMainFullScreen = true;
+
+	      } else {
+		
+		 SHFullScreen(RoadMapMainWindow, SHFS_SHOWTASKBAR);
+		 if (RoadMapMainMenuBar != NULL) ShowWindow(RoadMapMainMenuBar, SW_SHOW);
+		 MoveWindow(RoadMapMainWindow, 
+		    rc.left, 
+		    rc.top+26,
+		    rc.right, 
+		    rc.bottom- 26 - menu_height,
+		    TRUE);
+
+		 RoadMapMainFullScreen = false;
+
+	      }
+#endif
 	}
 
 	
 	void roadmap_main_new (const char *title, int width, int height)
 	{
 		LPWSTR szTitle = ConvertToUNICODE(title);
+
+      		roadmap_config_declare_enumeration
+         		("preferences", &RoadMapConfigMenuBar, NULL, "No", "Yes", NULL);
+#ifndef UNDER_CE
+		style |= WS_OVERLAPPEDWINDOW;
+#endif
 		RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, WS_VISIBLE,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
 			NULL, g_hInst, NULL);
@@ -524,6 +710,7 @@ extern "C" {
 			return;
 		}
 		
+#ifdef UNDER_CE
 		if (RoadMapMainMenuBar)
 		{
 			RECT rc;
@@ -536,6 +723,7 @@ extern "C" {
 			MoveWindow(RoadMapMainWindow, rc.left, rc.top, rc.right-rc.left,
 				rc.bottom-rc.top, FALSE);
 		}
+#endif
 	}
 	
 	void roadmap_main_title(char *fmt, ...) {
@@ -547,13 +735,19 @@ extern "C" {
 		RoadMapMainInput = callback;
 	}
 	
+	RoadMapMenu roadmap_main_new_menu (const char *title)
+	{
+	    return (RoadMapMenu)CreatePopupMenu();
+	}
+
 	
-	void roadmap_main_add_menu (const char *label)
+	void roadmap_main_add_menu (RoadMapMenu menu, const char *label)
 	{
 		static int menu_id = 0;
 		if (RoadMapMainMenuBar == NULL) return;
 		
 		LPWSTR label_unicode = ConvertToUNICODE(label);
+#ifdef UNDER_CE
 		TBBUTTON button;
 		SendMessage(RoadMapMainMenuBar, TB_BUTTONSTRUCTSIZE, sizeof(button),
 			0);
@@ -566,25 +760,22 @@ extern "C" {
 		// I'm not really sure what this magic number represents(but it works)
 		button.fsStyle = 152;
 		
-		RoadMapCurrentSubMenu = CreatePopupMenu();
-		button.dwData = (UINT)RoadMapCurrentSubMenu;
+		button.dwData = (UINT)menu;
 		
 		SendMessage(RoadMapMainMenuBar, (UINT) TB_ADDBUTTONS, (WPARAM) 1,
 			(LPARAM) (LPTBBUTTON) &button);
+#else
+        	DWORD res = AppendMenu(RoadMapMainMenuBar, MF_POPUP, (UINT)menu, label_unicode);
+		SetMenu (RoadMapMainWindow, RoadMapMainMenuBar);
+#endif
 		free(label_unicode);
 	}
 	
 	
-	void roadmap_main_add_menu_item (const char *label,	const char *tip,
-		RoadMapCallback callback)
+	void roadmap_main_add_menu_item (RoadMapMenu menu, 
+		const char *label, const char *tip, RoadMapCallback callback)
 	{
 		static int menu_id = 0;
-		
-		if (RoadMapCurrentSubMenu == NULL) {
-			roadmap_log (ROADMAP_FATAL, "No menu defined for menu item %s",
-				label);
-			return;
-		}
 		
 		if (label != NULL) {
 			LPWSTR label_unicode = ConvertToUNICODE(label);
@@ -599,7 +790,7 @@ extern "C" {
 			menu_callbacks[menu_id] = callback;
 			menu_id++;
 		} else {
-			AppendMenu(RoadMapCurrentSubMenu, MF_SEPARATOR, 0, _T(""));
+			AppendMenu((HMENU)menu, MF_SEPARATOR, 0, _T(""));
 		}
 		
 		if (tip != NULL) {
@@ -607,19 +798,51 @@ extern "C" {
 		}
 	}
 	
-	void roadmap_main_add_separator (void)
+        void roadmap_main_popup_menu (RoadMapMenu menu, 
+                                  const RoadMapGuiPoint *position) {
+
+	    TrackPopupMenuEx( (HMENU)menu, 0,
+	    	position->x, position->y, RoadMapMainWindow, NULL);
+        }
+
+	void roadmap_main_add_separator  (RoadMapMenu menu)
 	{
-		roadmap_main_add_menu_item (NULL, NULL, NULL);
+		roadmap_main_add_menu_item (menu, NULL, NULL, NULL);
 	}
 	
-   void roadmap_main_add_toolbar (const char *orientation) {
+       void roadmap_main_add_toolbar (const char *orientation) {
 		if (RoadMapMainToolbar == NULL) {
          // TBD: consider the orientation.
+#ifdef UNDER_CE
 			RoadMapMainToolbar = CommandBar_Create (g_hInst,
 				RoadMapMainWindow, 1);
-			LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
+#else
+			INITCOMMONCONTROLSEX InitCtrlEx;
+
+			InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
+			InitCtrlEx.dwICC  = ICC_BAR_CLASSES;
+			InitCommonControlsEx(&InitCtrlEx);
+
+			RoadMapMainToolbar = CreateWindowEx (
+				0,
+				TOOLBARCLASSNAME,     // Class name
+				L"toolbar",  		  // Window name
+				WS_CHILD|WS_VISIBLE,  // Window style
+				0,                    // x-coordinate of the upper-left corner
+				0,                    // y-coordinate of the upper-left corner
+				CW_USEDEFAULT,        // The width of the tree-view control window
+				CW_USEDEFAULT,        // The height of the tree-view control window
+				RoadMapMainWindow,    // Window handle to the parent window
+				(HMENU) NULL,         // The tree-view control identifier
+				g_hInst,              // The instance handle
+				NULL);                // Specify NULL for this parameter when you
+
+			SendMessage(RoadMapMainToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+
+#endif
+			// LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
 		}
-   }
+       }
 
 	void roadmap_main_add_tool (const char *label,
 		const char *icon,
@@ -629,14 +852,28 @@ extern "C" {
 		static int tool_id = 0;
 		
 		if (RoadMapMainToolbar == NULL) {
-         roadmap_main_add_toolbar ();
+		    roadmap_main_add_toolbar (0);
 		}
 		
 		int icon_res_id = roadmap_main_toolbar_icon(icon);
 		if (icon_res_id == -1) return;
 		
-		int icon_tb_id = CommandBar_AddBitmap(RoadMapMainToolbar, g_hInst,
+		int icon_tb_id = 0;
+		int res;
+#ifdef UNDER_CE
+		icon_tb_id = CommandBar_AddBitmap(RoadMapMainToolbar, g_hInst,
 			icon_res_id, 1, 16, 16);
+#else
+		TBADDBITMAP tbb;
+
+		tbb.hInst = NULL;
+		tbb.nID   = (DWORD)LoadBitmap(g_hInst, MAKEINTRESOURCE(icon_res_id));
+
+		icon_tb_id = SendMessage(RoadMapMainToolbar,
+			              (UINT) TB_ADDBITMAP,
+				          (WPARAM) 1,
+				          (LPARAM) &tbb);
+#endif
 		
 		TBBUTTON but;
 		but.iBitmap = icon_tb_id;
@@ -646,7 +883,14 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-		int res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32 doesn't provide
+		res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#else
+		res = SendMessage(RoadMapMainToolbar,
+			              (UINT) TB_ADDBUTTONS,
+				          (WPARAM) 1,
+				          (LPARAM) &but);
+#endif
 		if (res != FALSE) {
 			tool_callbacks[tool_id] = callback;
 			tool_id++;
@@ -669,13 +913,24 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-		int res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32 doesn't provide
+		CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+#else
+		SendMessage(RoadMapMainToolbar,
+			       (UINT) TB_ADDBUTTONS,
+				   (WPARAM) 1,
+				   (LPARAM) &but);
+#endif
 		
 	}
 	
 	
 	void roadmap_main_add_canvas (void)
 	{
+#ifndef _ROADGPS
+      		roadmap_main_toggle_full_screen ();
+#endif
+      
 		roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
 	}
 	
@@ -699,10 +954,11 @@ extern "C" {
 		int i;
 		
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			if (RoadMapMainIo[i].io == NULL) {
-				RoadMapMainIo[i].io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
-				*(RoadMapMainIo[i].io) = *io;
-				RoadMapMainIo[i].callback = callback;
+			if (RoadMapMainIo[i]->io == NULL) {
+				RoadMapMainIo[i]->io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
+				*(RoadMapMainIo[i]->io) = *io;
+				RoadMapMainIo[i]->callback = callback;
+            			RoadMapMainIo[i]->is_valid = 1;
 				break;
 			}
 		}
@@ -715,6 +971,7 @@ extern "C" {
 		HANDLE monitor_thread = NULL;
 		switch (io->subsystem) {
 		case ROADMAP_IO_SERIAL:
+         		// io->os.serial->ref_count++;
 			monitor_thread = CreateThread(NULL, 0,
 				SerialMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
 			break;
@@ -745,15 +1002,16 @@ extern "C" {
 		int i;
 				
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			if (RoadMapMainIo[i].io == NULL) continue;
+			 if (RoadMapMainIo[i] && RoadMapMainIo[i]->io == io) {
 
-			if (!memcmp(RoadMapMainIo[i].io, io, sizeof(RoadMapIO))) {
-				RoadMapMainIo[i].io->subsystem = ROADMAP_IO_INVALID;
-
-				// We mark this io as null, as the monitor thread will free
-				// the allocation.
-				RoadMapMainIo[i].io = NULL;
+				if (RoadMapMainIo[i]->is_valid) {
+				   RoadMapMainIo[i]->is_valid = 0;
+				} else {
+				   free (RoadMapMainIo[i]);
+				}
+				RoadMapMainIo[i] = NULL;
 				break;
+
 			}
 		}
 	}
@@ -822,12 +1080,24 @@ extern "C" {
 	
 	void roadmap_main_set_status (const char *text) {}
 	
-	void roadmap_main_flush (void) {}
+	void roadmap_main_flush (void)
+        {
+	      // HWND w = GetFocus();
+	      MSG msg;
 
-   int roadmap_main_flush_synchronous (int deadline)
-   {
-      return 1; /* Nothing to do. */
-   }
+	      while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	      {
+		 TranslateMessage(&msg);
+		 DispatchMessage(&msg);
+	      }
+
+	      //UpdateWindow(w);
+        }
+
+       int roadmap_main_flush_synchronous (int deadline)
+       {
+	  return 1; /* Nothing to do. */
+       }
 	
 	
 	void roadmap_main_exit (void)
@@ -836,5 +1106,18 @@ extern "C" {
 		SendMessage(RoadMapMainWindow, WM_CLOSE, 0, 0);
 	}
 	
+       void roadmap_main_set_cursor (int cursor)
+       {
+	  switch (cursor) {
+
+	  case ROADMAP_CURSOR_NORMAL:
+	     SetCursor(NULL);
+	     break;
+
+	  case ROADMAP_CURSOR_WAIT:
+	     SetCursor(LoadCursor(NULL, IDC_WAIT));
+	     break;
+	  }
+       }
 } // extern "C"
 

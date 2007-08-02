@@ -37,6 +37,10 @@
 #include "../roadmap_start.h"
 #include "../roadmap_dialog.h"
 
+#ifndef _T
+#define _T(x) L ## x
+#endif
+
 extern HWND RoadMapMainWindow;
 extern HINSTANCE g_hInst;
 
@@ -473,7 +477,13 @@ void roadmap_dialog_complete (int use_keyboard)
 	}
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags =
+#warning
+#warning code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
 		PSH_PROPSHEETPAGE|PSH_MAXIMIZE|PSH_USECALLBACK|PSH_MODELESS;
+#else
+		PSH_PROPSHEETPAGE|PSH_USECALLBACK|PSH_MODELESS;
+#endif
 	psh.hwndParent = dialog->w;
 	psh.hInstance = g_hInst;
 	psh.pszCaption = ConvertToUNICODE(dialog->name);
@@ -768,6 +778,9 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
+#warning
+#warning important code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
 			SHINITDLGINFO shidi;
 			RoadMapDialogItem dialog;
 			RoadMapDialogItem frame;
@@ -784,7 +797,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			SetWindowLong(hDlg, GWL_STYLE,
 				GetWindowLong(hDlg, GWL_STYLE) | WS_NONAVDONEBUTTON);
 
-            SHDoneButton(hDlg, SHDB_HIDE);
+            		SHDoneButton(hDlg, SHDB_HIDE);
 
 			/* create buttons */
 			num_buttons = 0;
@@ -794,6 +807,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 					num_buttons++;
 				}
 			}
+#endif
 		}
 		return (INT_PTR)TRUE;
 
@@ -882,6 +896,9 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
+#warning
+#warning important code ifdefed for arm-wince-mingw32 toolchain
+#if LATER
 			SHINITDLGINFO sid;
 			PROPSHEETPAGE *psp;
 			RoadMapDialogItem frame;
@@ -897,6 +914,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			frame->w = hDlg;
 			SetWindowLong(hDlg, GWL_USERDATA, (LONG)frame);
 			CreateControllers(hDlg, frame);
+#endif
 		}
 		return (INT_PTR)TRUE;
 
@@ -939,7 +957,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			int max_name_height = 0;
 			unsigned int num_entries = 0;
 			unsigned int row_height;
-			unsigned int row_space;
+			int row_space;
 			unsigned int first_column_width;
 			unsigned int column_edge_width;
 			unsigned int column_separator;

@@ -32,6 +32,16 @@ DESKTOP = GTK2
 # DESKTOP = QPE
 # DESKTOP = QPE4
 
+# if you select WINCE, you'll need to turn off POPT, and maybe
+# EXPAT as well, both below.  you'll also need the
+# arm-wince-mingw32 cross-compiler.  and even after all that,
+# wroadmap probably won't work on your WinCE device.  you may
+# have better luck with a windows-based devkit.  there are some
+# more comments in win32/Makefile
+# DESKTOP = WINCE
+# CROSS=/opt/mingw32ce/bin/arm-wince-mingw32ce-
+# CFLAGS += ???  others needed?
+
 # If you select QT or QPE above, you might also want to set
 # QTDIR here.  (But it might already be set in your environment.)
 # QTDIR = /usr

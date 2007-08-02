@@ -24,6 +24,7 @@ ROADMAP=roadmap-${dotversion}
 RDM_MAKE="${ROADMAP}/src/Makefile
           ${ROADMAP}/src/gtk2/Makefile
           ${ROADMAP}/src/qt/Makefile
+          ${ROADMAP}/src/qt4/Makefile
           ${ROADMAP}/src/icons/Makefile
           ${ROADMAP}/src/win32/wince_env/Roadmap.vcw
           ${ROADMAP}/src/win32/wince_env/*/*.vcp"
@@ -36,6 +37,8 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/gtk2/*.[ch]
          ${ROADMAP}/src/qt/*.[ch]
          ${ROADMAP}/src/qt/*.cc
+         ${ROADMAP}/src/qt4/*.[ch]
+         ${ROADMAP}/src/qt4/*.cc
          ${ROADMAP}/src/qt/ipkg/zroad*
          ${ROADMAP}/src/unix/Makefile
          ${ROADMAP}/src/unix/*.[ch]
@@ -48,15 +51,16 @@ RDM_SRC=" ${ROADMAP}/src/app_a02.txt
          ${ROADMAP}/src/ipkg/roadmap*"
 
 RDM_CFG="${ROADMAP}/src/preferences
-         ${ROADMAP}/src/schema
+         ${ROADMAP}/src/default/All
          ${ROADMAP}/src/session
          ${ROADMAP}/src/sprites
          ${ROADMAP}/src/drivers
-         ${ROADMAP}/src/*.png
          ${ROADMAP}/src/roadmap.desktop
          ${ROADMAP}/src/roadmap.menu
+         ${ROADMAP}/src/roadmap.popup
          ${ROADMAP}/src/icons/rm_*.xpm
          ${ROADMAP}/src/icons/rm_*.png
+         ${ROADMAP}/src/icons/roadmap*.png
          ${ROADMAP}/src/win32/icons/rm_*.bmp"
 
 RDM_SH="${ROADMAP}/src/rdmdownload

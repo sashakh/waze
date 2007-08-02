@@ -28,6 +28,7 @@
 
 #include <windows.h>
 #include <winsock.h>
+#include <ctype.h>
 
 #include "../roadmap.h"
 #include "../roadmap_net.h"
@@ -141,7 +142,7 @@ connection_failure:
 }
 
 
-int roadmap_net_send (RoadMapSocket socket, void *data, int length)
+int roadmap_net_send (RoadMapSocket socket, const void *data, int length)
 {
 	return send(socket, data, length, 0);
 }

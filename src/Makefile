@@ -302,8 +302,10 @@ ifneq ($(strip $(POPT)),NO)
 endif
 
 RUNTIME = $(RDMLIBS) libguiroadgps.a libguiroadmap.a
+ifneq ($(DESKTOP),WINCE)
 DRIVERS = rdmkismet rdmghost rdmfriends rdmtrace rdmxchange
 TOOLS = sunrise
+endif
 
 # the "ALL_..." variables are important in that they drive the
 # creation of the release tarballs.
@@ -345,17 +347,17 @@ rebuild: clean all
 
 # ---  Sub-targets ------------------------------------------------
 
-unix gpx:
+$(OSDIR) gpx:
 	$(MAKE) -C $@ all
 
 
-runtime: unix gpx $(RUNTIME) $(DRIVERS)
+runtime: $(OSDIR) gpx $(RUNTIME) $(DRIVERS)
 	for module in $(RDMODULES) ; \
 	do \
 		$(MAKE) -C $$module all || exit 1; \
 	done
 
-build: unix gpx $(BUILD)
+build: $(OSDIR) gpx $(BUILD)
 
 strip:
 	-$(STRIP) $(BUILD) $(DRIVERS)
@@ -373,7 +375,7 @@ topclean:
 	$(RM) .#*
 
 clean:  topclean
-	for module in icons unix gpx $(RDMODULES) ; \
+	for module in icons $(OSDIR) gpx $(RDMODULES) ; \
 	do \
 		$(MAKE) -C $$module clean || exit 1; \
 	done

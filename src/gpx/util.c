@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <errno.h>
 
 
 void *
@@ -228,15 +227,11 @@ mkgmtime(struct tm *t)
 
 
 /*
- * A wrapper for time(2) that allows us to "freeze" time for testing.
+ * A wrapper for time(2)
  */
 time_t
 current_time(void)
 {
-        if (getenv("GPSBABEL_FREEZE_TIME")) {
-                return 0;
-        }
-
         return time(NULL);
 }
 

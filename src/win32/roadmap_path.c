@@ -32,7 +32,7 @@
 #include "../roadmap_file.h"
 #include "../roadmap_path.h"
 
-extern const char *RoadMapPathCurrentDirectory = ".";
+const char *RoadMapPathCurrentDirectory = ".";
 
 typedef struct RoadMapPathRecord *RoadMapPathList;
 
@@ -274,6 +274,7 @@ void roadmap_path_set (const char *name, const char *path)
 	/* Count the number of items in this path string. */
 
 	count = 0;
+	item = path;
 	while (item != NULL) {
 		item = strchr(item, ',');
 		if (item) {

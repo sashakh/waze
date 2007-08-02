@@ -30,6 +30,8 @@
 #include "roadmap_io.h"
 #include "roadmap_spawn.h"
 
+#define ROADMAP_CURSOR_NORMAL 1
+#define ROADMAP_CURSOR_WAIT   2
 
 typedef void (* RoadMapKeyInput) (char *key);
 typedef void (* RoadMapInput)    (RoadMapIO *io);

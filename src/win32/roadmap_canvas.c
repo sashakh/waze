@@ -36,7 +36,7 @@
 #include "roadmap_wincecanvas.h"
 #include "colors.h"
 
-struct roadmap_canvas_pen {	
+struct roadmap_canvas_pen {
 	struct roadmap_canvas_pen *next;
 	char  *name;
 	int  style;
@@ -73,7 +73,7 @@ static void roadmap_canvas_convert_points (POINT *winpoints,
 			RoadMapGuiPoint *points, int count)
 {
     RoadMapGuiPoint *end = points + count;
-	
+
     while (points < end) {
         winpoints->x = points->x;
         winpoints->y = points->y;
@@ -99,18 +99,18 @@ void roadmap_canvas_get_text_extents (const char *text, int size,
 }
 
 
-RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
+RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen)
 {
 	HPEN old;
 	RoadMapPen old_pen = CurrentPen;
-	
+
 	CurrentPen = pen;
-	
+
 	old = SelectObject(RoadMapDrawingBuffer,
 		CreatePen(CurrentPen->style,
 			CurrentPen->thinkness,
 			CurrentPen->color));
-	
+
 	if (OldHPen == NULL) OldHPen = old;
 	else DeleteObject(old);
 
@@ -121,28 +121,28 @@ RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
 RoadMapPen roadmap_canvas_create_pen (const char *name)
 {
 	struct roadmap_canvas_pen *pen;
-	
+
 	for (pen = RoadMapPenList; pen != NULL; pen = pen->next) {
 		if (strcmp(pen->name, name) == 0) break;
 	}
-	
+
 	if (pen == NULL) {
-		
+
 		pen = (struct roadmap_canvas_pen *)
 			malloc (sizeof(struct roadmap_canvas_pen));
 		roadmap_check_allocated(pen);
-		
+
 		pen->name = strdup (name);
 		pen->color = RGB(0, 0, 0);
 		pen->thinkness = 1;
 		pen->style = PS_SOLID;
 		pen->next = RoadMapPenList;
-		
+
 		RoadMapPenList = pen;
 	}
-	
+
 	roadmap_canvas_select_pen (pen);
-	
+
 	return pen;
 }
 
@@ -151,7 +151,7 @@ void roadmap_canvas_set_foreground (const char *color)
 {
 	int high, i, low;
 	COLORREF c;
-	
+
 	if (*color == '#') {
 		int r, g, b;
 		sscanf(color, "#%2x%2x%2x", &r, &g, &b);
@@ -164,14 +164,14 @@ void roadmap_canvas_set_foreground (const char *color)
 			if (strcmp(color, color_table[i].name) <= 0) high = i;
 			else low = i;
 		}
-		
+
 		if (!strcmp(color, color_table[high].name)) {
 			c = RGB(color_table[high].r, color_table[high].g, color_table[high].b);
 		} else {
 			c = RGB(0, 0, 0);
 		}
 	}
-	
+
 	CurrentPen->color = c;
 	roadmap_canvas_select_pen(CurrentPen);
 }
@@ -221,12 +221,12 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	int text_height;
 	RECT rect;
 	LPWSTR text_unicode;
-	
-	roadmap_canvas_get_text_extents 
+
+	roadmap_canvas_get_text_extents
             (text, -1, &text_width, &text_ascent, &text_descent, NULL);
-	
+
 	text_height = text_ascent + text_descent;
-	
+
 	x = position->x;
 	y = position->y;
 	if (corner & ROADMAP_CANVAS_RIGHT)
@@ -238,12 +238,12 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 		y -= text_height;
 	else if (corner & ROADMAP_CANVAS_CENTER_Y)
 		y -= (text_height / 2);
-	
+
 	rect.left = x;
 	rect.top = y;
 	rect.right = x + text_width + 1;
 	rect.bottom = y + text_height + 1;
-	
+
 	text_unicode = ConvertToUNICODE(text);
 	DrawText(RoadMapDrawingBuffer, text_unicode, wcslen(text_unicode),
 		&rect, DT_CENTER);
@@ -257,12 +257,12 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
 	/* no angle possible, currently.  at least try and center the text */
 	roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
 }
- 
+
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points)
 {
 	int i;
-	
+
 	for (i=0; i<count; i++) {
 		SetPixel(RoadMapDrawingBuffer, points[i].x, points[i].y,
 			CurrentPen->color);
@@ -276,11 +276,11 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
 	int i;
 	int count_of_points;
 	POINT winpoints[1024];
-	
+
 	for (i = 0; i < count; ++i) {
-		
+
 		count_of_points = *lines;
-		
+
 		while (count_of_points > 1024) {
 			roadmap_canvas_convert_points (winpoints, points, 1024);
 			Polyline(RoadMapDrawingBuffer, winpoints, 1024);
@@ -288,14 +288,14 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
 			points += 1023;
 			count_of_points -= 1023;
 		}
-		
+
 		roadmap_canvas_convert_points (winpoints, points, count_of_points);
 		Polyline(RoadMapDrawingBuffer, winpoints, count_of_points);
-		
+
 		points += count_of_points;
 		lines += 1;
 	}
-	
+
 }
 
 
@@ -306,28 +306,28 @@ void roadmap_canvas_draw_multiple_polygons (int count, int *polygons,
 	int count_of_points;
 	POINT winpoints[1024];
 	HBRUSH oldBrush;
-	
+
 	if (filled) {
-		oldBrush = SelectObject(RoadMapDrawingBuffer, 
+		oldBrush = SelectObject(RoadMapDrawingBuffer,
 			CreateSolidBrush(CurrentPen->color));
 	} else {
 		oldBrush = SelectObject(RoadMapDrawingBuffer,
 			GetStockObject(NULL_BRUSH));
 	}
-	
+
 	for (i = 0; i < count; ++i) {
-		
+
 		count_of_points = *polygons;
-		
+
 		while (count_of_points > 1024) {
 			roadmap_canvas_convert_points (winpoints, points, 1024);
 			Polygon(RoadMapDrawingBuffer, winpoints, 1024);
-			
+
 			/* We shift by 1023 only, because we must link the lines. */
 			points += 1023;
 			count_of_points -= 1023;
 		}
-		
+
 		roadmap_canvas_convert_points (winpoints, points, count_of_points);
 		Polygon(RoadMapDrawingBuffer, winpoints, count_of_points);
 		polygons += 1;
@@ -343,19 +343,19 @@ void roadmap_canvas_draw_multiple_circles (int count,
 {
 	int i;
 	HBRUSH oldBrush;
-	
+
 	if (filled) {
-		oldBrush = SelectObject(RoadMapDrawingBuffer, 
+		oldBrush = SelectObject(RoadMapDrawingBuffer,
 			CreateSolidBrush(CurrentPen->color));
 	} else {
 		oldBrush = SelectObject(RoadMapDrawingBuffer,
 						GetStockObject(NULL_BRUSH));
 	}
-	
+
 	for (i = 0; i < count; ++i) {
-		
+
 		int r = radius[i];
-		
+
 		int x = centers[i].x - r;
 		int y = centers[i].y - r;
 		Ellipse(RoadMapDrawingBuffer,
@@ -363,7 +363,7 @@ void roadmap_canvas_draw_multiple_circles (int count,
 			2 * r + x,
 			2 * r + y);
 	}
-	
+
 	DeleteObject(SelectObject(RoadMapDrawingBuffer, oldBrush));
 }
 
@@ -378,50 +378,50 @@ void roadmap_canvas_register_configure_handler (
 void roadmap_canvas_button_pressed(int button, POINT *data)
 {
 	RoadMapGuiPoint point;
-	
+
 	point.x = (short)data->x;
 	point.y = (short)data->y;
-	
+
 	(*RoadMapCanvasMouseButtonPressed) (button, &point);
-	
+
 }
 
 
 void roadmap_canvas_button_released(int button, POINT *data)
 {
 	RoadMapGuiPoint point;
-	
+
 	point.x = (short)data->x;
 	point.y = (short)data->y;
-	
+
 	(*RoadMapCanvasMouseButtonReleased) (button, &point);
-	
+
 }
 
 
 void roadmap_canvas_mouse_move(POINT *data)
 {
 	RoadMapGuiPoint point;
-	
+
 	point.x = (short)data->x;
 	point.y = (short)data->y;
-	
+
 	(*RoadMapCanvasMouseMove) (0, &point);
-	
+
 }
 
 
 void roadmap_canvas_mouse_scroll(int direction, POINT *data)
 {
 	RoadMapGuiPoint point;
-	
+
 	point.x = (short)data->x;
 	point.y = (short)data->y;
-	
+
    direction = (direction > 0) ? 1 : ((direction < 0) ? -1 : 0);
 
 	(*RoadMapCanvasMouseScroll) (direction, &point);
-	
+
 }
 
 
@@ -467,7 +467,7 @@ int roadmap_canvas_height (void)
 	if (RoadMapDrawingArea == NULL) {
 		return 0;
 	}
-	
+
 	return ClientRect.bottom - ClientRect.top + 1;
 }
 
@@ -475,14 +475,14 @@ int roadmap_canvas_height (void)
 void roadmap_canvas_refresh (void)
 {
 	HDC hdc;
-	
+
 	if (RoadMapDrawingArea == NULL) return;
 	hdc = GetDC(RoadMapDrawingArea);
 	BitBlt(hdc, ClientRect.left, ClientRect.top,
 		ClientRect.right - ClientRect.left + 1,
 		ClientRect.bottom - ClientRect.top + 1,
-	   	RoadMapDrawingBuffer, 0, 0, SRCCOPY); 
-	
+	   	RoadMapDrawingBuffer, 0, 0, SRCCOPY);
+
 	DeleteDC(hdc);
 }
 
@@ -490,19 +490,19 @@ void roadmap_canvas_refresh (void)
 HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar)
 {
 	HDC hdc;
-	
+
 	if ((RoadMapDrawingBuffer != NULL) && IsWindowVisible(tool_bar)) {
 		if (OldHPen != NULL) {
 			DeleteObject(OldHPen);
 			OldHPen = NULL;
 		}
-		
+
 		DeleteObject(SelectObject(RoadMapDrawingBuffer, OldBitmap));
 		DeleteDC(RoadMapDrawingBuffer);
 	}
-	
+
 	hdc = GetDC(RoadMapDrawingArea);
-	
+
 	RoadMapDrawingArea = hWnd;
 	GetClientRect(hWnd, &ClientRect);
 	if (tool_bar != NULL) {
@@ -510,15 +510,15 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar)
 		GetClientRect(tool_bar, &tb_rect);
 		ClientRect.top += tb_rect.bottom;
 	}
-	
-	
+
+
 	RoadMapDrawingBuffer = CreateCompatibleDC(hdc);
-	OldBitmap = SelectObject(RoadMapDrawingBuffer, 
-		CreateCompatibleBitmap(hdc, ClientRect.right - ClientRect.left + 1, 
+	OldBitmap = SelectObject(RoadMapDrawingBuffer,
+		CreateCompatibleBitmap(hdc, ClientRect.right - ClientRect.left + 1,
 		ClientRect.bottom - ClientRect.top + 1));
 	DeleteDC(hdc);
 	(*RoadMapCanvasConfigure) ();
-	
+
 	return RoadMapDrawingArea;
 }
 
@@ -526,5 +526,4 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar)
 void roadmap_canvas_save_screenshot (const char* filename) {
    /* NOT IMPLEMENTED. */
 }
-
 

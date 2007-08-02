@@ -156,6 +156,12 @@ INSTALLATION
    RoadMap use the WIN32 API exclusively, and no specific graphic library
    is required.
 
+   There is UNIX Makefile support for building the WinCE version of
+   RoadMap using the arm-wince-mingw32 cross-compiler toolchain,
+   available from http://cegcc.sourceforge.net, but support in the
+   code for the toolchain is incomplete.  Working versions have all
+   come from real Microsoft tools.
+
    Maps cannot be built under Windows (buildmap and buildus have not been
    ported yet). Maps built under Linux can be used on PocketPC systems,
    however.

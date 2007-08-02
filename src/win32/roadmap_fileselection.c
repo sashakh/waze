@@ -26,7 +26,7 @@
  */
 
 #include <windows.h>
-#include <Commdlg.h>
+#include <commdlg.h>
 
 #include "../roadmap.h"
 #include "../roadmap_types.h"
