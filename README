@@ -889,7 +889,11 @@ USING ROADMAP
    [--gps=<URL>] Use a specific GPS source. This option is not sticky: it
        overrides the preferences setting this time, but the preferences
        setting is not modified. The main use of this option is to rerun GPS
-       logs created using roadgps.
+       logs created using roadgps, or to run logs created using
+       gpsbabel, from other input sources.  For instance:
+          gpsbabel -i gpx -o nmea,gprmc=1 infile.gpx outfile.nmea
+       will create an NMEA logfile from a GPX format file created elsewhere,
+       or even from a tracklog created by roadmap itself.
 
    [--trip=<FILENAME>] tells roadmap to make the given GPX tripfile current.
 
