@@ -506,7 +506,7 @@ RELNAME = roadmap-$(DOTVERSION)
 .PHONY: checkdotversion sourcelist linkdir tarball
 
 # source files from "..", i.e. the real top-level.  these go into tarball.
-UPPER_SRC = README AUTHORS BUGS COPYING INSTALL TODO howtos/makemaps.txt 
+UPPER_SRC = README AUTHORS BUGS COPYING INSTALL howtos/makemaps.txt 
 
 # the contents of the tarball are listed explicitly, using the UPPER_SRC
 # variable and the output of "make sourcelist".  an appropriate path
