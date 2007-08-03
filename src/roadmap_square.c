@@ -51,14 +51,13 @@ typedef struct {
    RoadMapGlobal *SquareGlobal;
    RoadMapSquare *Square;
 
-   /* keep these small: sparse large grids can use a lot of them */
-   short *SquareGrid;
+   short *SquareGrid; /* keep small: large grids can use a lot of them */
    int  SquareGridCount;
-
+   int SquareGridBitmapped;
+   int SquareLastLookup;  /* lookup cache for bitmapped grids */
 } RoadMapSquareContext;
 
 static RoadMapSquareContext *RoadMapSquareActive = NULL;
-
 
 static void *roadmap_square_map (roadmap_db *root) {
 
@@ -68,7 +67,6 @@ static void *roadmap_square_map (roadmap_db *root) {
    int count;
    roadmap_db *global_table;
    roadmap_db *square_table;
-
 
    context = malloc(sizeof(RoadMapSquareContext));
    roadmap_check_allocated(context);
@@ -83,26 +81,96 @@ static void *roadmap_square_map (roadmap_db *root) {
 
    count = context->SquareGlobal->count_longitude
               * context->SquareGlobal->count_latitude;
-#if 0
-   roadmap_log (ROADMAP_WARNING, 
-      "calloc'ing %d grid shorts (%d) for %d real squares",
-      count, count * 2,context->SquareGlobal->count_squares );
-#endif
 
-   context->SquareGrid = (short *) calloc (count, sizeof(short));
-   roadmap_check_allocated(context->SquareGrid);
+   /* See if the grid seems like it will be very sparse, by
+    * comparing the number of squares in the whole grid to those
+    * that actually contain features.  In practice, the ratio is
+    * either very low (less than 10) for small maps of
+    * "typically" featured areas, or very high (more than 1000)
+    * for huge maps containing nothing but boundary lines (where
+    * only the endpoints of the lines count as features).  So the
+    * value used for comparison isn't really very critical.
+    */
+   if (count / context->SquareGlobal->count_squares < 50) {
 
-   context->SquareGridCount = count;
+       /* Allocate the entire grid representing the area
+	* covered by these squares.
+	*/
+       context->SquareGridBitmapped = 0;
+       context->SquareGrid = (short *) calloc (count, sizeof(short));
+       roadmap_check_allocated(context->SquareGrid);
 
-   for (i = count - 1; i >= 0; --i) {
-      context->SquareGrid[i] = -1;
+       context->SquareGridCount = count;
+
+       for (i = context->SquareGlobal->count_squares - 1; i >= 0; --i) {
+	  /* store "i + 1" so that 0 can be the "invalid" marker. 
+	   * we'll subtract 1 every time we dereference, and
+	   * compare against negative.
+	   */
+	  context->SquareGrid[context->Square[i].position] = i + 1;
+       }
+
+   } else {
+       /* For very sparse grids, we save memory by only
+	* allocating a bitmap.  the bitmap will tell us whether
+	* we need to linear search the list for our square.
+	*/
+       context->SquareGridBitmapped = 1;
+       context->SquareGrid = (short *) calloc((count / 16) + 1, sizeof(short));
+       roadmap_check_allocated(context->SquareGrid);
+
+       context->SquareGridCount = count;
+
+       for (i = context->SquareGlobal->count_squares - 1; i >= 0; --i) {
+	  int index = context->Square[i].position / 16;
+	  int bit  = context->Square[i].position % 16;
+	  context->SquareGrid[index] |= (1 << bit);
+       }
+
+
    }
 
-   for (i = context->SquareGlobal->count_squares - 1; i >= 0; --i) {
-      context->SquareGrid[context->Square[i].position] = i;
-   }
+   context->SquareLastLookup = -1;
 
    return context;
+}
+
+int grid_index(int square)
+{
+
+   if (!RoadMapSquareActive->SquareGridBitmapped) {
+
+      return RoadMapSquareActive->SquareGrid[square] - 1;
+
+   } else {
+      int i;
+      int index;
+      int bit;
+      static int last_index;
+
+      if (square == RoadMapSquareActive->SquareLastLookup) {
+	 return last_index;
+      }
+
+      RoadMapSquareActive->SquareLastLookup = square;
+
+      index = square / 16;
+      bit  = square % 16;
+
+      if ((RoadMapSquareActive->SquareGrid[index] & (1 << bit)) == 0)
+	 return last_index = -1;
+
+      for (i = RoadMapSquareActive->SquareGlobal->count_squares - 1;
+	       i >= 0; --i) {
+	 if (RoadMapSquareActive->Square[i].position == square) {
+            return last_index = i;
+	 }
+      }
+
+      roadmap_log (ROADMAP_WARNING, "bitmapping BUG");
+      return last_index = -1;
+   }
+
 }
 
 static void roadmap_square_activate (void *context) {
@@ -188,7 +256,6 @@ static int roadmap_square_on_grid (const RoadMapPosition *position) {
 static int roadmap_square_location (const RoadMapPosition *position) {
 
    int square;
-   short *grid = RoadMapSquareActive->SquareGrid;
    int  grid_count = RoadMapSquareActive->SquareGridCount;
    RoadMapSquare *this_square;
    RoadMapSquare *base_square = RoadMapSquareActive->Square;
@@ -200,40 +267,40 @@ static int roadmap_square_location (const RoadMapPosition *position) {
 
    /* The computation above may have rounding errors: adjust. */
 
-   this_square = base_square + grid[square];
+   this_square = base_square + grid_index(square);
 
-   while (grid[square] < 0 ||
+   while (grid_index(square) < 0 ||
           this_square->edges.east <= position->longitude) {
 
       if (position->longitude ==
           RoadMapSquareActive->SquareGlobal->edges.east) break;
 
       if (++square >= grid_count) return -1;
-      this_square = base_square + grid[square];
+      this_square = base_square + grid_index(square);
    }
 
-   while (grid[square] < 0 ||
+   while (grid_index(square) < 0 ||
           this_square->edges.west > position->longitude) {
 
       if (--square < 0) return -1;
-      this_square = base_square + grid[square];
+      this_square = base_square + grid_index(square);
    }
 
-   while (grid[square] < 0 ||
+   while (grid_index(square) < 0 ||
           this_square->edges.north <= position->latitude) {
 
       if (position->latitude ==
           RoadMapSquareActive->SquareGlobal->edges.north) break;
 
       if (++square >= grid_count) return -1;
-      this_square = base_square + grid[square];
+      this_square = base_square + grid_index(square);
    }
 
-   while (grid[square] < 0 ||
+   while (grid_index(square) < 0 ||
           this_square->edges.south > position->latitude) {
 
       if (--square < 0) return -1;
-      this_square = base_square + grid[square];
+      this_square = base_square + grid_index(square);
    }
 
    return square;
@@ -242,24 +309,22 @@ static int roadmap_square_location (const RoadMapPosition *position) {
 
 int roadmap_square_search (const RoadMapPosition *position) {
 
-   short *grid;
    int square;
    RoadMapSquare *this_square;
 
 
    if (RoadMapSquareActive == NULL) return ROADMAP_SQUARE_OTHER;
 
-   grid = RoadMapSquareActive->SquareGrid;
    square = roadmap_square_location (position);
 
    if (square < 0 || square >= RoadMapSquareActive->SquareGridCount) {
       return ROADMAP_SQUARE_OTHER;
    }
-   if (grid[square] < 0) {
+   if (grid_index(square) < 0) {
       return ROADMAP_SQUARE_GLOBAL;
    }
 
-   this_square = RoadMapSquareActive->Square + grid[square];
+   this_square = RoadMapSquareActive->Square + grid_index(square);
 
    if ((this_square->edges.west > position->longitude) ||
        (this_square->edges.east < position->longitude) ||
@@ -289,7 +354,7 @@ void  roadmap_square_min (int square, RoadMapPosition *position) {
       return;
    }
 
-   square = RoadMapSquareActive->SquareGrid[square];
+   square = grid_index(square);
    if (square < 0) {
       return;
    }
@@ -322,7 +387,7 @@ void  roadmap_square_edges (int square, RoadMapArea *edges) {
    if (! roadmap_square_is_valid (square)) {
       return;
    }
-   square = RoadMapSquareActive->SquareGrid[square];
+   square = grid_index(square);
 
    {
       RoadMapSquare *square_item = RoadMapSquareActive->Square + square;
@@ -340,7 +405,7 @@ int roadmap_square_index (int square) {
       return -1;
    }
 
-   return RoadMapSquareActive->SquareGrid[square];
+   return grid_index(square);
 }
 
 
@@ -359,7 +424,6 @@ int roadmap_square_from_index (int index) {
 
 int roadmap_square_view (int *square, int size) {
 
-   short *grid;
    RoadMapGlobal *global;
 
    RoadMapArea screen;
@@ -370,12 +434,11 @@ int roadmap_square_view (int *square, int size) {
    int y1;
    int y;
    int count;
-   int grid_index;
+   int gindex;
 
 
    if (RoadMapSquareActive == NULL) return 0;
 
-   grid   = RoadMapSquareActive->SquareGrid;
    global = RoadMapSquareActive->SquareGlobal;
 
    roadmap_math_screen_edges (&screen);
@@ -410,11 +473,11 @@ int roadmap_square_view (int *square, int size) {
 
       for (y = y1; y <= y0; ++y) {
 
-         grid_index = (x * global->count_latitude) + y;
+         gindex = (x * global->count_latitude) + y;
 
-         if (grid[grid_index] >= 0) {
+         if (grid_index(gindex) >= 0) {
 
-            square[count] = grid_index;
+            square[count] = gindex;
             count  += 1;
             if (count >= size) {
                roadmap_log (ROADMAP_ERROR,
