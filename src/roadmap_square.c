@@ -83,7 +83,11 @@ static void *roadmap_square_map (roadmap_db *root) {
 
    count = context->SquareGlobal->count_longitude
               * context->SquareGlobal->count_latitude;
-roadmap_log(ROADMAP_WARNING, "calloc'ing %d shorts (%d) for %d real squares", count, count * 2,context->SquareGlobal->count_squares );
+#if 0
+   roadmap_log (ROADMAP_WARNING, 
+      "calloc'ing %d grid shorts (%d) for %d real squares",
+      count, count * 2,context->SquareGlobal->count_squares );
+#endif
 
    context->SquareGrid = (short *) calloc (count, sizeof(short));
    roadmap_check_allocated(context->SquareGrid);
