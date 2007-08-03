@@ -51,7 +51,8 @@ typedef struct {
    RoadMapGlobal *SquareGlobal;
    RoadMapSquare *Square;
 
-   int *SquareGrid;
+   /* keep these small: sparse large grids can use a lot of them */
+   short *SquareGrid;
    int  SquareGridCount;
 
 } RoadMapSquareContext;
@@ -82,8 +83,9 @@ static void *roadmap_square_map (roadmap_db *root) {
 
    count = context->SquareGlobal->count_longitude
               * context->SquareGlobal->count_latitude;
+roadmap_log(ROADMAP_WARNING, "calloc'ing %d shorts (%d) for %d real squares", count, count * 2,context->SquareGlobal->count_squares );
 
-   context->SquareGrid = (int *) calloc (count, sizeof(int));
+   context->SquareGrid = (short *) calloc (count, sizeof(short));
    roadmap_check_allocated(context->SquareGrid);
 
    context->SquareGridCount = count;
@@ -182,7 +184,7 @@ static int roadmap_square_on_grid (const RoadMapPosition *position) {
 static int roadmap_square_location (const RoadMapPosition *position) {
 
    int square;
-   int *grid = RoadMapSquareActive->SquareGrid;
+   short *grid = RoadMapSquareActive->SquareGrid;
    int  grid_count = RoadMapSquareActive->SquareGridCount;
    RoadMapSquare *this_square;
    RoadMapSquare *base_square = RoadMapSquareActive->Square;
@@ -236,7 +238,7 @@ static int roadmap_square_location (const RoadMapPosition *position) {
 
 int roadmap_square_search (const RoadMapPosition *position) {
 
-   int *grid;
+   short *grid;
    int square;
    RoadMapSquare *this_square;
 
@@ -353,7 +355,7 @@ int roadmap_square_from_index (int index) {
 
 int roadmap_square_view (int *square, int size) {
 
-   int *grid;
+   short *grid;
    RoadMapGlobal *global;
 
    RoadMapArea screen;
