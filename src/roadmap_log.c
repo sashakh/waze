@@ -98,7 +98,7 @@ void roadmap_log_pop (void) {
       RoadMapLogStackCursor -= 1;
 #ifdef DEBUG
       roadmap_log(ROADMAP_DEBUG, "pop of %s",
-	 RoadMapLogStack[RoadMapLogStackCursor]);
+         RoadMapLogStack[RoadMapLogStackCursor]);
 #endif
    }
 }

@@ -673,7 +673,7 @@ static int roadmap_screen_label_cutoff(RoadMapGuiPoint *loweredge) {
    roadmap_math_unproject(loweredge);
 
    return roadmap_math_screen_distance
-	(label_cutoff, loweredge, MATH_DIST_SQUARED);
+        (label_cutoff, loweredge, MATH_DIST_SQUARED);
 }
 
 static int roadmap_screen_draw_one_line(int line, 
@@ -699,7 +699,7 @@ static int roadmap_screen_draw_one_line(int line,
           RoadMapScreenLabels) {
        total_length_ptr = &total_length;
        if (RoadMapScreen3dHorizon != 0) {
-	  cutoff_dist = roadmap_screen_label_cutoff(&loweredge);
+          cutoff_dist = roadmap_screen_label_cutoff(&loweredge);
        } else {
           angle_ptr = &angle;
        }
@@ -708,13 +708,13 @@ static int roadmap_screen_draw_one_line(int line,
     
     if (first_shape_line >= 0) {
        roadmap_shape_of_line (line,
-			   first_shape_line, last_shape_line,
-			  &first_shape, &last_shape);
+                           first_shape_line, last_shape_line,
+                          &first_shape, &last_shape);
     }
 
     /* Check if a plugin wants to override the pen. */
     if (! roadmap_plugin_override_pen
-	     (line, layer, pen_index, fips, &pen)) {
+             (line, layer, pen_index, fips, &pen)) {
        pen = layer_pen;
     }
 
@@ -725,15 +725,15 @@ static int roadmap_screen_draw_one_line(int line,
 
     roadmap_screen_draw_line
        (&from, &to, fully_visible, &from, first_shape, last_shape,
-	roadmap_shape_get_position, pen, total_length_ptr,
-	&seg_middle, angle_ptr);
-		 
+        roadmap_shape_get_position, pen, total_length_ptr,
+        &seg_middle, angle_ptr);
+                 
     if (total_length_ptr && *total_length_ptr && (cutoff_dist == 0 ||
-	    cutoff_dist > roadmap_math_screen_distance
-		    (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
+            cutoff_dist > roadmap_math_screen_distance
+                    (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
        PluginLine l = {ROADMAP_PLUGIN_ID, line, layer, fips};
        roadmap_label_add
-	    (&seg_middle, angle_ptr ? *angle_ptr : 90, *total_length_ptr, &l);
+            (&seg_middle, angle_ptr ? *angle_ptr : 90, *total_length_ptr, &l);
     }
 
     return 1;
@@ -775,12 +775,12 @@ static int roadmap_screen_draw_square
           */
          if (!roadmap_plugin_override_line (line, layer, fips)) {
 
-	    if (roadmap_screen_draw_one_line(line, layer,
-		    pen_index, layer_pen, fips,
-		    first_shape_line, last_shape_line,
-		    fully_visible)) {
-        	drawn += 1;
-	    }
+            if (roadmap_screen_draw_one_line(line, layer,
+                    pen_index, layer_pen, fips,
+                    first_shape_line, last_shape_line,
+                    fully_visible)) {
+                drawn += 1;
+            }
          }
       }
    }
@@ -829,14 +829,14 @@ static int roadmap_screen_draw_square
 
             last_real_square = real_square;
 
-	    if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
+            if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
                /* Either it has already been drawn, or it will be soon. */
                continue;
             }
 
             if (roadmap_math_is_visible (&edges)) {
 
-	       on_canvas[real_square / 8] |= (1 << (real_square % 8));
+               on_canvas[real_square / 8] |= (1 << (real_square % 8));
                continue;
             }
 
@@ -848,19 +848,19 @@ static int roadmap_screen_draw_square
             }
          }
 
-	 if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
+         if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
             /* Either it has already been drawn, or it will be soon. */
             continue;
          }
 
          if (!roadmap_plugin_override_line (line, layer, fips)) {
 
-	    if (roadmap_screen_draw_one_line(line, layer,
-		    pen_index, layer_pen, fips,
-		    first_shape_line, last_shape_line,
-		    fully_visible)) {
-        	drawn += 1;
-	    }
+            if (roadmap_screen_draw_one_line(line, layer,
+                    pen_index, layer_pen, fips,
+                    first_shape_line, last_shape_line,
+                    fully_visible)) {
+                drawn += 1;
+            }
          }
       }
 
@@ -905,7 +905,7 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
             last_layer = layer;
          }
 
-	 if (layer_pen == NULL) continue;
+         if (layer_pen == NULL) continue;
 
          roadmap_line_to (line, &to_position);
 
@@ -963,12 +963,12 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
 
          if (!roadmap_plugin_override_line (line, layer, fips)) {
 
-	    if (roadmap_screen_draw_one_line(line, layer,
-		    pen_index, layer_pen, fips,
-		    first_shape_line, last_shape_line,
-		    0)) {
-        	drawn += 1;
-	    }
+            if (roadmap_screen_draw_one_line(line, layer,
+                    pen_index, layer_pen, fips,
+                    first_shape_line, last_shape_line,
+                    0)) {
+                drawn += 1;
+            }
          }
    }
 
@@ -1130,15 +1130,15 @@ static void roadmap_screen_repaint (void) {
 
     for (i = count-1; i >= 0; --i) {
 
-	/* -- nothing to draw at this zoom? -- */
-	if (roadmap_county_get_decluttered(fips[i]))
-	    continue;
+        /* -- nothing to draw at this zoom? -- */
+        if (roadmap_county_get_decluttered(fips[i]))
+            continue;
 
         /* -- Access the county's database. */
 
         if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
 
-	drawn = 0;
+        drawn = 0;
         drawn += roadmap_screen_draw_polygons ();
 
         /* -- Look for the squares that are currently visible. */
@@ -1181,8 +1181,8 @@ static void roadmap_screen_repaint (void) {
             roadmap_label_draw_cache (RoadMapScreen3dHorizon == 0);
         }
 
-	if (!drawn)
-	    roadmap_county_set_decluttered(fips[i]);
+        if (!drawn)
+            roadmap_county_set_decluttered(fips[i]);
     }
 
     if (!RoadMapScreenDragging ||

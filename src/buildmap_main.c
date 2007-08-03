@@ -153,12 +153,12 @@ static void  buildmap_county_select_format (poptContext decoder) {
       extern int which_states;
 
       if (strcmp (BuildMapFormat, "STATES=AK_HI") == 0) {
-	which_states = 1;
+        which_states = 1;
       } else if (strcmp (BuildMapFormat, "STATES=continental") == 0) {
-	which_states = 2;
+        which_states = 2;
       } else if (strcmp (BuildMapFormat, "STATES=all") == 0 ||
-	    strcmp (BuildMapFormat, "STATES") == 0) {
-	which_states = 0;
+            strcmp (BuildMapFormat, "STATES") == 0) {
+        which_states = 0;
       }
       // US state boundaries
       BuildMapFormatFamily = BUILDMAP_FORMAT_STATE;

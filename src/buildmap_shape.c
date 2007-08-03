@@ -121,9 +121,9 @@ int buildmap_shape_add
 
             if ((this_shape->longitude != longitude) ||
                 (this_shape->latitude  != latitude )) {
-	       buildmap_error
-		(0, "duplicated sequence number %d, irec %d, uid %d, %d/%d",
-			sequence, irec, uid, longitude, latitude);
+               buildmap_error
+                (0, "duplicated sequence number %d, irec %d, uid %d, %d/%d",
+                        sequence, irec, uid, longitude, latitude);
             }
 
             return index;

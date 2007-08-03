@@ -1274,9 +1274,9 @@ static int roadmap_street_get_closest_in_long_lines
       real_square = roadmap_square_search (&reference_position);
 
       if (real_square != previous_square) {
-	 shape_count =
-	    roadmap_shape_in_square
-	    (real_square, &first_shape_line, &last_shape_line);
+         shape_count =
+            roadmap_shape_in_square
+            (real_square, &first_shape_line, &last_shape_line);
          previous_square = real_square;
       }
 

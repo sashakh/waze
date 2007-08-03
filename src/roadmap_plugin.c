@@ -54,7 +54,7 @@ int roadmap_plugin_register (RoadMapPluginHooks *hook) {
       
       if (hooks[i] == NULL) {
          hooks[i] = hook;
-	 PluginCount = i;
+         PluginCount = i;
          return i;
       }
    }

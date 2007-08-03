@@ -94,8 +94,8 @@ static void *roadmap_square_map (roadmap_db *root) {
    if (count / context->SquareGlobal->count_squares < 50) {
 
        /* Allocate the entire grid representing the area
-	* covered by these squares.
-	*/
+        * covered by these squares.
+        */
        context->SquareGridBitmapped = 0;
        context->SquareGrid = (short *) calloc (count, sizeof(short));
        roadmap_check_allocated(context->SquareGrid);
@@ -103,18 +103,18 @@ static void *roadmap_square_map (roadmap_db *root) {
        context->SquareGridCount = count;
 
        for (i = context->SquareGlobal->count_squares - 1; i >= 0; --i) {
-	  /* store "i + 1" so that 0 can be the "invalid" marker. 
-	   * we'll subtract 1 every time we dereference, and
-	   * compare against negative.
-	   */
-	  context->SquareGrid[context->Square[i].position] = i + 1;
+          /* store "i + 1" so that 0 can be the "invalid" marker. 
+           * we'll subtract 1 every time we dereference, and
+           * compare against negative.
+           */
+          context->SquareGrid[context->Square[i].position] = i + 1;
        }
 
    } else {
        /* For very sparse grids, we save memory by only
-	* allocating a bitmap.  the bitmap will tell us whether
-	* we need to linear search the list for our square.
-	*/
+        * allocating a bitmap.  the bitmap will tell us whether
+        * we need to linear search the list for our square.
+        */
        context->SquareGridBitmapped = 1;
        context->SquareGrid = (short *) calloc((count / 16) + 1, sizeof(short));
        roadmap_check_allocated(context->SquareGrid);
@@ -122,9 +122,9 @@ static void *roadmap_square_map (roadmap_db *root) {
        context->SquareGridCount = count;
 
        for (i = context->SquareGlobal->count_squares - 1; i >= 0; --i) {
-	  int index = context->Square[i].position / 16;
-	  int bit  = context->Square[i].position % 16;
-	  context->SquareGrid[index] |= (1 << bit);
+          int index = context->Square[i].position / 16;
+          int bit  = context->Square[i].position % 16;
+          context->SquareGrid[index] |= (1 << bit);
        }
 
 
@@ -149,7 +149,7 @@ int grid_index(int square)
       static int last_index;
 
       if (square == RoadMapSquareActive->SquareLastLookup) {
-	 return last_index;
+         return last_index;
       }
 
       RoadMapSquareActive->SquareLastLookup = square;
@@ -158,13 +158,13 @@ int grid_index(int square)
       bit  = square % 16;
 
       if ((RoadMapSquareActive->SquareGrid[index] & (1 << bit)) == 0)
-	 return last_index = -1;
+         return last_index = -1;
 
       for (i = RoadMapSquareActive->SquareGlobal->count_squares - 1;
-	       i >= 0; --i) {
-	 if (RoadMapSquareActive->Square[i].position == square) {
+               i >= 0; --i) {
+         if (RoadMapSquareActive->Square[i].position == square) {
             return last_index = i;
-	 }
+         }
       }
 
       roadmap_log (ROADMAP_WARNING, "bitmapping BUG");

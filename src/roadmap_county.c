@@ -486,20 +486,20 @@ void roadmap_county_set_decluttered(int fips) {
 
    if (RoadMapCountyActive->county_no_draw == NULL) {
       RoadMapCountyActive->county_no_draw =
-	 calloc(RoadMapCountyActive->county_count, sizeof(short));
+         calloc(RoadMapCountyActive->county_count, sizeof(short));
       roadmap_check_allocated(RoadMapCountyActive->county_no_draw);
    }
 
    roadmap_math_get_context(0, &zoom, 0);
 
    if (RoadMapCountyActive->county_no_draw[i] == 0 ||
-	zoom < RoadMapCountyActive->county_no_draw[i]) {
+        zoom < RoadMapCountyActive->county_no_draw[i]) {
 
       /* must be _fully_ visible to mark it declutterable */
       if (roadmap_math_is_visible
-	    (&RoadMapCountyActive->county[i].edges) == 1) {
+            (&RoadMapCountyActive->county[i].edges) == 1) {
 
-	 RoadMapCountyActive->county_no_draw[i] = zoom;
+         RoadMapCountyActive->county_no_draw[i] = zoom;
       }
    }
 }

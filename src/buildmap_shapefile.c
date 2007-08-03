@@ -1065,11 +1065,11 @@ int which_states;
 
 static int exclude_state(int state) {
       if (which_states == JUST_CONTINENTAL) {
-	 if (state == AK || state == HI)
-	    return 1;
+         if (state == AK || state == HI)
+            return 1;
       } else if (which_states == JUST_AK_HI) {
-	 if (state != AK && state != HI)
-	    return 1;
+         if (state != AK && state != HI)
+            return 1;
       }
       return 0;
 }
@@ -1122,7 +1122,7 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
 
       state = DBFReadIntegerAttribute(hDBF, irec, iSTATE);
       if (exclude_state(state))
-	 continue;
+         continue;
        
       cfcc   = shapefile2type_states('D');
       tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
@@ -1131,7 +1131,7 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
 
          shp = SHPReadObject(hSHP, irec);
 
-	 if (shp->padfX && shp->padfY) {
+         if (shp->padfX && shp->padfY) {
          frlong = shp->padfX[0] * 1000000.0;
          frlat  = shp->padfY[0] * 1000000.0;
 
@@ -1142,7 +1142,7 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
          to_point   = buildmap_point_add (tolong, tolat);
 
          line = buildmap_line_add (tlid, cfcc, from_point, to_point);
-	 }
+         }
 
          SHPDestroyObject(shp);
 
@@ -1163,18 +1163,18 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
 
       state = DBFReadIntegerAttribute(hDBF, irec, iSTATE);
       if (exclude_state(state))
-	 continue;
+         continue;
        
       shp = SHPReadObject(hSHP, irec);
 
       for (j=1; j<shp->nVertices-1; j++) {
-	 if (shp->padfX && shp->padfY) {
-	  lon = shp->padfX[j] * 1000000.0;
-	  if (lon != 0) {
-	      lat = shp->padfY[j] * 1000000.0;
-	      buildmap_square_adjust_limits(lon, lat);
-	  }
-	 }
+         if (shp->padfX && shp->padfY) {
+          lon = shp->padfX[j] * 1000000.0;
+          if (lon != 0) {
+              lat = shp->padfY[j] * 1000000.0;
+              buildmap_square_adjust_limits(lon, lat);
+          }
+         }
       }
 
       SHPDestroyObject(shp);
@@ -1195,7 +1195,7 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
 
       state = DBFReadIntegerAttribute(hDBF, irec, iSTATE);
       if (exclude_state(state))
-	 continue;
+         continue;
        
       shp = SHPReadObject(hSHP, irec);
 
@@ -1204,17 +1204,17 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
  
       if (line_index >= 0) {
 
-	 // Add the shape points here
+         // Add the shape points here
 
-	 for (j=1; j<shp->nVertices-1; j++) {
-	 if (shp->padfX && shp->padfY) {
-	     lon = shp->padfX[j] * 1000000.0;
-	     if (lon != 0) {
-		 lat = shp->padfY[j] * 1000000.0;
-		 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
-	     }
-	 }
-	 }
+         for (j=1; j<shp->nVertices-1; j++) {
+         if (shp->padfX && shp->padfY) {
+             lon = shp->padfX[j] * 1000000.0;
+             if (lon != 0) {
+                 lat = shp->padfY[j] * 1000000.0;
+                 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+             }
+         }
+         }
       }
 
       SHPDestroyObject(shp);
@@ -1285,7 +1285,7 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
       type = DBFReadStringAttribute(hDBF, irec, iTYPE);
 
       if (strcmp(type, "TERR") == 0)
-	 continue;  /* provinces only.  no roads up there anyways.  ;-) */
+         continue;  /* provinces only.  no roads up there anyways.  ;-) */
 
       tlid   = DBFReadIntegerAttribute(hDBF, irec, iUID);
 
@@ -1293,7 +1293,7 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
 
          shp = SHPReadObject(hSHP, irec);
 
-	 if (shp->padfX && shp->padfY) {
+         if (shp->padfX && shp->padfY) {
          frlong = shp->padfX[0] * 1000000.0;
          frlat  = shp->padfY[0] * 1000000.0;
 
@@ -1304,7 +1304,7 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
          to_point   = buildmap_point_add (tolong, tolat);
 
          line = buildmap_line_add (tlid, cfcc, from_point, to_point);
-	 }
+         }
 
          SHPDestroyObject(shp);
 
@@ -1324,20 +1324,20 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
       type = DBFReadStringAttribute(hDBF, irec, iTYPE);
 
       if (strcmp(type, "TERR") == 0)
-	 continue;  /* provinces only.  no roads up there anyways.  ;-) */
+         continue;  /* provinces only.  no roads up there anyways.  ;-) */
 
       buildmap_set_line (irec);
 
       shp = SHPReadObject(hSHP, irec);
 
       for (j=1; j<shp->nVertices-1; j++) {
-	 if (shp->padfX && shp->padfY) {
-	  lon = shp->padfX[j] * 1000000.0;
-	  if (lon != 0) {
-	      lat = shp->padfY[j] * 1000000.0;
-	      buildmap_square_adjust_limits(lon, lat);
-	  }
-	 }
+         if (shp->padfX && shp->padfY) {
+          lon = shp->padfX[j] * 1000000.0;
+          if (lon != 0) {
+              lat = shp->padfY[j] * 1000000.0;
+              buildmap_square_adjust_limits(lon, lat);
+          }
+         }
       }
 
       SHPDestroyObject(shp);
@@ -1357,7 +1357,7 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
       type = DBFReadStringAttribute(hDBF, irec, iTYPE);
 
       if (strcmp(type, "TERR") == 0)
-	 continue;  /* provinces only.  no roads up there anyways.  ;-) */
+         continue;  /* provinces only.  no roads up there anyways.  ;-) */
 
       buildmap_set_line (irec);
 
@@ -1368,17 +1368,17 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
  
       if (line_index >= 0) {
 
-	 // Add the shape points here
+         // Add the shape points here
 
-	 for (j=1; j<shp->nVertices-1; j++) {
-	 if (shp->padfX && shp->padfY) {
-	     lon = shp->padfX[j] * 1000000.0;
-	     if (lon != 0) {
-		 lat = shp->padfY[j] * 1000000.0;
-		 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
-	     }
-	 }
-	 }
+         for (j=1; j<shp->nVertices-1; j++) {
+         if (shp->padfX && shp->padfY) {
+             lon = shp->padfX[j] * 1000000.0;
+             if (lon != 0) {
+                 lat = shp->padfY[j] * 1000000.0;
+                 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+             }
+         }
+         }
       }
 
       SHPDestroyObject(shp);

@@ -174,8 +174,8 @@ static void *roadmap_line_map (roadmap_db *root) {
 
       if (roadmap_db_get_size (long_lines_table) !=
          context->LongLinesCount * sizeof(RoadMapLongLine)) {
-	 roadmap_log (ROADMAP_ERROR, "invalid long lines structure");
-	 goto roadmap_line_map_abort;
+         roadmap_log (ROADMAP_ERROR, "invalid long lines structure");
+         goto roadmap_line_map_abort;
       }
    } else {
       context->LongLinesCount = 0;
