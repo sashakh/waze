@@ -404,8 +404,8 @@ installdata:
 installbin:
 	mkdir -p $(DESTDIR)$(pkgbindir)
 	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) rdmindex $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
-	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) rdmindex $(DRIVERS)
+	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
+	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
 	mkdir -p $(DESTDIR)$(man1dir)
 	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
 
