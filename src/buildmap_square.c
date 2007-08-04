@@ -82,10 +82,25 @@ static int SortStepLatitude;
 static int SortCountLongitude;
 static int SortCountLatitude;
 
-
 static void buildmap_square_register (void);
 
 void buildmap_square_adjust_limits(int longitude, int latitude) {
+
+   static int firstlongitude = -1;
+#define signof(x) (abs(x)/(x))
+
+   if (firstlongitude == -1) {
+      firstlongitude = longitude;
+   }
+
+   if ((signof(firstlongitude) == signof(longitude)) || 
+	(abs(firstlongitude - longitude) < 180)) {
+	/* okay */ ;
+   } else {
+      static int warned;
+      if (!warned++) fprintf(stderr, "\nWarning -- 180'th meridian wrap\n\n");
+   }
+
 
    if (longitude < SortMinLongitude) {
       SortMinLongitude = longitude;
