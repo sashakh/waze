@@ -150,18 +150,22 @@ static void  buildmap_county_select_format (poptContext decoder) {
       BuildMapFormatFamily = BUILDMAP_FORMAT_DCW;
 
    } else if (strncmp (BuildMapFormat, "STATES", strlen("STATES")) == 0) {
-      extern int which_states;
+      int which = 0;
 
-      if (strcmp (BuildMapFormat, "STATES=AK_HI") == 0) {
-        which_states = 1;
+      if (strcmp (BuildMapFormat, "STATES=AK") == 0) {
+        which = JUST_AK;
+      } else if (strcmp (BuildMapFormat, "STATES=HI") == 0) {
+        which = JUST_HI;
       } else if (strcmp (BuildMapFormat, "STATES=continental") == 0) {
-        which_states = 2;
+        which = JUST_CONTINENTAL;
       } else if (strcmp (BuildMapFormat, "STATES=all") == 0 ||
             strcmp (BuildMapFormat, "STATES") == 0) {
-        which_states = 0;
+        which = 0;
       }
       // US state boundaries
       BuildMapFormatFamily = BUILDMAP_FORMAT_STATE;
+
+      buildmap_shapefile_set_states(which);
 
    } else if (strcmp (BuildMapFormat, "PROVINCES") == 0) {
 
@@ -178,6 +182,7 @@ static void  buildmap_county_select_format (poptContext decoder) {
       poptPrintUsage (decoder, stderr, 0);
       exit (1);
    }
+
 }
 
 

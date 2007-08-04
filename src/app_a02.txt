@@ -3236,7 +3236,8 @@ FIPS          County     State
 78     030     St. Thomas     VI
 81     001     All US State Boundaries     SB
 81     002     Continental US State Boundaries     SB
-81     003     Alaska and Hawaii State Boundaries     SB
+81     003     Alaska State Boundaries     SB
+81     004     Hawaii State Boundaries     SB
 81     061     Canadian Provincial Boundaries     SB
 82     001     Placenames     PN
 83     010     DCW Europe and North Asia     DW

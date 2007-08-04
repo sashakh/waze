@@ -1054,21 +1054,28 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
 
 /******************************** state boundaries **************************/
 
-/* 0 == all, 1 == just alaska/hawaii, 2 == just continental */
+/* 0 == all */
 int which_states;
-#define JUST_AK_HI 1
-#define JUST_CONTINENTAL 2
 
 /* fips codes for alaska and hawaii */
 #define AK 02
 #define HI 15
 
+void buildmap_shapefile_set_states(int which) {
+
+    which_states = which;
+
+}
+
 static int exclude_state(int state) {
       if (which_states == JUST_CONTINENTAL) {
          if (state == AK || state == HI)
             return 1;
-      } else if (which_states == JUST_AK_HI) {
-         if (state != AK && state != HI)
+      } else if (which_states == JUST_AK) {
+         if (state != AK)
+            return 1;
+      } else if (which_states == JUST_HI) {
+         if (state != HI)
             return 1;
       }
       return 0;

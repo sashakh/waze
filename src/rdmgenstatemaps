@@ -13,7 +13,9 @@ rdmgenstatemaps [which=<which>] src=<path-to-.shp-file> \\
   where the src=<> parameter points to a directory containing the unpacked
   contents of st99_d00_shp.zip, available from:
     http://www.census.gov/geo/cob/bdy/st/st00shp/st99_d00_shp.zip
-    (for states:  use "which=AK_HI" to generate alaska/hawaii)
+    (for states:  "which=AK" to generate Alaskan borders
+                  "which=HI" to generate Hawaiian borders
+                  "which=CONTINENTAL" to generate for continental USA)
   or from BND1_shape.zip, available from:
     http://www.geobase.ca/geobase/en/search.do?produit=cgb1
     (for provinces: use 'which=PROVINCES')
@@ -58,11 +60,17 @@ case $1 in
 		base=st99_d00.shp
 		FIPS=81002
 		;;
-	    AK_HI|ak_hi)
-		echo Generating just Alaska and Hawaii
-		shape='STATES=AK_HI'
+	    AK|ak)
+		echo Generating just Alaska
+		shape='STATES=AK'
 		base=st99_d00.shp
 		FIPS=81003
+		;;
+	    HI|hi)
+		echo Generating just Hawaii
+		shape='STATES=HI'
+		base=st99_d00.shp
+		FIPS=81004
 		;;
 	    PROVINCES|provinces)
 		echo Generating just Canada provinces

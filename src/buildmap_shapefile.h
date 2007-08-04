@@ -39,6 +39,11 @@ void buildmap_shapefile_dcw_process (const char *source,
 void buildmap_shapefile_state_process (const char *source,
                                      const char *county,
                                      int verbose);
+void buildmap_shapefile_set_states(int which_states);
+#define JUST_HI 1
+#define JUST_AK 2
+#define JUST_CONTINENTAL 3
+
 
 void buildmap_shapefile_province_process (const char *source,
                                      const char *county,
