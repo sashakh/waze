@@ -41,7 +41,7 @@
 #endif
 
 /* Turn off numeric conversion warning */
-#if __WIN32__
+#if __WIN32__ && ! defined(__MINGW32__) && ! defined(__MINGW32CE__)
 #pragma warning(disable:4244)
 #endif
 
