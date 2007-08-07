@@ -953,7 +953,10 @@ void roadmap_math_zoom_out (void) {
 
    int zoom;
 
-   zoom = (3 * RoadMapContext.zoom) / 2;
+   /* using float keeps the zoom levels consistent (no roundoff
+    * error), which makes declutter caching work better */
+   zoom = ((double)RoadMapContext.zoom * 1.5) + 0.5;
+
    if (zoom < MAX_ZOOM_OUT) {
       RoadMapContext.zoom = (unsigned short) zoom;
    }
@@ -964,10 +967,14 @@ void roadmap_math_zoom_out (void) {
 
 void roadmap_math_zoom_in (void) {
 
-   RoadMapContext.zoom = (2 * RoadMapContext.zoom) / 3;
-   if (RoadMapContext.zoom < MIN_ZOOM_IN) {
-      RoadMapContext.zoom = MIN_ZOOM_IN;
+   int zoom;
+
+   zoom = ((double)RoadMapContext.zoom / 1.5) + 0.5;
+
+   if (zoom > MIN_ZOOM_IN) {
+      RoadMapContext.zoom = zoom;
    }
+
 
    roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
    roadmap_math_compute_scale ();
