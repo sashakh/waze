@@ -40,3 +40,11 @@ char *roadmap_time_get_hours_minutes (time_t gmt) {
 
     return image;
 }
+
+unsigned long roadmap_time_get_millis(void) {
+
+   return (unsigned long) GetTickCount();
+
+}
+
+

@@ -3047,6 +3047,7 @@ static void roadmap_trip_move_last_cancel (RoadMapGuiPoint *point) {
     RoadMapTripPlaceMoving = 0;
 
     roadmap_display_hide("Moving");
+    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
     roadmap_screen_refresh ();
 }
 
@@ -3101,6 +3102,7 @@ void roadmap_trip_move_last_place(void)
     RoadMapTripRefresh = 1;
 
     roadmap_screen_refresh ();
+    roadmap_main_set_cursor (ROADMAP_CURSOR_CROSS);
 
     RoadMapTripPlaceMoving = 1;
 

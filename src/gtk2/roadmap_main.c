@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
+#include <signal.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
@@ -48,6 +48,7 @@
 #include "roadmap_gtkmain.h"
 
 #include "roadmap_main.h"
+#include "roadmap_time.h"
 
 
 struct roadmap_main_io {
@@ -442,6 +443,56 @@ void roadmap_main_add_tool_space (void) {
    gtk_toolbar_append_space (GTK_TOOLBAR(RoadMapMainToolbar));
 }
 
+static unsigned long roadmap_main_busy_start;
+
+void roadmap_main_set_cursor (int newcursor) {
+   GdkCursor *cursor;
+   static int lastcursor;
+
+   roadmap_main_busy_start = 0;
+
+   if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
+      roadmap_main_busy_start = roadmap_time_get_millis();
+      return;
+   }
+
+   if (newcursor == lastcursor)
+      return;
+
+   lastcursor = newcursor;
+
+   switch (newcursor) {
+
+   case ROADMAP_CURSOR_NORMAL:
+      cursor = NULL;
+      break;
+
+   case ROADMAP_CURSOR_WAIT:
+      cursor = gdk_cursor_new(GDK_WATCH);
+      break;
+
+   case ROADMAP_CURSOR_CROSS:
+      cursor = gdk_cursor_new(GDK_CROSSHAIR);
+      break;
+   }
+
+   gdk_window_set_cursor(RoadMapMainWindow->window, cursor);
+
+   if (cursor) {
+      gdk_cursor_destroy(cursor);
+   }
+   gdk_flush();
+}
+
+void roadmap_main_busy_check(void) {
+
+   if (roadmap_main_busy_start == 0)
+      return;
+
+   if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
+      roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+   }
+}
 
 void roadmap_main_add_canvas (void) {
 
@@ -588,10 +639,8 @@ void roadmap_main_flush (void) {
 int roadmap_main_flush_synchronous (int deadline) {
 
    long start_time, duration;
-   struct timeval now;
 
-   gettimeofday(&now, 0);
-   start_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
+   start_time = roadmap_time_get_millis();
 
    while (gtk_events_pending ()) {
       if (gtk_main_iteration ()) {
@@ -600,8 +649,7 @@ int roadmap_main_flush_synchronous (int deadline) {
    }
    gdk_flush();
 
-   gettimeofday(&now, 0);
-   duration = ((now.tv_sec % 100000) * 1000 + now.tv_usec / 1000) - start_time;
+   duration = roadmap_time_get_millis() - start_time;
 
    if (duration > deadline) {
 

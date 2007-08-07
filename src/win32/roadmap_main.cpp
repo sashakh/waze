@@ -58,6 +58,7 @@ extern "C" {
 #include "wince_input_mon.h"
 #include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
+#include "roadmap_time.h"
 }
 
 #ifndef _T
@@ -1106,9 +1107,25 @@ extern "C" {
 		SendMessage(RoadMapMainWindow, WM_CLOSE, 0, 0);
 	}
 	
-       void roadmap_main_set_cursor (int cursor)
+       static unsigned long roadmap_main_busy_start;
+
+       void roadmap_main_set_cursor (int newcursor)
        {
-	  switch (cursor) {
+	  static int lastcursor;
+
+	  roadmap_main_busy_start = 0;
+
+	  if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
+	     roadmap_main_busy_start = roadmap_time_get_millis();
+	     return;
+	  }
+
+	  if (newcursor == lastcursor)
+	     return;
+
+	  lastcursor = newcursor;
+
+	  switch (newcursor) {
 
 	  case ROADMAP_CURSOR_NORMAL:
 	     SetCursor(NULL);
@@ -1117,7 +1134,23 @@ extern "C" {
 	  case ROADMAP_CURSOR_WAIT:
 	     SetCursor(LoadCursor(NULL, IDC_WAIT));
 	     break;
+
+          case ROADMAP_CURSOR_CROSS:
+	     SetCursor(LoadCursor(NULL, IDC_CROSS));
+	     break;
+          }
+       }
+
+
+       void roadmap_main_busy_check(void) {
+
+	  if (roadmap_main_busy_start == 0)
+	     return;
+
+	  if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
+	     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
 	  }
        }
+
 } // extern "C"
 

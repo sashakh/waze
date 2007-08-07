@@ -30,9 +30,6 @@
 #include "roadmap_io.h"
 #include "roadmap_spawn.h"
 
-#define ROADMAP_CURSOR_NORMAL 1
-#define ROADMAP_CURSOR_WAIT   2
-
 typedef void (* RoadMapKeyInput) (char *key);
 typedef void (* RoadMapInput)    (RoadMapIO *io);
 
@@ -40,6 +37,13 @@ void roadmap_main_new (const char *title, int width, int height);
 void roadmap_main_title(char *fmt, ...);
 
 void roadmap_main_set_keyboard   (RoadMapKeyInput callback);
+
+#define ROADMAP_CURSOR_NORMAL       1
+#define ROADMAP_CURSOR_CROSS        2
+#define ROADMAP_CURSOR_WAIT         3
+#define ROADMAP_CURSOR_WAIT_WITH_DELAY   4
+void roadmap_main_set_cursor (int newcursor);
+void roadmap_main_busy_check (void);
 
 RoadMapMenu roadmap_main_new_menu (const char *title);
 void roadmap_main_free_menu       (RoadMapMenu menu);

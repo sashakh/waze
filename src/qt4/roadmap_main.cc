@@ -27,13 +27,13 @@
 extern "C" {
 
 #include <stdlib.h>
-#include <sys/time.h>
 
 #include "roadmap.h"
 #include "roadmap_start.h"
 #include "roadmap_config.h"
 #include "roadmap_history.h"
 #include "roadmap_main.h"
+#include "roadmap_time.h"
 
 };
 
@@ -167,6 +167,54 @@ void roadmap_main_add_tool_space(void) {
    }
 }
 
+static unsigned long roadmap_main_busy_start;
+
+void roadmap_main_set_cursor (int newcursor) {
+   static int lastcursor;
+
+   roadmap_main_busy_start = 0;
+
+   if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
+      roadmap_main_busy_start = roadmap_time_get_millis();
+      return;
+   }
+
+   if (newcursor == lastcursor)
+      return;
+
+   lastcursor = newcursor;
+
+   if (mainWindow) {
+
+      switch (newcursor) {
+
+      case ROADMAP_CURSOR_NORMAL:
+         mainWindow->unsetCursor ();
+         break;
+
+      case ROADMAP_CURSOR_WAIT:
+         mainWindow->setCursor (QCursor(Qt::BusyCursor));
+         break;
+
+      case ROADMAP_CURSOR_CROSS:
+         mainWindow->setCursor (QCursor(Qt::CrossCursor));
+         break;
+      }
+   }
+
+}
+
+void roadmap_main_busy_check(void) {
+
+   if (roadmap_main_busy_start == 0)
+      return;
+
+   if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
+      roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+   }
+}
+
+
 void roadmap_main_add_canvas(void) {
 // The canvas is implicitely added to the main window.
 //      if (mainWindow) {
@@ -262,19 +310,14 @@ int roadmap_main_flush_synchronous (int deadline) {
 
    if (app != NULL) {
 
-      long start_time, end_time, duration;
-      struct timeval now;
+      long start_time, duration;
 
-      gettimeofday(&now, 0);
-      start_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
+      start_time = roadmap_time_get_millis();
 
       app->processEvents ();
       app->syncX();
 
-      gettimeofday(&now, 0);
-      end_time = (now.tv_sec % 100000) * 1000 + now.tv_usec / 1000;
-
-      duration = end_time - start_time;
+      duration = roadmap_time_get_millis() - start_time;
 
       if (duration > deadline) {
 

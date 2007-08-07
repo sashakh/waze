@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "roadmap.h"
+#include "roadmap_main.h"
 #include "roadmap_types.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
@@ -61,7 +62,7 @@
 #include "roadmap_linefont.h"
 #include "roadmap_plugin.h"
 #include "roadmap_factory.h"
-
+#include "roadmap_time.h"
 #include "roadmap_spawn.h"
 
 #include "roadmap_screen.h"
@@ -1094,6 +1095,8 @@ static void roadmap_screen_repaint (void) {
        max_pen = 1;
     }
 
+    roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT_WITH_DELAY);
+
     if (in_view == NULL) {
        in_view = calloc (ROADMAP_MAX_VISIBLE, sizeof(int));
        roadmap_check_allocated(in_view);
@@ -1134,6 +1137,8 @@ static void roadmap_screen_repaint (void) {
         if (roadmap_county_get_decluttered(fips[i]))
             continue;
 
+        roadmap_main_busy_check();
+
         /* -- Access the county's database. */
 
         if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
@@ -1169,13 +1174,19 @@ static void roadmap_screen_repaint (void) {
                   drawn += roadmap_screen_repaint_square (in_view[j], pen_type,
                     layer_count, layers);
                }
+
+               roadmap_main_busy_check();
+
             }
             drawn += roadmap_screen_draw_long_lines (k);
         }
 
+
         roadmap_plugin_screen_repaint (max_pen);
         roadmap_screen_flush_lines ();
         roadmap_screen_flush_points ();
+
+        roadmap_main_busy_check();
         
         if (drawn && !RoadMapScreenDragging) {
             roadmap_label_draw_cache (RoadMapScreen3dHorizon == 0);
@@ -1209,6 +1220,8 @@ static void roadmap_screen_repaint (void) {
     RoadMapScreenAfterRefresh();
 
     roadmap_canvas_refresh ();
+
+    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
 
     roadmap_log_pop ();
     dbg_time_end(DBG_TIME_FULL);
@@ -1757,37 +1770,12 @@ void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler) {
 static unsigned long dbg_time_rec[DBG_TIME_LAST_COUNTER];
 static unsigned long dbg_time_tmp[DBG_TIME_LAST_COUNTER];
 
-#ifdef __WIN32
-
 void dbg_time_start(int type) {
-   dbg_time_tmp[type] = GetTickCount();
+   dbg_time_tmp[type] = roadmap_time_get_millis();
 }
 
 void dbg_time_end(int type) {
-   dbg_time_rec[type] += GetTickCount() - dbg_time_tmp[type];
+   dbg_time_rec[type] += roadmap_time_get_millis() - dbg_time_tmp[type];
 }
-
-#else
-#include <time.h>
-#include <sys/time.h>
-
-unsigned long tv_to_msec(struct timeval *tv)
-{
-    return (tv->tv_sec & 0xffff) * 1000 + tv->tv_usec/1000;
-}
-
-void dbg_time_start(int type) {
-   struct timeval tv;
-   gettimeofday(&tv, NULL);
-   dbg_time_tmp[type] = tv_to_msec(&tv);
-}
-
-void dbg_time_end(int type) {
-   struct timeval tv;
-   gettimeofday(&tv, NULL);
-   dbg_time_rec[type] += tv_to_msec(&tv) - dbg_time_tmp[type];
-}
-
-#endif // __WIN32
 
 #endif // ROADMAP_DBG_TIME

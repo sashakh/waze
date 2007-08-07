@@ -28,4 +28,6 @@
 
 char *roadmap_time_get_hours_minutes (time_t gmt);
 
+unsigned long roadmap_time_get_millis(void);
+
 #endif // INCLUDE__ROADMAP_DISPLAY__H
