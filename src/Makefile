@@ -295,6 +295,8 @@ PKGDATAFILES = sprites preferences session drivers roadmap.popup
 MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All
 SCRIPTS = rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 MKFILES = Makefile config.mk options.mk
+# this font is GPL, and comes from RedHat's "liberation-fonts-ttf-3.tar.gz"
+FONT = LiberationSans-Bold.ttf
 
 # more products
 ifneq ($(strip $(POPT)),NO)
@@ -312,7 +314,7 @@ endif
 ALL_SRC = $(MKFILES) $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
 	$(RMPLUGINSRC) $(DMSRC) $(BMLIBSRC) $(BMSRC) \
 	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC) $(HEADERS) \
-	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS)
+	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS) $(FONT)
 
 ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support win32
 
@@ -400,6 +402,9 @@ installdata:
 	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
 	cp default/All $(DESTDIR)$(pkgdatadir)/default/.
 	chmod a+r $(DESTDIR)$(pkgdatadir)/default/All
+ifneq ($(strip $(AGG)),NO)
+	cp $(FONT) $(pkgdatadir)/font.ttf
+endif
 
 installbin:
 	mkdir -p $(DESTDIR)$(pkgbindir)
