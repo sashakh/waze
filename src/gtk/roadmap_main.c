@@ -399,11 +399,19 @@ void roadmap_main_set_cursor (int newcursor) {
 
 void roadmap_main_busy_check(void) {
 
+   ulong since;
+   static int busychecked;
+
    if (roadmap_main_busy_start == 0)
       return;
 
-   if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
+   busychecked++;
+
+   since = roadmap_time_get_millis() - roadmap_main_busy_start;
+   if (since > 1000) {
       roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+      // fprintf(stderr, "busychecked %d, %ldms\n", busychecked, since);
+      busychecked = 0;
    }
 }
 
