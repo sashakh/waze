@@ -64,6 +64,8 @@ extern "C" {
 #include "roadmap_messagebox.h"
 #include "roadmap_math.h"
 #include "roadmap_config.h"
+#include "roadmap_scan.h"
+#include "roadmap_file.h"
 #include "roadmap_path.h"
 }
 #include "roadmap_canvas_agg.h"
@@ -712,17 +714,34 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
    roadmap_config_declare
        ("preferences", &RoadMapConfigFont, "font.ttf");
 
-   char font_file[255];
-   
-   strncpy (font_file,
-            roadmap_config_get (&RoadMapConfigFont),
-	    sizeof(font_file));
-   if (! roadmap_path_is_full_path (font_file)) {
-	   snprintf(font_file, sizeof(font_file), "%s/%s", roadmap_path_user(),
-			   roadmap_config_get (&RoadMapConfigFont));
-   }
-
    if (!RoadMapCanvasFontLoaded) {
+      const char *font_file;
+      
+      font_file = roadmap_config_get (&RoadMapConfigFont);
+
+      if (! roadmap_path_is_full_path (font_file)) {
+	  const char *cursor;
+	  for (cursor = roadmap_scan ("user", font_file);
+	       cursor != NULL;
+	       cursor = roadmap_scan_next ("user", font_file, cursor)) {
+	     if (roadmap_file_exists (cursor, font_file))
+		break;
+	  }
+
+	  if (cursor == NULL) {
+	     for (cursor = roadmap_scan ("config", font_file);
+		  cursor != NULL;
+		  cursor = roadmap_scan_next ("config", font_file, cursor)) {
+
+		if (roadmap_file_exists (cursor, font_file))
+		   break;
+	     }
+	  }
+	  if (cursor != NULL) {
+	     font_file = roadmap_path_join(cursor, font_file);
+	  }
+      }
+
 
       if(m_feng.load_font(font_file, 0, gren) &&
             m_image_feng.load_font(font_file, 0, image_gren)) {
@@ -739,7 +758,10 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
       } else {
          RoadMapCanvasFontLoaded = -1;
          char message[300];
-         snprintf(message, sizeof(message), "Can't load font: %s\n", font_file);
+         snprintf(message, sizeof(message),
+            "Can't load font: %s\n"
+            "A suitable TrueType font must be accessible via the"
+            " Labels.FontName preference setting." , font_file);  
          roadmap_messagebox("Error", message);
       }
    }
