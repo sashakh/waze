@@ -1057,9 +1057,10 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
 /* 0 == all */
 int which_states;
 
-/* fips codes for alaska and hawaii */
+/* fips codes for alaska, hawaii, and wyoming (the last continental) */
 #define AK 02
 #define HI 15
+#define WY 56
 
 void buildmap_shapefile_set_states(int which) {
 
@@ -1069,7 +1070,7 @@ void buildmap_shapefile_set_states(int which) {
 
 static int exclude_state(int state) {
       if (which_states == JUST_CONTINENTAL) {
-         if (state == AK || state == HI)
+         if (state == AK || state == HI || state > WY)
             return 1;
       } else if (which_states == JUST_AK) {
          if (state != AK)
