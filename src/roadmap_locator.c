@@ -134,7 +134,9 @@ static void roadmap_locator_configure (void) {
 
       if (path == NULL) {
          roadmap_log (ROADMAP_ERROR,
-                      "cannot open any database directory");
+                      "Cannot open any database directory."
+		      " The Map.Path preferences item must point at"
+		      " map files and the master index file.");
          return;
       }
 
