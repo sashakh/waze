@@ -719,7 +719,7 @@ static const char *RoadMapStartMenu[] = {
 
       ROADMAP_INVOKE_SUBMENU "Routes...",
       ROADMAP_INVOKE_SUBMENU "Places...",
-      ROADMAP_INVOKE_SUBMENU "Edit Place...",
+      ROADMAP_INVOKE_SUBMENU "Edit Places...",
       ROADMAP_INVOKE_SUBMENU "Tracks...",
 
    ROADMAP_SUBMENU "Routes...",
