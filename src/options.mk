@@ -6,17 +6,30 @@ include $(TOP)/config.mk
 
 # --- Installation options -------------------------------------------------
 
-DESTDIR=
-INSTALLDIR=/usr/local
-desktopdir=$(INSTALLDIR)/applications
-pkgdatadir=$(INSTALLDIR)/share/roadmap
-pkgmapsdir=/var/lib/roadmap
-bindir=$(INSTALLDIR)/bin
-pkgbindir=$(bindir)
-menudir=$(DESTDIR)/usr/lib/menu
-ICONDIR=$(INSTALLDIR)/share/pixmaps
-mandir=$(INSTALLDIR)/share/man
-man1dir=$(mandir)/man1
+DESTDIR = 
+INSTALLDIR = /usr/local
+desktopdir = $(INSTALLDIR)/applications
+bindir = $(INSTALLDIR)/bin
+pkgbindir = $(bindir)
+
+# if the user compiled in a new config dir, install to it
+ifneq ($(strip $(ROADMAP_CONFIG_DIR)),)
+pkgdatadir = $(ROADMAP_CONFIG_DIR)
+else
+pkgdatadir = $(INSTALLDIR)/share/roadmap
+endif
+
+# if the user compiled in a new map dir, create it here
+ifneq ($(strip $(ROADMAP_MAP_DIR)),)
+pkgmapsdir = $(ROADMAP_MAP_DIR)
+else
+pkgmapsdir = /var/lib/roadmap
+endif
+
+menudir = $(DESTDIR)/usr/lib/menu
+icondir = $(INSTALLDIR)/share/pixmaps
+mandir = $(INSTALLDIR)/share/man
+man1dir = $(mandir)/man1
 
 INSTALL      = install
 INSTALL_DATA = install -m644
@@ -117,6 +130,13 @@ RDMLIBS= $(TOP)/libroadmap.a \
 	$(TOP)/libroadmap.a 
 
 LIBS += $(RDMLIBS)
+
+ifneq ($(strip $(ROADMAP_CONFIG_DIR)),)
+	CFLAGS += -DROADMAP_CONFIG_DIR=\"$(ROADMAP_CONFIG_DIR)\"
+endif
+ifneq ($(strip $(ROADMAP_MAP_DIR)),)
+	CFLAGS += -DROADMAP_MAP_DIR=\"$(ROADMAP_MAP_DIR)\"
+endif
 
 # expat library, for xml GPX format
 ifneq ($(strip $(EXPAT)),NO)

@@ -11,8 +11,8 @@
 # (In other words, it may appear to build correctly, and in some
 # cases might, but there are no guarantees.)
 # Basic building mode
-MODE = 		# blank for "normal" build
-# MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
+MODE =		# blank for "normal" build
+MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # Add any other special local CFLAGS values here
@@ -24,8 +24,8 @@ MODE = 		# blank for "normal" build
 # LIBS += -L$(QTDIR)/lib
 
 # Choose a desktop
-# DESKTOP = GTK
-DESKTOP = GTK2
+DESKTOP = GTK
+# DESKTOP = GTK2
 # DESKTOP = GPE
 # DESKTOP = QT
 # DESKTOP = QT4
@@ -45,7 +45,8 @@ DESKTOP = GTK2
 # If you select QT or QPE above, you might also want to set
 # QTDIR here.  (But it might already be set in your environment.)
 # QTDIR = /usr
-# QTDIR = /usr/share/qt3
+# QTDIR = /usr/share/qt4
+# CFLAGS += -I/usr/include/qt4
 
 # If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
@@ -55,6 +56,22 @@ DESKTOP = GTK2
 # also wish to add "CFLAGS += -DROADMAP_NO_LINEFONT" to force
 # horizionatl labels.
 # QT_NO_ROTATE = YES
+
+# RoadMap contains a hard-coded list of directories in which it
+# will look for its system configuration files.  (see
+# "unix/roadmap_path.c")  Specifying a directory here will add
+# this path to the front of that list, causing it to be checked
+# first.  (This search path can be set at runtime via '--config=PATH'.)
+#
+# Note!  If set, this will also be used for the config files
+# during "make install".
+ROADMAP_CONFIG_DIR = /usr/local/roadmap
+
+# Likewise, setting the following path will prefix the built-in
+# list of locations to be searched for maps.  (This search path
+# can be set at runtime by changing the value of Map.Path in the
+# system (or user) "preferences" file.)
+ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps
 
 # RoadMap uses the "expat" library in order to read and write xml
 # for the GPX format route/track/waypoint files.  If you don't
@@ -75,8 +92,8 @@ POPT = YES
 # support when building the rdm format of the maps.  Users in
 # other areas will likely be building maps from other sources,
 # and will probably need shapefile support.
-SHAPEFILES = NO
-# SHAPEFILES = YES
+# SHAPEFILES = NO
+SHAPEFILES = YES
 
 # For better-looking lines and a better looking street-label
 # font, RoadMap can use the "Anti-Grain Geometry" library,
