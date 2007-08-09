@@ -77,6 +77,9 @@ static RoadMapConfigDescriptor RoadMapConfigWaypointSize =
 static RoadMapConfigDescriptor RoadMapConfigBackupFiles =
                         ROADMAP_CONFIG_ITEM("Files", "Make Backups");
 
+static RoadMapConfigDescriptor RoadMapConfigPathTrips =
+                        ROADMAP_CONFIG_ITEM("General", "TripsPath");
+
 /*
  * try and put the trip name in the window title
  */
@@ -3193,11 +3196,13 @@ void roadmap_trip_initialize (void) {
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigTripShowRouteLines, "yes", "no", NULL);
     roadmap_config_declare
-       ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
+        ("preferences", &RoadMapConfigTripRouteLineColor,  "red");
 
     roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigBackupFiles , "yes", "no", NULL);
 
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigPathTrips, "&/trips");
 
     RoadMapTripShowInactiveRoutes = roadmap_config_match
                                 (&RoadMapConfigTripShowInactiveRoutes, "yes");
