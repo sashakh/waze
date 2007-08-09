@@ -39,6 +39,11 @@
 #include "roadmap.h"
 #include "roadmap_file.h"
 #include "roadmap_path.h"
+#include "roadmap_scan.h"
+#include "roadmap_config.h"
+
+static RoadMapConfigDescriptor RoadMapConfigPathTrips =
+                        ROADMAP_CONFIG_ITEM("General", "TripsPath");
 
 
 const char *RoadMapPathCurrentDirectory = ".";
@@ -73,6 +78,9 @@ static const char *RoadMapPathUserPreferred = "~/.roadmap";
  * as it is implicitely used by the callers--see above.)
  */ 
 static const char *RoadMapPathConfig[] = {
+#ifdef ROADMAP_CONFIG_DIR
+   ROADMAP_CONFIG_DIR,
+#endif
 #ifdef QWS
    /* This is for the Sharp Zaurus PDA.. */
    "/opt/QtPalmtop/share/roadmap",
@@ -87,15 +95,22 @@ static const char *RoadMapPathConfig[] = {
    NULL
 };
 static const char *RoadMapPathConfigPreferred =
+#ifdef ROADMAP_CONFIG_DIR
+                        ROADMAP_CONFIG_DIR;
+#else
 #ifdef QWS
                       "/mnt/cf/QtPalmtop/share/roadmap";
 #else
                       "/usr/local/share/roadmap";
 #endif
+#endif
 
 
 /* The default path for the map files (the "maps" path): */
 static const char *RoadMapPathMaps[] = {
+#ifdef ROADMAP_MAP_DIR
+   ROADMAP_MAP_DIR,
+#endif
 #ifdef QWS
    /* This is for the Sharp Zaurus PDA.. */
    "/opt/QtPalmtop/share/roadmap",
@@ -103,7 +118,7 @@ static const char *RoadMapPathMaps[] = {
    "/mnt/card/QtPalmtop/share/roadmap",
 #else
    /* This is for standard Unix configurations. */
-   "~/.roadmap/maps",
+   "&/maps",
    "/var/lib/roadmap",
    "/usr/lib/roadmap",
 
@@ -116,11 +131,26 @@ static const char *RoadMapPathMaps[] = {
    NULL
 };
 static const char *RoadMapPathMapsPreferred =
+#ifdef ROADMAP_MAP_DIR
+                        ROADMAP_MAP_DIR;
+#else
 #ifdef QWS
                       "/mnt/cf/QtPalmtop/share/roadmap";
 #else
                       "/var/lib/roadmap";
 #endif
+#endif
+
+/* The default path for the icon files (the "icons" path): */
+static const char *RoadMapPathIcons[] = {
+   "~/pixmaps",
+#ifdef ROADMAP_MAP_DIR
+   ROADMAP_MAP_DIR "/pixmaps",
+#endif
+   "/usr/local/share/pixmaps",
+   "/usr/share/pixmaps",
+   NULL
+};
 
 
 static char *roadmap_path_expand (const char *item, size_t length);
@@ -176,6 +206,9 @@ static RoadMapPathList roadmap_path_find (const char *name) {
 
       roadmap_path_list_create ("maps",   RoadMapPathMaps,
                                           RoadMapPathMapsPreferred);
+
+      roadmap_path_list_create ("icons",  RoadMapPathIcons,
+                                          NULL);
 
       roadmap_path_list_create ("features",    NULL, NULL);
    }
@@ -277,10 +310,10 @@ static const char *roadmap_path_home (void) {
 
 const char *roadmap_path_user (void) {
 
-    static char *RoadMapUser = NULL;
+    static const char *RoadMapUser = NULL;
 
     if (RoadMapUser == NULL) {
-        RoadMapUser = roadmap_path_cat (roadmap_path_home(), ".roadmap");
+        RoadMapUser = roadmap_path_first ("user");
         mkdir (RoadMapUser, 0770);
     }
     return RoadMapUser;
@@ -289,18 +322,13 @@ const char *roadmap_path_user (void) {
 
 const char *roadmap_path_trips (void) {
     
-    static char  RoadMapDefaultTrips[] = ".roadmap/trips";
-    static char *RoadMapTrips = NULL;
-    
+    static const char *RoadMapTrips = NULL;
+
     if (RoadMapTrips == NULL) {
-        
-        RoadMapTrips = getenv("ROADMAP_TRIPS");
-        
-        if (RoadMapTrips == NULL) {
-            RoadMapTrips =
-               roadmap_path_cat (roadmap_path_home(), RoadMapDefaultTrips);
-        }
-        
+
+        RoadMapTrips = roadmap_config_get(&RoadMapConfigPathTrips);
+        RoadMapTrips = roadmap_path_expand (RoadMapTrips, strlen(RoadMapTrips));
+
         mkdir (RoadMapTrips, 0770);
     }
     return RoadMapTrips;
@@ -565,16 +593,15 @@ void roadmap_path_free (const char *path) {
 
 const char *roadmap_path_search_icon (const char *name) {
 
-   static char result[256];
+   char result[256];
+   const char *path;
 
-   sprintf (result, "%s/pixmaps/rm_%s.png", roadmap_path_home(), name);
-   if (roadmap_file_exists(NULL, result)) return result;
-
-   sprintf (result, "/usr/local/share/pixmaps/rm_%s.png", name);
-   if (roadmap_file_exists(NULL, result)) return result;
-
-   sprintf (result, "/usr/share/pixmaps/rm_%s.png", name);
-   if (roadmap_file_exists(NULL, result)) return result;
+   sprintf (result, "rm_%s.png", name);
+   for (path = roadmap_scan ("icons", result);
+       path != NULL;
+       path = roadmap_scan_next ("icons", result, path)) {
+        return roadmap_path_cat(path, result);
+   }
 
    return NULL; /* Not found. */
 }
