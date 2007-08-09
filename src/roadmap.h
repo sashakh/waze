@@ -85,7 +85,7 @@ int roadmap_option_height (const char *name);
 
 typedef void (*RoadMapUsage) (const char *section);
 
-void roadmap_option (int argc, char **argv, RoadMapUsage usage);
+void roadmap_option (int argc, char **argv, int pass, RoadMapUsage usage);
 
 
 /* This function is hidden by a macro: */

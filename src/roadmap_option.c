@@ -30,6 +30,7 @@
 
 #include "roadmap.h"
 #include "roadmap_config.h"
+#include "roadmap_path.h"
 
 
 static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
@@ -157,6 +158,22 @@ int roadmap_option_is_synchronous (void) {
    return roadmap_option_synchronous;
 }
 
+
+static void roadmap_option_set_configpath (const char *value) {
+
+    if (!value || !value[0]) {
+       roadmap_log (ROADMAP_FATAL, "invalid config path '%s'", value);
+    }
+    roadmap_path_set("config", value);
+}
+
+static void roadmap_option_set_mappath (const char *value) {
+
+    if (!value || !value[0]) {
+       roadmap_log (ROADMAP_FATAL, "invalid map path '%s'", value);
+    }
+    roadmap_path_set("maps", value);
+}
 
 static void roadmap_option_set_location (const char *value) {
 
@@ -311,78 +328,90 @@ struct roadmap_option_descriptor {
     const char *format;
     
     roadmap_option_handler handler;
+
+    int pass;
     
     const char *help;
 };
 
 static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     
-    {"--location=", "LONGITUDE,LATITUDE", roadmap_option_set_location,
+    {"--config=", "CONFIGPATH", roadmap_option_set_configpath, 0,
+        "Override the built-in path to the configuration files"},
+
+    {"--maps=", "MAPPATH", roadmap_option_set_mappath, 1,
+        "Override the built-in (or configured) path to the map files"},
+
+    {"--location=", "LONGITUDE,LATITUDE", roadmap_option_set_location, 1,
         "Set the location point (see menu entry Screen/Show Location..)"},
 
-    {"--metric", "", roadmap_option_set_metric,
+    {"--metric", "", roadmap_option_set_metric, 1,
         "Use the metric system for all units"},
 
-    {"--imperial", "", roadmap_option_set_imperial,
+    {"--imperial", "", roadmap_option_set_imperial, 1,
         "Use the imperial system for all units"},
 
-    {"--no-area", "", roadmap_option_set_no_area,
+    {"--no-area", "", roadmap_option_set_no_area, 1,
         "Do not show the polygons (parks, hospitals, airports, etc..)"},
 
-    {"-geometry=", "WIDTHxHEIGHT", roadmap_option_set_geometry1,
+    {"-geometry=", "WIDTHxHEIGHT", roadmap_option_set_geometry1, 1,
         "Same as the --geometry option below"},
 
-    {"--geometry=", "WIDTHxHEIGHT", roadmap_option_set_geometry1,
+    {"--geometry=", "WIDTHxHEIGHT", roadmap_option_set_geometry1, 1,
         "Set the geometry of the RoadMap main window"},
 
-    {"--geometry:", "WINDOW=WIDTHxHEIGHT", roadmap_option_set_geometry2,
+    {"--geometry:", "WINDOW=WIDTHxHEIGHT", roadmap_option_set_geometry2, 1,
         "Set the geometry of a specific RoadMap window"},
 
-    {"--no-toolbar", "", roadmap_option_set_no_toolbar,
+    {"--no-toolbar", "", roadmap_option_set_no_toolbar, 1,
         "Hide the RoadMap main window's toolbar"},
 
-    {"--no-icon", "", roadmap_option_set_no_icon,
+    {"--no-icon", "", roadmap_option_set_no_icon, 1,
         "Do not show icons on the toolbar"},
 
-    {"--square", "", roadmap_option_set_square,
+    {"--square", "", roadmap_option_set_square, 1,
         "Show the square boundaries as grey lines (for debug purpose)"},
 
-    {"--gps=", "URL", roadmap_option_set_gps,
+    {"--gps=", "URL", roadmap_option_set_gps, 1,
         "Use a specific GPS source (mainly for replay of a GPS log)"},
 
-    {"--gps-sync", "", roadmap_option_set_synchronous,
+    {"--gps-sync", "", roadmap_option_set_synchronous, 1,
         "Update the map synchronously when receiving each GPS position"},
 
-    {"--trip=", "FILE", roadmap_option_set_tripname,
-        "Set the pathname of the current trip"},
+    {"--trip=", "FILE", roadmap_option_set_tripname, 1,
+        "Set the name of the current trip (relative to path in General.TripPaths"},
 
-    {"--cache=", "INTEGER", roadmap_option_set_cache,
+    {"--cache=", "INTEGER", roadmap_option_set_cache, 1,
         "Set the number of entries in the RoadMap's map cache"},
 
-    {"--debug", "", roadmap_option_set_debug,
+    {"--debug", "", roadmap_option_set_debug, 0,
         "Show all informational and debug traces"},
 
-    {"--debug=", "SOURCE[,SOURCE...]", roadmap_option_set_debug,
+    {"--debug=", "SOURCE[,SOURCE...]", roadmap_option_set_debug, 0,
         "Show the informational and debug traces for the specified sources"},
 
-    {"--verbose", "", roadmap_option_set_verbose,
+    {"--verbose", "", roadmap_option_set_verbose, 1,
         "Show all informational traces"},
 
-    {"--help=", "SECTION", roadmap_option_usage,
-        "Show a section of the help message"},
-
-    {"--help", "", roadmap_option_usage,
+    {"-h", "", roadmap_option_usage, 0,
         "Show this help message"},
 
-    {NULL, NULL, NULL, NULL}
+    {"--help", "", roadmap_option_usage, 0,
+        "Show this help message"},
+
+    {"--help=", "OPTIONS/KEYMAP/ACTIONS/ALL", roadmap_option_usage, 1,
+        "Show a section of the help message"},
+
+    {NULL, NULL, NULL, 0, NULL}
 };
 
 
 static void roadmap_option_usage (const char *value) {
 
     struct roadmap_option_descriptor *option;
+    int all = (value != NULL && strcasecmp(value, "all") == 0);
 
-    if ((value == NULL) || (strcasecmp (value, "options") == 0)) {
+    if ((value == NULL) || all || (strcasecmp (value, "options") == 0)) {
 
        printf ("OPTIONS:\n");
 
@@ -391,17 +420,18 @@ static void roadmap_option_usage (const char *value) {
           printf ("  %s%s\n", option->name, option->format);
           printf ("        %s.\n", option->help);
        }
-       if (value != NULL) exit (0);
+       if (!all)
+	  exit (0);
     }
 
     if (RoadMapOptionUsage != NULL) {
-       RoadMapOptionUsage (value);
+       RoadMapOptionUsage (all ? NULL : value);
     }
     exit(0);
 }
 
 
-void roadmap_option (int argc, char **argv, RoadMapUsage usage) {
+void roadmap_option (int argc, char **argv, int pass, RoadMapUsage usage) {
 
     int   i;
     int   length;
@@ -427,10 +457,20 @@ void roadmap_option (int argc, char **argv, RoadMapUsage usage) {
                 length = strlen (option->name);
                 value = argv[i] + length;
                 compare = strncmp (option->name, argv[i], length);
+                if (compare != 0) {
+                    if (strncmp(option->name, argv[i], length-1) == 0 &&
+                            option->name[length-1] == '=') {
+                        roadmap_log (ROADMAP_FATAL,
+                            "invalid option ('%s' needs value '%s=%s')",
+                            argv[i], option->name, option->format);
+                    }
+                }
             }
 
             if (compare == 0) {
-                option->handler (value);
+		if (pass == option->pass) {
+                    option->handler (value);
+		}
                 break;
             }
         }
@@ -442,7 +482,6 @@ void roadmap_option (int argc, char **argv, RoadMapUsage usage) {
 
     RoadMapOptionUsage = NULL;
 }
-
 
 void roadmap_option_initialize (void) {
 
