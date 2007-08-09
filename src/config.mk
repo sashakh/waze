@@ -12,7 +12,7 @@
 # cases might, but there are no guarantees.)
 # Basic building mode
 MODE =		# blank for "normal" build
-MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
+# MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # Add any other special local CFLAGS values here
@@ -24,8 +24,8 @@ MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
 # LIBS += -L$(QTDIR)/lib
 
 # Choose a desktop
-DESKTOP = GTK
-# DESKTOP = GTK2
+# DESKTOP = GTK
+DESKTOP = GTK2
 # DESKTOP = GPE
 # DESKTOP = QT
 # DESKTOP = QT4
@@ -65,13 +65,13 @@ DESKTOP = GTK
 #
 # Note!  If set, this will also be used for the config files
 # during "make install".
-ROADMAP_CONFIG_DIR = /usr/local/roadmap
+# ROADMAP_CONFIG_DIR = /usr/local/share/roadmap
 
 # Likewise, setting the following path will prefix the built-in
 # list of locations to be searched for maps.  (This search path
 # can be set at runtime by changing the value of Map.Path in the
 # system (or user) "preferences" file.)
-ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps
+# ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps
 
 # RoadMap uses the "expat" library in order to read and write xml
 # for the GPX format route/track/waypoint files.  If you don't
@@ -92,8 +92,8 @@ POPT = YES
 # support when building the rdm format of the maps.  Users in
 # other areas will likely be building maps from other sources,
 # and will probably need shapefile support.
-# SHAPEFILES = NO
-SHAPEFILES = YES
+SHAPEFILES = NO
+# SHAPEFILES = YES
 
 # For better-looking lines and a better looking street-label
 # font, RoadMap can use the "Anti-Grain Geometry" library,
