@@ -47,10 +47,11 @@ INTRODUCTION
    could probably be used with OPIE). RoadMap is configured for using QT3
    by default, but the QT2 compatibility headers must be installed (the
    QT2-style coding has been kept because of the Zaurus QPE environment).
-   The GTK 1.2 environment is being phased out (due to its old age). The
-   most stable environment is the GTK 2.0 one (this is the one used for
-   developping RoadMap). The GPE support is and optional extension of the
-   GTK 2.0 environment and is still very experimental (i.e. untested).
+   The most stable environment is the GTK 2.0 one (this is the one used for
+   developing RoadMap).  The GPE support is and optional extension of the
+   GTK 2.0 environment and is still very experimental (i.e.  untested).
+   GTK 1.2 is still interesting because it's quite a bit more efficient
+   when running on limited hardware than is GTK 2.0.
 
    RoadMap is also available on Windows CE (i.e. Pocket PC). As gpsd does
    not exist on Windows, the Windows version directly listens to the GPS
@@ -228,7 +229,8 @@ INSTALLATION
   RoadMap comes with some critical configuration files (files sprites,
   preferences, etc..). RoadMap supports these files to be in a few
   different places, which list cannot be changed in the user preferences
-  since it is used to load the preferences themselves.
+  since it is used to load the preferences themselves.  The list can,
+  however, be changed using the "--config=..." commandline option.
   
   On most UNIX systems this list is:
   
@@ -236,10 +238,14 @@ INSTALLATION
 
          * /usr/local/share/roadmap (preferred path),
 
-         * /usr/share/roadmap and
+         * /usr/share/roadmap
+	  
+	 * an site-specific directory chosen at compile time, and
 
-         * ~/.roadmap (which can be referred to as '&' in other
-         path references).
+	 * ~/.roadmap (the "user" directory, which can be referred to as
+	 '&' in other path references).  The specific value of the path to
+	 the "user" directory is configurable, using the General.UserPath
+	 setting.
          
   These directories are searched sequentially: any configuration item found
   in one directory overrides all the same items found in the directories
@@ -252,7 +258,9 @@ INSTALLATION
 
       3- /etc/roadmap (local machine defaults)
 
-      4- ~/.roadmap (current user configuration)
+      4- ROADMAP_CONFIG_DIR, chosen at compile time
+
+      5- ~/.roadmap (current user configuration)
 
   The directory <<~/.roadmap>> contains the user configuration: any user change
   to the configuration is written there. The items in the user configuration
@@ -260,11 +268,12 @@ INSTALLATION
   directories.  This directory can be referred to with the shorthand '&'
   in other parts of the roadmap config.
 
-  The directory <<~/.roadmap>> has two subdirectories: <<trips>> and <<maps>>.
-
-  The directory <<~/.roadmap/trips>> is used as the default location for the
-  trip files. Note that trip files can be stored anywhere, not only in
-  <<~/.roadmap/trips>>.
+  The directory <<~/.roadmap>> usually has two subdirectories:  <<trips>> and
+  <<maps>>.  "Usually", because while the directory <<~/.roadmap/trips>> is
+  used as the default location for the trip files, it can be changed with the
+  General.TripsPath setting.  Note that trip files can be stored anywhere,
+  not only in that directory -- they're just more convenient for selection
+  when stored there..
 
   The directory <<~/.roadmap/maps>> contains map files specific for this user.
   As a general rule, it is not recommended for each user to have their
@@ -319,9 +328,13 @@ INSTALLATION
   
          * ~/pixmaps,
 
+	 * ROADMAP_CONFIG_DIR/pixmaps, chosen at compile time,
+
          * /usr/local/share/pixmaps or
 
          * /usr/share/pixmaps.
+
+  This list can be changed using the General.IconPath setting.
 
 ** MAP FILES
 
@@ -335,10 +348,15 @@ INSTALLATION
   also be very inefficient, as this could saturate the network and the RoadMap
   performances would be severely impacted).
   
+  (The map search paths referred to below may be changed using the "--maps=..."
+  commandline option.)
+  
   By default, RoadMap is built to search for the following directories on most
   UNIX systems:
   
          * ~/.roadmap/maps,   (also known as "&/maps")
+
+	 * ROADMAP_MAP_DIR, chosen at compile time,
 
          * /var/lib/roadmap (preferred path) and
 
@@ -347,8 +365,10 @@ INSTALLATION
   (RoadMap also searches in /usr/local/share/roadmap and /usr/share/roadmap,
   but this is in violation of the FHS filesystem standard, since these maps
   are not architecture-independent).
-  
+
   The Zaurus is a special case again, as the default path on these systems is: 
+
+	 * ROADMAP_MAP_DIR, chosen at compile time,
 
          * /opt/QtPalmtop/share/roadmap,
 
@@ -364,6 +384,8 @@ INSTALLATION
   as the Zaurus (i.e. using memory cards):
 
          * ~/.roadmap/maps,
+
+	 * ROADMAP_MAP_DIR, chosen at compile time,
 
          * /usr/share/roadmap,
 
@@ -432,62 +454,6 @@ INSTALLATION
    {{http://community.zaurus.com/projects/zroadmap/}}
 
 
-* INSTALLING FROM THE BINARY TARBALL
-
-   The binary distribution contains three sets of files: the directory
-   src/gtk contains the executable files for Debian GNU/Linux (kernel 2.4)
-   and the directory src contains the example map datafiles.
-
-   RoadMap can be installed as follow (you will likely need to be logged
-   as root, the shell is assumed to be bash):
-   
-----
-   mkdir -p /usr/local/share/roadmap
-   cd roadmap-<version>/src
-   cp sprites preferences schema session /usr/local/share/roadmap
-   (cd /usr/local/share/roadmap ; chmod a+r sprites preferences schema session)
-   cp roadmap.1 roadgps.1 /usr/local/share/man/man1
-   (cd  /usr/local/share/man/man1 ; chmod a+r roadmap.1 roadgps.1)
-   cp icons/roadmap*.png icons/rm_*.png /usr/local/share/pixmaps
-   (cd /usr/local/share/pixmaps ; chmod a+r roadmap*.png rm_*.png)
-
-   cp buildmap buildus dumpmap buildplace /usr/local/bin
-   (cd /usr/local/bin ; chmod a+rx buildmap buildus dumpmap buildplace)
-   cp rdmdownload rdmgetall rdmcompare /usr/local/bin
-   (cd /usr/local/bin ; chmod a+rx rdmdownload rdmgetall rdmcompare)
-   cp rdmgenmaps rdmgendcwmaps rdmgenshpmaps /usr/local/bin
-   (cd /usr/local/bin ; chmod a+rx rdmgenmaps rdmgendcwmaps rdmgenshpmaps)
-   cp rdmkismet rdmghost rdmfriends rdmtrace /usr/local/bin
-   (cd /usr/local/bin ; chmod a+rx rdmkismet rdmghost rdmfriends rdmtrace)
-----
-
-   You can then choose to install the GTK2 version:
-
-----
-   cp gtk2/gtkroadmap /usr/local/bin/roadmap
-   cp gtk2/gtkroadgps /usr/local/bin/roadgps
-   chmod a+rx /usr/local/bin/roadmap /usr/local/bin/roadgps
-----
-
-   or the QT version (requires QT3):
-
-----
-   cp qt/qtroadmap /usr/local/bin/roadmap/roadmap
-   cp qt/qtroadgps /usr/local/bin/roadmap/roadgps
-   chmod a+rx /usr/local/bin/roadmap/roadmap /usr/local/bin/roadmap/roadgps
-----
-
-   As an alternative, the "make install" command (with the DESKTOP option)
-   will execute the commands described above for you (it must be run as root).
-
-   None of this installs the maps! As RoadMap will not work without maps,
-   these must be downloaded from the RoadMap web site:
-
-         * {{http://roadmap.digitalomaha.net/maps.html}}
-
-   Please install usdir.rdm first. See the DOWLOADING section for more
-   information.
-
 
 * INSTALLING FROM THE FAMILIAR PACKAGE
 
@@ -541,57 +507,55 @@ INSTALLATION
 
    [[1]] Install the development libraries for GTK+ 1.2, GTK+ 2.0 or Qt.
 
-   [[2]] Install the RoadMap's tarball:
+   [[2]] Install the shapelib, expat, popt development libraries.  Shapelib is
+   required for building maps from some data sources (though not the US Tiger
+   data).  The libpopt library is also optional if you won't be building your
+   own maps.  And libexpat is optional, except that you won't be able to save
+   or restore route, waypoint, or track information.
+
+   [[3]] Unpack RoadMap's tarball:
 
 ----
       tar xzvf <tarball>
 ----
 
-   [[3]] Compile the map building tools:
-
-----
-      cd roadmap-<version>/src
-      make build
-----
-
    [[4]] Edit the config.mk file found in the src directory, and
-   choose one of GTK, GTK2 or QT toolkit.
-   
-   Other build options are described in the comments of that
-   file.  As a shortcut, you can just type one of the following,
-   but editing config.mk is recommended.
+   choose one of GTK, GTK2, QT, or QT4, along with other build
+   options, described in the comments of that file.
 
-----
-      make gtk    -- if using the GTK 1.2 toolkit
-      make gtk2   -- if using the GTK 2.0 toolkit
-      make qt     -- if using the QT toolkit
-----
+   Simply typing "make" will build the default selection in config.mk.
 
-      Simply typing "make" will build the default selection in config.mk.
+   <<Note for QT users>>: the RoadMap QT module is built with QT3 by
+   default, but requires the QT2 compatibility headers.
 
-      <<Note for QT users>>: the RoadMap QT module is built with QT3 by
-      default, but requires the QT2 compatibility headers. RoadMap has not
-      been tested with QT4.
+   The complete list of options for building RoadMap is as follow.
+   These can all be modified by editing config.mk.
 
-      The complete list of options for building RoadMap is as follow.
-      These can all be modified by editing config.mk.
+   [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
+   also generates the necessary information and code for profiling.
 
-      [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
-      also generates the necessary information and code for profiling.
+   [DESKTOP=GTK2|GPE|GTK|QT|QPE|QT4|QPE4|WINCE] Compiles RoadMap for a specific GUI
+   environment.  By default GTK, GTK2 and QT are built.  The GPE environment
+   is a PDA variant of GTK2 and the QPE environment is a PDA variant of QT.
+   (WINCE attempts to use the arm-wince-mingw32ce cross-compiler to build
+   RoadMap for the Windows CE environment.  As of this writing, the result
+   does not yet work.)
 
-      [DESKTOP=GTK2|GPE|GTK|QT|QPE] Compiles RoadMap for a specific GUI
-      environment. By default GTK, GTK2 and QT are built. The GPE environment
-      is a PDA variant of GTK2 and the QPE environment is a PDA variant of QT.
+   [SHAPEFILES=NO] Do not link buildmap with the shapelib.  The side effect of
+   this option is that some map sources cannot be converted to RoadMap files
+   anymore.  These include the Digital Charts of the World, the Canadian RNF
+   road maps, and the US State boundary outlines.  This option is to
+   be used only when the shapelib library is not available.
 
-      [SHAPEFILES=NO] Do not link buildmap with the shapelib. The side
-      effect of this option is that the Digital Charts of the World cannot
-      be converted to RoadMap files anymore. This option is to be used only
-      when the shapelib library is not available.
+   [EXPAT=NO] Do not link roadmap with the expat library. The side
+   effect is that you cannot load or save trips or landmarks anymore.
 
-      [EXPAT=NO] Do not link roadmap with the expat library. The side
-      effect is that you cannot load or save trips or landmarks anymore.
+   [POPT=NO] Do not build buildmap.  (RoadMap itself does not use libpopt.)
+   You will be able to use pre-built maps, but not build any of your own.
 
-      [AGG=NO] Do not try to link roadmap with the agg library. 
+   [AGG=NO] Do not try to link roadmap with the agg library.  This optional
+   library, currently supported for the GTK2 and Win32 desktops, can give
+   much prettier (anti-aliased) lines and text.
 
 ----
 ----
@@ -692,15 +656,8 @@ INSTALLATION
    [[8]] run make to install roadmap:
 
 ------
-      make DESKTOP=GTK install   -- If using the GTK 1.2 toolkit.
+      make install
 
-      make DESKTOP=GTK2 install  -- If using the GTK 2.0 toolkit.
-
-      make DESKTOP=GPE install   -- if using GPE with the GTK 2.0 toolkit
-
-      make DESKTOP=QT install    -- if using the QT toolkit
-
-      make DESKTOP=QPE install   -- if using the QT/QPE toolkit
 ------
 
    This last step installs the RoadMap executables. These executables
@@ -781,25 +738,24 @@ INSTALLATION
      position is to install a GPS device RoadMap can talk to.
 
    * The display shows no street; lakes, parks, airport and hospitals
-     appear as block areas. This is typical of a missing "schema" file.
-     The "schema" file must be located in one of these directories:
-     /urs/local/share/roadmap, /usr/share/roadmap or /etc/roadmap.
-     It is likely the "make install" step was not performed.
+     appear as block areas. This is typical of a missing "class" file.
+     This file, usuall "default/All", must be located in the RoadMap
+     configuration directory.  It is likely the "make install" step was not
+     performed.
 
    * The display is all black. RoadMap seems to find the map files and
      one can select streets on the screen, but it seems everything is
-     drawn black on black. It appears that some old versions of the
-     "schema" file can cause this problem. The old file might be located
-     in ~/.roadmap, so that it preempts the normal (up-to-date) file.
-     This may also happen on a QPE-based PDA: this may be a problem with
-     QPE not defining color names. Try redefining all colors in schema
-     using the RGB syntax ('#' followed by an hexadecimal RGB value).
+     drawn black on black. Be sure all of your configuration files are
+     up to date, and that none are being "shadowed" by older files in your
+     ~/.roadmap directory.  This may also happen on a QPE-based PDA:  this
+     may be a problem with QPE not defining color names.  Try redefining all
+     colors in schema using the RGB syntax ('#' followed by an hexadecimal
+     RGB value).
 
    * Waypoints, the compass and the vehicle's location all appear as small
      black squares. This is typical of a missing "sprites" file. The "sprite"
-     file must be located in one of these directories:/urs/local/share/roadmap,
-     /usr/share/roadmap or /etc/roadmap.  It is likely the "make install"
-     step was not performed.
+     file must be located in one of the RoadMap configuration directories.
+     It is likely the "make install" step was not performed.
 
    * If things do not go any better, start roadmap with the --debug option
      and check what roadmap tells you it is doing.
@@ -852,6 +808,12 @@ USING ROADMAP
 
    The RoadMap application accepts the following command line options:
    
+   [--config=<PATH>] Replace the built-in search path for system
+       configuration data.  While this will usually just be a simple
+       directory path, it can actually be a comma-separated list of paths
+       from which RoadMap should load its config.  User directories
+       (usually "~/.roadmap" will still be processed as usual.
+
    [--location=<LONGITUDE,LATITUDE>] Set the location point (see menu entry
        "Show Location.."). This option is sticky (preference item
        Locations.Location=<LONGITUDE,LATITUDE>).
@@ -2138,6 +2100,15 @@ CONFIGURATION
 
          <<Command line option:>> --no-icon
 
+    [General.IconPath] The icon search path.
+
+         <<Format:>> a comma-separated list of directory paths.
+
+         <<Default:>> see the ICON FILES section of this document.
+
+	 <<Comment:>> the hardcoded default includes the usual linux system
+		      pixmap directories used for storing application icons.
+
     [General.Toolbar] Show (yes) or hide (no) the roadmap toolbar.
 
          <<Format:>> boolean
@@ -2159,6 +2130,26 @@ CONFIGURATION
          <<Default:>> yes
 
          <<Comment:>> Tooltips may not work well on a touchscreen device.
+
+    [General.UserPath] Directory for per-user configuration.
+
+         <<Format:>> a directory path, usually starting with '~'
+
+         <<Default:>> ~/.roadmap
+
+	 <<Comment:>> This directory can be referred to in other RoadMap
+	 	      path specifications using the shortcut '&'.
+
+
+    [General.TripsPath] Directory in which trips are stored, usually per-user.
+
+         <<Format:>> a directory path
+
+         <<Default:>> &/trips, i.e. in ~/.roadmap/trips
+
+	 <<Comment:>> Trips files can be stored anywhere, but in some places
+		      RoadMap makes it easier if they're stored here.  New
+		      trips, unnamed by the users will be stored here.
 
     [Geometry.Main] Sets the size of the RoadMap main window.
 
