@@ -101,6 +101,9 @@ static RoadMapConfigDescriptor RoadMapConfigGeometryDefault =
 static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
+static RoadMapConfigDescriptor RoadMapConfigPathIcons =
+                        ROADMAP_CONFIG_ITEM("General", "IconPath");
+
 static RoadMapConfigDescriptor RoadMapConfigDisplayRefresh =
                         ROADMAP_CONFIG_ITEM("Display", "Refresh Period");
 
@@ -1138,6 +1141,11 @@ void roadmap_start (int argc, char **argv) {
    roadmap_config_declare
       ("preferences", &RoadMapConfigMapPath, "");
 
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigPathIcons, "");
+
+   roadmap_config_load ();
+
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();
    roadmap_trip_initialize     ();
@@ -1158,8 +1166,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_driver_initialize   ();
    roadmap_layer_initialize    ();
 
-   roadmap_config_load ();
-
    roadmap_gps_register_listener (&roadmap_gps_update);
 
    RoadMapStartGpsID = roadmap_string_new("GPS");
@@ -1173,9 +1179,13 @@ void roadmap_start (int argc, char **argv) {
       roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));
    }
 
+   if (roadmap_config_get(&RoadMapConfigPathIcons)[0] != 0) {
+      roadmap_path_set("icons", roadmap_config_get(&RoadMapConfigPathIcons));
+   }
+
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 
-   roadmap_option (argc, argv, roadmap_start_usage);
+   roadmap_option (argc, argv, 1, roadmap_start_usage);
 
    roadmap_log (ROADMAP_WARNING, "RoadMap starting, time %s", roadmap_start_now());
 
