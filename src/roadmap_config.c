@@ -35,6 +35,8 @@
 #include "roadmap_math.h"
 #include "roadmap_config.h"
 
+static RoadMapConfigDescriptor RoadMapConfigPathUser =
+                        ROADMAP_CONFIG_ITEM("General", "UserPath");
 
 typedef struct RoadMapConfigEnumRecord RoadMapConfigEnum;
 
@@ -96,7 +98,7 @@ struct RoadMapConfigPredefined {
 
 static struct RoadMapConfigPredefined RoadMapConfigPredefinedFiles[] = {
    {"session",     0},
-   {"preferences", 0},
+   {"preferences", 1},
    {NULL, 0}
 };
 
@@ -515,10 +517,14 @@ static int roadmap_config_load_file
    RoadMapConfigItem *item;
    RoadMapConfigDescriptor descriptor;
 
+   roadmap_log(ROADMAP_DEBUG, "trying for config from '%s' in '%s'",
+        config->file_name, path ? path : "");
 
    file = roadmap_file_fopen (path, config->file_name, "sr");
    if (file == NULL) return 0;
 
+   roadmap_log(ROADMAP_DEBUG, "loading config from '%s' in '%s'",
+        config->file_name, path ? path : "");
 
    while (!feof(file)) {
 
@@ -671,16 +677,20 @@ void  roadmap_config_initialize (void) {
       file = roadmap_config_new_file (known->name, NULL, 1);
       file->required = known->required;
    }
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigPathUser, "");
+
 }
 
 
 void  roadmap_config_load (void) {
 
-    const char *p;
-    RoadMapConfig *file;
+   const char *p;
+   RoadMapConfig *file;
 
 
-    for (file = RoadMapConfigFiles; file != NULL; file = file->next) {
+   for (file = RoadMapConfigFiles; file != NULL; file = file->next) {
 
       int loaded = 0;
 
@@ -689,6 +699,16 @@ void  roadmap_config_load (void) {
            p = roadmap_path_previous("config", p)) {
 
          loaded |= roadmap_config_load_file (p, file, ROADMAP_CONFIG_SHARED);
+      }
+
+      p = roadmap_config_get(&RoadMapConfigPathUser);
+      if (*p) {
+         if (*p == '&') {
+            roadmap_log (ROADMAP_FATAL, 
+              "User.Path defined as \"%s\" using '&' token will "
+              "lead to recursive expansion", p);
+         }
+         roadmap_path_set("user", roadmap_config_get(&RoadMapConfigPathUser));
       }
 
       loaded |= roadmap_config_load_file (roadmap_path_user(),
