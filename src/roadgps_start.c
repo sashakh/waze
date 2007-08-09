@@ -244,7 +244,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_factory_keymap (RoadGpsStartActions, RoadGpsStartKeyBinding);
 
-   roadmap_option (argc, argv, roadgps_start_usage);
+   roadmap_option (argc, argv, 1, roadgps_start_usage);
 
 
    roadgps_start_set_unit ();

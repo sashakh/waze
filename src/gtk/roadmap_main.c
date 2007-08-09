@@ -600,6 +600,8 @@ int main (int argc, char **argv) {
 
    int i;
 
+   roadmap_option (argc, argv, 0, NULL);
+
    gtk_init (&argc, &argv);
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {

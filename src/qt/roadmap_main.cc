@@ -336,6 +336,8 @@ int main(int argc, char* argv[]) {
 
    int i;
 
+   roadmap_option (argc, argv, 0, NULL);
+
 #ifdef QWS
    app = new QPEApplication(argc, argv);
 #else

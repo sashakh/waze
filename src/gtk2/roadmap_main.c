@@ -678,6 +678,8 @@ int main (int argc, char **argv) {
 
    int i;
 
+   roadmap_option (argc, argv, 0, NULL);
+
 #ifdef ROADMAP_USES_GPE
    if (! gpe_application_init (&argc, &argv)) {
       exit (1);
