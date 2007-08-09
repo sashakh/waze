@@ -70,16 +70,16 @@ rm_icons_clean:
 
 
 install: $(RM_ICONS_PNG)
-	mkdir -p $(DESTDIR)$(ICONDIR)
-	cp -f $(RM_ICONS_PNG) 	    $(DESTDIR)$(ICONDIR)
-	cp -f $(ROADMAP_ICONS_PNG)  $(DESTDIR)$(ICONDIR)
+	mkdir -p $(DESTDIR)$(icondir)
+	cp -f $(RM_ICONS_PNG) 	    $(DESTDIR)$(icondir)
+	cp -f $(ROADMAP_ICONS_PNG)  $(DESTDIR)$(icondir)
 	@echo
 	@echo "The next copy command may fail."
 	@echo
-	-cp -f $(ROADMAP_ICONS_XPM) $(DESTDIR)$(ICONDIR)
+	-cp -f $(ROADMAP_ICONS_XPM) $(DESTDIR)$(icondir)
 
 uninstall:
-	cd $(DESTDIR)$(ICONDIR) && rm -f $(RM_ICONS_PNG) $(ROADMAP_ICONS_ALL)
+	cd $(DESTDIR)$(icondir) && rm -f $(RM_ICONS_PNG) $(ROADMAP_ICONS_ALL)
 
 sourcelist:
 	@echo Makefile $(ROADMAP_ICONS_ALL)
