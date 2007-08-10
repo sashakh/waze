@@ -232,6 +232,12 @@ static int roadmap_square_on_grid (const RoadMapPosition *position) {
 
    RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
 
+   if (position->longitude > global->edges.east ||
+       position->latitude > global->edges.north ||
+       position->longitude < global->edges.west ||
+       position->latitude < global->edges.south) {
+      return -1;
+   }
 
    x = (position->longitude - global->edges.west) / global->step_longitude;
    if (x < 0 || x > global->count_longitude) {
@@ -255,10 +261,11 @@ static int roadmap_square_on_grid (const RoadMapPosition *position) {
 
 static int roadmap_square_location (const RoadMapPosition *position) {
 
-   int square;
+   int square, newsq, index;
    int  grid_count = RoadMapSquareActive->SquareGridCount;
    RoadMapSquare *this_square;
    RoadMapSquare *base_square = RoadMapSquareActive->Square;
+   RoadMapGlobal *global = RoadMapSquareActive->SquareGlobal;
 
    square = roadmap_square_on_grid (position);
    if (square < 0 || square >= grid_count) {
@@ -266,46 +273,80 @@ static int roadmap_square_location (const RoadMapPosition *position) {
    }
 
    /* The computation above may have rounding errors: adjust. */
+   index = grid_index(square);
+   this_square = base_square + index;
 
-   this_square = base_square + grid_index(square);
+   if (index >= 0) {
+      /* check against the found edges, and move if we're outside */
 
-   while (grid_index(square) < 0 ||
-          this_square->edges.east <= position->longitude) {
+      if (position->longitude > this_square->edges.east) { /* go east */
+         newsq = square + 1;  /* east */
+         if (newsq < grid_count)
+            return newsq;
+      }
+      if (position->latitude > this_square->edges.north) { /* go north */
+         newsq = square + global->count_longitude;;  /* north */
+         if (newsq < grid_count)
+            return newsq;
+      }
+      if (position->longitude < this_square->edges.west) { /* go west */
+         newsq = square - 1;  /* west */
+         if (newsq >= 0)
+            return newsq;
+      }
+      if (position->latitude < this_square->edges.south) { /* go south */
+         newsq = square - global->count_longitude;;  /* south */
+         if (newsq >= 0)
+            return newsq;
+      }
 
-      if (position->longitude ==
-          RoadMapSquareActive->SquareGlobal->edges.east) break;
+      return square;
 
-      if (++square >= grid_count) return -1;
-      this_square = base_square + grid_index(square);
-   }
-
-   while (grid_index(square) < 0 ||
-          this_square->edges.west > position->longitude) {
-
-      if (--square < 0) return -1;
-      this_square = base_square + grid_index(square);
-   }
-
-   while (grid_index(square) < 0 ||
-          this_square->edges.north <= position->latitude) {
-
-      if (position->latitude ==
-          RoadMapSquareActive->SquareGlobal->edges.north) break;
-
-      if (++square >= grid_count) return -1;
-      this_square = base_square + grid_index(square);
-   }
-
-   while (grid_index(square) < 0 ||
-          this_square->edges.south > position->latitude) {
-
-      if (--square < 0) return -1;
-      this_square = base_square + grid_index(square);
+   } else {
+      /* our square is invalid.
+       * check against our neighbors' edges (if they're valid) and
+       * move if appropriate.
+       */
+      newsq = square + 1;  /* east */
+      if (newsq < grid_count)  {
+         index = grid_index(newsq);
+         if (index >= 0 && 
+               /* moved east, so see if we're good to the west now */
+               position->longitude > (base_square + index)->edges.west) {
+            return newsq;
+         }
+      }
+      newsq = square + global->count_longitude;;  /* north */
+      if (newsq < grid_count)  {
+         index = grid_index(newsq);
+         if (index >= 0 &&
+               /* moved north, so see if we're good to the south now */
+               position->latitude > (base_square + index)->edges.south) {
+            return newsq;
+         }
+      }
+      newsq = square - 1;  /* west */
+      if (newsq >= 0)  {
+         index = grid_index(newsq);
+         if (index >= 0 &&
+               /* moved west, so see if we're good to the east now */
+               position->longitude < (base_square + index)->edges.east) {
+            return newsq;
+         }
+      }
+      newsq = square - global->count_longitude;;  /* south */
+      if (newsq >= 0)  {
+         index = grid_index(newsq);
+         if (index >= 0 && 
+               /* moved south, so see if we're good to the north now */
+               position->latitude < (base_square + index)->edges.north) {
+            return newsq;
+         }
+      }
    }
 
    return square;
 }
-
 
 int roadmap_square_search (const RoadMapPosition *position) {
 
@@ -317,7 +358,7 @@ int roadmap_square_search (const RoadMapPosition *position) {
 
    square = roadmap_square_location (position);
 
-   if (square < 0 || square >= RoadMapSquareActive->SquareGridCount) {
+   if (square < 0) {
       return ROADMAP_SQUARE_OTHER;
    }
    if (grid_index(square) < 0) {
