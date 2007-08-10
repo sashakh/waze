@@ -1049,6 +1049,7 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
       fully_visible = 0;
    }
 
+   /* draw global square outline (only with "--square") */
    if (pen_type == 0) roadmap_screen_draw_square_edges (square);
    
    RoadMapScreenLastPen = NULL;
@@ -1178,7 +1179,13 @@ static void roadmap_screen_repaint (void) {
                roadmap_main_busy_check();
 
             }
+
             drawn += roadmap_screen_draw_long_lines (k);
+
+            if (k == 0) {
+		/* draw global square outline (only with "--square") */
+		roadmap_screen_draw_square_edges (ROADMAP_SQUARE_GLOBAL);
+	    }
         }
 
 
