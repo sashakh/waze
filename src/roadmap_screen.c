@@ -182,6 +182,26 @@ static RoadMapPen RoadMapBackground = NULL;
 static RoadMapPen RoadMapPenEdges = NULL;
 
 
+static void roadmap_screen_setfont(void) {
+
+   const char *p;
+
+   RoadMapLineFontSelect = 0;
+   p = roadmap_config_get(&RoadMapConfigLinefontSelector);
+   if (p == NULL) {
+      RoadMapLineFontSelect |= ROADMAP_TEXT_LABELS;
+   } else {
+      if (*p == 'l') { // "labels"
+         RoadMapLineFontSelect |= ROADMAP_TEXT_LABELS;
+      } else if (*p == 's') { // "signs"
+         RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS;
+      } else if (*p == 'a') { // "all"
+         RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS|ROADMAP_TEXT_LABELS;
+      }
+   }
+}
+
+
 static void roadmap_screen_point_buffer_initialize
             (struct roadmap_screen_point_buffer *pb, int size) {
 
@@ -1096,6 +1116,8 @@ static void roadmap_screen_repaint (void) {
        max_pen = 1;
     }
 
+    roadmap_screen_setfont();
+
     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT_WITH_DELAY);
 
     if (in_view == NULL) {
@@ -1237,8 +1259,6 @@ static void roadmap_screen_repaint (void) {
 
 static void roadmap_screen_configure (void) {
 
-   const char *p;
-
    RoadMapScreenWidth = roadmap_canvas_width();
    RoadMapScreenHeight = roadmap_canvas_height();
 
@@ -1248,24 +1268,12 @@ static void roadmap_screen_configure (void) {
         roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
 
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
+
    if (RoadMapScreenInitialized) {
       roadmap_screen_repaint ();
    }
 
-   p = roadmap_config_get(&RoadMapConfigLinefontSelector);
-   if (p == NULL) {
-      RoadMapLineFontSelect |= ROADMAP_TEXT_LABELS;
-   } else {
-      if (strstr(p, "labels") != NULL)
-         RoadMapLineFontSelect |= ROADMAP_TEXT_LABELS;
-      if (strstr(p, "signs") != NULL)
-         RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS;
-      if (strstr(p, "all") != NULL)
-         RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS|ROADMAP_TEXT_LABELS;
-   }
 }
-
-
 
 static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
     
