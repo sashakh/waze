@@ -85,22 +85,65 @@ struct voice_translation {
  *
  * A prefix is supposed to be followed by a reasonably long word (3
  * characters or more).
+ *
+ * Note:  This list, which is used during the output of street names,
+ * is very similar to a list in roadmap_street.c, which is used when
+ * entering and looking up street names.  This list is driven by the
+ * needs of voice translation, and the other is driven by the abbreviations
+ * found in the map database.  Ideally they should be merged at some
+ * point, and/or made configurable, and given the ability to support
+ * non-English names.
  */
 static struct voice_translation RoadMapVoiceTranslate1[] = {
     {"Blvd", "boulevard"},
-    {"Hwy",  "highway"},
+    {"Cres", "crescent"},
+    {"Expy", "expressway"},
+    {"FMRd", "farm road"},
+    {"Mtwy", "motorway"},
+    {"Ovps", "overpass"},
+    {"RMRd", "ranch road"},
+    {"Skwy", "skyway"},
+    {"Tfwy", "trafficway"},
+    {"Thwy", "throughway"},
+    {"Tpke", "turnpike"},
+    {"Trce", "terrace"},
+    {"Tunl", "tunnel"},
+    {"Wkwy", "walkway"},
+    {"Xing", "crossing"},
+
+    {"Aly",  "alley"},
+    {"Arc",  "arcade"},
+    {"Ave",  "avenue"},
+    {"Brg",  "bridge"},
+    {"Byp",  "bypass"},
     {"Fwy",  "freeway"},
+    {"Grd",  "grade"},
+    {"Hwy",  "highway"},
     {"Cir",  "circle"},
-    {"St",   "street"},
-    {"Rd",   "road"},
-    {"Pl",   "place"},
+    {"Ctr",  "center"},
+    {"Mal",  "mall"},
+    {"Pky",  "parkway"},
+    {"Plz",  "plaza"},
+    {"Rte",  "route"},
+    {"Ter",  "terrace"},
+    {"Trl",  "trail"},
+    {"Unp",  "underpass"},
+
+    {"Br",   "branch"},
     {"Ct",   "court"},
+    {"Cv",   "cove"},
     {"Dr",   "drive"},
     {"Ln",   "lane"},
+    {"Pl",   "place"},
+    {"Rd",   "road"},
+    {"Sq",   "square"},
+    {"St",   "street"},
+
     {"N",    "north"},
     {"W",    "west"},
     {"S",    "south"},
     {"E",    "east"},
+
     {NULL, NULL}
 };
 

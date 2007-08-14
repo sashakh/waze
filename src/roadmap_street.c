@@ -397,6 +397,15 @@ typedef struct {
 
 /* Both many-to-one and one-to-many mappings are supported, but
  * the first column must be alphabetical!
+ *
+ * Note:  The list in roadmap_voice.c, which is used during the
+ * output of street names, is very similar to this list, which is
+ * used when entering and looking up street names.  That list is
+ * driven by the needs of voice translation, and this one is
+ * driven by the abbreviations found in the map database. 
+ * Ideally they should be merged at some point, and/or made
+ * configurable, and given the ability to support non-English
+ * names.
  */
 static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Alley", "Aly"},
@@ -421,26 +430,26 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Highway", "Hwy"},
    { "Hiway", "Hwy"},
    { "Lane", "Ln"},
-   /* { "", "Loop"}, */
+   /* { "", "Loop"}, (no short form) */
    { "Mall", "Mal"},
    { "Motorway", "Mtwy"},
    { "Overpass", "Ovps"},
-   /* { "", "Pass"}, */
-   /* { "", "Path"}, */
-   /* { "", "Pike"}, */
+   /* { "", "Pass"}, (no short form) */
+   /* { "", "Path"}, (no short form) */
+   /* { "", "Pike"}, (no short form) */
    { "Parkway", "Pky"},
    { "Place", "Pl"},
    { "Plaza", "Plz"},
-   /* { "", "Ramp"}, */
+   /* { "", "Ramp"}, (no short form) */
    { "Road", "Rd"},
    { "Ranch Road", "RMRd"},
-   /* { "", "Row"}, */
+   /* { "", "Row"}, (no short form) */
    { "Route", "Rte"},
    { "Rt", "Rte"},
-   /* { "", "Rue"}, */
-   /* { "", "Run"}, */
+   /* { "", "Rue"}, (no short form) */
+   /* { "", "Run"}, (no short form) */
    { "Skyway", "Skwy"},
-   /* { "", "Spur"}, */
+   /* { "", "Spur"}, (no short form) */
    { "Street", "St"},
    { "Square", "Sq"},
    { "Terrace", "Ter"},
@@ -452,8 +461,8 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { "Tunnel", "Tunl"},
    { "Turnpike", "Tpke"},
    { "Underpass", "Unp"},
-   /* { "", "Walk"}, */
-   /* { "", "Way"}, */
+   /* { "", "Walk"}, (no short form) */
+   /* { "", "Way"}, (no short form) */
    { "Walkway", "Wkwy"},
    { 0, 0 }
 };
