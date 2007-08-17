@@ -321,7 +321,9 @@ int roadmap_line_length (int line) {
    int i;
 
    roadmap_point_position (RoadMapLineActive->Line[line].from, &p1);
+
    square = roadmap_square_search (&p1);
+   if (square < 0) return 0;
 
    if (roadmap_shape_in_square (square, &first_shape_line,
                                         &last_shape_line) > 0) {

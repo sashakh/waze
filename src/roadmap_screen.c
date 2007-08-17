@@ -835,16 +835,13 @@ static int roadmap_screen_draw_square
              (position.longitude >= edges.east) ||
              (position.latitude <  edges.south) ||
              (position.latitude >= edges.north)) {
+
             real_square = roadmap_square_search (&position);
+            if (real_square < 0) continue;
+
          }
 
          if (real_square != last_real_square) {
-
-            if (real_square < 0 || real_square >= square_count) {
-               roadmap_log (ROADMAP_ERROR,
-                            "Invalid square index %d", real_square);
-               continue;
-            }
 
             roadmap_square_edges (real_square, &edges);
 
@@ -938,6 +935,8 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
             RoadMapArea to_edges;
 
             to_square = roadmap_square_search (&to_position);
+            if (to_square < 0) continue;
+
             roadmap_square_edges (to_square, &to_edges);
 
             if (roadmap_math_is_visible (&to_edges)) {
@@ -954,7 +953,10 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
              (position.longitude >= edges.east) ||
              (position.latitude <  edges.south) ||
              (position.latitude >= edges.north)) {
+
             real_square = roadmap_square_search (&position);
+            if (real_square < 0) continue;
+
          }
 
          if (real_square != last_real_square) {
@@ -1205,9 +1207,9 @@ static void roadmap_screen_repaint (void) {
             drawn += roadmap_screen_draw_long_lines (k);
 
             if (k == 0) {
-		/* draw global square outline (only with "--square") */
-		roadmap_screen_draw_square_edges (ROADMAP_SQUARE_GLOBAL);
-	    }
+                /* draw global square outline (only with "--square") */
+                roadmap_screen_draw_square_edges (ROADMAP_SQUARE_GLOBAL);
+            }
         }
 
 

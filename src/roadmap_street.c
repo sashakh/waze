@@ -1115,7 +1115,9 @@ int roadmap_street_get_distance (const RoadMapPosition *position,
    if (RoadMapRangeActive == NULL) return 0;
 
    roadmap_line_from (line, &line_from_position);
+
    square = roadmap_square_search (&line_from_position);
+   if (square < 0) return 0;
 
    if (roadmap_shape_in_square (square, &first_shape_line,
                                         &last_shape_line) > 0) {
@@ -1207,7 +1209,9 @@ static int roadmap_street_get_closest_in_square
          line = roadmap_line_get_from_index2 (line_cursor);
 
          roadmap_line_from (line, &reference_position);
+
          real_square = roadmap_square_search (&reference_position);
+         if (real_square < 0) continue;
           
          if (real_square != previous_square) {
             shape_count =
@@ -1280,7 +1284,9 @@ static int roadmap_street_get_closest_in_long_lines
       }
 
       roadmap_line_from (line, &reference_position);
+
       real_square = roadmap_square_search (&reference_position);
+      if (real_square < 0) continue;
 
       if (real_square != previous_square) {
          shape_count =
@@ -1774,33 +1780,19 @@ void roadmap_street_get_properties
    roadmap_line_from (line, &position);
    square = roadmap_square_search (&position);
 
-   if (square >= 0) {
-      square = roadmap_square_index (square);
-   }
+   if (square < 0) return;
 
-   if (square >= 0) {
+   square = roadmap_square_index (square);
 
-      bysquare = RoadMapRangeActive->bysquare + square;
+   if (square < 0) return;
 
-      street = 0;
+   bysquare = RoadMapRangeActive->bysquare + square;
 
-      for (hole = 0; hole < ROADMAP_RANGE_HOLES; hole++) {
+   street = 0;
 
-         stop = street + bysquare->hole[hole].included;
+   for (hole = 0; hole < ROADMAP_RANGE_HOLES; hole++) {
 
-         while (street < stop) {
-
-            range_index = roadmap_street_check_street (street, line);
-            if (range_index >= 0) {
-               goto found_street_with_address;
-            }
-            street += 1;
-         }
-
-         street += bysquare->hole[hole].excluded;
-      }
-
-      stop = RoadMapRangeActive->RoadMapByStreetCount;
+      stop = street + bysquare->hole[hole].included;
 
       while (street < stop) {
 
@@ -1811,17 +1803,30 @@ void roadmap_street_get_properties
          street += 1;
       }
 
-      /* Could not find the street: maybe it has no address. */
+      street += bysquare->hole[hole].excluded;
+   }
 
-      noaddr = RoadMapRangeActive->noaddr;
-      stop   = bysquare->noaddr_start + bysquare->noaddr_count;
+   stop = RoadMapRangeActive->RoadMapByStreetCount;
 
-      for (street = bysquare->noaddr_start; street < stop; street++) {
+   while (street < stop) {
 
-         if (noaddr[street].line == line) {
-            street = noaddr[street].street;
-            goto found_street;
-         }
+      range_index = roadmap_street_check_street (street, line);
+      if (range_index >= 0) {
+         goto found_street_with_address;
+      }
+      street += 1;
+   }
+
+   /* Could not find the street: maybe it has no address. */
+
+   noaddr = RoadMapRangeActive->noaddr;
+   stop   = bysquare->noaddr_start + bysquare->noaddr_count;
+
+   for (street = bysquare->noaddr_start; street < stop; street++) {
+
+      if (noaddr[street].line == line) {
+         street = noaddr[street].street;
+         goto found_street;
       }
    }
 

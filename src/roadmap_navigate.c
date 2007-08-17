@@ -346,9 +346,10 @@ static int roadmap_navigate_find_intersection
      * intersection street. We select the one that matches the best.
      */
     best_match = roadmap_fuzzy_false();
+
     square = roadmap_square_search (&crossing);
 
-    if (square != -1) {
+    if (square >= 0) {
 
        int i;
        int layers[128];
