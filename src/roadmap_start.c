@@ -54,6 +54,7 @@
 #include "roadmap_address.h"
 #include "roadmap_coord.h"
 #include "roadmap_crossing.h"
+#include "roadmap_screen_obj.h"
 #include "roadmap_sprite.h"
 #include "roadmap_gpx.h"
 #include "roadmap_trip.h"
@@ -73,10 +74,12 @@
 #include "roadmap_driver.h"
 #include "roadmap_factory.h"
 #include "roadmap_main.h"
+#include "roadmap_message.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_help.h"
 #include "roadmap_pointer.h"
 #include "roadmap_layer.h"
+#include "roadmap_sunrise.h"
 
 #include "roadmap_start.h"
 
@@ -109,6 +112,25 @@ static RoadMapConfigDescriptor RoadMapConfigDisplayRefresh =
 
 
 #define ROADMAP_DEFAULT_REFRESH_INTERVAL 200
+
+
+#ifndef ROADMAP_USES_EXPAT
+/* if there's no libexpat to build against, the loading/saving
+ * code all goes away.
+ */
+#define roadmap_trip_load_ask       roadmap_start_no_expat
+#define roadmap_trip_merge_ask      roadmap_start_no_expat
+#define roadmap_trip_save_manual    roadmap_start_no_expat
+#define roadmap_trip_save_as        roadmap_start_no_expat
+#define roadmap_track_save          roadmap_start_no_expat
+#define roadmap_landmark_merge      roadmap_start_no_expat
+
+static void roadmap_start_no_expat (void) {
+    roadmap_log (ROADMAP_ERROR,
+                 "This feature is not available (no expat library)");
+}
+
+#endif // ROADMAP_USES_EXPAT
 
 
 /* The menu and toolbar callbacks: --------------------------------------- */
@@ -185,82 +207,6 @@ static void roadmap_start_about (void) {
                        "<pascal.martin@iname.com>\n"
                        "A Street navigation system\n"
                        "for Linux & UNIX");
-}
-
-static void roadmap_start_create_trip (void) {
-    
-    roadmap_trip_new ();
-}
-
-#ifdef ROADMAP_USES_EXPAT
-static void roadmap_start_open_trip (void) {
-    roadmap_trip_load_ask (0);
-}
-
-static void roadmap_start_merge_trip (void) {
-    roadmap_trip_load_ask (1);
-}
-
-static void roadmap_start_save_trip (void) {
-    roadmap_trip_save (1);
-}
-
-static void roadmap_start_save_trip_as (void) {
-    roadmap_trip_save_as ();
-}
-
-static void roadmap_start_save_track (void) {
-    roadmap_track_save();
-}
-
-static void roadmap_start_merge_landmark (void) {
-    roadmap_landmark_merge ();
-}
-
-#else // ROADMAP_USES_EXPAT
-
-static void roadmap_start_no_expat (void) {
-    roadmap_log (ROADMAP_ERROR,
-                 "This feature is not available (no expat library)");
-}
-
-static void roadmap_start_open_trip (void) { roadmap_start_no_expat(); }
-
-static void roadmap_start_merge_trip (void) { roadmap_start_no_expat(); }
-
-static void roadmap_start_save_trip (void) { roadmap_start_no_expat(); }
-
-static void roadmap_start_save_trip_as (void) { roadmap_start_no_expat(); }
-
-static void roadmap_start_save_track (void) { roadmap_start_no_expat(); }
-
-static void roadmap_start_merge_landmark (void) { roadmap_start_no_expat(); }
-
-#endif // ROADMAP_USES_EXPAT
-
-static void roadmap_start_route (void) {
-    
-    roadmap_trip_route_start ();
-}
-
-static void roadmap_start_route_resume (void) {
-    
-    roadmap_trip_route_resume ();
-}
-
-static void roadmap_start_route_reverse (void) {
-    
-    roadmap_trip_route_reverse ();
-}
-
-static void roadmap_start_route_return (void) {
-
-    roadmap_trip_route_return ();
-}
-
-static void roadmap_start_create_route (void) {
-
-    roadmap_trip_new_route ();
 }
 
 static void roadmap_start_create_waypoint (void) {
@@ -403,11 +349,17 @@ static RoadMapAction RoadMapStartActions[] = {
    {"position", "Position...", "P", NULL,
       "Show a position at the specified coordinates", roadmap_coord_dialog},
 
-   {"destination", "Destination", "D", NULL,
-      "Show the current destination point", roadmap_start_show_destination},
-
    {"startpoint", "Route Start", "Start", NULL,
       "Show the current route starting point", roadmap_start_show_start},
+
+   {"nextpoint", "Next Route Point", "N", NULL,
+      "Show the next route point", roadmap_trip_show_nextpoint},
+
+   {"2ndpoint", "Second Next Route Point", "", NULL,
+      "Show the route point after the next", roadmap_trip_show_2ndnextpoint},
+
+   {"destination", "Destination", "D", NULL,
+      "Show the current destination", roadmap_start_show_destination},
 
    {"departure", "Departure", "Dep", NULL,
       "Show the route's point of departure", roadmap_start_show_departure},
@@ -430,16 +382,16 @@ static RoadMapAction RoadMapStartActions[] = {
       "Delete maps that are currently visible", roadmap_download_delete},
 
    {"newtrip", "New Trip", "New", NULL,
-      "Create a new trip", roadmap_start_create_trip},
+      "Create a new trip", roadmap_trip_new},
 
    {"opentrip", "Open Trip", "Open", "O",
-      "Open an existing trip", roadmap_start_open_trip},
+      "Open an existing trip", roadmap_trip_load_ask},
 
    {"mergetrip", "Merge Trip", "Merge", "M",
-      "Merge a trip with the current trip", roadmap_start_merge_trip},
+      "Merge a trip with the current trip", roadmap_trip_merge_ask},
 
    {"savetrip", "Save Trip", "Save", "S",
-      "Save the current trip", roadmap_start_save_trip},
+      "Save the current trip", roadmap_trip_save_manual},
 
    {"savescreenshot", "Map Screenshot", "Screenshot", "Y",
       "Make a screenshot of the current map under the trip name",
@@ -447,10 +399,10 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"savetripas", "Save Trip As...", "Save As", "As",
       "Save the current trip under a different name",
-      roadmap_start_save_trip_as},
+      roadmap_trip_save_as},
 
    {"starttrip", "Start Route", "Start", NULL,
-      "Start following the current route", roadmap_start_route},
+      "Start following the current route", roadmap_trip_route_start},
 
    {"stoptrip", "Stop Route", "Stop", NULL,
       "Stop following the current route", roadmap_trip_route_stop},
@@ -475,7 +427,7 @@ static RoadMapAction RoadMapStartActions[] = {
       "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
 
    {"tracksave", "Save Current Track", "Save Track", NULL,
-      "Save the current GPS breadcrumb track", roadmap_start_save_track},
+      "Save the current GPS breadcrumb track", roadmap_track_save},
 
    {"trackreset", "Reset Current Track", "Reset Track", NULL,
       "Reset the current GPS breadcrumb track", roadmap_track_reset},
@@ -494,15 +446,15 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"resumeroute", "Resume Route", "Resume", NULL,
       "Resume following (resync with) the current route",
-      roadmap_start_route_resume},
+      roadmap_trip_route_resume},
 
    {"returnroute", "Return Route", "Return", NULL,
       "Start the route back to the departure point",
-      roadmap_start_route_return},
+      roadmap_trip_route_return},
 
    {"reverseroute", "Reverse Route", "Reverse", NULL,
       "Reverse the current route",
-       roadmap_start_route_reverse},
+       roadmap_trip_route_reverse},
 
    {"simplifyroute", "Simplify Route", NULL, NULL,
       "Create simplified version of current route",
@@ -510,7 +462,7 @@ static RoadMapAction RoadMapStartActions[] = {
 
    {"createroute", "New route using selection", NULL, NULL,
       "Start new route using last selected street or place",
-      roadmap_start_create_route},
+      roadmap_trip_new_route},
 
 #if WGET_GOOGLE_ROUTE
    {"getgoogleroute", "Fetch route from google", NULL, NULL,
@@ -575,7 +527,7 @@ static RoadMapAction RoadMapStartActions[] = {
       roadmap_trip_personal_waypoint_manage_dialog },
 
    {"mergepersonallandmarks", "Load more Personal Landmarks...", NULL, NULL,
-      "Merge personal landmarks from file", roadmap_start_merge_landmark },
+      "Merge personal landmarks from file", roadmap_landmark_merge },
 
    {"lastplacedelete", "Delete place", "Delete Selected Place", NULL,
         "Delete the last selected place", roadmap_trip_delete_last_place },
@@ -899,11 +851,55 @@ static void roadmap_start_set_unit (void) {
    }
 }
 
+static void roadmap_gps_unset_messages() {
+
+   roadmap_message_unset ('S');
+   roadmap_message_unset ('H');
+   roadmap_message_unset ('B');
+   roadmap_message_unset ('M');
+   roadmap_message_unset ('m');
+   roadmap_message_unset ('E');
+   roadmap_message_unset ('e');
+}
+
+static void roadmap_gps_set_messages(const RoadMapGpsPosition *gps) {
+
+   char *timestr;
+   time_t sun;
+   time_t now = time (NULL);
+   int before_sunset = 0;
+
+   /* system time, not GPS time */
+   roadmap_message_set ('S', "%3d %s",
+                        roadmap_math_to_speed_unit (gps->speed),
+                        roadmap_math_speed_unit ());
+   roadmap_message_set ('H', "%d %s",
+                        gps->altitude, roadmap_math_distance_unit ());
+   roadmap_message_set('B', "%d", gps->steering);
+
+   sun = roadmap_sunset (gps);
+   timestr = roadmap_time_get_hours_minutes (sun);
+   roadmap_message_set ('e', timestr );
+   if (sun > now) {
+       roadmap_message_unset ('M');
+       roadmap_message_set ('E', timestr );
+       before_sunset = 1;
+   }
+
+   sun = roadmap_sunrise (gps);
+   timestr = roadmap_time_get_hours_minutes (sun);
+   roadmap_message_set ('m', timestr );
+   if (!before_sunset) {
+       roadmap_message_unset ('E');
+       roadmap_message_set ('M', timestr);
+   } 
+}
 
 static int RoadMapStartGpsRefresh = 0;
 
 static void roadmap_gps_update
-               (int gps_time,
+               (int reception,
+                int gps_time,
                 const RoadMapGpsPrecision *dilution,
                 const RoadMapGpsPosition  *gps_position) {
 
@@ -914,14 +910,24 @@ static void roadmap_gps_update
       RoadMapStartGpsRefresh = 0;
 
    } else {
+ 
+      if (reception <= GPS_RECEPTION_NONE) {
 
-      roadmap_object_move (RoadMapStartGpsID, gps_position);
+         roadmap_gps_unset_messages();
 
-      roadmap_trip_set_gps (gps_time, gps_position);
-      roadmap_log_reset_stack ();
+      } else {
 
-      roadmap_navigate_locate (gps_position);
-      roadmap_log_reset_stack ();
+         roadmap_object_move (RoadMapStartGpsID, gps_position);
+
+         roadmap_trip_set_gps (gps_time, gps_position);
+
+         roadmap_gps_set_messages(gps_position);
+
+         roadmap_log_reset_stack ();
+
+         roadmap_navigate_locate (gps_position);
+         roadmap_log_reset_stack ();
+      }
 
       if (RoadMapSynchronous) {
 
@@ -952,6 +958,7 @@ void roadmap_start_fatal (const char *text) {
 
 
 static void roadmap_start_periodic (void) {
+
 
    roadmap_spawn_check ();
 
@@ -1063,22 +1070,6 @@ const char *roadmap_start_get_title (const char *name) {
    }
 
    return name;
-}
-
-
-static void roadmap_start_after_refresh (void) {
-
-   if (roadmap_download_enabled()) {
-
-      RoadMapGuiPoint download_point = {0, 20};
-
-      download_point.x = roadmap_canvas_width() - 20;
-      if (download_point.x < 0) {
-         download_point.x = 0;
-      }
-      roadmap_sprite_draw
-         ("Download", &download_point, 0 - roadmap_math_get_orientation());
-   }
 }
 
 
@@ -1215,16 +1206,16 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_help_initialize ();
 
-   roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
+   roadmap_screen_obj_initialize ();
 
    roadmap_trip_restore_focus ();
 
 #ifdef ROADMAP_USES_EXPAT
    if ( ! roadmap_trip_load (1, 0)) {
-      roadmap_start_create_trip ();
+      roadmap_trip_new ();
    }
 #else
-   roadmap_start_create_trip ();
+   roadmap_trip_new ();
 #endif
 
    roadmap_locator_declare (&roadmap_start_no_download);
@@ -1239,13 +1230,22 @@ void roadmap_start (int argc, char **argv) {
 
 void roadmap_start_exit (void) {
     
+    roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
     roadmap_driver_shutdown ();
     roadmap_history_save();
 #ifdef ROADMAP_USES_EXPAT
     roadmap_track_autowrite ();
     roadmap_landmark_save ();
-    roadmap_trip_save (0);
+    roadmap_trip_save ();
 #endif
     roadmap_config_save (0);
+    roadmap_gps_shutdown ();
     roadmap_log (ROADMAP_WARNING, "RoadMap exiting, time %s", roadmap_start_now());
 }
+
+const RoadMapAction *roadmap_start_find_action (const char *name) {
+
+   return roadmap_factory_find_action_or_menu (RoadMapStartActions, name);
+
+}
+

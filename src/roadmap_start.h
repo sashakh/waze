@@ -24,6 +24,8 @@
 #ifndef INCLUDE__ROADMAP_START__H
 #define INCLUDE__ROADMAP_START__H
 
+#include "roadmap_factory.h"
+
 /* The two following functions are used to freeze all RoadMap function
  * in cases when the context does not allow for RoadMap to function in
  * a normal fashion. The single example is when downloading maps:
@@ -36,6 +38,7 @@ void roadmap_start_unfreeze (void);
 
 void roadmap_start      (int argc, char **argv);
 void roadmap_start_exit (void);
+const RoadMapAction *roadmap_start_find_action (const char *name);
 
 const char *roadmap_start_get_title (const char *name);
 
