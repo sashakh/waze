@@ -210,7 +210,7 @@ static RoadMapTrackPolicy roadmap_track_policy(void)
 }
 
 
-static void roadmap_track_gps_update (int gps_time,
+static void roadmap_track_gps_update (int reception, int gps_time,
                    const RoadMapGpsPrecision *dilution,
                    const RoadMapGpsPosition *gps_position) {
 
@@ -219,6 +219,8 @@ static void roadmap_track_gps_update (int gps_time,
     RoadMapTrackPolicy policy;
     RoadMapPosition pos[3];
     waypoint *w;
+
+    if (reception <= GPS_RECEPTION_NONE) return;
 
     policy = roadmap_track_policy();
 

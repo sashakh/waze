@@ -258,12 +258,14 @@ static void roadmap_driver_publish_satellites
 
 
 static void roadmap_driver_listener
-               (int gps_time,
+               (int reception,
+                int gps_time,
                 const RoadMapGpsPrecision *dilution,
                 const RoadMapGpsPosition  *position) {
 
    static RoadMapGpsPosition RoadMapDriverLastPosition;
 
+   if (reception <= GPS_RECEPTION_NONE) return;
 
    if (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA) {
 
@@ -289,7 +291,8 @@ static void roadmap_driver_listener
 }
 
 
-static void roadmap_driver_monitor (const RoadMapGpsPrecision *precision,
+static void roadmap_driver_monitor (int reception,
+                                    const RoadMapGpsPrecision *precision,
                                     const RoadMapGpsSatellite *satellites,
                                     int count) {
 

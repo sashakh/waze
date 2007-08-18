@@ -317,7 +317,8 @@ static void roadgps_screen_draw (void) {
 
 
 static void roadgps_screen_monitor
-               (const RoadMapGpsPrecision *precision,
+               (int reception,
+                const RoadMapGpsPrecision *precision,
                 const RoadMapGpsSatellite *satellites,
                 int count) {
 
