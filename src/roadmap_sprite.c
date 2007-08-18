@@ -74,6 +74,8 @@ typedef struct roadmap_sprite_record {
       struct roadmap_sprite_record *alias;
    } drawing;
 
+   RoadMapGuiRect bbox;
+
    struct roadmap_sprite_record *next;
 
 } *RoadMapSprite;
@@ -177,9 +179,18 @@ static void roadmap_sprite_decode_point
    }
 }
 
+static void roadmap_sprite_adjust_bbox
+		(RoadMapGuiRect *bbox, short x, short y) {
+    if (x < bbox->minx) bbox->minx = x;
+    if (x > bbox->maxx) bbox->maxx = x;
+    if (y < bbox->miny) bbox->miny = y;
+    if (y > bbox->maxy) bbox->maxy = y;
+}
+
 
 static void roadmap_sprite_decode_sequence
-               (RoadmapSpriteDrawingSequence *sequence,
+               (RoadMapSprite sprite,
+	        RoadmapSpriteDrawingSequence *sequence,
                 int argc, const char **argv) {
 
    int i;
@@ -202,13 +213,18 @@ static void roadmap_sprite_decode_sequence
 
    for (i = 1; i <= argc; ++i) {
       roadmap_sprite_decode_point (++points, argv[i]);
+      roadmap_sprite_adjust_bbox(&sprite->bbox, points->x, points->y);
    }
    sequence->point_count += argc;
 }
 
 
 static void roadmap_sprite_decode_circle
-               (RoadmapSpriteDrawingSequence *sequence, const char **argv) {
+               (RoadMapSprite sprite,
+	        RoadmapSpriteDrawingSequence *sequence, const char **argv) {
+
+   RoadMapGuiPoint *center;
+   int diam;
 
    sequence->object_count += 1;
    sequence->point_count += 1;
@@ -216,7 +232,8 @@ static void roadmap_sprite_decode_circle
        realloc (sequence->objects,
                 sequence->object_count * sizeof(*(sequence->objects)));
 
-   sequence->objects[sequence->object_count-1] = atoi(argv[2]);
+   diam = atoi(argv[2]);
+   sequence->objects[sequence->object_count-1] = diam;
 
    sequence->points =
        realloc (sequence->points,
@@ -224,6 +241,32 @@ static void roadmap_sprite_decode_circle
 
    roadmap_sprite_decode_point
       (sequence->points+sequence->object_count-1, argv[1]);
+
+   center = sequence->points+sequence->object_count-1;
+
+   roadmap_sprite_adjust_bbox(&sprite->bbox, center->x + diam, center->y);
+   roadmap_sprite_adjust_bbox(&sprite->bbox, center->x - diam, center->y);
+   roadmap_sprite_adjust_bbox(&sprite->bbox, center->x, center->y + diam);
+   roadmap_sprite_adjust_bbox(&sprite->bbox, center->x, center->y - diam);
+}
+
+static void roadmap_sprite_decode_bbox
+               (RoadMapGuiRect        *bbox, int argc, const char **argv) {
+
+   RoadMapGuiPoint pt;
+
+   argc -= 1;
+
+   if (argc >= 1) {
+      roadmap_sprite_decode_point (&pt, argv[1]);
+      bbox->minx = pt.x;
+      bbox->miny = pt.y;
+   }
+   if (argc >= 2) {
+      roadmap_sprite_decode_point (&pt, argv[2]);
+      bbox->maxx = pt.x;
+      bbox->maxy = pt.y;
+   }
 }
 
 
@@ -396,7 +439,7 @@ static void roadmap_sprite_load_text (const char *data, int size) {
 
          if (roadmap_sprite_drawing_is_valid (sprite)) {
             roadmap_sprite_decode_sequence
-               (&(sprite->drawing.planes.last->lines), argc, argv);
+               (sprite, &(sprite->drawing.planes.last->lines), argc, argv);
          }
          break;
 
@@ -404,7 +447,7 @@ static void roadmap_sprite_load_text (const char *data, int size) {
 
          if (roadmap_sprite_drawing_is_valid (sprite)) {
             roadmap_sprite_decode_sequence
-               (&(sprite->drawing.planes.last->polygons), argc, argv);
+               (sprite, &(sprite->drawing.planes.last->polygons), argc, argv);
          }
          break;
 
@@ -412,7 +455,7 @@ static void roadmap_sprite_load_text (const char *data, int size) {
 
          if (roadmap_sprite_drawing_is_valid (sprite)) {
             roadmap_sprite_decode_circle
-               (&(sprite->drawing.planes.last->disks), argv);
+               (sprite, &(sprite->drawing.planes.last->disks), argv);
          }
          break;
 
@@ -420,13 +463,20 @@ static void roadmap_sprite_load_text (const char *data, int size) {
 
          if (roadmap_sprite_drawing_is_valid (sprite)) {
             roadmap_sprite_decode_circle
-               (&(sprite->drawing.planes.last->circles), argv);
+               (sprite, &(sprite->drawing.planes.last->circles), argv);
          }
          break;
+
+      case 'B':
+
+         if (roadmap_sprite_drawing_is_valid (sprite)) {
+	    roadmap_sprite_decode_bbox(&sprite->bbox, argc, argv);
+	 }
 
       case 'S':
 
          sprite = roadmap_sprite_new (argc, argv, argl);
+	 
       }
 
       while (p < end && *p < ' ') p++;
@@ -528,6 +578,15 @@ static void roadmap_sprite_place (RoadmapSpriteDrawingSequence *sequence,
       (sequence->point_count, RoadMapSpritePoints, location, orientation);
 }
 
+void roadmap_sprite_bbox (const char *name, RoadMapGuiRect *bbox) {
+
+   RoadMapSprite sprite = roadmap_sprite_search (name);
+
+   if (sprite == NULL || sprite->alias_name != NULL) return;
+
+   *bbox = sprite->bbox;
+
+}
 
 void roadmap_sprite_draw
         (const char *name, RoadMapGuiPoint *location, int orientation) {
