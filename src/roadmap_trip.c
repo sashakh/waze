@@ -43,13 +43,13 @@
 #include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
+#include "roadmap_state.h"
 #include "roadmap_pointer.h"
 #include "roadmap_message.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_preferences.h"
 #include "roadmap_display.h"
 #include "roadmap_adjust.h"
-#include "roadmap_sunrise.h"
 #include "roadmap_gpx.h"
 #include "roadmap_track.h"
 #include "roadmap_landmark.h"
@@ -141,7 +141,7 @@ int RoadMapTripWaypointSelectionsNeedRefresh[4];
 
 static void roadmap_trip_set_selected_place(void *which, waypoint *w);
 static void roadmap_trip_clear_selection_list(void);
-static void roadmap_trip_move_last_cancel (RoadMapGuiPoint *point);
+static int roadmap_trip_move_last_cancel (RoadMapGuiPoint *point);
 
 /* route display altering flags */
 static RoadMapPen RoadMapTripRouteLinesPen = NULL;
@@ -1259,7 +1259,7 @@ static void roadmap_trip_activate (void) {
         roadmap_trip_set_focus_waypoint (RoadMapTripNext);
     }
     RoadMapRouteInProgress = 1;
-    roadmap_screen_redraw ();
+    roadmap_screen_refresh ();
 }
 
 
@@ -1696,6 +1696,7 @@ void roadmap_trip_set_focus_position (RoadMapPosition *pos ) {
         RoadMapTripFocus->map = *pos;
         roadmap_config_set_position
             (&RoadMapTripFocus->config_position, &RoadMapTripFocus->map);
+        RoadMapTripFocusMoved = 1;
     }
 }
 
@@ -1881,7 +1882,89 @@ void roadmap_trip_route_stop (void) {
     roadmap_trip_unset_departure ();
 
     RoadMapTripRefresh = 1;
-    roadmap_screen_redraw ();
+    roadmap_screen_refresh ();
+}
+
+static int roadmap_trip_next_point_state(void) {
+    int angle;
+
+    if (!RoadMapRouteInProgress ||
+	RoadMapCurrentRoute == NULL ||
+	!RoadMapTripGps->has_value) {
+	return -1;
+    }
+
+    if (RoadMapTripNext == RoadMapTripDest) {
+	return -1;
+    }
+
+    angle = roadmap_math_azymuth (&RoadMapTripGps->map, &RoadMapTripNext->pos);
+    angle -= RoadMapTripGps->gps.steering + roadmap_math_get_orientation();
+
+    return ROADMAP_STATE_ENCODE_STATE ( angle, 0);
+}
+
+static int roadmap_trip_2nd_point_state(void) {
+
+    waypoint *tmp;
+    int angle;
+
+    if (! RoadMapRouteInProgress ||
+	RoadMapCurrentRoute == NULL ||
+	!RoadMapTripGps->has_value) {
+	return -1;
+    }
+
+    if (RoadMapTripNext == RoadMapTripDest) {
+	return -1;
+    }
+
+    tmp = roadmap_trip_next(RoadMapTripNext);
+    if (tmp == RoadMapTripDest) {
+	return -1;
+    }
+
+    angle = roadmap_math_azymuth (&RoadMapTripGps->map, &tmp->pos);
+    angle -= RoadMapTripGps->gps.steering + roadmap_math_get_orientation();
+
+    return ROADMAP_STATE_ENCODE_STATE ( angle, 0);
+
+}
+
+static int roadmap_trip_dest_state(void) {
+    int angle;
+    if (! RoadMapRouteInProgress ||
+	RoadMapCurrentRoute == NULL ||
+	!RoadMapTripGps->has_value) {
+	return -1;
+    }
+
+    angle = roadmap_math_azymuth (&RoadMapTripGps->map, &RoadMapTripDest->pos);
+    angle -= RoadMapTripGps->gps.steering + roadmap_math_get_orientation();
+
+    return ROADMAP_STATE_ENCODE_STATE (angle, 0);
+}
+
+void roadmap_trip_show_nextpoint(void) {
+    if (!RoadMapRouteInProgress ||
+	RoadMapCurrentRoute == NULL ||
+        RoadMapTripNext == NULL) {
+	return;
+    }
+
+    roadmap_trip_set_focus_waypoint (RoadMapTripNext);
+    roadmap_screen_refresh ();
+}
+
+void roadmap_trip_show_2ndnextpoint(void) {
+    if (!RoadMapRouteInProgress ||
+	RoadMapCurrentRoute == NULL ||
+        RoadMapTripNext == NULL) {
+	return;
+    }
+
+    roadmap_trip_set_focus_waypoint (roadmap_trip_next(RoadMapTripNext));
+    roadmap_screen_refresh ();
 }
 
 
@@ -1892,8 +1975,6 @@ void roadmap_trip_format_messages (void) {
     int distance_to_next;
     int distance_to_directions;
     int waypoint_size;
-    time_t now = time (NULL);
-    time_t sun;
     static RoadMapPosition lastgpsmap = {-1, -1};
     static waypoint *within_waypoint = NULL;
 
@@ -1903,29 +1984,20 @@ void roadmap_trip_format_messages (void) {
 
         roadmap_message_unset ('A');
         roadmap_message_unset ('D');
-        roadmap_message_unset ('S');
-        roadmap_message_unset ('T');
         roadmap_message_unset ('W');
 
-        roadmap_message_unset ('M');
-        roadmap_message_unset ('E');
         roadmap_message_unset ('X');
         roadmap_message_unset ('Y');
         lastgpsmap.latitude = -1;
         return;
     }
 
-    roadmap_message_set ('T', roadmap_time_get_hours_minutes (now));
-
     if (!gps->has_value) {
 
         roadmap_message_unset ('A');
         roadmap_message_set ('D', "?? %s", roadmap_math_trip_unit());
-        roadmap_message_set ('S', "?? %s", roadmap_math_speed_unit ());
         roadmap_message_set ('W', "?? %s", roadmap_math_distance_unit ());
 
-        roadmap_message_set ('M', "??:??");
-        roadmap_message_set ('E', "??:??");
         roadmap_message_set ('X', "??");
         roadmap_message_set ('Y', "?? %s", roadmap_math_trip_unit());
         lastgpsmap.latitude = -1;
@@ -2041,28 +2113,6 @@ void roadmap_trip_format_messages (void) {
 
         roadmap_math_trip_set_distance ('W', distance_to_next);
 
-    }
-
-    roadmap_message_set ('S', "%3d %s",
-                         roadmap_math_to_speed_unit (gps->gps.speed),
-                         roadmap_math_speed_unit ());
-
-    roadmap_message_set ('H', "%d %s",
-                         gps->gps.altitude, roadmap_math_distance_unit ());
-
-    sun = roadmap_sunset (&gps->gps);
-    if (sun > now) {
-
-        roadmap_message_unset ('M');
-
-        roadmap_message_set ('E', roadmap_time_get_hours_minutes (sun));
-
-    } else {
-
-        roadmap_message_unset ('E');
-
-        sun = roadmap_sunrise (&gps->gps);
-        roadmap_message_set ('M', roadmap_time_get_hours_minutes (sun));
     }
 
     lastgpsmap = gps->map;
@@ -2226,7 +2276,7 @@ static const char *roadmap_trip_current() {
 void roadmap_trip_new (void) {
 
     if (RoadMapTripModified) {
-        if (!roadmap_trip_save (0)) {
+        if (!roadmap_trip_save ()) {
             return;
         }
     }
@@ -2235,13 +2285,13 @@ void roadmap_trip_new (void) {
 
     roadmap_trip_set_modified(0);
 
-    roadmap_screen_redraw ();
-
     roadmap_main_title("");
 
     /* NB:  there may be a name in config, which couldn't be read
      * at startup */
     RoadMapTripUntitled = 1;
+
+    roadmap_screen_refresh ();
 }
 
 
@@ -2357,7 +2407,7 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
         // delete some stuff, and reload to get it back, that won't
         // work.
         if (RoadMapTripModified) {
-            if (!roadmap_trip_save (0)) {
+            if (!roadmap_trip_save ()) {
                 return 0;
             }
         }
@@ -2417,15 +2467,14 @@ int roadmap_trip_load (int silent, int merge) {
     return roadmap_trip_load_file ( name, silent, merge);
 }
 
-int roadmap_trip_load_ask (int merge) {
+void roadmap_trip_load_ask (void) {
 
-    if (merge) {
-        roadmap_trip_file_merge_dialog ("r");
-    } else {
-        roadmap_trip_file_dialog ("r");
-    }
-    return 0;
+    roadmap_trip_file_dialog ("r");
+}
 
+void roadmap_trip_merge_ask (void) {
+
+    roadmap_trip_file_merge_dialog ("r");
 }
 
 static int roadmap_trip_save_file (const char *name) {
@@ -2449,14 +2498,12 @@ static int roadmap_trip_save_file (const char *name) {
 
 }
 
-int roadmap_trip_save (int manual) {
+int roadmap_trip_save (void) {
 
     int ret = 1; /* success */
 
     if (RoadMapTripUntitled) {
-        if (manual) {
-            roadmap_trip_save_as();
-        } else if (RoadMapTripModified) { /* need to choose a name */
+        if (RoadMapTripModified) { /* need to choose a name */
             const char *path = roadmap_path_trips();
             char name[50];
             int i;
@@ -2479,12 +2526,21 @@ int roadmap_trip_save (int manual) {
             }
         }
     } else {
-        if (manual || RoadMapTripModified) {
+        if (RoadMapTripModified) {
             ret = roadmap_trip_save_file (roadmap_trip_current());
         }
     }
 
     return ret;
+}
+
+void roadmap_trip_save_manual (void) {
+
+    if (RoadMapTripUntitled) {
+        roadmap_trip_save_as();
+    } else {
+	roadmap_trip_save_file (roadmap_trip_current());
+    }
 }
 
 void roadmap_trip_save_as() {
@@ -2787,10 +2843,11 @@ void roadmap_trip_waypoint_show_selected(void) {
         wpt->description ? " - " : "",
         wpt->description ? wpt->description  : "",
         roadmap_list_count(&RoadMapTripAreaPlaces) > 1 ? " (more)" : "");
-      roadmap_screen_redraw ();
 
       roadmap_trip_move_last_cancel (NULL);
       RoadMapTripSelectedPlace = pp;
+
+      roadmap_screen_refresh ();
 }
 
 static void roadmap_trip_waypoint_selection_dialog_selected (
@@ -2894,7 +2951,6 @@ int roadmap_trip_retrieve_area_points
 
    if (!count) {
       roadmap_display_hide("Place");
-      roadmap_screen_redraw ();
       return 0;
    }
 
@@ -3024,37 +3080,7 @@ void roadmap_trip_edit_last_place(void)
 
 }
 
-
-/* When moving a place, we replace the mouse click handlers with
- * our own.  A short click executes the move, the other two clicks
- * simply cancel it.
- */
-
-RoadMapPointerHandler RoadMapTripOldShortClickHandler;
-RoadMapPointerHandler RoadMapTripOldLongClickHandler;
-RoadMapPointerHandler RoadMapTripOldRightClickHandler;
-
-static void roadmap_trip_move_last_cancel (RoadMapGuiPoint *point) {
-
-    if (RoadMapTripOldShortClickHandler != NULL)
-        roadmap_pointer_register_short_click (RoadMapTripOldShortClickHandler);
-    if (RoadMapTripOldLongClickHandler != NULL)
-        roadmap_pointer_register_long_click (RoadMapTripOldLongClickHandler);
-    if (RoadMapTripOldRightClickHandler != NULL)
-        roadmap_pointer_register_right_click (RoadMapTripOldRightClickHandler);
-
-    RoadMapTripOldShortClickHandler = NULL;
-    RoadMapTripOldLongClickHandler = NULL;
-    RoadMapTripOldRightClickHandler = NULL;
-
-    RoadMapTripPlaceMoving = 0;
-
-    roadmap_display_hide("Moving");
-    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
-    roadmap_screen_refresh ();
-}
-
-static void roadmap_trip_move_last_handler (RoadMapGuiPoint *point) {
+static int roadmap_trip_move_last_handler (RoadMapGuiPoint *point) {
 
     waypoint *w;
     roadmap_place_pointer *pp;
@@ -3074,6 +3100,27 @@ static void roadmap_trip_move_last_handler (RoadMapGuiPoint *point) {
     }
 
     roadmap_trip_move_last_cancel (point);
+    return 1;
+}
+
+
+/* When moving a place, we replace the mouse click handlers with
+ * our own.  A short click executes the move, the other two clicks
+ * simply cancel it.
+ */
+
+static int roadmap_trip_move_last_cancel (RoadMapGuiPoint *point) {
+
+    roadmap_pointer_unregister_short_click (&roadmap_trip_move_last_handler);
+    roadmap_pointer_unregister_long_click (&roadmap_trip_move_last_cancel);
+    roadmap_pointer_unregister_right_click (&roadmap_trip_move_last_cancel);
+
+    RoadMapTripPlaceMoving = 0;
+
+    roadmap_display_hide("Moving");
+    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
+    roadmap_screen_refresh ();
+    return 1;
 }
 
 void roadmap_trip_move_last_place(void)
@@ -3109,12 +3156,9 @@ void roadmap_trip_move_last_place(void)
 
     RoadMapTripPlaceMoving = 1;
 
-    RoadMapTripOldShortClickHandler =
-        roadmap_pointer_register_short_click (&roadmap_trip_move_last_handler);
-    RoadMapTripOldLongClickHandler =
-        roadmap_pointer_register_long_click (&roadmap_trip_move_last_cancel);
-    RoadMapTripOldRightClickHandler = 
-        roadmap_pointer_register_right_click (&roadmap_trip_move_last_cancel);
+    roadmap_pointer_register_short_click (&roadmap_trip_move_last_handler, POINTER_HIGHEST);
+    roadmap_pointer_register_long_click (&roadmap_trip_move_last_cancel, POINTER_HIGHEST);
+    roadmap_pointer_register_right_click (&roadmap_trip_move_last_cancel, POINTER_HIGHEST);
 }
 
 #if WGET_GOOGLE_ROUTE
@@ -3208,6 +3252,10 @@ void roadmap_trip_initialize (void) {
                                 (&RoadMapConfigTripShowInactiveRoutes, "yes");
 
     
+    roadmap_state_add ("get_direction_next", &roadmap_trip_next_point_state);
+    roadmap_state_add ("get_direction_2nd", &roadmap_trip_2nd_point_state);
+    roadmap_state_add ("get_direction_dest", &roadmap_trip_dest_state);
+
 
 }
 
