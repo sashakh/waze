@@ -26,6 +26,12 @@
 
 #include "roadmap_io.h"
 
+enum {GPS_RECEPTION_NA = 0,
+      GPS_RECEPTION_NONE,
+      GPS_RECEPTION_POOR,
+      GPS_RECEPTION_GOOD
+};
+
 
 void roadmap_gps_initialize (void);
 
@@ -54,7 +60,8 @@ typedef struct {
 
 } RoadMapGpsPrecision;
 
-typedef void (*roadmap_gps_listener) (int gps_time,
+typedef void (*roadmap_gps_listener) (int reception,
+                                      int gps_time,
                                       const RoadMapGpsPrecision *dilution,
                                       const RoadMapGpsPosition  *position);
 
@@ -76,7 +83,8 @@ typedef struct {
 
 } RoadMapGpsSatellite;
 
-typedef void (*roadmap_gps_monitor) (const RoadMapGpsPrecision *precision,
+typedef void (*roadmap_gps_monitor) (int reception,
+                                     const RoadMapGpsPrecision *precision,
                                      const RoadMapGpsSatellite *satellites,
                                      int count);
 
@@ -122,6 +130,8 @@ int  roadmap_gps_estimated_error (void);
 int  roadmap_gps_speed_accuracy  (void);
 
 int  roadmap_gps_is_nmea (void);
+
+void roadmap_gps_shutdown (void);
 
 #endif // INCLUDED__ROADMAP_GPS__H
 
