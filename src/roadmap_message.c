@@ -1,4 +1,4 @@
-/* roadmap_display.c - Manage screen signs.
+/* roadmap_message.c - Manage screen signs.
  *
  * LICENSE:
  *
@@ -22,20 +22,29 @@
  *
  * SYNOPSYS:
  *
- *   See roadmap_display.h.
+ *   See roadmap_message.h.
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include "roadmap.h"
+#include "roadmap_time.h"
 #include "roadmap_message.h"
+#include "roadmap_display.h"
 
 
 static char *RoadMapMessageParameters[128] = {NULL};
 
+static int RoadMapMessagesUseTime;
+
+int roadmap_message_time_in_use(void) {
+
+    return RoadMapMessagesUseTime;
+}
 
 int roadmap_message_format (char *text, int length, const char *format) {
 
@@ -52,7 +61,11 @@ int roadmap_message_format (char *text, int length, const char *format) {
                 break;
             }
             
-            f = RoadMapMessageParameters[(int)(*(format++))];
+            f = RoadMapMessageParameters[(int)(*format)];
+            if (*format == 'T') {
+                RoadMapMessagesUseTime = 1;
+            }
+            format += 1;
             if (f != NULL) {
                 while (*f && p < end) {
                     *(p++) = *(f++);
