@@ -77,6 +77,10 @@ int  roadmap_download_enabled (void);
 
 void roadmap_download_initialize (void);
 
+enum { DOWNLOAD_DISABLED = -1,
+       DOWNLOAD_ENABLED = 0
+};
+
 
 /* The following functions make it possible to selectively disable or enable
  * the download of a specific county.

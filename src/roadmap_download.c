@@ -39,6 +39,7 @@
 #include "roadmap_gui.h"
 #include "roadmap_county.h"
 #include "roadmap_screen.h"
+#include "roadmap_state.h"
 #include "roadmap_locator.h"
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
@@ -758,6 +759,15 @@ int  roadmap_download_enabled (void) {
    return (RoadMapDownloadWhenDone != roadmap_download_no_handler);
 }
 
+static int roadmap_download_state (void) {
+
+   if (roadmap_download_enabled()) {
+      return DOWNLOAD_ENABLED;
+   } else {
+      return DOWNLOAD_DISABLED;
+   }
+}
+
 
 void roadmap_download_initialize (void) {
 
@@ -774,5 +784,7 @@ void roadmap_download_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigDestination, strdup(default_destination));
+
+    roadmap_state_add ("get_download_enabled", &roadmap_download_state);
 }
 
