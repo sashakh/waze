@@ -29,35 +29,55 @@
 
 #include "roadmap_gui.h"
 
+#define POINTER_DEFAULT 0
+#define POINTER_NORMAL  1
+#define POINTER_HIGH    2
+#define POINTER_HIGHEST 3
 
-typedef void (*RoadMapPointerHandler)    (RoadMapGuiPoint *point);
+typedef int (*RoadMapPointerHandler) (RoadMapGuiPoint *point);
 
 void roadmap_pointer_initialize (void);
 
-RoadMapPointerHandler
-   roadmap_pointer_register_short_click (RoadMapPointerHandler handler);
-RoadMapPointerHandler
-   roadmap_pointer_register_long_click (RoadMapPointerHandler handler);
-RoadMapPointerHandler
-   roadmap_pointer_register_drag_start (RoadMapPointerHandler handler);
-RoadMapPointerHandler
-   roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler);
-RoadMapPointerHandler
-   roadmap_pointer_register_drag_end (RoadMapPointerHandler handler);
+void roadmap_pointer_register_short_click (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_long_click (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_drag_start (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_drag_motion (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_drag_end (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_pressed (RoadMapPointerHandler handler,
+                                           int priority);
+void roadmap_pointer_register_released (RoadMapPointerHandler handler,
+                                           int priority);
 
 /* These events are available only on desktops (mouse). */
 
-RoadMapPointerHandler
-   roadmap_pointer_register_middle_click (RoadMapPointerHandler handler);
+void roadmap_pointer_register_middle_click (RoadMapPointerHandler handler,
+                                           int priority);
 
-RoadMapPointerHandler
-   roadmap_pointer_register_right_click (RoadMapPointerHandler handler);
+void roadmap_pointer_register_right_click (RoadMapPointerHandler handler,
+                                           int priority);
 
-RoadMapPointerHandler
-   roadmap_pointer_register_scroll_up (RoadMapPointerHandler handler);
+void roadmap_pointer_register_scroll_up (RoadMapPointerHandler handler,
+                                           int priority);
 
-RoadMapPointerHandler
-   roadmap_pointer_register_scroll_down (RoadMapPointerHandler handler);
+void roadmap_pointer_register_scroll_down (RoadMapPointerHandler handler,
+                                           int priority);
+
+void roadmap_pointer_unregister_short_click (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_long_click  (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_drag_start  (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_drag_motion (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_drag_end    (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_pressed     (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_released    (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_middle_click(RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_right_click (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_scroll_up   (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_scroll_down (RoadMapPointerHandler handler);
 
 #endif // INCLUDED__ROADMAP_POINTER__H
 

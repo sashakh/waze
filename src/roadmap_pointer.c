@@ -27,6 +27,7 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "roadmap.h"
 #include "roadmap_pointer.h"
@@ -42,47 +43,46 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyMinDrag =
                             ROADMAP_CONFIG_ITEM("Accuracy", "Minimum Drag");
 
 static int is_button_down = 0;
+static int cancel_dragging = 0;
 static int is_dragging = 0;
 static int is_drag_flow_control_on = 0;
 
 static RoadMapGuiPoint last_pointer_point;
 
-/* The pointer events callbacks: all callbacks are initialized to do-nothing
- * functions, so that we don't care checking if one has been setup.
- */
-static void roadmap_pointer_ignore_event (RoadMapGuiPoint *point) {}
 
-static RoadMapPointerHandler RoadMapPointerShortClick =
-                                     roadmap_pointer_ignore_event;
+enum POINTER_EVENT {SHORT_CLICK = 0, LONG_CLICK,
+    MIDDLE_CLICK, RIGHT_CLICK, PRESSED, RELEASED,
+    DRAG_START, DRAG_MOTION, DRAG_END, 
+    SCROLL_UP, SCROLL_DOWN,
+    MAX_EVENTS};
 
-static RoadMapPointerHandler RoadMapPointerLongClick =
-                                     roadmap_pointer_ignore_event;
+#define MAX_CALLBACKS 10
 
-static RoadMapPointerHandler RoadMapPointerDragStart =
-                                     roadmap_pointer_ignore_event;
+typedef struct pointer_callback {
+   RoadMapPointerHandler handler;
+   int                   priority;
+} PointerCallback;
 
-static RoadMapPointerHandler RoadMapPointerDragMotion =
-                                     roadmap_pointer_ignore_event;
+static PointerCallback pointer_callbacks[MAX_EVENTS][MAX_CALLBACKS];
 
-static RoadMapPointerHandler RoadMapPointerDragEnd =
-                                     roadmap_pointer_ignore_event;
 
-static RoadMapPointerHandler RoadMapPointerMiddleClick =
-                                     roadmap_pointer_ignore_event;
+static int exec_callbacks (int event, RoadMapGuiPoint *point) {
+   int i = 0;
+   int res = 0;
 
-static RoadMapPointerHandler RoadMapPointerRightClick =
-                                     roadmap_pointer_ignore_event;
+   while ((i<MAX_CALLBACKS) && pointer_callbacks[event][i].handler) {
+      res = (pointer_callbacks[event][i].handler) (point);
+      if (res) break;
+      i++;
+   }
 
-static RoadMapPointerHandler RoadMapPointerScrollUp =
-                                     roadmap_pointer_ignore_event;
-
-static RoadMapPointerHandler RoadMapPointerScrollDown =
-                                     roadmap_pointer_ignore_event;
+   return res;
+}
 
 static void roadmap_pointer_button_timeout(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-   RoadMapPointerLongClick(&last_pointer_point);
+   exec_callbacks (LONG_CLICK, &last_pointer_point);
    is_button_down = 0;
 }
  
@@ -94,15 +94,27 @@ static void roadmap_pointer_button_timeout(void) {
 static void roadmap_pointer_drag_flow_control(void) {
 
    roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
-   RoadMapPointerDragMotion(&last_pointer_point);
+
+   exec_callbacks (DRAG_MOTION, &last_pointer_point);
    is_drag_flow_control_on = 0;
 }
 
 
 static void roadmap_pointer_button_pressed
                             (int button, RoadMapGuiPoint *point) {
-   is_button_down = 1;
+
    last_pointer_point = *point;
+
+   if (exec_callbacks (PRESSED, point)) {
+
+      /* If a handler returns true dragging event is off.
+       */
+      cancel_dragging = 1;
+   } else {
+      cancel_dragging = 0;
+   }
+
+   is_button_down = 1;
    if (button == 1) {
       roadmap_main_set_periodic
          (LONG_CLICK_TIMEOUT, roadmap_pointer_button_timeout);
@@ -119,7 +131,7 @@ static void roadmap_pointer_button_released
          roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
          is_drag_flow_control_on = 0;
       }
-      RoadMapPointerDragEnd(point);
+      exec_callbacks (DRAG_END, point);
       is_dragging = 0;
       is_button_down = 0;
 
@@ -127,17 +139,20 @@ static void roadmap_pointer_button_released
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
       switch (button) {
-         case 1: RoadMapPointerShortClick(point);  break;
-         case 2: RoadMapPointerMiddleClick(point); break;
-         case 3: RoadMapPointerRightClick(point);  break;
+         case 1: exec_callbacks (SHORT_CLICK, point); break;
+         case 2: exec_callbacks (MIDDLE_CLICK, point); break;
+         case 3: exec_callbacks (RIGHT_CLICK, point); break;
       }
       is_button_down = 0;
    }
+
+   exec_callbacks (RELEASED, point);
+
 }
 
 static void roadmap_pointer_moved (int button, RoadMapGuiPoint *point) {
 
-   if (!is_button_down && !is_dragging) return;
+   if (cancel_dragging || (!is_button_down && !is_dragging)) return;
 
    if (!is_dragging) {
 
@@ -149,7 +164,9 @@ static void roadmap_pointer_moved (int button, RoadMapGuiPoint *point) {
 
 
       roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      RoadMapPointerDragStart(&last_pointer_point);
+
+      exec_callbacks (DRAG_START, &last_pointer_point);
+
       last_pointer_point = *point;
       is_drag_flow_control_on = 1;
       roadmap_main_set_periodic
@@ -167,12 +184,47 @@ static void roadmap_pointer_moved (int button, RoadMapGuiPoint *point) {
 }
 
 
+
+static void remove_callback (int event, void *handler) {
+   int i=0;
+   for (i=0; i<MAX_CALLBACKS; i++) {
+      if (pointer_callbacks[event][i].handler == handler) break;
+   }
+
+   if (i==MAX_CALLBACKS) return;
+
+   memmove (&pointer_callbacks[event][i], &pointer_callbacks[event][i+1],
+            sizeof(PointerCallback) * (MAX_CALLBACKS - i - 1));
+
+   pointer_callbacks[event][MAX_CALLBACKS - 1].handler = NULL;
+}
+
+
+static void queue_callback (int event, void *handler, int priority) {
+   int i;
+
+   if (pointer_callbacks[event][MAX_CALLBACKS-1].handler) {
+      roadmap_log (ROADMAP_FATAL, "Too many callbacks for event: %d", event);
+   }
+
+   for (i=0; i<MAX_CALLBACKS; i++) {
+      if (pointer_callbacks[event][i].priority <= priority) break;
+   }
+
+   
+   memmove (&pointer_callbacks[event][i+1], &pointer_callbacks[event][i],
+            sizeof(PointerCallback) * (MAX_CALLBACKS - i - 1));
+
+   pointer_callbacks[event][i].handler = handler;
+   pointer_callbacks[event][i].priority = priority;
+}
+
 static void roadmap_pointer_scroll (int button, RoadMapGuiPoint *point) {
 
    if (button > 0) {
-      RoadMapPointerScrollUp(point);
+      exec_callbacks (SCROLL_UP, POINTER_DEFAULT);
    } else if (button < 0) {
-      RoadMapPointerScrollDown(point);
+      exec_callbacks (SCROLL_DOWN, POINTER_DEFAULT);
    }
 }
 
@@ -193,79 +245,145 @@ void roadmap_pointer_initialize (void) {
 }
 
 
-RoadMapPointerHandler roadmap_pointer_register_short_click
+void roadmap_pointer_register_short_click
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (SHORT_CLICK, handler, priority);
+}
+
+
+void roadmap_pointer_register_long_click
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (LONG_CLICK, handler, priority);
+}
+
+void roadmap_pointer_register_pressed (RoadMapPointerHandler handler,
+                                       int priority) {
+
+   queue_callback (PRESSED, handler, priority);
+}
+
+
+void roadmap_pointer_register_released (RoadMapPointerHandler handler,
+                                        int priority) {
+
+   queue_callback (RELEASED, handler, priority);
+}
+
+
+void roadmap_pointer_register_drag_start
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (DRAG_START, handler, priority);
+}
+
+
+void roadmap_pointer_register_drag_motion
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (DRAG_MOTION, handler, priority);
+}
+
+
+void roadmap_pointer_register_drag_end
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (DRAG_END, handler, priority);
+}
+
+void roadmap_pointer_register_middle_click
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (MIDDLE_CLICK, handler, priority);
+}
+
+void roadmap_pointer_register_right_click
+                                (RoadMapPointerHandler handler,
+				 int priority) {
+
+   queue_callback (RIGHT_CLICK, handler, priority);
+}
+
+void roadmap_pointer_register_scroll_up (RoadMapPointerHandler handler,
+    int priority) {
+
+   queue_callback (SCROLL_UP, handler, priority);
+}
+
+void roadmap_pointer_register_scroll_down (RoadMapPointerHandler handler,
+    int priority) {
+
+   queue_callback (SCROLL_DOWN, handler, priority);
+}
+
+void roadmap_pointer_unregister_short_click (RoadMapPointerHandler handler) {
+
+   remove_callback (SHORT_CLICK, handler);
+}
+
+
+void roadmap_pointer_unregister_long_click (RoadMapPointerHandler handler) {
+
+   remove_callback (LONG_CLICK, handler);
+}
+
+
+void roadmap_pointer_unregister_pressed (RoadMapPointerHandler handler) {
+
+   remove_callback (PRESSED, handler);
+}
+
+
+void roadmap_pointer_unregister_released (RoadMapPointerHandler handler) {
+
+   remove_callback (RELEASED, handler);
+}
+
+
+void roadmap_pointer_unregister_drag_start (RoadMapPointerHandler handler) {
+
+   remove_callback (DRAG_START, handler);
+}
+
+
+void roadmap_pointer_unregister_drag_motion (RoadMapPointerHandler handler) {
+
+   remove_callback (DRAG_MOTION, handler);
+}
+
+
+void roadmap_pointer_unregister_drag_end (RoadMapPointerHandler handler) {
+
+   remove_callback (DRAG_END, handler);
+}
+
+
+void roadmap_pointer_unregister_middle_click
                                 (RoadMapPointerHandler handler) {
 
-   RoadMapPointerHandler old = RoadMapPointerShortClick;
-   RoadMapPointerShortClick = handler;
-   return old;
+   remove_callback (MIDDLE_CLICK, handler);
 }
 
-
-RoadMapPointerHandler roadmap_pointer_register_long_click
+void roadmap_pointer_unregister_right_click
                                 (RoadMapPointerHandler handler) {
 
-   RoadMapPointerHandler old = RoadMapPointerLongClick;
-   RoadMapPointerLongClick = handler;
-   return old;
+   remove_callback (RIGHT_CLICK, handler);
 }
 
+void roadmap_pointer_unregister_scroll_up (RoadMapPointerHandler handler) {
 
-RoadMapPointerHandler roadmap_pointer_register_drag_start
-                                (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerDragStart;
-   RoadMapPointerDragStart = handler;
-   return old;
+   remove_callback (SCROLL_UP, handler);
 }
 
+void roadmap_pointer_unregister_scroll_down (RoadMapPointerHandler handler) {
 
-RoadMapPointerHandler roadmap_pointer_register_drag_motion
-                                (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerDragMotion;
-   RoadMapPointerDragMotion = handler;
-   return old;
-}
-
-
-RoadMapPointerHandler roadmap_pointer_register_drag_end
-                                (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerDragEnd;
-   RoadMapPointerDragEnd = handler;
-   return old;
-}
-
-RoadMapPointerHandler roadmap_pointer_register_middle_click
-                                (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerMiddleClick;
-   RoadMapPointerMiddleClick = handler;
-   return old;
-}
-
-RoadMapPointerHandler roadmap_pointer_register_right_click
-                                (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerRightClick;
-   RoadMapPointerRightClick = handler;
-   return old;
-}
-
-RoadMapPointerHandler
-   roadmap_pointer_register_scroll_up (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerScrollUp;
-   RoadMapPointerScrollUp = handler;
-   return old;
-}
-
-RoadMapPointerHandler
-   roadmap_pointer_register_scroll_down (RoadMapPointerHandler handler) {
-
-   RoadMapPointerHandler old = RoadMapPointerScrollDown;
-   RoadMapPointerScrollDown = handler;
-   return old;
+   remove_callback (SCROLL_DOWN, handler);
 }
 
