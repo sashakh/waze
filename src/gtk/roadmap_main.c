@@ -359,7 +359,7 @@ void roadmap_main_add_tool_space (void) {
 static unsigned long roadmap_main_busy_start;
 
 void roadmap_main_set_cursor (int newcursor) {
-   GdkCursor *cursor;
+   GdkCursor *cursor = NULL;
    static int lastcursor;
 
    roadmap_main_busy_start = 0;
