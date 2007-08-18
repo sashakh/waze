@@ -29,6 +29,24 @@ typedef int (*RoadMapStateFn) (void);
 void roadmap_state_add (const char *name, RoadMapStateFn state_fn);
 RoadMapStateFn roadmap_state_find (const char *name);
 
+/* 10 bits of the int returned from a RoadMapStateFn are used for
+ * actual state (e.g.  to determine which, if any, sprite or icon
+ * to display) and the upper bits are used to give an angle
+ * relative to north.
+ */
+#define ROADMAP_STATE_BITS 10
+#define ROADMAP_STATE_MASK ((1 << ROADMAP_STATE_BITS) - 1)
+#define ROADMAP_STATE_ANGLE_MASK (~ROADMAP_STATE_MASK)
+
+#define ROADMAP_STATE_ENCODE_STATE(angle, state) \
+    (((angle) << ROADMAP_STATE_BITS) | (state))
+
+#define ROADMAP_STATE_DECODE_ANGLE(state) \
+    (((state) & ROADMAP_STATE_ANGLE_MASK ) >> ROADMAP_STATE_BITS)
+
+#define ROADMAP_STATE_DECODE_STATE(state) \
+    ((state) & ROADMAP_STATE_MASK)
+
 void roadmap_state_monitor (RoadMapCallback monitor);
 void roadmap_state_refresh (void);
 
