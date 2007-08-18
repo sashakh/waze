@@ -1838,7 +1838,7 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  A: | estimated time of arrival (not yet implemented).
 *-----+-----------------------------------------------------------------+
-|  B: | Route bearing (not yet implemented).
+|  B: | Direction of travel (bearing).
 *-----+-----------------------------------------------------------------+
 |  C: | the name of the city for the selected or current street.
 *-----+-----------------------------------------------------------------+
@@ -1846,11 +1846,15 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  E: | Next sunset time (evening), undefined in night time.
 *-----+-----------------------------------------------------------------+
+|  e: | Next sunset time, always defined.
+*-----+-----------------------------------------------------------------+
 |  F: | the full name (number, name, city) of the selected or current street.
 *-----+-----------------------------------------------------------------+
-|  H: | Altitude (set only when a trip is active).
+|  H: | Altitude.
 *-----+-----------------------------------------------------------------+
 |  M: | Next sunrise time (morning), undefined in daylight time.
+*-----+-----------------------------------------------------------------+
+|  m: | Next sunrise time, always defined.
 *-----+-----------------------------------------------------------------+
 |  N: | the name of the selected or current street.
 *-----+-----------------------------------------------------------------+
@@ -1858,9 +1862,9 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  R: | the name of the route or list containing the selected place.
 *-----+-----------------------------------------------------------------+
-|  S: | Speed (set only when a trip is active).
+|  S: | Speed.
 *-----+-----------------------------------------------------------------+
-|  T: | Current time, format HH:MM (set only when a trip is active).
+|  T: | Current time, format HH:MM.
 *-----+-----------------------------------------------------------------+
 |  W: | Distance to the next waypoint (set only when a trip is active).
 *-----+-----------------------------------------------------------------+
@@ -1922,7 +1926,9 @@ CONFIGURATION
    program comes with a built-in menus and toolbar configuration that
    serves as the default, so none of these configuration files is required
    to be present for RoadMap or RoadGps to work. In fact, RoadMap is
-   distributed with none of the configuration files described in this section.
+   distributed with none of the configuration files described in this section. 
+   (Example files are provided for RoadMap, but are not installed
+   automatically.)
 
    It must be realized that making any change to the menus and the toolbar
    comes at a price: this documentation was written using the standard
@@ -2058,6 +2064,67 @@ CONFIGURATION
 
    In fact, this renaming mechanism is likely to conflict with a future
    internationalization effort, and might be removed in later releases.
+
+* CONFIGURING ON-SCREEN OBJECTS
+
+   RoadMap can display small images on the screen (on-screen objects) which
+   can reflect the state of the program (e.g., which way is north, how strong
+   is the GPS signal), and/or allow actions to be performed (e.g.  zoom in,
+   show the trip's destination).  These objects may be placed anywhere on the
+   screen, but nothing prevents them from being obscured by other popup
+   messages and displays, so their position is usually along the sides of the
+   screen.
+
+   The position, display, and actions associated with these objects are
+   controlled by a "roadmap.screenobjects" file.  The distributed copy of this
+   file contains definitions for a small compass image, a map download
+   indicator, zoom in and zoom out control points, and some arrow indicators
+   which help point the way when following a route.  The user is free
+   to make a local copy of this file in order to add on-screen command
+   points, and to customize the display in general.
+
+   The roadmap.screenobjects file is made of a sequence of single-line
+   commands.  The "sprites" referred to in this description are defined
+   in the configuration file named "sprites", described in the "SPRITES FILE"
+   section of the documentation.
+
+*---------------------------+------------------------------------------------+
+|        N <name>           |  Name of the object (unused, but starts 
+|                           |  a new object)
+*---------------------------+------------------------------------------------+
+|        P <x> <y>          |  The screen position of the sprite, measured
+|                           |  from the top left in pixels.  Negative offsets
+|                           |  measure from the right and from the bottom.
+*---------------------------+------------------------------------------------+
+|        E <sprite>         |  The name of the sprite which will be drawn.
+*---------------------------+------------------------------------------------+
+|        E <sprite>         |  Multiple sprites can be specified.  Which
+|                           |  one is displayed is selected via the object's
+|                           |  "state" indicator.
+*---------------------------+------------------------------------------------+
+|        S <statename>      |  The "state" indicator which will choose among 
+|                           |  the listed sprites.  For "constant" displays,
+|                           |  this is optional.
+*---------------------------+------------------------------------------------+
+|        A <actionname>     |  The action which should be invoked when the
+|                           |  sprite is selected.  Optional.  The action can
+|                           |  be a simple action name, or, when prefixed with
+|                           |  "-->", the name of a popup menu which should
+|                           |  be invoked.
+*---------------------------+------------------------------------------------+
+|        R                  |  Sprites will normally rotate, either with the
+|                           |  screen, or based on an angle retrieved via
+|                           |  the state indicator.  Specifying 'R'
+|                           |  suppresses rotation.
+*---------------------------+------------------------------------------------+
+|        B <x> <y> <x> <y>  |  Optional -- the bounding box used to determine 
+|                           |  whether a selection has taken place.  (I.e.,
+|                           |  the size of the sprite.) Normally the bounding
+|                           |  box is calculated by RoadMap itself, but
+|                           |  irregularly shaped sprites, combined with the
+|                           |  rotation of the sprite, may require that the
+|                           |  box be overridden.
+*---------------------------+------------------------------------------------+
 
 
 * A NOTE REGARDING COLORS
@@ -2951,6 +3018,15 @@ CONFIGURATION
 |        C <x>,<y> <radius>    | Draw a circle.
 *------------------------------+---------------------------------------------+
 |        D <x>,<y> <radius>    | Draw a disk (filled circle).
+*------------------------------+---------------------------------------------+
+|        B <x>,<y> <x>,<y>     | Optional -- the bounding box used to determine 
+|                              | whether a selection has taken place, when a
+|                              | a sprite is in use as an on-screen object (in
+|                              | "roadmap.screenobjects").  Normally the
+|                              | bounding box is calculated by RoadMap itself,
+|                              | but irregularly shaped sprites, combined with
+|                              | the rotation of the sprite, may require that
+|                              | the box be overridden.
 *------------------------------+---------------------------------------------+
 
      The coordinates are pixel positions, relative to the sprites "hot point".
