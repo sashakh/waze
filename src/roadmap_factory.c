@@ -514,7 +514,7 @@ static RoadMapAction * roadmap_factory_menu_dummy_action
    return &this_action;
 }
 
-static RoadMapAction *roadmap_factory_find_action_or_menu
+RoadMapAction *roadmap_factory_find_action_or_menu
                           (RoadMapAction *actions, const char *item) {
 
    if (strncmp (item, ROADMAP_INVOKE_SUBMENU,
