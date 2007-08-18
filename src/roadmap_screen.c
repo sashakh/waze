@@ -48,6 +48,7 @@
 #include "roadmap_county.h"
 
 #include "roadmap_sprite.h"
+#include "roadmap_screen_obj.h"
 #include "roadmap_object.h"
 #include "roadmap_gpx.h"
 #include "roadmap_trip.h"
@@ -128,6 +129,8 @@ static int RoadMapScreenRotation;
 static int RoadMapScreenWidth;
 static int RoadMapScreenHeight;
 
+static int RoadMapScreenRepaintNeeded;
+
 static int RoadMapLineFontSelect;
 
 static int RoadMapScreenDeltaX;
@@ -138,11 +141,6 @@ static int   SquareOnScreenCount;
 
 static RoadMapPen RoadMapScreenLastPen = NULL;
 
-
-static void roadmap_screen_after_refresh (void) {}
-
-static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
-                                       roadmap_screen_after_refresh;
 
 
 /* Define the buffers used to group all actual drawings. */
@@ -647,8 +645,9 @@ static void roadmap_screen_draw_square_edges (int square) {
 
    RoadMapGuiPoint points[6];
 
-
    if (! roadmap_is_visible (ROADMAP_SHOW_SQUARE)) return;
+
+   roadmap_log_push ("roadmap_screen_draw_square_edges");
 
    roadmap_square_edges (square, &edges);
    
@@ -677,6 +676,7 @@ static void roadmap_screen_draw_square_edges (int square) {
    roadmap_canvas_draw_multiple_lines (1, &count, points,
                                        RoadMapScreenDragging);
    RoadMapScreenLastPen = NULL;
+   roadmap_log_pop ();
 }
 
 /* arrange to not do labels further than 3/4 up the screen */
@@ -1097,7 +1097,6 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
 
 static void roadmap_screen_repaint (void) {
 
-    static RoadMapGuiPoint CompassPoint = {20, 20};
     static int *fips = NULL;
     static int *in_view = NULL;
 
@@ -1230,29 +1229,30 @@ static void roadmap_screen_repaint (void) {
     if (!RoadMapScreenDragging ||
        roadmap_config_match(&RoadMapConfigStyleObjects, "yes")) {
 
+       /* we could probably use a callback registration system
+        * for this, but order is important.
+        */
        roadmap_object_iterate (roadmap_screen_draw_object);
-
        roadmap_trip_format_messages ();
-    
        roadmap_landmark_display ();
        roadmap_features_display ();
        roadmap_trip_display ();
        roadmap_track_display ();
+       roadmap_screen_obj_draw ();
 
        if (roadmap_config_match (&RoadMapConfigMapSigns, "yes")) {
-
-          roadmap_sprite_draw ("Compass", &CompassPoint, 0);
 
           roadmap_display_signs ();
        }
 
     }
 
-    RoadMapScreenAfterRefresh();
 
     roadmap_canvas_refresh ();
 
     roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
+
+    RoadMapScreenRepaintNeeded = 0;
 
     roadmap_log_pop ();
     dbg_time_end(DBG_TIME_FULL);
@@ -1277,7 +1277,7 @@ static void roadmap_screen_configure (void) {
 
 }
 
-static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
+static int roadmap_screen_short_click (RoadMapGuiPoint *point) {
     
    PluginLine line;
    int distance;
@@ -1298,25 +1298,28 @@ static void roadmap_screen_short_click (RoadMapGuiPoint *point) {
        PluginStreet street;
 
        roadmap_display_activate ("Selected Street", &line, &position, &street);
-       roadmap_screen_repaint ();
+       RoadMapScreenRepaintNeeded = 1;
    }
 
    roadmap_trip_set_point ("Selection", &position);
    roadmap_screen_refresh ();
 
+   return 1;
 }
 
 
-static void roadmap_screen_right_click (RoadMapGuiPoint *point) {
+static int roadmap_screen_right_click (RoadMapGuiPoint *point) {
 
    roadmap_factory_popup
       (roadmap_config_get(&RoadMapConfigEventRightClick), point);
+   return 1;
 }
 
-static void roadmap_screen_long_click (RoadMapGuiPoint *point) {
+static int roadmap_screen_long_click (RoadMapGuiPoint *point) {
 
    roadmap_factory_popup
       (roadmap_config_get(&RoadMapConfigEventLongClick), point);
+   return 1;
 }
 
 
@@ -1350,14 +1353,16 @@ static void roadmap_screen_record_move (int dx, int dy) {
 }
 
 
-static void roadmap_screen_drag_start (RoadMapGuiPoint *point) {
+static int roadmap_screen_drag_start (RoadMapGuiPoint *point) {
 
    RoadMapScreenDragging = 1;
    RoadMapScreenPointerLocation = *point;
    roadmap_screen_hold (); /* We don't want to move with the GPS position. */
+
+   return 1;
 }
 
-static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
+static int roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
    roadmap_screen_record_move
       (RoadMapScreenPointerLocation.x - point->x,
@@ -1366,10 +1371,13 @@ static void roadmap_screen_drag_end (RoadMapGuiPoint *point) {
    RoadMapScreenDragging = 0;
    RoadMapScreenPointerLocation = *point;
    roadmap_screen_hold ();
+   RoadMapScreenRepaintNeeded = 1;
    roadmap_screen_refresh ();
+
+   return 1;
 }
 
-static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
+static int roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
    if (RoadMapScreenViewMode == VIEW_MODE_3D) {
 
@@ -1390,6 +1398,8 @@ static void roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
    roadmap_screen_repaint ();
    RoadMapScreenPointerLocation = *point;
+
+   return 1;
 }
 
 static int roadmap_screen_get_view_mode (void) {
@@ -1398,20 +1408,27 @@ static int roadmap_screen_get_view_mode (void) {
 }
 
 static int roadmap_screen_get_orientation_mode (void) {
-   
-   return RoadMapScreenOrientationDynamic;
+
+   if (RoadMapScreenOrientationDynamic)
+      return ORIENTATION_DYNAMIC;
+   else
+      return ORIENTATION_FIXED;
 }
 
-static void roadmap_screen_scroll_up (RoadMapGuiPoint *point) {
+static int roadmap_screen_scroll_up (RoadMapGuiPoint *point) {
    if ( ! roadmap_config_match(&RoadMapConfigScrollZoomEnable, "off") ) {
       roadmap_screen_zoom_in ();
+      return 1;
    }
+   return 0;
 }
 
-static void roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
+static int roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
    if ( ! roadmap_config_match(&RoadMapConfigScrollZoomEnable, "off") ) {
       roadmap_screen_zoom_out ();
+      return 1;
    }
+   return 0;
 }
 
 
@@ -1458,15 +1475,19 @@ void roadmap_screen_refresh (void) {
         }
     }
 
-    if (roadmap_config_match (&RoadMapConfigMapRefresh, "forced")) {
+    /* Be sure to fully evaluate all possible refresh causes
+     * every time, since these routines maintain internal state
+     * flags.  Otherwise some will be left un-"cleared", and will
+     * trigger a second repaint next time around.  (We should
+     * probably use a callback registration system for this.)
+     */
+    refresh |= roadmap_config_match (&RoadMapConfigMapRefresh, "forced");
+    refresh |= roadmap_trip_is_refresh_needed();
+    refresh |= roadmap_landmark_is_refresh_needed();
+    refresh |= roadmap_track_is_refresh_needed();
+    refresh |= roadmap_display_is_refresh_needed();
 
-        roadmap_screen_repaint ();
-
-    } else if (refresh ||
-                roadmap_trip_is_refresh_needed() ||
-                roadmap_landmark_is_refresh_needed() ||
-                roadmap_track_is_refresh_needed() ) {
-
+    if (RoadMapScreenRepaintNeeded || refresh) {
        roadmap_screen_repaint ();
     }
 
@@ -1490,7 +1511,8 @@ void roadmap_screen_unfreeze (void) {
    if (!RoadMapScreenFrozen) return;
 
    RoadMapScreenFrozen = 0;
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
@@ -1523,7 +1545,8 @@ void roadmap_screen_rotate (int delta) {
    if (roadmap_math_set_orientation (calculated_rotation)) {
       RoadMapScreenRotation = rotation;
       roadmap_config_set_integer (&RoadMapConfigDeltaRotate, rotation);
-      roadmap_screen_repaint ();
+      RoadMapScreenRepaintNeeded = 1;
+      roadmap_screen_refresh ();
    }
 }
 
@@ -1539,13 +1562,15 @@ void roadmap_screen_toggle_view_mode (void) {
    }
 
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 void roadmap_screen_toggle_labels (void) {
    
    RoadMapScreenLabels = ! RoadMapScreenLabels;
-   roadmap_screen_repaint();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh();
 }
 
 void roadmap_screen_toggle_orientation_mode (void) {
@@ -1553,8 +1578,8 @@ void roadmap_screen_toggle_orientation_mode (void) {
    RoadMapScreenOrientationDynamic = ! RoadMapScreenOrientationDynamic;
 
    RoadMapScreenRotation = 0;
-   roadmap_state_refresh ();
    roadmap_screen_rotate (0);
+   roadmap_screen_refresh ();
 }
 
 
@@ -1566,7 +1591,8 @@ void roadmap_screen_increase_horizon (void) {
 
    RoadMapScreen3dHorizon += 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
@@ -1576,7 +1602,8 @@ void roadmap_screen_decrease_horizon (void) {
 
    RoadMapScreen3dHorizon -= 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 #define FRACMOVE 4
@@ -1585,28 +1612,32 @@ void roadmap_screen_decrease_horizon (void) {
 void roadmap_screen_move_up (void) {
 
    roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / FRACMOVE));
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
 void roadmap_screen_move_down (void) {
 
    roadmap_screen_record_move (0, RoadMapScreenHeight / FRACMOVE);
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
 void roadmap_screen_move_right (void) {
 
    roadmap_screen_record_move (RoadMapScreenHeight / FRACMOVE, 0);
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
 void roadmap_screen_move_left (void) {
 
    roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
@@ -1615,7 +1646,8 @@ void roadmap_screen_zoom_in  (void) {
     roadmap_math_zoom_in ();
 
     roadmap_layer_adjust ();
-    roadmap_screen_repaint ();
+    RoadMapScreenRepaintNeeded = 1;
+    roadmap_screen_refresh ();
 }
 
 
@@ -1624,7 +1656,8 @@ void roadmap_screen_zoom_out (void) {
     roadmap_math_zoom_out ();
 
     roadmap_layer_adjust ();
-    roadmap_screen_repaint ();
+    RoadMapScreenRepaintNeeded = 1;
+    roadmap_screen_refresh ();
 }
 
 
@@ -1633,7 +1666,8 @@ void roadmap_screen_zoom_reset (void) {
    roadmap_math_zoom_reset ();
 
    roadmap_layer_adjust ();
-   roadmap_screen_repaint ();
+   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_refresh ();
 }
 
 
@@ -1711,15 +1745,15 @@ void roadmap_screen_initialize (void) {
 
 
 
-   roadmap_pointer_register_short_click (&roadmap_screen_short_click);
-   roadmap_pointer_register_drag_start (&roadmap_screen_drag_start);
-   roadmap_pointer_register_drag_end (&roadmap_screen_drag_end);
-   roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion);
+   roadmap_pointer_register_short_click (&roadmap_screen_short_click, POINTER_DEFAULT);
+   roadmap_pointer_register_drag_start (&roadmap_screen_drag_start, POINTER_DEFAULT);
+   roadmap_pointer_register_drag_end (&roadmap_screen_drag_end, POINTER_DEFAULT);
+   roadmap_pointer_register_drag_motion (&roadmap_screen_drag_motion, POINTER_DEFAULT);
 
-   roadmap_pointer_register_right_click (&roadmap_screen_right_click);
-   roadmap_pointer_register_long_click (&roadmap_screen_long_click);
-   roadmap_pointer_register_scroll_up (&roadmap_screen_scroll_up);
-   roadmap_pointer_register_scroll_down (&roadmap_screen_scroll_down);
+   roadmap_pointer_register_right_click (&roadmap_screen_right_click, POINTER_DEFAULT);
+   roadmap_pointer_register_long_click (&roadmap_screen_long_click, POINTER_DEFAULT);
+   roadmap_pointer_register_scroll_up (&roadmap_screen_scroll_up, POINTER_DEFAULT);
+   roadmap_pointer_register_scroll_down (&roadmap_screen_scroll_down, POINTER_DEFAULT);
 
    roadmap_canvas_register_configure_handler (&roadmap_screen_configure);
 
@@ -1735,7 +1769,7 @@ void roadmap_screen_initialize (void) {
    RoadMapScreen3dHorizon = 0;
 
    roadmap_state_add ("view_mode", &roadmap_screen_get_view_mode);
-   roadmap_state_add ("orientation_mode",
+   roadmap_state_add ("get_orientation",
             &roadmap_screen_get_orientation_mode);
    roadmap_state_monitor (&roadmap_screen_repaint);
 }
@@ -1768,16 +1802,6 @@ void roadmap_screen_get_center (RoadMapPosition *center) {
 
    if (center != NULL) {
       *center = RoadMapScreenCenter;
-   }
-}
-
-
-void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler) {
-
-   if (handler == NULL) {
-      RoadMapScreenAfterRefresh = roadmap_screen_after_refresh;
-   } else {
-      RoadMapScreenAfterRefresh = handler;
    }
 }
 

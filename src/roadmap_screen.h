@@ -27,6 +27,10 @@
 #include "roadmap_types.h"
 #include "roadmap_canvas.h"
 
+enum { ORIENTATION_DYNAMIC = 0,
+       ORIENTATION_FIXED
+};
+
 enum { VIEW_MODE_2D = 0,
        VIEW_MODE_3D
 };
@@ -63,8 +67,6 @@ void roadmap_screen_get_center (RoadMapPosition *center);
 
 typedef void (*RoadMapScreenSubscriber) (void);
 typedef void (*RoadMapShapeIterator) (int shape, RoadMapPosition *position);
-
-void roadmap_screen_subscribe_after_refresh (RoadMapScreenSubscriber handler);
 
 int roadmap_screen_is_dragging (void);
 
