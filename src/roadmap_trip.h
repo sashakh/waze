@@ -72,6 +72,9 @@ void  roadmap_trip_format_messages (void);
 void  roadmap_trip_display (void);
 void  roadmap_trip_toggle_show_inactive(void);
 
+void  roadmap_trip_show_nextpoint(void);
+void  roadmap_trip_show_2ndnextpoint(void);
+
 void  roadmap_trip_new (void);
 
 void  roadmap_trip_initialize (void);
@@ -79,10 +82,12 @@ void  roadmap_trip_initialize (void);
 /* In the two primitives that follow, the name is either NULL (i.e.
  * open a dialog to let the user enter one), or an explicit name.
  */
-int   roadmap_trip_load (int silent, int merge);
-int   roadmap_trip_load_ask (int merge);
-int  roadmap_trip_save (int force);
-void  roadmap_trip_save_as (void);
+int  roadmap_trip_load (int silent, int merge);
+void roadmap_trip_load_ask (void);
+void roadmap_trip_merge_ask (void);
+void roadmap_trip_save_manual (void);
+int  roadmap_trip_save (void);
+void roadmap_trip_save_as (void);
 
 void roadmap_trip_save_screenshot (void);
 
