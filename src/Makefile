@@ -60,6 +60,7 @@ RMGUISRC = roadmap_sprite.c \
 	roadmap_navigate.c \
 	roadmap_pointer.c \
 	roadmap_screen.c \
+	roadmap_screen_obj.c \
 	roadmap_display.c \
 	roadmap_factory.c \
 	roadmap_preferences.c \
@@ -195,6 +196,7 @@ XCHGHEADERS = \
 RGHEADERS = \
 	roadgps_logger.h \
 	roadgps_screen.h \
+	roadgps_screen_obj.h \
 	roadmap.h
 
 RMHEADERS = \
@@ -291,8 +293,10 @@ RMDBHEADERS = \
 HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
 
 # more sources
-PKGDATAFILES = sprites preferences session drivers roadmap.popup
-MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All
+PKGDATAFILES = sprites preferences session drivers \
+		roadmap.popup roadmap.screenobjects
+MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All \
+	        roadmap.toolbar.ex roadmap.actionlabels.ex
 SCRIPTS = rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
 MKFILES = Makefile config.mk options.mk
 # this font is GPL, and comes from RedHat's "liberation-fonts-ttf-3.tar.gz"
