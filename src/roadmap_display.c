@@ -742,12 +742,12 @@ void roadmap_display_periodic(void) {
     
     if (roadmap_message_time_in_use()) {
         char nowtime[16];
-	strcpy(nowtime, roadmap_time_get_hours_minutes (now));
+        strcpy(nowtime, roadmap_time_get_hours_minutes (now));
 
-	if (strcmp(thentime, nowtime) != 0) {
-	    strcpy(thentime, nowtime);
-	    need_time_update = 1;
-	}
+        if (strcmp(thentime, nowtime) != 0) {
+            strcpy(thentime, nowtime);
+            need_time_update = 1;
+        }
     }
 
     if (need_time_update ||
