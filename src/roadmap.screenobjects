@@ -1,0 +1,101 @@
+# This file describes objects which can be displayed on the screen.
+# These objects can reflect the state of the program (e.g., which way
+# is north, how strong is the GPS signal), and/or allow actions to
+# be performed (e.g. zoom in, show the trip's destination).  These
+# objects may be placed anywhere on the screen, but nothing prevents
+# them from being obscured by other popup messages and displays, so
+# their position should probably be along the sides of the screen.
+#
+# Syntax:
+#
+# N <name>              Name of the object (unused, but starts a new object)
+# P <x> <y>             The screen position of the sprite, measured from
+#                         the top left in pixels.  Negative offsets measure
+#                         from the right and from the bottom.
+# E <sprite>            The name of the sprite which will be drawn.
+# E <sprite>              Multiple sprites can be specified.  Which one is
+#                         displayed is selected via the object's "state"
+#                         indicator.
+# S <statename>         The "state" indicator which will choose among 
+#                         the listed sprites.  For "constant" displays, this
+#                         is optional.
+# A <actionname>        The action which should be invoked when the sprite
+#                         is selected.  Optional.
+# R                     Sprites will normally rotate, either with the screen,
+#                         or based on an angle retrieved via the state
+#                         indicator.  Specifying 'R' suppresses rotation.
+# B <x> <y> <x> <y>     Optional -- the bounding box used to determine 
+#                         whether a selection has taken place.  (I.e., the
+#                         size of the sprite.) Normally the bounding box is
+#                         provided by the sprite itself, but irregularly
+#                         shaped sprites, combined with the rotation of the
+#                         sprite, may require that the box be overridden.
+
+# the Compass object shows which way is north.  it changes from a
+# traditional "compass rose" to a simple arrow if "dynamic orientation"
+# is turned off.
+N Compass
+S get_orientation
+P 20 60
+E Compass
+E Compass_fixed
+A toggleorientation
+
+# The GPS_reception object displays the relative GPS signal strength.
+# Selecting it will reposition the map to the current GPS position. 
+N GPS_reception
+S get_GPS_reception
+P 20 100
+E Reception_na
+E Reception_none
+E Reception_poor
+E Reception_good
+A gps
+R
+
+# When the Download object is visible, it indicates that RoadMap is
+# willing to download maps from the network.
+N Download
+S get_download_enabled
+P -20, 60
+E Download
+R
+
+# The Direction_Next object points to the route's next waypoint,
+# relative to the current direction of travel (assuming the screen
+# is facing forward in the vehicle).
+N Direction_Next
+S get_direction_next
+P -20 100
+E Direction_Next
+A nextpoint
+
+# # The Direction_2nd object points to waypoint after the next. 
+# # relative to the current direction of travel.  This can be
+# # useful to see which way the route will go at the next turning.
+# N Direction_2nd
+# S get_direction_2nd
+# P -20 140
+# E Direction_2nd
+# A 2ndpoint
+
+# The Direction_Next object points to the route's last waypoint,
+# relative to the direction of travel.
+N Direction_Dest
+S get_direction_dest
+P -20 180
+E Direction_Dest
+A destination
+
+# The ZoomIn/Out_Buttons do just that, when selected.
+N ZoomIn_Button
+P 20 -100
+E ZoomIn
+A zoomin
+R
+
+N ZoomOut_Button
+P 20 -60
+E ZoomOut
+A zoomout
+R
