@@ -1,3 +1,9 @@
+# Popup menu config.  the "Name" appearing after the "//" is a name
+# that can be referenced elsewhere via "-->Name".  "Right Click Popup"
+# and "Long Click Popup" are referred to by the default settings
+# of the "Events.Right Click" and "Events.Long Click" preferences
+# settings.
+
 //Right Click Popup
 setasdestination
 addaswaypoint
