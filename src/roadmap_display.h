@@ -44,4 +44,6 @@ void roadmap_display_signs (void);
 
 const char *roadmap_display_get_id (const char *title);
 
+int roadmap_display_is_refresh_needed (void);
+
 #endif // INCLUDED__ROADMAP_DISPLAY__H

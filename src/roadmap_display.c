@@ -44,6 +44,8 @@
 #include "roadmap_sprite.h"
 #include "roadmap_voice.h"
 #include "roadmap_plugin.h"
+#include "roadmap_time.h"
+#include "roadmap_main.h"
 
 #include "roadmap_display.h"
 
@@ -81,6 +83,9 @@ static RoadMapPen RoadMapConsoleForeground;
 
 static int RoadMapDisplayFontSize;
 
+static int RoadMapDisplayRefreshNeeded;
+
+static int RoadMapDisplayDeadline;
 
 #define SIGN_BOTTOM   0
 #define SIGN_TOP      1
@@ -466,6 +471,7 @@ void roadmap_display_page (const char *name) {
          }
       }
    }
+   RoadMapDisplayRefreshNeeded = 1;
 }
 
 
@@ -566,6 +572,7 @@ int roadmap_display_activate (const char *title,
 
     roadmap_log_pop ();
     *street = sign->street;
+    RoadMapDisplayRefreshNeeded = 1;
     return 0;
 }
 
@@ -577,6 +584,7 @@ void roadmap_display_hide (const char *title) {
     sign = roadmap_display_search_sign (title);
     if (sign != NULL) {
         sign->deadline = 0;
+        RoadMapDisplayRefreshNeeded = 1;
     }
 }
 
@@ -587,7 +595,7 @@ static void roadmap_display_console_box
     char text[256];
     int count;
     int width, ascent, descent;
-    int canvas_width, canvas_height, left_side;
+    int canvas_width, canvas_height;
 
     RoadMapGuiPoint frame[4];
 
@@ -608,19 +616,14 @@ static void roadmap_display_console_box
     canvas_width = roadmap_canvas_width();
     canvas_height = roadmap_canvas_height();
 
-    if (corner & ROADMAP_CANVAS_BOTTOM) {
-        left_side = 5;
-    } else { /* leave room for compass */
-        left_side = 45;
-    }
     if (corner & ROADMAP_CANVAS_RIGHT) {
         frame[2].x = canvas_width - 5;
         frame[0].x = frame[2].x - width - 6;
-        if (frame[0].x < left_side) {
-            frame[0].x = left_side;
+        if (frame[0].x < 5) {
+            frame[0].x = 5;
         }
     } else {
-        frame[0].x = left_side;
+        frame[0].x = 5;
         frame[2].x = frame[0].x + width + 6;
         if (frame[2].x > canvas_width) {
             frame[2].x = canvas_width - 5;
@@ -674,6 +677,8 @@ void roadmap_display_text (const char *title, const char *format, ...) {
 
    sign->deadline =
       time(NULL) + roadmap_config_get_integer (&RoadMapConfigDisplayDuration);
+
+   RoadMapDisplayRefreshNeeded = 1;
 }
 
 
@@ -711,6 +716,9 @@ void roadmap_display_signs (void) {
 
            if (sign->deadline > now && sign->content != NULL) {
                roadmap_display_sign (sign);
+               if (sign->deadline > RoadMapDisplayDeadline) {
+                  RoadMapDisplayDeadline = sign->deadline;
+               }
            }
         }
     }
@@ -726,6 +734,40 @@ const char *roadmap_display_get_id (const char *title) {
     return sign->id;
 }
 
+void roadmap_display_periodic(void) {
+
+    static char thentime[16];
+    int need_time_update = 0;
+    time_t now = time(NULL);
+    
+    if (roadmap_message_time_in_use()) {
+        char nowtime[16];
+	strcpy(nowtime, roadmap_time_get_hours_minutes (now));
+
+	if (strcmp(thentime, nowtime) != 0) {
+	    strcpy(thentime, nowtime);
+	    need_time_update = 1;
+	}
+    }
+
+    if (need_time_update ||
+            (RoadMapDisplayDeadline && now > RoadMapDisplayDeadline)) {
+        roadmap_message_set ('T', thentime);
+        RoadMapDisplayDeadline = 0;
+        RoadMapDisplayRefreshNeeded = 1;
+        roadmap_screen_refresh ();
+    }
+}
+
+
+int roadmap_display_is_refresh_needed (void) {
+
+    if (RoadMapDisplayRefreshNeeded) {
+        RoadMapDisplayRefreshNeeded = 0;
+        return 1;
+    }
+    return 0;
+}
 
 void roadmap_display_initialize (void) {
 
@@ -766,4 +808,6 @@ void roadmap_display_initialize (void) {
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigDisplayFontSize, "20");
+
+    roadmap_main_set_periodic (3000, roadmap_display_periodic);
 }
