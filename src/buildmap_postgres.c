@@ -69,13 +69,15 @@
 
 #ifdef J2MEMAP
 #define SIMPLIFICATION "0.0001"
+#define SEG_WHERE " AND segments.street_id IS NOT NULL "
 #else
 #define SIMPLIFICATION "0.00005"
+#define SEG_WHERE ""
 #endif
 
 /* ROADS */
-static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  "SIMPLIFICATION")) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name AS street_type, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types on street_types.id=streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
-static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_time AS from_cross_time, segments.to_cross_time AS to_cross_time, segments.road_type AS layer FROM segments WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326);";
+static const char *roads_sql = "SELECT segments.id AS id, AsText(simplify(segments.the_geom,  "SIMPLIFICATION")) AS the_geom, segments.road_type AS layer, segments.from_node AS from_node_id, segments.to_node AS to_node_id, street_types.name AS street_type, streets.name AS street_name, streets.text2speech as text2speech, cities.name as city_name, fraddl, toaddl, fraddr, toaddr, from_travel_ref, to_travel_ref FROM segments LEFT JOIN streets ON segments.street_id = streets.id LEFT JOIN cities ON streets.city_id = cities.id LEFT JOIN street_types on street_types.id=streets.type WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326)" SEG_WHERE ";";
+static const char *roads_route_sql = "SELECT segments.id AS id, segments.from_car_allowed AS from_car_allowed, segments.to_car_allowed AS to_car_allowed, segments.from_max_speed AS from_max_speed, segments.to_max_speed AS to_max_speed, segments.from_cross_speed AS from_cross_speed, segments.to_cross_speed AS to_cross_speed, segments.road_type AS layer FROM segments WHERE segments.the_geom @ SetSRID ('BOX3D(34 29.2, 36.2 33.6)'::box3d, 4326)" SEG_WHERE ";";
 static const char *country_borders_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM borders;";
 static const char *water_sql = "SELECT id AS id, AsText(simplify(the_geom,  0.0001)) AS the_geom FROM water;";
 static const char *turn_restrictions_sql = "SELECT node_id, seg1_id, seg2_id FROM turn_restrictions;";
@@ -411,7 +413,6 @@ static void buildmap_postgres_read_roads_lines (int verbose) {
             
          } else {
 
-            //buildmap_range_add_no_address (line, street);
             buildmap_range_add
                           (line, street, 0, 0, zip, city);
                           buildmap_range_add
@@ -454,8 +455,8 @@ static void buildmap_postgres_read_roads_route (int verbose) {
    unsigned char to_car_allowed;
    unsigned char from_max_speed;
    unsigned char to_max_speed;
-   unsigned short from_cross_time;
-   unsigned short to_cross_time;
+   unsigned short from_cross_speed;
+   unsigned short to_cross_speed;
    unsigned char layer;
   
    PGresult *db_result;
@@ -475,9 +476,6 @@ static void buildmap_postgres_read_roads_route (int verbose) {
    for (irec=0; irec<record_count; irec++) {
 
       int column = 0;
-      int from_avg_speed;
-      int to_avg_speed;
-      int length;      
 
       buildmap_set_line (irec);
 
@@ -492,28 +490,24 @@ static void buildmap_postgres_read_roads_route (int verbose) {
 
       from_max_speed  = atoi(PQgetvalue(db_result, irec, column++));
       to_max_speed    = atoi(PQgetvalue(db_result, irec, column++));
-      from_cross_time = atoi(PQgetvalue(db_result, irec, column++));
-      to_cross_time   = atoi(PQgetvalue(db_result, irec, column++));
+      from_cross_speed = atoi(PQgetvalue(db_result, irec, column++));
+      to_cross_speed   = atoi(PQgetvalue(db_result, irec, column++));
       layer =           (unsigned char) pg2layer (atoi(PQgetvalue(db_result, irec, column++)));
 
       line = buildmap_line_find_sorted(tlid);
 
-      length = buildmap_line_length(line);
-      if (!from_cross_time) from_cross_time = 1;
-      if (!to_cross_time) to_cross_time = 1;
+      if (!from_cross_speed) from_cross_speed = 20;
+      if (!to_cross_speed) to_cross_speed = 20;
 
-      from_avg_speed = (int) (length * 3.6 / from_cross_time) + 1;
-      to_avg_speed = (int) (length * 3.6 / to_cross_time) + 1;
-
-      if (from_avg_speed > 255) from_avg_speed = 255;
-      if (to_avg_speed > 255) to_avg_speed = 255;
+      if (from_cross_speed > 255) from_cross_speed = 255;
+      if (to_cross_speed > 255) to_cross_speed = 255;
 
 //      from_speed_ref = buildmap_line_speed_get_ref (tlid, 0);
 //      to_speed_ref = buildmap_line_speed_get_ref (tlid, 1);
 
       buildmap_line_route_add (from_car_allowed, to_car_allowed, line);
 
-      buildmap_line_speed_add_avg (from_avg_speed, to_avg_speed, line);
+      buildmap_line_speed_add_avg (from_cross_speed, to_cross_speed, line);
 
 /*
       buildmap_dglib_add
