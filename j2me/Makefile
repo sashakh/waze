@@ -6,7 +6,7 @@
 ## Author:        Simon Kagstrom <ska@bth.se>
 ## Description:   Generic Makefile
 ##
-## $Id: Makefile,v 1.3 2007/06/17 16:43:42 eshabtai Exp $
+## $Id: Makefile,v 1.4 2007/08/19 14:17:35 eshabtai Exp $
 ##
 ######################################################################
 SUBDIRS = c
@@ -21,6 +21,7 @@ all: include/ $(SUBDIRS)
 # we keep it here to show how new syscall sets are added. Further,
 # ansi is implicitly implied by j2me, so that can be removed as well
 CIBYL_SYSCALL_SETS ?= javax.microedition ansi resource_manager softfloat command_mgr gps_manager jmicropolygon sound_mgr timer_mgr sony_ericsson
+#CIBYL_SYSCALL_SETS ?= javax.microedition ansi resource_manager softfloat command_mgr gps_manager nokiapolygon sound_mgr timer_mgr sony_ericsson
 
 CIBYL_GENERATE_JAVA_WRAPPERS_OPTS=-I include -S syscalls -D JSR075
 
