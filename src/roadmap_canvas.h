@@ -159,6 +159,8 @@ int  roadmap_canvas_image_height (const RoadMapImage image);
 RoadMapImage roadmap_canvas_load_image (const char *path,
                                         const char* file_name);
 
+void roadmap_canvas_image_set_mutable (RoadMapImage src);
+
 void roadmap_canvas_draw_image (RoadMapImage image, const RoadMapGuiPoint *pos,
                                 int opacity, int mode);
 

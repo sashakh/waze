@@ -918,3 +918,5 @@ void roadmap_canvas_draw_image_text (RoadMapImage image,
 
 }
 
+
+void roadmap_canvas_image_set_mutable (RoadMapImage img) {}
