@@ -57,6 +57,7 @@ typedef struct {
 } NavigateSegment;
  
 int navigate_is_enabled (void);
+void navigate_main_shutdown (void);
 void navigate_main_initialize (void);
 int  navigate_main_reload_data (void);
 void navigate_main_set (int status);

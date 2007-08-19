@@ -264,7 +264,7 @@ int navigate_cost_type (void) {
 
 static int button_callback (SsdWidget widget, const char *new_value) {
 
-   if (!strcmp(widget->name, "OK") | !strcmp(widget->name, "Recalculate")) {
+   if (!strcmp(widget->name, "OK") || !strcmp(widget->name, "Recalculate")) {
       roadmap_config_set (&CostUseTrafficCfg,
                            (const char *)ssd_dialog_get_data ("traffic"));
       roadmap_config_set (&CostTypeCfg,
@@ -456,6 +456,141 @@ void cost_preferences (void) {
 }
 
 #else
-   void cost_preferences (void) {}
+
+#include "roadmap_dialog.h"
+
+static void save_cost_config (void) {
+
+   roadmap_config_set (&CostUseTrafficCfg,
+                        (const char *)roadmap_dialog_get_data ("Preferences", "Use traffic statistics"));
+   roadmap_config_set (&CostTypeCfg,
+                        (const char *)roadmap_dialog_get_data ("Preferences", "Type"));
+   roadmap_config_set (&CostAvoidPrimaryCfg,
+                        (const char *)roadmap_dialog_get_data ("Preferences", "Avoid primaries"));
+   roadmap_config_set (&PreferSameStreetCfg,
+                        (const char *)roadmap_dialog_get_data ("Preferences", "Prefer same street"));
+   roadmap_config_set (&CostAvoidTrailCfg,
+                        (const char *)roadmap_dialog_get_data ("Preferences", "Avoid trails"));
+   roadmap_config_set (&NavigateConfigAutoZoom,
+                        (const char *)roadmap_dialog_get_data ("Preferences", "Auto zoom"));
+
+   roadmap_dialog_hide ("route_prefs");
+}
+
+static void button_ok (const char *name, void *data) {
+   save_cost_config();
+}
+
+static void button_recalc (const char *name, void *data) {
+   save_cost_config ();
+   navigate_main_calc_route ();
+}
+
+static const char *yesno_label[2];
+static const char *yesno[2];
+static const char *type_label[2];
+static const char *type_value[2];
+static const char *trails_label[3];
+static const char *trails_value[3];
+
+static void create_dialog (void) {
+
+   if (!yesno[0]) {
+      yesno[0] = "Yes";
+      yesno[1] = "No";
+      yesno_label[0] = roadmap_lang_get (yesno[0]);
+      yesno_label[1] = roadmap_lang_get (yesno[1]);
+      type_value[0] = "Fastest";
+      type_value[1] = "Shortest";
+      type_label[0] = roadmap_lang_get (type_value[0]);
+      type_label[1] = roadmap_lang_get (type_value[1]);
+      trails_value[0] = "Yes";
+      trails_value[1] = "No";
+      trails_value[2] = "Long trails";
+      trails_label[0] = roadmap_lang_get (trails_value[0]);
+      trails_label[1] = roadmap_lang_get (trails_value[1]);
+      trails_label[2] = roadmap_lang_get (trails_value[2]);
+   }
+
+   roadmap_dialog_new_choice ("Preferences", "Use traffic statistics",
+                              2,
+                              (const char **)yesno_label,
+                              (void **)yesno,
+                              NULL);
+        
+   roadmap_dialog_new_choice ("Preferences", "Type",
+                              2,
+                              (const char **)type_label,
+                              (void **)type_value,
+                              NULL);
+        
+   roadmap_dialog_new_choice ("Preferences",
+                              "Prefer same street",
+                              2,
+                              (const char **)yesno_label,
+                              (void **)yesno,
+                              NULL);
+        
+   roadmap_dialog_new_choice ("Preferences",
+                              "Avoid primaries",
+                              2,
+                              (const char **)yesno_label,
+                              (void **)yesno,
+                              NULL);
+        
+   roadmap_dialog_new_choice ("Preferences",
+                              "Avoid trails",
+                              3,
+                              (const char **)trails_label,
+                              (void **)trails_value,
+                              NULL);
+        
+   roadmap_dialog_new_choice ("Preferences",
+                              "Auto zoom",
+                              2,
+                              (const char **)yesno_label,
+                              (void **)yesno,
+                              NULL);
+
+   roadmap_dialog_add_button ("Ok", button_ok);
+   roadmap_dialog_add_button ("Recalculate", button_recalc);
+}
+
+void cost_preferences (void) {
+
+   const char *value;
+
+   if (roadmap_dialog_activate ("route_prefs", NULL, 0)) {
+      create_dialog ();
+   }
+
+   if (roadmap_config_match(&CostUseTrafficCfg, "yes")) value = yesno[0];
+   else value = yesno[1];
+   roadmap_dialog_set_data ("Preferences", "Use traffic statistics", (void *) value);
+
+   if (roadmap_config_match(&CostTypeCfg, "Fastest")) value = type_value[0];
+   else value = type_value[1];
+   roadmap_dialog_set_data ("Preferences", "Type", (void *) value);
+
+   if (roadmap_config_match(&CostAvoidPrimaryCfg, "yes")) value = yesno[0];
+   else value = yesno[1];
+   roadmap_dialog_set_data ("Preferences", "Avoid primaries", (void *) value);
+
+   if (roadmap_config_match(&PreferSameStreetCfg, "yes")) value = yesno[0];
+   else value = yesno[1];
+   roadmap_dialog_set_data ("Preferences", "Prefer same street", (void *) value);
+
+   if (roadmap_config_match(&CostAvoidTrailCfg, "yes")) value = trails_value[0];
+   else if (roadmap_config_match(&CostAvoidTrailCfg, "no")) value = trails_value[1];
+   else value = trails_value[2];
+   roadmap_dialog_set_data ("Preferences", "Avoid trails", (void *) value);
+
+   if (roadmap_config_match(&NavigateConfigAutoZoom, "yes")) value = yesno[0];
+   else value = yesno[1];
+   roadmap_dialog_set_data ("Preferences", "Auto zoom", (void *) value);
+
+   roadmap_dialog_activate ("route_prefs", NULL, 1);
+}
+
 #endif
 

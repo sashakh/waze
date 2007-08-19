@@ -53,6 +53,7 @@
 #include "roadmap_locator.h"
 #include "roadmap_config.h"
 #include "roadmap_skin.h"
+#include "roadmap_dialog.h"
 #include "roadmap_main.h"
 
 //FIXME remove when navigation will support plugin lines
@@ -69,6 +70,8 @@
 
 #define ROUTE_PEN_WIDTH 4
 
+//#define TEST_ROUTE_CALC 1
+
 static RoadMapConfigDescriptor NavigateConfigRouteColor =
                     ROADMAP_CONFIG_ITEM("Navigation", "RouteColor");
 
@@ -77,6 +80,12 @@ static RoadMapConfigDescriptor NavigateConfigPossibleRouteColor =
 
 RoadMapConfigDescriptor NavigateConfigAutoZoom =
                   ROADMAP_CONFIG_ITEM("Routing", "Auto zoom");
+
+RoadMapConfigDescriptor NavigateConfigLastPos =
+                  ROADMAP_CONFIG_ITEM("Navigation", "Last position");
+
+RoadMapConfigDescriptor NavigateConfigNavigating =
+                  ROADMAP_CONFIG_ITEM("Navigation", "Is navigating");
 
 int NavigateEnabled = 0;
 int NavigatePluginID = -1;
@@ -383,12 +392,34 @@ static void navigate_main_format_messages (void) {
 
 
 static int navigate_address_cb (const RoadMapPosition *point,
-                                 const PluginLine      *line,
-                                 int                    direction) {
+                                const PluginLine      *line,
+                                int                    direction) {
 
    roadmap_trip_set_point ("Destination", point);
 
    return navigate_main_calc_route ();
+}
+
+
+/****** Route calculation progress dialog ******/
+static void cancel_calc (const char *name, void *data) {
+}
+
+static void show_progress_dialog (void) {
+
+   if (roadmap_dialog_activate ("Route calc", NULL, 1)) {
+
+      roadmap_dialog_new_label ("Calculating", "Calculting route, please wait...");
+      roadmap_dialog_new_progress ("Calculating", "Progress");
+
+      roadmap_dialog_add_button ("Cancel", cancel_calc);
+
+      roadmap_dialog_complete (0);
+   }
+
+   roadmap_dialog_set_progress ("Calculating", "Progress", 0);
+
+   roadmap_main_flush ();
 }
 
 
@@ -405,6 +436,22 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    int announce_distance = 0;
    int distance_to_prev;
    int distance_to_next;
+
+#ifdef J2ME
+#define NAVIGATE_COMPENSATE 20
+#else
+#define NAVIGATE_COMPENSATE 10
+#endif
+
+
+#ifdef TEST_ROUTE_CALC
+   static int test_counter;
+
+   if ((++test_counter % 500) == 0) {
+      navigate_main_test(1);
+      return;
+   }
+#endif
 
    if (!NavigateTrackEnabled) return;
 
@@ -487,10 +534,10 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    }
 
    if ((segment->instruction == APPROACHING_DESTINATION) &&
-        NavigateDistanceToTurn <= 10) {
+        NavigateDistanceToTurn <= 20) {
 
       sound_list = roadmap_sound_list_create (0);
-      roadmap_sound_list_add (sound_list, "arrive");
+      roadmap_sound_list_add (sound_list, "Arrive");
       roadmap_sound_play_list (sound_list);
 
       NavigateTrackEnabled = 0;
@@ -531,7 +578,8 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
    }
 
    if (NavigateNextAnnounce &&
-      (NavigateDistanceToTurn <= NavigateNextAnnounce)) {
+      (NavigateDistanceToTurn <=
+        (NavigateNextAnnounce + NAVIGATE_COMPENSATE))) {
       unsigned int i;
 
       announce_distance = NavigateNextAnnounce;
@@ -542,8 +590,8 @@ void navigate_update (RoadMapPosition *position, PluginLine *current) {
       }
 
       for (i=0; i<sizeof(ANNOUNCES)/sizeof(ANNOUNCES[0]); i++) {
-         
-         if (NavigateDistanceToTurn > ANNOUNCES[i]) {
+         if ((ANNOUNCES[i] < announce_distance) &&
+             (NavigateDistanceToTurn > ANNOUNCES[i])) {
             NavigateNextAnnounce = ANNOUNCES[i];
             break;
          }
@@ -749,15 +797,22 @@ static void navigate_main_init_pens (void) {
    NavigatePenEst[1] = pen;
 }
 
+void navigate_main_shutdown (void) {
+   roadmap_config_set_integer (&NavigateConfigNavigating, 0);
+}
 
 void navigate_main_initialize (void) {
 
    roadmap_config_declare
-       ("schema", &NavigateConfigRouteColor,  "#00ff00a0", NULL);
+      ("schema", &NavigateConfigRouteColor,  "#00ff00a0", NULL);
    roadmap_config_declare
-       ("schema", &NavigateConfigPossibleRouteColor,  "#ff0000a0", NULL);
+      ("schema", &NavigateConfigPossibleRouteColor,  "#ff0000a0", NULL);
    roadmap_config_declare_enumeration
       ("preferences", &NavigateConfigAutoZoom, NULL, "no", "yes", NULL);
+   roadmap_config_declare
+      ("session",  &NavigateConfigLastPos, "0, 0", NULL);
+   roadmap_config_declare
+      ("session",  &NavigateConfigNavigating, "0", NULL);
 
    navigate_main_init_pens ();
 
@@ -773,6 +828,15 @@ void navigate_main_initialize (void) {
 
    roadmap_address_register_nav (navigate_address_cb);
    roadmap_skin_register (navigate_main_init_pens);
+
+   if (roadmap_config_get_integer (&NavigateConfigNavigating)) {
+      RoadMapPosition pos;
+      roadmap_config_get_position (&NavigateConfigLastPos, &pos);
+      roadmap_trip_set_focus ("GPS");
+      roadmap_trip_set_point ("Destination", &pos);
+
+      navigate_main_calc_route ();
+   }
 }
 
 
@@ -789,7 +853,8 @@ void navigate_main_set (int status) {
 
 
 #ifdef TEST_ROUTE_CALC
-int navigate_main_test () {
+#include "roadmap_shape.h"
+int navigate_main_test (int test_count) {
 
    int track_time;
    PluginLine from_line;
@@ -798,10 +863,14 @@ int navigate_main_test () {
    int lines_count = roadmap_line_count();
    RoadMapPosition pos;
    int flags;
-   int itr = 0;
+   static int itr = 0;
+   const char *focus = roadmap_trip_get_focus_name ();
 
-   NavigateTrackFollowGPS = 0;
-   srand(0);
+   if (!itr) {
+      srand(0);
+   }
+
+   NavigateTrackFollowGPS = focus && !strcmp (focus, "GPS");
 
    if (navigate_route_load_data () < 0) {
 
@@ -809,10 +878,16 @@ int navigate_main_test () {
       return -1;
    }
 
+   if (test_count) test_count++;
+
    while (1) {
       int first_shape, last_shape;
 
       printf ("Iteration: %d\n", itr++);
+         if (test_count) {
+            test_count--;
+            if (!test_count) break;
+         }
 
       line = (int) (lines_count * (rand() / (RAND_MAX + 1.0)));
       roadmap_line_from (line, &pos);
@@ -824,7 +899,10 @@ int navigate_main_test () {
             roadmap_shape_get_position (++first_shape, &pos);
          }
       }
-      roadmap_trip_set_point ("Departure", &pos);
+
+      if (!NavigateTrackFollowGPS) {
+         roadmap_trip_set_point ("Departure", &pos);
+      }
 
       line = (int) (lines_count * (rand() / (RAND_MAX + 1.0)));
       roadmap_line_from (line, &pos);
@@ -837,7 +915,6 @@ int navigate_main_test () {
          }
       }
       roadmap_trip_set_point ("Destination", &pos);
-      if (itr < 4000) continue;
 
       NavigateDestination.plugin_id = INVALID_PLUGIN_ID;
       NavigateTrackEnabled = 0;
@@ -905,6 +982,7 @@ int navigate_main_test () {
 
          roadmap_screen_redraw ();
          printf ("Route found!\n%s\n\n", msg);
+
       }
    }
 
@@ -921,8 +999,8 @@ int navigate_main_calc_route () {
 
    const char *focus = roadmap_trip_get_focus_name ();
 
-#ifdef TEST_ROUTE_CALC
-   navigate_main_test();
+#ifdef TEST_ROUTE_CALC_STRESS
+   navigate_main_test(0);
 #endif
 
    NavigateTrackFollowGPS = focus && !strcmp (focus, "GPS");
@@ -956,6 +1034,9 @@ int navigate_main_calc_route () {
    }
 
    flags = NEW_ROUTE;
+
+   show_progress_dialog ();
+
    navigate_cost_reset ();
    track_time =
       navigate_route_get_segments
@@ -964,6 +1045,7 @@ int navigate_main_calc_route () {
              &flags);
 
    if (track_time <= 0) {
+      roadmap_dialog_hide ("Route calc");
       NavigateTrackEnabled = 0;
       navigate_bar_set_mode (NavigateTrackEnabled);
       if (track_time < 0) {
@@ -987,6 +1069,7 @@ int navigate_main_calc_route () {
          track_time += NavigateSegments[i].cross_time;
       }
 
+      roadmap_dialog_hide ("Route calc");
       NavigateFlags = flags;
 
       if (flags & GRAPH_IGNORE_TURNS) {
@@ -995,7 +1078,7 @@ int navigate_main_calc_route () {
       }
 
       snprintf(msg + strlen(msg), sizeof(msg) - strlen(msg),
-            "%s: %.1f %s\n%s: %.1f %s",
+            "%s: %.1f %s,\n%s: %.1f %s",
             roadmap_lang_get ("Length"),
             length/1000.0,
             roadmap_lang_get ("Km"),
@@ -1014,6 +1097,9 @@ int navigate_main_calc_route () {
       }
 
       roadmap_screen_redraw ();
+      roadmap_config_set_position (&NavigateConfigLastPos, &NavigateDestPos);
+      roadmap_config_set_integer (&NavigateConfigNavigating, 1);
+      roadmap_config_save (0);
       roadmap_messagebox ("Route found", msg);
    }
 

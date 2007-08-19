@@ -39,7 +39,6 @@
 #include "roadmap_square.h"
 #include "roadmap_math.h"
 #include "roadmap_turns.h"
-#include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 #include "roadmap_main.h"
 #include "roadmap_line_route.h"
@@ -106,28 +105,8 @@ struct fibheap * make_queue(int line_id)
    return fh;
 }
 
-static void cancel_calc (const char *name, void *data) {
-}
-
-static void show_progress_dialog (void) {
-
-   if (roadmap_dialog_activate ("Route calc", NULL, 1)) {
-
-      roadmap_dialog_new_label ("Calculating", "Calculting route, please wait...");
-      roadmap_dialog_new_progress ("Calculating", "Progress");
-
-      roadmap_dialog_add_button ("Cancel", cancel_calc);
-
-      roadmap_dialog_complete (0);
-   }
-
-   roadmap_dialog_set_progress ("Calculating", "Progress", 0);
-
-   roadmap_main_flush ();
-}
-
-
 static void update_progress (int progress) {
+   progress = progress * 9 / 10;
    roadmap_dialog_set_progress ("Calculating", "Progress", progress);
 
    roadmap_main_flush ();
@@ -319,13 +298,10 @@ int navigate_route_get_segments (PluginLine *from_line,
    else if (from_point == line_from_point) start_line_reversed = 1;
    else start_line_reversed = 0;
 
-   if (!recalc) show_progress_dialog ();
-
    line = astar (from_point, line, start_line_reversed, to_point, &total_cost,
                  recalc);
 
    if (line == -1) {
-      if (!recalc) roadmap_dialog_hide ("Route calc");
       return -1;
    }
    
@@ -434,7 +410,6 @@ int navigate_route_get_segments (PluginLine *from_line,
 
    free(GraphPrevList);
    free(GraphOppositePrevList);
-   if (!recalc) roadmap_dialog_hide ("Route calc");
 
    return total_cost + 1;
 }

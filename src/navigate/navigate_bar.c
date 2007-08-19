@@ -181,6 +181,7 @@ void navigate_bar_initialize (void) {
       roadmap_log (ROADMAP_ERROR, "Can't find nav panel for screen width: %d",
             width);
       NavigateBarInitialized = -1;
+      return;
    }
 
    NavigateBarBG =
@@ -190,6 +191,8 @@ void navigate_bar_initialize (void) {
    NavigateBarImage =
       (RoadMapImage) roadmap_res_get
          (RES_BITMAP, RES_SKIN, NavigatePanel->image_file);
+
+   roadmap_canvas_image_set_mutable (NavigateBarImage);
 
    if (!NavigateBarBG || !NavigateBarImage) goto error;
 
