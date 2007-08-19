@@ -74,7 +74,11 @@ static RoadMapConfigDescriptor RoadMapConfigLabelsColor =
                         ROADMAP_CONFIG_ITEM("Labels", "Color");
 
 /* this is fairly arbitrary */
+#ifdef J2ME
+#define MAX_LABELS 1024
+#else
 #define MAX_LABELS 2048
+#endif
 #define ROADMAP_LABEL_STREETLABEL_SIZE 16
 
 typedef struct {
