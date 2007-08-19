@@ -152,6 +152,7 @@ static void roadmap_start_show_location (void) {
 }
 
 static void roadmap_start_show_gps (void) {
+    roadmap_screen_hold ();
     roadmap_trip_set_focus ("GPS");
     roadmap_screen_refresh ();
 }
@@ -174,15 +175,11 @@ static void roadmap_start_about (void) {
    char about[500];
 
    snprintf (about, sizeof(about),
-                       "RoadMap " ROADMAP_VERSION "\n"
-                       "(c) " ROADMAP_YEAR " Pascal Martin\n"
-                       "<pascal.martin@iname.com>\n"
-                       "(c) Ehud Shabtai\n"
-                       "eshabtai@gmail.com\n"
-                       "A Street navigation system\n"
-                       "for Linux, UNIX & WinCE"
-                       "\n\nEditor Plugin %s\n",
-                       editor_main_get_version ());
+                       "FreeMap 0.10.0 rc5 \n"
+                       "(c)Ehud Shabtai \n"
+                       "www.freemap.co.il \n"
+                       "Based on RoadMap \n"
+                       "(c) Pascal Martin \n");
 
    roadmap_messagebox ("About", about);
 }
@@ -596,6 +593,7 @@ static const char *RoadMapStartMenu[] = {
    "hold",
    "toggleview",
    "toggleorientation",
+   "traffic",
    "detectreceiver",
    "destination",
    "quit",
@@ -1078,6 +1076,7 @@ static void roadmap_start_window (void) {
                      roadmap_option_width("Main"),
                      roadmap_option_height("Main"));
 
+#ifndef J2ME
    roadmap_factory ("roadmap",
                     RoadMapStartActions,
                     RoadMapStartMenu,
@@ -1089,6 +1088,8 @@ static void roadmap_start_window (void) {
 
    roadmap_pointer_register_long_click
       (roadmap_start_long_click, POINTER_DEFAULT);
+
+#endif
 
    roadmap_main_add_canvas ();
 
@@ -1266,6 +1267,8 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_help_initialize ();
 
+   roadmap_locator_declare (&roadmap_start_no_download);
+
    roadmap_start_prev_after_refresh =
       roadmap_screen_subscribe_after_refresh (roadmap_start_after_refresh);
 
@@ -1275,18 +1278,24 @@ void roadmap_start (int argc, char **argv) {
     * first
     */
    editor_main_initialize ();
-   navigate_main_initialize ();
 
    roadmap_screen_obj_initialize ();
    roadmap_trip_restore_focus ();
+
+   roadmap_gps_open ();
 
    if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
       roadmap_start_create_trip ();
    }
 
-   roadmap_gps_open ();
+   navigate_main_initialize ();
 
-   roadmap_locator_declare (&roadmap_start_no_download);
+#ifdef J2ME
+   roadmap_factory ("roadmap",
+                    RoadMapStartActions,
+                    RoadMapStartMenu,
+                    RoadMapStartToolbar);
+#endif
 
    roadmap_main_set_periodic (200, roadmap_start_periodic);
 }
@@ -1294,6 +1303,7 @@ void roadmap_start (int argc, char **argv) {
 
 void roadmap_start_exit (void) {
     
+    navigate_main_shutdown ();
     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
     roadmap_plugin_shutdown ();
     roadmap_driver_shutdown ();
@@ -1306,7 +1316,9 @@ void roadmap_start_exit (void) {
     roadmap_gps_shutdown ();
     roadmap_res_shutdown ();
     editor_main_shutdown ();
-    //roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
+#ifndef J2ME
+    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
+#endif
 }
 
 
