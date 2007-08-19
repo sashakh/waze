@@ -7,18 +7,6 @@ import java.io.*;
 
 public class FormCommandMgr implements CommandListener,ItemStateListener
 {
-  private static int callback_addr;
-  private static int callback_name;
-  private static int callback_context;
-
-  public static void setCallBackNotif(int callback_addr, int callback_name,
-  					int callback_context) {
-
-    FormCommandMgr.callback_addr = callback_addr;
-    FormCommandMgr.callback_name = callback_name;
-    FormCommandMgr.callback_context = callback_context;
-  }
-
   private class CallBackContext {
     public int addr;
     public String name;
@@ -29,6 +17,27 @@ public class FormCommandMgr implements CommandListener,ItemStateListener
 	this.name = name;
 	this.context = context;
     }
+  }
+
+  private int button_id = 0;
+  private static CallBackContext callback;
+  private static Integer lock = new Integer(0);
+
+  public static int getCallBackNotif(int callback_addr, int callback_name,
+                                     int callback_context) {
+
+    if (callback == null) return 0;
+
+    synchronized (lock) {
+       CRunTime.memoryWriteWord(callback_addr, callback.addr);
+       int len = callback.name.getBytes().length;
+       CRunTime.memcpy(callback_name, callback.name.getBytes(), 0, len);
+       CRunTime.memoryWriteByte(callback_name+len, 0);
+       CRunTime.memoryWriteWord(callback_context, callback.context);
+       callback = null;
+    }
+
+    return 1;
   }
 
   private Hashtable commands = new Hashtable();
@@ -42,7 +51,7 @@ public class FormCommandMgr implements CommandListener,ItemStateListener
 
   public void addCommand(String name, int c_addr, String c_name, int c_context)
   {
-    Command cmd = new Command(name, Command.SCREEN, 1);
+    Command cmd = new Command(name, Command.SCREEN, ++button_id);
     commands.put(cmd, new CallBackContext(c_addr, c_name, c_context));
     form.addCommand(cmd);
   }
@@ -54,12 +63,10 @@ public class FormCommandMgr implements CommandListener,ItemStateListener
 
   private void checkAction(Object obj) {
     CallBackContext callback = (CallBackContext)commands.get(obj);
-    if ((callback != null) && (callback_addr != 0)) {
-      CRunTime.memoryWriteWord(callback_addr, callback.addr);
-      int len = callback.name.getBytes().length;
-      CRunTime.memcpy(callback_name, callback.name.getBytes(), 0, len);
-      CRunTime.memoryWriteByte(callback_name+len, 0);
-      CRunTime.memoryWriteWord(callback_context, callback.context);
+    if (callback != null) {
+      synchronized (lock) {
+         FormCommandMgr.callback = callback;
+      }
     }
   }
 
@@ -69,7 +76,6 @@ public class FormCommandMgr implements CommandListener,ItemStateListener
 
   public void itemStateChanged(Item item)
   {
-    System.out.println("item state changed for " + item);
     checkAction(item);
   }
 }

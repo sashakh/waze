@@ -105,6 +105,7 @@ struct roadmap_dialog_item {
 static RoadMapDialogItem RoadMapDialogWindows = NULL;
 static RoadMapDialogItem RoadMapDialogCurrent = NULL;
 static NOPH_Display_t RoadMapDialogDisplay;
+static void *RoadMapDialogEditFlowContext;
 
 
 static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
@@ -166,6 +167,7 @@ static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
       RoadMapDialogWindows = child;
       child->prev_dialog = RoadMapDialogCurrent;
       RoadMapDialogCurrent = child;
+      roadmap_log(ROADMAP_DEBUG, "New dialog as current:%s\n", name);
    }
 
    return child;
@@ -176,12 +178,15 @@ static void roadmap_dialog_hide_window (RoadMapDialogItem dialog) {
 
    assert(RoadMapDialogCurrent == dialog);
    RoadMapDialogCurrent = RoadMapDialogCurrent->prev_dialog;
+   roadmap_log(ROADMAP_DEBUG, "Hide dialog :%s\n", dialog->name);
 
    if (!RoadMapDialogCurrent) {
       NOPH_Display_setCurrent(RoadMapDialogDisplay, NOPH_GameCanvas_get());
    } else {
       NOPH_Display_setCurrent(RoadMapDialogDisplay, RoadMapDialogCurrent->form);
    }
+
+   //roadmap_dialog_destroy (dialog);
 }
 
 
@@ -202,12 +207,35 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
 }
 
 
+static void roadmap_dialog_edit_flow (void) {
+   RoadMapDialogItem item = (RoadMapDialogItem)RoadMapDialogEditFlowContext;
+   RoadMapDialogCallback callback = item->callback;
+
+   RoadMapDialogEditFlowContext = NULL;
+
+   roadmap_main_remove_periodic (roadmap_dialog_edit_flow);
+
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_dialog_edit_flow: type:%s - %d\n", item->typeid, item->widget_type);
+
+   if (callback != NULL) {
+
+      while (item->parent != NULL) {
+         item = item->parent;
+      }
+         
+      if (RoadMapDialogCurrent == item) {
+         (*callback) (item->name, item->context);
+      }
+   }
+}
+
+
 static void roadmap_dialog_chosen (char *name, void *context) {
 
    RoadMapDialogItem item = (RoadMapDialogItem)context;
    RoadMapDialogCallback callback = item->callback;
 
-   printf("In roadmap_dialog_chosen: type:%s - %d\n", item->typeid, item->widget_type);
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_dialog_chosen: type:%s - %d\n", item->typeid, item->widget_type);
    switch (item->widget_type) {
 
    case ROADMAP_WIDGET_PASSWORD:
@@ -219,8 +247,8 @@ static void roadmap_dialog_chosen (char *name, void *context) {
      if (!strlen(value)) item->value = "";
      else item->value = strdup(value);
 
-     printf("In roadmap_dialog_chosen(edit): str:%s, callback:0x%x\n",
-         item->value, (int)callback);
+     roadmap_log(ROADMAP_DEBUG, "In roadmap_dialog_chosen(edit): str:%s, callback:0x%x\n", item->value, (int)callback);
+
      if (callback != NULL) {
 
          while (item->parent != NULL) {
@@ -228,17 +256,26 @@ static void roadmap_dialog_chosen (char *name, void *context) {
          }
          
          if (RoadMapDialogCurrent != item) {
-            item->prev_dialog = RoadMapDialogCurrent;
-            RoadMapDialogCurrent = item;
+            roadmap_log(ROADMAP_DEBUG, "****** callback(%s) not current (%s)! Ignoring!\n", item->name, RoadMapDialogCurrent->name);
+            break;
+            //item->prev_dialog = RoadMapDialogCurrent;
+            //RoadMapDialogCurrent = item;
          }
 
-         (*callback) (item->name, item->context);
+         if (RoadMapDialogEditFlowContext) {
+            roadmap_main_remove_periodic (roadmap_dialog_edit_flow);
+         }
+
+         RoadMapDialogEditFlowContext = context;
+         roadmap_main_set_periodic (500, roadmap_dialog_edit_flow);
+
+         //(*callback) (item->name, item->context);
       }
   }
   break;
 
    case ROADMAP_WIDGET_BUTTON:
-     printf("In roadmap_dialog_chosen(button): callback:0x%x\n", (int)callback);
+     //printf("In roadmap_dialog_chosen(button): callback:0x%x\n", (int)callback);
      if (callback != NULL) {
 
          while (item->parent != NULL) {
@@ -246,8 +283,10 @@ static void roadmap_dialog_chosen (char *name, void *context) {
          }
          
          if (RoadMapDialogCurrent != item) {
-            item->prev_dialog = RoadMapDialogCurrent;
-            RoadMapDialogCurrent = item;
+            roadmap_log(ROADMAP_DEBUG, "****** callback(%s) not current (%s)! Ignoring!\n", item->name, RoadMapDialogCurrent->name);
+            break;
+            //item->prev_dialog = RoadMapDialogCurrent;
+            //RoadMapDialogCurrent = item;
          }
 
          (*callback) (item->name, item->context);
@@ -272,8 +311,8 @@ static void roadmap_dialog_chosen (char *name, void *context) {
          if (!strlen(value)) item->value = "";
          else item->value = strdup(value);
 
-         printf("In roadmap_dialog_chosen(choice): i:%d str:%s, callback:0x%d\n",
-            i, item->value, (int)callback);
+         roadmap_log(ROADMAP_DEBUG, "In roadmap_dialog_chosen(choice): i:%d str:%s, callback:0x%d\n",
+            i, item->value, (int)selection->callback);
       } else {
          item->value = selection->value;
       }
@@ -285,11 +324,19 @@ static void roadmap_dialog_chosen (char *name, void *context) {
          }
 
          if (RoadMapDialogCurrent != item) {
-            item->prev_dialog = RoadMapDialogCurrent;
+            RoadMapDialogItem current = RoadMapDialogCurrent;
+
+            roadmap_log(ROADMAP_DEBUG, "****** callback(%s) not current (%s)!\n", item->name, RoadMapDialogCurrent->name);
             RoadMapDialogCurrent = item;
+            (*selection->callback) (item->name, item->context);
+            assert (item == RoadMapDialogCurrent);
+            RoadMapDialogCurrent = current;
+            //item->prev_dialog = RoadMapDialogCurrent;
+            //RoadMapDialogCurrent = item;
+         } else {
+            (*selection->callback) (item->name, item->context);
          }
 
-         (*selection->callback) (item->name, item->context);
       }
    }
 
@@ -304,7 +351,7 @@ int roadmap_dialog_activate (const char *name, void *context, int show) {
    RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
 
    if (!RoadMapDialogDisplay)
-   	RoadMapDialogDisplay = NOPH_Display_getDisplay(NOPH_MIDlet_get());
+        RoadMapDialogDisplay = NOPH_Display_getDisplay(NOPH_MIDlet_get());
 
    dialog->context = context;
 
@@ -313,6 +360,7 @@ int roadmap_dialog_activate (const char *name, void *context, int show) {
       /* The dialog exists already: show it on top. */
 
       if (RoadMapDialogCurrent != dialog) {
+         roadmap_log(ROADMAP_DEBUG, "Dialog (%s) exists but not current (%s)!\n", name, RoadMapDialogCurrent->name);
          dialog->prev_dialog = RoadMapDialogCurrent;
          RoadMapDialogCurrent = dialog;
       }
@@ -651,6 +699,7 @@ void roadmap_dialog_select (const char *dialog) {
 
    RoadMapDialogItem item = roadmap_dialog_get (NULL, dialog);
    if (item != RoadMapDialogCurrent) {
+      roadmap_log(ROADMAP_DEBUG, "roadmap_dialog_select(%s) not current (%s)!\n", item->name, RoadMapDialogCurrent->name);
       item->prev_dialog = RoadMapDialogCurrent;
       RoadMapDialogCurrent = item;
    }
@@ -658,6 +707,13 @@ void roadmap_dialog_select (const char *dialog) {
 
 
 void roadmap_dialog_set_focus (const char *frame, const char *name) {
+   RoadMapDialogItem this_frame;
+   RoadMapDialogItem this_item;
+
+   this_frame  = roadmap_dialog_get (RoadMapDialogCurrent, frame);
+   this_item   = roadmap_dialog_get (this_frame, name);
+
+   NOPH_Display_setCurrentItem(RoadMapDialogDisplay, (NOPH_Item_t)this_item->item);
 }
 
 
@@ -743,6 +799,9 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
          NOPH_ChoiceGroup_append(this_item->item, data, 0);
 
          this_item->choice[this_item->num_choices].value = (char *)data;
+         this_item->choice[this_item->num_choices].callback = 0;
+         this_item->choice[this_item->num_choices].typeid = "RoadMapDialogSelection";
+         this_item->choice[this_item->num_choices].item = this_item;
          this_item->num_choices++;
 
          NOPH_ChoiceGroup_setSelectedIndex((NOPH_ChoiceGroup_t)this_item->item, i, 1);

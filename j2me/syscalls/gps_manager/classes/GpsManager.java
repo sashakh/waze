@@ -13,6 +13,8 @@ public class GpsManager implements CommandListener
   private MIDlet midlet;
   private String wait_msg;
   private String not_found_msg;
+  private String internal_str = "Internal GPS";
+  private String external_str = "External GPS";
   private List menu;
 
   private GpsManager() {}
@@ -41,6 +43,11 @@ public class GpsManager implements CommandListener
     }
   }
 
+  public void setTypeMsgs(String internal, String external) {
+    internal_str = internal;
+    external_str = external;
+  }
+
   /**
    * Checks whether Location API is supported.
    * 
@@ -60,8 +67,8 @@ public class GpsManager implements CommandListener
       if (isLocationApiSupported()) {
         if (menu == null) {
            menu = new List("GPS", Choice.IMPLICIT);
-           menu.append("Internal GPS", null);
-           menu.append("External GPS", null);
+           menu.append(internal_str, null);
+           menu.append(external_str, null);
            //menu.addCommand(exitCommand);
            menu.setCommandListener(this);
         }

@@ -19,6 +19,8 @@ struct GpsData {
 typedef int NOPH_GpsManager_t;
 
 NOPH_GpsManager_t NOPH_GpsManager_getInstance(void);
+
+void NOPH_GpsManager_setTypeMsgs(NOPH_GpsManager_t gm, const char* internal, const char* external);
 void NOPH_GpsManager_searchGps(NOPH_GpsManager_t gm, NOPH_MIDlet_t m, const char* wait_msg, const char* not_found_msg);
 int NOPH_GpsManager_connect(NOPH_GpsManager_t gm, const char* url);
 void NOPH_GpsManager_disconnect(NOPH_GpsManager_t gm);

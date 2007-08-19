@@ -43,6 +43,7 @@
 #include "roadmap_config.h"
 #include "roadmap_history.h"
 #include "roadmap_canvas.h"
+#include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 
 #include "roadmap_main.h"
@@ -76,6 +77,7 @@ volatile static int form_command_context = 0;
 volatile static int should_exit = 0;
 static NOPH_GpsManager_t gps_mgr = 0;
 static NOPH_TimerMgr_t timer_mgr = 0;
+static const char *exception_type = "";
 
 static void roadmap_start_event (int event) {
    switch (event) {
@@ -95,6 +97,9 @@ static void roadmap_main_process_key (int keys) {
       break;
    case 4:
       k = "J";
+      break;
+   case 5:
+      k = "R";
       break;
    case 6:
       k = "K";
@@ -119,8 +124,7 @@ static void roadmap_main_process_key (int keys) {
       break;
    }
 
-   roadmap_log (ROADMAP_DEBUG, "In roadmap_main_process_key, keys:%d, k:%s, RoadMapMainInput:0x%x\n",
-                keys, k, RoadMapMainInput);
+   //roadmap_log (ROADMAP_DEBUG, "In roadmap_main_process_key, keys:%d, k:%s, RoadMapMainInput:0x%x\n", keys, k, RoadMapMainInput);
 
    if ((k != NULL) && (RoadMapMainInput != NULL)) {
       (*RoadMapMainInput) (k);
@@ -199,13 +203,22 @@ void roadmap_main_add_tool_space (void) {
 void roadmap_main_add_canvas (void) {
    RoadMapImage image;
 
-   printf("In roadmap_main_add_canvas...\n");
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_main_add_canvas...\n");
    roadmap_canvas_configure ();
 
+   roadmap_log(ROADMAP_DEBUG, "B4 load welcome...\n");
    image = roadmap_canvas_load_image (NULL, "/welcome.png");
+   roadmap_log(ROADMAP_DEBUG, "After load welcome:%x\n", image);
 
    if (image) {
       RoadMapGuiPoint pos;
+
+      RoadMapPen splash_bg = roadmap_canvas_create_pen ("SplashBG");
+      roadmap_canvas_set_foreground ("#000000");
+      roadmap_canvas_select_pen (splash_bg);
+
+      roadmap_canvas_erase ();
+
       pos.x = (roadmap_canvas_width () - roadmap_canvas_image_width(image)) / 2;
       pos.y = (roadmap_canvas_height () - roadmap_canvas_image_height(image)) / 2;
       roadmap_canvas_draw_image (image, &pos, 0, IMAGE_NORMAL);
@@ -228,7 +241,12 @@ void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback) {
 
    if (io->subsystem == ROADMAP_IO_SERIAL) {
       /* We currently only support GPS input */
-      if (!gps_mgr) gps_mgr = NOPH_GpsManager_getInstance();
+      if (!gps_mgr) {
+         gps_mgr = NOPH_GpsManager_getInstance();
+         NOPH_GpsManager_setTypeMsgs(gps_mgr,
+                                     roadmap_lang_get("Internal GPS"),
+                                     roadmap_lang_get("External GPS"));
+      }
       RoadMapMainIo[0].io = *io;
       RoadMapMainIo[0].callback = callback;
       RoadMapMainIo[0].active = 1;
@@ -295,9 +313,9 @@ void roadmap_main_flush (void) {
 void roadmap_main_exit (void) {
 
    int index;
-   printf ("b4 roadmap_start_Exit...\n");
+   roadmap_log(ROADMAP_DEBUG, "b4 roadmap_start_Exit...\n");
    roadmap_start_exit ();
-   printf ("after roadmap_start_Exit...\n");
+   roadmap_log(ROADMAP_DEBUG, "after roadmap_start_Exit...\n");
    should_exit = 1;
 
    /* remove all timers */
@@ -359,6 +377,14 @@ static void keyReleased(int code)
   KeyCode = 0;
 }
 
+static void handler_main_loop(NOPH_Exception_t exception, void *arg)
+{
+  NOPH_Throwable_printStackTrace(exception);
+  roadmap_messagebox(roadmap_lang_get("Error"), exception_type);
+
+  NOPH_delete(exception);
+}
+
 //#define  DEBUG_TIME
 static void wait_for_events(NOPH_GameCanvas_t canvas)
 {
@@ -368,38 +394,18 @@ static void wait_for_events(NOPH_GameCanvas_t canvas)
 #endif
 
   while (!should_exit) {
-     if (command_addr || form_command_addr) break; /* Menu command */
-     if (timer_mgr) {
-        int index;
-#ifdef DEBUG_TIME
-        int has_timer = 0;
-#endif
-        while ((index = NOPH_TimerMgr_getExpired(timer_mgr)) != -1) {
-#ifdef DEBUG_TIME
-           if (!has_timer) {
-              printf("MAIN LOOP: executing timer callbacks...\n");
-              has_timer = 1;
-           }
-#endif
-           (*RoadMapMainPeriodicTimer[index].callback) ();
-        }
-#ifdef DEBUG_TIME
-        if (has_timer) {
-           index = NOPH_System_currentTimeMillis();
-           printf("MAIN LOOP: finished callbacks in %d ms\n", index - start_time);
-           start_time = index;
-        }
-#endif
-     }
+     if (command_addr) break; /* Menu command */
+     if (NOPH_FormCommandMgr_getCallBackNotif((int *)&form_command_addr, (void *)form_command_name, (void *)&form_command_context)) break;
      if (gps_mgr) {
 #ifdef DEBUG_TIME
         int has_data = 0;
 #endif
+	exception_type = "GPS processing";
         while (RoadMapMainIo[0].active &&
               (NOPH_GpsManager_read(gps_mgr, 0, 0) != 0)) {
 #ifdef DEBUG_TIME
            if (!has_data) {
-              printf("MAIN LOOP: got gps data...\n");
+              //roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: got gps data...\n");
               has_data = 1;
            }
 #endif
@@ -410,20 +416,45 @@ static void wait_for_events(NOPH_GameCanvas_t canvas)
 #ifdef DEBUG_TIME
         if (has_data) {
            end_time = NOPH_System_currentTimeMillis();
-           printf("MAIN LOOP: finished processing GPS data in %d ms\n",
+	   if ((end_time - start_time) > 50)
+		roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: finished processing GPS data in %d ms\n",
                   end_time - start_time);
            start_time = end_time;
         }
 #endif
      }
 
+     if (timer_mgr) {
+        int index;
+#ifdef DEBUG_TIME
+        int has_timer = 0;
+#endif
+	exception_type = "Periodic timer";
+        while ((index = NOPH_TimerMgr_getExpired(timer_mgr)) != -1) {
+#ifdef DEBUG_TIME
+           if (!has_timer) {
+              //roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: executing timer callbacks...\n");
+              has_timer = 1;
+           }
+#endif
+           (*RoadMapMainPeriodicTimer[index].callback) ();
+        }
+#ifdef DEBUG_TIME
+        if (has_timer) {
+           index = NOPH_System_currentTimeMillis();
+	   if ((index - start_time) >= 50)
+              roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: finished callbacks in %d ms\n", index - start_time);
+           start_time = index;
+        }
+#endif
+     }
 
      if (KeyCode != 0) break;
 
      NOPH_Thread_sleep( 10 );
 #ifdef DEBUG_TIME
      end_time = NOPH_System_currentTimeMillis();
-     if ((end_time - start_time) > 100) printf("MAIN LOOP: Slept for %d ms!\n", end_time - start_time);
+     if ((end_time - start_time) > 100) roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: Slept for %d ms!\n", end_time - start_time);
      start_time = end_time;
 #endif
   }
@@ -450,13 +481,16 @@ int main (int argc, char **argv) {
    roadmap_start_subscribe (roadmap_start_event);
    roadmap_start (argc, argv);
 
+   /*
    if (NOPH_exception) {
       NOPH_Throwable_printStackTrace(NOPH_exception);
       exit(1);
    }
-
+*/
    NOPH_CommandMgr_setResultMem(NOPH_CommandMgr_getInstance(), (int *)&command_addr);
-   NOPH_FormCommandMgr_setCallBackNotif((int *)&form_command_addr, (void *)form_command_name, (void *)&form_command_context);
+//   NOPH_FormCommandMgr_setCallBackNotif((int *)&form_command_addr, (void *)form_command_name, (void *)&form_command_context);
+
+NOPH_try(handler_main_loop, NULL) {
 
    /* The main game loop */
    while(!should_exit)
@@ -474,13 +508,14 @@ int main (int argc, char **argv) {
 #endif
       if (command_addr) {
 #ifdef DEBUG_TIME
-         printf("MAIN LOOP: processing command...\n");
+         roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: processing command...\n");
 #endif
+	 exception_type = "command";
          ((RoadMapCallback)command_addr)();
          command_addr = 0;
 #ifdef DEBUG_TIME
          end_time = NOPH_System_currentTimeMillis();
-         printf("MAIN LOOP: finished processing command in %d ms\n",
+         roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: finished processing command in %d ms\n",
                   end_time - start_time);
          start_time = end_time;
 #endif
@@ -488,35 +523,40 @@ int main (int argc, char **argv) {
 
       if (form_command_addr) {
 #ifdef DEBUG_TIME
-         printf("MAIN LOOP: processing form command...\n");
+         roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: processing form command...\n");
          roadmap_log (ROADMAP_ERROR,
             "Form command: addr:%x, name:%s, context:%x",
             form_command_addr, form_command_name, form_command_context);
 #endif
+	 exception_type = "Form callback";
          ((RoadMapDialogCallback)form_command_addr)((char *)form_command_name,
                                           (void *)form_command_context);
          form_command_addr = 0;
 #ifdef DEBUG_TIME
          end_time = NOPH_System_currentTimeMillis();
-         printf("MAIN LOOP: finished processing form command in %d ms\n",
+         roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: finished processing form command in %d ms\n",
                   end_time - start_time);
          start_time = end_time;
 #endif
       }
 
 #ifdef DEBUG_TIME
-      printf("MAIN LOOP: processing key command...\n");
+      roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: processing key command...\n");
 #endif
-      if (KeyCode) roadmap_main_process_key (KeyCode);
+      if (KeyCode) {
+	 exception_type = "Key command";
+         roadmap_main_process_key (KeyCode);
+      }
 #ifdef DEBUG_TIME
       end_time = NOPH_System_currentTimeMillis();
-      printf("MAIN LOOP: finished processing key command in %d ms\n",
+      roadmap_log(ROADMAP_DEBUG, "MAIN LOOP: finished processing key command in %d ms\n",
             end_time - start_time);
       start_time = end_time;
 #endif
    }
+} NOPH_catch();
 
-   printf ("Main loop exiting...\n");
+   roadmap_log(ROADMAP_DEBUG, "Main loop exiting...\n");
    //exit(0);
    return 0;
 }

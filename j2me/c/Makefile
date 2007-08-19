@@ -6,7 +6,7 @@
 ## Author:        Simon Kagstrom <ska@bth.se>
 ## Description:   Generic Makefile
 ##
-## $Id: Makefile,v 1.2 2007/06/12 06:56:53 eshabtai Exp $
+## $Id: Makefile,v 1.3 2007/08/19 13:38:46 eshabtai Exp $
 ##
 ######################################################################
 SUBDIRS =
@@ -83,6 +83,9 @@ LDLIBS  = -lc -lsoftfloat -lm
 CFLAGS  = -DJ2ME -DJ2MEMAP
 INCLUDES = -I../../src -I../include
 
-CIBYL_MIPS2JAVA_OPTS ?=-I../include
+CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-indirect-calls --optimize-register-scheduling --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square 
+#CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-indirect-calls --optimize-inline-all-builtins -O
+#CIBYL_MIPS2JAVA_OPTS ?=-I../include -O
+#CIBYL_MIPS2JAVA_OPTS ?=-I../include
 
 include $(CIBYL_BASE)/build/Rules.mk

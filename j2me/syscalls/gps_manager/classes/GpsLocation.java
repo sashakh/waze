@@ -25,7 +25,7 @@ public class GpsLocation implements LocationListener, GpsIntr
     int status;
   };
 
-  private static final int MAX_GPS_INPUT = 50;
+  private static final int MAX_GPS_INPUT = 20;
   private String url = "";
   private static GpsLocation instance;
   private MIDlet midlet;
@@ -61,18 +61,18 @@ public class GpsLocation implements LocationListener, GpsIntr
   private LocationProvider findProvider() {
     try {
        Criteria cr = new Criteria();
-       cr.setPreferredPowerConsumption(Criteria.POWER_USAGE_HIGH);
-       //cr.setPreferredPowerConsumption(Criteria.NO_REQUIREMENT);
+       //cr.setPreferredPowerConsumption(Criteria.POWER_USAGE_HIGH);
+       cr.setPreferredPowerConsumption(Criteria.NO_REQUIREMENT);
        //cr.setPreferredPowerConsumption(Criteria.POWER_USAGE_MEDIUM);
        //cr.setPreferredPowerConsumption(Criteria.POWER_USAGE_LOW);
-       cr.setAddressInfoRequired(false);
-       cr.setAltitudeRequired(false);
-       cr.setHorizontalAccuracy(25);
-       cr.setVerticalAccuracy(25);
-       //cr.setPreferredResponseTime(1000);
+       //cr.setAddressInfoRequired(false);
+       //cr.setAltitudeRequired(false);
+       //cr.setHorizontalAccuracy(25);
+       //cr.setVerticalAccuracy(25);
+       //cr.setPreferredResponseTime(500);
        cr.setSpeedAndCourseRequired(true);
 
-       return LocationProvider.getInstance(null);
+       return LocationProvider.getInstance(cr);
     } catch (LocationException e) {
        e.printStackTrace();
     }
@@ -84,14 +84,15 @@ public class GpsLocation implements LocationListener, GpsIntr
   {
     if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
       synchronized(data[data_tail]) {
-        data_tail = (data_tail + 1) % MAX_GPS_INPUT;
+        if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
+          data_tail = (data_tail + 1) % MAX_GPS_INPUT;
+	}
       }
       System.err.println("GPSManager: Data overflow.");
     }
 
     if (data[data_head] == null) data[data_head] = new GpsData();
     GpsData d = data[data_head];
-    data_head = (data_head + 1) % MAX_GPS_INPUT;
 
     d.status = status;
 
@@ -101,11 +102,13 @@ public class GpsLocation implements LocationListener, GpsIntr
       d.time = (int)(location.getTimestamp() / 1000);
       d.longitude = (int)(coord.getLongitude() * 1000000);
       d.latitude = (int)(coord.getLatitude() * 1000000);
-      d.speed = (int)speed * 2; /* Convert to ~knots */
+      d.speed = (int)speed * 2; // Convert to ~knots
       d.azymuth = (int)location.getCourse();
       d.horizontal_accuracy = (int)coord.getHorizontalAccuracy();
       d.vertical_accuracy = (int)coord.getVerticalAccuracy();
     }
+
+    data_head = (data_head + 1) % MAX_GPS_INPUT;
   }
 
   public void searchGps(MIDlet m, String wait_msg, String not_found_msg) {
@@ -118,13 +121,14 @@ public class GpsLocation implements LocationListener, GpsIntr
     }
 
     url = "Internal GPS";
+
     GameCanvas gc = (GameCanvas)CRunTime.getRegisteredObject(
         Syscalls.NOPH_GameCanvas_get());
 
     Display.getDisplay(m).setCurrent(gc);
   }
 
-  public synchronized int connect(String url) {
+  public int connect(String url) {
     if (provider == null) provider = findProvider();
 
     if (provider == null) return -1;
@@ -135,7 +139,7 @@ public class GpsLocation implements LocationListener, GpsIntr
    * Closes input stream and bluetooth connection as well as sets the
    * corresponding objects to null.
    */
-  public synchronized void disconnect() {
+  public void disconnect() {
   }
 
 
@@ -217,17 +221,28 @@ public class GpsLocation implements LocationListener, GpsIntr
      * Location parameter is set final, so that the anonymous Thread class can
      * access the value.
      */
+    
     public void locationUpdated(LocationProvider provider,
             final Location location)
     {
-       if (location != null && location.isValid())
-       {
-          addGpsData('A', location);
-       }
-       else
-       {
-          addGpsData('V', null);
-       }
+/*
+        new Thread()
+        {
+            public void run()
+            {
+*/	    
+                if (location != null && location.isValid())
+                {
+                    addGpsData('A', location);
+                }
+                else
+                {
+                    addGpsData('V', null);
+                }
+/*		
+            }
+        }.start();
+*/	
     }
 
     /**
@@ -241,18 +256,27 @@ public class GpsLocation implements LocationListener, GpsIntr
     public void providerStateChanged(LocationProvider provider,
             final int newState)
     {
-        switch (newState) {
-                case LocationProvider.AVAILABLE:
+/*	
+        new Thread()
+        {
+            public void run()
+            {
+*/	    
+                switch (newState) {
+                    case LocationProvider.AVAILABLE:
                         break;
-                case LocationProvider.OUT_OF_SERVICE:
+                    case LocationProvider.OUT_OF_SERVICE:
                         addGpsData('V', null);
                         break;
-                case LocationProvider.TEMPORARILY_UNAVAILABLE:
+                    case LocationProvider.TEMPORARILY_UNAVAILABLE:
                         addGpsData('V', null);
                         break;
-                default:
+                    default:
                         break;
-        }
+                }
+/*		
+            }
+        }.start();
+*/	
     }
 }
-

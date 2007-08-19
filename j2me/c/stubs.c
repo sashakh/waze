@@ -67,8 +67,20 @@ void roadmap_messagebox (const char *title, const char *text) {
   NOPH_Display_setCurrent(display, msg);
 }
 
+#include "roadmap_res.h"
+#include "roadmap_canvas.h"
+
 void *roadmap_res_get (unsigned int type, unsigned int flags,
-                       const char *name) { return NULL; }
+                       const char *name) {
+
+   char full_name[255];
+
+   if (type != RES_BITMAP) return NULL;
+
+   snprintf(full_name, sizeof(full_name), "/%s.png", name);
+
+   return roadmap_canvas_load_image (NULL, full_name);
+}
 
 int roadmap_preferences_use_keyboard() { return 0; }
 
@@ -206,5 +218,5 @@ void editor_notes_add_voice (void) { }
 
 
 
-const char *editor_main_get_version (void) { return "0.10.0 rc2"; }
+const char *editor_main_get_version (void) { return "0.10.0 rc4"; }
 

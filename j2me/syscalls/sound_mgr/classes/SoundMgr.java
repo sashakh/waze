@@ -11,11 +11,6 @@ import javax.microedition.media.PlayerListener;
 
 public class SoundMgr implements PlayerListener {
 
-	private static final int MAX_LISTS = 2;
-	private Integer[] sound_lists = new Integer[MAX_LISTS];
-	private int current_list = -1;
-	private int current_list_item = -1;
-
 	private class SoundList {
 		private static final int MAX_SOUND_LIST = 20;
 		static final int SOUND_LIST_NO_FREE = 0x1;
@@ -23,11 +18,18 @@ public class SoundMgr implements PlayerListener {
 		int flags;
 		int count;
 		String[] list = new String[MAX_SOUND_LIST];
+		InputStream[] streams;
 
 		public SoundList(int flags) {
 			this.flags = flags;
 		}
 	}
+
+	private static final int MAX_LISTS = 2;
+	private SoundList current_list;
+	private Integer[] sound_lists = new Integer[MAX_LISTS];
+	private int current_list_id = -1;
+	private int current_list_item = -1;
 
 	private static SoundMgr instance;
 
@@ -42,46 +44,52 @@ public class SoundMgr implements PlayerListener {
 		return instance;
 	}
 
+	private void closeCurrentList() {
+		for (int i=0; i<current_list.streams.length; i++) {
+			if (current_list.streams[i] != null) {
+				try { current_list.streams[i].close(); } catch (Exception e) {}
+				current_list.streams[i] = null;
+			}
+		}
+	}
+
 	private void playNextItem() {
 
-		SoundList list =
-			(SoundList)CRunTime.getRegisteredObject(sound_lists[current_list].intValue());
+		while ((current_list_item < current_list.count) &&
+				(current_list.streams[current_list_item] == null)) {
 
-		if (current_list_item == list.count) {
-			if ((list.flags & SoundList.SOUND_LIST_NO_FREE) == 0) {
-				listFree (sound_lists[current_list].intValue());
-			}
-			sound_lists[current_list] = null;
-			playNextList();
-			return;
+			current_list_item++;
 		}
 
-		InputStream is = getClass().getResourceAsStream(list.list[current_list_item]);
-
-		if (is == null) {
-			System.out.println("Error creating InputStream "
-					+ list.list[current_list_item]);
+		if (current_list_item == current_list.count) {
+			closeCurrentList();
+			if ((current_list.flags & SoundList.SOUND_LIST_NO_FREE) == 0) {
+				listFree (sound_lists[current_list_id].intValue());
+			}
+			sound_lists[current_list_id] = null;
+			current_list = null;
 			playNextList();
 			return;
 		}
 
 		try {
-			Player p = Manager.createPlayer(is, "audio/mpeg");
+			Player p = Manager.createPlayer(current_list.streams[current_list_item], "audio/mpeg");
 
 			if (p == null) {
 				System.out.println("Error creating Player "
-						+ list.list[current_list_item]);
+						+ current_list.list[current_list_item]);
+				closeCurrentList();
+				playNextList();
 			} else {
 				p.addPlayerListener(this);
 				p.realize();        // Realize the player
 				p.prefetch();       // Prefetch the player
-				System.out.println("Realized Player: "
-						+ list.list[current_list_item]);
-				p.start();
 				current_list_item++;
+				p.start();
 			}
 		} catch (Exception e) {
 			System.out.println(e);
+			closeCurrentList();
 			playNextList();
 			return;
 		}		
@@ -89,27 +97,55 @@ public class SoundMgr implements PlayerListener {
 
 	private void playNextList() {
 		synchronized (sound_lists) {
-			current_list = (current_list + 1) % MAX_LISTS;
+			current_list_id = (current_list_id + 1) % MAX_LISTS;
 
-			if (sound_lists[current_list] == null) {
+			if (sound_lists[current_list_id] == null) {
 
 				/* nothing to play */
-				current_list = -1;
+				current_list_id = -1;
 			}
 		}
 
-		if (current_list == -1) return;
+		if (current_list_id == -1) return;
 
 		current_list_item = 0;
+		current_list = (SoundList)CRunTime.getRegisteredObject(sound_lists[current_list_id].intValue());
+		if ((current_list.streams == null) || (current_list.streams.length != current_list.count)) {
+			current_list.streams = new InputStream[current_list.count];
+		}
+		for (int i=0; i<current_list.count; i++) {
+			try {
+				current_list.streams[i] =
+					getClass().getResourceAsStream(
+						current_list.list[i]);
+			} catch (Exception e) {
+				System.out.println("Error creating sound stream:"
+						+ current_list.list[i]);
+			}
+		}
 
 		playNextItem();
 	}
 
-	public void playerUpdate(Player p, String event, Object eventData) {
-		if (event == END_OF_MEDIA) {
-			p.close();
-			playNextItem();
-		}
+	public void playerUpdate(final Player p, final String event, Object eventData) {
+		//System.out.println("playerUpdate: " + event);
+
+		if ((event != END_OF_MEDIA) && (event != STOPPED)) return;
+
+        new Thread()
+        {
+            public void run()
+            {
+				setPriority(Thread.MAX_PRIORITY);
+				try {
+					if(p.getState() == p.PREFETCHED) p.stop();
+				} catch (Exception e) {}
+				try {p.close();} catch (Exception e) {}
+
+				if (event == STOPPED) current_list_item--;
+				playNextItem();
+            }
+        }.start();
 	}
 
 	public int listCreate(int flags) {
@@ -138,9 +174,9 @@ public class SoundMgr implements PlayerListener {
 
 	int playList(int _list) {
 		synchronized (sound_lists) {
-			if (current_list != -1) {
+			if (current_list_id != -1) {
 				/* playing */
-				int next = (current_list + 1) % MAX_LISTS;
+				int next = (current_list_id + 1) % MAX_LISTS;
 
 				if (sound_lists[next] != null) {
 

@@ -48,7 +48,7 @@
 
 #include "roadmap_address.h"
 
-#define MAX_NAMES 100
+#define MAX_NAMES 20
 static const char *def_values[2] = {"", ""};
 static int RoadMapAddressSearchCount;
 static char *RoadMapAddressSearchNames[MAX_NAMES];
@@ -109,7 +109,11 @@ static void roadmap_address_done (RoadMapGeocode *selected,
        roadmap_screen_refresh ();
     } else {
        if ((*RoadMapAddressNavigate) (&selected->position, &line, 0) != -1) {
-         roadmap_dialog_hide (context->title);
+          roadmap_screen_hold ();
+          roadmap_trip_set_focus ("GPS");
+          roadmap_dialog_hide (context->title);
+          roadmap_screen_refresh ();
+          roadmap_history_save ();
        } else {
           context->navigate = 0;
        }
@@ -157,10 +161,7 @@ static void roadmap_address_selection (void  *data,
    roadmap_check_allocated(list);
    roadmap_check_allocated(names);
 
-   printf("In roadmap_address_selection:\n");
-
    for (i = count-1; i >= 0; --i) {
-      printf("%d: %s\n", i, selections[i].name);
       names[i] = selections[i].name;
       list[i] = selections + i;
    }
@@ -291,6 +292,8 @@ static int roadmap_address_populate_list (RoadMapString index,
 
    if (RoadMapAddressSearchCount == MAX_NAMES) return 0;
 
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_populate_list: %s", string);
+
    RoadMapAddressSearchNames[RoadMapAddressSearchCount++] = (char *)string;
 
    return 1;
@@ -303,29 +306,32 @@ static void roadmap_address_search_populate (const char *name, void *data) {
    char count_str[10];
    RoadMapAddressSearch *context = (RoadMapAddressSearch *)data;
 
+   roadmap_log(ROADMAP_DEBUG, "in roadmap_address_search_populate: %s", name);
    str = roadmap_dialog_get_data (".search", "Name");
    //str = "תל א";
-
-   printf("In roadmap_address_search_populate: name: %s, data:0x%x\n",
-          str, (int)data);
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_populate, name: %s", str);
 
    RoadMapAddressSearchCount = 0;
 
    if (strlen(str)) {
 
       if (context->city) {
+       roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_populate, got city: %s", context->city);
          roadmap_street_search (context->city,
                                 str,
                                 roadmap_address_populate_list,
                                 NULL);
       } else {
+       roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_populate, search city");
          roadmap_locator_search_city (str, roadmap_address_populate_list, NULL);
       }
    }
 
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_populate, done. Count:%d", RoadMapAddressSearchCount);
    snprintf (count_str, sizeof(count_str), "%d", RoadMapAddressSearchCount);
    roadmap_dialog_set_data  (".search", "found", count_str);
 
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_populate, b4 show_list...");
    roadmap_dialog_show_list
       (".search", ".results",
        RoadMapAddressSearchCount,
@@ -333,12 +339,14 @@ static void roadmap_address_search_populate (const char *name, void *data) {
        NULL);
 
    roadmap_main_flush();
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_populate, done.");
 }
 
 
 static void roadmap_address_search_cancel (const char *name, void *data) {
    RoadMapAddressSearch *context = (RoadMapAddressSearch *)data;
 
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_cancel: %s", name);
    roadmap_dialog_hide ("Search Address");
 
    (*context->callback) (NULL, context->data);
@@ -349,23 +357,29 @@ static void roadmap_address_search_cancel (const char *name, void *data) {
 
 static void roadmap_address_search_done (const char *name, void *data) {
 
-   char *result_name = (char *) roadmap_dialog_get_data (".search", ".results");
-   printf("in roadmap_address_search_done: value:%s\n", result_name);
    RoadMapAddressSearch *context = (RoadMapAddressSearch *)data;
+   char *result_name;
+
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_address_search_done: %s", name);
+
+   result_name = (char *) roadmap_dialog_get_data (".search", ".results");
+
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_done, result: %s", result_name);
       
    roadmap_dialog_hide ("Search Address");
 
-   printf("before callback:0x%x\n", (int)context->callback);
    (*context->callback) (result_name, context->data);
-   printf("after callback\n");
 
    free (context);
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_search_done, done.");
 }
 
 
 static void roadmap_address_city_result (const char *result, void *data) {
 
    RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
+
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_city_result:%s", result);
       
    roadmap_dialog_activate (context->title, context, 1);
 
@@ -381,8 +395,7 @@ static void roadmap_address_street_result (const char *result, void *data) {
    char name[255];
    char *tmp;
       
-   printf("In roadmap_address_street_result: result:%s, title:%s\n",
-            result, context->title);
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_street_result:%s", result);
    roadmap_dialog_activate (context->title, context, 1);
 
    if ((result == NULL) || !strlen (result)) return;
@@ -396,7 +409,6 @@ static void roadmap_address_street_result (const char *result, void *data) {
    *tmp = 0;
    tmp += 2;
 
-   printf("name:%s, tmp:%s\n", name, tmp);
    /* FIXME this is actually a memory leak.
     * The whole combo boxes mass must be fixed ASAP.
     */
@@ -407,15 +419,17 @@ static void roadmap_address_street_result (const char *result, void *data) {
 
 static void roadmap_address_other_cb (const char *name, void *context) {
 
-   printf ("in roadmap_address_other_cb... city: %s\n", roadmap_dialog_get_data ("Address", "City"));
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_address_other_cb:%s", name);
    if (!strcmp(roadmap_dialog_get_data ("Address", "City"), def_values[1]) ){
       
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_other_cb: City search.");
       roadmap_dialog_set_data ("Address", "City", def_values[0]);
       roadmap_address_search_dialog
          (NULL, roadmap_address_city_result, context);
    } else if (!strcmp(roadmap_dialog_get_data ("Address", "Street"),
                       def_values[1])) {
       
+   roadmap_log(ROADMAP_DEBUG, "roadmap_address_other_cb: Street search.");
       roadmap_dialog_set_data ("Address", "Street", def_values[0]);
 
       roadmap_address_search_dialog
@@ -452,10 +466,10 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
       roadmap_dialog_new_entry ("Address", "Number", NULL);
 //      roadmap_dialog_new_entry ("Address", "State", NULL);
 
-      roadmap_dialog_add_button ("Back", roadmap_address_before);
-      roadmap_dialog_add_button ("Next", roadmap_address_after);
-      roadmap_dialog_add_button ("Show", roadmap_address_show);
       roadmap_dialog_add_button ("Navigate", roadmap_address_navigate);
+      roadmap_dialog_add_button ("Show", roadmap_address_show);
+      //roadmap_dialog_add_button ("Back", roadmap_address_before);
+      //roadmap_dialog_add_button ("Next", roadmap_address_after);
       roadmap_dialog_add_button ("Cancel", roadmap_address_cancel);
 
       //roadmap_dialog_complete (roadmap_preferences_use_keyboard());
@@ -499,9 +513,6 @@ void roadmap_address_search_dialog (const char *city,
    context->data = data;
    context->city = city;
 
-   printf("In roadmap_address_search_dialog, context:0x%x, callback:0x%x\n",
-            (int)context, (int)callback);
-
    if (roadmap_dialog_activate ("Search Address", context, 0)) {
 
       roadmap_dialog_new_entry  (".search", "Name",
@@ -522,6 +533,7 @@ void roadmap_address_search_dialog (const char *city,
 
    roadmap_address_search_populate ("Search Address", context);
    roadmap_dialog_activate ("Search Address", context, 1);
+   roadmap_dialog_set_focus (".search", "Name");
 }
 
 
@@ -540,6 +552,7 @@ void roadmap_address_location_by_zip (void) {
 }
 
 void roadmap_address_register_nav (RoadMapAddressNav navigate) {
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_address_register_nav: addr:0x%x", navigate);
    RoadMapAddressNavigate = navigate;
 }
 

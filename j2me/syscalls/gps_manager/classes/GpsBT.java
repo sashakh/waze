@@ -10,7 +10,7 @@ import java.io.*;
 
 public class GpsBT implements CommandListener, Runnable, GpsIntr
 {
-  private static final int MAX_GPS_INPUT = 100;
+  private static final int MAX_GPS_INPUT = 20;
   private String url = "";
   private static GpsBT instance;
   private BLUElet bluelet = null;
@@ -158,7 +158,17 @@ public class GpsBT implements CommandListener, Runnable, GpsIntr
 
     while (Thread.currentThread() == runner) {
       try {
-        byte[] output = new byte[100];
+        byte[] output;
+        if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
+	  synchronized (data[data_tail]) {
+            if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
+              data_tail = (data_tail + 1) % MAX_GPS_INPUT;
+              System.err.println("GPSManager: Data overflow.");
+	    }
+	  }
+        }
+	if (data[data_head] == null) data[data_head] = new byte[100];
+	output = data[data_head];
         int count = reader.read(output, 1, output.length-1);
         if (Thread.currentThread() != runner) return;
         if (count == -1) {
@@ -168,11 +178,6 @@ public class GpsBT implements CommandListener, Runnable, GpsIntr
 
         output[0] = (byte)count;
 
-        if (((data_head + 1) % MAX_GPS_INPUT) == data_tail) {
-          data_tail = (data_tail + 1) % MAX_GPS_INPUT;
-          System.err.println("GPSManager: Data overflow.");
-        }
-        data[data_head] = output;
         data_head = (data_head + 1) % MAX_GPS_INPUT;
       }
       catch (IOException ie) {
@@ -213,14 +218,16 @@ public class GpsBT implements CommandListener, Runnable, GpsIntr
     if (size == 0) return 1;
 
     byte[] bytes = (byte[]) data[data_tail];
-    data_tail = (data_tail + 1) % MAX_GPS_INPUT;
+    synchronized (bytes) {
+      data_tail = (data_tail + 1) % MAX_GPS_INPUT;
 
-    int count = bytes[0] & 0xff;
+      int count = bytes[0] & 0xff;
 
-    if (count > size) count = size;
-    CRunTime.memcpy(addr, bytes, 1, count);
+      if (count > size) count = size;
+      CRunTime.memcpy(addr, bytes, 1, count);
 
-    return count;
+      return count;
+    }
   }
 }
 

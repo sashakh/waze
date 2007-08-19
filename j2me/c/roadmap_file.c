@@ -64,10 +64,13 @@ FILE *roadmap_file_fopen (const char *path,
    }
 
    file = fopen (full_name, mode);
-   roadmap_log (ROADMAP_DEBUG, "After fopen for: %s, file=%x", full_name, file);
 
    if ((file == NULL) && (! silent)) {
-      roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
+      if (!strcmp(name, "logger.txt")) {
+         fprintf (stderr, "cannot open file %s", full_name);
+      } else {
+         roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
+      }
    }
 
    roadmap_path_free (full_name);
@@ -194,6 +197,9 @@ const char *roadmap_file_unique (const char *base) {
 
 */
 
+static void handler_file_io(NOPH_Exception_t exception, void *arg)
+{ NOPH_delete(exception); }
+
 const char *roadmap_file_map (const char *set,
                               const char *name,
                               const char *sequence,
@@ -239,10 +245,13 @@ const char *roadmap_file_map (const char *set,
 	 full_name = roadmap_path_join (sequence, name);
 
          if (!strncmp(full_name, "file:", 5)) {
-            printf ("Trying to open: %s %x\n", full_name, (int)context->fd);
-            context->fd = NOPH_Connector_openFILEInputStream(full_name);
+            roadmap_log (ROADMAP_DEBUG, "Trying to open: %s %x\n", full_name, (int)context->fd);
+	    context->fd = 0;
+	    NOPH_try(handler_file_io, NULL) {
+               context->fd = NOPH_Connector_openFILEInputStream(full_name);
+	    } NOPH_catch();
             if (context->fd) {
-               printf ("Open ok!, size: %d\n", favail(context->fd));
+               roadmap_log (ROADMAP_DEBUG, "Open ok!, size: %d\n", favail(context->fd));
             }
          } else {
             context->fd = fopen (full_name, mode);
