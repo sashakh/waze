@@ -506,12 +506,19 @@ static void roadmap_gps_navigation (char status,
          RoadMapGpsReceivedPosition.speed  = speed;
       }
 
-      if (steering != ROADMAP_NO_VALID_DATA) {
+      if ((speed >= roadmap_gps_speed_accuracy()) &&
+      		(steering != ROADMAP_NO_VALID_DATA)) {
+
          RoadMapGpsReceivedPosition.steering  = steering;
       }
 
       roadmap_gps_process_position();
+
+   } else {
+      roadmap_gps_update_reception ();
    }
+
+   RoadMapGpsLatestData = time (NULL);
 }
 
 
@@ -718,7 +725,6 @@ void roadmap_gps_register_monitor (roadmap_gps_monitor monitor) {
 void roadmap_gps_open (void) {
 
    const char *url;
-
 
    /* Check if we have a gps interface defined: */
 

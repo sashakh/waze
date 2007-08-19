@@ -95,6 +95,7 @@ int roadmap_gpsj2me_decode (void *user_context,
 
    altitude  = ROADMAP_NO_VALID_DATA;
 
+   //roadmap_log (ROADMAP_DEBUG, "GPS data: %d, %d, %d\n", d->status, d->speed, d->azymuth);
    RoadmapGpsJ2meNavigationListener
          ((char)d->status, d->time, d->latitude, d->longitude, altitude, d->speed, d->azymuth);
 
