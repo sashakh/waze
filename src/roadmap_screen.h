@@ -114,8 +114,14 @@ int roadmap_screen_height (void);
 #define DBG_TIME_TEXT_ONE_RAS 13
 #define DBG_TIME_DRAW_LONG_LINES 14
 #define DBG_TIME_FIND_LONG_LINES 15
-
-#define DBG_TIME_LAST_COUNTER 16
+#define DBG_TIME_ADD_SEGMENT 16
+#define DBG_TIME_FLUSH_LINES 17
+#define DBG_TIME_FLUSH_POINTS 18
+#define DBG_TIME_T1 19
+#define DBG_TIME_T2 20
+#define DBG_TIME_T3 21
+#define DBG_TIME_T4 22
+#define DBG_TIME_LAST_COUNTER 23
 
 void dbg_time_start(int type);
 void dbg_time_end(int type);
