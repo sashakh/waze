@@ -844,7 +844,7 @@ void roadmap_trip_set_focus (const char *name) {
         return;
     }
 
-    roadmap_trip_set_point_focus (point);
+    if (point->has_value) roadmap_trip_set_point_focus (point);
 }
 
 int roadmap_trip_is_focus_changed (void) {

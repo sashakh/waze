@@ -121,8 +121,8 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
    int i;
 
 #ifdef J2ME
-   fprintf (file, "%c%s %s, line %d ",
-         saved, category->prefix, source, line);
+   fprintf (file, "%d %c%s %s, line %d ",
+         time(NULL), saved, category->prefix, source, line);
 
 #elif defined (_WIN32)
 
@@ -188,12 +188,18 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    va_start(ap, format);
 
-#ifndef J2ME
    if (category->save_to_file) {
+      static int open_file_attemped = 0;
 
-      if (file == NULL) {
+      if ((file == NULL) && (!open_file_attemped)) {
+         open_file_attemped = 1;
 
+#ifndef J2ME
          file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
+#else
+         //file = roadmap_file_fopen ("file:///e:/FreeMap", "logger.txt", "w");
+#endif
+         if (file) fprintf (file, "*** Starting log file %d ***\n", (int)time(NULL));
       }
 
       if (file != NULL) {
@@ -208,7 +214,6 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
          saved = 's';
       }
    }
-#endif
 
    roadmap_log_one (category, stderr, saved, source, line, format, ap);
 
