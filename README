@@ -2120,7 +2120,9 @@ CONFIGURATION
 |        B <x> <y> <x> <y>  |  Optional -- the bounding box used to determine 
 |                           |  whether a selection has taken place.  (I.e.,
 |                           |  the size of the sprite.) Normally the bounding
-|                           |  box is calculated by RoadMap itself, but
+|                           |  box is calculated by RoadMap itself (and if
+|                           |  the object will rotate, the bounding box is
+|                           |  forced to have maximal dimensions), but
 |                           |  irregularly shaped sprites, combined with the
 |                           |  rotation of the sprite, may require that the
 |                           |  box be overridden.
