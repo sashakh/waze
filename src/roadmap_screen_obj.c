@@ -67,8 +67,9 @@ static ObjectFile RoadMapObjFiles[] = {
 
 #define MAX_STATES 9
 
-#define OBJ_FLAG_NO_ROTATE 0x1
-#define OBJ_FLAG_REPEAT    0x2
+#define OBJ_FLAG_NO_ROTATE        0x1
+#define OBJ_FLAG_REPEAT           0x2
+#define OBJ_FLAG_EXPLICIT_BBOX    0x4
 
 #define OBJ_REPEAT_TIMEOUT 100
 
@@ -257,6 +258,31 @@ static void roadmap_screen_obj_decode_bbox
    object->bbox.maxx = atoi(arg);
    roadmap_screen_obj_decode_arg (arg, sizeof(arg), argv[4], argl[4]);
    object->bbox.maxy = atoi(arg);
+
+   object->flags |= OBJ_FLAG_EXPLICIT_BBOX;
+}
+
+static void roadmap_screen_obj_square_bbox(RoadMapScreenObj object) {
+
+    /* unless the bbox was set explicitly, if the object
+     * will rotate, we want the bbox to be square, using
+     * the max dimension of the actual bbox.  */
+
+    RoadMapGuiRect *bbox = &object->bbox;
+    int max = 0;
+
+    if (object->flags & OBJ_FLAG_NO_ROTATE) return;
+
+    if (object->flags & OBJ_FLAG_EXPLICIT_BBOX) return;
+
+    if (max < abs(bbox->minx)) max = abs(bbox->minx);
+    if (max < abs(bbox->maxx)) max = abs(bbox->maxx);
+    if (max < abs(bbox->miny)) max = abs(bbox->miny);
+    if (max < abs(bbox->maxy)) max = abs(bbox->maxy);
+
+    bbox->minx = bbox->miny = -max;
+    bbox->maxx = bbox->maxy = max;
+
 }
 
 
@@ -439,10 +465,13 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 
          roadmap_screen_obj_decode_sprite (object, argc, argv, argl);
 
+         if (object->flags & OBJ_FLAG_EXPLICIT_BBOX) break;
+
          roadmap_sprite_bbox
                 (object->sprites[object->states_count-1] , bbox);
 
-         /* we want overall bounds */
+         /* we want the bounds of the largest sprite referenced
+          * by this object */
          if (bbox->minx < object->bbox.minx) object->bbox.minx = bbox->minx;
          if (bbox->maxx > object->bbox.maxx) object->bbox.maxx = bbox->maxx;
          if (bbox->miny < object->bbox.miny) object->bbox.miny = bbox->miny;
@@ -467,6 +496,9 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 
       case 'N':
 
+         if (object != NULL) {
+            roadmap_screen_obj_square_bbox(object);
+         }
          object = roadmap_screen_obj_new (argc, argv, argl);
          break;
       }
@@ -474,6 +506,11 @@ static void roadmap_screen_obj_load (const char *data, int size) {
       while (p < end && *p < ' ') p++;
       data = p;
    }
+
+   if (object != NULL) {
+      roadmap_screen_obj_square_bbox(object);
+   }
+
 }
 
 
