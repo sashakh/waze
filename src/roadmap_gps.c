@@ -155,7 +155,13 @@ static void roadmap_gps_update_reception (void) {
       RoadMapGpsReception = new_state;
 
       if (new_state <= GPS_RECEPTION_NONE) {
+	 /* we want listeners to get at least one notification that
+	  * gps has gone away, but roadmap_gps_process_position()
+	  * resets the timestamp.
+	  */
+	 time_t save_position_data_time = RoadMapGpsLatestPositionData;
          roadmap_gps_process_position ();
+         RoadMapGpsLatestPositionData = save_position_data_time;
       }
 
       roadmap_state_refresh ();
@@ -235,13 +241,13 @@ static void roadmap_gps_call_loggers (const char *data) {
 
 static void roadmap_gps_keep_alive (void) {
 
-   roadmap_gps_update_reception ();
-
    if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) return;
 
    if (roadmap_gps_active ()) return;
 
    // roadmap_log (ROADMAP_ERROR, "GPS timeout detected.");
+
+   roadmap_gps_update_reception ();
 
    roadmap_gps_shutdown ();
 
@@ -489,11 +495,15 @@ static void roadmap_gps_navigation (char status,
          RoadMapGpsReceivedPosition.speed  = speed;
       }
 
-      if (steering != ROADMAP_NO_VALID_DATA) {
+      if ((speed >= roadmap_gps_speed_accuracy()) &&
+      		(steering != ROADMAP_NO_VALID_DATA)) {
          RoadMapGpsReceivedPosition.steering  = steering;
       }
 
       roadmap_gps_process_position();
+
+   } else {
+      roadmap_gps_update_reception ();
    }
 }
 
