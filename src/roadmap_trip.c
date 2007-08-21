@@ -592,7 +592,6 @@ void roadmap_trip_restore_focus (void) {
     }
 
     RoadMapTripFocusChanged = 0;
-    roadmap_screen_refresh ();
 }
 
 /* Add Waypoint dialog */
