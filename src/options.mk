@@ -179,15 +179,14 @@ endif
 ifeq ($(strip $(AGG)),NO)
 	CANVAS_OBJS = roadmap_canvas.o
 else
-	LIBS += -lagg -lfreetype
+	LIBS += -laggfontfreetype -lagg -lfreetype
 	CFLAGS += -DROADMAP_NO_LINEFONT \
 		-I$(TOP)/agg_support \
 		-I/usr/include/agg2 \
 		-I/usr/local/include/agg2 \
 		-I/usr/include/freetype2
 	CANVAS_OBJS = roadmap_canvas_agg.o \
-		$(TOP)/agg_support/roadmap_canvas.o \
-		$(TOP)/agg_support/agg_font_freetype.o
+		$(TOP)/agg_support/roadmap_canvas.o
 endif
 
 # bidirectional text lib
