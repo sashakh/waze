@@ -114,13 +114,14 @@ void roadmap_track_fetch_recent(const char *path, char *name) {
     /* read .csv file, add contents to RoadMapTrack */
     if ( roadmap_file_exists(path, name)) {
 
-        RoadMapTrackRecentCSV = roadmap_file_fopen (path, name, "a+");
+        RoadMapTrackRecentCSV = roadmap_file_fopen (path, name, "r");
         if (!RoadMapTrackRecentCSV) return;
        
         while (fgets(trkpoint, sizeof(trkpoint), RoadMapTrackRecentCSV)) {
             if (sscanf(trkpoint, "%ld, %lf, %lf, %f, %f, %f",
-                &t, &lon, &lat, &alt, &speed, &course) != 6)
-            continue;
+                    &t, &lon, &lat, &alt, &speed, &course) != 6) {
+                continue;
+            }
             w = waypt_new();
             w->creation_time = t;
             w->pos.latitude = from_float(lat);
@@ -129,6 +130,7 @@ void roadmap_track_fetch_recent(const char *path, char *name) {
             w->speed = speed;
             w->course = course;
             route_add_wpt_tail (RoadMapTrack, w);
+            RoadMapTrackModified = 1;
         }
 
         /* the csv file will be removed and closed at the end of
