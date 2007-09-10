@@ -165,6 +165,8 @@ rtrim(char *s)
 }
 
 
+
+#if ROADMAP_UNNEEDED
 void
 printposn(const int c, int is_lat)
 {
@@ -176,6 +178,7 @@ printposn(const int c, int is_lat)
         }
         printf("%f%c ", (double)abs(c)/1000000.0, d);
 }
+#endif
 
 
 /*
