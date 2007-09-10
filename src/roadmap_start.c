@@ -429,8 +429,8 @@ static RoadMapAction RoadMapStartActions[] = {
    {"tracksave", "Save Current Track", "Save Track", NULL,
       "Save the current GPS breadcrumb track", roadmap_track_save},
 
-   {"trackreset", "Reset Current Track", "Reset Track", NULL,
-      "Reset the current GPS breadcrumb track", roadmap_track_reset},
+   {"trackreset", "Save and Reset Current Track", "Save/Reset Track", NULL,
+      "Save the current GPS breadcrumb track, then clear it", roadmap_track_reset},
 
    {"backtrackroute", "Create Backtrack Route", "BackTrack", NULL,
       "Convert the current GPS breadcrumb track to a new route",
@@ -714,7 +714,8 @@ static const char *RoadMapStartMenu[] = {
       RoadMapFactorySeparator,
       "backtrackroute",
       "addtrack",
-      "tracksave",
+      // "tracksave", // better to save and reset, to avoid
+                        // multiple saves of same data
       "trackreset",
 
    ROADMAP_SUBMENU "Edit Places...",

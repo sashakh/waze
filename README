@@ -239,13 +239,13 @@ INSTALLATION
          * /usr/local/share/roadmap (preferred path),
 
          * /usr/share/roadmap
-	  
-	 * an site-specific directory chosen at compile time, and
+          
+         * an site-specific directory chosen at compile time, and
 
-	 * ~/.roadmap (the "user" directory, which can be referred to as
-	 '&' in other path references).  The specific value of the path to
-	 the "user" directory is configurable, using the General.UserPath
-	 setting.
+         * ~/.roadmap (the "user" directory, which can be referred to as
+         '&' in other path references).  The specific value of the path to
+         the "user" directory is configurable, using the General.UserPath
+         setting.
          
   These directories are searched sequentially: any configuration item found
   in one directory overrides all the same items found in the directories
@@ -328,7 +328,7 @@ INSTALLATION
   
          * ~/pixmaps,
 
-	 * ROADMAP_CONFIG_DIR/pixmaps, chosen at compile time,
+         * ROADMAP_CONFIG_DIR/pixmaps, chosen at compile time,
 
          * /usr/local/share/pixmaps or
 
@@ -356,7 +356,7 @@ INSTALLATION
   
          * ~/.roadmap/maps,   (also known as "&/maps")
 
-	 * ROADMAP_MAP_DIR, chosen at compile time,
+         * ROADMAP_MAP_DIR, chosen at compile time,
 
          * /var/lib/roadmap (preferred path) and
 
@@ -368,7 +368,7 @@ INSTALLATION
 
   The Zaurus is a special case again, as the default path on these systems is: 
 
-	 * ROADMAP_MAP_DIR, chosen at compile time,
+         * ROADMAP_MAP_DIR, chosen at compile time,
 
          * /opt/QtPalmtop/share/roadmap,
 
@@ -385,7 +385,7 @@ INSTALLATION
 
          * ~/.roadmap/maps,
 
-	 * ROADMAP_MAP_DIR, chosen at compile time,
+         * ROADMAP_MAP_DIR, chosen at compile time,
 
          * /usr/share/roadmap,
 
@@ -2175,8 +2175,8 @@ CONFIGURATION
 
          <<Default:>> see the ICON FILES section of this document.
 
-	 <<Comment:>> the hardcoded default includes the usual linux system
-		      pixmap directories used for storing application icons.
+         <<Comment:>> the hardcoded default includes the usual linux system
+                      pixmap directories used for storing application icons.
 
     [General.Toolbar] Show (yes) or hide (no) the roadmap toolbar.
 
@@ -2206,8 +2206,8 @@ CONFIGURATION
 
          <<Default:>> ~/.roadmap
 
-	 <<Comment:>> This directory can be referred to in other RoadMap
-	 	      path specifications using the shortcut '&'.
+         <<Comment:>> This directory can be referred to in other RoadMap
+                      path specifications using the shortcut '&'.
 
 
     [General.TripsPath] Directory in which trips are stored, usually per-user.
@@ -2216,9 +2216,9 @@ CONFIGURATION
 
          <<Default:>> &/trips, i.e. in ~/.roadmap/trips
 
-	 <<Comment:>> Trips files can be stored anywhere, but in some places
-		      RoadMap makes it easier if they're stored here.  New
-		      trips, unnamed by the users will be stored here.
+         <<Comment:>> Trips files can be stored anywhere, but in some places
+                      RoadMap makes it easier if they're stored here.  New
+                      trips, unnamed by the users will be stored here.
 
     [Geometry.Main] Sets the size of the RoadMap main window.
 
@@ -2487,7 +2487,7 @@ CONFIGURATION
          <<Format:>> pathname, including & and ~ shortcuts
 
          <<Default:>> SavedTrip.gpx, in the '&/trips' (~/.roadmap/trips)
-		  directory, but usually chosen by the user.
+                  directory, but usually chosen by the user.
 
          <<Comment:>> The file is in stored in GPX format.
 
@@ -3205,11 +3205,13 @@ CONFIGURATION
         include a date in their names).  The "savetrack" files are
         archival -- if the in-memory list gets too big, or if the
         user "clears" the current track, then excess historical
-        trackpoints will be written to a "savetrack" file.  The
-        "recenttrack.csv" file is a temporary file, used to keep
-        RoadMap from losing any track points in the event that it
-        dies (crashes) unexpectedly.  The goal is to never lose a
-        track point.
+        trackpoints will be written to a "savetrack" file.  A
+        "savetrack" file will also be created if you manually
+        reset the current track -- a backup of its contents is
+        saved, for good measure.  The "recenttrack.csv" file is a
+        temporary file, used to keep RoadMap from losing any
+        track points in the event that it dies (crashes)
+        unexpectedly.  The goal is to never lose a track point.
     
     (These files are not stored in the same directory as the other
     trip files, but instead in the same directory in which the

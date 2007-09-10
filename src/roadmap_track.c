@@ -49,6 +49,7 @@
 #include "roadmap_path.h"
 #include "roadmap_gpx.h"
 #include "roadmap_track.h"
+#include "roadmap_messagebox.h"
 
 route_head *RoadMapTrack = NULL;
 static int RoadMapTrackModified;
@@ -360,23 +361,38 @@ static const char *roadmap_track_filename(int *defaulted) {
 
 static int roadmap_track_save_worker
             (const char *path, const char *prefix, route_head *track) {
-    char name[40];
-    time_t now;
+    char fullname[80];
+    char basename[50];
     int prefixlen;
+    waypoint *w;
+    int ret;
 
-    prefixlen = sprintf(name, "%s", prefix);
+    prefixlen = sprintf(basename, "%s", prefix);
 
-    time(&now);
-    strftime(&name[prefixlen], sizeof(name) - prefixlen,
-                "-%Y-%m-%d-%H-%M-%S.gpx", localtime(&now));
+    w = (waypoint *) ROADMAP_LIST_LAST (&track->waypoint_list);
+    
+    strftime(&basename[prefixlen], sizeof(basename) - prefixlen,
+                "-%Y-%m-%d-%H-%M-%S-UTC", gmtime(&w->creation_time));
 
-    return roadmap_gpx_write_track(0, path, name, track);
+    track->rte_name = basename;
 
+    sprintf(fullname, "%s%s", basename, ".gpx");
+
+    ret = roadmap_gpx_write_track(0, path, fullname, track);
+
+    track->rte_name = NULL;
+
+    return ret;
 }
 
 void roadmap_track_save(void) {
 
-    roadmap_track_save_worker(roadmap_path_trips(), "Track-", RoadMapTrack);
+    if (RoadMapTrack == NULL ||
+        ROADMAP_LIST_EMPTY(&RoadMapTrack->waypoint_list)) {
+        roadmap_messagebox ("Note", "No current track data -- nothing saved.");
+        return;
+    }
+    roadmap_track_save_worker(roadmap_path_trips(), ARCHIVED_GPX, RoadMapTrack);
     RoadMapTrackModified = 0;
 }
 
@@ -384,6 +400,7 @@ static void roadmap_track_autosave(int hiwater, int lowater) {
 
     const char *name;
     const char *path = roadmap_path_user();
+    const char *trippath = roadmap_path_trips();
     int defaulted, ret;
 
     if (!RoadMapTrackModified) return;
@@ -405,7 +422,7 @@ static void roadmap_track_autosave(int hiwater, int lowater) {
                 archive->rte_waypt_ct++;
         }
 
-        ret = roadmap_track_save_worker(path, ARCHIVED_GPX, archive);
+        ret = roadmap_track_save_worker(trippath, ARCHIVED_GPX, archive);
         if (ret == 0) {  /* write failed -- restore points */
             /* this looks backwards, due to SPLICE's append behavior */
             ROADMAP_LIST_SPLICE
@@ -440,9 +457,9 @@ static void roadmap_track_autosave(int hiwater, int lowater) {
 
 void roadmap_track_reset (void) {
 
+    RoadMapTrackModified = 1; /* otherwise autosave does nothing */
     roadmap_track_autosave(0, 0);
     RoadMapTrackRefresh = 1;
-    RoadMapTrackModified = 1;
     roadmap_screen_refresh();
 }
 
