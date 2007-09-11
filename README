@@ -2499,6 +2499,14 @@ CONFIGURATION
 
          <<Comment:>> Can still be toggled by command.
 
+    [Trip.Show Inactive Tracks] Should waypoints in unselected tracks be shown.
+
+         <<Format:>> boolean
+
+         <<Default:>> no
+
+         <<Comment:>> Can still be toggled by command.
+
     [Trip.Connect Route Points] Should route waypoints be connected with
                   straight lines?
 
