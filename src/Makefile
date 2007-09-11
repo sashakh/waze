@@ -296,8 +296,9 @@ HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
 PKGDATAFILES = sprites preferences session drivers \
 		roadmap.popup roadmap.screenobjects
 MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All \
-	        roadmap.toolbar.ex roadmap.actionlabels.ex
-SCRIPTS = rdmdownload rdmgetall rdmgenmaps rdmgendcwmaps rdmcompare
+		roadmap.toolbar.ex roadmap.actionlabels.ex
+SCRIPTS = rdmdownload rdmcompare \
+		rdmgenmaps rdmgenshpmaps rdmgenstatemaps rdmgendcwmaps
 MKFILES = Makefile config.mk options.mk
 # this font is GPL, and comes from RedHat's "liberation-fonts-ttf-3.tar.gz"
 FONT = LiberationSans-Bold.ttf
