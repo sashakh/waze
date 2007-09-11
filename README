@@ -562,7 +562,7 @@ INSTALLATION
 
    [[5]] download some maps from the US Census bureau:
 
-         {{http://www.census.gov/geo/www/tiger/tiger2004se/tgr2004se.html}}
+         {{http://www.census.gov/geo/www/tiger/tiger2006se/tgr2006se.html}}
 
    This download can be automated by using the shell script
    roadmap/src/rdmdownload:
@@ -571,18 +571,15 @@ INSTALLATION
       rdmdownload <tiger-path> [<state-symbol> ..]
 ----
 
-   <<CAUTION>>: the command above downloads the tiger 2004 second edition
-   files. To download the tiger 2000 files, use the <<format>> option:
-
-----
-      rdmdownload <tiger-path> format=2000 [<state-symbol> ..]
-----
+   (To download older versions of the maps (e.g.  2000), see the
+   script for the options available.)
 
    [[6]] download the list of counties from the US Census bureau:
 
          {{http://www.census.gov/geo/tigerline/app_a02.txt}}
 
-      (A world-extended version of app_a02.txt is provided in directory src.)
+      (A world-extended version of app_a02.txt is provided in directory src,
+      so you should probably skip this step.)
 
    [[7]] Build the maps:
 
@@ -591,22 +588,14 @@ INSTALLATION
 ----
 
    This command processes all the Census Bureau files found in <tiger-path>
-   and creates the map files for RoadMap in the <map-path> directory. There
-   is one map file generated for each county.
+   and creates the map files for RoadMap in the <map-path> directory.  There
+   is one map file generated for each county.  (To build older versions of the
+   maps (e.g.  2000), see the script source for the "format=2000" option.)
+   Alternatively, specific counties can be built.  The county shall be
+   identified by its FIPS (e.g.  06075 for San francisco, CA).
 
 ----
       rdmgenmaps <tiger-path> [maps=<map-path>] <county> ..
-----
-
-   This other command processes only the listed counties. The county
-   shall be identified by its FIPS (e.g. 06075 for San francisco, CA).
-
-   <<CAUTION>>: the description above assumes the tiger 2002 format (which
-   is used for the 2002, 2003 and 2004 versions of the tiger files). Use
-   the option <<format=2000>> to convert tiger 2000 files. For example:
-
-----
-      rdmgenmaps <tiger-path> format=2000 [maps=<map-path>]
 ----
 
    The rdmgenmaps command can also process one full state at a time:
