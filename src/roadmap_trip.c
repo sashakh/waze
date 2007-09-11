@@ -389,7 +389,7 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
     char *newlat = (char *) roadmap_dialog_get_data ("Data", "Latitude:");
     void *which = roadmap_dialog_get_data ("Data", ".which");
     waypoint *wpt = data;
-    double tmp;
+    int tmp;
 
     if (safe_strcmp(wpt->shortname, newname)) {
         if (wpt->shortname) free(wpt->shortname);
@@ -403,15 +403,17 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
         RoadMapTripRefresh = 1;
     }
 
-    if (sscanf(newlon, "%lf", &tmp) == 1 && fabs(tmp) <= 180.0) {
-        if (wpt->pos.longitude != from_float(tmp)) {
-            wpt->pos.longitude = from_float(tmp);
+    tmp = roadmap_math_from_floatstring(newlon, MILLIONTHS);
+    if (tmp != 0 && abs(tmp) <= 180 * 1000000) {
+        if (wpt->pos.longitude != tmp) {
+            wpt->pos.longitude = tmp;
             RoadMapTripRefresh = 1;
         }
     }
-    if (sscanf(newlat, "%lf", &tmp) == 1 && fabs(tmp) <= 90.0) {
-        if (wpt->pos.latitude != from_float(tmp)) {
-            wpt->pos.latitude = from_float(tmp);
+    tmp = roadmap_math_from_floatstring(newlat, MILLIONTHS);
+    if (tmp != 0 && abs(tmp) <= 90 * 1000000) {
+        if (wpt->pos.latitude != tmp) {
+            wpt->pos.latitude = tmp;
             RoadMapTripRefresh = 1;
         }
     }
@@ -457,8 +459,9 @@ static void roadmap_trip_dialog_waypoint_edit
 
     roadmap_dialog_set_data("Data", ".which", which);
 
-    sprintf(lon, FLT_FMT, to_float(wpt->pos.longitude));
-    sprintf(lat, FLT_FMT, to_float(wpt->pos.latitude));
+    roadmap_math_to_floatstring(lon, wpt->pos.longitude, MILLIONTHS);
+    roadmap_math_to_floatstring(lat, wpt->pos.latitude, MILLIONTHS);
+
     roadmap_dialog_set_data ("Data", "Longitude:", lon);
     roadmap_dialog_set_data ("Data", "Latitude:", lat);
 
@@ -3168,6 +3171,7 @@ void roadmap_trip_move_last_place(void)
 void roadmap_trip_replace_with_google_route(void) {
 
 
+    char slat[32], slon[32], dlat[32], dlon[32];
     char cmdbuf[256];
     int ret;
 
@@ -3178,15 +3182,19 @@ void roadmap_trip_replace_with_google_route(void) {
 
 
     snprintf(cmdbuf, sizeof(cmdbuf), 
-        "wget -O - 'http://maps.google.com/maps?q=" FLT_FMT "," FLT_FMT
-           " to " FLT_FMT "," FLT_FMT "&output=js' 2>/dev/null  |"
+        "wget -O - 'http://maps.google.com/maps?q=%s,%s"
+           " to %s,%s&output=js' 2>/dev/null  |"
             "gpsbabel -r -i google -f - "
             "-x simplify,error=0.05 -o gpx "
             "-F %s/getroute.gpx",
-            RoadMapTripStart->pos.latitude / 1000000.0,
-            RoadMapTripStart->pos.longitude / 1000000.0,
-            RoadMapTripDest->pos.latitude / 1000000.0,
-            RoadMapTripDest->pos.longitude / 1000000.0,
+            roadmap_math_to_floatstring(slat,
+	    	RoadMapTripStart->pos.latitude, MILLIONTHS),
+            roadmap_math_to_floatstring(slon,
+	    	RoadMapTripStart->pos.longitude, MILLIONTHS),
+            roadmap_math_to_floatstring(dlat,
+	    	RoadMapTripDest->pos.latitude, MILLIONTHS),
+            roadmap_math_to_floatstring(dlon,
+	    	RoadMapTripDest->pos.longitude, MILLIONTHS),
             roadmap_path_trips ());
 
     ret = system(cmdbuf);

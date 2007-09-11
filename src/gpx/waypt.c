@@ -141,8 +141,8 @@ waypt_new(void)
 
         wpt = (waypoint *) xcalloc(sizeof (*wpt), 1);
         wpt->altitude = unknown_alt;
-        wpt->course = -999.0;
-        wpt->speed = -999.0;
+        wpt->course = -99999;
+        wpt->speed = -99999;
 #if ROADMAP_UNNEEDED
         wpt->fix = fix_unknown;
         wpt->sat = -1;

@@ -1142,9 +1142,11 @@ static void roadmap_screen_repaint (void) {
 
     if (count == 0) {
        RoadMapPosition pos;
+       char lon[32], lat[32];
        roadmap_math_get_context (&pos, NULL, NULL);
-       roadmap_display_text("Info", "No map available: " FLT_FMT ", " FLT_FMT,
-             to_float(pos.longitude), to_float(pos.latitude));
+       roadmap_display_text("Info", "No map available: %s, %s",
+             roadmap_math_to_floatstring(lon, pos.longitude, MILLIONTHS),
+             roadmap_math_to_floatstring(lat, pos.latitude, MILLIONTHS));
        nomap = 1;
     } else if (nomap) {
        roadmap_display_hide("Info");

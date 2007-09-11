@@ -25,6 +25,12 @@
 
 #include "defs.h"
 
+int roadmap_math_from_floatstring(const char *f, int fracdigits);
+char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits);
+#define HUNDREDTHS  2
+#define THOUSANDTHS 3
+#define MILLIONTHS  6
+
 #include <expat.h>
 
 static XML_Parser psr;
@@ -328,7 +334,6 @@ tag_gpx(const char **attrv)
 static void
 tag_wpt(const char **attrv)
 {
-        double tmp;
         const char **avp = &attrv[0];
 
         wpt_tmp = waypt_new();
@@ -336,12 +341,13 @@ tag_wpt(const char **attrv)
         cur_tag = NULL;
         while (*avp) { 
                 if (strcmp(avp[0], "lat") == 0) {
-                        sscanf(avp[1], "%lf", &tmp);
-                        wpt_tmp->pos.latitude = from_float(tmp);
+                        wpt_tmp->pos.latitude =
+			    roadmap_math_from_floatstring (avp[1], MILLIONTHS);
+
                 }
                 else if (strcmp(avp[0], "lon") == 0) {
-                        sscanf(avp[1], "%lf", &tmp);
-                        wpt_tmp->pos.longitude = from_float(tmp);
+                        wpt_tmp->pos.longitude =
+			    roadmap_math_from_floatstring(avp[1], MILLIONTHS);
                 }
                 avp+=2;
         }
@@ -458,7 +464,6 @@ end_something_else()
 static void
 tag_log_wpt(const char **attrv)
 {
-        double tmp;
         waypoint * lwp_tmp;
         const char **avp = &attrv[0];
 
@@ -468,12 +473,12 @@ tag_log_wpt(const char **attrv)
         /* extract the lat/lon attributes */
         while (*avp) { 
                 if (strcmp(avp[0], "lat") == 0) {
-                        sscanf(avp[1], "%lf", &tmp);
-                        lwp_tmp->pos.latitude = from_float(tmp);
+                        lwp_tmp->pos.latitude =
+			    roadmap_math_from_floatstring(avp[1], MILLIONTHS);
                 }
                 else if (strcmp(avp[0], "lon") == 0) {
-                        sscanf(avp[1], "%lf", &tmp);
-                        lwp_tmp->pos.longitude = from_float(tmp);
+                        lwp_tmp->pos.longitude =
+			    roadmap_math_from_floatstring(avp[1], MILLIONTHS);
                 }
                 avp+=2;
         }
@@ -877,10 +882,14 @@ gpx_end(void *data, const char *el)
                 trk_tmp->rte_num = atoi(cdatastrp);
                 break;
         case tt_trk_trkseg_trkpt_course:
-                wpt_tmp->course = atof(cdatastrp);
+		/* external is degrees, internal is in hundredths */
+                wpt_tmp->course =
+                        roadmap_math_from_floatstring(cdatastrp, HUNDREDTHS);
                 break;
         case tt_trk_trkseg_trkpt_speed:
-                wpt_tmp->speed = atof(cdatastrp);
+		/* external is m/sec, internal is cm/sec */
+                wpt_tmp->speed =
+                        roadmap_math_from_floatstring(cdatastrp, HUNDREDTHS);
                 break;
 
         /*
@@ -889,10 +898,9 @@ gpx_end(void *data, const char *el)
         case tt_wpt_ele:
         case tt_rte_rtept_ele:
         case tt_trk_trkseg_trkpt_ele:
-                {   double dalt;
-                    sscanf(cdatastrp, "%lf", &dalt);
-                    wpt_tmp->altitude = dalt * 1000.0;
-                }
+		/* external is meters, internal is mm */
+                wpt_tmp->altitude =
+                        roadmap_math_from_floatstring(cdatastrp, THOUSANDTHS);
                 break;
         case tt_wpt_name:
         case tt_rte_rtept_name:
@@ -1357,8 +1365,9 @@ gpx_write_common_position( FILE *ofd, const waypoint *waypointp,
         const char *indent)
 {
         if (waypointp->altitude != unknown_alt) {
-                fprintf(ofd, "%s<ele>%f</ele>\n",
-                         indent, ((double)(waypointp->altitude))/1000.0);
+                fprintf(ofd, "%s<ele>%s</ele>\n", indent,
+                        roadmap_math_to_floatstring
+				(0, waypointp->altitude, THOUSANDTHS));
         }
         if (waypointp->creation_time) {
                 xml_write_time(ofd, waypointp->creation_time, indent, "time");
@@ -1387,6 +1396,7 @@ gpx_waypt_pr(const waypoint *waypointp)
         const char *oname;
         char *odesc;
         fs_xml *fs_gpx;
+        char lon[32], lat[32];
 
         /*
          * Desperation time, try very hard to get a good shortname
@@ -1403,9 +1413,11 @@ gpx_waypt_pr(const waypoint *waypointp)
                                   mkshort(mkshort_handle, odesc) : 
                                   waypointp->shortname;
 
-        fprintf(cb_file, "<wpt lat=\"" FLT_FMT "\" lon=\"" FLT_FMT "\">\n",
-                to_float(waypointp->pos.latitude),
-                to_float(waypointp->pos.longitude));
+        fprintf(cb_file, "<wpt lat=\"%s\" lon=\"%s\">\n",
+                roadmap_math_to_floatstring
+			(lat, waypointp->pos.latitude, MILLIONTHS),
+                roadmap_math_to_floatstring
+			(lon, waypointp->pos.longitude, MILLIONTHS));
 
         gpx_write_common_position(cb_file, waypointp, "  ");
         gpx_write_common_description(cb_file, waypointp, "  ", oname);
@@ -1443,23 +1455,28 @@ static void
 gpx_trkpt_disp(const waypoint *waypointp)
 {
         fs_xml *fs_gpx;
+        char lon[32], lat[32];
 
         fprintf(cb_file,
-                "<trkpt lat=\"" FLT_FMT "\" lon=\"" FLT_FMT "\">\n",
-                    to_float(waypointp->pos.latitude),
-                    to_float(waypointp->pos.longitude));
+                "<trkpt lat=\"%s\" lon=\"%s\">\n",
+                    roadmap_math_to_floatstring
+		    	(lat, waypointp->pos.latitude, MILLIONTHS),
+                    roadmap_math_to_floatstring
+			(lon, waypointp->pos.longitude, MILLIONTHS));
 
         gpx_write_common_position(cb_file, waypointp, "  ");
 
         /* These were accidentally removed from 1.1 */
         if (gpx_wversion_num == 10) {
                 if (waypointp->course >= 0) {
-                        fprintf(cb_file, "  <course>%f</course>\n", 
-                                waypointp->course);
+                        fprintf(cb_file, "  <course>%s</course>\n", 
+                                roadmap_math_to_floatstring(0,
+				    waypointp->course, HUNDREDTHS));
                 }
                 if (waypointp->speed >= 0) {
-                        fprintf(cb_file, "  <speed>%f</speed>\n", 
-                                waypointp->speed);
+                        fprintf(cb_file, "  <speed>%s</speed>\n", 
+                                roadmap_math_to_floatstring(0,
+				    waypointp->speed, HUNDREDTHS));
                 }
         }
 
@@ -1510,11 +1527,14 @@ static void
 gpx_rtept_disp(const waypoint *waypointp)
 {
         fs_xml *fs_gpx;
+        char lon[32], lat[32];
 
         fprintf(cb_file,
-                "  <rtept lat=\"" FLT_FMT "\" lon=\"" FLT_FMT "\">\n",
-                    to_float(waypointp->pos.latitude),
-                    to_float(waypointp->pos.longitude));
+                "  <rtept lat=\"%s\" lon=\"%s\">\n",
+                    roadmap_math_to_floatstring
+			(lat, waypointp->pos.latitude, MILLIONTHS),
+                    roadmap_math_to_floatstring
+			(lon, waypointp->pos.longitude, MILLIONTHS));
 
         gpx_write_common_position(cb_file, waypointp, "    ");
         gpx_write_common_description(cb_file, waypointp, "    ",
@@ -1547,6 +1567,8 @@ gpx_waypt_bound_calc(const waypoint *waypointp)
 static void
 gpx_write_bounds(FILE *ofd, queue_head *wq, queue_head *rq, queue_head *tq)
 {
+        char minlon[32], minlat[32];
+        char maxlon[32], maxlat[32];
         waypt_init_bounds(&all_bounds);
 
         if (wq) waypt_iterator(wq, gpx_waypt_bound_calc);
@@ -1554,10 +1576,16 @@ gpx_write_bounds(FILE *ofd, queue_head *wq, queue_head *rq, queue_head *tq)
         if (tq) route_iterator(tq, NULL, NULL, gpx_waypt_bound_calc);
         if (waypt_bounds_valid(&all_bounds)) {
                fprintf(ofd,
-                  "<bounds minlat=\"" FLT_FMT "\" minlon =\"" FLT_FMT "\" "
-                  "maxlat=\"" FLT_FMT "\" maxlon=\"" FLT_FMT "\" />\n",
-                  to_float(all_bounds.min_lat), to_float(all_bounds.min_lon), 
-                  to_float(all_bounds.max_lat), to_float(all_bounds.max_lon));
+                  "<bounds minlat=\"%s\" minlon =\"%s\" "
+                  "maxlat=\"%s\" maxlon=\"%s\" />\n",
+                  roadmap_math_to_floatstring
+			(minlat, all_bounds.min_lat, MILLIONTHS),
+                  roadmap_math_to_floatstring
+			(minlon, all_bounds.min_lon, MILLIONTHS),
+                  roadmap_math_to_floatstring
+			(maxlat, all_bounds.max_lat, MILLIONTHS),
+                  roadmap_math_to_floatstring
+			(maxlon, all_bounds.max_lon, MILLIONTHS));
         }
 }
 

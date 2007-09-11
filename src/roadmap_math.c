@@ -1801,3 +1801,60 @@ void roadmap_math_get_context
    }
 }
 
+static int powers_of_10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000 };
+
+/* convert:
+ *  from a string that looks like a floating point number
+ *  to an integer, using just the specified number of fractional digits
+ *  (e.g. 40.1 degrees --> 40100000 millionths of a degree)
+ */
+int roadmap_math_from_floatstring(const char *f, int fracdigits)
+{
+    int sign = 1;
+    int whole = 0;
+    int frac = 0;
+    int scale = powers_of_10[fracdigits];
+
+    if (*f == '-') {
+        sign = -1;
+        f++;
+    } else if (*f == '+') {
+        f++;
+    }
+
+    while (isdigit(*f)) {
+        whole *= 10;
+        whole += *f++ - '0';
+    }
+
+    if (*f == '.') {
+        f++;
+        fracdigits += 1;  /* so we can do rounding */
+        while (isdigit(*f) && fracdigits-- > 0) {
+            frac *= 10;
+            frac += *f++ - '0';
+        }
+    }
+
+    while (fracdigits-- > 0) {
+        frac *= 10;
+    }
+
+    /* rounding */
+    frac = (frac + 5) / 10;
+
+    return sign * (whole * scale + frac);
+}
+
+char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits)
+{
+    static char result[32];
+
+    int scale = powers_of_10[fracdigits];
+
+    if (buf == NULL)  buf = result;  /* supply buffer if non provided */
+
+    sprintf(buf, "%d.%0*d", value / scale, fracdigits, abs(value) % scale);
+
+    return buf;
+}

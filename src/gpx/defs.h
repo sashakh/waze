@@ -60,13 +60,6 @@
 #define XML_SHORT_TIME 1
 #define XML_LONG_TIME 2
 
-/* Format used for floating point formats.  */
-#define FLT_FMT "%0.6lf" 
-
-/* convert to/from roadmap's internal "microdegrees" */
-#define from_float(x) ((x) * 1000000.0)
-#define to_float(x) ((double)((x) / 1000000.0))
-
 /*
  * Common definitions.   There should be no protocol or file-specific
  * data in this file.
@@ -221,9 +214,9 @@ typedef struct {
         /* track information -- these three are usually only present
          * for data gathered "on the go".
          */
-        int altitude;   /* centimeters */
-        float speed;    /* Optional: meters per second. */
-        float course;   /* Optional: degrees true */
+        int altitude;   /* millimeters */
+        int speed;    /* Optional: centimeters per second. */
+        int course;   /* Optional: hundredths of degrees true */
 
         /*
          * description is typically a human readable description of the 

@@ -92,11 +92,11 @@ void roadmap_track_add_recent (waypoint *w) {
         RoadMapTrackRecentCSV = roadmap_file_fopen
                 (roadmap_path_user(), RECENT_CSV, "a");
     }
-    fprintf(RoadMapTrackRecentCSV, "%ld, %0.6lf, %0.6lf, %f, %f, %f\n",
+    fprintf(RoadMapTrackRecentCSV, "%ld, %d, %d, %d, %d, %d\n",
             w->creation_time,
-            to_float(w->pos.longitude),
-            to_float(w->pos.latitude),
-            ((double)(w->altitude)),
+            w->pos.longitude,
+            w->pos.latitude,
+            w->altitude,
             w->speed,
             w->course);
 
@@ -106,9 +106,8 @@ void roadmap_track_add_recent (waypoint *w) {
 void roadmap_track_fetch_recent(const char *path, char *name) {
 
     char trkpoint[128];
-    time_t t;
-    double lon, lat;
-    float alt, speed, course;
+    time_t tim;
+    int lon, lat, alt, speed, course;
     waypoint *w;
 
     /* read .csv file, add contents to RoadMapTrack */
@@ -118,14 +117,14 @@ void roadmap_track_fetch_recent(const char *path, char *name) {
         if (!RoadMapTrackRecentCSV) return;
        
         while (fgets(trkpoint, sizeof(trkpoint), RoadMapTrackRecentCSV)) {
-            if (sscanf(trkpoint, "%ld, %lf, %lf, %f, %f, %f",
-                    &t, &lon, &lat, &alt, &speed, &course) != 6) {
+            if (sscanf(trkpoint, "%ld, %d, %d, %d, %d, %d",
+                    &tim, &lon, &lat, &alt, &speed, &course) != 6) {
                 continue;
             }
             w = waypt_new();
-            w->creation_time = t;
-            w->pos.latitude = from_float(lat);
-            w->pos.longitude = from_float(lon);
+            w->creation_time = tim;
+            w->pos.latitude = lat;
+            w->pos.longitude = lon;
             w->altitude = alt;
             w->speed = speed;
             w->course = course;
@@ -153,11 +152,14 @@ static void roadmap_track_add_trackpoint ( int gps_time,
     w->pos.longitude = gps_position->longitude;
 
     /* Change whatever we have to millimeters. */
-    w->altitude = roadmap_math_to_cm (gps_position->altitude) * 10;
+    w->altitude = 10 * roadmap_math_to_cm (gps_position->altitude);
 
-    /* We have knots, but want meters per second. */
-    w->speed = gps_position->speed / 1.94384449;
-    w->course = gps_position->steering;
+    /* We have knots, but want centimeters per second. */
+    w->speed = gps_position->speed * 51.4444444;
+
+    /* Want hundredths of degrees */
+    w->course = gps_position->steering * 100.0;
+
     w->creation_time = gps_time;
 
     /* append to the list */
