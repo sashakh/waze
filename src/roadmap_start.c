@@ -423,7 +423,7 @@ static RoadMapAction RoadMapStartActions[] = {
    {"decreasehorizon", "Decrease Horizon", "DI", NULL,
       "Decrease the 3D horizon", roadmap_screen_decrease_horizon},
 
-   {"tracktoggle", "Show/Hide Track", "Track", NULL,
+   {"tracktoggle", "Show/Hide Current Track", "Track", NULL,
       "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
 
    {"tracksave", "Save Current Track", "Save Track", NULL,
@@ -480,9 +480,13 @@ static RoadMapAction RoadMapStartActions[] = {
    {"listdeletedroutes", "Deleted Routes...", NULL, NULL,
       "List and restore deleted routes", roadmap_trip_lost_route_manage_dialog},
 
-   {"allroutetoggle", "Show/Hide Inactive Routes", "AllRoutes", NULL,
-      "Show or Hide currently inactive routes",
-      roadmap_trip_toggle_show_inactive},
+   {"allroutetoggle", "Show/Hide All Routes", "AllRoutes", NULL,
+      "Show or Hide currently unselected routes",
+      roadmap_trip_toggle_show_inactive_routes},
+
+   {"alltracktoggle", "Show/Hide All Tracks", "AllTracks", NULL,
+      "Show or Hide currently unselected tracks",
+      roadmap_trip_toggle_show_inactive_tracks},
 
    {"gpsaswaypoint", "New place from GPS...", "GPS Place", "GW",
       "Create new place using current GPS position",
@@ -710,8 +714,10 @@ static const char *RoadMapStartMenu[] = {
       RoadMapFactorySeparator,
 
       "tracktoggle",
+      "alltracktoggle",
 
       RoadMapFactorySeparator,
+
       "backtrackroute",
       "addtrack",
       // "tracksave", // better to save and reset, to avoid

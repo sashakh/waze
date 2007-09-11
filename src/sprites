@@ -71,7 +71,10 @@ S Kismet
 A RedDisk
 
 S Track
-A PurpleCross
+A PurpleChevron
+
+S InactiveTrack
+A SmallPurpleChevron
 
 S BreadCrumb
 A PurpleDot
@@ -168,11 +171,17 @@ L 5,5 5,-5 -5,-5 -5,5 5,5
 F green 1
 P 4,4 4,-4 -4,-4 -4,4 4,4
 
+S PurpleChevron
+F purple 2
+L -4,6 0,-6 4,6
+
+S SmallPurpleChevron
+F purple 2
+L -4,4 0,-4 4,4
+
 S PurpleCross
 F purple 2
 L -4,0 4,0
-F white 2
-F purple 2
 L 0,-4 0,4
 
 S PurpleDot
