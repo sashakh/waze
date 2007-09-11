@@ -13,9 +13,11 @@ usage: rdmdownload <tiger-destination-path> [format=2004|2005|2006] [<state> ..]
 
    Example: rdmdownload /var/tmp/maps CA
 
-  Please note the tiger files are HUGE: this download is likely
-  to take a very long time to complete and the tiger files will
-  use an awful lot of space on your local hard drive.
+  Please note the tiger files are HUGE -- the full set of 2006se
+  maps is almost 5.5GB.  This download is likely to take a very
+  long time to complete and the tiger files will use an awful lot
+  of space on your local hard drive.
+
 EOF
    exit 1
 }
