@@ -9,7 +9,7 @@ usage()
 {
     cat >&2 <<EOF
 rdmgenstatemaps [which=<which>] src=<path-to-.shp-file> \\
-	[maps=<map-directory-path>] [test]
+        [maps=<map-directory-path>] [test]
   where the src=<> parameter points to a directory containing the unpacked
   contents of st99_d00_shp.zip, available from:
     http://www.census.gov/geo/cob/bdy/st/st00shp/st99_d00_shp.zip
@@ -46,40 +46,45 @@ base=st99_d00.shp
 FIPS=81002
 case $1 in
     which=*)
-	which=`expr $1 : 'which=\(.*\)'`
-	case $which in
-	    ALL|all)
-		echo Generating all USA
-		base=st99_d00.shp
-		shape='STATES'
-		FIPS=81001
-		;;
-	    CONTINENTAL|continental)
-		echo Generating just continental USA
-		shape='STATES=continental'
-		base=st99_d00.shp
-		FIPS=81002
-		;;
-	    AK|ak)
-		echo Generating just Alaska
-		shape='STATES=AK'
-		base=st99_d00.shp
-		FIPS=81003
-		;;
-	    HI|hi)
-		echo Generating just Hawaii
-		shape='STATES=HI'
-		base=st99_d00.shp
-		FIPS=81004
-		;;
-	    PROVINCES|provinces)
-		echo Generating just Canada provinces
-		shape='PROVINCES'
-		base=prov_ab_p_geo83_e.shp
-		FIPS=81061
-		;;
-	esac
-	shift
+        which=`expr $1 : 'which=\(.*\)'`
+        case $which in
+            ALL|all)
+                echo Generating all USA
+                base=st99_d00.shp
+                shape='STATES'
+                FIPS=81001
+                ;;
+            CONTINENTAL|continental)
+                echo Generating just continental USA
+                shape='STATES=continental'
+                base=st99_d00.shp
+                FIPS=81002
+                ;;
+            AK|ak)
+                echo Generating just Alaska
+                shape='STATES=AK'
+                base=st99_d00.shp
+                FIPS=81003
+                ;;
+            HI|hi)
+                echo Generating just Hawaii
+                shape='STATES=HI'
+                base=st99_d00.shp
+                FIPS=81004
+                ;;
+            PROVINCES|provinces)
+                echo Generating just Canada provinces
+                shape='PROVINCES'
+                base=prov_ab_p_geo83_e.shp
+                FIPS=81061
+                ;;
+            *)
+                echo Invalid which value: $which >&2
+                usage
+                ;;
+
+        esac
+        shift
     ;;
 esac
 
