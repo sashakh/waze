@@ -36,7 +36,7 @@ install:
 uninstall:
 
 sourcelist:
-	@echo Makefile $(LIBSRCS) $(HEADERS)
+	@echo README Makefile $(LIBSRCS) $(HEADERS)
 
 # --- The real targets --------------------------------------------
 

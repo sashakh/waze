@@ -80,8 +80,10 @@ wroadgps: roadmap_main.o libwroadmap.a \
 # this list of source as we are for the other RoadMap
 # directories.  (using wildcards will do for now.)
 sourcelist:
-	@ls *.[ch] *.cpp *.ico \
-	    roadmap.rc \
+	@ls Makefile \
+	    *.[ch] *.cpp *.ico \
+	    roadmap.rc preferences \
+	    install.inf \
 	    wince_env/Roadmap.vcw \
 	    wince_env/*/*.vcp \
 	    icons/rm_*.bmp

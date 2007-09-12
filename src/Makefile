@@ -195,11 +195,10 @@ XCHGHEADERS = \
 
 RGHEADERS = \
 	roadgps_logger.h \
-	roadgps_screen.h \
-	roadgps_screen_obj.h \
-	roadmap.h
+	roadgps_screen.h
 
 RMHEADERS = \
+	roadmap.h \
 	roadmap_address.h \
 	roadmap_adjust.h \
 	roadmap_canvas.h \
@@ -257,6 +256,7 @@ RMHEADERS = \
 	roadmap_preferences.h \
 	roadmap_scan.h \
 	roadmap_screen.h \
+	roadmap_screen_obj.h \
 	roadmap_serial.h \
 	roadmap_shape.h \
 	roadmap_spawn.h \
@@ -296,7 +296,8 @@ HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
 PKGDATAFILES = sprites preferences session drivers \
 		roadmap.popup roadmap.screenobjects
 MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All \
-		roadmap.toolbar.ex roadmap.actionlabels.ex
+		roadmap.toolbar.ex roadmap.actionlabels.ex \
+		app_a02.txt usstates.txt
 SCRIPTS = rdmdownload rdmcompare \
 		rdmgenmaps rdmgenshpmaps rdmgenstatemaps rdmgendcwmaps
 MKFILES = Makefile config.mk options.mk
@@ -507,9 +508,9 @@ buildplace: $(BPOBJS) $(RDMLIBS)
 
 # --- distribution preparation targets
 
-# the variable "$DOTVERSION" must be in the environment before
-# this makefile is invoked.  e.g.:
-#   DOTVERSION=1.1-rc1 make tarball
+# pull the version indicator from roadmap_copyright.h
+DOTVERSION=$(shell sed -n \
+	-e '/ROADMAP_VERSION/s/.*"\(.*\)"/\1/p' roadmap_copyright.h)
 
 RELNAME = roadmap-$(DOTVERSION)
 
