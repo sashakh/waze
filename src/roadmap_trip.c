@@ -193,7 +193,7 @@ RoadMapTripFocal RoadMapTripFocalPoints[] = {
     ROADMAP_TRIP_ITEM ("Address", NULL, 0, 1, 0),
     ROADMAP_TRIP_ITEM ("Selection", "Selection", 0, 0, 0),
     ROADMAP_TRIP_ITEM ("Departure", "Departure", 0, 0, 1),
-    ROADMAP_TRIP_ITEM ("Hold", NULL, 1, 0, 0),
+    ROADMAP_TRIP_ITEM ("Hold", NULL, 1, 1, 0),
     ROADMAP_TRIP_ITEM (NULL, NULL, 0, 0, 0)
 };
 
@@ -1701,7 +1701,7 @@ void roadmap_trip_set_focus_position (RoadMapPosition *pos ) {
     if (RoadMapTripFocus != NULL) {
         RoadMapTripFocus->map = *pos;
         roadmap_config_set_position
-            (&RoadMapTripFocus->config_position, &RoadMapTripFocus->map);
+            (&RoadMapTripFocus->config_position, pos);
         RoadMapTripFocusMoved = 1;
     }
 }
