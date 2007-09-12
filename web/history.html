@@ -17,7 +17,9 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <a class="normal" href="list.html">Mail</a>
 <a class="normal" href="todo.html">Todo</a>
 <HR> <BR>
-<P>Roadmap v1.1.0 (july ?, 2007)
+<P>Roadmap v1.1.0 (september ?, 2007)<br>
+Items marked (*) originated on Ehud Shabtai's roadmap_editor code
+branch.
 <UL>
   <LI>
   GPX data interchange support has been added.  A single GPX file,
@@ -34,14 +36,16 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   <LI>
   Street and landmark labels are now rendered on-screen, using
   either the system or a primitive internal font (which has
-  tuneable size).  Labels will be angled align with street, if the
-  font permits. (*)
+  tuneable size).  Labels will be angled to align with the
+  street, if the font permits.  (*)
   <LI>
   "Feature" files -- GPX-based lists of "points of interest", with
   tuneable coloring, display sprites, labeling, and decluttering
   <LI>
-  Per-side-of-street address ranges now work correctly.  Roads with no
-  addresses are now searchable.  Addresses now stored as unsigned. (*)
+  Per-side-of-street address ranges now work correctly.  (*)
+  <LI>
+  Roads with no addresses are now searchable.  Addresses now
+  stored as unsigned.
   <LI>
   Address searching now knows about "common" streat/road abbreviations.
   <LI>
@@ -50,7 +54,7 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   <LI>
   "Long lines", those which begin and end in non-adjacent squares,
   are now saved in a separate list.  This guarantees they will always
-  be displayed.  The extra expense is similar to that of polygons,
+  be displayed.  The extra expense is similar to that for polygons,
   which are also not displayed "by square". (*)
   <LI>
   Support for Canadian RNF maps added.
@@ -64,9 +68,16 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   to other menu items, which allows for cascading menu
   effects.  Popups can also be bound to toolbar buttons.
   <LI>
+  On-screen state indicators and control points (i.e. active icons)
+  based on RoadMap sprites, for display and control of some RoadMap
+  features.  On-screen sprites can now invoke any action or popup,
+  just as menus and toolbar buttons can. (*)
+  <LI>
   3D "perspective" viewing mode mode. (*)
   <LI>
   Railroads will now be displayed.
+  <LI>
+  Performance improvements (both space and time) for very sparse maps.
   <LI>
   GTK/GTK2 dialogs are now modeless.
   <LI>
@@ -85,9 +96,10 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   Signals are now caught gracefully, so that unsaved
   landmark/trip/track files can be preserved.
   <LI>
-  Performance improvements -- if a processing a county above a given
-  zoom level produces no drawing, this will be remembered, and that county
-  won't be processed again at that zoom level or above.
+  Performance improvements -- if processing a county above a
+  given zoom level produces no drawing, this will be remembered,
+  and that county won't be processed again at that zoom level or
+  above.
   <LI>
   Support for latest census maps (2006se)
   <LI>
@@ -100,6 +112,9 @@ href="sitestandard.css" type=text/css rel=stylesheet>
   Many buildmap improvements, in terms of modularity.
   <LI>
   Initial work on architecture independent map exchange format and tool.
+  <LI>
+  Initial work to allow cross-compiling RoadMap for WinCE using
+  arm-wince-mingw32ce toolchain.
 </UL>
 <P>Roadmap v1.0.12 (november 4, 2005)
 <UL>
