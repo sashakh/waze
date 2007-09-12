@@ -19,7 +19,7 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <HR>
 <P>
 <center>
-<b>New maps built from the TIGER 2004 Second Edition files!</b>
+<b>New maps built from the TIGER 2006 Second Edition files!</b>
 </center>
 <HR>
 <P>
@@ -39,12 +39,13 @@ these architectures might become available in the future. In the mean time
 users of these architectures will need to build the maps themselves.
 Stay tuned!
 <P>
-<b>Caution</b>: the maps for the non-US portion have been built from the
-Digital Charts of the World (DCW). The official horizontal accuracy of
-the DCW is 2040 meters: the resulting maps are therefore unusable for car
-navigation in their current state.
+<b>Caution</b>:  the maps for the non-US/Canada portion have been
+built from the Digital Charts of the World (DCW).  The official
+horizontal accuracy of the DCW is 2040 meters:  the resulting
+maps are therefore unusable for car navigation in their current
+state.
 <P>
-<b>Caution</b>: these maps require RoadMap version 1.0.8 and later. They
+<b>Caution</b>: these maps require RoadMap version 1.1.0 and later. They
 are not compatible with earlier versions of RoadMap.
 <HR>
 <P>
@@ -52,7 +53,20 @@ The data used for the US states and territories comes from the Census Bureau,
 an agency of the U.S. Government, and is in the public domain. Therefore, the
 RoadMap maps of the US states and territories are in the public domain.
 <P>
-The data used for the non-US portion was extracted from the Digital Charts
+The data used for the Canadian provincial maps comes from the 
+<A href="http://geodepot.statcan.ca/Diss/2006Dissemination/Data/FRR_RNF_e.cfm?language=E&format=A">Statistics Canada Road Network Files 2005</a>.
+<I>Source:  Geography Division, Statistics Canada, 2005 Road
+Network File (RNF), 92-500-XWE/XWF.  The incorporation of data
+sourced from Statistics Canada within RoadMap shall not be
+construed as constituting an endorsement by Statistics Canada of
+such product.
+Statistics Canada makes no representation or warranty of any kind
+with respect to the accuracy, usefulness, novelty, validity,
+scope, completeness or currency of the Data
+</I>
+<P>
+The data used for the non-US/Canada portion was extracted from
+the Digital Charts
 of the World (DCW), a product from the US Department of Defense. Most of
 the DCW data is public domain, but some is copyrighted by <A class=normal
 href="http://www.esri.com">ESRI</A> (administrative boundaries). The data
@@ -61,7 +75,7 @@ all in the public domain.
 <HR>
 <P>
 <CENTER>
-The maps available on that pages are really big, and bandwidth
+The maps available here are really big, and bandwidth
 is expensive. A limit may be set on the site's bandwidth at any time.
 <P>
 We suggest using <e>wget</e> with the --limit-rate=15k option.
@@ -75,9 +89,15 @@ This file must be present in the map directory or RoadMap will not work.
 <P>
 <UL>
   <LI><A class=normal href="maps/usdir.rdm.tgz">
-         map directory for RoadMap version 1.0.8 and later</A> (includes
-         support for the Digital Charts of the World maps, see below).</LI>
+         map directory for RoadMap version 1.1.0 </A> Includes
+         support for the Digital Charts of the World maps, Canadian
+	 maps, and US State boundaries.</LI>
 </UL>
+<p>
+Demo file -- if all you want to do is give RoadMap a trial run, then
+<a href="maps/demomaps.tar.gz">this file</a> is all you need.  It includes
+the map directory, state boundaries for the continental US, and the
+map covering the city of San Francisco.
 <P>The following files are gzipped tar files that contain the RoadMap map 
 files, one tar file per state. (To install the map files: go to the final map 
 directory and extract the map files using the "tar xzf <i>DOWNLOADED-FILE</i>" 
@@ -197,13 +217,49 @@ command.)
 </CENTER>
 <BR>
 <HR>
-<P>New in RoadMap 1.0.8 is a preliminary support for the Digital Charts of
-the World. This is a first draft: only roads are shown, maps are organized
-in large world blocks (not by country), etc..
-<P>It should be noted that the Digital Charts of the World contain limited
-information and cannot be the base for street navigation: only major roads
-are included, and sometime very few of them.
-
+<P>
+<CENTER>
+<TABLE width="100%">
+  <TBODY>
+  <TR vAlign=top>
+    <TD>
+      <UL>
+        <LI><A class=normal href="maps/bndCONT.tar.gz">Continental US state boundaries</A> 
+        <LI><A class=normal href="maps/bndAK.tar.gz">Alaska state boundary</A> 
+        <LI><A class=normal href="maps/bndHI.tar.gz">Hawaii state boundary</A> 
+      </UL>
+    </TD>
+  </TR>
+  </TBODY></TABLE> 
+</CENTER>
+<BR>
+<HR>
+<P>
+<CENTER>
+<TABLE width="100%">
+  <TBODY>
+  <TR vAlign=top>
+    <TD>
+      <UL>
+        <LI><A class=normal href="maps/rnfAB.tar.gz">Alberta</A> 
+        <LI><A class=normal href="maps/rnfBC.tar.gz">British Columbia</A> 
+        <LI><A class=normal href="maps/rnfMB.tar.gz">Manitoba</A> 
+        <LI><A class=normal href="maps/rnfNB.tar.gz">New Brunswick</A> 
+	<LI><A class=normal href="maps/rnfNL.tar.gz">Newfoundland and Labrador</A> 
+	<LI><A class=normal href="maps/rnfNS.tar.gz">Nova Scotia</A> 
+	<LI><A class=normal href="maps/rnfNT.tar.gz">Northwest Territories</A> 
+	<LI><A class=normal href="maps/rnfNU.tar.gz">Nunavut</A> 
+	<LI><A class=normal href="maps/rnfON.tar.gz">Ontario</A> 
+	<LI><A class=normal href="maps/rnfPE.tar.gz">Prince Edward Island</A> 
+	<LI><A class=normal href="maps/rnfQC.tar.gz">Quebec</A> 
+	<LI><A class=normal href="maps/rnfSK.tar.gz">Saskatchewan</A> 
+	<LI><A class=normal href="maps/rnfYT.tar.gz">Yukon Territory</A> 
+      </UL>
+    </TD>
+  </TR>
+  </TBODY></TABLE> 
+</CENTER>
+<HR>
 <P>
 <CENTER>
 <TABLE width="100%">
