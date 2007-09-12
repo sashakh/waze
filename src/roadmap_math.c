@@ -937,21 +937,22 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
 
 void roadmap_math_restore_zoom (void) {
 
-    RoadMapContext.zoom =
-        roadmap_config_get_integer (&RoadMapConfigGeneralZoom);
-    if (RoadMapContext.zoom == 0) {
-         RoadMapContext.zoom =
+    int zoomval;
+    zoomval = roadmap_config_get_integer (&RoadMapConfigGeneralZoom);
+    if (zoomval < MIN_ZOOM_IN || zoomval > MAX_ZOOM_OUT) {
+         zoomval =
             roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
-        if (RoadMapContext.zoom == 0) {
-            RoadMapContext.zoom = ROADMAP_REFERENCE_ZOOM;
+        if (zoomval < MIN_ZOOM_IN || zoomval > MAX_ZOOM_OUT) {
+            zoomval = ROADMAP_REFERENCE_ZOOM;
         }
     }
+    RoadMapContext.zoom = zoomval;
     roadmap_math_compute_scale ();
 }
 
 void roadmap_math_zoom_out (void) {
 
-   int zoom;
+   unsigned int zoom;
 
    /* using float keeps the zoom levels consistent (no roundoff
     * error), which makes declutter caching work better */
@@ -967,7 +968,7 @@ void roadmap_math_zoom_out (void) {
 
 void roadmap_math_zoom_in (void) {
 
-   int zoom;
+   unsigned int zoom;
 
    zoom = ((double)RoadMapContext.zoom / 1.5) + 0.5;
 
@@ -983,8 +984,14 @@ void roadmap_math_zoom_in (void) {
 
 void roadmap_math_zoom_reset (void) {
 
-   RoadMapContext.zoom =
-        roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
+   int zoomval;
+
+   zoomval = roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
+   if (zoomval < MIN_ZOOM_IN || zoomval > MAX_ZOOM_OUT) {
+       zoomval = ROADMAP_REFERENCE_ZOOM;
+   }
+
+   RoadMapContext.zoom = zoomval;
 
    roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
 
@@ -1774,16 +1781,16 @@ int roadmap_math_delta_direction (int direction1, int direction2) {
 }
 
 
-void roadmap_math_set_context (RoadMapPosition *position, int zoom) {
+void roadmap_math_set_context (RoadMapPosition *position, unsigned int zoom) {
 
    RoadMapContext.center = *position;
 
-   if (zoom < 0x10000) {
+   if (zoom < MAX_ZOOM_OUT) {
       RoadMapContext.zoom = (unsigned short) zoom;
    }
 
-   if (RoadMapContext.zoom <= 1) {
-      RoadMapContext.zoom = 2;
+   if (RoadMapContext.zoom < MIN_ZOOM_IN) {
+      RoadMapContext.zoom = MIN_ZOOM_IN;
    }
 
    roadmap_math_compute_scale ();
@@ -1791,7 +1798,8 @@ void roadmap_math_set_context (RoadMapPosition *position, int zoom) {
 
 
 void roadmap_math_get_context
-   (RoadMapPosition *position, int *zoom, RoadMapGuiPoint *lowerright) {
+	(RoadMapPosition *position,
+	 unsigned int *zoom, RoadMapGuiPoint *lowerright) {
 
    if (position) *position = RoadMapContext.center;
    if (zoom) *zoom = RoadMapContext.zoom;

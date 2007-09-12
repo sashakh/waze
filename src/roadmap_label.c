@@ -110,7 +110,7 @@ static int RoadMapLabelCacheAlloced;
 
 static int RoadMapLabelGeneration = 1;
 static int RoadMapLabelGenerationMaxAge = 36;
-static int RoadMapLabelCurrentZoom;
+static unsigned int RoadMapLabelCurrentZoom;
 
 static RoadMapPen RoadMapLabelPen;
 

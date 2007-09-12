@@ -143,10 +143,10 @@ int  roadmap_math_compare_points (const RoadMapPosition *p1,
 
 int  roadmap_math_delta_direction (int direction1, int direction2);
 
-void roadmap_math_set_context (RoadMapPosition *position, int zoom);
+void roadmap_math_set_context (RoadMapPosition *position, unsigned int zoom);
 
 void roadmap_math_get_context
-    (RoadMapPosition *position, int *zoom, RoadMapGuiPoint *lowerright);
+    (RoadMapPosition *position, unsigned int *zoom, RoadMapGuiPoint *lowerright);
 
 int roadmap_math_from_floatstring(const char *f, int fracdigits);
 char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits);

@@ -67,7 +67,7 @@ typedef struct {
    RoadMapDictionary names;
    RoadMapDictionary states;
 
-   short *county_no_draw;
+   unsigned short *county_no_draw;
 
 } RoadMapCountyContext;
 
@@ -450,7 +450,7 @@ const RoadMapArea *roadmap_county_get_edges (int fips) {
 
 int roadmap_county_get_decluttered(int fips) {
 
-   int zoom;
+   unsigned int zoom;
    int i;
 
    if (RoadMapCountyActive->county_no_draw == NULL) {
@@ -476,7 +476,7 @@ int roadmap_county_get_decluttered(int fips) {
 
 void roadmap_county_set_decluttered(int fips) {
 
-   int zoom;
+   unsigned int zoom;
    int i;
 
    i = roadmap_county_search_index (fips);
