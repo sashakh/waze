@@ -85,8 +85,7 @@ FIPS          County     State
 02     180     Nome     AK
 02     185     North Slope     AK
 02     188     Northwest Arctic     AK
-02     201     Prince of Wales-
-          Outer Ketchikan      AK
+02     201     Prince of Wales-Outer Ketchikan      AK
 02     220     Sitka     AK
 02     232     Skagway-Hoonah-Angoon     AK
 02     240     Southeast Fairbanks     AK
