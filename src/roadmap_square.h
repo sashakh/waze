@@ -30,6 +30,16 @@
 #define ROADMAP_SQUARE_GLOBAL -1
 #define ROADMAP_SQUARE_OTHER  -2
 
+/* This is a default definition, because we might want to set this smaller
+ * for some memory-starved targets.  The number represents how many
+ * populated squares can be displayed at a time.
+ */
+#define ROADMAP_MIN_VISIBLE_SQUARES 16
+#ifndef ROADMAP_MAX_VISIBLE_SQUARES
+#define ROADMAP_MAX_VISIBLE_SQUARES 65536
+#endif
+
+
 int   roadmap_square_count  (void);
 int   roadmap_square_search (const RoadMapPosition *position);
 void  roadmap_square_min    (int square, RoadMapPosition *position);
@@ -39,7 +49,7 @@ void  roadmap_square_edges  (int square, RoadMapArea *edges);
 int   roadmap_square_index (int square);
 int   roadmap_square_from_index (int index);
 
-int   roadmap_square_view (int *square, int size);
+int   roadmap_square_view (int **in_view);
 
 extern roadmap_db_handler RoadMapSquareHandler;
 

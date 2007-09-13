@@ -138,13 +138,6 @@ static RoadMapPen RoadMapScreenLastPen = NULL;
 
 #define ROADMAP_SCREEN_BULK  4096
 
-/* This is a default definition, because we might want to set this smaller
- * for some memory-starved targets.
- */
-#ifndef ROADMAP_MAX_VISIBLE
-#define ROADMAP_MAX_VISIBLE  30000
-#endif
-
 static struct {
 
    int *cursor;
@@ -1089,7 +1082,8 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
 static void roadmap_screen_repaint (void) {
 
     static int *fips = NULL;
-    static int *in_view = NULL;
+
+    int *in_view;
 
     int i;
     int j;
@@ -1111,11 +1105,6 @@ static void roadmap_screen_repaint (void) {
     roadmap_screen_setfont();
 
     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT_WITH_DELAY);
-
-    if (in_view == NULL) {
-       in_view = calloc (ROADMAP_MAX_VISIBLE, sizeof(int));
-       roadmap_check_allocated(in_view);
-    }
 
     roadmap_log_push ("roadmap_screen_repaint");
 
@@ -1165,7 +1154,7 @@ static void roadmap_screen_repaint (void) {
 
         /* -- Look for the squares that are currently visible. */
 
-        count = roadmap_square_view (in_view, ROADMAP_MAX_VISIBLE);
+        count = roadmap_square_view (&in_view);
 
         for (k = 0; k < max_pen; ++k) {
 

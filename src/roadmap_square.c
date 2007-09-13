@@ -463,9 +463,12 @@ int roadmap_square_from_index (int index) {
 }
 
 
-int roadmap_square_view (int *square, int size) {
+int roadmap_square_view (int **in_view) {
 
    RoadMapGlobal *global;
+
+   static int *squares = NULL;
+   static int max_view_squares = ROADMAP_MIN_VISIBLE_SQUARES;
 
    RoadMapArea screen;
    int x0;
@@ -510,6 +513,11 @@ int roadmap_square_view (int *square, int size) {
 
    count = 0;
 
+   if (squares == NULL) {
+      squares = malloc (max_view_squares * sizeof(int));
+      roadmap_check_allocated(squares);
+   }
+
    for (x = x0; x <= x1; ++x) {
 
       for (y = y1; y <= y0; ++y) {
@@ -518,18 +526,28 @@ int roadmap_square_view (int *square, int size) {
 
          if (grid_index(gindex) >= 0) {
 
-            square[count] = gindex;
+            squares[count] = gindex;
             count  += 1;
-            if (count >= size) {
-               roadmap_log (ROADMAP_ERROR,
+            if (count >= max_view_squares) {
+	       if (max_view_squares >= ROADMAP_MAX_VISIBLE_SQUARES) {
+        	    roadmap_log (ROADMAP_ERROR,
                             "too many square are visible: %d is not enough",
-                            size);
-               return size;
+                            max_view_squares);
+   		    *in_view = squares;
+        	    return max_view_squares;
+	       }
+	       max_view_squares *= 4;
+               roadmap_log (ROADMAP_DEBUG,
+                            "growing space for visible squares to %d",
+                            max_view_squares);
+	       squares = realloc (squares, max_view_squares * sizeof(int));
+	       roadmap_check_allocated(squares);
             }
          }
       }
    }
 
+   *in_view = squares;
    return count;
 }
 
