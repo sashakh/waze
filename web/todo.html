@@ -20,44 +20,34 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <P>This page lists the changes planned for the future versions of RoadMap.
 Please feel free to contact the author for more ideas.
 <P>
-When the developments on RoadMap 1.0 are complete, a 1.1 development branch
-will be started, with the highest priority given to some needed changes to
-the map format. The criteria for starting the 1.1 branch is actually the
-compatibility with the existing maps: RoadMap will stay at the 1.0 level as
-long as the format of the maps has not changed.
-<P>
-This means there will be no map provided for the 1.1 branch, considering
-their unstable nature. The 1.0 branch will be maintained as the "stable"
-branch. Some of the changes above may still find their way in the stable
-branch, as long as the map compatibility is maintained. It may take some
-time before the development branch appears on the web site.
-<P>
-When the 1.1 code will stabilize, a new 1.2 stable branch will be created and
-a 1.3 development branch will be started anew, and so on.
-<P>
-(The changes believed to break compatibility with RoadMap 1.0 are marked
-with a "[1.1]" sign.)
-<P>
 Here is the detail description of the changes planned so far:
 <UL>
+  <LI><b>International maps</b>.  RoadMap began as a rendering engine for
+  the US Census bureau Tiger maps, but it's clear that it can be
+  more useful than that.  There is now shapefile support, and other
+  early work has been done for postgis and shpmp support, but the
+  RoadMap database itself is still strongly US-centric -- all of the
+  maps (even for the rest of the world) must be given fake US county
+  identifiers.  Work has been done to outline the problem, but no
+  work has been done to implement a solution as yet.
+
+  <LI><b>Font size changes</b>.  Currently, the only font capable
+  of appearing in different sizes on the screen at once is the
+  primitive internal "linefont".  Some work has been done to add
+  better font control for QT, but nothing has been done for the
+  other desktop toolkits.
+
   <LI><b>Error messages on screen</b>. The error messages are logged on
   the standard output, and to individual dialog boxes.  Standard output
   isn't very useful in a GUI app, and the dialog boxes can multiply
   much too fast with recurring errors. Some sort of an "error log" window
-  would be a good compromise.
-
-  One issue is fonts: should be big enough to be readable in a car.
+  would be a good compromise.  (One issue is fonts:  should be
+  big enough to be readable in a car.)
 
   <LI><b>Use checkbox widget in the menus and toolbars</b>. Some menu and
   toolbar entries are of the "start & stop" kind. Instead of having 2 entries
   it would be nice to use a single checkbox one.  Other entries are already
   toggles, but their state can't be determined visually.
-
-  <LI><b>A "busy" indicator</b>.  Some commands and screen refresh
-  operations can take a long time, depending on the hardware, and the
-  speed of the connection to the PC (in the case of ssh, remote X11,
-  VNC, etc).  A busy hourglass, or other indication that RoadMap is not
-  yet ready for a new command, would be useful.
 
   <LI><b>More message formats, and message data</b>  Users have requested
   that more types of data be available on-screen:
@@ -65,27 +55,28 @@ Here is the detail description of the changes planned so far:
     <LI>speed should be available all the time, not just when a
     route is active
     <LI> course (bearing), altitude
-    <LI> wallclock, and elapsed, and projected "trip time"
+    <LI> elapsed, and projected "trip time"
     <LI> distance traveled since program start
     <LI> distance since route start
     <LI> perhaps a shell escape, for getting data from external programs?
   </OL>
   In addition message signs that are too long should wrap, rather than
   truncate.
+
   <LI><b>Key bindings should be rebindable by the user.</b>This would
-  make the UI fully customizable.
+  make the UI fully customizable.  Some support for this appears in
+  the roadmap_editor branch, but it's not complete.
 
   <LI><b>Show GPS location and speed</b>. The speed shows on RoadMap, but
   not on RoadGps. The location shows on none. There should be a way to show
   the location, at least in RoadGps.
 
-  <LI><b>Show when the GPS source is not available</b>. RoadMap gives no
-  feedback regarding its connection to the GPS source. The feedback should
-  be somewhat graphical (an icon?) and not a dialog (in a car?).
-
   <LI><b>[1.1] Use GPS time and map's timezone</b>. The GPS receiver provides a
   reliable universal time as well as the current location. This is all what
-  RoadMap needs to show the correct local time:
+  RoadMap needs to show the correct local time.  (On the other hand,
+  the user of the maps may not care about the time in the place being
+  examined.  Picture a desktop user, at home.  In that case, all times
+  should perhaps be local.)
   <UL>
     <LI>Associate a timezone to each county.
     <LI>When showing a particular location on the map, display the local time
