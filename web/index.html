@@ -45,7 +45,7 @@ href="http://sourceforge.net/projects/roadmap/">Sourceforge's CVS</A>.
 <BR>
    (c) Copyright Ehud Shabtai, 2005 (eshabtai at gmail dot com)
 <BR>
-   (c) Copyright Paul Fox, 2006
+   (c) Copyright Paul Fox, 2006, 2007
 </CENTER>
 
 <P>The following is a short description of RoadMap. More information is
@@ -68,11 +68,10 @@ position (longitude / latitude).
 
 <P>Most of the map files used by RoadMap are generated from the TIGER files
 provided by the US Census Bureau, and from the RNF files provided by
-Statistics Canada, and thus cover northern North America only.  The RoadMap
-map format is a binary format that is currently sensitive to the endianness
-of the processor.  Maps available on this site cover all the USA and have
-been generated for a little endian processor (such as the Intel Pentium and
-StrongARM processors).
+Statistics Canada, and thus cover northern North America only.  There
+has been recent work on deriving RoadMap data from other sources,
+including postgis and other shapefile-based formats, but this work
+is either not on the main development branch, or very experimental.
 
 <P>RoadMap has been designed to be usable on both a desktop or laptop PC, 
 or on a PDA such as the iPAQ from HP (formely from COMPAQ). It can use either
@@ -82,15 +81,17 @@ machines share the same endianness and can use the maps provided on this
 site.
 
 <P>The on-screen user interface is very customizable.  All command actions
-can be bound to arbitrary menu entries or toolbar buttons.  (Some are also
-bound to keystrokes, but this binding is currently fixed.) The menu layout
-and the toolbar position and layout can be changed.  Popup menus are
-available (activated by another menu or toolbar button, a right-click, or a
-long-click).  All of these can be used at once, or a minimalist
-configuration can consist of a screen containing nothing but a map -- a
-long- or right-click can bring up the "master popup".
+can be bound to arbitrary menu entries, toolbar buttons, or
+on-screen icon-like sprites.  (Some actions are also bound to keystrokes,
+but this binding is currently fixed.) The menu layout and the
+toolbar position and layout can be changed.  Popup menus are
+available (activated by another menu or toolbar button, a
+right-click, or a long-click).  All of these can be used at once,
+or a minimalist configuration can consist of a screen containing
+nothing but a map.  In that case, a long- or right-click can bring up the
+"master popup menu".
 
-<P>At this time there are no routing features implemented yet in the main
+<P>At this time there are no routing features implemented in the main
 codebase.  The plan for the future is to implement some navigation features
 similar to those found in commercial street navigation systems.  The main
 limit for implementing routing is the lack of navigation information in the
@@ -100,18 +101,9 @@ these information in the future (the USCB does not need them).  The RoadMap
 "editor" project, maintained by Ehud Shabtai, does support navigation --
 the data used in that project supports the feature.
 
-<P>RoadMap usually uses <b>gpsd</b> for the GPS link and <a class="normal"
+<P>RoadMap usually uses <b>gpsd</b> for the GPS link and can use <a class="normal"
 href="http://www.speech.cs.cmu.edu/flite/">flite</a> (festival lite) for
-the voice messages. Note that flite can be rebuilt with better voices than
-the default one (such as a US voice instead of a british one--some may
-disagree :). See the flite README for more information. Here is an example,
-courtesy of Scot Wilcoxon:
-
-<listing>
-   cd flite
-   make clean    # to remove old executable files
-   ./configure --with-vox=cmu_us_kal16
-</listing>
+the voice messages.
 
 <P>RoadMap comes with its own GPS status screen ("RoadGPS"), which provides
 an overview of the satellites received and highlights those the GPS has a
