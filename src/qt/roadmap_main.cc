@@ -42,6 +42,8 @@ extern "C" {
 #else
 #include <qapplication.h>
 #endif
+#include <qcursor.h>
+
 #include "qt_main.h"
 
 #ifdef QWS
@@ -190,7 +192,7 @@ void roadmap_main_set_cursor (int newcursor) {
          break;
 
       case ROADMAP_CURSOR_WAIT:
-         mainWindow->setCursor (BusyCursor);
+         mainWindow->setCursor (QCursor(Qt::WaitCursor));
          break;
 
       case ROADMAP_CURSOR_CROSS:
