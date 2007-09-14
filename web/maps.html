@@ -5,7 +5,7 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 </HEAD>
 <BODY class=homeview>
 <CENTER>
-<H1>RoadMap: US County Maps</H1><BR></CENTER>
+<H1>RoadMap: Pre-compiled Maps</H1><BR></CENTER>
 <HR>
 <a class="normal" href="index.html">Home</a>
 <a class="normal" href="documentation.html">Documentation</a>
@@ -19,62 +19,32 @@ href="sitestandard.css" type=text/css rel=stylesheet>
 <HR>
 <P>
 <center>
-<b>New maps built from the TIGER 2006 Second Edition files!</b>
+<b>USA maps built from the TIGER 2006 Second Edition files!</b>
 </center>
 <HR>
 <P>
-<b>Disclaimer</b>: RoadMap is known to have bugs. The data provided by
-the US Census Bureau is known to have errors. The RoadMap maps generated
-from the US Census Bureau data contain even more errors. <b> Use RoadMap
-at your own risk</b>.
-<P>
-<b>Caution</b>: always look at the road when driving a car, do not look
+<b>Disclaimer</b>:  RoadMap is known to have bugs.  The data
+provided by the US Census Bureau and other entities is known to
+have errors.  The RoadMap maps generated from these various data
+sources contain even more errors.  <b>Use RoadMap at your
+own risk!</b>.  Always look at the road when driving a car, do not look
 at the RoadMap screen. The proper way for using RoadMap in a car is to
 have a passenger use RoadMap, not the driver.
 <P>
-<b>Caution</b>: the maps available on this pages are <i>little endian</i>,
+<b>Note</b>: the maps available on this pages are <i>little endian</i>,
 i.e. they will work fine on a PC, Zaurus or Linux/iPAQ. These maps
 will <i>not</i> work on PowerPC (i.e. MAC) or Sparc computers. Maps for
 these architectures might become available in the future. In the mean time
 users of these architectures will need to build the maps themselves.
-Stay tuned!
+(The maps should be okay on 64-bit machines.)
 <P>
-<b>Caution</b>:  the maps for the non-US/Canada portion have been
-built from the Digital Charts of the World (DCW).  The official
-horizontal accuracy of the DCW is 2040 meters:  the resulting
-maps are therefore unusable for car navigation in their current
-state.
+<b>Note #2</b>: given the state of RoadMap development, there's a very
+good chance that the map data format might change again in a release
+or two.  Apologies in advance for any inconvenience this may cause, but
+you can be sure we'll only make changes for good reasons!
 <P>
-<b>Caution</b>: these maps require RoadMap version 1.1.0 and later. They
+<b>Note #3</b>: these maps require RoadMap version 1.1.0 and later. They
 are not compatible with earlier versions of RoadMap.
-<HR>
-<P>
-The data used for the US states and territories comes from the Census Bureau,
-an agency of the U.S. Government, and is in the public domain. Therefore, the
-RoadMap maps of the US states and territories are in the public domain.
-<P>
-The data used for the Canadian provincial maps comes from the 
-<A href="http://geodepot.statcan.ca/Diss/2006Dissemination/Data/FRR_RNF_e.cfm?language=E&format=A">Statistics Canada Road Network Files 2005</a>.
-<I>Source:  Geography Division, Statistics Canada, 2005 Road
-Network File (RNF), 92-500-XWE/XWF.  The incorporation of data
-sourced from Statistics Canada within RoadMap shall not be
-construed as constituting an endorsement by Statistics Canada of
-such product.
-Statistics Canada makes no representation or warranty of any kind
-with respect to the accuracy, usefulness, novelty, validity,
-scope, completeness or currency of the Data
-</I>
-<P>
-Note that the Canadian RNF maps currently contain no water
-features, and no railroads.
-<P>
-The data used for the non-US/Canada portion was extracted from
-the Digital Charts
-of the World (DCW), a product from the US Department of Defense. Most of
-the DCW data is public domain, but some is copyrighted by <A class=normal
-href="http://www.esri.com">ESRI</A> (administrative boundaries). The data
-included in the RoadMap files only include roads information and thus is
-all in the public domain.
 <HR>
 <P>
 <CENTER>
@@ -85,9 +55,18 @@ We suggest using <e>wget</e> with the --limit-rate=15k option.
 <P>
 Thank you for your understanding.
 </CENTER>
+<HR>
+<p>
+<b>Demo file</b> -- if all you want to do is give RoadMap a trial run, then
+<a href="maps/demo_maps.tar.gz">this file</a> is all you need.  It includes
+the map directory, state boundaries for the continental US, and the
+map covering the city of San Francisco.  Note that the map directory
+included here is minimal, to reduce download time.  If you download other
+maps as well, you'll need to download the full map directory, below.
 <HR> <BR>
-<P>The following file is the RoadMap directory of counties. It is used to select 
-which county or counties matche a specific geoposition or a specific address. 
+<P>The next file is the RoadMap map directory. It is used by RoadMap
+to decide what file(s) of data should be loaded for the specific area you're
+trying to view.
 This file must be present in the map directory or RoadMap will not work. 
 <P>
 <UL>
@@ -96,15 +75,16 @@ This file must be present in the map directory or RoadMap will not work.
          support for the Digital Charts of the World maps, Canadian
 	 maps, and US State boundaries.</LI>
 </UL>
-<p>
-Demo file -- if all you want to do is give RoadMap a trial run, then
-<a href="maps/demomaps.tar.gz">this file</a> is all you need.  It includes
-the map directory, state boundaries for the continental US, and the
-map covering the city of San Francisco.
-<P>The following files are gzipped tar files that contain the RoadMap map 
-files, one tar file per state. (To install the map files: go to the final map 
-directory and extract the map files using the "tar xzf <i>DOWNLOADED-FILE</i>" 
-command.) 
+<HR>
+<P>All of the following files are gzipped tar files that contain
+RoadMap map files.  To install the map files:  go to the
+final map directory and extract the map files using the "tar xzf
+<i>DOWNLOADED-FILE</i>" command. 
+<HR>
+The data used for the US states and territories comes from 
+<a href="http://www.census.gov/geo/www/tiger">the Census Bureau</a>,
+an agency of the U.S. Government, and is in the public domain. Therefore, the
+RoadMap maps of the US states and territories are in the public domain.
 <P>
 <CENTER>
 <TABLE width="100%">
@@ -220,6 +200,11 @@ command.)
 </CENTER>
 <BR>
 <HR>
+These are political outline boundary files, from the
+<a href="http://www.census.gov/geo/www/cob/st2000.html">the census bureau</a>
+and from 
+<a href="http://www.geobase.ca/geobase/en/data/cgb/index.html">
+the Canadian GeoBase initiative</a>.
 <P>
 <CENTER>
 <TABLE width="100%">
@@ -230,13 +215,28 @@ command.)
         <LI><A class=normal href="maps/bndCONT.tar.gz">Continental US state boundaries</A> 
         <LI><A class=normal href="maps/bndAK.tar.gz">Alaska state boundary</A> 
         <LI><A class=normal href="maps/bndHI.tar.gz">Hawaii state boundary</A> 
+        <LI><A class=normal href="maps/bndCanada.tar.gz">Canadian provincial boundaries</A> 
       </UL>
     </TD>
   </TR>
   </TBODY></TABLE> 
 </CENTER>
-<BR>
 <HR>
+<P>
+The data used for the Canadian provincial maps comes from the 
+<A href="http://geodepot.statcan.ca/Diss/2006Dissemination/Data/FRR_RNF_e.cfm?language=E&format=A">Statistics Canada Road Network Files 2005</a>.
+<I>Source:  Geography Division, Statistics Canada, 2005 Road
+Network File (RNF), 92-500-XWE/XWF.  The incorporation of data
+sourced from Statistics Canada within RoadMap shall not be
+construed as constituting an endorsement by Statistics Canada of
+such product.
+Statistics Canada makes no representation or warranty of any kind
+with respect to the accuracy, usefulness, novelty, validity,
+scope, completeness or currency of the Data
+</I>
+<P>
+Note that the Canadian RNF maps currently contain no water
+features, and no railroads.
 <P>
 <CENTER>
 <TABLE width="100%">
@@ -264,6 +264,19 @@ command.)
 </CENTER>
 <HR>
 <P>
+The data used for the non-US/Canada portion was extracted from
+the Digital Charts
+of the World (DCW), a product from the US Department of Defense. Most of
+the DCW data is public domain, but some is copyrighted by <A class=normal
+href="http://www.esri.com">ESRI</A> (administrative boundaries). The data
+included in the RoadMap files only include roads information and thus is
+all in the public domain.
+<P>
+<b>Caution</b>:  the maps for the non-US/Canada portion have been
+built from the Digital Charts of the World (DCW).  The official
+horizontal accuracy of the DCW is 2040 meters:  the resulting
+maps are therefore unusable for car navigation in their current
+state.
 <CENTER>
 <TABLE width="100%">
   <TBODY>
@@ -282,7 +295,6 @@ command.)
   </TBODY></TABLE> 
 </CENTER>
 
-<BR>
 <HR>
 <CENTER>
 This site is made available courtesy of
