@@ -412,13 +412,21 @@ INSTALLATION
 
          * {{http://roadmap.digitalomaha.net/download.html}}
 
-   RoadMap is distributed with the map of San Francisco as an example of
-   map. The complete set of maps is available on the following web site:
+   A quick way to get a feel for RoadMap is to download and install
+   the contents of this tar file, which contains the US state boundary
+   outlines, the detailed map of San Francisco, and a minimal
+   directory file which will let RoadMap use them.
+
+         * {{http://roadmap.digitalomaha.net/maps/demo_maps.tar.gz}}
+
+   The complete set of maps is available here:
    
          * {{http://roadmap.digitalomaha.net/maps.html}}
 
-   The RoadMap directory file (usdir.rdm) must be downloaded first, as
-   RoadMap will not work without it.
+   The full RoadMap directory file (usdir.rdm) must be downloaded
+   first, as RoadMap will not work without it.
+
+         * {{http://roadmap.digitalomaha.net/maps/usdir.rdm.tgz}}
 
    Please refrain from downloading all the US states at once, as the map
    files are huges and the bandwidth is expensive. If you do need the
