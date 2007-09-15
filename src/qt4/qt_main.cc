@@ -135,22 +135,34 @@ void RMapMainWindow::addToolbar(const char* orientation) {
    if (toolBar == 0) {
       toolBar = new QToolBar("map view", 0);
       toolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
-      toolBar->setMovable(FALSE);
-      addToolBar(static_cast<Qt::ToolBarArea>(4), toolBar);
+      toolBar->setMovable(TRUE);
+      addToolBar(Qt::TopToolBarArea, toolBar);
 #ifndef QWS
       // moveDockWindow not available on QtE v2.3.10.
       switch (orientation[0]) {
          case 't':
-         case 'T': break;
+         case 'T':
+                toolBar->setOrientation(Qt::Horizontal);
+                addToolBar(Qt::TopToolBarArea, toolBar);
+                break;
 
          case 'b':
-         case 'B': toolBar->setOrientation(Qt::Horizontal); break;
+         case 'B':
+                toolBar->setOrientation(Qt::Horizontal);
+                addToolBar(Qt::BottomToolBarArea, toolBar);
+                break;
 
          case 'l':
-         case 'L': toolBar->setOrientation(Qt::Vertical); break;
+         case 'L':
+                toolBar->setOrientation(Qt::Vertical);
+                addToolBar(Qt::LeftToolBarArea, toolBar);
+                break;
 
          case 'r':
-         case 'R': toolBar->setOrientation(Qt::Vertical); break;
+         case 'R':
+                toolBar->setOrientation(Qt::Vertical);
+                addToolBar(Qt::RightToolBarArea, toolBar);
+                break;
 
          default: roadmap_log (ROADMAP_FATAL,
                         "Invalid toolbar orientation %s", orientation);
