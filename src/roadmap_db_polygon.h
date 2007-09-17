@@ -58,7 +58,7 @@ typedef struct {  /* table polygon/points */
 } RoadMapPolygonPoint;
 
 /* these accessors for the "count" and "first" values, which
- * are 10 bits each -- 16 in an unsigned short, and 4 in each
+ * are 20 bits each -- 16 in an unsigned short, and 4 in each
  * nibble of the "hi_f_c" element.
  */
 
