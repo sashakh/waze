@@ -16,12 +16,12 @@ MODE =		# blank for "normal" build
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # Add any other special local CFLAGS values here
-# e.g., CFLAGS = -DWGET_GOOGLE_ROUTE
-# CFLAGS =
+# e.g., CFLAGS += -DWGET_GOOGLE_ROUTE
+# CFLAGS +=
 
 # If you know you need other libraries for your build, you can
 # add those here as well.  For example:
-# LIBS += -L$(QTDIR)/lib
+# LIBS +=
 
 # Choose a desktop
 # DESKTOP = GTK
@@ -42,19 +42,23 @@ DESKTOP = GTK2
 # CROSS=/opt/mingw32ce/bin/arm-wince-mingw32ce-
 # CFLAGS += ???  others needed?
 
-# If you select QT or QPE above, you might also want to set
-# QTDIR here.  (But it might already be set in your environment.)
+# If you select QT or QPE above, you might also want to set QTDIR
+# here.  (But it might already be set in your environment.)
+# Different QT installations seem to vary quite a bit.  You
+# may have to experiment to find the right combination of CFLAGS
+# and LIBS settings.
 # QTDIR = /usr
 # QTDIR = /usr/share/qt4
 # CFLAGS += -I/usr/include/qt4
+# LIBS += -L$(QTDIR)/lib
 
 # If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
 # some Familiar builds), set QT_NO_ROTATE.  RoadMap will then use
 # its internal labeling font.  Unfortunately, QT's line drawing
 # makes the internal font particularly hard to read.  You may
-# also wish to add "CFLAGS += -DROADMAP_NO_LINEFONT" to force
-# horizionatl labels.
+# wish to suppress it by adding "CFLAGS += -DROADMAP_NO_LINEFONT".
+# This will force horizontal labels.
 # QT_NO_ROTATE = YES
 
 # RoadMap contains a hard-coded list of directories in which it
@@ -62,7 +66,6 @@ DESKTOP = GTK2
 # "unix/roadmap_path.c")  Specifying a directory here will add
 # this path to the front of that list, causing it to be checked
 # first.  (This search path can be set at runtime via '--config=PATH'.)
-#
 # Note!  If set, this will also be used for the config files
 # during "make install".
 # ROADMAP_CONFIG_DIR = /usr/local/share/roadmap
