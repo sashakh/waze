@@ -191,9 +191,6 @@ static void roadmap_display_create_pens (void) {
 
     RoadMapMessageContour = roadmap_canvas_create_pen ("message.contour");
     roadmap_canvas_set_foreground ("black");
-//#ifdef ROADMAP_USE_LINEFONT_FOR_SIGNS
-//    roadmap_canvas_set_thickness (2);
-//#endif
 
     RoadMapConsoleBackground =
         roadmap_display_new_pen (&RoadMapConfigConsoleBackground);
@@ -216,17 +213,19 @@ static void roadmap_display_string
                 (char *text, int lines, int height, RoadMapGuiPoint *position) {
 
     char *text_line = text;
+    int eachline = strlen(text_line) / lines;
+    char saved;
 
-    if (lines > 1) {
+    while (lines-- > 1) {
 
         /* There is more than one line of text to display:
          * find where to cut the text. We choose to cut at
-         * a space, either before of after the string midpoint,
-         * whichever end with the shortest chunks.
+         * a space, before the string breakpoint.
          */
         char *text_end = text_line + strlen(text_line);
-        char *p1 = text_line + (strlen(text_line) / 2);
-        char *p2 = p1;
+        char *p1 = text_line + eachline + 2; /* we left extra space */
+
+	if (p1 > text_end) p1 = text_end;
 
         while (p1 > text_line) {
             if (*p1 == ' ') {
@@ -234,28 +233,20 @@ static void roadmap_display_string
             }
             p1 -= 1;
         }
-        while (p2 < text_end) {
-            if (*p2 == ' ') {
-                break;
-            }
-            p2 += 1;
-        }
-        if (text_end - p1 > p2 - text_line) {
-            p1 = p2;
-        }
-        if (p1 > text_line) {
+        if (p1 == text_line) {
+	    p1 = text_line + eachline;
+	}
 
-            char saved = *p1;
-            *p1 = 0;
+	saved = *p1;
+	*p1 = 0;
 
-            roadmap_screen_text (ROADMAP_TEXT_SIGNS,  position, 
-                ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
-                RoadMapDisplayFontSize, text_line);
+	roadmap_screen_text (ROADMAP_TEXT_SIGNS,  position, 
+	    ROADMAP_CANVAS_LEFT|ROADMAP_CANVAS_TOP,
+	    RoadMapDisplayFontSize, text_line);
 
-            *p1 = saved;
-            text_line = p1 + 1;
-            position->y += height;
-        }
+	*p1 = saved;
+	text_line = p1 + 1;
+	position->y += height;
 
     }
 
@@ -317,8 +308,12 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         sign_width = width;
         lines = 1;
     } else {
+        /* give ourselves an extra room, because breaking up the
+         * string is inexact -- proportional fonts don't match up
+         * with strlen() lengths used when splitting text later on.
+         */
+        lines = 1 + ((width + (screen_width - 10) / 2) / (screen_width - 10));
         sign_width = screen_width - 10;
-        lines = 1 + ((width + 10) / screen_width);
     }
 
     text_height = ascent + descent + 3;
