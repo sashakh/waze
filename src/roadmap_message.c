@@ -100,7 +100,7 @@ int roadmap_message_format (char *text, int length, const char *format) {
 }
 
 
-void roadmap_message_set (char parameter, const char *format, ...) {
+void roadmap_message_set (int parameter, const char *format, ...) {
     
     va_list ap;
     char    value[256];
@@ -116,18 +116,24 @@ void roadmap_message_set (char parameter, const char *format, ...) {
     vsnprintf(value, sizeof(value), format, ap);
     va_end(ap);
     
-    if (RoadMapMessageParameters[(int)parameter] != NULL) {
-        free (RoadMapMessageParameters[(int)parameter]);
+    if (RoadMapMessageParameters[parameter] != NULL) {
+        free (RoadMapMessageParameters[parameter]);
     }
     if (value[0] == 0) {
-        RoadMapMessageParameters[(int)parameter] = NULL;
+        RoadMapMessageParameters[parameter] = NULL;
     } else {
-        RoadMapMessageParameters[(int)parameter] = strdup (value);
+        RoadMapMessageParameters[parameter] = strdup (value);
     }
 }
 
+char *roadmap_message_get (int parameter) {
+    
+    return RoadMapMessageParameters[parameter] ? 
+    	    RoadMapMessageParameters[parameter] : "";
+}
 
-void roadmap_message_unset (char parameter) {
+
+void roadmap_message_unset (int parameter) {
     
     if (parameter <= 0) {
         roadmap_log (ROADMAP_ERROR,
@@ -136,8 +142,8 @@ void roadmap_message_unset (char parameter) {
         return;
     }
     
-    if (RoadMapMessageParameters[(int)parameter] != NULL) {
-        free (RoadMapMessageParameters[(int)parameter]);
-        RoadMapMessageParameters[(int)parameter] = NULL;
+    if (RoadMapMessageParameters[parameter] != NULL) {
+        free (RoadMapMessageParameters[parameter]);
+        RoadMapMessageParameters[parameter] = NULL;
     }
 }

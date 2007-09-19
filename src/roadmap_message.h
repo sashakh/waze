@@ -24,8 +24,9 @@
 #ifndef INCLUDE__ROADMAP_MESSAGE__H
 #define INCLUDE__ROADMAP_MESSAGE__H
 
-void roadmap_message_set    (char parameter, const char *format, ...);
-void roadmap_message_unset  (char parameter);
+void roadmap_message_set    (int parameter, const char *format, ...);
+char *roadmap_message_get (int parameter);
+void roadmap_message_unset  (int parameter);
 
 int  roadmap_message_format (char *text, int length, const char *format);
 
