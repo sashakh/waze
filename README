@@ -2210,6 +2210,11 @@ CONFIGURATION
 
          <<Command line option:>> --no-toolbar
 
+         <<Comment:>> in some case (GTK2) it may be necessary to suppress
+                      or minimize the toolbar if a very small screen is
+                      needed, because the size of the toolbar may dicate
+                      the minimum size of the screen.
+
     [General.Toolbar Orientation] Choose where to position the toolbar
 
          <<Format:>> "Top", "Bottom", "Left" or "Right"
@@ -2326,13 +2331,13 @@ CONFIGURATION
          <<Default:>> empty string (i.e. RoadMap uses the hardcoded default)
 
          <<Comment:>> the hardcoded default also includes the directories
-		      /usr/local/share/roadmap and /usr/share/roadmap, for
-		      compatibility purposes.  These two directories were the
-		      standard locations for the maps in previous versions of
-		      RoadMap.  Maps can be located in any directory mentioned
-		      in this path.  RoadMap will only consult a single
-		      usdir.rdm file at a time, even if more than one is
-		      present in the Map.Path directories.
+                      /usr/local/share/roadmap and /usr/share/roadmap, for
+                      compatibility purposes.  These two directories were the
+                      standard locations for the maps in previous versions of
+                      RoadMap.  Maps can be located in any directory mentioned
+                      in this path.  RoadMap will only consult a single
+                      usdir.rdm file at a time, even if more than one is
+                      present in the Map.Path directories.
 
     [Map.Cache] The number of entries in RoadMap's mapping cache.
 
@@ -2340,8 +2345,8 @@ CONFIGURATION
 
          <<Default:>> 8
 
-	 <<Comment:>> This value controls how many maps RoadMap will
-		     keep "open" at once, for faster access.
+         <<Comment:>> This value controls how many maps RoadMap will
+                     keep "open" at once, for faster access.
 
     [Map.Background] The color used for the background of the maps.
 
