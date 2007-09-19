@@ -347,7 +347,30 @@ INSTALLATION
   you should be careful, however, not to share them on a network (this could
   also be very inefficient, as this could saturate the network and the RoadMap
   performances would be severely impacted).
+
+  Maps can be located in any directory mentioned in the Map.Path preferences
+  setting.  The index file, usdir.rdm, must also be in one of those
+  directories.
   
+  RoadMap will only consult a single usdir.rdm file at a time.  The first
+  usdir.rdm index file read by RoadMap must index any and all maps you might
+  wish to view.  This means that if you've built a subset of the maps, with
+  a corresponding usdir.rdm file (using "buildus"), then when you build
+  more maps, you can't create and install a second usdir.rdm file and expect
+  RoadMap to use them both.  A new usdir.rdm must be built which indexes all
+  of the maps.
+  
+  RoadMap will only read the index file once, even if a newer version becomes
+  available.  RoadMap must be restarted in order to take advantage of a new
+  usdir.rdm index file.  In contrast, new map files can be added to the
+  Map.Path directories, and RoadMap will find them as needed.  This means that
+  maps kept on removeable storage devices can be used fairly easily.  [ The
+  one caveat when introducing replacement maps is that RoadMap will only try
+  and find a map when it really needs to.  RoadMap will keep a number of maps
+  open, for easy access -- the number is controlled by "Map.Cache".  You may
+  have to visit that many other maps before RoadMap will need to reopen a map
+  file which you've visited before but subsequently replaced.  ]
+
   (The map search paths referred to below may be changed using the "--maps=..."
   commandline option.)
   
@@ -806,10 +829,10 @@ USING ROADMAP
    The RoadMap application accepts the following command line options:
    
    [--config=<PATH>] Replace the built-in search path for system
-       configuration data.  While this will usually just be a simple
-       directory path, it can actually be a comma-separated list of paths
-       from which RoadMap should load its config.  User directories
-       (usually "~/.roadmap" will still be processed as usual.
+      configuration data.  While this will usually just be a simple
+      directory path, it can actually be a comma-separated list of paths
+      from which RoadMap should load its config.  User directories
+      (usually "~/.roadmap" will still be processed as usual.
 
    [--location=<LONGITUDE,LATITUDE>] Set the location point (see menu entry
        "Show Location.."). This option is sticky (preference item
@@ -842,17 +865,21 @@ USING ROADMAP
    [--no-icon] Do not show any icon, i.e. keep as much space as possible
       for the map. This option is sticky (preference item General.Icons = "no").
 
+   [--map-boxes] Show map bounding boxes as grey lines.  This is mostly
+      just for debug purposes, but can be useful in figuring out why no
+      map is in view at your current location.
+
    [--square] Show squares boundaries as grey boxes. This option is for
-       debug purpose only.
+      debug purpose only.
 
    [--gps=<URL>] Use a specific GPS source. This option is not sticky: it
-       overrides the preferences setting this time, but the preferences
-       setting is not modified. The main use of this option is to rerun GPS
-       logs created using roadgps, or to run logs created using
-       gpsbabel, from other input sources.  For instance:
-          gpsbabel -i gpx -o nmea,gprmc=1 infile.gpx outfile.nmea
-       will create an NMEA logfile from a GPX format file created elsewhere,
-       or even from a tracklog created by roadmap itself.
+      overrides the preferences setting this time, but the preferences
+      setting is not modified. The main use of this option is to rerun GPS
+      logs created using roadgps, or to run logs created using
+      gpsbabel, from other input sources.  For instance:
+         gpsbabel -i gpx -o nmea,gprmc=1 infile.gpx outfile.nmea
+      will create an NMEA logfile from a GPX format file created elsewhere,
+      or even from a tracklog created by roadmap itself.
 
    [--trip=<FILENAME>] tells roadmap to make the given GPX tripfile current.
 
@@ -2299,16 +2326,22 @@ CONFIGURATION
          <<Default:>> empty string (i.e. RoadMap uses the hardcoded default)
 
          <<Comment:>> the hardcoded default also includes the directories
-                      /usr/local/share/roadmap and /usr/share/roadmap, for
-                      compatibility purposes. These two directories were
-                      the standard locations for the maps in previous
-                      versions of RoadMap.
+		      /usr/local/share/roadmap and /usr/share/roadmap, for
+		      compatibility purposes.  These two directories were the
+		      standard locations for the maps in previous versions of
+		      RoadMap.  Maps can be located in any directory mentioned
+		      in this path.  RoadMap will only consult a single
+		      usdir.rdm file at a time, even if more than one is
+		      present in the Map.Path directories.
 
     [Map.Cache] The number of entries in RoadMap's mapping cache.
 
          <<Format:>> integer
 
          <<Default:>> 8
+
+	 <<Comment:>> This value controls how many maps RoadMap will
+		     keep "open" at once, for faster access.
 
     [Map.Background] The color used for the background of the maps.
 
