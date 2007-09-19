@@ -63,8 +63,9 @@ RoadMapLogRedirect roadmap_log_redirect (int level,
                                          RoadMapLogRedirect redirect);
 
 
-#define ROADMAP_SHOW_AREA        1
-#define ROADMAP_SHOW_SQUARE      2
+#define ROADMAP_SHOW_AREA          1
+#define ROADMAP_SHOW_SQUARE        2
+#define ROADMAP_SHOW_GLOBAL_SQUARE 3
 
 
 

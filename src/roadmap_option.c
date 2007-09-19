@@ -58,6 +58,7 @@ static RoadMapConfigDescriptor RoadMapConfigTripName =
 static int roadmap_option_verbose = ROADMAP_MESSAGE_WARNING;
 static int roadmap_option_no_area = 0;
 static int roadmap_option_square  = 0;
+static int roadmap_option_global_sq  = 0;
 static int roadmap_option_cache_size = 0;
 static int roadmap_option_synchronous = 0;
 
@@ -86,6 +87,8 @@ int roadmap_is_visible (int category) {
          return (! roadmap_option_no_area);
       case ROADMAP_SHOW_SQUARE:
          return roadmap_option_square;
+      case ROADMAP_SHOW_GLOBAL_SQUARE:
+         return roadmap_option_square || roadmap_option_global_sq;;
    }
 
    return 1;
@@ -255,6 +258,11 @@ static void roadmap_option_set_square (const char *value) {
     roadmap_option_square = 1;
 }
 
+static void roadmap_option_map_boxes (const char *value) {
+
+    roadmap_option_global_sq = 1;
+}
+
 
 static void roadmap_option_set_gps (const char *value) {
 
@@ -369,6 +377,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     {"--no-icon", "", roadmap_option_set_no_icon, 1,
         "Do not show icons on the toolbar"},
 
+    {"--map-boxes", "", roadmap_option_map_boxes, 1,
+        "Show map bounding boxes as grey lines (debug and troubleshooting)"},
+
     {"--square", "", roadmap_option_set_square, 1,
         "Show the square boundaries as grey lines (for debug purpose)"},
 
@@ -421,7 +432,7 @@ static void roadmap_option_usage (const char *value) {
           printf ("        %s.\n", option->help);
        }
        if (!all)
-	  exit (0);
+          exit (0);
     }
 
     if (RoadMapOptionUsage != NULL) {
@@ -468,9 +479,9 @@ void roadmap_option (int argc, char **argv, int pass, RoadMapUsage usage) {
             }
 
             if (compare == 0) {
-		if (pass == option->pass) {
+                if (pass == option->pass) {
                     option->handler (value);
-		}
+                }
                 break;
             }
         }
