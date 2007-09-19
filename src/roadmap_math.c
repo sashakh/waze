@@ -960,9 +960,9 @@ void roadmap_math_zoom_out (void) {
 
    if (zoom < MAX_ZOOM_OUT) {
       RoadMapContext.zoom = (unsigned short) zoom;
+      roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
+      roadmap_math_compute_scale ();
    }
-   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
-   roadmap_math_compute_scale ();
 }
 
 
@@ -974,11 +974,9 @@ void roadmap_math_zoom_in (void) {
 
    if (zoom > MIN_ZOOM_IN) {
       RoadMapContext.zoom = zoom;
+      roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
+      roadmap_math_compute_scale ();
    }
-
-
-   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
-   roadmap_math_compute_scale ();
 }
 
 
@@ -988,14 +986,14 @@ void roadmap_math_zoom_reset (void) {
 
    zoomval = roadmap_config_get_integer (&RoadMapConfigGeneralDefaultZoom);
    if (zoomval < MIN_ZOOM_IN || zoomval > MAX_ZOOM_OUT) {
-       zoomval = ROADMAP_REFERENCE_ZOOM;
+      zoomval = ROADMAP_REFERENCE_ZOOM;
    }
 
-   RoadMapContext.zoom = zoomval;
-
-   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
-
-   roadmap_math_compute_scale ();
+   if (RoadMapContext.zoom != zoomval) {
+      RoadMapContext.zoom = zoomval;
+      roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
+      roadmap_math_compute_scale ();
+   }
 }
 
 
@@ -1798,8 +1796,8 @@ void roadmap_math_set_context (RoadMapPosition *position, unsigned int zoom) {
 
 
 void roadmap_math_get_context
-	(RoadMapPosition *position,
-	 unsigned int *zoom, RoadMapGuiPoint *lowerright) {
+        (RoadMapPosition *position,
+         unsigned int *zoom, RoadMapGuiPoint *lowerright) {
 
    if (position) *position = RoadMapContext.center;
    if (zoom) *zoom = RoadMapContext.zoom;
