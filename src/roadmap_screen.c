@@ -65,6 +65,7 @@
 #include "roadmap_factory.h"
 #include "roadmap_time.h"
 #include "roadmap_spawn.h"
+#include "roadmap_message.h"
 
 #include "roadmap_screen.h"
 
@@ -629,7 +630,6 @@ static void roadmap_screen_draw_square_edges (int square) {
 
    RoadMapGuiPoint points[6];
 
-   if (! roadmap_is_visible (ROADMAP_SHOW_SQUARE)) return;
 
    roadmap_log_push ("roadmap_screen_draw_square_edges");
 
@@ -1056,7 +1056,9 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
    }
 
    /* draw global square outline (only with "--square") */
-   if (pen_type == 0) roadmap_screen_draw_square_edges (square);
+   if (pen_type == 0 && roadmap_is_visible (ROADMAP_SHOW_SQUARE)) {
+      roadmap_screen_draw_square_edges (square);
+   }
    
    RoadMapScreenLastPen = NULL;
 
@@ -1123,8 +1125,12 @@ static void roadmap_screen_repaint (void) {
     if (count == 0) {
        RoadMapPosition pos;
        char lon[32], lat[32];
-       roadmap_math_get_context (&pos, NULL, NULL);
-       roadmap_display_text("Info", "No map available: %s, %s",
+       RoadMapGuiPoint lowerright;
+
+       roadmap_math_get_context (&pos, NULL, &lowerright);
+
+       roadmap_display_text("Info", "No maps visible within %s of %s, %s",
+             roadmap_message_get((lowerright.x < lowerright.y) ? 'x' : 'y'),
              roadmap_math_to_floatstring(lon, pos.longitude, MILLIONTHS),
              roadmap_math_to_floatstring(lat, pos.latitude, MILLIONTHS));
        nomap = 1;
@@ -1138,6 +1144,13 @@ static void roadmap_screen_repaint (void) {
     /* - For each candidate county: */
 
     for (i = count-1; i >= 0; --i) {
+
+        /* draw global square outline (with "--square" or "--map-boxes") */
+        if (roadmap_is_visible (ROADMAP_SHOW_GLOBAL_SQUARE)) {
+            if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK)
+               continue;
+            roadmap_screen_draw_square_edges (ROADMAP_SQUARE_GLOBAL);
+        }
 
         /* -- nothing to draw at this zoom? -- */
         if (roadmap_county_get_decluttered(fips[i]))
@@ -1187,10 +1200,6 @@ static void roadmap_screen_repaint (void) {
 
             drawn += roadmap_screen_draw_long_lines (k);
 
-            if (k == 0) {
-                /* draw global square outline (only with "--square") */
-                roadmap_screen_draw_square_edges (ROADMAP_SQUARE_GLOBAL);
-            }
         }
 
 
