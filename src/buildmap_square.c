@@ -94,7 +94,7 @@ void buildmap_square_adjust_limits(int longitude, int latitude) {
    }
 
    if ((signof(firstlongitude) == signof(longitude)) || 
-	(abs(firstlongitude - longitude) < 180)) {
+	(abs(firstlongitude - longitude) < 180000000)) {
 	/* okay */ ;
    } else {
       static int warned;
