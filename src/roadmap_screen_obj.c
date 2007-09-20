@@ -32,6 +32,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <assert.h>
 
 #include "roadmap.h"
@@ -391,13 +392,15 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 
    while (data < end) {
 
-      while (data[0] == '#' || data[0] < ' ') {
+      while (data < end && (data[0] == '#' || data[0] < ' ')) {
 
          if (*(data++) == '#') {
             while ((data < end) && (data[0] >= ' ')) data += 1;
          }
          while (data < end && data[0] == '\n' && data[0] != '\r') data += 1;
       }
+
+      if (data >= end)  break;
 
       argc = 1;
       argv[0] = data;
