@@ -11,7 +11,9 @@
 # N <name>              Name of the object (unused, but starts a new object)
 # P <x> <y>             The screen position of the sprite, measured from
 #                         the top left in pixels.  Negative offsets measure
-#                         from the right and from the bottom.
+#                         from the right and from the bottom.  If the <x> or
+#                         <y> value begins with a 'C', then the remainder
+#                         is an offset from the center of the screen.
 # E <sprite>            The name of the sprite which will be drawn.
 # E <sprite>              Multiple sprites can be specified.  Which one is
 #                         displayed is selected via the object's "state"
@@ -21,9 +23,10 @@
 #                         is optional.
 # A <actionname>        The action which should be invoked when the sprite
 #                         is selected.  Optional.
-# R                     Sprites will normally rotate, either with the screen,
-#                         or based on an angle retrieved via the state
-#                         indicator.  Specifying 'R' suppresses rotation.
+# R <angle>             Sprites will normally rotate dynamically, either with
+#                         the screen, or based on an angle retrieved via the
+#                         state indicator.  Specifying 'R' suppresses this
+#                         by forcing rotation to the given angle. (default 0)
 # B <x> <y> <x> <y>     Optional -- the bounding box used to determine 
 #                         whether a selection has taken place.  (I.e., the
 #                         size of the sprite.) Normally the bounding box is
@@ -92,10 +95,36 @@ N ZoomIn_Button
 P 20 -100
 E ZoomIn
 A zoomin
-R
+R 0
 
 N ZoomOut_Button
 P 20 -60
 E ZoomOut
 A zoomout
-R
+R 0
+
+# The next four are up/down/left/right controls, centered on
+# each edge of the screen, each rotated appropriately.
+N UpArrow
+P C0 20
+E PurpleTriangle
+A up
+R 0
+
+N DownArrow
+P C0 -20
+E PurpleTriangle
+A down
+R -180
+
+N RightArrow
+P -20 C0
+E PurpleTriangle
+A right
+R 90
+
+N LeftArrow
+P 20 C0
+E PurpleTriangle
+A left
+R -90

@@ -113,6 +113,10 @@ L 0,0 7,14 0,8 -7,14
 F DarkGreen 2
 L 0,1 6,13 0,10 -6,13 0,1
 
+S PurpleTriangle
+F Purple 1
+P 0,-10 -9,5 9,5 0,-10
+
 S CrossHair
 F white 3
 L 0,-10 0,-20
