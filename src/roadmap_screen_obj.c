@@ -68,9 +68,11 @@ static ObjectFile RoadMapObjFiles[] = {
 
 #define MAX_STATES 9
 
-#define OBJ_FLAG_NO_ROTATE        0x1
-#define OBJ_FLAG_REPEAT           0x2
-#define OBJ_FLAG_EXPLICIT_BBOX    0x4
+#define OBJ_FLAG_NO_ROTATE        0x01
+#define OBJ_FLAG_REPEAT           0x02
+#define OBJ_FLAG_EXPLICIT_BBOX    0x04
+#define OBJ_FLAG_CENTER_X         0x08
+#define OBJ_FLAG_CENTER_Y         0x10
 
 #define OBJ_REPEAT_TIMEOUT 100
 
@@ -89,6 +91,8 @@ struct RoadMapScreenObjDescriptor {
    short                pos_y; /* position on screen */
 
    int                  flags;
+
+   int                  angle; /* rotation angle if not dynamic */
 
    int                  opacity;
 
@@ -120,17 +124,51 @@ static char *roadmap_object_string (const char *data, int length) {
 }
 
 
+static RoadMapScreenObj roadmap_screen_obj_search (const char *name) {
+
+   RoadMapScreenObj cursor;
+
+   for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
+      if (!strcmp(cursor->name, name)) return cursor;
+   }
+
+   return NULL;
+}
+
+
 static RoadMapScreenObj roadmap_screen_obj_new
           (int argc, const char **argv, int *argl) {
 
-   RoadMapScreenObj object = calloc(sizeof(*object), 1);
+   RoadMapScreenObj object;
+   char *name = roadmap_object_string (argv[1], argl[1]);
+   struct RoadMapScreenObjDescriptor *savenext;
 
-   roadmap_check_allocated(object);
+   object = roadmap_screen_obj_search(name);
 
-   object->name = roadmap_object_string (argv[1], argl[1]);
+   if (object != NULL) { /* found another by the same name -- reuse */
 
-   object->next = RoadMapObjectList;
-   RoadMapObjectList = object;
+      while (object->states_count--) {
+         free(object->sprites[object->states_count]);
+      }
+
+      savenext = object->next;
+      name = object->name;
+
+      memset(object, 0, sizeof(*object));
+
+      object->next = savenext;
+      object->name = name;
+
+   } else {
+
+      object = calloc(sizeof(*object), 1);
+      roadmap_check_allocated(object);
+
+      object->name = name;
+
+      object->next = RoadMapObjectList;
+      RoadMapObjectList = object;
+   }
 
    return object;
 }
@@ -291,8 +329,7 @@ static void roadmap_screen_obj_decode_position
                         (RoadMapScreenObj object,
                          int argc, const char **argv, int *argl) {
 
-   char arg[255];
-   int pos;
+   char arg[255], *argp;
 
    argc -= 1;
    if (argc != 2) {
@@ -302,12 +339,20 @@ static void roadmap_screen_obj_decode_position
    }
 
    roadmap_screen_obj_decode_arg (arg, sizeof(arg), argv[1], argl[1]);
-   pos = atoi(arg);
-   object->pos_x = pos;
+   argp = arg;
+   if (*arg == 'C') {
+      object->flags |= OBJ_FLAG_CENTER_X;
+      argp++;
+   }
+   object->pos_x = atoi(argp);
 
    roadmap_screen_obj_decode_arg (arg, sizeof(arg), argv[2], argl[2]);
-   pos = atoi(arg);
-   object->pos_y = pos;
+   argp = arg;
+   if (*arg == 'C') {
+      object->flags |= OBJ_FLAG_CENTER_Y;
+      argp++;
+   }
+   object->pos_y = atoi(argp);
 }
 
 
@@ -373,7 +418,6 @@ static void roadmap_screen_obj_decode_action
    }
 }
 
-
 static void roadmap_screen_obj_load (const char *data, int size) {
 
    int argc;
@@ -434,8 +478,8 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 
       case 'O':
 
-         roadmap_screen_obj_decode_integer (&object->opacity, argc, argv,
-                                             argl);
+         roadmap_screen_obj_decode_integer
+               (&object->opacity, argc, argv, argl);
          break;
 
       case 'A':
@@ -490,6 +534,10 @@ static void roadmap_screen_obj_load (const char *data, int size) {
       case 'R':
 
          object->flags |= OBJ_FLAG_NO_ROTATE;
+         if (argc > 1) {
+            roadmap_screen_obj_decode_integer
+                  (&object->angle, argc, argv, argl);
+         }
          break;
 
       case 'T':
@@ -517,35 +565,28 @@ static void roadmap_screen_obj_load (const char *data, int size) {
 }
 
 
-static RoadMapScreenObj roadmap_screen_obj_search (const char *name) {
-
-   RoadMapScreenObj cursor;
-
-   for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
-      if (!strcmp(cursor->name, name)) return cursor;
-   }
-
-   return NULL;
-}
-
-
 static void roadmap_screen_obj_pos (RoadMapScreenObj object,
                                     RoadMapGuiPoint *pos) {
 
    pos->x = object->pos_x;
    pos->y = object->pos_y;
 
-   if (pos->x < 0) {
+   if (object->flags & OBJ_FLAG_CENTER_X) {
+      pos->x += roadmap_canvas_width() / 2;
+   } else if (pos->x < 0) {
       pos->x += roadmap_canvas_width ();
    } else {
       pos->x += OffsetX;
    }
 
-   if (pos->y < 0) {
+   if (object->flags & OBJ_FLAG_CENTER_Y) {
+      pos->y += roadmap_canvas_height() / 2;
+   } else if (pos->y < 0) {
       pos->y += roadmap_canvas_height ();
    } else {
       pos->y += OffsetY;
    }
+
 }
 
 
@@ -766,27 +807,6 @@ static void roadmap_screen_obj_reload (void) {
 #endif
 }
 
-
-void roadmap_screen_obj_move (const char *name,
-                              const RoadMapGuiPoint *position) {
-
-   RoadMapScreenObj cursor = roadmap_screen_obj_search (name);
-
-   if (cursor != NULL) {
-
-      cursor->pos_x = position->x;
-      cursor->pos_y = position->y;
-   }
-}
-
-
-void roadmap_screen_obj_offset (int x, int y) {
-
-   OffsetX += x;
-   OffsetY += y;
-}
-
-
 void roadmap_screen_obj_initialize (void) {
 
    roadmap_pointer_register_pressed
@@ -838,7 +858,7 @@ void roadmap_screen_obj_draw (void) {
          
          if (cursor->flags & OBJ_FLAG_NO_ROTATE) {
             roadmap_sprite_draw (cursor->sprites[state], &pos,
-                                 -roadmap_math_get_orientation());
+                         cursor->angle - roadmap_math_get_orientation());
          } else {
             roadmap_sprite_draw (cursor->sprites[state], &pos, angle);
          }

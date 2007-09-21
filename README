@@ -2118,7 +2118,10 @@ CONFIGURATION
 *---------------------------+------------------------------------------------+
 |        P <x> <y>          |  The screen position of the sprite, measured
 |                           |  from the top left in pixels.  Negative offsets
-|                           |  measure from the right and from the bottom.
+|                           |  measure from the right and from the bottom.  If
+|                           |  the <x> or <y> value begins with a 'C', then
+|                           |  the remainder is an offset from the center of
+|                           |  the screen.
 *---------------------------+------------------------------------------------+
 |        E <sprite>         |  The name of the sprite which will be drawn.
 *---------------------------+------------------------------------------------+
@@ -2138,8 +2141,8 @@ CONFIGURATION
 *---------------------------+------------------------------------------------+
 |        R                  |  Sprites will normally rotate, either with the
 |                           |  screen, or based on an angle retrieved via
-|                           |  the state indicator.  Specifying 'R'
-|                           |  suppresses rotation.
+|                           |  the state indicator.  Specifying 'R' suppresses
+|                           |  this by forcing rotation to the given angle.
 *---------------------------+------------------------------------------------+
 |        B <x> <y> <x> <y>  |  Optional -- the bounding box used to determine 
 |                           |  whether a selection has taken place.  (I.e.,
