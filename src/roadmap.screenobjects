@@ -9,6 +9,10 @@
 # Syntax:
 #
 # N <name>              Name of the object (unused, but starts a new object)
+#			  Specifying a name, and nothing else at all, will
+#                         define a null object which can be used to
+#                         override objects defined in other (e.g. system)
+#                         screenobjects files.
 # P <x> <y>             The screen position of the sprite, measured from
 #                         the top left in pixels.  Negative offsets measure
 #                         from the right and from the bottom.  If the <x> or
