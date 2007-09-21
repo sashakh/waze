@@ -45,4 +45,6 @@ void roadmap_label_draw_text(const char *text,
         RoadMapGuiPoint *start, RoadMapGuiPoint *center,
         int doing_angles, int angle, int size);
 
+void roadmap_label_cache_invalidate(void);
+
 #endif // __ROADMAP_LABEL__H

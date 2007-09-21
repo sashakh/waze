@@ -168,6 +168,7 @@ static RoadMapPen RoadMapPenEdges = NULL;
 static void roadmap_screen_setfont(void) {
 
    const char *p;
+   int labels_was = (RoadMapLineFontSelect & ROADMAP_TEXT_LABELS);
 
    RoadMapLineFontSelect = 0;
    p = roadmap_config_get(&RoadMapConfigLinefontSelector);
@@ -181,6 +182,14 @@ static void roadmap_screen_setfont(void) {
       } else if (*p == 'a') { // "all"
          RoadMapLineFontSelect |= ROADMAP_TEXT_SIGNS|ROADMAP_TEXT_LABELS;
       }
+   }
+
+   /* If the LABELS bit changes here, reset the cache in
+    * roadmap_label.c:  the font has changed, and therefore the
+    * dimensions and bounding boxes.
+    */
+   if (labels_was != (RoadMapLineFontSelect & ROADMAP_TEXT_LABELS)) {
+      roadmap_label_cache_invalidate();
    }
 }
 
@@ -1720,8 +1729,8 @@ void roadmap_screen_initialize (void) {
         ("preferences", &RoadMapConfigMapDynamicOrientation, "on", "off", NULL);
 
    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigLinefontSelector, "off", "labels", "signs", "all",
-	NULL);
+        ("preferences", &RoadMapConfigLinefontSelector,
+            "off", "labels", "signs", "all", NULL);
 
 
 

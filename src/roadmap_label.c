@@ -247,6 +247,9 @@ void roadmap_label_draw_text(const char *text,
    }
 }
 
+void roadmap_label_cache_invalidate(void) {
+   ROADMAP_LIST_SPLICE (&RoadMapLabelSpares, &RoadMapLabelCache);
+}
 
 /* called when a screen repaint commences.  keeping track of
  * label "generations" involves keeping track of full refreshes,
@@ -261,7 +264,7 @@ void roadmap_label_start (void) {
     * than not.
     */
    if ( !roadmap_math_point_is_visible (&last_center) ) {
-      ROADMAP_LIST_SPLICE (&RoadMapLabelSpares, &RoadMapLabelCache);
+      roadmap_label_cache_invalidate();
    }
 
    roadmap_math_get_context (&last_center, &RoadMapLabelCurrentZoom, NULL);
