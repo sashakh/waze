@@ -2409,10 +2409,9 @@ CONFIGURATION
 
          <<Default:>> labels
 
-         <<Comment:>> The internal line font (if available) may be preferable
-                  to the system font since it can draw at angles, and since
-                  its size can be easily scaled.  It is not very pretty,
-                  however.
+         <<Comment:>> The internal line font may be preferable to the system
+                  font since it can draw at angles, and since its size can be
+                  easily scaled.  It is not very pretty, however.
                    
 
     [Labels.MinFeatureSize] The shortest street which may be labeled.

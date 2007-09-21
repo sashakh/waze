@@ -21,13 +21,6 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef ROADMAP_NO_LINEFONT
-# undef ROADMAP_USE_LINEFONT
-# define ROADMAP_USE_LINEFONT 0
-#else
-# define ROADMAP_USE_LINEFONT 1
-#endif
-
 void roadmap_linefont_extents
         (const char *text, int size,
          int *width, int *ascent, int *descent, int *can_tilt);

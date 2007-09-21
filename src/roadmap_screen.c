@@ -1656,7 +1656,7 @@ void roadmap_screen_zoom_reset (void) {
 
 void roadmap_screen_text
      (int id, RoadMapGuiPoint *center, int where, int size, const char *text) {
-    if (ROADMAP_USE_LINEFONT && (RoadMapLineFontSelect & id) != 0) {
+    if ((RoadMapLineFontSelect & id) != 0) {
         roadmap_linefont_text ( center, where, size, text);
     } else {
         roadmap_canvas_draw_string ( center, where, text);
@@ -1665,7 +1665,7 @@ void roadmap_screen_text
 void roadmap_screen_text_angle 
         (int id, RoadMapGuiPoint *start, RoadMapGuiPoint *center,
                 int theta, int size, const char *text) {
-    if (ROADMAP_USE_LINEFONT && (RoadMapLineFontSelect & id) != 0) {
+    if ((RoadMapLineFontSelect & id) != 0) {
         roadmap_linefont_text_angle ( start, center, theta, size, text);
     } else {
         roadmap_canvas_draw_string_angle ( start, center, theta, text);
@@ -1674,7 +1674,7 @@ void roadmap_screen_text_angle
 void roadmap_screen_text_extents 
         (int id, const char *text, int size,
          int *width, int *ascent, int *descent, int *can_tilt) {
-    if (ROADMAP_USE_LINEFONT && (RoadMapLineFontSelect & id) != 0) {
+    if ((RoadMapLineFontSelect & id) != 0) {
         roadmap_linefont_extents
                 (text, size, width, ascent, descent, can_tilt);
     } else {
@@ -1720,7 +1720,8 @@ void roadmap_screen_initialize (void) {
         ("preferences", &RoadMapConfigMapDynamicOrientation, "on", "off", NULL);
 
    roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigLinefontSelector, "labels", "signs", "all", "off", NULL);
+        ("preferences", &RoadMapConfigLinefontSelector, "off", "labels", "signs", "all",
+	NULL);
 
 
 

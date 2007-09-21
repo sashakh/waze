@@ -85,27 +85,6 @@
 #include "roadmap_canvas.h"
 #include "roadmap_linefont.h"
 
-#ifndef ROADMAP_USE_LINEFONT
-
-void roadmap_linefont_extents
-        (const char *text, int size,
-         int *width, int *ascent, int *descent, int *can_tilt) {
-    /* null */
-}
-
-void roadmap_linefont_text
-        ( RoadMapGuiPoint *center, int where, int size, const char *text) {
-    /* null */
-}
-
-void roadmap_linefont_text_angle
-        ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
-                int theta, int size, const char *text) {
-    /* null */
-}
-
-#else
-
 #define MAXCHARS 100
 #define MAXPOINTS 256
 
@@ -567,4 +546,3 @@ not present here. -pgf ]
 
  */
 
-#endif  /* ROADMAP_USE_LINEFONT */

@@ -158,19 +158,6 @@ endif
 # rotation support in QT/QPE?
 ifeq ($(strip $(QT_NO_ROTATE)),YES)
 	CFLAGS += -DQT_NO_ROTATE
-else
-ifeq ($(strip $(DESKTOP)),QT)
-	CFLAGS += -DROADMAP_NO_LINEFONT
-endif
-ifeq ($(strip $(DESKTOP)),QT4)
-	CFLAGS += -DROADMAP_NO_LINEFONT
-endif
-ifeq ($(strip $(DESKTOP)),QPE)
-	CFLAGS += -DROADMAP_NO_LINEFONT
-endif
-ifeq ($(strip $(DESKTOP)),QPE4)
-	CFLAGS += -DROADMAP_NO_LINEFONT
-endif
 endif
 
 
@@ -180,8 +167,7 @@ ifeq ($(strip $(AGG)),NO)
 	CANVAS_OBJS = roadmap_canvas.o
 else
 	LIBS += -laggfontfreetype -lagg -lfreetype
-	CFLAGS += -DROADMAP_NO_LINEFONT \
-		-DAGG_PIXFMT=pixfmt_$(AGG) \
+	CFLAGS += -DAGG_PIXFMT=pixfmt_$(AGG) \
 		-I$(TOP)/agg_support \
 		-I/usr/include/agg2 \
 		-I/usr/local/include/agg2 \

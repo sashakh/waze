@@ -54,11 +54,7 @@ DESKTOP = GTK2
 
 # If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
-# some Familiar builds), set QT_NO_ROTATE.  RoadMap will then use
-# its internal labeling font.  Unfortunately, QT's line drawing
-# makes the internal font particularly hard to read.  You may
-# wish to suppress it by adding "CFLAGS += -DROADMAP_NO_LINEFONT".
-# This will force horizontal labels.
+# some Familiar builds), set QT_NO_ROTATE.
 # QT_NO_ROTATE = YES
 
 # RoadMap contains a hard-coded list of directories in which it
