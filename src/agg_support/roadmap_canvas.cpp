@@ -45,7 +45,6 @@
 #include "agg_renderer_scanline.h"
 #include "agg_scanline_p.h"
 #include "agg_renderer_outline_aa.h"
-#include "agg_pixfmt_rgb_packed.h"
 #include "agg_path_storage.h"
 
 #include "agg_font_freetype.h"
@@ -70,7 +69,12 @@ extern "C" {
 }
 #include "roadmap_canvas_agg.h"
 
-typedef agg::pixfmt_rgb565 pixfmt;
+#include "agg_pixfmt_rgb_packed.h"
+#include "agg_pixfmt_rgba.h"
+#include "agg_pixfmt_rgb.h"
+
+
+typedef agg::AGG_PIXFMT pixfmt;
 typedef agg::renderer_base<pixfmt> renbase_type;
 typedef agg::renderer_primitives<renbase_type> renderer_pr;
 typedef agg::font_engine_freetype_int32 font_engine_type;

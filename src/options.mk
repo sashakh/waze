@@ -181,6 +181,7 @@ ifeq ($(strip $(AGG)),NO)
 else
 	LIBS += -laggfontfreetype -lagg -lfreetype
 	CFLAGS += -DROADMAP_NO_LINEFONT \
+		-DAGG_PIXFMT=pixfmt_$(AGG) \
 		-I$(TOP)/agg_support \
 		-I/usr/include/agg2 \
 		-I/usr/local/include/agg2 \

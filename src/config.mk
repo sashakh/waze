@@ -104,10 +104,21 @@ SHAPEFILES = NO
 # RoadMap can still do street labels, but they won't look as
 # nice.  (for more information on AGG, see http://antigrain.com)
 # RoadMap requires version 2.4 of agg.  
-# [ Note -- currently, AGG is only available with GTK2 builds. AGG
-# also only supports a 16bpp display.  ]
-# AGG = YES
+# [ Note -- currently, AGG is only available with GTK2 builds.]
+#
+# Choose one of the options below.  This is really ugly, but unlike
+# the rest of the graphics code in RoadMap, the AGG code doesn't
+# autodetect what kind of display you have.  (Would someone out
+# there like to fix this?  :-)  If your screen is squished or 
+# stretched, 16/32 is wrong.  If you have bad colors, rgb/bgr is
+# wrong.  Other values are possible -- see the AGG documention
+# for pixfmt_XXX values
 AGG = NO
+# AGG = rgb565	# 16bit "highcolor"
+# AGG = rgba32	# 24bit+alpha "truecolor", RGB order
+# AGG = bgra32	# 24bit+alpha "truecolor", BGR order
+# AGG = rgb24	# 24bit "truecolor", RGB order
+# AGG = bgr24	# 24bit "truecolor", BGR order
 
 # Some languages need to present text that flows from right to to
 # left.  RoadMap supports this via the "Free Implementation of
