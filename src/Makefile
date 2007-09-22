@@ -431,13 +431,24 @@ installicons:
 installdoc: ../web/manual.html 
 	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
-webdoc: ../web/manual.html ../web/makemaps.html
+webdoc: ../web/manual.html ../web/makemaps.html \
+	../web/buglist.html ../web/todolist.html
 
 ../web/manual.html: ../README
 	aptconvert -toc -enc ASCII $@ $<
+	sed -i 's/<body>/<body class="roadmap">/' $@
 
 ../web/makemaps.html: ../howtos/makemaps.txt
 	aptconvert -toc -enc ASCII $@ $<
+	sed -i 's/<body>/<body class="roadmap">/' $@
+
+../web/buglist.html: ../BUGS
+	aptconvert -toc -enc ASCII $@ $<
+	sed -i 's/<body>/<body class="roadmap">/' $@
+
+../web/todolist.html: ../TODO
+	aptconvert -toc -enc ASCII $@ $<
+	sed -i 's/<body>/<body class="roadmap">/' $@
 
 uninstall:
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
