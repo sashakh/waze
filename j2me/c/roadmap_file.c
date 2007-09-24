@@ -44,6 +44,16 @@ struct RoadMapFileContextStructure {
    int   size;
 };
 
+static long favail(FILE *fp) {
+   long cur = ftell(fp);
+   long out;
+
+   fseek(fp, 0, SEEK_END);
+   out = ftell(fp);
+   fseek(fp, cur, SEEK_SET);
+
+   return out;
+}
 
 FILE *roadmap_file_fopen (const char *path,
                           const char *name,
@@ -80,10 +90,22 @@ FILE *roadmap_file_fopen (const char *path,
 
 void roadmap_file_remove (const char *path, const char *name) {
 
-   assert("roadmap_file_remove");
    const char *full_name = roadmap_path_join (path, name);
+   int error;
 
-   //remove(full_name);
+   NOPH_FileConnection_t f = 0;
+
+   NOPH_try(NOPH_setter_exception_handler, (void*)&error) {
+
+      f = (NOPH_FileConnection_t)
+	   NOPH_Connector_openFileConnection_mode
+	   		(full_name, NOPH_Connector_WRITE);
+
+      NOPH_FileConnection_delete(f);
+   } NOPH_catch();
+
+   if (f) NOPH_delete (f);
+
    roadmap_path_free (full_name);
 }
 
@@ -101,23 +123,27 @@ int roadmap_file_exists (const char *path, const char *name) {
    return status;
 }
 
-/*
+
 int roadmap_file_length (const char *path, const char *name) {
 
-   int   status;
+   int   size;
    const char *full_name = roadmap_path_join (path, name);
-   struct stat stat_buffer;
 
-   status = stat (full_name, &stat_buffer);
+   FILE *f = fopen (full_name, "r");
+
+   if (!f) return -1;
+
    roadmap_path_free (full_name);
 
-   if (status == 0) {
-      return stat_buffer.st_size;
-   }
-   return -1;
+   size = favail (f);
+
+   fclose (f);
+
+   return size;
 }
 
 
+/*
 void roadmap_file_save (const char *path, const char *name,
                         void *data, int length) {
 
@@ -197,9 +223,6 @@ const char *roadmap_file_unique (const char *base) {
 
 */
 
-static void handler_file_io(NOPH_Exception_t exception, void *arg)
-{ NOPH_delete(exception); }
-
 const char *roadmap_file_map (const char *set,
                               const char *name,
                               const char *sequence,
@@ -243,19 +266,7 @@ const char *roadmap_file_map (const char *set,
 
       do {
 	 full_name = roadmap_path_join (sequence, name);
-
-         if (!strncmp(full_name, "file:", 5)) {
-            roadmap_log (ROADMAP_DEBUG, "Trying to open: %s %x\n", full_name, (int)context->fd);
-	    context->fd = 0;
-	    NOPH_try(handler_file_io, NULL) {
-               context->fd = NOPH_Connector_openFILEInputStream(full_name);
-	    } NOPH_catch();
-            if (context->fd) {
-               roadmap_log (ROADMAP_DEBUG, "Open ok!, size: %d\n", favail(context->fd));
-            }
-         } else {
-            context->fd = fopen (full_name, mode);
-         }
+         context->fd = fopen (full_name, mode);
 
 	 roadmap_path_free (full_name);
 
@@ -282,7 +293,7 @@ const char *roadmap_file_map (const char *set,
    context->base = malloc(context->size);
 
    if ((context->base == NULL) ||
-       (fread(context->base, context->size, 1, context->fd) != context->size)) {
+       (fread(context->base, context->size, 1, context->fd) != 1)) {
       roadmap_log (ROADMAP_ERROR, "cannot map file %s", name);
       roadmap_file_unmap (&context);
       return NULL;
@@ -336,20 +347,25 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
 
 
 RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
-
-   return -1;
+   
+   return roadmap_file_fopen (NULL, name, mode);
 }
 
 
-int roadmap_file_read  (RoadMapFile file, void *data, int size) {
-   return -1;
+int roadmap_file_read (RoadMapFile file, void *data, int size) {
+   int res = fread(data, 1, size, file);
+
+   return res;
 }
 
-int roadmap_file_write (RoadMapFile file, const void *data, int length) {
-   return -1;
+int roadmap_file_write (RoadMapFile file, const void *data, int size) {
+   int res = fwrite(data, 1, size, file);
+
+   return res;
 }
 
 void  roadmap_file_close (RoadMapFile file) {
+   fclose (file);
 }
 
 int roadmap_file_free_space (const char *path) {

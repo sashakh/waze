@@ -44,28 +44,13 @@
 #include "roadmap_download.h"
 #include "roadmap_path.h"
 #include "roadmap_pointer.h"
-#include "roadmap_net.h"
 #include "roadmap_serial.h"
 #include "roadmap_spawn.h"
 #include "roadmap_file.h"
 
-int roadmap_net_receive (RoadMapSocket s, void *data, int size) { return -1; }
-int roadmap_net_send    (RoadMapSocket s, const void *data, int length,
-                         int wait) { return -1; }
-
-void roadmap_net_close  (RoadMapSocket s) {}
-
 int  roadmap_spawn_write_pipe (RoadMapPipe pipe, const void *data, int length) { return -1; }
 int  roadmap_spawn_read_pipe  (RoadMapPipe pipe, void *data, int size) { return -1; }
 void roadmap_spawn_close_pipe (RoadMapPipe pipe) {}
-
-void roadmap_messagebox (const char *title, const char *text) { 
-  static NOPH_Display_t display;
-  if (!display) display = NOPH_Display_getDisplay(NOPH_MIDlet_get());
-  NOPH_Alert_t msg = NOPH_Alert_new(title, text, 0, NOPH_AlertType_get(NOPH_AlertType_INFO));
-  NOPH_Alert_setTimeout(msg, NOPH_Alert_FOREVER);
-  NOPH_Display_setCurrent(display, msg);
-}
 
 #include "roadmap_res.h"
 #include "roadmap_canvas.h"
@@ -202,8 +187,6 @@ void roadmap_driver_input (RoadMapIO *io) {}
 void roadmap_driver_accept (RoadMapIO *io) {}
 
 void roadmap_res_shutdown (void) {}
-void editor_main_shutdown (void) {}
-void editor_main_initialize (void) {}
 
 void roadmap_preferences_edit (void) {}
 

@@ -6,7 +6,7 @@
 ## Author:        Simon Kagstrom <ska@bth.se>
 ## Description:   Generic Makefile
 ##
-## $Id: Makefile,v 1.3 2007/08/19 13:38:46 eshabtai Exp $
+## $Id: Makefile,v 1.4 2007/09/24 12:33:55 eshabtai Exp $
 ##
 ######################################################################
 SUBDIRS =
@@ -67,6 +67,10 @@ OBJS    = ../../src/roadmap_dbread.o \
 	  ./roadmap_dialog.o \
 	  ./roadmap_address.o \
 	  ./roadmap_sound.o \
+	  ./roadmap_net.o \
+	  ./track_rec.o \
+	  ../../src/editor/track/editor_track_filter.o \
+	  ../../src/editor/export/editor_upload.o \
 	  ../../src/navigate/navigate_main.o \
 	  ../../src/navigate/navigate_instr.o \
 	  ../../src/navigate/navigate_bar.o \
@@ -79,11 +83,16 @@ OBJS    = ../../src/roadmap_dbread.o \
 	  ../../src/navigate/fib-1.1/fib.o \
 	  ./stubs.o
 
-LDLIBS  = -lc -lsoftfloat -lm
+LDLIBS  = -lsoftfloat -lm -lmidp -ljsr075
+#LDLIBS  = -lc -lsoftfloat -lm
 CFLAGS  = -DJ2ME -DJ2MEMAP
 INCLUDES = -I../../src -I../include
 
-CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-indirect-calls --optimize-register-scheduling --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square 
+# --trace-function-calls
+#CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square
+
+#CIBYL_MIPS2JAVA_OPTS ?=-I../include -O --trace-function-instructions=fileconnection_register_fs,register_fs,cibyl_fops_register,register_op,run_list --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square
+CIBYL_MIPS2JAVA_OPTS ?=-I../include -O --optimize-indirect-calls --optimize-inline-all-builtins --optimize-register-scheduling --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square 
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-indirect-calls --optimize-inline-all-builtins -O
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include -O
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include

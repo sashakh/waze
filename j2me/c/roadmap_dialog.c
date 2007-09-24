@@ -38,6 +38,7 @@
 #include "roadmap_lang.h"
 #include "roadmap_start.h"
 
+#include "roadmap_messagebox.h"
 #define ROADMAP_DIALOG_NO_LANG
 #include "roadmap_dialog.h"
 
@@ -176,7 +177,17 @@ static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
 
 static void roadmap_dialog_hide_window (RoadMapDialogItem dialog) {
 
-   assert(RoadMapDialogCurrent == dialog);
+   if (RoadMapDialogCurrent != dialog) {
+      RoadMapDialogItem itr;
+      for (itr = RoadMapDialogCurrent; itr && (itr->prev_dialog != dialog);
+      	   itr = itr->prev_dialog);
+
+      assert (itr);
+      itr->prev_dialog = itr->prev_dialog->prev_dialog;
+
+      return;
+   }
+
    RoadMapDialogCurrent = RoadMapDialogCurrent->prev_dialog;
    roadmap_log(ROADMAP_DEBUG, "Hide dialog :%s\n", dialog->name);
 
@@ -240,7 +251,7 @@ static void roadmap_dialog_chosen (char *name, void *context) {
 
    case ROADMAP_WIDGET_PASSWORD:
    case ROADMAP_WIDGET_ENTRY:
-  {
+   {
      char value[255];
      NOPH_TextField_getCString((NOPH_TextField_t)item->item, value, sizeof(value));
      if (strlen(item->value)) free(item->value);
@@ -293,8 +304,17 @@ static void roadmap_dialog_chosen (char *name, void *context) {
       }
    break;
 
-   case ROADMAP_WIDGET_MUL_ENTRY:
    case ROADMAP_WIDGET_LABEL:
+   {
+     char value[255];
+     NOPH_StringItem_getCString((NOPH_StringItem_t)item->item, value, sizeof(value));
+     if (strlen(item->value)) free(item->value);
+     if (!strlen(value)) item->value = "";
+     else item->value = strdup(value);
+   }
+   break;
+
+   case ROADMAP_WIDGET_MUL_ENTRY:
       break;
 
    case ROADMAP_WIDGET_CHOICE:
@@ -428,13 +448,32 @@ void roadmap_dialog_new_image (const char *frame, const char *name) {}
 
 void roadmap_dialog_new_password (const char *frame, const char *name) {
 
-   //child->widget_type = ROADMAP_WIDGET_PASSWORD;
+   NOPH_TextField_t item = NOPH_TextField_new (name, "", 100, NOPH_TextField_PASSWORD);
+   RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, (NOPH_Item_t)item);
+   child->widget_type = ROADMAP_WIDGET_PASSWORD;
+   child->value = "";
+   NOPH_FormCommandMgr_addCallback(RoadMapDialogCurrent->cmd_mgr, (NOPH_Item_t)item, roadmap_dialog_chosen, "", child);
 }
 
 
-void roadmap_dialog_new_label (const char *frame, const char *name) {
+void roadmap_dialog_new_label (const char *frame, const char *_name) {
 
-   //child->widget_type = ROADMAP_WIDGET_LABEL;
+   NOPH_StringItem_t item;
+   RoadMapDialogItem child;
+
+   if (*_name) {
+     char *name = malloc(strlen(_name) + 3);
+     strcpy(name, _name);
+     strcat(name, ": ");
+     item = NOPH_StringItem_new (name, "");
+     free(name);
+   } else {
+     item = NOPH_StringItem_new (_name, "");
+   }
+
+   child = roadmap_dialog_new_item (frame, _name, (NOPH_Item_t)item);
+
+   child->widget_type = ROADMAP_WIDGET_LABEL;
 }
 
 
@@ -749,6 +788,10 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
       NOPH_TextField_setString((NOPH_TextField_t)this_item->item, data);
       break;
 
+   case ROADMAP_WIDGET_LABEL:
+      NOPH_StringItem_setText((NOPH_StringItem_t)this_item->item, data);
+      break;
+
 #if 0
    case ROADMAP_WIDGET_MUL_ENTRY:
       {
@@ -757,11 +800,6 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
          gtk_text_view_set_buffer (GTK_TEXT_VIEW(this_item->w), buffer);
          g_object_unref (buffer);
       }
-      break;
-
-   case ROADMAP_WIDGET_LABEL:
-
-      gtk_label_set_text (GTK_LABEL(this_item->w), (const char *)data);
       break;
 #endif
 
@@ -823,5 +861,22 @@ void  roadmap_dialog_set_progress (const char *frame, const char *name,
    if (this_item->widget_type != ROADMAP_WIDGET_PROGRESS) return;
 
    NOPH_Gauge_setValue((NOPH_Gauge_t)this_item->item, progress);
+}
+
+static void messgaebox_dismiss (const char *name, void *context) {
+   roadmap_dialog_hide ("Message Box");
+}
+
+void roadmap_messagebox (const char *title, const char *text) { 
+
+   if (roadmap_dialog_activate ("Message Box", NULL, 0)) {
+
+      roadmap_dialog_new_label  ("main", "");
+
+      roadmap_dialog_add_button ("Ok", messgaebox_dismiss);
+   }
+
+   roadmap_dialog_set_data ("main", "", text);
+   roadmap_dialog_activate ("Message Box", NULL, 1);
 }
 

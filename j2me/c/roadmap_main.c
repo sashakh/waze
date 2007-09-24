@@ -478,6 +478,8 @@ int main (int argc, char **argv) {
 
    canvas = NOPH_GameCanvas_get();
 
+   NOPH_Canvas_setFullScreenMode(canvas, 1);
+
    roadmap_start_subscribe (roadmap_start_event);
    roadmap_start (argc, argv);
 

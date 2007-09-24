@@ -564,9 +564,7 @@ RoadMapImage roadmap_canvas_load_image (const char *path,
 
 void roadmap_canvas_image_set_mutable (RoadMapImage src) {
 
-   NOPH_Image_t img = NOPH_Image_createImage_xy(
-                        roadmap_canvas_image_width(src),
-                        roadmap_canvas_image_height(src));
+   NOPH_Image_t img = NOPH_Image_setMutable(src->image);
 
    NOPH_Graphics_t graphics = NOPH_Image_getGraphics(img);
 

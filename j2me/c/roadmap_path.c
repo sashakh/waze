@@ -74,7 +74,7 @@ static const char *RoadMapPathSkinPreferred = "./roadmap/skins";
  */ 
 static const char *RoadMapPathConfig[] = {
    /* This is for standard Unix configurations. */
-   "rs:/",
+   "recordstore:/",
    "/",
    NULL
 };
@@ -87,6 +87,7 @@ static const char *RoadMapPathMaps[] = {
    /* This is for standard Unix configurations. */
    "/",
    "file:///e:/freemap",
+   "file:///c:/freemap",
    "file:///root1/RoadMap",
    NULL
 };
@@ -231,7 +232,7 @@ static const char *roadmap_path_home (void) {
 
 const char *roadmap_path_user (void) {
 
-    return "rs:/";
+    return "recordstore:/";
 }
 
 
