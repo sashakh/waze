@@ -50,7 +50,8 @@ typedef struct {
 
 static NavigateBarPanel NavigateBarDefaultPanels[] = {
    {"nav_panel_wide", 320, {0, 0}, {0, 65, 48, 110}, {3, 70}, {3, 95}, 75, 230},
-   {"nav_panel", 240, {0, 0}, {55, 0, 95, 50}, {55, 5}, {58, 30}, 98, 133}
+   {"nav_panel", 240, {0, 0}, {55, 0, 95, 50}, {55, 5}, {58, 30}, 98, 133},
+   {"nav_panel_small", 176, {0, 0}, {55, 0, 95, 50}, {55, 5}, {58, 30}, 98, 70}
 };
 
 
@@ -192,9 +193,9 @@ void navigate_bar_initialize (void) {
       (RoadMapImage) roadmap_res_get
          (RES_BITMAP, RES_SKIN, NavigatePanel->image_file);
 
-   roadmap_canvas_image_set_mutable (NavigateBarImage);
-
    if (!NavigateBarBG || !NavigateBarImage) goto error;
+
+   roadmap_canvas_image_set_mutable (NavigateBarImage);
 
    for (i=0; i<LAST_DIRECTION; i++) {
       NavigateDirections[i] =
