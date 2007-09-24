@@ -477,7 +477,7 @@ int editor_track_known_locate_point (int point_id,
             return 0;
          }
 
-         assert(!confirmed_street->valid);
+         assert(!confirmed_street->valid || (confirmed_line->line.plugin_id != ROADMAP_PLUGIN_ID));
          *confirmed_street = *new_street;
          *confirmed_line = *new_line;
          confirmed_street->valid = 1;
