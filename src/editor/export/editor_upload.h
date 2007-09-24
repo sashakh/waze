@@ -28,7 +28,7 @@
 
 void editor_upload_initialize (void);
 void editor_upload_select     (void);
-void editor_upload_file       (const char *filename);
+void editor_upload_file       (const char *filename, int remove_file);
 
 int  editor_upload_auto       (const char *filename,
                                RoadMapDownloadCallbacks *callbacks,

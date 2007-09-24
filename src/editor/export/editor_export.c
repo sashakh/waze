@@ -79,7 +79,7 @@ static RoadMapConfigDescriptor RoadMapConfigAutoUpload =
 static void editor_export_upload(const char *filename) {
 
    if (roadmap_config_match(&RoadMapConfigAutoUpload, "yes")) {
-      editor_upload_file (filename);
+      editor_upload_file (filename, 0);
    }
 }
 

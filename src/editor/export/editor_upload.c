@@ -240,16 +240,21 @@ static RoadMapSocket editor_http_send_header (const char *target,
       return ROADMAP_INVALID_SOCKET;
    }
 
+#ifndef J2ME
    /* Connect to the server (roadmap_net understands the "host:port"
     * syntax).
     */
    fd = roadmap_net_connect ("tcp", host, 80);
+#else
+   fd = roadmap_net_connect ("http", target, 80);
+#endif
    if (ROADMAP_NET_IS_VALID(fd)) {
       const char *filename = roadmap_path_skip_directories (full_name);
       char *p = strchr(host, ':');
 
       if (p != NULL) *p = 0; /* remove the port/service info. */
 
+#ifndef J2ME
       if (editor_http_send (fd, error, "POST %s HTTP/1.0\r\n", path) == -1)
          goto send_error;
 
@@ -258,6 +263,7 @@ static RoadMapSocket editor_http_send_header (const char *target,
       
       if (editor_http_send (fd, error, "User-Agent: FreeMap/%s\r\n",
             editor_main_get_version() ) == -1) goto send_error;
+#endif
 
       send_auth (user, pw, fd, error);
 
@@ -426,9 +432,12 @@ static int editor_post_file (const char *target,
    int loaded;
    int uploaded;
    char buffer[ROADMAP_HTTP_MAX_CHUNK];
+   RoadMapFile file;
+
+#ifndef J2ME
    char user_digest_hex[100];
    char pw_digest_hex[100];
-   RoadMapFile file;
+#endif
 
    if (message != NULL) {
       *message = NULL;
@@ -451,6 +460,7 @@ static int editor_post_file (const char *target,
    }
    RoadMapUploadCurrentName = file_name;
 
+#ifndef J2ME
    if (!user_name[0]) {
       struct MD5Context context;
       unsigned char digest[16];
@@ -471,7 +481,7 @@ static int editor_post_file (const char *target,
 
       password = pw_digest_hex;
    }
-
+#endif
    fd = editor_http_send_header
          (target, file_name, size, user_name, password, callbacks->error);
    if (!ROADMAP_NET_IS_VALID(fd)) {
@@ -549,6 +559,8 @@ static void editor_upload_ok (const char *name, void *context) {
    const char *password;
    char *message;
 
+   int remove_file = (int)context;
+
    filename = roadmap_dialog_get_data (".file", "Name");
 
    target = roadmap_dialog_get_data (".file", "To");
@@ -562,7 +574,13 @@ static void editor_upload_ok (const char *name, void *context) {
 
    roadmap_dialog_hide (name);
 
-   editor_post_file (target, filename, username, password, NULL, &message);
+   if ((editor_post_file
+         (target, filename, username, password, NULL, &message) != -1) &&
+          remove_file) {
+
+      roadmap_file_remove (NULL, filename);
+   }
+
    if (message != NULL) {
       roadmap_messagebox ("Info", message);
    }
@@ -575,13 +593,13 @@ static void editor_upload_cancel (const char *name, void *context) {
 }
 
 
-void editor_upload_file (const char *filename) {
+void editor_upload_file (const char *filename, int remove_file) {
 
    static char s_file[500];
    strncpy (s_file, filename, sizeof(s_file));
    s_file[sizeof(s_file)-1] = 0;
 
-   if (roadmap_dialog_activate ("Upload gpx file", NULL, 1)) {
+   if (roadmap_dialog_activate ("Upload gpx file", (void *)remove_file, 1)) {
 
       roadmap_dialog_new_label  (".file", "Name");
       roadmap_dialog_new_entry  (".file", "To", NULL);
@@ -606,10 +624,11 @@ void editor_upload_file (const char *filename) {
 }
 
 
+#ifndef J2ME
 static void editor_upload_file_dialog_ok
                            (const char *filename, const char *mode) {
 
-   editor_upload_file (filename);
+   editor_upload_file (filename, 0);
 }
 
 
@@ -621,6 +640,7 @@ void editor_upload_select (void) {
                               "r",
                               editor_upload_file_dialog_ok);
 }
+#endif
 
 
 void editor_upload_initialize (void) {
