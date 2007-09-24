@@ -65,3 +65,6 @@ Geometry.Main: 800x600
 General.Keyboard: no
 General.Unit: metric
 Routing.Auto zoom: yes
+
+FreeMap.Target: http://www.freemap.co.il/upload/upload_j2me.php
+

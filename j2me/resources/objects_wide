@@ -15,3 +15,10 @@ P 19 60
 S GPS_reception
 R
 
+N record_gps
+E
+E Record
+P -10 -40
+S record_gps
+R
+
