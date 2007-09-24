@@ -250,6 +250,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
 
    } else if (!strcmp (roadmap_lang_get ("SWCH"), widget->name)) {
       switch_type(keyboard);
+      return 1;
 
    } else {
 
