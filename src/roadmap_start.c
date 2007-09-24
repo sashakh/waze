@@ -175,7 +175,7 @@ static void roadmap_start_about (void) {
    char about[500];
 
    snprintf (about, sizeof(about),
-                       "FreeMap 0.10.0 rc5 \n"
+                       "FreeMap 0.10.0 rc6 \n"
                        "(c)Ehud Shabtai \n"
                        "www.freemap.co.il \n"
                        "Based on RoadMap \n"
@@ -594,6 +594,8 @@ static const char *RoadMapStartMenu[] = {
    "toggleview",
    "toggleorientation",
    "traffic",
+   "togglegpsrecord",
+   "uploadj2merecord",
    "detectreceiver",
    "destination",
    "quit",
