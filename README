@@ -1,9 +1,8 @@
                                ---------
-    RoadMap - a street navigation system using the US Census maps and GPS
+                    RoadMap - User Manual and README
                                ---------
-                Pascal Martin (pascal.martin@ponts.org)
                                ---------
-                             November 2003
+                             September 2007
 
 
 INTRODUCTION
@@ -69,6 +68,11 @@ INTRODUCTION
    to those found in commercial car navigation systems, and to port RoadMap
    to as many environment as possible.
 
+AUTHORS
+
+   This document, as well as RoadMap as a whole, is primarily the work
+   of Pascal Martin.  Other major contributors include Steve Woodbridge,
+   Ehud Shabtai, and Paul Fox.
 
 ABOUT THIS DOCUMENTATION
 
@@ -201,7 +205,7 @@ INSTALLATION
   Before you install RoadMap, you must choose what installation directories
   to use for these files. Some of these choices are already made for you when
   you install a pre-built package (such as the Familiar ipk package), or are
-  assigned default values in the make files (source package). This section
+  assigned default values in the makefiles (source package). This section
   describes the whole thing, regardless of how you install RoadMap. It also
   provides some information about the standard locations in the most common
   cases.
@@ -555,6 +559,7 @@ INSTALLATION
    options, described in the comments of that file.
 
    Simply typing "make" will build the default selection in config.mk.
+   (GNU make is required.)
 
    <<Note for QT users>>: the RoadMap QT module is built with QT3 by
    default, but requires the QT2 compatibility headers.

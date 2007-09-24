@@ -1,14 +1,26 @@
                           -----------
             INSTALLING  RoadMap On Familiar Linux / GPE
                           -----------
-              Pascal Martin (pascal.martin@iname.com)
                           -----------
-
-[ To build RoadMap for a "standard" linux/unix environment, edit
-  config.mk to select your build options, and then type "make",
-  followed by "make install".  -pgf 8/1/2007 ]
+                         September 2007
 
 INTRODUCTION
+
+   To build RoadMap for a "standard" linux/unix environment, read
+   and edit config.mk to select your build options, and then type
+   "make", followed by "make install".
+
+   For more complete installation and configuration information,
+   please consult the "INSTALLATION" section of the README file.
+   The README is on the web, here:
+
+         {{http://roadmap.digitalomaha.net/manual.html}}
+
+   The rest of this document describes the specifics of installing
+   on Familiar Linux / GPE, but users of that system should consult
+   the README (or the above URL) as well.
+
+INSTALLATION ON FAMILIAR
 
    This document describes the installation of RoadMap, a car navigation
    system, on an ARM-powered PDA running Familiar Linux and the GPE
@@ -106,11 +118,9 @@ INSTALLING ROADMAP
    with the 8+3 limitation of the FAT file system) but VFAT is recommended
    (if only because this is the factory default file system..).
 
-   The map files can be retrieved from any of the RoadMap sites:
+   The map files can be retrieved from the RoadMap site:
 
-       * {{http://roadmap.saignon.net}}
-
-       * {{http://roadmap.noscience.net}}
+       * {{http://roadmap.digitalomaha.net}}
 
    The first file to install in the share/roadmap subdirectory is the file
    named "usdir.rdm". This file is mandatory: this is the index used to
