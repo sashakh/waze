@@ -97,25 +97,45 @@ static int dec2bin (char c) {
 static time_t roadmap_nmea_decode_time (const char *hhmmss,
                                         const char *ddmmyy) {
 
-#ifdef J2ME
-  /* FIXME fix J2ME time decoding */
-  return 0;
-#else
-
    static struct tm tm;
 
+#ifdef J2ME
+   if (strlen(hhmmss) < 6) return -1;
+
+   tm.tm_hour = (hhmmss[0] - 48) * 10 + hhmmss[1] - 48;
+   tm.tm_min  = (hhmmss[2] - 48) * 10 + hhmmss[3] - 48;
+   tm.tm_sec  = (hhmmss[4] - 48) * 10 + hhmmss[5] - 48;
+   if ((tm.tm_hour < 0) || (tm.tm_hour > 23)) return -1;
+   if ((tm.tm_min < 0) || (tm.tm_min > 59)) return -1;
+   if ((tm.tm_sec < 0) || (tm.tm_sec > 59)) return -1;
+
+#else
 
    if (sscanf (hhmmss, "%02d%02d%02d",
                &(tm.tm_hour), &(tm.tm_min), &(tm.tm_sec)) != 3) {
       return -1;
    }
+#endif
 
    if ((ddmmyy != NULL) && *ddmmyy) {
+
+#ifdef J2ME
+      if (strlen(ddmmyy) < 6) return -1;
+
+      tm.tm_mday = (ddmmyy[0] - 48) * 10 + ddmmyy[1] - 48;
+      tm.tm_mon  = (ddmmyy[2] - 48) * 10 + ddmmyy[3] - 48;
+      tm.tm_year  = (ddmmyy[4] - 48) * 10 + ddmmyy[5] - 48;
+      if ((tm.tm_mday < 0) || (tm.tm_mday > 31)) return -1;
+      if ((tm.tm_mon < 0) || (tm.tm_mon > 12)) return -1;
+      if (tm.tm_year < 0) return -1;
+
+#else
 
       if (sscanf (ddmmyy, "%02d%02d%02d",
                   &(tm.tm_mday), &(tm.tm_mon), &(tm.tm_year)) != 3) {
          return -1;
       }
+#endif
 
       if (tm.tm_year < 50) {
          tm.tm_year += 100; /* Y2K. */
@@ -145,7 +165,6 @@ static time_t roadmap_nmea_decode_time (const char *hhmmss,
    /* FIXME: th time zone might change if we are moving !. */
 
    return timegm(&tm);
-#endif
 }
 
 
