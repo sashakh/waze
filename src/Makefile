@@ -306,6 +306,7 @@ FONT = LiberationSans-Bold.ttf
 
 # more products
 ifneq ($(strip $(POPT)),NO)
+  # these depend on libpopt
   BUILD = buildmap buildus dumpmap buildplace rdmindex 
 endif
 
@@ -431,24 +432,51 @@ installicons:
 installdoc: ../web/manual.html 
 	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
-webdoc: ../web/manual.html ../web/makemaps.html \
-	../web/buglist.html ../web/todolist.html
 
+# several parts of the RoadMap website are produced directly from
+# text files in the CVS tree, converted to html using aptconvert.
+# (http://www.xmlmind.com/aptconvert.html)
+
+WEBDOCS = ../web/manual.html \
+	  ../web/makemaps.html \
+	  ../web/buglist.html \
+	  ../web/todolist.html \
+	  ../web/familiar.html
+
+webdoc: $(WEBDOCS)
+
+clean-webdoc:
+	rm -f $(WEBDOCS)
+
+# use GNU make's target-specific variables to name the sourcefile
+# for each constructed web page.  the names are somewhat random,
+# so we can't simply use a pattern rule.
+../web/manual.html: APT_SOURCE=../README
 ../web/manual.html: ../README
-	aptconvert -toc -enc ASCII $@ $<
-	sed -i 's/<body>/<body class="roadmap">/' $@
 
+../web/makemaps.html: APT_SOURCE=../howtos/makemaps.txt
 ../web/makemaps.html: ../howtos/makemaps.txt
-	aptconvert -toc -enc ASCII $@ $<
-	sed -i 's/<body>/<body class="roadmap">/' $@
 
+../web/buglist.html: APT_SOURCE=../BUGS
 ../web/buglist.html: ../BUGS
-	aptconvert -toc -enc ASCII $@ $<
-	sed -i 's/<body>/<body class="roadmap">/' $@
 
+../web/todolist.html: APT_SOURCE=../TODO
 ../web/todolist.html: ../TODO
-	aptconvert -toc -enc ASCII $@ $<
-	sed -i 's/<body>/<body class="roadmap">/' $@
+
+../web/familiar.html: APT_SOURCE=../INSTALL
+../web/familiar.html: ../INSTALL
+
+# here's the rule for building webpages from our
+# aptconvert-compatible text files.  we post-process, add some
+# extra html at the top, to make the docs fit in with the rest of
+# the site.
+$(WEBDOCS):
+	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(APT_SOURCE)
+	sed -i \
+	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
+	    -e '/<body>/s/$$/<!--#include virtual="navbar.html" -->/' \
+	    -e 's/<body>/<body class="roadmap-doc">/' $@
+	chmod ug+x $@
 
 uninstall:
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
@@ -525,7 +553,7 @@ DOTVERSION=$(shell sed -n \
 
 RELNAME = roadmap-$(DOTVERSION)
 
-.PHONY: checkdotversion sourcelist linkdir tarball
+.PHONY: checkdotversion sourcelist linkdir tarball webdoc
 
 # source files from "..", i.e. the real top-level.  these go into tarball.
 UPPER_SRC = README AUTHORS BUGS COPYING INSTALL howtos/makemaps.txt 
