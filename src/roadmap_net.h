@@ -31,6 +31,12 @@
 typedef SOCKET RoadMapSocket; /* WIN32 style. */
 #define ROADMAP_INVALID_SOCKET INVALID_SOCKET
 
+#elif defined J2ME
+
+struct roadmap_socket_t;
+typedef struct roadmap_socket_t *RoadMapSocket;
+#define ROADMAP_INVALID_SOCKET ((RoadMapSocket) NULL)
+
 #else
 
 typedef int RoadMapSocket; /* UNIX style. */

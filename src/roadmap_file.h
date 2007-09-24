@@ -41,6 +41,14 @@ typedef HANDLE RoadMapFile; /* WIN32 style. */
 #define ROADMAP_FILE_IS_VALID(f) (f != INVALID_HANDLE_VALUE)
 #define ROADMAP_INVALID_FILE INVALID_HANDLE_VALUE
 
+#elif defined J2ME
+
+#include <stdio.h>
+
+typedef FILE* RoadMapFile;
+#define ROADMAP_FILE_IS_VALID(f) (f != NULL)
+#define ROADMAP_INVALID_FILE NULL
+
 #else
 
 #include <stdio.h>
