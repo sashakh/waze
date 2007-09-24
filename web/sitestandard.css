@@ -1,12 +1,92 @@
-.homeview {
-	BACKGROUND-IMAGE: url('background2.jpg')
-}
-.thispage {
-	BACKGROUND-COLOR: yellow
-}
+
 A:link {
 	TEXT-DECORATION: none
 }
+
 A.normal:link {
 	TEXT-DECORATION: underline
+}
+
+
+body.roadmap {
+	font-family:Times;
+	background-image: url('background2.jpg');
+	margin-left:    250px;    /* leave room for navigation bar */
+	margin-right:    50px;
+}
+
+body.roadmap-doc {
+	font-family:Times;
+	background-color: #48fbc4; /* matched to background2.jpg */
+	margin-left:    250px;    /* leave room for navigation bar */
+	margin-right:    50px;
+}
+
+
+div.navigation-bar {
+
+  left:           5px;         /* wide left margin  */
+  position:       fixed;       /* prevent scrolling */
+
+  padding:        10px;
+  background-image: url('background2.jpg');
+  border-left:    1px solid black;
+  border-right:   2px solid black;
+  border-top:     3px solid black;
+  border-bottom:  1px solid black;
+}
+
+
+/* make vertical bars that appear between menu items on non-CSS browsers
+ * invisible on CSS browsers.
+ */
+.invisible {
+  display:        none;
+}
+
+
+.navitem {
+
+  display:        block;         /* forces line breaks between items       */
+
+  margin-bottom:  0px;
+  padding:        0px;
+  font-size:      14.0pt; 
+  font-family:    Times;
+  text-align:     left;
+}
+
+
+/*
+ *  This adds some spacing between the logo and the first navbar item.
+ *
+ *   add 'id="first-navitem"' to the first item's <a tag to use.
+ */
+
+#first-navitem {
+
+  /* not important */
+  margin-top:     15px;
+}
+
+
+/*
+ *  This inserts the logo into the navigation bar.
+ *
+ */
+
+span.navbar-image:after {
+
+  /* important */
+  content: url(roadmap-right.png); /* inserts image after dummy SPAN element */
+}
+
+
+
+
+/*  ---  Content styles  ----------------------------------------  */
+p {
+  /* not important */
+  text-align:     justify;
+  color:          #000000;
 }
