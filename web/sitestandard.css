@@ -1,12 +1,4 @@
 
-A:link {
-	TEXT-DECORATION: none
-}
-
-A.normal:link {
-	TEXT-DECORATION: underline
-}
-
 
 body.roadmap {
 	font-family:Times;
@@ -15,10 +7,11 @@ body.roadmap {
 	margin-right:    50px;
 }
 
+/* same as above, but use plain background for pages with lots of reading */
 body.roadmap-doc {
 	font-family:Times;
 	background-color: #48fbc4; /* matched to background2.jpg */
-	margin-left:    250px;    /* leave room for navigation bar */
+	margin-left:    250px;
 	margin-right:    50px;
 }
 
@@ -44,11 +37,13 @@ div.navigation-bar {
   display:        none;
 }
 
+a.navitem:link { text-decoration: none }
+a.navitem:visited { text-decoration: none }
+a.navitem:active { text-decoration: none }
 
 .navitem {
 
   display:        block;         /* forces line breaks between items       */
-
   margin-bottom:  0px;
   padding:        0px;
   font-size:      14.0pt; 
@@ -87,6 +82,6 @@ span.navbar-image:after {
 /*  ---  Content styles  ----------------------------------------  */
 p {
   /* not important */
-  text-align:     justify;
+  text-align:     left;
   color:          #000000;
 }
