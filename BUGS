@@ -25,11 +25,6 @@ Desktop and rendering bugs:
    It happened once that a freeway was showing up without its normal
    shape. This cannot be reproduced consistently, through.
 
- * QT4 - The address find dialog doesnt work.
- 
-   Partial debugging shows that the form fields return pointers to good data,
-   but it gets corrupted soon after.
-
  * QT3,QT4 - List dialogs broken
    
    In the "personal landmarks" list, the first landmark in the list is
