@@ -1,0 +1,1050 @@
+                               ---------
+			    RoadMap Changelog
+                               ---------
+                               ---------
+                               ---------
+
+Roadmap v1.1.0 (september ?, 2007)
+
+ Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
+
+  * GPX data interchange support has been added.  A single GPX file,
+  containing waypoints, routes, and tracks, represents a RoadMap
+  "Trip".
+
+  * Landmarks (waypoints) can be created/deleted/edited/moved either
+  via mouse or dialog.  Deleted landmarks are saved, and can be
+  undeleted (even into a different trip).
+
+  * GPS track display (breadcrumb trail) based on distance, time, or
+  path deviation, with robust saves to disk, even if roadmap
+  crashes.
+
+  * Street and landmark labels are now rendered on-screen, using
+  either the system or a primitive internal font (which has
+  tuneable size).  Labels will be angled to align with the
+  street, if the font permits.  (*)
+
+  * "Feature" files -- GPX-based lists of "points of interest", with
+  tuneable coloring, display sprites, labeling, and decluttering
+
+  * Per-side-of-street address ranges now work correctly.  (*)
+
+  * Roads with no addresses are now searchable.  Addresses now
+  stored as unsigned.
+
+  * Address searching now knows about "common" streat/road abbreviations.
+
+  * Can now display screen dimensions (in miles or km) in a "sign"
+  display message.
+
+  * "Long lines", those which begin and end in non-adjacent squares,
+  are now saved in a separate list.  This guarantees they will always
+  be displayed.  The extra expense is similar to that for polygons,
+  which are also not displayed "by square". (*)
+
+  * Support for Canadian RNF maps added.
+  Support for US State boundary maps added.
+
+  * AGG support.  GTK2 can now display using anti-aliased lines. (*)
+
+  * Long and right clicks can now bring up a configurable popup menu.
+
+  * Extended the implementation of popup menus -- they can now be bound
+  to other menu items, which allows for cascading menu
+  effects.  Popups can also be bound to toolbar buttons.
+
+  * On-screen state indicators and control points (i.e. active icons)
+  based on RoadMap sprites, for display and control of some RoadMap
+  features.  On-screen sprites can now invoke any action or popup,
+  just as menus and toolbar buttons can. (*)
+
+  * 3D "perspective" viewing mode mode. (*)
+
+  * Railroads will now be displayed.
+
+  * Performance improvements (both space and time) for very sparse maps.
+
+  * GTK/GTK2 dialogs are now modeless.
+
+  * Allow for more polygons (from 65K to 1M).
+
+  * Additional QT support for tooltips, button icons, initial
+  width/height settings.  New QT4 support.
+
+  * Makefiles rewritten for better modularity and readability.  Rules
+  for tarball creation incorporated into makefiles.
+
+  * rdmgenmaps is now easier to use -- can now specify a state name.
+
+  * Can now replay NMEA data from a file (produced, for example, by gpsbabel)
+
+  * Signals are now caught gracefully, so that unsaved
+  landmark/trip/track files can be preserved.
+
+  * Performance improvements -- if processing a county above a
+  given zoom level produces no drawing, this will be remembered,
+  and that county won't be processed again at that zoom level or
+  above.
+
+  * Support for latest census maps (2006se)
+
+  * ImageMagick (for "convert") now optional when building.
+
+  * 64-bit compatibility.  Probably needs further testing.
+
+  * Map schema changed to eliminate hard-coded layers.
+
+  * Many buildmap improvements, in terms of modularity.
+
+  * Initial work on architecture independent map exchange format and tool.
+
+  * Initial work to allow cross-compiling RoadMap for WinCE using
+  arm-wince-mingw32ce toolchain.
+
+Roadmap v1.0.12 (november 4, 2005)
+
+  * Makefile cleanup: everything must now be built in src. If only
+      one toolkit support is to be built, use the DESKTOP option. Please
+      read the README file for more information.
+
+  * Small addition to the README file, section "troubleshooting".
+
+  * RoadMap uses a minimum refresh period to avoid recomputing the screen
+      too often. This period is now a preference. Not that you normally would
+      want to change this, but this helps on some very specific setups.
+
+  * The --debug option now accepts a list of source files as parameters.
+
+  * Reworked the roadmap_trip.c API, to have a common API between the
+      current trip module and the upcoming one from Paul.
+
+  * Make RoadMap resynchronize with the graphic engine (X11) before drawing
+      a new map. Don't redraw if the graphic engine is busy. This is intended
+      as an attempt to avoid overloading the X server on a PDA (Paul Fox).
+
+  * Support defining a sprite as an alias of another sprite (Paul Fox).
+
+  * Show the preference categories sorted in alphabetical order, to
+      makes it easier to retrieve a category tab.
+
+  * Expand all paths, including the hard-coded ones (Ehud Shabtai).
+
+  * Fix the handling of the end-of-file when the GPS source is a NMEA log
+      file.
+
+  * User preference to decide what side to draw the toolbar on: top
+      (default), right, bottom or left. (Not yet available on Windows CE.)
+
+  * A fix for the shape gap filler code in buildmap. buildmap generated
+      wrong shapes for long lines (Ehud Shabtai).
+
+  * The menus are now user configurable, in a way similar to the toolbar.
+      The actions can be renamed, to match the size of the screen better
+      (Paul Fox and I).
+
+  * The minimal mouse/pen movement required to initiate a map drag is
+      now configurable: some screen digitizers have a significant jitter,
+      but a large value is incomfortable on a desktop machine (Paul Fox).
+
+Roadmap v1.0.11 (september 9, 2005)
+
+  * Merged a patch from Gergely Molnar to make screenshots of the
+      RoadMap canvas. Only the first patch was merged (single screenshot).
+      Still trying to figure out how the 2nd patch works (record a "movie"
+      of the trip).
+
+  * Removed arbitrary string size limits in the driver's protocol by using
+      dynamically allocated strings (garbage collected using reference count).
+
+  * Fixed a gcc 4.0 complain.
+
+  * Fixed some type errors in the math functions (max() is for int!).
+
+  * Fixed a bug in the NMEA decoding (thanks to Ehud Shabtai). This bug
+      might explain several other issues people had.
+
+  * Many changes to make RoadMap more portable to other OSes.
+
+  * Added some missing files to the distribution: a default "session" and
+      the man pages.
+
+  * The toolbars can now be configured by the user, to fit small screens
+      with the user's preferred controls.
+
+  * RoadMap now supports the gpsd native protocol. The user can select
+      to use either the NMEA raw mode (gpsd://...) or the new native mode
+      (gpsd2://...).
+
+  * RoadMap is now available on Microsoft Windows CE.
+      (port implemented and maintained by Ehud Shabtai).
+
+  * Drivers can now "link" to RoadMap using a TCP connection (required
+      for WinCE, which does not provide pipes).
+
+  * RoadMap can now redistribute the NMEA data to the drivers (it simulates
+      the NMEA data if the feed protocol is not NMEA).
+
+  * Fixed the sunset/sunrise calculation (tested against LA, London, Paris).
+
+  * Added the object pseudo-protocol: Roadmap to use one driver's object
+      as GPS source. This makes it possible for a driver to supply the GPS
+      position. Configuration syntax: object:.
+
+  * Merged a patch by Ehud Shabtai, plus some improvements: when zooming
+      in, the streets now have a border and look more professional.
+
+  * Merged a patch by Ehud Shabtai: the map view follows a mouse drag.
+
+  * Updated RoadMap to support the US Census Bureau 2004 Second Edition.
+
+  * Avoid repeating an error message when a map file is not found.
+
+  * Changed the RoadGps log file mechanism to let the user select what
+      and where the log file will be (using a file selection dialog).
+
+Roadmap v1.0.10 (may 15, 2005)
+
+  * Added a decoder for the NMEA sentence GPGGA  (provides the altitude).
+
+  * Added the altitude to the information that can be shown on the
+      display (using the tag %H).
+
+  * Fixed the Find / Position dialog, which now decode the ISO 6709-1983
+      format correctly, with extensions: the traditional W, E, N, and S
+      are accepted, either as prefix or suffix.
+
+  * Fixed some packaging errors (the make files need to be in the binary
+      distribution so that "make install" can be used) and improve the
+      documentation in this regard.
+
+  * Fixed the roadgps screen (GTK2 bug) and merged some of the ideas
+      from RoadMap/Kismet (satellite rectangle is proportional to signal
+      strength, but I keep the bargraph for now--more readable).
+
+  * Don't require the user to acknowledge each map download (very
+      inconvenient when driving). Another (good) idea from Kismet users.
+
+  * Accept NMEA sentences from any standard source. Correct interpretation
+      of proprietary NMEA sentences.
+
+  * Fixed the QT map background problem (was always white). Does QPE
+      needs hardcoded colors?
+
+  * Kismet users don't want the navigation enabled. Deal with all users
+      preferences by recording the navigation flag in the RoadMap session
+      (so that the user's choice becomes persistent).
+
+  * Kismet users don't want to hear any voice. Deal with all users
+      preferences by recording the voice mute flag in the RoadMap session
+      (so that the user's choice becomes persistent).
+
+  * Kismet users don't want the display to rotate. Make the rotation a
+      user preference instead of a menu choice. This simplifies the user
+      interface, the code and will (hopefully) make everyone happy.
+
+  * Implement a driver architecture to allow interfacing to other
+      systems without modifying RoadMap. This also make it possible to
+      show other (fix or mobile) objects than the vehicule.
+
+  * Implemented a (useless but fun) "ghost" driver to serve as a test
+      for the driver mechanism and as a small example of a RoadMap driver.
+
+  * Integrated the Kismet interface as a RoadMap driver. Still untested.
+
+  * Removed the spurious message that trip "default" does not exists when
+      starting RoadMap for the first time.
+
+  * Modified the make files to solve problems on MAC OS X.
+
+  * Expanded on the description of the installation directories and
+      added a related entry in the help menu.
+
+  * Merge a patch by Horst Raap to show small distances in meter or feet.
+
+  * Added a driver for gpsdrive's friends protocol.
+
+Roadmap v1.0.9 (March 7, 2005)
+
+  * Fix a compilation problem with gcc 3.4 and possibly gcc 3.3.
+
+  * Almost completly clean the "north, south, west, east" thing.
+
+  * Fix some GCC "pedantic" warnings.
+
+  * Get rid of the C++ comment style in plain C code (no "//").
+
+  * Change the search path for configuration files: this search
+      path is now hardcoded (chicken and egg problem if the path
+      to the configuration file is itself configured..) and is
+      independent from the map search path. It also include /etc/roadmap
+      to let sysadmin configure a local machine setup.
+
+  * Change the default map search path to become more compliant with the
+      Linux FHS: use /var/lib/roadmap and /usr/lib/roadmap (all "share"
+      files should be architecture-independent, but the rdm files are C
+      structures..). The directories /usr/share/roadmap and
+      /usr/local/share/roadmap are still in the default path to maintain
+      compatibility, but these will be removed in a future release.
+      Please notice the default preferences file has not been modified yet.
+
+  * Don't blindly assume GPGSA always includes the max number of satellites.
+
+  * Remove an obsolete --path option (regression in 1.0.8).
+
+  * Support the 2004 edition of the Tiger files.
+
+  * Extensive cleanup of the make files for building a Debian package
+      (or more exactly to facilitate the building of a Debian package).
+
+Roadmap v1.0.8 (November 8, 2004)
+
+  * Fix a GPS source selection problem: when launched from RoadMap,
+      roadgps now uses the same GPS source option as set for RoadMap.
+
+  * Generate an error is a required configuration file is missing,
+      such as schema (thanks to James L. McNeill for finding this one).
+
+  * Improve the make files: it is now possible to choose one toolkit
+      at the top level (option DESKTOP=toolkit) and the gtk2 makefile
+      behaves better when used with a cross compiler.
+
+  * Temporarily allow the use of obsolete GTK features to stay
+      compatible with GTK 2.4.
+
+  * Use the "action" design pattern for describing the menu and toolbar,
+      as this is the normal way for GTK 2.4 and QT 3. The GTK and QT code
+      has not been migrated yet: the roadmap_factory translates the new
+      data structure into the old GUI interface for now.
+
+  * Redesigned the interface between buildmap_main.c and buildmap_tiger.c
+      to make it more generic and to be able to support shapefiles (see below).
+      This redesign causes the interface of buildmap to be different from
+      previous versions (rdmgenmaps was upgraded and still has the same
+      interface as before).
+
+  * Added a prototype of shapefile support. This is not yet fully usable
+      as is, except if you are ready for some coding on your own :-). The
+      problem is that shapefiles are really a family of formats rather than
+      a well defined standard. (provided by Stephen Woodbridge.)
+
+  * Added support for the Digital Charts of the World, i.e. major routes
+      for most of the world. Still incomplete, but functional. This can be
+      viewed as a simple example on how to convert shapefiles. (provided
+      by Stephen Woodbridge.)
+
+  * Fix the usdir.rdm format--a short was used for fips (reported by
+      Stephen Woodbridge). Note this fix means that usdir.rdm MUST be
+      upgraded. RoadMap was modified to check this. Note also that only US
+      territories in the Pacific and caraibes were impacted by this bug.
+
+  * Fix for a potential division by zero when a block contains only
+      one address (thanks to Stephen Woodbridge for finding this one).
+
+  * Fix a RoadGps crash when receiving the position of 16 satellites:
+      RoadGps was limited to 12 satellite max, and did not check the NMEA
+      data was over this limit..
+
+  * Increase the limit on the number of "squares" RoadMap can visualize
+      on one screen. This is an internal limit that prevents from zooming
+      out when using maps generated from the Digital Charts of the World.
+
+  * Some minor cleanups in the RoadMap code: replace as many insane
+      "north, south, west, east" sequences of argument with a new type
+      used all over the place. This is unfinished business, still.
+
+Roadmap v1.0.7 (July 5, 2004)
+
+  * Fix some gcc warning against libpopt primitives.
+
+  * Fix some potential overflow problems (no actual problem was reported).
+
+  * Switch to gcc 3.3 and QT3. RoadMap compiles clean with QT3 as long
+      as the QT2 compatibility header are installed (qdialog.h, qlist.h
+      qvector.h, etc..).
+
+  * Follow suggestion by Akkana Peck: tolerate spaces between the '?' and
+      the city name when using fuzzy searches.
+
+  * Follow suggestion by Paul Fox: tar files to use a directory name made
+      with the version number (i.e. roadmap-1.0.7).
+
+  * Fix a street selection problem: activate the proper county when
+      the user selects a street from a list (Find Address..). Bug reported
+      by Mark Whitis.
+
+  * GTK2 only: set the first item as selected when opening a list.
+
+Roadmap v1.0.6 (May 30, 2004):
+
+  * Fix by Paul Fox: RoadMap may crash at the intersection of counties
+      if the street search causes another map to become current.
+
+  * Minimally decent help, using the HTML manual and a web browser.
+
+  * Minor documentation changes: describe the use of aptconvert, make it
+      explicit that RoadMap can be used without a GPS receiver.
+
+  * The documentation tar file now contains a complete copy of the RoadMap
+      web site's html pages.
+  * Take into account the disappearance of roadmap.saignon.net.
+
+  * Please note: some sqlite code has been included, but no functional
+      point of interest is available yet.
+
+Roadmap v1.0.5 (December 25, 2003):
+
+  * The Familiar package is now built with "-march=armv4 -mtune=xscale"
+      (thanks to Philip Blundell for the info).
+
+  * Integrated the sunrise/sunset calculation from Eric Domazlicky. At
+      that time this information is only used for display. In the future
+      it may be used to decide between night and day themes.
+
+  * A regression was fixed in buildmap: merging address range ended
+      with the wrong city name. The maps on the RoadMap sites are not
+      impacted.
+
+  * Merging the ranges created another problem: at some point RoadMap
+      checks if the given address matches the street side, a invalid check
+      when it comes to a merged range. The check was improved to limit the
+      odds of not finding an address, but a potential problem still remains.
+      Note that the maps available on the RoadMap web site have no merged
+      range, and are thus not impacted.
+
+  * Some cleanup in the RoadMap icon management: the search order is
+      not only more logical, it has also become documented.
+
+  * Some cleanup in the declutter section: the obscure rules for
+      decluttering polygons and shapes have been replaced with rules
+      based on the visible size of each object. This is step one toward
+      a more sensible declutter management, as suggested by Russ Nelson.
+
+  * Rethink the drawing (stacking) order of information on the map, so
+      that waypoints sprites don't show up on top of the street signs.
+      The order is now, from bottom to top: waypoints, trip info, street
+      signs.
+
+Roadmap v1.0.4 (November 22, 2003):
+
+  * Changed the name of the familiar package to "roadmap" to
+      conform with Familiar's guidelines.
+
+  * Repaired the voice problem with GPE (waitpid() does not work
+      when RoadMap started from the application manager--might be
+      caused by a process group not set?).
+
+  * Use some official road signs (and a few hand-made icons) for the
+      toolbar, because the Gnome toolbar setting "Icon Only" has a weird
+      effect when there is no icon (thanks to Mathias Kolehmainen for
+      helping to solve this problem--my archives show the first sighting
+      was actually reported by Darrick Hartman long time ago).
+
+  * Made the icon above optional with the preference item General.Icons,
+      so that one can avoid using them on small screens (such as the iPAQ).
+      For small screens, either the icons or the label will be shown, not
+      both.
+
+  * Do not use SIGCHLD by default, since there are the above problems
+      with GPE.
+
+  * Added a "documentation" package, for those downloading the Familiar
+      package through IpkgFind or a Familiar feed.
+
+  * Made the documentation available as HTML on the RoadMap web sites
+      (RoadMap README--renamed "Manual"--and the Familiar INSTALL notes).
+
+Roadmap v1.0.3 (November 2, 2003):
+
+  * Fix loading the sprite file twice if one directory earlier in
+      the path does not have a sprite file (contributed by Mathias
+      Kolehmainen).
+
+  * Add preliminary support for GPE (tested with familiar v0.7.1).
+
+  * Create a desktop environment: .desktop file and pixmaps. The
+      icons were produced using the (excellent) SignMaker applet.
+
+      {{ http://www.kurumi.com/roads/signmaker/sm220.html }}
+
+      The desktop environment was made according to the GPE
+      guidelines (icons size 48x48).
+
+  * Cleanup the make files: use GNU make's conditional for handling
+      the GPE or QPE options and the DEBUG mode.
+
+  * Make it possible to cross-compile RoadMap, for example by using:
+-------------------------------------
+      make CC=arm-linux-gcc AR=arm-linux-ar
+-------------------------------------
+
+  * Support 2 new general purpose signs, placed at the center of the map:
+      "Info" and "Error".
+
+  * When the visible area do not match any available map, generate an
+      information sign on the screen, so that the user knows what's going on.
+
+  * Reorganized the familiar packages: no more Gtk 1.2 and map packages.
+      The map files are now looked for on the MMC/SD or CompactFlash device
+      using the Familar standard mount point in the hope this makes RoadMap
+      better integrated in Familiar/GPE.
+
+Roadmap v1.0.2 (October 5, 2003 -- the Scot Wilcoxon version :-): 
+
+  * Fix RoadMap crashes when ~/.roadmap does not exist (contributed by
+      Scot Wilcoxon).
+
+  * Integrate a GPS position offset, as a work-around for map problems
+      (rework of a patch contributed by Scot Wilcoxon). Compare to the
+      original patch from Scot, this change uses different types for the
+      GPS and map positions, so that there is no confusion when to adjust.
+      The adjustment logic has also been isolated in its own module (likely
+      to be modified soon, as the current constant offset method is way too
+      simplistic). The adjustment is also performed as late as possible, so
+      that the original GPS position is the one saved in the session file.
+
+  * The GPS steering is not reliable when the speed is too low (too close
+      to GPS error margins). This was taken care of wherever the steering was
+      used: the roadmap_gps module is now taking care of this at once so that
+      the rest of RoadMap can rely on stable data.
+
+Roadmap v1.0.1 (September 14, 2003): 
+
+  * Added a "Hold Map" menu item (and toolbar button), to hold the map
+      still when one tries to select a street or just check the map. Looking
+      at details when the map is moving is quite uncomfortable..
+
+  * Added a "GPS position" entry in the Find menu.
+
+  * Separated the geocoding code from the address dialog code, so that
+      the geocoding function can be reused in other places without depending
+      on a GUI interface.
+
+  * The map builder code was modified so that the left and right ranges
+      are merged when matching (i.e. same range, one odd numbers and the
+      other one even numbers). This reduces the overall size of the map
+      files by 4-5% (75 MBytes saved for a total size of about 1.6 Gbytes).
+      The map files available on the RoadMap web sites have not been
+      regenerated (this is not worth the effort).
+
+      This change does not cause any map compatibility issue with previous
+      releases of RoadMap.
+
+  * Added much more keyboard bindings, so that almost all the alphabet
+      characters are in use now.. This was done to please my loyal Zaurus
+      fans :-) Also added a "dump" of the current bindings when using the
+      --help option, so that people can check what is supported.
+
+Roadmap v1.0 (September 1, 2003): 
+
+  * The "trip direction" red arrow sprite was acting weird when moving
+      the map's view (pan and rotate). The cause was that the sprite's
+      coordinates were not rotated as these should have been.
+
+  * Fix a RoadMap crash when GPS data is received while downloading: this
+      was because RoadMap was mapping the file being downloaded, before
+      it was complete. The (temporary) solution is to freeze any RoadMap
+      GPS and screen update. The long term solution should be to transfer
+      the map to a temporary file and then rename it.
+
+  * Implement download using the HTTP protocol.
+
+  * Uncompress gzip, bzip2 and lzop files after download, detected using
+      well known suffixes. Downloading compressed files helps cut the
+      download time by a factor of 2 in average (using gzip).
+
+Roadmap v1.0rc9 (August 24, 2003): 
+
+  * Added an on-the-fly map download mode. When this mode is enabled,
+      and if a map file is not found, RoadMap asks the user to confirm
+      downloading the map. It is also possible to remove maps, of course.
+
+  * Changed the list management in the Qt code, so that a single click
+      is all what's needed to select an object, rather than a double click
+      that is always annoying on a PDA (and on X11 as well..).
+
+  * Fixed some alignment problems in the Qt module.
+
+  * Fixed the ever extending list box in Qt: clean the list before
+      updating (i.e. repopulating) it.
+
+  * Refresh the screen periodically, not each time the GPS information is
+      received. This helps RoadMap catching up when it is too slow to process
+      the GPS information on time, and avoid RoadMap to become unresponsive
+      to user actions. A side visual effect is to make RoadMap seems to
+      "jump" from a position to the next, becoming not as smooth as before.
+
+  * Do not stop a trip just because the map's focus has changed.
+
+Roadmap v1.0rc8 (August 2, 2003): 
+
+  * Redesigned the navigation module. Navigation is now based on fuzzy
+      logic and takes into account the position, direction and speed of
+      the car, as well as the street connectivity (to "promote" streets
+      connected to the current street).
+
+  * Do not stop at the first street when searching for any city (i.e.
+      when prefixing the city name with '?').
+
+  * Add history to the intersection and coordinates dialogs.
+
+  * Improve debug trace to be able to filter per source file (i.e. enable
+      trace for a specific source file only), option syntax: --debug=source.
+
+Roadmap v1.0rc7 (July 4, 2003): 
+
+  * Do not use SIGCHLD anymore, as it seems to crash in some cases on
+      FreeBSD (signal portability problem ?).
+
+  * Fixed the generation of maps when the street numbers do not fit into
+      a 16 bit integer (the Hawaii maps must be regenerated).
+
+  * Have all the necessary characters in the Gtk keyboard: '?' and '-'.
+
+  * Use a lot less memory for the squares grid (but no less than needed..).
+
+  * Change the RoadMap user interface to be more compliant with the Gnome's
+      Human Interface Guide. Mostly, this is following common sense advices.
+
+  * Fix yet another "square -2" error.
+
+  * Merged QT changes by Latchesar Ionkov.
+
+  * Merged an additional feature by Latchesar Ionkov: find a place using
+      coordinates (Longitude, Latitude).
+
+  * Merged and extended the session context changes by Latchesar Ionkov:
+      RoadMap now saves the latest display context on exit and restores this
+      context on restart. Basically, the initial RoadMap display now shows
+      the same area as when the user last exited, using the same zoom level
+      and rotation.
+
+  * Keep the display offsets (up, down, left, right and rotation) in GPS
+      tracking mode. This way it is possible to position the GPS symbol at
+      the bottom of the screen or setup the map in a (very rough) "landscape"
+      mode (beware: the signs are not rotated..).
+
+  * Do not show the navigation signs (current street, next intersection)
+      when not tracking the GPS position. Note that the voice messages are
+      not filtered the same way (bug or feature ?).
+
+  * Selecting a street on the map does not overwrite anymore the location
+      selected using a dialog (address, intersection or position). This makes
+      the "L" button much more usable.
+
+  * Fixed a few potential memory leaks. There are probably other leaks
+      because the size of the RoadMap process memory grows when replaying
+      the same trip log over and over.
+
+  * Fixed the error recovery when the user selects a trip file that does
+      not exist, or when the latest trip has been deleted.
+
+Roadmap v1.0rc6 (June 2, 2003): 
+
+  * This is a brown bag version: fix 3 regressions and one old bug found
+      after a single trip (with a brand new GPS receiver :-).
+
+  * Voice was silenced.
+
+  * Don't consider the direction if the speed is at the noise level. In
+      this case the direction is pure junk because the only movement is
+      GPS errors.
+
+  * When a sign is shown on more than one line, the text was truncated
+      to its first line after 1 second. In fact, the text was truncated
+      after first displayed: any refresh thereafter shows the damage.
+
+  * The old bug: the number of parameters in the NMEA GPGSV sentence
+      actually depends on the number of satellites listed, it is not
+      always greater than 9.
+
+Roadmap v1.0rc5 (June 1, 2003): 
+
+  * Integrated the "find by intersection" feature by Latchesar Ionkov:
+      try "Screen / Show Location..". This is a really neat feature, thanks
+      Latchesar!
+
+  * RoadMap and RoadGps now periodically attempt to reconnect to gpsd
+      if the connection has failed.
+
+  * RoadMap now has a "full screen" mode when using GTK2 (not GTK or QT).
+      Too bad my window manager does not seem to cooperate: nothing happens.
+      Or maybe is it a bug in RoadMap? I don't know yet..
+
+  * Two garmin-specific MNEA sentences have been implemented: one to detect
+      when the GPS receiver's datum is not compatible with RoadMap (must be
+      NAD83 or WGS 84), the second to get the estimated position error (EPE).
+      Note RoadMap should work with no problem with other brands: the EPE
+      will stay at its original worst case value and the datum check will
+      never be performed.
+
+  * Fixed several errors in the code that search the closest street (used
+      for street selection and street navigation). This should lead to
+      a more stable street identification & navigation.
+
+  * The navigation module now searches for the next intersection only
+      if the car's speed is greater than the GPS precision worst case.
+      This improves RoadMap's stability when the car has stopped.
+
+  * RoadMap is in the middle of a redesign of the navigation module,
+      using fuzzy logic and considering the car location, direction vs.
+      the street geometry. This version includes all the changes required
+      for providing the navigation module with the necessary information.
+      The next step is to rewrite the navigation module itself.
+
+Roadmap v1.0rc4 (May 11, 2003): 
+
+  * Fixed a fatal error in the navigation code when driving not too
+      far from a county border.
+
+  * Fixed a fatal error in the map activation code: the current map
+      was not updated correctly if it was already in the cache.
+
+  * The RoadMap debug log messages are now saved to a file. A rough
+      stack information is displayed (quick and dirty). This is the
+      result of the bug hunt above.
+
+  * The user can now disable and re-enable the navigation features
+      (this way it is possible to skip them when they crash RoadMap 8-).
+
+  * The "trip stop" menu item now preserves the screen orientation
+      selected by the user when activating the trip.
+
+  * Fixed a signal programming bug that hit the Zaurus port
+      (thanks to Latchesar Ionkov).
+
+  * Makefile cleanups.
+
+Roadmap v1.0rc3 (April 20, 2003): 
+
+  * Hopefully made street tracking more stable.
+
+  * Added detection of the next intersection.. with spotty results.
+
+  * The navigation module is now called from the GPS event callback
+      and not anymore from the screen module. This avoids going through
+      screen-oriented filters.
+
+  * Some type cleanups (i.e. use 'const' as much as possible).
+
+Roadmap v1.0rc2 (April 13, 2003): 
+
+  * Fixed street tracking when more than one county is visible.
+
+  * Cleanup and reorganization: prepare the detection of the next
+      intersection.
+
+  * A few code optimizations.
+
+  * Fix a RoadGps bug that shows up with GTK2.
+
+  * Fix text mixup when both the "selected street" and "current
+      street" signs are displayed.
+
+  * More stable street tracking.
+
+Roadmap v1.0rc1 (April 6, 2003): 
+
+  * Added Gtk 2.0 support as an alternative GUI.
+
+  * Integrated Qt support as an alternative GUI, thanks to Latchesar
+      Ionkov. The Qt implementation includes an optional QPE support for
+      the Sharp Zaurus PDA.
+
+  * Detect the current street and show its name on the screen.
+
+  * Double all street information on the screen with audio messages.
+      This feature is user configurable, the RoadMap default coniguration
+      uses the flite program.
+
+  * Some code cleanup and reorganization.
+
+  * Updated the README file.
+
+Roadmap v0.15 (March 16, 2003): 
+
+  * Improve trip load and save: use the GTK file selection dialog.
+
+  * Trip on-screen information now include current time and speed.
+
+  * Trip on-screen information has been made user configurable.
+
+  * The geometry of the RoadMap windows can now be configured, either through the
+        preferences dialog or from the command line.
+
+  * Cleanup the roadmap command line options, added --help.
+
+  * Some code cleanup and reorganization.
+
+  * Updated the README file.
+
+Roadmap v0.14 (March 4, 2003): 
+
+  * New trip support: save trip, load trip, add & delete waypoints, start
+      trip (shows additional information), etc.. This comes with a new menu
+      organization.
+
+  * Support for coming back from a trip: targets the departure point.
+
+  * Fix toolbar enable/disable logic, which was broken in a previous change.
+
+  * Cleanups: make more use of the C's "const" keyword.
+
+  * Once again, better isolation of UNIX specific dependencies.
+
+  * Improve makefiles, so that a source change is recompiled as expected.
+
+Roadmap v0.13 (February 17, 2003): 
+
+  * Added scrollbars to the street selection list window, to handle long 
+  lists. 
+
+  * Add fuzzy city search and make the street number optional, both options 
+  are meant to allow broad searches. 
+
+  * Add two options to define verbosity levels. Make the log INFO and DEBUG 
+  levels optional, so that they can be used. This adds the --verbose and --debug 
+  command line options to gtkroadmap. 
+
+  * Add a configurable address history to the address dialog. This history can 
+  be purged from the RoadMap File menu. 
+
+  * Fixed the missing rdmcompare. When will I stop forgetting new scripts each 
+  new release ? 
+
+  * Cleaned up the Makefile and made libpopt dependency explicit (thanks to 
+  George MacDonald).
+
+Roadmap v0.12 (February 14, 2003): 
+
+  * Fixed a floating point exception in buildmap due to a bad calculation of 
+  the grid required to cover a county (maps available for download are OK: this 
+  bug was found when building them). 
+
+  * Added rdmcompare, a small tool to check that all counties have been 
+  translated into RoadMap map files. 
+
+  * Fixed two bugs in the address retrieval logic, which caused spurious 
+  multiple matches (it matched the same block more than once..) 
+
+  * In case of multiple matches, show the list of streets that match and help 
+  the user select one. 
+
+  * As the county subdivisions and place areas collide, there are unintended 
+  consequences merging the two. For now, only use the place information if 
+  exists (if not, the county subdivision is used anyway). Longer term solution 
+  is to separate the two and search through one and the other separately (and 
+  join the result). 
+
+  * Isolate the Unix dependencies better: the default directory path to be 
+  defined in one place only. This is still a work in progress. 
+
+  * Handle the street prefix, suffix and type fields. These may be entered in 
+  the street name field. They are recognized automatically.
+
+Roadmap v0.11 (February 1st, 2003): 
+
+  * Switched the default to the US Census Bureau's 2002 Tiger file format. 
+
+  * Fixed a fatal error with 2002 city descriptions. 
+
+  * Buildmap and buildus can now generate map files to an arbitrary directory 
+  (instead of the current directory). 
+
+  * Renamed the scripts "makemap" and "downloadmap" in an attempt to avoid 
+  name conflicts with other software projects. 
+
+  * Take the list of counties from the US Census Bureau's file app_a02.txt 
+  instead of AllSt.txt, because the later does not seem to be maintained (it 
+  does not match the 2002 list of counties anymore). 
+
+  * Fixed problems with street numbers in Wisconsin (and some other states). 
+  All in all, the street number problem is still a sore point: these are not 
+  numerical, therefore street ranges are not really ranges anymore. The current 
+  code is a hack that attempt to extract a reasonable numerical number from the 
+  actual street "number". 
+
+  * Fixed a bug with small counties that fit in a single "square": the map 
+  file was generated corrupted and RoadMap could not use it.
+
+Roadmap v0.10 (December 22nd, 2002): 
+
+  * Fixed the Wyoming visibility problem. 
+
+  * Fixed the missing unix subdirectory and map build scripts (oops..). 
+
+  * Fixed the default zoom level logic. 
+
+  * Optimization: draw points instead of lines when the object was reduced to 
+  a single display point (for example when zoomed out enough to show several 
+  states). 
+
+  * Optimization: do not show polygons reduced to a single display point. 
+
+ Please note that the content of the map files has slightly changed due to 
+ these changes. The map files must be downloaded again, or regenerated, when 
+ upgrading RoadMap to version 0.11. 
+
+Roadmap v0.9 (December 15th, 2002): 
+
+  * Fixed the trail declutter level setting. 
+
+  * Fixed the state visibility problem. 
+
+  * Fixed the island visibility problem (also known as the disapearing 
+  Catalina Island problem). 
+
+  * The makefile now has a separate installation for the software (plus 
+  configuration files) and for the maps. This is because the maps are usually 
+  built later on, probably out of the RoadMap directories. 
+
+  * Started to isolate UNIX API dependencies. 
+
+  * The buildmap tool can now create maps one state at a time (option 
+  --state=XX). 
+
+  * Created the makemap and downloadmap scripts to simplify the process of 
+  downloading and building maps.
+
+Roadmap v0.8 (December 1st, 2002): 
+
+  * Show the Tiger files PLACE as a city: this happen to be more exact than 
+  the county subdivision. As this is a change to buildmap, this requires to 
+  rebuild the maps. 
+
+  * Add the keyboard to all dialogs, i.e. to the Preferences dialog as well. 
+
+  * Isolate the GUI toolkit code for the main window: the roadgps and roadmap 
+  programs now use an abstracted GUI API, for which a Gtk implementation is 
+  provided. 
+
+  * Change the makefiles and the name of the RoadMap's ipk package to allow 
+  for other GUI toolkits support.
+
+ Please note that the content of the map files has slightly changed due to 
+ these changes. The map files must be regenerated when upgrading RoadMap to 
+ version 0.8. 
+
+Roadmap v0.7 (November 24th, 2002): 
+
+  * Add cities which FIPS code was the same in 1990 and 2000. These cities was 
+  previously filtered out by mistake. 
+
+  * Add the freeway ramps, which were also not included before. 
+
+  * All symbols shown on the map (GPS position, destination, etc..) are now 
+  user-defined. A new configuration file, "sprites", defines the look of these 
+  symbols. 
+
+  * The symbols have been redesigned, hopefully these are now more fancy. 
+
+  * The GPS position symbol now indicates the direction of the movement. 
+
+  * RoadMap shows a compass symbol that indicates the direction of the North 
+  pole. This is especially useful when the map was rotated. 
+
+  * The configuration files have been reorganized, in part to avoid hardcoding 
+  the properties of the objects on the map (streets and others). 
+
+  * The module roadmap_config.c has been reorganized to be more generic and 
+  flexible, and to handle the new configuration file organization. 
+
+  * The canvas widget has been abstracted to make RoadMap more portable. This 
+  is only one step toward portability: the next steps are to abstract the main 
+  window, the dialogs, and then the OS API. 
+
+  * The drawing commands have been buffered to improve performances and to 
+  minimize the overhead generated by the abstracted canvas layer. 
+
+  * The trigonometry functions have been replaced with pre-computed tables. 
+  This makes it possible to use integers most of the time: only a handful of 
+  real values are still used. The rotation code has been reorganized to improve 
+  performances. 
+
+  * As a result of the changes above, RoadMap is now faster than before (seems 
+  to be 30% faster on an iPAQ 35xx).
+
+ Please note that the format of the map files has slightly changed due to 
+ these changes. The map files must be regenerated when upgrading RoadMap to 
+ version 0.7. 
+
+Roadmap v0.6 (November 1st, 2002): 
+
+  * This version has been tested on the road with a real GPS (a Garmin 38). 
+
+  * Avoid redrawing the map twice when tracking the GPS position. 
+
+  * Add an "install" target in the make file. 
+
+  * Add a menu description file for Gnome and GPE. 
+
+  * The street name now stays a minimum of 10 seconds on the screen (can be 
+  adjusted in the preferences dialog), even while tracking the current GPS 
+  position. The selected street block is now indicated by highlighting the two 
+  endpoints only (versus the entire line as before). 
+
+  * Preliminary support for the 2002 release of the Tiger files. 
+
+  * Use the popt library for the build tools' line arguments (buildmap, 
+  buildus, dumpmap).
+
+Roadmap v0.5.1 (October 23th, 2002): 
+
+  * Provide the URL for AllSt.txt in the README file.
+
+Roadmap v0.5 (October 20th, 2002): 
+
+  * Added support for map rotation. 
+
+  * Defined four screen modes: show destination, fixed location, track GPS 
+  with map orientation, track GPS without map orientation. Each mode has its own 
+  independent orientation (the 3rd mode being dynamic). 
+
+  * speedup the street search: focus on a limited area around the cursor. 
+
+  * Added launcher for roadgps in roadmap's menus. 
+
+  * A few minor bug fixes.
+
+Roadmap v0.4 (October 13th, 2002): 
+
+  * Added a Gtk GPS console (roadgps) to help debug the GPS interface. 
+
+  * Make roadmap really track the GPS position in realtime. 
+
+  * Did I mention there is now a preference editor? (new in 0.3, actually). 
+
+  * Significant cleanup of the Gtk dependencies, so a port to QT should be 
+  possible. 
+
+  * A few more bug fixes.
+
+Roadmap v0.3 (September 29th, 2002): 
+
+  * Added an interface with gpsd: RoadMap now shows the current GPS position 
+  when available. 
+
+  * Change the default database path to include the current directory. 
+
+  * A few more bug fixes.
+
+Roadmap v0.2 (September 2nd, 2002): 
+
+  * Handle very large grids (more than 64k squares). 
+
+  * Fixed the 32 bits street numbers bug. 
+
+  * Create intermediate shape points when the existing ones are too far away 
+  for a 16 bit delta. 
+
+  * Fix a crash when the current position is out of any known map. 
+
+  * Fix a crash when the city name has a typo. 
+
+  * Save the selected destination and current location in the roadmap session 
+  file, so we remember them on the next session. 
+
+  * Changed the RoadMap defaults to make the demo map easy to use.
+
+Roadmap v0.1 (august, 2002): First release of RoadMap.
+

@@ -441,6 +441,7 @@ WEBDOCS = ../web/manual.html \
 	  ../web/makemaps.html \
 	  ../web/buglist.html \
 	  ../web/todolist.html \
+	  ../web/changelog.html \
 	  ../web/familiar.html
 
 webdoc: $(WEBDOCS)
@@ -459,6 +460,9 @@ clean-webdoc:
 
 ../web/buglist.html: APT_SOURCE=../BUGS
 ../web/buglist.html: ../BUGS
+
+../web/changelog.html: APT_SOURCE=../CHANGES
+../web/changelog.html: ../CHANGES
 
 ../web/todolist.html: APT_SOURCE=../TODO
 ../web/todolist.html: ../TODO
