@@ -61,8 +61,8 @@ typedef struct {
 } ObjectFile;
 
 static ObjectFile RoadMapObjFiles[] = {
-   {"roadmap.screenobjects",      300},
-   {"roadmap.screenobjects_wide", 200},
+   {"roadmap.screenobjects",      250},
+   {"roadmap.screenobjects_wide", 175},
    {"roadmap.screenobjects_short",100}
 };
 
