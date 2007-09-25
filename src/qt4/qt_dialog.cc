@@ -331,15 +331,11 @@ void* Entry::getValue() {
 
    switch (type) {
       case TextEntry:
-         {
-            QString s = ((QLineEdit*) widget)->text();
-            const char* ss = s.toLatin1();
-            ret = (void *) ss;
-         }
+         ret = (void *) (new QByteArray(((QLineEdit*) widget)->text().toLatin1()))->constData();
          break;
 
       case ColorEntry:
-         ret = (void *) (const char*) ((QLineEdit*) widget)->text().toLatin1();
+         ret = (void *) (new QByteArray(((QLineEdit*) widget)->text().toLatin1()))->constData();
          break;
 
       case ChoiceEntry:
