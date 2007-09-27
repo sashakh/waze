@@ -1,19 +1,21 @@
 
-default: install
+# all this does is make it easier to keep the website in sync
+
+default: all
 
 APT_WEBDOCS = \
 	manual.html \
 	buglist.html \
 	changelog.html \
-	familiar.html \
-	todolist.html
+	installation.html \
+	todolist.html \
+	makemaps.html \
 
 PAGES = \
 	index.html \
 	documentation.html \
 	download.html \
 	list.html \
-	makemaps.html \
 	maps.html \
 	screenshots.html \
 
@@ -42,26 +44,23 @@ SCREENSHOTS = \
 SUPPORT = \
 	apt_toc.gif \
 	background2.jpg \
+	roadmap-right.png \
 	navbar.html \
 	sitestandard.css \
 
 
 SITESOURCE = $(SCREENSHOTS) $(APT_WEBDOCS) $(PAGES) $(SUPPORT)
 
+all: webdoc execbits
+
+
 SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
-
-full-install:
-	rm -f .copied-*
-	$(MAKE) install
-
-install: webdoc execbits $(SITESOURCE_COPIED)
+install: all $(SITESOURCE_COPIED)
 
 .copied-% : %
 	scp $< roadmap.digitalomaha.net:public_html/new
 	touch $@
 
-webdoc:
-	$(MAKE) -C ../src webdoc
 
 # we use the Apache XBitHack option in order to enable server-side
 # includes for our .html pages.  this lets us easily include the navbar
@@ -69,4 +68,53 @@ webdoc:
 # bits set.
 execbits:
 	chmod ug+x $(PAGES) $(APT_WEBDOCS)
+
+
+roadmap-right.png: ../src/icons/roadmap-right.png
+	cp $< $@
+
+# several parts of the RoadMap website are produced directly from
+# text files in the CVS tree, converted to html using aptconvert.
+# (http://www.xmlmind.com/aptconvert.html)
+
+webdoc: $(APT_WEBDOCS)
+
+clean-webdoc:
+	rm -f $(APT_WEBDOCS)
+
+# use GNU make's target-specific variables to name the sourcefile
+# for each constructed web page.  the names are somewhat random,
+# so we can't simply use a pattern rule.
+manual.html: APT_SOURCE=../README
+manual.html: ../README
+
+makemaps.html: APT_SOURCE=../howtos/makemaps.txt
+makemaps.html: ../howtos/makemaps.txt
+
+buglist.html: APT_SOURCE=../BUGS
+buglist.html: ../BUGS
+
+changelog.html: APT_SOURCE=../CHANGES
+changelog.html: ../CHANGES
+
+todolist.html: APT_SOURCE=../TODO
+todolist.html: ../TODO
+
+installation.html: APT_SOURCE=../INSTALL
+installation.html: ../INSTALL
+
+# here's the rule for building webpages from our
+# aptconvert-compatible text files.  we post-process, add some
+# extra html at the top, to make the docs fit in with the rest of
+# the site.
+$(APT_WEBDOCS):
+	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(APT_SOURCE)
+	sed -i \
+	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
+	    -e '/<body>/s/$$/<!--#include virtual="navbar.html" -->/' \
+	    -e 's/<body>/<body class="roadmap-doc">/' $@
+
+clean:
+	rm -f .copied-*
+	rm -f $(APT_WEBDOCS)
 

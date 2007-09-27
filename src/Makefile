@@ -429,58 +429,11 @@ installdesktop:
 installicons:
 	$(MAKE) -C icons install
 
-installdoc: ../web/manual.html 
-	cp ../web/manual.html $(DESTDIR)$(pkgdatadir)/manual.html
+installdoc: manual.html 
+	cp manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
-
-# several parts of the RoadMap website are produced directly from
-# text files in the CVS tree, converted to html using aptconvert.
-# (http://www.xmlmind.com/aptconvert.html)
-
-WEBDOCS = ../web/manual.html \
-	  ../web/makemaps.html \
-	  ../web/buglist.html \
-	  ../web/todolist.html \
-	  ../web/changelog.html \
-	  ../web/familiar.html
-
-webdoc: $(WEBDOCS)
-
-clean-webdoc:
-	rm -f $(WEBDOCS)
-
-# use GNU make's target-specific variables to name the sourcefile
-# for each constructed web page.  the names are somewhat random,
-# so we can't simply use a pattern rule.
-../web/manual.html: APT_SOURCE=../README
-../web/manual.html: ../README
-
-../web/makemaps.html: APT_SOURCE=../howtos/makemaps.txt
-../web/makemaps.html: ../howtos/makemaps.txt
-
-../web/buglist.html: APT_SOURCE=../BUGS
-../web/buglist.html: ../BUGS
-
-../web/changelog.html: APT_SOURCE=../CHANGES
-../web/changelog.html: ../CHANGES
-
-../web/todolist.html: APT_SOURCE=../TODO
-../web/todolist.html: ../TODO
-
-../web/familiar.html: APT_SOURCE=../INSTALL
-../web/familiar.html: ../INSTALL
-
-# here's the rule for building webpages from our
-# aptconvert-compatible text files.  we post-process, add some
-# extra html at the top, to make the docs fit in with the rest of
-# the site.
-$(WEBDOCS):
-	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(APT_SOURCE)
-	sed -i \
-	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
-	    -e '/<body>/s/$$/<!--#include virtual="navbar.html" -->/' \
-	    -e 's/<body>/<body class="roadmap-doc">/' $@
-	chmod ug+x $@
+manual.html: ../README
+	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $<
 
 uninstall:
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
