@@ -95,7 +95,7 @@ typedef struct {
 
    unsigned short zoom;
    short angle;  /* degrees */
-   short gen;    /* combination "drawn" flag and generation marker */
+   unsigned short gen;    /* generation marker */
 
    unsigned char notext;
 
@@ -108,8 +108,9 @@ static RoadMapList RoadMapLabelNew;
 static int RoadMapLabelCacheFull;
 static int RoadMapLabelCacheAlloced;
 
-static int RoadMapLabelGeneration = 1;
-static int RoadMapLabelGenerationMaxAge = 36;
+static unsigned short RoadMapLabelGeneration;
+#define MAX_LABEL_AGE 36
+
 static unsigned int RoadMapLabelCurrentZoom;
 
 static RoadMapPen RoadMapLabelPen;
@@ -365,8 +366,8 @@ int roadmap_label_draw_cache (int angles) {
 
          cPtr = (roadmap_label *)item;
 
-         if ((RoadMapLabelGeneration - cPtr->gen) >
-               RoadMapLabelGenerationMaxAge) {
+         if ((unsigned short)(RoadMapLabelGeneration - cPtr->gen) >
+                MAX_LABEL_AGE) {
             roadmap_list_insert
                (&RoadMapLabelSpares, roadmap_list_remove(&cPtr->link));
             continue;
@@ -378,9 +379,6 @@ int roadmap_label_draw_cache (int angles) {
          if (whichlist == OLDLIST) {
             ROADMAP_LIST_FOR_EACH (&RoadMapLabelNew, item2, tmp2) {
                ncPtr = (roadmap_label *)item2;
-               if (ncPtr->gen == 0) {
-                   continue;
-               }
 
                if (roadmap_plugin_same_line (&cPtr->line, &ncPtr->line)) {
                    /* Found a new version of this existing line */
