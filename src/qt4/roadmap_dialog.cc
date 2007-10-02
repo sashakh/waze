@@ -41,25 +41,27 @@ int roadmap_dialog_activate(const char* name, void* context) {
    int ret = 0;
 
    if (dialog != 0) {
+      currentDialog = dialog;
       dialog->show();
       ret = 0;
    } else {
       dialog = new RMapDialog(0, 0);
-      dialog->setWindowTitle(name);
+      dialog->setObjectName(name);
+      dialog->setWindowTitle(roadmap_start_get_title(name));
       dialogs[name] = dialog;
+      currentDialog = dialog;
       ret = 1;
    }
 
-   currentDialog = dialog;
    currentDialog->setContext(context);
    return ret;
 }
 
 void roadmap_dialog_hide(const char* name) {
-// RMapDialog* dialog = dialogs[name];
+   RMapDialog* dialog = dialogs[name];
 
-   if (currentDialog != 0) {
-      currentDialog->hide();
+   if (dialog != 0) {
+      dialog->hide();
    }
 }
 

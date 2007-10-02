@@ -252,8 +252,8 @@ Entry::Entry(RMapDialog* dlg, int etype, QString ename, QVector<Item>& eitems,
    callback = ecallback;
    value = 0;
 
-   items.resize(eitems.count());
-   for(int i = 0; i < eitems.count(); i++) {
+   items.clear();
+   for(int i = 0; i < eitems.size(); i++) {
       items.insert(i, eitems[i]);
    }
 }
@@ -299,7 +299,7 @@ QWidget* Entry::create(QWidget* parent) {
             lb->setMinimumHeight(200);
             lb->setMinimumWidth(150);
 
-            connect(widget, SIGNAL(currentRowChanged(int)), this, SLOT(run()));
+            connect(widget, SIGNAL(itemSelectionChanged()), this, SLOT(run()));
          }
          break;
 
@@ -343,7 +343,7 @@ void* Entry::getValue() {
          break;
 
       case ListEntry:
-         ret = items[((QListWidget*) widget)->currentIndex().row()].value;
+         ret = items[((QListWidget*) widget)->currentRow()].value;
          break;
 
       case HiddenEntry:
@@ -401,11 +401,13 @@ void Entry::setValues(QVector<Item>& eitems,
 
    QListWidget* lb = (QListWidget*) widget;
 
+   callback = 0;
+
    if (lb->count() > 0) lb->clear();
 
-   items.resize(eitems.count());
+   items.clear();
 
-   for(int i = 0; i < eitems.count(); i++) {
+   for(int i = 0; i < eitems.size(); i++) {
       items.insert(i, eitems[i]);
       lb->addItem(eitems[i].label);
    }
@@ -415,7 +417,15 @@ void Entry::setValues(QVector<Item>& eitems,
 
 void Entry::run() {
    if (callback != 0) {
-      callback(name.toAscii().constData(), dialog->getContext());
+     QString* entryname;
+    
+     if (type == ButtonEntry)
+       entryname = new QString(dialog->objectName());
+     else
+       entryname= new QString(this->name);
+
+     callback(entryname->toAscii().constData(), dialog->getContext());
+//      callback(name.toAscii().constData(), dialog->getContext());
    }
 }
 

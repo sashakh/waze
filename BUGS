@@ -25,15 +25,6 @@ Desktop and rendering bugs:
    It happened once that a freeway was showing up without its normal
    shape. This cannot be reproduced consistently, through.
 
- * QT3,QT4 - List dialogs broken
-   
-   In the "personal landmarks" list, the first landmark in the list is
-   selected as soon as the mouse enters the dialog -- no button press
-   necessary.  The second time it is brought up, RoadMap dumps core as soon as
-   the mouse enters the dialog.  In QT3 the second selection behaves the same
-   as the first (i.e.  no core dump), but it was built on a different machine,
-   different compiler.
-
  * QT3,QT4 - no display periodic running
 
    Periodics seem to be attached to windows (?), the new periodic started in

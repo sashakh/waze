@@ -251,14 +251,14 @@ Entry::Entry(RMapDialog* dlg, int etype, QString ename, QVector<Item>& eitems,
    callback = ecallback;
    value = 0;
 
-   items.resize(eitems.count());
-   for(uint i = 0; i < eitems.count(); i++) {
+   items.resize(eitems.size());
+   for(uint i = 0; i < eitems.size(); i++) {
       items.insert(i, eitems[i]);
    }
 }
 
 Entry::~Entry() {
-   for(uint i = 0; i < items.count(); i++) {
+   for(uint i = 0; i < items.size(); i++) {
       delete items[i];
    }
 }
@@ -296,12 +296,12 @@ QWidget* Entry::create(QWidget* parent) {
          {
             QListBox* lb = new QListBox(parent, name);
             widget = lb;
-
+            lb->setCurrentItem(-1); 
             // ugly hack ... 
             lb->setMinimumHeight(200);
             lb->setMinimumWidth(150);
 
-            connect(widget, SIGNAL(highlighted(int)), this, SLOT(run()));
+            connect(widget, SIGNAL(selectionChanged()), this, SLOT(run()));
          }
          break;
 
@@ -405,21 +405,32 @@ void Entry::setValues(QVector<Item>& eitems,
 
    QListBox* lb = (QListBox*) widget;
 
+   callback = 0;
+   
    if (lb->count() > 0) lb->clear();
 
-   items.resize(eitems.count());
+   items.resize(eitems.size());
 
-   for(uint i = 0; i < eitems.count(); i++) {
+   for(uint i = 0; i < eitems.size(); i++) {
       items.insert(i, eitems[i]);
       lb->insertItem(eitems[i]->label);
    }
+   lb->setCurrentItem(-1);
 
    callback = cb;
 }
 
 void Entry::run() {
+
    if (callback != 0) {
-      callback(name, dialog->getContext());
+     const char* entryname;
+    
+     entryname=this->name;
+     if (type == ButtonEntry)
+       entryname = dialog->name();
+     callback(entryname, dialog->getContext());
    }
 }
+
+
 
