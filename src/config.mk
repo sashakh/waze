@@ -6,6 +6,8 @@
 # here.  You can override these settings from the commandline
 # if you wish, e.g. "make MODE=DEBUG".
 
+# GNU make is probably required to build RoadMap.
+
 # If you change settings in this file, it's quite possible that
 # you'll need to do a "make clean" before trying your build again.
 # (In other words, it may appear to build correctly, and in some
