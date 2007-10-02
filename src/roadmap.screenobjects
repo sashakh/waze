@@ -68,6 +68,15 @@ P -20, 60
 E Download
 R
 
+# Uncomment this one to get an on-screen "Menu" icon.  With this enabled,
+# you could then get rid of the normal drop-down menus, and the toolbar.
+# (You could also get rid of them and use a long-click to get menus.)
+# N Menus
+# P -20 -60
+# E Menu
+# A ->Menus...
+# R 0
+
 # The Direction_Next object points to the route's next waypoint,
 # relative to the current direction of travel (assuming the screen
 # is facing forward in the vehicle).
@@ -86,7 +95,7 @@ A nextpoint
 # E Direction_2nd
 # A 2ndpoint
 
-# The Direction_Next object points to the route's last waypoint,
+# The Direction_Dest object points to the route's last waypoint,
 # relative to the direction of travel.
 N Direction_Dest
 S get_direction_dest
@@ -109,26 +118,29 @@ R 0
 
 # The next four are up/down/left/right controls, centered on
 # each edge of the screen, each rotated appropriately.
-N UpArrow
-P C0 20
-E PurpleTriangle
-A up
-R 0
+# (Most devices have dedicated arrow keys, though, so these
+# are commented out by default.)
+# N UpArrow
+# P C0 20
+# E PurpleTriangle
+# A up
+# R 0
+#
+# N DownArrow
+# P C0 -20
+# E PurpleTriangle
+# A down
+# R -180
+#
+# N RightArrow
+# P -20 C0
+# E PurpleTriangle
+# A right
+# R 90
+#
+# N LeftArrow
+# P 20 C0
+# E PurpleTriangle
+# A left
+# R -90
 
-N DownArrow
-P C0 -20
-E PurpleTriangle
-A down
-R -180
-
-N RightArrow
-P -20 C0
-E PurpleTriangle
-A right
-R 90
-
-N LeftArrow
-P 20 C0
-E PurpleTriangle
-A left
-R -90
