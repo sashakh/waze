@@ -113,31 +113,13 @@ static RoadMapSprite roadmap_sprite_search (const char *name) {
 }
 
 
-static char *roadmap_sprite_string (const char *data, int length) {
-
-    char *p = malloc (length+1);
-
-    roadmap_check_allocated(p);
-
-    strncpy (p, data, length);
-    p[length] = 0;
-
-    return p;
-}
-
 
 static void roadmap_sprite_decode_plane
                (RoadMapSprite sprite,
-                const char *arg, int length, const char *thickness) {
+                const char *color, const char *thickness) {
 
    int   t;
    char  pen[256];
-   char  color[256];
-
-   if (length >= (int)sizeof(color)-1) {
-      roadmap_log (ROADMAP_FATAL,
-                   "color name too long: %*s", length, arg);
-   }
 
    if (sprite->drawing.planes.last == NULL) {
 
@@ -154,10 +136,8 @@ static void roadmap_sprite_decode_plane
    }
 
    t = atoi(thickness);
-   strncpy (color, arg, length);
-   color[length] = 0;
 
-   sprintf (pen, "%s.%d.%s", sprite->name, t, color);
+   snprintf (pen, sizeof(pen), "%s.%d.%s", sprite->name, t, color);
    sprite->drawing.planes.last->pen = roadmap_canvas_create_pen (pen);
 
    roadmap_canvas_set_foreground (color);
@@ -271,15 +251,12 @@ static void roadmap_sprite_decode_bbox
 
 
 static RoadMapSprite roadmap_sprite_new
-          (int argc, const char **argv, int *argl) {
+          (int argc, const char **argv) {
 
-   RoadMapSprite sprite = malloc(sizeof(*sprite));
-
+   RoadMapSprite sprite = calloc(1, sizeof(*sprite));
    roadmap_check_allocated(sprite);
 
-   memset (sprite, 0, sizeof(*sprite));
-
-   sprite->name = roadmap_sprite_string (argv[1], argl[1]);
+   sprite->name = strdup (argv[1]);
 
    sprite->drawing.planes.first.pen = roadmap_canvas_create_pen ("Black");
 
@@ -319,14 +296,10 @@ static int roadmap_sprite_maxpoint (RoadMapSprite sprite) {
 }
 
 
-static void roadmap_sprite_alias (RoadMapSprite sprite,
-                                  const char *arg, int length) {
+static void roadmap_sprite_alias (RoadMapSprite sprite, const char *arg) {
 
-   sprite->alias_name = malloc(length + 1);
+   sprite->alias_name = strdup(arg);
    roadmap_check_allocated(sprite->alias_name);
-
-   strncpy(sprite->alias_name, arg, length);
-   sprite->alias_name[length] = 0;
 }
 
 
@@ -354,154 +327,129 @@ static int roadmap_sprite_drawing_is_valid (RoadMapSprite sprite) {
 }
 
 
-static void roadmap_sprite_load_text (const char *data, int size) {
+static int roadmap_sprite_load_text (char *line) {
 
    int argc;
-   int argl[256];
    const char *argv[256];
 
-   const char *p;
-   const char *end;
+   static RoadMapSprite sprite;
 
-   RoadMapSprite sprite = NULL;
+   argv[0] = strtok(line, " \t\n\r");
+   if (argv[0] == NULL || argv[0][0] == '#') return 1;
+   argc = 1;
 
-
-   end  = data + size;
-
-   while (data < end) {
-
-      while (data < end && (data[0] == '#' || data[0] < ' ')) {
-
-         if (*(data++) == '#') {
-            while ((data < end) && (data[0] >= ' ')) data += 1;
-         }
-         while (data < end && data[0] == '\n' && data[0] != '\r') data += 1;
-      }
-
-      if (data >= end)  break;
-
-      argc = 1;
-      argv[0] = data;
-
-      for (p = data; p < end; ++p) {
-
-         if (*p == ' ') {
-            argl[argc-1] = p - argv[argc-1];
-            argv[argc]   = p+1;
-            argc += 1;
-            if (argc >= 255) break;
-         }
-
-         if (p >= end || *p < ' ') break;
-      }
-      argl[argc-1] = p - argv[argc-1];
-
-      while (p < end && *p < ' ' && *p > 0) ++p;
-      data = p;
-
-
-      switch (argv[0][0]) {
-
-      case 'A':
-
-         if (sprite == NULL) {
-            roadmap_log (ROADMAP_ERROR, "sprite name is missing");
-            break;
-         }
-         if (sprite->alias_name != NULL) {
-            roadmap_log (ROADMAP_ERROR,
-                         "repeated alias for sprite %s", sprite->name);
-            break;
-         }
-         if (sprite->drawing.planes.last != NULL) {
-            roadmap_log (ROADMAP_ERROR,
-                         "sprite alias %s has drawing directives",
-                         sprite->name);
-            break;
-         }
-         roadmap_sprite_alias (sprite, argv[1], argl[1]);
-         break;
-
-      case 'F':
-
-         if (sprite == NULL) {
-            roadmap_log (ROADMAP_ERROR, "sprite name is missing");
-            break;
-         }
-         if (sprite->alias_name != NULL) {
-            roadmap_log (ROADMAP_ERROR,
-                         "sprite alias %s has drawing directives",
-                         sprite->name);
-            break;
-         }
-         roadmap_sprite_decode_plane (sprite, argv[1], argl[1], argv[2]);
-         break;
-
-      case 'L':
-
-         if (roadmap_sprite_drawing_is_valid (sprite)) {
-            roadmap_sprite_decode_sequence
-               (sprite, &(sprite->drawing.planes.last->lines), argc, argv);
-         }
-         break;
-
-      case 'P':
-
-         if (roadmap_sprite_drawing_is_valid (sprite)) {
-            roadmap_sprite_decode_sequence
-               (sprite, &(sprite->drawing.planes.last->polygons), argc, argv);
-         }
-         break;
-
-      case 'D':
-
-         if (roadmap_sprite_drawing_is_valid (sprite)) {
-            roadmap_sprite_decode_circle
-               (sprite, &(sprite->drawing.planes.last->disks), argv);
-         }
-         break;
-
-      case 'C':
-
-         if (roadmap_sprite_drawing_is_valid (sprite)) {
-            roadmap_sprite_decode_circle
-               (sprite, &(sprite->drawing.planes.last->circles), argv);
-         }
-         break;
-
-      case 'B':
-
-         if (roadmap_sprite_drawing_is_valid (sprite)) {
-            roadmap_sprite_decode_bbox(&sprite->bbox, argc, argv);
-         }
-         break;
-
-      case 'S':
-
-         sprite = roadmap_sprite_new (argc, argv, argl);
-         break;
-         
-      }
-
-      while (p < end && *p < ' ') p++;
-      data = p;
+   while((argv[argc] = strtok(NULL, " \t\n\r")) != NULL) {
+      argc++;
    }
+
+   if (sprite == NULL) {
+
+      if (argv[0][0] != 'S') {
+         roadmap_log (ROADMAP_ERROR, "sprite name is missing");
+         return 0;
+      }
+
+   }
+
+   switch (argv[0][0]) {
+
+   case 'A':
+
+      if (sprite->alias_name != NULL) {
+         roadmap_log (ROADMAP_ERROR,
+                      "repeated alias for sprite %s", sprite->name);
+         break;
+      }
+      if (sprite->drawing.planes.last != NULL) {
+         roadmap_log (ROADMAP_ERROR,
+                      "sprite alias %s has drawing directives",
+                      sprite->name);
+         break;
+      }
+      roadmap_sprite_alias (sprite, argv[1]);
+      break;
+
+   case 'F':
+
+      if (sprite->alias_name != NULL) {
+         roadmap_log (ROADMAP_ERROR,
+                      "sprite alias %s has drawing directives",
+                      sprite->name);
+         break;
+      }
+      roadmap_sprite_decode_plane (sprite, argv[1], argv[2]);
+      break;
+
+   case 'L':
+
+      if (roadmap_sprite_drawing_is_valid (sprite)) {
+         roadmap_sprite_decode_sequence
+            (sprite, &(sprite->drawing.planes.last->lines), argc, argv);
+      }
+      break;
+
+   case 'P':
+
+      if (roadmap_sprite_drawing_is_valid (sprite)) {
+         roadmap_sprite_decode_sequence
+            (sprite, &(sprite->drawing.planes.last->polygons), argc, argv);
+      }
+      break;
+
+   case 'D':
+
+      if (roadmap_sprite_drawing_is_valid (sprite)) {
+         roadmap_sprite_decode_circle
+            (sprite, &(sprite->drawing.planes.last->disks), argv);
+      }
+      break;
+
+   case 'C':
+
+      if (roadmap_sprite_drawing_is_valid (sprite)) {
+         roadmap_sprite_decode_circle
+            (sprite, &(sprite->drawing.planes.last->circles), argv);
+      }
+      break;
+
+   case 'B':
+
+      if (roadmap_sprite_drawing_is_valid (sprite)) {
+         roadmap_sprite_decode_bbox(&sprite->bbox, argc, argv);
+      }
+      break;
+
+   case 'S':
+
+      sprite = roadmap_sprite_new (argc, argv);
+      break;
+      
+   }
+
+   return 1;
 }
 
 
 static void roadmap_sprite_load_file (const char *path) {
 
-   RoadMapFileContext file;
+   FILE *file;
 
-   if (roadmap_file_map (path, "sprites", "r", &file) == NULL) {
+   if ((file = roadmap_file_fopen (path, "sprites", "r")) == NULL) {
 
-      roadmap_log (ROADMAP_ERROR, "cannot map file sprites in %s", path);
+      roadmap_log (ROADMAP_ERROR, "cannot open file 'sprites' in %s", path);
 
    } else {
-      roadmap_sprite_load_text
-         (roadmap_file_base(file), roadmap_file_size(file));
+      char  line[1024];
 
-      roadmap_file_unmap (&file);
+      while (!feof(file)) {
+
+         if (fgets (line, sizeof(line), file) == NULL) break;
+
+         if (roadmap_sprite_load_text (line) == 0) break;
+
+      }
+
+      fclose (file);
    }
 }
 
@@ -672,9 +620,16 @@ void roadmap_sprite_load (void) {
 
    if (RoadMapSpriteDefault == NULL) {
 
-      const char *hardcoded = "S Default\nF black 1\nP -4,-4 4,-4 4,4 -4,4\n";
+      /* initialize character arrays to keep these strings writeable --
+       * strtok() will process them
+       */
+      char hardcoded1[] = "S Default";
+      char hardcoded2[] = "F black 1";
+      char hardcoded3[] = "P -4,-4 4,-4 4,4 -4,4";
 
-      roadmap_sprite_load_text (hardcoded, strlen(hardcoded));
+      roadmap_sprite_load_text (hardcoded1);
+      roadmap_sprite_load_text (hardcoded2);
+      roadmap_sprite_load_text (hardcoded3);
 
       RoadMapSpriteDefault = roadmap_sprite_search ("Default");
    }
