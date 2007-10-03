@@ -87,7 +87,7 @@ static void buildmap_square_register (void);
 void buildmap_square_adjust_limits(int longitude, int latitude) {
 
    static int firstlongitude = -1;
-#define signof(x) (abs(x)/(x))
+#define signof(a) (((a) < 0) ? -1 : 1)
 
    if (firstlongitude == -1) {
       firstlongitude = longitude;
