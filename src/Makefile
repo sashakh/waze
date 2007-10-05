@@ -301,8 +301,13 @@ MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All \
 SCRIPTS = rdmdownload rdmcompare \
 		rdmgenmaps rdmgenshpmaps rdmgenstatemaps rdmgendcwmaps
 MKFILES = Makefile config.mk options.mk
+
 # this font is GPL, and comes from RedHat's "liberation-fonts-ttf-3.tar.gz"
 FONT = LiberationSans-Bold.ttf
+
+# the manual is a post-processed version of README.  the conversion tool
+# isn't common, so we distribute both.
+MANUAL = manual.html
 
 # more products
 ifneq ($(strip $(POPT)),NO)
@@ -321,7 +326,7 @@ endif
 ALL_SRC = $(MKFILES) $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
 	$(RMPLUGINSRC) $(DMSRC) $(BMLIBSRC) $(BMSRC) \
 	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC) $(HEADERS) \
-	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS) $(FONT)
+	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS) $(FONT) $(MANUAL)
 
 ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support win32
 
@@ -391,7 +396,7 @@ clean:  topclean
 	rm -f agg_support/*.o
 
 
-install: installdata installbin installicons installdesktop
+install: installdata installbin installicons installdesktop installdoc
 	for module in $(RDMODULES) ; \
 	do \
 		$(MAKE) -C $$module install || exit 1; \
@@ -430,10 +435,10 @@ installicons:
 	$(MAKE) -C icons install
 
 installdoc: manual.html 
-	cp manual.html $(DESTDIR)$(pkgdatadir)/manual.html
+	-cp manual.html $(DESTDIR)$(pkgdatadir)/manual.html
 
 manual.html: ../README
-	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $<
+	-aptconvert -pi html showTitle yes -toc -enc ASCII $@ $<
 
 uninstall:
 	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
