@@ -104,15 +104,20 @@ installation.html: APT_SOURCE=../INSTALL
 installation.html: ../INSTALL
 
 # here's the rule for building webpages from our
-# aptconvert-compatible text files.  we post-process, add some
+# aptconvert-compatible text files.  we post-process, to add some
 # extra html at the top, to make the docs fit in with the rest of
-# the site.
+# the site.  we also remove absolute references to our own website,
+# so that the links all work properly when installed in a test tree.
+OUR_SITE = roadmap.digitalomaha.net
+
 $(APT_WEBDOCS):
 	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(APT_SOURCE)
 	sed -i \
 	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
 	    -e '/<body>/s/$$/<!--#include virtual="navbar.html" -->/' \
-	    -e 's/<body>/<body class="roadmap-doc">/' $@
+	    -e 's/<body>/<body class="roadmap-doc">/' \
+	    -e 's;http://'$(OUR_SITE)'/;;' $@ 
+
 
 clean:
 	rm -f .copied-*
