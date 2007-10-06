@@ -26,7 +26,7 @@ else
 pkgmapsdir = /var/lib/roadmap
 endif
 
-menudir = $(DESTDIR)/usr/lib/menu
+menudir = $(DESTDIR)/usr/share/menu
 icondir = $(INSTALLDIR)/share/pixmaps
 mandir = $(INSTALLDIR)/share/man
 man1dir = $(mandir)/man1
