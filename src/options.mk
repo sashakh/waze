@@ -6,30 +6,45 @@ include $(TOP)/config.mk
 
 # --- Installation options -------------------------------------------------
 
-DESTDIR = 
+ifeq ($(strip $(INSTALLDIR)),)
+# most things go into /usr/local by default
 INSTALLDIR = /usr/local
+endif
+
+# Just two things don't go under INSTALLDIR -- and these can be
+# affected by changing DESTDIR.  The things unaffected by
+# INSTALLDIR are the traditional /var/lib/roadmap location for
+# maps, and the menu entry installation in /usr/share/menu. 
+# Changing DESTDIR will affect INSTALLDIR, and also the
+# ROADMAP_CONFIG_DIR and ROADMAP_MAP_DIR variables, if they're in
+# use.  ("DESTDIR" should probably be renamed "ROOTDIR".)
+# DESTDIR = 
+
+ifneq ($(strip $(DESTDIR)),)
+override INSTALLDIR := $(DESTDIR)/$(INSTALLDIR)
+endif
+
 desktopdir = $(INSTALLDIR)/applications
 bindir = $(INSTALLDIR)/bin
 pkgbindir = $(bindir)
 
 # if the user compiled in a new config dir, install to it
 ifneq ($(strip $(ROADMAP_CONFIG_DIR)),)
-pkgdatadir = $(ROADMAP_CONFIG_DIR)
+pkgdatadir = $(DESTDIR)/$(ROADMAP_CONFIG_DIR)
 else
 pkgdatadir = $(INSTALLDIR)/share/roadmap
 endif
 
 # if the user compiled in a new map dir, create it here
 ifneq ($(strip $(ROADMAP_MAP_DIR)),)
-pkgmapsdir = $(ROADMAP_MAP_DIR)
+pkgmapsdir = $(DESTDIR)/$(ROADMAP_MAP_DIR)
 else
-pkgmapsdir = /var/lib/roadmap
+pkgmapsdir = $(DESTDIR)/var/lib/roadmap
 endif
 
 menudir = $(DESTDIR)/usr/share/menu
 icondir = $(INSTALLDIR)/share/pixmaps
-mandir = $(INSTALLDIR)/share/man
-man1dir = $(mandir)/man1
+man1dir = $(INSTALLDIR)/share/man/man1
 
 INSTALL      = install
 INSTALL_DATA = install -m644

@@ -403,50 +403,50 @@ install: installdata installbin installicons installdesktop installdoc
 	done
 
 installdata:
-	mkdir -p $(DESTDIR)$(pkgmapsdir)
-	chmod a+rx $(DESTDIR)$(pkgmapsdir)
-	mkdir -p $(DESTDIR)$(pkgdatadir)
-	chmod a+rx $(DESTDIR)$(pkgdatadir)
-	mkdir -p $(DESTDIR)$(pkgdatadir)/default
-	chmod a+rx $(DESTDIR)$(pkgdatadir)/default
-	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
-	cp $(PKGDATAFILES) $(DESTDIR)$(pkgdatadir)/.
-	cd $(DESTDIR)$(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
-	cp default/All $(DESTDIR)$(pkgdatadir)/default/.
-	chmod a+r $(DESTDIR)$(pkgdatadir)/default/All
+	mkdir -p $(pkgmapsdir)
+	chmod a+rx $(pkgmapsdir)
+	mkdir -p $(pkgdatadir)
+	chmod a+rx $(pkgdatadir)
+	mkdir -p $(pkgdatadir)/default
+	chmod a+rx $(pkgdatadir)/default
+	cd $(pkgdatadir) && rm -f $(PKGDATAFILES)
+	cp $(PKGDATAFILES) $(pkgdatadir)/.
+	cd $(pkgdatadir) ; chmod a+r $(PKGDATAFILES)
+	cp default/All $(pkgdatadir)/default/.
+	chmod a+r $(pkgdatadir)/default/All
 ifneq ($(strip $(AGG)),NO)
 	cp $(FONT) $(pkgdatadir)/font.ttf
 endif
 
 installbin:
-	mkdir -p $(DESTDIR)$(pkgbindir)
-	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
-	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(DESTDIR)$(pkgbindir)/.
-	cd $(DESTDIR)$(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
-	mkdir -p $(DESTDIR)$(man1dir)
-	$(INSTALL_DATA) roadgps.1 roadmap.1 $(DESTDIR)$(man1dir)/.
+	mkdir -p $(pkgbindir)
+	cd $(pkgbindir) && rm -f $(BUILD) $(SCRIPTS)
+	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(pkgbindir)/.
+	cd $(pkgbindir) && chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS)
+	mkdir -p $(man1dir)
+	$(INSTALL_DATA) roadgps.1 roadmap.1 $(man1dir)/.
 
 installdesktop:
-	if [ -d $(menudir) ] ; then cp roadmap.menu $(menudir)/roadmap; fi
-	mkdir -p $(DESTDIR)$(desktopdir)
-	cp -f roadmap.desktop $(DESTDIR)$(desktopdir)/.
+	-test -d $(menudir) && cp roadmap.menu $(menudir)/roadmap
+	mkdir -p $(desktopdir)
+	cp -f roadmap.desktop $(desktopdir)/.
 
 installicons:
 	$(MAKE) -C icons install
 
 installdoc: manual.html 
-	-cp manual.html $(DESTDIR)$(pkgdatadir)/manual.html
+	-cp manual.html $(pkgdatadir)/manual.html
 
 manual.html: ../README
 	-aptconvert -pi html showTitle yes -toc -enc ASCII $@ $<
 
 uninstall:
-	cd $(DESTDIR)$(pkgdatadir) && rm -f $(PKGDATAFILES)
-	cd $(DESTDIR)$(pkgbindir) && rm -f $(BUILD) $(SCRIPTS) $(DRIVERS)
-	if [ -d $(menudir) ] ; then rm -f $(menudir)/roadmap; fi
+	cd $(pkgdatadir) && rm -f $(PKGDATAFILES)
+	cd $(pkgbindir) && rm -f $(BUILD) $(SCRIPTS) $(DRIVERS)
+	-test -d $(menudir) && rm -f $(menudir)/roadmap
 	$(MAKE) -C icons uninstall
-	cd $(DESTDIR)$(desktopdir) && rm -f roadmap.desktop
-	cd $(DESTDIR)$(man1dir) && rm -f roadgps.1 roadmap.1
+	cd $(desktopdir) && rm -f roadmap.desktop
+	cd $(man1dir) && rm -f roadgps.1 roadmap.1
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \

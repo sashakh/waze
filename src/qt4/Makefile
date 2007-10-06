@@ -68,23 +68,23 @@ strip:
 	$(STRIP) $(TARGETS)
 
 install:
-	mkdir -p $(DESTDIR)$(bindir)
-	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
-	install $(TARGETS) $(DESTDIR)$(bindir)/
-	ln -s qtroadmap $(DESTDIR)$(bindir)/roadmap
-	ln -s qtroadgps $(DESTDIR)$(bindir)/roadgps
-	cd $(DESTDIR)$(bindir) ; $(STRIP) $(TARGETS)
+	mkdir -p $(bindir)
+	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
+	install $(TARGETS) $(bindir)/
+	ln -s qtroadmap $(bindir)/roadmap
+	ln -s qtroadgps $(bindir)/roadgps
+	cd $(bindir) ; $(STRIP) $(TARGETS)
 
 install-ipkg: install
-	mkdir -p $(DESTDIR)$(desktopdir)
-	install ipkg/zroadmap.desktop $(DESTDIR)$(desktopdir)
-	install ipkg/zroadgps.desktop $(DESTDIR)$(desktopdir)
-# These no longer exists.  Do not try to install them.  It will fail
-#	mkdir -p $(DESTDIR)$(INSTALLDIR)/pics
-	mkdir -p $(DESTDIR)$(pkgdatadir)
-#	install ipkg/zroadmap.png $(DESTDIR)$(INSTALLDIR)/pics
-#	install ipkg/zroadgps.png $(DESTDIR)$(INSTALLDIR)/pics
-#	install ipkg/preferences $(DESTDIR)$(pkgdatadir)
+	mkdir -p $(desktopdir)
+	install ipkg/zroadmap.desktop $(desktopdir)
+	install ipkg/zroadgps.desktop $(desktopdir)
+# These no longer exist.  Do not try to install them.  It will fail
+#	mkdir -p $(INSTALLDIR)/pics
+#	install ipkg/zroadmap.png $(INSTALLDIR)/pics
+#	install ipkg/zroadgps.png $(INSTALLDIR)/pics
+#	mkdir -p $(pkgdatadir)
+#	install ipkg/preferences $(pkgdatadir)
 
 uninstall:
 	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps

@@ -7,6 +7,9 @@
 
 # GNU make is probably required to build RoadMap.
 
+# default installation directory.
+# INSTALLDIR = /usr/local
+
 # If you change settings in this file, it's quite possible that
 # you'll need to do a "make clean" before trying your build again.
 # (In other words, it may appear to build correctly, and in some

@@ -38,15 +38,15 @@ clean:
 	rm -f *.o *.a *.da $(TARGETS)
 
 install:
-	mkdir -p $(DESTDIR)$(bindir)
-	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
-	install $(TARGETS) $(DESTDIR)$(bindir)
-	ln -s gtkroadmap $(DESTDIR)$(bindir)/roadmap
-	ln -s gtkroadgps $(DESTDIR)$(bindir)/roadgps
-	cd $(DESTDIR)$(bindir) ; $(STRIP) $(TARGETS)
+	mkdir -p $(bindir)
+	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
+	install $(TARGETS) $(bindir)
+	ln -s gtkroadmap $(bindir)/roadmap
+	ln -s gtkroadgps $(bindir)/roadgps
+	cd $(bindir) ; $(STRIP) $(TARGETS)
 
 uninstall:
-	cd $(DESTDIR)$(bindir) && rm -f $(TARGETS) roadmap roadgps
+	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
 
 sourcelist:
 	@echo Makefile roadmap_main.c roadmap_canvas.c $(RMLIBSRCS) $(HEADERS)
