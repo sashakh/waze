@@ -1,10 +1,9 @@
 #
 # config.mk
 #
-# This file controls how RoadMap gets built (at least on unix
-# "Makefile-based" platforms).  Try and keep your customizations
-# here.  You can override these settings from the commandline
-# if you wish, e.g. "make MODE=DEBUG".
+# This file controls how RoadMap gets built.  Try and keep your
+# customizations here.  You can override these settings from the
+# commandline if you wish, e.g. "make MODE=DEBUG".
 
 # GNU make is probably required to build RoadMap.
 
@@ -12,20 +11,8 @@
 # you'll need to do a "make clean" before trying your build again.
 # (In other words, it may appear to build correctly, and in some
 # cases might, but there are no guarantees.)
-# Basic building mode
-MODE =		# blank for "normal" build
-# MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
-# MODE=PROFILE	# sets up for profiling with gprof
 
-# Add any other special local CFLAGS values here
-# e.g., CFLAGS += -DWGET_GOOGLE_ROUTE
-# CFLAGS +=
-
-# If you know you need other libraries for your build, you can
-# add those here as well.  For example:
-# LIBS +=
-
-# Choose a desktop
+# Choose a desktop toolkit:
 # DESKTOP = GTK
 DESKTOP = GTK2
 # DESKTOP = GPE
@@ -33,22 +20,22 @@ DESKTOP = GTK2
 # DESKTOP = QT4
 # DESKTOP = QPE
 # DESKTOP = QPE4
+# DESKTOP = WINCE  # but see below
 
-# if you select WINCE, you'll need to turn off POPT, and maybe
-# EXPAT as well, both below.  you'll also need the
-# arm-wince-mingw32ce cross-compiler.  and even after all that,
-# wroadmap probably won't work on your WinCE device.  you may
-# have better luck with a windows-based devkit.  there are some
-# more comments in win32/Makefile
-# DESKTOP = WINCE
+# If you select WINCE for your WinCE device, you'll need to turn
+# off POPT, and maybe EXPAT as well, both below.  You'll also
+# need the arm-wince-mingw32ce cross-compiler.  And even after
+# all that, wroadmap probably won't run until someone finishes
+# debugging and fixing it.  You may have better luck with a
+# windows-based devkit.  There are some more comments in win32/Makefile.
 # CROSS=/opt/mingw32ce/bin/arm-wince-mingw32ce-
 # CFLAGS += ???  others needed?
 
-# If you select QT or QPE above, you might also want to set QTDIR
+# If you selected QT or QPE above, you might also want to set QTDIR
 # here.  (But it might already be set in your environment.)
 # Different QT installations seem to vary quite a bit.  You
 # may have to experiment to find the right combination of CFLAGS
-# and LIBS settings.
+# and LIBS settings.  Various examples are shown.
 # QTDIR = /usr
 # QTDIR = /usr/share/qt4
 # CFLAGS += -I/usr/include/qt4
@@ -128,3 +115,17 @@ BIDI = NO
 
 # RoadMap internal profiling -- you probably don't want this.
 # DBG_TIME = YES
+
+# Basic building mode
+MODE =		# blank for "normal" build
+# MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
+# MODE=PROFILE	# sets up for profiling with gprof
+
+# You can add any other special local CFLAGS values here
+# e.g., CFLAGS += -DWGET_GOOGLE_ROUTE
+# CFLAGS +=
+
+# If you know you need other libraries for your build, you can
+# add those here as well.  For example:
+# LIBS += -L/home/me/mylibdir -lmine
+
