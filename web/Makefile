@@ -51,24 +51,27 @@ SUPPORT = \
 
 SITESOURCE = $(SCREENSHOTS) $(APT_WEBDOCS) $(PAGES) $(SUPPORT)
 
-all: webdoc execbits
+all: webdoc
 
 
 SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
 install: all $(SITESOURCE_COPIED)
 
-.copied-% : %
-	scp $< roadmap.digitalomaha.net:public_html/new
+OUR_SITE_REFERENCE = roadmap.digitalomaha.net
+OUR_SITE_ACCESS = roadmap.digitalomaha.net
+
+# copy the html, and touch a local flag file.  before copying,
+# locally expand our SSI #include directive.  the removes the
+# need for SSI on the host site (which may require .shtml extension).
+.copied-%.html : %.html
+	sed -e '/include virtual="navbar.html"/r navbar.html' \
+	    -e '/include virtual="navbar.html"/d' $< >foo.html && \
+	scp foo.html $(OUR_SITE_ACCESS):public_html/new/$<
 	touch $@
 
-
-# we use the Apache XBitHack option in order to enable server-side
-# includes for our .html pages.  this lets us easily include the navbar
-# in all of them.  but it means they all have to have the user/group execute
-# bits set.
-execbits:
-	chmod ug+x $(PAGES) $(APT_WEBDOCS)
-
+.copied-% : %
+	scp $< $(OUR_SITE_ACCESS):public_html/new/$<
+	touch $@
 
 roadmap-right.png: ../src/icons/roadmap-right.png
 	cp $< $@
@@ -108,18 +111,17 @@ installation.html: ../INSTALL
 # extra html at the top, to make the docs fit in with the rest of
 # the site.  we also remove absolute references to our own website,
 # so that the links all work properly when installed in a test tree.
-OUR_SITE = roadmap.digitalomaha.net
 
 $(APT_WEBDOCS):
 	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(APT_SOURCE)
 	sed -i \
 	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
-	    -e '/<body>/s/$$/<!--#include virtual="navbar.html" -->/' \
+	    -e '/<body>/a \
+	    <!--#include virtual="navbar.html" -->' \
 	    -e 's/<body>/<body class="roadmap-doc">/' \
-	    -e 's;http://'$(OUR_SITE)'/;;' $@ 
+	    -e 's;http://'$(OUR_SITE_REFERENCE)'/;;' $@ 
 
 
-clean:
+clean: clean-webdoc
 	rm -f .copied-*
-	rm -f $(APT_WEBDOCS)
 
