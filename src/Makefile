@@ -525,7 +525,7 @@ UPPER_SRC = README \
 # variable and the output of "make sourcelist".  an appropriate path
 # prefix is added to make all relative paths correct.
 tarball: linkdir 
-	@tar --dereference -czvf $(RELNAME).tar.gz \
+	@tar --dereference -czvf $(RELNAME)-src.tar.gz \
 	    $(addprefix $(RELNAME)/, $(UPPER_SRC)) \
 	    $(addprefix $(RELNAME)/src/, $(shell \
 		  $(MAKE) -C $(RELNAME)/src --no-print-directory sourcelist) \
