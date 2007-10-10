@@ -521,10 +521,12 @@ RELNAME = roadmap-$(DOTVERSION)
 UPPER_SRC = README \
     AUTHORS BUGS TODO CHANGES COPYING INSTALL howtos/makemaps.txt 
 
+tarball: $(RELNAME)-src.tar.gz
+
 # the contents of the tarball are listed explicitly, using the UPPER_SRC
 # variable and the output of "make sourcelist".  an appropriate path
 # prefix is added to make all relative paths correct.
-tarball: linkdir 
+$(RELNAME)-src.tar.gz: linkdir 
 	@tar --dereference -czvf $(RELNAME)-src.tar.gz \
 	    $(addprefix $(RELNAME)/, $(UPPER_SRC)) \
 	    $(addprefix $(RELNAME)/src/, $(shell \
