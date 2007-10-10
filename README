@@ -2,7 +2,7 @@
                     RoadMap - User Manual and README
                                ---------
                                ---------
-                             September 2007
+                             October 2007
 
 
 INTRODUCTION
@@ -457,7 +457,7 @@ INSTALLATION
 
    RoadMap can be downloaded from the RoadMap web site:
 
-         * {{http://roadmap.digitalomaha.net/download.html}}
+         * {{http://roadmap.sourceforge.net/download.html}}
 
    A quick way to get a feel for RoadMap is to download and install
    the contents of this tar file, which contains the US state boundary
@@ -468,12 +468,12 @@ INSTALLATION
 
    The complete set of maps is available here:
    
-         * {{http://roadmap.digitalomaha.net/maps.html}}
+         * {{http://roadmap.sourceforge.net/maps.html}}
 
    The full RoadMap directory file (usdir.rdm) must be downloaded
    first, as RoadMap will not work without it.
 
-         * {{http://roadmap.digitalomaha.net/maps/usdir.rdm.tgz}}
+         * {{http://roadmap.digitalomaha.net/maps/usdir.rdm.gz}}
 
    Please refrain from downloading all the US states at once, as the map
    files are huge and the bandwidth is expensive.
@@ -509,7 +509,7 @@ INSTALLATION
 ----
 
    RoadMap is useless without maps. The maps can be downloaded from the
-   web site ({{http://roadmap.digitalomaha.net/maps.html}} or mirrors) or
+   web site ({{http://roadmap.sourceforge.net/maps.html}} or mirrors) or
    generated from the US Census Bureau's files (see later).
 
    It is strongly recommended you install the maps on a CompactFlash or
