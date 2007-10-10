@@ -2,10 +2,10 @@
                     Approximate bug list for RoadMap
                                ---------
                                ---------
-                             September 2007
+                             October 2007
 
 
-KNOWN BUGS
+KNOWN BUGS -- patches welcome
 
 Desktop and rendering bugs:
 
@@ -39,6 +39,15 @@ Desktop and rendering bugs:
    cleanly in the event of the user hitting ^C in the window from which
    RoadMap was started, or if RoadMap is killed with SIGTERM, as when the
    system is shutting down.)
+
+ * WinCE,Win32 - Executables built with the arm-wince-mingw32ce
+   cross-compiler don't run.
+   
+   It would be great if someone could finish that work.  And
+   win32 hasn't even been attempted in cross-compilation.  Using
+   a cross-compiler has big advantages for the principal
+   developers, so please don't just toss that notion aside
+   without some discussion.
    
 Map building bugs:
 

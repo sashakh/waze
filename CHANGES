@@ -4,7 +4,7 @@
                                ---------
                                ---------
 
-Roadmap v1.1.0 (september ?, 2007)
+Roadmap v1.1.0 (October, 2007)
 
  Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
 
@@ -102,7 +102,7 @@ Roadmap v1.1.0 (september ?, 2007)
   * Initial work to allow cross-compiling RoadMap for WinCE using
   arm-wince-mingw32ce toolchain.
 
-Roadmap v1.0.12 (november 4, 2005)
+Roadmap v1.0.12 (November 4, 2005)
 
   * Makefile cleanup: everything must now be built in src. If only
       one toolkit support is to be built, use the DESKTOP option. Please
@@ -147,7 +147,7 @@ Roadmap v1.0.12 (november 4, 2005)
       now configurable: some screen digitizers have a significant jitter,
       but a large value is incomfortable on a desktop machine (Paul Fox).
 
-Roadmap v1.0.11 (september 9, 2005)
+Roadmap v1.0.11 (September 9, 2005)
 
   * Merged a patch from Gergely Molnar to make screenshots of the
       RoadMap canvas. Only the first patch was merged (single screenshot).
