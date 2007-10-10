@@ -70,6 +70,15 @@
       In addition message signs that are too long should wrap, rather than
       truncate.
 
+   *  Add voice output for trip navigation.
+   
+      The flite voice should read the routepoint comments that currently
+      appear on the screen.  Need to make the timing of the comments
+      speed-sensitive, and figure out what to do with routepoints that don't
+      have attached comments.  Probably if some routepoints do have comments,
+      then we should ignore those that don't, otherwise we should give
+      a directional indication since there are no "real" directions.
+
    *  Key bindings should be rebindable by the user.
       
       This would make the UI fully customizable.  Some support for this
