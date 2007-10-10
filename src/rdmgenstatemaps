@@ -9,7 +9,7 @@ usage()
 {
     cat >&2 <<EOF
 rdmgenstatemaps [which=<which>] src=<path-to-.shp-file> \\
-        [maps=<map-directory-path>] [test]
+        [maps=<map-directory-path>] [verbose|noindex|test] [dryrun]
   where the src=<> parameter points to a directory containing the unpacked
   contents of st99_d00_shp.zip, available from:
     http://www.census.gov/geo/cob/bdy/st/st00shp/st99_d00_shp.zip
@@ -114,16 +114,13 @@ then
 fi
 
 case $1 in
-    test) verbose=-v
-          gendir=N
-          shift
-          ;;
+    verbose) verbose=-v; shift ;;
+    noindex) gendir=N; shift ;;
+    test)    verbose=-v; gendir=N shift ;;
 esac
 
 case $1 in
-    dryrun) DRYRUN=Y
-            shift
-            ;;
+    dryrun) DRYRUN=Y shift ;;
 esac
 
 

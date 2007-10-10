@@ -18,7 +18,7 @@ usage()
 usage:
   rdmgenmaps <tiger-path> [maps=<map-directory-path>]
                        [format=2000|2002|2004|2005|2006]
-                       [verbose|test]
+                       [verbose|noindex|test]
                        [<state-id> | county-fips ] ...
 
 Examples:
@@ -43,9 +43,13 @@ bad_abbrev()
 
 FORMAT="--format=2002"
 MAPPATH="--maps=/var/lib/roadmap"
-OPTIONS=""
 TMPDIR=/var/tmp
 state=''
+cleanup=Y
+gendir=Y
+verbose=''
+DRYRUN=N
+
 
 # state codes, from app_a02.txt
 AL=01; AK=02; AZ=04; AR=05; CA=06; CO=08; CT=09; DE=10; DC=11;
@@ -63,10 +67,6 @@ PR=72; UM=74; VI=78;
 TIGERDIR=$1
 test -d "$TIGERDIR" || usage
 shift
-
-cleanup=Y
-gendir=Y
-verbose=N
 
 case $1 in
    maps=*) MAPPATH="--maps=`expr $1 : 'maps=\(.*\)'`"
@@ -93,17 +93,13 @@ case $1 in
 esac
 
 case $1 in
-   verbose) verbose=Y
-         OPTIONS="-v $OPTIONS"
-         shift
-         ;;
+    verbose) verbose=-v; shift ;;
+    noindex) gendir=N; shift ;;
+    test)    verbose=-v; gendir=N; cleanup=N; shift ;;
+esac
 
-   test) cleanup=N
-         gendir=N
-         verbose=Y
-         OPTIONS="-v $OPTIONS"
-         shift
-         ;;
+case $1 in
+    dryrun) DRYRUN=Y shift ;;
 esac
 
 set_county_list()
@@ -182,19 +178,25 @@ fi
 process_one_county() {
 
    if [ -e $TIGERDIR/TGR$1.ZIP ] ; then
-      unzip $TIGERDIR/TGR$1.ZIP -d $TMPDIR/roadmap > /dev/null
+      echo unzip $TIGERDIR/TGR$1.ZIP -d $TMPDIR/roadmap 
+      if [ $DRYRUN != 'Y' ] ; then
+         unzip $TIGERDIR/TGR$1.ZIP -d $TMPDIR/roadmap > /dev/null
+      fi
    elif [ -e $TIGERDIR/tgr$1.zip ] ; then
-      unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap > /dev/null
+      echo unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap
+      if [ $DRYRUN != 'Y' ] ; then
+         unzip $TIGERDIR/tgr$1.zip -d $TMPDIR/roadmap > /dev/null
+      fi
    else
       echo No file $TIGERDIR/tgr$1.zip or $TIGERDIR/TGR$1.ZIP to unzip >&2
       exit 1
    fi
    rt1=$TMPDIR/roadmap/TGR$1.RT1
-   if [ -e $rt1 ] ; then
-      if [ $verbose = 'Y' ] ; then
-         echo "$BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1"
+   if [ $DRYRUN = 'Y' -o -e $rt1 ] ; then
+      echo "$BUILDMAP $verbose $FORMAT $MAPPATH $1 $rt1"
+      if [ $DRYRUN != 'Y' ] ; then
+         $BUILDMAP $verbose $FORMAT $MAPPATH $1 $rt1 || exit 1
       fi
-      $BUILDMAP $OPTIONS $FORMAT $MAPPATH $1 $rt1 || exit 1
    fi
    if [ $cleanup = 'Y' ] ; then
       rm -f $TMPDIR/roadmap/*
@@ -241,6 +243,9 @@ if [ $gendir = 'Y' ] ; then
           BUILDUS=buildus
        fi
    fi
-   $BUILDUS -s $MAPPATH
+   echo $BUILDUS -s $MAPPATH
+   if [ $DRYRUN != 'Y' ] ; then
+       $BUILDUS -s $MAPPATH
+   fi
 fi
 

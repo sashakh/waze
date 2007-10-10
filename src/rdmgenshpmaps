@@ -10,7 +10,7 @@ usage()
 {
     cat >&2 <<EOF
 rdmgenshpmaps <shapefile path> [maps=<map-directory-path>]
-                               [test]
+                               [verbose|noindex|test] [dryrun]
                                [dmti]
                                [<specific files> ...]
 EOF
@@ -43,22 +43,13 @@ case $1 in
 esac
 
 case $1 in
-    verbose) verbose=-v
-          shift
-          ;;
+    verbose) verbose=-v; shift ;;
+    noindex) gendir=N; shift ;;
+    test)    verbose=-v; gendir=N; shift ;;
 esac
 
 case $1 in
-    test) verbose=-v
-          gendir=N
-          shift
-          ;;
-esac
-
-case $1 in
-    dryrun) DRYRUN=Y
-            shift
-            ;;
+    dryrun) DRYRUN=Y shift ;;
 esac
 
 # default to free Road Network Format

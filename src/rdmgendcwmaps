@@ -7,12 +7,12 @@
 #
 # Usage:
 #
-# rdmgendcwmaps [maps=<map-directory-path>] [test] [dryrun] <files>...
+# rdmgendcwmaps [maps=<map-directory-path>] [verbose|noindex|test] [dryrun] <files>...
 #
 
 usage()
 {
-   echo 'Usage: rdmgendcwmaps [maps=<map-directory-path>] [test] [dryrun] [<files> ...]' >&2
+   echo 'Usage: rdmgendcwmaps [maps=<map-directory-path>] [verbose|noindex|test] [<files> ...]' >&2
    exit 1
 }
 
@@ -25,6 +25,7 @@ fi
 
 verbose=''
 gendir=Y
+DRYRUN=N
 
 case $1 in
   maps=*) maps=`expr $1 : 'maps=\(.*\)'`
@@ -33,17 +34,13 @@ case $1 in
 esac
 
 case $1 in
-  test) verbose=-v
-        gendir=N
-        shift
-        ;;
+    verbose) verbose=-v; shift ;;
+    noindex) gendir=N; shift ;;
+    test)    verbose=-v; gendir=N; shift ;;
 esac
 
-DRYRUN=N
 case $1 in
-  dryrun) DRYRUN=Y
-          shift
-          ;;
+    dryrun) DRYRUN=Y shift ;;
 esac
 
 if [ -e ./buildmap ] ; then
