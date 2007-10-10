@@ -9,7 +9,7 @@ APT_WEBDOCS = \
 	changelog.html \
 	installation.html \
 	todolist.html \
-	makemaps.html \
+	makemaps.html
 
 PAGES = \
 	index.html \
@@ -17,7 +17,7 @@ PAGES = \
 	download.html \
 	list.html \
 	maps.html \
-	screenshots.html \
+	screenshots.html
 
 SCREENSHOTS = \
 	roadmap-gpe.jpg \
@@ -45,8 +45,11 @@ SUPPORT = \
 	apt_toc.gif \
 	background2.jpg \
 	roadmap-right.png \
-	navbar.html \
-	sitestandard.css \
+	sitestandard.css
+
+# expanded locally, not installed:
+#	navbar.html \
+#	sitesponsor.html \
 
 
 SITESOURCE = $(SCREENSHOTS) $(APT_WEBDOCS) $(PAGES) $(SUPPORT)
@@ -58,19 +61,27 @@ SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
 install: all $(SITESOURCE_COPIED)
 
 OUR_SITE_REFERENCE = roadmap.digitalomaha.net
-OUR_SITE_ACCESS = roadmap.digitalomaha.net
+OUR_SITE_ACCESS = roadmap.digitalomaha.net:public_html/new
+#OUR_SITE_REFERENCE = roadmap.sourceforge.net
+#OUR_SITE_ACCESS = roadmap.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
+#OUR_SITE_REFERENCE = www.foxharp.boston.ma.us/tmp/nroadmap
+#OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
 
 # copy the html, and touch a local flag file.  before copying,
-# locally expand our SSI #include directive.  the removes the
+# locally expand our SSI #include directive.  this removes the
 # need for SSI on the host site (which may require .shtml extension).
 .copied-%.html : %.html
 	sed -e '/include virtual="navbar.html"/r navbar.html' \
-	    -e '/include virtual="navbar.html"/d' $< >foo.html && \
-	scp foo.html $(OUR_SITE_ACCESS):public_html/new/$<
+	    -e '/include virtual="navbar.html"/d' \
+	    -e '/INCLUDE_SITE_SPONSOR_HERE/r sitelogo.html' \
+	    -e '/INCLUDE_SITE_SPONSOR_HERE/d' \
+	    $< >foo.html && \
+	scp foo.html $(OUR_SITE_ACCESS)/$<
+	rm -f foo.html
 	touch $@
 
 .copied-% : %
-	scp $< $(OUR_SITE_ACCESS):public_html/new/$<
+	scp $< $(OUR_SITE_ACCESS)/$<
 	touch $@
 
 roadmap-right.png: ../src/icons/roadmap-right.png
