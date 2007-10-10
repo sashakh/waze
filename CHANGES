@@ -75,7 +75,12 @@ Roadmap v1.1.0 (October, 2007)
   * Makefiles rewritten for better modularity and readability.  Rules
   for tarball creation incorporated into makefiles.
 
-  * rdmgenmaps is now easier to use -- can now specify a state name.
+  * rdmgenmaps is now easier to use -- can now specify a state name.  Also,
+  all of the rdmgenxxxxx scripts now take a more uniform set of options, and
+  they all have proper usage messages.
+
+  * buildus got a new "-c" option, which tells it to look for maps
+  along the configured Map.Path preferences item. 
 
   * Can now replay NMEA data from a file (produced, for example, by gpsbabel)
 
