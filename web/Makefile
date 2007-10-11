@@ -73,7 +73,7 @@ OUR_SITE_ACCESS = roadmap.digitalomaha.net:public_html/new
 .copied-%.html : %.html
 	sed -e '/include virtual="navbar.html"/r navbar.html' \
 	    -e '/include virtual="navbar.html"/d' \
-	    -e '/INCLUDE_SITE_SPONSOR_HERE/r sitelogo.html' \
+	    -e '/INCLUDE_SITE_SPONSOR_HERE/r sitesponsor.html' \
 	    -e '/INCLUDE_SITE_SPONSOR_HERE/d' \
 	    $< >foo.html && \
 	scp foo.html $(OUR_SITE_ACCESS)/$<
