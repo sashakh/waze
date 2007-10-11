@@ -96,18 +96,23 @@ INSTALLATION
    * GPS and gpsd
 
    RoadMap communicates with a GPS receiver using the NMEA 0183 protocol.
-   RoadMap has been tested with a Garmin 38. The GPS receiver must be
+   RoadMap has been tested with a Garmin 38.  The GPS receiver must be
    configured with the datum set to either NAD83 or WGS 84.
 
-   RoadMap usually communicates with the GPS receiver through gpsd, a GPS
-   communication daemon for UNIX. Therefore gpsd is required for RoadMap
-   to take advantage of a GPS receiver. However gpsd is not required when
-   building RoadMap, and RoadMap can run without gpsd as a static map viewer
-   or address finder. In addition, gpsd may run on a remote computer
-   accessible through a TCP/IP network: in this case gpsd must be installed
-   on the remote computer, but is not needed on the local computer. A
-   typical setup is to have gpsd on the same computer, in which case
-   the GPS source should be set as "gpsd://localhost".
+   RoadMap can connect directly to the GPS receiver using a serial port (or an
+   emulated serial port in the case of USB receivers), but RoadMap usually
+   communicates with the GPS receiver through gpsd, a GPS communication daemon
+   for UNIX.  Going through the intermediate daemon insulates RoadMap from
+   some of the GPS configuration, and lets more than one program (namely
+   RoadMap and RoadGps) use the GPS device at once.  It also allows RoadMap to
+   use a GPS device which is connected to a different computer.  The most
+   typical setup is to have gpsd on the same computer, in which case the GPS
+   source should be set as "gpsd://localhost".
+
+	{{http://gpsd.berlios.de}}
+
+   gpsd is not required when building RoadMap, and RoadMap can run without
+   gpsd as a static map viewer or address finder.  
 
    * Desktop toolkit
 
