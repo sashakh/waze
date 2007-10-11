@@ -106,9 +106,7 @@ void roadmap_message_set (int parameter, const char *format, ...) {
     char    value[256];
     
     if (parameter <= 0) {
-        roadmap_log (ROADMAP_ERROR,
-                     "invalid parameter code %d (value %s)",
-                     parameter, value);
+        roadmap_log (ROADMAP_ERROR, "invalid parameter code %d", parameter);
         return;
     }
     
@@ -136,9 +134,7 @@ char *roadmap_message_get (int parameter) {
 void roadmap_message_unset (int parameter) {
     
     if (parameter <= 0) {
-        roadmap_log (ROADMAP_ERROR,
-                     "invalid parameter code %d",
-                     parameter);
+        roadmap_log (ROADMAP_ERROR, "invalid parameter code %d", parameter);
         return;
     }
     
