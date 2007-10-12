@@ -22,8 +22,8 @@ Desktop and rendering bugs:
 
  * Freeway rendering error:
 
-   It happened once that a freeway was showing up without its normal
-   shape. This cannot be reproduced consistently, through.
+   It happened once that a freeway was showing up without its normal shape. 
+   This cannot be reproduced consistently, through.
 
  * QT3,QT4 - no display periodic running
 
@@ -43,11 +43,21 @@ Desktop and rendering bugs:
  * WinCE,Win32 - Executables built with the arm-wince-mingw32ce
    cross-compiler don't run.
    
-   It would be great if someone could finish that work.  And
-   win32 hasn't even been attempted in cross-compilation.  Using
-   a cross-compiler has big advantages for the principal
-   developers, so please don't just toss that notion aside
-   without some discussion.
+   It would be great if someone could finish that work.  And win32 hasn't even
+   been attempted in cross-compilation.  Using a cross-compiler has big
+   advantages for the principal developers, so please don't just toss that
+   notion aside without some discussion.
+
+ * GTK/GTK2 - Deprecated interfaces in use.
+
+   Both flavors of GTK build make fairly heavy use of deprecated API pieces. 
+   Someone with good GTK skills should clean these up.
+
+ * Edge cases.
+ 
+   If you get too close to either the north or south pole, RoadMap will
+   get confused, and may crash.  If you go past the 180th meridian, in either
+   direction, RoadMap may or may not get confused, but you probably will.
    
 Map building bugs:
 
