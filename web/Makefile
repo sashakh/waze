@@ -60,12 +60,10 @@ all: webdoc
 SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
 install: all $(SITESOURCE_COPIED)
 
-OUR_SITE_REFERENCE = roadmap.digitalomaha.net
-OUR_SITE_ACCESS = roadmap.digitalomaha.net:public_html/new
-#OUR_SITE_REFERENCE = roadmap.sourceforge.net
-#OUR_SITE_ACCESS = roadmap.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
-#OUR_SITE_REFERENCE = www.foxharp.boston.ma.us/tmp/nroadmap
-#OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
+#OUR_SITE_REFERENCE = roadmap.digitalomaha.net
+#OUR_SITE_ACCESS = roadmap.digitalomaha.net:public_html/new
+OUR_SITE_REFERENCE = roadmap.sourceforge.net
+OUR_SITE_ACCESS = roadmap.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
 
 # copy the html, and touch a local flag file.  before copying,
 # locally expand our SSI #include directive.  this removes the
