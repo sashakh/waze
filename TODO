@@ -58,7 +58,8 @@
 
         * course (bearing), altitude
 
-        * elapsed, and projected "trip time"
+        * elapsed, and projected "trip time".  moving time, idle
+          (stopped) time.
 
         * distance traveled since program start
 
@@ -69,6 +70,11 @@
       
       In addition message signs that are too long should wrap, rather than
       truncate.
+
+      Much of this information could be put into a canned trip statistics
+      screen, so it could all be made visible at once.  (Could such a screen
+      be constructed from the roadmap_display() basics?  Would need to
+      be able to create better-formatted output -- newlines, columns, etc.)
 
    *  Add voice output for trip navigation.
    
