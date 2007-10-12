@@ -478,7 +478,7 @@ INSTALLATION
    The full RoadMap directory file (usdir.rdm) must be downloaded
    first, as RoadMap will not work without it.
 
-         * {{http://roadmap.digitalomaha.net/maps/usdir.rdm.gz}}
+         * {{http://roadmap.digitalomaha.net/maps/usdir.rdm.tar.gz}}
 
    Please refrain from downloading all the US states at once, as the map
    files are huge and the bandwidth is expensive.
