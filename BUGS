@@ -16,19 +16,16 @@ Desktop and rendering bugs:
    (gtkroadmap:3487): WARNING **: Invalid UTF8 string passed to
         pango_layout_set_text()
 
- * Long lines are sometimes incorrectly display.  The symptom is that
-   all of a sudden a long straight line that you know isn't really present
-   will appear from edge to edge of your screen.
-
- * Freeway rendering error:
-
-   It happened once that a freeway was showing up without its normal shape. 
-   This cannot be reproduced consistently, through.
+ * Long lines are sometimes incorrectly displayed
+ 
+   The symptom is that all of a sudden a long straight line that you know
+   isn't really present will appear from edge to edge of your screen.
 
  * QT3,QT4 - no display periodic running
 
-   Periodics seem to be attached to windows (?), the new periodic started in
-   roadmap_display_initialize() doesn't commence.
+   Periodics seem to be attached to windows (?), so the new periodic started
+   in roadmap_display_initialize() doesn't commence since there's no window
+   yet.
 
  * QT3,QT4 - no signal handling
 
@@ -60,11 +57,6 @@ Desktop and rendering bugs:
    direction, RoadMap may or may not get confused, but you probably will.
    
 Map building bugs:
-
- * The buildus tool does not use the regular map path:
-
-   The buildus tool does not use the map path: it assumes all the map
-   files are in the same directory.
 
  * Shape point are ignored when drawing polygons:
 
