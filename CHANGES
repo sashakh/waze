@@ -44,7 +44,8 @@ Roadmap v1.1.0 (October, 2007)
   which are also not displayed "by square". (*)
 
   * Support for Canadian RNF maps added.
-  Support for US State boundary maps added.
+  
+  * Support for US State boundary maps added.
 
   * AGG support.  GTK2 can now display using anti-aliased lines. (*)
 
