@@ -42,11 +42,25 @@ a.navitem:visited { text-decoration: none }
 a.navitem:active { text-decoration: none }
 
 .navitem {
-
   display:        block;         /* forces line breaks between items       */
   margin-bottom:  0px;
   padding:        0px;
   font-size:      14.0pt; 
+  font-family:    Times;
+  text-align:     left;
+}
+
+a.navitem2:link { text-decoration: none }
+a.navitem2:visited { text-decoration: none }
+a.navitem2:active { text-decoration: none }
+
+.navitem2
+{
+  display:        block;         /* forces line breaks between items       */
+  margin-bottom:  0px;
+  margin-left:    15px;
+  padding:        0px;
+  font-size:      10.0pt; 
   font-family:    Times;
   text-align:     left;
 }

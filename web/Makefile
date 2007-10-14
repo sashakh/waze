@@ -60,8 +60,8 @@ all: webdoc
 SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
 install: all $(SITESOURCE_COPIED)
 
-#OUR_SITE_REFERENCE = roadmap.digitalomaha.net
-#OUR_SITE_ACCESS = roadmap.digitalomaha.net:public_html/new
+#OUR_SITE_REFERENCE = www.foxharp.boston.ma.us/tmp/nroadmap
+#OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
 OUR_SITE_REFERENCE = roadmap.sourceforge.net
 OUR_SITE_ACCESS = roadmap.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
 
@@ -134,3 +134,7 @@ $(APT_WEBDOCS):
 clean: clean-webdoc
 	rm -f .copied-*
 
+
+clean-html:
+	rm -f .copied-*.html
+	rm -f .copied-*.css
