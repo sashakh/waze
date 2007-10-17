@@ -68,6 +68,8 @@ static char *BuildMapClass   = "default/All";
 
 static char *BuildMapResult;
 
+int BuildMapNoLongLines;
+
 static struct poptOption BuildMapTigerOptions [] = {
 
    {"format", 'f',
@@ -86,6 +88,10 @@ static struct poptOption BuildMapDataOptions [] = {
    {"class", 'c',
       POPT_ARG_STRING, &BuildMapClass, 0,
       "The class file to create the map for", NULL},
+
+   {"nolonglines", 'n',
+      POPT_ARG_NONE, &BuildMapNoLongLines, 0,
+      "Suppress building of 'long line' lists (inter-square lines)", NULL},
 
    POPT_TABLEEND
 };

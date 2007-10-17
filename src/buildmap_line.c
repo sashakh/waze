@@ -65,6 +65,9 @@ typedef struct {
 } BuildMapLine;
 
 
+// FIXME -- globals are bad.  
+extern int BuildMapNoLongLines;
+
 static int LineCount = 0;
 static int LineCrossingCount = 0;
 static BuildMapLine *Line[BUILDMAP_BLOCK] = {NULL};
@@ -232,6 +235,8 @@ void buildmap_line_test_long (int sorted_line, int longitude, int latitude) {
    RoadMapLongLine *this_long_line;
    int from;
    int to;
+
+   if ( BuildMapNoLongLines ) return;
 
    buildmap_line_get_points_sorted (sorted_line, &from, &to);
 
@@ -482,8 +487,10 @@ void buildmap_line_sort (void) {
       if (to_square != from_square) {
          SortedLine2[j++] = i;
       }
-      if (!buildmap_square_is_adjacent (from_square, to_square))
-         buildmap_line_new_long(i);
+      if ( ! BuildMapNoLongLines) {
+	 if (!buildmap_square_is_adjacent (from_square, to_square))
+             buildmap_line_new_long(i);
+      }
    }
    if (j != LineCrossingCount) {
       buildmap_fatal (0, "non matching crossing count");

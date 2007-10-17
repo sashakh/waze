@@ -53,9 +53,9 @@ for i in $*
 do
   base=`basename $i`
   FIPS=`expr substr $base 1 5`
-  echo $BUILDMAP -f DCW -m $maps $verbose $FIPS $i
+  echo $BUILDMAP -f DCW -n -m $maps $verbose $FIPS $i
   if [ $DRYRUN != 'Y' ] ; then
-    $BUILDMAP -f DCW -m $maps $verbose $FIPS $i
+    $BUILDMAP -f DCW -n -m $maps $verbose $FIPS $i
   fi
 done
 
