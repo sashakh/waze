@@ -44,7 +44,7 @@ New Release 1.1.0
 Two Branches
 
     In that same two-year time period, another branch of the project
-    managed by Ehud Shabtai (hosted in CVS as "roadmap-editor") has
+    managed by Ehud Shabtai (hosted in CVS as "roadmap_editor") has
     added the ability to create and edit maps, and to upload the
     results to a central postgres database.  Since the maps as
     created can contain the meta-data needed for successful
