@@ -172,19 +172,19 @@ INSTALLING ROADMAP
    is to follow standard UNIX convention and make it easier to store other
    types of data in the device (such as MP3 files).
 
-   The file system used for the device is indifferent (RoadMap maps complies
+   The file system used for the device is indifferent (RoadMap maps comply
    with the 8+3 limitation of the FAT file system) but VFAT is recommended
-   (if only because this is the factory default file system..).
+   (if only because this is the factory default file system).
 
    The map files can be retrieved from the RoadMap site:
 
-       * {{http://roadmap.digitalomaha.net}}
+       * {{http://roadmap.sourceforge.net}}
 
    The first file to install in the share/roadmap subdirectory is the file
    named "usdir.rdm". This file is mandatory: this is the index used to
    retrieve all other map files. All other files are optional: one can load
    a limited subset of maps only. If a map is not available, RoadMap will
-   issue a warning message on the screen.
+   issue a warning message.
 
 
 * Setting the user preferences
