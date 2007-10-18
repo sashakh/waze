@@ -47,6 +47,10 @@ Roadmap v1.1.0 (October, 2007)
   
   * Support for US State boundary maps added.
 
+  * Paths in preferences (e.g. Map.Path) can now specify directories
+  ending in "/...", to indicate that tall subdirectories should be
+  searched as well.
+
   * AGG support.  GTK2 can now display using anti-aliased lines. (*)
 
   * Long and right clicks can now bring up a configurable popup menu.

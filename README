@@ -246,6 +246,49 @@ INSTALLATION
   is to let the users choose the type of hardware storage that is convenient
   for them.
 
+  Directory pathnames in most RoadMap path lists (on UNIX -- these are not yet
+  implemented in the Windows code) can include several "shortcut" characters:
+
+    * If a path begins with '~', then the rest of the path is relative
+	to the users home directory (i.e, $HOME).  This is similar to
+	the behavior of many UNIX shell programs.
+
+    * If a path begins with '&', then the rest of the path is relative
+      to the RoadMap "user" directory, which is $HOME/.roadmap.
+
+    * If a list of pathnames includes a path ending with "/..." then that
+      path, plus the entire sub-tree of (unhidden) directories beneath it
+      are added to the list of pathnames.  So if Map.Path is set with:
+
+---
+      Map.Path: /etc/roadmap,&/maps/...
+---
+
+      and ~/.roadmap/maps/moremaps/foo and ~/.roadmap/maps/.secret/bar are
+      both actual directories, then the final list of paths used when
+      looking for maps will be:
+
+	* /etc/roadmap
+	
+	* $HOME/.roadmap/maps
+
+	* $HOME/.roadmap/maps/moremaps
+
+	* $HOME/.roadmap/maps/moremaps/foo
+
+      /etc/roadmap will not be searched for subdirectories, because it was
+      not specified with a trailing "/...", and nothing below
+      ~/.roadmap/maps/.secret will be searched, because ".secret" is "hidden"
+      in the traditional UNIX sense.  The subdirectory search will follow
+      symlinks.
+
+      This feature can be used, for instance, to help keep maps of a single
+      region together, by letting them be more easily put into separate
+      directories.  If a subdirectory may come and go while RoadMap is
+      running, e.g. if it's on removeable media, then it should be named
+      specifically in the preferences -- list of subdirectories is only
+      enumerated at startup.
+
 ** EXECUTABLE FILES
 
   The RoadMap programs should be installed in a standard executable directory.
@@ -406,50 +449,37 @@ INSTALLATION
   By default, RoadMap is built to search for the following directories on most
   UNIX systems:
   
-         * ~/.roadmap/maps,   (also known as "&/maps")
+         * ~/.roadmap/maps/... (a.k.a. "&/maps") and its subdirectories,
 
          * ROADMAP_MAP_DIR, chosen at compile time,
 
-         * /var/lib/roadmap (preferred path) and
+         * /var/lib/roadmap/... (preferred path) and its subdirectories, and
 
-         * /usr/lib/roadmap
+         * /usr/lib/roadmap/... and its subdirectories.
 
-  (RoadMap also searches in /usr/local/share/roadmap and /usr/share/roadmap,
+  (Note that releases prior to 1.1.0 did not search subdirectories.)
+
+  RoadMap also searches in /usr/local/share/roadmap and /usr/share/roadmap,
   but this is in violation of the FHS filesystem standard, since these maps
-  are not architecture-independent).
+  are not architecture-independent.
 
   The Zaurus is a special case again, as the default path on these systems is: 
 
          * ROADMAP_MAP_DIR, chosen at compile time,
 
-         * /opt/QtPalmtop/share/roadmap,
+         * /opt/QtPalmtop/share/roadmap/..., and its subdirectories,
 
-         * /mnt/cf/QtPalmtop/share/roadmap (preferred path) and
+         * /mnt/cf/QtPalmtop/share/roadmap/... (preferred path) and
+	   its subdirectories, and
 
-         * /mnt/card/QtPalmtop/share/roadmap
+         * /mnt/card/QtPalmtop/share/roadmap/... and its subdirectories.
          
-  (Note that the two last directories are located on a memory card, as this
-  would be the only reasonable place where to install the maps considering
-  their size.)
+  The two last directories are located on a memory card, as this would be the
+  only reasonable place where to install the maps considering their size.
 
-  The Linux/familiar package is also an exception, for the same reasons
-  as the Zaurus (i.e. using memory cards):
-
-         * ~/.roadmap/maps,
-
-         * ROADMAP_MAP_DIR, chosen at compile time,
-
-         * /usr/share/roadmap,
-
-         * /var/lib/roadmap,
-
-         * /mnt/hda/share/roadmap and
-
-         * /mnt/card/share/roadmap
-
-  Note that the architecture-dependent nature of the map files is not an
-  issue with a PDA, as these machines tend to be used standalone and not
-  to rely on network access.
+  The architecture-dependent nature of the map files is not an issue with a
+  PDA, as these machines tend to be used standalone and not to rely on network
+  access.
 
   On Windows CE the default map search path is:
 

@@ -35,12 +35,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <ftw.h>
 
 #include "roadmap.h"
 #include "roadmap_file.h"
 #include "roadmap_path.h"
 #include "roadmap_scan.h"
 #include "roadmap_config.h"
+#include "roadmap_list.h"
 
 static RoadMapConfigDescriptor RoadMapConfigPathTrips =
                         ROADMAP_CONFIG_ITEM("General", "TripsPath");
@@ -56,9 +58,14 @@ struct RoadMapPathRecord {
 
    char  *name;
    int    count;
-   char **items;
+   RoadMapList itemlist;
    char  *preferred;
 };
+
+typedef struct {
+   RoadMapListItem link;
+   char *path;
+} RoadMapPathItem ;
 
 static RoadMapPathList RoadMapPaths = NULL;
 
@@ -113,20 +120,20 @@ static const char *RoadMapPathMaps[] = {
 #endif
 #ifdef QWS
    /* This is for the Sharp Zaurus PDA.. */
-   "/opt/QtPalmtop/share/roadmap",
-   "/mnt/cf/QtPalmtop/share/roadmap",
-   "/mnt/card/QtPalmtop/share/roadmap",
+   "/opt/QtPalmtop/share/roadmap/...",
+   "/mnt/cf/QtPalmtop/share/roadmap/...",
+   "/mnt/card/QtPalmtop/share/roadmap/...",
 #else
    /* This is for standard Unix configurations. */
-   "&/maps",
-   "/var/lib/roadmap",
-   "/usr/lib/roadmap",
+   "&/maps/...",
+   "/var/lib/roadmap/...",
+   "/usr/lib/roadmap/...",
 
    /* These paths are not really compliant with the FHS, but we
     * keep them for compatibility with older versions of RoadMap.
     */
-   "/usr/local/share/roadmap",
-   "/usr/share/roadmap",
+   "/usr/local/share/roadmap/...",
+   "/usr/share/roadmap/...",
 #endif
    NULL
 };
@@ -154,34 +161,28 @@ static const char *RoadMapPathIcons[] = {
 
 
 static char *roadmap_path_expand (const char *item, size_t length);
+static void roadmap_path_addlist(RoadMapList *list, char *path);
 
 static void roadmap_path_list_create(const char *name,
                                      const char *items[],
                                      const char *preferred) {
 
 
-   size_t i;
-   size_t count;
    RoadMapPathList new_path;
-
-   for (count = 0; items && items[count] != NULL; ++count) ;
+   char *p;
 
    new_path = malloc (sizeof(struct RoadMapPathRecord));
    roadmap_check_allocated(new_path);
 
    new_path->next  = RoadMapPaths;
    new_path->name  = strdup(name);
-   new_path->count = (int)count;
-   new_path->items = NULL;
+   ROADMAP_LIST_INIT(&new_path->itemlist);
    new_path->preferred = NULL;
 
-   if (count) {
-      new_path->items = calloc (count, sizeof(char *));
-      roadmap_check_allocated(new_path->items);
-
-      for (i = 0; i < count; ++i) {
-         new_path->items[i] = roadmap_path_expand (items[i], strlen(items[i]));
-      }
+   while (items && *items) {
+      p = roadmap_path_expand (*items, strlen(*items));
+      roadmap_path_addlist(&new_path->itemlist, p);
+      items++;
    }
    if (preferred) {
       new_path->preferred = roadmap_path_expand (preferred, strlen(preferred));
@@ -362,12 +363,56 @@ static char *roadmap_path_expand (const char *item, size_t length) {
 
 /* Path lists operations. -------------------------------------------------- */
 
+/* bah.  globals.  too bad ftw() doesn't take a "void *cookie" argument */
+static RoadMapList *RoadMapPathFTWDirList;
+static int RoadMapPathFTWPathLen;
+
+static int roadmap_path_ftw_cb
+        (const char *path, const struct stat *sb, int flag) {
+
+   const char *p = path;
+   RoadMapPathItem *pathitem;
+
+   if (flag != FTW_D) return 0;
+
+   /* skip hidden dirs, but only those deeper than where we started */
+   while ((p = strstr(p, "/.")) != NULL) {
+      if (p - path >= RoadMapPathFTWPathLen) return 0;
+      p++;
+   }
+
+   pathitem = malloc(sizeof(RoadMapPathItem));
+   roadmap_check_allocated(pathitem);
+   pathitem->path = strdup(path);
+   roadmap_list_append(RoadMapPathFTWDirList, &pathitem->link);
+
+   return 0;
+}
+
+static void roadmap_path_addlist(RoadMapList *list, char *path) {
+   int len;
+   len = strlen(path);
+   if (len > 4 && strcmp(&path[len-4], "/...") == 0) {
+      path[len-4] = '\0';
+      RoadMapPathFTWDirList = list;
+      RoadMapPathFTWPathLen = len - 4;
+      ftw(path, roadmap_path_ftw_cb, 30);
+      free(path);
+   } else {
+      RoadMapPathItem *pathitem;
+      pathitem = malloc(sizeof(RoadMapPathItem));
+      roadmap_check_allocated(pathitem);
+
+      pathitem->path = path;
+      roadmap_list_append(list, &pathitem->link);
+   }
+}
+
 void roadmap_path_set (const char *name, const char *path) {
 
-   int i;
-   size_t count;
    const char *item;
    const char *next_item;
+   RoadMapListItem *elem, *tmp;
 
    RoadMapPathList path_list = roadmap_path_find (name);
 
@@ -380,84 +425,65 @@ void roadmap_path_set (const char *name, const char *path) {
    if (*path == 0) return; /* Ignore empty path: current is better. */
 
 
-   if (path_list->items != NULL) {
-
-      /* This replaces a path that was already set. */
-
-      for (i = path_list->count-1; i >= 0; --i) {
-         free (path_list->items[i]);
-      }
-      free (path_list->items);
+   /* free any current contents */
+   ROADMAP_LIST_FOR_EACH(&path_list->itemlist, elem, tmp) {
+      free (((RoadMapPathItem *)elem)->path);
+      free (roadmap_list_remove(elem));
    }
-
-
-   /* Count the number of items in this path string. */
-
-   count = 0;
-   item = path;
-   while (item != NULL) {
-      item = strchr(item, ',');
-      if (item) {
-         item++;
-         if (!*item) item = NULL;
-      }
-      count += 1;
-   }
-
-   path_list->items = calloc (count, sizeof(char *));
-   roadmap_check_allocated(path_list->items);
-
 
    /* Extract and expand each item of the path.
     */
-   for (i = 0, item = path; item != NULL; item = next_item) {
+   for (
+    item = path; item != NULL; item = next_item) {
 
+      char *p;
       next_item = strchr (item, ',');
 
       if (next_item == NULL) {
-         path_list->items[i] = roadmap_path_expand (item, strlen(item));
+         p = roadmap_path_expand (item, strlen(item));
       } else {
-         path_list->items[i] =
-            roadmap_path_expand (item, (size_t)(next_item - item));
+         p = roadmap_path_expand (item, (size_t)(next_item - item));
       }
 
-      ++i;
+      roadmap_path_addlist(&path_list->itemlist, p);
 
       if (next_item) {
          next_item++;
          if (!*next_item) next_item = NULL;
       }
    }
-   path_list->count = i;
 }
 
 
 const char *roadmap_path_first (const char *name) {
 
    RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathItem *pi;
 
    if (path_list == NULL) {
       roadmap_log (ROADMAP_FATAL, "invalid path set '%s'", name);
    }
 
-   if (path_list->count > 0) {
-      return path_list->items[0];
+   if ( ! ROADMAP_LIST_EMPTY(&path_list->itemlist)) {
+      pi = (RoadMapPathItem *)ROADMAP_LIST_FIRST(&path_list->itemlist);
+      return pi->path;
    }
-
    return NULL;
 }
 
 
 const char *roadmap_path_next  (const char *name, const char *current) {
 
-   int i;
    RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathItem *pi;
+   RoadMapListItem *elem, *tmp;
 
-
-   for (i = 0; i < path_list->count-1; ++i) {
-
-      if (path_list->items[i] == current) {
-         return path_list->items[i+1];
+   ROADMAP_LIST_FOR_EACH(&path_list->itemlist, elem, tmp) {
+      if (((RoadMapPathItem *)elem)->path == current) {
+          if (elem != ROADMAP_LIST_LAST(&path_list->itemlist)) {
+             pi = (RoadMapPathItem *)ROADMAP_LIST_NEXT(elem);
+             return pi->path;
+          }
       }
    }
 
@@ -468,27 +494,35 @@ const char *roadmap_path_next  (const char *name, const char *current) {
 const char *roadmap_path_last (const char *name) {
 
    RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathItem *pi;
 
    if (path_list == NULL) {
       roadmap_log (ROADMAP_FATAL, "invalid path set '%s'", name);
    }
 
-   if (path_list->count > 0) {
-      return path_list->items[path_list->count-1];
+   if ( ! ROADMAP_LIST_EMPTY(&path_list->itemlist)) {
+      pi = (RoadMapPathItem *)ROADMAP_LIST_LAST(&path_list->itemlist);
+      return pi->path;
    }
+
    return NULL;
 }
 
 
 const char *roadmap_path_previous (const char *name, const char *current) {
 
-   int i;
    RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathItem *pi;
+   RoadMapListItem *elem, *tmp;
 
-   for (i = path_list->count-1; i > 0; --i) {
-
-      if (path_list->items[i] == current) {
-         return path_list->items[i-1];
+   ROADMAP_LIST_FOR_EACH(&path_list->itemlist, elem, tmp) {
+      if (((RoadMapPathItem *)elem)->path == current) {
+          if (elem != ROADMAP_LIST_FIRST(&path_list->itemlist)) {
+             pi = (RoadMapPathItem *)ROADMAP_LIST_PREV(elem);
+             return pi->path;
+          } else {
+             return NULL;
+          }
       }
    }
    return NULL;
