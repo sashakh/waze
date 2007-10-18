@@ -24,7 +24,12 @@
  *
  *   See qt_main.h
  */
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "qt_main.h"
+
+static int signalFd[2];
 
 // Implementation of RMapInput class
 RMapInput::RMapInput(int fd1, RoadMapQtInput cb) {
@@ -65,10 +70,6 @@ int  RMapCallback::same(RoadMapCallback cb) {
 // Implementation of RMapMainWindow class
 RMapMainWindow::RMapMainWindow(const char* name, int width, int height) : QMainWindow(0, name) {
    spacePressed = false;
-   for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
-      tm[i] = 0;
-      tcb[i] = 0;
-   }
    setCaption(QString::fromUtf8(name));
    canvas = new RMapCanvas(this);
    setCentralWidget(canvas);
@@ -76,6 +77,12 @@ RMapMainWindow::RMapMainWindow(const char* name, int width, int height) : QMainW
    setToolBarsMovable(FALSE);
    resize(width,height);
    toolBar = 0;
+
+   // setup the signal handling
+   if (::socketpair(AF_UNIX, SOCK_STREAM, 0, signalFd))
+        qFatal("Couldn't create Signal socketpair");
+   snSignal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
+   connect(snSignal, SIGNAL(activated(int)), this, SLOT(handleSignal()));
 }
 
 RMapMainWindow::~RMapMainWindow() {
@@ -290,13 +297,54 @@ void RMapMainWindow::closeEvent(QCloseEvent* ev) {
    ev->accept();
 }
 
-void RMapMainWindow::setTimer(int interval, RoadMapCallback callback) {
+void RMapMainWindow::signalHandler(int sig)
+{
+  ::write(signalFd[0], &sig, sizeof(sig));
+}
+
+void RMapMainWindow::handleSignal()
+{
+  snSignal->setEnabled(false);
+  int tmp;
+  ::read(signalFd[1], &tmp, sizeof(tmp));
+  QString action;
+  switch (tmp) {
+    case SIGTERM: action="SIGTERM"; break;
+    case SIGINT : action="SIGINT"; break;
+    case SIGHUP : action="SIGHUP"; break;
+    case SIGQUIT: action="SIGQUIT"; break;
+  }
+  roadmap_log(ROADMAP_WARNING,"received signal %s",action.latin1());
+  roadmap_main_exit();
+  snSignal->setEnabled(true);
+}
+
+// Implementation of the RMapTimers class
+RMapTimers::RMapTimers (QObject *parent, const char *name)
+  : QObject(parent, name)
+{
+   memset(tm, 0, sizeof(tm));
+   memset(tcb, 0, sizeof(tcb));
+}
+
+RMapTimers::~RMapTimers()
+{
+   for (int i = 0 ; i < ROADMAP_MAX_TIMER; ++i) {
+     if (tm[i] != 0)
+       delete tm[i];
+     if (tcb[i] != 0)
+       delete tcb[i];
+   }
+}
+
+void RMapTimers::addTimer(int interval, RoadMapCallback callback) {
 
    int empty = -1;
 
    for (int i = 0; i < ROADMAP_MAX_TIMER; ++i) {
       if (tm[i] == 0) {
          empty = i;
+         break;
       } else if (tcb[i]->same(callback)) {
          return;
       }
@@ -312,7 +360,7 @@ void RMapMainWindow::setTimer(int interval, RoadMapCallback callback) {
    tm[empty]->start(interval, FALSE);
 }
 
-void RMapMainWindow::removeTimer(RoadMapCallback callback) {
+void RMapTimers::removeTimer(RoadMapCallback callback) {
 
    int found = -1;
 
@@ -333,4 +381,3 @@ void RMapMainWindow::removeTimer(RoadMapCallback callback) {
    tm[found] = 0;
    tcb[found] = 0;
 }
-

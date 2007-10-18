@@ -83,6 +83,22 @@ protected:
    RoadMapCallback callback;
 };
 
+class RMapTimers : public QObject {
+
+Q_OBJECT
+
+public:
+  RMapTimers(QObject *parent = 0, const char *name = 0);
+  ~RMapTimers();
+  void addTimer(int interval, RoadMapCallback cb);
+  void removeTimer(RoadMapCallback cb);
+
+private:
+   QTimer* tm[ROADMAP_MAX_TIMER];
+   RMapCallback* tcb[ROADMAP_MAX_TIMER];
+
+};
+
 class RMapMainWindow : public QMainWindow {
 
 Q_OBJECT
@@ -117,8 +133,13 @@ public:
    void removeInput(int fd);
    void setStatus(const char* text);
 
-   void setTimer(int interval, RoadMapCallback callback);
-   void removeTimer(RoadMapCallback callback);
+   static void signalHandler(int sig);
+
+public slots:
+   void handleSignal();
+
+private:
+   QSocketNotifier *snSignal;
 
 protected:
    RoadMapKeyInput keyCallback;
@@ -126,8 +147,6 @@ protected:
    QToolBar* toolBar;
    RMapCanvas* canvas;
 
-   QTimer* tm[ROADMAP_MAX_TIMER];
-   RMapCallback* tcb[ROADMAP_MAX_TIMER];
    bool spacePressed;
 
    virtual void keyPressEvent(QKeyEvent* event);

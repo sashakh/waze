@@ -27,6 +27,7 @@
 extern "C" {
 
 #include <stdlib.h>
+#include <signal.h>
 
 #include "roadmap.h"
 #include "roadmap_start.h"
@@ -51,7 +52,9 @@ static QPEApplication* app;
 #else
 static QApplication* app;
 #endif
+
 RMapMainWindow* mainWindow;
+RMapTimers* timers;
 
 
 struct roadmap_main_io {
@@ -270,16 +273,16 @@ void roadmap_main_remove_input(RoadMapIO *io) {
 
 void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
 
-   if (mainWindow) {
-      mainWindow->setTimer(interval, callback);
-   }
+   if (timers) {
+      timers->addTimer(interval, callback);
+   } 
 }
 
 
 void roadmap_main_remove_periodic (RoadMapCallback callback) {
 
-   if (mainWindow) {
-      mainWindow->removeTimer(callback);
+   if (timers) {
+      timers->removeTimer(callback);
    }
 }
 
@@ -334,6 +337,27 @@ void roadmap_main_exit(void) {
    exit(0);
 }
 
+static int roadmap_main_signals_init()
+{
+  struct sigaction signala;
+
+  memset(&signala, 0, sizeof (struct sigaction));
+
+  signala.sa_handler = RMapMainWindow::signalHandler;
+  sigemptyset(&signala.sa_mask);
+  signala.sa_flags |= SA_RESTART;
+
+  if (sigaction(SIGHUP, &signala, 0) > 0)
+    return 1;
+  if (sigaction(SIGTERM, &signala, 0) > 0)
+    return 2;
+  if (sigaction(SIGINT, &signala, 0) > 0)
+    return 3;
+  if (sigaction(SIGQUIT, &signala, 0) > 0)
+    return 4;
+  return 0;
+}
+
 int main(int argc, char* argv[]) {
 
    int i;
@@ -350,6 +374,10 @@ int main(int argc, char* argv[]) {
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
       RoadMapMainIo[i].io.os.file = -1;
    }
+
+   timers = new RMapTimers(app,"timersHandler");
+  
+   roadmap_main_signals_init();
 
    roadmap_start(argc, argv);
 
