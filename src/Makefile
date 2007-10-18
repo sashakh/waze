@@ -306,7 +306,8 @@ MKFILES = Makefile config.mk options.mk
 FONT = LiberationSans-Bold.ttf
 
 # the manual is a post-processed version of README.  the conversion tool
-# isn't common, so we distribute both.
+# isn't common, so we distribute both.  (this version is slightly
+# different than that built in the web subdirectory.)
 MANUAL = manual.html
 
 # more products
@@ -434,10 +435,10 @@ installdesktop:
 installicons:
 	$(MAKE) -C icons install
 
-installdoc: manual.html 
-	-cp manual.html $(pkgdatadir)/manual.html
+installdoc: $(MANUAL) 
+	-cp $(MANUAL) $(pkgdatadir)
 
-manual.html: ../README
+$(MANUAL): ../README
 	-aptconvert -pi html showTitle yes -toc -enc ASCII $@ $<
 
 uninstall:
@@ -526,7 +527,7 @@ tarball: $(RELNAME)-src.tar.gz
 # the contents of the tarball are listed explicitly, using the UPPER_SRC
 # variable and the output of "make sourcelist".  an appropriate path
 # prefix is added to make all relative paths correct.
-$(RELNAME)-src.tar.gz: linkdir 
+$(RELNAME)-src.tar.gz: linkdir $(ALL_SRC)
 	@tar --dereference -czvf $(RELNAME)-src.tar.gz \
 	    $(addprefix $(RELNAME)/, $(UPPER_SRC)) \
 	    $(addprefix $(RELNAME)/src/, $(shell \
