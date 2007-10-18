@@ -1,0 +1,86 @@
+
+                               ---------
+                            Project Status
+                               ---------
+		    Paul Fox, current RoadMap maintainer
+                               ---------
+                             October 2007
+
+New Release 1.1.0
+
+    RoadMap finally has a new public release!  It's been nearly two
+    years since 1.0.12 was released.  Though the next release was
+    delayed by developer turnover, and lack of time, there have been
+    a lot of improvements going on -- they just haven't made it into
+    a tarball until now, with the release of 1.1.0.
+
+    Major new developments in 1.1.0 include;
+
+	* The ability to import, export, edit, and follow on-screen
+	  routes, the automatic saving of traversed track data, and
+	  various facilities for storing waypoints, and other landmarks
+	  and points of interest, all in the open GPX format.
+
+	* On-screen labeling of streets and landmarks.
+
+	* Much more flexibility in the user interface, including
+	  fully customizable menus, toolbar, and active on-screen
+	  objects.  The user can configure all of these, or even none: 
+	  an initial command menu can be obtained simply from a
+	  long-click on the screen if so desired, in order to free as
+	  much of the screen for maps as possible.
+
+	* New support for Canadian maps, and for display of state and
+	  provincial boundaries, and railroads.
+
+	* Anti-aliased map drawing, courtesy of the AGG library.
+	
+	* 3D perspective map rendering.
+
+	* A more flexible database format.
+
+    There's more detail in the changelog.
+
+Two Branches
+
+    In that same two-year time period, another branch of the project
+    managed by Ehud Shabtai (hosted in CVS as "roadmap-editor") has
+    added the ability to create and edit maps, and to upload the
+    results to a central postgres database.  Since the maps as
+    created can contain the meta-data needed for successful
+    auto-navigation, that feature has been added to the roadmap_editor
+    branch as well.  The roadmap_editor branch also contains some
+    experimental UI features, better internationalization support,
+    more sound support, and other useful stuff.  This codebase is
+    being used very successfully in the FreeMap Israel project.
+    
+	{{ http://www.freemap.co.il }}
+
+    (Sadly for many of us, google doesn't yet translate Hebrew.)
+
+    Ehud estimates that they have mapped 75% of Israeli roads, all
+    through user contributions.
+
+Future
+
+    But that leaves RoadMap with two codebases, somewhat (but not
+    completely) incompatible with each other at many levels.  (The
+    worst incompatibility right now is that the map databases are of
+    different formats, making it hard to easily switch from one
+    codebase to the other.)  Clearly the long-term ideal would be to
+    merge the two branches, and some progress has been made, on a
+    feature-by-feature basis.  Indeed, many of the features listed
+    above originated on the "editor" branch.  A full merge implies a
+    lot -- probably too much to expect in the short term.  But every
+    feature that gets migrated in one direction or the other is a
+    step in the right direction. 
+
+Help Wanted!
+
+    If you know something about GIS and want to help with the
+    conversion of new map sources, or know a lot about Win32 and want
+    to finish the WinCE or Win32 ports, or are just a good coder who
+    wants better open-source mapping capabilities, please join the
+    list and we'll figure out how you can help!
+
+

@@ -4,6 +4,7 @@
 default: all
 
 APT_WEBDOCS = \
+	status.html \
 	manual.html \
 	buglist.html \
 	changelog.html \
@@ -60,10 +61,15 @@ all: webdoc
 SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
 install: all $(SITESOURCE_COPIED)
 
-#OUR_SITE_REFERENCE = www.foxharp.boston.ma.us/tmp/nroadmap
-#OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
+
+# use 'make SF=1 install' to send to SF
+ifeq ($(strip $(SF)),)
+OUR_SITE_REFERENCE = www.foxharp.boston.ma.us/tmp/nroadmap
+OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
+else
 OUR_SITE_REFERENCE = roadmap.sourceforge.net
 OUR_SITE_ACCESS = roadmap.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
+endif
 
 # copy the html, and touch a local flag file.  before copying,
 # locally expand our SSI #include directive.  this removes the
@@ -111,6 +117,9 @@ changelog.html: ../CHANGES
 
 todolist.html: APT_SOURCE=../TODO
 todolist.html: ../TODO
+
+status.html: APT_SOURCE=../STATUS
+status.html: ../STATUS
 
 installation.html: APT_SOURCE=../INSTALL
 installation.html: ../INSTALL

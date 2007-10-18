@@ -519,7 +519,7 @@ RELNAME = roadmap-$(DOTVERSION)
 
 # source files from "..", i.e. the real top-level.  these go into tarball.
 UPPER_SRC = README \
-    AUTHORS BUGS TODO CHANGES COPYING INSTALL howtos/makemaps.txt 
+    STATUS AUTHORS BUGS TODO CHANGES COPYING INSTALL howtos/makemaps.txt 
 
 tarball: $(RELNAME)-src.tar.gz
 
