@@ -37,12 +37,12 @@ QUICKSTART
 
        This tarball contains state outlines for all of the continental
        USA, plus the detailed map of San Francisco county.  Unpack
-       this file somewhere convenient, e.g. /tmp/roadmap_demo.
+       this file somewhere convenient, e.g. /tmp/demo_maps.
 
      * Start RoadMap, specifying the path that you chose above:
 
 ----
-	roadmap --maps=/tmp/roadmap_demo
+	roadmap --maps=/tmp/demo_maps
 ----
 
        Use the arrow keys (or drag with the mouse) to pan, and use the
