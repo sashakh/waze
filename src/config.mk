@@ -55,14 +55,18 @@ DESKTOP = GTK2
 # this path to the front of that list, causing it to be checked
 # first.  (This search path can be set at runtime via '--config=PATH'.)
 # Note!  If set, this will also be used for the config files
-# during "make install".
+# during "make install".  Most users will not need to set 
+# this value.
 # ROADMAP_CONFIG_DIR = /usr/local/share/roadmap
 
 # Likewise, setting the following path will prefix the built-in
 # list of locations to be searched for maps.  (This search path
 # can be set at runtime by changing the value of Map.Path in the
-# system (or user) "preferences" file.)
-# ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps
+# system (or user's) "preferences" file.)  If this path ends with the
+# special string "/...", then all subdirectories of this directory
+# will be searched for maps as well.  Most users will use Map.Path,
+# and will not need to set this value.
+# ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps/...
 
 # RoadMap uses the "expat" library in order to read and write xml
 # for the GPX format route/track/waypoint files.  If you don't
