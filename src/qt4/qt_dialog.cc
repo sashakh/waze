@@ -343,6 +343,16 @@ void* Entry::getValue() {
          break;
 
       case ListEntry:
+         if (((QListWidget*) widget)->currentRow() == -1) {
+	   /* the current row is unset (well, it's -1) after a
+	    * repopulate of the list, and it will cause
+	    * out-of-range errors if an action is performed
+	    * before another selection is done.  the right
+	    * solution would be to prevent actions when there's
+	    * no selection.
+            */
+            ((QListWidget*) widget)->setCurrentRow(0);
+         }
          ret = items[((QListWidget*) widget)->currentRow()].value;
          break;
 
