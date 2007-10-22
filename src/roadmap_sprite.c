@@ -277,11 +277,14 @@ static void roadmap_sprite_decode_bbox
 static RoadMapSprite roadmap_sprite_new
           (int argc, const char **argv) {
 
+   RoadMapSprite sprite;
+
    if (argc < 2) {
       roadmap_sprite_syntax("Missing sprite name");
       return NULL;
    }
-   RoadMapSprite sprite = calloc(1, sizeof(*sprite));
+
+   sprite = calloc(1, sizeof(*sprite));
    roadmap_check_allocated(sprite);
 
    sprite->name = strdup (argv[1]);
