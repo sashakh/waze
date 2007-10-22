@@ -2194,6 +2194,43 @@ CONFIGURATION
 |                           |  box be overridden.
 *---------------------------+------------------------------------------------+
 
+   The screen objects can display different sprites to indicate the state of
+   various internaly RoadMap runtime states.  These state indicators are
+   referenced by name, and are linked to the screen object via the 'S'
+   descriptor in the "roadmap.screenobjects" file.
+   
+   The possible state indicators are as follows.  Most have just two possible
+   "return values", but some can represent more than two state values.  In
+   addition, any can optionally return an angle which can influence the
+   display of the sprite.
+
+*---------------------------+------------------------------------------------+
+|     get_download_enabled  | Indicates whether the user has enabled
+|                           | map downloads.
+*---------------------------+------------------------------------------------+
+|     get_GPS_reception     | Four possible states, indicating current GPS
+|                           | performace:  N/A, none, poor, and good.
+*---------------------------+------------------------------------------------+
+|     zoom_reset            | Indicates whether zoom is at the default level.
+*---------------------------+------------------------------------------------+
+|     view_mode             | Indicates 2D or 3D map rendering.
+*---------------------------+------------------------------------------------+
+|     get_orientation       | Indicates whether map rotation is fixed or
+|                           | dynamic.  Also returns the current angle of
+|                           | the map relative to north.  (This is what
+|                           | drives the on-screen compass object.)
+*---------------------------+------------------------------------------------+
+|     get_direction_next    | When following a route, indicates the direction
+|                           | to the next waypoint.  This indication is
+|                           | relative to the direction of travel -- i.e., it
+|                           | points correctly if the user holding the display
+|                           | is facing forward in the vehicle.
+*---------------------------+------------------------------------------------+
+|     get_direction_2nd     | As above, but points to the waypoint after the
+|                           | next.
+*---------------------------+------------------------------------------------+
+|     get_direction_dest    | As above, but points to the final destination.
+*---------------------------+------------------------------------------------+
 
 * A NOTE REGARDING COLORS
 
