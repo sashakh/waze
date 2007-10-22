@@ -111,6 +111,16 @@ static RoadMapScreenObj RoadMapScreenObjSelected = NULL;
 static int OffsetX = 0;
 static int OffsetY = 0;
 
+static char *RoadMapScreenObjFile;
+static int RoadMapScreenObjLine;
+
+static void roadmap_screen_obj_syntax ( char *msg ) {
+
+      roadmap_log(ROADMAP_WARNING, "%s, line %d: %s",
+         RoadMapScreenObjFile, RoadMapScreenObjLine, msg);
+
+}
+
 static RoadMapScreenObj roadmap_screen_obj_search (const char *name) {
 
    RoadMapScreenObj cursor;
@@ -127,8 +137,15 @@ static RoadMapScreenObj roadmap_screen_obj_new
           (int argc, const char **argv) {
 
    RoadMapScreenObj object;
-   char *name = strdup (argv[1]);
+   char *name;
    struct RoadMapScreenObjDescriptor *savenext;
+
+   if (argc < 2) {
+      roadmap_screen_obj_syntax ("Missing object name");
+      return NULL;
+   }
+
+   name = strdup (argv[1]);
 
    object = roadmap_screen_obj_search(name);
 
@@ -171,8 +188,7 @@ static void roadmap_screen_obj_decode_icon
    argc -= 1;
 
    if (object->states_count > MAX_STATES) {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' has too many states.",
-                  object->name);
+      roadmap_screen_obj_syntax("Too many state icons");
       return;
    }
 
@@ -184,10 +200,7 @@ static void roadmap_screen_obj_decode_icon
          image = roadmap_res_get (RES_BITMAP, RES_SKIN, argv[i]);
 
          if (image == NULL) {
-            roadmap_log (ROADMAP_ERROR,
-                  "screen object:'%s' can't load image:%s.",
-                  object->name,
-                  argv[i]);
+            roadmap_screen_obj_syntax("Can't load image");
          }
          object->images[object->states_count] = image;
       } else {
@@ -206,15 +219,17 @@ static void roadmap_screen_obj_decode_sprite
 
    int i;
 
-   argc -= 1;
-
-   if (object->states_count > MAX_STATES) {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' has too many states.",
-                  object->name);
+   if (argc < 2) {
+      roadmap_screen_obj_syntax ("Missing sprite name");
       return;
    }
 
-   for (i = 1; i <= argc; ++i) {
+   if (object->states_count > MAX_STATES) {
+      roadmap_screen_obj_syntax ("Too many state sprites defined");
+      return;
+   }
+
+   for (i = 1; i < argc; ++i) {
 
       object->sprites[object->states_count] = strdup (argv[i]);
    }
@@ -229,8 +244,8 @@ static void roadmap_screen_obj_decode_integer (int *value, int argc,
    argc -= 1;
 
    if (argc != 1) {
-      roadmap_log (ROADMAP_ERROR, "screen object: illegal integer value - %s",
-                  argv[0]);
+      roadmap_screen_obj_syntax ("Missing integer value");
+      *value = 0;
       return;
    }
 
@@ -244,8 +259,7 @@ static void roadmap_screen_obj_decode_bbox
 
    argc -= 1;
    if (argc != 4) {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' illegal bbox.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Incorrect bounding box specification");
       return;
    }
 
@@ -289,8 +303,7 @@ static void roadmap_screen_obj_decode_position
 
    argc -= 1;
    if (argc != 2) {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' illegal position.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Illegal position parameters");
       return;
    }
 
@@ -317,17 +330,14 @@ static void roadmap_screen_obj_decode_state
 
    argc -= 1;
    if (argc != 1) {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' illegal state indicator.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Missing state indicator");
       return;
    }
 
    object->state_fn = roadmap_state_find (argv[1]);
 
    if (!object->state_fn) {
-      roadmap_log (ROADMAP_ERROR,
-                  "screen object:'%s' can't find state indicator.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Can't find specified state indicator");
    }
 }
 
@@ -340,8 +350,7 @@ static void roadmap_screen_obj_decode_action
 
    argc -= 1;
    if (argc < 1) {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' illegal action.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Missing action specifier");
       return;
    }
 
@@ -349,8 +358,7 @@ static void roadmap_screen_obj_decode_action
    if (action) {
       object->callback = action->callback;
    } else {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' can't find action.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Can't find specified action");
    }
 
    if (argc == 1) return;
@@ -359,8 +367,7 @@ static void roadmap_screen_obj_decode_action
    if (action) {
       object->long_callback = action->callback;
    } else {
-      roadmap_log (ROADMAP_ERROR, "screen object:'%s' can't find action.",
-                  object->name);
+      roadmap_screen_obj_syntax ("Can't find specified action");
    }
 }
 
@@ -384,7 +391,7 @@ static int roadmap_screen_obj_load (char *line) {
    if (object == NULL) {
 
       if (argv[0][0] != 'N') {
-         roadmap_log (ROADMAP_ERROR, "object name is missing");
+         roadmap_screen_obj_syntax ("No object yet defined");
          return 0;
       }
 
@@ -418,8 +425,7 @@ static int roadmap_screen_obj_load (char *line) {
       roadmap_screen_obj_decode_icon (object, argc, argv);
       break;
 #else
-      roadmap_log
-         (ROADMAP_WARNING, "'screenobjects' file icons not yet supported");
+      roadmap_screen_obj_syntax ("Icons not yet supported");
 #endif
       break;
 
@@ -464,6 +470,10 @@ static int roadmap_screen_obj_load (char *line) {
          roadmap_screen_obj_square_bbox(object);
       }
       object = roadmap_screen_obj_new (argc, argv);
+      break;
+
+   default:
+      roadmap_screen_obj_syntax ("Unknown screen object descriptor");
       break;
    }
 
@@ -710,14 +720,20 @@ static void roadmap_screen_obj_reload (void) {
          } else {
             char  line[1024];
 
+            RoadMapScreenObjFile = roadmap_path_join(cursor, object_name);
+            RoadMapScreenObjLine = 1;
+
             while (!feof(file)) {
 
                if (fgets (line, sizeof(line), file) == NULL) break;
 
                if (roadmap_screen_obj_load (line) == 0) break;
 
+               RoadMapScreenObjLine++;
+
             }
             fclose (file);
+            free(RoadMapScreenObjFile);
          }
       }
    }

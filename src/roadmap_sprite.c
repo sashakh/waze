@@ -31,6 +31,7 @@
 
 #include "roadmap.h"
 #include "roadmap_math.h"
+#include "roadmap_path.h"
 #include "roadmap_file.h"
 #include "roadmap_scan.h"
 #include "roadmap_canvas.h"
@@ -86,11 +87,18 @@ static RoadMapSprite RoadMapSpriteList = NULL;
 
 static struct roadmap_sprite_record *RoadMapSpriteDefault = NULL;
 
-
 int RoadMapSpritePointCount = 0;
 RoadMapGuiPoint *RoadMapSpritePoints = NULL;
 
+static char *RoadMapSpriteFile;
+static int RoadMapSpriteLine;
 
+static void roadmap_sprite_syntax(char *msg) {
+
+      roadmap_log(ROADMAP_WARNING, "%s, line %d: %s",
+         RoadMapSpriteFile, RoadMapSpriteLine, msg);
+
+}
 
 static RoadMapSprite roadmap_sprite_search (const char *name) {
 
@@ -152,9 +160,10 @@ static void roadmap_sprite_decode_point
 
    point->x = atoi(data);
    p = strchr (data, ',');
-   if (p != NULL) {
+   if (p != NULL && *(p+1) != '\0') {
       point->y = atoi(p+1);
    } else {
+      roadmap_sprite_syntax("Missing Y coordinate value");
       point->y = 0;
    }
 }
@@ -177,6 +186,11 @@ static void roadmap_sprite_decode_sequence
    RoadMapGuiPoint *points;
 
    argc -= 1;
+
+   if (argc < 1) {
+      roadmap_sprite_syntax("Missing point coordinates");
+      return;
+   }
 
    sequence->object_count += 1;
    sequence->objects =
@@ -201,18 +215,28 @@ static void roadmap_sprite_decode_sequence
 
 static void roadmap_sprite_decode_circle
                (RoadMapSprite sprite,
-                RoadmapSpriteDrawingSequence *sequence, const char **argv) {
+                RoadmapSpriteDrawingSequence *sequence,
+                int argc, const char **argv) {
 
    RoadMapGuiPoint *center;
    int diam;
 
+   if (argc < 3) {
+      roadmap_sprite_syntax("Missing center point or diameter");
+      return;
+   }
+
+   diam = atoi(argv[2]);
+   if (diam == 0) {
+      roadmap_sprite_syntax("Diameter should be non-zero");
+      return;
+   }
    sequence->object_count += 1;
    sequence->point_count += 1;
    sequence->objects =
        realloc (sequence->objects,
                 sequence->object_count * sizeof(*(sequence->objects)));
 
-   diam = atoi(argv[2]);
    sequence->objects[sequence->object_count-1] = diam;
 
    sequence->points =
@@ -253,6 +277,10 @@ static void roadmap_sprite_decode_bbox
 static RoadMapSprite roadmap_sprite_new
           (int argc, const char **argv) {
 
+   if (argc < 2) {
+      roadmap_sprite_syntax("Missing sprite name");
+      return NULL;
+   }
    RoadMapSprite sprite = calloc(1, sizeof(*sprite));
    roadmap_check_allocated(sprite);
 
@@ -305,22 +333,16 @@ static void roadmap_sprite_alias (RoadMapSprite sprite, const char *arg) {
 
 static int roadmap_sprite_drawing_is_valid (RoadMapSprite sprite) {
 
-   if (sprite == NULL) {
-      roadmap_log (ROADMAP_ERROR, "sprite name is missing");
-      return 0;
-   }
-
    if (sprite->alias_name != NULL) {
-      roadmap_log (ROADMAP_ERROR,
-            "sprite alias %s has drawing directives",
-            sprite->name);
+      roadmap_sprite_syntax
+            ("Sprite alias should have no drawing directives");
       return 0; /* Failed. */
    }
 
    if (sprite->drawing.planes.last == NULL) {
-       roadmap_log (ROADMAP_ERROR,
-                    "first plane of sprite %s is missing", sprite->name);
-       return 0;
+      roadmap_sprite_syntax
+            ( "First plane of sprite is missing");
+      return 0;
    }
 
    return 1;
@@ -345,7 +367,7 @@ static int roadmap_sprite_load_text (char *line) {
    if (sprite == NULL) {
 
       if (argv[0][0] != 'S') {
-         roadmap_log (ROADMAP_ERROR, "sprite name is missing");
+         roadmap_sprite_syntax ("No sprite yet defined");
          return 0;
       }
 
@@ -355,15 +377,17 @@ static int roadmap_sprite_load_text (char *line) {
 
    case 'A':
 
+      if (argc < 2) {
+         roadmap_sprite_syntax("Missing sprite alias name");
+         break;
+      }
       if (sprite->alias_name != NULL) {
-         roadmap_log (ROADMAP_ERROR,
-                      "repeated alias for sprite %s", sprite->name);
+         roadmap_sprite_syntax ("Repeated alias for sprite");
          break;
       }
       if (sprite->drawing.planes.last != NULL) {
-         roadmap_log (ROADMAP_ERROR,
-                      "sprite alias %s has drawing directives",
-                      sprite->name);
+         roadmap_sprite_syntax
+            ("Sprite alias should have no drawing directives");
          break;
       }
       roadmap_sprite_alias (sprite, argv[1]);
@@ -372,9 +396,12 @@ static int roadmap_sprite_load_text (char *line) {
    case 'F':
 
       if (sprite->alias_name != NULL) {
-         roadmap_log (ROADMAP_ERROR,
-                      "sprite alias %s has drawing directives",
-                      sprite->name);
+         roadmap_sprite_syntax
+            ("Sprite alias should have no drawing directives");
+         break;
+      }
+      if (argc < 3) {
+         roadmap_sprite_syntax("Missing color or thickness");
          break;
       }
       roadmap_sprite_decode_plane (sprite, argv[1], argv[2]);
@@ -400,7 +427,7 @@ static int roadmap_sprite_load_text (char *line) {
 
       if (roadmap_sprite_drawing_is_valid (sprite)) {
          roadmap_sprite_decode_circle
-            (sprite, &(sprite->drawing.planes.last->disks), argv);
+            (sprite, &(sprite->drawing.planes.last->disks), argc, argv);
       }
       break;
 
@@ -408,7 +435,7 @@ static int roadmap_sprite_load_text (char *line) {
 
       if (roadmap_sprite_drawing_is_valid (sprite)) {
          roadmap_sprite_decode_circle
-            (sprite, &(sprite->drawing.planes.last->circles), argv);
+            (sprite, &(sprite->drawing.planes.last->circles), argc, argv);
       }
       break;
 
@@ -424,6 +451,9 @@ static int roadmap_sprite_load_text (char *line) {
       sprite = roadmap_sprite_new (argc, argv);
       break;
       
+   default:
+      roadmap_sprite_syntax("Unknown sprite descriptor");
+      break;
    }
 
    return 1;
@@ -441,15 +471,21 @@ static void roadmap_sprite_load_file (const char *path) {
    } else {
       char  line[1024];
 
+      RoadMapSpriteFile = roadmap_path_join(path, "sprites");
+      RoadMapSpriteLine = 1;
+
       while (!feof(file)) {
 
          if (fgets (line, sizeof(line), file) == NULL) break;
 
          if (roadmap_sprite_load_text (line) == 0) break;
 
+         RoadMapSpriteLine++;
       }
 
       fclose (file);
+
+      free (RoadMapSpriteFile);
    }
 }
 
