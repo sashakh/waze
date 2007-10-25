@@ -36,6 +36,7 @@
 
 #include <time.h>
 
+#include "roadmap_types.h"
 #include "roadmap_string.h"
 
 
@@ -46,6 +47,9 @@
 #define ROADMAP_NMEA_QUALITY_DGPS      2
 #define ROADMAP_NMEA_QUALITY_PPS       3
 #define ROADMAP_NMEA_QUALITY_OTHER     4
+
+#define ROADMAP_PXRMPLG_MAX_COUNT    16
+
 
 typedef union {
 
@@ -122,11 +126,32 @@ typedef union {
 
    struct {
       RoadMapDynamicString id;
+      RoadMapDynamicString name;
+      RoadMapDynamicString color;
+      int                  count;
+      RoadMapPosition      edge[ROADMAP_PXRMPLG_MAX_COUNT];
+   } pxrmplg;
+
+   struct {
+      RoadMapDynamicString id;
+      RoadMapDynamicString name;
+      RoadMapDynamicString color;
+      RoadMapPosition      center;
+      int                  radius;
+   } pxrmcir;
+
+   struct {
+      RoadMapDynamicString id;
       int  latitude;
       int  longitude;
       int  speed;
       int  steering;
    } pxrmmov;
+
+   struct {
+      RoadMapDynamicString id;
+      RoadMapDynamicString color;
+   } pxrmclr;
 
    struct {
       RoadMapDynamicString id;

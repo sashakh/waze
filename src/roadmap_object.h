@@ -51,28 +51,64 @@
 #ifndef INCLUDE__ROADMAP_OBJECT__H
 #define INCLUDE__ROADMAP_OBJECT__H
 
+#include "roadmap_canvas.h"
 #include "roadmap_string.h"
 #include "roadmap_gps.h"
 
 
-void roadmap_object_add (RoadMapDynamicString origin,
-                         RoadMapDynamicString id,
-                         RoadMapDynamicString name,
-                         RoadMapDynamicString sprite);
+void roadmap_object_add_sprite (RoadMapDynamicString origin,
+                                RoadMapDynamicString id,
+                                RoadMapDynamicString name,
+                                RoadMapDynamicString sprite,
+                                RoadMapDynamicString color);
+
+void roadmap_object_add_polygon (RoadMapDynamicString  origin,
+                                 RoadMapDynamicString  id,
+                                 RoadMapDynamicString  name,
+                                 RoadMapDynamicString  color,
+				 int                   count,
+				 const RoadMapPosition edge[]);
+
+void roadmap_object_add_circle (RoadMapDynamicString   origin,
+                                RoadMapDynamicString   id,
+                                RoadMapDynamicString   name,
+                                RoadMapDynamicString   color,
+				const RoadMapPosition *center,
+				int                    radius);
 
 void roadmap_object_move (RoadMapDynamicString id,
                           const RoadMapGpsPosition *position);
+
+void roadmap_object_color (RoadMapDynamicString id, RoadMapDynamicString color);
 
 void roadmap_object_remove (RoadMapDynamicString id);
 
 void roadmap_object_cleanup (RoadMapDynamicString origin);
 
 
-typedef void (*RoadMapObjectAction) (const char *name,
-                                     const char *sprite,
+typedef void (*RoadMapSpriteAction) (const char               *name,
+                                     const char               *sprite,
+                                     RoadMapPen                pen,
                                      const RoadMapGpsPosition *gps_position);
 
-void roadmap_object_iterate (RoadMapObjectAction action);
+void roadmap_object_iterate_sprite (RoadMapSpriteAction action);
+
+
+typedef void (*RoadMapPolygonAction) (const char            *name,
+                                      RoadMapPen             pen,
+				      int                    count,
+				      const RoadMapPosition *edges,
+                                      const RoadMapArea     *area);
+
+void roadmap_object_iterate_polygon (RoadMapPolygonAction action);
+
+
+typedef void (*RoadMapCircleAction) (const char            *name,
+                                     RoadMapPen             pen,
+				     int                    radius,
+                                     const RoadMapPosition *center);
+
+void roadmap_object_iterate_circle (RoadMapCircleAction action);
 
 
 typedef void (*RoadMapObjectListener) (RoadMapDynamicString id,

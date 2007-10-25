@@ -36,6 +36,7 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_input.c \
 	roadmap_nmea.c \
 	roadmap_gpsd2.c \
+	roadmap_vii.c \
 	roadmap_io.c \
 	roadmap_gps.c \
 	roadmap_object.c \

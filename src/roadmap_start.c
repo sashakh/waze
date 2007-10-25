@@ -1168,10 +1168,11 @@ void roadmap_start (int argc, char **argv) {
 
    RoadMapStartGpsID = roadmap_string_new("GPS");
 
-   roadmap_object_add (roadmap_string_new("RoadMap"),
-                       RoadMapStartGpsID,
-                       NULL,
-                       NULL);
+   roadmap_object_add_sprite (roadmap_string_new("RoadMap"),
+                              RoadMapStartGpsID,
+                              NULL,
+                              NULL,
+                              NULL);
 
    if (roadmap_config_get(&RoadMapConfigMapPath)[0] != 0) {
       roadmap_path_set("maps", roadmap_config_get(&RoadMapConfigMapPath));

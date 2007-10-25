@@ -995,9 +995,10 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
 }
 
 
-static void roadmap_screen_draw_object
-               (const char *name,
-                const char *sprite,
+static void roadmap_screen_draw_sprite_object
+               (const char               *name,
+                const char               *sprite,
+		RoadMapPen                pen,
                 const RoadMapGpsPosition *gps_position) {
 
    RoadMapPosition position;
@@ -1014,6 +1015,87 @@ static void roadmap_screen_draw_object
       roadmap_math_coordinate (&position, &screen_point);
       roadmap_math_rotate_coordinates (1, &screen_point);
       roadmap_sprite_draw (sprite, &screen_point, gps_position->steering);
+   }
+}
+
+
+static void roadmap_screen_draw_polygon_object
+               (const char            *name,
+		RoadMapPen             pen,
+		int                    count,
+                const RoadMapPosition *edges,
+                const RoadMapArea     *area) {
+
+   static RoadMapGuiPoint null_point = {0, 0};
+
+   if (roadmap_math_is_visible (area)) {
+
+      int i;
+      RoadMapGuiPoint *graphic_point;
+      RoadMapGuiPoint *previous_point;
+
+      if (RoadMapScreenLinePoints.end
+                       - RoadMapScreenLinePoints.cursor - 1 < count) {
+         roadmap_screen_flush_polygons ();
+      }
+
+      if (RoadMapScreenLastPen != pen) {
+         roadmap_screen_flush_polygons ();
+         roadmap_canvas_select_pen (pen);
+         RoadMapScreenLastPen = pen;
+      }
+
+      graphic_point = RoadMapScreenLinePoints.cursor;
+      previous_point = &null_point;
+
+      for (i = count-1; i >= 0; --i) {
+
+         roadmap_math_coordinate (edges+i, graphic_point);
+
+         if ((graphic_point->x != previous_point->x) ||
+             (graphic_point->y != previous_point->y)) {
+
+            previous_point = graphic_point;
+            graphic_point += 1;
+         }
+      }
+
+      /* Do not show polygons that have been reduced to a single
+       * graphical point because of the zoom factor (natural declutter).
+       */
+      if (graphic_point != RoadMapScreenLinePoints.cursor) {
+
+         // Close the figure by coming back to the initial point.
+         *(graphic_point++) = *RoadMapScreenLinePoints.cursor;
+
+         *(RoadMapScreenObjects.cursor++) =
+             graphic_point - RoadMapScreenLinePoints.cursor;
+
+         RoadMapScreenLinePoints.cursor = graphic_point;
+      }
+   }
+}
+
+
+static void roadmap_screen_draw_circle_object
+               (const char            *name,
+		RoadMapPen             pen,
+		int                    radius,
+                const RoadMapPosition *center) {
+
+   if (roadmap_math_point_is_visible(center)) {
+
+      RoadMapGuiPoint screen_point;
+
+      if (RoadMapScreenLastPen != pen) {
+         roadmap_canvas_select_pen (pen);
+         RoadMapScreenLastPen = pen;
+      }
+
+      // TBD: convert radius from meter to screen points?
+
+      roadmap_math_coordinate (center, &screen_point);
+      roadmap_canvas_draw_multiple_circles (1, &screen_point, &radius, 0, 0);
    }
 }
 
@@ -1232,7 +1314,11 @@ static void roadmap_screen_repaint (void) {
        /* we could probably use a callback registration system
         * for this, but order is important.
         */
-       roadmap_object_iterate (roadmap_screen_draw_object);
+       RoadMapScreenLastPen = NULL;
+       roadmap_object_iterate_circle  (roadmap_screen_draw_circle_object);
+       roadmap_object_iterate_polygon (roadmap_screen_draw_polygon_object);
+       roadmap_screen_flush_polygons  ();
+       roadmap_object_iterate_sprite  (roadmap_screen_draw_sprite_object);
        roadmap_trip_format_messages ();
        roadmap_landmark_display ();
        roadmap_features_display ();

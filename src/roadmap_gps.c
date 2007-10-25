@@ -42,6 +42,8 @@
 #include "roadmap_state.h"
 #include "roadmap_nmea.h"
 #include "roadmap_gpsd2.h"
+#include "roadmap_vii.h"
+#include "roadmap_driver.h"
 
 #include "roadmap_gps.h"
 
@@ -78,7 +80,8 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 #define ROADMAP_GPS_NONE     0
 #define ROADMAP_GPS_NMEA     1
 #define ROADMAP_GPS_GPSD2    2
-#define ROADMAP_GPS_OBJECT   3
+#define ROADMAP_GPS_VII      3
+#define ROADMAP_GPS_OBJECT   4
 static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 
 
@@ -259,6 +262,7 @@ static void roadmap_gps_keep_alive (void) {
 /* NMEA protocol support ----------------------------------------------- */
 
 static RoadMapNmeaAccount RoadMapGpsNmeaAccount;
+static RoadMapNmeaAccount RoadMapGpsExtendedAccount;
 
 
 static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
@@ -428,26 +432,32 @@ static void roadmap_gps_gsv
 }
 
 
+static RoadMapNmeaAccount roadmap_gps_subscribe (const char *title) {
+
+      RoadMapNmeaAccount account = roadmap_nmea_create (title);
+
+      roadmap_nmea_subscribe (NULL, "RMC", roadmap_gps_rmc, account);
+
+      roadmap_nmea_subscribe (NULL, "GGA", roadmap_gps_gga, account);
+
+      roadmap_nmea_subscribe (NULL, "GLL", roadmap_gps_gll, account);
+
+      roadmap_nmea_subscribe ("GRM", "E", roadmap_gps_pgrme, account);
+
+      roadmap_nmea_subscribe ("GRM", "M", roadmap_gps_pgrmm, account);
+
+      return account;
+}
+
 static void roadmap_gps_nmea (void) {
 
    if (RoadMapGpsNmeaAccount == NULL) {
+      RoadMapGpsNmeaAccount = roadmap_gps_subscribe (RoadMapGpsTitle);
+   }
 
-      RoadMapGpsNmeaAccount = roadmap_nmea_create (RoadMapGpsTitle);
-
-      roadmap_nmea_subscribe
-         (NULL, "RMC", roadmap_gps_rmc, RoadMapGpsNmeaAccount);
-
-      roadmap_nmea_subscribe
-         (NULL, "GGA", roadmap_gps_gga, RoadMapGpsNmeaAccount);
-
-      roadmap_nmea_subscribe
-         (NULL, "GLL", roadmap_gps_gll, RoadMapGpsNmeaAccount);
-
-      roadmap_nmea_subscribe
-         ("GRM", "E", roadmap_gps_pgrme, RoadMapGpsNmeaAccount);
-
-      roadmap_nmea_subscribe
-         ("GRM", "M", roadmap_gps_pgrmm, RoadMapGpsNmeaAccount);
+   if (RoadMapGpsExtendedAccount == NULL) {
+      RoadMapGpsExtendedAccount = roadmap_gps_subscribe (RoadMapGpsTitle);
+      roadmap_driver_subscribe (RoadMapGpsExtendedAccount);
    }
 
    if (RoadMapGpsMonitors[0] != NULL) {
@@ -718,6 +728,31 @@ void roadmap_gps_open (void) {
             RoadMapGpsProtocol = ROADMAP_GPS_GPSD2;
       }
 
+   } else if (strncasecmp (url, "vii://", 6) == 0) {
+
+      RoadMapGpsLink.os.socket = roadmap_vii_connect (url+6);
+
+      if (ROADMAP_NET_IS_VALID(RoadMapGpsLink.os.socket)) {
+
+         static char subscribe[] = "$PGLTY,SUBSCRIBE,PXRM\n";
+
+         if (roadmap_net_send (RoadMapGpsLink.os.socket,
+                               subscribe,
+                               sizeof(subscribe)-1) == sizeof(subscribe)-1) {
+
+            roadmap_log (ROADMAP_DEBUG, "Subscribed to PXRM");
+
+            RoadMapGpsLink.subsystem = ROADMAP_IO_NET;
+            RoadMapGpsProtocol = ROADMAP_GPS_VII;
+
+         } else {
+
+            roadmap_log (ROADMAP_WARNING,
+                         "cannot subscribe to PXRM through glty");
+            roadmap_net_close(RoadMapGpsLink.os.socket);
+         }
+      }
+
 #ifndef _WIN32
    } else if (strncasecmp (url, "tty://", 6) == 0) {
 
@@ -806,8 +841,10 @@ void roadmap_gps_open (void) {
       RoadMapGpsRetryPending = 0;
    }
 
-   RoadMapGpsConnectedSince = time(NULL);
-   RoadMapGpsLatestPositionData = 0;
+   /* Consider as if we had received a position. This gives some
+    * time for the whole system to initialize itself.
+    */
+   RoadMapGpsLatestPositionData = RoadMapGpsConnectedSince = time(NULL);
 
    (*RoadMapGpsPeriodicAdd) (roadmap_gps_keep_alive);
 
@@ -829,6 +866,11 @@ void roadmap_gps_open (void) {
          roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_navigation);
          roadmap_gpsd2_subscribe_to_satellites (roadmap_gps_satellites);
          roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
+         break;
+
+      case ROADMAP_GPS_VII:
+
+         roadmap_vii_subscribe_to_navigation (roadmap_gps_navigation);
          break;
 
       case ROADMAP_GPS_OBJECT:
@@ -903,6 +945,12 @@ void roadmap_gps_input (RoadMapIO *io) {
          decode.decoder_context = NULL;
          break;
 
+      case ROADMAP_GPS_VII:
+
+         decode.decoder = roadmap_vii_decode;
+         decode.decoder_context = (void *)RoadMapGpsExtendedAccount;
+         break;
+
       case ROADMAP_GPS_OBJECT:
 
          return;
@@ -973,6 +1021,7 @@ int  roadmap_gps_is_nmea (void) {
 
       case ROADMAP_GPS_NMEA:              return 1;
       case ROADMAP_GPS_GPSD2:             return 0;
+      case ROADMAP_GPS_VII:               return 0;
       case ROADMAP_GPS_OBJECT:            return 0;
    }
 

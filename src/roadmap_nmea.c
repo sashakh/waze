@@ -476,6 +476,75 @@ static int roadmap_nmea_pxrmadd (int argc, char *argv[]) {
 }
 
 
+// Decode the following sentence:
+// PXRMPLG,id,name,color,lat,N|S,long,E|W[,lat offset,long offset]...
+
+static int roadmap_nmea_pxrmplg (int argc, char *argv[]) {
+
+    int i;
+    int count;
+
+    if (argc <= 7) return 0;
+
+    RoadMapNmeaReceived.pxrmplg.id =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmplg.name =
+       roadmap_string_new_in_collection (argv[2], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmplg.color =
+       roadmap_string_new_in_collection (argv[3], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmplg.edge[0].latitude =
+        roadmap_nmea_decode_coordinate (argv[4], argv[5], 'N', 'S');
+
+    RoadMapNmeaReceived.pxrmplg.edge[0].longitude =
+        roadmap_nmea_decode_coordinate (argv[6], argv[7], 'E', 'W');
+
+    /* Since we consume two parameters at a time, we must stop after
+     * the before-the-last parameter.
+     */
+    argc -= 1;
+
+    for (i = 8, count = 1;
+         i < argc && count < ROADMAP_PXRMPLG_MAX_COUNT; i += 2, ++count) {
+
+       RoadMapNmeaReceived.pxrmplg.edge[count].latitude =
+          RoadMapNmeaReceived.pxrmplg.edge[0].latitude + atoi(argv[i]);
+
+       RoadMapNmeaReceived.pxrmplg.edge[count].longitude =
+          RoadMapNmeaReceived.pxrmplg.edge[0].longitude + atoi(argv[i+1]);
+    }
+
+    return 1;
+}
+
+
+static int roadmap_nmea_pxrmcir (int argc, char *argv[]) {
+
+    if (argc <= 8) return 0;
+
+    RoadMapNmeaReceived.pxrmcir.id =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmcir.name =
+       roadmap_string_new_in_collection (argv[2], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmplg.color =
+       roadmap_string_new_in_collection (argv[3], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmcir.center.latitude =
+        roadmap_nmea_decode_coordinate  (argv[4], argv[5], 'N', 'S');
+
+    RoadMapNmeaReceived.pxrmcir.center.longitude =
+        roadmap_nmea_decode_coordinate (argv[6], argv[7], 'E', 'W');
+
+    RoadMapNmeaReceived.pxrmcir.radius = atoi(argv[8]);
+
+    return 1;
+}
+
+
 static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
 
     if (argc <= 7) return 0;
@@ -494,6 +563,20 @@ static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
 
     RoadMapNmeaReceived.pxrmmov.steering =
        roadmap_nmea_decode_numeric (argv[7], 1);
+
+    return 1;
+}
+
+
+static int roadmap_nmea_pxrmclr (int argc, char *argv[]) {
+
+    if (argc <= 2) return 0;
+
+    RoadMapNmeaReceived.pxrmclr.id =
+       roadmap_string_new_in_collection (argv[1], &RoadMapNmeaCollection);
+
+    RoadMapNmeaReceived.pxrmclr.color =
+       roadmap_string_new_in_collection (argv[2], &RoadMapNmeaCollection);
 
     return 1;
 }
@@ -588,7 +671,10 @@ static struct {
 
    /* RoadMap's own extensions: */
    {"XRM", "ADD", roadmap_nmea_pxrmadd},
+   {"XRM", "PLG", roadmap_nmea_pxrmplg},
+   {"XRM", "CIR", roadmap_nmea_pxrmcir},
    {"XRM", "MOV", roadmap_nmea_pxrmmov},
+   {"XRM", "CLR", roadmap_nmea_pxrmclr},
    {"XRM", "DEL", roadmap_nmea_pxrmdel},
    {"XRM", "SUB", roadmap_nmea_pxrmsub},
    {"XRM", "CFG", roadmap_nmea_pxrmcfg},

@@ -27,9 +27,14 @@
  *    with these drivers. The information is coded using the NMEA syntax,
  *    so that we benefit from all the existing infrastructure.
  *
- *    The function roadmap_driver_publish () should be called either
- *    periodically, or when the location of the RoadMap vehicule changes
- *    and advertise the current position and cinematic to all drivers.
+ *    The function roadmap_driver_subscribe () should be called when
+ *    a given NMEA client wants to accept RoadMap driver extensions
+ *    sentences from its data source. This does not require the NMEA
+ *    client to know or handle any of these extension sentences: the
+ *    processing of the extension sentences will be transparent. A
+ *    typical use is when a GPS source knows RoadMap and sends some
+ *    RoadMap sentences: when such a source is selected, roadmap_gps.c
+ *    should call roadmap_driver_subsribe().
  *
  *    The other function are similar to the roadmap_gps.c equivalents.
  */
@@ -39,8 +44,11 @@
 
 #include "roadmap_io.h"
 #include "roadmap_gps.h"
+#include "roadmap_nmea.h"
 
 void roadmap_driver_initialize (void);
+
+void roadmap_driver_subscribe (RoadMapNmeaAccount account);
 
 void roadmap_driver_register_link_control
         (roadmap_gps_link_control add, roadmap_gps_link_control remove);

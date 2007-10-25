@@ -108,6 +108,12 @@ static roadmap_gps_link_control RoadMapDriverServerAdd = NULL;
 
 /* Publishing functions. ------------------------------------------------ */
 
+/* We use two ways for publishing GPS information to drivers:
+ * - if the GPS source is NMEA, we forward the NMEA stream to the drivers.
+ * - otherwise we listen to the GPS info and generate the equivalent NMEA
+ *   stream.
+ */
+
 static void roadmap_driver_send (const char *data, int mask);
 
 static void roadmap_driver_to_nmea (int value, int *ddmm, int *mmmm) {
@@ -323,17 +329,54 @@ static void roadmap_driver_nmea_logger (const char *line) {
 
 /* NMEA processing functions. ------------------------------------------- */
 
+// --- Add a sprite (the first object supported, hence the generic name).
+
 static void roadmap_driver_pxrmadd (void *context,
                                     const RoadMapNmeaFields *fields) {
 
    RoadMapDriver *driver = (RoadMapDriver *)context;
 
-   roadmap_object_add (driver->name,
-                       fields->pxrmadd.id,
-                       fields->pxrmadd.name,
-                       fields->pxrmadd.sprite);
+   roadmap_object_add_sprite (driver->name,
+		              fields->pxrmadd.id,
+			      fields->pxrmadd.name,
+			      fields->pxrmadd.sprite,
+			      NULL);
 }
 
+
+// --- Add a polygon object.
+
+static void roadmap_driver_pxrmplg (void *context,
+                                    const RoadMapNmeaFields *fields) {
+
+   RoadMapDriver *driver = (RoadMapDriver *)context;
+
+   roadmap_object_add_polygon (driver->name,
+                               fields->pxrmplg.id,
+                               fields->pxrmplg.name,
+                               fields->pxrmplg.color,
+                               fields->pxrmplg.count,
+                               fields->pxrmplg.edge);
+}
+
+
+// --- Add a Circle object.
+
+static void roadmap_driver_pxrmcir (void *context,
+                                    const RoadMapNmeaFields *fields) {
+
+   RoadMapDriver *driver = (RoadMapDriver *)context;
+
+   roadmap_object_add_circle (driver->name,
+                              fields->pxrmcir.id,
+                              fields->pxrmcir.name,
+                              fields->pxrmplg.color,
+			      &(fields->pxrmcir.center),
+			      fields->pxrmcir.radius);
+}
+
+
+// --- Move the reference point of an object.
 
 static void roadmap_driver_pxrmmov (void *context,
                                     const RoadMapNmeaFields *fields) {
@@ -351,12 +394,25 @@ static void roadmap_driver_pxrmmov (void *context,
 }
 
 
+// --- Change the color of an object.
+
+static void roadmap_driver_pxrmclr (void *context,
+                                    const RoadMapNmeaFields *fields) {
+
+   roadmap_object_color (fields->pxrmclr.id, fields->pxrmclr.color);
+}
+
+
+// --- Delete an object.
+
 static void roadmap_driver_pxrmdel (void *context,
                                     const RoadMapNmeaFields *fields) {
 
    roadmap_object_remove (fields->pxrmdel.id);
 }
 
+
+// --- Subscribe to some published information.
 
 static void roadmap_driver_pxrmsub (void *context,
                                     const RoadMapNmeaFields *fields) {
@@ -395,6 +451,8 @@ static void roadmap_driver_pxrmsub (void *context,
    }
 }
 
+
+// -- Declare a preference item for that driver.
 
 static void roadmap_driver_pxrmcfg (void *context,
                                     const RoadMapNmeaFields *fields) {
@@ -707,6 +765,26 @@ void roadmap_driver_input (RoadMapIO *io) {
 }
 
 
+void roadmap_driver_subscribe (RoadMapNmeaAccount account) {
+
+   roadmap_nmea_subscribe ("XRM", "ADD", roadmap_driver_pxrmadd, account);
+
+   roadmap_nmea_subscribe ("XRM", "PLG", roadmap_driver_pxrmplg, account);
+
+   roadmap_nmea_subscribe ("XRM", "CIR", roadmap_driver_pxrmcir, account);
+
+   roadmap_nmea_subscribe ("XRM", "MOV", roadmap_driver_pxrmmov, account);
+
+   roadmap_nmea_subscribe ("XRM", "CLR", roadmap_driver_pxrmclr, account);
+
+   roadmap_nmea_subscribe ("XRM", "DEL", roadmap_driver_pxrmdel, account);
+
+   roadmap_nmea_subscribe ("XRM", "SUB", roadmap_driver_pxrmsub, account);
+
+   roadmap_nmea_subscribe ("XRM", "CFG", roadmap_driver_pxrmcfg, account);
+}
+
+
 void roadmap_driver_initialize (void) {
 
    const char *path;
@@ -714,20 +792,7 @@ void roadmap_driver_initialize (void) {
 
    RoadMapDriverAccount = roadmap_nmea_create ("Drivers");
 
-   roadmap_nmea_subscribe
-      ("XRM", "ADD", roadmap_driver_pxrmadd, RoadMapDriverAccount);
-
-   roadmap_nmea_subscribe
-      ("XRM", "MOV", roadmap_driver_pxrmmov, RoadMapDriverAccount);
-
-   roadmap_nmea_subscribe
-      ("XRM", "DEL", roadmap_driver_pxrmdel, RoadMapDriverAccount);
-
-   roadmap_nmea_subscribe
-      ("XRM", "SUB", roadmap_driver_pxrmsub, RoadMapDriverAccount);
-
-   roadmap_nmea_subscribe
-      ("XRM", "CFG", roadmap_driver_pxrmcfg, RoadMapDriverAccount);
+   roadmap_driver_subscribe (RoadMapDriverAccount);
 
    roadmap_config_declare
       ("preferences", &RoadMapDriverConfigPort, "2007");
