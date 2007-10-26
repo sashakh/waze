@@ -36,7 +36,6 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_input.c \
 	roadmap_nmea.c \
 	roadmap_gpsd2.c \
-	roadmap_vii.c \
 	roadmap_io.c \
 	roadmap_gps.c \
 	roadmap_object.c \
@@ -46,6 +45,8 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_state.c \
 	roadmap_gpx.c \
 	roadmap_linefont.c
+
+#	roadmap_vii.c \
 
 RMLIBOBJS = $(RMLIBSRC:.c=.o)
 
@@ -274,6 +275,8 @@ RMHEADERS = \
 	roadmap_trip.h \
 	roadmap_types.h \
 	roadmap_voice.h
+
+#	roadmap_vii.h \
 
 RMDBHEADERS = \
 	roadmap_db.h \

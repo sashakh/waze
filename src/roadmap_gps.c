@@ -42,7 +42,9 @@
 #include "roadmap_state.h"
 #include "roadmap_nmea.h"
 #include "roadmap_gpsd2.h"
+#if LATER_VII
 #include "roadmap_vii.h"
+#endif
 #include "roadmap_driver.h"
 
 #include "roadmap_gps.h"
@@ -728,6 +730,7 @@ void roadmap_gps_open (void) {
             RoadMapGpsProtocol = ROADMAP_GPS_GPSD2;
       }
 
+#if LATER_VII
    } else if (strncasecmp (url, "vii://", 6) == 0) {
 
       RoadMapGpsLink.os.socket = roadmap_vii_connect (url+6);
@@ -752,6 +755,7 @@ void roadmap_gps_open (void) {
             roadmap_net_close(RoadMapGpsLink.os.socket);
          }
       }
+#endif
 
 #ifndef _WIN32
    } else if (strncasecmp (url, "tty://", 6) == 0) {
@@ -868,10 +872,12 @@ void roadmap_gps_open (void) {
          roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
          break;
 
+#if LATER_VII
       case ROADMAP_GPS_VII:
 
          roadmap_vii_subscribe_to_navigation (roadmap_gps_navigation);
          break;
+#endif
 
       case ROADMAP_GPS_OBJECT:
          break;
@@ -945,11 +951,13 @@ void roadmap_gps_input (RoadMapIO *io) {
          decode.decoder_context = NULL;
          break;
 
+#if LATER_VII
       case ROADMAP_GPS_VII:
 
          decode.decoder = roadmap_vii_decode;
          decode.decoder_context = (void *)RoadMapGpsExtendedAccount;
          break;
+#endif
 
       case ROADMAP_GPS_OBJECT:
 
