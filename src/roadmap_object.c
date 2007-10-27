@@ -92,9 +92,9 @@ static RoadMapObject *RoadmapObjectList = NULL;
 static RoadMapObject *RoadmapObjectHash[128];
 
 
-static int roadmap_object_hashed (RoadMapDynamicString id) {
+static unsigned int roadmap_object_hashed (RoadMapDynamicString id) {
 
-   int seed = (int) id;
+   unsigned int seed = (unsigned int) id;
 
    return ((((seed * 9) + (seed >> 8)) * 9) + (seed >> 16)) % 127;
 }
