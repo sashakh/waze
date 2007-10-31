@@ -32,56 +32,12 @@
 #include <stdlib.h>
 
 #include "roadmap.h"
+#include "roadmap_math.h"
 #include "roadmap_nmea.h"
 #include "roadmap_vii.h"
 
 
 static RoadMapViiNavigation RoadmapViiNavigationListener = NULL;
-
-
-static int roadmap_vii_decode_numeric (const char *input) {
-
-   while (*input == '0') ++input;
-   if (*input == 0) return 0;
-
-   return atoi(input);
-}
-
-
-static int roadmap_vii_decode_coordinate (const char *input) {
-
-   char *point = strchr (input, '.');
-
-   if (point != NULL) {
-
-      /* This is a floating point value: patch the input to multiply
-       * it by 1000000 and then make it an integer (TIGER format).
-       */
-      const char *from;
-
-      int   i;
-      char *to;
-      char  modified[16];
-
-      to = modified;
-
-      /* Copy the integer part. */
-      for (from = input; from < point; ++from) {
-         *(to++) = *from;
-      }
-
-      /* Now copy the decimal part. */
-      for (from = point + 1, i = 0; *from > 0 && i < 6; ++from, ++i) {
-         *(to++) = *from;
-      }
-      while (i++ < 6) *(to++) = '0';
-      *to = 0;
-
-      return atoi(modified);
-   }
-
-   return roadmap_vii_decode_numeric (input);
-}
 
 
 RoadMapSocket roadmap_vii_connect (const char *name) {
@@ -143,8 +99,8 @@ int roadmap_vii_decode (void *user_context,
 
 
    /* The VII protocol is built as a proprietary extension to the
-    * NMEA 0183 protocol. If the sentence is not a VII one, default
-    * to the NMEA decoder.
+    * NMEA 0183 protocol. If the sentence is not a VII one, or a glty
+    * sentence, default to the NMEA decoder.
     */
    if (strncmp (sentence, "$PVII", 5) != 0) {
      return roadmap_nmea_decode (user_context, decoder_context, sentence);
@@ -167,12 +123,12 @@ int roadmap_vii_decode (void *user_context,
    } else {
       status = 'A';
    }
-   gps_time  = roadmap_vii_decode_numeric    (reply[2]);
-   latitude  = roadmap_vii_decode_coordinate (reply[4]);
-   longitude = roadmap_vii_decode_coordinate (reply[5]);
-   altitude  = roadmap_vii_decode_numeric (reply[6]);
-   speed     = roadmap_vii_decode_numeric (reply[7]);
-   steering  = roadmap_vii_decode_numeric (reply[8]);
+   gps_time  = atoi (reply[2]);
+   latitude  = roadmap_math_from_floatstring (reply[4], MILLIONTHS);
+   longitude = roadmap_math_from_floatstring (reply[5], MILLIONTHS);
+   altitude  = atoi (reply[6]);
+   speed     = atoi (reply[7]);
+   steering  = atoi (reply[8]);
 
    RoadmapViiNavigationListener
       (status, gps_time, latitude, longitude, altitude, speed, steering);
