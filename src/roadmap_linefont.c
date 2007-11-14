@@ -247,7 +247,7 @@ void roadmap_linefont_extents
     scale = 1024 * size / (hf->maxy - hf->miny);
 
     /* find the length of the string in pixels ... */
-    len = 0;
+    len = 2;
 
     for (t = text; *t; t++) {
 
