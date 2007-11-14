@@ -119,39 +119,22 @@ static int RoadMapLabelMinFeatSizeSq;
 
 static int RoadMapLabelFontSize;
 
-static int rect_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
-
-   if(a->minx > b->maxx) return 0;
-   if(a->maxx < b->minx) return 0;
-   if(a->miny > b->maxy) return 0;
-   if(a->maxy < b->miny) return 0;
-
-   return 1;
-}
-
-static int point_in_bbox( RoadMapGuiPoint *p, RoadMapGuiRect *bb) {
-
-   if ((p->x <= bb->minx) || (p->x >= bb->maxx) ||
-       (p->y >= bb->maxy) || (p->y <= bb->miny))
-      return 0;
- 
-   return 1;
-}
-
 /* doesn't check for one completely inside the other -- just intersection */
 static int poly_overlap (roadmap_label *c1, roadmap_label *c2) {
 
    RoadMapGuiPoint *a = c1->poly;
    RoadMapGuiPoint *b = c2->poly;
-   RoadMapGuiPoint isect;
+   RoadMapGuiPoint isect, ref;
    int ai, bi;
+
+   ref.x = ref.y = 0;
 
    for (ai = 0; ai < 4; ai++) {
       for (bi = 0; bi < 4; bi++) {
          if (roadmap_math_screen_intersect( &a[ai], &a[(ai+1)%4],
                                 &b[bi], &b[(bi+1)%4], &isect)) {
-            if (point_in_bbox(&isect, &c1->bbox) &&
-                point_in_bbox(&isect, &c2->bbox)) {
+            if (roadmap_math_point_in_box(&isect, &ref, &c1->bbox) &&
+                roadmap_math_point_in_box(&isect, &ref, &c2->bbox)) {
                return 1;
             }
          }
@@ -579,7 +562,7 @@ int roadmap_label_draw_cache (int angles) {
 
 
             /* if bounding boxes don't overlap, we're clear */
-            if (rect_overlap (&ocPtr->bbox, &cPtr->bbox)) {
+            if (roadmap_math_rectangle_overlap (&ocPtr->bbox, &cPtr->bbox)) {
 
                /* if labels are horizontal, bbox check is sufficient */
                if(!angles) {

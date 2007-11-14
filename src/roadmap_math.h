@@ -73,6 +73,10 @@ int roadmap_math_get_visible_coordinates (const RoadMapPosition *from,
                                           RoadMapGuiPoint *point0,
                                           RoadMapGuiPoint *point1);
 
+int roadmap_math_point_in_box
+    (RoadMapGuiPoint *point, RoadMapGuiPoint *ref, RoadMapGuiRect *bbox);
+
+int roadmap_math_rectangle_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b);
 
 void roadmap_math_coordinate  (const RoadMapPosition *position,
                                RoadMapGuiPoint *point);

@@ -1196,6 +1196,26 @@ void roadmap_math_to_position (const RoadMapGuiPoint *point,
          - (point->y * RoadMapContext.zoom_y);
 }
 
+/* determine whether "point" is within the "bbox" relative to "ref" */
+int roadmap_math_point_in_box
+    (RoadMapGuiPoint *point, RoadMapGuiPoint *ref, RoadMapGuiRect *bbox)
+{
+      return (point->x >= (ref->x + bbox->minx)) &&
+	     (point->x <= (ref->x + bbox->maxx)) &&
+	     (point->y >= (ref->y + bbox->miny)) &&
+	     (point->y <= (ref->y + bbox->maxy));
+}
+
+int roadmap_math_rectangle_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
+
+   if (a->minx > b->maxx) return 0;
+   if (a->maxx < b->minx) return 0;
+   if (a->miny > b->maxy) return 0;
+   if (a->maxy < b->miny) return 0;
+
+   return 1;
+}
+
 
 void roadmap_math_coordinate (const RoadMapPosition *position,
                               RoadMapGuiPoint *point) {
