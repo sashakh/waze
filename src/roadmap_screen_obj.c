@@ -42,6 +42,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_math.h"
 #include "roadmap_sprite.h"
+#include "roadmap_message.h"
 #include "roadmap_factory.h"
 #include "roadmap_start.h"
 #include "roadmap_state.h"
@@ -81,11 +82,13 @@ struct RoadMapScreenObjDescriptor {
    char                *name; /* Unique name of the object. */
 
    char                *sprites[MAX_STATES]; /* Sprites for each state. */
+   char                *msgformat[MAX_STATES];
 #if LATER_ICON_SUPPORT
    RoadMapImage         images[MAX_STATES]; /* Icons for each state. */
 #endif
 
    int                  states_count;
+
 
    short                pos_x; /* position on screen */
    short                pos_y; /* position on screen */
@@ -102,6 +105,7 @@ struct RoadMapScreenObjDescriptor {
    RoadMapStateFn state_fn;
 
    RoadMapGuiRect       bbox;
+   RoadMapGuiRect       text_bbox;
 
    struct RoadMapScreenObjDescriptor *next;
 };
@@ -153,6 +157,8 @@ static RoadMapScreenObj roadmap_screen_obj_new
 
       while (object->states_count--) {
          free(object->sprites[object->states_count]);
+         if (object->msgformat[object->states_count] != NULL)
+            free(object->msgformat);
       }
 
       savenext = object->next;
@@ -217,8 +223,6 @@ static void roadmap_screen_obj_decode_sprite
                         (RoadMapScreenObj object,
                          int argc, const char **argv) {
 
-   int i;
-
    if (argc < 2) {
       roadmap_screen_obj_syntax ("Missing sprite name");
       return;
@@ -229,12 +233,12 @@ static void roadmap_screen_obj_decode_sprite
       return;
    }
 
-   for (i = 1; i < argc; ++i) {
+   object->sprites[object->states_count] = strdup (argv[1]);
+   if (argc > 2)
+      object->msgformat[object->states_count] = strdup (argv[2]);
 
-      object->sprites[object->states_count] = strdup (argv[i]);
-   }
+   object->states_count++;
 
-   ++object->states_count;
 }
 
 
@@ -375,17 +379,21 @@ static int roadmap_screen_obj_load (char *line) {
 
    int argc;
    const char *argv[256];
+   char *delim = " \t\n\r";
 
    RoadMapGuiRect bbox[1];
 
    static RoadMapScreenObj object = NULL;
 
-   argv[0] = strtok(line, " \t\n\r");
+   argv[0] = strtok(line, delim);
    if (argv[0] == NULL || argv[0][0] == '#') return 1;
    argc = 1;
 
-   while((argv[argc] = strtok(NULL, " \t\n\r")) != NULL) {
+   while((argv[argc] = strtok(NULL, delim)) != NULL) {
       argc++;
+      if (argc == 2 && strcmp(argv[0], "E") == 0) {
+         delim = "\n\r";
+      }
    }
 
    if (object == NULL) {
@@ -518,13 +526,14 @@ static RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
    for (cursor = RoadMapObjectList; cursor != NULL; cursor = cursor->next) {
 
       RoadMapGuiPoint pos;
+
+      if (cursor->callback == NULL && cursor->long_callback == NULL)
+	 continue;
+
       roadmap_screen_obj_pos (cursor, &pos);
 
-      if ((point->x >= (pos.x + cursor->bbox.minx)) &&
-          (point->x <= (pos.x + cursor->bbox.maxx)) &&
-          (point->y >= (pos.y + cursor->bbox.miny)) &&
-          (point->y <= (pos.y + cursor->bbox.maxy))) {
-
+      if (roadmap_math_point_in_box(point, &pos, &cursor->bbox) ||
+          roadmap_math_point_in_box(point, &pos, &cursor->text_bbox)) {
          return cursor;
       }
    }
@@ -789,13 +798,31 @@ void roadmap_screen_obj_draw (void) {
 #endif
 
       if (cursor->sprites[state]) {
-         
-         if (cursor->flags & OBJ_FLAG_NO_ROTATE) {
-            roadmap_sprite_draw (cursor->sprites[state], &pos,
-                         cursor->angle - roadmap_math_get_orientation());
-         } else {
-            roadmap_sprite_draw (cursor->sprites[state], &pos, angle);
+         char  *text = NULL, textbuf[256];
+	 int has_no_action;
+
+         if (cursor->msgformat[state] != NULL) {
+            text = textbuf;
+            if (!roadmap_message_format
+                    (textbuf, sizeof(textbuf), cursor->msgformat[state])) {
+                text[0] = 0;
+            }
          }
+         
+         if (cursor->flags & OBJ_FLAG_NO_ROTATE)
+            angle = cursor->angle - roadmap_math_get_orientation();
+
+	 /* don't request bounding boxes if we have no use for them */
+         has_no_action = (cursor->callback == NULL &&
+                            cursor->long_callback == NULL);
+
+         roadmap_sprite_draw_with_text
+            (cursor->sprites[state], &pos, angle,
+            (has_no_action || (cursor->flags & OBJ_FLAG_EXPLICIT_BBOX)) ?
+	    	NULL : &cursor->bbox,
+            has_no_action ?
+		NULL : &cursor->text_bbox,
+            text);
       }
    }
 }

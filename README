@@ -109,7 +109,7 @@ INSTALLATION
    typical setup is to have gpsd on the same computer, in which case the GPS
    source should be set as "gpsd://localhost".
 
-	{{http://gpsd.berlios.de}}
+        {{http://gpsd.berlios.de}}
 
    gpsd is not required when building RoadMap, and RoadMap can run without
    gpsd as a static map viewer or address finder.  
@@ -250,8 +250,8 @@ INSTALLATION
   implemented in the Windows code) can include several "shortcut" characters:
 
     * If a path begins with '~', then the rest of the path is relative
-	to the users home directory (i.e, $HOME).  This is similar to
-	the behavior of many UNIX shell programs.
+        to the users home directory (i.e, $HOME).  This is similar to
+        the behavior of many UNIX shell programs.
 
     * If a path begins with '&', then the rest of the path is relative
       to the RoadMap "user" directory, which is $HOME/.roadmap.
@@ -268,13 +268,13 @@ INSTALLATION
       both actual directories, then the final list of paths used when
       looking for maps will be:
 
-	* /etc/roadmap
-	
-	* $HOME/.roadmap/maps
+        * /etc/roadmap
+        
+        * $HOME/.roadmap/maps
 
-	* $HOME/.roadmap/maps/moremaps
+        * $HOME/.roadmap/maps/moremaps
 
-	* $HOME/.roadmap/maps/moremaps/foo
+        * $HOME/.roadmap/maps/moremaps/foo
 
       /etc/roadmap will not be searched for subdirectories, because it was
       not specified with a trailing "/...", and nothing below
@@ -470,7 +470,7 @@ INSTALLATION
          * /opt/QtPalmtop/share/roadmap/..., and its subdirectories,
 
          * /mnt/cf/QtPalmtop/share/roadmap/... (preferred path) and
-	   its subdirectories, and
+           its subdirectories, and
 
          * /mnt/card/QtPalmtop/share/roadmap/... and its subdirectories.
          
@@ -1894,7 +1894,7 @@ CONFIGURATION
    
    The RoadMap text displays and voice messages can be configured by the
    user using format strings in the preferences. The format strings contain
-   static and dynamic parts. The dynamic parts (or "macros") are specified
+   static and dynamic parts. The dynamic parts (or "%-macros") are specified
    using the character '%' followed by one character that denotes a predefined
    RoadMap variable.
 
@@ -1950,7 +1950,7 @@ CONFIGURATION
    by the distance to the next waypoint (in parenthesis).
 
    
-   A message is evaluated, and displayed, only when all referenced macros
+   A message is evaluated, and displayed, only when all referenced %-macros
    have a defined value. Therefore the example above will show nothing if
    there is no trip active, or if there is no next waypoint. It is possible
    to define several alternatives, separated by the character '|': the first
@@ -2152,38 +2152,49 @@ CONFIGURATION
    section of the documentation.
 
 *---------------------------+------------------------------------------------+
-|        N <name>           |  Name of the object (unused, but starts 
+|    N <name>               |  Name of the object (unused, but starts 
 |                           |  a new object)
 *---------------------------+------------------------------------------------+
-|        P <x> <y>          |  The screen position of the sprite, measured
+|    P <x> <y>              |  The screen position of the sprite, measured
 |                           |  from the top left in pixels.  Negative offsets
 |                           |  measure from the right and from the bottom.  If
 |                           |  the <x> or <y> value begins with a 'C', then
 |                           |  the remainder is an offset from the center of
 |                           |  the screen.
 *---------------------------+------------------------------------------------+
-|        E <sprite>         |  The name of the sprite which will be drawn.
+|    E <sprite> [text]      |  The name of the sprite which will be drawn.
 *---------------------------+------------------------------------------------+
-|        E <sprite>         |  Multiple sprites can be specified.  Which
+|    E <sprite> [text]      |  Multiple sprites can be specified.  Which
 |                           |  one is displayed is selected via the object's
-|                           |  "state" indicator.
+|                           |  "state" indicator.  If "text" is specified, it
+|                           |  will be displayed with the sprite (assuming the
+|                           |  sprite has been defined to have text associated
+|                           |  with it).
+|                           |  - The text can be divided into multiple lines.
+|                           |    Line breaks are indicated by inserting a '^'.
+|                           |  - The text can contain %-macros, just as defined
+|                           |    for other text displays, in order to display
+|                           |    dynamic content.  The '|' "alternation" symbol
+|                           |    is also honored.  See the "CONFIGURING THE
+|                           |    TEXT AND VOICE MESSAGES" section of the
+|                           |    documentation.
 *---------------------------+------------------------------------------------+
-|        S <statename>      |  The "state" indicator which will choose among 
+|    S <statename>          |  The "state" indicator which will choose among 
 |                           |  the listed sprites.  For "constant" displays,
 |                           |  this is optional.
 *---------------------------+------------------------------------------------+
-|        A <actionname>     |  The action which should be invoked when the
+|    A <actionname>         |  The action which should be invoked when the
 |                           |  sprite is selected.  Optional.  The action can
 |                           |  be a simple action name, or, when prefixed with
 |                           |  "-->", the name of a popup menu which should
 |                           |  be invoked.
 *---------------------------+------------------------------------------------+
-|        R                  |  Sprites will normally rotate, either with the
+|    R                      |  Sprites will normally rotate, either with the
 |                           |  screen, or based on an angle retrieved via
 |                           |  the state indicator.  Specifying 'R' suppresses
 |                           |  this by forcing rotation to the given angle.
 *---------------------------+------------------------------------------------+
-|        B <x> <y> <x> <y>  |  Optional -- the bounding box used to determine 
+|    B <x> <y> <x> <y>      |  Optional -- the bounding box used to determine 
 |                           |  whether a selection has taken place.  (I.e.,
 |                           |  the size of the sprite.) Normally the bounding
 |                           |  box is calculated by RoadMap itself (and if
@@ -2191,7 +2202,9 @@ CONFIGURATION
 |                           |  forced to have maximal dimensions), but
 |                           |  irregularly shaped sprites, combined with the
 |                           |  rotation of the sprite, may require that the
-|                           |  box be overridden.
+|                           |  box be overridden.  Note that the bounding box
+|                           |  of any text associated with the sprite is
+|                           |  calculated and considered separately.
 *---------------------------+------------------------------------------------+
 
    The screen objects can display different sprites to indicate the state of
@@ -3126,23 +3139,23 @@ CONFIGURATION
      The sprites file is made of a sequence of single-line commands:
 
 *------------------------------+---------------------------------------------+
-|        S <name>              | Starts a sprite.
+| S <name>                     | Starts a sprite.
 *------------------------------+---------------------------------------------+
-|        A <name>              | Defines the current sprite as an alias of
+| A <name>                     | Defines the current sprite as an alias of
 |                              | the specified sprite.
 *------------------------------+---------------------------------------------+
-|        F <color> <thickness> | Define the pen to be used by the subsequent
+| F <color> <thickness>        | Define the pen to be used by the subsequent
 |                              | drawing commands.
 *------------------------------+---------------------------------------------+
-|        L <x>,<y> ..          | Draw a line.
+| L <x>,<y> ..                 | Draw a line.
 *------------------------------+---------------------------------------------+
-|        P <x>,<y> ..          | Draw a filled polygon.
+| P <x>,<y> ..                 | Draw a filled polygon.
 *------------------------------+---------------------------------------------+
-|        C <x>,<y> <radius>    | Draw a circle.
+| C <x>,<y> <radius>           | Draw a circle.
 *------------------------------+---------------------------------------------+
-|        D <x>,<y> <radius>    | Draw a disk (filled circle).
+| D <x>,<y> <radius>           | Draw a disk (filled circle).
 *------------------------------+---------------------------------------------+
-|        B <x>,<y> <x>,<y>     | Optional -- the bounding box used to determine 
+| B <x>,<y> <x>,<y>            | Optional -- the bounding box used to determine 
 |                              | whether a selection has taken place, when a
 |                              | a sprite is in use as an on-screen object (in
 |                              | "roadmap.screenobjects").  Normally the
@@ -3151,8 +3164,33 @@ CONFIGURATION
 |                              | the rotation of the sprite, may require that
 |                              | the box be overridden.
 *------------------------------+---------------------------------------------+
+| T <x>,<y> <s> text...        | Adds text to the sprite, of size 's'.  "text"
+|                              | can be ommitted, in cases where the sprite's
+|                              | text will be provided by a screen object
+|                              | definition.  Text strings are fixed, with no
+|                              | expansion of %-macros.
+*------------------------------+---------------------------------------------+
+| TR                           | If the sprite has text, supply a backing
+|                              |   rectangle sized and positioned to match the
+|                              |   text.
+*------------------------------+---------------------------------------------+
+| TB                           | If the sprite has text, supply a box outline
+|                              |   around the text.
+*------------------------------+---------------------------------------------+
 
      The coordinates are pixel positions, relative to the sprites "hot point".
+     The "natural" direction for the sprite, for pointing purposes is to the
+     north.  Positive X and Y values are towards the east and south, negative
+     are towards the west and north.
+
+     The bounding box of a sprite is normally calculated internally, but can
+     be overridden.  If a sprite has text associated with it, the text forms a
+     second, separate, bounding box.  This is because the text may change
+     shape (if it's dynamically produced), and because sprites tend to be
+     compact, while text tends to be long and thin.  Currently these bounding
+     box outlines are only used when a sprite is referenced in
+     "roadmap.screenobjects".  The sprite's bounding box can also be
+     overridden there.
 
      An S command must appear before any alias or drawing command.
 

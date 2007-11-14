@@ -9,7 +9,7 @@
 # Syntax:
 #
 # N <name>              Name of the object (unused, but starts a new object)
-#			  Specifying a name, and nothing else at all, will
+#                         Specifying a name, and nothing else at all, will
 #                         define a null object which can be used to
 #                         override objects defined in other (e.g. system)
 #                         screenobjects files.
@@ -18,10 +18,18 @@
 #                         from the right and from the bottom.  If the <x> or
 #                         <y> value begins with a 'C', then the remainder
 #                         is an offset from the center of the screen.
-# E <sprite>            The name of the sprite which will be drawn.
-# E <sprite>              Multiple sprites can be specified.  Which one is
+# E <sprite> [text]       The name of the sprite which will be drawn.
+# E <sprite> [text]       Multiple sprites can be specified.  Which one is
 #                         displayed is selected via the object's "state"
-#                         indicator.
+#                         indicator.  If "text" is specified, it will be
+#                         displayed with the sprite (assuming the sprite
+#                         has been defined to have text associated with it).
+#                          - The text can be divided into multiple lines.
+#                            Line breaks are indicated by inserting a '^'.
+#                          - The text can contain %-macros, just as defined
+#                            for other text displays, in order to display
+#                            dynamic content.  The '|' "alternation" symbol
+#                            is also honored.  See the documentation.
 # S <statename>         The "state" indicator which will choose among 
 #                         the listed sprites.  For "constant" displays, this
 #                         is optional.
@@ -37,6 +45,10 @@
 #                         provided by the sprite itself, but irregularly
 #                         shaped sprites, combined with the rotation of the
 #                         sprite, may require that the box be overridden.
+#                         Note that the bounding box for any text associated
+#                         with the sprite is calculated and considered
+#                         separately.
+
 
 # the Compass object shows which way is north.  it changes from a
 # traditional "compass rose" to a simple arrow if "dynamic orientation"
@@ -144,3 +156,15 @@ R 0
 # A left
 # R -90
 
+# # provide a labeled "button" to switch view modes
+# N 2D3D
+# P 20 180
+# S view_mode
+# E TextBox 3D
+# E TextBox 2D
+# A toggleview
+
+# # show current time, along with either sunset or sunrise time
+# N daylight
+# P C-80 -40
+# E InfoBox Time: %T^Sunset:^%E|Time: %T^Sunrise:^%M
