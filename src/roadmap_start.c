@@ -209,6 +209,24 @@ static void roadmap_start_about (void) {
                        "for Linux & UNIX");
 }
 
+static void roadmap_start_mapinfo (void) {
+
+   char map_info[512];
+   RoadMapPosition pos;
+   char lon[32], lat[32];
+
+   roadmap_math_get_context (&pos, NULL, NULL);
+
+   snprintf(map_info, sizeof(map_info),
+	    "Map view area: %s by %s\n"
+	    "Map center: %s, %s",
+             roadmap_message_get('x'),
+             roadmap_message_get('y'),
+             roadmap_math_to_floatstring(lon, pos.longitude, MILLIONTHS),
+             roadmap_math_to_floatstring(lat, pos.latitude, MILLIONTHS));
+   roadmap_messagebox_wait ("Map Parameters", map_info);
+}
+
 static void roadmap_start_create_waypoint (void) {
 
     roadmap_trip_create_selection_waypoint ();
@@ -558,6 +576,9 @@ static RoadMapAction RoadMapStartActions[] = {
    {"about", "About", NULL, NULL,
       "Show information about RoadMap", roadmap_start_about},
 
+   {"mapinfo", "Map Parameters", NULL, NULL,
+      "Show parameters of the currently displayed map", roadmap_start_mapinfo},
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -750,6 +771,8 @@ static const char *RoadMapStartMenu[] = {
    ROADMAP_MENU "Help",
 
       RoadMapFactoryHelpTopics,
+
+      "mapinfo",
 
       RoadMapFactorySeparator,
 
