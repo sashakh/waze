@@ -350,7 +350,7 @@ static void buildmap_range_add_address (
       }
       // free up memory used by places
       p = places;
-      while (*p) { free(*p); p++; }
+      while (*p) free(*p++);
       free(places);
    } else {
       c = cities;
@@ -364,7 +364,7 @@ static void buildmap_range_add_address (
    }
    // free up memory used by cities
    c = cities;
-   while (*c) { free(*c); c++; }
+   while (*c) free(*c++);
    free(cities);
 }
 
@@ -1140,16 +1140,16 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
          shp = SHPReadObject(hSHP, irec);
 
          if (shp->padfX && shp->padfY) {
-         frlong = shp->padfX[0] * 1000000.0;
-         frlat  = shp->padfY[0] * 1000000.0;
+             frlong = shp->padfX[0] * 1000000.0;
+             frlat  = shp->padfY[0] * 1000000.0;
 
-         tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
-         tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
+             tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
+             tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
 
-         from_point = buildmap_point_add (frlong, frlat);
-         to_point   = buildmap_point_add (tolong, tolat);
+             from_point = buildmap_point_add (frlong, frlat);
+             to_point   = buildmap_point_add (tolong, tolat);
 
-         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+             line = buildmap_line_add (tlid, cfcc, from_point, to_point);
          }
 
          SHPDestroyObject(shp);
@@ -1215,13 +1215,13 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
          // Add the shape points here
 
          for (j=1; j<shp->nVertices-1; j++) {
-         if (shp->padfX && shp->padfY) {
-             lon = shp->padfX[j] * 1000000.0;
-             if (lon != 0) {
-                 lat = shp->padfY[j] * 1000000.0;
-                 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+             if (shp->padfX && shp->padfY) {
+                 lon = shp->padfX[j] * 1000000.0;
+                 if (lon != 0) {
+                     lat = shp->padfY[j] * 1000000.0;
+                     buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+                 }
              }
-         }
          }
       }
 
@@ -1302,16 +1302,16 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
          shp = SHPReadObject(hSHP, irec);
 
          if (shp->padfX && shp->padfY) {
-         frlong = shp->padfX[0] * 1000000.0;
-         frlat  = shp->padfY[0] * 1000000.0;
+             frlong = shp->padfX[0] * 1000000.0;
+             frlat  = shp->padfY[0] * 1000000.0;
 
-         tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
-         tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
+             tolong = shp->padfX[shp->nVertices-1] * 1000000.0;
+             tolat  = shp->padfY[shp->nVertices-1] * 1000000.0;
 
-         from_point = buildmap_point_add (frlong, frlat);
-         to_point   = buildmap_point_add (tolong, tolat);
+             from_point = buildmap_point_add (frlong, frlat);
+             to_point   = buildmap_point_add (tolong, tolat);
 
-         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+             line = buildmap_line_add (tlid, cfcc, from_point, to_point);
          }
 
          SHPDestroyObject(shp);
@@ -1340,11 +1340,11 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
 
       for (j=1; j<shp->nVertices-1; j++) {
          if (shp->padfX && shp->padfY) {
-          lon = shp->padfX[j] * 1000000.0;
-          if (lon != 0) {
-              lat = shp->padfY[j] * 1000000.0;
-              buildmap_square_adjust_limits(lon, lat);
-          }
+            lon = shp->padfX[j] * 1000000.0;
+            if (lon != 0) {
+               lat = shp->padfY[j] * 1000000.0;
+               buildmap_square_adjust_limits(lon, lat);
+            }
          }
       }
 
@@ -1379,13 +1379,13 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
          // Add the shape points here
 
          for (j=1; j<shp->nVertices-1; j++) {
-         if (shp->padfX && shp->padfY) {
-             lon = shp->padfX[j] * 1000000.0;
-             if (lon != 0) {
-                 lat = shp->padfY[j] * 1000000.0;
-                 buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+             if (shp->padfX && shp->padfY) {
+                 lon = shp->padfX[j] * 1000000.0;
+                 if (lon != 0) {
+                     lat = shp->padfY[j] * 1000000.0;
+                     buildmap_shape_add(line_index, irec, tlid, j-1, lon, lat);
+                 }
              }
-         }
          }
       }
 
