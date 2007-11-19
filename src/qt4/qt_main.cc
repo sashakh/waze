@@ -246,7 +246,7 @@ void RMapMainWindow::removeInput(int fd) {
 }
 
 void RMapMainWindow::setStatus(const char* text) {
-   //statusBar()->showMessage(text);
+   statusBar()->showMessage(text);
 }
 
 void RMapMainWindow::keyReleaseEvent(QKeyEvent* event) {
