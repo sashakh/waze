@@ -81,7 +81,7 @@ static int BuildMapLayerRail = 0;
 
 /* Area layers. */
 
-static int BuildMapLayerParc = 0;
+static int BuildMapLayerPark = 0;
 static int BuildMapLayerHospital = 0;
 static int BuildMapLayerAirport = 0;
 static int BuildMapLayerStation = 0;
@@ -127,7 +127,7 @@ static void buildmap_tiger_set_layers (int verbose) {
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerTrail,     "trails");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerRail,      "railroads");
 
-   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerParc,      "parks");
+   buildmap_tiger_set_one_layer (verbose, &BuildMapLayerPark,      "parks");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerHospital,  "hospitals");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerAirport,   "airports");
    buildmap_tiger_set_one_layer (verbose, &BuildMapLayerStation,   "stations");
@@ -231,7 +231,7 @@ static char tiger2area (char *line, int start, int end) {
 
          switch (line[start]) {
 
-            case '8': return BuildMapLayerParc;
+            case '8': return BuildMapLayerPark;
 
             case '3':
                       if (line[start+1] == '1') {
