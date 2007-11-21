@@ -1327,7 +1327,7 @@ int roadmap_street_get_closest
         int *categories, int categories_count,
         RoadMapNeighbour *neighbours, int max) {
 
-   static int *fips = NULL;
+   static int *fipslist = NULL;
 
    int i;
    int county;
@@ -1339,7 +1339,7 @@ int roadmap_street_get_closest
 
    if (RoadMapRangeActive == NULL) return 0;
 
-   county_count = roadmap_locator_by_position (position, &fips);
+   county_count = roadmap_locator_by_position (position, &fipslist);
 
    /* - For each candidate county: */
 
@@ -1347,7 +1347,7 @@ int roadmap_street_get_closest
 
       /* -- Access the county's database. */
 
-      if (roadmap_locator_activate (fips[county]) != ROADMAP_US_OK) continue;
+      if (roadmap_locator_activate (fipslist[county]) != ROADMAP_US_OK) continue;
 
       /* -- Look for the square the current location fits in. */
 
@@ -1725,7 +1725,7 @@ int roadmap_street_intersection (const char *state,
                                  RoadMapStreetIntersection *intersection,
                                  int count) {
 
-   static int *fips = NULL;
+   static int *fipslist = NULL;
 
    int i;
    int results = 0;
@@ -1736,11 +1736,11 @@ int roadmap_street_intersection (const char *state,
 
    if (RoadMapRangeActive == NULL) return 0;
 
-   county_count = roadmap_locator_by_state (state, &fips);
+   county_count = roadmap_locator_by_state (state, &fipslist);
 
    for (i = county_count - 1; i >= 0; --i) {
 
-      if (roadmap_locator_activate (fips[i]) != ROADMAP_US_OK) continue;
+      if (roadmap_locator_activate (fipslist[i]) != ROADMAP_US_OK) continue;
 
       roadmap_street_locate (street1_name, &street1);
       if (street1.name <= 0) continue;
@@ -1749,7 +1749,7 @@ int roadmap_street_intersection (const char *state,
       if (street2.name <= 0) continue;
 
       results += roadmap_street_intersection_county
-                     (fips[i], &street1, &street2,
+                     (fipslist[i], &street1, &street2,
                       intersection + results,
                       count - results);
    }
