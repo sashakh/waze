@@ -38,15 +38,15 @@ extern "C" {
 
 };
 
-#ifdef QWS
-#include <qapplication.h>
+#ifdef QWS4
+#include <qtopiaapplication.h>
 #else
 #include <qapplication.h>
 #endif
 #include "qt_main.h"
 
-#ifdef QWS
-static QApplication* app;
+#ifdef QWS4
+static QtopiaApplication* app;
 #else
 static QApplication* app;
 #endif
@@ -80,14 +80,18 @@ void roadmap_main_new(const char* title, int width, int height) {
 
    mainWindow = new RMapMainWindow(0,0);
 
-#ifdef QWS
-   //app->showMainWidget(mainWindow);
+#ifdef QWS4
+  app->setMainWidget(mainWindow);
+  if ( mainWindow->metaObject()->indexOfSlot("setDocument(QString)") != -1 ) {
+    app->showMainDocumentWidget();
+  } else {
+    app->showMainWidget();
+  }
 #else
-   //app->setMainWidget(mainWindow);
-#endif
-  mainWindow->setWindowTitle(title);
   mainWindow->resize(width,height);
   mainWindow->show();
+#endif
+  mainWindow->setWindowTitle(QString::fromUtf8(title));
 }
 
 void roadmap_main_title(char *fmt, ...) {
@@ -173,6 +177,7 @@ static unsigned long roadmap_main_busy_start;
 void roadmap_main_set_cursor (int newcursor) {
    static int lastcursor;
 
+#ifndef QWS4
    roadmap_main_busy_start = 0;
 
    if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
@@ -202,7 +207,7 @@ void roadmap_main_set_cursor (int newcursor) {
          break;
       }
    }
-
+#endif
 }
 
 void roadmap_main_busy_check(void) {
@@ -295,7 +300,7 @@ void roadmap_main_set_status(const char *text) {
 
 
 void roadmap_main_toggle_full_screen (void) {
-   // Not yet implemented (how to do this ??)
+  mainWindow->toggleFullScreen();
 }
 
 
@@ -364,8 +369,8 @@ int main(int argc, char* argv[]) {
 
    roadmap_option (argc, argv, 0, NULL);
 
-#ifdef QWS
-   app = new QApplication(argc, argv);
+#ifdef QWS4
+   app = new QtopiaApplication(argc, argv);
 #else
    app = new QApplication(argc, argv);
 #endif
@@ -377,7 +382,9 @@ int main(int argc, char* argv[]) {
 
    timers = new RMapTimers(app);
 
+#ifndef QWS4
    roadmap_main_signals_init();
+#endif
 
    roadmap_start(argc, argv);
 

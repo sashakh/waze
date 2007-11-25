@@ -12,17 +12,24 @@ MOC=$(QTDIR)/bin/moc
 # --- QT-specific options ------------------------------------------------
 
 ifeq ($(DESKTOP),QT4)
-CFLAGS += -I$(QTDIR)/include -I$(QTDIR)/include/Qt -I$(QTDIR)/include/QtGui
-CFLAGS += -fno-rtti -fno-exceptions -DQT4
-LIBS += -L$(QTDIR)/lib -lQtCore -lQtGui -lpthread
-#MOC=$(QTDIR)/bin/moc-qt4
+  CFLAGS += -I$(QTDIR)/include -I$(QTDIR)/include/Qt -I$(QTDIR)/include/QtGui
+  CFLAGS += -fno-rtti -fno-exceptions -DQT4
+  LIBS += -L$(QTDIR)/lib -lQtCore -lQtGui -lpthread
+  #MOC=$(QTDIR)/bin/moc-qt4
 endif
 
 ifeq ($(DESKTOP),QPE4)
-   CFLAGS += -I$(QTDIR)/include -I$(QTDIR)/include/Qt 
-   CFLAGS += -I$(QTDIR)/include/QtGui -DQWS
-   LIBS += -L$(QTDIR)/lib -lQtCore -lQtGui -lQtSql -lQtSvg -lQtNetwork -lQtXml -lts
-   INSTALLDIR=$(QTDIR)
+  CFLAGS += -I$(QTDIR)/include -I$(QTDIR)/include/Qt -I$(QTDIR)/include/QtGui
+  CFLAGS += -I$(QTDIR)/include/QtCore -I$(QTOPIADIR)/include/qtopia 
+  CFLAGS += -I$(QTOPIADIR)/include
+  CFLAGS += -I$(QTOPIADIR)/include/qtopiacore 
+  CFLAGS += -I$(QTOPIADIR)/include/qtopiabase
+  CFLAGS += -DQWS4 -fno-rtti -fno-exceptions
+  LIBS += -L$(QTOPIADIR)/lib -L$(QTDIR)/lib 
+  LIBS += -Wl,-rpath,/opt/Qtopia/lib -Wl,-rpath-link,$(QTOPIADIR)/lib 
+  LIBS += -Wl,-rpath-link,$(QTDIR)/lib 
+  LIBS += -lqtopiabase -lqtopia -lQtGui
+  INSTALLDIR=$(QTOPIADIR)/image/
 endif
 
 # --- QT sources & targets --------------------------------------------

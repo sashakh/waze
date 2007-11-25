@@ -76,11 +76,13 @@ RMapMainWindow::RMapMainWindow( QWidget *parent, Qt::WFlags f) : QMainWindow(par
    //setToolBarsMovable(FALSE);
    toolBar = 0;
 
+#ifndef QWS4
    // setup the signal handling
    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, signalFd))
         qFatal("Couldn't create Signal socketpair");
    snSignal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
    connect(snSignal, SIGNAL(activated(int)), this, SLOT(handleSignal()));
+#endif
 }
 
 RMapMainWindow::~RMapMainWindow() {
@@ -109,8 +111,13 @@ void RMapMainWindow::freeMenu(QMenu *menu) {
 
 void RMapMainWindow::addMenu(QMenu *menu, const char* label) {
 
+#ifdef QWS4
+  QMenu *menub = QSoftMenuBar::menuFor(this);
+  menub->addAction(menu->menuAction());
+#else
   menuBar()->addMenu(menu);
   menuBar()->addAction(menu->menuAction());
+#endif
 }
 
 
@@ -144,7 +151,7 @@ void RMapMainWindow::addToolbar(const char* orientation) {
       toolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
       toolBar->setMovable(TRUE);
       addToolBar(Qt::TopToolBarArea, toolBar);
-#ifndef QWS
+
       // moveDockWindow not available on QtE v2.3.10.
       switch (orientation[0]) {
          case 't':
@@ -174,7 +181,7 @@ void RMapMainWindow::addToolbar(const char* orientation) {
          default: roadmap_log (ROADMAP_FATAL,
                         "Invalid toolbar orientation %s", orientation);
       }
-#endif
+
       toolBar->setFocusPolicy(Qt::NoFocus);
    }
 }
@@ -183,12 +190,6 @@ void RMapMainWindow::addTool(const char* label,
                              const char *icon,
                              const char* tip,
                              RoadMapCallback callback) {
-
-#ifndef QWS
-   // For some unknown reason, this toolbar crashes RoadMap
-   // on the Sharp Zaurus.
-   // This should be fixed and the ifndef removed.
-   // Pascal: I believe this has been fixed now.
 
    if (toolBar == 0) {
       addToolbar("");
@@ -209,20 +210,11 @@ void RMapMainWindow::addTool(const char* label,
 
       connect(b, SIGNAL(triggered()), cb, SLOT(fire()));
    }
-#endif
 }  
 
 void RMapMainWindow::addToolSpace(void) {
 
-#ifndef QWS
-   // For some unknown reason, this toolbar crashes RoadMap
-   // on the Sharp Zaurus. This should be fixed and the ifndef
-   // removed.
-
-   //addTool (NULL, NULL, NULL, NULL);
-
    toolBar->addSeparator();
-#endif
 }
 
 
@@ -246,7 +238,9 @@ void RMapMainWindow::removeInput(int fd) {
 }
 
 void RMapMainWindow::setStatus(const char* text) {
+#ifndef QWS4
    statusBar()->showMessage(text);
+#endif
 }
 
 void RMapMainWindow::keyReleaseEvent(QKeyEvent* event) {
@@ -315,11 +309,14 @@ void RMapMainWindow::closeEvent(QCloseEvent* ev) {
 
 void RMapMainWindow::signalHandler(int sig)
 {
+#ifndef QWS4
   ::write(signalFd[0], &sig, sizeof(sig));
+#endif
 }
 
 void RMapMainWindow::handleSignal()
 {
+#ifndef QWS4
   snSignal->setEnabled(false);
   int tmp;
   ::read(signalFd[1], &tmp, sizeof(tmp));
@@ -333,6 +330,7 @@ void RMapMainWindow::handleSignal()
   roadmap_log(ROADMAP_WARNING,"received signal %s",action.toUtf8().constData());
   roadmap_main_exit();
   snSignal->setEnabled(true);
+#endif
 }
 
 // Implementation of the RMapTimers class
@@ -398,3 +396,18 @@ void RMapTimers::removeTimer(RoadMapCallback callback) {
    tcb[found] = 0;
 }
 
+void RMapMainWindow::toggleFullScreen() {
+  if (mainWindow->isFullScreen()) {
+     mainWindow->showNormal();
+     if (toolBar!=0) toolBar->show();
+#ifndef QWS4
+     if (menuBar()!=0) menuBar()->show();
+#endif
+  } else {
+    if (toolBar!=0) toolBar->hide();
+#ifndef QWS4
+    if (menuBar()!=0) menuBar()->hide();
+#endif
+    mainWindow->showFullScreen();
+   }
+}

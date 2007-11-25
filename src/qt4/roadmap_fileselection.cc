@@ -35,7 +35,7 @@ extern "C" {
 void roadmap_fileselection_new (const char *title, const char *filter, 
    const char *path, const char *mode, RoadMapFileCallback callback) {
 
-
+#ifndef QWS4
    QFileDialog *dlg = new QFileDialog(0, title );
 
    if (mode[0] == 'w') {
@@ -55,4 +55,5 @@ void roadmap_fileselection_new (const char *title, const char *filter,
    } else {
       delete dlg;
    }
+#endif
 }

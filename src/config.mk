@@ -44,6 +44,14 @@ DESKTOP = GTK2
 # CFLAGS += -I/usr/include/qt4
 # LIBS += -L$(QTDIR)/lib
 
+# If you selected QPE4 above, then QTOPIADIR is needed -- it
+# points to the place where the qtopia was built.  QTDIR should
+# also be set, and you may need to set CROSS to enable
+# cross-compilation.  You probably will also want to check
+# qt4/Makefile, which contains a few more settings.  For example:
+# QTOPIADIR=/opt/src/qtopia/qtopia_arm
+# QTDIR=$(QTOPIADIR)/qtopiacore/target
+
 # If you are using a build of QT without the QPainter::rotate()
 # call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
 # some Familiar builds), set QT_NO_ROTATE.

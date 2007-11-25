@@ -118,7 +118,7 @@ void RMapCanvas::erase() {
 void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
    int* descent, int *can_tilt) {
 
-   QFont f("Arial Bold",12);
+   QFont f("Arial Bold",10);
    QFontMetrics fm(f);
    
    QRect r = fm.boundingRect(QString::fromUtf8(text));
@@ -143,7 +143,7 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
    if (currentPen != 0) {
       p.setPen(*currentPen);
    }
-   QFont f("Arial Bold",12);
+   QFont f("Arial Bold",10);
    p.setFont(f);
                 
    int text_width;
@@ -182,7 +182,7 @@ void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
       p.setPen(*currentPen);
    }
 
-   QFont f("Arial Bold",12);
+   QFont f("Arial Bold",10);
 
    int text_width;
    int text_ascent;
@@ -424,7 +424,7 @@ QColor RMapCanvas::getColor(const char* color) {
 }
 
 void RMapCanvas::initColors() {
-#ifdef QWS
+#ifdef QWS4
 // It seems that QPE does not have predefined named colors.
 // Temporary fix is to hard-code some. Better solution
 // is to read rgb.txt??

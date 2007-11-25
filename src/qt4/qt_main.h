@@ -27,11 +27,15 @@
 #include <qmainwindow.h>
 #include <qmap.h>
 #include <qtoolbar.h>
-#include <qmenubar.h>
+#ifdef QWS4
+#include <qsoftmenubar.h>
 #include <qmenu.h>
+#else
+#include <qmenubar.h>
+#include <qstatusbar.h>
+#endif
 #include <qsocketnotifier.h>
 #include <qpushbutton.h>
-#include <qstatusbar.h>
 #include <qtimer.h>
 #include <qtooltip.h>
 #include <qevent.h>
@@ -135,6 +139,8 @@ public:
    void addInput(int fd, RoadMapQtInput callback);
    void removeInput(int fd);
    void setStatus(const char* text);
+
+   void toggleFullScreen();
 
    static void signalHandler(int sig);
 
