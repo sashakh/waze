@@ -50,8 +50,8 @@
 
 static void *RoadMapCoordHistory;
 
-static const char RoadMapLongitudeLabel[] = "Longitude (ISO 6709 format):";
-static const char RoadMapLatitudeLabel[]  = "Latitude (ISO 6709 format):";
+static const char RoadMapLongitudeLabel[] = "Longitude:";
+static const char RoadMapLatitudeLabel[]  = "Latitude:";
 
 
 static int roadmap_coord_fraction (const char *image) {
@@ -86,9 +86,9 @@ static int roadmap_coord_to_binary (const char *image, int is_longitude) {
 
    /* This function supports the following formats:
     *
-    * Sdd[d].ddd     (ISO 6709-1983, decimal degree format).
-    * Sdd[d]mm.mmm   (ISO 6709-1983, degree/minute format).
-    * Sdd[d]mmss.sss (ISO 6709-1983, degree/minute/second format).
+    * [+-]dd[d].ddd     (ISO 6709-1983, decimal degree format).
+    * [+-]dd[d]mm.mmm   (ISO 6709-1983, degree/minute format).
+    * [+-]dd[d]mmss.sss (ISO 6709-1983, degree/minute/second format).
     *
     * RoadMap is more lenient than the ISO standard: the degrees
     * do not need a leading zero and 'E', 'W', 'S' and 'N' can be
@@ -276,8 +276,15 @@ void roadmap_coord_dialog (void) {
 
    if (roadmap_dialog_activate ("Position", NULL)) {
 
-      roadmap_dialog_new_entry ("Coordinates", RoadMapLongitudeLabel);
       roadmap_dialog_new_entry ("Coordinates", RoadMapLatitudeLabel);
+      roadmap_dialog_new_entry ("Coordinates", RoadMapLongitudeLabel);
+
+      roadmap_dialog_new_label ("Coordinates", "Format:");
+      roadmap_dialog_set_data  ("Coordinates", "Format:",
+      		"[+-]dd.ddd, [+-]ddmm.mmm, [+-]ddmmss.sss");
+      roadmap_dialog_new_label ("Coordinates", "Also:");
+      roadmap_dialog_set_data  ("Coordinates", "Also:",
+      		"N, S, E, and W allowed as prefix or suffix");
 
       roadmap_dialog_add_button ("Back", roadmap_coord_before);
       roadmap_dialog_add_button ("Next", roadmap_coord_after);
