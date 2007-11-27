@@ -275,6 +275,8 @@ static void buildmap_place_sort (void) {
    int j;
    BuildMapPlace *one_place;
 
+   if (PlaceCount == 0) return;
+
    if (SortedPlace != NULL) return; /* Sort was already performed. */
 
    buildmap_point_sort ();

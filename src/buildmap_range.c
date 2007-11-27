@@ -450,50 +450,52 @@ static void buildmap_range_sort (void) {
    BuildMapRange *this_range;
    RoadMapRangeNoAddress *this_noaddr;
 
-   if (SortedRange != NULL) return; /* Sort was already performed. */
+   if (RangeCount && SortedRange == NULL) {
 
+       buildmap_line_sort();
+       buildmap_street_sort();
 
-   buildmap_line_sort();
-   buildmap_street_sort();
+       buildmap_info ("sorting ranges...");
 
-   buildmap_info ("sorting ranges...");
+       SortedRange = malloc (RangeCount * sizeof(int));
+       if (SortedRange == NULL) {
+	  buildmap_fatal (0, "no more memory");
+       }
 
-   SortedRange = malloc (RangeCount * sizeof(int));
-   if (SortedRange == NULL) {
-      buildmap_fatal (0, "no more memory");
+       for (i = 0; i < RangeCount; i++) {
+
+	  SortedRange[i] = i;
+	  this_range = Range[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+
+	  this_range->street = buildmap_street_get_sorted (this_range->street);
+
+	  this_range->line =
+	     buildmap_line_get_sorted (this_range->line & (~ CONTINUATION_FLAG))
+		| (this_range->line & CONTINUATION_FLAG);
+       }
+
+       qsort (SortedRange, RangeCount, sizeof(int), buildmap_range_compare);
    }
 
-   for (i = 0; i < RangeCount; i++) {
+   if (RangeNoAddressCount && SortedNoAddress == NULL) {
 
-      SortedRange[i] = i;
-      this_range = Range[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+       SortedNoAddress = malloc (RangeNoAddressCount * sizeof(int));
+       if (SortedNoAddress == NULL) {
+	  buildmap_fatal (0, "no more memory");
+       }
 
-      this_range->street = buildmap_street_get_sorted (this_range->street);
+       for (i = 0; i < RangeNoAddressCount; i++) {
 
-      this_range->line =
-         buildmap_line_get_sorted (this_range->line & (~ CONTINUATION_FLAG))
-            | (this_range->line & CONTINUATION_FLAG);
+	  SortedNoAddress[i] = i;
+	  this_noaddr = RangeNoAddress[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
+
+	  this_noaddr->street = buildmap_street_get_sorted (this_noaddr->street);
+	  this_noaddr->line   = buildmap_line_get_sorted (this_noaddr->line);
+       }
+
+       qsort (SortedNoAddress, RangeNoAddressCount, sizeof(int),
+	      buildmap_range_compare_no_addr);
    }
-
-   qsort (SortedRange, RangeCount, sizeof(int), buildmap_range_compare);
-
-
-   SortedNoAddress = malloc (RangeNoAddressCount * sizeof(int));
-   if (SortedNoAddress == NULL) {
-      buildmap_fatal (0, "no more memory");
-   }
-
-   for (i = 0; i < RangeNoAddressCount; i++) {
-
-      SortedNoAddress[i] = i;
-      this_noaddr = RangeNoAddress[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
-
-      this_noaddr->street = buildmap_street_get_sorted (this_noaddr->street);
-      this_noaddr->line   = buildmap_line_get_sorted (this_noaddr->line);
-   }
-
-   qsort (SortedNoAddress, RangeNoAddressCount, sizeof(int),
-          buildmap_range_compare_no_addr);
 }
 
 
@@ -555,6 +557,7 @@ static void  buildmap_range_save (void) {
 
    } *square_info;
 
+   if (!square_count) return;
 
    buildmap_info ("building the street search accelerator...");
 

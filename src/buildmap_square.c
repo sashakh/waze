@@ -379,6 +379,8 @@ void buildmap_square_sort (void) {
    int i;
    int final_count;
 
+   if (SquareCount == 0) return;
+
    if (SortedSquare != NULL) return; /* Sort was already performed. */
 
    buildmap_info ("sorting squares...");

@@ -542,6 +542,7 @@ static void buildmap_index_sort (void) {
    BuildMapTerritory *this_territory;
    BuildMapAuthority *this_authority;
 
+   if (!TerritoryCount) return;
 
    buildmap_info ("sorting index...");
 

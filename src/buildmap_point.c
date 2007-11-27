@@ -267,6 +267,8 @@ void buildmap_point_sort (void) {
    int j;
    BuildMapPoint *record;
 
+   if (PointCount == 0) return;
+
    if (SortedPoint != NULL) return; /* Sort was already performed. */
 
    buildmap_info ("generating squares...");

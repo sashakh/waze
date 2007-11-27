@@ -363,6 +363,8 @@ void roadmap_line_points (int line, int *from, int *to) {
 
 int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
 
+   if (RoadMapLineActive == NULL) return 0; /* No lines */
+
    if (index >= RoadMapLineActive->LongLinesCount) return 0;
 
    *line_id = RoadMapLineActive->LongLines[index].line;

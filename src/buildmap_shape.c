@@ -212,6 +212,8 @@ static void buildmap_shape_sort (void) {
 
    int i;
 
+   if (ShapeCount == 0) return;
+
    if (SortedShape != NULL) return; /* Sort was already performed. */
 
    buildmap_info ("sorting shapes...");

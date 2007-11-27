@@ -226,7 +226,7 @@ static void buildmap_polygon_explain_the_line_order_problem
       fprintf (stderr, "%s at line %d:\n", text, problem_line->tlid);
    }
 
-   fprintf (stderr, "%-6s %11s %6s %-24s %-24s\n",
+   fprintf (stderr, "%-6s %11s %6s      %-24s %-24s\n",
             "SIDE", "TLID", "POLYID", "FROM", "TO");
 
    side2text[POLYGON_SIDE_LEFT] = "left";
@@ -751,6 +751,8 @@ static void buildmap_polygon_sort (void) {
    int first_unused_line;
    BuildMapPolygon *one_polygon;
    BuildMapPolygonLine *one_line;
+
+   if (!PolygonLineCount || !PolygonCount) return;
 
    if (SortedPolygon != NULL) return; /* Sort was already performed. */
 

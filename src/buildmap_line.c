@@ -430,9 +430,9 @@ void buildmap_line_sort (void) {
    int to_square, from_square;
    BuildMapLine *one_line;
 
-   if (SortedLine != NULL) return; /* Sort was already performed. */
-
    if (LineCount == 0) return; /* No line to sort. */
+
+   if (SortedLine != NULL) return; /* Sort was already performed. */
 
 
    buildmap_point_sort ();

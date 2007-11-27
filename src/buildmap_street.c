@@ -203,6 +203,7 @@ void buildmap_street_sort (void) {
    int j;
    BuildMapStreet *this_street;
 
+   if (StreetCount == 0) return;
 
    if (SortedStreet != NULL) return; /* Sort was already performed. */
 

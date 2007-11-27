@@ -372,6 +372,8 @@ static void buildus_county_sort (void) {
 
    int i;
 
+   if (CountyCount == 0) return;
+
    if (SortedCounty != NULL) return; /* Sort was already performed. */
 
    buildmap_info ("sorting counties...");
