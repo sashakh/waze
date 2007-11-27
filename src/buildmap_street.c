@@ -285,6 +285,8 @@ static void  buildmap_street_save (void) {
 
    buildmap_info ("saving street...");
 
+   if (!StreetCount) return;
+
    root = buildmap_db_add_section (NULL, "street");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 

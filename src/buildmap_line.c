@@ -534,6 +534,8 @@ static void buildmap_line_save (void) {
 
    buildmap_info ("saving lines...");
 
+   if (!LineCount) return;
+
    square_count = buildmap_square_get_count();
 
 

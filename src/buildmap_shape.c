@@ -259,6 +259,8 @@ static void buildmap_shape_save (void) {
 
    buildmap_info ("saving shapes...");
 
+   if (!ShapeCount) return;
+
    square_count = buildmap_square_get_count();
 
    /* Evaluate the number of shape records we need, counting for

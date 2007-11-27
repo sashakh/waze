@@ -543,7 +543,7 @@ static void  buildmap_range_save (void) {
 
    int delta;
    int square;
-   int square_count = buildmap_square_get_count();
+   int square_count;
 
    struct {
       int last;
@@ -557,9 +557,13 @@ static void  buildmap_range_save (void) {
 
    } *square_info;
 
+   buildmap_info ("building the street search accelerator...");
+
+   if (!RangeCount && !RangeNoAddressCount) return;
+
+   square_count = buildmap_square_get_count();
    if (!square_count) return;
 
-   buildmap_info ("building the street search accelerator...");
 
    square_info = calloc (square_count, sizeof(*square_info));
    if (square_info == NULL) {

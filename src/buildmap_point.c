@@ -332,6 +332,8 @@ static void buildmap_point_save (void) {
 
    buildmap_info ("saving points...");
 
+   if (!PointCount) return;
+
    square_count = buildmap_square_get_count();
 
    root = buildmap_db_add_section (NULL, "point");
