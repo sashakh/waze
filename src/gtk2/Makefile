@@ -52,7 +52,7 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -L ../dglib -ldgl -lagg -lfreetype -lpng
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lagg -lfreetype -lpng
 
 ifeq ($(BIDI),YES)
 LIBS += -lfribidi
