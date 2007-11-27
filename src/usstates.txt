@@ -52,7 +52,7 @@ WY,WYOMING
 AS,AMERICAN SAMOA
 GU,GUAM
 MP,NORTHERN MARIANA ISLANDS
-PR,PORTO RICO
+PR,PUERTO RICO
 UM,MIDWAY ISLANDS
 VI,VIRGIN ISLANDS
 AB,Alberta
@@ -74,3 +74,4 @@ DY,DCW North America
 DZ,DCW South America and Africa
 PN,Placenames
 SB,State and Provincial Boundaries
+OS,OSM testing
