@@ -55,6 +55,7 @@ typedef struct {
    int  SquareGridCount;
    int SquareGridBitmapped;
    int SquareLastLookup;  /* lookup cache for bitmapped grids */
+   int SquareLastIndex;
 } RoadMapSquareContext;
 
 static RoadMapSquareContext *RoadMapSquareActive = NULL;
@@ -81,6 +82,11 @@ static void *roadmap_square_map (roadmap_db *root) {
 
    count = context->SquareGlobal->count_longitude
               * context->SquareGlobal->count_latitude;
+
+   if (!count) {
+      free(context);
+      return NULL;
+   }
 
    /* See if the grid seems like it will be very sparse, by
     * comparing the number of squares in the whole grid to those
@@ -146,10 +152,9 @@ int grid_index(int square)
       int i;
       int index;
       int bit;
-      static int last_index;
 
       if (square == RoadMapSquareActive->SquareLastLookup) {
-         return last_index;
+         return RoadMapSquareActive->SquareLastIndex;
       }
 
       RoadMapSquareActive->SquareLastLookup = square;
@@ -158,17 +163,17 @@ int grid_index(int square)
       bit  = square % 16;
 
       if ((RoadMapSquareActive->SquareGrid[index] & (1 << bit)) == 0)
-         return last_index = -1;
+         return RoadMapSquareActive->SquareLastIndex = -1;
 
       for (i = RoadMapSquareActive->SquareGlobal->count_squares - 1;
                i >= 0; --i) {
          if (RoadMapSquareActive->Square[i].position == square) {
-            return last_index = i;
+            return RoadMapSquareActive->SquareLastIndex = i;
          }
       }
 
       roadmap_log (ROADMAP_WARNING, "bitmapping BUG");
-      return last_index = -1;
+      return RoadMapSquareActive->SquareLastIndex = -1;
    }
 
 }

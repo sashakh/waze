@@ -57,6 +57,9 @@ typedef struct {
 } RoadMapPointContext;
 
 static RoadMapPointContext *RoadMapPointActive = NULL;
+static int RoadMapPointPositionLastSquare = -2;
+static RoadMapPosition RoadMapPointPositionLastMin;
+
 
 
 static void *roadmap_point_map (roadmap_db *root) {
@@ -104,6 +107,7 @@ static void roadmap_point_activate (void *context) {
       roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
    }
    RoadMapPointActive = point_context;
+   RoadMapPointPositionLastSquare = -2;
 }
 
 static void roadmap_point_unmap (void *context) {
@@ -209,9 +213,6 @@ int roadmap_point_in_square (int square, int *first, int *last) {
 
 void roadmap_point_position  (int point, RoadMapPosition *position) {
 
-   static int square = -2;
-   static RoadMapPosition square_position;
-
    int point_square;
    RoadMapPoint *Point;
 
@@ -230,7 +231,7 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
       point_square = -1;
    }
 
-   if (square != point_square) {
+   if (RoadMapPointPositionLastSquare != point_square) {
 
       if (point_square < 0) {
 
@@ -244,12 +245,14 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
             roadmap_log (ROADMAP_FATAL, "invalid square index", point);
          }
       }
-      square = point_square;
-      roadmap_square_min (point_square, &square_position);
+      RoadMapPointPositionLastSquare = point_square;
+      roadmap_square_min (point_square, &RoadMapPointPositionLastMin);
    }
 
    Point = RoadMapPointActive->Point + point;
-   position->longitude = square_position.longitude + Point->longitude;
-   position->latitude  = square_position.latitude  + Point->latitude;
+   position->longitude =
+	RoadMapPointPositionLastMin.longitude + Point->longitude;
+   position->latitude =
+	RoadMapPointPositionLastMin.latitude  + Point->latitude;
 }
 
