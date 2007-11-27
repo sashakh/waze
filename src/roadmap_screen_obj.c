@@ -528,7 +528,7 @@ static RoadMapScreenObj roadmap_screen_obj_by_pos (RoadMapGuiPoint *point) {
       RoadMapGuiPoint pos;
 
       if (cursor->callback == NULL && cursor->long_callback == NULL)
-	 continue;
+         continue;
 
       roadmap_screen_obj_pos (cursor, &pos);
 
@@ -799,7 +799,6 @@ void roadmap_screen_obj_draw (void) {
 
       if (cursor->sprites[state]) {
          char  *text = NULL, textbuf[256];
-	 int has_no_action;
 
          if (cursor->msgformat[state] != NULL) {
             text = textbuf;
@@ -812,16 +811,10 @@ void roadmap_screen_obj_draw (void) {
          if (cursor->flags & OBJ_FLAG_NO_ROTATE)
             angle = cursor->angle - roadmap_math_get_orientation();
 
-	 /* don't request bounding boxes if we have no use for them */
-         has_no_action = (cursor->callback == NULL &&
-                            cursor->long_callback == NULL);
-
          roadmap_sprite_draw_with_text
             (cursor->sprites[state], &pos, angle,
-            (has_no_action || (cursor->flags & OBJ_FLAG_EXPLICIT_BBOX)) ?
-	    	NULL : &cursor->bbox,
-            has_no_action ?
-		NULL : &cursor->text_bbox,
+            (cursor->flags & OBJ_FLAG_EXPLICIT_BBOX) ? NULL : &cursor->bbox,
+            &cursor->text_bbox,
             text);
       }
    }
