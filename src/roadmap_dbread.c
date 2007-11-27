@@ -448,7 +448,8 @@ void roadmap_db_activate (const char *path, const char *name) {
 
    if (database == NULL) {
       roadmap_log
-         (ROADMAP_ERROR, "cannot activate database %s (not found)", name);
+         (ROADMAP_ERROR, "cannot activate database %s/%s (not found)",
+	  path, name);
       return;
    }
 
