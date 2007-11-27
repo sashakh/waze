@@ -74,4 +74,3 @@ DY,DCW North America
 DZ,DCW South America and Africa
 PN,Placenames
 SB,State and Provincial Boundaries
-OS,OSM testing
