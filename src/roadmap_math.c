@@ -796,6 +796,11 @@ void roadmap_math_set_focus (const RoadMapArea *focus) {
    RoadMapContext.focus = *focus;
 }
 
+void roadmap_math_get_focus (RoadMapArea *area) {
+
+   *area = RoadMapContext.focus;
+}
+
 
 void roadmap_math_release_focus (void) {
 
@@ -803,20 +808,21 @@ void roadmap_math_release_focus (void) {
 }
 
 
-int roadmap_math_is_visible (const RoadMapArea *area) {
+int roadmap_math_areas_intersect
+        (const RoadMapArea *area1, const RoadMapArea *area2) {
 
-   if (area->west > RoadMapContext.focus.east ||
-       area->east < RoadMapContext.focus.west ||
-       area->south > RoadMapContext.focus.north ||
-       area->north < RoadMapContext.focus.south)
+   if (area1->west > area2->east ||
+       area1->east < area2->west ||
+       area1->south > area2->north ||
+       area1->north < area2->south)
    {
        return 0;
    }
 
-   if (area->west >= RoadMapContext.focus.west &&
-       area->east < RoadMapContext.focus.east &&
-       area->south > RoadMapContext.focus.south &&
-       area->north <= RoadMapContext.focus.north)
+   if (area1->west >= area2->west &&
+       area1->east < area2->east &&
+       area1->south > area2->south &&
+       area1->north <= area2->north)
    {
        return 1;
    }
@@ -824,6 +830,9 @@ int roadmap_math_is_visible (const RoadMapArea *area) {
    return -1;
 }
 
+int roadmap_math_is_visible (const RoadMapArea *area) {
+    return roadmap_math_areas_intersect(area, &RoadMapContext.focus);
+}
 
 int roadmap_math_line_is_visible (const RoadMapPosition *point1,
                                   const RoadMapPosition *point2) {
@@ -1201,9 +1210,9 @@ int roadmap_math_point_in_box
     (RoadMapGuiPoint *point, RoadMapGuiPoint *ref, RoadMapGuiRect *bbox)
 {
       return (point->x >= (ref->x + bbox->minx)) &&
-	     (point->x <= (ref->x + bbox->maxx)) &&
-	     (point->y >= (ref->y + bbox->miny)) &&
-	     (point->y <= (ref->y + bbox->maxy));
+             (point->x <= (ref->x + bbox->maxx)) &&
+             (point->y >= (ref->y + bbox->miny)) &&
+             (point->y <= (ref->y + bbox->maxy));
 }
 
 int roadmap_math_rectangle_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
@@ -1324,6 +1333,37 @@ int roadmap_math_distance
    return (int) sqrt ((x * x) + (y * y));
 }
 
+
+/* 
+ * returns a square bounding box, centered at 'from',
+ * roughly "distance" miles/km on a side
+ */
+void roadmap_math_bbox_around_point
+        (RoadMapArea *bbox, const RoadMapPosition *from,
+         double distance, char *unitstring) {
+
+   RoadMapUnits *units;
+   double unit_per_longitude;
+   int sine, cosine;
+
+   if (strcasecmp(unitstring, "km") == 0) {
+      units = &RoadMapMetricSystem;
+   } else { /* miles */
+      units = &RoadMapImperialSystem;
+   }
+
+   roadmap_math_trigonometry (from->latitude / 1000000, &sine, &cosine);
+
+   distance *= units->to_trip_unit;  /* to meters or feet */
+   unit_per_longitude = (units->unit_per_latitude * cosine) / 32768;
+
+   distance /= 2; /* want half the square's dimensions */
+
+   bbox->west = from->longitude - distance / unit_per_longitude;
+   bbox->east = from->longitude + distance / unit_per_longitude;
+   bbox->south = from->latitude - distance / units->unit_per_latitude;
+   bbox->north = from->latitude + distance / units->unit_per_latitude;
+}
 
 /* Take a number followed by ft/mi/m/km, and converts it to current units. */
 int roadmap_math_distance_convert(const char *string, int *was_explicit)
@@ -1877,10 +1917,13 @@ char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits)
     static char result[32];
 
     int scale = powers_of_10[fracdigits];
+    int sign = (value == 0) ? 1 : value/abs(value);
+    char *hyphen = (sign < 0) ? "-":"";
 
     if (buf == NULL)  buf = result;  /* supply buffer if non provided */
 
-    sprintf(buf, "%d.%0*d", value / scale, fracdigits, abs(value) % scale);
+    sprintf(buf, "%s%d.%0*d",
+        hyphen, abs(value) / scale, fracdigits, abs(value) % scale);
 
     return buf;
 }
