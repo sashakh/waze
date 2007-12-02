@@ -100,7 +100,7 @@ struct dictionary_volume {
 static struct dictionary_volume *DictionaryVolume[DICTIONARY_MAX_VOLUME_COUNT];
 static int DictionaryVolumeCount = 0;
 
-static int DictionaryDebugOn = 0;
+#define DictionaryDebugOn 0
 
 
 static void buildmap_dictionary_summary  (void);
@@ -281,8 +281,8 @@ buildmap_dictionary_search (struct dictionary_volume *dictionary,
            stored = dictionary->data
                        + dictionary->string_index[reference->child];
 
-           if ((stored[length] != 0) ||
-               (strncasecmp (string, stored, length) != 0)) {
+           if ( (strncasecmp (string, stored, length) != 0) ||
+                (stored[length] != 0)) {
               return -1;
            }
            return reference->child;
@@ -840,13 +840,13 @@ static void buildmap_dictionary_reset (void) {
              (DictionaryVolume[i], DictionaryVolume[i]->tree);
 
           free (DictionaryVolume[i]->data);
+          free (DictionaryVolume[i]->name);
           free (DictionaryVolume[i]);
           DictionaryVolume[i] = NULL;
        }
    }
 
    DictionaryVolumeCount = 0;
-   DictionaryDebugOn = 0;
 }
 
 
