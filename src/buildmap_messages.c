@@ -29,8 +29,11 @@
  *   void buildmap_progress (int done, int estimated);
  *   void buildmap_info (char *format, ...);
  *   void buildmap_summary (int verbose, char *format, ...);
+ *   void buildmap_verbose (char *format, ...);
+ *   void buildmap_is_verbose (void);
  *   int buildmap_get_error_count (void);
  *   int buildmap_get_error_total (void);
+ *   void buildmap_message_level (int);
  *
  * This module is used to control and manage the appearance of messages
  * printed by the buildmap tool. The goals are (1) to produce a uniform
@@ -51,6 +54,21 @@ static int   SourceLine = 0;
 static int   ErrorCount = 0;
 static int   ErrorTotal = 0;
 static int   LastProgress = 0;
+
+#define BUILDMAP_MESSAGE_VERBOSE   5
+#define BUILDMAP_MESSAGE_PROGRESS  4
+#define BUILDMAP_MESSAGE_INFO      3
+#define BUILDMAP_MESSAGE_ERROR     2
+#define BUILDMAP_MESSAGE_FATAL     1
+int BuildMapMessageLevel = 4; /* + for more verbosity, - for less */
+
+void buildmap_message_adjust_level (int level) {
+
+    BuildMapMessageLevel += level;
+
+    if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_VERBOSE)
+        setbuf(stdout, NULL);
+}
 
 
 void buildmap_set_source (const char *name) {
@@ -106,7 +124,8 @@ void buildmap_error (int column, const char *format, ...) {
    va_list ap;
    FILE    *log;
 
-   buildmap_show_source (stderr, "**", column);
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_ERROR)
+      buildmap_show_source (stderr, "**", column);
 
    log = fopen ("buildmap_errors.log", "a");
    if (log != NULL) {
@@ -114,13 +133,17 @@ void buildmap_error (int column, const char *format, ...) {
    }
 
    va_start(ap, format);
-   vfprintf(stderr, format, ap);
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_ERROR)
+      vfprintf(stderr, format, ap);
+
    if (log != NULL) {
       vfprintf(log, format, ap);
    }
    va_end(ap);
 
-   fprintf (stderr, "\n");
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_ERROR)
+      fprintf (stderr, "\n");
+
    if (log != NULL) {
       fprintf(log, "\n");
       fclose (log);
@@ -136,7 +159,8 @@ void buildmap_fatal (int column, const char *format, ...) {
    va_list ap;
    FILE    *log;
 
-   buildmap_show_source (stderr, "##", column);
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_FATAL)
+      buildmap_show_source (stderr, "##", column);
 
    log = fopen ("buildmap_errors.log", "a");
    if (log != NULL) {
@@ -144,13 +168,15 @@ void buildmap_fatal (int column, const char *format, ...) {
    }
 
    va_start(ap, format);
-   vfprintf(stderr, format, ap);
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_FATAL)
+      vfprintf(stderr, format, ap);
    if (log != NULL) {
       vfprintf(log, format, ap);
    }
    va_end(ap);
 
-   fprintf (stderr, "\n");
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_FATAL)
+      fprintf (stderr, "\n");
    if (log != NULL) {
       fprintf(log, "\n");
       fclose (log);
@@ -164,11 +190,14 @@ void buildmap_progress (int done, int estimated) {
 
    int this;
 
-   this = (100 * done) / estimated;
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_PROGRESS) {
 
-   if (this != LastProgress) {
-      LastProgress = this;
-      fprintf (stderr, "-- %s: %3d%% done\r", SourceFile, this);
+      this = (100 * done) / estimated;
+
+      if (this != LastProgress) {
+         LastProgress = this;
+        fprintf (stdout, "-- %s: %3d%% done\r", SourceFile, this);
+      }
    }
 }
 
@@ -177,13 +206,36 @@ void buildmap_info (const char *format, ...) {
 
    va_list ap;
 
-   buildmap_show_source (stderr, "--", -1);
+   if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_INFO) {
+
+      buildmap_show_source (stdout, "--", -1);
+
+      va_start(ap, format);
+      vfprintf(stdout, format, ap);
+      va_end(ap);
+
+      fprintf (stdout, "\n");
+   }
+
+}
+
+int buildmap_is_verbose (void) {
+
+   return (BuildMapMessageLevel >= BUILDMAP_MESSAGE_VERBOSE);
+}
+
+void buildmap_verbose (const char *format, ...) {
+
+   va_list ap;
+
+   if (BuildMapMessageLevel < BUILDMAP_MESSAGE_VERBOSE)
+      return;
 
    va_start(ap, format);
-   vfprintf(stderr, format, ap);
+   vfprintf(stdout, format, ap);
    va_end(ap);
 
-   fprintf (stderr, "\n");
+   fprintf (stdout, "\n");
 }
 
 
@@ -191,31 +243,34 @@ void buildmap_summary (int verbose, const char *format, ...) {
 
    va_list ap;
 
+   if (BuildMapMessageLevel < BUILDMAP_MESSAGE_INFO)
+      return;
+
    if (ErrorCount > 0 || verbose) {
       SourceLine = 0;
-      buildmap_show_source (stderr, "--", -1);
+      buildmap_show_source (stdout, "--", -1);
    }
 
    if (ErrorCount > 0) {
       if (ErrorCount > 1) {
-         fprintf (stderr, "%d errors", ErrorCount);
+         fprintf (stdout, "%d errors", ErrorCount);
       } else {
-         fprintf (stderr, "1 error");
+         fprintf (stdout, "1 error");
       }
       verbose = 1;
       ErrorCount = 0;
    } else if (verbose) {
-     fprintf (stderr, "no error");
+     fprintf (stdout, "no error");
    }
 
    if (verbose) {
-      fprintf (stderr, ", ");
+      fprintf (stdout, ", ");
 
       va_start(ap, format);
-      vfprintf(stderr, format, ap);
+      vfprintf(stdout, format, ap);
       va_end(ap);
 
-      fprintf (stderr, "\n");
+      fprintf (stdout, "\n");
    }
 }
 

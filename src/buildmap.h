@@ -38,6 +38,9 @@ void buildmap_error    (int column, const char *format, ...);
 void buildmap_progress (int done, int estimated);
 void buildmap_info     (const char *format, ...);
 void buildmap_summary  (int verbose, const char *format, ...);
+void buildmap_verbose  (const char *format, ...);
+int  buildmap_is_verbose (void);
+void buildmap_message_adjust_level (int level);
 
 int buildmap_get_error_count (void);
 int buildmap_get_error_total (void);
