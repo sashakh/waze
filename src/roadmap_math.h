@@ -55,10 +55,14 @@ void roadmap_math_set_horizon     (int horizon);
 void roadmap_math_focus_area (RoadMapArea *focus,
                  const RoadMapPosition *position, int accuracy);
 void roadmap_math_set_focus     (const RoadMapArea *focus);
+void roadmap_math_get_focus     (RoadMapArea *area);
 void roadmap_math_release_focus (void);
 
 int  roadmap_math_declutter (int level);
 int  roadmap_math_thickness (int base, int declutter, int use_multiple_pens);
+
+int roadmap_math_areas_intersect
+        (const RoadMapArea *area1, const RoadMapArea *area2);
 
 /* These 2 functions return: 0 (not visible), 1 (fully visible) or
  * -1 (partially visible).
@@ -108,6 +112,9 @@ char *roadmap_math_speed_unit    (void);
 
 int  roadmap_math_distance
         (const RoadMapPosition *position1, const RoadMapPosition *position2);
+void roadmap_math_bbox_around_point
+        (RoadMapArea *bbox, const RoadMapPosition *from,
+         double distance, char *unitstring);
 
 int  roadmap_math_distance_convert (const char *string, int *was_explicit);
 int  roadmap_math_to_trip_distance (int distance);
