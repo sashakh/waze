@@ -81,7 +81,7 @@ static int *SortedLine2 = NULL;
 static void buildmap_line_register (void);
 
 #define MAX_LONG_LINES 150000
-static RoadMapLongLine LongLines[MAX_LONG_LINES];
+static RoadMapLongLine *LongLines;
 static int LongLinesCount;
 static RoadMapHash *LongLinesHash = NULL;
 
@@ -211,6 +211,8 @@ static void buildmap_line_new_long (int sorted_line)
        buildmap_fatal (0, "Too many long lines.");
     }
 
+    LongLines = realloc(LongLines, sizeof(*LongLines) * (LongLinesCount + 1));
+
     this_long_line = LongLines + LongLinesCount;
 
     this_long_line->line = sorted_line;
@@ -219,8 +221,12 @@ static void buildmap_line_new_long (int sorted_line)
 
     buildmap_line_get_points_sorted (sorted_line, &from, &to);
 
-    this_long_line->area.west = buildmap_point_get_longitude_sorted (from);
-    this_long_line->area.north = buildmap_point_get_latitude_sorted (from);
+    this_long_line->area.east =
+        this_long_line->area.west =
+            buildmap_point_get_longitude_sorted (from);
+    this_long_line->area.south =
+        this_long_line->area.north =
+            buildmap_point_get_latitude_sorted (from);
 
     buildmap_shape_update_long_line
              (this_long_line,
@@ -488,7 +494,7 @@ void buildmap_line_sort (void) {
          SortedLine2[j++] = i;
       }
       if ( ! BuildMapNoLongLines) {
-	 if (!buildmap_square_is_adjacent (from_square, to_square))
+         if (!buildmap_square_is_adjacent (from_square, to_square))
              buildmap_line_new_long(i);
       }
    }
