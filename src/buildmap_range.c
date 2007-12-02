@@ -930,6 +930,9 @@ static void  buildmap_range_save (void) {
       }
       db_square[k].noaddr_count += 1;
    }
+
+   free(square_info);
+
 }
 
 
