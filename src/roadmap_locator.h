@@ -33,6 +33,7 @@
 
 typedef int (*RoadMapInstaller) (int fips);
 
+char *roadmap_locator_filename(char *buf, int fips);
 
 void roadmap_locator_declare (RoadMapInstaller download);
 
@@ -48,6 +49,9 @@ int  roadmap_locator_active      (void);
 void roadmap_locator_close (int fips);
 
 RoadMapString roadmap_locator_get_state (const char *state);
+
+int roadmap_locator_get_decluttered(int fips);
+void roadmap_locator_set_decluttered(int fips);
 
 #endif // _ROADMAP_LOCATOR__H_
 

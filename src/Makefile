@@ -18,6 +18,7 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_metadata.c \
 	roadmap_index.c \
 	roadmap_county.c \
+	roadmap_osm.c \
 	roadmap_locator.c \
 	roadmap_math.c \
 	roadmap_hash.c \
@@ -113,9 +114,11 @@ BMLIBSRC = buildmap_messages.c \
 	buildmap_layer.c \
 	buildmap_tiger.c \
 	buildmap_shapefile.c \
+	buildmap_osm_binary.c \
 	buildmap_empty.c \
 	buildmap_place.c \
 	buildmap_index.c \
+	buildmap_opt.c
 
 BMLIBOBJS = $(BMLIBSRC:.c=.o)
 
@@ -123,6 +126,9 @@ BMSRC = buildmap_main.c
 
 BMOBJS = $(BMSRC:.c=.o)
 
+BMOSMSRC = buildmap_osm_main.c
+
+BMOSMOBJS = $(BMOSMSRC:.c=.o)
 
 BPSRC = buildmap_messages.c \
 	buildmap_dictionary.c \
@@ -179,6 +185,8 @@ BMHEADERS = \
 	buildmap_layer.h \
 	buildmap_line.h \
 	buildmap_metadata.h \
+	buildmap_opt.h \
+	buildmap_osm_binary.h \
 	buildmap_place.h \
 	buildmap_point.h \
 	buildmap_polygon.h \
@@ -249,6 +257,7 @@ RMHEADERS = \
 	roadmap_net.h \
 	roadmap_nmea.h \
 	roadmap_object.h \
+	roadmap_osm.h \
 	roadmap_path.h \
 	roadmap_place.h \
 	roadmap_plugin.h \
@@ -317,7 +326,7 @@ MANUAL = manual.html
 # more products
 ifneq ($(strip $(POPT)),NO)
   # these depend on libpopt
-  BUILD = buildmap buildus dumpmap buildplace rdmindex 
+  BUILD = buildmap buildmap_osm buildus dumpmap buildplace rdmindex 
 endif
 
 RUNTIME = $(RDMLIBS) libguiroadgps.a libguiroadmap.a
@@ -503,6 +512,9 @@ dumpmap: $(DMOBJS) $(RDMLIBS)
 
 buildmap: $(BMOBJS) libbuildmap.a $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BMOBJS) -o buildmap libbuildmap.a $(LIBS)
+
+buildmap_osm: $(BMOSMOBJS) libbuildmap.a $(RDMLIBS)
+	$(CC) $(LDFLAGS) $(BMOSMOBJS) -o buildmap_osm libbuildmap.a $(LIBS)
 
 # buildus to be retired soon.
 buildus: $(BUOBJS) $(RDMLIBS)

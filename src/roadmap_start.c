@@ -76,6 +76,7 @@
 #include "roadmap_main.h"
 #include "roadmap_message.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_osm.h"
 #include "roadmap_help.h"
 #include "roadmap_pointer.h"
 #include "roadmap_layer.h"
@@ -218,8 +219,8 @@ static void roadmap_start_mapinfo (void) {
    roadmap_math_get_context (&pos, NULL, NULL);
 
    snprintf(map_info, sizeof(map_info),
-	    "Map view area: %s by %s\n"
-	    "Map center: %s, %s",
+            "Map view area: %s by %s\n"
+            "Map center: %s, %s",
              roadmap_message_get('x'),
              roadmap_message_get('y'),
              roadmap_math_to_floatstring(lon, pos.longitude, MILLIONTHS),
@@ -242,7 +243,14 @@ static void roadmap_start_create_gps_waypoint (void) {
 static int roadmap_start_no_download (int fips) {
 
    if (! roadmap_download_blocked (fips)) {
-      roadmap_log (ROADMAP_WARNING, "cannot open map database usc%05d", fips);
+      if (fips > 0) {
+        /* only report on maps that were indexed.  the names of
+         * geographic maps (e.g., OSM quadtiles) are calculated, not
+         * looked up, so warning about them is overload.
+         */
+        roadmap_log (ROADMAP_WARNING, "cannot open map database %s",
+                roadmap_locator_filename(NULL, fips));
+      }
       roadmap_download_block (fips);
    }
    return 0;
@@ -1204,6 +1212,8 @@ void roadmap_start (int argc, char **argv) {
    if (roadmap_config_get(&RoadMapConfigPathIcons)[0] != 0) {
       roadmap_path_set("icons", roadmap_config_get(&RoadMapConfigPathIcons));
    }
+
+   roadmap_osm_initialize();
 
    roadmap_factory_keymap (RoadMapStartActions, RoadMapStartKeyBinding);
 
