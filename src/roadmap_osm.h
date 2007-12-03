@@ -27,7 +27,7 @@
  * These functions are used both by roadmap and by buildmap.
  */
 
-#define ROADMAP_OSM_DEFAULT_BITS "23"  // yes, it's a string
+#define ROADMAP_OSM_DEFAULT_BITS "19"  // yes, it's a string
 
 #define MaxLon 180000000
 #define MaxLat 90000000
