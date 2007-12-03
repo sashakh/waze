@@ -170,6 +170,12 @@ roadmap_db_handler RoadMapCountyHandler = {
    roadmap_county_unmap
 };
 
+char *roadmap_county_filename(char *buf, int fips) {
+
+      sprintf(buf, "usc%05d.rdm", fips);
+
+      return buf;
+}
 
 int roadmap_county_by_position
        (const RoadMapPosition *position, int *fips, int count) {

@@ -27,6 +27,7 @@
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
 
+char *roadmap_county_filename(char *buf, int fips);
 int  roadmap_county_by_position
         (const RoadMapPosition *position, int *fips, int count);
 
