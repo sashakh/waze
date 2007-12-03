@@ -600,9 +600,11 @@ buildmap_osm_binary_way(unsigned char *data, int len)
     savecount = count;
 
     lonp = lonsbuf = realloc(lonsbuf, count * sizeof(long));
+    buildmap_check_allocated(lonsbuf);
     *lonp = *ldata++;
 
     latp = latsbuf = realloc(latsbuf, count * sizeof(long));
+    buildmap_check_allocated(latsbuf);
     *latp = *ldata++;
 
     buildmap_verbose("way: id %ld", id);
@@ -683,6 +685,7 @@ buildmap_osm_binary_way(unsigned char *data, int len)
 
         shapes = realloc(shapes,
                     ((numshapes + 1024) & ~1023) * sizeof(*shapes));
+        buildmap_check_allocated(shapes);
         shapes[numshapes].lons = lonsbuf;
         shapes[numshapes].lats = latsbuf;
         shapes[numshapes].count = lonp - lonsbuf + 1;
@@ -785,6 +788,7 @@ buildmap_osm_binary_read(FILE * fdata)
         buildmap_verbose("type is %c", type);
 
         block = realloc(block, length - 1);
+        buildmap_check_allocated(block);
         if (fread(block, 1, length - 1, fdata) != length - 1) {
             if (feof(fdata))
                 break;

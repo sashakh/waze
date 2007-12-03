@@ -246,7 +246,7 @@ static void buildmap_county_process (const char *source,
          break;
 
       default:
-         roadmap_log (ROADMAP_ERROR, "unsupported format");
+         buildmap_fatal (0, "unsupported format %d", BuildMapFormatFamily);
          return;
    }
 

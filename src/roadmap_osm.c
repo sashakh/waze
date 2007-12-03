@@ -244,6 +244,7 @@ static void roadmap_osm_add_tile_to_list(int tileid) {
     roadmap_osm_tilelist = 
         realloc(roadmap_osm_tilelist, 
             roadmap_osm_tilelist_len * sizeof(*roadmap_osm_tilelist));
+    roadmap_check_allocated(roadmap_osm_tilelist);
     roadmap_osm_tilelist[roadmap_osm_tilelist_len-1] = -tileid;
 }
 

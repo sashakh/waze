@@ -206,6 +206,7 @@ int buildmap_osm_by_position
     tileid = roadmap_osm_latlon2tileid
             (position->latitude, position->longitude, bits);
     fipslist = realloc(fipslist, (found + 1) * sizeof(int));
+    buildmap_check_allocated(fipslist);
     fipslist[found++] = tileid;
 
 
@@ -225,6 +226,7 @@ int buildmap_osm_by_position
                 roadmap_osm_tileid_to_bbox(tileid, &tileedges);
                 if (roadmap_math_areas_intersect (&tileedges, focus)) {
                     fipslist = realloc(fipslist, (found + 1) * sizeof(int));
+                    buildmap_check_allocated(fipslist);
                     fipslist[found++] = tileid;
                 }
             }
@@ -272,11 +274,11 @@ buildmap_osm_which_tiles(const char *latlonarg, int **tilesp, int bits)
     if (*end != '\0')
         buildmap_fatal(0, "bad longitude specified");
 
-    if (latp) {
+    if (latp2) {
 
         RoadMapPosition pos;
 
-        if (latp2 && lonp2) {
+        if (latp2 && lonp2) { /* two lat/lon pairs were given */
 
             lat2 = strtolatlon(latp2, &end);
             if (*end != '\0')
@@ -295,7 +297,7 @@ buildmap_osm_which_tiles(const char *latlonarg, int **tilesp, int bits)
             pos.longitude = (lon + lon2) / 2;
 
 
-        } else {
+        } else { /* one lat/lon pair, plus a "radius" specifier */
             double distance;
             distance = strtod(latp2, &end);
             if (strcasecmp(end, "km") && strcasecmp(end, "mi")) {
@@ -315,8 +317,12 @@ buildmap_osm_which_tiles(const char *latlonarg, int **tilesp, int bits)
 
     } else {
 
+        /* just a single lat/lon pair was given, so the user gets
+         * just a single tile.
+         */
         tileid = roadmap_osm_latlon2tileid(lat, lon, bits);
         tiles = malloc(sizeof(tileid));
+        buildmap_check_allocated(tiles);
         tiles[0] = tileid;
         count = 1;
     }
@@ -388,6 +394,7 @@ buildmap_osm_process_tiles
                     ("splitting tile 0x%x, new bits %d", tileid, nbits+2);
                 count += 4;
                 tiles = realloc(tiles, sizeof(*tiles) * count);
+                buildmap_check_allocated(tiles);
                 roadmap_osm_tilesplit(tileid, &tiles[count - 4], 2);
                 continue;
             }
@@ -608,6 +615,7 @@ main(int argc, char **argv)
     if (tileid) {
 
         tileslist = malloc(sizeof(int));
+        buildmap_check_allocated(tileslist);
         *tileslist = tileid;
         count = 1;
 

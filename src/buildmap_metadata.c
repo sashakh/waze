@@ -125,8 +125,7 @@ void buildmap_metadata_add_attribute (const char *category,
           (this_attribute->category == coded_category)) {
           
          if (this_attribute->values[0] != coded_value) {
-            roadmap_log (ROADMAP_FATAL,
-                         "attribute %s.%s changed to %s",
+            buildmap_fatal (0, "attribute %s.%s changed to %s",
                          category, name, value);
          }
          return;
@@ -191,8 +190,7 @@ void buildmap_metadata_add_value (const char *category,
           (this_attribute->category == coded_category)) {
           
          if (this_attribute->count >= BUILDMAP_MAX_VALUES) {
-            roadmap_log (ROADMAP_FATAL,
-                         "too many values for attribute %s.%s",
+            buildmap_fatal (0, "too many values for attribute %s.%s",
                          category, name);
          }
 
@@ -202,7 +200,7 @@ void buildmap_metadata_add_value (const char *category,
       }
    }
 
-   roadmap_log (ROADMAP_FATAL, "attribute %s.%s not found", category, name);
+   buildmap_fatal (0, "attribute %s.%s not found", category, name);
 }
 
 
