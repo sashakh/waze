@@ -45,7 +45,6 @@
 #include "roadmap_polygon.h"
 #include "roadmap_locator.h"
 #include "roadmap_navigate.h"
-#include "roadmap_county.h"
 
 #include "roadmap_sprite.h"
 #include "roadmap_screen_obj.h"
@@ -733,7 +732,6 @@ static int roadmap_screen_draw_one_line(int line,
     }
 
     if (pen == NULL) return 0;
-
     roadmap_line_from (line, &from);
     roadmap_line_to (line, &to);
 
@@ -805,6 +803,7 @@ static int roadmap_screen_draw_square
    if (roadmap_line_in_square2 (square, layer, &first_line, &last_line) > 0) {
 
       int last_real_square = -1;
+      int last_fips = -1;
       int real_square  = 0;
       RoadMapArea edges = {0, 0, 0, 0};
 
@@ -834,11 +833,12 @@ static int roadmap_screen_draw_square
 
          }
 
-         if (real_square != last_real_square) {
+         if (fips != last_fips || real_square != last_real_square) {
 
             roadmap_square_edges (real_square, &edges);
 
             last_real_square = real_square;
+            last_fips = fips;
 
             if (on_canvas[real_square / 8] & (1 << (real_square % 8))) {
                /* Either it has already been drawn, or it will be soon. */
@@ -998,7 +998,7 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
 static void roadmap_screen_draw_sprite_object
                (const char               *name,
                 const char               *sprite,
-		RoadMapPen                pen,
+                RoadMapPen                pen,
                 const RoadMapGpsPosition *gps_position) {
 
    RoadMapPosition position;
@@ -1021,8 +1021,8 @@ static void roadmap_screen_draw_sprite_object
 
 static void roadmap_screen_draw_polygon_object
                (const char            *name,
-		RoadMapPen             pen,
-		int                    count,
+                RoadMapPen             pen,
+                int                    count,
                 const RoadMapPosition *edges,
                 const RoadMapArea     *area) {
 
@@ -1079,8 +1079,8 @@ static void roadmap_screen_draw_polygon_object
 
 static void roadmap_screen_draw_circle_object
                (const char            *name,
-		RoadMapPen             pen,
-		int                    radius,
+                RoadMapPen             pen,
+                int                    radius,
                 const RoadMapPosition *center) {
 
    if (roadmap_math_point_is_visible(center)) {
@@ -1146,7 +1146,7 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
       fully_visible = 0;
    }
 
-   /* draw global square outline (only with "--square") */
+   /* draw individual square outline (only with "--square") */
    if (pen_type == 0 && roadmap_is_visible (ROADMAP_SHOW_SQUARE)) {
       roadmap_screen_draw_square_edges (square);
    }
@@ -1181,7 +1181,7 @@ static void roadmap_screen_repaint (void) {
     int i;
     int j;
     int k;
-    int count;
+    int count, sqcount;
     int drawn;
     int max_pen = roadmap_layer_max_pen();
     static int nomap;
@@ -1222,8 +1222,8 @@ static void roadmap_screen_repaint (void) {
 
        roadmap_display_text("Info", "No maps visible within %s of %s, %s",
              roadmap_message_get((lowerright.x < lowerright.y) ? 'x' : 'y'),
-             roadmap_math_to_floatstring(lon, pos.longitude, MILLIONTHS),
-             roadmap_math_to_floatstring(lat, pos.latitude, MILLIONTHS));
+             roadmap_math_to_floatstring(lat, pos.latitude, MILLIONTHS),
+             roadmap_math_to_floatstring(lon, pos.longitude, MILLIONTHS));
        nomap = 1;
     } else if (nomap) {
        roadmap_display_hide("Info");
@@ -1244,7 +1244,7 @@ static void roadmap_screen_repaint (void) {
         }
 
         /* -- nothing to draw at this zoom? -- */
-        if (roadmap_county_get_decluttered(fipslist[i]))
+        if (roadmap_locator_get_decluttered(fipslist[i]))
             continue;
 
         roadmap_main_busy_check();
@@ -1253,16 +1253,42 @@ static void roadmap_screen_repaint (void) {
 
         if (roadmap_locator_activate (fipslist[i]) != ROADMAP_US_OK) continue;
 
+#ifdef DEBUG
+        /* mark each OSM tile location with its tileid -- the
+         * edges will be its true bounding box -- the label will
+         * be at its purported center.
+         */
+        if (fipslist[i] < 0 &&
+                roadmap_is_visible (ROADMAP_SHOW_GLOBAL_SQUARE)) {
+            RoadMapArea edges;
+            RoadMapPosition position;
+            RoadMapGuiRect bbox, tbbox;
+            RoadMapGuiPoint screen_point;
+            char label[16];
+
+            sprintf(label, "0x%x", -fipslist[i]);
+            roadmap_osm_tileid_to_bbox(-fipslist[i], &edges);
+            position.latitude = (edges.north + edges.south) / 2;
+            position.longitude = (edges.east + edges.west) / 2;
+           if (roadmap_math_point_is_visible(&position)) {
+              roadmap_math_coordinate (&position, &screen_point);
+              roadmap_math_rotate_coordinates (1, &screen_point);
+              roadmap_sprite_draw_with_text
+                ("TextBox", &screen_point, 0, &bbox, &tbbox, label);
+           }
+        }
+#endif
+
         drawn = 0;
         drawn += roadmap_screen_draw_polygons ();
 
         /* -- Look for the squares that are currently visible. */
 
-        count = roadmap_square_view (&in_view);
+        sqcount = roadmap_square_view (&in_view);
 
         for (k = 0; k < max_pen; ++k) {
 
-            if (count > 0) {
+            if (sqcount > 0) {
                static int *layers = NULL;
                static int  layers_size = 0;
                int layer_count;
@@ -1280,7 +1306,7 @@ static void roadmap_screen_repaint (void) {
 
                if (!layer_count) continue;
 
-               for (j = count - 1; j >= 0; --j) {
+               for (j = sqcount - 1; j >= 0; --j) {
                   drawn += roadmap_screen_repaint_square (in_view[j], pen_type,
                     layer_count, layers);
                }
@@ -1305,7 +1331,7 @@ static void roadmap_screen_repaint (void) {
         }
 
         if (!drawn)
-            roadmap_county_set_decluttered(fipslist[i]);
+            roadmap_locator_set_decluttered(fipslist[i]);
     }
 
     if (!RoadMapScreenDragging ||
