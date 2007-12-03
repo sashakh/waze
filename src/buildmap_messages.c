@@ -285,3 +285,10 @@ int buildmap_get_error_total (void) {
    return ErrorTotal;
 }
 
+void buildmap_check_allocated_with_source_line
+                (char *source, int line, const void *allocated) {
+
+    if (allocated == NULL)
+        buildmap_fatal (0, "out of memory, %s:%d", source, line);
+}
+

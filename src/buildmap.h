@@ -45,6 +45,11 @@ void buildmap_message_adjust_level (int level);
 int buildmap_get_error_count (void);
 int buildmap_get_error_total (void);
 
+void buildmap_check_allocated_with_source_line
+                (char *source, int line, const void *allocated);
+#define buildmap_check_allocated(p) \
+            buildmap_check_allocated_with_source_line(__FILE__,__LINE__,p)
+
 
 typedef struct dictionary_volume *BuildMapDictionary;
 
