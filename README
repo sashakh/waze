@@ -135,13 +135,18 @@ INSTALLATION
 
    Likewise, RoadMap can sometimes use the agg library to render anti-
    aliased maps and street label text.  If you don't have agg, RoadMap will
-   label with a (relatively crude) built-in font.  To use agg:  AGG = YES. 
-   RoadMap requires version 2.4 of the agg library -- 2.3 is incompatible. 
-   If your linux distribution includes 2.3, make sure that if you install 2.4
-   as well, that RoadMap finds both headers and libraries from 2.4.  Note: 
-   currently (as of August, 2006) the agg support is only aavailable if
-   you're using the GTK2 build of roadmap.  (On Debian or Ubuntu linux
-   systems, use "apt-get install libagg-dev" to install the agg library.)
+   label with a (relatively crude) built-in font.  To use agg, you need to
+   change the default "AGG = NO" in config.mk to choose one of the options
+   listed there.  Unfortunately those options ("rgb565", "rgba32", "bgra32",
+   "rgb24", "bgr24") cannot currently be auto-detected, so there may be some
+   trial-and-error involved to get the setting right.  See the comments in
+   config.mk for more tips.  RoadMap requires version 2.4 of the agg
+   library -- 2.3 is incompatible.  If your linux distribution includes 2.3,
+   make sure that if you install 2.4 as well, that RoadMap finds both headers
+   and libraries from 2.4.  Note:  currently (as of August, 2006) the agg
+   support is only available if you're using the GTK2 build of roadmap.  (On
+   Debian or Ubuntu linux systems, use "apt-get install libagg-dev" to
+   install the agg library.)
 
    The "buildmap" program uses the shapelib library to decode the "shapefile"
    format).  Currently, most of the maps used by RoadMap are not in that
