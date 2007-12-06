@@ -67,11 +67,11 @@ libgtkroadmap.a: $(RMLIBOBJS)
 
 gtkroadmap: roadmap_main.o libgtkroadmap.a \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
-	$(CXX) $(LDFLAGS) -o gtkroadmap roadmap_main.o \
+	$(GTK2CC) $(LDFLAGS) -o gtkroadmap roadmap_main.o \
 		$(TOP)/libguiroadmap.a libgtkroadmap.a $(LIBS)
 
 gtkroadgps: roadmap_main.o libgtkroadmap.a \
 		$(TOP)/libguiroadgps.a  $(filter %.a, $(LIBS))
-	$(CXX) $(LDFLAGS) -o gtkroadgps roadmap_main.o \
+	$(GTK2CC) $(LDFLAGS) -o gtkroadgps roadmap_main.o \
 		$(TOP)/libguiroadgps.a libgtkroadmap.a $(LIBS)
 

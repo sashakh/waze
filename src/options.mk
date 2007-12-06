@@ -180,6 +180,7 @@ endif
 # implementation, as well as a possible agg-based implementation.
 ifeq ($(strip $(AGG)),NO)
 	CANVAS_OBJS = roadmap_canvas.o
+	GTK2CC = $(CC)
 else
 	LIBS += -laggfontfreetype -lagg -lfreetype
 	CFLAGS += -DAGG_PIXFMT=pixfmt_$(AGG) \
@@ -189,6 +190,7 @@ else
 		-I/usr/include/freetype2
 	CANVAS_OBJS = roadmap_canvas_agg.o \
 		$(TOP)/agg_support/roadmap_canvas.o
+	GTK2CC = $(CXX)
 endif
 
 # bidirectional text lib
