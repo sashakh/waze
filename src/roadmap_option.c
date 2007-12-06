@@ -407,6 +407,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     {"-h", "", roadmap_option_usage, 0,
         "Show this help message"},
 
+    {"-help", "", roadmap_option_usage, 0,
+        "Show this help message"},
+
     {"--help", "", roadmap_option_usage, 0,
         "Show this help message"},
 
