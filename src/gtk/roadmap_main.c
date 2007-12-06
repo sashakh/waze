@@ -598,11 +598,16 @@ void roadmap_signals_init(void);
 
 int main (int argc, char **argv) {
 
-   int i;
+   int i, gtk;
+
+   gtk = gtk_init_check (&argc, &argv);
 
    roadmap_option (argc, argv, 0, NULL);
 
-   gtk_init (&argc, &argv);
+   if (!gtk) {
+	fprintf(stderr, "%s: cannot open X11 display\n", argv[0]);
+	exit(1);
+   }
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
       RoadMapMainIo[i].io.os.file = -1;
