@@ -27,6 +27,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include "qt_main.h"
 
 static int signalFd[2];
@@ -299,14 +300,14 @@ void RMapMainWindow::closeEvent(QCloseEvent* ev) {
 
 void RMapMainWindow::signalHandler(int sig)
 {
-  ::write(signalFd[0], &sig, sizeof(sig));
+  write(signalFd[0], &sig, sizeof(sig));
 }
 
 void RMapMainWindow::handleSignal()
 {
   snSignal->setEnabled(false);
   int tmp;
-  ::read(signalFd[1], &tmp, sizeof(tmp));
+  read(signalFd[1], &tmp, sizeof(tmp));
   QString action;
   switch (tmp) {
     case SIGTERM: action="SIGTERM"; break;

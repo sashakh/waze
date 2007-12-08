@@ -382,9 +382,7 @@ int main(int argc, char* argv[]) {
 
    timers = new RMapTimers(app);
 
-#ifndef QWS4
    roadmap_main_signals_init();
-#endif
 
    roadmap_start(argc, argv);
 

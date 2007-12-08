@@ -27,6 +27,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 #include "qt_main.h"
 
 static int signalFd[2];
@@ -76,13 +77,11 @@ RMapMainWindow::RMapMainWindow( QWidget *parent, Qt::WFlags f) : QMainWindow(par
    //setToolBarsMovable(FALSE);
    toolBar = 0;
 
-#ifndef QWS4
    // setup the signal handling
    if (::socketpair(AF_UNIX, SOCK_STREAM, 0, signalFd))
         qFatal("Couldn't create Signal socketpair");
    snSignal = new QSocketNotifier(signalFd[1], QSocketNotifier::Read, this);
    connect(snSignal, SIGNAL(activated(int)), this, SLOT(handleSignal()));
-#endif
 }
 
 RMapMainWindow::~RMapMainWindow() {
@@ -309,17 +308,14 @@ void RMapMainWindow::closeEvent(QCloseEvent* ev) {
 
 void RMapMainWindow::signalHandler(int sig)
 {
-#ifndef QWS4
-  ::write(signalFd[0], &sig, sizeof(sig));
-#endif
+  write(signalFd[0], &sig, sizeof(sig));
 }
 
 void RMapMainWindow::handleSignal()
 {
-#ifndef QWS4
   snSignal->setEnabled(false);
   int tmp;
-  ::read(signalFd[1], &tmp, sizeof(tmp));
+  read(signalFd[1], &tmp, sizeof(tmp));
   QString action;
   switch (tmp) {
     case SIGTERM: action="SIGTERM"; break;
@@ -330,7 +326,6 @@ void RMapMainWindow::handleSignal()
   roadmap_log(ROADMAP_WARNING,"received signal %s",action.toUtf8().constData());
   roadmap_main_exit();
   snSignal->setEnabled(true);
-#endif
 }
 
 // Implementation of the RMapTimers class
