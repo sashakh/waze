@@ -195,11 +195,11 @@ void roadmap_main_set_cursor (int newcursor) {
          break;
 
       case ROADMAP_CURSOR_WAIT:
-         mainWindow->setCursor (QCursor(Qt::WaitCursor));
+         mainWindow->setCursor (QCursor(Qt::waitCursor));
          break;
 
       case ROADMAP_CURSOR_CROSS:
-         mainWindow->setCursor (QCursor(Qt::CrossCursor));
+         mainWindow->setCursor (QCursor(Qt::crossCursor));
          break;
       }
    }
