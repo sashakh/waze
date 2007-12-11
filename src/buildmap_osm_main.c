@@ -63,8 +63,8 @@ struct opt_defs options[] = {
         "Re-request maps that are already present"},
    {"maps", "m", opt_string, "",
         "Location for the generated map files"},
-   {"server", "s", opt_string, "",
-        "URL for map server"},
+   {"source", "s", opt_string, "",
+        "commandname or URL for accessing map data"},
    {"tileid", "t", opt_int, "",
         "Fetch the given numeric tileid"},
    {"decode", "d", opt_string, "",
@@ -149,7 +149,7 @@ buildmap_osm_neighbors_to_mask(int tileid) {
 
 static int
 buildmap_osm_process_one_tile
-        (int tileid, const char *baseurl)
+        (int tileid, const char *source, const char *cmdfmt)
 {
 
     char urlcmd[256];
@@ -165,9 +165,7 @@ buildmap_osm_process_one_tile
     buildmap_verbose ("tileid %d, have 0x%02x", tileid, have);
 
     trutile = tileid2trutile(tileid);
-    snprintf(urlcmd, sizeof(urlcmd),
-             "wget -q -O - '%s?tile=%d&ts=%d&have=%d'",
-                        baseurl, trutile, bits, have);
+    snprintf(urlcmd, sizeof(urlcmd), cmdfmt, source, trutile, bits, have);
 
     buildmap_info("command is \"%s\"", urlcmd);
 
@@ -356,8 +354,8 @@ static int roadmap_osm_tile_has_coverage(int tileid) {
 }
 
 static int
-buildmap_osm_process_tiles
-    (int *tiles, int bits, int count, const char *baseurl)
+buildmap_osm_process_tiles (int *tiles, int bits, int count,
+                const char *source, const char *cmdfmt)
 {
     int i, ret = 0;
     int nbits;
@@ -379,7 +377,7 @@ buildmap_osm_process_tiles
             buildmap_info
                 ("processing tileid '%d', for file '%s'", tileid, name);
 
-            ret = buildmap_osm_process_one_tile (tileid, baseurl);
+            ret = buildmap_osm_process_one_tile (tileid, source, cmdfmt);
 
             if (ret == -2) {
                 if (bits >= TILE_MAXBITS-1) {
@@ -455,6 +453,7 @@ int buildmap_osm_decode(char *decode) {
     roadmap_osm_tileid_to_bbox(tileid, e);
 
     printf("tileid:\t0x%08x\t%d\n", tileid, tileid);
+    printf("true tileid:\t0x%08x\t%d\n", tileid2trutile(tileid), tileid2trutile(tileid));
     printf("bits:\t%d\n", tileid2bits(tileid));
 
     pos1.latitude = (e->north + e->south)/2;
@@ -527,6 +526,9 @@ int buildmap_osm_encode(char *latlon, int bits) {
     tileid = roadmap_osm_latlon2tileid(lat, lon, bits);
 
     printf("tileid:\t0x%08x\t%d\n", tileid, tileid);
+    printf("true tileid:\t0x%08x\t%d\n",
+		    tileid2trutile(tileid),
+		    tileid2trutile(tileid));
     printf("bits:\t%d\n", bits);
     return 0;
 }
@@ -560,7 +562,7 @@ main(int argc, char **argv)
     int *tileslist;
     char *decode, *encode;
     int tileid;
-    char *class, *latlonarg, *server;
+    char *class, *latlonarg, *source, *cmdfmt;
 
     /* parse the options */
     error = opt_parse(options, &argc, argv, 0);
@@ -574,7 +576,7 @@ main(int argc, char **argv)
             opt_val("bits", &osm_bits) ||
             opt_val("replace", &BuildMapReplaceAll) ||
             opt_val("maps", &BuildMapResult) ||
-            opt_val("server", &server) ||
+            opt_val("source", &source) ||
             opt_val("tileid", &tileid) ||
             opt_val("decode", &decode) ||
             opt_val("encode", &encode);
@@ -601,8 +603,14 @@ main(int argc, char **argv)
         exit(1);
     }
 
-    if (!*server) {
-        usage (argv[0], "missing server option");
+    if (!*source) {
+        usage (argv[0], "missing source (commandname or URL) option");
+    }
+
+    if (strncmp(source, "http:", 5) == 0) {
+	cmdfmt = "wget -q -O - '%s?tile=%d&ts=%d&have=%d'";
+    } else {
+	cmdfmt = "%s -t %d -b %d -h %d";
     }
 
     if (verbose || quiet)
@@ -632,7 +640,8 @@ main(int argc, char **argv)
         count = buildmap_osm_which_tiles(latlonarg, &tileslist, osm_bits);
     }
 
-    error = buildmap_osm_process_tiles(tileslist, osm_bits, count, server);
+    error = buildmap_osm_process_tiles
+                (tileslist, osm_bits, count, source, cmdfmt);
 
     free (tileslist);
 
