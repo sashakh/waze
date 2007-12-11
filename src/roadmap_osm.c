@@ -91,47 +91,53 @@ static RoadMapConfigDescriptor RoadMapConfigOSMBits =
 int RoadMapOSMBits;
 
 int roadmap_osm_latlon2tileid(int lat, int lon, int bits) {
-    int i, out = 0;
-    for (i =0; i < bits; i++) {
-            if (i % 2) {
-                    if (lat >= ( MaxLat - (MaxLat >> (i >> 1)) ) ) {
-                            out += 1 << (bits-1-i);
+
+    int i, id, bit;
+
+    id = 0;
+    bit = (1 << (bits - 1));
+    for (i = 0; i < bits; i++) {
+            if (i & 1) {
+                    if (lat >= ( MaxLat - (MaxLat >> i/2) ) ) {
+                            id |= bit;
                     } else {
-                            lat += (MaxLat >> (i >> 1));
+                            lat += (MaxLat >> i/2);
                     }
             } else {
-                    if (lon >= ( MaxLon - (MaxLon >> (i >> 1)) ) ) {
-                            out += 1 << (bits-1-i);
+                    if (lon >= ( MaxLon - (MaxLon >> i/2) ) ) {
+                            id |= bit;
                     } else {
-                            lon += (MaxLon >> (i >> 1));
+                            lon += (MaxLon >> i/2);
                     }
             }
+	    bit >>= 1;
     }
-    return mktileid(out, bits);
+    return mktileid(id, bits);
 }
 
 void roadmap_osm_tileid_to_bbox(int tileid, RoadMapArea *edges) {
 
-    int set, i, bits, trutileid;
+    int i, bits, bit, bmaptileid;
 
     bits = tileid2bits(tileid);
-    trutileid = tileid2trutile(tileid);
+    bmaptileid = tileid2trutile(tileid);
 
     edges->west = -MaxLon;
     edges->south = -MaxLat;
 
-    for (i = (bits-1); i >= 0; i--) {
-            set = (((trutileid >> ((bits-1)-i)) %2) == 1);
-            if (set) {
-                    if (i%2) {
-                            edges->south += (MaxLat >> (i >> 1));
+    bit = (1 << (bits-1));
+    for (i = 0; i < bits; i++) {
+            if (bmaptileid & bit) {
+                    if (i & 1) {
+                            edges->south += (MaxLat >> i/2);
                     } else {
-                            edges->west += (MaxLon >> (i >> 1));
+                            edges->west += (MaxLon >> i/2);
                     }
             }
+	    bit >>= 1;
     }
-    edges->east = edges->west + (MaxLon >> ((bits-1) >> 1));
-    edges->north = edges->south + (MaxLat >> ((bits-2) >> 1));
+    edges->north = edges->south + (MaxLat >> (bits-2)/2);
+    edges->east = edges->west + (MaxLon >> (bits-1)/2);
 }
 
 #define LAT 0
