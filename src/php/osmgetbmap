@@ -1,0 +1,83 @@
+#!/usr/bin/php
+<?php
+
+// This script provides a command-line interface to the "binary mobile"
+// protocol implemented in osmgetbmapcore.php.
+//
+// Released into the public domain by Adam Boardman and Paul Fox
+// 
+
+function usage() {
+    global $argv;
+    echo "usage: $argv[0] -t tileid [ -b bits ] [ -h have ] [ -c cachedir ]\n";
+    exit(1);
+}
+
+// configure the server -- should perhaps be cmdline arg
+$server = "www.openstreetmap.org";
+//$server = "osmxapi.informationfreeway.org";
+//$server = "openstreetmap.gryph.de";
+$path = "/api/0.5/map"; 
+
+function doLog($text) {
+    fwrite(STDERR, $text . "\n");
+}
+
+function mkpath($path,$mode = 0755) {
+    if (@mkdir($path) or file_exists($path)) return true;
+    return (mkpath(dirname($path),$mode) and mkdir($path,$mode));
+}
+
+// adjust the search path for our inclusions to include the directory
+// containing "ourself"
+ini_set('include_path', 
+    preg_replace('/\\/[^\\/]+$/',"",$_SERVER['PHP_SELF']) .
+    	ini_get('include_path'));
+
+require_once( "osmgetbmapcore.php" );
+
+
+$WayUsedKeys = array(
+	"highway",
+	"cycleway",
+	"waterway",
+	"boundary",
+	"railway",
+	"natural",
+	"amenity",
+	"place",
+	"leisure",
+	"historic",
+	"name",
+	"ref",
+	"oneway"
+	);
+
+// defaults
+$bits = 25;
+$have = 0;
+$tileid = False;
+
+global $nocache, $CacheDir;
+$nocache = false;
+$CacheDir = getenv('HOME')."/".".osm_bmap_cache";
+
+$options = getopt("b:t:h:c:");
+foreach (array_keys($options) as $opt) {
+    switch ($opt) {
+      case 'b': $bits = $options['b']; break;
+      case 't': $tileid = $options['t']; break;
+      case 'h': $have = $options['h']; break;
+      case 'c': $CacheDir = $options['c']; break;
+    }
+}
+
+if (!$tileid ) {
+    usage();
+}
+
+doLog("osm_bmap_cmd: tileid $tileid, bits $bits, have neighbors $have");
+
+fetchTile($tileid, $bits, $have, $server, $path);
+
+?>

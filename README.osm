@@ -1,0 +1,148 @@
+
+This information is preliminary, since OSM support is
+work-in-progress.  It does work, but may change in detail.
+
+Eventually this text will become part of the main README.
+
+    -pgf  Wed Dec 12 11:41:10 EST 2007
+=============================
+
+
+* OpenStreetMap
+
+  * QuadTiles, RoadMap tileid values, and filenames
+
+    The maps that RoadMap has rendered in the past (i.e., TIGER, various
+    shapefile formats) have all needed to be indexed before RoadMap could use
+    them.  One reason for this is because there's no direct mapping between a
+    the coordinates on the screen where RoadMap is trying to display a map,
+    and the name of the map file(s) that contain(s) information for that
+    region.  The maps are named based on the source of the data that they
+    represent (e.g., "usc25027.rdm" contains data from county 27 in state 25). 
+    The file contains some information that RoadMap can use to figure out
+    where it is -- in index is made using this information so that RoadMap
+    doesn't need to continually look in all the files.  That index is
+    (currently) called "usdir.rdm".
+
+    If the name of the file holding the map data encoded its position and size
+    somehow, then an index wouldn't be needed (at least for positioning --
+    there are other reasons an index is useful, but none are as critical to
+    rendering).  For maps whose data source is organized by geography (i.e.,
+    latitude/longitude) rather than politics (i.e.  country name), it's
+    possible to do such an encoding.
+
+    The encoding used by RoadMap for OpenStreetMap (OSM) maps is known as
+    "quadtile" encoding.  There's a good description of quadtiles as they
+    relate to OSM on the OSM wiki, here:
+
+       {{http://wiki.openstreetmap.org/index.php/QuadTiles}}
+
+    (There's also a more general article on Wikipedia.) The OSM quadtile
+    scheme uses a full 32 bits worth of addressing in a "tileid", and can
+    reference tiles as small as 600 meters on a side (at the equator --
+    they're narrower further north and south).  RoadMap doesn't need such
+    fine-grained resolution, and uses fewer bits for RoadMap tileids.  This
+    frees those bits to be used for other purposes, and RoadMap uses only 27
+    bits to address quadtiles (the smallest addressable tile is about 2.4km on
+    a side).  Of the 5 bits remaining in a 32 bit word, RoadMap uses one bit
+    internally to distinguish a tileid from one of the "FIPS" county
+    identifiers that represent RoadMaps other maps, and the other 4 are used
+    to encode how many bits of the 27 address bits are currently in use -- the
+    4 bits are used to represent "bit count" values of 12 through 27, maximum
+    and a minimum tile sizes that RoadMap can handle of from 2.4km up to 320km
+    on a side.
+
+    The encoded RoadMap tileid is used directly to form the filename
+    representing the data for that OSM quadtile.  The tileid is represented in
+    hexadecimal.  The lowest 4 bits (the least-significant hex digit) is 12
+    less than the bit level -- so a 19 bit tile would have a '7' in that
+    digit.  The OSM quadtile value appears in the other 7 hex digits.  Its
+    value is "left-justified" -- i.e., as more bits are added to the quadtile
+    address, the address grows to the right. 
+
+    As an example, to RoadMap encoding of the 19 bit OSM quadtile id of
+    251833, would be 0x3d7b9007.  (251833 is 0x3d7b9 in hex).
+
+  * Fetching OpenStreetMap data
+
+    OSM map data is available from servers on the web, using a simple API.  As
+    simple as it is, though, it can produce a lot of data in XML format, very
+    quickly.  While it might not be a problem for desktop systems with
+    high-speed connections, if RoadMap is to be able to do on-demand loading
+    of OSM data, an alternative protocol is preferable.  Conveniently, work
+    has already been done to specify just such a compact profile.  Known as
+    the "OSM Mobile Binary Protocol", it is documented here: 
+
+       {{http://wiki.openstreetmap.org/index.php/OSM_Mobile_Binary_Protocol}}
+
+    Roadmap comes with code which can provide data in this format, which can
+    be run in two different ways:  either as a a command-line program, or as a
+    proxy server implemented as a CGI script.  The two programs share most of
+    their code, and are written in PHP.
+
+    Converting the "Mobile Binary" data to a format useable directly by
+    RoadMap is handled by the command "buildmap_osm".  Given some information
+    about position and area, the size of the quadtiles desired, and the source
+    of the data, buildmap_osm will produce the RoadMap .rdm files necessary
+    for displaying that region.
+
+    buildmap_osm can be given two lat/lon pairs, to specify a bounding box, or
+    a single lat/lon pair plus a radius in miles or km (it's not really a
+    radius -- the distance again actually describes a square bounding box). 
+    The size of the quadtile to fetch is specified in "bits" (see the previous
+    section), and the source of the data is specified either as the PHP
+    "osmgetbmap" command, or as a URL referring to an installed version of the
+    PHP cgi script.
+
+    A sample command looks like:
+----
+	buildmap_osm -m /tmp/maps -s osmgetbmap 48.135,17.125:20km
+----
+    which will fetch 40 km square worth of maps centered on Bratislava.  Using
+    the web proxy, the same request might look like:
+----
+	buildmap_osm -m /tmp/maps -s http://localhost:801/cgi-bin/bmap.php \
+	    48.135,17.125:20km
+----
+
+  * Limitations
+    
+    * Because the OSM maps are loaded based on geographic location, they
+      currently have no notion of political locality.  This means that
+      searching by address or intersection can't currently work.
+
+    * There's no way currently to do on-demand loading of OSM maps.  Work
+      needs to be done to integrate a buildmap_osm "method" into RoadMap's map
+      download scheme.
+
+    * When a tile is fetched, it will include all roads (and other lines --
+      "ways" in OSM parlance) which start or end in that tile.  This leads to
+      two interesting issues:
+
+      1- The true bounding box of the data in a fetched tile is probably not
+	going to line up with the presumed dimensions of that tile.  The
+	bounding box may be smaller (if there is very little data, all within
+	the bounds of the tile), or larger (as a result of roads and other
+	features extending past the tile "boundaries").
+
+      2- When a neighboring tile is fetched, it may include the same line, if
+	the other end of the line is in that tile.  In order to reduce the
+	amount of duplicated data, when tiles are fetched via the "mobile
+	binary" protocol, we tell the server that we already have tiles to the
+	south and east, but not to the north and west.  This way, if you load
+	a full set of tiles, you should get just one copy of any line.  The
+	osmgetbmap code, however, doesn't do a perfect job of figuring out
+	what not to give you based on what you say you already have, so you
+	may get duplicated data, particularly around the edges of the area
+	requested.  The order in which RoadMap fetches tiles might need to be
+	changed to help with this problem, as well.
+
+    * Because tiles can provide overlapping data, map rendering near the edges
+	of tiles can be somewhat messy -- the lines on one tile may be
+	rendered before the polygons of the next, for instance, and labels
+	placed when rendering one may collide with labels placed when
+	rendering the next.  For this reason, tiles should be kept fairly
+	large -- RoadMap already has the means to make rendering relatively
+	large areas efficiently.  The only reason to choose small tiles is to
+	reduce "latency" when requesting data on-demand.
+
