@@ -1440,7 +1440,7 @@ function outputWithoutNeighbouringWays($content) {
 
 function fetchTile($tileid, $bits, $have, $server, $path) {
 
-    global $KMaxBits;
+    global $KMaxBits, $nodecount, $waycount;
     $KMaxBits = $bits;
 
     set_time_limit(60*20);
