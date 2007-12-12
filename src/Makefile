@@ -438,7 +438,7 @@ installbin:
 	cp $(BUILD) $(SCRIPTS) $(DRIVERS) $(pkgbindir)/.
 	cp php/osmgetbmap php/osmgetbmapcore.php $(pkgbindir)/.
 	cd $(pkgbindir) && \
-		chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS) php/osmgetbmap
+		chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS) osmgetbmap
 	mkdir -p $(man1dir)
 	$(INSTALL_DATA) roadgps.1 roadmap.1 $(man1dir)/.
 
