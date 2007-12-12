@@ -217,22 +217,22 @@ MAP ORGANIZATION
     defined by a longitude/latitude grid. At that time, only the legal
     boundaries class of wtid is supported in RoadMap.
 
-    * The legal-boundaries wtid for the USA has the format 00000SSCCC where
-    SSCCC is the county's FIPS code. Note that, in this case, the value of
-    the wtid exactly matches the value of the FIPS code. A CCC of 000 means
-    the whole state. A wtid value of 0 represents the whole US.
-
-    * the legal-boundaries wtid for other countries has the format 0CCCCXXXXX,
+    * the legal-boundaries wtid for countries has the format 0CCCCXXXXX,
     where CCCC is the telephone dialing code for the country covered by the
     maps and XXXXX is a subdivision inside that country, wich format depends
     on the country's legal organization. A XXXXX of 00000 represents the
     whole country.
  
+    * The legal-boundaries wtid for the USA has the format 00000SSCCC where
+    SSCCC is the county's FIPS code. Note that, in this case, the value of
+    the wtid exactly matches the value of the FIPS code. A CCC of 000 means
+    the whole state. A wtid value of 00000 represents the whole US.
+
     * The grid wtid have the format: 1CCLLLLllll where LLLL is a number that
     represents the longitude span covered by the map and llll is a number
     that represents the latitude covered by the map. CC identifies the type
     of grid used to define the map; value 00 represents the USGS "quad" grid.
-    When the USGS quad gris is used, LLLL and llll are formatted as DDDQ,
+    When the USGS quad grid is used, LLLL and llll are formatted as DDDQ,
     where DDD is the decimal degree (range 0-360 for longitude and 0-180
     for latitude) and Q is the quad index (range 1-8, where 1 represents
     the low order longitude or latitude value and 8 the high order value).
