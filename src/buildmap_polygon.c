@@ -286,6 +286,7 @@ static void buildmap_polygon_fill_in_drawing_order
       buildmap_line_get_points_sorted (this_line->line, &from, &to);
 
       if (this_line->side == POLYGON_SIDE_LEFT) {
+         /* draw from 'to' to 'from' */
 
          if (line == first) {
             start_point = to;
@@ -299,6 +300,7 @@ static void buildmap_polygon_fill_in_drawing_order
          next_point = from;
 
       } else {
+         /* draw from 'from' to 'to' */
 
          if (line == first) {
             start_point = from;
@@ -312,6 +314,9 @@ static void buildmap_polygon_fill_in_drawing_order
          next_point = to;
       }
 
+      /* scan the rest of the lines, looking for the one that's next
+       * in polygon order.
+       */
       for (i = line+1; i <= end; i++) {
 
          index = SortedPolygonLine[i];
@@ -365,6 +370,7 @@ static void buildmap_polygon_fill_in_drawing_order
 
    buildmap_line_get_points_sorted (this_line->line, &from, &to);
 
+   /* check that the last line connects with the first */
    if (this_line->side == POLYGON_SIDE_LEFT) {
       if (start_point != from) {
          buildmap_polygon_explain_the_line_order_problem
@@ -401,6 +407,14 @@ static void buildmap_polygon_fill_bounding_box
 
    BuildMapPolygonLine *this_line;
 
+   /* this routine calculates the bounding box for the polygon -- but
+    * it's only approximate, since it doesn't follow shaped lines
+    */
+
+   /* in addition -- this routine is making a second pass through the
+    * polygon lines.  buildmap_polygon_fill_in_drawing_order()
+    * just went through them all, and this could have been done then.
+    */
 
    index = SortedPolygonLine[end];
    this_line = PolygonLine[index/BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
