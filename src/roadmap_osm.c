@@ -147,6 +147,7 @@ char *tile_neighbors[] = {
     "-+", "- ", "--", " +", " -", "++", "+ ", "+-",
 };
 
+#if TESTING
 static void roadmap_osm_bbox_print_dimensions
     (char *msg, const RoadMapArea *edges, int bits)
 {
@@ -169,6 +170,7 @@ static void roadmap_osm_bbox_print_dimensions
 
     obits = bits;
 }
+#endif
 
 /* return the neighboring tile in the given direction */
 int roadmap_osm_tileid_to_neighbor(int tileid, int dir) {
@@ -183,7 +185,9 @@ int roadmap_osm_tileid_to_neighbor(int tileid, int dir) {
     gridlat = (MaxLat >> ((bits-2) >> 1));
 
     roadmap_osm_tileid_to_bbox(tileid, edges);
+#if TESTING
     roadmap_osm_bbox_print_dimensions("tile size", edges, bits);
+#endif
 
     lon = edges->west + gridlon/2;
     lat = edges->south + gridlat/2;
