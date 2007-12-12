@@ -179,7 +179,7 @@ buildmap_osm_process_one_tile
     ret = buildmap_osm_binary_read(fdata);
 
     if (pclose(fdata) != 0) {
-        buildmap_error(0, "problem fetching data using wget");
+        buildmap_error(0, "problem fetching data");
         ret = -1;
     }
 
