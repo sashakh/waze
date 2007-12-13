@@ -122,7 +122,7 @@ void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
    *w = r.width();
    *ascent = fm.ascent();
    *descent = fm.descent();
-#ifdef QT_NO_ROTATE
+#if defined(QT_NO_TRANSFORMATIONS) || defined(QT_NO_ROTATE)
    if (can_tilt) *can_tilt = 0;
 #else
    if (can_tilt) *can_tilt = 1;
@@ -169,7 +169,11 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
 
 void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
       int center, const char* text, int angle) {
-#ifndef QT_NO_ROTATE
+
+/*
+ * add "CFLAGS += -DQT_NO_ROTATE" into config.mk if you get an error here.
+ */
+#if ! defined(QT_NO_TRANSFORMATIONS) && ! defined(QT_NO_ROTATE)
    if (!pixmap) {
       return;
    }

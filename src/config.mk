@@ -52,11 +52,6 @@ DESKTOP = GTK2
 # QTOPIADIR=/opt/src/qtopia/qtopia_arm
 # QTDIR=$(QTOPIADIR)/qtopiacore/target
 
-# If you are using a build of QT without the QPainter::rotate()
-# call builtin (i.e., built with QT_NO_TRANSFORMATIONS, as in
-# some Familiar builds), set QT_NO_ROTATE.
-# QT_NO_ROTATE = YES
-
 # RoadMap contains a hard-coded list of directories in which it
 # will look for its system configuration files.  (see
 # "unix/roadmap_path.c")  Specifying a directory here will add
