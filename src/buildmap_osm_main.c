@@ -497,7 +497,8 @@ int buildmap_osm_decode(char *decode) {
 
 int buildmap_osm_encode(char *latlon, int bits) {
 
-    char *latp, *lonp, *end;
+    char *latp, *lonp = NULL;
+    char *end;
     int lat, lon;
     int tileid;
 
