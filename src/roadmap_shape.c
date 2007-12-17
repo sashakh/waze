@@ -177,7 +177,10 @@ int  roadmap_shape_in_square (int square, int *first, int *last) {
 
    RoadMapShapeBySquare *ShapeBySquare;
 
-   if (RoadMapShapeActive == NULL) return 0;
+   if (RoadMapShapeActive == NULL) {
+      *first = *last = -1;
+      return 0;
+   }
 
    square = roadmap_square_index(square);
 
@@ -190,6 +193,7 @@ int  roadmap_shape_in_square (int square, int *first, int *last) {
 
       return ShapeBySquare[square].count;
    }
+   *first = *last = -1;
 
    return 0;
 }
@@ -202,13 +206,17 @@ int  roadmap_shape_of_line (int line, int begin, int end,
    RoadMapShapeByLine *shape_by_line;
 
 
-   if (RoadMapShapeActive == NULL) return 0;
+   if (RoadMapShapeActive == NULL) {
+      *first = *last = -1;
+      return 0;
+   }
 
    if (line >= 0 && line < RoadMapShapeActive->shape_cache_size) {
 
       int mask = RoadMapShapeActive->shape_cache[line / (8 * sizeof(int))];
 
       if (mask & RoadMapShape2Mask[line & ((8*sizeof(int))-1)]) {
+	 *first = *last = -1;
          return 0;
       }
    }
@@ -249,6 +257,7 @@ int  roadmap_shape_of_line (int line, int begin, int end,
    RoadMapShapeActive->shape_cache[line / (8 * sizeof(int))] |=
       RoadMapShape2Mask[line & ((8*sizeof(int))-1)];
 
+   *first = *last = -1;
    return 0;
 }
 
