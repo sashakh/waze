@@ -96,7 +96,7 @@ static void roadmap_locator_configure (void) {
             (RoadMapCountyModel, "range", &RoadMapRangeHandler);
       RoadMapCountyModel =
          roadmap_db_register
-            (RoadMapCountyModel, "polygon", &RoadMapPolygonHandler);
+            (RoadMapCountyModel, "polygons", &RoadMapPolygonHandler);
       RoadMapCountyModel =
          roadmap_db_register
             (RoadMapCountyModel, "shape", &RoadMapShapeHandler);

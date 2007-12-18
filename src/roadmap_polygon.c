@@ -25,7 +25,7 @@
  *   int  roadmap_polygon_count (void);
  *   int  roadmap_polygon_category (int polygon);
  *   void roadmap_polygon_edges (int polygon, RoadMapArea *edges);
- *   int  roadmap_polygon_points (int polygon, int *list, int size);
+ *   int  roadmap_polygon_lines (int polygon, int *list, int size);
  *
  * These functions are used to retrieve the polygons to draw.
  */
@@ -50,8 +50,8 @@ typedef struct {
    RoadMapPolygon *Polygon;
    int             PolygonCount;
 
-   RoadMapPolygonPoint *PolygonPoint;
-   int                  PolygonPointCount;
+   RoadMapPolygonLine *PolygonLine;
+   int                 PolygonLineCount;
 
 } RoadMapPolygonContext;
 
@@ -64,6 +64,7 @@ static void *roadmap_polygon_map (roadmap_db *root) {
 
    roadmap_db *head_table;
    roadmap_db *point_table;
+   roadmap_db *line_table;
 
 
    context = malloc (sizeof(RoadMapPolygonContext));
@@ -73,6 +74,7 @@ static void *roadmap_polygon_map (roadmap_db *root) {
 
    head_table  = roadmap_db_get_subsection (root, "head");
    point_table = roadmap_db_get_subsection (root, "point");
+   line_table = roadmap_db_get_subsection (root, "line");
 
    context->Polygon = (RoadMapPolygon *) roadmap_db_get_data (head_table);
    context->PolygonCount = roadmap_db_get_count (head_table);
@@ -82,14 +84,26 @@ static void *roadmap_polygon_map (roadmap_db *root) {
       roadmap_log (ROADMAP_FATAL, "invalid polygon/head structure");
    }
 
-   context->PolygonPoint =
-      (RoadMapPolygonPoint *) roadmap_db_get_data (point_table);
-   context->PolygonPointCount = roadmap_db_get_count (point_table);
+   /* an "old" (1.1.0 and earlier) set of maps may have a "point"
+    * table and no "line" table.  later, we only use the line table.
+    */
+   if (line_table) {
+      context->PolygonLine =
+         (RoadMapPolygonLine *) roadmap_db_get_data (line_table);
+      context->PolygonLineCount = roadmap_db_get_count (line_table);
 
-   if (roadmap_db_get_size (point_table) !=
-       context->PolygonPointCount * sizeof(RoadMapPolygonPoint)) {
-      roadmap_log (ROADMAP_FATAL, "invalid polygon/point structure");
+      if (roadmap_db_get_size (line_table) !=
+          context->PolygonLineCount * sizeof(RoadMapPolygonLine)) {
+         roadmap_log (ROADMAP_FATAL, "invalid polygon/line structure");
+      }
+   } else {
+      if (point_table) {
+         roadmap_log (ROADMAP_INFO, "Found old-style polygon data -- skipping.");
+      }
+      context->PolygonLine = NULL;
+      context->PolygonLineCount = 0;
    }
+
 
    return context;
 }
@@ -119,7 +133,7 @@ static void roadmap_polygon_unmap (void *context) {
 }
 
 roadmap_db_handler RoadMapPolygonHandler = {
-   "polygon",
+   "polygons",
    roadmap_polygon_map,
    roadmap_polygon_activate,
    roadmap_polygon_unmap
@@ -130,6 +144,8 @@ roadmap_db_handler RoadMapPolygonHandler = {
 int  roadmap_polygon_count (void) {
 
    if (RoadMapPolygonActive == NULL) return 0;
+
+   if (RoadMapPolygonActive->PolygonLine == NULL) return 0;
 
    return RoadMapPolygonActive->PolygonCount;
 }
@@ -150,12 +166,9 @@ void roadmap_polygon_edges (int polygon, RoadMapArea *edges) {
    edges->south = this_polygon->south;
 }
 
+int  roadmap_polygon_lines (int polygon, int **listp) {
 
-int  roadmap_polygon_points (int polygon, int *list, int size) {
-
-   int i;
    RoadMapPolygon      *this_polygon;
-   RoadMapPolygonPoint *this_point;
 
    int count;
    int first;
@@ -165,15 +178,7 @@ int  roadmap_polygon_points (int polygon, int *list, int size) {
    count = roadmap_polygon_get_count(this_polygon);
    first = roadmap_polygon_get_first(this_polygon);
 
-   this_point   = RoadMapPolygonActive->PolygonPoint + first;
-
-   if (size < count) {
-      return -1; /* Not enough space. */
-   }
-
-   for (i = count; i > 0; --i, ++list, ++this_point) {
-      *list = this_point->point;
-   }
+   *listp = RoadMapPolygonActive->PolygonLine + first;
 
    return count;
 }

@@ -51,11 +51,11 @@ typedef struct {  /* table polygon/head */
 
 } RoadMapPolygon;
 
-typedef struct {  /* table polygon/points */
+/* Table polygons/points (old code only) is an array of int. */
+typedef int RoadMapPolygonPoint;
 
-   int point;
-
-} RoadMapPolygonPoint;
+/* Table polygons/lines is an array of int. */
+typedef int RoadMapPolygonLine;
 
 /* these accessors for the "count" and "first" values, which
  * are 20 bits each -- 16 in an unsigned short, and 4 in each

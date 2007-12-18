@@ -30,7 +30,7 @@
 int  roadmap_polygon_count    (void);
 int  roadmap_polygon_category (int polygon);
 void roadmap_polygon_edges    (int polygon, RoadMapArea *edges);
-int  roadmap_polygon_points   (int polygon, int *list, int size);
+int  roadmap_polygon_lines   (int polygon, int **listp);
 
 extern roadmap_db_handler RoadMapPolygonHandler;
 

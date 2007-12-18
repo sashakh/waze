@@ -168,7 +168,7 @@ static void rdmxchange_polygon_export_data (FILE *file) {
    point = RoadMapPolygonActive->PolygonPoint;
 
    for (i = 0; i < RoadMapPolygonActive->PolygonPointCount; ++i, ++point) {
-      fprintf (file, "%d\n", point->point);
+      fprintf (file, "%d\n", *point);
    }
    fprintf (file, "\n");
 }
@@ -340,7 +340,7 @@ static void rdmxchange_polygon_import_data (int table,
          if (count != 1) {
             buildmap_fatal (count, "invalid polygon/point record");
          }
-         PolygonPoint[PolygonCursor++].point =
+         PolygonPoint[PolygonCursor++] =
                            rdmxchange_import_int (fields[0]);
          break;
    }

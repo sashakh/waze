@@ -66,7 +66,7 @@
  * half are property lines--RoadMap would normally not load property lines).
  *
  * The function buildmap_polygon_use_line() tells the line loading logic
- * the layer to use for this line (which is used only if the line was not
+ * which layer to use for this line (which is used only if the line was not
  * going to be loaded according to its own native layer).
  *
  * The other functions are generic functions, same as for the other table
@@ -210,7 +210,7 @@ static void buildmap_polygon_eliminate_zero_length_lines (void) {
 
 
 static void buildmap_polygon_explain_the_line_order_problem
-               (RoadMapPolygonPoint *table, int first, int end,
+               (void *table, int first, int end,
                 BuildMapPolygonLine *problem_line, char *text) {
 
    char *side2text[2];
@@ -257,42 +257,88 @@ static void buildmap_polygon_explain_the_line_order_problem
    }
 }
 
+/* FIXME.  this is called with the endpoints of every line.  it
+ * misses all of the shape points for the line, so the bounding
+ * box is a poor approximation, at best.  "long lines" have the
+ * same problem (but in practice, not as bad -- polygons tend to
+ * have bigger bounding boxes than lines, even long ones).
+ */
+static void buildmap_polygon_adjust_bbox
+        (RoadMapPolygon *polygon, int from, int to) {
+
+      int x1, x2, y1, y2;
+
+      x1 = buildmap_point_get_longitude_sorted (from);
+      y1 = buildmap_point_get_latitude_sorted  (from);
+      x2 = buildmap_point_get_longitude_sorted (to);
+      y2 = buildmap_point_get_latitude_sorted  (to);
+
+      if (x1 < polygon->west) {
+         polygon->west = x1;
+      } else if (x1 > polygon->east) {
+         polygon->east = x1;
+      }
+
+      if (x2 < polygon->west) {
+         polygon->west = x2;
+      } else if (x2 > polygon->east) {
+         polygon->east = x2;
+      }
+
+      if (y1 < polygon->south) {
+         polygon->south = y1;
+      } else if (y1 > polygon->north) {
+         polygon->north = y1;
+      }
+
+      if (y2 < polygon->south) {
+         polygon->south = y2;
+      } else if (y2 > polygon->north) {
+         polygon->north = y2;
+      }
+}
 
 static void buildmap_polygon_fill_in_drawing_order
-               (RoadMapPolygonPoint *table, int first, int count) {
+               (RoadMapPolygon *polygon, RoadMapPolygonLine *polylines) {
 
    int i;
-   int end;
-   int line;
-   int from;
-   int to;
+   int line, end;
+   int from, to;
    int index;
-   int start_point = -1;
-   int next_point  = -1;
+   int first, count;
+   int start_point;
+   int next_point;
    int match_point;
    BuildMapPolygonLine *this_line;
    BuildMapPolygonLine *other_line;
 
+   first = roadmap_polygon_get_first(polygon);
+   count = roadmap_polygon_get_count(polygon);
+
+   polygon->west = polygon->south = 180000000;
+   polygon->east = polygon->north = -180000000;
 
    end = first + count - 1;
 
    for (line = first; line < end; line++) {
-
-      table[line].point = next_point;
 
       index = SortedPolygonLine[line];
       this_line = PolygonLine[index/BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
 
       buildmap_line_get_points_sorted (this_line->line, &from, &to);
 
+      buildmap_polygon_adjust_bbox(polygon, from, to);
+
       if (this_line->side == POLYGON_SIDE_LEFT) {
          /* draw from 'to' to 'from' */
+         // polylines[line].line = -this_line->line;
+         polylines[line] = -this_line->line;
 
          if (line == first) {
             start_point = to;
          } else if (next_point != to) {
             buildmap_polygon_explain_the_line_order_problem
-               (table, first, end, this_line, "incoherent drawing order");
+               (polylines, first, end, this_line, "incoherent drawing order");
 
             buildmap_fatal (0, "incoherent drawing order at line %d",
                             this_line->tlid);
@@ -301,12 +347,14 @@ static void buildmap_polygon_fill_in_drawing_order
 
       } else {
          /* draw from 'from' to 'to' */
+         // polylines[line].line = this_line->line;
+         polylines[line] = this_line->line;
 
          if (line == first) {
             start_point = from;
          } else if (next_point != from) {
             buildmap_polygon_explain_the_line_order_problem
-               (table, first, end, this_line, "incoherent drawing order");
+               (polylines, first, end, this_line, "incoherent drawing order");
 
             buildmap_fatal (0, "incoherent drawing order at line %d",
                             this_line->tlid);
@@ -338,6 +386,7 @@ static void buildmap_polygon_fill_in_drawing_order
             break;
          }
       }
+
       if (i > end) {
          /* FIXME: it seems the Tiger database's CENID/POLYID is not
           * really unique: the database contains sometime several polygons
@@ -352,7 +401,7 @@ static void buildmap_polygon_fill_in_drawing_order
               (start_point != next_point))) {
 
             buildmap_polygon_explain_the_line_order_problem
-               (table, first, end, this_line, "cannot find the next line");
+               (polylines, first, end, this_line, "cannot find the next line");
 
             buildmap_fatal (0, "cannot find the next line at line %d",
                             this_line->tlid);
@@ -363,119 +412,33 @@ static void buildmap_polygon_fill_in_drawing_order
       }
    }
 
-   table[end].point = next_point;
-
    index = SortedPolygonLine[end];
    this_line = PolygonLine[index/BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
 
    buildmap_line_get_points_sorted (this_line->line, &from, &to);
+   buildmap_polygon_adjust_bbox(polygon, from, to);
 
    /* check that the last line connects with the first */
    if (this_line->side == POLYGON_SIDE_LEFT) {
       if (start_point != from) {
          buildmap_polygon_explain_the_line_order_problem
-            (table, first, end, this_line, "open polygon");
+            (polylines, first, end, this_line, "open polygon");
 
          buildmap_fatal (0, "open polygon at line %d",
                          this_line->tlid);
       }
+      // polylines[end].line = -this_line->line;
+      polylines[end] = -this_line->line;
    } else {
       if (start_point != to) {
          buildmap_polygon_explain_the_line_order_problem
-            (table, first, end, this_line, "open polygon");
+            (polylines, first, end, this_line, "open polygon");
 
          buildmap_fatal (0, "open polygon at line %d",
                          this_line->tlid);
       }
-   }
-   table[first].point = start_point;
-}
-
-
-static void buildmap_polygon_fill_bounding_box
-               (RoadMapPolygonPoint *table, RoadMapPolygon *polygon) {
-
-   int line;
-   int index;
-   int from;
-   int to;
-   int x1;
-   int x2;
-   int y1;
-   int y2;
-   int end = polygon->first + polygon->count - 1;
-
-   BuildMapPolygonLine *this_line;
-
-   /* this routine calculates the bounding box for the polygon -- but
-    * it's only approximate, since it doesn't follow shaped lines
-    */
-
-   /* in addition -- this routine is making a second pass through the
-    * polygon lines.  buildmap_polygon_fill_in_drawing_order()
-    * just went through them all, and this could have been done then.
-    */
-
-   index = SortedPolygonLine[end];
-   this_line = PolygonLine[index/BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
-
-   buildmap_line_get_points_sorted (this_line->line, &from, &to);
-
-   x1 = buildmap_point_get_longitude_sorted (from);
-   y1 = buildmap_point_get_latitude_sorted  (from);
-   x2 = buildmap_point_get_longitude_sorted (to);
-   y2 = buildmap_point_get_latitude_sorted  (to);
-
-   if (x1 < x2) {
-      polygon->west = x1;
-      polygon->east = x2;
-   } else {
-      polygon->west = x2;
-      polygon->east = x1;
-   }
-   if (y1 < y2) {
-      polygon->south = y1;
-      polygon->north = y2;
-   } else {
-      polygon->south = y2;
-      polygon->north = y1;
-   }
-
-   for (line = polygon->first; line < end; line++) {
-
-      index = SortedPolygonLine[line];
-      this_line = PolygonLine[index/BUILDMAP_BLOCK] + (index % BUILDMAP_BLOCK);
-
-      buildmap_line_get_points_sorted (this_line->line, &from, &to);
-
-      x1 = buildmap_point_get_longitude_sorted (from);
-      y1 = buildmap_point_get_latitude_sorted  (from);
-      x2 = buildmap_point_get_longitude_sorted (to);
-      y2 = buildmap_point_get_latitude_sorted  (to);
-
-      if (x1 < polygon->west) {
-         polygon->west = x1;
-      } else if (x1 > polygon->east) {
-         polygon->east = x1;
-      }
-
-      if (x2 < polygon->west) {
-         polygon->west = x2;
-      } else if (x2 > polygon->east) {
-         polygon->east = x2;
-      }
-
-      if (y1 < polygon->south) {
-         polygon->south = y1;
-      } else if (y1 > polygon->north) {
-         polygon->north = y1;
-      }
-
-      if (y2 < polygon->south) {
-         polygon->south = y2;
-      } else if (y2 > polygon->north) {
-         polygon->north = y2;
-      }
+      // polylines[end].line = this_line->line;
+      polylines[end] = this_line->line;
    }
 }
 
@@ -934,35 +897,53 @@ static void buildmap_polygon_save (void) {
    BuildMapPolygonLine *one_line;
 
    RoadMapPolygon *db_head, *db_poly;
-   RoadMapPolygonPoint *db_point;
+   RoadMapPolygonLine *db_line;
 
    buildmap_db *root;
    buildmap_db *head_table;
    buildmap_db *point_table;
+   buildmap_db *line_table;
 
 
    buildmap_info ("saving polygons...");
 
-   /* Create the database space */
+   /* Create empty old-style "polygon" tables, to satisfy old
+    * RoadMap code that might be asked to use this db.  (without this,
+    * old code will segv.)
+    */
+   root = buildmap_db_add_section (NULL, "polygon");
+   if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
+   head_table = buildmap_db_add_section (root, "head");
+   if (head_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (head_table, 0, sizeof(RoadMapPolygon));
+
+   point_table = buildmap_db_add_section (root, "point");
+   if (point_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (point_table, 0, sizeof(RoadMapPolygonPoint));
+
+
+   /* Create the new-style "polygons" (note new name) tables,
+    * based on lines, instead of points).
+    */
    if (PolygonLineCount > 0xffff) {
       buildmap_fatal (0, "too many polygon lines");
    }
 
-   root = buildmap_db_add_section (NULL, "polygon");
+   root = buildmap_db_add_section (NULL, "polygons");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");
 
    head_table = buildmap_db_add_section (root, "head");
    if (head_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (head_table, PolygonCount, sizeof(RoadMapPolygon));
 
-   point_table = buildmap_db_add_section (root, "point");
-   if (point_table == NULL) buildmap_fatal (0, "Can't add a new section");
-   buildmap_db_add_data (point_table,
-                         PolygonLineCount, sizeof(RoadMapPolygonPoint));
+   line_table = buildmap_db_add_section (root, "line");
+   if (line_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (line_table,
+                         PolygonLineCount, sizeof(RoadMapPolygonLine));
 
-   db_head   = (RoadMapPolygon *)         buildmap_db_get_data (head_table);
-   db_point  = (RoadMapPolygonPoint *)    buildmap_db_get_data (point_table);
+   db_head   = (RoadMapPolygon *)     buildmap_db_get_data (head_table);
+   db_line   = (RoadMapPolygonLine *) buildmap_db_get_data (line_table);
 
    square_current = -1;
    polygon_current = -1;
@@ -992,13 +973,8 @@ static void buildmap_polygon_save (void) {
                buildmap_fatal (0, "empty polygon");
             }
 
-            buildmap_polygon_fill_in_drawing_order
-               (db_point,
-                roadmap_polygon_get_first(db_poly),
-                roadmap_polygon_get_count(db_poly));
+            buildmap_polygon_fill_in_drawing_order (db_poly, db_line);
 
-            buildmap_polygon_fill_bounding_box
-               (db_point, db_poly);
          }
 
          polygon_current = one_polygon->sorted;
@@ -1028,13 +1004,8 @@ static void buildmap_polygon_save (void) {
 
    if (polygon_current >= 0) {
 
-      buildmap_polygon_fill_in_drawing_order
-         (db_point,
-          roadmap_polygon_get_first(db_poly),
-          roadmap_polygon_get_count(db_poly));
+      buildmap_polygon_fill_in_drawing_order (db_poly, db_line);
 
-      buildmap_polygon_fill_bounding_box
-         (db_point, db_poly);
    }
 }
 
@@ -1089,7 +1060,7 @@ static void buildmap_polygon_reset (void) {
 
 
 static buildmap_db_module BuildMapPolygonModule = {
-   "polygon",
+   "polygons",
    buildmap_polygon_sort,
    buildmap_polygon_save,
    buildmap_polygon_summary,

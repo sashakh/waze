@@ -86,6 +86,10 @@ static int LongLinesCount;
 static RoadMapHash *LongLinesHash = NULL;
 
 
+/* FIXME.  this is called for every line, but it misses all of the
+ * shape points for the line, so the bounding box is a poor
+ * approximation, at best.  polygons have the same problem.
+ */
 static void buildmap_shape_update_long_line (RoadMapLongLine *line,
                                              int longitude, int latitude) {
 
