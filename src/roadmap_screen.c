@@ -583,9 +583,6 @@ static int roadmap_screen_draw_polygons (void) {
       drew |= roadmap_screen_flush_polygons ();
       size = roadmap_polygon_lines (i, &geo_points);
 
-      if (size <= 0)
-        roadmap_log (ROADMAP_WARNING, "Need more room for polygon lines");
-
       polystart = LinePoints.cursor;
 
       previous_point = &null_point;
