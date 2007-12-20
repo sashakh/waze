@@ -306,8 +306,8 @@ static void buildmap_polygon_fill_in_drawing_order
    int from, to;
    int index;
    int first, count;
-   int start_point;
-   int next_point;
+   int start_point = -1;
+   int next_point = -1;
    int match_point;
    BuildMapPolygonLine *this_line;
    BuildMapPolygonLine *other_line;
@@ -759,6 +759,9 @@ static void buildmap_polygon_sort (void) {
 
       one_line = PolygonLine[i/BUILDMAP_BLOCK] + (i % BUILDMAP_BLOCK);
 
+      /* this NULL may be the result of pruning that happened in
+       * eliminate_zero_length_lines(), above.
+       */
       if (one_line->polygon == NULL) continue;
 
       one_line->square = buildmap_line_get_square_sorted (one_line->line);
