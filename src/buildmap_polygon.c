@@ -331,7 +331,6 @@ static void buildmap_polygon_fill_in_drawing_order
 
       if (this_line->side == POLYGON_SIDE_LEFT) {
          /* draw from 'to' to 'from' */
-         // polylines[line].line = -this_line->line;
          polylines[line] = -this_line->line;
 
          if (line == first) {
@@ -347,7 +346,6 @@ static void buildmap_polygon_fill_in_drawing_order
 
       } else {
          /* draw from 'from' to 'to' */
-         // polylines[line].line = this_line->line;
          polylines[line] = this_line->line;
 
          if (line == first) {
@@ -427,7 +425,6 @@ static void buildmap_polygon_fill_in_drawing_order
          buildmap_fatal (0, "open polygon at line %d",
                          this_line->tlid);
       }
-      // polylines[end].line = -this_line->line;
       polylines[end] = -this_line->line;
    } else {
       if (start_point != to) {
@@ -437,7 +434,6 @@ static void buildmap_polygon_fill_in_drawing_order
          buildmap_fatal (0, "open polygon at line %d",
                          this_line->tlid);
       }
-      // polylines[end].line = this_line->line;
       polylines[end] = this_line->line;
    }
 }
