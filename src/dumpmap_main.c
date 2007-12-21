@@ -24,13 +24,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <popt.h>
 
 #include "roadmap.h"
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
 #include "roadmap_metadata.h"
 #include "roadmap_index.h"
+#include "buildmap_opt.h"
 
 
 roadmap_db_model *RoadMapModel = NULL;
@@ -39,9 +39,9 @@ static int   DumpMapVerbose = 0;
 static int   DumpMapShowStrings = 0;
 static int   DumpMapShowAttributes = 0;
 static int   DumpMapShowIndex = 0;
-static char *DumpMapShowDump = NULL;
-static char *DumpMapShowVolume = NULL;
-static char *DumpMapSearchStringOption = NULL;
+static char *DumpMapShowDump = "";
+static char *DumpMapShowVolume = "";
+static char *DumpMapSearchStringOption = "";
 
 
 /* Tree print module -------------------------------------------------------
@@ -130,7 +130,7 @@ static void dumpmap_printstring_activate (void *context) {
 
    (*RoadMapDictionaryHandler.activate) (context);
 
-   if (DumpMapShowVolume != NULL) {
+   if (*DumpMapShowVolume) {
       roadmap_dictionary_dump_volume (DumpMapShowVolume);
    } else {
       roadmap_dictionary_dump ();
@@ -387,55 +387,59 @@ roadmap_db_handler DumpMapHexaDump =
 
 /* Main program. -----------------------------------------------------------
  */
-static struct poptOption DumpMapDictionaryOptions[] = {
-
-   {"strings", 0,
-      POPT_ARG_NONE, &DumpMapShowStrings, 0, "Show dictionary's content", NULL},
-
-   {"volume", 0,
-      POPT_ARG_STRING, &DumpMapShowVolume, 0, "Show a specific volume", "NAME"},
-
-   {"search", 0,
-      POPT_ARG_STRING, &DumpMapSearchStringOption, 0, "Search through a specific volume", "NAME"},
-
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
-
+struct opt_defs options[] = {
+   {"strings", "", opt_flag, "0",
+        "Show a dictionary's content"},
+   {"volume", "", opt_string, "",
+        "Show a specific volume"},
+   {"search", "", opt_string, "",
+        "Search through a specific volume"},
+   {"dump", "d", opt_string, "",
+        "Dump a specific table"},
+   {"attributes", "a", opt_flag, "0",
+        "Show map attributes"},
+   {"index", "i", opt_flag, "0",
+        "Show map index"},
+   {"verbose", "v", opt_flag, "0",
+        "Show more progress information"},
+   OPT_DEFS_END
 };
 
-static struct poptOption DumpMapOptions[] = {
+void usage(char *progpath, const char *msg) {
 
-   POPT_AUTOHELP
+   char *prog = strrchr(progpath, '/');
 
-   {"verbose", 'v',
-      POPT_ARG_NONE, &DumpMapVerbose, 0, "Show additional information", NULL},
+   if (prog)
+       prog++;
+   else
+       prog = progpath;
 
-   {"dump", 'd',
-      POPT_ARG_STRING, &DumpMapShowDump, 0, "Dump a specific table", "TABLE"},
+   if (msg)
+       fprintf(stderr, "%s: %s\n", prog, msg);
+   fprintf(stderr,
+       "usage: %s [options] mapfile [mapfile...]\n", prog);
+   opt_desc(options, 1);
+   exit(1);
+}
 
-   {"attributes", 'a',
-      POPT_ARG_NONE, &DumpMapShowAttributes, 0, "Show map attributes", NULL},
+int main (int argc, char **argv) {
 
-   {"index", 'i',
-      POPT_ARG_NONE, &DumpMapShowIndex, 0, "Show map index", NULL},
+   int i, error;
 
-   {NULL, 0,
-        POPT_ARG_INCLUDE_TABLE, DumpMapDictionaryOptions, 0, "Dictionary options", NULL},
+   /* parse the options */
+   error = opt_parse(options, &argc, argv, 0);
+   if (error) usage(argv[0], opt_strerror(error));
 
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
-};
-
-
-int main (int argc, const char **argv) {
-
-   int i;
-   const char **leftovers;
-
-
-   poptContext decoder =
-      poptGetContext ("dumpmap", argc, argv, DumpMapOptions, 0);
-
-
-   while (poptGetNextOpt(decoder) > 0) ;
+   /* then, fetch the option values */
+   error = opt_val("verbose", &DumpMapVerbose) ||
+           opt_val("strings", &DumpMapShowStrings) ||
+           opt_val("volume", &DumpMapShowVolume) ||
+           opt_val("search", &DumpMapSearchStringOption) ||
+           opt_val("dump", &DumpMapShowDump) ||
+           opt_val("attributes", &DumpMapShowAttributes) ||
+           opt_val("index", &DumpMapShowIndex);
+   if (error)
+      usage(argv[0], opt_strerror(error));
 
 
    if (DumpMapShowAttributes) {
@@ -456,13 +460,13 @@ int main (int argc, const char **argv) {
          roadmap_db_register
             (RoadMapModel, "string", &RoadMapDictionaryHandler);
 
-   } else if (DumpMapShowStrings || (DumpMapShowVolume != NULL)) {
+   } else if (DumpMapShowStrings || *DumpMapShowVolume) {
 
       RoadMapModel =
          roadmap_db_register
             (RoadMapModel, "string", &DumpMapPrintString);
 
-   } else if (DumpMapSearchStringOption != NULL) {
+   } else if (*DumpMapSearchStringOption) {
 
       RoadMapModel =
          roadmap_db_register
@@ -471,7 +475,7 @@ int main (int argc, const char **argv) {
          roadmap_db_register
             (RoadMapModel, "/", &DumpMapSearchString);
 
-   } else if (DumpMapShowDump != NULL) {
+   } else if (*DumpMapShowDump) {
 
       RoadMapModel =
          roadmap_db_register
@@ -484,24 +488,18 @@ int main (int argc, const char **argv) {
    }
 
 
-   leftovers = poptGetArgs(decoder);
-
-   if (leftovers == NULL || leftovers[0] == NULL) {
-      fprintf (stderr, "Please provide the name of a map file\n");
-      poptPrintUsage (decoder, stderr, 0);
-      exit (1);
-   }
+   if (argc < 2)
+      usage(argv[0], "missing map file\n");
 
 
-   for (i = 0; leftovers[i] != NULL; ++i) {
+   for (i = 1; i < argc; ++i) {
 
-      if (leftovers[1] != NULL) printf ("%s\n", leftovers[i]);
+      if (argc >= 3) printf ("%s\n", argv[i]);
 
-      if (! roadmap_db_open ("", leftovers[i], RoadMapModel)) {
-         roadmap_log (ROADMAP_FATAL,
-                      "cannot open map database %s", leftovers[i]);
+      if (! roadmap_db_open ("", argv[i], RoadMapModel)) {
+         roadmap_log (ROADMAP_FATAL, "cannot open map database %s", argv[i]);
       }
-      roadmap_db_close ("", leftovers[i]);
+      roadmap_db_close ("", argv[i]);
    }
 
    roadmap_db_end ();

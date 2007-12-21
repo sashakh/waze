@@ -78,13 +78,6 @@ DESKTOP = GTK2
 EXPAT = YES
 # EXPAT = NO
 
-# RoadMap uses the "popt" library when parsing arguments in some
-# of the utility programs, primarily those concerned with
-# building the maps.  If you don't have libpopt (and the popt.h),
-# you can still build and run RoadMap, but not those utilities.
-POPT = YES
-# POPT = NO
-
 # RoadMap users in the USA will probably use the Tiger maps from
 # the US Census bureau.  These maps do not requre "shapefile"
 # support when building the rdm format of the maps.  Users in

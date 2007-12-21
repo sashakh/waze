@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include <popt.h>
 
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
@@ -38,6 +37,7 @@
 #include "roadmap_config.h"
 
 #include "buildmap.h"
+#include "buildmap_opt.h"
 
 #include "buildus_fips.h"
 #include "buildus_county.h"
@@ -56,31 +56,19 @@ static char *BuildMapTiger  = ".";
 static char *BuildMapPath;
 static char *BuildMapResult;
 
-static struct poptOption BuildUsOptions[] = {
-
-   POPT_AUTOHELP
-
-   {"path", 'd',
-      POPT_ARG_STRING, &BuildMapTiger, 0,
-      "Path to index files (usstates.txt, app_a02.txt)", "PATH"},
-
-   {"maps", 'm',
-      POPT_ARG_STRING, &BuildMapPath, 0,
-      "Location(s) of the RoadMap maps (separate multiple directories with ',')", "PATH"},
-
-   {"config", 'c',
-      POPT_ARG_NONE, &BuildMapUseConfig, 0,
-      "Use Map.Path preferences setting for map path (overrides -m)", NULL},
-
-   {"verbose", 'v',
-      POPT_ARG_NONE, &BuildMapVerbose, 0, "Show progress information", NULL},
-
-   {"silent", 's',
-      POPT_ARG_NONE, &BuildMapSilent, 0, "Show nothing", NULL},
-
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
+struct opt_defs options[] = {
+   {"path", "d", opt_string, ".",
+        "Path to index files (usstates.txt, app_a02.txt)"},
+   {"maps", "m", opt_string, "",
+        "Location(s) of the RoadMap maps (separate multiple directories with ',')"},
+   {"config", "c", opt_flag, "0",
+        "Use Map.Path preferences setting for map path (overrides -m)"},
+   {"verbose", "v", opt_flag, "0",
+        "Show progress information"},
+   {"silent", "s", opt_flag, "0",
+        "Show nothing"},
+   OPT_DEFS_END
 };
-
 
 static void buildus_save (void) {
 
@@ -205,15 +193,41 @@ static void buildus_scan_maps (void) {
    }
 }
 
+void usage(char *progpath, const char *msg) {
 
-int main (int argc, const char **argv) {
+   char *prog = strrchr(progpath, '/');
 
-   poptContext decoder;
+   if (prog)
+       prog++;
+   else
+       prog = progpath;
+
+   if (msg)
+       fprintf(stderr, "%s: %s\n", prog, msg);
+   fprintf(stderr,
+       "usage: %s [options]\n", prog);
+   opt_desc(options, 1);
+   exit(1);
+}
+
+int main (int argc, char **argv) {
+
+   int error;
 
    BuildMapResult = strdup(roadmap_path_preferred("maps"));
-   decoder = poptGetContext ("buildus", argc, argv, BuildUsOptions, 0);
 
-   while (poptGetNextOpt(decoder) > 0) ;
+   /* parse the options */
+   error = opt_parse(options, &argc, argv, 0);
+   if (error) usage(argv[0], opt_strerror(error));
+
+   /* then, fetch the option values */
+   error = opt_val("path", &BuildMapTiger) ||
+           opt_val("maps", &BuildMapResult) ||
+           opt_val("config", &BuildMapUseConfig) ||
+           opt_val("verbose", &BuildMapVerbose) ||
+           opt_val("silent", &BuildMapSilent);
+   if (error)
+      usage(argv[0], opt_strerror(error));
 
    if (BuildMapUseConfig) {
 

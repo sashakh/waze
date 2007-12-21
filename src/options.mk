@@ -159,11 +159,6 @@ ifneq ($(strip $(EXPAT)),NO)
 	CFLAGS += -DROADMAP_USES_EXPAT
 endif
 
-# popt library, for option parsing (only in some programs)
-ifneq ($(strip $(POPT)),NO)
-	LIBS += -lpopt 
-endif
-
 # shapefile support needed for building some mapsets
 ifneq ($(strip $(SHAPEFILES)),NO)
 	CFLAGS += -DROADMAP_USE_SHAPEFILES

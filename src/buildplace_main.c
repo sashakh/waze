@@ -26,13 +26,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <popt.h>
 #include <search.h>
 
 #include "roadmap_types.h"
 #include "roadmap_hash.h"
+#include "roadmap_path.h"
 
 #include "buildmap.h"
+#include "buildmap_opt.h"
 
 #include "buildmap_square.h"
 #include "buildmap_point.h"
@@ -65,45 +66,19 @@ static int   BuildPlaceFormatFamily = 0;
 static int   BuildPlaceVerbose = 0;
 static char *BuildPlaceFormat  = "SHAPE";
 
-static char *BuildPlaceResult   = "/usr/local/share/roadmap";
+static char *BuildPlaceResult;
 static char *BuildPlaceDSGFile  = "./designations.txt";
 
-static struct poptOption BuildPlaceFileOptions [] = {
-
-   {"format", 'f',
-      POPT_ARG_STRING, &BuildPlaceFormat, 0,
-      "Input files format (Text or ShapeFile)", "TXT|SHAPE"},
-
-   POPT_TABLEEND
-};
-
-static struct poptOption BuildPlaceGeneralOptions [] = {
-
-   {"verbose", 'v',
-      POPT_ARG_NONE, &BuildPlaceVerbose, 0, "Show progress information", NULL},
-
-   {"dsg", 'd',
-      POPT_ARG_STRING, &BuildPlaceDSGFile, 0,
-      "Location of the designations.txt file", "PATH"},
-                   
-   {"maps", 'm',
-      POPT_ARG_STRING, &BuildPlaceResult, 0,
-      "Location of the RoadMap maps (generated files)", "PATH"},
-
-   POPT_TABLEEND
-};
-
-static struct poptOption BuildPlaceOptionTable [] = {
-
-   POPT_AUTOHELP
-
-   {NULL, 0,
-        POPT_ARG_INCLUDE_TABLE, BuildPlaceFileOptions, 0, "File format options", NULL},
-
-   {NULL, 0,
-        POPT_ARG_INCLUDE_TABLE, BuildPlaceGeneralOptions, 0, "BuildPlace's general options", NULL},
-
-   POPT_TABLEEND
+struct opt_defs options[] = {
+   {"format", "f", opt_string, "TXT",
+      "Input files format (Text or ShapeFile)"},
+   {"dsg", "d", opt_string, "./designations.txt",
+        "The designations.txt file"},
+   {"maps", "m", opt_string, "",
+        "Location for the generated map files"},
+   {"verbose", "v", opt_flag, "0",
+        "Show progress information"},
+   OPT_DEFS_END
 };
 
 
@@ -120,7 +95,7 @@ str2dict (BuildMapDictionary d, const char *string) {
 #endif /* ROADMAP_USE_SHAPEFILES */
 
 
-static void  buildplace_select_format (poptContext decoder) {
+static int  buildplace_select_format (void) {
 
    if (strcmp (BuildPlaceFormat, "TXT") == 0) {
 
@@ -131,10 +106,11 @@ static void  buildplace_select_format (poptContext decoder) {
       BuildPlaceFormatFamily = BUILDPLACE_FORMAT_SHAPE;
 
    } else {
-      fprintf (stderr, "%s: unsupported input format\n", BuildPlaceFormat);
-      poptPrintUsage (decoder, stderr, 0);
-      exit (1);
+      fprintf (stderr, "%s: unsupported input format, must be TXT or SHAPE\n",
+         BuildPlaceFormat);
+      return 0;
    }
+   return 1;
 }
 
 
@@ -376,33 +352,48 @@ static void buildplace_process (const char *source, const char *fips,
 }
 
 
-int main (int argc, const char **argv) {
+void usage(char *progpath, const char *msg) {
 
-   const char **leftovers;
+   char *prog = strrchr(progpath, '/');
 
-   poptContext decoder =
-      poptGetContext ("buildmap", argc, argv, BuildPlaceOptionTable, 0);
+   if (prog)
+       prog++;
+   else
+       prog = progpath;
 
-   poptSetOtherOptionHelp(decoder, "[OPTIONS]* <fips> <source>");
+   if (msg)
+       fprintf(stderr, "%s: %s\n", prog, msg);
+   fprintf(stderr,
+       "usage: %s [options] <FIPS code> <source>\n", prog);
+   opt_desc(options, 1);
+   exit(1);
+}
 
-   while (poptGetNextOpt(decoder) > 0) ;
+int main (int argc, char **argv) {
 
-   buildplace_select_format (decoder);
+   int error;
+   BuildPlaceResult = strdup(roadmap_path_preferred("maps")); /* default. */
 
-   leftovers = poptGetArgs(decoder);
+   /* parse the options */
+   error = opt_parse(options, &argc, argv, 0);
+   if (error) usage(argv[0], opt_strerror(error));
 
-   if (leftovers == NULL || leftovers[0] == NULL || leftovers[1] == NULL)
-   {
-      poptPrintUsage (decoder, stderr, 0);
-      return 1;
-   }
+   /* then, fetch the option values */
+   error = opt_val("verbose", &BuildPlaceVerbose) ||
+           opt_val("format", &BuildPlaceFormat) ||
+           opt_val("dsg", &BuildPlaceDSGFile) ||
+           opt_val("maps", &BuildPlaceResult);
+   if (error)
+      usage(argv[0], opt_strerror(error));
+
+   if (!buildplace_select_format())
+      exit(1);
+
+   if (argc != 3) usage(argv[0], "missing required arguments");
 
    buildplace_read_dsg (BuildPlaceDSGFile);
 
-   buildplace_process 
-       ((char *) (leftovers[1]), (char *) (leftovers[0]), BuildPlaceVerbose);
-
-   poptFreeContext (decoder);
+   buildplace_process (argv[2], argv[1], BuildPlaceVerbose);
 
    return 0;
 }

@@ -156,11 +156,6 @@ INSTALLATION
    set SHAPEFILES = NO in config.mk.  (On Debian or Ubuntu linux systems, use
    "apt-get install libshp-dev" to install the shapefile library.)
 
-   Likewise, the popt library is needed for building "buildmap".  It is not
-   needed for building or running RoadMap itself.  Set POPT = NO to prevent
-   buildmap (and buildus) from being built.  ("apt-get install libpopt-dev"
-   on Debian or Ubuntu.)
-
    * Miscellaneous
 
    RoadMap uses "aptconvert" to format the documentation (see previous
@@ -581,11 +576,10 @@ INSTALLATION
 
    [[1]] Install the development libraries for GTK+ 1.2, GTK+ 2.0 or Qt.
 
-   [[2]] Install the shapelib, expat, popt development libraries.  Shapelib is
+   [[2]] Install the shapelib and expat development libraries.  Shapelib is
    required for building maps from some data sources (though not the US Tiger
-   data).  The libpopt library is also optional if you won't be building your
-   own maps.  And libexpat is optional, except that you won't be able to save
-   or restore route, waypoint, or track information.
+   data).  The "expat" library is optional, except that you won't be able to
+   save or restore route, waypoint, or track information.
 
    [[3]] Unpack RoadMap's tarball:
 
@@ -621,9 +615,6 @@ INSTALLATION
 
    [EXPAT=NO] Do not link roadmap with the expat library. The side
    effect is that you cannot load or save trips or landmarks anymore.
-
-   [POPT=NO] Do not build buildmap.  (RoadMap itself does not use libpopt.)
-   You will be able to use pre-built maps, but not build any of your own.
 
    [AGG=NO] Do not try to link roadmap with the agg library.  This optional
    library, currently supported for the GTK2 and Win32 desktops, can give
@@ -690,11 +681,8 @@ INSTALLATION
 
 
    The <<buildmap>> tool takes a county "FIPS" and a TIGER file as input and
-   produces one RoadMap .rdm map file. The tool uses the popt library for
-   parsing the command line arguments: the option --help gives more
-   information about the available options.  (On Debian or Ubuntu linux
-   systems, use "apt-get install libpopt-dev" to install the popt development
-   library.)
+   produces one RoadMap .rdm map file.  The option --help gives more
+   information about the available options.
 
    Here is an example:
 
@@ -713,9 +701,6 @@ INSTALLATION
    exists: this way it is possible to store locally only a small portion of
    the US maps. This is useful when using a PDA with limited storage space
    (like the iPAQ).
-
-   The buildus tool also uses popt for parsing the command line arguments:
-   the option --help gives more information about the available options.
 
    [[8]] run make to install roadmap:
 
@@ -3425,10 +3410,9 @@ TOOLS
    dumpmap [--usage] [-d TABLE] [--strings] [--volume=NAME] [--search=NAME]
 ----
 
-   dumpmap uses the popt library for parsing command line argument: the
-   option --help provides a full description of each option. The name of
-   map files must be provided after the options: dumpmap will process each
-   provided file sequentially, according to the options that was selected.
+   The name of map files must be provided after the options:  dumpmap will
+   process each provided file sequentially, according to the options that was
+   selected.
 
 
 CONFIGURATION EXAMPLES

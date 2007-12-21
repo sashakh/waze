@@ -25,8 +25,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <popt.h>
-
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
 #include "roadmap_types.h"
@@ -40,6 +38,7 @@
 
 #include "buildmap.h"
 #include "buildmap_index.h"
+#include "buildmap_opt.h"
 
 
 static roadmap_db_model *RoadMapIndexModel;
@@ -51,33 +50,21 @@ static int   RdmIndexVerbose = 0;
 static int   RdmIndexSilent = 0;
 static int   RdmIndexGrand = 0;
 static int   RdmIndexRecursive = 0;
-static char *RdmIndexPath = NULL;
+static char *RdmIndexPath = ".";
 
-static struct poptOption RdmIndexOptions[] = {
-
-   POPT_AUTOHELP
-
-   {"grand", 'g',
-      POPT_ARG_NONE, &RdmIndexGrand, 0,
-      "Build a grand index of index files", NULL},
-
-   {"recursive", 'r',
-      POPT_ARG_NONE, &RdmIndexRecursive, 0,
-      "Search the map files recursively", NULL},
-
-   {"verbose", 'v',
-      POPT_ARG_NONE, &RdmIndexVerbose, 0, "Show progress information", NULL},
-
-   {"silent", 's',
-      POPT_ARG_NONE, &RdmIndexSilent, 0, "Show nothing", NULL},
-
-   {"path", 'p',
-      POPT_ARG_STRING, &RdmIndexPath, 0,
-      "Location of the generated index file", "PATH"},
-
-   {NULL, 0, 0, NULL, 0, NULL, NULL}
+struct opt_defs options[] = {
+   {"path", "p", opt_string, ".",
+        "Location of the generated index file"},
+   {"grand", "g", opt_flag, "0",
+        "Build a grand index of index files"},
+   {"recursive", "r", opt_flag, "0",
+        "Search the map files recursively"},
+   {"verbose", "v", opt_flag, "0",
+        "Show progress information"},
+   {"silent", "s", opt_flag, "0",
+        "Show nothing"},
+   OPT_DEFS_END
 };
-
 
 static void rdmindex_save (void) {
 
@@ -252,34 +239,40 @@ static void rdmindex_recurse (const char *path) {
 }
 
 
-int main (int argc, const char **argv) {
+void usage(char *progpath, const char *msg) {
 
-   int i;
-   poptContext decoder;
-   const char **leftovers;
+   char *prog = strrchr(progpath, '/');
 
+   if (prog)
+       prog++;
+   else
+       prog = progpath;
 
-   decoder = poptGetContext ("rdmindex", argc, argv, RdmIndexOptions, 0);
+   if (msg)
+       fprintf(stderr, "%s: %s\n", prog, msg);
+   fprintf(stderr,
+       "usage: %s [options] [directory...]\n", prog);
+   opt_desc(options, 1);
+   exit(1);
+}
 
-   while (poptGetNextOpt(decoder) > 0) ;
+int main (int argc, char **argv) {
 
-   leftovers = poptGetArgs(decoder);
+   int i, error;
 
+   /* parse the options */
+   error = opt_parse(options, &argc, argv, 0);
+   if (error) usage(argv[0], opt_strerror(error));
 
-   /* The index path is set to the one directory provided as a "smart"
-    * default that is assumed to match the intend in most cases.
-    */
-   if ((RdmIndexPath == NULL) && leftovers && (leftovers[0] != NULL)) {
-      if ((leftovers[1] == NULL) && roadmap_path_is_directory(leftovers[0])) {
-         RdmIndexPath = strdup(leftovers[0]);
-      }
-   }
+   /* then, fetch the option values */
+   error = opt_val("verbose", &RdmIndexVerbose) ||
+           opt_val("silent", &RdmIndexSilent) ||
+           opt_val("grand", &RdmIndexGrand) ||
+           opt_val("recursive", &RdmIndexRecursive) ||
+           opt_val("path", &RdmIndexPath);
+   if (error)
+      usage(argv[0], opt_strerror(error));
 
-   /* Nothing really fits: use the ultimate default. */
-
-   if (RdmIndexPath == NULL) {
-      RdmIndexPath = strdup(roadmap_path_preferred("maps")); /* default. */
-   }
 
    /* Make sure we have a directory there. */
 
@@ -300,12 +293,6 @@ int main (int argc, const char **argv) {
          roadmap_db_register
             (RoadMapIndexModel, "index", &RoadMapIndexHandler);
 
-      /* By default, we scan the local subdirectories. */
-
-      if (leftovers == NULL || leftovers[0] == NULL) {
-         leftovers = rdmindex_subdirectories (".");
-      }
-
    } else {
 
       RoadMapIndexModel =
@@ -314,43 +301,36 @@ int main (int argc, const char **argv) {
       RoadMapIndexModel =
          roadmap_db_register
             (RoadMapIndexModel, "square", &RoadMapSquareHandler);
-      // Unused at that time.
+      // Unused at this time.
       // RoadMapIndexModel =
       //    roadmap_db_register
       //       (RoadMapIndexModel, "zip", &RoadMapZipHandler);
-
-      /* By default we scan the local directory. */
-
-      if (leftovers == NULL || leftovers[0] == NULL) {
-         static const char *RdmIndexDefault[] = {".", NULL};
-         leftovers = RdmIndexDefault;
-      }
    }
 
-   if (leftovers == NULL || leftovers[0] == NULL) {
-      poptPrintUsage (decoder, stderr, 0); /* No argument? */
-      return 1;
+   if (argc == 1) {
+      static char *RdmIndexDefault[] = {NULL, ".", NULL};
+      RdmIndexDefault[0] = argv[0];
+      argv = RdmIndexDefault;
+      argc = 2;
    }
 
    RoadMapIndexModel =
       roadmap_db_register
          (RoadMapIndexModel, "string", &RoadMapDictionaryHandler);
 
-
-
    if (RdmIndexRecursive) {
 
-      for (i = 0; leftovers[i] != NULL; ++i) {
-         rdmindex_recurse (leftovers[i]);
+      for (i = 1; i < argc; ++i) {
+         rdmindex_recurse (argv[i]);
       }
 
    } else {
 
-      for (i = 0; leftovers[i] != NULL; ++i) {
+      for (i = 1; i < argc; ++i) {
          if (RdmIndexGrand) {
-            rdmindex_scan_indexes (leftovers[i]);
+            rdmindex_scan_indexes (argv[i]);
          } else {
-            rdmindex_scan_maps (leftovers[i]);
+            rdmindex_scan_maps (argv[i]);
          }
       }
    }

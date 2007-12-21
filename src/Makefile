@@ -136,6 +136,7 @@ BPSRC = buildmap_messages.c \
 	buildmap_square.c \
 	buildmap_point.c \
 	buildmap_place.c \
+	buildmap_opt.c \
 	buildplace_main.c
 
 BPOBJS = $(BPSRC:.c=.o)
@@ -146,7 +147,8 @@ BUSRC = buildus_main.c \
 	buildus_county.c \
 	buildmap_dictionary.c \
 	buildmap_dbwrite.c \
-	buildmap_messages.c
+	buildmap_messages.c \
+	buildmap_opt.c
 
 BUOBJS = $(BUSRC:.c=.o)
 
@@ -324,10 +326,7 @@ FONT = LiberationSans-Bold.ttf
 MANUAL = manual.html
 
 # more products
-ifneq ($(strip $(POPT)),NO)
-  # these depend on libpopt
-  BUILD = buildmap buildmap_osm buildus dumpmap buildplace rdmindex 
-endif
+BUILD = buildmap buildmap_osm buildus buildplace dumpmap rdmindex 
 
 RUNTIME = $(RDMLIBS) libguiroadgps.a libguiroadmap.a
 ifneq ($(DESKTOP),WINCE)
@@ -509,8 +508,8 @@ rdmfriends: roadmap_friends.o $(RDMLIBS)
 rdmtrace: roadmap_trace.o $(RDMLIBS)
 	$(CC) $(LDFLAGS) roadmap_trace.o -o rdmtrace $(RDMLIBS) -lm
 
-dumpmap: $(DMOBJS) $(RDMLIBS)
-	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap $(LIBS)
+dumpmap: $(DMOBJS) libbuildmap.a $(RDMLIBS)
+	$(CC) $(LDFLAGS) $(DMOBJS) -o dumpmap libbuildmap.a $(LIBS)
 
 buildmap: $(BMOBJS) libbuildmap.a $(RDMLIBS)
 	$(CC) $(LDFLAGS) $(BMOBJS) -o buildmap libbuildmap.a $(LIBS)

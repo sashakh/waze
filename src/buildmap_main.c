@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <popt.h>
 
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -33,6 +32,7 @@
 #include "roadmap_path.h"
 
 #include "buildmap.h"
+#include "buildmap_opt.h"
 #include "buildmap_tiger.h"
 #include "buildmap_shapefile.h"
 #include "buildmap_empty.h"
@@ -70,62 +70,27 @@ static char *BuildMapResult;
 
 int BuildMapNoLongLines;
 
-static struct poptOption BuildMapTigerOptions [] = {
-
-   {"format", 'f',
-      POPT_ARG_STRING, &BuildMapFormat, 0,
+struct opt_defs options[] = {
+   {"format", "f", opt_string, "2002",
 #ifdef ROADMAP_USE_SHAPEFILES
-      "Input files format (Tiger or ShapeFile)", "2000|2002|SHAPE|RNF|DCW|EMPTY"},
+      "Input file format (TIGER or Shapefile data source)"
 #else
-      "Tiger file format (ShapeFile was not enabled)", "2000|2002|EMPTY"},
+      "Tiger file format (ShapeFile not enabled)"
 #endif
-
-   POPT_TABLEEND
-};
-
-static struct poptOption BuildMapDataOptions [] = {
-
-   {"class", 'c',
-      POPT_ARG_STRING, &BuildMapClass, 0,
-      "The class file to create the map for", NULL},
-
-   {"nolonglines", 'n',
-      POPT_ARG_NONE, &BuildMapNoLongLines, 0,
-      "Suppress building of 'long line' lists (inter-square lines)", NULL},
-
-   POPT_TABLEEND
-};
-
-static struct poptOption BuildMapGeneralOptions [] = {
-
-   {"verbose", 'v',
-      POPT_ARG_NONE, &BuildMapVerbose, 0, "Show progress information", NULL},
-
-   {"maps", 'm',
-      POPT_ARG_STRING, &BuildMapResult, 0,
-      "Location of the RoadMap maps (generated files)", "PATH"},
-
-   POPT_TABLEEND
-};
-
-static struct poptOption BuildMapOptionTable [] = {
-
-   POPT_AUTOHELP
-
-   {NULL, 0,
-        POPT_ARG_INCLUDE_TABLE, BuildMapTigerOptions, 0, "Tiger file options", NULL},
-
-   {NULL, 0,
-        POPT_ARG_INCLUDE_TABLE, BuildMapDataOptions, 0, "Map filter options", NULL},
-
-   {NULL, 0,
-        POPT_ARG_INCLUDE_TABLE, BuildMapGeneralOptions, 0, "BuildMap's general options", NULL},
-
-   POPT_TABLEEND
+   },
+   {"class", "c", opt_string, "default/All",
+        "The class file to create the map for"},
+   {"maps", "m", opt_string, "",
+        "Location for the generated map files"},
+   {"nolonglines", "n", opt_flag, "0",
+        "Suppress 'long line' lists (inter-square lines)"},
+   {"verbose", "v", opt_flag, "0",
+        "Show more progress information"},
+   OPT_DEFS_END
 };
 
 
-static void  buildmap_county_select_format (poptContext decoder) {
+static int  buildmap_county_select_format (void) {
 
    if (strcmp (BuildMapFormat, "2002") == 0) {
 
@@ -184,11 +149,16 @@ static void  buildmap_county_select_format (poptContext decoder) {
       BuildMapFormatFamily = BUILDMAP_FORMAT_EMPTY;
 
    } else {
-      fprintf (stderr, "%s: unsupported input format\n", BuildMapFormat);
-      poptPrintUsage (decoder, stderr, 0);
-      exit (1);
+      fprintf (stderr, "%s: unsupported input format -- must be one of:\n",
+        BuildMapFormat);
+      fprintf (stderr, "   2002, 2000, EMPTY,\n");
+#ifdef ROADMAP_USE_SHAPEFILES
+      fprintf (stderr, "   SHAPE, RNF, DCW, PROVINCES,\n");
+      fprintf (stderr, "   or STATES={AK,HI,continental,all}\n");
+#endif
+      return 0;
    }
-
+   return 1;
 }
 
 
@@ -262,40 +232,50 @@ static void buildmap_county_process (const char *source,
    roadmap_hash_reset ();
 }
 
+void usage(char *progpath, const char *msg) {
 
-int main (int argc, const char **argv) {
+   char *prog = strrchr(progpath, '/');
 
-   const char **leftovers;
-   poptContext decoder;
+   if (prog)
+       prog++;
+   else
+       prog = progpath;
 
+   if (msg)
+       fprintf(stderr, "%s: %s\n", prog, msg);
+   fprintf(stderr,
+       "usage: %s [options] <FIPS code> <source>\n", prog);
+   opt_desc(options, 1);
+   exit(1);
+}
+
+int main (int argc, char **argv) {
+
+   int error;
 
    BuildMapResult = strdup(roadmap_path_preferred("maps")); /* default. */
 
-   decoder =
-      poptGetContext ("buildmap", argc, argv, BuildMapOptionTable, 0);
+   /* parse the options */
+   error = opt_parse(options, &argc, argv, 0);
+   if (error) usage(argv[0], opt_strerror(error));
 
-   poptSetOtherOptionHelp(decoder, "[OPTIONS]* <fips> <source>");
+   /* then, fetch the option values */
+   error = opt_val("verbose", &BuildMapVerbose) ||
+           opt_val("format", &BuildMapFormat) ||
+           opt_val("class", &BuildMapClass) ||
+           opt_val("maps", &BuildMapResult) ||
+           opt_val("nolonglines", &BuildMapNoLongLines);
+   if (error)
+      usage(argv[0], opt_strerror(error));
 
-   while (poptGetNextOpt(decoder) > 0) ;
+   if (!buildmap_county_select_format())
+      exit(1);
 
-   buildmap_county_select_format (decoder);
-
-   leftovers = poptGetArgs(decoder);
-
-   if (leftovers == NULL || leftovers[0] == NULL || leftovers[1] == NULL)
-   {
-      poptPrintUsage (decoder, stderr, 0);
-      return 1;
-   }
+   if (argc != 3) usage(argv[0], "missing required arguments");
 
    buildmap_layer_load (BuildMapClass);
 
-   buildmap_county_process
-            ((char *) (leftovers[1]),
-             (char *) (leftovers[0]),
-             BuildMapVerbose);
-
-   poptFreeContext (decoder);
+   buildmap_county_process (argv[2], argv[1], BuildMapVerbose);
 
    return 0;
 }
