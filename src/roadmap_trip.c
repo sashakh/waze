@@ -2602,6 +2602,8 @@ void roadmap_trip_save_screenshot (void) {
     const char *path = roadmap_path_trips ();
     const char *name = roadmap_trip_current ();
 
+    if (!name || !*name) name = "map";
+
     unsigned int total_length;
     unsigned int name_length;
     char *dot;
