@@ -746,6 +746,8 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
 	  }
       }
 
+      roadmap_log(ROADMAP_DEBUG, "loading AGG font from %s", font_file);
+
 
       if(m_feng.load_font(font_file, 0, gren) &&
             m_image_feng.load_font(font_file, 0, image_gren)) {
