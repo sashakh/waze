@@ -2598,35 +2598,21 @@ void roadmap_trip_save_as() {
 
 void roadmap_trip_save_screenshot (void) {
 
-    const char *extension = ".png";
-    const char *path = roadmap_path_trips ();
-    const char *name = roadmap_trip_current ();
+    time_t now;
+    const char *path;
+    char picturename[128];
+    char *fullname;
 
-    if (!name || !*name) name = "map";
+    path = roadmap_path_trips ();
+    now = time(NULL);
+    strftime(picturename, sizeof(picturename),
+	    "map-%Y-%m-%d-%H-%M-%S-UTC.png", gmtime(&now));
 
-    unsigned int total_length;
-    unsigned int name_length;
-    char *dot;
-    char *picture_name;
+    fullname = roadmap_path_join(path, picturename);
 
-    name_length = strlen (name);   /* Shorten it later. */
+    roadmap_canvas_save_screenshot (fullname);
 
-    dot = strrchr (name, '.');
-    if (dot != NULL) {
-        name_length -= strlen (dot);
-    }
-
-    total_length = name_length + strlen (path) + strlen (extension) + 12;
-    picture_name = malloc (total_length);
-    roadmap_check_allocated (picture_name);
-
-    memcpy (picture_name, name, name_length);
-    sprintf (picture_name, "%s/%*.*s-%010d%s",
-             path,
-             name_length, name_length, name, (int) time (NULL), extension);
-
-    roadmap_canvas_save_screenshot (picture_name);
-    free (picture_name);
+    free(fullname);
 }
 
 
