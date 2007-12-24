@@ -592,6 +592,13 @@ static int roadmap_screen_draw_polygons (void) {
 
          line = geo_points[j];
 
+         /* this is band-aid. if buildmap_polygon_fill_in_drawing_order()
+          * hits the "skipping disconnected polygon lines" clause, then
+          * we'll be left with uninitialized line ids in the array.
+          * skip them here.
+          */
+         if (line == 0) continue;
+
          reversed = (line < 0);
          line = abs(line);
          roadmap_line_to (line, &to);
