@@ -404,6 +404,7 @@ static void buildmap_polygon_fill_in_drawing_order
             buildmap_fatal (0, "cannot find the next line at line %d",
                             this_line->tlid);
          }
+         buildmap_info("skipping disconnected polygon lines");
          end = line;
          this_line->polygon->count = end - first + 1;
          break;
