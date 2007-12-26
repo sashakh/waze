@@ -290,13 +290,12 @@ void roadmap_coord_dialog (void) {
       roadmap_dialog_complete (roadmap_preferences_use_keyboard());
 
       roadmap_history_declare ('C', 2);
+      /* static "help" labels */
+      roadmap_dialog_set_data  ("Coordinates", "Format:",
+		"[+-]dd.ddd, [+-]ddmm.mmm, [+-]ddmmss.sss");
+      roadmap_dialog_set_data  ("Coordinates", "Also:",
+		"N, S, E, and W allowed as prefix or suffix");
    }
-
-   /* static "help" labels */
-   roadmap_dialog_set_data  ("Coordinates", "Format:",
-	    "[+-]dd.ddd, [+-]ddmm.mmm, [+-]ddmmss.sss");
-   roadmap_dialog_set_data  ("Coordinates", "Also:",
-	    "N, S, E, and W allowed as prefix or suffix");
 
    RoadMapCoordHistory = roadmap_history_latest ('C');
 
