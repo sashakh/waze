@@ -525,8 +525,8 @@ buildmap_osm_binary_parse_options
 static int
 buildmap_osm_binary_node(unsigned char *data, int len)
 {
-    long id, lon, lat;
-    long *ldata = (long *) data;
+    int id, lon, lat;
+    int *ldata = (int *) data;
     unsigned char *cdata;
     int prop;
     int layer;
@@ -756,7 +756,7 @@ int
 buildmap_osm_binary_read(FILE * fdata)
 {
     unsigned char *block = NULL;
-    unsigned long length;
+    unsigned int length;
     unsigned char type;
     int n;
     int ret = 0, ranways = 0;
