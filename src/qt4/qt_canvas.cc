@@ -45,6 +45,9 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
    currentPen = 0;
    roadMapCanvas = this;
 
+   /* turn off the default double-buffering */
+   this->setAttribute(Qt::WA_PaintOnScreen);
+
    initColors();
 
    registerButtonPressedHandler(phandler);
