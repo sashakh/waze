@@ -438,6 +438,22 @@ static layer_info_sublist_t list_info[] = {
         {"junction",            NULL,                 NULL },
 };
 
+static unsigned char *
+read_4_byte_int(unsigned char *p, int *r)
+{
+    *r = (p[3] << 24) + (p[2] << 16) + (p[1] << 8) + p[0];
+    return p + 4;
+}
+
+static unsigned char *
+read_2_byte_int(unsigned char *p, int *r)
+{
+    short s;
+    s = (p[1] << 8) + p[0];
+    *r = s;
+    return p + 2;
+}
+
 static int
 buildmap_osm_binary_parse_options
         (unsigned char *cur, unsigned char *end, char *name, int *flagp)
@@ -476,17 +492,20 @@ buildmap_osm_binary_parse_options
 
         } else if (key >= key_date_start) {
             time_t tim;
+            int itime;
 
             key -= key_date_start;
-            tim = *(time_t *) cur++;
+
+            cur = read_4_byte_int(cur, &itime);
+            tim = (time_t)itime;
 
             buildmap_verbose("'%s' is %s", datetype[key], asctime(gmtime(&tim)));
 
         } else if (key >= key_numeric_start) {
-            long val;
+            int val;
 
             key -= key_numeric_start;
-            val = *(long *) cur++;
+            cur = read_4_byte_int(cur, &val);
 
             buildmap_verbose("'%s' is %ld", stringtype[key], val);
 
@@ -526,21 +545,19 @@ static int
 buildmap_osm_binary_node(unsigned char *data, int len)
 {
     int id, lon, lat;
-    int *ldata = (int *) data;
-    unsigned char *cdata;
+    unsigned char *dp = data;
     int prop;
     int layer;
 
-    id = *ldata++;
-    lon = *ldata++;
-    lat = *ldata++;
-    cdata = (unsigned char *) ldata;
-    prop = *cdata++;
+    dp = read_4_byte_int(dp, &id);
+    dp = read_4_byte_int(dp, &lon);
+    dp = read_4_byte_int(dp, &lat);
+    prop = *dp++;
 
     buildmap_verbose("node: id %ld, lon %ld, lat %ld, prop %d", id, lon, lat, prop);
 
-    if (cdata < data + len)
-        layer = buildmap_osm_binary_parse_options(cdata, data + len, NULL, NULL);
+    if (dp < data + len)
+        layer = buildmap_osm_binary_parse_options(dp, data + len, NULL, NULL);
 
     /* currently, RoadMap has no ability to display simple
      * points, or "nodes" in OSM vocabulary.  so we do this
@@ -554,8 +571,8 @@ buildmap_osm_binary_node(unsigned char *data, int len)
 struct shapeinfo {
     int lineid;
     int count;
-    long *lons;
-    long *lats;
+    int *lons;
+    int *lats;
 };
 
 static int numshapes;
@@ -565,15 +582,13 @@ static struct shapeinfo *shapes;
 static int
 buildmap_osm_binary_way(unsigned char *data, int len)
 {
-    long id, count, savecount;
-    long *lonp, *latp;
-    long *ldata;
-    short *sdata;
-    unsigned char *cdata;
+    int id, count, savecount;
+    int *lonp, *latp;
+    unsigned char *dp, *op;
     int layer, flags, line, street, j;
     int frlong, frlat, tolong, tolat, from_point, to_point;
     char name[257];
-    static long *lonsbuf, *latsbuf;
+    static int *lonsbuf, *latsbuf;
     static int lineid = 1;
 
     RoadMapString rms_dirp = str2dict(DictionaryPrefix, "");
@@ -581,16 +596,16 @@ buildmap_osm_binary_way(unsigned char *data, int len)
     RoadMapString rms_type = str2dict(DictionaryType, "");
     RoadMapString rms_name;
 
-    ldata = (long *) data;
-    id = *ldata++;
-    count = *ldata++;
+    dp = data;
+    dp = read_4_byte_int(dp, &id);
+    dp = read_4_byte_int(dp, &count);
 
     /* look ahead to find the options */
-    cdata = (unsigned char *) ldata + 4 + 4 + (count - 1) * (2 + 2);
-    if (cdata >= data + len)
+    op = dp + 4 + 4 + (count - 1) * (2 + 2);
+    if (op >= data + len)
         return 0;
 
-    layer = buildmap_osm_binary_parse_options(cdata, data + len, name, &flags);
+    layer = buildmap_osm_binary_parse_options(op, data + len, name, &flags);
 
     buildmap_verbose("'%s' is in layer %d", name, layer);
 
@@ -601,20 +616,25 @@ buildmap_osm_binary_way(unsigned char *data, int len)
 
     lonp = lonsbuf = realloc(lonsbuf, count * sizeof(long));
     buildmap_check_allocated(lonsbuf);
-    *lonp = *ldata++;
+    dp = read_4_byte_int(dp, lonp);
 
     latp = latsbuf = realloc(latsbuf, count * sizeof(long));
     buildmap_check_allocated(latsbuf);
-    *latp = *ldata++;
+    dp = read_4_byte_int(dp, latp);
 
     buildmap_verbose("way: id %ld", id);
     buildmap_verbose("    lon %ld, lat %ld", *lonp, *latp);
 
     count--;
-    sdata = (short *) ldata;
     while (count--) {
-        *(lonp + 1) = *lonp + *sdata++;
-        *(latp + 1) = *latp + *sdata++;
+        int tmp;
+
+        dp = read_2_byte_int(dp, &tmp);
+        *(lonp + 1) = *lonp + tmp;
+
+        dp = read_2_byte_int(dp, &tmp);
+        *(latp + 1) = *latp + tmp;
+
         lonp++;
         latp++;
         buildmap_verbose("    lon %ld, lat %ld", *lonp, *latp);
@@ -701,7 +721,7 @@ static int
 buildmap_osm_binary_ways_pass2(void)
 {
     int i, j, count, lineid;
-    long *lons, *lats;
+    int *lons, *lats;
     int line_index;
     buildmap_info("loading shape info ...");
     buildmap_line_sort();
@@ -733,11 +753,16 @@ buildmap_osm_binary_ways_pass2(void)
 static int
 buildmap_osm_binary_time(unsigned char *data)
 {
+    int itime;
+    time_t time;
+
     /* we do nothing with this (for now?) */
-    time_t time = *(time_t *) data;
+    read_4_byte_int(data, &itime);
+
+    time = (time_t)itime;
 
     buildmap_verbose("Creation time is '%d', '%s'",
-               (int) time, asctime(gmtime(&time)));
+               itime, asctime(gmtime(&time)));
     return 0;
 }
 
@@ -756,8 +781,9 @@ int
 buildmap_osm_binary_read(FILE * fdata)
 {
     unsigned char *block = NULL;
-    unsigned int length;
+    int length, got;
     unsigned char type;
+    unsigned char buf[5];;
     int n;
     int ret = 0, ranways = 0;
 
@@ -771,25 +797,26 @@ buildmap_osm_binary_read(FILE * fdata)
 
     while (ret >= 0) {
         buildmap_set_line(n);
-        if (fread(&length, 1, 4, fdata) != 4) {
+        got = (int)fread(buf, 1, 5, fdata);
+        if (got != 5) {
             if (feof(fdata))
                 break;
             buildmap_fatal(0, "short read (length)");
         }
 
+        /* four bytes of length */
+        read_4_byte_int(buf, &length);
+
         buildmap_verbose("length is %ld", length);
 
-        if (fread(&type, 1, 1, fdata) != 1) {
-            if (feof(fdata))
-                break;
-            buildmap_fatal(0, "short read (type)");
-        }
-
+        /* fifth byte is type */
+        type = buf[4];
         buildmap_verbose("type is %c", type);
 
         block = realloc(block, length - 1);
         buildmap_check_allocated(block);
-        if (fread(block, 1, length - 1, fdata) != length - 1) {
+        got = (int)fread(block, 1, length - 1, fdata);
+        if (got != length - 1) {
             if (feof(fdata))
                 break;
             buildmap_fatal(0, "short read (data)");
@@ -797,7 +824,7 @@ buildmap_osm_binary_read(FILE * fdata)
 
         if (0 && buildmap_is_verbose()) {
             fprintf(stderr, "data is");
-            unsigned int i;
+            int i;
             for (i = 0; i < length - 1; i++) {
                 fprintf(stderr, " %02x", block[i]);
             }
