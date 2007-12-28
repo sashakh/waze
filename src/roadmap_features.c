@@ -257,8 +257,8 @@ void roadmap_features_load(void) {
 
                 if (*color) {
                     if (strcmp(color, "NONE") != 0) {
-                        sprintf(pen_name, "features.%d",
-                                RoadMapFeatureList - RoadMapFeatureLists );
+                        sprintf(pen_name, "features.%ld",
+                                (long)(RoadMapFeatureList - RoadMapFeatureLists) );
                         RoadMapFeatureList->pen = roadmap_canvas_create_pen (pen_name);
                         roadmap_canvas_set_foreground(color);
                         roadmap_canvas_set_thickness (2);

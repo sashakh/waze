@@ -94,7 +94,7 @@ static RoadMapObject *RoadmapObjectHash[128];
 
 static unsigned int roadmap_object_hashed (RoadMapDynamicString id) {
 
-   unsigned int seed = (unsigned int) id;
+   unsigned long seed = (unsigned long) id;
 
    return ((((seed * 9) + (seed >> 8)) * 9) + (seed >> 16)) % 127;
 }
