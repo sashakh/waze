@@ -46,8 +46,8 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_sunrise.c \
 	roadmap_state.c \
 	roadmap_gpx.c \
-	roadmap_linefont.c
-
+	roadmap_linefont.c \
+	roadmap_lang.c
 
 RMLIBOBJS = $(RMLIBSRC:.c=.o)
 
@@ -430,6 +430,13 @@ installdata:
 ifneq ($(strip $(AGG)),NO)
 	cp $(FONT) $(pkgdatadir)/font.ttf
 endif
+ifeq ($(strip $(LANGS)),YES)
+	mkdir -p $(pkgdatadir)/langs
+	chmod a+rx $(pkgdatadir)/langs
+	cp langs/* $(pkgdatadir)/langs/.
+	chmod a+r $(pkgdatadir)/langs/*
+endif
+
 
 installbin:
 	mkdir -p $(pkgbindir)

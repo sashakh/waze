@@ -35,6 +35,7 @@
 #include "../roadmap.h"
 #include "../roadmap_types.h"
 #include "../roadmap_start.h"
+#define __ROADMAP_DIALOG_NO_LANG
 #include "../roadmap_dialog.h"
 
 #ifndef _T
@@ -405,7 +406,7 @@ void roadmap_dialog_show_list (const char  *frame,
 }
 
 
-void roadmap_dialog_add_button (char *label,
+void roadmap_dialog_add_button (const char *label,
 								RoadMapDialogCallback callback)
 {
 	RoadMapDialogItem dialog = RoadMapDialogCurrent;

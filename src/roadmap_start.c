@@ -1194,6 +1194,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_adjust_initialize   ();
    roadmap_driver_initialize   ();
    roadmap_layer_initialize    ();
+   roadmap_lang_initialize     ();
 
    roadmap_gps_register_listener (&roadmap_gps_update);
 

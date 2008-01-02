@@ -64,5 +64,8 @@ void *roadmap_hash_get_value (RoadMapHash *hash, int index);
 void  roadmap_hash_summary (void);
 void  roadmap_hash_reset   (void);
 
+int roadmap_hash_string (const char *str);
+
+
 #endif // _ROADMAP_HASH__H_
 

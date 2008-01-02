@@ -28,6 +28,7 @@
 #include <windows.h>
 #include "../roadmap.h"
 #include "../roadmap_start.h"
+#define __ROADMAP_MESSAGEBOX_NO_LANG
 #include "../roadmap_messagebox.h"
 
 

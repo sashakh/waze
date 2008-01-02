@@ -135,7 +135,7 @@ void RMapDialog::setListEntryValues(const char* frameName, const char* name,
    entry->setValues(items, callback);
 }
 
-void RMapDialog::addButton(char* label, RoadMapDialogCallback callback) {
+void RMapDialog::addButton(const char* label, RoadMapDialogCallback callback) {
    QVector<Item> items;
    Entry* entry =
       new Entry(this, Entry::ButtonEntry, label, items, 0, callback);

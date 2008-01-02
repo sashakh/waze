@@ -38,6 +38,7 @@
 #include "roadmap_path.h"
 #include "roadmap_input.h"
 #include "roadmap_math.h"
+#include "roadmap_lang.h"
 
 #include "roadmap_factory.h"
 
@@ -205,8 +206,10 @@ static void roadmap_factory_add_help (RoadMapMenu menu) {
    for (ok = roadmap_help_first_topic(&label, &callback);
         ok;
         ok = roadmap_help_next_topic(&label, &callback)) {
-
-      roadmap_main_add_menu_item (menu, label, label, callback);
+      roadmap_main_add_menu_item (menu, 
+                                  roadmap_lang_get (label), 
+                                  roadmap_lang_get (label),
+                                  callback);
    }
 }
 
@@ -511,6 +514,8 @@ static RoadMapAction * roadmap_factory_menu_dummy_action
    this_action.tip = (const char *)tip;
    this_action.callback = RoadMapFactoryMenuPopups[i].action;
 
+   this_action.name = this_action.label_short = this_action.label_terse = "";
+
    return &this_action;
 }
 
@@ -548,14 +553,14 @@ void roadmap_factory_config_menu
             is_menu = 1;
          }
 
-         gui_menu = roadmap_main_new_menu (title);
+         gui_menu = roadmap_main_new_menu (roadmap_lang_get(title));
 
          /* all menus are available as popups */
-         roadmap_factory_add_popup (gui_menu, title);
+         roadmap_factory_add_popup (gui_menu, roadmap_lang_get(title));
 
          /* but only non-popups go into the menubar */
          if (doing_menus && is_menu) 
-            roadmap_main_add_menu (gui_menu, title);
+            roadmap_main_add_menu (gui_menu, roadmap_lang_get(title));
 
 
       } else if ( gui_menu == NULL ) {
@@ -578,8 +583,8 @@ void roadmap_factory_config_menu
 
          if (this_action != NULL) {
             roadmap_main_add_menu_item (gui_menu,
-                  this_action->label_long,
-                  use_tips ? this_action->tip : NULL,
+                  roadmap_lang_get (this_action->label_long),
+                  use_tips ? roadmap_lang_get(this_action->tip) : NULL,
                   this_action->callback);
          } else {
             roadmap_log
@@ -614,8 +619,8 @@ void roadmap_factory_config_toolbar
 
          if (this_action != NULL) {
             roadmap_main_add_tool (roadmap_factory_terse(this_action),
-                                   use_icons ? this_action->name : NULL,
-                                   use_tips ? this_action->tip : NULL,
+                        use_icons ? roadmap_lang_get(this_action->name) : NULL,
+                        use_tips ? roadmap_lang_get(this_action->tip) : NULL,
                                    this_action->callback);
          } else {
             roadmap_log 
@@ -791,7 +796,7 @@ void roadmap_factory_popup (const char *title,
 
    for (popup = RoadMapFactoryPopupList; popup != NULL; popup = popup->next) {
 
-      if (strcmp (popup->title, title) == 0) {
+      if (strcmp (popup->title, roadmap_lang_get(title)) == 0) {
          roadmap_main_popup_menu (popup->menu, position);
          return;
       }

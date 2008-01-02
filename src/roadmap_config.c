@@ -310,6 +310,34 @@ void roadmap_config_declare_enumeration (const char *config,
    va_end(ap);
 }
 
+void roadmap_config_append_to_enumeration (const char *config,
+                                   RoadMapConfigDescriptor *descriptor,
+				   const char *enumeration_value) {
+   RoadMapConfigItem *item = roadmap_config_retrieve (descriptor);
+   RoadMapConfigEnum *next;
+   RoadMapConfigEnum *enumerated;
+
+
+   if ( item == NULL) {
+     return;
+   }
+
+   if (item->type != ROADMAP_CONFIG_ENUM) {
+      return;
+   }
+
+  /* find the value in the list. */
+   for (enumerated = item->detail.enumeration_values;
+        enumerated != NULL;
+        enumerated = next) {
+      next = enumerated->next;
+      if (strcmp(enumeration_value,enumerated->value)==0)
+        return;
+   }
+
+   roadmap_config_add_enumeration_value (item, enumeration_value);
+}
+
 
 void roadmap_config_declare_color (const char *config,
                                    RoadMapConfigDescriptor *descriptor,
@@ -490,13 +518,13 @@ static void roadmap_config_set_item
 }
 
 
-static char *roadmap_config_skip_until (char *p, char c) {
+char *roadmap_config_skip_until (char *p, char c) {
 
-   while (*p != '\n' && *p != c && *p > 0) p++;
+   while (*p != '\n' && *p != c && *p != 0) p++;
    return p;
 }
 
-static char *roadmap_config_skip_spaces (char *p) {
+char *roadmap_config_skip_spaces (char *p) {
 
    while (*p == ' ' || *p == '\t') p++;
    return p;
@@ -963,4 +991,5 @@ void  roadmap_config_set_position
       roadmap_config_set_item (item, buffer);
    }
 }
+
 

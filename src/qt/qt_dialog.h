@@ -118,7 +118,7 @@ public:
    void setListEntryValues(const char* frame, const char* name, int count,
       char** labels, void** values, RoadMapDialogCallback callback);
 
-   void addButton(char* label, RoadMapDialogCallback callback);
+   void addButton(const char* label, RoadMapDialogCallback callback);
    void complete(int use_keyboard);
 
    void* getEntryValue(const char* frame, const char* name);

@@ -45,6 +45,7 @@
 #include "roadgps_screen.h"
 
 #include "roadmap_start.h"
+#include "roadmap_lang.h"
 
 
 static const char *RoadGpsMainTitle = "GPS Console";
@@ -232,6 +233,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_log_redirect (ROADMAP_MESSAGE_FATAL, roadgps_start_fatal);
 
    roadmap_config_initialize ();
+   roadmap_lang_initialize();
 
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralToolbar, "yes", "no", NULL);

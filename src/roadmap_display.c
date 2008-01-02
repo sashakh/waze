@@ -47,6 +47,7 @@
 #include "roadmap_time.h"
 #include "roadmap_main.h"
 
+#define __ROADMAP_DISPLAY_NO_LANG
 #include "roadmap_display.h"
 
 

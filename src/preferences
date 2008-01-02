@@ -25,3 +25,4 @@ Location.Color: red
 Polygons.Declutter: 1300
 Shapes.Declutter: 1300
 Display.Rotate: yes
+General.Language: en_EN

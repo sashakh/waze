@@ -16,8 +16,8 @@
 # cases might, but there are no guarantees.)
 
 # Choose a desktop toolkit:
-# DESKTOP = GTK
-DESKTOP = GTK2
+ DESKTOP = GTK
+#DESKTOP = GTK2
 # DESKTOP = GPE
 # DESKTOP = QT
 # DESKTOP = QT4
@@ -119,9 +119,13 @@ BIDI = NO
 # RoadMap internal profiling -- you probably don't want this.
 # DBG_TIME = YES
 
+# Language support (experimental)
+# # if you want roadmap to translate the GUI enable this
+LANGS = YES
+
 # Basic building mode
-MODE =		# blank for "normal" build
-# MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
+#MODE =		# blank for "normal" build
+ MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
 # MODE=PROFILE	# sets up for profiling with gprof
 
 # You can add any other special local CFLAGS values here

@@ -36,6 +36,7 @@
 #include "roadmap_gtkmain.h"
 #include "roadmap_keyboard.h"
 
+#define __ROADMAP_DIALOG_NO_LANG
 #include "roadmap_dialog.h"
 
 
@@ -485,7 +486,8 @@ void roadmap_dialog_show_list (const char  *frame,
 }
 
 
-void roadmap_dialog_add_button (char *label, RoadMapDialogCallback callback) {
+void roadmap_dialog_add_button (const char *label, 
+                                RoadMapDialogCallback callback) {
 
    RoadMapDialogItem dialog = RoadMapDialogCurrent;
    RoadMapDialogItem child;

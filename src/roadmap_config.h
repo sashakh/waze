@@ -61,6 +61,11 @@ void roadmap_config_declare_enumeration
         (const char *file,
          RoadMapConfigDescriptor *descriptor, const char *enumeration_value, ...);
 
+/* appends a value to the existing enumeration */
+void roadmap_config_append_to_enumeration
+	(const char *file,
+	 RoadMapConfigDescriptor *descriptor, const char *enumeration_value);
+
 void roadmap_config_declare_color
         (const char *file,
          RoadMapConfigDescriptor *descriptor, const char *default_value);
@@ -116,5 +121,9 @@ const char *roadmap_config_file (const char *name);
 const char *roadmap_config_get_from (const char *config,
                                      const char *category,
                                      const char *name);
+
+char *roadmap_config_skip_until (char *p, char c);
+
+char *roadmap_config_skip_spaces (char *p);
 
 #endif // _ROADMAP_CONFIG__H_

@@ -106,6 +106,9 @@ ifneq ($(DESKTOP),WINCE)
 	OSDIR = unix
 endif
 
+ifeq ($(strip $(LANGS)),YES)
+	CFLAGS += -DLANG_SUPPORT
+endif
 
 ifeq ($(strip $(MODE)),DEBUG)
 	# Memory leak detection using mtrace:

@@ -254,3 +254,15 @@ void roadmap_hash_reset (void) {
    HashLast = NULL;
 }
 
+int roadmap_hash_string (const char *str) {
+
+   int hash = 0;
+   unsigned int i;
+
+   for (i=0; i<strlen(str); i++) {
+      hash += str[i]*(i+1);
+   }
+
+   return hash;
+}
+
