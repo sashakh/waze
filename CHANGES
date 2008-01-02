@@ -1,9 +1,56 @@
                                ---------
-			    RoadMap Changelog
+                            RoadMap Changelog
                                ---------
                                ---------
                                ---------
 
+Roadmap v1.1.1 (??)
+
+ Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
+
+[ list current as of 1/2/2008, courtesy 'cvs2cl.pl -l "-rv1_1_0::HEAD"' ]
+  
+  * Initial localization support, ported from editor branch by
+  Alessandro Briosi. (*)
+
+  * Reorder latitude/longitude fields in Find-->Position dialog, to
+  better match common practice.  Added in-dialog syntax help as well.
+
+  * Properly render fully-shaped TIGER polygons.  Polygons with holes,
+  and overlapping polygons, may still not render correctly.
+
+  * Screenshots (where supported) are now named with date/time.
+
+  * Various QT/QT4/QPE4 fixes from Junqian Gordon Xu and
+  Alessandro Briosi.
+
+  * Added support for building .rdm files from OpenStreetMap
+  data.  See (temporary) README.osm for usage details.
+
+  * Validate value of AGG selection during build.  Fix misleading text
+  in README regarding AGG selection.
+
+  * Rearrange options processing slightly so standard toolkit options
+  can be discovered (e.g. "-sync").
+
+  * Fix bug which flipped sign of some lat/lon values between 0
+  and -1 degrees.
+
+  * Improved aesthetic in roadgps, from Alessandr Briosi.
+
+  * Added ability to add text (with optional outline box) to a sprite,
+  either directly, or via a screen object that can provide dynamic
+  text values.
+
+  * Added minimal "mapinfo" action, which reports dimensions and location
+  of current map view.  (Help-->Map Parameters)
+
+  * Support for overlay rendering of externally-provided polygon objects.
+  (Pascal Martin).
+
+  * Support for VII location protocol.  (Pascal Martin)
+  
+  
 Roadmap v1.1.0 (October, 2007)
 
  Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
