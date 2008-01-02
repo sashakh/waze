@@ -63,7 +63,7 @@ struct opt_defs options[] = {
         "Re-request maps that are already present"},
    {"maps", "m", opt_string, "",
         "Location for the generated map files"},
-   {"source", "s", opt_string, "",
+   {"source", "s", opt_string, "osmgetbmap",
         "commandname or URL for accessing map data"},
    {"tileid", "t", opt_int, "",
         "Fetch the given numeric tileid"},
