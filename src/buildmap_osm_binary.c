@@ -175,6 +175,9 @@ static RoadMapString str2dict (BuildMapDictionary d, const char *string) {
 #define key_date_start          176
 #define key_string_start        192
 
+#define STRING_NAME 0
+#define STRING_REF 9
+
 static char *stringtype[] = {
         "name",
         "name_left",
@@ -456,7 +459,8 @@ read_2_byte_int(unsigned char *p, int *r)
 
 static int
 buildmap_osm_binary_parse_options
-        (unsigned char *cur, unsigned char *end, char *name, int *flagp)
+        (unsigned char *cur, unsigned char *end,
+            char *name, char *ref, int *flagp)
 {
 
     int key, slen;
@@ -474,6 +478,8 @@ buildmap_osm_binary_parse_options
 
     if (name != NULL)
         *name = '\0';
+    if (ref != NULL)
+        *ref = '\0';
 
     while (cur < end) {
         key = *cur++;
@@ -484,9 +490,18 @@ buildmap_osm_binary_parse_options
 
             buildmap_verbose("'%s' is %.*s", stringtype[key], slen, cur);
 
-            if (key == 0 && name != NULL) {     /* regular "name" */
+            if (key == STRING_NAME && name != NULL) { /* regular "name" */
                 memcpy(name, cur, slen);
                 name[slen] = '\0';
+            }
+            if (key == STRING_REF && ref != NULL) { /* usually route number */
+                int i;
+                memcpy(ref, cur, slen);
+                for (i = 0; i < slen; i++) {
+                    /* multiple route numbers separated by ';' in tag */
+                    if (ref[i] == ';') ref[i] = '/';
+                }
+                ref[slen] = '\0';
             }
             cur += slen;
 
@@ -557,7 +572,8 @@ buildmap_osm_binary_node(unsigned char *data, int len)
     buildmap_verbose("node: id %ld, lon %ld, lat %ld, prop %d", id, lon, lat, prop);
 
     if (dp < data + len)
-        layer = buildmap_osm_binary_parse_options(dp, data + len, NULL, NULL);
+        layer = buildmap_osm_binary_parse_options
+                    (dp, data + len, NULL, NULL, NULL);
 
     /* currently, RoadMap has no ability to display simple
      * points, or "nodes" in OSM vocabulary.  so we do this
@@ -588,6 +604,9 @@ buildmap_osm_binary_way(unsigned char *data, int len)
     int layer, flags, line, street, j;
     int frlong, frlat, tolong, tolat, from_point, to_point;
     char name[257];
+    char ref[257];
+    char compound_name[513];
+    char *n;
     static int *lonsbuf, *latsbuf;
     static int lineid = 1;
 
@@ -605,9 +624,21 @@ buildmap_osm_binary_way(unsigned char *data, int len)
     if (op >= data + len)
         return 0;
 
-    layer = buildmap_osm_binary_parse_options(op, data + len, name, &flags);
+    layer = buildmap_osm_binary_parse_options
+                (op, data + len, name, ref, &flags);
 
-    buildmap_verbose("'%s' is in layer %d", name, layer);
+    buildmap_verbose("'%s' (ref '%s') is in layer %d", name, ref, layer);
+
+    if (*ref) {
+        if (*name) {
+            sprintf(compound_name, "%s/%s", ref, name);
+            n = compound_name;
+        } else {
+            n = ref;
+        }
+    } else {
+        n = name;
+    }
 
     if (!layer)
         return 0;
@@ -692,7 +723,7 @@ buildmap_osm_binary_way(unsigned char *data, int len)
         buildmap_verbose("from: %d, %d    to: %d, %d      lineid %d",
                frlong, frlat, tolong, tolat, lineid);
 
-        rms_name = str2dict(DictionaryStreet, name);
+        rms_name = str2dict(DictionaryStreet, n);
         street =
             buildmap_street_add(layer, rms_dirp, rms_name, rms_type,
                                 rms_dirs, line);
