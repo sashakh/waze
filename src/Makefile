@@ -433,7 +433,7 @@ endif
 ifeq ($(strip $(LANGS)),YES)
 	mkdir -p $(pkgdatadir)/langs
 	chmod a+rx $(pkgdatadir)/langs
-	cp langs/* $(pkgdatadir)/langs/.
+	cp langs/*_* $(pkgdatadir)/langs/.
 	chmod a+r $(pkgdatadir)/langs/*
 endif
 
