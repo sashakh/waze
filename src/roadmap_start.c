@@ -867,6 +867,7 @@ static char const *RoadMapStartKeyBinding[] = {
    "X"               ROADMAP_MAPPED_TO "intersection",
    "Y"               ROADMAP_MAPPED_TO "savesscreenshot",
    /* Z Unused. */
+   "F11"             ROADMAP_MAPPED_TO "full",
    NULL
 };
 

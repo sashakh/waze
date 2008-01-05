@@ -171,6 +171,19 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
       case 0xaf9:      key = "Button-Contact";        break;
       case 0xff67:     key = "Button-Start";          break;
 
+      case 0xffbe:     key = "F1";          break;
+      case 0xffbf:     key = "F2";          break;
+      case 0xffc0:     key = "F3";          break;
+      case 0xffc1:     key = "F4";          break;
+      case 0xffc2:     key = "F5";          break;
+      case 0xffc3:     key = "F6";          break;
+      case 0xffc4:     key = "F7";          break;
+      case 0xffc5:     key = "F8";          break;
+      case 0xffc6:     key = "F9";          break;
+      case 0xffc7:     key = "F10";         break;
+      case 0xffc8:     key = "F11";         break;
+      case 0xffc9:     key = "F12";         break;
+
       /* Regular keyboard keys: */
       default:
 
