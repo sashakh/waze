@@ -1121,6 +1121,8 @@ USING ROADMAP
 *-----------------*-----------------------------------------------------*
    Y              |     Save a screenshot of the current map display.
 *-----------------*-----------------------------------------------------*
+   F11            |     Toggle the full screen mode (same a 'F').
+*-----------------*-----------------------------------------------------*
 
    The current bindings that are used by the application are printed after
    the options help information when the --help option is used.
