@@ -62,6 +62,8 @@ typedef void (* RoadMapLogRedirect) (const char *message);
 RoadMapLogRedirect roadmap_log_redirect (int level,
                                          RoadMapLogRedirect redirect);
 
+/* Cancel all redirect, to be used in child processes only. */
+void roadmap_log_cancel_redirect (void);
 
 #define ROADMAP_SHOW_AREA          1
 #define ROADMAP_SHOW_SQUARE        2

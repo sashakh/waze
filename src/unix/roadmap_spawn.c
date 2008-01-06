@@ -34,6 +34,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -214,6 +216,9 @@ static int roadmap_spawn_child (const char *name,
        * ROADMAP_FATAL or exit(3).
        */
 
+      int i;
+      struct rlimit limits;
+
       if (pipes != NULL) {
          close(0);
          close(1);
@@ -222,6 +227,14 @@ static int roadmap_spawn_child (const char *name,
          close(writing[1]);
          close(reading[0]);
       }
+
+      roadmap_log_cancel_redirect();
+
+      if (getrlimit (RLIMIT_NOFILE, &limits) != 0) {
+         roadmap_log (ROADMAP_ERROR, "getrlimit() failed");
+         limits.rlim_cur = 2048; /* Safe default. */
+      }
+      for (i = limits.rlim_cur - 1; i > 2; --i) close(i);
 
       argv[0] = (char *)name;
       roadmap_spawn_set_arguments (15, argv, command_line);

@@ -266,3 +266,12 @@ RoadMapLogRedirect roadmap_log_redirect (int level,
 }
 
 
+void roadmap_log_cancel_redirect (void) {
+
+   struct roadmap_message_descriptor *category;
+
+   for (category = RoadMapMessageHead; category->level != 0; ++category) {
+      category->redirect = NULL;
+   }
+}
+
