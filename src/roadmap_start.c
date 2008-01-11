@@ -1281,7 +1281,7 @@ void roadmap_start_exit (void) {
     roadmap_landmark_save ();
     roadmap_trip_save ();
 #endif
-    roadmap_screen_hold();
+    roadmap_trip_preserve_focus();
     roadmap_config_save (0);
     roadmap_gps_shutdown ();
     roadmap_log (ROADMAP_WARNING, "RoadMap exiting, time %s", roadmap_start_now());

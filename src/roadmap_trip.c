@@ -161,6 +161,7 @@ typedef struct roadmap_trip_focal {
     char save;
     char in_trip;
     char has_value;
+    char preserve;
 
     RoadMapPosition map;
     RoadMapGpsPosition gps;
@@ -172,8 +173,8 @@ typedef struct roadmap_trip_focal {
 } RoadMapTripFocal;
 
 
-#define ROADMAP_TRIP_ITEM(id, sprite, mobile, save, in_trip) \
-    {id, sprite, mobile, save, in_trip, 0, \
+#define ROADMAP_TRIP_ITEM(id, sprite, mobile, save, in_trip, preserve) \
+    {id, sprite, mobile, save, in_trip, 0, preserve, \
      {0, 0}, \
      ROADMAP_GPS_NULL_POSITION, \
      ROADMAP_CONFIG_ITEM(id,"Position"), \
@@ -186,15 +187,15 @@ typedef struct roadmap_trip_focal {
  * where we've been.
  */
 RoadMapTripFocal RoadMapTripFocalPoints[] = {
-    ROADMAP_TRIP_ITEM ("GPS", "GPS", 1, 1, 0),
-    ROADMAP_TRIP_ITEM ("Destination", NULL, 0, 0, 1),
-    ROADMAP_TRIP_ITEM ("Start", NULL, 0, 0, 1),
-    ROADMAP_TRIP_ITEM ("WayPoint", NULL, 0, 1, 0),
-    ROADMAP_TRIP_ITEM ("Address", NULL, 0, 1, 0),
-    ROADMAP_TRIP_ITEM ("Selection", "Selection", 0, 0, 0),
-    ROADMAP_TRIP_ITEM ("Departure", "Departure", 0, 0, 1),
-    ROADMAP_TRIP_ITEM ("Hold", NULL, 1, 1, 0),
-    ROADMAP_TRIP_ITEM (NULL, NULL, 0, 0, 0)
+    ROADMAP_TRIP_ITEM ("GPS", "GPS",                1, 1, 0, 1),
+    ROADMAP_TRIP_ITEM ("Destination", NULL,         0, 0, 1, 0),
+    ROADMAP_TRIP_ITEM ("Start", NULL,               0, 0, 1, 0),
+    ROADMAP_TRIP_ITEM ("WayPoint", NULL,            0, 1, 0, 0),
+    ROADMAP_TRIP_ITEM ("Address", NULL,             0, 1, 0, 0),
+    ROADMAP_TRIP_ITEM ("Selection", "Selection",    0, 0, 0, 0),
+    ROADMAP_TRIP_ITEM ("Departure", "Departure",    0, 0, 1, 0),
+    ROADMAP_TRIP_ITEM ("Hold", NULL,                1, 1, 0, 0),
+    ROADMAP_TRIP_ITEM (NULL, NULL,                  0, 0, 0, 0)
 };
 
 /* WARNING:  These are pointers into the above "predefined" table --
@@ -544,6 +545,16 @@ int roadmap_trip_is_focus_moved (void) {
     return 0;
 }
 
+
+void roadmap_trip_preserve_focus (void) {
+
+    /* For most focii, we don't want to save the focus, but
+     * rather the most recent screen position.  Current exception
+     * is GPS position.
+     */
+    if (!RoadMapTripFocus->preserve)
+        roadmap_screen_hold();
+}
 
 void roadmap_trip_restore_focus (void) {
 
@@ -2606,7 +2617,7 @@ void roadmap_trip_save_screenshot (void) {
     path = roadmap_path_trips ();
     now = time(NULL);
     strftime(picturename, sizeof(picturename),
-	    "map-%Y-%m-%d-%H-%M-%S-UTC.png", gmtime(&now));
+            "map-%Y-%m-%d-%H-%M-%S-UTC.png", gmtime(&now));
 
     fullname = roadmap_path_join(path, picturename);
 

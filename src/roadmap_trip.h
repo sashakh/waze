@@ -49,6 +49,8 @@ void  roadmap_trip_personal_waypoint_manage_dialog(void);
 void  roadmap_trip_restore_focus (void);
 void  roadmap_trip_set_focus (const char *name);
 
+void  roadmap_trip_preserve_focus (void);
+
 int   roadmap_trip_is_focus_changed  (void);
 int   roadmap_trip_is_focus_moved    (void);
 int   roadmap_trip_is_refresh_needed (void);
