@@ -34,6 +34,7 @@
 
 #include "roadmap.h"
 #include "roadmap_path.h"
+#include "roadmap_config.h"
 #include "roadmap_file.h"
 
 
@@ -55,6 +56,8 @@ static long favail(FILE *fp) {
    return out;
 }
 
+extern RoadMapConfigDescriptor RoadMapConfigMapPath;
+
 FILE *roadmap_file_fopen (const char *path,
                           const char *name,
                           const char *mode) {
@@ -72,6 +75,14 @@ FILE *roadmap_file_fopen (const char *path,
    } else {
       silent = 0;
    }
+
+   if (!strncmp(full_name, "recordstore:/", 13) && !strchr(full_name + 13, ':')) {
+      char *new_name = (char *)malloc(strlen(full_name) + 3);
+      sprintf(new_name, "%s:1", full_name);
+      roadmap_path_free (full_name);
+      full_name = new_name;
+   }
+      
 
    file = fopen (full_name, mode);
 
@@ -301,6 +312,9 @@ const char *roadmap_file_map (const char *set,
 
    *file = context;
 
+   if (!strcmp(set, "maps") && strcmp(sequence, roadmap_config_get(&RoadMapConfigMapPath))) {
+      roadmap_config_set(&RoadMapConfigMapPath, sequence);
+   }
    return sequence; /* Indicate the next directory in the path. */
 }
 

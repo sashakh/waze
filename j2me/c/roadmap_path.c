@@ -53,7 +53,7 @@ static RoadMapPathList RoadMapPaths = NULL;
  * that we want to handle in a standard way.
  */
 static const char *RoadMapPathUser[] = {
-   "",
+   "resource:/",
    NULL
 };
 static const char *RoadMapPathUserPreferred = "./roadmap";
@@ -61,7 +61,7 @@ static const char *RoadMapPathUserPreferred = "./roadmap";
 
 /* Skins directories */
 static const char *RoadMapPathSkin[] = {
-   "",
+   "resource:/",
    "./roadmap/skins/default/day",
    "./roadmap/skins/default",
    NULL
@@ -75,7 +75,7 @@ static const char *RoadMapPathSkinPreferred = "./roadmap/skins";
 static const char *RoadMapPathConfig[] = {
    /* This is for standard Unix configurations. */
    "recordstore:/",
-   "/",
+   "resource:/",
    NULL
 };
 static const char *RoadMapPathConfigPreferred =
@@ -85,14 +85,14 @@ static const char *RoadMapPathConfigPreferred =
 /* The default path for the map files (the "maps" path): */
 static const char *RoadMapPathMaps[] = {
    /* This is for standard Unix configurations. */
-   "/",
+   "resource:/",
    "file:///e:/freemap",
    "file:///c:/freemap",
    "file:///root1/RoadMap",
    NULL
 };
 static const char *RoadMapPathMapsPreferred =
-                      "/";
+                      "resource:/";
 
 
 static char *roadmap_path_expand (const char *item, size_t length);
@@ -259,7 +259,13 @@ static char *roadmap_path_expand (const char *item, size_t length) {
    switch (item[0]) {
       case '~': expansion = roadmap_path_home(); item++; length--; break;
       case '&': expansion = roadmap_path_user(); item++; length--; break;
-      default:  expansion = "";
+      default:
+      	if (!strncmp(item, "file:", 5) || !strncmp(item, "resource:", 9) ||
+	     !strncmp(item, "recordstore:", 12)) {
+           expansion = "";
+	} else {
+	   expansion = "file:///";
+	}
    }
    expansion_length = strlen(expansion);
 
@@ -332,12 +338,7 @@ void roadmap_path_set (const char *name, const char *path) {
             roadmap_path_expand (item, (size_t)(next_item - item));
       }
 
-      if (roadmap_file_exists(NULL, path_list->items[i])) {
-         ++i;
-      } else {
-         free (path_list->items[i]);
-         path_list->items[i] = NULL;
-      }
+      ++i;
    }
    path_list->count = i;
 }

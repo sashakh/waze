@@ -161,7 +161,7 @@ void roadmap_canvas_get_text_extents
 
    *ascent = _ascent;
    *descent = _descent;
-   *can_tilt = 0;
+   if (can_tilt) *can_tilt = 0;
 
    *width = NOPH_Font_stringWidth(font, text) + 10;
 }

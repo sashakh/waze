@@ -6,7 +6,7 @@
 ## Author:        Simon Kagstrom <ska@bth.se>
 ## Description:   Generic Makefile
 ##
-## $Id: Makefile,v 1.4 2007/09/24 12:33:55 eshabtai Exp $
+## $Id: Makefile,v 1.5 2008/02/04 10:09:47 eshabtai Exp $
 ##
 ######################################################################
 SUBDIRS =
@@ -65,6 +65,7 @@ OBJS    = ../../src/roadmap_dbread.o \
 	  ./roadmap_serial.o \
 	  ./roadmap_main.o \
 	  ./roadmap_dialog.o \
+	  ./roadmap_preferences.o \
 	  ./roadmap_address.o \
 	  ./roadmap_sound.o \
 	  ./roadmap_net.o \
@@ -92,7 +93,7 @@ INCLUDES = -I../../src -I../include
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square
 
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include -O --trace-function-instructions=fileconnection_register_fs,register_fs,cibyl_fops_register,register_op,run_list --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square
-CIBYL_MIPS2JAVA_OPTS ?=-I../include -O --optimize-indirect-calls --optimize-inline-all-builtins --optimize-register-scheduling --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square 
+CIBYL_MIPS2JAVA_OPTS ?=-I../include -O --use-direct-memory-references --optimize-indirect-calls --optimize-inline-all-builtins --optimize-register-scheduling --optimize-colocate-functions=roadmap_screen_repaint_now,roadmap_screen_repaint_square,roadmap_screen_draw_square 
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include --optimize-indirect-calls --optimize-inline-all-builtins -O
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include -O
 #CIBYL_MIPS2JAVA_OPTS ?=-I../include

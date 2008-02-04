@@ -188,8 +188,6 @@ void roadmap_driver_accept (RoadMapIO *io) {}
 
 void roadmap_res_shutdown (void) {}
 
-void roadmap_preferences_edit (void) {}
-
 void roadmap_crossing_dialog (void) {}
 void roadmap_coord_dialog (void) {}
 void update_range_dialog(void) {}
@@ -197,9 +195,4 @@ void edit_markers_dialog (void) {}
 void editor_notes_add_quick (void) { }
 void editor_notes_add_edit (void) { }
 void editor_notes_add_voice (void) { }
-
-
-
-
-const char *editor_main_get_version (void) { return "0.10.0 rc4"; }
 

@@ -38,9 +38,11 @@
 #include <java/lang.h>
 #include "roadmap.h"
 #include "roadmap_math.h"
+#include "roadmap_path.h"
 #include "roadmap_gps.h"
 #include "roadmap_navigate.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_config.h"
 #include "roadmap_start.h"
 #include "roadmap_state.h"
 
@@ -60,7 +62,7 @@ typedef struct {
 
 } TrackPoint;
 
-#define TRACK_FILE_NAME "file:///c:/FreeMap/track_data.bin"
+extern RoadMapConfigDescriptor RoadMapConfigMapPath;
 
 static TrackPoint TrackPoints[MAX_POINTS_IN_SEGMENT];
 static int points_count = 0;
@@ -70,10 +72,16 @@ static int RecordGpsData = 0;
 static FILE *track_file;
 
 static int open_data_file (void) {
+   char *file_name;
+
    if (track_file) return 0;
 
+   file_name = roadmap_path_join(roadmap_config_get(&RoadMapConfigMapPath),
+                                 "track_data.bin");                      
    track_file =
-      roadmap_file_fopen (NULL, TRACK_FILE_NAME, "a");
+      roadmap_file_fopen(NULL, file_name, "a");
+
+   roadmap_path_free(file_name);
 
    if (track_file == NULL) {
       roadmap_messagebox("Error", "Can't open track_data");
@@ -245,15 +253,22 @@ void exception_handler(NOPH_Exception_t exception, void *arg)
 }
 
 static void track_rec_upload (void) {
+   char *file_name;
+
    if (RecordGpsData) {
       track_end ();
       RecordGpsData = 0;
       close_data_file();
    }
 
+   file_name = roadmap_path_join(roadmap_config_get(&RoadMapConfigMapPath),
+                                 "track_data.bin");                      
+
    NOPH_try(exception_handler, NULL) {
-      editor_upload_file (TRACK_FILE_NAME, 1);
+      editor_upload_file (file_name, 1);
    } NOPH_catch();
+
+   roadmap_path_free (file_name);
 }
 
 static void track_rec_toggle (void) {

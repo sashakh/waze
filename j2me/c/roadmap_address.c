@@ -60,6 +60,7 @@ typedef struct {
     
     int   use_zip;
     int   navigate;
+    int   departure;
 
     RoadMapGeocode *selections;
 
@@ -95,6 +96,14 @@ static void roadmap_address_done (RoadMapGeocode *selected,
        (&line, ROADMAP_PLUGIN_ID, selected->line, -1, selected->fips);
 
     roadmap_trip_set_point ("Selection", &selected->position);
+
+    if (context->departure) {
+       roadmap_trip_set_point ("Departure", &selected->position);
+       roadmap_trip_set_focus ("Departure");
+       context->departure = 0;
+       return;
+    }
+
     roadmap_trip_set_point ("Address", &selected->position);
 
     if (!context->navigate || !RoadMapAddressNavigate) {
@@ -217,7 +226,7 @@ static void roadmap_address_after (const char *name, void *data) {
 }
 
 
-static void roadmap_address_show (const char *name, void *data) {
+static void roadmap_address_decode (const char *name, void *data) {
 
    int i;
    int count;
@@ -251,10 +260,21 @@ static void roadmap_address_show (const char *name, void *data) {
                                     city,
                                     state);
    if (count <= 0) {
+      street_number_image = "";
+      count = roadmap_geocode_address (&selections,
+                                    street_number_image,
+                                    street_name,
+                                    city,
+                                    state);
+      if (count <= 0) {
+         roadmap_messagebox (roadmap_lang_get ("Warning"),
+                             roadmap_geocode_last_error());
+         free (selections);
+         return;
+      }
+
       roadmap_messagebox (roadmap_lang_get ("Warning"),
-                          roadmap_geocode_last_error());
-      free (selections);
-      return;
+                          roadmap_lang_get ("House number ommited"));
    }
 
    argv[0] = street_number_image;
@@ -281,7 +301,19 @@ static void roadmap_address_navigate (const char *name, void *data) {
 
    context->navigate = 1;
 
-   roadmap_address_show (name, data);
+   roadmap_address_decode (name, data);
+   context->navigate = 0;
+}
+
+
+static void roadmap_address_set_departure (const char *name, void *data) {
+
+   RoadMapAddressDialog *context = (RoadMapAddressDialog *) data;
+
+   context->departure = 1;
+
+   roadmap_address_decode (name, data);
+   context->departure = 0;
 }
 
 
@@ -467,7 +499,8 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
 //      roadmap_dialog_new_entry ("Address", "State", NULL);
 
       roadmap_dialog_add_button ("Navigate", roadmap_address_navigate);
-      roadmap_dialog_add_button ("Show", roadmap_address_show);
+      roadmap_dialog_add_button ("Show", roadmap_address_decode);
+      roadmap_dialog_add_button ("Set as Departure", roadmap_address_set_departure);
       //roadmap_dialog_add_button ("Back", roadmap_address_before);
       //roadmap_dialog_add_button ("Next", roadmap_address_after);
       roadmap_dialog_add_button ("Cancel", roadmap_address_cancel);
@@ -481,6 +514,7 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
    }
 
    context->navigate = 0;
+   context->departure = 0;
 
    context->history = roadmap_history_latest ('A');
 
@@ -529,7 +563,7 @@ void roadmap_address_search_dialog (const char *city,
 
    roadmap_dialog_set_data  (".search", "Name", "");
    roadmap_dialog_set_data  (".search", "found", "");
-   roadmap_dialog_set_focus (".search", "Name");
+   //roadmap_dialog_set_focus (".search", "Name");
 
    roadmap_address_search_populate ("Search Address", context);
    roadmap_dialog_activate ("Search Address", context, 1);

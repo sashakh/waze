@@ -7,7 +7,7 @@ import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
 import javax.microedition.media.Player;
 import javax.microedition.media.PlayerListener;
-
+import javax.microedition.media.control.VolumeControl;
 
 public class SoundMgr implements PlayerListener {
 
@@ -83,6 +83,10 @@ public class SoundMgr implements PlayerListener {
 			} else {
 				p.addPlayerListener(this);
 				p.realize();        // Realize the player
+				VolumeControl vc = (VolumeControl) p.getControl("VolumeControl");
+				if(vc != null) {
+					vc.setLevel(80);
+				}
 				p.prefetch();       // Prefetch the player
 				current_list_item++;
 				p.start();

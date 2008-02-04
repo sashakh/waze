@@ -370,6 +370,8 @@ int roadmap_dialog_activate (const char *name, void *context, int show) {
 
    RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
 
+   roadmap_log(ROADMAP_DEBUG, "In roadmap_dialog_activate:%s, show:%d\n", name, show);
+
    if (!RoadMapDialogDisplay)
         RoadMapDialogDisplay = NOPH_Display_getDisplay(NOPH_MIDlet_get());
 
@@ -384,7 +386,9 @@ int roadmap_dialog_activate (const char *name, void *context, int show) {
          dialog->prev_dialog = RoadMapDialogCurrent;
          RoadMapDialogCurrent = dialog;
       }
-      if (show) NOPH_Display_setCurrent(RoadMapDialogDisplay, dialog->form);
+      if (show) {
+      	NOPH_Display_setCurrent(RoadMapDialogDisplay, dialog->form);
+      }
 
       return 0; /* Tell the caller the dialog already exists. */
    }

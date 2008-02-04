@@ -48,6 +48,9 @@
 
 #include "roadmap_main.h"
 
+static RoadMapConfigDescriptor RoadMapConfigFullScreen =
+                        ROADMAP_CONFIG_ITEM("Display", "Full Screen");
+
 extern void roadmap_canvas_configure (void);
 
 struct roadmap_main_io {
@@ -77,7 +80,9 @@ volatile static int form_command_context = 0;
 volatile static int should_exit = 0;
 static NOPH_GpsManager_t gps_mgr = 0;
 static NOPH_TimerMgr_t timer_mgr = 0;
+static NOPH_GameCanvas_t Canvas;
 static const char *exception_type = "";
+static int FullScreenMode = 1;
 
 static void roadmap_start_event (int event) {
    switch (event) {
@@ -86,42 +91,57 @@ static void roadmap_start_event (int event) {
    }
 }
 
+static int KeyCode = 0;
 
-static void roadmap_main_process_key (int keys) {
+static void roadmap_main_process_key (int keyCode) {
 
    char *k = NULL;
+   const RoadMapAction *action;
 
-   switch (keys) {
-   case 2:
+   switch (keyCode) {
+   case NOPH_Canvas_KEY_NUM2:
       k = "+";
       break;
-   case 4:
+   case NOPH_Canvas_KEY_NUM4:
       k = "J";
       break;
-   case 5:
+   case NOPH_Canvas_KEY_NUM5:
       k = "R";
       break;
-   case 6:
+   case NOPH_Canvas_KEY_NUM6:
       k = "K";
       break;
-   case 8:
+   case NOPH_Canvas_KEY_NUM8:
       k = "-";
       break;
-   case 92:
-      k = "Button-Up";
+   case NOPH_Canvas_KEY_POUND:
+      KeyCode = 0;
+      action = roadmap_start_find_action ("togglegpsrecord");
+      if (action) (*action->callback) ();
+      return;
+   case NOPH_Canvas_KEY_STAR:
+      k = "A";
+      KeyCode = 0;
       break;
-   case 95:
-      k = NULL;
-      break;
-   case 96:
-      k = "Button-Right";
-      break;
-   case 98:
-      k = "Button-Down";
-      break;
-   case 94:
-      k = "Button-Left";
-      break;
+   default:
+      switch (NOPH_Canvas_getGameAction((NOPH_Canvas_t)Canvas, keyCode)) {
+      case NOPH_Canvas_UP:
+         k = "Button-Up";
+         break;
+      case NOPH_Canvas_FIRE:
+         KeyCode = 0;
+         k = "G";
+         break;
+      case NOPH_Canvas_RIGHT:
+         k = "Button-Right";
+         break;
+      case NOPH_Canvas_DOWN:
+         k = "Button-Down";
+         break;
+      case NOPH_Canvas_LEFT:
+         k = "Button-Left";
+         break;
+      }
    }
 
    //roadmap_log (ROADMAP_DEBUG, "In roadmap_main_process_key, keys:%d, k:%s, RoadMapMainInput:0x%x\n", keys, k, RoadMapMainInput);
@@ -202,6 +222,16 @@ void roadmap_main_add_tool_space (void) {
 
 void roadmap_main_add_canvas (void) {
    RoadMapImage image;
+
+   roadmap_config_declare_enumeration
+      ("preferences", &RoadMapConfigFullScreen, NULL, "yes", "no", NULL);
+
+   Canvas = NOPH_GameCanvas_get();
+
+   if (!strcmp(roadmap_config_get (&RoadMapConfigFullScreen), "no"))
+        FullScreenMode = 0;
+
+   NOPH_Canvas_setFullScreenMode(Canvas, FullScreenMode);
 
    roadmap_log(ROADMAP_DEBUG, "In roadmap_main_add_canvas...\n");
    roadmap_canvas_configure ();
@@ -344,32 +374,10 @@ void roadmap_main_set_cursor (int cursor) {
    }
 }
 
-static int KeyCode = 0;
-
 static void keyPressed(int code)
 {
-  if ((code >= 48) && (code <=57)) {
-     KeyCode = code - 48;
-     return;
-  }
-
-  switch (code) {
-  case -1:
-     KeyCode = 92;
-     break;
-  case -4:
-     KeyCode = 96;
-     break;
-  case -2:
-     KeyCode = 98;
-     break;
-  case -3:
-     KeyCode = 94;
-     break;
-  case -5:
-     KeyCode = 95;
-     break;
-  }
+   KeyCode = code;
+   return;
 }
 
 static void keyReleased(int code)
@@ -386,7 +394,7 @@ static void handler_main_loop(NOPH_Exception_t exception, void *arg)
 }
 
 //#define  DEBUG_TIME
-static void wait_for_events(NOPH_GameCanvas_t canvas)
+static void wait_for_events(void)
 {
 #ifdef DEBUG_TIME
   int start_time = NOPH_System_currentTimeMillis();
@@ -464,7 +472,6 @@ static void wait_for_events(NOPH_GameCanvas_t canvas)
 int main (int argc, char **argv) {
 
    int i;
-   NOPH_GameCanvas_t canvas;
 
    NOPH_DeviceSpecific_init();
 
@@ -475,10 +482,6 @@ int main (int argc, char **argv) {
       RoadMapMainIo[i].io.os.file = -1;
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
    }
-
-   canvas = NOPH_GameCanvas_get();
-
-   NOPH_Canvas_setFullScreenMode(canvas, 1);
 
    roadmap_start_subscribe (roadmap_start_event);
    roadmap_start (argc, argv);
@@ -503,7 +506,7 @@ NOPH_try(handler_main_loop, NULL) {
 #endif
 
       /* Wait for an event */
-      wait_for_events(canvas);
+      wait_for_events();
 
 #ifdef DEBUG_TIME
       start_time = NOPH_System_currentTimeMillis();
@@ -548,6 +551,7 @@ NOPH_try(handler_main_loop, NULL) {
       if (KeyCode) {
 	 exception_type = "Key command";
          roadmap_main_process_key (KeyCode);
+         NOPH_Thread_sleep( 30 );
       }
 #ifdef DEBUG_TIME
       end_time = NOPH_System_currentTimeMillis();
