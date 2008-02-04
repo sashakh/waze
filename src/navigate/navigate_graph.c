@@ -39,7 +39,6 @@
 #include "roadmap_square.h"
 #include "roadmap_math.h"
 #include "roadmap_turns.h"
-#include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 #include "roadmap_main.h"
 #include "roadmap_line_route.h"
@@ -47,6 +46,7 @@
 #include "navigate_graph.h"
 
 #define MAX_GRAPH_CACHE 75
+#define MAX_MEM_CACHE 150000
 
 struct SquareGraphItem {
    int square_id;
@@ -55,11 +55,47 @@ struct SquareGraphItem {
    unsigned short *nodes_index;
    int *lines;
    unsigned short *lines_index;
+   int mem_size;
 };
 
 static struct SquareGraphItem *SquareGraphCache[MAX_GRAPH_CACHE];
 static int SquareGraphHead;
+static int cache_total_mem;
 
+static inline void add_graph_node(struct SquareGraphItem *cache,
+                                  int line,
+                                  int point_id,
+                                  int cur_line,
+                                  int reversed) {
+
+   unsigned int l;
+
+   l = cache->nodes_index[point_id];
+
+   if (l) {
+      l--;
+      while (cache->lines_index[l]) {
+         l=cache->lines_index[l];
+      }
+
+      cache->lines_index[l] = cur_line;
+   } else {
+      cache->nodes_index[point_id] = cur_line + 1;
+   }
+
+   cache->lines[cur_line] = line|reversed;
+}
+
+
+static void free_cache_slot (int slot) {
+   free (SquareGraphCache[slot]->nodes_index);
+   free (SquareGraphCache[slot]->lines);
+   free (SquareGraphCache[slot]->lines_index);
+   cache_total_mem -= SquareGraphCache[slot]->mem_size;
+}
+
+
+//TODO arrange as LRU list
 static struct SquareGraphItem *get_square_graph (int square_id) {
 
    int i;
@@ -83,13 +119,11 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
 
    if (i == MAX_GRAPH_CACHE) {
       /* Free a cache slot */
-      free (SquareGraphCache[SquareGraphHead]->nodes_index);
-      free (SquareGraphCache[SquareGraphHead]->lines);
-      free (SquareGraphCache[SquareGraphHead]->lines_index);
+      free_cache_slot (SquareGraphHead);
       cache = SquareGraphCache[SquareGraphHead];
       SquareGraphHead = (SquareGraphHead + 1) % MAX_GRAPH_CACHE;
    } else {
-      cache = SquareGraphCache[i] =
+      cache = SquareGraphCache[slot] =
          (struct SquareGraphItem *)malloc(sizeof(struct SquareGraphItem));
    }
 
@@ -117,12 +151,36 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
    }
 
    cache->lines_count = lines1_count * 2 + lines2_count;
-   cache->lines = malloc(cache->lines_count * sizeof(int));
-   cache->lines_index = calloc(cache->lines_count, sizeof(unsigned short));
 
    /* assume that the number of nodes equals the number of lines */
    cache->nodes_count = roadmap_square_points_count (square_id);
+
+   cache->mem_size = cache->lines_count * sizeof(int) +
+                     cache->lines_count * sizeof(unsigned short) +
+                     cache->nodes_count * sizeof(unsigned short);
+
+   slot = (slot + 1) % MAX_GRAPH_CACHE;
+
+   while (cache_total_mem &&
+          ((cache_total_mem + cache->mem_size) > MAX_MEM_CACHE)) {
+
+      while (!SquareGraphCache[slot]) {
+         slot = (slot + 1) % MAX_GRAPH_CACHE;
+      }
+
+      free_cache_slot(slot);
+      free (SquareGraphCache[slot]);
+      SquareGraphCache[slot] = NULL;
+      if (SquareGraphHead == slot) {
+         SquareGraphHead = (SquareGraphHead + 1) % MAX_GRAPH_CACHE;
+      }
+   }
+
+   cache->lines = malloc(cache->lines_count * sizeof(int));
+   cache->lines_index = calloc(cache->lines_count, sizeof(unsigned short));
    cache->nodes_index = calloc(cache->nodes_count, sizeof(unsigned short));
+
+   cache_total_mem += cache->mem_size;
 
    for (i = ROADMAP_ROAD_FIRST; i <= ROADMAP_ROAD_LAST; ++i) {
 
@@ -136,36 +194,19 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
 
             int from_point_id;
             int to_point_id;
-            int l;
 
             roadmap_line_points (line, &from_point_id, &to_point_id);
             from_point_id &= 0xffff;
 
-            l = cache->nodes_index[from_point_id];
-            if (l) {
-               l--;
-               while (cache->lines_index[l]) l=cache->lines_index[l];
-               cache->lines_index[l] = cur_line;
-            } else {
-               cache->nodes_index[from_point_id] = cur_line + 1;
-            }
-
-            cache->lines[cur_line] = line;
+            add_graph_node(cache, line, from_point_id, cur_line, 0);
             cur_line++;
 
             if (roadmap_point_square(to_point_id) == square_id) {
 
                to_point_id &= 0xffff;
 
-               l = cache->nodes_index[to_point_id];
-               if (l) {
-                  l--;
-                  while (cache->lines_index[l]) l=cache->lines_index[l];
-                  cache->lines_index[l] = cur_line;
-               } else {
-                  cache->nodes_index[to_point_id] = cur_line + 1;
-               }
-               cache->lines[cur_line] = line|REVERSED;
+               add_graph_node(cache, line, to_point_id, cur_line, REVERSED);
+
                cur_line++;
             }
          }
@@ -175,7 +216,6 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
             (square_id, i, &first_line, &last_line) > 0) {
 
          int line_cursor;
-         int l;
 
          for (line_cursor = first_line; line_cursor <= last_line;
                ++line_cursor) {
@@ -187,16 +227,7 @@ static struct SquareGraphItem *get_square_graph (int square_id) {
 
             to_point_id &= 0xffff;
 
-            l = cache->nodes_index[to_point_id];
-
-            if (l) {
-               l--;
-               while (cache->lines_index[l]) l=cache->lines_index[l];
-               cache->lines_index[l] = cur_line;
-            } else {
-               cache->nodes_index[to_point_id] = cur_line + 1;
-            }
-            cache->lines[cur_line] = line|REVERSED;
+            add_graph_node(cache, line, to_point_id, cur_line, REVERSED);
             cur_line++;
          }
       }

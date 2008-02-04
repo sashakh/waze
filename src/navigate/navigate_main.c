@@ -112,7 +112,7 @@ RoadMapNavigateRouteCB NavigateCallbacks = {
 };
 
 
-#define MAX_NAV_SEGEMENTS 500
+#define MAX_NAV_SEGEMENTS 1500
 
 static NavigateSegment NavigateSegments[MAX_NAV_SEGEMENTS];
 static int NavigateNumSegments = 0;

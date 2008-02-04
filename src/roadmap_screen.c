@@ -135,7 +135,7 @@ static RoadMapScreenSubscriber RoadMapScreenAfterRefresh =
 #define SQUARE_DRAWN   0x2
 
 #ifdef J2ME
-#define REFRESH_FLOW_CONTROL_TIMEOUT 150
+#define REFRESH_FLOW_CONTROL_TIMEOUT 75
 #else
 #define REFRESH_FLOW_CONTROL_TIMEOUT 50
 #endif

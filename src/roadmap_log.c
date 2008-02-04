@@ -41,6 +41,7 @@
 #include "roadmap.h"
 #include "roadmap_path.h"
 #include "roadmap_file.h"
+#include "roadmap_messagebox.h"
 
 
 #define ROADMAP_LOG_STACK_SIZE 256
@@ -161,6 +162,15 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
           fprintf (file, "%*.*s %s\n", indent, indent, "", RoadMapLogStack[i]);
           indent += 3;
       }
+   }
+
+   if (category->do_exit) {
+      char str[256];
+      char msg[256];
+      vsprintf(msg, format, ap);
+      sprintf (str, "%d %c%s %s, line %d %s",
+         time(NULL), saved, category->prefix, source, line, msg);
+      roadmap_messagebox("Fatal Error", str);
    }
 }
 

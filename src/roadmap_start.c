@@ -109,7 +109,7 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
 static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
                         ROADMAP_CONFIG_ITEM("Geometry", "Main");
 
-static RoadMapConfigDescriptor RoadMapConfigMapPath =
+RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
 
 static RoadMapMenu LongClickMenu;
@@ -175,7 +175,7 @@ static void roadmap_start_about (void) {
    char about[500];
 
    snprintf (about, sizeof(about),
-                       "FreeMap 0.10.0 rc6 \n"
+                       "FreeMap 0.10.0 rc7 \n"
                        "(c)Ehud Shabtai \n"
                        "www.freemap.co.il \n"
                        "Based on RoadMap \n"
@@ -598,6 +598,7 @@ static const char *RoadMapStartMenu[] = {
    "uploadj2merecord",
    "detectreceiver",
    "destination",
+   "preferences",
    "quit",
    NULL
 };
@@ -1213,6 +1214,9 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600", NULL);
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigMapPath, "", NULL);
 
    roadmap_option_initialize   ();
    roadmap_math_initialize     ();

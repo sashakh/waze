@@ -29,6 +29,39 @@
 #include "win32/roadmap_win32.h"
 #endif
 
+#ifdef J2ME
+
+#ifdef assert
+#undef assert
+#endif
+
+#include <java/lang.h>
+#include <javax/microedition/lcdui.h>
+
+static NOPH_Display_t assert_display;
+
+static inline void do_assert(char *text) {
+
+  printf ("do_assert:%s********************************************************************************************\n", text);
+  if (!assert_display) assert_display = NOPH_Display_getDisplay(NOPH_MIDlet_get());
+  NOPH_Alert_t msg = NOPH_Alert_new("ASSERT!", text, 0, NOPH_AlertType_get(NOPH_AlertType_INFO));
+  NOPH_Alert_setTimeout(msg, NOPH_Alert_FOREVER);
+  NOPH_Display_setCurrent(assert_display, msg);
+  NOPH_Thread_sleep( 10000 );
+}
+
+# define assert(x) do { \
+ if ( ! (x) ) \
+ {\
+     char msg[256]; \
+     snprintf (msg, sizeof(msg), \
+        "ASSERTION FAILED at %d in %s:%s\n", __LINE__, __FILE__, __FUNCTION__); \
+     do_assert(msg); \
+     exit(1); \
+ } \
+ } while(0)
+
+#endif
 
 #define ROADMAP_MESSAGE_DEBUG      1
 #define ROADMAP_MESSAGE_INFO       2
