@@ -121,8 +121,11 @@ static void add_timestamp(ExportStream *stream, time_t time) {
 static void add_trkpt(ExportStream *stream, int lon, int lat, int ele,
                       time_t time) {
    
-   export_write (stream, "<trkpt lat=\"%d.%06d\" lon=\"%d.%06d\">\n",
-            lat / 1000000, lat % 1000000, lon / 1000000, lon % 1000000);
+   export_write (stream, "<trkpt lat=\"%s%d.%06d\" lon=\"%s%d.%06d\">\n",
+            lat < 0 ? "-" : "",
+            abs(lat) / 1000000, abs(lat) % 1000000,
+            lon < 0 ? "-" : "",
+            abs(lon) / 1000000, abs(lon) % 1000000);
 
    if (ele != NO_ELEVATION) {
       export_write (stream, "<ele>%d</ele>\n", ele);
@@ -325,8 +328,11 @@ static void open_waypoint(ExportStream *stream, int lon, int lat, int ele,
    
    if (!note) note = "";
 
-   export_write (stream, "<wpt lat=\"%d.%06d\" lon=\"%d.%06d\">\n",
-            lat / 1000000, lat % 1000000, lon / 1000000, lon % 1000000);
+   export_write (stream, "<wpt lat=\"%s%d.%06d\" lon=\"%s%d.%06d\">\n",
+            lat < 0 ? "-" : "",
+            abs(lat) / 1000000, abs(lat) % 1000000,
+            lon < 0 ? "-" : "",
+            abs(lon) / 1000000, abs(lon) % 1000000);
 
    if (ele != NO_ELEVATION) {
       export_write (stream, "<ele>%d</ele>\n", ele);
