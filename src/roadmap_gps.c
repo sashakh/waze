@@ -800,7 +800,8 @@ void roadmap_gps_open (void) {
       }
 
 #else
-   } else if ((strncasecmp (url, "com", 3) == 0) && (url[4] == ':')) {
+   } else if ((strncasecmp (url, "com", 3) == 0) &&
+                ((url[4] == ':') || (url[5] == ':'))) {
 
       char *device = strdup(url); /* I do know this is not smart.. */
       const char *speed = roadmap_config_get (&RoadMapConfigGPSBaudRate);
