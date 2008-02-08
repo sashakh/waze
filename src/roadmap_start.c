@@ -81,6 +81,7 @@
 #include "roadmap_pointer.h"
 #include "roadmap_layer.h"
 #include "roadmap_sunrise.h"
+#include "roadmap_lang.h"
 
 #include "roadmap_start.h"
 
@@ -836,6 +837,12 @@ static char const *RoadMapStartKeyBinding[] = {
    "Button-Contact"  ROADMAP_MAPPED_TO "zoomin",
    "Button-Calendar" ROADMAP_MAPPED_TO "zoomout",
    "Button-Start"    ROADMAP_MAPPED_TO "quit",
+
+   /* These binding are for the OLPC XO laptop buttons: */
+   "Button-PageUp"   ROADMAP_MAPPED_TO "zoomin",      // circle   
+   "Button-PageDown" ROADMAP_MAPPED_TO "zoomout",     // square   
+   "Button-Home"     ROADMAP_MAPPED_TO "resumeroute", // X        
+   "Button-End"      ROADMAP_MAPPED_TO "destination", // checkmark
 
    /* These binding are for regular keyboards (case unsensitive !): */
    "+"               ROADMAP_MAPPED_TO "zoomin",
