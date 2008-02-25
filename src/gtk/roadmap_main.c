@@ -139,6 +139,7 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
 
    if (key != NULL && RoadMapMainInput != NULL) {
       (*RoadMapMainInput) (key);
+      return TRUE;
    }
 
    return FALSE;
