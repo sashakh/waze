@@ -149,14 +149,31 @@ static void roadmap_start_periodic (void);
 static void roadmap_start_console (void) {
 
    const char *url = roadmap_gps_source();
+   const char *config = roadmap_extra_config();
+   const char *icons = roadmap_icon_path();
+   char arguments[1024];
+   char *s = arguments;
+   int n, l;
+   
+   l = sizeof(arguments);
+   *s = '\0';
 
-   if (url == NULL) {
-      roadmap_spawn ("roadgps", "");
-   } else {
-      char arguments[1024];
-      snprintf (arguments, sizeof(arguments), "--gps=%s", url);
-      roadmap_spawn ("roadgps", arguments);
+   if (url) {
+      n = snprintf (s, l, "--gps=%s", url);
+      s += n;
+      l -= n;
    }
+   if (config) {
+      n = snprintf (s, l, "--config=%s", config);
+      s += n;
+      l -= n;
+   }
+   if (icons) {
+      n = snprintf (s, l, "--icons=%s", config);
+      s += n;
+      l -= n;
+   }
+   roadmap_spawn ("roadgps", arguments);
 }
 
 static void roadmap_start_purge (void) {
@@ -262,7 +279,7 @@ static void roadmap_start_toggle_download (void) {
    if (roadmap_download_enabled()) {
 
       roadmap_download_subscribe_when_done (NULL);
-      roadmap_locator_declare (&roadmap_start_no_download);
+      roadmap_locator_declare_downloader (&roadmap_start_no_download);
 
    } else {
 
@@ -282,7 +299,7 @@ static void roadmap_start_toggle_download (void) {
       }
 
       roadmap_download_subscribe_when_done (roadmap_screen_redraw);
-      roadmap_locator_declare (roadmap_download_get_county);
+      roadmap_locator_declare_downloader (roadmap_download_get_county);
       roadmap_download_unblock_all ();
    }
 
@@ -1268,7 +1285,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_trip_new ();
 #endif
 
-   roadmap_locator_declare (&roadmap_start_no_download);
+   roadmap_locator_declare_downloader (&roadmap_start_no_download);
 
    period = atoi(roadmap_config_get(&RoadMapConfigDisplayRefresh));
    if (period <= 10) {

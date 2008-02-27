@@ -64,6 +64,8 @@ static int roadmap_option_synchronous = 0;
 
 static char **roadmap_option_debug = NULL;
 static char *roadmap_option_gps = NULL;
+static char *roadmap_option_config = NULL;
+static char *roadmap_option_icons = NULL;
 
 static RoadMapUsage RoadMapOptionUsage = NULL;
 
@@ -98,6 +100,16 @@ int roadmap_is_visible (int category) {
 char *roadmap_gps_source (void) {
 
    return roadmap_option_gps;
+}
+
+char *roadmap_extra_config (void) {
+
+   return roadmap_option_config;
+}
+
+char *roadmap_icon_path (void) {
+
+   return roadmap_option_icons;
 }
 
 
@@ -167,7 +179,27 @@ static void roadmap_option_set_configpath (const char *value) {
     if (!value || !value[0]) {
        roadmap_log (ROADMAP_FATAL, "invalid config path '%s'", value);
     }
+
+    if (roadmap_option_config != NULL) {
+        free (roadmap_option_config);
+    }
+    roadmap_option_config = strdup (value);
+
     roadmap_path_set("config", value);
+}
+
+static void roadmap_option_set_iconpath (const char *value) {
+
+    if (!value || !value[0]) {
+       roadmap_log (ROADMAP_FATAL, "invalid icon path '%s'", value);
+    }
+
+    if (roadmap_option_icons != NULL) {
+        free (roadmap_option_icons);
+    }
+    roadmap_option_icons = strdup (value);
+
+    roadmap_path_set("icons", value);
 }
 
 static void roadmap_option_set_mappath (const char *value) {
@@ -349,6 +381,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
 
     {"--maps=", "MAPPATH", roadmap_option_set_mappath, 1,
         "Override the built-in (or configured) path to the map files"},
+
+    {"--icons=", "ICONPATH", roadmap_option_set_iconpath, 1,
+        "Override the built-in (or configured) path to the icon images"},
 
     {"--location=", "LONGITUDE,LATITUDE", roadmap_option_set_location, 1,
         "Set the location point (see menu entry Screen/Show Location..)"},
