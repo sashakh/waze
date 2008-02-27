@@ -308,7 +308,7 @@ static int roadmap_locator_allocate (int **fipslistp) {
 }
 
 
-void roadmap_locator_declare (RoadMapInstaller download) {
+void roadmap_locator_declare_downloader (RoadMapInstaller download) {
 
    if (download == NULL) {
        RoadMapDownload = roadmap_locator_no_download;
