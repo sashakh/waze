@@ -267,18 +267,9 @@ static void roadgps_screen_draw_satellite_signal (int satellite, int filled) {
 
 void roadgps_screen_to_coord(char data[], int islatitude, int value) {
 
-  char dir;
-  int degree;
-  int correction;
+  data[0] = "EWNS"[(islatitude * 2)  + (value < 0)];
   
-  if (islatitude) {
-    dir = value>=0?'N':'S';
-  } else {
-    dir = value>=0?'E':'W';
-  }
-  degree = value / 1000000;
-  correction = (value - (degree*1000000)) / 10;
-  sprintf(data,"%c%d°%d'",dir,degree,correction);
+  roadmap_math_to_floatstring(data + 1, value, MILLIONTHS);
 }
 
 static void roadgps_screen_draw_position (void) {
