@@ -418,11 +418,11 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     {"--square", "", roadmap_option_set_square, 1,
         "Show the square boundaries as grey lines (for debug purpose)"},
 
-    {"--gps=", "URL", roadmap_option_set_gps, 1,
-        "Use a specific GPS source (mainly for replay of a GPS log)"},
-
     {"--gps-sync", "", roadmap_option_set_synchronous, 1,
         "Update the map synchronously when receiving each GPS position"},
+
+    {"--gps=", "URL", roadmap_option_set_gps, 1,
+        "Use a specific GPS source (mainly for replay of a GPS log)"},
 
     {"--trip=", "FILE", roadmap_option_set_tripname, 1,
         "Set the name of the current trip (relative to path in General.TripPaths"},
