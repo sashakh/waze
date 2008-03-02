@@ -294,9 +294,15 @@ static void roadmap_track_gps_update (int reception, int gps_time,
     }
 
     if (need_point) {
-        roadmap_track_add_trackpoint(gps_time, gps_position);
-        RoadMapTrackRefresh = 1;
+	RoadMapPosition pos;
 
+	/* don't cause a refresh unless the new point is on-screen */
+	pos.latitude = gps_position->latitude;
+	pos.longitude = gps_position->longitude;
+	if (roadmap_math_point_is_visible(&pos))
+	    RoadMapTrackRefresh = 1;
+
+        roadmap_track_add_trackpoint(gps_time, gps_position);
     }
 
 }
