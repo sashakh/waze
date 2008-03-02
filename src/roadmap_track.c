@@ -299,7 +299,7 @@ static void roadmap_track_gps_update (int reception, int gps_time,
 	/* don't cause a refresh unless the new point is on-screen */
 	pos.latitude = gps_position->latitude;
 	pos.longitude = gps_position->longitude;
-	if (roadmap_math_point_is_visible(&pos))
+	if (RoadMapTrackDisplay && roadmap_math_point_is_visible(&pos))
 	    RoadMapTrackRefresh = 1;
 
         roadmap_track_add_trackpoint(gps_time, gps_position);
