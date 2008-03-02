@@ -310,7 +310,8 @@ HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
 # more sources
 PKGDATAFILES = sprites preferences session drivers \
 		roadmap.popup roadmap.screenobjects
-MISCFILES = roadmap.desktop roadmap.menu roadmap.1 roadgps.1 default/All \
+MANPAGES = roadmap.1 roadgps.1
+MISCFILES = roadmap.desktop roadmap.menu default/All \
 		roadmap.toolbar.ex roadmap.actionlabels.ex \
 		app_a02.txt usstates.txt
 SCRIPTS = rdmdownload rdmcompare \
@@ -326,7 +327,9 @@ FONT = LiberationSans-Bold.ttf
 MANUAL = manual.html
 
 # more products
+ifneq ($(strip $(RUNTIME_ONLY)),YES)
 BUILD = buildmap buildmap_osm buildus buildplace dumpmap rdmindex 
+endif
 
 RUNTIME = $(RDMLIBS) libguiroadgps.a libguiroadmap.a
 ifneq ($(DESKTOP),WINCE)
@@ -339,7 +342,7 @@ endif
 ALL_SRC = $(MKFILES) $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
 	$(RMPLUGINSRC) $(DMSRC) $(BMLIBSRC) $(BMSRC) \
 	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC) $(HEADERS) \
-	$(PKGDATAFILES) $(MISCFILES) $(SCRIPTS) $(FONT) $(MANUAL)
+	$(PKGDATAFILES) $(MISCFILES) $(MANPAGES) $(SCRIPTS) $(FONT) $(MANUAL)
 
 ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support php win32
 
@@ -409,7 +412,8 @@ clean:  topclean
 	rm -f agg_support/*.o
 
 
-install: installdata installbin installicons installdesktop installdoc
+install: installdata installbin installicons \
+		installdesktop installdoc installman
 	for module in $(RDMODULES) ; \
 	do \
 		$(MAKE) -C $$module install || exit 1; \
@@ -445,8 +449,6 @@ installbin:
 	cp php/osmgetbmap php/osmgetbmapcore.php $(pkgbindir)/.
 	cd $(pkgbindir) && \
 		chmod a+x $(BUILD) $(SCRIPTS) $(DRIVERS) osmgetbmap
-	mkdir -p $(man1dir)
-	$(INSTALL_DATA) roadgps.1 roadmap.1 $(man1dir)/.
 
 installdesktop:
 	-test -d $(menudir) && cp roadmap.menu $(menudir)/roadmap
@@ -455,6 +457,10 @@ installdesktop:
 
 installicons:
 	$(MAKE) -C icons install
+
+installman: $(MANPAGES)
+	mkdir -p $(man1dir)
+	$(INSTALL_DATA) $(MANPAGES) $(man1dir)/.
 
 installdoc: $(MANUAL) 
 	-cp $(MANUAL) $(pkgdatadir)
@@ -468,7 +474,7 @@ uninstall:
 	-test -d $(menudir) && rm -f $(menudir)/roadmap
 	$(MAKE) -C icons uninstall
 	cd $(desktopdir) && rm -f roadmap.desktop
-	cd $(man1dir) && rm -f roadgps.1 roadmap.1
+	cd $(man1dir) && rm -f $(MANPAGES)
 	for module in $(RDMODULES) ; \
 	do \
 		if [ -d $$module ] ; then \
