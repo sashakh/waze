@@ -169,22 +169,8 @@ void roadmap_main_add_tool_space(void) {
    }
 }
 
-static unsigned long roadmap_main_busy_start;
+void roadmap_main_set_cursor (RoadMapCursor newcursor) {
 
-void roadmap_main_set_cursor (int newcursor) {
-   static int lastcursor;
-
-   roadmap_main_busy_start = 0;
-
-   if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
-      roadmap_main_busy_start = roadmap_time_get_millis();
-      return;
-   }
-
-   if (newcursor == lastcursor)
-      return;
-
-   lastcursor = newcursor;
 
    if (mainWindow) {
 
@@ -201,18 +187,10 @@ void roadmap_main_set_cursor (int newcursor) {
       case ROADMAP_CURSOR_CROSS:
          mainWindow->setCursor (QCursor(Qt::crossCursor));
          break;
+
+      case ROADMAP_CURSOR_WAIT_WITH_DELAY:
+         return;  /* shouldn't happen */
       }
-   }
-
-}
-
-void roadmap_main_busy_check(void) {
-
-   if (roadmap_main_busy_start == 0)
-      return;
-
-   if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
-      roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
    }
 }
 
@@ -286,6 +264,31 @@ void roadmap_main_remove_periodic (RoadMapCallback callback) {
    }
 }
 
+RoadMapCallback idle_callback;
+
+void roadmap_main_set_idle_function (RoadMapCallback callback) {
+
+#if FIXME
+   /* under QT, a timeout of 0 means the routine will run "right after"
+    * the event queue is emptied.
+    */
+   if (timers) {
+      idle_callback = callback;
+      timers->addTimer(0, callback);
+   }
+#else
+   callback();
+#endif
+}
+
+void roadmap_main_remove_idle_function (void) {
+#if FIXME
+   if (timers) {
+      timers->removeTimer(idle_callback);
+   }
+#endif
+}
+
 
 void roadmap_main_set_status(const char *text) {
    if (mainWindow) {
@@ -299,11 +302,14 @@ void roadmap_main_toggle_full_screen (void) {
 }
 
 
-void roadmap_main_flush (void) {
+int roadmap_main_flush (void) {
 
-   if (app != NULL) {
-      app->processEvents ();
+   if (app && app->hasPendingEvents ()) {
+        app->processEvents ();
+        return 1;
    }
+
+   return 0;
 }
 
 

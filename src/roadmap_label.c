@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "roadmap.h"
 #include "roadmap_config.h"
 #include "roadmap_math.h"
 #include "roadmap_plugin.h"

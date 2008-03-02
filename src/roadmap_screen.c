@@ -65,6 +65,7 @@
 #include "roadmap_time.h"
 #include "roadmap_spawn.h"
 #include "roadmap_message.h"
+#include "roadmap_progress.h"
 
 #include "roadmap_screen.h"
 
@@ -190,6 +191,68 @@ static void roadmap_screen_setfont(void) {
    }
 }
 
+static unsigned long roadmap_screen_busy_start;
+static unsigned long roadmap_screen_progress_start;
+
+static int roadmap_screen_progbar;
+
+static void roadmap_screen_start_progress () {
+
+      roadmap_screen_progress_start = roadmap_time_get_millis();
+      if (roadmap_screen_progbar) {
+         roadmap_progress_update (roadmap_screen_progbar, 1, 0);
+         roadmap_main_flush ();
+      }
+}
+
+void roadmap_screen_set_cursor (RoadMapCursor newcursor) {
+   static RoadMapCursor lastcursor;
+
+   roadmap_screen_busy_start = 0;
+
+   if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
+      roadmap_screen_start_progress ();
+      roadmap_screen_busy_start = roadmap_time_get_millis();
+      roadmap_main_flush ();
+      return;
+   }
+
+   if (newcursor == lastcursor)
+      return;
+
+   roadmap_main_set_cursor (newcursor);
+
+   lastcursor = newcursor;
+}
+
+
+int roadmap_screen_busy_check(int total, int completed) {
+
+   static int last_completed;
+
+   if (completed != last_completed) {
+      if (completed == total) {
+         if (roadmap_screen_progbar)
+            roadmap_progress_close(roadmap_screen_progbar);
+         roadmap_screen_progbar = 0;
+      } else if (roadmap_screen_progbar ||
+            roadmap_time_get_millis() - roadmap_screen_progress_start > 200) {
+         if (!roadmap_screen_progbar)
+            roadmap_screen_progbar = roadmap_progress_new();
+         roadmap_progress_update (roadmap_screen_progbar, total, completed);
+      }
+      last_completed = completed;
+   }
+
+   if (roadmap_screen_busy_start &&
+        roadmap_time_get_millis() - roadmap_screen_busy_start > 1000) {
+      roadmap_screen_set_cursor (ROADMAP_CURSOR_WAIT);
+   }
+
+   if (roadmap_main_flush()) return 1;
+
+   return 0;
+}
 
 static void roadmap_screen_pb_init
             (struct roadmap_screen_point_buffer *pb, int size) {
@@ -1281,6 +1344,17 @@ static int roadmap_screen_repaint_square (int square, int pen_type,
 }
 
 
+static int roadmap_screen_repaint_leave(int total, int progress) {
+
+    if (!RoadMapScreenDragging &&
+            roadmap_screen_busy_check(total, progress)) {
+        if (RoadMapScreenRepaintNeeded > 1 && progress > total / 4) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 static void roadmap_screen_repaint (void) {
 
     static int *fipslist = NULL;
@@ -1304,14 +1378,18 @@ static void roadmap_screen_repaint (void) {
        max_pen = 1;
     }
 
-    roadmap_screen_setfont();
 
-    roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT_WITH_DELAY);
+    /* start the timers that will invoke the hourglass cursor and
+     * progress bar.
+     */
+    if (!RoadMapScreenDragging)
+        roadmap_screen_set_cursor (ROADMAP_CURSOR_WAIT_WITH_DELAY);
+
+    roadmap_screen_setfont();
 
     roadmap_log_push ("roadmap_screen_repaint");
 
     /* Clean the drawing buffer. */
-
     roadmap_canvas_select_pen (RoadMapBackground);
     roadmap_canvas_erase ();
     RoadMapScreenLastPen = NULL;
@@ -1356,8 +1434,6 @@ static void roadmap_screen_repaint (void) {
         if (roadmap_locator_get_decluttered(fipslist[i]))
             continue;
 
-        roadmap_main_busy_check();
-
         /* -- Access the county's database. */
 
         if (roadmap_locator_activate (fipslist[i]) != ROADMAP_US_OK) continue;
@@ -1391,6 +1467,9 @@ static void roadmap_screen_repaint (void) {
         drawn = 0;
         drawn += roadmap_screen_draw_polygons ();
 
+        if (roadmap_screen_repaint_leave(count, count - i))
+            goto out;
+
         /* -- Look for the squares that are currently visible. */
 
         sqcount = roadmap_square_view (&in_view);
@@ -1418,9 +1497,10 @@ static void roadmap_screen_repaint (void) {
                for (j = sqcount - 1; j >= 0; --j) {
                   drawn += roadmap_screen_repaint_square (in_view[j], pen_type,
                     layer_count, layers);
-               }
 
-               roadmap_main_busy_check();
+                  if (roadmap_screen_repaint_leave(count, count - i))
+                     goto out;
+               }
 
             }
 
@@ -1433,12 +1513,13 @@ static void roadmap_screen_repaint (void) {
         roadmap_screen_flush_lines ();
         roadmap_screen_flush_points ();
 
-        roadmap_main_busy_check();
-        
         if (drawn && !RoadMapScreenDragging) {
             roadmap_label_draw_cache (RoadMapScreen3dHorizon == 0);
         }
 
+        if (roadmap_screen_repaint_leave(count, count - i))
+           goto out;
+        
         if (!drawn)
             roadmap_locator_set_decluttered(fipslist[i]);
     }
@@ -1468,15 +1549,18 @@ static void roadmap_screen_repaint (void) {
 
     }
 
+    if (!RoadMapScreenDragging)  /* finalize */
+        roadmap_screen_busy_check(count, count);
 
     roadmap_canvas_refresh ();
 
-    roadmap_main_set_cursor (ROADMAP_CURSOR_NORMAL);
-
-    RoadMapScreenRepaintNeeded = 0;
+out:
+    if (!RoadMapScreenDragging)
+        roadmap_screen_set_cursor (ROADMAP_CURSOR_NORMAL);
 
     roadmap_log_pop ();
     dbg_time_end(DBG_TIME_FULL);
+
 }
 
 
@@ -1519,7 +1603,7 @@ static int roadmap_screen_short_click (RoadMapGuiPoint *point) {
        PluginStreet street;
 
        roadmap_display_activate ("Selected Street", &line, &position, &street);
-       RoadMapScreenRepaintNeeded = 1;
+       roadmap_screen_request_repaint();
    }
 
    roadmap_trip_set_point ("Selection", &position);
@@ -1571,7 +1655,7 @@ static int roadmap_screen_drag_start (RoadMapGuiPoint *point) {
 
    RoadMapScreenDragging = 1;
    RoadMapScreenPointerLocation = *point;
-   roadmap_screen_hold (); /* We don't want to move with the GPS position. */
+   roadmap_screen_freeze (); /* We don't want to move with the GPS position. */
 
    return 1;
 }
@@ -1584,8 +1668,7 @@ static int roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
    RoadMapScreenDragging = 0;
    RoadMapScreenPointerLocation = *point;
-   roadmap_screen_hold ();
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_unfreeze ();
    roadmap_screen_refresh ();
 
    return 1;
@@ -1645,6 +1728,9 @@ static int roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
    return 0;
 }
 
+/* debug support:  set to 'printf' to be told why a refresh occurred */
+// #define REPORT_REFRESH(x) printf(x)
+#define REPORT_REFRESH(x) 1
 
 void roadmap_screen_refresh (void) {
 
@@ -1657,7 +1743,7 @@ void roadmap_screen_refresh (void) {
         roadmap_screen_reset_delta ();
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_math_set_center (&RoadMapScreenCenter);
-        refresh = 1;
+        refresh = 1 && REPORT_REFRESH ("focus changed");
         
         if (RoadMapScreenOrientationDynamic) {
            roadmap_math_set_orientation (roadmap_trip_get_orientation());
@@ -1668,14 +1754,11 @@ void roadmap_screen_refresh (void) {
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_math_set_center (&RoadMapScreenCenter);
 
-        if (RoadMapScreenOrientationDynamic) {
-           refresh |=
-              roadmap_math_set_orientation
-                 (roadmap_trip_get_orientation() + RoadMapScreenRotation);
-        } else {
-           refresh |=
-              roadmap_math_set_orientation (RoadMapScreenRotation);
-        }
+        refresh |=
+            roadmap_math_set_orientation (RoadMapScreenRotation +
+                RoadMapScreenOrientationDynamic ?
+                    roadmap_trip_get_orientation() : 0) &&
+                        REPORT_REFRESH("focus moved");
 
         if (RoadMapScreenDeltaX || RoadMapScreenDeltaY) {
 
@@ -1695,23 +1778,44 @@ void roadmap_screen_refresh (void) {
      * trigger a second repaint next time around.  (We should
      * probably use a callback registration system for this.)
      */
-    refresh |= roadmap_config_match (&RoadMapConfigMapRefresh, "forced");
-    refresh |= roadmap_trip_is_refresh_needed();
-    refresh |= roadmap_landmark_is_refresh_needed();
-    refresh |= roadmap_track_is_refresh_needed();
-    refresh |= roadmap_display_is_refresh_needed();
+    refresh |= roadmap_config_match (&RoadMapConfigMapRefresh, "forced") &&
+        REPORT_REFRESH( "forced\n" );
+    refresh |= roadmap_trip_is_refresh_needed() && 
+        REPORT_REFRESH( "trip\n" );
+    refresh |= roadmap_landmark_is_refresh_needed() && 
+        REPORT_REFRESH( "landmark\n" );
+    refresh |= roadmap_track_is_refresh_needed() && 
+        REPORT_REFRESH( "track\n" );
+    refresh |= roadmap_display_is_refresh_needed() && 
+        REPORT_REFRESH( "display\n" );
 
-    if (RoadMapScreenRepaintNeeded || refresh) {
-       roadmap_screen_repaint ();
-    }
+
+    if (refresh) roadmap_screen_request_repaint();
 
     roadmap_log_pop ();
 }
 
+void roadmap_screen_repaint_if_requested(void) {
 
-void roadmap_screen_redraw (void) {
+    while (RoadMapScreenRepaintNeeded > 0) {
+       roadmap_screen_repaint ();
+       --RoadMapScreenRepaintNeeded;
+    }
 
-    roadmap_screen_repaint ();
+    roadmap_main_remove_idle_function();
+}
+
+void roadmap_screen_request_repaint (void) {
+
+   /* the repaint is actually invoked via the gui's mainloop
+    * idle routine.  we need to install and remove tis routine
+    * on an as-needed basis, because otherwise installing something
+    * in the gui's idle loop causes it to eat CPU (i.e., it can't
+    * sleep -- it has to spin.)
+    */
+   if (!RoadMapScreenRepaintNeeded++)
+        roadmap_main_set_idle_function(roadmap_screen_repaint_if_requested);
+    
 }
 
 
@@ -1725,7 +1829,7 @@ void roadmap_screen_unfreeze (void) {
    if (!RoadMapScreenFrozen) return;
 
    RoadMapScreenFrozen = 0;
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1758,7 +1862,7 @@ void roadmap_screen_rotate (int delta) {
 
    if (roadmap_math_set_orientation (calculated_rotation)) {
       RoadMapScreenRotation = rotation;
-      RoadMapScreenRepaintNeeded = 1;
+      roadmap_screen_request_repaint();
       roadmap_screen_refresh ();
    }
 }
@@ -1775,14 +1879,14 @@ void roadmap_screen_toggle_view_mode (void) {
    }
 
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
 void roadmap_screen_toggle_labels (void) {
    
    RoadMapScreenLabels = ! RoadMapScreenLabels;
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh();
 }
 
@@ -1804,7 +1908,7 @@ void roadmap_screen_increase_horizon (void) {
 
    RoadMapScreen3dHorizon += 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1815,7 +1919,7 @@ void roadmap_screen_decrease_horizon (void) {
 
    RoadMapScreen3dHorizon -= 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1825,7 +1929,7 @@ void roadmap_screen_decrease_horizon (void) {
 void roadmap_screen_move_up (void) {
 
    roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / FRACMOVE));
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1833,7 +1937,7 @@ void roadmap_screen_move_up (void) {
 void roadmap_screen_move_down (void) {
 
    roadmap_screen_record_move (0, RoadMapScreenHeight / FRACMOVE);
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1841,7 +1945,7 @@ void roadmap_screen_move_down (void) {
 void roadmap_screen_move_right (void) {
 
    roadmap_screen_record_move (RoadMapScreenHeight / FRACMOVE, 0);
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1849,7 +1953,7 @@ void roadmap_screen_move_right (void) {
 void roadmap_screen_move_left (void) {
 
    roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1859,7 +1963,7 @@ void roadmap_screen_zoom_in  (void) {
     roadmap_math_zoom_in ();
 
     roadmap_layer_adjust ();
-    RoadMapScreenRepaintNeeded = 1;
+    roadmap_screen_request_repaint();
     roadmap_screen_refresh ();
 }
 
@@ -1869,7 +1973,7 @@ void roadmap_screen_zoom_out (void) {
     roadmap_math_zoom_out ();
 
     roadmap_layer_adjust ();
-    RoadMapScreenRepaintNeeded = 1;
+    roadmap_screen_request_repaint();
     roadmap_screen_refresh ();
 }
 
@@ -1879,7 +1983,7 @@ void roadmap_screen_zoom_reset (void) {
    roadmap_math_zoom_reset ();
 
    roadmap_layer_adjust ();
-   RoadMapScreenRepaintNeeded = 1;
+   roadmap_screen_request_repaint();
    roadmap_screen_refresh ();
 }
 
@@ -1978,7 +2082,7 @@ void roadmap_screen_initialize (void) {
    roadmap_state_add ("view_mode", &roadmap_screen_get_view_mode);
    roadmap_state_add ("get_orientation",
             &roadmap_screen_get_orientation_mode);
-   roadmap_state_monitor (&roadmap_screen_repaint);
+   roadmap_state_monitor (&roadmap_screen_request_repaint);
 }
 
 

@@ -36,7 +36,8 @@ NO_MOC_RMLIBSRCS = \
 	qt_fileselection.cc \
 	roadmap_fileselection.cc \
 	roadmap_dialog.cc \
-	roadmap_messagebox.cc
+	roadmap_messagebox.cc \
+	roadmap_progress.cc
 
 SOURCE = $(MOC_RMLIBSRCS) $(NO_MOC_RMLIBSRCS)
 

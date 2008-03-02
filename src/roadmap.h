@@ -99,5 +99,12 @@ void roadmap_check_allocated_with_source_line
 
 typedef void (* RoadMapCallback) (void);
 
+typedef enum {
+    ROADMAP_CURSOR_NORMAL,
+    ROADMAP_CURSOR_CROSS,
+    ROADMAP_CURSOR_WAIT,
+    ROADMAP_CURSOR_WAIT_WITH_DELAY
+} RoadMapCursor;
+
 #endif // INCLUDE__ROADMAP__H
 

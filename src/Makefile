@@ -267,6 +267,7 @@ RMHEADERS = \
 	roadmap_pointer.h \
 	roadmap_polygon.h \
 	roadmap_preferences.h \
+	roadmap_progress.h \
 	roadmap_scan.h \
 	roadmap_screen.h \
 	roadmap_screen_obj.h \

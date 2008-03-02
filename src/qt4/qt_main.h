@@ -41,6 +41,7 @@
 #include <qevent.h>
 #include <qicon.h>
 #include <qsocketnotifier.h>
+#include <qeventloop.h>
 
 #define ROADMAP_MAX_TIMER 16
 

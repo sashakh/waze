@@ -466,23 +466,10 @@ void roadmap_main_add_tool_space (void) {
    gtk_toolbar_append_space (GTK_TOOLBAR(RoadMapMainToolbar));
 }
 
-static unsigned long roadmap_main_busy_start;
 
-void roadmap_main_set_cursor (int newcursor) {
+void roadmap_main_set_cursor (RoadMapCursor newcursor) {
+
    GdkCursor *cursor = NULL;
-   static int lastcursor;
-
-   roadmap_main_busy_start = 0;
-
-   if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
-      roadmap_main_busy_start = roadmap_time_get_millis();
-      return;
-   }
-
-   if (newcursor == lastcursor)
-      return;
-
-   lastcursor = newcursor;
 
    switch (newcursor) {
 
@@ -497,6 +484,9 @@ void roadmap_main_set_cursor (int newcursor) {
    case ROADMAP_CURSOR_CROSS:
       cursor = gdk_cursor_new(GDK_CROSSHAIR);
       break;
+
+   case ROADMAP_CURSOR_WAIT_WITH_DELAY:
+      return;  /* shouldn't happen */
    }
 
    gdk_window_set_cursor(RoadMapMainWindow->window, cursor);
@@ -505,16 +495,6 @@ void roadmap_main_set_cursor (int newcursor) {
       gdk_cursor_destroy(cursor);
    }
    gdk_flush();
-}
-
-void roadmap_main_busy_check(void) {
-
-   if (roadmap_main_busy_start == 0)
-      return;
-
-   if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
-      roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
-   }
 }
 
 void roadmap_main_add_canvas (void) {
@@ -640,6 +620,27 @@ void roadmap_main_remove_periodic (RoadMapCallback callback) {
    }
 }
 
+static RoadMapCallback idle_callback;
+static int idle_handler_id;
+
+static int roadmap_main_set_idle_function_helper (void *data) {
+    if (idle_callback) idle_callback();
+    return 0;
+}
+
+void roadmap_main_set_idle_function (RoadMapCallback callback) {
+
+   idle_callback = callback;
+   idle_handler_id = g_idle_add (roadmap_main_set_idle_function_helper, 0);
+
+}
+
+void roadmap_main_remove_idle_function (void) {
+
+   g_source_remove (idle_handler_id);
+
+}
+
 
 void roadmap_main_set_status (const char *text) {
 
@@ -649,13 +650,16 @@ void roadmap_main_set_status (const char *text) {
 }
 
 
-void roadmap_main_flush (void) {
+int roadmap_main_flush (void) {
 
+   int hadevent;
    while (gtk_events_pending ()) {
+      hadevent = 1;
       if (gtk_main_iteration ()) {
          exit(0);  /* gtk_main_quit() called */
       }
    }
+   return hadevent;
 }
 
 
@@ -665,11 +669,8 @@ int roadmap_main_flush_synchronous (int deadline) {
 
    start_time = roadmap_time_get_millis();
 
-   while (gtk_events_pending ()) {
-      if (gtk_main_iteration ()) {
-         exit(0);  /* gtk_main_quit() called */
-      }
-   }
+   roadmap_main_flush();
+
    gdk_flush();
 
    duration = roadmap_time_get_millis() - start_time;

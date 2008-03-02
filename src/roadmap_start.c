@@ -298,12 +298,12 @@ static void roadmap_start_toggle_download (void) {
          ProtocolInitialized = 1;
       }
 
-      roadmap_download_subscribe_when_done (roadmap_screen_redraw);
+      roadmap_download_subscribe_when_done (roadmap_screen_request_repaint);
       roadmap_locator_declare_downloader (roadmap_download_get_county);
       roadmap_download_unblock_all ();
    }
 
-   roadmap_screen_redraw ();
+   roadmap_screen_request_repaint ();
 }
 
 
@@ -1022,18 +1022,12 @@ void roadmap_start_fatal (const char *text) {
 
 static void roadmap_start_periodic (void) {
 
-
    roadmap_spawn_check ();
 
    if (RoadMapStartGpsRefresh) {
-
-      if (roadmap_main_flush_synchronous (ROADMAP_DEFAULT_REFRESH_INTERVAL)) {
-
-         RoadMapStartGpsRefresh = 0;
-
-         roadmap_screen_refresh();
-         roadmap_log_reset_stack ();
-      }
+        RoadMapStartGpsRefresh = 0;
+        roadmap_screen_refresh();
+        roadmap_log_reset_stack ();
    }
 }
 
@@ -1161,6 +1155,7 @@ char * roadmap_start_now() {
    return roadmap_time_get_hours_minutes (time(NULL));
 
 }
+
 
 void roadmap_start (int argc, char **argv) {
 
@@ -1292,6 +1287,8 @@ void roadmap_start (int argc, char **argv) {
       period = ROADMAP_DEFAULT_REFRESH_INTERVAL;
    }
    roadmap_main_set_periodic (period, roadmap_start_periodic);
+
+   roadmap_screen_request_repaint ();
 }
 
 
