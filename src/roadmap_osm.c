@@ -258,35 +258,28 @@ static void roadmap_osm_add_tile_to_list(int tileid) {
     roadmap_osm_tilelist[roadmap_osm_tilelist_len-1] = -tileid;
 }
 
-// FIXME -- need to make this array accessible, so it can be
-// reset either manually, or when we somehow know new maps are
-// availalble.
-const char *bits_path_exists[32];
+// FIXME -- need to make these accessible, so they can be
+// reset manually, or when we somehow know new maps are available.
+static int roadmap_osm_maps_available = -1;
+static int roadmap_osm_maps_biggest, roadmap_osm_maps_smallest;
+static const char *roadmap_osm_bits_paths[32];
 
 /* we want to add a tile, but if it doesn't exist, we want to see
  * if its children exist, so we can add them instead.
  */
 static void roadmap_osm_add_if_exists(int tileid) {
 
-    const char *path;
     int i;
     int bits;
     
     bits = tileid2bits(tileid);
 
-    if (!bits_path_exists[bits]) {
-        char bitsdir[16];
-        sprintf(bitsdir, "qt%d", bits);
-	path = roadmap_scan ("maps", bitsdir);
-        bits_path_exists[bits] = path ? path : "";
-    }
-
-    if (*bits_path_exists[bits] != '\0' &&
-        roadmap_file_exists (bits_path_exists[bits],
+    if (roadmap_osm_bits_paths[bits] &&
+        roadmap_file_exists (roadmap_osm_bits_paths[bits],
 		roadmap_osm_filename(NULL, 1, tileid))) {
         roadmap_osm_add_tile_to_list(tileid);
     } else {
-        if (bits < TILE_MAXBITS) {
+        if (bits < roadmap_osm_maps_smallest) {
             int children[2];
             roadmap_osm_tilesplit(tileid, children, 1);
             for (i = 0; i < 2; i++) {
@@ -309,11 +302,33 @@ int roadmap_osm_by_position
 
     if (RoadMapOSMBits <= 0) return in_count;  /* master shutoff */
 
+    if (roadmap_osm_maps_available < 0) {
+	char bitsdir[16];
+	 const char *path;
+	int bits;
+
+	roadmap_osm_maps_available = 0;
+	for (bits = RoadMapOSMBits; bits < TILE_MAXBITS; bits++) {
+	    sprintf(bitsdir, "qt%d", bits);
+	    path = roadmap_scan ("maps", bitsdir);
+	    if (path) {
+		if (!roadmap_osm_maps_biggest)
+		    roadmap_osm_maps_biggest = bits;
+		roadmap_osm_maps_smallest = bits;
+		roadmap_osm_bits_paths[bits] = path;
+		roadmap_osm_maps_available = 1;
+	    }
+	}
+    }
+
+    if ( !roadmap_osm_maps_available )
+	return in_count;
+
     roadmap_osm_tilelist_len = in_count;
     roadmap_osm_tilelist = *fips;
 
     tileid = roadmap_osm_latlon2tileid
-            (position->latitude, position->longitude, RoadMapOSMBits);
+            (position->latitude, position->longitude, roadmap_osm_maps_biggest);
     roadmap_osm_add_if_exists(tileid);
 
     width = 1;
