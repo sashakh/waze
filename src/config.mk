@@ -3,7 +3,11 @@
 #
 # This file controls how RoadMap gets built.  Try and keep your
 # customizations here.  You can override these settings from the
-# commandline if you wish, e.g. "make MODE=DEBUG".
+# commandline if you wish, e.g. "make MODE=DEBUG", or, perhaps better,
+# from $(EXTERNAL_CONF)/overrides.mk.  (EXTERNAL_CONF defaults to the
+# top-level directory.  overrides.mk is not a distributed file -- so
+# if you create your own, it will not be replaced when you upgrade
+# to new source (from CVS, for example).
 
 # GNU make is probably required to build RoadMap.
 
@@ -136,3 +140,10 @@ MODE =		# blank for "normal" build
 # add those here as well.  For example:
 # LIBS += -L/home/me/mylibdir -lmine
 
+# see if there's more configuration in $(TOP)/overrides.mk, or, if
+# invoked as "EXTERNAL_CONF=/somewhere/else make -C /path/to/roadmap/src",
+# then in that location instead.
+ifeq ($(origin EXTERNAL_CONF), undefined)
+ EXTERNAL_CONF = $(TOP)
+endif
+-include $(EXTERNAL_CONF)/overrides.mk
