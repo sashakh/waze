@@ -6,9 +6,38 @@
 
 Roadmap v1.1.1 (??)
 
+ This list is current as of 3/17/2008, created with the help of
+
+----
+   cvs2cl.pl -l "-rv1_1_0::HEAD"
+----
+
  Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
 
-[ list current as of 1/2/2008, courtesy 'cvs2cl.pl -l "-rv1_1_0::HEAD"' ]
+
+  * Make the screen much more responsive when lengthy rendering is in
+  progress.  User "type-ahead" can now interrupt rendering.
+
+  * Added a progress bar to show expected duration of lengthy repaints.
+
+  * Small optimizations to how often the screen is refreshed.
+
+  * New support for "overrides.mk" file allows build preferences to be
+  specified without editing any distributed files.
+
+  * New "--icons" command-line argument to accompany "--config" and
+  "--maps".  If specified, the values of "--icons" and "--config" are
+  passed to roadgps when it is started, so that it can find its config and
+  icons in the same places.
+
+  * Modify what what focus is saved on shutdown -- if the focus
+  is GPS, then preserve it, otherwise, "hold" the screen at the
+  current center, and preserve that. 
+
+  * New key bindings, for full-screen toggle (F11) and to handle the
+  special keys on the XO (OLPC) laptop.
+
+  * Fixed problems resulting when flite not installed.
   
   * Initial localization support, ported from editor branch by
   Alessandro Briosi. (*)
