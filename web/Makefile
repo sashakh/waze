@@ -58,7 +58,7 @@ SITESOURCE = $(SCREENSHOTS) $(APT_WEBDOCS) $(PAGES) $(SUPPORT)
 all: webdoc
 
 
-SITESOURCE_COPIED = $(addprefix .copied-, $(SITESOURCE))
+SITESOURCE_COPIED = $(addprefix .copied$(SF)-, $(SITESOURCE))
 install: all $(SITESOURCE_COPIED)
 
 
@@ -74,7 +74,7 @@ endif
 # copy the html, and touch a local flag file.  before copying,
 # locally expand our SSI #include directive.  this removes the
 # need for SSI on the host site (which may require .shtml extension).
-.copied-%.html : %.html
+.copied$(SF)-%.html : %.html
 	sed -e '/include virtual="navbar.html"/r navbar.html' \
 	    -e '/include virtual="navbar.html"/d' \
 	    -e '/INCLUDE_SITE_SPONSOR_HERE/r sitesponsor.html' \
@@ -84,7 +84,7 @@ endif
 	rm -f foo.html
 	touch $@
 
-.copied-% : %
+.copied$(SF)-% : %
 	scp $< $(OUR_SITE_ACCESS)/$<
 	touch $@
 
@@ -160,9 +160,9 @@ favicon.ico:
 
 
 clean: clean-webdoc
-	rm -f .copied-*
+	rm -f .copied*
 
 
 clean-html:
-	rm -f .copied-*.html
-	rm -f .copied-*.css
+	rm -f .copied*.html
+	rm -f .copied*.css
