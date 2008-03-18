@@ -426,6 +426,7 @@ int roadmap_label_draw_cache (int angles) {
 
          if (!cPtr->text) {
 
+	    roadmap_plugin_activate_db (&cPtr->line);
             roadmap_plugin_get_street_properties (&cPtr->line, &properties);
 
             if (!properties.street || !*properties.street) {
