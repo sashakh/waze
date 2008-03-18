@@ -861,11 +861,20 @@ USING ROADMAP
       configuration data.  While this will usually just be a simple
       directory path, it can actually be a comma-separated list of paths
       from which RoadMap should load its config.  User directories
-      (usually "~/.roadmap" will still be processed as usual.
+      (usually "~/.roadmap") will still be processed as usual.  If specified,
+      this option will also be passed to roadgps when invoked via roadmap.
+
+   [--maps=<PATH>] Replace the built-in search path for maps.  While this will
+      usually just be a simple directory path, it can actually be a
+      comma-separated list of paths, and may include the "/..." trailer to
+      extend the search downward.  See the DIRECTORIES section.
+
+   [--icons=<PATH>] Replace the built-in search path for icons.  If specified,
+      this option will also be passed to roadgps when invoked via roadmap.
 
    [--location=<LONGITUDE,LATITUDE>] Set the location point (see menu entry
-       "Show Location.."). This option is sticky (preference item
-       Locations.Location=<LONGITUDE,LATITUDE>).
+      "Show Location.."). This option is sticky (preference item
+      Locations.Location=<LONGITUDE,LATITUDE>).
 
    [--metric] Use the metric system for all units. This option is sticky
       (preference item General.Unit = "metric").
