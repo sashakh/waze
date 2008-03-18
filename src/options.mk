@@ -111,7 +111,9 @@ ifeq ($(strip $(LANGS)),YES)
 endif
 
 ifeq ($(strip $(MODE)),DEBUG)
-	# Memory leak detection using mtrace:
+	CFLAGS += -g
+
+	# ROADMAP_MTRACE turns on leak detection using mtrace:
 	# Do not forget to set the trace file using the env. 
 	# variable MALLOC_TRACE, then use the mtrace tool to
 	# analyze the output.
@@ -120,13 +122,21 @@ ifeq ($(strip $(MODE)),DEBUG)
 	#  is "valgrind", which needs no special compilation --
 	#  it works by replacing shared libraries.)
 	#
-	CFLAGS += -g -DROADMAP_DEBUG_HEAP -DROADMAP_LISTS_TYPESAFE
+	CFLAGS += -DROADMAP_MTRACE
+
+	# ROADMAP_LISTS_TYPESAFE forces "type safety" for the
+	# list manipulation code, which can help catch bugs earlier.
+	CFLAGS += -DROADMAP_LISTS_TYPESAFE
+
+	# ROADMAP_INDEX_DEBUG does some sanity checking on various
+	# table indices before using them.
+	CFLAGS += -DROADMAP_INDEX_DEBUG
 else
 ifeq ($(strip $(MODE)),PROFILE)
 	CFLAGS += -g -pg -fprofile-arcs -g
 	LIBS += -pg
 else
-	CFLAGS += -O2 -ffast-math -fomit-frame-pointer
+	CFLAGS += -O2 -ffast-math -fomit-frame-pointer -DNDEBUG
 endif
 endif
 
@@ -220,7 +230,7 @@ else
 endif
 
 
-CFLAGS += -I$(TOP) -I/usr/local/include -DNDEBUG
+CFLAGS += -I$(TOP) -I/usr/local/include
 
 LIBS := -L/usr/local/lib $(LIBS) -lm
 

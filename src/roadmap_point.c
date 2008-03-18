@@ -217,7 +217,7 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
    RoadMapPoint *Point;
 
 
-#ifdef DEBUG
+#ifdef ROADMAP_INDEX_DEBUG
    if (point < 0 || point >= RoadMapPointActive->PointCount) {
       roadmap_log (ROADMAP_FATAL, "invalid point index %d", point);
    }

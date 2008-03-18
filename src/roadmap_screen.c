@@ -1438,7 +1438,7 @@ static void roadmap_screen_repaint (void) {
 
         if (roadmap_locator_activate (fipslist[i]) != ROADMAP_US_OK) continue;
 
-#ifdef DEBUG
+#if 0
         /* mark each OSM tile location with its tileid -- the
          * edges will be its true bounding box -- the label will
          * be at its purported center.

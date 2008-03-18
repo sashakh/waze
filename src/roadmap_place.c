@@ -170,7 +170,7 @@ int roadmap_place_in_square (int square, int layer, int *first, int *last) {
 
 void roadmap_place_point   (int place, RoadMapPosition *position) {
 
-#ifdef DEBUG
+#ifdef ROADMAP_INDEX_DEBUG
    if (place < 0 || place >= RoadMapPlaceActive->PlaceCount) {
       roadmap_log (ROADMAP_FATAL, "illegal place index %d", place);
    }

@@ -1154,7 +1154,7 @@ int roadmap_math_set_orientation (int direction) {
    }
 
    roadmap_math_release_focus ();
-#ifdef DEBUG
+#if 0
 roadmap_log (ROADMAP_DEBUG, "visibility: north=%d south=%d east=%d west=%d\n",
         RoadMapContext.current_screen.north,
         RoadMapContext.current_screen.south,
@@ -1264,7 +1264,7 @@ int roadmap_math_azymuth
         result = 0;
     }
     
-#ifdef DEBUG
+#if 0
     roadmap_log (ROADMAP_DEBUG,
                     "azymuth for (x=%f, y=%f): %d",
                     x, y, result);

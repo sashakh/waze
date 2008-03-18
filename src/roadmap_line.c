@@ -279,7 +279,7 @@ int roadmap_line_get_from_index2 (int index) {
 
 void roadmap_line_from (int line, RoadMapPosition *position) {
 
-#ifdef DEBUG
+#ifdef ROADMAP_INDEX_DEBUG
    if (line < 0 || line >= RoadMapLineActive->LineCount) {
       roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
    }
@@ -290,7 +290,7 @@ void roadmap_line_from (int line, RoadMapPosition *position) {
 
 void roadmap_line_to   (int line, RoadMapPosition *position) {
 
-#ifdef DEBUG
+#ifdef ROADMAP_INDEX_DEBUG
    if (line < 0 || line >= RoadMapLineActive->LineCount) {
       roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
    }
@@ -351,7 +351,7 @@ int roadmap_line_length (int line) {
 
 void roadmap_line_points (int line, int *from, int *to) {
 
-#ifdef DEBUG
+#ifdef ROADMAP_INDEX_DEBUG
    if (line < 0 || line >= RoadMapLineActive->LineCount) {
       roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
    }

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef ROADMAP_DEBUG_HEAP
+#ifdef ROADMAP_MTRACE
 #include <mcheck.h>
 #endif
 
@@ -224,7 +224,7 @@ void roadmap_start_exit (void) {
 
 void roadmap_start (int argc, char **argv) {
 
-#ifdef ROADMAP_DEBUG_HEAP
+#ifdef ROADMAP_MTRACE
    // Do not forget to set the trace file using the env. variable MALLOC_TRACE.
    mtrace();
 #endif
