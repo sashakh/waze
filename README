@@ -2295,6 +2295,16 @@ CONFIGURATION
          <<Comment:>> the hardcoded default includes the usual linux system
                       pixmap directories used for storing application icons.
 
+    [General.Progress Bar] Enable/disable a progress bar during refresh.
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+         <<Comment:>> when displaying maps that cover a large area, or on
+                      a slow computer, it may be helpful to have an on-screen
+                      indication of how long the refresh will take.
+
     [General.Toolbar] Show (yes) or hide (no) the roadmap toolbar.
 
          <<Format:>> boolean

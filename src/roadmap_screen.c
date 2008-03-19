@@ -106,6 +106,10 @@ static RoadMapConfigDescriptor RoadMapConfigMapDynamicOrientation =
 static RoadMapConfigDescriptor RoadMapConfigLinefontSelector =
                         ROADMAP_CONFIG_ITEM("Map", "Use Linefont");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralProgressBar =
+                        ROADMAP_CONFIG_ITEM("General", "Progress Bar");
+
+
 static int RoadMapScreenInitialized = 0;
 static int RoadMapScreenFrozen = 0;
 static int RoadMapScreenDragging = 0;
@@ -198,11 +202,16 @@ static int roadmap_screen_progbar;
 
 static void roadmap_screen_start_progress () {
 
-      roadmap_screen_progress_start = roadmap_time_get_millis();
-      if (roadmap_screen_progbar) {
-         roadmap_progress_update (roadmap_screen_progbar, 1, 0);
-         roadmap_main_flush ();
-      }
+    if (roadmap_config_match (&RoadMapConfigGeneralProgressBar, "yes")) {
+       roadmap_screen_progress_start = roadmap_time_get_millis();
+    } else {
+       roadmap_screen_progress_start = 0;
+    }
+
+    if (roadmap_screen_progbar) {
+       roadmap_progress_update (roadmap_screen_progbar, 1, 0);
+       roadmap_main_flush ();
+    }
 }
 
 void roadmap_screen_set_cursor (RoadMapCursor newcursor) {
@@ -230,7 +239,7 @@ int roadmap_screen_busy_check(int total, int completed) {
 
    static int last_completed;
 
-   if (completed != last_completed) {
+   if (roadmap_screen_progress_start && completed != last_completed) {
       if (completed == total) {
          if (roadmap_screen_progbar)
             roadmap_progress_close(roadmap_screen_progbar);
@@ -2056,6 +2065,9 @@ void roadmap_screen_initialize (void) {
    roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigLinefontSelector,
             "off", "labels", "signs", "all", NULL);
+
+   roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigGeneralProgressBar, "yes", "no", NULL);
 
 
 
