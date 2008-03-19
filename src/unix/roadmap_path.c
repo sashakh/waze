@@ -77,7 +77,7 @@ static const char *RoadMapPathUser[] = {
    "~/.roadmap",
    NULL
 };
-static const char *RoadMapPathUserPreferred = "~/.roadmap";
+static const char RoadMapPathUserPreferred[] = "~/.roadmap";
 
 
 /* The hardcoded path for configuration files (the "config" path).
@@ -101,7 +101,7 @@ static const char *RoadMapPathConfig[] = {
 #endif
    NULL
 };
-static const char *RoadMapPathConfigPreferred =
+static const char RoadMapPathConfigPreferred[] =
 #ifdef ROADMAP_CONFIG_DIR
                         ROADMAP_CONFIG_DIR;
 #else
@@ -137,7 +137,7 @@ static const char *RoadMapPathMaps[] = {
 #endif
    NULL
 };
-static const char *RoadMapPathMapsPreferred =
+static const char RoadMapPathMapsPreferred[] =
 #ifdef ROADMAP_MAP_DIR
                         ROADMAP_MAP_DIR;
 #else
@@ -163,8 +163,8 @@ static const char *RoadMapPathIcons[] = {
 static char *roadmap_path_expand (const char *item, size_t length);
 static void roadmap_path_addlist(RoadMapList *list, char *path);
 
-static void roadmap_path_list_create(const char *name,
-                                     const char *items[],
+static RoadMapPathList roadmap_path_list_create(const char *name,
+                                     const char **items,
                                      const char *preferred) {
 
 
@@ -189,35 +189,44 @@ static void roadmap_path_list_create(const char *name,
    }
 
    RoadMapPaths = new_path;
+
+   return new_path;
 }
 
-static RoadMapPathList roadmap_path_find (const char *name) {
+struct {
+    char *name;
+    const char **pathlist;
+    const char *pathpreferred;
+} RoadMapPathLists[] = {
+      {"user",      RoadMapPathUser,    RoadMapPathUserPreferred },
+      {"config",    RoadMapPathConfig,  RoadMapPathConfigPreferred },
+      {"maps",      RoadMapPathMaps,    RoadMapPathMapsPreferred },
+      {"icons",     RoadMapPathIcons,   NULL},
+      {"features",  NULL,               NULL},
+};
+
+static RoadMapPathList roadmap_path_find (const char *name, int init_ok) {
 
    RoadMapPathList cursor;
 
-   if (RoadMapPaths == NULL) {
-
-      /* Add the hardcoded configuration. */
-
-      roadmap_path_list_create ("user",   RoadMapPathUser,
-                                          RoadMapPathUserPreferred);
-
-      roadmap_path_list_create ("config", RoadMapPathConfig,
-                                          RoadMapPathConfigPreferred);
-
-      roadmap_path_list_create ("maps",   RoadMapPathMaps,
-                                          RoadMapPathMapsPreferred);
-
-      roadmap_path_list_create ("icons",  RoadMapPathIcons,
-                                          NULL);
-
-      roadmap_path_list_create ("features",    NULL, NULL);
-   }
-
    for (cursor = RoadMapPaths; cursor != NULL; cursor = cursor->next) {
-      if (strcasecmp(cursor->name, name) == 0) break;
+      if (strcasecmp(cursor->name, name) == 0)
+          return cursor;
    }
-   return cursor;
+
+   if (init_ok) {  /* not found, try to create it */
+        unsigned int i;
+        for (i = 0;
+            i < sizeof(RoadMapPathLists)/sizeof(RoadMapPathLists[0]); i++) {
+            if (strcmp(name, RoadMapPathLists[i].name) == 0) {
+                return roadmap_path_list_create
+                        (name, RoadMapPathLists[i].pathlist,
+                            RoadMapPathLists[i].pathpreferred);
+            }
+        }
+   }
+
+   return NULL;
 }
 
 
@@ -414,27 +423,26 @@ void roadmap_path_set (const char *name, const char *path) {
    const char *next_item;
    RoadMapListItem *elem, *tmp;
 
-   RoadMapPathList path_list = roadmap_path_find (name);
-
-
-   if (path_list == NULL) {
-      roadmap_log(ROADMAP_FATAL, "unknown path set '%s'", name);
-   }
-
    while (*path == ',') path += 1;
    if (*path == 0) return; /* Ignore empty path: current is better. */
 
-
-   /* free any current contents */
-   ROADMAP_LIST_FOR_EACH(&path_list->itemlist, elem, tmp) {
-      free (((RoadMapPathItem *)elem)->path);
-      free (roadmap_list_remove(elem));
+   RoadMapPathList path_list = roadmap_path_find (name, 0);
+   if (path_list == NULL) {
+       path_list = roadmap_path_list_create(name, NULL, NULL);
+       if (path_list == NULL) {
+          roadmap_log (ROADMAP_FATAL, "invalid path set '%s'", name);
+       }
+   } else {
+       /* free any current contents */
+       ROADMAP_LIST_FOR_EACH(&path_list->itemlist, elem, tmp) {
+          free (((RoadMapPathItem *)elem)->path);
+          free (roadmap_list_remove(elem));
+       }
    }
 
    /* Extract and expand each item of the path.
     */
-   for (
-    item = path; item != NULL; item = next_item) {
+   for (item = path; item != NULL; item = next_item) {
 
       char *p;
       next_item = strchr (item, ',');
@@ -457,7 +465,7 @@ void roadmap_path_set (const char *name, const char *path) {
 
 const char *roadmap_path_first (const char *name) {
 
-   RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathList path_list = roadmap_path_find (name, 1);
    RoadMapPathItem *pi;
 
    if (path_list == NULL) {
@@ -474,7 +482,7 @@ const char *roadmap_path_first (const char *name) {
 
 const char *roadmap_path_next  (const char *name, const char *current) {
 
-   RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathList path_list = roadmap_path_find (name, 1);
    RoadMapPathItem *pi;
    RoadMapListItem *elem, *tmp;
 
@@ -493,7 +501,7 @@ const char *roadmap_path_next  (const char *name, const char *current) {
 
 const char *roadmap_path_last (const char *name) {
 
-   RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathList path_list = roadmap_path_find (name, 1);
    RoadMapPathItem *pi;
 
    if (path_list == NULL) {
@@ -511,7 +519,7 @@ const char *roadmap_path_last (const char *name) {
 
 const char *roadmap_path_previous (const char *name, const char *current) {
 
-   RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathList path_list = roadmap_path_find (name, 1);
    RoadMapPathItem *pi;
    RoadMapListItem *elem, *tmp;
 
@@ -534,7 +542,7 @@ const char *roadmap_path_previous (const char *name, const char *current) {
  */
 const char *roadmap_path_preferred (const char *name) {
 
-   RoadMapPathList path_list = roadmap_path_find (name);
+   RoadMapPathList path_list = roadmap_path_find (name, 1);
 
    if (path_list == NULL) {
       roadmap_log (ROADMAP_FATAL, "invalid path set '%s'", name);
