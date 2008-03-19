@@ -1,5 +1,6 @@
 /*
- * Yattm
+ * RoadMap's progress bar implementation.  GTK version originally
+ * from "Yattm", by Torrey Searle
  *
  * Copyright (C) 1999, Torrey Searle <tsearle@uci.edu>
  *
@@ -19,8 +20,8 @@
  *
  */
 
-#ifndef __PROGRESS_WINDOW_H__
-#define __PROGRESS_WINDOW_H__
+#ifndef INCLUDED__ROADMAP_PROGRESS__H
+#define INCLUDED__ROADMAP_PROGRESS__H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,4 +36,4 @@ void roadmap_progress_close(int tag);
 } /* extern "C" */
 #endif
 
-#endif
+#endif // INCLUDED__ROADMAP_PROGRESS__H
