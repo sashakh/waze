@@ -312,7 +312,7 @@ void roadmap_config_declare_enumeration (const char *config,
 
 void roadmap_config_append_to_enumeration (const char *config,
                                    RoadMapConfigDescriptor *descriptor,
-				   const char *enumeration_value) {
+                                   const char *enumeration_value) {
    RoadMapConfigItem *item = roadmap_config_retrieve (descriptor);
    RoadMapConfigEnum *next;
    RoadMapConfigEnum *enumerated;
@@ -560,8 +560,12 @@ static int roadmap_config_load_file
 
         if (fgets (line, sizeof(line), file) == NULL) break;
 
-        category =
-            roadmap_config_extract_data (line, sizeof(line));
+        p = &line[strlen(line)];
+        while (p > line && (*--p == '\n' || *p == '\r')) *p = '\0';
+        if (!line[0]) continue;
+
+
+        category = roadmap_config_extract_data (line, sizeof(line));
 
         if (category == NULL) continue;
 
@@ -684,10 +688,7 @@ char *roadmap_config_extract_data (char *line, int size) {
     
     line = roadmap_config_skip_spaces (line);
 
-    if (*line == '\n' || *line == '#') return NULL;
-        
-    p = strchr (line, '\n');
-    if (p != NULL) *p = 0;
+    if (*line == '#' || *line == '\0') return NULL;
         
     return line;
 }
