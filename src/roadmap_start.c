@@ -164,12 +164,12 @@ static void roadmap_start_console (void) {
       l -= n;
    }
    if (config) {
-      n = snprintf (s, l, "--config=%s", config);
+      n = snprintf (s, l, " --config=%s", config);
       s += n;
       l -= n;
    }
    if (icons) {
-      n = snprintf (s, l, "--icons=%s", config);
+      n = snprintf (s, l, " --icons=%s", config);
       s += n;
       l -= n;
    }
