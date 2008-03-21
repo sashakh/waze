@@ -682,8 +682,6 @@ static void roadmap_config_update (RoadMapConfig *config, int force) {
 
 char *roadmap_config_extract_data (char *line, int size) {
     
-    char *p;
-    
     line[size-1] = 0;
     
     line = roadmap_config_skip_spaces (line);
