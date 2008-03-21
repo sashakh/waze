@@ -119,13 +119,14 @@ void roadmap_canvas_erase (void) {
 }
 
 void roadmap_canvas_draw_string(RoadMapGuiPoint *position, int corner,
+   int size,
    const char *text) {
 
    roadMapCanvas->drawString(position, corner, text);
 }
 
 void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
-                                       RoadMapGuiPoint *center,
+                                       int size,
                                        int angle, const char *text)
 {
    roadMapCanvas->drawStringAngle(position, 0, text, angle);

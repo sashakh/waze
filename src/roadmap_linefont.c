@@ -257,8 +257,8 @@ void roadmap_linefont_extents
         }
     }
     *width = scale * len / 1024;
-    *ascent = scale * (hf->maxy - hf->miny)/ 1024;
-    *descent = 0;   /* hershey gives no info re: "baseline" */
+    *ascent = 0;   /* hershey baseline is at top of text */
+    *descent = scale * (hf->maxy - hf->miny)/ 1024;
 
     if (can_tilt) *can_tilt = 1;
 
@@ -266,9 +266,9 @@ void roadmap_linefont_extents
 
 
 /* render a string to the screen ... */
-void roadmap_linefont_text_angle_worker
+void roadmap_linefont_text_worker
     ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
-        int theta, int size, const char *text) {
+        int size, int theta, const char *text) {
 
     RoadMapGuiPoint *p, points[MAXPOINTS];
     int i, xp, yp, count;
@@ -337,11 +337,12 @@ void roadmap_linefont_text_angle_worker
 }
 
 void roadmap_linefont_text_angle
-    ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
-        int theta, int size, const char *text) {
+    ( RoadMapGuiPoint *center,
+        int size, int theta, const char *text) {
     int text_width;
     int text_ascent;
     int text_descent;
+    RoadMapGuiPoint start[1];
 
     roadmap_linefont_extents
         (text, size, &text_width, &text_ascent, &text_descent, NULL);
@@ -349,35 +350,34 @@ void roadmap_linefont_text_angle
     start->x = center->x - text_width/2;
     start->y = center->y - (text_ascent + text_descent);
 
-    roadmap_linefont_text_angle_worker (start, center, theta, size, text);
+    roadmap_linefont_text_worker (start, center, size, theta, text);
 }
 
 void roadmap_linefont_text
-        ( RoadMapGuiPoint *position, int where, int size, const char *text) {
+        ( RoadMapGuiPoint *position, int corner, int size, const char *text) {
     int text_width;
     int text_ascent;
     int text_descent;
-    int text_height;
     RoadMapGuiPoint start[1];
 
     roadmap_linefont_extents
         (text, size, &text_width, &text_ascent, &text_descent, NULL);
 
-    text_height = text_ascent + text_descent;
+   start->x = position->x;
+   start->y = position->y;
+   if (corner & ROADMAP_CANVAS_RIGHT)
+      start->x -= text_width;
+   else if (corner & ROADMAP_CANVAS_CENTER_X)
+      start->x -= text_width / 2;
 
-    start->x = position->x + 1;
-    start->y = position->y;
-    if (where & ROADMAP_CANVAS_RIGHT)
-        start->x -= text_width;
-    else if (where & ROADMAP_CANVAS_CENTER_X)
-        start->x -= text_width / 2;
+   if (corner & ROADMAP_CANVAS_BOTTOM)
+      start->y -= text_descent;
+   else if (corner & ROADMAP_CANVAS_CENTER_Y)
+      start->y -= text_descent + ((text_descent + text_ascent) / 2);
+   else /* TOP */
+      start->y += text_ascent;
 
-    if (where & ROADMAP_CANVAS_BOTTOM)
-        start->y -= text_height;
-    else if (where & ROADMAP_CANVAS_CENTER_Y)
-        start->y -= (text_height / 2);
-
-   roadmap_linefont_text_angle_worker (start, position, 0, size, text);
+   roadmap_linefont_text_worker (start, position, size, 0, text);
 }
 
 

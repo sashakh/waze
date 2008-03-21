@@ -2002,18 +2002,20 @@ void roadmap_screen_text
     if ((RoadMapLineFontSelect & id) != 0) {
         roadmap_linefont_text ( center, where, size, text);
     } else {
-        roadmap_canvas_draw_string ( center, where, text);
+        roadmap_canvas_draw_string ( center, where, size, text);
     }
 }
+
 void roadmap_screen_text_angle 
-        (int id, RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        (int id, RoadMapGuiPoint *center,
                 int theta, int size, const char *text) {
     if ((RoadMapLineFontSelect & id) != 0) {
-        roadmap_linefont_text_angle ( start, center, theta, size, text);
+        roadmap_linefont_text_angle ( center, size, theta, text);
     } else {
-        roadmap_canvas_draw_string_angle ( start, center, theta, text);
+        roadmap_canvas_draw_string_angle ( center, size, theta, text);
     }
 }
+
 void roadmap_screen_text_extents 
         (int id, const char *text, int size,
          int *width, int *ascent, int *descent, int *can_tilt) {
@@ -2022,7 +2024,7 @@ void roadmap_screen_text_extents
                 (text, size, width, ascent, descent, can_tilt);
     } else {
         roadmap_canvas_get_text_extents
-                (text, -1, width, ascent, descent, can_tilt);
+                (text, size, width, ascent, descent, can_tilt);
     }
 }
 

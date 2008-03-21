@@ -29,20 +29,5 @@ void roadmap_linefont_text
         ( RoadMapGuiPoint *center, int where, int size, const char *text);
 
 void roadmap_linefont_text_angle
-        ( RoadMapGuiPoint *start, RoadMapGuiPoint *center,
-                int theta, int size, const char *text);
-
-/* reuse roadmap canvas values, so callers won't care which text functions
- * are actually eventually called */
-#define ROADMAP_LINEFONT_LEFT     ROADMAP_CANVAS_LEFT
-#define ROADMAP_LINEFONT_RIGHT    ROADMAP_CANVAS_RIGHT
-#define ROADMAP_LINEFONT_TOP      ROADMAP_CANVAS_TOP
-#define ROADMAP_LINEFONT_BOTTOM   ROADMAP_CANVAS_BOTTOM
-#define ROADMAP_LINEFONT_CENTER_X ROADMAP_CANVAS_CENTER_X
-#define ROADMAP_LINEFONT_CENTER_Y ROADMAP_CANVAS_CENTER_Y
-
-#define ROADMAP_LINEFONT_CENTERED \
-        (ROADMAP_LINEFONT_CENTER_X | ROADMAP_LINEFONT_CENTER_Y)
-#define ROADMAP_LINEFONT_CENTERED_ABOVE \
-        (ROADMAP_LINEFONT_CENTER_X | ROADMAP_LINEFONT_BOTTOM)
-
+        ( RoadMapGuiPoint *center,
+                int size, int theta, const char *text);

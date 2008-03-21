@@ -89,7 +89,6 @@ typedef struct {
    char *otext;
 #endif
 
-   RoadMapGuiPoint text_point; /* label point */
    RoadMapGuiPoint center_point; /* label point */
    RoadMapGuiRect bbox; /* label bounding box */
    RoadMapGuiPoint poly[4];
@@ -164,40 +163,35 @@ static void compute_bbox(RoadMapGuiPoint *poly, RoadMapGuiRect *bbox) {
 
 static RoadMapGuiPoint get_metrics(roadmap_label *c, RoadMapGuiRect *rect) {
    RoadMapGuiPoint q;
-   int x1=0, y1=0;
    RoadMapGuiPoint *poly = c->poly;
    int buffer = 1;
    int w, h;
    int angle = c->angle;
-   RoadMapGuiPoint *p = &c->center_point;
+   RoadMapGuiPoint *cen = &c->center_point;
 
    w = rect->maxx - rect->minx;
    h = rect->maxy - rect->miny;
 
-   /* position CC */
-   x1 = -(w/2);
-   y1 = 0;
+   q.x = (rect->maxx + rect->minx)/2;
+   q.y = rect->miny;
 
-   q.x = x1 - rect->minx;
-   q.y = rect->miny - y1;
+   roadmap_math_rotate_point (&q, cen, angle);
 
-   roadmap_math_rotate_point (&q, p, angle);
+   poly[0].x = -w/2 - buffer; /* ll */
+   poly[0].y = -buffer;
+   roadmap_math_rotate_point (&poly[0], cen, angle);
 
-   poly[0].x = x1 - buffer; /* ll */
-   poly[0].y = -(y1 + buffer);
-   roadmap_math_rotate_point (&poly[0], p, angle);
+   poly[1].x = -w/2 - buffer; /* ul */
+   poly[1].y = h + buffer;
+   roadmap_math_rotate_point (&poly[1], cen, angle);
 
-   poly[1].x = x1 - buffer; /* ul */
-   poly[1].y = -(y1 -h - buffer);
-   roadmap_math_rotate_point (&poly[1], p, angle);
+   poly[2].x = +w/2 + buffer; /* ur */
+   poly[2].y = h + buffer;
+   roadmap_math_rotate_point (&poly[2], cen, angle);
 
-   poly[2].x = x1 + w + buffer; /* ur */
-   poly[2].y = -(y1 - h - buffer);
-   roadmap_math_rotate_point (&poly[2], p, angle);
-
-   poly[3].x = x1 + w + buffer; /* lr */
-   poly[3].y = -(y1 + buffer);
-   roadmap_math_rotate_point (&poly[3], p, angle);
+   poly[3].x = +w/2 + buffer; /* lr */
+   poly[3].y = -buffer;
+   roadmap_math_rotate_point (&poly[3], cen, angle);
 
    compute_bbox(poly, &c->bbox);
 
@@ -219,16 +213,16 @@ static int normalize_angle(int angle) {
 
 
 void roadmap_label_draw_text(const char *text,
-        RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        RoadMapGuiPoint *pos,
         int doing_angles, int angle, int size)
 {
                
    if (doing_angles) {
       roadmap_screen_text_angle
-         (ROADMAP_TEXT_LABELS, start, center, angle, size, text);
+         (ROADMAP_TEXT_LABELS, pos, angle, size, text);
    } else {
       roadmap_screen_text
-         (ROADMAP_TEXT_LABELS, center, ROADMAP_CANVAS_CENTER, size, text);
+         (ROADMAP_TEXT_LABELS, pos, ROADMAP_CANVAS_CENTER, size, text);
    }
 }
 
@@ -400,9 +394,6 @@ int roadmap_label_draw_cache (int angles) {
                           cPtr->bbox.maxx += dx;
                           cPtr->bbox.miny += dy;
                           cPtr->bbox.maxy += dy;
-
-                          cPtr->text_point.x += dx;
-                          cPtr->text_point.y += dy;
                        }
                    }
 
@@ -426,7 +417,7 @@ int roadmap_label_draw_cache (int angles) {
 
          if (!cPtr->text) {
 
-	    roadmap_plugin_activate_db (&cPtr->line);
+            roadmap_plugin_activate_db (&cPtr->line);
             roadmap_plugin_get_street_properties (&cPtr->line, &properties);
 
             if (!properties.street || !*properties.street) {
@@ -483,21 +474,20 @@ int roadmap_label_draw_cache (int angles) {
 
             if (angles) {
 
-               cPtr->text_point = get_metrics (cPtr, &r);
+               get_metrics (cPtr, &r);
 
             } else {
                /* Text will be horizontal, so bypass a lot of math.
                 * (and compensate for eventual centering of text.)
                 */
-               cPtr->text_point = cPtr->center_point;
                cPtr->bbox.minx =
-                  r.minx + cPtr->text_point.x - (r.maxx - r.minx)/2;
+                  r.minx + cPtr->center_point.x - (r.maxx - r.minx)/2;
                cPtr->bbox.maxx =
-                  r.maxx + cPtr->text_point.x - (r.maxx - r.minx)/2;
+                  r.maxx + cPtr->center_point.x - (r.maxx - r.minx)/2;
                cPtr->bbox.miny =
-                  r.miny + cPtr->text_point.y - (r.maxy - r.miny)/2;
+                  r.miny + cPtr->center_point.y - (r.maxy - r.miny)/2;
                cPtr->bbox.maxy =
-                  r.maxy + cPtr->text_point.y - (r.maxy - r.miny)/2;
+                  r.maxy + cPtr->center_point.y - (r.maxy - r.miny)/2;
             }
          }
          angles = angles && can_tilt;
@@ -608,7 +598,7 @@ int roadmap_label_draw_cache (int angles) {
 
          // roadmap_log (ROADMAP_WARNING, "KK: %s t: %s, w: %d, fsq: %d, ang: %d", cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
          roadmap_label_draw_text
-            (cPtr->text, &cPtr->text_point, &cPtr->center_point,
+            (cPtr->text, &cPtr->center_point,
                angles, angles ? cPtr->angle : 0,
                RoadMapLabelFontSize );
 

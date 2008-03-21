@@ -54,6 +54,8 @@
 #define MAX_STR_LEN 65000
 #endif
 
+#define DEFAULT_FONT_SIZE 15
+
 extern "C" {
 #include "roadmap.h"
 #include "roadmap_types.h"
@@ -137,6 +139,11 @@ static void roadmap_canvas_ignore_configure (void) {}
 RoadMapCanvasConfigureHandler RoadMapCanvasConfigure =
                                      roadmap_canvas_ignore_configure;
 
+static void roadmap_canvas_draw_string_worker (RoadMapGuiPoint *start,
+                                       RoadMapGuiPoint *center,
+                                       int width,
+                                       int size,
+                                       int angle, const char *text);
 
 void roadmap_canvas_get_text_extents 
         (const char *text, int size, int *width,
@@ -162,11 +169,15 @@ void roadmap_canvas_get_text_extents
 
    if (size == -1) {
       /* Use the regular font */
+      *descent = abs((int)m_feng.descender());
+      *ascent = (int)m_feng.ascender();
       fman = &m_fman;
    } else {
 
       m_image_feng.height(size);
       m_image_feng.width(size);
+      *descent = abs((int)m_image_feng.descender());
+      *ascent = (int)m_image_feng.ascender();
       fman = &m_image_fman;
    }
 
@@ -176,7 +187,7 @@ void roadmap_canvas_get_text_extents
       if(glyph) {
          x += glyph->advance_x;
          y += glyph->advance_y;
-         if (-glyph->bounds.y1 > *descent) *descent=-glyph->bounds.y1 - 1;
+// (removed, per editor branch)         if (-glyph->bounds.y1 > *descent) *descent=-glyph->bounds.y1 - 1;
       }
       ++p;
    }
@@ -278,33 +289,48 @@ void roadmap_canvas_erase (void) {
 
 void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
                                  int corner,
+                                 int size,
                                  const char *text) {
-   int x;
-   int y;
    int text_width;
    int text_ascent;
    int text_descent;
-   int text_height;
+   RoadMapGuiPoint start[1];
    
    roadmap_canvas_get_text_extents 
-         (text, -1, &text_width, &text_ascent, &text_descent, NULL);
+         (text, size, &text_width, &text_ascent, &text_descent, NULL);
    
-   text_height = text_ascent + text_descent;
-   
-   x = position->x;
-   y = position->y;
+   start->x = position->x;
+   start->y = position->y;
    if (corner & ROADMAP_CANVAS_RIGHT)
-      x -= text_width;
+      start->x -= text_width;
    else if (corner & ROADMAP_CANVAS_CENTER_X)
-      x -= text_width / 2;
+      start->x -= text_width / 2;
 
    if (corner & ROADMAP_CANVAS_BOTTOM)
-      y -= text_height;
+      start->y -= text_descent;
    else if (corner & ROADMAP_CANVAS_CENTER_Y)
-      y -= (text_height / 2);
+      start->y = start->y - text_descent + ((text_descent + text_ascent) / 2);
+   else /* TOP */
+      start->y += text_ascent;
 
-   RoadMapGuiPoint start = {x, y+text_height};
-   roadmap_canvas_draw_string_angle (&start, position, 0, text);
+   roadmap_canvas_draw_string_worker (start, position, 0, size, 0, text);
+}
+
+void roadmap_canvas_draw_string_angle
+    (  RoadMapGuiPoint *center,
+        int size, int theta, const char *text) {
+   int text_width;
+   int text_ascent;
+   int text_descent;
+   RoadMapGuiPoint start[1];
+
+   roadmap_canvas_get_text_extents 
+      (text, size, &text_width, &text_ascent, &text_descent, NULL);
+
+   start->x = center->x - text_width/2;
+   start->y = center->y - text_descent;
+
+   roadmap_canvas_draw_string_worker (start, center, text_width, size, theta, text);
 }
 
 
@@ -334,7 +360,6 @@ void roadmap_canvas_draw_multiple_lines (int count, int *lines,
    if (!fast_draw) {
       raso.line_join(agg::outline_miter_accurate_join);
    }
-//   raso.accurate_join(true);
 
    agg::path_storage path;
    
@@ -575,8 +600,10 @@ static wchar_t* bidi_string(wchar_t *logical) {
 #endif
 
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
+static void roadmap_canvas_draw_string_worker (RoadMapGuiPoint *start,
                                        RoadMapGuiPoint *center,
+                                       int width,
+                                       int size,
                                        int angle, const char *text)
 {
    
@@ -604,18 +631,17 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
    double x  = 0;
    double y  = 0;
    
+   if (size < 0) size = DEFAULT_FONT_SIZE;
+
    if ((angle > -5) && (angle < 5)) {
 
-      int size = 15;
-
       /* Use faster drawing for text with no angle */
-      x  = position->x;
-      y  = position->y;
-
-//      ren_solid.color(agg::rgba8(0, 0, 0));
+      x  = start->x;
+      y  = start->y;
 
       m_image_feng.height(size);
       m_image_feng.width(size);
+
 
       while(*p) {
          const agg::glyph_cache* glyph = m_image_fman.glyph(*p);
@@ -627,75 +653,64 @@ void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
                   m_image_fman.gray8_scanline(), 
                   ren_solid);      
 
-            // increment pen position
+            // increment pen psition
             x += glyph->advance_x;
             y += glyph->advance_y;
          }
          ++p;
       }
-   }
+
+   } else {
+
+      double scale = (double)size / (double)DEFAULT_FONT_SIZE;
+
+
+      while(*p) {
+         dbg_time_start(DBG_TIME_TEXT_ONE_LETTER);
+         dbg_time_start(DBG_TIME_TEXT_GET_GLYPH);
+         const agg::glyph_cache* glyph = m_fman.glyph(*p);
+         dbg_time_end(DBG_TIME_TEXT_GET_GLYPH);
+
+         if(glyph) {
+            m_fman.init_embedded_adaptors(glyph, x, y);
+            
+            agg::trans_affine mtx;
+            mtx *= agg::trans_affine_translation((start->x - center->x)/scale, (start->y - center->y)/scale);
+            if (abs(angle) > 5) {
+               mtx *= agg::trans_affine_rotation(agg::deg2rad(angle));
+            }
+            mtx *= agg::trans_affine_scaling(scale, scale);
+            mtx *= agg::trans_affine_translation(center->x, center->y);
+            
+            agg::conv_transform<font_manager_type::path_adaptor_type> tr(m_fman.path_adaptor(), mtx);
+
+            agg::conv_curve<agg::conv_transform<font_manager_type::path_adaptor_type> > fill(tr);
+
+            dbg_time_start(DBG_TIME_TEXT_ONE_RAS);
+            
+#ifdef WIN32_PROFILE
+            ResumeCAPAll();
+#endif
+            ras.reset();
+            ras.add_path(tr);
+            agg::render_scanlines(ras, sl, ren_solid);
+
+#ifdef WIN32_PROFILE
+            SuspendCAPAll();
+#endif
+            
+            dbg_time_end(DBG_TIME_TEXT_ONE_RAS);
+            
+            // increment pen psition
+            x += glyph->advance_x;
+            y += glyph->advance_y;
+            dbg_time_end(DBG_TIME_TEXT_ONE_LETTER);
+         }
+         ++p;
+      }
+   }  
 
    dbg_time_end(DBG_TIME_TEXT_LOAD);
-   while(*p) {
-      dbg_time_start(DBG_TIME_TEXT_ONE_LETTER);
-      dbg_time_start(DBG_TIME_TEXT_GET_GLYPH);
-      const agg::glyph_cache* glyph = m_fman.glyph(*p);
-      dbg_time_end(DBG_TIME_TEXT_GET_GLYPH);
-
-      if(glyph) {
-         m_fman.init_embedded_adaptors(glyph, x, y);
-         
-         //agg::conv_curve<font_manager_type::path_adaptor_type> stroke(m_fman.path_adaptor());
-         
-         agg::trans_affine mtx;
-         if (abs(angle) > 5) {
-            mtx *= agg::trans_affine_rotation(agg::deg2rad(angle));
-         }
-         mtx *= agg::trans_affine_translation(position->x, position->y);
-         
-         agg::conv_transform<font_manager_type::path_adaptor_type> tr(m_fman.path_adaptor(), mtx);
-
-         agg::conv_curve<agg::conv_transform<font_manager_type::path_adaptor_type> > fill(tr);
-
-         //agg::conv_stroke<
-            //agg::conv_curve<agg::conv_transform<font_manager_type::path_adaptor_type> > > 
-         //stroke(fill);
-
-         //agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> >contour(tr);
-         //contour.width(2);
-
-         //agg::conv_stroke< agg::conv_contour<agg::conv_transform<font_manager_type::path_adaptor_type> > > stroke(contour);
-         //agg::conv_stroke< agg::conv_transform<font_manager_type::path_adaptor_type> > stroke(tr);
-
-         dbg_time_start(DBG_TIME_TEXT_ONE_RAS);
-         
-#ifdef WIN32_PROFILE
-         ResumeCAPAll();
-#endif
-         ras.reset();
-         ras.add_path(tr);
-         agg::render_scanlines(ras, sl, ren_solid);
-         //ras.add_path(fill);
-         //ras.add_path(stroke);
-         //ren_solid.color(agg::rgba8(255, 255, 255));
-         //agg::render_scanlines(ras, sl, ren_solid);
-         //ras.add_path(tr);
-         //ren_solid.color(agg::rgba8(0, 0, 0));
-         //agg::render_scanlines(ras, sl, ren_solid);
-
-#ifdef WIN32_PROFILE
-         SuspendCAPAll();
-#endif
-         
-         dbg_time_end(DBG_TIME_TEXT_ONE_RAS);
-         
-         // increment pen position
-         x += glyph->advance_x;
-         y += glyph->advance_y;
-         dbg_time_end(DBG_TIME_TEXT_ONE_LETTER);
-      }
-      ++p;
-   }
 
 #ifdef USE_FRIBIDI
    free(bidi_text);
@@ -710,7 +725,7 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
    
    agg_renb.attach(agg_pixf);
    agg_renb.reset_clipping(true);
-   ras.clip_box(0, 0, agg_renb.width(), agg_renb.height());
+   ras.clip_box(0, 0, agg_renb.width() - 1, agg_renb.height() - 1);
 
    agg::glyph_rendering gren = agg::glyph_ren_outline; 
    agg::glyph_rendering image_gren = agg::glyph_ren_agg_gray8; 
@@ -724,26 +739,26 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
       font_file = roadmap_config_get (&RoadMapConfigFont);
 
       if (! roadmap_path_is_full_path (font_file)) {
-	  const char *cursor;
-	  for (cursor = roadmap_scan ("user", font_file);
-	       cursor != NULL;
-	       cursor = roadmap_scan_next ("user", font_file, cursor)) {
-	     if (roadmap_file_exists (cursor, font_file))
-		break;
-	  }
+          const char *cursor;
+          for (cursor = roadmap_scan ("user", font_file);
+               cursor != NULL;
+               cursor = roadmap_scan_next ("user", font_file, cursor)) {
+             if (roadmap_file_exists (cursor, font_file))
+                break;
+          }
 
-	  if (cursor == NULL) {
-	     for (cursor = roadmap_scan ("config", font_file);
-		  cursor != NULL;
-		  cursor = roadmap_scan_next ("config", font_file, cursor)) {
+          if (cursor == NULL) {
+             for (cursor = roadmap_scan ("config", font_file);
+                  cursor != NULL;
+                  cursor = roadmap_scan_next ("config", font_file, cursor)) {
 
-		if (roadmap_file_exists (cursor, font_file))
-		   break;
-	     }
-	  }
-	  if (cursor != NULL) {
-	     font_file = roadmap_path_join(cursor, font_file);
-	  }
+                if (roadmap_file_exists (cursor, font_file))
+                   break;
+             }
+          }
+          if (cursor != NULL) {
+             font_file = roadmap_path_join(cursor, font_file);
+          }
       }
 
       roadmap_log(ROADMAP_DEBUG, "loading AGG font from %s", font_file);
@@ -753,8 +768,8 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
             m_image_feng.load_font(font_file, 0, image_gren)) {
 
          m_feng.hinting(true);
-         m_feng.height(15);
-         m_feng.width(15);
+         m_feng.height(DEFAULT_FONT_SIZE);
+         m_feng.width(DEFAULT_FONT_SIZE);
          m_feng.flip_y(true);
 
          m_image_feng.hinting(true);

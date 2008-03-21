@@ -100,7 +100,7 @@ void roadmap_landmark_draw_waypoint
          * labels come out on "top" of other map features.
          */
         roadmap_label_draw_text(waypointp->shortname,
-           &guipoint, &guipoint, 0, 0, RoadMapLandmarkFontSize);
+           &guipoint, 0, 0, RoadMapLandmarkFontSize);
     }
 }
 
@@ -135,7 +135,7 @@ void roadmap_landmark_draw_weepoint
          * labels come out on "top" of other map features.
          */
         roadmap_label_draw_text(weepointp->name,
-           &guipoint, &guipoint, 0, 0, RoadMapLandmarkFontSize);
+           &guipoint, 0, 0, RoadMapLandmarkFontSize);
     }
 }
 

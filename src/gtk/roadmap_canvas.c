@@ -210,7 +210,7 @@ void roadmap_canvas_erase (void) {
 
 
 void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
-                                 int corner, const char *text) {
+                                 int corner, int size, const char *text) {
 
    int text_width;
    int text_ascent;
@@ -218,7 +218,7 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
    RoadMapGuiPoint start[1];
 
    roadmap_canvas_get_text_extents 
-        (text, -1, &text_width, &text_ascent, &text_descent, NULL);
+        (text, size, &text_width, &text_ascent, &text_descent, NULL);
 
    start->x = position->x;
    start->y = position->y;
@@ -234,17 +234,19 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
    else /* TOP */
       start->y += text_ascent;
 
-   roadmap_canvas_draw_string_angle (start, position, 0, text);
+   gdk_draw_string  (RoadMapDrawingBuffer,
+                     RoadMapDrawingArea->style->font,
+                     RoadMapGc, start->x, start->y, text);
 }
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
-                                       RoadMapGuiPoint *center,
+void roadmap_canvas_draw_string_angle ( RoadMapGuiPoint *center,
+                                       int size,
                                        int angle, const char *text)
 {
     /* no angle possible */
-   gdk_draw_string  (RoadMapDrawingBuffer,
-                     RoadMapDrawingArea->style->font,
-                     RoadMapGc, position->x, position->y, text);
+   roadmap_canvas_draw_string (center,
+	 ROADMAP_CANVAS_CENTER_X|ROADMAP_CANVAS_BOTTOM,
+	 size, text);
 }
 
 

@@ -140,7 +140,7 @@ INSTALLATION
    listed there.  Unfortunately those options ("rgb565", "rgba32", "bgra32",
    "rgb24", "bgr24") cannot currently be auto-detected, so there may be some
    trial-and-error involved to get the setting right.  See the comments in
-   config.mk for more tips.  RoadMap requires version 2.4 of the agg
+   config.mk for more tips.  RoadMap requires version 2.4 or later of the agg
    library -- 2.3 is incompatible.  If your linux distribution includes 2.3,
    make sure that if you install 2.4 as well, that RoadMap finds both headers
    and libraries from 2.4.  Note:  currently (as of August, 2006) the agg
@@ -2412,8 +2412,8 @@ CONFIGURATION
 
          <<Format:>> integer (pixels)
 
-         <<Comment:>> Currently only honored if the internal "linefont"
-                  is being used.
+         <<Comment:>> Currently only honored if either the internal
+                  "linefont", or AGG, is being used.
 
     [Help.Browser] The browser program used to show the help text.
 
@@ -2533,8 +2533,8 @@ CONFIGURATION
 
          <<Format:>> integer (pixels)
 
-         <<Comment:>> Currently only honored if the internal "linefont"
-                  is being used.
+         <<Comment:>> Currently only honored if either the internal
+                  "linefont", or AGG, is being used.
 
     [Landmarks.Name] The filename used for storing personal landmarks
 
@@ -2552,8 +2552,8 @@ CONFIGURATION
 
          <<Format:>> integer (pixels)
 
-         <<Comment:>> Currently only honored if the internal "linefont"
-                  is being used.
+         <<Comment:>> Currently only honored if either the internal
+                  "linefont", or AGG, is being used.
 
     [Track.Name] The filename used for storing current "breadcrumb" track
 

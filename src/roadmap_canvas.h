@@ -129,10 +129,12 @@ void roadmap_canvas_erase (void);
 
 void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
                                   int corner,
+                                  int size,
                                   const char *text);
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
-                                       RoadMapGuiPoint *center, int angle,
+void roadmap_canvas_draw_string_angle ( RoadMapGuiPoint *center,
+                                       int size,
+                                       int angle,
                                        const char *text);
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points);

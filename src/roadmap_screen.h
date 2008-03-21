@@ -80,7 +80,7 @@ int roadmap_screen_is_dragging (void);
 void roadmap_screen_text
      (int id, RoadMapGuiPoint *center, int where, int size, const char *text);
 void roadmap_screen_text_angle 
-        (int id, RoadMapGuiPoint *start, RoadMapGuiPoint *center,
+        (int id, RoadMapGuiPoint *center,
                 int theta, int size, const char *text);
 void roadmap_screen_text_extents 
         (int id, const char *text, int size,

@@ -195,7 +195,7 @@ void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
    p.setFont(f);
    p.translate(position->x,position->y);
    p.rotate((double)angle);
-   p.drawText(0, -text_descent, QString::fromUtf8(text));
+   p.drawText(-text_width/2, -text_descent, QString::fromUtf8(text));
 #endif
 }
 

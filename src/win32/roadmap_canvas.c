@@ -210,8 +210,9 @@ void roadmap_canvas_erase (void)
 
 
 void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
-                                 int corner,
-                                 const char *text)
+				 int corner,
+				 int size,
+				 const char *text)
 {
 	int x;
 	int y;
@@ -250,12 +251,12 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	free(text_unicode);
 }
 
-void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *position,
-                                       RoadMapGuiPoint *center,
-                                       int angle, const char *text)
+void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *center,
+				       int size,
+				       int angle, const char *text)
 {
 	/* no angle possible, currently.  at least try and center the text */
-	roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, text);
+	roadmap_canvas_draw_string (center, ROADMAP_CANVAS_CENTER, size, text);
 }
 
 
