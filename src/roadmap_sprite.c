@@ -33,12 +33,16 @@
 #include "roadmap_math.h"
 #include "roadmap_path.h"
 #include "roadmap_file.h"
+#include "roadmap_config.h"
 #include "roadmap_scan.h"
 #include "roadmap_canvas.h"
 #include "roadmap_sprite.h"
 #include "roadmap_screen.h"
 #include "roadmap_label.h"
 
+static RoadMapConfigDescriptor RoadMapConfigSpritePercent =
+                        ROADMAP_CONFIG_ITEM ("General", "Sprite Scale");
+static int RoadMapSpritePercent;
 
 typedef struct {
 
@@ -76,6 +80,7 @@ typedef struct roadmap_sprite_record {
 
    char *name;
    char *alias_name;
+   int scale;
 
    union {
       struct {
@@ -413,7 +418,7 @@ static RoadMapSprite roadmap_sprite_new
    roadmap_check_allocated(sprite);
 
    sprite->name = strdup (argv[1]);
-
+   sprite->scale = 100;
    sprite->drawing.planes.first.pen = roadmap_canvas_create_pen ("Black");
 
    sprite->next = RoadMapSpriteList;
@@ -540,6 +545,14 @@ static int roadmap_sprite_load_line (char *line) {
          break;
       }
       roadmap_sprite_decode_plane (sprite, argv[1], argv[2]);
+      break;
+
+   case 'X':
+      if (argc < 2) {
+         roadmap_sprite_syntax("Missing sprite scale factor");
+         break;
+      }
+      sprite->scale = atoi(argv[1]);
       break;
 
    case 'L':
@@ -716,9 +729,10 @@ static void roadmap_sprite_resolve_aliases (void) {
 }
 
 
+
 static void roadmap_sprite_place (RoadmapSpriteDrawingSequence *sequence,
                                   RoadMapGuiPoint *location,
-                                  int orientation) {
+                                  int orientation, int scale) {
 
    int i;
    int x = location->x;
@@ -728,8 +742,8 @@ static void roadmap_sprite_place (RoadmapSpriteDrawingSequence *sequence,
 
    for (i = sequence->point_count - 1; i >= 0; --i) {
 
-      to->x = x + from->x;
-      to->y = y + from->y;
+      to->x = x + from->x * scale / 100;
+      to->y = y + from->y * scale / 100;
 
       to += 1;
       from += 1;
@@ -748,6 +762,33 @@ void roadmap_sprite_bbox (const char *name, RoadMapGuiRect *bbox) {
 
 }
 
+
+static int *roadmap_sprite_scale_diameters
+                (RoadmapSpriteDrawingSequence *sequence, int scale) {
+
+    int i;
+    static int *scaled_diameters;
+
+    if (scale == 100)
+       return sequence->obj.objects;
+
+    scaled_diameters = realloc
+        (scaled_diameters, sequence->object_count * sizeof(int));
+
+    for (i = 0; i < sequence->object_count; i++)
+        scaled_diameters[i] = sequence->obj.objects[i] * scale / 100;
+
+    return scaled_diameters;
+}
+
+void roadmap_sprite_scale_bbox
+        (RoadMapGuiRect *scaled, RoadMapGuiRect *bbox, int scale) {
+    scaled->minx = bbox->minx * scale / 100;
+    scaled->maxx = bbox->maxx * scale / 100;
+    scaled->miny = bbox->miny * scale / 100;
+    scaled->maxy = bbox->maxy * scale / 100;
+}
+
 void roadmap_sprite_draw_with_text
         (const char *name, RoadMapGuiPoint *location, int orientation,
          RoadMapGuiRect *bbox, RoadMapGuiRect *text_bbox, char *text) {
@@ -756,8 +797,11 @@ void roadmap_sprite_draw_with_text
    RoadMapSpritePlane *plane;
    RoadmapSpriteDrawingSequence *textseq;
    RoadmapSpriteDrawingSequence textsequence[1];
+   int scale;
 
    if (sprite == NULL || sprite->alias_name != NULL) return;
+
+   scale = RoadMapSpritePercent * sprite->scale / 100;
 
    textseq = NULL;
 
@@ -767,11 +811,12 @@ void roadmap_sprite_draw_with_text
           textseq = textsequence;
    } else if (sprite->textseq.object_count) {
        textseq = &sprite->textseq;
-       if (text_bbox) *text_bbox = sprite->text_bbox;
+       if (text_bbox)
+          roadmap_sprite_scale_bbox(text_bbox, &sprite->text_bbox, scale);
        text_bbox = &sprite->text_bbox;
    }
 
-   if (bbox) *bbox = sprite->bbox;
+   if (bbox) roadmap_sprite_scale_bbox(bbox, &sprite->bbox, scale);
 
 
    for (plane = &(sprite->drawing.planes.first);
@@ -782,7 +827,8 @@ void roadmap_sprite_draw_with_text
 
       if (plane->polygons.object_count > 0) {
 
-         roadmap_sprite_place (&(plane->polygons), location, orientation);
+         roadmap_sprite_place
+            (&(plane->polygons), location, orientation, scale);
 
          roadmap_canvas_draw_multiple_polygons
             (plane->polygons.object_count,
@@ -793,7 +839,8 @@ void roadmap_sprite_draw_with_text
          // construct and draw a rectangle backing for "text"
          static RoadmapSpriteDrawingSequence textpoly[1];
          roadmap_sprite_box_sequence (sprite, textpoly, text_bbox);
-         roadmap_sprite_place (textpoly, location, -roadmap_math_get_orientation());
+         roadmap_sprite_place
+            (textpoly, location, -roadmap_math_get_orientation(), scale);
          roadmap_canvas_draw_multiple_polygons
             (textpoly->object_count,
              textpoly->obj.objects, RoadMapSpritePoints, 1, 0);
@@ -801,16 +848,18 @@ void roadmap_sprite_draw_with_text
 
       if (plane->disks.object_count > 0) {
 
-         roadmap_sprite_place (&(plane->disks), location, orientation);
+         roadmap_sprite_place (&(plane->disks), location, orientation, scale);
 
          roadmap_canvas_draw_multiple_circles
             (plane->disks.object_count,
-             RoadMapSpritePoints, plane->disks.obj.objects, 1, 0);
+             RoadMapSpritePoints,
+             roadmap_sprite_scale_diameters(&(plane->disks), scale),
+             1, 0);
       }
 
       if (plane->lines.object_count > 0) {
 
-         roadmap_sprite_place (&(plane->lines), location, orientation);
+         roadmap_sprite_place (&(plane->lines), location, orientation, scale);
 
          roadmap_canvas_draw_multiple_lines
             (plane->lines.object_count,
@@ -821,7 +870,8 @@ void roadmap_sprite_draw_with_text
          // construct and draw a box surround for "text"
          static RoadmapSpriteDrawingSequence textrect[1];
          roadmap_sprite_box_sequence (sprite, textrect, text_bbox);
-         roadmap_sprite_place (textrect, location, -roadmap_math_get_orientation());
+         roadmap_sprite_place
+            (textrect, location, -roadmap_math_get_orientation(), scale);
          roadmap_canvas_draw_multiple_lines
             (textrect->object_count,
              textrect->obj.objects, RoadMapSpritePoints, 0);
@@ -830,17 +880,22 @@ void roadmap_sprite_draw_with_text
 
       if (plane->circles.object_count > 0) {
 
-         roadmap_sprite_place (&(plane->circles), location, orientation);
+         roadmap_sprite_place
+            (&(plane->circles), location, orientation, scale);
+
 
          roadmap_canvas_draw_multiple_circles
             (plane->circles.object_count,
-             RoadMapSpritePoints, plane->circles.obj.objects, 0, 0);
+             RoadMapSpritePoints, 
+             roadmap_sprite_scale_diameters(&(plane->circles), scale),
+             0, 0);
       }
 
       if (textseq != NULL && plane->flags & SPRITE_TEXT) {
          int i;
  
-         roadmap_sprite_place (textseq, location, -roadmap_math_get_orientation());
+         roadmap_sprite_place
+            (textseq, location, -roadmap_math_get_orientation(), scale);
  
          for (i = textseq->object_count - 1; i >= 0; i--) {
             const char *t;
@@ -849,7 +904,8 @@ void roadmap_sprite_draw_with_text
             if (t != NULL) {
                roadmap_screen_text
                   (ROADMAP_TEXT_LABELS, &RoadMapSpritePoints[i],
-                   ROADMAP_CANVAS_CENTER, sprite->textsize, t);
+                   ROADMAP_CANVAS_CENTER,
+                   sprite->textsize * scale / 100, t);
             }
          }
       }
@@ -863,6 +919,8 @@ void roadmap_sprite_draw_with_text
       free (textsequence->obj.strings);
       free (textsequence->points);
    }
+   if (text_bbox && text_bbox != &sprite->text_bbox)
+      roadmap_sprite_scale_bbox(text_bbox, text_bbox, scale);
 }
 
 void roadmap_sprite_draw
@@ -931,5 +989,12 @@ void roadmap_sprite_load (void) {
    }
    RoadMapSpritePoints =
       calloc (RoadMapSpritePointCount, sizeof(*RoadMapSpritePoints));
+
+   roadmap_config_declare
+        ("preferences", &RoadMapConfigSpritePercent, "100");
+
+   RoadMapSpritePercent =
+            roadmap_config_get_integer (&RoadMapConfigSpritePercent);
+
 }
 

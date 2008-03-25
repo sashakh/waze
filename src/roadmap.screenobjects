@@ -47,7 +47,8 @@
 #                         sprite, may require that the box be overridden.
 #                         Note that the bounding box for any text associated
 #                         with the sprite is calculated and considered
-#                         separately.
+#                         separately.  Also note that if sprite scaling is
+#                         used, this bounding box may need to be adjusted.
 
 
 # the Compass object shows which way is north.  it changes from a

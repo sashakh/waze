@@ -26,3 +26,8 @@ Polygons.Declutter: 1300
 Shapes.Declutter: 1300
 Display.Rotate: yes
 General.Language: en_EN
+General.Sprite Scale: 100
+GPS.Font Size: 15
+Display.Font Size: 20
+Labels.Font Size: 15
+Landmarks.Font Size: 20

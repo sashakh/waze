@@ -9,6 +9,7 @@
 # A <name>               Defines this sprite as an alias for another sprite.
 #                        (An alias cannot itself have drawing directives).
 # F <color> <thickness>  Start a new color plane.
+# X <percent>            Optional scale factor, for resizing the entire sprite.
 # L <x>,<y> ...          Defines a line.
 # P <x>,<y> ...          Defines a (filled) polygon.
 # C <x>,<y> <radius>     Defines a circle.
