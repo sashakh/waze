@@ -1130,7 +1130,7 @@ USING ROADMAP
 *-----------------*-----------------------------------------------------*
    Y              |     Save a screenshot of the current map display.
 *-----------------*-----------------------------------------------------*
-   F11            |     Toggle the full screen mode (same a 'F').
+   F11            |     Toggle the full screen mode (same as 'F').
 *-----------------*-----------------------------------------------------*
 
    The current bindings that are used by the application are printed after
@@ -2278,7 +2278,7 @@ CONFIGURATION
 
          <<Default:>> yes
 
-    [General.Icons] Show (yes) or hide (no) the roadmap icons.
+    [General.Icons] Show (yes) or hide (no) icons on the toolbar.
 
          <<Format:>> boolean
 
@@ -2351,6 +2351,13 @@ CONFIGURATION
          <<Comment:>> Trips files can be stored anywhere, but in some places
                       RoadMap makes it easier if they're stored here.  New
                       trips, unnamed by the users will be stored here.
+
+    [General.Sprite Scale] Sets a scaling factor for all RoadMap sprites.
+
+         <<Format:>> integer (percentage)
+
+         <<Default:>> 100
+
 
     [Geometry.Main] Sets the size of the RoadMap main window.
 
@@ -3030,11 +3037,15 @@ CONFIGURATION
 
          <<Default:>> "Location"
 
-    [Navigation.Enable] Defines if the roadmap navigation function is enabled.
+    [Navigation.Enable] Controls whether navigation mode is enabled.
 
          <<Format:>> boolean
 
          <<Default:>> "yes"
+
+         <<Comment:>> When enabled, the navigation logic will announce the
+                  names of the current and approaching streets.  See also
+                  Accuracy.Street.
 
     [Voice.Mute] Defines if the voice function was muted by the user.
 
@@ -3157,6 +3168,9 @@ CONFIGURATION
 *------------------------------+---------------------------------------------+
 | F <color> <thickness>        | Define the pen to be used by the subsequent
 |                              | drawing commands.
+*------------------------------+---------------------------------------------+
+| X <percent>                  | Optional scale factor for this sprite.  All
+|                              | components of the sprite will be adjusted.
 *------------------------------+---------------------------------------------+
 | L <x>,<y> ..                 | Draw a line.
 *------------------------------+---------------------------------------------+
