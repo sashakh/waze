@@ -67,5 +67,7 @@ RoadMapSocket roadmap_gpsd2_connect (const char *name);
 int roadmap_gpsd2_decode (void *user_context,
                           void *decoder_context, char *sentence);
 
+void roadmap_gpsd2_periodic (void);
+
 #endif // INCLUDE__ROADMAP_GPSD2__H
 

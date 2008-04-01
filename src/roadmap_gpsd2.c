@@ -94,30 +94,35 @@ static int roadmap_gpsd2_decode_coordinate (const char *input) {
    return roadmap_gpsd2_decode_numeric (input);
 }
 
+RoadMapSocket gpsd2_socket;
 
 RoadMapSocket roadmap_gpsd2_connect (const char *name) {
 
-   RoadMapSocket socket = roadmap_net_connect ("tcp", name, 2947);
+   gpsd2_socket = roadmap_net_connect ("tcp", name, 2947);
 
-   if (ROADMAP_NET_IS_VALID(socket)) {
+   if (ROADMAP_NET_IS_VALID(gpsd2_socket)) {
 
       /* Start watching what happens. */
 
       static const char request[] = "w+\n";
 
       if (roadmap_net_send
-            (socket, request, sizeof(request)-1) != sizeof(request)-1) {
+            (gpsd2_socket, request, sizeof(request)-1) != sizeof(request)-1) {
 
          roadmap_log (ROADMAP_WARNING, "Lost gpsd server session");
-         roadmap_net_close (socket);
+         roadmap_net_close (gpsd2_socket);
 
          return ROADMAP_INVALID_SOCKET;
       }
    }
 
-   return socket;
+   return gpsd2_socket;
 }
 
+void roadmap_gpsd2_periodic (void) {
+
+   roadmap_net_send (gpsd2_socket, "q\n", 2);
+}
 
 void roadmap_gpsd2_subscribe_to_navigation (RoadMapGpsdNavigation navigation) {
 
@@ -154,7 +159,7 @@ int roadmap_gpsd2_decode (void *user_context,
 
    char *reply[256];
    int   reply_count;
-   int   i;
+   int   i, f;
 
    int   s;
    int   count;
@@ -189,8 +194,10 @@ int roadmap_gpsd2_decode (void *user_context,
 
       char *item = reply[i];
       char *value = item + 2;
-      char *argument[32];
-      char *tuple[5];
+#define N_ARGUM 40  // currently 32 max
+      char *argument[N_ARGUM];
+#define N_TUPLE 10  // currently 5 max
+      char *tuple[N_TUPLE];
 
 
       if (item[1] != '=') {
@@ -229,7 +236,8 @@ int roadmap_gpsd2_decode (void *user_context,
 
          case 'O':
 
-            if (roadmap_input_split (value, ' ', argument, 14) != 14) {
+            f = roadmap_input_split (value, ' ', argument, N_ARGUM);
+            if (f < 10) {
                continue;
             }
 
@@ -243,13 +251,23 @@ int roadmap_gpsd2_decode (void *user_context,
             steering  = roadmap_gpsd2_decode_numeric    (argument[8]);
             speed     = roadmap_gpsd2_decode_numeric    (argument[9]);
 
+            if (f >= 15) { // protocol level 3 and higher 
+                dimension_of_fix =
+                        roadmap_gpsd2_decode_numeric    (argument[14]);
+                if (dimension_of_fix > 1) {
+                   status = 'A';
+                } else {
+                   status = 'V';
+                }
+            }
+
             break;
 
          case 'P':
 
             if (got_o) continue; /* Consider the 'O' answer only. */
 
-            if (roadmap_input_split (value, ' ', argument, 2) != 2) {
+            if (roadmap_input_split (value, ' ', argument, N_ARGUM) < 2) {
                continue;
             }
 
@@ -267,7 +285,7 @@ int roadmap_gpsd2_decode (void *user_context,
 
             if (RoadmapGpsd2DilutionListener == NULL) continue;
 
-            if (roadmap_input_split (value, ' ', argument, 6) < 4) {
+            if (roadmap_input_split (value, ' ', argument, N_ARGUM) < 4) {
                continue;
             }
 
@@ -306,18 +324,20 @@ int roadmap_gpsd2_decode (void *user_context,
 
             if (RoadmapGpsd2SatelliteListener == NULL) continue;
 
-            count = roadmap_input_split (value, ':', argument, 32);
+            count = roadmap_input_split (value, ':', argument, N_ARGUM);
             if (count <= 0) continue;
 
-            switch (roadmap_input_split (argument[0], ' ', tuple, 5)) {
+            switch (roadmap_input_split (argument[0], ' ', tuple, N_TUPLE)) {
 
                case 1:
                   
+		  // protocol level 1
                   satellite_count = roadmap_gpsd2_decode_numeric(tuple[0]);
                   break;
 
                case 3:
 
+		  // protocol level 2 and higher
                   gps_time = roadmap_gpsd2_decode_numeric(tuple[1]);
                   satellite_count = roadmap_gpsd2_decode_numeric(tuple[2]);
                   break;
@@ -334,7 +354,7 @@ int roadmap_gpsd2_decode (void *user_context,
 
             for (s = 1; s <= satellite_count; ++s) {
 
-               if (roadmap_input_split (argument[s], ' ', tuple, 5) != 5) {
+               if (roadmap_input_split (argument[s], ' ', tuple, N_TUPLE) < 5) {
                   continue;
                }
                (*RoadmapGpsd2SatelliteListener)
@@ -355,6 +375,7 @@ end_of_decoding:
 
    if (dimension_of_fix >= 0 && got_q) {
       RoadmapGpsd2DilutionListener (dimension_of_fix, pdop, hdop, vdop);
+      got_q = 0;
    }
 
    if (got_navigation_data) {
