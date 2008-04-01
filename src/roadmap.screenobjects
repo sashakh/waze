@@ -66,10 +66,10 @@ A toggleorientation
 N GPS_reception
 S get_GPS_reception
 P 20 100
-E Reception_na
-E Reception_none
-E Reception_poor
-E Reception_good
+E reception_na
+E reception_none %v/%s
+E reception_poor %v/%s
+E reception_good %v/%s
 A gps
 R
 
