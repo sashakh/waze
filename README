@@ -1940,6 +1940,10 @@ CONFIGURATION
 *-----+-----------------------------------------------------------------+
 |  #: | the street number range to the selected or current street block.
 *-----+-----------------------------------------------------------------+
+|  s: | Total number of satellites.
+*-----+-----------------------------------------------------------------+
+|  v: | Total number of available satellites.
+*-----+-----------------------------------------------------------------+
 |  x: | Distance from one side of the screen to the other.
 *-----+-----------------------------------------------------------------+
 |  y: | Distance from the top to the bottom of the screen.
