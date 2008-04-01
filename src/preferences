@@ -6,7 +6,7 @@ General.Keyboard: no
 General.Icons: yes
 General.Toolbar: yes
 General.Unit: imperial
-GPS.Source: gpsd://localhost
+GPS.Source: gpsd2://localhost
 GPS.Timeout: 10
 GPS.Foreground: #7a89c9
 GPS.Background: #d0d4ff
