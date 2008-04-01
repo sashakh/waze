@@ -300,6 +300,7 @@ static void roadmap_driver_listener
 static void roadmap_driver_monitor (int reception,
                                     const RoadMapGpsPrecision *precision,
                                     const RoadMapGpsSatellite *satellites,
+                                    int activecount,
                                     int count) {
 
    if (RoadMapDriverSubscription & ROADMAP_DRIVER_NMEA) {
@@ -337,10 +338,10 @@ static void roadmap_driver_pxrmadd (void *context,
    RoadMapDriver *driver = (RoadMapDriver *)context;
 
    roadmap_object_add_sprite (driver->name,
-		              fields->pxrmadd.id,
-			      fields->pxrmadd.name,
-			      fields->pxrmadd.sprite,
-			      NULL);
+                              fields->pxrmadd.id,
+                              fields->pxrmadd.name,
+                              fields->pxrmadd.sprite,
+                              NULL);
 }
 
 
@@ -371,8 +372,8 @@ static void roadmap_driver_pxrmcir (void *context,
                               fields->pxrmcir.id,
                               fields->pxrmcir.name,
                               fields->pxrmplg.color,
-			      &(fields->pxrmcir.center),
-			      fields->pxrmcir.radius);
+                              &(fields->pxrmcir.center),
+                              fields->pxrmcir.radius);
 }
 
 
