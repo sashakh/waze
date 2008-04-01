@@ -210,6 +210,7 @@ static void roadmap_start_hold_map (void) {
    roadmap_screen_hold ();
 }
 
+
 static void roadmap_start_rotate (void) {
     roadmap_screen_rotate (10);
 }
@@ -885,7 +886,7 @@ static char const *RoadMapStartKeyBinding[] = {
    "R"               ROADMAP_MAPPED_TO "zoom1",
    "S"               ROADMAP_MAPPED_TO "starttrip",
    "T"               ROADMAP_MAPPED_TO "tracktoggle",
-   "U"               ROADMAP_MAPPED_TO "gpsnorthup",
+   "U"               ROADMAP_MAPPED_TO "toggleorientation",
    /* V Unused. */
    "W"               ROADMAP_MAPPED_TO "addaswaypoint",
    "X"               ROADMAP_MAPPED_TO "intersection",
@@ -960,7 +961,7 @@ static void roadmap_gps_set_messages(const RoadMapGpsPosition *gps) {
 
 static int RoadMapStartGpsRefresh = 0;
 
-static void roadmap_gps_update
+static void roadmap_start_gps_listen
                (int reception,
                 int gps_time,
                 const RoadMapGpsPrecision *dilution,
@@ -1008,6 +1009,16 @@ static void roadmap_gps_update
          RoadMapStartGpsRefresh = 1;
       }
    }
+}
+
+static void roadmap_start_gps_monitor
+               (int reception,
+                const RoadMapGpsPrecision *precision,
+                const RoadMapGpsSatellite *satellites,
+                int activecount,
+                int count) {
+   roadmap_message_set('s', "%d", count);
+   roadmap_message_set('v', "%d", activecount);
 }
 
 
@@ -1216,7 +1227,8 @@ void roadmap_start (int argc, char **argv) {
    roadmap_layer_initialize    ();
    roadmap_lang_initialize     ();
 
-   roadmap_gps_register_listener (&roadmap_gps_update);
+   roadmap_gps_register_listener (&roadmap_start_gps_listen);
+   roadmap_gps_register_monitor (&roadmap_start_gps_monitor);
 
    RoadMapStartGpsID = roadmap_string_new("GPS");
 
