@@ -35,6 +35,7 @@
 #include "roadmap_string.h"
 #include "roadmap_object.h"
 #include "roadmap_config.h"
+#include "roadmap_messagebox.h"
 
 #include "roadmap_net.h"
 #include "roadmap_file.h"
@@ -112,7 +113,7 @@ static RoadMapGpsPrecision RoadMapGpsQuality;
 static void roadmap_gps_no_link_control (RoadMapIO *io) {}
 static void roadmap_gps_no_periodic_control (RoadMapCallback callback) {}
 
-static void roadmap_gps_process_position (void);
+static void roadmap_gps_process_position (int reception);
 
 static roadmap_gps_periodic_control RoadMapGpsPeriodicAdd =
                                     &roadmap_gps_no_periodic_control;
@@ -158,13 +159,11 @@ static void roadmap_gps_update_reception (void) {
       RoadMapGpsReception = new_state;
 
       if (new_state <= GPS_RECEPTION_NONE) {
-	 /* we want listeners to get at least one notification that
-	  * gps has gone away, but roadmap_gps_process_position()
-	  * resets the timestamp.
-	  */
-	 time_t save_position_data_time = RoadMapGpsLatestPositionData;
-         roadmap_gps_process_position ();
-         RoadMapGpsLatestPositionData = save_position_data_time;
+         /* we want listeners to get at least one notification that
+          * gps has gone away, but roadmap_gps_process_position()
+          * resets the timestamp.  so we tell it not to.
+          */
+         roadmap_gps_process_position (0);
       }
 
       roadmap_state_refresh ();
@@ -172,6 +171,8 @@ static void roadmap_gps_update_reception (void) {
 }
 
 static char roadmap_gps_update_status (char status) {
+
+   static void *gpserrmsg;
 
    /* Reading from a file is usually for debugging.  gpsbabel
     * doesn't recreate status correctly, so force good status here.
@@ -182,9 +183,14 @@ static char roadmap_gps_update_status (char status) {
 
    if (status != RoadMapLastKnownStatus) {
        if (RoadMapLastKnownStatus == 'A') {
-          roadmap_log (ROADMAP_ERROR,
+          roadmap_log (ROADMAP_WARNING,
                        "GPS receiver lost satellite fix (status: %c)", status);
+          if (gpserrmsg) roadmap_messagebox_hide(gpserrmsg);
+          gpserrmsg = roadmap_messagebox("GPS Error", "GPS lost satellite fix");
           RoadMapGpsActiveSatelliteCount = 0;
+       } else {
+          if (gpserrmsg) roadmap_messagebox_hide(gpserrmsg);
+          gpserrmsg = 0;
        }
        RoadMapLastKnownStatus = status;
    }
@@ -193,11 +199,11 @@ static char roadmap_gps_update_status (char status) {
 }
 
 
-static void roadmap_gps_process_position (void) {
+static void roadmap_gps_process_position (int reception) {
 
    int i;
 
-   RoadMapGpsLatestPositionData = time(NULL);
+   if (reception) RoadMapGpsLatestPositionData = time(NULL);
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -209,7 +215,7 @@ static void roadmap_gps_process_position (void) {
                                 &RoadMapGpsReceivedPosition);
    }
 
-   roadmap_gps_update_reception ();
+   if (reception) roadmap_gps_update_reception ();
 }
 
 
@@ -224,6 +230,7 @@ static void roadmap_gps_call_monitors (void) {
       (RoadMapGpsMonitors[i]) (RoadMapGpsReception,
                                &RoadMapGpsQuality,
                                RoadMapGpsDetected,
+                               RoadMapGpsActiveSatelliteCount,
                                RoadMapGpsSatelliteCount);
    }
 
@@ -246,7 +253,14 @@ static void roadmap_gps_keep_alive (void) {
 
    if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) return;
 
-   if (roadmap_gps_active ()) return;
+   if (roadmap_gps_active ()) {
+       switch (RoadMapGpsProtocol) {
+       case ROADMAP_GPS_GPSD2:
+          roadmap_gpsd2_periodic();
+          break;
+       }
+       return;
+   }
 
    // roadmap_log (ROADMAP_ERROR, "GPS timeout detected.");
 
@@ -308,7 +322,7 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
          roadmap_math_to_current_unit (fields->gga.altitude,
                                        fields->gga.altitude_unit);
 
-      roadmap_gps_process_position();
+      roadmap_gps_process_position(1);
    }
 }
 
@@ -325,7 +339,7 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
       /* altitude not available: keep previous value. */
       /* steering not available: keep previous value. */
 
-      roadmap_gps_process_position();
+      roadmap_gps_process_position(1);
    }
 }
 
@@ -353,7 +367,7 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
          RoadMapGpsReceivedPosition.steering  = fields->rmc.steering;
       }
 
-      roadmap_gps_process_position();
+      roadmap_gps_process_position(1);
    }
 }
 
@@ -506,11 +520,11 @@ static void roadmap_gps_navigation (char status,
       }
 
       if ((speed >= roadmap_gps_speed_accuracy()) &&
-      		(steering != ROADMAP_NO_VALID_DATA)) {
+                (steering != ROADMAP_NO_VALID_DATA)) {
          RoadMapGpsReceivedPosition.steering  = steering;
       }
 
-      roadmap_gps_process_position();
+      roadmap_gps_process_position(1);
 
    } else {
       roadmap_gps_update_reception ();
@@ -588,7 +602,7 @@ static void roadmap_gps_object_listener (RoadMapDynamicString id,
    RoadMapGpsReceivedPosition = *position;
 
    (void)roadmap_gps_update_status ('A');
-   roadmap_gps_process_position();
+   roadmap_gps_process_position(1);
 
    (*RoadMapGpsNextObjectListener) (id, position);
 }
@@ -792,6 +806,24 @@ void roadmap_gps_open (void) {
          RoadMapGpsLink.subsystem = ROADMAP_IO_FILE;
       }
 
+#if LATER
+   // someday, maybe allow for --fildes=N in roadgps, so roadmap can
+   // feed results to roadgps when it's spawned.  this would be to
+   // allow sharing the serial port without gpsd.
+   // alternative is moving roadgps guts into roadmap -- perhaps not
+   // that hard -- just take over the canvas.
+   } else if (strncasecmp (url, "filedes://", 7) == 0) {
+
+      char *end;
+      int fd = strtol(url+10, &end, 10);
+      if (*end) fd = -1;
+      RoadMapGpsLink.os.file = (RoadMapFile)fd;
+
+      if (ROADMAP_FILE_IS_VALID(RoadMapGpsLink.os.file)) {
+         RoadMapGpsLink.subsystem = ROADMAP_IO_PIPE;
+      }
+#endif
+
    } else if (strncasecmp (url, "object:", 7) == 0) {
 
       if (strcmp (url+7, "GPS") == 0) {
@@ -984,7 +1016,7 @@ void roadmap_gps_input (RoadMapIO *io) {
 
 int roadmap_gps_active (void) {
 
-   time_t timeout;
+   time_t timeout, t;
 
    if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) {
       return 0;
@@ -992,7 +1024,8 @@ int roadmap_gps_active (void) {
 
    timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
 
-   if (time(NULL) - RoadMapGpsLatestPositionData >= timeout) {
+   t = time(NULL) - RoadMapGpsLatestPositionData;
+   if (t >= timeout) {
       return 0;
    }
 
