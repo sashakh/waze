@@ -24,21 +24,22 @@
 #ifndef INCLUDE__ROADMAP_MESSAGEBOX__H
 #define INCLUDE__ROADMAP_MESSAGEBOX__H
 
-void roadmap_messagebox      (const char *title, const char *message);
-void roadmap_messagebox_wait (const char *title, const char *message);
+void roadmap_messagebox_hide (void *handle);
+void *roadmap_messagebox        (const char *title, const char *message);
+void *roadmap_messagebox_wait   (const char *title, const char *message);
 #ifdef LANG_SUPPORT
 #ifndef __ROADMAP_MESSAGEBOX_NO_LANG
 #include "roadmap_lang.h"
 
-static __inline void roadmap_messagebox_i (const char *title, 
+static __inline void *roadmap_messagebox_i (const char *title, 
                                            const char *message) {
-  roadmap_messagebox(roadmap_lang_get(title),
+  return roadmap_messagebox(roadmap_lang_get(title),
                      roadmap_lang_get(message));
 }
 
-static __inline void roadmap_messagebox_wait_i (const char *title,
+static __inline void *roadmap_messagebox_wait_i (const char *title,
                                                 const char *message) {
-  roadmap_messagebox_wait(roadmap_lang_get(title), 
+  return roadmap_messagebox_wait(roadmap_lang_get(title), 
                           roadmap_lang_get(message));
 }
 

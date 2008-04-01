@@ -37,6 +37,12 @@
 #define __ROADMAP_MESSAGEBOX_NO_LANG
 #include "roadmap_messagebox.h"
 
+void roadmap_messagebox_hide (void *handle) {
+
+   gtk_widget_destroy ((GtkWidget *)handle);
+
+}
+
 
 static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
 
@@ -47,7 +53,7 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
    return FALSE;
 }
 
-static void roadmap_messagebox_show (const char *title,
+static void *roadmap_messagebox_show (const char *title,
                                      const char *text, int modal) {
 
    GtkWidget *ok;
@@ -88,14 +94,16 @@ static void roadmap_messagebox_show (const char *title,
    gtk_widget_grab_default (ok);
 
    gtk_widget_show_all (GTK_WIDGET(dialog));
+
+   return dialog;
 }
 
 
-void roadmap_messagebox (const char *title, const char *message) {
-   roadmap_messagebox_show (title, message, 0);
+void *roadmap_messagebox (const char *title, const char *message) {
+   return roadmap_messagebox_show (title, message, 0);
 }
 
-void roadmap_messagebox_wait (const char *title, const char *message) {
-   roadmap_messagebox_show (title, message, 1);
+void *roadmap_messagebox_wait (const char *title, const char *message) {
+   return roadmap_messagebox_show (title, message, 1);
 }
 

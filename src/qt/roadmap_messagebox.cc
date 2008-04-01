@@ -32,10 +32,26 @@ extern "C" {
 #include "roadmap_messagebox.h"
 }
 
-void roadmap_messagebox(const char* title, const char* message) {
-   QMessageBox::information(0, roadmap_start_get_title(title), message);
+void roadmap_messagebox_hide(void *handle) {
+   QMessageBox *mb = (QMessageBox *)handle;
+   mb->~QMessageBox();
 }
 
-void roadmap_messagebox_wait(const char* title, const char* message) {
-   QMessageBox::critical(0, roadmap_start_get_title(title), message);
+void *roadmap_messagebox(const char* title, const char* message) {
+   QMessageBox *mb = 
+    new QMessageBox ( title, message,
+	QMessageBox::Information,
+	QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,
+	(QWidget *)0, (const char *)0, FALSE);
+   mb->show();
+   return mb;
+}
+
+void *roadmap_messagebox_wait(const char* title, const char* message) {
+   QMessageBox *mb = 
+    new QMessageBox ( title, message,
+	QMessageBox::Information,
+	QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,
+	(QWidget *)0, (const char *)0, TRUE);
+   mb->show();
 }
