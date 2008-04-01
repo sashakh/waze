@@ -40,7 +40,7 @@
 #include "roadmap_string.h"
 
 
-#define ROADMAP_NMEA_MAX_SATELLITE   16
+#define ROADMAP_NMEA_MAX_SATELLITE   24
 
 #define ROADMAP_NMEA_QUALITY_INVALID   0
 #define ROADMAP_NMEA_QUALITY_GPS       1
