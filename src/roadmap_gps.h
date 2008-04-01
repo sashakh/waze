@@ -86,6 +86,7 @@ typedef struct {
 typedef void (*roadmap_gps_monitor) (int reception,
                                      const RoadMapGpsPrecision *precision,
                                      const RoadMapGpsSatellite *satellites,
+                                     int activecount,
                                      int count);
 
 void roadmap_gps_register_monitor (roadmap_gps_monitor monitor);
