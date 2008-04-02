@@ -319,6 +319,7 @@ void roadmap_dialog_new_choice (const char *frame,
 	int i;
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
 	RoadMapDialogSelection *choice;
+	char **vals = (char **)values;
 	
 	child->widget_type = ROADMAP_WIDGET_CHOICE;
 	
@@ -328,7 +329,7 @@ void roadmap_dialog_new_choice (const char *frame,
 	for (i = 0; i < count; ++i) {
 		choice[i].type_id = "RoadMapDialogSelection";
 		choice[i].item = child;
-		choice[i].value = (char*)values[i];
+      		choice[i].value = vals[i];
 		choice[i].label = labels[i];
 		choice[i].callback = NULL;
 	}

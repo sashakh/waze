@@ -422,7 +422,7 @@ void roadmap_dialog_new_choice (const char *frame,
                                 int count,
                                 int current,
                                 char **labels,
-                                void **values,
+                                void *values,
                                 RoadMapDialogCallback callback) {
 
    int i;
@@ -431,6 +431,7 @@ void roadmap_dialog_new_choice (const char *frame,
    GtkWidget *menu;
    GtkWidget *menu_item;
    RoadMapDialogSelection *choice;
+   char **vals = (char **)values;
 
    child->widget_type = ROADMAP_WIDGET_CHOICE;
 
@@ -443,7 +444,7 @@ void roadmap_dialog_new_choice (const char *frame,
 
       choice[i].typeid = "RoadMapDialogSelection";
       choice[i].item = child;
-      choice[i].value = values[i];
+      choice[i].value = vals[i];
       choice[i].callback = NULL;
 
       menu_item = gtk_menu_item_new_with_label (labels[i]);

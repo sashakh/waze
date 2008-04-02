@@ -111,7 +111,7 @@ public:
                        int count,
                        int current,
                        char** labels,
-                       void** values,
+                       void* values,
                        RoadMapDialogCallback callback);
 
    void addListEntry(const char* frame, const char* name);

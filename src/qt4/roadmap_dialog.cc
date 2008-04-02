@@ -83,7 +83,7 @@ void roadmap_dialog_new_choice (const char *frame,
                                 int count,
                                 int current,
                                 char **labels,
-                                void **values,
+                                void *values,
                                 RoadMapDialogCallback callback) {
 
    currentDialog->addChoiceEntry

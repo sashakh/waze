@@ -89,7 +89,7 @@ void roadmap_dialog_new_choice (const char *frame,
                                 int count,
                                 int current,
                                 char **labels,
-                                void **values,
+                                void *values,
                                 RoadMapDialogCallback callback);
 
 /* Add one list item.
@@ -162,7 +162,7 @@ static __inline void roadmap_dialog_new_choice_i
                                            int count,
                                 	   int current,
                                            char **labels,
-                                           void **values,
+                                           void *values,
                                            RoadMapDialogCallback callback) {
 /* the labels should be translated */
    roadmap_dialog_new_choice (roadmap_lang_get (frame),

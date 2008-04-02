@@ -88,15 +88,16 @@ void RMapDialog::addChoiceEntry(const char* frameName,
                                 int count,
                                 int current,
                                 char** labels,
-                                void** values,
+                                void* values,
                                 RoadMapDialogCallback callback) {
 
    QMap<int, Entry *>* frame = getFrame(frameName);
+   char **vals = (char **)values;
 
    QVector<Item> items(count);
    for(int i = 0; i < count; i++) {
       items[i].label = labels[i];
-      items[i].value = values[i];
+      items[i].value = vals[i];
    }
 
    Entry *entry =
