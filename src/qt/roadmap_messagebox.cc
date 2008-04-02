@@ -54,4 +54,5 @@ void *roadmap_messagebox_wait(const char* title, const char* message) {
 	QMessageBox::Ok, QMessageBox::NoButton, QMessageBox::NoButton,
 	(QWidget *)0, (const char *)0, TRUE);
    mb->show();
+   return mb;
 }
