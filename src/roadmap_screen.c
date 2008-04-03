@@ -106,8 +106,8 @@ static RoadMapConfigDescriptor RoadMapConfigMapDynamicOrientation =
 static RoadMapConfigDescriptor RoadMapConfigLinefontSelector =
                         ROADMAP_CONFIG_ITEM("Map", "Use Linefont");
 
-static RoadMapConfigDescriptor RoadMapConfigGeneralProgressBar =
-                        ROADMAP_CONFIG_ITEM("General", "Progress Bar");
+static RoadMapConfigDescriptor RoadMapConfigGeneralProgressDelay =
+                        ROADMAP_CONFIG_ITEM("General", "Progress Bar Delay");
 
 
 static int RoadMapScreenInitialized = 0;
@@ -136,6 +136,11 @@ static char *SquareOnScreen;
 static int   SquareOnScreenCount;
 
 static RoadMapPen RoadMapScreenLastPen = NULL;
+
+static unsigned long RoadMapScreenBusyStart;
+static unsigned long RoadMapScreenProgressStart;
+static unsigned long RoadMapScreenProgressDelay;
+static int RoadmapScreenProgressBar;
 
 
 
@@ -195,21 +200,18 @@ static void roadmap_screen_setfont(void) {
    }
 }
 
-static unsigned long roadmap_screen_busy_start;
-static unsigned long roadmap_screen_progress_start;
-
-static int roadmap_screen_progbar;
-
 static void roadmap_screen_start_progress () {
 
-    if (roadmap_config_match (&RoadMapConfigGeneralProgressBar, "yes")) {
-       roadmap_screen_progress_start = roadmap_time_get_millis();
+    RoadMapScreenProgressDelay =
+          roadmap_config_get_integer (&RoadMapConfigGeneralProgressDelay);
+    if (RoadMapScreenProgressDelay != 0) {
+       RoadMapScreenProgressStart = roadmap_time_get_millis();
     } else {
-       roadmap_screen_progress_start = 0;
+       RoadMapScreenProgressStart = 0;
     }
 
-    if (roadmap_screen_progbar) {
-       roadmap_progress_update (roadmap_screen_progbar, 1, 0);
+    if (RoadmapScreenProgressBar) {
+       roadmap_progress_update (RoadmapScreenProgressBar, 1, 0);
        roadmap_main_flush ();
     }
 }
@@ -217,11 +219,11 @@ static void roadmap_screen_start_progress () {
 void roadmap_screen_set_cursor (RoadMapCursor newcursor) {
    static RoadMapCursor lastcursor;
 
-   roadmap_screen_busy_start = 0;
+   RoadMapScreenBusyStart = 0;
 
    if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
       roadmap_screen_start_progress ();
-      roadmap_screen_busy_start = roadmap_time_get_millis();
+      RoadMapScreenBusyStart = roadmap_time_get_millis();
       roadmap_main_flush ();
       return;
    }
@@ -239,22 +241,23 @@ int roadmap_screen_busy_check(int total, int completed) {
 
    static int last_completed;
 
-   if (roadmap_screen_progress_start && completed != last_completed) {
+   if (RoadMapScreenProgressStart && completed != last_completed) {
       if (completed == total) {
-         if (roadmap_screen_progbar)
-            roadmap_progress_close(roadmap_screen_progbar);
-         roadmap_screen_progbar = 0;
-      } else if (roadmap_screen_progbar ||
-            roadmap_time_get_millis() - roadmap_screen_progress_start > 200) {
-         if (!roadmap_screen_progbar)
-            roadmap_screen_progbar = roadmap_progress_new();
-         roadmap_progress_update (roadmap_screen_progbar, total, completed);
+         if (RoadmapScreenProgressBar)
+            roadmap_progress_close(RoadmapScreenProgressBar);
+         RoadmapScreenProgressBar = 0;
+      } else if (RoadmapScreenProgressBar ||
+            roadmap_time_get_millis() - RoadMapScreenProgressStart >
+                RoadMapScreenProgressDelay ) {
+         if (!RoadmapScreenProgressBar)
+            RoadmapScreenProgressBar = roadmap_progress_new();
+         roadmap_progress_update (RoadmapScreenProgressBar, total, completed);
       }
       last_completed = completed;
    }
 
-   if (roadmap_screen_busy_start &&
-        roadmap_time_get_millis() - roadmap_screen_busy_start > 1000) {
+   if (RoadMapScreenBusyStart &&
+        roadmap_time_get_millis() - RoadMapScreenBusyStart > 1000) {
       roadmap_screen_set_cursor (ROADMAP_CURSOR_WAIT);
    }
 
@@ -2068,9 +2071,8 @@ void roadmap_screen_initialize (void) {
         ("preferences", &RoadMapConfigLinefontSelector,
             "off", "labels", "signs", "all", NULL);
 
-   roadmap_config_declare_enumeration
-        ("preferences", &RoadMapConfigGeneralProgressBar, "yes", "no", NULL);
-
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGeneralProgressDelay,  "300");
 
 
    roadmap_pointer_register_short_click (&roadmap_screen_short_click, POINTER_DEFAULT);
