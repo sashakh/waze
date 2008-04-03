@@ -31,3 +31,4 @@ GPS.Font Size: 15
 Display.Font Size: 20
 Labels.Font Size: 15
 Landmarks.Font Size: 20
+Map.DynamicOrientation: off
