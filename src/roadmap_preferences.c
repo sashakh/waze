@@ -195,7 +195,7 @@ static void roadmap_preferences_new_dialog
                                     count,
                                     current,
                                     values,
-                                    (void **)values,
+                                    (void *)values,
                                     NULL);
          break;
 
