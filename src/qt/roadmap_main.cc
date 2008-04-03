@@ -368,13 +368,13 @@ int main(int argc, char* argv[]) {
 
    int i;
 
-   roadmap_option (argc, argv, 0, NULL);
-
 #ifdef QWS
    app = new QPEApplication(argc, argv);
 #else
    app = new QApplication(argc, argv);
 #endif
+
+   roadmap_option (argc, argv, 0, NULL);
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
       RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
