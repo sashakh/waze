@@ -7,17 +7,6 @@ General.Icons: yes
 General.Toolbar: yes
 General.Unit: imperial
 GPS.Source: gpsd2://localhost
-GPS.Timeout: 10
-GPS.Foreground: #7a89c9
-GPS.Background: #d0d4ff
-GPS.Active: #6aa85b
-GPS.ActiveFill: #97c740
-GPS.ActiveLabels: #ffffff
-GPS.Inactive: #ff4128
-GPS.InactiveFill: #ff8c29
-GPS.InactiveLabels: #000000
-GPS.Labels: #000000
-GPS.Values: #03079a
 Highlight.Background: yellow
 Highlight.Duration: 10
 Highlight.Thickness: 4
