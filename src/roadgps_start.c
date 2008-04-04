@@ -40,6 +40,7 @@
 #include "roadmap_math.h"
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_canvas.h"
 
 #include "roadgps_logger.h"
 #include "roadgps_screen.h"
@@ -215,12 +216,27 @@ const char *roadmap_start_get_title (const char *name) {
    return name;
 }
 
+int roadmap_start_map_active(void) {
+    return 0;
+}
 
+int roadmap_start_return_to_map(void) {
+   return 0;
+}
+
+void roadmap_start_do_callback(RoadMapCallback cb) {
+
+    cb();
+}
 void roadmap_start_exit (void) {
     
     roadmap_config_save (0);
 }
 
+void roadmap_start_request_repaint (void) {
+
+    roadgps_screen_draw();
+}
 
 void roadmap_start (int argc, char **argv) {
 
@@ -240,6 +256,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_gps_initialize    ();
    roadgps_screen_initialize ();
+   roadmap_canvas_register_configure_handler (roadgps_screen_configure);
    roadgps_logger_initialize ();
 
    roadmap_config_load ();
