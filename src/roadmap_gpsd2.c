@@ -200,7 +200,7 @@ int roadmap_gpsd2_decode (void *user_context,
       char *tuple[N_TUPLE];
 
 
-      if (item[1] != '=') {
+      if (item[1] != '=' || item[2] == '?') {
          continue;
       }
 
