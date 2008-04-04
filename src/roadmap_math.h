@@ -122,7 +122,7 @@ int  roadmap_math_to_trip_distance_tenths (int distance);
 
 void roadmap_math_trip_set_distance(char which, int distance);
 
-int  roadmap_math_to_speed_unit (int knots);
+int  roadmap_math_knots_to_speed_unit (int knots);
 
 
 int  roadmap_math_to_current_unit (int value, const char *unit);

@@ -33,6 +33,7 @@
 
 #include "roadmap.h"
 #include "roadmap_gpsd2.h"
+#include "roadmap_math.h"
 
 
 static RoadMapGpsdNavigation RoadmapGpsd2NavigationListener = NULL;
@@ -247,8 +248,13 @@ int roadmap_gpsd2_decode (void *user_context,
             gps_time  = roadmap_gpsd2_decode_numeric    (argument[1]);
             latitude  = roadmap_gpsd2_decode_coordinate (argument[3]);
             longitude = roadmap_gpsd2_decode_coordinate (argument[4]);
+
+            // meters
             altitude  = roadmap_gpsd2_decode_numeric    (argument[5]);
+
             steering  = roadmap_gpsd2_decode_numeric    (argument[8]);
+
+            // meters/sec
             speed     = roadmap_gpsd2_decode_numeric    (argument[9]);
 
             if (f >= 15) { // protocol level 3 and higher 
@@ -331,13 +337,13 @@ int roadmap_gpsd2_decode (void *user_context,
 
                case 1:
                   
-		  // protocol level 1
+                  // protocol level 1
                   satellite_count = roadmap_gpsd2_decode_numeric(tuple[0]);
                   break;
 
                case 3:
 
-		  // protocol level 2 and higher
+                  // protocol level 2 and higher
                   gps_time = roadmap_gpsd2_decode_numeric(tuple[1]);
                   satellite_count = roadmap_gpsd2_decode_numeric(tuple[2]);
                   break;
@@ -379,6 +385,12 @@ end_of_decoding:
    }
 
    if (got_navigation_data) {
+
+      // meters to "preferred" units
+      altitude = roadmap_math_to_current_unit (100 * altitude, "cm");
+
+      // was m/s, now knots
+      speed = 1.944 * speed / 1000;
 
       RoadmapGpsd2NavigationListener
          (status, gps_time, latitude, longitude, altitude, speed, steering);

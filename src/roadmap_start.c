@@ -1011,7 +1011,7 @@ static void roadmap_gps_set_messages(const RoadMapGpsPosition *gps) {
 
    /* system time, not GPS time */
    roadmap_message_set ('S', "%3d %s",
-                        roadmap_math_to_speed_unit (gps->speed),
+                        roadmap_math_knots_to_speed_unit (gps->speed),
                         roadmap_math_speed_unit ());
    roadmap_message_set ('H', "%d %s",
                         gps->altitude, roadmap_math_distance_unit ());

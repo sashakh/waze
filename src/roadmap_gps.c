@@ -361,7 +361,7 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
 
       RoadMapGpsReceivedPosition.latitude  = fields->rmc.latitude;
       RoadMapGpsReceivedPosition.longitude = fields->rmc.longitude;
-      RoadMapGpsReceivedPosition.speed     = fields->rmc.speed;
+      RoadMapGpsReceivedPosition.speed     = fields->rmc.speed; // knots
       /* altitude not available: keep previous value. */
 
       if (fields->rmc.speed > roadmap_gps_speed_accuracy()) {
@@ -505,8 +505,8 @@ static void roadmap_gps_navigation (char status,
                                     int gmt_time,
                                     int latitude,
                                     int longitude,
-                                    int altitude,
-                                    int speed,
+                                    int altitude,   // "preferred" units
+                                    int speed,      // knots
                                     int steering) {
 
    status = roadmap_gps_update_status (status);
@@ -528,10 +528,11 @@ static void roadmap_gps_navigation (char status,
       }
 
       if (speed != ROADMAP_NO_VALID_DATA) {
-         RoadMapGpsReceivedPosition.speed  = speed;
+         RoadMapGpsReceivedPosition.speed  =  speed;
       }
 
-      if ((speed >= roadmap_gps_speed_accuracy()) &&
+      if ((RoadMapGpsReceivedPosition.speed >=
+                        roadmap_gps_speed_accuracy()) &&
                 (steering != ROADMAP_NO_VALID_DATA)) {
          RoadMapGpsReceivedPosition.steering  = steering;
       }
@@ -784,27 +785,27 @@ void roadmap_gps_open (void) {
 #ifndef _WIN32
    } else if (strncasecmp (url, "tty://", 6) == 0) {
 
-      /* The syntax of the url is: tty://dev/ttyXXX[:speed] */
+      /* The syntax of the url is: tty://dev/ttyXXX[:baud] */
 
       char *device = strdup (url + 5); /* url is a const (config data). */
-      char *speed  = strchr (device, ':');
+      char *baud  = strchr (device, ':');
 
-      if (speed == NULL) {
-         speed = "4800"; /* Hardcoded default matches NMEA standard. */
+      if (baud == NULL) {
+         baud = "4800"; /* Hardcoded default matches NMEA standard. */
       } else {
-         *(speed++) = 0;
+         *(baud++) = 0;
       }
 
 #else
    } else if ((strncasecmp (url, "com", 3) == 0) && (url[4] == ':')) {
 
       char *device = strdup(url); /* I do know this is not smart.. */
-      const char *speed = roadmap_config_get (&RoadMapConfigGPSBaudRate);
+      const char *baud = roadmap_config_get (&RoadMapConfigGPSBaudRate);
 
 #endif
 
       RoadMapGpsLink.os.serial =
-         roadmap_serial_open (device, "r", atoi(speed));
+         roadmap_serial_open (device, "r", atoi(baud));
 
       if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
          RoadMapGpsLink.subsystem = ROADMAP_IO_SERIAL;

@@ -221,7 +221,7 @@ static int roadmap_nmea_rmc (int argc, char *argv[]) {
    if (RoadMapNmeaReceived.rmc.longitude == 0) return 0;
 
 
-   RoadMapNmeaReceived.rmc.speed =
+   RoadMapNmeaReceived.rmc.speed =  // in knots
       roadmap_nmea_decode_numeric (argv[7], 1);
 
    RoadMapNmeaReceived.rmc.steering =
@@ -276,7 +276,7 @@ static int roadmap_nmea_gga (int argc, char *argv[]) {
       roadmap_nmea_decode_numeric (argv[8], 100);
 
    if (argv[9] && *argv[9]) {
-      RoadMapNmeaReceived.gga.altitude =
+      RoadMapNmeaReceived.gga.altitude =  // was meters, converted to cm
          roadmap_nmea_decode_numeric (argv[9], 100);
       strcpy (RoadMapNmeaReceived.gga.altitude_unit,
            roadmap_nmea_decode_unit (argv[10]));
@@ -287,8 +287,7 @@ static int roadmap_nmea_gga (int argc, char *argv[]) {
          */
       // roadmap_log (ROADMAP_WARNING, "fixing altitude at 0");
       RoadMapNmeaReceived.gga.altitude = 0;
-      strcpy (RoadMapNmeaReceived.gga.altitude_unit,
-           roadmap_nmea_decode_unit ("M"));
+      strcpy (RoadMapNmeaReceived.gga.altitude_unit, "cm");
 
    }
 
@@ -558,7 +557,7 @@ static int roadmap_nmea_pxrmmov (int argc, char *argv[]) {
     RoadMapNmeaReceived.pxrmmov.longitude =
         roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
 
-    RoadMapNmeaReceived.pxrmmov.speed =
+    RoadMapNmeaReceived.pxrmmov.speed = // knots
        roadmap_nmea_decode_numeric (argv[6], 1);
 
     RoadMapNmeaReceived.pxrmmov.steering =

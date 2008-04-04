@@ -1574,7 +1574,7 @@ int  roadmap_math_get_distance_from_segment
 }
 
 
-int roadmap_math_to_speed_unit (int knots) {
+int roadmap_math_knots_to_speed_unit (int knots) {
     
     return (int) (knots * RoadMapContext.units->speed_per_knot);
 }

@@ -126,8 +126,8 @@ int roadmap_vii_decode (void *user_context,
    gps_time  = atoi (reply[2]);
    latitude  = roadmap_math_from_floatstring (reply[4], MILLIONTHS);
    longitude = roadmap_math_from_floatstring (reply[5], MILLIONTHS);
-   altitude  = atoi (reply[6]);
-   speed     = atoi (reply[7]);
+   altitude  = atoi (reply[6]);  // FIXME -- units?
+   speed     = atoi (reply[7]);  // FIXME -- units?
    steering  = atoi (reply[8]);
 
    RoadmapViiNavigationListener

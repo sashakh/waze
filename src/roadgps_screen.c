@@ -354,7 +354,7 @@ static void roadgps_screen_draw_position (void) {
   roadmap_canvas_draw_string
       (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, "Speed:");
   sprintf(data,"%d%s",
-     roadmap_math_to_speed_unit(RoadGpsPosition.speed),
+     roadmap_math_knots_to_speed_unit(RoadGpsPosition.speed),
      roadmap_math_speed_unit());
   point.y = point.y+RoadGpsFrame.label_height;
   roadmap_canvas_select_pen (RoadGpsValues);
@@ -508,8 +508,8 @@ static void roadgps_screen_listener
   
   RoadGpsPosition.latitude = position->latitude;
   RoadGpsPosition.longitude = position->longitude;
-  RoadGpsPosition.altitude = position->altitude;
-  RoadGpsPosition.speed = position->speed;
+  RoadGpsPosition.altitude = position->altitude;    // meters
+  RoadGpsPosition.speed = position->speed;          // knots
   RoadGpsPosition.steering = position->steering;
 
   RoadGpsPrecision.dimension = dilution->dimension;
