@@ -158,7 +158,7 @@ static RoadMapScreenObj roadmap_screen_obj_new
       while (object->states_count--) {
          free(object->sprites[object->states_count]);
          if (object->msgformat[object->states_count] != NULL)
-            free(object->msgformat);
+            free(object->msgformat[object->states_count]);
       }
 
       savenext = object->next;
