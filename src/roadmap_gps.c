@@ -71,8 +71,6 @@ static char RoadMapGpsTitle[] = "GPS receiver";
 
 static RoadMapIO RoadMapGpsLink;
 
-static time_t RoadMapGpsConnectedSince = -1;
-
 #define ROADMAP_GPS_CLIENTS 16
 static roadmap_gps_listener RoadMapGpsListeners[ROADMAP_GPS_CLIENTS] = {NULL};
 static roadmap_gps_monitor  RoadMapGpsMonitors[ROADMAP_GPS_CLIENTS] = {NULL};
@@ -89,7 +87,7 @@ static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 /* Listeners information (navigation data) ----------------------------- */
 
 static char   RoadMapLastKnownStatus = 'A';
-static time_t RoadMapGpsLatestPositionData = 0;
+static time_t RoadMapGpsLatestData = 0;
 static int    RoadMapGpsEstimatedError = 0;
 static int    RoadMapGpsRetryPending = 0;
 static time_t RoadMapGpsReceivedTime = 0;
@@ -113,7 +111,9 @@ static RoadMapGpsPrecision RoadMapGpsQuality;
 static void roadmap_gps_no_link_control (RoadMapIO *io) {}
 static void roadmap_gps_no_periodic_control (RoadMapCallback callback) {}
 
-static void roadmap_gps_process_position (int reception);
+static void roadmap_gps_call_all_listeners (void);
+
+static void roadmap_gps_got_data(void);
 
 static roadmap_gps_periodic_control RoadMapGpsPeriodicAdd =
                                     &roadmap_gps_no_periodic_control;
@@ -140,7 +140,8 @@ static void roadmap_gps_update_reception (void) {
 
    int new_state;
 
-   if (!roadmap_gps_active ()) {
+   if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID ||
+            RoadMapGpsLatestData == 0) {
       new_state = GPS_RECEPTION_NA;
 
    } else if (RoadMapLastKnownStatus != 'A') {
@@ -160,10 +161,9 @@ static void roadmap_gps_update_reception (void) {
 
       if (new_state <= GPS_RECEPTION_NONE) {
          /* we want listeners to get at least one notification that
-          * gps has gone away, but roadmap_gps_process_position()
-          * resets the timestamp.  so we tell it not to.
+          * gps has gone away.
           */
-         roadmap_gps_process_position (0);
+         roadmap_gps_call_all_listeners ();
       }
 
       roadmap_state_refresh ();
@@ -198,12 +198,15 @@ static char roadmap_gps_update_status (char status) {
    return status;
 }
 
+static void roadmap_gps_got_data(void) {
 
-static void roadmap_gps_process_position (int reception) {
+   RoadMapGpsLatestData = time(NULL);
+}
+
+
+static void roadmap_gps_call_all_listeners (void) {
 
    int i;
-
-   if (reception) RoadMapGpsLatestPositionData = time(NULL);
 
    for (i = 0; i < ROADMAP_GPS_CLIENTS; ++i) {
 
@@ -215,11 +218,10 @@ static void roadmap_gps_process_position (int reception) {
                                 &RoadMapGpsReceivedPosition);
    }
 
-   if (reception) roadmap_gps_update_reception ();
 }
 
 
-static void roadmap_gps_call_monitors (void) {
+static void roadmap_gps_call_all_monitors (void) {
 
    int i;
 
@@ -234,7 +236,6 @@ static void roadmap_gps_call_monitors (void) {
                                RoadMapGpsSatelliteCount);
    }
 
-   roadmap_gps_update_reception ();
 }
 
 
@@ -251,25 +252,27 @@ static void roadmap_gps_call_loggers (const char *data) {
 
 static void roadmap_gps_keep_alive (void) {
 
-   if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) return;
+   time_t timeout, t;
 
-   if (roadmap_gps_active ()) {
+   if (RoadMapGpsLink.subsystem != ROADMAP_IO_INVALID) {
        switch (RoadMapGpsProtocol) {
        case ROADMAP_GPS_GPSD2:
           roadmap_gpsd2_periodic();
           break;
        }
-       return;
    }
-
-   // roadmap_log (ROADMAP_ERROR, "GPS timeout detected.");
 
    roadmap_gps_update_reception ();
 
-   roadmap_gps_shutdown ();
+   timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
 
-   /* Try to establish a new IO channel: */
-   roadmap_gps_open();
+   t = time(NULL) - RoadMapGpsLatestData;
+   if (t < timeout) {
+      return;
+   }
+
+   roadmap_gps_update_status ('V');
+
 }
 
 
@@ -322,8 +325,10 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
          roadmap_math_to_current_unit (fields->gga.altitude,
                                        fields->gga.altitude_unit);
 
-      roadmap_gps_process_position(1);
+      roadmap_gps_call_all_listeners();
    }
+
+   roadmap_gps_got_data();
 }
 
 
@@ -339,8 +344,10 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
       /* altitude not available: keep previous value. */
       /* steering not available: keep previous value. */
 
-      roadmap_gps_process_position(1);
+      roadmap_gps_call_all_listeners();
    }
+
+   roadmap_gps_got_data();
 }
 
 
@@ -367,8 +374,10 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
          RoadMapGpsReceivedPosition.steering  = fields->rmc.steering;
       }
 
-      roadmap_gps_process_position(1);
+      roadmap_gps_call_all_listeners();
    }
+
+   roadmap_gps_got_data();
 }
 
 
@@ -391,7 +400,8 @@ static void roadmap_gps_gsa
    RoadMapGpsQuality.dilution_horizontal = fields->gsa.dilution_horizontal;
    RoadMapGpsQuality.dilution_vertical   = fields->gsa.dilution_vertical;
 
-   roadmap_gps_update_reception ();
+   roadmap_gps_got_data();
+
 }
 
 
@@ -441,8 +451,10 @@ static void roadmap_gps_gsv
       }
 
       RoadMapGpsActiveSatelliteCount = active_count;
-      roadmap_gps_call_monitors ();
+      roadmap_gps_call_all_monitors ();
    }
+
+   roadmap_gps_got_data();
 }
 
 
@@ -524,11 +536,11 @@ static void roadmap_gps_navigation (char status,
          RoadMapGpsReceivedPosition.steering  = steering;
       }
 
-      roadmap_gps_process_position(1);
+      roadmap_gps_call_all_listeners();
 
-   } else {
-      roadmap_gps_update_reception ();
    }
+
+   roadmap_gps_got_data();
 }
 
 
@@ -545,7 +557,7 @@ static void roadmap_gps_satellites  (int sequence,
       /* End of list: propagate the information. */
 
       RoadMapGpsActiveSatelliteCount = active_count;
-      roadmap_gps_call_monitors ();
+      roadmap_gps_call_all_monitors ();
 
    } else {
 
@@ -602,9 +614,11 @@ static void roadmap_gps_object_listener (RoadMapDynamicString id,
    RoadMapGpsReceivedPosition = *position;
 
    (void)roadmap_gps_update_status ('A');
-   roadmap_gps_process_position(1);
+   roadmap_gps_call_all_listeners();
 
    (*RoadMapGpsNextObjectListener) (id, position);
+
+   roadmap_gps_got_data();
 }
 
 
@@ -689,11 +703,11 @@ void roadmap_gps_open (void) {
 
    const char *url;
 
-
    /* Check if we have a gps interface defined: */
 
    RoadMapGpsActiveSatelliteCount = 0;
    RoadMapLastKnownStatus = 0;
+   RoadMapGpsLatestData = 0;
    roadmap_gps_update_reception ();
 
    url = roadmap_gps_source ();
@@ -873,10 +887,8 @@ void roadmap_gps_open (void) {
       RoadMapGpsRetryPending = 0;
    }
 
-   /* Consider as if we had received a position. This gives some
-    * time for the whole system to initialize itself.
-    */
-   RoadMapGpsLatestPositionData = RoadMapGpsConnectedSince = time(NULL);
+    /* Give time for the whole system to initialize itself.  */
+   roadmap_gps_got_data();
 
    (*RoadMapGpsPeriodicAdd) (roadmap_gps_keep_alive);
 
@@ -1011,25 +1023,6 @@ void roadmap_gps_input (RoadMapIO *io) {
       }
    }
 
-}
-
-
-int roadmap_gps_active (void) {
-
-   time_t timeout, t;
-
-   if (RoadMapGpsLink.subsystem == ROADMAP_IO_INVALID) {
-      return 0;
-   }
-
-   timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
-
-   t = time(NULL) - RoadMapGpsLatestPositionData;
-   if (t >= timeout) {
-      return 0;
-   }
-
-   return 1;
 }
 
 
