@@ -34,7 +34,7 @@
 #include "roadmap_gui.h"
 #include "roadmap_config.h"
 #include "roadmap_dialog.h"
-#include "roadmap_screen.h"
+#include "roadmap_start.h"
 #include "roadmap_preferences.h"
 
 
@@ -74,7 +74,7 @@ static ConfigurationContext *RoadMapConfigurationDialogs = NULL;
 static void roadmap_preferences_cancel (const char *name, void *data) {
 
    roadmap_dialog_hide (name);
-   roadmap_screen_request_repaint ();
+   roadmap_start_request_repaint ();
 }
 
 static void roadmap_preferences_ok (const char *name, void *data) {

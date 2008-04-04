@@ -699,7 +699,7 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
       roadmap_locator_close (RoadMapDownloadDeleteSelected);
       roadmap_file_remove (NULL, path);
 
-      roadmap_screen_request_repaint ();
+      roadmap_start_request_repaint ();
 
       roadmap_download_delete_populate ();
    }
