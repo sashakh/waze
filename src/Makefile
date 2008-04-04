@@ -73,6 +73,8 @@ RMGUISRC = roadmap_sprite.c \
 	roadmap_download.c \
 	roadmap_help.c \
 	roadmap_label.c \
+	roadgps_screen.c \
+	roadgps_logger.c \
 	roadmap_start.c
 
 RMGUIOBJS = $(RMGUISRC:.c=.o)
