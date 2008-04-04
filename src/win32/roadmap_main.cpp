@@ -351,7 +351,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						wmId);
 					break;
 				}
-				(*callback)();
+				roadmap_start_do_callback(callback);
 			} else if ((wmId >= TOOL_ID_START) &&
 				(wmId < (TOOL_ID_START + MAX_TOOL_ITEMS))) {
 				RoadMapCallback callback =
@@ -362,7 +362,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						wmId);
 					break;
 				}
-				(*callback)();
+				roadmap_start_do_callback(callback);
 			} else {
 				return DefWindowProc(hWnd, message, wParam, lParam);
 			}

@@ -35,6 +35,7 @@
 #include "roadmap_canvas.h"
 #include "roadmap_main.h"
 #include "roadmap_config.h"
+#include "roadmap_start.h"
 
 #define LONG_CLICK_TIMEOUT 1000
 #define DRAG_FLOW_CONTROL_TIMEOUT 30
@@ -69,6 +70,12 @@ static PointerCallback pointer_callbacks[MAX_EVENTS][MAX_CALLBACKS];
 static int exec_callbacks (int event, RoadMapGuiPoint *point) {
    int i = 0;
    int res = 0;
+
+   if (!roadmap_start_map_active()) {
+      if (event == RELEASED)
+          roadmap_start_return_to_map();
+      return 0;
+   }
 
    while ((i<MAX_CALLBACKS) && pointer_callbacks[event][i].handler) {
       res = (pointer_callbacks[event][i].handler) (point);

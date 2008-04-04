@@ -60,11 +60,22 @@ RMapCallback::RMapCallback(RoadMapCallback cb) {
 
 void RMapCallback::fire() {
    if (callback != 0) {
+      roadmap_start_do_callback(callback);
+   }
+}
+
+// Implementation of RMapTimerCallback class
+RMapTimerCallback::RMapTimerCallback(RoadMapCallback cb) {
+   callback = cb;
+}
+
+void RMapTimerCallback::fire() {
+   if (callback != 0) {
       callback();
    }
 }
 
-int  RMapCallback::same(RoadMapCallback cb) {
+int  RMapTimerCallback::same(RoadMapCallback cb) {
    return (callback == cb);
 }
 
@@ -356,7 +367,7 @@ void RMapTimers::addTimer(int interval, RoadMapCallback callback) {
    }
 
    tm[empty] = new QTimer(this);
-   tcb[empty] = new RMapCallback(callback);
+   tcb[empty] = new RMapTimerCallback(callback);
    connect(tm[empty], SIGNAL(timeout()), tcb[empty], SLOT(fire()));
    tm[empty]->start(interval, FALSE);
 }

@@ -74,6 +74,20 @@ Q_OBJECT
 
 public:
    RMapCallback(RoadMapCallback cb);
+
+protected slots:
+   void fire();
+
+protected:
+   RoadMapCallback callback;
+};
+
+class RMapTimerCallback : public QObject {
+
+Q_OBJECT
+
+public:
+   RMapTimerCallback(RoadMapCallback cb);
    int same (RoadMapCallback cb);
 
 protected slots:
@@ -95,7 +109,7 @@ public:
 
 private:
    QTimer* tm[ROADMAP_MAX_TIMER];
-   RMapCallback* tcb[ROADMAP_MAX_TIMER];
+   RMapTimerCallback* tcb[ROADMAP_MAX_TIMER];
 
 };
 

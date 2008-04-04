@@ -87,7 +87,7 @@ static void roadmap_main_close (GtkWidget *widget,
 static void roadmap_main_activate (GtkWidget *widget, gpointer data) {
 
    if (data != NULL) {
-      (* (RoadMapCallback) data) ();
+      roadmap_start_do_callback(data);
    }
 }
 

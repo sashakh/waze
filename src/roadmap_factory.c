@@ -39,6 +39,7 @@
 #include "roadmap_input.h"
 #include "roadmap_math.h"
 #include "roadmap_lang.h"
+#include "roadmap_start.h"
 
 #include "roadmap_factory.h"
 
@@ -178,6 +179,8 @@ static struct RoadMapFactoryPopup *RoadMapFactoryPopupList = NULL;
 static void roadmap_factory_keyboard (char *key) {
 
    const struct RoadMapFactoryKeyMap *binding;
+
+   if (roadmap_start_return_to_map()) return;
 
    if (RoadMapFactoryBindings == NULL) return;
 
