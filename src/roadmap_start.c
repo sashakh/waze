@@ -63,6 +63,8 @@
 #include "roadmap_features.h"
 #include "roadmap_adjust.h"
 #include "roadmap_screen.h"
+#include "roadgps_screen.h"
+#include "roadgps_logger.h"
 #include "roadmap_fuzzy.h"
 #include "roadmap_navigate.h"
 #include "roadmap_label.h"
@@ -145,36 +147,6 @@ static void roadmap_start_cancel (void) {
 
 
 static void roadmap_start_periodic (void);
-
-static void roadmap_start_console (void) {
-
-   const char *url = roadmap_gps_source();
-   const char *config = roadmap_extra_config();
-   const char *icons = roadmap_icon_path();
-   char arguments[1024];
-   char *s = arguments;
-   int n, l;
-   
-   l = sizeof(arguments);
-   *s = '\0';
-
-   if (url) {
-      n = snprintf (s, l, "--gps=%s", url);
-      s += n;
-      l -= n;
-   }
-   if (config) {
-      n = snprintf (s, l, " --config=%s", config);
-      s += n;
-      l -= n;
-   }
-   if (icons) {
-      n = snprintf (s, l, " --icons=%s", config);
-      s += n;
-      l -= n;
-   }
-   roadmap_spawn ("roadgps", arguments);
-}
 
 static void roadmap_start_purge (void) {
    roadmap_history_purge (10);
@@ -299,12 +271,104 @@ static void roadmap_start_toggle_download (void) {
          ProtocolInitialized = 1;
       }
 
-      roadmap_download_subscribe_when_done (roadmap_screen_request_repaint);
+      roadmap_download_subscribe_when_done (roadmap_start_request_repaint);
       roadmap_locator_declare_downloader (roadmap_download_get_county);
       roadmap_download_unblock_all ();
    }
 
-   roadmap_screen_request_repaint ();
+   roadmap_start_request_repaint ();
+}
+
+
+static int RoadMapStartMapActive = 1;
+
+int roadmap_start_map_active(void) {
+    return RoadMapStartMapActive;
+}
+
+int roadmap_start_return_to_map(void) {
+    if (!RoadMapStartMapActive) {
+        RoadMapStartMapActive = 1;
+        roadmap_start_request_repaint();
+        return 1;
+    }
+    return 0;
+}
+
+void roadmap_start_gps_console(void) {
+    RoadMapStartMapActive = !RoadMapStartMapActive;
+    roadmap_start_request_repaint();
+}
+
+void roadmap_start_do_callback(RoadMapCallback callback) {
+
+    if (roadmap_start_return_to_map()) return;
+
+    callback();
+}
+
+static void roadmap_start_external_gps_console (void) {
+
+   const char *url = roadmap_gps_source();
+   const char *config = roadmap_extra_config();
+   const char *icons = roadmap_icon_path();
+   char arguments[1024];
+   char *s = arguments;
+   int n, l;
+   
+   l = sizeof(arguments);
+   *s = '\0';
+
+   if (url) {
+      n = snprintf (s, l, "--gps=%s", url);
+      s += n;
+      l -= n;
+   }
+   if (config) {
+      n = snprintf (s, l, " --config=%s", config);
+      s += n;
+      l -= n;
+   }
+   if (icons) {
+      n = snprintf (s, l, " --icons=%s", config);
+      s += n;
+      l -= n;
+   }
+   roadmap_spawn ("roadgps", arguments);
+}
+
+
+static int RoadMapStartRepaintNeeded;
+
+int roadmap_start_repaint_scheduled(void) {
+    return RoadMapStartRepaintNeeded > 1;
+}
+
+static void roadmap_start_repaint_if_requested(void) {
+
+    while (RoadMapStartRepaintNeeded > 0) {
+        if (RoadMapStartMapActive) {
+            roadmap_screen_repaint();
+        } else {
+            roadgps_screen_draw();
+        }
+        --RoadMapStartRepaintNeeded;
+    }
+
+    roadmap_main_remove_idle_function();
+}
+
+void roadmap_start_request_repaint (void) {
+
+   /* the repaint is actually invoked via the gui's mainloop
+    * idle routine.  we need to install and remove tis routine
+    * on an as-needed basis, because otherwise installing something
+    * in the gui's idle loop causes it to eat CPU (i.e., it can't
+    * sleep -- it has to spin.)
+    */
+   if (!RoadMapStartRepaintNeeded++)
+        roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
+    
 }
 
 
@@ -324,7 +388,11 @@ static RoadMapAction RoadMapStartActions[] = {
       "Open the preferences editor", roadmap_preferences_edit},
 
    {"gpsconsole", "GPS Console", "Console", "C",
-      "Start the GPS console application", roadmap_start_console},
+      "Show the GPS console", roadmap_start_gps_console},
+
+   {"roadgps", "Run RoadGps", "RoadGps", NULL,
+      "Start the external GPS console program",
+       roadmap_start_external_gps_console},
 
    {"mutevoice", "Mute Voice", "Mute", NULL,
       "Mute all voice annoucements", roadmap_voice_mute},
@@ -345,6 +413,12 @@ static RoadMapAction RoadMapStartActions[] = {
    {"nolog", "Disable Log", "No Log", NULL,
       "Do not save future log messages to the postmortem file",
       roadmap_log_save_all},
+
+   {"gpslog", "Start GPS Logging", "GPS Log", NULL,
+      "Start logging GPS messages", roadgps_logger_start},
+
+   {"gpslogstop", "Stop GPS Logging", "No GPS Log", NULL,
+      "Stop logging GPS messages", roadgps_logger_stop},
 
    {"purgelogfile", "Purge Log File", "Purge", NULL,
       "Delete the current postmortem log file", roadmap_log_purge},
@@ -637,6 +711,8 @@ static const char *RoadMapStartMenu[] = {
 
       "logtofile",
       "nolog",
+      "gpslog",
+      "gpslogstop", 
 
    ROADMAP_SUBMENU "Map Download...",
 
@@ -868,7 +944,7 @@ static char const *RoadMapStartKeyBinding[] = {
    "-"               ROADMAP_MAPPED_TO "zoomout",
    "A"               ROADMAP_MAPPED_TO "address",
    "B"               ROADMAP_MAPPED_TO "returnroute",
-   /* C Unused. */
+   "C"               ROADMAP_MAPPED_TO "gpsconsole",
    "D"               ROADMAP_MAPPED_TO "destination",
    "E"               ROADMAP_MAPPED_TO "deletemaps",
    "F"               ROADMAP_MAPPED_TO "full",
@@ -1078,7 +1154,12 @@ static void roadmap_start_remove_driver_server (RoadMapIO *io) {
 
 static void roadmap_start_set_timeout (RoadMapCallback callback) {
 
-   roadmap_main_set_periodic (3000, callback);
+   /* NB -- if this isn't longer than the connect() timeout to a
+    * network host, then if you configure to use a gpsd server on
+    * a missing host, then roadmap will spend all its time
+    * connecting, and get zero other work done.
+    */
+   roadmap_main_set_periodic (5000, callback);
 }
 
 
@@ -1167,6 +1248,10 @@ char * roadmap_start_now() {
 
 }
 
+static void roadmap_start_screen_configure (void) {
+   roadgps_screen_configure();
+   roadmap_screen_configure();
+}
 
 void roadmap_start (int argc, char **argv) {
 
@@ -1220,6 +1305,9 @@ void roadmap_start (int argc, char **argv) {
    roadmap_display_initialize  ();
    roadmap_voice_initialize    ();
    roadmap_gps_initialize      ();
+   roadgps_screen_initialize ();
+   roadmap_canvas_register_configure_handler (roadmap_start_screen_configure);
+   roadgps_logger_initialize ();
    roadmap_history_initialize  ();
    roadmap_download_initialize ();
    roadmap_adjust_initialize   ();
@@ -1300,7 +1388,7 @@ void roadmap_start (int argc, char **argv) {
    }
    roadmap_main_set_periodic (period, roadmap_start_periodic);
 
-   roadmap_screen_request_repaint ();
+   roadmap_start_request_repaint ();
 }
 
 
