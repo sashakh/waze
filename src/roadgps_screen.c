@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "roadmap.h"
 #include "roadmap_config.h"
@@ -35,6 +36,8 @@
 #include "roadmap_gps.h"
 
 #include "roadmap_math.h"
+#include "roadmap_main.h"
+#include "roadmap_start.h"
 #include "roadmap_canvas.h"
 #include "roadgps_screen.h"
 
@@ -92,6 +95,8 @@ static int            RoadGpsSatelliteCount = 0;
 
 static RoadMapGpsPosition RoadGpsPosition;
 static RoadMapGpsPrecision RoadGpsPrecision;
+
+static time_t RoadMapGpsReceivedTime = 0;
 
 struct {
 
@@ -283,6 +288,7 @@ void roadgps_screen_to_coord(char data[], int islatitude, int value) {
 static void roadgps_screen_draw_position (void) {
 
   char data[100];
+  char timebuf[100];
 
   RoadMapGuiPoint point;
   int satcount,i;
@@ -360,10 +366,20 @@ static void roadgps_screen_draw_position (void) {
             RoadGpsFrame.label_height-10;
   roadmap_canvas_select_pen (RoadGpsLabels);
   sprintf(data,"Used satellites: %d",satcount);
-  roadmap_canvas_select_pen (RoadGpsValues);
   roadmap_canvas_draw_string
       (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, data);
 
+  point.y = point.y+RoadGpsFrame.label_height;
+  roadmap_canvas_select_pen (RoadGpsLabels);
+  if (RoadMapGpsReceivedTime != 0) {
+     strftime(timebuf, sizeof(timebuf),
+                "%Y/%m/%d %H:%M:%S", localtime(&RoadMapGpsReceivedTime));
+  } else {
+     sprintf(timebuf, "N/A");
+  }
+  sprintf(data,"Time: %s", timebuf);
+  roadmap_canvas_draw_string
+      (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, data);
 
 }
 
@@ -405,7 +421,7 @@ static void roadgps_screen_draw_frame (void) {
 }
 
 
-static void roadgps_screen_draw (void) {
+void roadgps_screen_draw (void) {
 
    int i;
    
@@ -500,7 +516,10 @@ static void roadgps_screen_listener
   RoadGpsPrecision.dilution_position = dilution->dilution_position;
   RoadGpsPrecision.dilution_horizontal = dilution->dilution_horizontal;
   RoadGpsPrecision.dilution_vertical = dilution->dilution_vertical;
-  roadgps_screen_draw ();
+
+  RoadMapGpsReceivedTime = gps_time;
+
+  roadmap_start_request_repaint();
 
 }
 
@@ -536,7 +555,7 @@ static void roadgps_screen_monitor
 
    RoadGpsSatelliteCount = count;
 
-   roadgps_screen_draw ();
+   roadmap_start_request_repaint();
 }
 
 
@@ -565,7 +584,9 @@ static void roadgps_screen_format_frame (void) {
 
    text_height = text_ascent + text_descent + 2;
 
-   size = (canvas_height * 2) / 3 - text_height;
+   /* vertical space is 2/3 screen minus two lines of text */
+   size = (canvas_height * 2) / 3 - (text_height * 2);
+   /* horizontal space is room for 12 characters */
    sizew = canvas_width - text_width*6;
 
    if (size > sizew) {
@@ -624,7 +645,7 @@ static void roadgps_screen_format_frame (void) {
 }
 
 
-static void roadgps_screen_configure (void) {
+void roadgps_screen_configure (void) {
 
    static int Initialized = 0;
 
@@ -688,14 +709,14 @@ static void roadgps_screen_configure (void) {
       roadmap_config_get_integer (&RoadMapConfigGPSFontSize);
    }
    roadgps_screen_format_frame ();
-   roadgps_screen_draw ();
+
 }
 
 
 void roadgps_screen_initialize (void) {
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigGPSBackground, "#d0d4ff");
+       ("preferences", &RoadMapConfigGPSBackground, "LightYellow");
    roadmap_config_declare
        ("preferences", &RoadMapConfigGPSForeground, "#606c9e");
 
@@ -722,6 +743,5 @@ void roadgps_screen_initialize (void) {
    roadmap_gps_register_monitor (roadgps_screen_monitor);
    roadmap_gps_register_listener (roadgps_screen_listener);
 
-   roadmap_canvas_register_configure_handler (&roadgps_screen_configure);
 }
 
