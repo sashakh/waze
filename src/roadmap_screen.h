@@ -37,8 +37,6 @@ enum { VIEW_MODE_2D = 0,
 
 void roadmap_screen_initialize (void);
 
-void roadmap_screen_repaint_if_requested(void);
-
 void roadmap_screen_set_initial_position (void);
 
 void roadmap_screen_zoom_in    (void);
@@ -59,13 +57,15 @@ void roadmap_screen_decrease_horizon (void);
 void roadmap_screen_rotate (int delta);
 
 void roadmap_screen_refresh (void); /* checks if needed before repainting */
-void roadmap_screen_request_repaint  (void);
+
+void roadmap_screen_repaint (void);
 
 void roadmap_screen_hold     (void); /* Hold on at the current position. */
 void roadmap_screen_freeze   (void); /* Forbid any screen refresh. */
 void roadmap_screen_unfreeze (void); /* Enable screen refresh. */
 
 void roadmap_screen_get_center (RoadMapPosition *center);
+void roadmap_screen_configure (void);
 
 void roadmap_screen_set_cursor (RoadMapCursor newcursor);
 int roadmap_screen_busy_check (int total, int completed);
