@@ -53,6 +53,8 @@ static QApplication* app;
 RMapMainWindow* mainWindow;
 RMapTimers* timers;
 
+static int RoadMapMainStatus;
+
 
 struct roadmap_main_io {
    RoadMapIO io;
@@ -208,7 +210,7 @@ void roadmap_main_add_canvas(void) {
 }
 
 void roadmap_main_add_status(void) {
-   // nothing to be done
+      RoadMapMainStatus = 1;
 }
 
 void roadmap_main_show(void) {
@@ -291,7 +293,7 @@ void roadmap_main_remove_idle_function (void) {
 
 
 void roadmap_main_set_status(const char *text) {
-   if (mainWindow) {
+   if (RoadMapMainStatus && mainWindow) {
       mainWindow->setStatus(text);
    }
 }

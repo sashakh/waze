@@ -55,6 +55,7 @@ static QApplication* app;
 
 RMapMainWindow* mainWindow;
 RMapTimers* timers;
+static int RoadMapMainStatus;
 
 
 struct roadmap_main_io {
@@ -201,8 +202,9 @@ void roadmap_main_add_canvas(void) {
 //      }
 }
 
+
 void roadmap_main_add_status(void) {
-   // nothing to be done
+      RoadMapMainStatus = 1;
 }
 
 void roadmap_main_show(void) {
@@ -268,7 +270,7 @@ RoadMapCallback idle_callback;
 
 void roadmap_main_set_idle_function (RoadMapCallback callback) {
 
-#if FIXME
+#if FIXME // this scheduling trick doesn't work under QT2 or QT3.
    /* under QT, a timeout of 0 means the routine will run "right after"
     * the event queue is emptied.
     */
@@ -291,7 +293,7 @@ void roadmap_main_remove_idle_function (void) {
 
 
 void roadmap_main_set_status(const char *text) {
-   if (mainWindow) {
+   if (RoadMapMainStatus && mainWindow) {
       mainWindow->setStatus(text);
    }
 }
