@@ -390,7 +390,7 @@ end_of_decoding:
       altitude = roadmap_math_to_current_unit (100 * altitude, "cm");
 
       // was m/s, now knots
-      speed = 1.944 * speed / 1000;
+      speed = 1944 * speed / 1000;
 
       RoadmapGpsd2NavigationListener
          (status, gps_time, latitude, longitude, altitude, speed, steering);
