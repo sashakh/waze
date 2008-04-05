@@ -78,8 +78,8 @@ static RoadMapConfigDescriptor RoadMapConfigGPSFontSize =
 typedef struct {
 
    char  label[4];
-   char  id;
-   char  status;
+   unsigned char  id;
+   unsigned char  status;
    short azimuth;
    short elevation;
    short strength;
@@ -141,6 +141,8 @@ RoadMapPen RoadGpsLabels;
 RoadMapPen RoadGpsValues;
 
 int RoadMapGPSFontSize;
+
+char *fixes[] = { "No", "2D", "3D" };
 
 
 #define DEGRE2RADIAN (3.141592653589793116/180.0)
@@ -291,7 +293,7 @@ static void roadgps_screen_draw_position (void) {
   char timebuf[100];
 
   RoadMapGuiPoint point;
-  int satcount,i;
+  int satcount, i, s, fix;
 
   satcount = 0;
 
@@ -338,20 +340,6 @@ static void roadgps_screen_draw_position (void) {
   point.y = point.y+RoadGpsFrame.label_height;
   roadmap_canvas_select_pen (RoadGpsLabels);
   roadmap_canvas_draw_string
-      (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, "Correction:");
-  if (RoadGpsPrecision.dimension<2) {
-    sprintf(data,"%s","None");
-  } else {
-    sprintf(data,"%s",RoadGpsPrecision.dimension==2?"2D fix":"3D fix");
-  }
-  point.y = point.y+RoadGpsFrame.label_height;
-  roadmap_canvas_select_pen (RoadGpsValues);
-  roadmap_canvas_draw_string
-      (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, data);
-
-  point.y = point.y+RoadGpsFrame.label_height;
-  roadmap_canvas_select_pen (RoadGpsLabels);
-  roadmap_canvas_draw_string
       (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, "Speed:");
   sprintf(data,"%d%s",
      roadmap_math_knots_to_speed_unit(RoadGpsPosition.speed),
@@ -365,21 +353,21 @@ static void roadgps_screen_draw_position (void) {
   point.y = RoadGpsFrame.centers[0].y+RoadGpsFrame.radius[0]+
             RoadGpsFrame.label_height-10;
   roadmap_canvas_select_pen (RoadGpsLabels);
-  sprintf(data,"Used satellites: %d",satcount);
+  fix = RoadGpsPrecision.dimension;
+  if (fix < 1) fix = 1;
+  else if (fix > 3) fix = 3;
+  s = sprintf(data,"%d active satellites, %s fix", satcount, fixes[fix-1]);
   roadmap_canvas_draw_string
       (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, data);
 
-  point.y = point.y+RoadGpsFrame.label_height;
-  roadmap_canvas_select_pen (RoadGpsLabels);
   if (RoadMapGpsReceivedTime != 0) {
-     strftime(timebuf, sizeof(timebuf),
-                "%Y/%m/%d %H:%M:%S", localtime(&RoadMapGpsReceivedTime));
-  } else {
-     sprintf(timebuf, "N/A");
-  }
-  sprintf(data,"Time: %s", timebuf);
-  roadmap_canvas_draw_string
+     point.y = point.y+RoadGpsFrame.label_height;
+     roadmap_canvas_select_pen (RoadGpsLabels);
+     strftime(data, sizeof(data),
+                "  %Y/%m/%d %H:%M:%S", localtime(&RoadMapGpsReceivedTime));
+     roadmap_canvas_draw_string
       (&point, ROADMAP_CANVAS_LEFT, RoadMapGPSFontSize, data);
+  }
 
 }
 
