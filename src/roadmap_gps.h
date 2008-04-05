@@ -74,10 +74,10 @@ void roadmap_gps_register_listener (roadmap_gps_listener listener);
  */
 typedef struct {
 
-   char  id;
-   char  status;     /* 0: not detected, 'F': fixing, 'A': active. */
-   char  elevation;
-   char  reserved;
+   unsigned char  id;
+   unsigned char  status;     /* 0: not detected, 'F': fixing, 'A': active. */
+   unsigned char  elevation;
+   unsigned char  reserved;
    short azimuth;
    short strength;
 
