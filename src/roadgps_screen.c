@@ -290,7 +290,6 @@ void roadgps_screen_to_coord(char data[], int islatitude, int value) {
 static void roadgps_screen_draw_position (void) {
 
   char data[100];
-  char timebuf[100];
 
   RoadMapGuiPoint point;
   int satcount, i, s, fix;
