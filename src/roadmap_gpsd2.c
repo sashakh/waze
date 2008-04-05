@@ -265,6 +265,9 @@ int roadmap_gpsd2_decode (void *user_context,
                 } else {
                    status = 'V';
                 }
+                got_q = 1; /* not really, but we want to relay the fix
+                            * value, and at worst we'll give
+                            * stale dilution values.  */
             }
 
             break;
@@ -387,10 +390,12 @@ end_of_decoding:
    if (got_navigation_data) {
 
       // meters to "preferred" units
-      altitude = roadmap_math_to_current_unit (100 * altitude, "cm");
+      if (altitude != ROADMAP_NO_VALID_DATA)
+          altitude = roadmap_math_to_current_unit (100 * altitude, "cm");
 
       // was m/s, now knots
-      speed = 1944 * speed / 1000;
+      if (speed != ROADMAP_NO_VALID_DATA)
+          speed = 1944 * speed / 1000;
 
       RoadmapGpsd2NavigationListener
          (status, gps_time, latitude, longitude, altitude, speed, steering);
