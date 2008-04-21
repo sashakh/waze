@@ -48,13 +48,13 @@ void
 RMapProgressDialog::setMaximum(int value)
 {
     if (progress->maximum() != value)
-	progress->setMaximum(value);
+        progress->setMaximum(value);
 }
 
 void
 RMapProgressDialog::setProgress(int value)
 {
     if (progress->value() != value)
-	progress->setValue(value);
+        progress->setValue(value);
     qApp->processEvents();
 }

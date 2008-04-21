@@ -35,7 +35,7 @@ roadmap_progress_new(void)
 {
     /* had to add this, 'cause on init it counts always 1 element (?) */
     if (lastTag == 0)
-	progressDialogs.clear();
+        progressDialogs.clear();
 
     RMapProgressDialog *pd = new RMapProgressDialog();
     lastTag++;
@@ -49,8 +49,8 @@ roadmap_progress_update(int tag, int total, int progress)
 {
     RMapProgressDialog *pd = progressDialogs[tag];
     if (pd != 0) {
-	pd->setMaximum(total);
-	pd->setProgress(progress);
+        pd->setMaximum(total);
+        pd->setProgress(progress);
     }
 }
 
@@ -60,10 +60,10 @@ roadmap_progress_close(int tag)
     RMapProgressDialog *pd = progressDialogs[tag];
 
     if (pd != 0) {
-	pd->hide();
-	progressDialogs.remove(tag);
-	delete pd;		/* is this necessary ? */
-	if (progressDialogs.count() == 0)
-	    lastTag = 0;
+        pd->hide();
+        progressDialogs.remove(tag);
+        delete pd;              /* is this necessary ? */
+        if (progressDialogs.count() == 0)
+            lastTag = 0;
     }
 }
