@@ -209,7 +209,8 @@ INSTALLATION
    
    The roadmap and roadgps programs cannot run simultaneously when configured
    for the serial port. The "GPS Console" menu item of roadmap does not work
-   in that configuration.
+   in that configuration.  The GPS console built into RoadMap doesn't have
+   this restriction, of course.
 
    Only NMEA-capable GPS devices are supported, unless a remote gpsd is used.
 
@@ -826,7 +827,9 @@ ROADMAP APPLICATIONS
                      at the same time. Depending on which toolkit you use,
                      this will be named roadmap/src/gtk/gtkroadgps,
                      roadmap/gtk2/gtkroadgps or roadmap/src/qt/qtroadgps
-                     (zroadgps on the Zaurus).
+                     (zroadgps on the Zaurus).  Note that the functionality
+                     of roadgps is also now included in roadmap -- roadgps
+                     is still available as a separte program, however.
 
    [buildmap]        A program that takes the US Census Bureau files
                      as input and produces the map files used by roadmap.
@@ -1794,6 +1797,9 @@ USING ROADGPS
    similar to those of RoadMap), or from the RoadMap's File / GPS Console
    menu item.
 
+   RoadMap itself now contains a fairly complete version of RoadGps, so
+   the separate RoadGps executable may not be necessary.
+
    The screen shows the list of satellites, their position in the sky
    (north up) and the strength of the signal. It marks in reverse video
    those satellites used to compute the current position.
@@ -2308,8 +2314,8 @@ CONFIGURATION
          <<Comment:>> when displaying maps that cover a large area, or on
                       a slow computer, it may be helpful to have an on-screen
                       indication of how long the refresh will take.  The
-		      value is the delay until the progress bar appears.  Use
-		      '0' to disable the progress bar.
+                      value is the delay until the progress bar appears.  Use
+                      '0' to disable the progress bar.
 
     [General.Toolbar] Show (yes) or hide (no) the roadmap toolbar.
 
