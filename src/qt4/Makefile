@@ -37,7 +37,8 @@ endif
 MOC_RMLIBSRCS = \
 	qt_main.cc \
 	qt_canvas.cc \
-	qt_dialog.cc
+	qt_dialog.cc \
+	qt_progress.cc
 
 NO_MOC_RMLIBSRCS = \
 	roadmap_dialog.cc \
@@ -58,7 +59,8 @@ RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBOBJS1:.c=.o)
 HEADERS = \
 	qt_canvas.h \
 	qt_dialog.h \
-	qt_main.h
+	qt_main.h \
+	qt_progress.h
 
 TARGETS = qtroadgps qtroadmap
 
@@ -132,4 +134,7 @@ moc_qt_canvas.cc: qt_canvas.h
 
 moc_qt_dialog.cc: qt_dialog.h
 	$(MOC) qt_dialog.h -o moc_qt_dialog.cc
+
+moc_qt_progress.cc: qt_progress.h
+	$(MOC) qt_progress.h -o moc_qt_progress.cc
 

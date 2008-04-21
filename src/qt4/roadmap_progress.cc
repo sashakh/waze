@@ -1,4 +1,7 @@
 /*
+ * LICENSE:
+ *
+ *   (c) Copyright 2008 Alessandro Briosi
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +21,49 @@
 
 extern "C" {
 #include "roadmap_progress.h"
+#include "roadmap.h"
 }
 
-/* stubs.  someone please implement.  :-) */
-int roadmap_progress_new( void ) { return 0; };
-void roadmap_progress_update(int tag, int total, int progress) { };
-void roadmap_progress_close(int tag) { };
+#include <qmap.h>
+#include "qt_progress.h"
+
+QMap<int, RMapProgressDialog*> progressDialogs;
+static int lastTag = 0;
+
+int
+roadmap_progress_new(void)
+{
+    /* had to add this, 'cause on init it counts always 1 element (?) */
+    if (lastTag == 0)
+	progressDialogs.clear();
+
+    RMapProgressDialog *pd = new RMapProgressDialog();
+    lastTag++;
+    progressDialogs[lastTag] = pd;
+    pd->show();
+    return lastTag;
+}
+
+void
+roadmap_progress_update(int tag, int total, int progress)
+{
+    RMapProgressDialog *pd = progressDialogs[tag];
+    if (pd != 0) {
+	pd->setMaximum(total);
+	pd->setProgress(progress);
+    }
+}
+
+void
+roadmap_progress_close(int tag)
+{
+    RMapProgressDialog *pd = progressDialogs[tag];
+
+    if (pd != 0) {
+	pd->hide();
+	progressDialogs.remove(tag);
+	delete pd;		/* is this necessary ? */
+	if (progressDialogs.count() == 0)
+	    lastTag = 0;
+    }
+}
