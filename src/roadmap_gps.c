@@ -182,15 +182,13 @@ static char roadmap_gps_update_status (char status) {
    }
 
    if (status != RoadMapLastKnownStatus) {
+       if (gpserrmsg) roadmap_messagebox_hide(gpserrmsg);
+       gpserrmsg = 0;
        if (RoadMapLastKnownStatus == 'A') {
           roadmap_log (ROADMAP_WARNING,
                        "GPS receiver lost satellite fix (status: %c)", status);
-          if (gpserrmsg) roadmap_messagebox_hide(gpserrmsg);
           gpserrmsg = roadmap_messagebox("GPS Error", "GPS lost satellite fix");
           RoadMapGpsActiveSatelliteCount = 0;
-       } else {
-          if (gpserrmsg) roadmap_messagebox_hide(gpserrmsg);
-          gpserrmsg = 0;
        }
        RoadMapLastKnownStatus = status;
    }
