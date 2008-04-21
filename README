@@ -399,7 +399,7 @@ INSTALLATION
   RoadMap (GTK version) needs some icons. These icons must be placed
   in the operating system's standard locations. On UNIX, this usually is:
   
-         * ~/pixmaps,
+         * ~/.roadmap/pixmaps,
 
          * ROADMAP_CONFIG_DIR/pixmaps, chosen at compile time,
 
@@ -762,7 +762,7 @@ INSTALLATION
    (the order below reflects the search order):
 
 ------
-      ~/pixmaps
+      ~/.roadmap/pixmaps
       /usr/local/share/pixmaps
       /usr/share/pixmaps
 ------
@@ -2304,6 +2304,9 @@ CONFIGURATION
 
          <<Comment:>> the hardcoded default includes the usual linux system
                       pixmap directories used for storing application icons.
+                      A "pixmaps" subdirectory of the user's .roadmap
+                      directory, and the system roadmap config directory,
+                      will also be searched.
 
     [General.Progress Bar Delay] Delay until progress bar during refresh.
 

@@ -150,9 +150,9 @@ static const char RoadMapPathMapsPreferred[] =
 
 /* The default path for the icon files (the "icons" path): */
 static const char *RoadMapPathIcons[] = {
-   "~/pixmaps",
+   "~/.roadmap/pixmaps",
 #ifdef ROADMAP_MAP_DIR
-   ROADMAP_MAP_DIR "/pixmaps",
+   ROADMAP_CONFIG_DIR "/pixmaps",
 #endif
    "/usr/local/share/pixmaps",
    "/usr/share/pixmaps",
