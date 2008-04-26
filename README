@@ -2087,6 +2087,7 @@ CONFIGURATION
         ->Help...
 ----
    The last item in the toolbar file example will invoke the "Help..." menu.
+   If the toolbar file is empty, no toolbar will be created.
 
    It's actually possible to configure RoadMap with no on-screen buttons or
    menus at all.  By creating an empty "roadmap.menus" file, the internal
@@ -2331,7 +2332,9 @@ CONFIGURATION
          <<Comment:>> in some case (GTK2) it may be necessary to suppress
                       or minimize the toolbar if a very small screen is
                       needed, because the size of the toolbar may dicate
-                      the minimum size of the screen.
+                      the minimum size of the screen.  The toolbar can also
+		      be eliminated by creating an empty "roadmap.toolbar"
+		      file.
 
     [General.Toolbar Orientation] Choose where to position the toolbar
 

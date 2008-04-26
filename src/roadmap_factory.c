@@ -601,10 +601,15 @@ void roadmap_factory_config_toolbar
                 (const char **item, RoadMapAction  *actions,
                  int use_icons, int use_tips) {
 
-   roadmap_main_add_toolbar
-      (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
+   int added = 0;
 
    for (; *item != NULL; item++) {
+
+      if (!added) {
+	 roadmap_main_add_toolbar
+            (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
+	 added = 1;
+      }
 
       if (*item == RoadMapFactorySeparator) {
 
