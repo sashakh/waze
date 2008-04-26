@@ -2333,8 +2333,8 @@ CONFIGURATION
                       or minimize the toolbar if a very small screen is
                       needed, because the size of the toolbar may dicate
                       the minimum size of the screen.  The toolbar can also
-		      be eliminated by creating an empty "roadmap.toolbar"
-		      file.
+                      be eliminated by creating an empty "roadmap.toolbar"
+                      file.
 
     [General.Toolbar Orientation] Choose where to position the toolbar
 
