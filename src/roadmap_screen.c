@@ -1385,7 +1385,6 @@ void roadmap_screen_repaint (void) {
     int max_pen = roadmap_layer_max_pen();
     static int nomap;
     
-
     if (!RoadMapScreenDragging && RoadMapScreenFrozen) return;
 
     dbg_time_start(DBG_TIME_FULL);
@@ -1483,8 +1482,10 @@ void roadmap_screen_repaint (void) {
         drawn = 0;
         drawn += roadmap_screen_draw_polygons ();
 
-        if (roadmap_screen_repaint_leave(count, count - i))
+        if (roadmap_screen_repaint_leave(count, count - i)) {
+            roadmap_label_new_invalidate();
             goto out;
+        }
 
         /* -- Look for the squares that are currently visible. */
 
@@ -1514,8 +1515,10 @@ void roadmap_screen_repaint (void) {
                   drawn += roadmap_screen_repaint_square (in_view[j], pen_type,
                     layer_count, layers);
 
-                  if (roadmap_screen_repaint_leave(count, count - i))
+                  if (roadmap_screen_repaint_leave(count, count - i)) {
+                     roadmap_label_new_invalidate();
                      goto out;
+                  }
                }
 
             }
@@ -1533,8 +1536,10 @@ void roadmap_screen_repaint (void) {
             roadmap_label_draw_cache (RoadMapScreen3dHorizon == 0);
         }
 
-        if (roadmap_screen_repaint_leave(count, count - i))
+        if (roadmap_screen_repaint_leave(count, count - i)) {
+           roadmap_label_new_invalidate();
            goto out;
+        }
         
         if (!drawn)
             roadmap_locator_set_decluttered(fipslist[i]);

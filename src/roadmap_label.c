@@ -230,6 +230,10 @@ void roadmap_label_cache_invalidate(void) {
    ROADMAP_LIST_SPLICE (&RoadMapLabelSpares, &RoadMapLabelCache);
 }
 
+void roadmap_label_new_invalidate(void) {
+   ROADMAP_LIST_SPLICE (&RoadMapLabelSpares, &RoadMapLabelNew);
+}
+
 /* called when a screen repaint commences.  keeping track of
  * label "generations" involves keeping track of full refreshes,
  * not individual calls to roadmap_label_draw_cache().
