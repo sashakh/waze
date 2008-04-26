@@ -48,7 +48,7 @@ void roadmap_math_zoom_reset   (void);
 
 void roadmap_math_set_center      (RoadMapPosition *position);
 void roadmap_math_set_size        (int width, int height);
-int  roadmap_math_set_orientation (int direction);
+void roadmap_math_set_orientation (int direction);
 int  roadmap_math_get_orientation (void);
 void roadmap_math_set_horizon     (int horizon);
 

@@ -1770,11 +1770,13 @@ void roadmap_screen_refresh (void) {
         RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
         roadmap_math_set_center (&RoadMapScreenCenter);
 
-        refresh |=
-            roadmap_math_set_orientation (RoadMapScreenRotation +
-                RoadMapScreenOrientationDynamic ?
-                    roadmap_trip_get_orientation() : 0) &&
-                        REPORT_REFRESH("focus moved");
+        refresh |= 1 && REPORT_REFRESH("focus moved");
+
+        if (!RoadMapScreenOrientationDynamic) 
+            roadmap_math_set_orientation (RoadMapScreenRotation);
+        else
+            roadmap_math_set_orientation (
+                RoadMapScreenRotation + roadmap_trip_get_orientation());
 
         if (RoadMapScreenDeltaX || RoadMapScreenDeltaY) {
 
@@ -1853,11 +1855,10 @@ void roadmap_screen_rotate (int delta) {
       calculated_rotation = rotation;
    }
 
-   if (roadmap_math_set_orientation (calculated_rotation)) {
-      RoadMapScreenRotation = rotation;
-      roadmap_start_request_repaint();
-      roadmap_screen_refresh ();
-   }
+   roadmap_math_set_orientation (calculated_rotation);
+   RoadMapScreenRotation = rotation;
+   roadmap_start_request_repaint();
+   roadmap_screen_refresh ();
 }
 
 

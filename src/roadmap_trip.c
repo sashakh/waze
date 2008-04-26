@@ -1632,6 +1632,11 @@ void roadmap_trip_set_gps
         if (RoadMapTripGps == RoadMapTripFocus) {
             RoadMapTripFocusMoved = 1;
         }
+#if LATER
+        // do we need to suppress small rotations here?  not sure how,
+        // but i removed such suppression from roadmap_math_set_orientation().
+#endif
+
     }
     RoadMapTripGps->gps = *gps_position;
     RoadMapTripGps->map = position;

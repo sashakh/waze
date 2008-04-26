@@ -1077,7 +1077,7 @@ void roadmap_math_set_horizon (int horizon) {
 }
 
 
-int roadmap_math_set_orientation (int direction) {
+void roadmap_math_set_orientation (int direction) {
 
    /* FIXME: this function, which primary purpose was to
     * compute the span of the visible map area when rotated,
@@ -1085,6 +1085,11 @@ int roadmap_math_set_orientation (int direction) {
     * (i.e. RoadMapContext.current_screen). Therefore, one
     * must execute it to the end.
     */
+#if BEFORE
+   // removed this code -- it causes us to skip a refresh after
+   // already adjusting the Context.  this can disrupt a refresh
+   // already in progress (since refresh is now interruptible, to
+   // some extent).
    int status = 1; /* Force a redraw by default. */
 
    direction = direction % 360;
@@ -1106,6 +1111,9 @@ int roadmap_math_set_orientation (int direction) {
 
       RoadMapContext.orientation = direction;
    }
+#else
+   RoadMapContext.orientation = direction;
+#endif
 
    roadmap_math_trigonometry (direction,
                               &RoadMapContext.sin_orientation,
@@ -1161,7 +1169,6 @@ roadmap_log (ROADMAP_DEBUG, "visibility: north=%d south=%d east=%d west=%d\n",
         RoadMapContext.current_screen.east,
         RoadMapContext.current_screen.west);
 #endif
-   return status;
 }
 
 
