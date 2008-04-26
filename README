@@ -2691,6 +2691,19 @@ CONFIGURATION
 
          <<Default:>> 125 ft
 
+    [Trip.GPS Focus Release Delay] Delay until GPS loses focus, if off-screen.
+
+         <<Format:>> integer (seconds)
+
+         <<Default:>> 5 seconds
+
+         <<Comment:>> If the GPS is being tracked, and the map is moved so
+                  that the GPS is no longer visible, the map will continue
+                  to move relative to the GPS for the specified number of
+                  seconds.  After this, the focus will "hold" to the current
+                  location.  A value of zero (0) will force tracking to
+                  continue forever -- the minimum actual delay is 1 second.
+
     [FeatureFiles.Path] List of files containing "Point of Interest" features
             to display on map.
 

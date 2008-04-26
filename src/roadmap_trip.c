@@ -83,6 +83,9 @@ static RoadMapConfigDescriptor RoadMapConfigBackupFiles =
 static RoadMapConfigDescriptor RoadMapConfigPathTrips =
                         ROADMAP_CONFIG_ITEM("General", "TripsPath");
 
+static RoadMapConfigDescriptor RoadMapConfigTripGPSFocusReleaseDelay =
+                        ROADMAP_CONFIG_ITEM("Trip", "GPS Focus Release Delay");
+
 /*
  * try and put the trip name in the window title
  */
@@ -1632,10 +1635,6 @@ void roadmap_trip_set_gps
         if (RoadMapTripGps == RoadMapTripFocus) {
             RoadMapTripFocusMoved = 1;
         }
-#if LATER
-        // do we need to suppress small rotations here?  not sure how,
-        // but i removed such suppression from roadmap_math_set_orientation().
-#endif
 
     }
     RoadMapTripGps->gps = *gps_position;
@@ -1646,6 +1645,26 @@ void roadmap_trip_set_gps
         roadmap_trip_route_resume();
     }
     RoadMapTripGPSTime = gps_time;
+
+
+    if (RoadMapTripGps == RoadMapTripFocus) {
+
+        static time_t RoadMapTripGPSLastVisible;
+
+        if (roadmap_math_point_is_visible (&RoadMapTripGps->map)) {
+            RoadMapTripGPSLastVisible = time(NULL);
+        } else {
+            int release_delay;
+
+            release_delay = roadmap_config_get_integer
+                        (&RoadMapConfigTripGPSFocusReleaseDelay);
+
+            if (release_delay != 0 &&
+                    time(NULL) - RoadMapTripGPSLastVisible > release_delay) {
+                roadmap_screen_hold();
+            }
+        }
+    }
 
 }
 
@@ -3306,6 +3325,10 @@ void roadmap_trip_initialize (void) {
 
     roadmap_config_declare
         ("preferences", &RoadMapConfigPathTrips, "&/trips");
+
+    roadmap_config_declare
+        ("preferences", &RoadMapConfigTripGPSFocusReleaseDelay, "5");
+
 
     RoadMapTripShowInactiveRoutes = roadmap_config_match
                                 (&RoadMapConfigTripShowInactiveRoutes, "yes");
