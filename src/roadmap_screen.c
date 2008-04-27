@@ -1460,6 +1460,7 @@ void roadmap_screen_repaint (void) {
          */
         if (fipslist[i] < 0 &&
                 roadmap_is_visible (ROADMAP_SHOW_GLOBAL_SQUARE)) {
+            void roadmap_osm_tileid_to_bbox(int tileid, RoadMapArea *edges);
             RoadMapArea edges;
             RoadMapPosition position;
             RoadMapGuiRect bbox, tbbox;

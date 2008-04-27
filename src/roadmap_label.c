@@ -458,9 +458,12 @@ int roadmap_label_draw_cache (int angles) {
                        &width, &ascent, &descent, &can_tilt);
             angles = angles && can_tilt;
 
+            if (0) roadmap_log (ROADMAP_WARNING,
+                "t: %p: %s, w: %d, fsq: %d, ang: %d",
+                cPtr, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
+
             /* text is too long for this feature */
             /* (4 times longer than feature) */
-            // roadmap_log (ROADMAP_WARNING, "%s t: %s, w: %d, fsq: %d, ang: %d", cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
             if ((width * width / 16) > cPtr->featuresize_sq) {
                /* Keep this one in the cache as the feature size may change
                 * in the next run.  Keeping it is cheaper than looking it
@@ -594,13 +597,20 @@ int roadmap_label_draw_cache (int angles) {
             /* Keep this one in the cache as we may need it for the next
              * run.  Keeping it is cheaper than looking it up again.
              */
-            // roadmap_log (ROADMAP_WARNING, "XX: %d, %s t: %s, w: %d, fsq: %d, ang: %d", cannot_label, cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
+            if (0) roadmap_log (ROADMAP_WARNING,
+                "XX: %p: %d, t: %s, w: %d, fsq: %d, ang: %d",
+                cPtr, cannot_label, cPtr->text,
+                width, cPtr->featuresize_sq, cPtr->angle);
+
             roadmap_list_append
                (&undrawn_labels, roadmap_list_remove(&cPtr->link));
             continue; /* next label */
          }
 
-         // roadmap_log (ROADMAP_WARNING, "KK: %s t: %s, w: %d, fsq: %d, ang: %d", cPtr->otext, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
+         if (0) roadmap_log (ROADMAP_WARNING,
+            "KK: %p: t: %s, w: %d, fsq: %d, ang: %d",
+            cPtr, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
+
          roadmap_label_draw_text
             (cPtr->text, &cPtr->center_point,
                angles, angles ? cPtr->angle : 0,
