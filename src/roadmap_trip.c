@@ -1615,6 +1615,8 @@ void roadmap_trip_set_gps
     RoadMapPosition position;
     RoadMapGuiPoint guipoint1;
     RoadMapGuiPoint guipoint2;
+    static int lastSteering = 9999;
+
     roadmap_adjust_position (gps_position, &position);
 
     /* An existing point: refresh is needed only if the point
@@ -1628,7 +1630,16 @@ void roadmap_trip_set_gps
         roadmap_trip_coordinate (&position, &guipoint1);
         roadmap_trip_coordinate (&RoadMapTripGps->map, &guipoint2);
 
-        if (guipoint1.x != guipoint2.x || guipoint1.y != guipoint2.y) {
+        if (guipoint1.x != guipoint2.x ||
+            guipoint1.y != guipoint2.y ||
+            gps_position->steering != lastSteering) {
+            /* we only consider steering when we've moved enough
+             * to matter.  this isn't quite accurate, but
+             * steering changes cause far too many refreshes
+             * otherwise.  if we're focused on the GPS, we track
+             * closely -- this is when we're _not_ focused on the
+             * GPS.
+             */
             RoadMapTripRefresh = 1;
         }
 
@@ -1639,6 +1650,8 @@ void roadmap_trip_set_gps
     }
     RoadMapTripGps->gps = *gps_position;
     RoadMapTripGps->map = position;
+    lastSteering = gps_position->steering;
+
     roadmap_config_set_position (&RoadMapTripGps->config_position, &position);
     if (RoadMapRouteInProgress && !RoadMapTripGps->has_value) {
         RoadMapTripGps->has_value = 1;

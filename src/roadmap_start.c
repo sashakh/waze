@@ -271,33 +271,33 @@ static void roadmap_start_toggle_download (void) {
          ProtocolInitialized = 1;
       }
 
-      roadmap_download_subscribe_when_done (roadmap_start_request_repaint);
+      roadmap_download_subscribe_when_done (roadmap_start_request_repaint_map);
       roadmap_locator_declare_downloader (roadmap_download_get_county);
       roadmap_download_unblock_all ();
    }
 
-   roadmap_start_request_repaint ();
+   roadmap_start_request_repaint_map ();
 }
 
 
-static int RoadMapStartMapActive = 1;
+static int RoadMapStartScreenActive = ROADMAP_MAP;
 
 int roadmap_start_map_active(void) {
-    return RoadMapStartMapActive;
+    return (RoadMapStartScreenActive == ROADMAP_MAP);
 }
 
 int roadmap_start_return_to_map(void) {
-    if (!RoadMapStartMapActive) {
-        RoadMapStartMapActive = 1;
-        roadmap_start_request_repaint();
+    if (RoadMapStartScreenActive != ROADMAP_MAP) {
+        RoadMapStartScreenActive = ROADMAP_MAP;
+        roadmap_start_request_repaint(ROADMAP_MAP);
         return 1;
     }
     return 0;
 }
 
 void roadmap_start_gps_console(void) {
-    RoadMapStartMapActive = !RoadMapStartMapActive;
-    roadmap_start_request_repaint();
+    RoadMapStartScreenActive = ROADMAP_GPS;
+    roadmap_start_request_repaint(ROADMAP_GPS);
 }
 
 void roadmap_start_do_callback(RoadMapCallback callback) {
@@ -347,7 +347,7 @@ int roadmap_start_repaint_scheduled(void) {
 static void roadmap_start_repaint_if_requested(void) {
 
     while (RoadMapStartRepaintNeeded > 0) {
-        if (RoadMapStartMapActive) {
+        if (RoadMapStartScreenActive == ROADMAP_MAP) {
             roadmap_screen_repaint();
         } else {
             roadgps_screen_draw();
@@ -358,7 +358,7 @@ static void roadmap_start_repaint_if_requested(void) {
     roadmap_main_remove_idle_function();
 }
 
-void roadmap_start_request_repaint (void) {
+void roadmap_start_request_repaint (int which) {
 
    /* the repaint is actually invoked via the gui's mainloop
     * idle routine.  we need to install and remove tis routine
@@ -366,11 +366,17 @@ void roadmap_start_request_repaint (void) {
     * in the gui's idle loop causes it to eat CPU (i.e., it can't
     * sleep -- it has to spin.)
     */
-   if (!RoadMapStartRepaintNeeded++)
-        roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
+   if (RoadMapStartScreenActive == which) {
+       if (!RoadMapStartRepaintNeeded++)
+          roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
+   }
     
 }
 
+void roadmap_start_request_repaint_map (void) {
+
+    roadmap_start_request_repaint (ROADMAP_MAP);
+}
 
 /* The RoadMap menu and toolbar items: ----------------------------------- */
 
@@ -1388,7 +1394,7 @@ void roadmap_start (int argc, char **argv) {
    }
    roadmap_main_set_periodic (period, roadmap_start_periodic);
 
-   roadmap_start_request_repaint ();
+   roadmap_start_request_repaint_map ();
 }
 
 

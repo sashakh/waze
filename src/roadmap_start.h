@@ -45,8 +45,12 @@ const char *roadmap_start_get_title (const char *name);
 int roadmap_start_map_active(void);
 int roadmap_start_return_to_map(void);
 void roadmap_start_do_callback(RoadMapCallback cb);
-void roadmap_start_request_repaint  (void);
 int roadmap_start_repaint_scheduled(void);
+
+void roadmap_start_request_repaint_map (void);
+void roadmap_start_request_repaint (int screen);
+#define ROADMAP_MAP 1
+#define ROADMAP_GPS 2
 
 #endif /* INCLUDE__ROADMAP_START__H */
 

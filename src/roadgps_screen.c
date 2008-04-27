@@ -486,6 +486,11 @@ void roadgps_screen_draw (void) {
    roadmap_canvas_refresh ();
 }
 
+void roadgps_screen_request_repaint(void) {
+
+  roadmap_start_request_repaint(ROADMAP_GPS);
+}
+
 static void roadgps_screen_listener
                   (int reception,
                    int gps_time,
@@ -506,7 +511,7 @@ static void roadgps_screen_listener
 
   RoadMapGpsReceivedTime = gps_time;
 
-  roadmap_start_request_repaint();
+  roadgps_screen_request_repaint();
 
 }
 
@@ -542,7 +547,7 @@ static void roadgps_screen_monitor
 
    RoadGpsSatelliteCount = count;
 
-   roadmap_start_request_repaint();
+   roadgps_screen_request_repaint();
 }
 
 

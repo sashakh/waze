@@ -1624,7 +1624,7 @@ static int roadmap_screen_short_click (RoadMapGuiPoint *point) {
        PluginStreet street;
 
        roadmap_display_activate ("Selected Street", &line, &position, &street);
-       roadmap_start_request_repaint();
+       roadmap_start_request_repaint_map();
    }
 
    roadmap_trip_set_point ("Selection", &position);
@@ -1750,7 +1750,7 @@ static int roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
 }
 
 /* debug support:  set to 'printf' to be told why a refresh occurred */
-// #define REPORT_REFRESH(x) printf(x)
+// #define REPORT_REFRESH(x) fprintf(stderr, "%s\n", x)
 #define REPORT_REFRESH(x) 1
 
 void roadmap_screen_refresh (void) {
@@ -1813,7 +1813,7 @@ void roadmap_screen_refresh (void) {
         REPORT_REFRESH( "display\n" );
 
 
-    if (refresh) roadmap_start_request_repaint();
+    if (refresh) roadmap_start_request_repaint_map();
 
     roadmap_log_pop ();
 }
@@ -1829,8 +1829,7 @@ void roadmap_screen_unfreeze (void) {
    if (!RoadMapScreenFrozen) return;
 
    RoadMapScreenFrozen = 0;
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
@@ -1862,8 +1861,7 @@ void roadmap_screen_rotate (int delta) {
 
    roadmap_math_set_orientation (calculated_rotation);
    RoadMapScreenRotation = rotation;
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
@@ -1878,15 +1876,13 @@ void roadmap_screen_toggle_view_mode (void) {
    }
 
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 void roadmap_screen_toggle_labels (void) {
    
    RoadMapScreenLabels = ! RoadMapScreenLabels;
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh();
+   roadmap_start_request_repaint_map();
 }
 
 void roadmap_screen_toggle_orientation_mode (void) {
@@ -1907,8 +1903,7 @@ void roadmap_screen_increase_horizon (void) {
 
    RoadMapScreen3dHorizon += 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
@@ -1918,8 +1913,7 @@ void roadmap_screen_decrease_horizon (void) {
 
    RoadMapScreen3dHorizon -= 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 #define FRACMOVE 4
@@ -1928,32 +1922,28 @@ void roadmap_screen_decrease_horizon (void) {
 void roadmap_screen_move_up (void) {
 
    roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / FRACMOVE));
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
 void roadmap_screen_move_down (void) {
 
    roadmap_screen_record_move (0, RoadMapScreenHeight / FRACMOVE);
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
 void roadmap_screen_move_right (void) {
 
    roadmap_screen_record_move (RoadMapScreenHeight / FRACMOVE, 0);
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
 void roadmap_screen_move_left (void) {
 
    roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
@@ -1962,8 +1952,7 @@ void roadmap_screen_zoom_in  (void) {
     roadmap_math_zoom_in ();
 
     roadmap_layer_adjust ();
-    roadmap_start_request_repaint();
-    roadmap_screen_refresh ();
+    roadmap_start_request_repaint_map();
 }
 
 
@@ -1972,8 +1961,7 @@ void roadmap_screen_zoom_out (void) {
     roadmap_math_zoom_out ();
 
     roadmap_layer_adjust ();
-    roadmap_start_request_repaint();
-    roadmap_screen_refresh ();
+    roadmap_start_request_repaint_map();
 }
 
 
@@ -1982,8 +1970,7 @@ void roadmap_screen_zoom_reset (void) {
    roadmap_math_zoom_reset ();
 
    roadmap_layer_adjust ();
-   roadmap_start_request_repaint();
-   roadmap_screen_refresh ();
+   roadmap_start_request_repaint_map();
 }
 
 
@@ -2083,7 +2070,7 @@ void roadmap_screen_initialize (void) {
    roadmap_state_add ("view_mode", &roadmap_screen_get_view_mode);
    roadmap_state_add ("get_orientation",
             &roadmap_screen_get_orientation_mode);
-   roadmap_state_monitor (&roadmap_start_request_repaint);
+   roadmap_state_monitor (&roadmap_start_request_repaint_map);
 }
 
 
