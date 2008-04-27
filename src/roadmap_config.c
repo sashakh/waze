@@ -560,15 +560,8 @@ static int roadmap_config_load_file
 
         if (fgets (line, sizeof(line), file) == NULL) break;
 
-        p = &line[strlen(line)];
-        while (p > line && (*--p == '\n' || *p == '\r')) *p = '\0';
-        if (!line[0]) continue;
-
-
         category = roadmap_config_extract_data (line, sizeof(line));
-
         if (category == NULL) continue;
-
 
         /* Decode the line (category.name: value). */
         
@@ -682,11 +675,18 @@ static void roadmap_config_update (RoadMapConfig *config, int force) {
 
 char *roadmap_config_extract_data (char *line, int size) {
     
+    char *p;
+
     line[size-1] = 0;
     
     line = roadmap_config_skip_spaces (line);
 
     if (*line == '#' || *line == '\0') return NULL;
+
+    p = &line[strlen(line)];
+    while (p > line && (*--p == '\n' || *p == '\r')) *p = '\0';
+
+    if (*line == '\0') return NULL;
         
     return line;
 }
