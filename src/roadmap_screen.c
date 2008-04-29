@@ -1364,7 +1364,7 @@ static int roadmap_screen_repaint_leave(int total, int progress) {
 
     if (!RoadMapScreenDragging &&
             roadmap_screen_busy_check(total, progress)) {
-        if (roadmap_start_repaint_scheduled() && progress > total / 4) {
+        if (roadmap_start_repaint_scheduled() && progress < (3 * total) / 4) {
             return 1;
         }
     }
