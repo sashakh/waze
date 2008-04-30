@@ -959,7 +959,7 @@ void roadmap_math_restore_zoom (void) {
     roadmap_math_compute_scale ();
 }
 
-void roadmap_math_zoom_out (void) {
+int roadmap_math_zoom_out (void) {
 
    unsigned int zoom;
 
@@ -971,11 +971,13 @@ void roadmap_math_zoom_out (void) {
       RoadMapContext.zoom = (unsigned short) zoom;
       roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
       roadmap_math_compute_scale ();
+      return 1;
    }
+   return 0;
 }
 
 
-void roadmap_math_zoom_in (void) {
+int roadmap_math_zoom_in (void) {
 
    unsigned int zoom;
 
@@ -985,11 +987,13 @@ void roadmap_math_zoom_in (void) {
       RoadMapContext.zoom = zoom;
       roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
       roadmap_math_compute_scale ();
+      return 1;
    }
+   return 0;
 }
 
 
-void roadmap_math_zoom_reset (void) {
+int roadmap_math_zoom_reset (void) {
 
    int zoomval;
 
@@ -1002,7 +1006,9 @@ void roadmap_math_zoom_reset (void) {
       RoadMapContext.zoom = zoomval;
       roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext.zoom);
       roadmap_math_compute_scale ();
+      return 1;
    }
+   return 0;
 }
 
 
@@ -1846,6 +1852,7 @@ int roadmap_math_delta_direction (int direction1, int direction2) {
 }
 
 
+#if NEEDED
 void roadmap_math_set_context (RoadMapPosition *position, unsigned int zoom) {
 
    RoadMapContext.center = *position;
@@ -1860,6 +1867,7 @@ void roadmap_math_set_context (RoadMapPosition *position, unsigned int zoom) {
 
    roadmap_math_compute_scale ();
 }
+#endif
 
 
 void roadmap_math_get_context

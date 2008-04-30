@@ -42,9 +42,9 @@ void roadmap_math_use_metric   (void);
 void roadmap_math_use_imperial (void);
 
 void roadmap_math_restore_zoom (void);
-void roadmap_math_zoom_in      (void);
-void roadmap_math_zoom_out     (void);
-void roadmap_math_zoom_reset   (void);
+int roadmap_math_zoom_in      (void);
+int roadmap_math_zoom_out     (void);
+int roadmap_math_zoom_reset   (void);
 
 void roadmap_math_set_center      (RoadMapPosition *position);
 void roadmap_math_set_size        (int width, int height);
@@ -154,7 +154,9 @@ int  roadmap_math_compare_points (const RoadMapPosition *p1,
 
 int  roadmap_math_delta_direction (int direction1, int direction2);
 
+#if NEEDED
 void roadmap_math_set_context (RoadMapPosition *position, unsigned int zoom);
+#endif
 
 void roadmap_math_get_context
     (RoadMapPosition *position, unsigned int *zoom, RoadMapGuiPoint *lowerright);

@@ -1945,28 +1945,30 @@ void roadmap_screen_move_left (void) {
 
 void roadmap_screen_zoom_in  (void) {
 
-    roadmap_math_zoom_in ();
-
-    roadmap_layer_adjust ();
-    roadmap_start_request_repaint_map();
+    if (roadmap_math_zoom_in ()) {
+       roadmap_layer_adjust ();
+       roadmap_start_request_repaint_map();
+    }
 }
 
 
 void roadmap_screen_zoom_out (void) {
 
-    roadmap_math_zoom_out ();
+    if (roadmap_math_zoom_out ()) {
 
-    roadmap_layer_adjust ();
-    roadmap_start_request_repaint_map();
+       roadmap_layer_adjust ();
+       roadmap_start_request_repaint_map();
+    }
 }
 
 
 void roadmap_screen_zoom_reset (void) {
 
-   roadmap_math_zoom_reset ();
+   if (roadmap_math_zoom_reset ()) {
 
-   roadmap_layer_adjust ();
-   roadmap_start_request_repaint_map();
+      roadmap_layer_adjust ();
+      roadmap_start_request_repaint_map();
+   }
 }
 
 
