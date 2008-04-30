@@ -1591,11 +1591,6 @@ void roadmap_screen_configure (void) {
    RoadMapScreenWidth = roadmap_canvas_width();
    RoadMapScreenHeight = roadmap_canvas_height();
 
-   RoadMapScreenLabels = ! roadmap_config_match(&RoadMapConfigMapLabels, "off");
-   
-   RoadMapScreenOrientationDynamic = 
-        roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
-
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
 
    if (RoadMapScreenInitialized) {
@@ -2079,6 +2074,11 @@ void roadmap_screen_set_initial_position (void) {
 
     RoadMapScreenInitialized = 1;
     
+    RoadMapScreenLabels = ! roadmap_config_match(&RoadMapConfigMapLabels, "off");
+   
+    RoadMapScreenOrientationDynamic = 
+        roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
+
     roadmap_layer_initialize();
 
     RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
