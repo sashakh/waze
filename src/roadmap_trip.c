@@ -2380,10 +2380,10 @@ void roadmap_trip_new (void) {
 
     roadmap_trip_set_modified(0);
 
+    roadmap_config_set (&RoadMapConfigTripName, "");
+
     roadmap_main_title("");
 
-    /* NB:  there may be a name in config, which couldn't be read
-     * at startup */
     RoadMapTripUntitled = 1;
 
     roadmap_screen_refresh ();
