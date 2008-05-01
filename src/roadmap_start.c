@@ -339,36 +339,45 @@ static void roadmap_start_external_gps_console (void) {
 
 
 static int RoadMapStartRepaintNeeded;
+static int RoadMapStartIdleInstalled;
 
 int roadmap_start_repaint_scheduled(void) {
-    return RoadMapStartRepaintNeeded > 1;
+
+   return RoadMapStartRepaintNeeded;
 }
 
 static void roadmap_start_repaint_if_requested(void) {
 
-    while (RoadMapStartRepaintNeeded > 0) {
-        if (RoadMapStartScreenActive == ROADMAP_MAP) {
-            roadmap_screen_repaint();
-        } else {
-            roadgps_screen_draw();
-        }
-        --RoadMapStartRepaintNeeded;
-    }
+   int interrupted;
+   if (RoadMapStartRepaintNeeded) {
+      do {
+         RoadMapStartRepaintNeeded = 0;
+         if (RoadMapStartScreenActive == ROADMAP_MAP) {
+            interrupted = roadmap_screen_repaint();
+         } else {
+            interrupted = roadgps_screen_draw();
+         }
+      } while (interrupted);
+   }
 
-    roadmap_main_remove_idle_function();
+   roadmap_main_remove_idle_function();
+   RoadMapStartIdleInstalled = 0;
 }
 
-void roadmap_start_request_repaint (int which) {
+void roadmap_start_request_repaint (int which_screen) {
 
    /* the repaint is actually invoked via the gui's mainloop
-    * idle routine.  we need to install and remove tis routine
+    * idle routine.  we need to install and remove this routine
     * on an as-needed basis, because otherwise installing something
     * in the gui's idle loop causes it to eat CPU (i.e., it can't
     * sleep -- it has to spin.)
     */
-   if (RoadMapStartScreenActive == which) {
-       if (!RoadMapStartRepaintNeeded++)
-          roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
+   if (RoadMapStartScreenActive == which_screen) {
+      if (!RoadMapStartIdleInstalled) {
+         roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
+         RoadMapStartIdleInstalled = 1;
+      }
+      RoadMapStartRepaintNeeded = 1;
    }
     
 }
