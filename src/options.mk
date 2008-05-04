@@ -91,7 +91,11 @@ else
 ifeq ($(DESKTOP),WINCE)
 	RDMODULES=win32
 else
+ifeq ($(DESKTOP),IPHONE)
+	RDMODULES=iphone
+else
 	RDMODULES=$(ALL_RDMODULES)
+endif
 endif
 endif
 endif
@@ -226,7 +230,11 @@ HOST=`uname -s`
 ifeq ($(HOST),Darwin)
 	ARFLAGS="r"
 else
+ifeq ($(DESKTOP),IPHONE)
+	ARFLAGS="r"
+else
 	ARFLAGS="rf"
+endif
 endif
 
 

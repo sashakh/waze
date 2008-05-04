@@ -28,6 +28,7 @@ DESKTOP = GTK2
 # DESKTOP = QPE
 # DESKTOP = QPE4
 # DESKTOP = WINCE  # but see below
+# DESKTOP = IPHONE
 
 # If you select WINCE for your WinCE device, you'll need to turn
 # off POPT, and maybe EXPAT as well, both below.  You'll also
@@ -37,6 +38,17 @@ DESKTOP = GTK2
 # windows-based devkit.  There are some more comments in win32/Makefile.
 # CROSS=/opt/mingw32ce/bin/arm-wince-mingw32ce-
 # CFLAGS += ???  others needed?
+
+# If you select IPHONE for your iPhone or iPod Touch, you'll
+# need the arm-apple-darwin cross-compiler. 
+# The following settings work for at least one iPhone. :-)
+#CROSS=/usr/local/bin/arm-apple-darwin-
+#CFLAGS += -I/path/to/expat/include
+#LIBS += -L/path/to/libexpat.a
+#ROADMAP_CONFIG_DIR = /Applications/RoadMap.app/resources/
+#ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps/...
+#INSTALLDIR = Applications/RoadMap.app
+#DESTDIR = /tmp
 
 # If you selected QT or QPE above, you might also want to set QTDIR
 # here.  (But it might already be set in your environment.)
