@@ -34,7 +34,8 @@ RMLIBSRC= \
 	roadmap_progress.c \
 	listports.c \
 	CEDevice.cpp \
-	CEException.cpp roadmap_gps_detect.c
+	CEException.cpp \
+	roadmap_gps_detect.c
 
 #	roadmap_keyboard.c \
 #	roadmap_signals.c \
