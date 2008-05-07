@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEDevice.cpp,v 1.1 2008/05/07 14:01:11 pgf Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEDevice.cpp,v 1.2 2008/05/07 15:27:59 pgf Exp $
  *
  */
 
@@ -31,7 +31,7 @@
 #define KEY_TASK 0xc4
 
 static void (WINAPI* _SHIdleTimerReset)(void) = NULL;
-static HANDLE (WINAPI* _SetPowerRequirement)(PVOID,int,ULONG,PVOID,ULONG) = NULL;
+static HANDLE (WINAPI* _SetPowerRequirement)(const void *,int,ULONG,PVOID,ULONG) = NULL;
 static DWORD (WINAPI* _ReleasePowerRequirement)(HANDLE) = NULL;
 static HANDLE _hPowerManagement = NULL;
 static DWORD _lastTime = 0;
