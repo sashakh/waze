@@ -490,7 +490,10 @@ int roadmap_path_is_full_path (const char *name)
 }
 
 int roadmap_path_is_directory (const char *name) {
-   return 0; /* FIXME: win32 implementation needed here. */
+   LPWSTR path_unicode = ConvertToUNICODE(name);
+   DWORD fa = GetFileAttributes(path_unicode);
+   free(path_unicode);
+   return fa && FILE_ATTRIBUTE_DIRECTORY;
 }
 
 const char *roadmap_path_skip_separator (const char *name) {

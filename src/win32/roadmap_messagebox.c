@@ -40,20 +40,30 @@ static void roadmap_messagebox_show (const char *title,
 	u_title = ConvertToUNICODE(title);
 	u_text = ConvertToUNICODE(text);
 	MessageBox(0, u_text, u_title, MB_OK|options);
+	/* Discarding return value of MessageBox which indicates
+	 * the choice made by the user. */
 	free(u_title);
 	free(u_text);
 #else
 	MessageBox(0, text, title, MB_OK|options);
+	/* Discarding return value of MessageBox which indicates
+	 * the choice made by the user. */
 #endif
 }
 
-void roadmap_messagebox (const char *title, const char *text)
+void *roadmap_messagebox (const char *title, const char *text)
 {
    roadmap_messagebox_show (title, text, 0);
+   return NULL;	/* Nothing to return, the box is already popped down */
 }
 
-void roadmap_messagebox_wait (const char *title, const char *text)
+void *roadmap_messagebox_wait (const char *title, const char *text)
 {
    roadmap_messagebox_show (title, text, MB_ICONERROR);
+   return NULL;	/* Nothing to return, the box is already popped down */
 }
 
+void roadmap_messagebox_hide (void *handle)
+{
+	/* This is a no op if we're using MessageBox() */
+}

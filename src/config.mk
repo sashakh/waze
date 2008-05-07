@@ -30,14 +30,12 @@ DESKTOP = GTK2
 # DESKTOP = WINCE  # but see below
 # DESKTOP = IPHONE
 
-# If you select WINCE for your WinCE device, you'll need to turn
-# off POPT, and maybe EXPAT as well, both below.  You'll also
-# need the arm-wince-mingw32ce cross-compiler.  And even after
-# all that, wroadmap probably won't run until someone finishes
-# debugging and fixing it.  You may have better luck with a
-# windows-based devkit.  There are some more comments in win32/Makefile.
-# CROSS=/opt/mingw32ce/bin/arm-wince-mingw32ce-
-# CFLAGS += ???  others needed?
+# If you select WINCE for your WinCE device, you'll need the
+# arm-wince-mingw32ce cross-compiler.  Support for WINCE is
+# still a work in progress.
+# CROSS=arm-mingw32ce-
+# CFLAGS += -I/opt/wince/include
+# LIBS += -L/opt/wince/lib
 
 # If you select IPHONE for your iPhone or iPod Touch, you'll
 # need the arm-apple-darwin cross-compiler. 

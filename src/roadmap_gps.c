@@ -55,7 +55,7 @@ static RoadMapConfigDescriptor RoadMapConfigGPSAccuracy =
 static RoadMapConfigDescriptor RoadMapConfigGPSSpeedAccuracy =
                         ROADMAP_CONFIG_ITEM("Accuracy", "GPS Speed");
 
-static RoadMapConfigDescriptor RoadMapConfigGPSSource =
+RoadMapConfigDescriptor RoadMapConfigGPSSource =
                         ROADMAP_CONFIG_ITEM("GPS", "Source");
 
 #ifdef _WIN32
@@ -89,9 +89,9 @@ static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 static char   RoadMapLastKnownStatus = 'A';
 static time_t RoadMapGpsLatestData = 0;
 static int    RoadMapGpsEstimatedError = 0;
-static int    RoadMapGpsRetryPending = 0;
+int    RoadMapGpsRetryPending = 0;
 static time_t RoadMapGpsReceivedTime = 0;
-static int    RoadMapGpsReception = 0;
+int    RoadMapGpsReception = 0;
 
 static RoadMapGpsPosition RoadMapGpsReceivedPosition;
 
@@ -115,10 +115,10 @@ static void roadmap_gps_call_all_listeners (void);
 
 static void roadmap_gps_got_data(void);
 
-static roadmap_gps_periodic_control RoadMapGpsPeriodicAdd =
+roadmap_gps_periodic_control RoadMapGpsPeriodicAdd =
                                     &roadmap_gps_no_periodic_control;
 
-static roadmap_gps_periodic_control RoadMapGpsPeriodicRemove =
+roadmap_gps_periodic_control RoadMapGpsPeriodicRemove =
                                     &roadmap_gps_no_periodic_control;
 
 static roadmap_gps_link_control RoadMapGpsLinkAdd =
@@ -1052,4 +1052,3 @@ int  roadmap_gps_is_nmea (void) {
 
    return 0; /* safe bet in case of something wrong. */
 }
-

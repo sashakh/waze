@@ -65,7 +65,7 @@ RANLIB = $(CROSS)ranlib
 
 # --- Build options ------------------------------------------------
 
-ALL_RDMODULES = gtk gtk2 qt qt4
+ALL_RDMODULES = gtk gtk2 qt qt4 wince
 
 ifeq ($(DESKTOP),GTK2)
 	RDMODULES=gtk2
@@ -105,7 +105,9 @@ endif
 endif
 endif
 
-ifneq ($(DESKTOP),WINCE)
+ifeq ($(DESKTOP),WINCE)
+	OSDIR=win32
+else
 	LIBOS = $(TOP)/unix/libosroadmap.a
 	OSDIR = unix
 endif
@@ -140,7 +142,10 @@ ifeq ($(strip $(MODE)),PROFILE)
 	CFLAGS += -g -pg -fprofile-arcs -g
 	LIBS += -pg
 else
-	CFLAGS += -O2 -ffast-math -fomit-frame-pointer -DNDEBUG
+	CFLAGS += -O2 -ffast-math -DNDEBUG
+ifneq ($(DESKTOP),WINCE)
+	CFLAGS += -fomit-frame-pointer
+endif
 endif
 endif
 
@@ -238,8 +243,14 @@ endif
 endif
 
 
-CFLAGS += -I$(TOP) -I/usr/local/include
-
-LIBS := -L/usr/local/lib $(LIBS) -lm
+ifeq ($(DESKTOP),WINCE)
+	CFLAGS += -I$(TOP) -I$(TOP)/win32 \
+		-DNDEBUG -D_WIN32_WCE=0x0300 -D_WIN32_IE=0x0400 \
+		-D_TXT=\".txt\"
+	LIBS := $(LIBS) -lm
+else
+	CFLAGS += -I$(TOP) -I/usr/local/include -DNDEBUG -D_TXT=
+	LIBS := -L/usr/local/lib $(LIBS) -lm
+endif
 
 CXXFLAGS = $(CFLAGS)

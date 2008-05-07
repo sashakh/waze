@@ -81,7 +81,7 @@ DWORD WINAPI SocketMonThread(LPVOID lpParam)
 	fd_set set;
 
 	FD_ZERO(&set);
-	while(io->subsystem != ROADMAP_IO_INVALID)
+	while (data->is_valid && io->subsystem != ROADMAP_IO_INVALID)
 	{
 		FD_SET(fd, &set);
 		if(select(fd+1, &set, NULL, NULL, NULL) == SOCKET_ERROR) {

@@ -330,7 +330,9 @@ FONT = LiberationSans-Bold.ttf
 MANUAL = manual.html
 
 # more products
-ifneq ($(strip $(RUNTIME_ONLY)),YES)
+ifeq ($(DESKTOP),WINCE)
+BUILD =
+else
 BUILD = buildmap buildmap_osm buildus buildplace dumpmap rdmindex 
 endif
 
@@ -374,6 +376,9 @@ qt4:
 
 qpe4:
 	$(MAKE) DESKTOP=QPE4
+
+wince:
+	$(MAKE) DESKTOP=WINCE
 
 rebuild: clean all
 

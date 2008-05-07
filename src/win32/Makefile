@@ -31,6 +31,10 @@ RMLIBSRC= \
 	roadmap_win32.c \
 	time.c \
 	wince_input_mon.c \
+	roadmap_progress.c \
+	listports.c \
+	CEDevice.cpp \
+	CEException.cpp roadmap_gps_detect.c
 
 #	roadmap_keyboard.c \
 #	roadmap_signals.c \
@@ -47,7 +51,7 @@ HEADERS = \
 	roadmap_wincecanvas.h \
 	wince_input_mon.h
 
-TARGETS = wroadgps wroadmap
+TARGETS = wroadmap
 
 # --- The real targets --------------------------------------------
 
@@ -57,23 +61,26 @@ strip:
 	$(STRIP) $(TARGETS)
 
 clean:
-	rm -f *.o *.a *.da $(TARGETS)
+	rm -f *.o *.a *.da $(addsuffix .exe,$(TARGETS))
 
 libwroadmap.a: $(RMLIBOBJ)
 	$(AR) $(ARFLAGS) libwroadmap.a $(RMLIBOBJ)
 	$(RANLIB) libwroadmap.a
 
-wroadmap: roadmap_main.o libwroadmap.a \
+wroadmap: roadmap_main.o libwroadmap.a roadmap.rsc \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
-	$(CC) $(LDFLAGS) -o wroadmap roadmap_main.o \
+	$(CXX) $(LDFLAGS) -o wroadmap roadmap_main.o roadmap.rsc \
 		$(TOP)/libguiroadmap.a libwroadmap.a $(LIBS) \
-		libwroadmap.a -lwinsock -lcommctrl -laygshell -lws2
+		libwroadmap.a -lcommctrl -laygshell -lws2
 
-wroadgps: roadmap_main.o libwroadmap.a \
-		$(TOP)/libguiroadgps.a  $(filter %.a, $(LIBS))
-	$(CC) $(LDFLAGS) -o wroadgps roadmap_main.o \
-		$(TOP)/libguiroadgps.a libwroadmap.a $(LIBS) \
-		libwroadmap.a -lwinsock -lcommctrl -laygshell -lws2
+#
+# Unneeded, functionality is now in "roadmap"
+#
+# wroadgps: roadmap_main.o libwroadmap.a roadmap.rsc \
+# 		$(TOP)/libguiroadgps.a  $(filter %.a, $(LIBS))
+# 	$(CXX) $(LDFLAGS) -o wroadgps roadmap_main.o roadmap.rsc \
+# 		$(TOP)/libguiroadgps.a libwroadmap.a $(LIBS) \
+# 		libwroadmap.a -lcommctrl -laygshell -lws2
 
 
 # for win32 we aren't as rigorous about producing
@@ -87,3 +94,7 @@ sourcelist:
 	    wince_env/Roadmap.vcw \
 	    wince_env/*/*.vcp \
 	    icons/rm_*.bmp
+
+WINDRES=$(CROSS)windres
+roadmap.rsc: roadmap.rc
+	$(WINDRES) -D_WIN32_WCE=0x0400 -D_WIN32_IE=0x0400 roadmap.rc roadmap.rsc

@@ -60,7 +60,8 @@ FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode) 
 
 	if ((file == NULL) && (! silent)) {
 		roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
-	}
+	} else
+		roadmap_log (ROADMAP_DEBUG, "Opened file %s", full_name);
 
 	roadmap_path_free (full_name);
 	return file;
@@ -346,6 +347,7 @@ const char *roadmap_file_map (const char *path,
 	}
 
 	*file = context;
+	roadmap_log (ROADMAP_INFO, "Mapped file %s", full_name);
 
 	return context->base;
 }

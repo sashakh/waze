@@ -134,5 +134,16 @@ int  roadmap_gps_is_nmea (void);
 
 void roadmap_gps_shutdown (void);
 
+void roadmap_gps_detect_receiver (void);
+
+/* These are no longer static because win32/roadmap_gps_detect needs them */
+#include "roadmap_config.h"
+
+extern RoadMapConfigDescriptor RoadMapConfigGPSSource;
+extern int    RoadMapGpsRetryPending;
+extern int    RoadMapGpsReception;
+extern roadmap_gps_periodic_control RoadMapGpsPeriodicAdd;
+extern roadmap_gps_periodic_control RoadMapGpsPeriodicRemove;
+
 #endif // INCLUDED__ROADMAP_GPS__H
 

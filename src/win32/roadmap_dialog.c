@@ -29,8 +29,12 @@
 
 #include <windows.h>
 #include "resource.h"
+
+#if defined(_WIN32_WCE) && (_WIN32_WCE >= 0x0300)
 #include <aygshell.h>
 #include <commctrl.h>
+#include <sipapi.h>
+#endif
 
 #include "../roadmap.h"
 #include "../roadmap_types.h"
@@ -52,6 +56,10 @@ extern HINSTANCE g_hInst;
 #define ROADMAP_WIDGET_LIST      4
 #define ROADMAP_WIDGET_LABEL     5
 #define ROADMAP_WIDGET_HIDDEN    6
+#define	ROADMAP_WIDGET_PASSWORD	 7
+#define	ROADMAP_WIDGET_PROGRESS	 8
+#define ROADMAP_WIDGET_IMAGE	 9
+#define	ROADMAP_WIDGET_MUL_ENTRY 10
 
 const unsigned int MAX_ROW_HEIGHT = 20;
 const unsigned int MAX_ROW_SPACE = 5;
@@ -309,12 +317,12 @@ void roadmap_dialog_new_hidden (const char *frame, const char *name)
 }
 
 void roadmap_dialog_new_choice (const char *frame,
-								const char *name,
-								int count,
-								int current,
-								char **labels,
-								void **values,
-								RoadMapDialogCallback callback)
+		const char *name,
+		int count,
+		int current,
+		char **labels,
+		void *values,
+		RoadMapDialogCallback callback)
 {
 	int i;
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
@@ -479,13 +487,7 @@ void roadmap_dialog_complete (int use_keyboard)
 	}
 	psh.dwSize = sizeof(PROPSHEETHEADER);
 	psh.dwFlags =
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
 		PSH_PROPSHEETPAGE|PSH_MAXIMIZE|PSH_USECALLBACK|PSH_MODELESS;
-#else
-		PSH_PROPSHEETPAGE|PSH_USECALLBACK|PSH_MODELESS;
-#endif
 	psh.hwndParent = dialog->w;
 	psh.hInstance = g_hInst;
 	psh.pszCaption = ConvertToUNICODE(dialog->name);
@@ -780,9 +782,9 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
-#warning
-#warning important code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
+// #warning
+// #warning important code ifdefed for arm-wince-mingw32ce toolchain
+#ifdef SHIDIM_FLAGS
 			SHINITDLGINFO shidi;
 			RoadMapDialogItem dialog;
 			RoadMapDialogItem frame;
@@ -809,7 +811,7 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 					num_buttons++;
 				}
 			}
-#endif
+#endif /* SHIDIM_FLAGS */
 		}
 		return (INT_PTR)TRUE;
 
@@ -898,9 +900,9 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
-#warning
-#warning important code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
+// #warning
+// #warning important code ifdefed for arm-wince-mingw32ce toolchain
+#ifdef SHIDIM_FLAGS
 			SHINITDLGINFO sid;
 			PROPSHEETPAGE *psp;
 			RoadMapDialogItem frame;
@@ -916,7 +918,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			frame->w = hDlg;
 			SetWindowLong(hDlg, GWL_USERDATA, (LONG)frame);
 			CreateControllers(hDlg, frame);
-#endif
+#endif /* SHIDIM_FLAGS */
 		}
 		return (INT_PTR)TRUE;
 

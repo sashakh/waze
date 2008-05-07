@@ -11,4 +11,11 @@
 LPWSTR ConvertToUNICODE(LPCSTR string);
 char* ConvertToANSI(const LPWSTR s, UINT nCodePage);
 
+#if defined(__GNUC__)
+#define       __try           try
+#define       __except(x)     catch(...)
+#else
+#define       inline  _inline
+#endif
+
 #endif /* _ROADMAP_WIN32_H_ */

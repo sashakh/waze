@@ -279,6 +279,12 @@ static void roadmap_start_toggle_download (void) {
    roadmap_start_request_repaint_map ();
 }
 
+#ifdef _WIN32
+static void roadmap_start_detect_receiver (void) {
+
+    roadmap_gps_detect_receiver ();
+}
+#endif
 
 static int RoadMapStartScreenActive = ROADMAP_MAP;
 
@@ -695,6 +701,11 @@ static RoadMapAction RoadMapStartActions[] = {
    {"mapinfo", "Map Parameters", NULL, NULL,
       "Show parameters of the currently displayed map", roadmap_start_mapinfo},
 
+#ifdef _WIN32
+   {"detectreceiver", "Detect GPS receiver", NULL, NULL,
+      "Auto-detect GPS receiver", roadmap_start_detect_receiver},
+#endif
+
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -739,6 +750,9 @@ static const char *RoadMapStartMenu[] = {
 
       "preferences",
       "gpsconsole",
+#ifdef _WIN32
+      "detectreceiver",
+#endif
       "savescreenshot",
 
       RoadMapFactorySeparator,

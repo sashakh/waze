@@ -32,7 +32,9 @@
 #include <time.h>
 #ifdef UNDER_CE
 #include <aygshell.h>
-// #include <notify.h>
+#include <notify.h>
+#include "CEException.h"
+#include "CEDevice.h"
 #endif
 
 #ifndef I_IMAGENONE
@@ -97,7 +99,6 @@ static HWND				   RoadMapMainMenuBar = NULL;
 #else
 static HMENU			   RoadMapMainMenuBar = NULL;
 #endif
-static HMENU			RoadMapCurrentSubMenu = NULL;
 static HWND				RoadMapMainToolbar = NULL;
 static bool				   RoadMapMainFullScreen = false;
 
@@ -109,6 +110,7 @@ extern "C" { HWND			RoadMapMainWindow  = NULL; }
 static ATOM				MyRegisterClass(HINSTANCE, LPTSTR);
 static BOOL				   InitInstance(HINSTANCE, LPTSTR);
 static LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
+extern "C" { static int roadmap_main_set_idle_function_helper (void *); }
 
 #define MAX_LOADSTRING 100
 
@@ -122,31 +124,41 @@ static WCHAR szWindowClass[] = L"RoadMapClass";
 static RoadMapConfigDescriptor RoadMapConfigMenuBar =
                         ROADMAP_CONFIG_ITEM("General", "Menu bar");
 
-// our main function
+int handleException(EXCEPTION_POINTERS *exceptionPointers) {
 #ifdef UNDER_CE
-int WINAPI WinMain(HINSTANCE hInstance,
-				   HINSTANCE hPrevInstance,
-				   LPTSTR    lpCmdLine,
-				   int       nCmdShow)
-#else
-int WINAPI WinMain(HINSTANCE hInstance,
-				   HINSTANCE hPrevInstance,
-				   LPSTR     lpCmdLine,
-				   int       nCmdShow)
+	CEException::writeException(TEXT("\\roadmapCrash"), exceptionPointers);
 #endif
+	exit(0);
+
+	return EXCEPTION_EXECUTE_HANDLER;
+}
+
+static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime) {
+#ifdef UNDER_CE
+	CEDevice::wakeUp();
+#endif
+}
+
+// our main function
+int WINAPI WinMain(HINSTANCE hInstance,
+				   HINSTANCE hPrevInstance,
+#ifdef UNDER_CE
+				   LPTSTR    lpCmdLine,
+#else
+				   LPSTR     lpCmdLine,
+#endif
+				   int       nCmdShow)
 {
 	MSG msg;
-	LPTSTR cmd_line = L"";
+	LPTSTR cmd_line;
 	
 #ifdef UNDER_CE
 	cmd_line = lpCmdLine;
+#else
+	cmd_line = L"";
 #endif
 
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
 	__try 
-#endif
         {
 	    
 	    // Perform application initialization:
@@ -155,6 +167,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		    return FALSE;
 	    }
         }
+	__except (handleException(GetExceptionInformation())) {}
 		
 	ShowWindow(RoadMapMainWindow, nCmdShow);
 	UpdateWindow(RoadMapMainWindow);
@@ -170,6 +183,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		roadmap_main_set_idle_function_helper (NULL);
 	}
 
 	
@@ -209,11 +223,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 	g_hInst = hInstance; // Store instance handle in our global variable
 	
 #ifdef UNDER_CE
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
 	SHInitExtraControls();
-#endif
 #endif
 	
 	//If it is already running, then focus on the window, and exit
@@ -240,21 +250,21 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 	char *args[1] = {0};
 
 	roadmap_start(0, args);
-	
+
+#ifndef _ROADGPS
+	/* RoadmapEditor has stuff for first time handling here */
+#endif
+
 	return TRUE;
 }
 
 
-static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
-										 LPARAM lParam)
+static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam, LPARAM lParam)
 {
 	char *key = NULL;
 	char regular_key[2];
 	
 #ifdef UNDER_CE
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
 	switch (wParam)
 	{
 	case VK_APP1:	key = "Button-App1";	   break;
@@ -262,7 +272,6 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam,
 	case VK_APP3:	key = "Button-App3";	   break;
 	case VK_APP4:	key = "Button-App4";	   break;
    }
-#endif
 #endif
 
 	if (key == NULL && (wParam > 0 && wParam < 128)) {
@@ -286,19 +295,15 @@ static int roadmap_main_vkey_pressed(HWND w, WPARAM wParam, LPARAM lParam)
 	
 	switch (wParam)
 	{
-	case VK_LEFT:	key = "Button-Left";	   break;
+	case VK_LEFT:	key = "Button-Left";	break;
 	case VK_RIGHT:	key = "Button-Right";	break;
-	case VK_UP:		key = "Button-Up";	   break;
-	case VK_DOWN:	key = "Button-Down";	   break;
-#ifdef UNDER_CE // mingw32ce doesn't provide
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
-	case VK_APP1:	key = "Button-App1";	   break;
-	case VK_APP2:	key = "Button-App2";	   break;
-	case VK_APP3:	key = "Button-App3";	   break;
-	case VK_APP4:	key = "Button-App4";	   break;
-#endif
+	case VK_UP:	key = "Button-Up";	break;
+	case VK_DOWN:	key = "Button-Down";	break;
+#ifdef UNDER_CE
+	case VK_APP1:	key = "Button-App1";	break;
+	case VK_APP2:	key = "Button-App2";	break;
+	case VK_APP3:	key = "Button-App3";	break;
+	case VK_APP4:	key = "Button-App4";	break;
 #endif
 #if 0
 		/* These binding are for the iPAQ buttons: */
@@ -329,11 +334,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	static SHACTIVATEINFO s_sai;
 #endif
 	
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
    __try 
-#endif
    {
 	switch (message) 
 	{
@@ -376,6 +377,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #else
       create_menu = roadmap_config_match (&RoadMapConfigMenuBar, "Yes") != 0;
 #endif
+      create_menu = true;
 
 #ifdef UNDER_CE
 		SHMENUBARINFO mbi;
@@ -415,6 +417,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// Initialize the shell activate info structure
 		memset(&s_sai, 0, sizeof (s_sai));
 		s_sai.cbSize = sizeof (s_sai);
+
+		CEDevice::init();
+		SetTimer(NULL, 0, 50000, AvoidSuspend);
 #endif
 		break;
 		
@@ -567,11 +572,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
       
 	case WM_SETTINGCHANGE:
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
-		SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
+#if 0
+		// Ehud's version has this commented out
+		// SHHandleWMSettingChange(hWnd, wParam, lParam, &s_sai);
 #endif
+		break;
+	case WM_KILLFOCUS:
+		//roadmap_screen_freeze ();
+		break;
+		
+	case WM_SETFOCUS:
+		//roadmap_screen_unfreeze ();
 		break;
 #endif
 		
@@ -596,12 +607,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
     }
-#warning
-#warning code ifdefed for arm-wince-mingw32ce toolchain
-#if LATER
     __except (handleException(GetExceptionInformation())) {}
-#endif
-	return 0;
+    return 0;
 }
 
 
@@ -694,13 +701,14 @@ extern "C" {
 	void roadmap_main_new (const char *title, int width, int height)
 	{
 		LPWSTR szTitle = ConvertToUNICODE(title);
+		DWORD style = WS_VISIBLE;
 
       		roadmap_config_declare_enumeration
-         		("preferences", &RoadMapConfigMenuBar, NULL, "No", "Yes", NULL);
+         		("preferences", &RoadMapConfigMenuBar, "No", "Yes", NULL);
 #ifndef UNDER_CE
 		style |= WS_OVERLAPPEDWINDOW;
 #endif
-		RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, WS_VISIBLE,
+		RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, style,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
 			NULL, g_hInst, NULL);
 		
@@ -745,7 +753,10 @@ extern "C" {
 	void roadmap_main_add_menu (RoadMapMenu menu, const char *label)
 	{
 		static int menu_id = 0;
-		if (RoadMapMainMenuBar == NULL) return;
+		if (RoadMapMainMenuBar == NULL) {
+			roadmap_log (ROADMAP_ERROR, "roadmap_main_add_menu NULL");
+			return;
+		}
 		
 		LPWSTR label_unicode = ConvertToUNICODE(label);
 #ifdef UNDER_CE
@@ -778,9 +789,13 @@ extern "C" {
 	{
 		static int menu_id = 0;
 		
+#if 1
+		roadmap_log (ROADMAP_DEBUG, "roadmap_main_add_menu_item(%p,%s)",
+				menu, label);
+#endif
 		if (label != NULL) {
 			LPWSTR label_unicode = ConvertToUNICODE(label);
-			AppendMenu(RoadMapCurrentSubMenu, MF_STRING,
+			AppendMenu((HMENU)menu, MF_STRING,
 				menu_id + MENU_ID_START, label_unicode);
 			free(label_unicode);
 			
@@ -884,7 +899,7 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32ce doesn't provide
+#if defined(UNDER_CE) && defined(CommandBar_AddButtons)
 		res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
 #else
 		res = SendMessage(RoadMapMainToolbar,
@@ -914,7 +929,7 @@ extern "C" {
 		but.dwData = 0;
 		but.iString = 0;
 		
-#ifdef XXX_UNDER_CE  // should use this with CE, but mingw32ce doesn't provide
+#ifdef UNDER_CE
 		CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
 #else
 		SendMessage(RoadMapMainToolbar,
@@ -929,7 +944,7 @@ extern "C" {
 	void roadmap_main_add_canvas (void)
 	{
 #ifndef _ROADGPS
-      		roadmap_main_toggle_full_screen ();
+//      		roadmap_main_toggle_full_screen ();
 #endif
       
 		roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
@@ -955,6 +970,9 @@ extern "C" {
 		int i;
 		
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+			if (RoadMapMainIo[i] == 0)
+   				RoadMapMainIo[i] = (roadmap_main_io*)calloc(1, sizeof(roadmap_main_io));
+
 			if (RoadMapMainIo[i]->io == NULL) {
 				RoadMapMainIo[i]->io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
 				*(RoadMapMainIo[i]->io) = *io;
@@ -1021,8 +1039,15 @@ extern "C" {
 	static void roadmap_main_timeout (HWND hwnd, UINT uMsg, UINT_PTR idEvent,
 		DWORD dwTime) 
 	{	
-		struct roadmap_main_timer *timer = RoadMapMainPeriodicTimer +
-			(idEvent - 1);
+		struct roadmap_main_timer *timer;
+
+		/*
+		 * Protect against the occasional invalid call.
+		 * On my system, this happens with hwnd == 0.
+		 */
+		if (idEvent > ROADMAP_MAX_TIMER || hwnd == 0)
+			return;
+		timer = RoadMapMainPeriodicTimer + (idEvent - 1);
 		RoadMapCallback callback = (RoadMapCallback) timer->callback;
 		
 		if (callback != NULL) {
@@ -1062,7 +1087,7 @@ extern "C" {
 	void roadmap_main_remove_periodic (RoadMapCallback callback)
 	{
 		int index;
-		
+
 		for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
 			
 			if (RoadMapMainPeriodicTimer[index].callback == callback) {
@@ -1081,18 +1106,21 @@ extern "C" {
 	
 	void roadmap_main_set_status (const char *text) {}
 	
-	void roadmap_main_flush (void)
+	int roadmap_main_flush (void)
         {
 	      // HWND w = GetFocus();
 	      MSG msg;
+	      int hadevent = 0;
 
 	      while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	      {
+		 hadevent = 1;
 		 TranslateMessage(&msg);
 		 DispatchMessage(&msg);
 	      }
 
 	      //UpdateWindow(w);
+	      return hadevent;
         }
 
        int roadmap_main_flush_synchronous (int deadline)
@@ -1109,9 +1137,9 @@ extern "C" {
 	
        static unsigned long roadmap_main_busy_start;
 
-       void roadmap_main_set_cursor (int newcursor)
+       void roadmap_main_set_cursor (RoadMapCursor newcursor)
        {
-	  static int lastcursor;
+	  static RoadMapCursor lastcursor;
 
 	  roadmap_main_busy_start = 0;
 
@@ -1152,5 +1180,20 @@ extern "C" {
 	  }
        }
 
-} // extern "C"
+	static RoadMapCallback idle_callback;
+	static int idle_handler_id;
 
+	static int roadmap_main_set_idle_function_helper (void *data) {
+	    if (idle_callback) idle_callback();
+	    return 0;
+	}
+
+	void roadmap_main_set_idle_function (RoadMapCallback callback) {
+
+	   idle_callback = callback;
+	}
+
+	void roadmap_main_remove_idle_function (void) {
+		idle_callback = 0;
+	}
+} // extern "C"

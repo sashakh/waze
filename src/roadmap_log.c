@@ -210,7 +210,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
    if (category->save_to_file) {
 
-      file = roadmap_file_fopen (roadmap_path_user(), "postmortem", "sa");
+      file = roadmap_file_fopen (roadmap_path_user(), "postmortem" _TXT, "sa");
 
       if (file != NULL) {
 
@@ -235,7 +235,7 @@ void roadmap_log (int level, char *source, int line, char *format, ...) {
 
 void roadmap_log_purge (void) {
 
-    roadmap_file_remove (roadmap_path_user(), "postmortem");
+    roadmap_file_remove (roadmap_path_user(), "postmortem" _TXT);
 }
 
 
