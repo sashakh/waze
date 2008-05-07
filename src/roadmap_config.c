@@ -216,7 +216,7 @@ static RoadMapConfigItem *roadmap_config_new_item
         new_item->category = strdup(descriptor->category);
         new_item->file     = file;
 
-        if (default_value[0] == 0) {
+        if (default_value == 0 || default_value[0] == 0) {
             new_item->default_value = "";
         } else {
             new_item->default_value = default_value;
