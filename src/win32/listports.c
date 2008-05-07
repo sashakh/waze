@@ -133,8 +133,8 @@ static BOOL WinNT40ListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
   LPTSTR lpValueName=NULL;
   LPTSTR lpPortName=NULL;
 
-  if(dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"),
-                          0,KEY_READ,&hKey)){
+  if((dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("HARDWARE\\DEVICEMAP\\SERIALCOMM"),
+                          0,KEY_READ,&hKey))) {
     /* it is really strange that this key does not exist, but could happen in theory */
     if(dwError==ERROR_FILE_NOT_FOUND)dwError=0;
     goto end;
@@ -231,13 +231,13 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
   LPTSTR              lpFriendlyName=NULL;
   LISTPORTS_PORTINFO  portinfo;
   DWORD               index;
-  DWORD               wordSize = sizeof(DWORD);
+//  DWORD               wordSize = sizeof(DWORD);
   BYTE                found[20] = {0};       
 
   portinfo.lpPortName = (LPTSTR)malloc(64);
 
-  if(dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("Drivers\\Active"),
-                          0,KEY_READ,&hKey)){
+  if ((dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("Drivers\\Active"),
+                          0,KEY_READ,&hKey))) {
     /* it is really strange that this key does not exist, but could happen in theory */
     if(dwError==ERROR_FILE_NOT_FOUND)dwError=0;
     goto end;
@@ -245,12 +245,12 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
 
   for(dwIndex=0;;++dwIndex) {
     dwError = 0;
-    if (dwError=OpenSubKeyByIndex(hKey,dwIndex,KEY_ENUMERATE_SUB_KEYS,&hkLevel1,NULL)) {
+    if ((dwError=OpenSubKeyByIndex(hKey,dwIndex,KEY_ENUMERATE_SUB_KEYS,&hkLevel1,NULL))) {
       if (dwError==ERROR_NO_MORE_ITEMS) dwError=0;
       break;
     }
 
-    if (dwError=QueryStringValue(hkLevel1,TEXT("Name"),&lpPortName)) {
+    if ((dwError=QueryStringValue(hkLevel1,TEXT("Name"),&lpPortName))) {
       if(dwError==ERROR_FILE_NOT_FOUND) continue; else break;
     }
 
@@ -286,8 +286,8 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
      hKey = NULL;
   }
 
-  if(dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("Drivers\\Builtin"),
-     0,KEY_READ,&hKey)){
+  if ((dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,TEXT("Drivers\\Builtin"),
+     0,KEY_READ,&hKey))) {
      goto end;
   } else {
      
@@ -361,7 +361,7 @@ BOOL ScanEnumTree(LPCTSTR lpEnumPath,LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
   LPTSTR lpFriendlyName=NULL;
   LPTSTR lpTechnology=NULL;
 
-  if(dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,lpEnumPath,0,KEY_ENUMERATE_SUB_KEYS,&hkEnum)){
+  if ((dwError=RegOpenKeyEx(HKEY_LOCAL_MACHINE,lpEnumPath,0,KEY_ENUMERATE_SUB_KEYS,&hkEnum))) {
     goto end;
   }
 
@@ -370,8 +370,8 @@ BOOL ScanEnumTree(LPCTSTR lpEnumPath,LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
       RegCloseKey(hkLevel1);
       hkLevel1=NULL;
     }
-    if(dwError=OpenSubKeyByIndex(
-                hkEnum,dwIndex1,KEY_ENUMERATE_SUB_KEYS,&hkLevel1,&lpTechnology)){
+    if ((dwError=OpenSubKeyByIndex(
+                hkEnum,dwIndex1,KEY_ENUMERATE_SUB_KEYS,&hkLevel1,&lpTechnology))) {
       if(dwError==ERROR_NO_MORE_ITEMS){
         dwError=0;
         break;
@@ -384,8 +384,8 @@ BOOL ScanEnumTree(LPCTSTR lpEnumPath,LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
         RegCloseKey(hkLevel2);
         hkLevel2=NULL;
       }
-      if(dwError=OpenSubKeyByIndex(
-                   hkLevel1,dwIndex2,KEY_ENUMERATE_SUB_KEYS,&hkLevel2,NULL)){
+      if ((dwError=OpenSubKeyByIndex(
+                   hkLevel1,dwIndex2,KEY_ENUMERATE_SUB_KEYS,&hkLevel2,NULL))) {
         if(dwError==ERROR_NO_MORE_ITEMS){
           dwError=0;
           break;
@@ -401,7 +401,7 @@ BOOL ScanEnumTree(LPCTSTR lpEnumPath,LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
           RegCloseKey(hkLevel3);
           hkLevel3=NULL;
         }
-        if(dwError=OpenSubKeyByIndex(hkLevel2,dwIndex3,KEY_READ,&hkLevel3,NULL)){
+        if ((dwError=OpenSubKeyByIndex(hkLevel2,dwIndex3,KEY_READ,&hkLevel3,NULL))) {
           if(dwError==ERROR_NO_MORE_ITEMS){
             dwError=0;
             break;
@@ -464,7 +464,7 @@ BOOL ScanEnumTree(LPCTSTR lpEnumPath,LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
 
         /* now go for "FRIENDLYNAME" */
 
-        if(dwError=QueryStringValue(hkLevel3,TEXT("FRIENDLYNAME"),&lpFriendlyName)){
+        if ((dwError=QueryStringValue(hkLevel3,TEXT("FRIENDLYNAME"),&lpFriendlyName))) {
           if(dwError==ERROR_FILE_NOT_FOUND){
             bFriendlyNameNotFound=TRUE;
             dwError=0;

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEException.cpp,v 1.1 2008/05/07 14:01:12 pgf Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEException.cpp,v 1.2 2008/05/07 19:47:55 dannybackx Exp $
  *
  */
 
@@ -46,21 +46,21 @@ void CEException::dumpContext(HANDLE file, HANDLE hProcess, CONTEXT *context) {
 #ifdef ARM
 	writeBreak(file);
 	writeString(file, "Context dump");
-	sprintf(tempo, "R0=%.8x R1=%.8x R2=%.8x R3=%.8x R4=%.8x", context->R0, context->R1,
+	sprintf(tempo, "R0=%.8lx R1=%.8lx R2=%.8lx R3=%.8lx R4=%.8lx", context->R0, context->R1,
 		context->R2, context->R3, context->R4);
 	writeString(file, tempo);
-	sprintf(tempo, "R5=%.8x R6=%.8x R7=%.8x R8=%.8x R9=%.8x", context->R5, context->R6,
+	sprintf(tempo, "R5=%.8lx R6=%.8lx R7=%.8lx R8=%.8lx R9=%.8lx", context->R5, context->R6,
 		context->R7, context->R8, context->R9);
 	writeString(file, tempo);
-	sprintf(tempo, "R10=%.8x R11=%.8x R12=%.8x", context->R10, context->R11,
+	sprintf(tempo, "R10=%.8lx R11=%.8lx R12=%.8lx", context->R10, context->R11,
 		context->R12);
 	writeString(file, tempo);
-	sprintf(tempo, "Sp=%.8x Lr=%.8x Pc=%.8x Psr=%.8x", context->Sp, context->Lr,
+	sprintf(tempo, "Sp=%.8lx Lr=%.8lx Pc=%.8lx Psr=%.8lx", context->Sp, context->Lr,
 		context->Pc, context->Psr);
 	writeString(file, tempo);
 	writeBreak(file);
 
-	sprintf(tempo, "Memory dump at %.8x", context->Pc - (sizeof(memoryDump) / 2));
+	sprintf(tempo, "Memory dump at %.8lx", context->Pc - (sizeof(memoryDump) / 2));
 	writeString(file, tempo);
 	if (ReadProcessMemory(hProcess, (LPCVOID)(context->Pc - (sizeof(memoryDump) / 2)), memoryDump, sizeof(memoryDump), &size)) {
 		for (i=0; i<size; i+=8) {
@@ -113,15 +113,16 @@ void CEException::dumpException(HANDLE file, EXCEPTION_RECORD *exceptionRecord) 
 			strcpy(exceptionName, "Stack Overflow");
 			break;
 		default:
-			sprintf(exceptionName, "%.8x", exceptionRecord->ExceptionCode);
+			sprintf(exceptionName, "%.8lx", exceptionRecord->ExceptionCode);
 			break;
 	}
-	sprintf(tempo, "Exception %s Flags %.8x Address %.8x", exceptionName, exceptionRecord->ExceptionFlags,
-		exceptionRecord->ExceptionAddress);
+	sprintf(tempo, "Exception %s Flags %.8lx Address %.8lx", exceptionName,
+		exceptionRecord->ExceptionFlags,
+		(long unsigned int)exceptionRecord->ExceptionAddress);
 	writeString(file, tempo);
 	if (exceptionRecord->NumberParameters) {
 		for (i=0; i<exceptionRecord->NumberParameters; i++) {
-			sprintf(tempo, "Parameter %d %.8x", i, exceptionRecord->ExceptionInformation[i]);
+			sprintf(tempo, "Parameter %d %.8lx", i, exceptionRecord->ExceptionInformation[i]);
 			writeString(file, tempo);
 		}
 	}
