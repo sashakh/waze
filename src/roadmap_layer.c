@@ -886,7 +886,7 @@ void roadmap_layer_load (void) {
 
        if (roadmap_path_is_directory(class_path)) {
     
-           classes = roadmap_path_list(class_path, NULL);
+           classes = roadmap_path_list(class_path, "");
 
            for (cursor = classes; *cursor != NULL; ++cursor) {
               char *file = roadmap_path_join (class_path, *cursor);
