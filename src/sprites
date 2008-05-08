@@ -118,6 +118,17 @@ F blue 1
 P 0,1 6,13 0,10 -6,13
 L 8,11 0,-3 -8,11
 
+# same as "BlueDart", but with a bigger black
+# outline for visibility on low-contrast displays
+S OutlinedBlueDart
+F white 2
+L 0,0 7,14 0,8 -7,14
+L 11,17 0,-3 -11,17 0,14 11,17
+F blue 1
+P 0,1 6,13 0,10 -6,13
+F black 1
+L 11,17 0,-3 -11,17 0,14 11,17
+
 S GreenTriangle
 F white 2
 L 0,0 7,14 0,8 -7,14
