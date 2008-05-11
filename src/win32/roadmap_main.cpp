@@ -90,7 +90,7 @@ static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
 // IO stuff
 #define ROADMAP_MAX_IO 16
-extern "C" { static roadmap_main_io *RoadMapMainIo[ROADMAP_MAX_IO] = {0}; }
+extern "C" { static roadmap_main_io *RoadMapMainIo = 0; }
 
 // varibles used across this module
 static RoadMapKeyInput	RoadMapMainInput = NULL;
@@ -242,7 +242,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 		return FALSE;
 	}
 	
-	if(WSAStartup(MAKEWORD(1,1), &wsaData) != 0)
+	if (WSAStartup(MAKEWORD(1,1), &wsaData) != 0)
 	{
 		roadmap_log (ROADMAP_FATAL, "Can't initialize network");
 	}
@@ -789,10 +789,6 @@ extern "C" {
 	{
 		static int menu_id = 0;
 		
-#if 1
-		roadmap_log (ROADMAP_DEBUG, "roadmap_main_add_menu_item(%p,%s)",
-				menu, label);
-#endif
 		if (label != NULL) {
 			LPWSTR label_unicode = ConvertToUNICODE(label);
 			AppendMenu((HMENU)menu, MF_STRING,
@@ -964,35 +960,40 @@ extern "C" {
 		}
 	}
 	
-	
 	void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback)
 	{
 		int i;
 		
-		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			if (RoadMapMainIo[i] == 0)
-   				RoadMapMainIo[i] = (roadmap_main_io*)calloc(1, sizeof(roadmap_main_io));
+		if (RoadMapMainIo == 0)
+			RoadMapMainIo = (roadmap_main_io*)calloc(ROADMAP_MAX_IO,
+					sizeof(roadmap_main_io));
 
-			if (RoadMapMainIo[i]->io == NULL) {
-				RoadMapMainIo[i]->io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
-				*(RoadMapMainIo[i]->io) = *io;
-				RoadMapMainIo[i]->callback = callback;
-            			RoadMapMainIo[i]->is_valid = 1;
+		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+			if (RoadMapMainIo[i].io == NULL) {
+#if 1
+				RoadMapMainIo[i].io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
+				*(RoadMapMainIo[i].io) = *io;
+#else
+				RoadMapMainIo[i].io = io;
+#endif
+				RoadMapMainIo[i].callback = callback;
+            			RoadMapMainIo[i].is_valid = 1;
 				break;
 			}
 		}
-		
+
 		if (i == ROADMAP_MAX_IO) {
 			roadmap_log (ROADMAP_FATAL, "Too many set input calls");
 			return;
 		}
-		
+
 		HANDLE monitor_thread = NULL;
+		roadmap_main_io *p = &RoadMapMainIo[i];
+
 		switch (io->subsystem) {
 		case ROADMAP_IO_SERIAL:
-         		// io->os.serial->ref_count++;
 			monitor_thread = CreateThread(NULL, 0,
-				SerialMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
+				SerialMonThread, (void*)p, 0, NULL);
 			break;
 		case ROADMAP_IO_NET:
 			monitor_thread = CreateThread(NULL, 0,
@@ -1004,7 +1005,7 @@ extern "C" {
 			break;
 		}
 		
-		if(monitor_thread == NULL)
+		if (monitor_thread == NULL)
 		{
 			roadmap_log (ROADMAP_FATAL, "Can't create monitor thread");
 			roadmap_io_close(io);
@@ -1014,21 +1015,20 @@ extern "C" {
 			CloseHandle(monitor_thread);
 		}
 	}
-	
-	
+
+
 	void roadmap_main_remove_input (RoadMapIO *io)
 	{
 		int i;
 				
 		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			 if (RoadMapMainIo[i] && RoadMapMainIo[i]->io == io) {
-
-				if (RoadMapMainIo[i]->is_valid) {
-				   RoadMapMainIo[i]->is_valid = 0;
+			 if (RoadMapMainIo[i].io == io) {
+				if (RoadMapMainIo[i].is_valid) {
+				   RoadMapMainIo[i].is_valid = 0;
 				} else {
-				   free (RoadMapMainIo[i]);
+//				   free (RoadMapMainIo[i]);
 				}
-				RoadMapMainIo[i] = NULL;
+				RoadMapMainIo[i].io = NULL;
 				break;
 
 			}
