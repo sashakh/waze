@@ -1010,8 +1010,7 @@ extern "C" {
 			roadmap_log (ROADMAP_FATAL, "Can't create monitor thread");
 			roadmap_io_close(io);
 			return;
-		}
-		else {
+		} else {
 			CloseHandle(monitor_thread);
 		}
 	}
@@ -1100,7 +1099,7 @@ extern "C" {
 			}
 		}
 		
-		roadmap_log (ROADMAP_ERROR, "timer 0x%08x not found", callback);
+		roadmap_log (ROADMAP_DEBUG, "timer 0x%08x not found", callback);
 	}
 	
 	
@@ -1133,6 +1132,9 @@ extern "C" {
 	{
 		roadmap_start_exit ();
 		SendMessage(RoadMapMainWindow, WM_CLOSE, 0, 0);
+
+		/* This is an easy and clean way to terminate threads too */
+		ExitProcess(0);
 	}
 	
        static unsigned long roadmap_main_busy_start;

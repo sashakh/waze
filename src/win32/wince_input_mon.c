@@ -41,10 +41,10 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam)
 	{
 		if (SetCommMask (hCommPort, EV_RXCHAR) == 0) {
 			DWORD e = GetLastError();
-			roadmap_log (ROADMAP_ERROR, "SetCommMask %p %d\n", hCommPort, e);
+			roadmap_log (ROADMAP_DEBUG, "SetCommMask %p %d\n", hCommPort, e);
 			/* Returning here terminates the thread,
 			 * which is probably the best thing to do. */
-			return;
+			return 0;
 		}
 
 		if(!WaitCommEvent (hCommPort, &fdwCommMask, 0))
