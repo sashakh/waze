@@ -246,6 +246,8 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	rect.right = x + text_width + 1;
 	rect.bottom = y + text_height + 1;
 
+	SetBkMode(RoadMapDrawingBuffer, TRANSPARENT);
+
 	text_unicode = ConvertToUNICODE(text);
 	DrawText(RoadMapDrawingBuffer, text_unicode, wcslen(text_unicode),
 		&rect, DT_CENTER);
