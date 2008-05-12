@@ -105,14 +105,15 @@ RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen)
 	RoadMapPen old_pen = CurrentPen;
 
 	CurrentPen = pen;
+//	roadmap_log (ROADMAP_ERROR, "SelectPen %p", pen);
 
 	old = SelectObject(RoadMapDrawingBuffer,
-		CreatePen(CurrentPen->style,
-			CurrentPen->thickness,
-			CurrentPen->color));
+		CreatePen(CurrentPen->style, CurrentPen->thickness, CurrentPen->color));
 
-	if (OldHPen == NULL) OldHPen = old;
-	else DeleteObject(old);
+	if (OldHPen == NULL)
+		OldHPen = old;
+	else
+		DeleteObject(old);
 
 	return old_pen;
 }
@@ -143,6 +144,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name)
 
 	roadmap_canvas_select_pen (pen);
 
+//	roadmap_log (ROADMAP_ERROR, "CreatePen -> %p", pen);
 	return pen;
 }
 
@@ -158,8 +160,7 @@ void roadmap_canvas_set_foreground (const char *color)
 		c = RGB(r, g, b);
 	} else {
 		/* Do binary search on color table */
-		for (low=(-1), high=sizeof(color_table)/sizeof(color_table[0]);
-		high-low > 1;) {
+		for (low=(-1), high=roadmap_ncolors; high-low > 1;) {
 			i = (high+low) / 2;
 			if (strcmp(color, color_table[i].name) <= 0) high = i;
 			else low = i;
@@ -171,6 +172,8 @@ void roadmap_canvas_set_foreground (const char *color)
 			c = RGB(0, 0, 0);
 		}
 	}
+
+//	roadmap_log (ROADMAP_WARNING, "SetForeground(%s) -> %X", color, c);
 
 	CurrentPen->color = c;
 	roadmap_canvas_select_pen(CurrentPen);

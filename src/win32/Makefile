@@ -35,7 +35,8 @@ RMLIBSRC= \
 	listports.c \
 	CEDevice.cpp \
 	CEException.cpp \
-	roadmap_gps_detect.c
+	roadmap_gps_detect.c \
+	roadmap_colors.c
 
 #	roadmap_keyboard.c \
 #	roadmap_signals.c \
@@ -99,3 +100,5 @@ sourcelist:
 WINDRES=$(CROSS)windres
 roadmap.rsc: roadmap.rc
 	$(WINDRES) -D_WIN32_WCE=0x0400 -D_WIN32_IE=0x0400 roadmap.rc roadmap.rsc
+
+roadmap_colors.o:	colors.h
