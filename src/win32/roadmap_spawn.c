@@ -38,9 +38,8 @@ static char *RoadMapSpawnPath = NULL;
 static RoadMapList RoadMapSpawnActive;
 
 
-static int roadmap_spawn_child (const char *name,
-								const char *command_line,
-								RoadMapPipe pipes[2])
+static int roadmap_spawn_child (const char *name, const char *command_line,
+		RoadMapPipe pipes[2])
 {
 	PROCESS_INFORMATION pi;
 	char full_name[MAX_PATH];
@@ -59,15 +58,15 @@ static int roadmap_spawn_child (const char *name,
 	if (command_line != NULL) {
 		command_line_unicode = ConvertToUNICODE(command_line);
 	} else {
-			command_line_unicode = NULL;
+		command_line_unicode = NULL;
 	}
 
 	if (!CreateProcess(full_path_unicode, command_line_unicode, NULL,
-							NULL, FALSE, 0, NULL, NULL, NULL, & pi)) {
+				NULL, FALSE, 0, NULL, NULL, NULL, & pi)) {
 			free(full_path_unicode);
 			free(command_line_unicode);
 			roadmap_log (ROADMAP_ERROR, "CreateProcess(\"%s\") failed",
-							full_name);
+					full_name);
 			return -1;
 	}
 
@@ -106,16 +105,14 @@ void roadmap_spawn_initialize (const char *argv0)
 }
 
 
-int roadmap_spawn (const char *name,
-				   const char *command_line)
+int roadmap_spawn (const char *name, const char *command_line)
 {
 	return roadmap_spawn_child (name, command_line, NULL);
 }
 
 
-int  roadmap_spawn_with_feedback (const char *name,
-								  const char *command_line,
-								  RoadMapFeedback *feedback)
+int  roadmap_spawn_with_feedback (const char *name, const char *command_line,
+		RoadMapFeedback *feedback)
 {
 	roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
 	feedback->child = roadmap_spawn_child (name, command_line, NULL);
@@ -124,10 +121,8 @@ int  roadmap_spawn_with_feedback (const char *name,
 }
 
 
-int  roadmap_spawn_with_pipe (const char *name,
-							  const char *command_line,
-							  RoadMapPipe pipes[2],
-							  RoadMapFeedback *feedback)
+int  roadmap_spawn_with_pipe (const char *name, const char *command_line,
+		RoadMapPipe pipes[2], RoadMapFeedback *feedback)
 {
 	roadmap_list_append (&RoadMapSpawnActive, &feedback->link);
 	feedback->child = roadmap_spawn_child (name, command_line, pipes);
@@ -172,4 +167,6 @@ int roadmap_spawn_read_pipe (RoadMapPipe pipe, void *data, int size)
 }
 
 
-void roadmap_spawn_close_pipe (RoadMapPipe pipe) {} 
+void roadmap_spawn_close_pipe (RoadMapPipe pipe)
+{
+} 
