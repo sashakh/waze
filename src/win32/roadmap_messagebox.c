@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright 2008 Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -30,40 +31,63 @@
 #include "../roadmap_start.h"
 #define __ROADMAP_MESSAGEBOX_NO_LANG
 #include "../roadmap_messagebox.h"
+#include "resource.h"
+
+static HWND	mb;
+extern HINSTANCE g_hInst;
+extern HWND	RoadMapMainWindow;
+
+static BOOL roadmap_messagebox_proc (HWND h, UINT m, WPARAM w, LPARAM l)
+{
+	switch (m) {
+		case WM_COMMAND:
+			switch (LOWORD(w)) {
+				case IDOK:
+				case IDCANCEL:
+					DestroyWindow(h);
+					mb = 0;
+					return TRUE;
+			}
+			break;
+	}
+	return FALSE;
+}
 
 
 static void roadmap_messagebox_show (const char *title,
                                      const char *text, int options)
 {
-#ifdef _UNICODE
 	LPWSTR u_title, u_text;
+	if (mb == 0)
+		mb = CreateDialog(g_hInst, ROADMAP_MESSAGE_DIALOG,
+			RoadMapMainWindow, roadmap_messagebox_proc);
+
 	u_title = ConvertToUNICODE(title);
 	u_text = ConvertToUNICODE(text);
-	MessageBox(0, u_text, u_title, MB_OK|options);
-	/* Discarding return value of MessageBox which indicates
-	 * the choice made by the user. */
+	SetDlgItemText(mb, ROADMAP_DIALOG_TEXT, u_text);
+	SetWindowText(mb, u_title);
 	free(u_title);
 	free(u_text);
-#else
-	MessageBox(0, text, title, MB_OK|options);
-	/* Discarding return value of MessageBox which indicates
-	 * the choice made by the user. */
-#endif
+
+	ShowWindow(mb, SW_SHOW);
 }
 
 void *roadmap_messagebox (const char *title, const char *text)
 {
    roadmap_messagebox_show (title, text, 0);
-   return NULL;	/* Nothing to return, the box is already popped down */
+   return mb;	/* Nothing to return, the box is already popped down */
 }
 
 void *roadmap_messagebox_wait (const char *title, const char *text)
 {
    roadmap_messagebox_show (title, text, MB_ICONERROR);
-   return NULL;	/* Nothing to return, the box is already popped down */
+   return mb;	/* Nothing to return, the box is already popped down */
 }
 
 void roadmap_messagebox_hide (void *handle)
 {
 	/* This is a no op if we're using MessageBox() */
+	if (mb)
+		DestroyWindow(mb);
+	mb = 0;
 }

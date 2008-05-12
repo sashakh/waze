@@ -42,3 +42,7 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
+#define	ROADMAP_MESSAGE_DIALOG		30001
+#define	ROADMAP_BUTTON_CLEAR		30002
+#define	ROADMAP_DIALOG_TEXT		30002
