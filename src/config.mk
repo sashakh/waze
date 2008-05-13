@@ -27,19 +27,22 @@ DESKTOP = GTK2
 # DESKTOP = QT4
 # DESKTOP = QPE
 # DESKTOP = QPE4
-# DESKTOP = WINCE  # but see below
+# DESKTOP = WINCE
 # DESKTOP = IPHONE
 
 # If you select WINCE for your WinCE device, you'll need the
 # arm-wince-mingw32ce cross-compiler.  Support for WINCE is
 # still a work in progress.
-# CROSS=arm-mingw32ce-
-# CFLAGS += -I/opt/wince/include
-# LIBS += -L/opt/wince/lib
+ifeq ($(DESKTOP), WINCE)
+CROSS=arm-mingw32ce-
+CFLAGS += -I/opt/wince/include
+LIBS += -L/opt/wince/lib
+endif
 
 # If you select IPHONE for your iPhone or iPod Touch, you'll
 # need the arm-apple-darwin cross-compiler. 
 # The following settings work for at least one iPhone. :-)
+ifeq ($(DESKTOP), IPHONE)
 #CROSS=/usr/local/bin/arm-apple-darwin-
 #CFLAGS += -I/path/to/expat/include
 #LIBS += -L/path/to/libexpat.a
@@ -47,6 +50,7 @@ DESKTOP = GTK2
 #ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps/...
 #INSTALLDIR = Applications/RoadMap.app
 #DESTDIR = /tmp
+endif
 
 # If you selected QT or QPE above, you might also want to set QTDIR
 # here.  (But it might already be set in your environment.)
