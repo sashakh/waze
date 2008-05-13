@@ -53,7 +53,7 @@ HEADERS = \
 	roadmap_wincecanvas.h \
 	wince_input_mon.h
 
-TARGETS = wroadmap
+TARGETS = wroadmap.exe
 
 # --- The real targets --------------------------------------------
 
@@ -69,9 +69,9 @@ libwroadmap.a: $(RMLIBOBJ)
 	$(AR) $(ARFLAGS) libwroadmap.a $(RMLIBOBJ)
 	$(RANLIB) libwroadmap.a
 
-wroadmap: roadmap_main.o libwroadmap.a roadmap.rsc \
+wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
-	$(CXX) $(LDFLAGS) -o wroadmap roadmap_main.o roadmap.rsc \
+	$(CXX) $(LDFLAGS) -o wroadmap.exe roadmap_main.o roadmap.rsc \
 		$(TOP)/libguiroadmap.a libwroadmap.a $(LIBS) \
 		libwroadmap.a -lcommctrl -laygshell -lws2
 
