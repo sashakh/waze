@@ -63,7 +63,7 @@ typedef struct roadmap_db_database_s {
    char *path;
 
    RoadMapFileContext file;
-   void *base;
+   char *base;
    int   size;
    roadmap_db root;
 
