@@ -355,6 +355,7 @@ int roadmap_start_repaint_scheduled(void) {
 static void roadmap_start_repaint_if_requested(void) {
 
    int interrupted;
+   // fprintf(stderr, "start_repaint_if_requested: req is %d\n", RoadMapStartRepaintNeeded);
    if (RoadMapStartRepaintNeeded) {
       do {
          RoadMapStartRepaintNeeded = 0;
@@ -363,7 +364,7 @@ static void roadmap_start_repaint_if_requested(void) {
          } else {
             interrupted = roadgps_screen_draw();
          }
-      } while (interrupted);
+      } while (interrupted || RoadMapStartRepaintNeeded);
    }
 
    roadmap_main_remove_idle_function();
@@ -378,6 +379,7 @@ void roadmap_start_request_repaint (int which_screen) {
     * in the gui's idle loop causes it to eat CPU (i.e., it can't
     * sleep -- it has to spin.)
     */
+   // fprintf(stderr, "requesting repaint was %d", RoadMapStartRepaintNeeded);
    if (RoadMapStartScreenActive == which_screen) {
       if (!RoadMapStartIdleInstalled) {
          roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
@@ -386,6 +388,7 @@ void roadmap_start_request_repaint (int which_screen) {
       RoadMapStartRepaintNeeded = 1;
    }
     
+   // fprintf(stderr, ".. is %d\n", RoadMapStartRepaintNeeded);
 }
 
 void roadmap_start_request_repaint_map (void) {
