@@ -47,6 +47,7 @@
 #include "roadmap_main.h"
 #include "roadmap_preferences.h"
 #include "roadmap_spawn.h"
+#include "roadmap_math.h"
 
 #include "roadmap_download.h"
 
@@ -622,7 +623,6 @@ static void roadmap_download_delete_populate (void) {
    int size;
    int count;
    char name[1024];
-   RoadMapPosition center;
 
 
    roadmap_download_delete_free ();
@@ -638,9 +638,10 @@ static void roadmap_download_delete_populate (void) {
    roadmap_main_flush();
 
 
-   roadmap_screen_get_center (&center);
+   
    RoadMapDownloadDeleteCount =
-      roadmap_locator_by_position (&center, &RoadMapDownloadDeleteFips);
+      roadmap_locator_by_position
+            (roadmap_math_get_center (), &RoadMapDownloadDeleteFips);
 
     RoadMapDownloadDeleteNames =
        calloc (RoadMapDownloadDeleteCount, sizeof(char *));

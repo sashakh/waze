@@ -64,7 +64,6 @@ void roadmap_screen_hold     (void); /* Hold on at the current position. */
 void roadmap_screen_freeze   (void); /* Forbid any screen refresh. */
 void roadmap_screen_unfreeze (void); /* Enable screen refresh. */
 
-void roadmap_screen_get_center (RoadMapPosition *center);
 void roadmap_screen_configure (void);
 
 void roadmap_screen_set_cursor (RoadMapCursor newcursor);

@@ -36,6 +36,9 @@ enum { MATH_DIST_ACTUAL = 0,
        MATH_DIST_SQUARED = 1
 };
 
+void roadmap_math_display_context(int fill);
+void roadmap_math_working_context(void);
+
 void roadmap_math_initialize   (void);
 
 void roadmap_math_use_metric   (void);
@@ -46,7 +49,8 @@ int roadmap_math_zoom_in      (void);
 int roadmap_math_zoom_out     (void);
 int roadmap_math_zoom_reset   (void);
 
-void roadmap_math_set_center      (RoadMapPosition *position);
+void roadmap_math_set_center      (const RoadMapPosition *position);
+RoadMapPosition *roadmap_math_get_center (void);
 void roadmap_math_set_size        (int width, int height);
 void roadmap_math_set_orientation (int direction);
 int  roadmap_math_get_orientation (void);

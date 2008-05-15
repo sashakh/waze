@@ -116,7 +116,6 @@ static int RoadMapScreenFrozen = 0;
 static int RoadMapScreenDragging = 0;
 
 static RoadMapGuiPoint RoadMapScreenPointerLocation;
-static RoadMapPosition RoadMapScreenCenter;
 
 static int RoadMapScreenViewMode = VIEW_MODE_2D;
 static int RoadMapScreenOrientationDynamic = 1;
@@ -245,6 +244,9 @@ void roadmap_screen_set_cursor (RoadMapCursor newcursor) {
 int roadmap_screen_busy_check(int total, int completed) {
 
    static int last_completed;
+   int ret;
+
+   roadmap_math_working_context();
 
    if (RoadMapScreenProgressStart && completed != last_completed) {
       if (completed == total) {
@@ -266,9 +268,11 @@ int roadmap_screen_busy_check(int total, int completed) {
       roadmap_screen_set_cursor (ROADMAP_CURSOR_WAIT);
    }
 
-   if (roadmap_main_flush()) return 1;
+   ret = roadmap_main_flush();
 
-   return 0;
+   roadmap_math_display_context(0);
+
+   return ret;
 }
 
 static void roadmap_screen_pb_init
@@ -1364,8 +1368,10 @@ static int roadmap_screen_repaint_leave(int total, int progress) {
 
     if (!RoadMapScreenDragging &&
             roadmap_screen_busy_check(total, progress)) {
-        if (roadmap_start_repaint_scheduled() && progress < (3 * total) / 4) {
-            return 1;
+        if (roadmap_start_repaint_scheduled()) {
+            if (progress < (3 * total) / 4) {
+                return 1;
+            }
         }
     }
     return 0;
@@ -1395,6 +1401,7 @@ int roadmap_screen_repaint (void) {
        max_pen = 1;
     }
 
+    roadmap_math_display_context(1);
 
     /* start the timers that will invoke the hourglass cursor and
      * progress bar.
@@ -1414,8 +1421,8 @@ int roadmap_screen_repaint (void) {
     /* Repaint the drawing buffer. */
     
     /* - Identifies the candidate counties. */
-
-    count = roadmap_locator_by_position (&RoadMapScreenCenter, &fipslist);
+    count = roadmap_locator_by_position
+                (roadmap_math_get_center(), &fipslist);
 
     if (count == 0) {
        RoadMapPosition pos;
@@ -1588,6 +1595,8 @@ out:
     roadmap_log_pop ();
     dbg_time_end(DBG_TIME_FULL);
 
+    roadmap_math_working_context();
+
     return interrupted;
 
 }
@@ -1663,6 +1672,7 @@ static void roadmap_screen_reset_delta (void) {
 static void roadmap_screen_record_move (int dx, int dy) {
 
    RoadMapGuiPoint center;
+   RoadMapPosition mapcenter;
 
    RoadMapScreenDeltaX += dx;
    RoadMapScreenDeltaY += dy;
@@ -1670,8 +1680,8 @@ static void roadmap_screen_record_move (int dx, int dy) {
    center.x = (RoadMapScreenWidth / 2) + dx;
    center.y = (RoadMapScreenHeight / 2) + dy;
 
-   roadmap_math_to_position (&center, &RoadMapScreenCenter, 0);
-   roadmap_math_set_center (&RoadMapScreenCenter);
+   roadmap_math_to_position (&center, &mapcenter, 0);
+   roadmap_math_set_center (&mapcenter);
 }
 
 
@@ -1765,8 +1775,7 @@ void roadmap_screen_refresh (void) {
     if (roadmap_trip_is_focus_changed()) {
 
         roadmap_screen_reset_delta ();
-        RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
-        roadmap_math_set_center (&RoadMapScreenCenter);
+        roadmap_math_set_center (roadmap_trip_get_focus_position ());
         refresh = 1 && REPORT_REFRESH ("focus changed");
         
         if (RoadMapScreenOrientationDynamic) {
@@ -1775,8 +1784,7 @@ void roadmap_screen_refresh (void) {
 
     } else if (roadmap_trip_is_focus_moved()) {
 
-        RoadMapScreenCenter = *roadmap_trip_get_focus_position ();
-        roadmap_math_set_center (&RoadMapScreenCenter);
+        roadmap_math_set_center (roadmap_trip_get_focus_position ());
 
         refresh |= 1 && REPORT_REFRESH("focus moved");
 
@@ -1840,7 +1848,8 @@ void roadmap_screen_hold (void) {
 
    roadmap_trip_copy_focus ("Hold");
    roadmap_trip_set_focus ("Hold");
-   roadmap_trip_set_focus_position (&RoadMapScreenCenter);
+   
+   roadmap_trip_set_focus_position (roadmap_math_get_center());
 }
 
 
@@ -2100,15 +2109,6 @@ void roadmap_screen_set_initial_position (void) {
 
     roadmap_layer_adjust ();
 }
-
-
-void roadmap_screen_get_center (RoadMapPosition *center) {
-
-   if (center != NULL) {
-      *center = RoadMapScreenCenter;
-   }
-}
-
 
 #ifdef ROADMAP_DBG_TIME
 
