@@ -243,13 +243,6 @@ static gboolean roadmap_canvas_scroll_event
 
 void roadmap_canvas_refresh (void) {
 
-   GdkRectangle update;
-
-   update.x = 0;
-   update.y = 0;
-   update.width  = RoadMapDrawingArea->allocation.width;
-   update.height = RoadMapDrawingArea->allocation.height;
-
    gtk_widget_queue_draw_area
        (RoadMapDrawingArea, 0, 0,
         RoadMapDrawingArea->allocation.width,
