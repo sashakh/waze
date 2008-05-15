@@ -58,7 +58,7 @@ void roadmap_screen_rotate (int delta);
 
 void roadmap_screen_refresh (void); /* checks if needed before repainting */
 
-int roadmap_screen_repaint (void);
+void roadmap_screen_repaint (void);
 
 void roadmap_screen_hold     (void); /* Hold on at the current position. */
 void roadmap_screen_freeze   (void); /* Forbid any screen refresh. */

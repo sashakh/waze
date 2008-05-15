@@ -408,7 +408,7 @@ static void roadgps_screen_draw_frame (void) {
 }
 
 
-int roadgps_screen_draw (void) {
+void roadgps_screen_draw (void) {
 
    int i;
    
@@ -484,8 +484,6 @@ int roadgps_screen_draw (void) {
 
    roadgps_screen_draw_position();
    roadmap_canvas_refresh ();
-
-   return 0;  /* no interruptions */
 }
 
 void roadgps_screen_request_repaint(void) {

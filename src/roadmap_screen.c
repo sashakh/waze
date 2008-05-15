@@ -1377,11 +1377,9 @@ static int roadmap_screen_repaint_leave(int total, int progress) {
     return 0;
 }
 
-int roadmap_screen_repaint (void) {
+void roadmap_screen_repaint (void) {
 
     static int *fipslist = NULL;
-
-    int interrupted = 0;
 
     int *in_view;
 
@@ -1393,7 +1391,7 @@ int roadmap_screen_repaint (void) {
     int max_pen = roadmap_layer_max_pen();
     static int nomap;
     
-    if (!RoadMapScreenDragging && RoadMapScreenFrozen) return 0;
+    if (!RoadMapScreenDragging && RoadMapScreenFrozen) return;
 
     dbg_time_start(DBG_TIME_FULL);
     if (RoadMapScreenDragging &&
@@ -1494,7 +1492,6 @@ int roadmap_screen_repaint (void) {
 
         if (roadmap_screen_repaint_leave(count, count - i)) {
             roadmap_label_new_invalidate();
-            interrupted = 1;
             goto out;
         }
 
@@ -1528,7 +1525,6 @@ int roadmap_screen_repaint (void) {
 
                   if (roadmap_screen_repaint_leave(count, count - i)) {
                      roadmap_label_new_invalidate();
-                     interrupted = 1;
                      goto out;
                   }
                }
@@ -1550,7 +1546,6 @@ int roadmap_screen_repaint (void) {
 
         if (roadmap_screen_repaint_leave(count, count - i)) {
            roadmap_label_new_invalidate();
-           interrupted = 1;
            goto out;
         }
         
@@ -1596,8 +1591,6 @@ out:
     dbg_time_end(DBG_TIME_FULL);
 
     roadmap_math_working_context();
-
-    return interrupted;
 
 }
 
