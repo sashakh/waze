@@ -355,15 +355,15 @@ int roadmap_start_repaint_scheduled(void) {
 static void roadmap_start_repaint_if_requested(void) {
 
    // fprintf(stderr, "start_repaint_if_requested: req is %d\n", RoadMapStartRepaintNeeded);
-   if (RoadMapStartRepaintNeeded) {
-      do {
-         RoadMapStartRepaintNeeded = 0;
-         if (RoadMapStartScreenActive == ROADMAP_MAP) {
-            roadmap_screen_repaint();
-         } else {
-            roadgps_screen_draw();
-         }
-      } while (RoadMapStartRepaintNeeded);
+   while (RoadMapStartRepaintNeeded) {
+
+      RoadMapStartRepaintNeeded = 0;
+
+      if (RoadMapStartScreenActive == ROADMAP_MAP) {
+         roadmap_screen_repaint();
+      } else {
+         roadgps_screen_draw();
+      }
    }
 
    roadmap_main_remove_idle_function();
