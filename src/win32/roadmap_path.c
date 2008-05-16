@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright 2008 Danny Backx
  *
  *   Based on an implementation by Pascal F. Martin.
  *   This file is part of RoadMap.
@@ -37,7 +38,6 @@ const char *RoadMapPathCurrentDirectory = ".";
 typedef struct RoadMapPathRecord *RoadMapPathList;
 
 struct RoadMapPathRecord {
-
 	RoadMapPathList next;
 
 	char  *name;
@@ -48,34 +48,97 @@ struct RoadMapPathRecord {
 
 static RoadMapPathList RoadMapPaths = NULL;
 
-/* The hardcoded path for configuration files (the "config" path).
-*/ 
-static const char *RoadMapPathConfig[] = {
-	"\\Program Files\\roadmap",
-	"\\Storage Card\\roadmap",
-	NULL
-};
+/*
+ * There were a couple of hardcoded paths here, they're now mostly removed
+ * to be able to cope with storage cards named differently from
+ * "/storage card".
+ *
+ * The default paths were
+ * 	/Program Files/roadmap
+ *	/Storage Card/roadmap
+ * and something similar for /.../roadmap/maps .
+ *
+ * This is now changed. If your card is called /Storage card then the
+ * result is the same.
+ */
 
-static const char *RoadMapPathConfigPreferred = "\\Storage Card\\roadmap";
+/* The number of storage cards supported */
+#define	ROADMAP_MAX_CARDS	8
+
+/* The path for configuration files (the "config" path). */ 
+static char **RoadMapPathConfig = 0;
+static const char *RoadMapPathConfigSuffix = "roadmap";
+
+static const char *RoadMapPathConfigPreferred = "/Storage Card/roadmap";
 
 /* The default path for the map files (the "maps" path): */
-static const char *RoadMapPathMaps[] = {
-	"\\Program Files\\roadmap\\maps",
-	"\\Storage Card\\roadmap\\maps",
-	NULL
-};
+static char **RoadMapPathMaps = 0;
+static const char *RoadMapPathMapsSuffix = "roadmap/maps";
 
-static const char *RoadMapPathMapsPreferred = "\\Storage Card\\roadmap\\maps";
+static const char *RoadMapPathMapsPreferred = "/Storage Card/roadmap/maps";
 
 /* We don't have a user directory in wince so we'll leave this one empty */
 static const char *RoadMapPathUser[] = {
 	NULL
 };
 
+static void roadmap_path_insert(const char *dir)
+{
+	static int i = 0;
+	int l = strlen(dir);
+
+	if (i == ROADMAP_MAX_CARDS)
+		return;
+	if (RoadMapPathConfig == 0)
+		RoadMapPathConfig = (char **)calloc(ROADMAP_MAX_CARDS + 1,
+				sizeof(char *));
+	if (RoadMapPathMaps == 0)
+		RoadMapPathMaps = (char **)calloc(ROADMAP_MAX_CARDS + 1,
+				sizeof(char *));
+
+	RoadMapPathConfig[i] = malloc(l + strlen(RoadMapPathConfigSuffix) + 4);
+	sprintf(RoadMapPathConfig[i], "/%s/%s", dir, RoadMapPathConfigSuffix);
+
+	RoadMapPathMaps[i] = malloc(l + strlen(RoadMapPathMapsSuffix) + 4);
+	sprintf(RoadMapPathMaps[i], "/%s/%s", dir, RoadMapPathMapsSuffix);
+
+	i++;
+
+	/* Make sure the lists are null-terminated */
+	RoadMapPathConfig[i] = 0;
+	RoadMapPathMaps[i] = 0;
+}
+
+
+static void roadmap_path_get_cards()
+{
+	WIN32_FIND_DATA	ffd;
+	HANDLE		h;
+	int		i;
+	static int	done = 0;
+
+	/* Run this only once */
+	if (done != 0)
+		return;
+	done++;
+
+	roadmap_path_insert("Program Files");
+	h = FindFirstFlashCard(&ffd);
+	if (h == INVALID_HANDLE_VALUE) {
+		roadmap_path_insert("Storage card");	/* Do this anyway */
+		return;
+	}
+	roadmap_path_insert(ConvertToANSI(ffd.cFileName, CP_ACP));
+	while (FindNextFlashCard(h, &ffd) == TRUE) {
+		roadmap_path_insert(ConvertToANSI(ffd.cFileName, CP_ACP));
+	}
+	FindClose(h);
+}
+
 
 static void roadmap_path_list_create(const char *name,
-									 const char *items[],
-									 const char *preferred)
+		const char *items[],
+		const char *preferred)
 {
 	int i;
 	int count;
@@ -111,14 +174,16 @@ static RoadMapPathList roadmap_path_find (const char *name)
 {
 	RoadMapPathList cursor;
 
+	roadmap_path_get_cards();
+
 	if (RoadMapPaths == NULL) {
 
 		/* Add the hardcoded configuration. */
 		roadmap_path_list_create ("config", RoadMapPathConfig,
-											RoadMapPathConfigPreferred);
+				RoadMapPathConfigPreferred);
 		roadmap_path_list_create ("maps", RoadMapPathMaps,
-										  RoadMapPathMapsPreferred);
-		roadmap_path_list_create ("user", RoadMapPathUser, "\\");
+				RoadMapPathMapsPreferred);
+		roadmap_path_list_create ("user", RoadMapPathUser, "/");
 
 		roadmap_path_list_create ("features",    NULL, NULL);
 	}
@@ -139,7 +204,7 @@ static char *roadmap_path_cat (const char *s1, const char *s2)
 	roadmap_check_allocated (result);
 
 	strcpy (result, s1);
-	strcat (result, "\\");
+	strcat (result, "/");
 	strcat (result, s2);
 
 	return result;
@@ -160,9 +225,12 @@ char *roadmap_path_parent (const char *path, const char *name)
 	char *separator;
 	char *full_name = roadmap_path_join (path, name);
 
-	separator = strrchr (full_name, '\\');
+	separator = strrchr (full_name, '/');
+	if (separator == NULL)
+		separator = strrchr (full_name, '\\');
+
 	if (separator == NULL) {
-      roadmap_path_free (full_name);
+		roadmap_path_free (full_name);
 		return strdup(RoadMapPathCurrentDirectory);
 	}
 
@@ -174,9 +242,12 @@ char *roadmap_path_parent (const char *path, const char *name)
 
 char *roadmap_path_skip_directories (const char *name)
 {
-	char *result = strrchr (name, '\\');
+	char *result = strrchr (name, '/');
 
-	if (result == NULL) return (char *)name;
+	if (result == NULL)
+		result = strrchr (name, '\\');
+	if (result == NULL)
+		return (char *)name;
 
 	return result + 1;
 }
@@ -211,7 +282,9 @@ const char *roadmap_path_user (void)
 		GetModuleFileName(NULL, path_unicode,
 			sizeof(path_unicode)/sizeof(path_unicode[0]));
 		path = ConvertToANSI(path_unicode, CP_ACP);
-		tmp = strrchr (path, '\\');
+		tmp = strrchr (path, '/');
+		if (tmp == NULL)
+			tmp = strrchr (path, '\\');
 		if (tmp != NULL) {
 			*tmp = '\0';
 		}
@@ -419,7 +492,7 @@ char **roadmap_path_list (const char *path, const char *extension)
 	char **result;
 	char **cursor;
 
-	_snwprintf(strPath, MAX_PATH, TEXT("%s\\*%s"), path_unicode, ext_unicode);
+	_snwprintf(strPath, MAX_PATH, TEXT("%s/*%s"), path_unicode, ext_unicode);
 
 	free(path_unicode);
 	free(ext_unicode);
@@ -474,10 +547,10 @@ const char *roadmap_path_search_icon (const char *name)
 {
 	static char result[256];
 
-	sprintf (result, "%s\\icons\\rm_%s.png", roadmap_path_user(), name);
+	sprintf (result, "%s/icons/rm_%s.png", roadmap_path_user(), name);
 	if (roadmap_file_exists(NULL, result)) return result;
 
-	sprintf (result, "\\Storage Card\\Roadmap\\icons\\rm_%s.png", name);
+	sprintf (result, "/Storage Card/Roadmap/icons/rm_%s.png", name);
 	if (roadmap_file_exists(NULL, result)) return result;
 
 	return NULL; /* Not found. */
@@ -486,17 +559,20 @@ const char *roadmap_path_search_icon (const char *name)
 
 int roadmap_path_is_full_path (const char *name)
 {
-   return name[0] == '\\';
+	return name[0] == '/' || name[0] == '\\';
 }
 
-int roadmap_path_is_directory (const char *name) {
+
+int roadmap_path_is_directory (const char *name)
+{
    LPWSTR path_unicode = ConvertToUNICODE(name);
    DWORD fa = GetFileAttributes(path_unicode);
    free(path_unicode);
    return fa && FILE_ATTRIBUTE_DIRECTORY;
 }
 
-const char *roadmap_path_skip_separator (const char *name) {
+const char *roadmap_path_skip_separator (const char *name)
+{
 
    if ((*name == '/') || (*name == '\\')) {
       return name + 1;
@@ -504,7 +580,8 @@ const char *roadmap_path_skip_separator (const char *name) {
    return NULL; // Not a valid path separator.
 }
 
-const char *roadmap_path_temporary (void) {
-   return roadmap_path_user();
+const char *roadmap_path_temporary (void)
+{
+	return roadmap_path_user();
 }
 
