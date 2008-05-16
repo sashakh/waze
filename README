@@ -2756,7 +2756,24 @@ CONFIGURATION
          <<Default:>> 10
 
          <<Comment:>> the GPS link is considered down if no new GPS data was
-                  received for the specified amount of time.
+                  received for the specified amount of time.  Note that the
+                  GPS status will also go "down" because the GPS has lost
+                  satellite visibility. This timeout simply forces that
+                  status if communication with the GPS receiver is lost.
+
+    [GPS.LostFixWarningTimeout] Timeout for the "lost satellite" message.
+
+         <<Format:>> number of seconds.
+
+         <<Default:>> 10000
+
+         <<Comment:>> If the satellite link is lost, RoadMap will alert the
+                  user with a popup message.  This message can be
+                  dismissed manually.  It will also go away when satellite
+                  communication is restored.  This timeout controls how
+                  long the message will remain up if neither of those things
+                  happen.  A setting of 0 disables the popup message
+                  altogether.
 
     [GPS.Source] The URL that gives the address of the GPS data source.
 

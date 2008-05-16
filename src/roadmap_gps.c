@@ -66,6 +66,9 @@ static RoadMapConfigDescriptor RoadMapConfigGPSBaudRate =
 static RoadMapConfigDescriptor RoadMapConfigGPSTimeout =
                         ROADMAP_CONFIG_ITEM("GPS", "Timeout");
 
+static RoadMapConfigDescriptor RoadMapConfigGPSLostFixTimeout =
+                        ROADMAP_CONFIG_ITEM("GPS", "LostFixWarningTimeout");
+
 
 static char RoadMapGpsTitle[] = "GPS receiver";
 
@@ -83,6 +86,8 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 #define ROADMAP_GPS_OBJECT   4
 static int RoadMapGpsProtocol = ROADMAP_GPS_NONE;
 
+static void *RoadMapGpsLostFixMessage;
+static time_t RoadMapGPSLostFixTime;
 
 /* Listeners information (navigation data) ----------------------------- */
 
@@ -172,7 +177,7 @@ static void roadmap_gps_update_reception (void) {
 
 static char roadmap_gps_update_status (char status) {
 
-   static void *gpserrmsg;
+   time_t fixtimeout;
 
    /* Reading from a file is usually for debugging.  gpsbabel
     * doesn't recreate status correctly, so force good status here.
@@ -181,14 +186,28 @@ static char roadmap_gps_update_status (char status) {
        status = 'A';
    }
 
+   fixtimeout = (time_t) roadmap_config_get_integer
+                            (&RoadMapConfigGPSLostFixTimeout);
+   if (RoadMapGpsLostFixMessage) {
+      if (time(NULL) - RoadMapGPSLostFixTime > fixtimeout ||
+                    status != RoadMapLastKnownStatus) {
+         roadmap_messagebox_hide(RoadMapGpsLostFixMessage);
+         RoadMapGpsLostFixMessage = 0;
+      }
+      roadmap_messagebox_hide(RoadMapGpsLostFixMessage);
+      RoadMapGpsLostFixMessage = 0;
+   }
+
    if (status != RoadMapLastKnownStatus) {
-       if (gpserrmsg) roadmap_messagebox_hide(gpserrmsg);
-       gpserrmsg = 0;
        if (RoadMapLastKnownStatus == 'A') {
-          roadmap_log (ROADMAP_WARNING,
+          if (fixtimeout != 0) { /* zero timeout implies no popup at all */
+             roadmap_log (ROADMAP_WARNING,
                        "GPS receiver lost satellite fix (status: %c)", status);
-          gpserrmsg = roadmap_messagebox("GPS Error", "GPS lost satellite fix");
-          RoadMapGpsActiveSatelliteCount = 0;
+             RoadMapGpsLostFixMessage = roadmap_messagebox
+                        ("GPS Error", "GPS lost satellite fix");
+             RoadMapGPSLostFixTime = time(NULL);
+             RoadMapGpsActiveSatelliteCount = 0;
+          }
        }
        RoadMapLastKnownStatus = status;
    }
@@ -250,26 +269,35 @@ static void roadmap_gps_call_loggers (const char *data) {
 
 static void roadmap_gps_keep_alive (void) {
 
-   time_t timeout, t;
+   time_t timeout, now;
 
    if (RoadMapGpsLink.subsystem != ROADMAP_IO_INVALID) {
-       switch (RoadMapGpsProtocol) {
-       case ROADMAP_GPS_GPSD2:
+      switch (RoadMapGpsProtocol) {
+      case ROADMAP_GPS_GPSD2:
           roadmap_gpsd2_periodic();
           break;
-       }
+      }
    }
 
    roadmap_gps_update_reception ();
 
-   timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
+   now = time(NULL);
 
-   t = time(NULL) - RoadMapGpsLatestData;
-   if (t < timeout) {
-      return;
+   /* should the "lost satellite" message go away */
+   if (RoadMapGpsLostFixMessage) {
+      timeout = (time_t) roadmap_config_get_integer
+                                (&RoadMapConfigGPSLostFixTimeout);
+      if (now - RoadMapGPSLostFixTime > timeout) {
+         roadmap_messagebox_hide(RoadMapGpsLostFixMessage);
+         RoadMapGpsLostFixMessage = 0;
+      }
    }
 
-   roadmap_gps_update_status ('V');
+   /* have we lost communication with the GPS? */
+   timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
+   if (now - RoadMapGpsLatestData > timeout) {
+      roadmap_gps_update_status ('V');
+   }
 
 }
 
@@ -652,6 +680,9 @@ void roadmap_gps_initialize (void) {
 #endif
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSTimeout, "10");
+
+      roadmap_config_declare
+         ("preferences", &RoadMapConfigGPSLostFixTimeout, "10000");
 
       RoadMapGpsInitialized = 1;
 
