@@ -2768,12 +2768,11 @@ CONFIGURATION
          <<Default:>> 10000
 
          <<Comment:>> If the satellite link is lost, RoadMap will alert the
-                  user with a popup message.  This message can be
-                  dismissed manually.  It will also go away when satellite
-                  communication is restored.  This timeout controls how
-                  long the message will remain up if neither of those things
-                  happen.  A setting of 0 disables the popup message
-                  altogether.
+                  user with a popup message.  The message can be dismissed
+                  manually.  It will also go away when satellite communication
+                  is restored.  This timeout controls how long the message
+                  will remain up if neither of those things happen.  A setting
+                  of 0 disables the popup message altogether.
 
     [GPS.Source] The URL that gives the address of the GPS data source.
 
