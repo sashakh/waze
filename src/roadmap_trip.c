@@ -1661,18 +1661,13 @@ void roadmap_trip_set_gps
         }
 
     }
-    RoadMapTripGps->gps = *gps_position;
-    RoadMapTripGps->map = position;
-    lastSteering = gps_position->steering;
 
-    roadmap_config_set_position (&RoadMapTripGps->config_position, &position);
-    if (RoadMapRouteInProgress && !RoadMapTripGps->has_value) {
-        RoadMapTripGps->has_value = 1;
-        roadmap_trip_route_resume();
-    }
-    RoadMapTripGPSTime = gps_time;
-
-
+    /* reset the last visible time based on our previous
+     * position, not the new.  this prevents us releasing because
+     * we lost GPS contact for a while -- in that case we would
+     * suddenly see a new invisible position with a long time
+     * delay, when normally we would have been tracking it all along.
+     */
     if (RoadMapTripGps == RoadMapTripFocus) {
 
         static time_t RoadMapTripGPSLastVisible;
@@ -1691,6 +1686,19 @@ void roadmap_trip_set_gps
             }
         }
     }
+
+    RoadMapTripGps->gps = *gps_position;
+    RoadMapTripGps->map = position;
+    lastSteering = gps_position->steering;
+
+    roadmap_config_set_position (&RoadMapTripGps->config_position, &position);
+    if (RoadMapRouteInProgress && !RoadMapTripGps->has_value) {
+        RoadMapTripGps->has_value = 1;
+        roadmap_trip_route_resume();
+    }
+    RoadMapTripGPSTime = gps_time;
+
+
 
 }
 
