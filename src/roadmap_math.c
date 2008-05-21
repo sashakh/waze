@@ -276,7 +276,7 @@ static int roadmap_math_arccosine (int cosine, int sign) {
 }
 
 
-static void roadmap_math_compute_scale (void) {
+void roadmap_math_compute_scale (void) {
 
    int orientation;
 
@@ -998,7 +998,6 @@ int roadmap_math_zoom_out (void) {
    if (zoom < MAX_ZOOM_OUT) {
       RoadMapContext->zoom = (unsigned short) zoom;
       roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext->zoom);
-      roadmap_math_compute_scale ();
       return 1;
    }
    return 0;
@@ -1014,7 +1013,6 @@ int roadmap_math_zoom_in (void) {
    if (zoom > MIN_ZOOM_IN) {
       RoadMapContext->zoom = zoom;
       roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext->zoom);
-      roadmap_math_compute_scale ();
       return 1;
    }
    return 0;
@@ -1033,7 +1031,6 @@ int roadmap_math_zoom_reset (void) {
    if (RoadMapContext->zoom != zoomval) {
       RoadMapContext->zoom = zoomval;
       roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext->zoom);
-      roadmap_math_compute_scale ();
       return 1;
    }
    return 0;

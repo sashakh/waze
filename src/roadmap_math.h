@@ -48,6 +48,7 @@ void roadmap_math_restore_zoom (void);
 int roadmap_math_zoom_in      (void);
 int roadmap_math_zoom_out     (void);
 int roadmap_math_zoom_reset   (void);
+void roadmap_math_compute_scale (void);
 
 void roadmap_math_set_center      (const RoadMapPosition *position);
 RoadMapPosition *roadmap_math_get_center (void);

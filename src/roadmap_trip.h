@@ -55,6 +55,8 @@ int   roadmap_trip_is_focus_changed  (void);
 int   roadmap_trip_is_focus_moved    (void);
 int   roadmap_trip_is_refresh_needed (void);
 
+int   roadmap_trip_adjust_mobile_focus (void);
+
 int   roadmap_trip_get_orientation (void);
 const char *roadmap_trip_get_focus_name (void);
 
