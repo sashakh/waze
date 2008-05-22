@@ -28,6 +28,7 @@
  */
 
 #include <windows.h>
+#include <projects.h>
 
 #include "../roadmap.h"
 #include "../roadmap_file.h"
