@@ -142,7 +142,7 @@ ifeq ($(strip $(MODE)),PROFILE)
 	CFLAGS += -g -pg -fprofile-arcs -g
 	LIBS += -pg
 else
-	CFLAGS += -O2 -ffast-math -DNDEBUG
+	CFLAGS += -O -DNDEBUG
 ifneq ($(DESKTOP),WINCE)
 	CFLAGS += -fomit-frame-pointer
 endif
@@ -245,11 +245,12 @@ endif
 
 ifeq ($(DESKTOP),WINCE)
 	CFLAGS += -I$(TOP) -I$(TOP)/win32 \
-		-DNDEBUG -D_WIN32_WCE=0x0300 -D_WIN32_IE=0x0400 \
-		-D_TXT=\".txt\"
+		-DNDEBUG -D_WIN32_WCE=0x0300 -D_WIN32_IE=0x0300 \
+		-D_TXT=\".txt\" -D_EXE=\".exe\"
 	LIBS := $(LIBS) -lm
 else
-	CFLAGS += -I$(TOP) -I/usr/local/include -DNDEBUG -D_TXT=
+	CFLAGS += -I$(TOP) -I/usr/local/include -DNDEBUG \
+		  -D_TXT=\"\" -D_EXE=\"\"
 	LIBS := -L/usr/local/lib $(LIBS) -lm
 endif
 
