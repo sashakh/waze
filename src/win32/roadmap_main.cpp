@@ -755,7 +755,7 @@ extern "C" {
 	{
 		static int menu_id = 0;
 		if (RoadMapMainMenuBar == NULL) {
-			roadmap_log (ROADMAP_ERROR, "roadmap_main_add_menu NULL");
+			roadmap_log (ROADMAP_WARNING, "roadmap_main_add_menu NULL");
 			return;
 		}
 		
