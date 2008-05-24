@@ -44,7 +44,15 @@ struct RoadMapFileContextStructure {
 FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode) {
 	int   silent;
 	FILE *file;
-	const char *full_name = roadmap_path_join (path, name);
+	const char *full_name;
+
+	/* Use the .txt extension for some files. */
+	if (strcmp(name, "preferences") == 0)
+		full_name = roadmap_path_join (path, "preferences.txt");
+	else if (strcmp(name, "session") == 0)
+		full_name = roadmap_path_join (path, "session.txt");
+	else
+		full_name = roadmap_path_join (path, name);
 
 	if (mode[0] == 's') {
 		/* This special mode is a "lenient" read: do not complain
@@ -58,10 +66,24 @@ FILE *roadmap_file_fopen (const char *path, const char *name, const char *mode) 
 
 	file = fopen (full_name, mode);
 
-	if ((file == NULL) && (! silent)) {
-		roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
-	} else
-		roadmap_log (ROADMAP_DEBUG, "Opened file %s", full_name);
+#if 1
+	/*
+	 * Fallback for now.
+	 * This means we'll read "preferences" and write "preferences.txt".
+	 */
+	if (file == NULL && mode[0] == 'r') {
+		full_name = roadmap_path_join (path, name);
+		file = fopen (full_name, mode);
+	}
+#endif
+
+	/* Avoid getting into infinite recursion */
+	if (strcmp(name, "postmorten" _TXT) != 0) {
+		if ((file == NULL) && (! silent)) {
+			roadmap_log (ROADMAP_ERROR, "cannot open file %s", full_name);
+		} else
+			roadmap_log (ROADMAP_DEBUG, "Opened file %s", full_name);
+	}
 
 	roadmap_path_free (full_name);
 	return file;
