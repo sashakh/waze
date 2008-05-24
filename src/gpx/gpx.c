@@ -1174,7 +1174,7 @@ gpx_read(FILE *ifile, queue_head *wq, int wee, queue_head *rq, queue_head *tq)
 
                 if (!result) {
                         warning(MYNAME ": XML parse error at %d: %s\n", 
-                                XML_GetCurrentLineNumber(psr),
+                                (int) XML_GetCurrentLineNumber(psr),
                                 XML_ErrorString(XML_GetErrorCode(psr)));
                         done = 1;
                 }
