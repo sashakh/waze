@@ -59,7 +59,7 @@ static void roadmap_messagebox_show (const char *title,
 {
 	LPWSTR u_title, u_text;
 	if (mb == 0)
-		mb = CreateDialog(g_hInst, ROADMAP_MESSAGE_DIALOG,
+		mb = CreateDialog(g_hInst, (LPCWSTR)ROADMAP_MESSAGE_DIALOG,
 			RoadMapMainWindow, roadmap_messagebox_proc);
 
 	u_title = ConvertToUNICODE(title);

@@ -1169,6 +1169,10 @@ extern "C" {
           case ROADMAP_CURSOR_CROSS:
 	     SetCursor(LoadCursor(NULL, IDC_CROSS));
 	     break;
+
+	  case ROADMAP_CURSOR_WAIT_WITH_DELAY:
+	     /* ?? FIX ME */
+	     break;
           }
        }
 
