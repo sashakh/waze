@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   Based on an implementation by Pascal F. Martin.
  *
@@ -101,14 +102,17 @@ void roadmap_canvas_get_text_extents (const char *text, int size,
 
 RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen)
 {
-	HPEN old;
-	RoadMapPen old_pen = CurrentPen;
+	HPEN		old, hpen;
+	RoadMapPen	old_pen = CurrentPen;
 
 	CurrentPen = pen;
-//	roadmap_log (ROADMAP_ERROR, "SelectPen %p", pen);
 
-	old = SelectObject(RoadMapDrawingBuffer,
-		CreatePen(CurrentPen->style, CurrentPen->thickness, CurrentPen->color));
+	/* For drawing */
+	hpen = CreatePen(CurrentPen->style, CurrentPen->thickness, CurrentPen->color);
+	old = SelectObject(RoadMapDrawingBuffer, hpen);
+
+	/* For text */
+	SetTextColor(RoadMapDrawingBuffer, CurrentPen->color);
 
 	if (OldHPen == NULL)
 		OldHPen = old;
@@ -144,7 +148,6 @@ RoadMapPen roadmap_canvas_create_pen (const char *name)
 
 	roadmap_canvas_select_pen (pen);
 
-//	roadmap_log (ROADMAP_ERROR, "CreatePen -> %p", pen);
 	return pen;
 }
 
@@ -172,8 +175,6 @@ void roadmap_canvas_set_foreground (const char *color)
 			c = RGB(0, 0, 0);
 		}
 	}
-
-//	roadmap_log (ROADMAP_WARNING, "SetForeground(%s) -> %X", color, c);
 
 	CurrentPen->color = c;
 	roadmap_canvas_select_pen(CurrentPen);
@@ -226,7 +227,6 @@ void roadmap_canvas_draw_string (RoadMapGuiPoint *position,
 	RECT rect;
 	LPWSTR text_unicode;
 
-//	roadmap_log (ROADMAP_ERROR, "roadmap_canvas_draw_string(%s)", text ? text : "(null)");
 	roadmap_canvas_get_text_extents
             (text, -1, &text_width, &text_ascent, &text_descent, NULL);
 
