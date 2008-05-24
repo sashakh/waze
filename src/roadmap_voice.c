@@ -52,10 +52,10 @@ static RoadMapConfigDescriptor RoadMapVoiceMute =
                         ROADMAP_CONFIG_ITEM("Voice", "Mute");
 
 static struct roadmap_voice_config RoadMapVoiceText[] = {
-    {ROADMAP_CONFIG_ITEM("Voice", "Approach"), "flite -t 'Approaching %N'"},
-    {ROADMAP_CONFIG_ITEM("Voice", "Current Street"), "flite -t 'On %N'"},
-    {ROADMAP_CONFIG_ITEM("Voice", "Next Intersection"), "flite -t 'Next intersection: %N'"},
-    {ROADMAP_CONFIG_ITEM("Voice", "Selected Street"), "flite -t 'Selected %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Approach"), "flite" _EXE " -t 'Approaching %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Current Street"), "flite" _EXE " -t 'On %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Next Intersection"), "flite" _EXE " -t 'Next intersection: %N'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Selected Street"), "flite" _EXE " -t 'Selected %N'"},
     {ROADMAP_CONFIG_ITEM_EMPTY, NULL}
 };
 
