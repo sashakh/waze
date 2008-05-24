@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   Based on an implementation by Pascal F. Martin.
  *
@@ -121,8 +122,7 @@ static RoadMapDialogItem RoadMapDialogWindows = NULL;
 static RoadMapDialogItem RoadMapDialogCurrent = NULL;
 
 
-static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent,
-											 const char *name)
+static RoadMapDialogItem roadmap_dialog_get (RoadMapDialogItem parent, const char *name)
 {
 	RoadMapDialogItem child;
 
@@ -361,11 +361,11 @@ void roadmap_dialog_new_list (const char  *frame, const char  *name)
 
 
 void roadmap_dialog_show_list (const char  *frame,
-							   const char  *name,
-							   int    count,
-							   char **labels,
-							   void **values,
-							   RoadMapDialogCallback callback)
+		const char  *name,
+		int    count,
+		char **labels,
+		void **values,
+		RoadMapDialogCallback callback)
 {
 	int i;
 	RoadMapDialogItem parent;
@@ -415,8 +415,7 @@ void roadmap_dialog_show_list (const char  *frame,
 }
 
 
-void roadmap_dialog_add_button (const char *label,
-								RoadMapDialogCallback callback)
+void roadmap_dialog_add_button (const char *label, RoadMapDialogCallback callback)
 {
 	RoadMapDialogItem dialog = RoadMapDialogCurrent;
 	RoadMapDialogItem child;
@@ -475,7 +474,8 @@ void roadmap_dialog_complete (int use_keyboard)
 	
 	i = 0;
 	for (frame = dialog->children; frame != NULL; frame = frame->next) {
-		if (frame->widget_type != ROADMAP_WIDGET_CONTAINER) continue;
+		if (frame->widget_type != ROADMAP_WIDGET_CONTAINER)
+			continue;
 		psp[i].dwSize = sizeof(PROPSHEETPAGE);
 		psp[i].dwFlags = PSP_PREMATURE|PSP_USETITLE;
 		psp[i].hInstance = g_hInst;
@@ -543,8 +543,8 @@ void *roadmap_dialog_get_data (const char *frame, const char *name)
 }
 
 
-void  roadmap_dialog_set_data (const char *frame, const char *name,
-							   const void *data)
+void roadmap_dialog_set_data (const char *frame, const char *name,
+		const void *data)
 {
 	RoadMapDialogItem this_frame;
 	RoadMapDialogItem this_item;
@@ -782,8 +782,6 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	{
 	case WM_INITDIALOG:
 		{
-// #warning
-// #warning important code ifdefed for arm-wince-mingw32ce toolchain
 #ifdef SHIDIM_FLAGS
 			SHINITDLGINFO shidi;
 			RoadMapDialogItem dialog;
@@ -823,8 +821,9 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			int width = LOWORD(lParam);
 			int height = HIWORD(lParam);
 
-			if (dialog == NULL) return (INT_PTR)FALSE;
-				else {
+			if (dialog == NULL) {
+				return (INT_PTR)FALSE;
+			} else {
 				//buttons
 				int curr_y = height - MAX_ROW_HEIGHT;
 				int row_height = MAX_ROW_HEIGHT - 1;
@@ -858,7 +857,8 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 				}
 			}
 
-			if (dialog == NULL) break;
+			if (dialog == NULL)
+				break;
 			for (frame = dialog->children; frame != NULL; frame = frame->next) {
 				if (frame->widget_type == ROADMAP_WIDGET_CONTAINER) {
 					HWND sheet = GetParent(frame->w);
@@ -896,195 +896,188 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 							   LPARAM lParam)
 {
-	switch (message)
-	{
+	switch (message) {
 	case WM_INITDIALOG:
-		{
-// #warning
-// #warning important code ifdefed for arm-wince-mingw32ce toolchain
+	{
 #ifdef SHIDIM_FLAGS
-			SHINITDLGINFO sid;
-			PROPSHEETPAGE *psp;
-			RoadMapDialogItem frame;
+		SHINITDLGINFO sid;
+		PROPSHEETPAGE *psp;
+		RoadMapDialogItem frame;
 
-			sid.dwMask = SHIDIM_FLAGS;  /* This is the only allowed value. */
-			sid.dwFlags = SHIDIF_SIZEDLGFULLSCREEN;  /* Make DB full screen. */
-			sid.hDlg = hDlg; 
+		sid.dwMask = SHIDIM_FLAGS;  /* This is the only allowed value. */
+		sid.dwFlags = SHIDIF_SIZEDLGFULLSCREEN;  /* Make DB full screen. */
+		sid.hDlg = hDlg; 
 
-			SHInitDialog(&sid);
+		SHInitDialog(&sid);
 
-			psp = (PROPSHEETPAGE*) lParam;
-			frame = (RoadMapDialogItem)psp->lParam;
-			frame->w = hDlg;
-			SetWindowLong(hDlg, GWL_USERDATA, (LONG)frame);
-			CreateControllers(hDlg, frame);
+		psp = (PROPSHEETPAGE*) lParam;
+		frame = (RoadMapDialogItem)psp->lParam;
+		frame->w = hDlg;
+		SetWindowLong(hDlg, GWL_USERDATA, (LONG)frame);
+		CreateControllers(hDlg, frame);
 #endif /* SHIDIM_FLAGS */
-		}
-		return (INT_PTR)TRUE;
-
+	return (INT_PTR)TRUE;
+	}
 	case WM_SETTINGCHANGE:
-		{
-			SIPINFO si;
-			RECT tab;
-			HWND hmbar;
-			RoadMapDialogItem frame;
-			int w, h;
-			GetWindowRect(hDlg,&tab);
+	{
+		SIPINFO si;
+		RECT tab;
+		HWND hmbar;
+		RoadMapDialogItem frame;
+		int w, h;
+		GetWindowRect(hDlg,&tab);
 
-			SHSipInfo(SPI_GETSIPINFO,lParam,&si,0);
-			w = tab.right - tab.left + 1;
-			h = si.rcVisibleDesktop.bottom-tab.top + 1;
-			frame = (RoadMapDialogItem)GetWindowLong(hDlg, GWL_USERDATA);
-			if (frame == NULL) break;
-			hmbar = SHFindMenuBar(RoadMapMainWindow);
-			if (hmbar != NULL) {
-				RECT rc;
-				int mh;
+		SHSipInfo(SPI_GETSIPINFO,lParam,&si,0);
+		w = tab.right - tab.left + 1;
+		h = si.rcVisibleDesktop.bottom-tab.top + 1;
+		frame = (RoadMapDialogItem)GetWindowLong(hDlg, GWL_USERDATA);
+		if (frame == NULL) break;
+		hmbar = SHFindMenuBar(RoadMapMainWindow);
+		if (hmbar != NULL) {
+			RECT rc;
+			int mh;
 
-				GetWindowRect(hmbar,&rc);
-				mh=rc.bottom-rc.top;
-				if ((si.fdwFlags&SIPF_ON)) h+=1; else h-=mh-1;
-			}
-			lParam = MAKELPARAM(w, h);
-			wParam = 0;
+			GetWindowRect(hmbar,&rc);
+			mh=rc.bottom-rc.top;
+			if ((si.fdwFlags&SIPF_ON)) h+=1; else h-=mh-1;
 		}
+		lParam = MAKELPARAM(w, h);
+		wParam = 0;
+	}
 		/* fall through to resize */
 	case WM_SIZE:
-		{
-			HDC dc;
-			int width = LOWORD(lParam);
-			int height = HIWORD(lParam) -
-				   	MAX_ROW_HEIGHT; /* save room for buttons */
-			RoadMapDialogItem item;
-			RoadMapDialogItem frame = (RoadMapDialogItem)GetWindowLong(hDlg, GWL_USERDATA);
-			int max_name_len = 0;
-			int max_name_height = 0;
-			unsigned int num_entries = 0;
-			unsigned int row_height;
-			int row_space;
-			unsigned int first_column_width;
-			unsigned int column_edge_width;
-			unsigned int column_separator;
-			unsigned int second_column_width;
-			int curr_y;
-			int label_y_add;
+	{
+		HDC dc;
+		int width = LOWORD(lParam);
+		int height = HIWORD(lParam) -
+				MAX_ROW_HEIGHT; /* save room for buttons */
+		RoadMapDialogItem item;
+		RoadMapDialogItem frame = (RoadMapDialogItem)GetWindowLong(hDlg, GWL_USERDATA);
+		int max_name_len = 0;
+		int max_name_height = 0;
+		unsigned int num_entries = 0;
+		unsigned int row_height;
+		int row_space;
+		unsigned int first_column_width;
+		unsigned int column_edge_width;
+		unsigned int column_separator;
+		unsigned int second_column_width;
+		int curr_y;
+		int label_y_add;
 
-			if (frame == NULL) break;
+		if (frame == NULL) break;
 
-			dc = GetDC(hDlg);
-			for (item = frame->children; item != NULL; item = item->next) {
-				LPWSTR name;
-				SIZE text_size;
-				if (item->widget_type == ROADMAP_WIDGET_CONTAINER) continue;
-				if (item->widget_type == ROADMAP_WIDGET_LIST) num_entries += 4;
-				else num_entries++;
-				name = ConvertToUNICODE(item->name);
-				GetTextExtentPoint(dc, name, wcslen(name), &text_size);
-				if (text_size.cx > max_name_len) max_name_len = text_size.cx;
-				if (text_size.cy > max_name_height) max_name_height =
-						text_size.cy;
-				free(name);
+		dc = GetDC(hDlg);
+		for (item = frame->children; item != NULL; item = item->next) {
+			LPWSTR name;
+			SIZE text_size;
+			if (item->widget_type == ROADMAP_WIDGET_CONTAINER) continue;
+			if (item->widget_type == ROADMAP_WIDGET_LIST) num_entries += 4;
+			else num_entries++;
+			name = ConvertToUNICODE(item->name);
+			GetTextExtentPoint(dc, name, wcslen(name), &text_size);
+			if (text_size.cx > max_name_len) max_name_len = text_size.cx;
+			if (text_size.cy > max_name_height) max_name_height =
+					text_size.cy;
+			free(name);
+		}
+
+		ReleaseDC(hDlg, dc);
+
+		row_height = (int)(height / (num_entries + 1));
+		row_space = (int) (row_height / num_entries) - 1;
+		if (row_space < 0) row_space = 1;
+
+		if (row_height > MAX_ROW_HEIGHT) {
+			row_height = MAX_ROW_HEIGHT;
+			row_space = MAX_ROW_SPACE;
+		}
+
+		first_column_width = max_name_len + 10;
+		column_edge_width = 3;
+		column_separator = 4;
+		second_column_width = width - column_edge_width*2 -
+			column_separator;
+
+		curr_y = 3;
+		label_y_add = (row_height - max_name_height) / 2;
+
+		if (label_y_add < 0) label_y_add = 0;
+
+		for (item = frame->children; item != NULL; item = item->next) {
+			HWND widget = item->w;
+			HWND label = item->label;
+			if (item->widget_type == ROADMAP_WIDGET_CONTAINER) {
+				continue;
 			}
+			if (item->widget_type  == ROADMAP_WIDGET_LIST) {
+				MoveWindow(label,
+					column_edge_width, curr_y + label_y_add,
+					first_column_width, row_height - label_y_add,
+					TRUE);
+				curr_y += row_height;
+				MoveWindow(widget,
+					column_edge_width, curr_y,
+					width - column_edge_width*2,
+					row_height*3, TRUE);
+				curr_y += row_height*3 + row_space;
+			} else {
+				if (label != NULL) {
+					unsigned int widget_height = row_height;
 
-			ReleaseDC(hDlg, dc);
-
-			row_height = (int)(height / (num_entries + 1));
-			row_space = (int) (row_height / num_entries) - 1;
-			if (row_space < 0) row_space = 1;
-
-			if (row_height > MAX_ROW_HEIGHT) {
-				row_height = MAX_ROW_HEIGHT;
-				row_space = MAX_ROW_SPACE;
-			}
-
-			first_column_width = max_name_len + 10;
-			column_edge_width = 3;
-			column_separator = 4;
-			second_column_width = width - column_edge_width*2 -
-				column_separator;
-
-			curr_y = 3;
-			label_y_add = (row_height - max_name_height) / 2;
-
-			if (label_y_add < 0) label_y_add = 0;
-
-			for (item = frame->children; item != NULL; item = item->next) {
-				HWND widget = item->w;
-				HWND label = item->label;
-				if (item->widget_type == ROADMAP_WIDGET_CONTAINER) {
-					continue;
-				}
-				if (item->widget_type  == ROADMAP_WIDGET_LIST) {
 					MoveWindow(label,
 						column_edge_width, curr_y + label_y_add,
 						first_column_width, row_height - label_y_add,
 						TRUE);
-					curr_y += row_height;
-					MoveWindow(widget,
-						column_edge_width, curr_y,
-						width - column_edge_width*2,
-						row_height*3, TRUE);
-					curr_y += row_height*3 + row_space;
-				} else {
-					if (label != NULL) {
-						unsigned int widget_height = row_height;
 
-						MoveWindow(label,
-							column_edge_width, curr_y + label_y_add,
-							first_column_width, row_height - label_y_add,
-							TRUE);
-
-						if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
-							widget_height = height - curr_y - 2;
-							if (widget_height > MAX_LIST_HEIGHT) {
-								widget_height = MAX_LIST_HEIGHT;
-							}
+					if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
+						widget_height = height - curr_y - 2;
+						if (widget_height > MAX_LIST_HEIGHT) {
+							widget_height = MAX_LIST_HEIGHT;
 						}
-						MoveWindow(widget,
-							column_edge_width + first_column_width +
-							column_separator,
-							curr_y,
-							width - (column_edge_width*2 +
-							first_column_width + column_separator),
-							widget_height, TRUE);
-					} else {
-						MoveWindow(widget,
-							column_edge_width, curr_y, first_column_width,
-							row_height, TRUE);
 					}
-					curr_y += row_height + row_space;
+					MoveWindow(widget,
+						column_edge_width + first_column_width +
+						column_separator,
+						curr_y,
+						width - (column_edge_width*2 +
+						first_column_width + column_separator),
+						widget_height, TRUE);
+				} else {
+					MoveWindow(widget,
+						column_edge_width, curr_y, first_column_width,
+						row_height, TRUE);
 				}
+				curr_y += row_height + row_space;
 			}
 		}
-		return TRUE;
-
+	return TRUE;
+	}
 	case WM_COMMAND:
-		if ((HIWORD(wParam) == BN_CLICKED) ||
-			(HIWORD(wParam) == LBN_SELCHANGE) ||
-			(HIWORD(wParam) == CBN_SELCHANGE)) {
-				int i = -1;
-				RoadMapDialogItem item =
-					(RoadMapDialogItem)GetWindowLong((HWND)lParam,
-													 GWL_USERDATA);
-				if (item == NULL) return FALSE;
+		if ((HIWORD(wParam) == BN_CLICKED) || (HIWORD(wParam) == LBN_SELCHANGE) ||
+				(HIWORD(wParam) == CBN_SELCHANGE)) {
+			int i = -1;
+			RoadMapDialogItem item = (RoadMapDialogItem)
+				GetWindowLong((HWND)lParam, GWL_USERDATA);
+			if (item == NULL)
+				return FALSE;
 
+			if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
+				i = SendMessage(item->w, (UINT) CB_GETCURSEL, (WPARAM) 0,
+					(LPARAM) 0);
+			} else if (item->widget_type == ROADMAP_WIDGET_LIST) {
+				i = SendMessage(item->w, (UINT) LB_GETCURSEL, (WPARAM) 0,
+					(LPARAM) 0);
+			}
 
-				if (item->widget_type == ROADMAP_WIDGET_CHOICE) {
-					i = SendMessage(item->w, (UINT) CB_GETCURSEL, (WPARAM) 0,
-						(LPARAM) 0);
-				} else if (item->widget_type == ROADMAP_WIDGET_LIST) {
-					i = SendMessage(item->w, (UINT) LB_GETCURSEL, (WPARAM) 0,
-						(LPARAM) 0);
-				}
+			if (i > -1) {
+				roadmap_dialog_chosen(&item->choice[i]);
+			}
 
-				if (i > -1) {
-					roadmap_dialog_chosen(&item->choice[i]);
-				}
+			roadmap_dialog_action(item);
 
-				roadmap_dialog_action(item);
-
-				return TRUE;
-		}
+			return TRUE;
+	}
 		break;
 
 	case WM_CLOSE:
