@@ -36,6 +36,7 @@ typedef struct {
    const char *label_short;
          char *label_terse;
    const char *tip;
+   const char *key;  /* filled in at run-time, based on key mappings */
 
    RoadMapCallback callback;
 

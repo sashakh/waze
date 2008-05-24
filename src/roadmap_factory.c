@@ -534,6 +534,26 @@ RoadMapAction *roadmap_factory_find_action_or_menu
    return roadmap_factory_find_action (actions, item);
 }
 
+static const char *roadmap_factory_set_tip
+                        (int use_tips, const RoadMapAction *this_action) {
+   static char tip_buf[256];
+
+   if (use_tips) {
+
+      if (this_action->key) {
+
+         snprintf(tip_buf, 256, "%s [%s]",
+             roadmap_lang_get(this_action->tip), this_action->key);
+         return tip_buf;
+
+      } else {
+
+         return roadmap_lang_get(this_action->tip);
+      }
+   }
+   return NULL;
+}
+
 void roadmap_factory_config_menu
       (const char **item, RoadMapAction *actions,
        int doing_menus, int use_tips) {
@@ -585,9 +605,10 @@ void roadmap_factory_config_menu
          this_action = roadmap_factory_find_action_or_menu (actions, *item);
 
          if (this_action != NULL) {
+            const char *tipb;
+            tipb = roadmap_factory_set_tip(use_tips, this_action);
             roadmap_main_add_menu_item (gui_menu,
-                  roadmap_lang_get (this_action->label_long),
-                  use_tips ? roadmap_lang_get(this_action->tip) : NULL,
+                  roadmap_lang_get (this_action->label_long), tipb,
                   this_action->callback);
          } else {
             roadmap_log
@@ -606,9 +627,9 @@ void roadmap_factory_config_toolbar
    for (; *item != NULL; item++) {
 
       if (!added) {
-	 roadmap_main_add_toolbar
+         roadmap_main_add_toolbar
             (roadmap_config_get (&RoadMapConfigGeneralToolbarOrientation));
-	 added = 1;
+         added = 1;
       }
 
       if (*item == RoadMapFactorySeparator) {
@@ -626,10 +647,11 @@ void roadmap_factory_config_toolbar
          this_action = roadmap_factory_find_action_or_menu (actions, *item);
 
          if (this_action != NULL) {
+            const char *tipb;
+            tipb = roadmap_factory_set_tip(use_tips, this_action);
             roadmap_main_add_tool (roadmap_factory_terse(this_action),
                         use_icons ? roadmap_lang_get(this_action->name) : NULL,
-                        use_tips ? roadmap_lang_get(this_action->tip) : NULL,
-                                   this_action->callback);
+                        tipb, this_action->callback);
          } else {
             roadmap_log 
                (ROADMAP_ERROR, "invalid action name '%s' in toolbar", *item);
@@ -731,7 +753,7 @@ void roadmap_factory_keymap (RoadMapAction  *actions,
 
          char *text;
          char *separator;
-         const RoadMapAction *this_action;
+         RoadMapAction *this_action;
 
          text = strdup (shortcuts[i]);
          roadmap_check_allocated(text);
@@ -756,6 +778,25 @@ void roadmap_factory_keymap (RoadMapAction  *actions,
 
                if (length > RoadMapFactoryKeyLength) {
                   RoadMapFactoryKeyLength = length;
+               }
+               /* copy key binding strings to the action, for
+                * help/tip usage.  but don't attach "Special-"
+                * bindings, since they're platform specific. 
+                * this should probably change to allow including
+                * the special keys for some specified (at build
+                * time?  at run-time?) platform.
+                */
+               if (strncmp(text, "Special-", 8) != 0) {
+                   if (this_action->key) {
+                      char keys[128];
+                      snprintf(keys, 128, "%s, %s", this_action->key, text);
+                      /* this leaks if more than two keys for one
+                       * action.  oh well.
+                       */
+                      this_action->key = strdup(keys);
+                   } else {
+                      this_action->key = text;
+                   }
                }
                RoadMapFactoryBindings[j].key = text;
                RoadMapFactoryBindings[j].action = this_action;

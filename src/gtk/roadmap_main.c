@@ -100,18 +100,18 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
 
    switch (event->keyval) {
 
-      case GDK_Left:   key = "Button-Left";           break;
-      case GDK_Right:  key = "Button-Right";          break;
-      case GDK_Up:     key = "Button-Up";             break;
-      case GDK_Down:   key = "Button-Down";           break;
+      case GDK_Left:   key = "LeftArrow";           break;
+      case GDK_Right:  key = "RightArrow";          break;
+      case GDK_Up:     key = "UpArrow";             break;
+      case GDK_Down:   key = "DownArrow";           break;
 
       case GDK_Return: key = "Enter";                 break;
 
       /* These binding are for the iPAQ buttons: */
-      case 0x1008ff1a: key = "Button-Menu";           break;
-      case 0x1008ff20: key = "Button-Calendar";       break;
-      case 0xaf9:      key = "Button-Contact";        break;
-      case 0xff67:     key = "Button-Start";          break;
+      case 0x1008ff1a: key = "Special-Menu";           break;
+      case 0x1008ff20: key = "Special-Calendar";       break;
+      case 0xaf9:      key = "Special-Contact";        break;
+      case 0xff67:     key = "Special-Start";          break;
 
       case 0xffbe:     key = "F1";          break;
       case 0xffbf:     key = "F2";          break;

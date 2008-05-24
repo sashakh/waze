@@ -405,310 +405,325 @@ void roadmap_start_request_repaint_map (void) {
 static RoadMapAction RoadMapStartActions[] = {
 
    {"cancel", "", NULL, NULL,
-      "Do nothing", roadmap_start_cancel},
+      "Do nothing", NULL, roadmap_start_cancel},
 
    {"preferences", "Preferences", "Preferences", "P",
-      "Open the preferences editor", roadmap_preferences_edit},
+      "Open the preferences editor", NULL, roadmap_preferences_edit},
 
    {"gpsconsole", "GPS Console", "Console", "C",
-      "Show the GPS console", roadmap_start_gps_console},
+      "Show the GPS console", NULL, roadmap_start_gps_console},
 
    {"roadgps", "Run RoadGps", "RoadGps", NULL,
-      "Start the external GPS console program",
+      "Start the external GPS console program", NULL,
        roadmap_start_external_gps_console},
 
    {"mutevoice", "Mute Voice", "Mute", NULL,
-      "Mute all voice annoucements", roadmap_voice_mute},
+      "Mute all voice annoucements", NULL, roadmap_voice_mute},
 
    {"enablevoice", "Enable Voice", "Mute Off", NULL,
-      "Enable all voice annoucements", roadmap_voice_enable},
+      "Enable all voice annoucements", NULL, roadmap_voice_enable},
 
    {"nonavigation", "Disable Navigation", "Nav Off", NULL,
-      "Disable all navigation feedback", roadmap_navigate_disable},
+      "Disable all navigation feedback", NULL, roadmap_navigate_disable},
 
    {"navigation", "Enable Navigation", "Nav On", NULL,
-      "Enable navigation feedback", roadmap_navigate_enable},
+      "Enable navigation feedback", NULL, roadmap_navigate_enable},
 
    {"logtofile", "Log to File", "Log", NULL,
-      "Save future log messages to the postmortem file",
+      "Save future log messages to the postmortem file", NULL,
       roadmap_log_save_all},
 
    {"nolog", "Disable Log", "No Log", NULL,
-      "Do not save future log messages to the postmortem file",
+      "Do not save future log messages to the postmortem file", NULL,
       roadmap_log_save_all},
 
    {"gpslog", "Start GPS Logging", "GPS Log", NULL,
-      "Start logging GPS messages", roadgps_logger_start},
+      "Start logging GPS messages", NULL, roadgps_logger_start},
 
    {"gpslogstop", "Stop GPS Logging", "No GPS Log", NULL,
-      "Stop logging GPS messages", roadgps_logger_stop},
+      "Stop logging GPS messages", NULL, roadgps_logger_stop},
 
    {"purgelogfile", "Purge Log File", "Purge", NULL,
-      "Delete the current postmortem log file", roadmap_log_purge},
+      "Delete the current postmortem log file", NULL, roadmap_log_purge},
 
    {"purgehistory", "Purge History", "Forget", NULL,
-      "Remove all but the 10 most recent searches", roadmap_start_purge},
+      "Remove all but the 10 most recent searches", NULL, roadmap_start_purge},
 
    {"quit", "Quit", NULL, NULL,
-      "Quit RoadMap", roadmap_main_exit},
+      "Quit RoadMap", NULL, roadmap_main_exit},
 
    {"zoomin", "Zoom In", "+", NULL,
-      "Enlarge the central part of the map", roadmap_screen_zoom_in},
+      "Enlarge the central part of the map", NULL, roadmap_screen_zoom_in},
 
    {"zoomout", "Zoom Out", "-", NULL,
-      "Show a larger area", roadmap_screen_zoom_out},
+      "Show a larger area", NULL, roadmap_screen_zoom_out},
 
    {"zoom1", "Normal Size", ":1", NULL,
-      "Set the map back to the default zoom level", roadmap_screen_zoom_reset},
+      "Set the map back to the default zoom level", NULL,
+      roadmap_screen_zoom_reset},
 
    {"up", "Up", "N", NULL,
-      "Move the map view upward", roadmap_screen_move_up},
+      "Move the map view upward", NULL, roadmap_screen_move_up},
 
    {"left", "Left", "W", NULL,
-      "Move the map view to the left", roadmap_screen_move_left},
+      "Move the map view to the left", NULL, roadmap_screen_move_left},
 
    {"right", "Right", "E", NULL,
-      "Move the map view to the right", roadmap_screen_move_right},
+      "Move the map view to the right", NULL, roadmap_screen_move_right},
 
    {"down", "Down", "S", NULL,
-      "Move the map view downward", roadmap_screen_move_down},
+      "Move the map view downward", NULL, roadmap_screen_move_down},
 
    {"clockwise", "Rotate Clockwise", "R+", NULL,
-      "Rotate the map view clockwise", roadmap_start_rotate},
+      "Rotate the map view clockwise", NULL, roadmap_start_rotate},
 
    {"counterclockwise", "Rotate Counter-Clockwise", "R-", NULL,
-      "Rotate the map view counter-clockwise", roadmap_start_counter_rotate},
+      "Rotate the map view counter-clockwise", NULL,
+      roadmap_start_counter_rotate},
 
    {"hold", "Hold Map", "Hold", "H",
-      "Hold the map view in its current position", roadmap_start_hold_map},
+      "Hold the map view in its current position", NULL,
+      roadmap_start_hold_map},
 
    {"address", "Address...", "Addr", "A",
-      "Show a specified address", roadmap_address_location_by_city},
+      "Show a specified address", NULL, roadmap_address_location_by_city},
 
    {"intersection", "Intersection...", "X", NULL,
-      "Show a specified street intersection", roadmap_crossing_dialog},
+      "Show a specified street intersection", NULL, roadmap_crossing_dialog},
 
    {"position", "Position...", "P", NULL,
-      "Show a position at the specified coordinates", roadmap_coord_dialog},
+      "Show a position at the specified coordinates", NULL,
+      roadmap_coord_dialog},
 
    {"startpoint", "Route Start", "Start", NULL,
-      "Show the current route starting point", roadmap_start_show_start},
+      "Show the current route starting point", NULL, roadmap_start_show_start},
 
    {"nextpoint", "Next Route Point", "N", NULL,
-      "Show the next route point", roadmap_trip_show_nextpoint},
+      "Show the next route point", NULL, roadmap_trip_show_nextpoint},
 
    {"2ndpoint", "Second Next Route Point", "", NULL,
-      "Show the route point after the next", roadmap_trip_show_2ndnextpoint},
+      "Show the route point after the next", NULL,
+      roadmap_trip_show_2ndnextpoint},
 
    {"destination", "Destination", "D", NULL,
-      "Show the current destination", roadmap_start_show_destination},
+      "Show the current destination", NULL, roadmap_start_show_destination},
 
    {"departure", "Departure", "Dep", NULL,
-      "Show the route's point of departure", roadmap_start_show_departure},
+      "Show the route's point of departure", NULL,
+      roadmap_start_show_departure},
 
    {"gps", "GPS Position", "GPS", "G",
-      "Show the current GPS position", roadmap_start_show_gps},
+      "Show the current GPS position", NULL, roadmap_start_show_gps},
 
    {"location", "Location", "L", NULL,
-      "Show the last selected address, crossroads, or position",
+      "Show the last selected address, crossroads, or position", NULL,
       roadmap_start_show_location},
 
    {"mapdownload", "Toggle Map Download", "Download", NULL,
-      "Enable/Disable the map download mode", roadmap_start_toggle_download},
+      "Enable/Disable the map download mode", NULL,
+      roadmap_start_toggle_download},
 
    {"mapdiskspace", "Map Disk Space", "Disk", NULL,
-      "Show the amount of disk space occupied by the maps",
+      "Show the amount of disk space occupied by the maps", NULL,
       roadmap_download_show_space},
 
    {"deletemaps", "Delete Maps...", "Delete", "Del",
-      "Delete maps that are currently visible", roadmap_download_delete},
+      "Delete maps that are currently visible", NULL, roadmap_download_delete},
 
    {"newtrip", "New Trip", "New", NULL,
-      "Create a new trip", roadmap_trip_new},
+      "Create a new trip", NULL, roadmap_trip_new},
 
    {"opentrip", "Open Trip", "Open", "O",
-      "Open an existing trip", roadmap_trip_load_ask},
+      "Open an existing trip", NULL, roadmap_trip_load_ask},
 
    {"mergetrip", "Merge Trip", "Merge", "M",
-      "Merge a trip with the current trip", roadmap_trip_merge_ask},
+      "Merge a trip with the current trip", NULL, roadmap_trip_merge_ask},
 
    {"savetrip", "Save Trip", "Save", "S",
-      "Save the current trip", roadmap_trip_save_manual},
+      "Save the current trip", NULL, roadmap_trip_save_manual},
 
    {"savescreenshot", "Map Screenshot", "Screenshot", "Y",
-      "Make a screenshot of the current map under the trip name",
+      "Make a screenshot of the current map under the trip name", NULL,
       roadmap_trip_save_screenshot},
 
    {"savetripas", "Save Trip As...", "Save As", "As",
-      "Save the current trip under a different name",
+      "Save the current trip under a different name", NULL,
       roadmap_trip_save_as},
 
    {"starttrip", "Start Route", "Start", NULL,
-      "Start following the current route", roadmap_trip_route_start},
+      "Start following the current route", NULL, roadmap_trip_route_start},
 
    {"stoptrip", "Stop Route", "Stop", NULL,
-      "Stop following the current route", roadmap_trip_route_stop},
+      "Stop following the current route", NULL, roadmap_trip_route_stop},
 
    {"toggleview", "2D/3D View", "M", NULL,
-      "Toggle view mode 2D / 3D", roadmap_screen_toggle_view_mode},
+      "Toggle view mode 2D / 3D", NULL, roadmap_screen_toggle_view_mode},
 
    {"togglelabels", "Show/Hide Street Labels", "Labels", NULL,
-      "Show or Hide the names of streets", roadmap_screen_toggle_labels},
+      "Show or Hide the names of streets", NULL, roadmap_screen_toggle_labels},
 
    {"toggleorientation", "Dynamic/Fixed Orientation", "", NULL,
-      "Toggle orientation mode dynamic / fixed",
+      "Toggle orientation mode dynamic / fixed", NULL,
       roadmap_screen_toggle_orientation_mode},
 
    {"increasehorizon", "Increase Horizon", "I", NULL,
-      "Increase the 3D horizon", roadmap_screen_increase_horizon},
+      "Increase the 3D horizon", NULL, roadmap_screen_increase_horizon},
 
    {"decreasehorizon", "Decrease Horizon", "DI", NULL,
-      "Decrease the 3D horizon", roadmap_screen_decrease_horizon},
+      "Decrease the 3D horizon", NULL, roadmap_screen_decrease_horizon},
 
    {"tracktoggle", "Show/Hide Current Track", "Track", NULL,
-      "Show or Hide the GPS breadcrumb track", roadmap_track_toggle_display},
+      "Show or Hide the GPS breadcrumb track", NULL,
+      roadmap_track_toggle_display},
 
    {"tracksave", "Save Current Track", "Save Track", NULL,
-      "Save the current GPS breadcrumb track", roadmap_track_save},
+      "Save the current GPS breadcrumb track", NULL, roadmap_track_save},
 
    {"trackreset", "Save and Reset Current Track", "Save/Reset Track", NULL,
-      "Save the current GPS breadcrumb track, then clear it", roadmap_track_reset},
+      "Save the current GPS breadcrumb track, then clear it", NULL,
+      roadmap_track_reset},
 
    {"backtrackroute", "Create Backtrack Route", "BackTrack", NULL,
-      "Convert the current GPS breadcrumb track to a new route",
+      "Convert the current GPS breadcrumb track to a new route", NULL,
       roadmap_trip_currenttrack_to_route },
 
    {"tracktoroute", "Convert Track to Route", "RouteToTrack", NULL,
-      "Create a new route from the currently selected track",
+      "Create a new route from the currently selected track", NULL,
       roadmap_trip_track_to_route },
 
    {"addtrack", "Add Current Track to Trip", "AddTrack", NULL,
-      "Add a copy of the current GPS breadcrumb track to the trip",
+      "Add a copy of the current GPS breadcrumb track to the trip", NULL,
       roadmap_trip_currenttrack_to_track },
 
    {"resumeroute", "Resume Route", "Resume", NULL,
-      "Resume following (resync with) the current route",
+      "Resume following (resync with) the current route", NULL,
       roadmap_trip_route_resume},
 
    {"returnroute", "Return Route", "Return", NULL,
-      "Start the route back to the departure point",
+      "Start the route back to the departure point", NULL,
       roadmap_trip_route_return},
 
    {"reverseroute", "Reverse Route", "Reverse", NULL,
-      "Reverse the current route",
+      "Reverse the current route", NULL,
        roadmap_trip_route_reverse},
 
    {"simplifyroute", "Simplify Route", NULL, NULL,
-      "Create simplified version of current route",
+      "Create simplified version of current route", NULL,
       roadmap_trip_route_simplify },
 
    {"createroute", "New route using selection", NULL, NULL,
-      "Start new route using last selected street or place",
+      "Start new route using last selected street or place", NULL,
       roadmap_trip_new_route},
 
 #if WGET_GOOGLE_ROUTE
    {"getgoogleroute", "Fetch route from google", NULL, NULL,
-      "Fetch google route for current route's start/dest",
+      "Fetch google route for current route's start/dest", NULL,
         roadmap_trip_replace_with_google_route},
 #endif
 
    {"setasdestination", "Goto selection", NULL, NULL,
-      "Show distance and direction to the last selected street or place",
+      "Show distance and direction to the last selected street or place", NULL,
       roadmap_trip_set_as_destination},
 
    {"manageroutes", "Select Route...", "Select Route", NULL,
-      "Select, rename, or delete routes", roadmap_trip_route_manage_dialog},
+      "Select, rename, or delete routes", NULL,
+      roadmap_trip_route_manage_dialog},
 
    {"listdeletedroutes", "Deleted Routes...", NULL, NULL,
-      "List and restore deleted routes", roadmap_trip_lost_route_manage_dialog},
+      "List and restore deleted routes", NULL,
+      roadmap_trip_lost_route_manage_dialog},
 
    {"allroutetoggle", "Show/Hide All Routes", "AllRoutes", NULL,
-      "Show or Hide currently unselected routes",
+      "Show or Hide currently unselected routes", NULL,
       roadmap_trip_toggle_show_inactive_routes},
 
    {"alltracktoggle", "Show/Hide All Tracks", "AllTracks", NULL,
-      "Show or Hide currently unselected tracks",
+      "Show or Hide currently unselected tracks", NULL,
       roadmap_trip_toggle_show_inactive_tracks},
 
    {"gpsaswaypoint", "New place from GPS...", "GPS Place", "GW",
-      "Create new place using current GPS position",
+      "Create new place using current GPS position", NULL,
       roadmap_start_create_gps_waypoint},
 
    {"addaswaypoint", "New place from selected...", "Place", "W",
-      "Create new place using last selected street or place",
+      "Create new place using last selected street or place", NULL,
       roadmap_start_create_waypoint},
 
    {"editroutepoints", "Route Waypoints...", NULL, NULL,
-      "Edit current route's waypoints", roadmap_trip_route_waypoint_manage_dialog },
+      "Edit current route's waypoints", NULL,
+      roadmap_trip_route_waypoint_manage_dialog },
 
    {"listdeletedplaces", "Deleted Places...", NULL, NULL,
-      "List deleted or moved places", roadmap_trip_lost_waypoint_manage_dialog },
+      "List deleted or moved places", NULL,
+      roadmap_trip_lost_waypoint_manage_dialog },
 
    {"addroutepointnear", "Insert Route Waypoint", NULL, NULL,
-      "Insert routepoint into nearest leg of the current route", 
+      "Insert routepoint into nearest leg of the current route",  NULL,
       roadmap_trip_insert_routepoint_best },
 
    {"addroutepointend", "Append Past Route Destination", NULL, NULL,
-      "Add routepoint past the end of current route", 
+      "Add routepoint past the end of current route",  NULL,
       roadmap_trip_insert_routepoint_dest },
 
    {"addroutepointstart", "Prepend Before Route Start", NULL, NULL,
-      "Add routepoint before the start of current route", 
+      "Add routepoint before the start of current route",  NULL,
       roadmap_trip_insert_routepoint_start },
 
    {"addtriplandmark", "Add Trip Landmark", NULL, NULL,
-      "Add selection to list of trip landmarks", 
+      "Add selection to list of trip landmarks",  NULL,
       roadmap_trip_insert_trip_point },
 
    {"addpersonallandmark", "Add Personal Landmark", NULL, NULL,
-      "Add selection to list of personal landmarks", 
+      "Add selection to list of personal landmarks",  NULL,
       roadmap_trip_insert_personal_point },
 
    {"edittriplandmarks", "Trip Landmarks...", NULL, NULL,
-      "Edit landmarks associated with this trip",
+      "Edit landmarks associated with this trip", NULL,
       roadmap_trip_trip_waypoint_manage_dialog },
 
    {"editpersonallandmarks", "Personal Landmarks...", NULL, NULL,
-      "Edit personal landmarks",
+      "Edit personal landmarks", NULL,
       roadmap_trip_personal_waypoint_manage_dialog },
 
    {"mergepersonallandmarks", "Load more Personal Landmarks...", NULL, NULL,
-      "Merge personal landmarks from file", roadmap_landmark_merge },
+      "Merge personal landmarks from file", NULL, roadmap_landmark_merge },
 
    {"lastplacedelete", "Delete place", "Delete Selected Place", NULL,
-        "Delete the last selected place", roadmap_trip_delete_last_place },
+      "Delete the last selected place", NULL,
+      roadmap_trip_delete_last_place },
 
    {"lastplaceedit", "Edit place", "Edit Selected Place", NULL,
-        "Edit the last selected place", roadmap_trip_edit_last_place },
+      "Edit the last selected place", NULL, roadmap_trip_edit_last_place },
 
    {"lastplacemove", "Move place", NULL, NULL,
-        "Relocate the last selected place to the popup location",
-        roadmap_trip_move_last_place },
+      "Relocate the last selected place to the popup location", NULL,
+      roadmap_trip_move_last_place },
 
    {"routepointahead", "Reorder, move ahead", "Ahead", NULL,
-        "Reorder the route, moving this point later in the route",
-        roadmap_trip_move_routepoint_ahead },
+      "Reorder the route, moving this point later in the route", NULL,
+      roadmap_trip_move_routepoint_ahead },
 
    {"routepointback", "Reorder, move back", "Back", NULL,
-        "Reorder the route, moving this point earlier in the route",
-        roadmap_trip_move_routepoint_back },
+      "Reorder the route, moving this point earlier in the route", NULL,
+      roadmap_trip_move_routepoint_back },
 
    {"full", "Full Screen", "Full", "F",
-      "Toggle the window full screen mode (depends on the window manager)",
+      "Toggle the window full screen mode (if window manager permits)", NULL,
       roadmap_main_toggle_full_screen},
 
    {"about", "About", NULL, NULL,
-      "Show information about RoadMap", roadmap_start_about},
+      "Show information about RoadMap", NULL, roadmap_start_about},
 
    {"mapinfo", "Map Parameters", NULL, NULL,
-      "Show parameters of the currently displayed map", roadmap_start_mapinfo},
+      "Show parameters of the currently displayed map", NULL,
+      roadmap_start_mapinfo},
 
 #ifdef _WIN32
    {"detectreceiver", "Detect GPS receiver", NULL, NULL,
-      "Auto-detect GPS receiver", roadmap_start_detect_receiver},
+      "Auto-detect GPS receiver", NULL, roadmap_start_detect_receiver},
 #endif
 
-   {NULL, NULL, NULL, NULL, NULL, NULL}
+   {NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 
@@ -950,24 +965,24 @@ static char const *RoadMapStartToolbar[] = {
 
 static char const *RoadMapStartKeyBinding[] = {
 
-   "Button-Left"     ROADMAP_MAPPED_TO "left",
-   "Button-Right"    ROADMAP_MAPPED_TO "right",
-   "Button-Up"       ROADMAP_MAPPED_TO "up",
-   "Button-Down"     ROADMAP_MAPPED_TO "down",
+   "LeftArrow"     ROADMAP_MAPPED_TO "left",
+   "RightArrow"    ROADMAP_MAPPED_TO "right",
+   "UpArrow"       ROADMAP_MAPPED_TO "up",
+   "DownArrow"     ROADMAP_MAPPED_TO "down",
 
    "Enter"           ROADMAP_MAPPED_TO "resumeroute",
 
    /* These binding are for the iPAQ buttons: */
-   "Button-Menu"     ROADMAP_MAPPED_TO "zoom1",
-   "Button-Contact"  ROADMAP_MAPPED_TO "zoomin",
-   "Button-Calendar" ROADMAP_MAPPED_TO "zoomout",
-   "Button-Start"    ROADMAP_MAPPED_TO "quit",
+   "Special-Menu"     ROADMAP_MAPPED_TO "zoom1",
+   "Special-Contact"  ROADMAP_MAPPED_TO "zoomin",
+   "Special-Calendar" ROADMAP_MAPPED_TO "zoomout",
+   "Special-Start"    ROADMAP_MAPPED_TO "quit",
 
    /* These binding are for the OLPC XO laptop buttons: */
-   "Button-PageUp"   ROADMAP_MAPPED_TO "zoomin",      // circle   
-   "Button-PageDown" ROADMAP_MAPPED_TO "zoomout",     // square   
-   "Button-Home"     ROADMAP_MAPPED_TO "resumeroute", // X        
-   "Button-End"      ROADMAP_MAPPED_TO "destination", // checkmark
+   "Special-PageUp"   ROADMAP_MAPPED_TO "zoomin",      // circle   
+   "Special-PageDown" ROADMAP_MAPPED_TO "zoomout",     // square   
+   "Special-Home"     ROADMAP_MAPPED_TO "resumeroute", // X        
+   "Special-End"      ROADMAP_MAPPED_TO "destination", // checkmark
 
    /* These binding are for regular keyboards (case unsensitive !): */
    "+"               ROADMAP_MAPPED_TO "zoomin",
