@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2008 Danny Backx.
  *
  *   Based on an implementation by Pascal F. Martin.
  *   This file is based part of RoadMap.
