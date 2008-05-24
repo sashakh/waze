@@ -146,6 +146,7 @@ void RMapMainWindow::addMenuItem(QMenu *menu,
      new RMapCallback(callback);
    QAction *ac = menu->addAction(label);
    ac->setToolTip(tip);
+   // ac->setToolTip( QString::fromUtf8(tip) );  perhaps??
    connect(ac, SIGNAL(triggered()), cb, SLOT(fire()));
 }
 
