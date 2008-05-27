@@ -114,7 +114,7 @@ RoadMapSocket roadmap_net_connect (const char *protocol,
 		goto connection_failure;
 	}
 
-	if (fd == SOCKET_ERROR) {
+	if (fd == INVALID_SOCKET) {
 		roadmap_log (ROADMAP_ERROR, "cannot create socket, errno = %d", WSAGetLastError());
 		goto connection_failure;
 	}

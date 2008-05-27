@@ -73,7 +73,7 @@ wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
 	$(CXX) $(LDFLAGS) -o wroadmap.exe roadmap_main.o roadmap.rsc \
 		$(TOP)/libguiroadmap.a libwroadmap.a $(LIBS) \
-		libwroadmap.a -lcommctrl -laygshell -lws2 -lnote_prj
+		libwroadmap.a -lcommctrl -laygshell -lws2
 
 #
 # Unneeded, functionality is now in "roadmap"

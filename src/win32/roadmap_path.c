@@ -79,9 +79,23 @@ static const char *RoadMapPathMapsSuffix = "roadmap/maps";
 static const char *RoadMapPathMapsPreferred = "/Storage Card/roadmap/maps";
 
 /* We don't have a user directory in wince so we'll leave this one empty */
-static const char *RoadMapPathUser[] = {
+static char *RoadMapPathUser[] = {
 	NULL
 };
+
+static HANDLE (WINAPI *_FindFirstFlashCard)(LPWIN32_FIND_DATA) = NULL;
+static BOOL (WINAPI* _FindNextFlashCard)(HANDLE, LPWIN32_FIND_DATA) = NULL;
+
+static void roadmap_path_init_dll(void)
+{
+	HINSTANCE	dll;
+
+	dll = LoadLibrary(TEXT("note_prj.dll"));
+	if (dll) {
+		*(FARPROC*)&_FindFirstFlashCard = GetProcAddress(dll, TEXT("FindFirstFlashCard"));
+		*(FARPROC*)&_FindNextFlashCard = GetProcAddress(dll, TEXT("FindNextFlashCard"));
+	}
+}
 
 static void roadmap_path_insert(const char *dir)
 {
@@ -115,7 +129,6 @@ static void roadmap_path_get_cards()
 {
 	WIN32_FIND_DATA	ffd;
 	HANDLE		h;
-	int		i;
 	static int	done = 0;
 
 	/* Run this only once */
@@ -123,22 +136,28 @@ static void roadmap_path_get_cards()
 		return;
 	done++;
 
+	roadmap_path_init_dll();
+
 	roadmap_path_insert("Program Files");
-	h = FindFirstFlashCard(&ffd);
-	if (h == INVALID_HANDLE_VALUE) {
-		roadmap_path_insert("Storage card");	/* Do this anyway */
-		return;
+	if (_FindFirstFlashCard) {
+		h = _FindFirstFlashCard(&ffd);
+		if (h == INVALID_HANDLE_VALUE) {
+			roadmap_path_insert("Storage card");	/* Do this anyway */
+			return;
+		}
+		roadmap_path_insert(ConvertToANSI(ffd.cFileName, CP_UTF8));
+		while (_FindNextFlashCard(h, &ffd) == TRUE) {
+			roadmap_path_insert(ConvertToANSI(ffd.cFileName, CP_UTF8));
+		}
+		FindClose(h);
+	} else {
+		roadmap_path_insert("Storage card");
 	}
-	roadmap_path_insert(ConvertToANSI(ffd.cFileName, CP_ACP));
-	while (FindNextFlashCard(h, &ffd) == TRUE) {
-		roadmap_path_insert(ConvertToANSI(ffd.cFileName, CP_ACP));
-	}
-	FindClose(h);
 }
 
 
 static void roadmap_path_list_create(const char *name,
-		const char *items[],
+		char *items[],
 		const char *preferred)
 {
 	int i;
@@ -282,7 +301,7 @@ const char *roadmap_path_user (void)
 		/* We don't have a user directory so we'll use the executable path */
 		GetModuleFileName(NULL, path_unicode,
 			sizeof(path_unicode)/sizeof(path_unicode[0]));
-		path = ConvertToANSI(path_unicode, CP_ACP);
+		path = ConvertToANSI(path_unicode, CP_UTF8);
 		tmp = strrchr (path, '/');
 		if (tmp == NULL)
 			tmp = strrchr (path, '\\');
@@ -514,7 +533,7 @@ char **roadmap_path_list (const char *path, const char *extension)
 
 	do {
 		if (!(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-			char *name = ConvertToANSI(wfd.cFileName, CP_ACP);
+			char *name = ConvertToANSI(wfd.cFileName, CP_UTF8);
 			*(cursor++) = name;
 		}
 	} while (FindNextFile(hFound, &wfd));
