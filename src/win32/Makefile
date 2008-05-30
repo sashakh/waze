@@ -32,7 +32,6 @@ RMLIBSRC= \
 	time.c \
 	wince_input_mon.c \
 	roadmap_progress.c \
-	listports.c \
 	CEDevice.cpp \
 	CEException.cpp \
 	roadmap_gps_detect.c \
