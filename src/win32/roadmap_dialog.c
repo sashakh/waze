@@ -533,7 +533,7 @@ void *roadmap_dialog_get_data (const char *frame, const char *name)
 			if (this_item->ansi_value != NULL) {
 				free(this_item->ansi_value);
 			}
-			this_item->ansi_value = ConvertToANSI(str, CP_ACP);
+			this_item->ansi_value = ConvertToANSI(str, CP_UTF8);
 			return this_item->ansi_value;
 		}
 		break;
@@ -857,8 +857,6 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 				}
 			}
 
-			if (dialog == NULL)
-				break;
 			for (frame = dialog->children; frame != NULL; frame = frame->next) {
 				if (frame->widget_type == ROADMAP_WIDGET_CONTAINER) {
 					HWND sheet = GetParent(frame->w);
@@ -971,14 +969,18 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		for (item = frame->children; item != NULL; item = item->next) {
 			LPWSTR name;
 			SIZE text_size;
-			if (item->widget_type == ROADMAP_WIDGET_CONTAINER) continue;
-			if (item->widget_type == ROADMAP_WIDGET_LIST) num_entries += 4;
-			else num_entries++;
+			if (item->widget_type == ROADMAP_WIDGET_CONTAINER)
+				continue;
+			if (item->widget_type == ROADMAP_WIDGET_LIST)
+				num_entries += 4;
+			else
+				num_entries++;
 			name = ConvertToUNICODE(item->name);
 			GetTextExtentPoint(dc, name, wcslen(name), &text_size);
-			if (text_size.cx > max_name_len) max_name_len = text_size.cx;
-			if (text_size.cy > max_name_height) max_name_height =
-					text_size.cy;
+			if (text_size.cx > max_name_len)
+				max_name_len = text_size.cx;
+			if (text_size.cy > max_name_height)
+				max_name_height = text_size.cy;
 			free(name);
 		}
 
@@ -986,8 +988,9 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 
 		row_height = (int)(height / (num_entries + 1));
 		row_space = (int) (row_height / num_entries) - 1;
-		if (row_space < 0) row_space = 1;
 
+		if (row_space < 0)
+			row_space = 1;
 		if (row_height > MAX_ROW_HEIGHT) {
 			row_height = MAX_ROW_HEIGHT;
 			row_space = MAX_ROW_SPACE;
@@ -1002,9 +1005,12 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		curr_y = 3;
 		label_y_add = (row_height - max_name_height) / 2;
 
-		if (label_y_add < 0) label_y_add = 0;
+		if (label_y_add < 0)
+			label_y_add = 0;
 
+		int itemcount = 0;
 		for (item = frame->children; item != NULL; item = item->next) {
+			itemcount++;
 			HWND widget = item->w;
 			HWND label = item->label;
 			if (item->widget_type == ROADMAP_WIDGET_CONTAINER) {
@@ -1051,6 +1057,11 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 				curr_y += row_height + row_space;
 			}
 		}
+			/* What if we're too far below ? */
+			if (curr_y > 20) {
+				roadmap_log(ROADMAP_WARNING, "Dialog %s, %d items, height %d",
+						frame->name, itemcount, curr_y);
+			}
 	return TRUE;
 	}
 	case WM_COMMAND:

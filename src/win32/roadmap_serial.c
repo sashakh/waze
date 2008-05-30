@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -25,27 +26,9 @@
 #include <windows.h>
 #include "../roadmap.h"
 #include "../roadmap_serial.h"
-#include "listports.h"
 
-static int serial_ports[MAX_SERIAL_ENUMS];
-
-#define MAX_SERIAL_SPEEDS 10
-
-static BOOL CALLBACK list_port_callback(LPVOID pCallbackValue,
-		LISTPORTS_PORTINFO* lpPortInfo) {
-
-	int index;
-	char *str = ConvertToUNICODE (lpPortInfo->lpPortName);
-
-	index = atoi (str+3);
-	free (str);
-
-	if ((index >= 0) && (index < MAX_SERIAL_ENUMS)) {
-		serial_ports [index] = 1;
-	}
-
-	return TRUE;
-}
+/* 10 ones to take 10 possible COMx: ports into account */
+static int serial_ports[MAX_SERIAL_ENUMS] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
 RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 		int baud_rate)
@@ -66,6 +49,8 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 	free(url_unicode);
 
 	if(hCommPort == INVALID_HANDLE_VALUE) {
+		roadmap_log (ROADMAP_WARNING, "roadmap_serial_open(%s,%d) -> invalid handle",
+				name, baud_rate);
 		return (HANDLE)-1;
 	}
 
@@ -76,12 +61,16 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 	ct.WriteTotalTimeoutConstant = 1000;
 	if(!SetCommTimeouts(hCommPort, &ct)) {
 		roadmap_serial_close(hCommPort);
+		roadmap_log (ROADMAP_WARNING, "roadmap_serial_open(%s,%d) -> SetCommTimeouts",
+				name, baud_rate);
 		return (HANDLE)-1;
 	}
 
 	dcb.DCBlength = sizeof(DCB);
 	if(!GetCommState(hCommPort, &dcb)) {
 		roadmap_serial_close(hCommPort);
+		roadmap_log (ROADMAP_WARNING, "roadmap_serial_open(%s,%d) -> GetCommState",
+				name, baud_rate);
 		return (HANDLE)-1;
 	}
 
@@ -99,9 +88,47 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
 
 	if(!SetCommState(hCommPort, &dcb)) {
 		roadmap_serial_close(hCommPort);
+		roadmap_log (ROADMAP_WARNING, "roadmap_serial_open(%s,%d) -> SetCommState",
+				name, baud_rate);
 		return (HANDLE)-1;
 	}
 
+	roadmap_log (ROADMAP_WARNING, "roadmap_serial_open(%s,%d) -> ok",
+			name, baud_rate);
+#if 0
+	{
+		HANDLE	h;
+		char	data[1024];
+		DWORD	n;
+		int	i;
+
+#if 0
+		if (! ReadFile(hCommPort, data, sizeof(data), &n, NULL))
+			return (HANDLE)-1;
+#else
+		int count = 5;
+		while (ReadFile(hCommPort, data, sizeof(data), &n, NULL) && count > 0) {
+			if (n >= sizeof(data))
+				n = sizeof(data)-1;
+			if (n > 0) {
+				data[n] = 0;
+				for (i=0; i<n-1; i++)
+					if (data[i] == '\r' && data[i+1] == '\n')
+						roadmap_log(ROADMAP_WARNING, "CRLF @ %d", i);
+					else if (data[i] == '\n' && data[i+1] == '\r')
+						roadmap_log(ROADMAP_WARNING, "CRLF @ %d", i);
+			}
+			roadmap_log(ROADMAP_WARNING, "read -> [%s]", data);
+			count--;
+		}
+#endif
+		if (n >= sizeof(data))
+			n = sizeof(data)-1;
+		if (n > 0)
+			data[n] = 0;
+		roadmap_log(ROADMAP_WARNING, "read -> [%s]", data);
+	}
+#endif
 	return hCommPort;
 }
 
@@ -144,19 +171,16 @@ int roadmap_serial_write (RoadMapSerial serial, const void *data, int length)
    return dwBytesWritten;
 }
 
-const int *roadmap_serial_enumerate (void)
-{
-	if (!serial_ports[0]) {
-		ListPorts (&list_port_callback, NULL);
-	}
-	return serial_ports;
-}
-
-
 const char **roadmap_serial_get_speeds (void)
 {
-	static const char *serial_speeds[MAX_SERIAL_SPEEDS] =
+	static const char *serial_speeds[] =
 		{"4800", "9600", "19200", "38400", "57600", NULL};
 
 	return serial_speeds;
 }
+
+const int *roadmap_serial_enumerate (void)
+{
+	return serial_ports;
+}
+

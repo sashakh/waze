@@ -35,13 +35,13 @@
 
 LPWSTR ConvertToUNICODE(LPCSTR string)
 {
-	int len = MultiByteToWideChar(CP_ACP, 0, string, -1, 0, 0);
+	int len = MultiByteToWideChar(CP_UTF8, 0, string, -1, 0, 0);
 
 	if (len < 0) {
 		return _T("");
 	} else {
 		LPWSTR result = malloc(len * sizeof(WCHAR) + 2);
-		MultiByteToWideChar(CP_ACP, 0, string, -1, result, len);
+		MultiByteToWideChar(CP_UTF8, 0, string, -1, result, len);
 		return result;
 	}
 }

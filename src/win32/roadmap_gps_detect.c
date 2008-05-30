@@ -51,148 +51,164 @@
 
 #include "roadmap_gps.h"
 
-
-static RoadMapConfigDescriptor RoadMapConfigGPSVirtual =
-			ROADMAP_CONFIG_ITEM("GPS", "Virtual");
-
 static RoadMapConfigDescriptor RoadMapConfigGPSBaudRate =
                         ROADMAP_CONFIG_ITEM("GPS", "Baud Rate");
 
-static void roadmap_gps_detect_periodic(void);
+static char **speeds;
 
-static void roadmap_gps_detect_finalize(void) {
-   roadmap_main_remove_periodic (roadmap_gps_detect_periodic);
-   roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Port", "");
-   roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Speed", "");
-   roadmap_dialog_hide ("Detect GPS receiver");
+static int detect_one_speed(HANDLE h, int SpeedIndex)
+{
+	COMMTIMEOUTS	ct;
+	DCB		dcb;
+	char		data[1024];
+	DWORD		n;
+	int		i, count;
+	int		baud = atoi(speeds[SpeedIndex]);
+
+	roadmap_log (ROADMAP_WARNING, "Try speed %d", baud);
+
+	ct.ReadIntervalTimeout = MAXDWORD;
+	ct.ReadTotalTimeoutMultiplier = 0;
+	ct.ReadTotalTimeoutConstant = 0;
+	ct.WriteTotalTimeoutMultiplier = 10;
+	ct.WriteTotalTimeoutConstant = 1000;
+
+	if (!SetCommTimeouts(h, &ct)) {
+		roadmap_log(ROADMAP_WARNING, "SetCommTimeouts failure");
+		return -1;
+	}
+
+	dcb.DCBlength = sizeof(DCB);
+	if (!GetCommState(h, &dcb)) {
+		roadmap_log(ROADMAP_WARNING, "GetCommState failure");
+		return -1;
+	}
+
+	dcb.fBinary		= TRUE;
+	dcb.BaudRate		= baud;
+	dcb.fOutxCtsFlow	= TRUE;
+	dcb.fRtsControl		= RTS_CONTROL_DISABLE;
+	dcb.fDtrControl		= DTR_CONTROL_DISABLE;
+	dcb.fOutxDsrFlow	= FALSE;
+	dcb.fOutX		= FALSE;
+	dcb.fInX		= FALSE;
+	dcb.ByteSize		= 8;
+	dcb.Parity		= NOPARITY;
+	dcb.StopBits		= ONESTOPBIT;
+
+	if (!SetCommState(h, &dcb)) {
+		roadmap_log(ROADMAP_WARNING, "SetCommState failure");
+		return -1;
+	}
+
+	count = 5;
+	while (ReadFile(h, data, sizeof(data), &n, NULL) && count > 0) {
+		if (n >= sizeof(data))
+			n = sizeof(data)-1;
+		if (n > 0) {
+			data[n] = 0;
+//			roadmap_log(ROADMAP_WARNING, "read -> [%s]", data);
+			for (i=0; i<n-1; i++)
+				if (data[i] == '\r' && data[i+1] == '\n') {
+					roadmap_log(ROADMAP_WARNING, "Yes !");
+					return 1;
+				}
+		}
+		count--;
+	}
+	return -1;
 }
 
+static int detect_one_port(HANDLE h)
+{
+	int	i;
 
-static void roadmap_gps_detect_periodic(void) {
+	for (i=0; speeds[i]; i++) {
+		roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Speed",
+				speeds[i]);
+		if (detect_one_speed(h, i) == 1) {
+			return i;
+		}
+	}
 
-   static const int *serial_ports;
-   static const char **speeds;
-   static time_t OpenTime;
-
-   static int SpeedIndex = -1;
-   static int CurrentPort = -1;
-   static int VirtualPort;
-
-   static char *SavedSpeed;
-   static char *SavedPort;
-   static int SavedRetryPending = 0;
-
-   static char Prompt[100];
-
-   if (CurrentPort == -1) { /* new run */
-      const char *virtual_port = roadmap_config_get (&RoadMapConfigGPSVirtual);
-      serial_ports = roadmap_serial_enumerate ();
-      speeds = roadmap_serial_get_speeds ();
-
-      /* check for virtual port configuration */
-      if ((strlen(virtual_port) >= 5) && !strncmp(virtual_port, "COM", 3)) {
-         VirtualPort = atoi (virtual_port + 3);
-      } else {
-         VirtualPort = -1;
-      }
-
-      SavedSpeed = (char *)roadmap_config_get (&RoadMapConfigGPSBaudRate);
-      SavedPort = (char *)roadmap_config_get (&RoadMapConfigGPSSource);
-      SavedRetryPending = RoadMapGpsRetryPending;
-
-      OpenTime = time(NULL) - (time_t)3; /* make sure first time will be processed */
-      CurrentPort++;
-      /* skip undefined ports */
-      while ((CurrentPort < MAX_SERIAL_ENUMS) &&
-            (!serial_ports[CurrentPort] ||
-            (CurrentPort == VirtualPort))) {
-
-         CurrentPort++;
-      }
-   }
-
-   if (time(NULL) - OpenTime > (time_t)2) { /* passed 2 seconds since trying to open gps */
-      SpeedIndex++;
-      if (speeds[SpeedIndex] == NULL) {
-         SpeedIndex = 0;
-         CurrentPort++;
-
-         /* skip undefined ports */
-         while ((CurrentPort < MAX_SERIAL_ENUMS) &&
-               (!serial_ports[CurrentPort] ||
-               (CurrentPort == VirtualPort))) {
-
-            CurrentPort++;
-         }
-      }
-
-      if (CurrentPort == MAX_SERIAL_ENUMS) { /* not found */
-         roadmap_gps_detect_finalize();
-         roadmap_config_set (&RoadMapConfigGPSSource, SavedPort);
-         roadmap_config_set (&RoadMapConfigGPSBaudRate, SavedSpeed);
-         if ((SavedRetryPending) && (! RoadMapGpsRetryPending)) {
-            (*RoadMapGpsPeriodicAdd) (roadmap_gps_open);
-            RoadMapGpsRetryPending = 1;
-         }
-         SpeedIndex = -1;
-         CurrentPort = -1;
-         roadmap_messagebox(roadmap_lang_get ("Error"),
-            roadmap_lang_get ("GPS Receiver not found. Make sure your receiver is connected and turned on."));
-         return;
-      }
-
-      /* prepare to test the new configuration */
-      if (RoadMapGpsRetryPending) {
-         (*RoadMapGpsPeriodicRemove) (roadmap_gps_open);
-         RoadMapGpsRetryPending = 0;
-      }
-
-      roadmap_gps_shutdown();
-
-      sprintf (Prompt, "COM%d:", CurrentPort);
-
-      roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Speed",
-                               speeds[SpeedIndex]);
-      roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Port", Prompt);
-
-      roadmap_config_set (&RoadMapConfigGPSSource, Prompt);
-      roadmap_config_set (&RoadMapConfigGPSBaudRate, speeds[SpeedIndex]);
-
-      OpenTime = time(NULL);
-      roadmap_gps_open();
-      return;
-   }
-
-   if (RoadMapGpsReception != 0) { /* found */
-      roadmap_gps_detect_finalize();
-      snprintf (Prompt, sizeof(Prompt),
-             "%s\nPort: COM%d:\nSpeed: %s",
-             roadmap_lang_get ("Found GPS Receiver."),
-             CurrentPort, speeds[SpeedIndex]);
-      SpeedIndex = -1;
-      CurrentPort = -1;
-      roadmap_messagebox(roadmap_lang_get ("Info"), Prompt);
-   }
+	/* Nothing found */
+	return -1;
 }
 
+/* A thread function */
+static DWORD WINAPI detect_simple(void *p)
+{
+	wchar_t	devname[8];	/* COMx: */
+	char	devn[8];
+	HANDLE	h;
+	int	devnum;
+	int	SpeedIndex = -1;
+	char	Prompt[100];
 
-void roadmap_gps_detect_receiver (void) {
+	roadmap_log (ROADMAP_WARNING, "detect_simple()");
+	speeds = roadmap_serial_get_speeds ();
 
-   if (RoadMapGpsReception != 0) {
-      roadmap_messagebox(roadmap_lang_get ("Info"),
-                         roadmap_lang_get ("GPS already connected!"));
-   } else {
-      if (roadmap_dialog_activate ("Detect GPS receiver", NULL)) {
+	for (devnum=0; devnum <= 9; devnum++) {
+		sprintf(devn, "COM%d:", devnum);
+		wsprintf(devname, L"COM%d:", devnum);
 
-         roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Port");
-         roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Speed");
-         roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Status");
+		roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Port", devn);
 
-         roadmap_dialog_complete (0);
-      }
+		h = CreateFile (devname, GENERIC_READ | GENERIC_WRITE,
+				0, NULL, OPEN_EXISTING, 0, NULL);
+		if (h == INVALID_HANDLE_VALUE) {
+			roadmap_log (ROADMAP_WARNING, "Port %s -> invalid", devn);
+			continue;
+		}
 
-      roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Status",
-                               roadmap_lang_get ("Running, please wait..."));
-      roadmap_main_set_periodic (200,roadmap_gps_detect_periodic);
-   }
+		if ((SpeedIndex = detect_one_port(h)) >= 0) {
+			CloseHandle(h);
+
+			snprintf (Prompt, sizeof(Prompt),
+					"%s\nPort: COM%d:\nSpeed: %s",
+					roadmap_lang_get ("Found GPS Receiver."),
+					devnum, speeds[SpeedIndex]);
+			roadmap_messagebox(roadmap_lang_get ("Info"), Prompt);
+			roadmap_dialog_hide ("Detect GPS receiver");
+
+			roadmap_config_set (&RoadMapConfigGPSSource, devn);
+			roadmap_config_set (&RoadMapConfigGPSBaudRate, speeds[SpeedIndex]);
+
+			roadmap_gps_open();
+
+			return 0;
+		}
+
+		CloseHandle(h);
+	}
+
+	roadmap_dialog_hide ("Detect GPS receiver");
+	return 0;
+}
+
+static void detect_detach(void)
+{
+	HANDLE	t;
+
+	t = CreateThread(NULL, 0, detect_simple, NULL, 0, NULL);
+}
+
+void roadmap_gps_detect_receiver (void)
+{
+	if (RoadMapGpsReception != 0) {
+		roadmap_messagebox(roadmap_lang_get ("Info"),
+		roadmap_lang_get ("GPS already connected!"));
+	} else {
+		if (roadmap_dialog_activate ("Detect GPS receiver", NULL)) {
+			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Port");
+			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Speed");
+			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Status");
+
+			roadmap_dialog_complete (0);
+		}
+
+		roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Status",
+			roadmap_lang_get ("Running, please wait..."));
+		detect_detach();
+	}
 }

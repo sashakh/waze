@@ -95,7 +95,7 @@ void roadmap_spawn_initialize (const char *argv0)
 
 	GetModuleFileName(NULL, path_unicode,
 		sizeof(path_unicode)/sizeof(path_unicode[0]));
-	path = ConvertToANSI(path_unicode, CP_ACP);
+	path = ConvertToANSI(path_unicode, CP_UTF8);
 	tmp = strrchr (path, '\\');
 	if (tmp != NULL) {
 		*tmp = '\0';

@@ -75,7 +75,7 @@ void roadmap_fileselection_new (const char *title,
 	free((char*)ofn.lpstrTitle);
 
 	if (res) {
-		char *name = ConvertToANSI(filename, CP_ACP);
+		char *name = ConvertToANSI(filename, CP_UTF8);
 		(*callback)(name, mode);
 		free(name);
 	}
