@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008 Danny Backx - complete rewrite.
  *
  *   This file is part of RoadMap.
  *
@@ -21,6 +22,7 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * SYNOPSYS:
+ *	void roadmap_gps_detect_receiver (void)
  *
  */
 
@@ -54,15 +56,58 @@
 static RoadMapConfigDescriptor RoadMapConfigGPSBaudRate =
                         ROADMAP_CONFIG_ITEM("GPS", "Baud Rate");
 
-static char **speeds;
+static const char **speeds;
 
+static DWORD WINAPI roadmap_gps_detect_thread(void *p);
+
+/*
+ * Keep it simple : this algorithm takes a bit of time.
+ * Also it needs to do a bunch of things in the right order.
+ * So start a new thread, and program it sequentially.
+ *
+ * The alternative (a function that gets called from a timer and needs to figure out
+ * what it was doing the previous time) is much more complicated.
+ */
+static void detect_detach(void)
+{
+	HANDLE	t;
+
+	t = CreateThread(NULL, 0, roadmap_gps_detect_thread, NULL, 0, NULL);
+}
+
+void roadmap_gps_detect_receiver (void)
+{
+	if (RoadMapGpsReception != 0) {
+		roadmap_messagebox(roadmap_lang_get ("Info"),
+		roadmap_lang_get ("GPS already connected!"));
+	} else {
+		if (roadmap_dialog_activate ("Detect GPS receiver", NULL)) {
+			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Port");
+			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Speed");
+			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Status");
+
+			roadmap_dialog_complete (0);
+		}
+
+		roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Status",
+			roadmap_lang_get ("Running, please wait..."));
+		detect_detach();
+	}
+}
+
+/*
+ * We've opened a device, and have a handle for it.
+ *
+ * Now figure out whether it wants to talk with the baud rate
+ * specified by the caller.
+ */
 static int detect_one_speed(HANDLE h, int SpeedIndex)
 {
 	COMMTIMEOUTS	ct;
 	DCB		dcb;
 	char		data[1024];
-	DWORD		n;
-	int		i, count;
+	DWORD		n, i;
+	int		count;
 	int		baud = atoi(speeds[SpeedIndex]);
 
 	roadmap_log (ROADMAP_WARNING, "Try speed %d", baud);
@@ -107,18 +152,24 @@ static int detect_one_speed(HANDLE h, int SpeedIndex)
 			n = sizeof(data)-1;
 		if (n > 0) {
 			data[n] = 0;
-//			roadmap_log(ROADMAP_WARNING, "read -> [%s]", data);
+#if 0
+			roadmap_log(ROADMAP_WARNING, "read -> [%s]", data);
+#endif
 			for (i=0; i<n-1; i++)
 				if (data[i] == '\r' && data[i+1] == '\n') {
-					roadmap_log(ROADMAP_WARNING, "Yes !");
 					return 1;
 				}
 		}
+		Sleep(400);
 		count--;
 	}
 	return -1;
 }
 
+/*
+ * We have opened a device and have a handle for it.
+ * Loop through all speeds and see which one is good.
+ */
 static int detect_one_port(HANDLE h)
 {
 	int	i;
@@ -135,8 +186,15 @@ static int detect_one_port(HANDLE h)
 	return -1;
 }
 
-/* A thread function */
-static DWORD WINAPI detect_simple(void *p)
+/*
+ * This is the function that gets started in a separate thread to
+ * detect a GPS device.
+ *
+ * Because it is in a separate thread, we can program it in the simplest
+ * way possible : sequentially.
+ * Even use of the Sleep function is ok :-)
+ */
+static DWORD WINAPI roadmap_gps_detect_thread(void *p)
 {
 	wchar_t	devname[8];	/* COMx: */
 	char	devn[8];
@@ -145,10 +203,10 @@ static DWORD WINAPI detect_simple(void *p)
 	int	SpeedIndex = -1;
 	char	Prompt[100];
 
-	roadmap_log (ROADMAP_WARNING, "detect_simple()");
+	roadmap_log (ROADMAP_WARNING, "roadmap_gps_detect_thread()");
 	speeds = roadmap_serial_get_speeds ();
 
-	for (devnum=0; devnum <= 9; devnum++) {
+	for (devnum=0; devnum < 20; devnum++) {
 		sprintf(devn, "COM%d:", devnum);
 		wsprintf(devname, L"COM%d:", devnum);
 
@@ -160,6 +218,7 @@ static DWORD WINAPI detect_simple(void *p)
 			roadmap_log (ROADMAP_WARNING, "Port %s -> invalid", devn);
 			continue;
 		}
+		roadmap_log (ROADMAP_WARNING, "Try port %s", devn);
 
 		if ((SpeedIndex = detect_one_port(h)) >= 0) {
 			CloseHandle(h);
@@ -170,6 +229,9 @@ static DWORD WINAPI detect_simple(void *p)
 					devnum, speeds[SpeedIndex]);
 			roadmap_messagebox(roadmap_lang_get ("Info"), Prompt);
 			roadmap_dialog_hide ("Detect GPS receiver");
+
+			roadmap_log (ROADMAP_WARNING, "GPS device found : %s %s",
+					devn, speeds[SpeedIndex]);
 
 			roadmap_config_set (&RoadMapConfigGPSSource, devn);
 			roadmap_config_set (&RoadMapConfigGPSBaudRate, speeds[SpeedIndex]);
@@ -184,31 +246,4 @@ static DWORD WINAPI detect_simple(void *p)
 
 	roadmap_dialog_hide ("Detect GPS receiver");
 	return 0;
-}
-
-static void detect_detach(void)
-{
-	HANDLE	t;
-
-	t = CreateThread(NULL, 0, detect_simple, NULL, 0, NULL);
-}
-
-void roadmap_gps_detect_receiver (void)
-{
-	if (RoadMapGpsReception != 0) {
-		roadmap_messagebox(roadmap_lang_get ("Info"),
-		roadmap_lang_get ("GPS already connected!"));
-	} else {
-		if (roadmap_dialog_activate ("Detect GPS receiver", NULL)) {
-			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Port");
-			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Speed");
-			roadmap_dialog_new_label  ("GPS Receiver Auto Detect", "Status");
-
-			roadmap_dialog_complete (0);
-		}
-
-		roadmap_dialog_set_data ("GPS Receiver Auto Detect", "Status",
-			roadmap_lang_get ("Running, please wait..."));
-		detect_detach();
-	}
 }

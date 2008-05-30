@@ -1093,8 +1093,11 @@ extern "C" {
 			if (RoadMapMainPeriodicTimer[index].callback == callback) {
 				
 				RoadMapMainPeriodicTimer[index].callback = NULL;
-				KillTimer(RoadMapMainWindow,
-					RoadMapMainPeriodicTimer[index].id);
+				if (KillTimer(RoadMapMainWindow,
+					RoadMapMainPeriodicTimer[index].id) == 0) {
+					DWORD e = GetLastError();
+					roadmap_log (ROADMAP_ERROR, "KillTimer failed (%d)", e);
+				}
 				
 				return;
 			}

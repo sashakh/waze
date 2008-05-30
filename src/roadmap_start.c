@@ -280,8 +280,10 @@ static void roadmap_start_toggle_download (void) {
 }
 
 #ifdef _WIN32
-static void roadmap_start_detect_receiver (void) {
-
+static void roadmap_start_detect_receiver (void)
+{
+    roadmap_main_remove_periodic (roadmap_gps_open);
+    roadmap_gps_shutdown ();
     roadmap_gps_detect_receiver ();
 }
 #endif
