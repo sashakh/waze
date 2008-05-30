@@ -336,8 +336,9 @@ else
 BUILD = buildmap buildmap_osm buildus buildplace dumpmap rdmindex 
 endif
 
-RUNTIME = $(RDMLIBS) libguiroadgps.a libguiroadmap.a
+RUNTIME = $(RDMLIBS) libguiroadmap.a
 ifneq ($(DESKTOP),WINCE)
+RUNTIME += libguiroadgps.a
 DRIVERS = rdmkismet rdmghost rdmfriends rdmtrace rdmxchange
 TOOLS = sunrise
 endif
