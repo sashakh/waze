@@ -63,15 +63,15 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
  */
 static RoadMapAction RoadGpsStartActions[] = {
 
-   {"quit", "Quit", NULL, NULL, "Quit RoadGps", roadmap_main_exit},
+   {"quit", "Quit", NULL, NULL, "Quit RoadGps", NULL, roadmap_main_exit},
 
    {"record", "Start Recording", "Start", NULL,
-      "Start recording GPS messages", roadgps_logger_start},
+      "Start recording GPS messages", NULL, roadgps_logger_start},
 
    {"stop", "Stop Recording", "Stop", NULL,
-      "Stop recording GPS messages", roadgps_logger_stop},
+      "Stop recording GPS messages", NULL, roadgps_logger_stop},
 
-   {NULL, NULL, NULL, NULL, NULL, NULL}
+   {NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 static  const char *RoadGpsStartMenu[] = {
