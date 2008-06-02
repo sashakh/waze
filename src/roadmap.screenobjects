@@ -161,8 +161,8 @@ R 0
 # N 2D3D
 # P 20 180
 # S view_mode
-# E TextBox 3D
 # E TextBox 2D
+# E TextBox 3D
 # A toggleview
 
 # # show current time, along with either sunset or sunrise time

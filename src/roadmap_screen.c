@@ -104,6 +104,9 @@ static RoadMapConfigDescriptor RoadMapConfigMapLabels =
 static RoadMapConfigDescriptor RoadMapConfigMapDynamicOrientation =
                         ROADMAP_CONFIG_ITEM("Map", "DynamicOrientation");
 
+static RoadMapConfigDescriptor RoadMapConfigMapViewMode =
+                        ROADMAP_CONFIG_ITEM("Map", "ViewMode");
+
 static RoadMapConfigDescriptor RoadMapConfigLinefontSelector =
                         ROADMAP_CONFIG_ITEM("Map", "Use Linefont");
 
@@ -1724,7 +1727,10 @@ static int roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
 static int roadmap_screen_get_view_mode (void) {
    
-   return RoadMapScreenViewMode;
+   if (RoadMapScreenViewMode)
+      return VIEW_MODE_3D;
+   else
+      return VIEW_MODE_2D;
 }
 
 static int roadmap_screen_get_orientation_mode (void) {
@@ -1865,15 +1871,18 @@ void roadmap_screen_rotate (int delta) {
    roadmap_start_request_repaint_map();
 }
 
-
 void roadmap_screen_toggle_view_mode (void) {
    
-   if (RoadMapScreenViewMode == VIEW_MODE_2D) {
-      RoadMapScreenViewMode = VIEW_MODE_3D;
-      RoadMapScreen3dHorizon = -100;
+   RoadMapScreenViewMode = ! RoadMapScreenViewMode;
+   roadmap_screen_render_horizon();
+}
+
+void roadmap_screen_render_horizon (void) {
+   
+   if (RoadMapScreenViewMode) {
+     RoadMapScreen3dHorizon = -100;
    } else {
-      RoadMapScreenViewMode = VIEW_MODE_2D;
-      RoadMapScreen3dHorizon = 0;
+     RoadMapScreen3dHorizon = 0;
    }
 
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
@@ -2057,6 +2066,9 @@ void roadmap_screen_initialize (void) {
         ("preferences", &RoadMapConfigMapDynamicOrientation, "on", "off", NULL);
 
    roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigMapViewMode, "2D", "3D", NULL);
+
+   roadmap_config_declare_enumeration
         ("preferences", &RoadMapConfigLinefontSelector,
             "off", "labels", "signs", "all", NULL);
 
@@ -2098,6 +2110,16 @@ void roadmap_screen_set_initial_position (void) {
     RoadMapScreenOrientationDynamic = 
         roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
 
+    RoadMapScreenViewMode = 
+        roadmap_config_match(&RoadMapConfigMapViewMode, "3D");
+
+    /* this seems a bit hackish, but there doesn't appear to be
+     * a redraw after the preferences file is read.  This fixes that.
+     */    
+    if (RoadMapScreenViewMode) {
+      roadmap_screen_render_horizon();
+    }
+    
     roadmap_layer_initialize();
 
     RoadMapBackground = roadmap_canvas_create_pen ("Map.Background");
