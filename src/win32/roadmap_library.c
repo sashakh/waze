@@ -1,9 +1,9 @@
 /* roadmap_library.c - a low level module to manage plugins for RoadMap.
- * This is a dummy file as plugins are currently not implmemented under wince.
  *
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2008 Danny Backx - added an actual implementation.
  *
  *   This file is part of RoadMap.
  *
@@ -26,13 +26,41 @@
  *   See roadmap_library.h
  */
 
+#include <windows.h>
+
 #include "../roadmap.h"
 #include "../roadmap_library.h"
 #include "../roadmap_file.h"
 
+struct roadmap_library_context {
+	const char	*name;
+	HINSTANCE	handle;
+};
+
+/*
+ * HINSTANCE dll;
+ * dll = LoadLibrary(TEXT("coredll.dll"));
+ * *(FARPROC*)&_ReleasePowerRequirement = GetProcAddress(dll, TEXT("ReleasePowerRequirement"));
+ */
 RoadMapLibrary roadmap_library_load (const char *pathname)
 {
-	return NULL;
+	HINSTANCE	h;
+	RoadMapLibrary	library;
+	wchar_t		*wcs;
+
+	wcs = ConvertToUNICODE(pathname);
+	h = LoadLibrary(wcs);
+	free(wcs);
+	if (h == NULL)
+		return NULL;
+
+	library = (RoadMapLibrary) malloc (sizeof(struct roadmap_library_context));
+	roadmap_check_allocated(library);
+
+	library->handle = h;
+	library->name = strdup(pathname);
+
+	return library;
 }
 
 
@@ -44,5 +72,15 @@ int roadmap_library_exists (const char *pathname)
 
 void *roadmap_library_symbol (RoadMapLibrary library, const char *symbol)
 {
-	return NULL;
+	void	*r = NULL;
+	wchar_t		*wcs;
+
+	if (library == NULL || library->handle == NULL)
+		return NULL;
+
+	wcs = ConvertToUNICODE(symbol);
+	r = GetProcAddress(library->handle, wcs);
+	free(wcs);
+
+	return r;
 }
