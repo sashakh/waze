@@ -53,7 +53,6 @@ void roadmap_screen_toggle_labels (void);
 void roadmap_screen_toggle_orientation_mode (void);
 void roadmap_screen_increase_horizon (void);
 void roadmap_screen_decrease_horizon (void);
-void roadmap_screen_render_horizon (void);
 
 void roadmap_screen_rotate (int delta);
 

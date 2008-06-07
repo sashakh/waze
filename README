@@ -2303,7 +2303,7 @@ CONFIGURATION
 
          <<Default:>> see the ICON FILES section of this document.
 
-         <<Comment:>> the hardcoded default includes the usual linux system
+         <<Comment:>> The hardcoded default includes the usual linux system
                       pixmap directories used for storing application icons.
                       A "pixmaps" subdirectory of the user's .roadmap
                       directory, and the system roadmap config directory,
@@ -2315,7 +2315,7 @@ CONFIGURATION
 
          <<Default:>> 300
 
-         <<Comment:>> when displaying maps that cover a large area, or on
+         <<Comment:>> When displaying maps that cover a large area, or on
                       a slow computer, it may be helpful to have an on-screen
                       indication of how long the refresh will take.  The
                       value is the delay until the progress bar appears.  Use
@@ -2329,7 +2329,7 @@ CONFIGURATION
 
          <<Command line option:>> --no-toolbar
 
-         <<Comment:>> in some case (GTK2) it may be necessary to suppress
+         <<Comment:>> In some case (GTK2) it may be necessary to suppress
                       or minimize the toolbar if a very small screen is
                       needed, because the size of the toolbar may dicate
                       the minimum size of the screen.  The toolbar can also
@@ -2425,7 +2425,7 @@ CONFIGURATION
 
          <<Default:>> 10
 
-         <<Comment:>> the selection is only removed when the map is redrawn.
+         <<Comment:>> The selection is only removed when the map is redrawn.
 
     [Display.Refresh Period] Minimum interval between display refreshes.
 
@@ -2458,7 +2458,7 @@ CONFIGURATION
 
          <<Default:>> empty string (i.e. RoadMap uses the hardcoded default)
 
-         <<Comment:>> the hardcoded default also includes the directories
+         <<Comment:>> The hardcoded default also includes the directories
                       /usr/local/share/roadmap and /usr/share/roadmap, for
                       compatibility purposes.  These two directories were the
                       standard locations for the maps in previous versions of
@@ -2488,7 +2488,7 @@ CONFIGURATION
 
          <<Default:>> yes
 
-         <<Comment:>> chooses whether streets are labeled at startup.
+         <<Comment:>> Chooses whether streets are labeled at startup.
                       They can still be toggled by command.
 
     [Map.DynamicOrientation] Rotate the map to match the GPS direction.
@@ -2497,7 +2497,7 @@ CONFIGURATION
 
          <<Default:>> off
 
-         <<Comment:>> chooses whether the map will initially show north,
+         <<Comment:>> Chooses whether the map will initially show north,
                       or the direction of travel, towards the top of the
                       screen.  Can be toggled by command as well.
 
@@ -2507,7 +2507,7 @@ CONFIGURATION
 
          <<Default:>> 0
 
-         <<Comment:>> offset (millionths of a degree) applied to GPS results
+         <<Comment:>> Offset (millionths of a degree) applied to GPS results
 
     [Map.GPS map offset longitude] Allows tuning of GPS longitude results.
 
@@ -2515,7 +2515,7 @@ CONFIGURATION
 
          <<Default:>> 0
 
-         <<Comment:>> offset (millionths of a degree) applied to GPS results
+         <<Comment:>> Offset (millionths of a degree) applied to GPS results
 
     [Map.Signs] Enable/disable the map sprites and street signs.
 
@@ -2523,7 +2523,7 @@ CONFIGURATION
 
          <<Default:>> yes
 
-         <<Comment:>> use only in special cases (very small screens)
+         <<Comment:>> Use only in special cases (very small screens)
 
     [Map.Refresh] Forces a screen refresh every time.
 
@@ -2541,6 +2541,13 @@ CONFIGURATION
                   font since it can draw at angles, and since its size can be
                   easily scaled.  It is not very pretty, however.
                    
+    [Map.ViewMode] Select 2D (flat) or 3D (perspective) map view.
+
+         <<Format:>> enumeration (2D / 3D)
+
+         <<Default:>> 2D
+
+         <<Comment:>> Chooses the map view used at startup.
 
     [Labels.MinFeatureSize] The shortest street which may be labeled.
 
@@ -2739,7 +2746,7 @@ CONFIGURATION
 
          <<Default:>> LightYellow
 
-         <<Comment:>> this color is used by RoadGps, not by RoadMap.
+         <<Comment:>> This color is used by RoadGps, not by RoadMap.
 
     [GPS.Foreground] The foreground color for the RoadGps screen.
 
@@ -2747,7 +2754,7 @@ CONFIGURATION
 
          <<Default:>> Black
 
-         <<Comment:>> this color is used by RoadGps, not by RoadMap.
+         <<Comment:>> This color is used by RoadGps, not by RoadMap.
 
     [GPS.Timeout] A timeout for detecting that the GPS link is down.
 
@@ -2755,7 +2762,7 @@ CONFIGURATION
 
          <<Default:>> 10
 
-         <<Comment:>> the GPS link is considered down if no new GPS data was
+         <<Comment:>> The GPS link is considered down if no new GPS data was
                   received for the specified amount of time.  Note that the
                   GPS status will also go "down" because the GPS has lost
                   satellite visibility. This timeout simply forces that
@@ -2809,7 +2816,7 @@ CONFIGURATION
 
          <<Default:>> green
 
-         <<Comment:>> this color is used by RoadMap, not by RoadGps.
+         <<Comment:>> This color is used by RoadMap, not by RoadGps.
 
     [Destination.Color] The color used for the destination symbol.
 
@@ -2934,7 +2941,7 @@ CONFIGURATION
 
          <<Default:>> 20
 
-         <<Comment:>> on a mouse click, RoadMap defines the street search area
+         <<Comment:>> On a mouse click, RoadMap defines the street search area
                   as the rectangle delimited by the two points
                   (x-accuracy, y-accuracy) and (x+accuracy, y+accuracy).
                   Limiting the search to this area speeds up the process,
@@ -2969,7 +2976,7 @@ CONFIGURATION
 
          <<Default:>> /usr/local/share/roadmap/usc%05d.rdm
 
-         <<Comment:>> this item is either a full path name (starting with a '/')
+         <<Comment:>> This item is either a full path name (starting with a '/')
                   or an URL (such as "file://[...]" or "http://[...]").
 
     [Download.Destination] The path of the directory where to store the
@@ -2979,7 +2986,7 @@ CONFIGURATION
 
          <<Default:>> &/maps
 
-         <<Comment:>> this item must be either a full path name or start with
+         <<Comment:>> This item must be either a full path name or start with
                   '~' (user home directory) or '&' (RoadMap user's directory).
 
     [Style.Use Pretty Lines] If "yes", roads are shown with all the defined
@@ -3014,7 +3021,7 @@ CONFIGURATION
 
          <<Default:>> -122394181,37794928
 
-         <<Comment:>> the name of this item is kind of silly, to be changed.
+         <<Comment:>> The name of this item is kind of silly, to be changed.
 
          <<Command line option:>> --location=<LONGITUDE>,<LATITUDE>
 
@@ -3156,7 +3163,7 @@ CONFIGURATION
 
          <<Format:>> integer
 
-         <<Comment:>> the definition of this item is rather obscure. To be fixed.
+         <<Comment:>> The definition of this item is rather obscure. To be fixed.
 
      [<category>.Thickness:] the thickness used to draw lines.
 

@@ -1727,10 +1727,7 @@ static int roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
 static int roadmap_screen_get_view_mode (void) {
    
-   if (RoadMapScreenViewMode)
-      return VIEW_MODE_3D;
-   else
-      return VIEW_MODE_2D;
+   return RoadMapScreenViewMode;
 }
 
 static int roadmap_screen_get_orientation_mode (void) {
@@ -1871,21 +1868,23 @@ void roadmap_screen_rotate (int delta) {
    roadmap_start_request_repaint_map();
 }
 
-void roadmap_screen_toggle_view_mode (void) {
+static void roadmap_screen_set_horizon (void) {
    
-   RoadMapScreenViewMode = ! RoadMapScreenViewMode;
-   roadmap_screen_render_horizon();
-}
-
-void roadmap_screen_render_horizon (void) {
-   
-   if (RoadMapScreenViewMode) {
-     RoadMapScreen3dHorizon = -100;
+   if (RoadMapScreenViewMode == VIEW_MODE_3D) {
+      RoadMapScreen3dHorizon = -100;
    } else {
-     RoadMapScreen3dHorizon = 0;
+      RoadMapScreen3dHorizon = 0;
    }
 
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
+}
+
+void roadmap_screen_toggle_view_mode (void) {
+   
+   RoadMapScreenViewMode =
+      (RoadMapScreenViewMode == VIEW_MODE_2D) ?
+            VIEW_MODE_3D : VIEW_MODE_2D;
+   roadmap_screen_set_horizon();
    roadmap_start_request_repaint_map();
 }
 
@@ -2111,13 +2110,11 @@ void roadmap_screen_set_initial_position (void) {
         roadmap_config_match(&RoadMapConfigMapDynamicOrientation, "on");
 
     RoadMapScreenViewMode = 
-        roadmap_config_match(&RoadMapConfigMapViewMode, "3D");
+        roadmap_config_match(&RoadMapConfigMapViewMode, "3D") ?
+            VIEW_MODE_3D : VIEW_MODE_2D;
 
-    /* this seems a bit hackish, but there doesn't appear to be
-     * a redraw after the preferences file is read.  This fixes that.
-     */    
-    if (RoadMapScreenViewMode) {
-      roadmap_screen_render_horizon();
+    if (RoadMapScreenViewMode == VIEW_MODE_3D) {
+       roadmap_screen_set_horizon();
     }
     
     roadmap_layer_initialize();
