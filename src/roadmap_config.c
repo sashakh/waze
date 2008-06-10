@@ -902,6 +902,8 @@ void  roadmap_config_set_integer (RoadMapConfigDescriptor *descriptor, int x) {
     char image[16];
     RoadMapConfigItem *item = roadmap_config_retrieve (descriptor);
 
+    if (item == NULL) return;
+
     if (item->type == ROADMAP_CONFIG_DISTANCE) { 
        snprintf (image, sizeof(image),
                  "%d %s", x, roadmap_math_distance_unit());
