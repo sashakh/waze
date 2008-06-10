@@ -550,18 +550,6 @@ int roadmap_trip_is_focus_moved (void) {
     return 0;
 }
 
-/* force a "dummy" move for mobile focal points.  used when zooming,
- * since the next real move will change our centering, and we'd
- * rather change it now.
- */
-int roadmap_trip_adjust_mobile_focus(void) {
-    if (RoadMapTripFocus != NULL && RoadMapTripFocus->mobile) {
-        RoadMapTripFocusMoved = 1;
-        return 1;
-    }
-    return 0;
-}
-
 void roadmap_trip_preserve_focus (void) {
 
     /* For most focii, we don't want to save the focus, but
@@ -1697,8 +1685,6 @@ void roadmap_trip_set_gps
         roadmap_trip_route_resume();
     }
     RoadMapTripGPSTime = gps_time;
-
-
 
 }
 

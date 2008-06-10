@@ -1960,10 +1960,8 @@ void roadmap_screen_zoom_in  (void) {
 
     if (roadmap_math_zoom_in ()) {
        roadmap_layer_adjust ();
-       if (!roadmap_trip_adjust_mobile_focus()) {
-          roadmap_math_compute_scale ();
-          roadmap_start_request_repaint_map();
-       }
+       roadmap_math_compute_scale ();
+       roadmap_start_request_repaint_map();
        roadmap_screen_refresh();
     }
 }
@@ -1974,10 +1972,8 @@ void roadmap_screen_zoom_out (void) {
     if (roadmap_math_zoom_out ()) {
 
        roadmap_layer_adjust ();
-       if (!roadmap_trip_adjust_mobile_focus()) {
-          roadmap_math_compute_scale ();
-          roadmap_start_request_repaint_map();
-       }
+       roadmap_math_compute_scale ();
+       roadmap_start_request_repaint_map();
        roadmap_screen_refresh();
     }
 }
@@ -1988,11 +1984,9 @@ void roadmap_screen_zoom_reset (void) {
    if (roadmap_math_zoom_reset ()) {
 
       roadmap_layer_adjust ();
-      if (!roadmap_trip_adjust_mobile_focus()) {
-         roadmap_math_compute_scale ();
-         roadmap_start_request_repaint_map();
-      }
-       roadmap_screen_refresh();
+      roadmap_math_compute_scale ();
+      roadmap_start_request_repaint_map();
+      roadmap_screen_refresh();
    }
 }
 
