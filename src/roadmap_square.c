@@ -141,7 +141,7 @@ static void *roadmap_square_map (roadmap_db *root) {
    return context;
 }
 
-int grid_index(int square)
+static int grid_index(int square)
 {
 
    if (!RoadMapSquareActive->SquareGridBitmapped) {
