@@ -96,7 +96,7 @@ static time_t RoadMapGpsLatestData = 0;
 static int    RoadMapGpsEstimatedError = 0;
 int    RoadMapGpsRetryPending = 0;
 static time_t RoadMapGpsReceivedTime = 0;
-int    RoadMapGpsReception = 0;
+int    RoadMapGpsReception = GPS_RECEPTION_NA;
 
 static RoadMapGpsPosition RoadMapGpsReceivedPosition;
 
@@ -168,6 +168,8 @@ static void roadmap_gps_update_reception (void) {
          /* we want listeners to get at least one notification that
           * gps has gone away.
           */
+         // perhaps this should happen later, after GPS Timeout has
+         // expired?
          roadmap_gps_call_all_listeners ();
       }
 
@@ -177,7 +179,7 @@ static void roadmap_gps_update_reception (void) {
 
 static char roadmap_gps_update_status (char status) {
 
-   time_t fixtimeout;
+   time_t lostfixtimeout;
 
    /* Reading from a file is usually for debugging.  gpsbabel
     * doesn't recreate status correctly, so force good status here.
@@ -186,10 +188,10 @@ static char roadmap_gps_update_status (char status) {
        status = 'A';
    }
 
-   fixtimeout = (time_t) roadmap_config_get_integer
+   lostfixtimeout = (time_t) roadmap_config_get_integer
                             (&RoadMapConfigGPSLostFixTimeout);
    if (RoadMapGpsLostFixMessage) {
-      if (time(NULL) - RoadMapGPSLostFixTime > fixtimeout ||
+      if (time(NULL) - RoadMapGPSLostFixTime > lostfixtimeout ||
                     status != RoadMapLastKnownStatus) {
          roadmap_messagebox_hide(RoadMapGpsLostFixMessage);
          RoadMapGpsLostFixMessage = 0;
@@ -200,7 +202,7 @@ static char roadmap_gps_update_status (char status) {
 
    if (status != RoadMapLastKnownStatus) {
        if (RoadMapLastKnownStatus == 'A') {
-          if (fixtimeout != 0) { /* zero timeout implies no popup at all */
+          if (lostfixtimeout != 0) { /* zero timeout implies no popup at all */
              roadmap_log (ROADMAP_WARNING,
                        "GPS receiver lost satellite fix (status: %c)", status);
              RoadMapGpsLostFixMessage = roadmap_messagebox
