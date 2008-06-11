@@ -242,7 +242,7 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
          } else if (RoadMapPointActive->PointToSquare4 != NULL) {
             point_square = RoadMapPointActive->PointToSquare4[point];
          } else {
-            roadmap_log (ROADMAP_FATAL, "invalid square index", point);
+            roadmap_log (ROADMAP_FATAL, "bad PointToSquare pointers");
          }
       }
       RoadMapPointPositionLastSquare = point_square;
