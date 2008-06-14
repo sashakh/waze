@@ -265,6 +265,7 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_option (argc, argv, 1, roadgps_start_usage);
 
+   roadmap_math_initialize ();
 
    roadgps_start_set_unit ();
 
