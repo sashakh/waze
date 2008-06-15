@@ -604,7 +604,7 @@ static int roadmap_screen_draw_polygons (void) {
    int drew = 0;
    RoadMapPosition position, *startpos, *endpos;
    RoadMapGuiPoint *polystart;
-   RoadMapGuiPoint *previous_point;
+   RoadMapGuiPoint prev_point;
    RoadMapGuiPoint *shape_ptr;
    static RoadMapGuiPoint *shape_points;
 
@@ -672,7 +672,7 @@ static int roadmap_screen_draw_polygons (void) {
 
       polystart = LinePoints.cursor;
 
-      previous_point = &null_point;
+      prev_point = null_point;
 
       /* for every line in the polygon... */
       for (j = 0; j < size; j++) {
@@ -701,24 +701,22 @@ static int roadmap_screen_draw_polygons (void) {
          if (4 * sizeof(RoadMapGuiPoint) >=
                (unsigned)(LinePoints.end - LinePoints.cursor)) {
 
-            int polyoff, prevoff;
+            int polyoff;
 
             /* since roadmap_screen_pb_init() may
              * move the data, we adjust pointers we have to that data
              */
             polyoff = polystart - LinePoints.data;
-            prevoff = previous_point - LinePoints.data;
             roadmap_screen_pb_init (&LinePoints, 0);
             polystart = polyoff + LinePoints.data;
-            previous_point = prevoff + LinePoints.data;
          }
 
          roadmap_math_coordinate (startpos, LinePoints.cursor);
 
-         if ((LinePoints.cursor->x != previous_point->x) ||
-             (LinePoints.cursor->y != previous_point->y)) {
+         if ((LinePoints.cursor->x != prev_point.x) ||
+             (LinePoints.cursor->y != prev_point.y)) {
 
-            previous_point = LinePoints.cursor;
+            prev_point = *LinePoints.cursor;
             LinePoints.cursor++;
          }
          
@@ -755,16 +753,14 @@ static int roadmap_screen_draw_polygons (void) {
             while (last_shape - first_shape + 3 >=
                   (LinePoints.end - LinePoints.cursor)) {
 
-               int polyoff, prevoff;
+               int polyoff;
 
                /* since roadmap_screen_pb_init() may
                 * move the data, we adjust pointers we have to that data
                 */
                polyoff = polystart - LinePoints.data;
-               prevoff = previous_point - LinePoints.data;
                roadmap_screen_pb_init (&LinePoints, 0);
                polystart = polyoff + LinePoints.data;
-               previous_point = prevoff + LinePoints.data;
             }
 
             /* All the shape positions are relative:  we need an
@@ -792,10 +788,10 @@ static int roadmap_screen_draw_polygons (void) {
 
                roadmap_math_coordinate (&position, shape_ptr);
 
-               if ((shape_ptr->x != previous_point->x) ||
-                   (shape_ptr->y != previous_point->y)) {
+               if ((shape_ptr->x != prev_point.x) ||
+                   (shape_ptr->y != prev_point.y)) {
 
-                  previous_point = shape_ptr;
+                  prev_point = *shape_ptr;
                   shape_ptr++;
                }
             }
@@ -813,8 +809,8 @@ static int roadmap_screen_draw_polygons (void) {
 
          roadmap_math_coordinate (endpos, LinePoints.cursor);
 
-         if ((LinePoints.cursor->x != previous_point->x) ||
-             (LinePoints.cursor->y != previous_point->y)) {
+         if ((LinePoints.cursor->x != prev_point.x) ||
+             (LinePoints.cursor->y != prev_point.y)) {
             LinePoints.cursor++;
          }
          
