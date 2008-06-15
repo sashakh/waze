@@ -606,7 +606,7 @@ static int roadmap_screen_draw_polygons (void) {
    RoadMapGuiPoint *polystart;
    RoadMapGuiPoint *previous_point;
    RoadMapGuiPoint *shape_ptr;
-   RoadMapGuiPoint *shape_points = NULL;
+   static RoadMapGuiPoint *shape_points;
 
    RoadMapGuiPoint upper_left;
    RoadMapGuiPoint lower_right;
