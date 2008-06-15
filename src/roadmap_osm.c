@@ -245,6 +245,12 @@ void roadmap_osm_tilesplit(int tileid, int *ntiles, int howmanybits) {
 }
 
 
+/* these aren't really the "master home" of these pointers.  they're
+ * static simply to simplify the parameters used in the recursive tile
+ * splitting.  they actually are set/restored from the *fips parameter
+ * in roadmap_osm_by_position(), and so are really the same as the fipslistp
+ * passed from roadmap_locator.c
+ */
 static int *roadmap_osm_tilelist;
 static int roadmap_osm_tilelist_len;
 

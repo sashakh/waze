@@ -299,10 +299,11 @@ static int roadmap_locator_allocate (int **fipslistp) {
 
    count = roadmap_county_count();
 
-   if (*fipslistp == NULL) {
-      *fipslistp = malloc (count * sizeof(int));
-      roadmap_check_allocated(*fipslistp);
-   }
+   /* note that this can also be resized during tile splitting in
+    * roadmap_osm.c -- see usage of roadmap_osm_tilelist in that file.
+    */
+   *fipslistp = realloc (*fipslistp, count * sizeof(int));
+   roadmap_check_allocated(*fipslistp);
 
    return count;
 }
