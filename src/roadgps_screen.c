@@ -40,6 +40,7 @@
 #include "roadmap_start.h"
 #include "roadmap_canvas.h"
 #include "roadgps_screen.h"
+#include "roadmap_sunrise.h"
 
 static RoadMapConfigDescriptor RoadMapConfigGPSBackground =
                         ROADMAP_CONFIG_ITEM("GPS", "Background");
@@ -139,6 +140,8 @@ RoadMapPen RoadGpsInactiveFill;
 RoadMapPen RoadGpsInactiveLabels;
 RoadMapPen RoadGpsLabels;
 RoadMapPen RoadGpsValues;
+RoadMapPen RoadGpsMoonPen;
+RoadMapPen RoadGpsSunPen;
 
 int RoadMapGPSFontSize;
 
@@ -164,6 +167,47 @@ static void roadgps_screen_set_rectangle
    points[2].y = y + height;
    points[3].x = x;
    points[3].y = y + height;
+}
+
+static void roadgps_screen_draw_sunmoon_position () 
+{
+    double   scale = 0.0;
+    double   azimuth, elevation;
+
+    RoadMapGuiPoint centers[1];
+    int radius[1];
+
+    roadmap_sunposition(&RoadGpsPosition, &azimuth, &elevation);
+    if (elevation > 0.0)
+    {
+
+        scale = RoadGpsFrame.position_scale * (90 - elevation) / 90;
+
+        azimuth *= DEGRE2RADIAN;
+
+        centers[0].x = RoadGpsFrame.centers[0].x + (short) (sin(azimuth) * scale);
+        centers[0].y = RoadGpsFrame.centers[0].y - (short) (cos(azimuth) * scale);
+
+        radius[0]=10;
+        roadmap_canvas_select_pen (RoadGpsSunPen);
+        roadmap_canvas_draw_multiple_circles (1, centers, radius, 1, 0);
+
+    }
+
+    roadmap_moonposition(&RoadGpsPosition, &azimuth, &elevation);
+    if (elevation > 0.0)
+    {
+        scale = RoadGpsFrame.position_scale * (90 - elevation) / 90;
+
+        azimuth *= DEGRE2RADIAN;
+
+        centers[0].x = RoadGpsFrame.centers[0].x + (short) (sin(azimuth) * scale);
+        centers[0].y = RoadGpsFrame.centers[0].y - (short) (cos(azimuth) * scale);
+
+        radius[0]=10;
+        roadmap_canvas_select_pen (RoadGpsMoonPen);
+        roadmap_canvas_draw_multiple_circles (1, centers, radius, 1, 0);
+    }
 }
 
 
@@ -482,13 +526,16 @@ void roadgps_screen_draw (void) {
       }
    }
 
+   if (RoadMapGpsReceivedTime != 0) {
+      roadgps_screen_draw_sunmoon_position();
+   }
    roadgps_screen_draw_position();
    roadmap_canvas_refresh ();
 }
 
 void roadgps_screen_request_repaint(void) {
 
-  roadmap_start_request_repaint(ROADMAP_GPS);
+  roadmap_start_request_repaint(ROADMAP_GPS, 1);
 }
 
 static void roadgps_screen_listener
@@ -677,6 +724,16 @@ void roadgps_screen_configure (void) {
       roadmap_canvas_set_foreground
           (roadmap_config_get (&RoadMapConfigGPSInactiveFill));
 
+      RoadGpsSunPen = roadmap_canvas_create_pen ("gps/sun");
+      roadmap_canvas_set_thickness (2);
+      roadmap_canvas_set_foreground
+          ("yellow");
+
+      RoadGpsMoonPen = roadmap_canvas_create_pen ("gps/moon");
+      roadmap_canvas_set_thickness (2);
+      roadmap_canvas_set_foreground
+          ("LightYellow");
+
       RoadGpsActiveLabels = roadmap_canvas_create_pen ("gps/activelabels");
       roadmap_canvas_set_thickness (2);
       roadmap_canvas_set_foreground
@@ -735,5 +792,6 @@ void roadgps_screen_initialize (void) {
    roadmap_gps_register_monitor (roadgps_screen_monitor);
    roadmap_gps_register_listener (roadgps_screen_listener);
 
+  RoadMapGpsReceivedTime = time(NULL);
 }
 

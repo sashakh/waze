@@ -247,6 +247,10 @@ static int roadmap_start_no_download (int fips) {
    return 0;
 }
 
+void roadmap_start_download_done_callback(void) {
+   roadmap_start_request_repaint_map (REPAINT_NOW);
+}
+
 static void roadmap_start_toggle_download (void) {
 
    if (roadmap_download_enabled()) {
@@ -271,12 +275,13 @@ static void roadmap_start_toggle_download (void) {
          ProtocolInitialized = 1;
       }
 
-      roadmap_download_subscribe_when_done (roadmap_start_request_repaint_map);
+      roadmap_download_subscribe_when_done
+	    (roadmap_start_download_done_callback);
       roadmap_locator_declare_downloader (roadmap_download_get_county);
       roadmap_download_unblock_all ();
    }
 
-   roadmap_start_request_repaint_map ();
+   roadmap_start_request_repaint_map (REPAINT_NOW);
 }
 
 #ifdef _WIN32
@@ -297,7 +302,7 @@ int roadmap_start_map_active(void) {
 int roadmap_start_return_to_map(void) {
     if (RoadMapStartScreenActive != ROADMAP_MAP) {
         RoadMapStartScreenActive = ROADMAP_MAP;
-        roadmap_start_request_repaint(ROADMAP_MAP);
+        roadmap_start_request_repaint(ROADMAP_MAP, 1);
         return 1;
     }
     return 0;
@@ -305,7 +310,7 @@ int roadmap_start_return_to_map(void) {
 
 void roadmap_start_gps_console(void) {
     RoadMapStartScreenActive = ROADMAP_GPS;
-    roadmap_start_request_repaint(ROADMAP_GPS);
+    roadmap_start_request_repaint(ROADMAP_GPS, 1);
 }
 
 void roadmap_start_do_callback(RoadMapCallback callback) {
@@ -346,7 +351,7 @@ static void roadmap_start_external_gps_console (void) {
 }
 
 
-static int RoadMapStartRepaintNeeded;
+static int RoadMapStartRepaintNeeded = REPAINT_NOT_NEEDED;
 static int RoadMapStartIdleInstalled;
 
 int roadmap_start_repaint_scheduled(void) {
@@ -356,10 +361,9 @@ int roadmap_start_repaint_scheduled(void) {
 
 static void roadmap_start_repaint_if_requested(void) {
 
-   // fprintf(stderr, "start_repaint_if_requested: req is %d\n", RoadMapStartRepaintNeeded);
-   while (RoadMapStartRepaintNeeded) {
+   while (RoadMapStartRepaintNeeded != REPAINT_NOT_NEEDED) {
 
-      RoadMapStartRepaintNeeded = 0;
+      RoadMapStartRepaintNeeded = REPAINT_NOT_NEEDED;
 
       if (RoadMapStartScreenActive == ROADMAP_MAP) {
          roadmap_screen_repaint();
@@ -372,29 +376,38 @@ static void roadmap_start_repaint_if_requested(void) {
    RoadMapStartIdleInstalled = 0;
 }
 
-void roadmap_start_request_repaint (int which_screen) {
+/* The "which_screen" parameter tells us whether we're being
+ * asked to upgrade the regular map screen or the gps console
+ * screen.  There's no point in rendering a hidden screen.  The
+ * "priority" parameter tells us (usually) whether the requested
+ * repaint was user-initiated or not.  The difference is in
+ * whether we interrupt a repaint already in progress or not:  we
+ * assume the user wants instant gratification, and so we'll
+ * interrupt an in-progress repaint.  A repaint requested because
+ * the GPS moved, or because the time changed, is lower priority,
+ * and won't happen unless there's nothing else to do.  That's
+ * the theory anyway.
+ */
+void roadmap_start_request_repaint (int which_screen, int priority) {
 
-   /* the repaint is actually invoked via the gui's mainloop
-    * idle routine.  we need to install and remove this routine
+   /* The repaint is actually invoked via the gui's mainloop
+    * idle routine.  We need to install and remove this routine
     * on an as-needed basis, because otherwise installing something
     * in the gui's idle loop causes it to eat CPU (i.e., it can't
     * sleep -- it has to spin.)
     */
-   // fprintf(stderr, "requesting repaint was %d", RoadMapStartRepaintNeeded);
    if (RoadMapStartScreenActive == which_screen) {
       if (!RoadMapStartIdleInstalled) {
          roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
          RoadMapStartIdleInstalled = 1;
       }
-      RoadMapStartRepaintNeeded = 1;
+      RoadMapStartRepaintNeeded = priority ? REPAINT_NOW : REPAINT_MAYBE;
    }
-    
-   // fprintf(stderr, ".. is %d\n", RoadMapStartRepaintNeeded);
 }
 
-void roadmap_start_request_repaint_map (void) {
+void roadmap_start_request_repaint_map (int priority) {
 
-    roadmap_start_request_repaint (ROADMAP_MAP);
+    roadmap_start_request_repaint (ROADMAP_MAP, priority);
 }
 
 /* The RoadMap menu and toolbar items: ----------------------------------- */
@@ -1436,7 +1449,7 @@ void roadmap_start (int argc, char **argv) {
    }
    roadmap_main_set_periodic (period, roadmap_start_periodic);
 
-   roadmap_start_request_repaint_map ();
+   roadmap_start_request_repaint_map (REPAINT_NOW);
 }
 
 

@@ -233,7 +233,7 @@ void roadmap_start_exit (void) {
     roadmap_config_save (0);
 }
 
-void roadmap_start_request_repaint (int screen) {
+void roadmap_start_request_repaint (int screen, int priority) {
 
     roadgps_screen_draw();
 }

@@ -773,8 +773,9 @@ static int roadmap_screen_draw_polygons (void) {
                  * we need to draw them to-->from.  so we accumulate
                  * them in a temporary buffer, and reverse them below.
                  */ 
-                shape_points = realloc(shape_points,
-                    (last_shape - first_shape + 1) * sizeof (*shape_points));
+                int shape_points_size =
+                    (last_shape - first_shape + 1) * sizeof(*shape_points);
+                shape_points = realloc(shape_points, shape_points_size);
                 shape_ptr = shape_points;
             } else {
                 /* otherwise, just swap pointers around */
@@ -1367,7 +1368,7 @@ static int roadmap_screen_repaint_leave(int total, int progress) {
 
     if (!RoadMapScreenDragging &&
             roadmap_screen_busy_check(total, progress)) {
-        if (roadmap_start_repaint_scheduled()) {
+        if (roadmap_start_repaint_scheduled() == REPAINT_NOW) {
             if (progress < (3 * total) / 4) {
                 return 1;
             }
@@ -1598,7 +1599,7 @@ void roadmap_screen_configure (void) {
    roadmap_math_set_size (RoadMapScreenWidth, RoadMapScreenHeight);
 
    if (RoadMapScreenInitialized) {
-      roadmap_start_request_repaint_map();
+      roadmap_start_request_repaint_map(REPAINT_NOW);
    }
 
 }
@@ -1624,7 +1625,7 @@ static int roadmap_screen_short_click (RoadMapGuiPoint *point) {
        PluginStreet street;
 
        roadmap_display_activate ("Selected Street", &line, &position, &street);
-       roadmap_start_request_repaint_map();
+       roadmap_start_request_repaint_map(REPAINT_NOW);
    }
 
    roadmap_trip_set_point ("Selection", &position);
@@ -1752,11 +1753,12 @@ static int roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
 
 /* debug support:  set to 'printf' to be told why a refresh occurred */
 // #define REPORT_REFRESH(x) fprintf(stderr, "%s\n", x)
-#define REPORT_REFRESH(x) 1
+#define REPORT_REFRESH(x)
 
 void roadmap_screen_refresh (void) {
 
     int refresh = 0;
+    int force_refresh = REPAINT_MAYBE;
 
     roadmap_log_push ("roadmap_screen_refresh");
 
@@ -1764,7 +1766,8 @@ void roadmap_screen_refresh (void) {
 
         roadmap_screen_reset_delta ();
         roadmap_math_set_center (roadmap_trip_get_focus_position ());
-        refresh = 1 && REPORT_REFRESH ("focus changed");
+        force_refresh = REPAINT_NOW;
+        REPORT_REFRESH ("focus changed");
         
         if (RoadMapScreenOrientationDynamic) {
            roadmap_math_set_orientation (roadmap_trip_get_orientation());
@@ -1774,7 +1777,8 @@ void roadmap_screen_refresh (void) {
 
         roadmap_math_set_center (roadmap_trip_get_focus_position ());
 
-        refresh |= 1 && REPORT_REFRESH("focus moved");
+        refresh = 1;
+        REPORT_REFRESH("focus moved");
 
         if (!RoadMapScreenOrientationDynamic) 
             roadmap_math_set_orientation (RoadMapScreenRotation);
@@ -1800,19 +1804,30 @@ void roadmap_screen_refresh (void) {
      * trigger a second repaint next time around.  (We should
      * probably use a callback registration system for this.)
      */
-    refresh |= roadmap_config_match (&RoadMapConfigMapRefresh, "forced") &&
+    if (roadmap_config_match (&RoadMapConfigMapRefresh, "forced")) {
+        force_refresh = REPAINT_NOW;
         REPORT_REFRESH( "forced\n" );
-    refresh |= roadmap_trip_is_refresh_needed() && 
+    }
+    if (roadmap_trip_is_refresh_needed()) { 
+        force_refresh = REPAINT_NOW;
         REPORT_REFRESH( "trip\n" );
-    refresh |= roadmap_landmark_is_refresh_needed() && 
+    }
+    if (roadmap_landmark_is_refresh_needed()) { 
+        force_refresh = REPAINT_NOW;
         REPORT_REFRESH( "landmark\n" );
-    refresh |= roadmap_track_is_refresh_needed() && 
+    }
+    if (roadmap_track_is_refresh_needed()) { 
+        refresh = 1;
         REPORT_REFRESH( "track\n" );
-    refresh |= roadmap_display_is_refresh_needed() && 
+    }
+    if (roadmap_display_is_refresh_needed()) { 
+        refresh = 1;
         REPORT_REFRESH( "display\n" );
+    }
 
 
-    if (refresh) roadmap_start_request_repaint_map();
+    if (refresh || force_refresh != REPAINT_NOT_NEEDED)
+        roadmap_start_request_repaint_map(force_refresh);
 
     roadmap_log_pop ();
 }
@@ -1828,7 +1843,7 @@ void roadmap_screen_unfreeze (void) {
    if (!RoadMapScreenFrozen) return;
 
    RoadMapScreenFrozen = 0;
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 
@@ -1861,7 +1876,7 @@ void roadmap_screen_rotate (int delta) {
 
    roadmap_math_set_orientation (calculated_rotation);
    RoadMapScreenRotation = rotation;
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 static void roadmap_screen_set_horizon (void) {
@@ -1881,13 +1896,13 @@ void roadmap_screen_toggle_view_mode (void) {
       (RoadMapScreenViewMode == VIEW_MODE_2D) ?
             VIEW_MODE_3D : VIEW_MODE_2D;
    roadmap_screen_set_horizon();
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 void roadmap_screen_toggle_labels (void) {
    
    RoadMapScreenLabels = ! RoadMapScreenLabels;
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 void roadmap_screen_toggle_orientation_mode (void) {
@@ -1908,7 +1923,7 @@ void roadmap_screen_increase_horizon (void) {
 
    RoadMapScreen3dHorizon += 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 
@@ -1918,7 +1933,7 @@ void roadmap_screen_decrease_horizon (void) {
 
    RoadMapScreen3dHorizon -= 100;
    roadmap_math_set_horizon (RoadMapScreen3dHorizon);
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 #define FRACMOVE 4
@@ -1927,28 +1942,28 @@ void roadmap_screen_decrease_horizon (void) {
 void roadmap_screen_move_up (void) {
 
    roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / FRACMOVE));
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 
 void roadmap_screen_move_down (void) {
 
    roadmap_screen_record_move (0, RoadMapScreenHeight / FRACMOVE);
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 
 void roadmap_screen_move_right (void) {
 
    roadmap_screen_record_move (RoadMapScreenHeight / FRACMOVE, 0);
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 
 void roadmap_screen_move_left (void) {
 
    roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
-   roadmap_start_request_repaint_map();
+   roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
 
@@ -1957,7 +1972,7 @@ void roadmap_screen_zoom_in  (void) {
     if (roadmap_math_zoom_in ()) {
        roadmap_layer_adjust ();
        roadmap_math_compute_scale ();
-       roadmap_start_request_repaint_map();
+       roadmap_start_request_repaint_map(REPAINT_NOW);
        roadmap_screen_refresh();
     }
 }
@@ -1969,7 +1984,7 @@ void roadmap_screen_zoom_out (void) {
 
        roadmap_layer_adjust ();
        roadmap_math_compute_scale ();
-       roadmap_start_request_repaint_map();
+       roadmap_start_request_repaint_map(REPAINT_NOW);
        roadmap_screen_refresh();
     }
 }
@@ -1981,7 +1996,7 @@ void roadmap_screen_zoom_reset (void) {
 
       roadmap_layer_adjust ();
       roadmap_math_compute_scale ();
-      roadmap_start_request_repaint_map();
+      roadmap_start_request_repaint_map(REPAINT_NOW);
       roadmap_screen_refresh();
    }
 }
@@ -2018,6 +2033,9 @@ void roadmap_screen_text_extents
     }
 }
 
+void roadmap_screen_state_refresh(void) {
+    roadmap_start_request_repaint_map(REPAINT_MAYBE);
+}
 
 void roadmap_screen_initialize (void) {
 
@@ -2086,7 +2104,8 @@ void roadmap_screen_initialize (void) {
    roadmap_state_add ("view_mode", &roadmap_screen_get_view_mode);
    roadmap_state_add ("get_orientation",
             &roadmap_screen_get_orientation_mode);
-   roadmap_state_monitor (&roadmap_start_request_repaint_map);
+   roadmap_state_monitor (&roadmap_screen_state_refresh);
+
 }
 
 

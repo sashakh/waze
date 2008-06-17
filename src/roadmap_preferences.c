@@ -74,7 +74,7 @@ static ConfigurationContext *RoadMapConfigurationDialogs = NULL;
 static void roadmap_preferences_cancel (const char *name, void *data) {
 
    roadmap_dialog_hide (name);
-   roadmap_start_request_repaint_map ();
+   roadmap_start_request_repaint_map (REPAINT_NOW);
 }
 
 static void roadmap_preferences_ok (const char *name, void *data) {

@@ -700,7 +700,7 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
       roadmap_locator_close (RoadMapDownloadDeleteSelected);
       roadmap_file_remove (NULL, path);
 
-      roadmap_start_request_repaint_map ();
+      roadmap_start_request_repaint_map (REPAINT_NOW);
 
       roadmap_download_delete_populate ();
    }
