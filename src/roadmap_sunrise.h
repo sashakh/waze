@@ -46,6 +46,12 @@
 
 time_t roadmap_sunrise (const RoadMapGpsPosition *position);
 time_t roadmap_sunset  (const RoadMapGpsPosition *position);
+void roadmap_moonposition(
+        const RoadMapGpsPosition *position, 
+        double *azimuth, double *elevation);
+void roadmap_sunposition(
+        const RoadMapGpsPosition *position, 
+        double *azimuth, double *elevation);
 
 #endif // INCLUDE__ROADMAP_SUNRISE_H
 

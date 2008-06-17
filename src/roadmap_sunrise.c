@@ -24,6 +24,12 @@
  * synopsys:
  *
  *   see roadmap_sunrise.h
+ *
+ *   Sun and moon position calculations are (simplified) from: 
+ *   http://www.satellite-calculations.com/Satellite/suncalc.htm
+ *   who got the actual formulas from the terrific site:
+ *   http://www.stjarnhimlen.se/comp/tutorial.html
+ *   (This implementation by Morten Bek.)
  */
 
 #include <stdio.h>
@@ -108,6 +114,238 @@ static time_t roadmap_sunrise_get_gmt(double decimaltime,
    return gmt;
 }
 
+static double rad(double deg)
+{
+   return (deg * RADIANS);
+}
+
+static double deg(double rad)
+{ 
+    return( rad * DEGREES);
+}
+
+static double Rev(double number)
+{
+    double x;
+    x= number - floor(number/360.0)*360 ;
+    return x;
+}
+
+static int dayofyear(int year, int month, int day)
+{
+  int x;
+  int monthday[] = {0,31,59,90,120,151,181,212,243,273,304,334};
+
+  x = monthday[month-1] + day;
+  if ((year%4 == 0) && ((year%100!=0)||(year%400==0)) && (month>2)) 
+    x++;
+  return x;
+}
+
+void roadmap_sunposition(
+        const RoadMapGpsPosition *position, 
+        double *azimuth, double *height)
+{
+    time_t gmt;
+    struct tm curtime;
+    int year, month, day, hour, min, sec;
+    double J, J2;
+    double Zgl, MOZ, WOZ, w;
+    double decl;
+    double sunaz, sunhi;
+    double asinGs;
+    double acosAs;
+    double lat  = LU_TO_DEG(position->latitude);
+    double lon  = LU_TO_DEG(position->longitude);
+
+    if (azimuth == NULL || height == NULL)
+        return;
+
+    time(&gmt);
+
+    curtime = *(gmtime(&gmt));
+    year = curtime.tm_year + 1900;
+    month = curtime.tm_mon+1;
+    day = curtime.tm_mday;
+    hour = curtime.tm_hour;
+    min = curtime.tm_min;
+    sec = curtime.tm_sec;
+
+    J2 = 365;
+    if (year % 4 == 0) J2++;
+    J = dayofyear(year, month, day);
+    MOZ = hour + min/60.0 + sec/3600.0;
+    MOZ += lon / 15.0;
+    J = J * 360 / J2 + MOZ / 24;
+    decl = 0.3948 - 23.2559 * cos(rad(J + 9.1)) - 0.3915 * cos(rad(2 * J + 5.4)) - 0.1764 * cos(rad(3 * J + 26.0));
+    Zgl = 0.0066 + 7.3525 * cos(rad(J + 85.9)) + 9.9359 * cos(rad(2 * J + 108.9)) + 0.3387 * cos(rad(3 * J + 105.2));
+    WOZ = MOZ + Zgl / 60;
+    w = (12 - WOZ) * 15;
+    asinGs = cos(rad(w)) * cos(rad(lat)) * cos(rad(decl)) + sin(rad(lat)) * sin(rad(decl));
+    if (asinGs > 1) asinGs = 1;
+    if (asinGs < -1) asinGs = -1;
+    sunhi = deg(asin(asinGs));
+    acosAs = (sin(rad(sunhi)) * sin(rad(lat)) - sin(rad(decl))) / (cos(rad(sunhi)) * cos(rad(lat)));
+    if (acosAs > 1) acosAs = 1;
+    if (acosAs < -1) acosAs = -1;
+    sunaz = deg(acos(acosAs));
+    if ((WOZ > 12) || (WOZ < 0)) {
+        sunaz = 180 + sunaz;
+    } else {
+        sunaz = 180 - sunaz;
+    };
+    *azimuth = sunaz;
+    *height = sunhi;
+}
+
+void roadmap_moonposition(
+        const RoadMapGpsPosition *position, 
+        double *azimuth, double *elevation)
+{
+    double HourAngle,SIDEREALTIME;
+    double w,a,e,M,N,oblecl,E,x,y,r,v,sunlon,z,xequat,yequat,zequat,GMST0,UT;
+    double xhor,yhor,zhor;
+    double E0,E1,xeclip,yeclip,zeclip,Ls;
+    double Moon_RA,Moon_Decl;
+    double xh,yh,zh,Iterations,E_error,Ebeforeit,Eafterit,E_ErrorBefore;
+
+    double lat  = LU_TO_DEG(position->latitude);
+    double lon  = LU_TO_DEG(position->longitude);
+    int d_int;
+
+    time_t gmt;
+    struct tm curtime;
+    int year, month, day, hour, min, sec;
+    double wsun, Msun, d, i;
+    double moon_longitude, moon_latitude;
+
+    if (azimuth == NULL || elevation == NULL)
+        return;
+
+    time(&gmt);
+
+    curtime = *(gmtime(&gmt));
+    year = curtime.tm_year + 1900;
+    month = curtime.tm_mon+1;
+    day = curtime.tm_mday;
+    hour = curtime.tm_hour;
+    min = curtime.tm_min;
+    sec = curtime.tm_sec;
+
+    d_int = 367*year - (7*(year + ((month+9)/12)))/4 + (275*month)/9 + day - 730530;
+    d = d_int + (hour * 3600 + min * 60 + sec) / 86400.0;
+
+    //*********CALCULATE Moon DATA *********************
+    N=125.1228-0.0529538083*d;
+    i=5.1454;
+
+    w=318.0634 + 0.1643573223 * d ;
+    a=60.2666;
+
+    e= 0.054900;
+    M= 115.3654 + 13.0649929509 * d;
+
+    w=Rev(w);
+    M=Rev(M);
+    N=Rev(N);
+
+
+
+    E=M+ DEGREES*e*sin(RADIANS * M)*(1+e * cos(RADIANS*M));
+    E=Rev(E); 
+
+    Ebeforeit=E;
+
+    // now iterate until difference between E0 and E1 is less than 0.005_deg
+    // use E0, calculate E1
+
+    Iterations=0;
+    E_error=9;
+
+    while ((E_error>0.0005) && (Iterations<20))
+    {
+        Iterations=Iterations+1;
+        E0=E;
+        E1= E0-(E0-DEGREES*e*sin(RADIANS*E0)-M) / (1-e * cos(RADIANS*E0)) ;
+        E=Rev(E1);
+
+        Eafterit=E;
+
+        if (E<E0) E_error=E0-E;
+        else E_error=E-E0;
+
+
+        if (E<Ebeforeit) E_ErrorBefore=Ebeforeit-E;
+        else E_ErrorBefore=E-Ebeforeit;
+
+    }
+
+    x= a*(cos(RADIANS*E) -e) ;
+    y= a*sin(RADIANS * (Rev(E)))*sqrt(1-e*e);
+    r=sqrt(x*x+y*y);
+    v=deg(atan2(y,x));
+
+    sunlon=Rev(v+w);
+
+    x=r*cos(RADIANS * sunlon);
+    y=r*sin(RADIANS * sunlon);
+    z=0;
+
+    xeclip=r*( cos(rad(N))*cos(rad(v+w)) - sin(rad(N)) * sin(rad(v+w))*cos(rad(i))   );
+    yeclip=r*( sin(rad(N))*cos(rad(v+w)) + cos(rad(N)) * sin(rad(v+w))*cos(rad(i))   );
+    zeclip=r*sin(rad(v+w))*sin(rad(i));
+
+    moon_longitude=Rev(deg(atan2(yeclip,xeclip)));
+    moon_latitude=deg(atan2(zeclip,sqrt(xeclip*xeclip +yeclip*yeclip )  ));
+
+//    printf ("lon: %f, lat: %f\n", moon_longitude, moon_latitude);
+    // get the Eliptic coordinates
+
+    oblecl=23.4393 -3.563E-7 * d ;
+    xh=r*cos(rad(moon_longitude))*cos(rad(moon_latitude));
+    yh=r*sin(rad(moon_longitude))*cos(rad(moon_latitude));
+    zh=r*sin(rad(moon_latitude));
+    // rotate to rectangular equatorial coordinates
+    xequat=xh;
+    yequat=yh*cos(rad(oblecl))-zh*sin(rad(oblecl));
+    zequat=yh*sin(rad(oblecl))+zh*cos(rad(oblecl));
+
+    Moon_RA=Rev(deg(atan2(yequat,xequat)));
+    Moon_Decl=deg(atan2(zequat,sqrt(xequat*xequat + yequat*yequat )  ));
+
+    wsun=282.9404 + 4.70935E-5 * d ;
+    Msun= 356.0470 + 0.9856002585 * d;
+    Ls=wsun+Rev(Msun);
+
+    Ls=Rev(Ls);
+
+    GMST0=(Ls+180);
+
+
+    //*********CALCULATE TIME *********************
+
+    UT=d-floor(d);
+
+    SIDEREALTIME=GMST0+UT*360+lon;
+    HourAngle=SIDEREALTIME-Moon_RA;
+
+
+    x=cos(HourAngle*RADIANS) * cos(Moon_Decl*RADIANS);
+    y=sin(HourAngle*RADIANS) * cos(Moon_Decl*RADIANS);
+    z=sin(Moon_Decl*RADIANS);
+
+    xhor=x*sin(lat*RADIANS) - z*cos(lat*RADIANS);
+    yhor=y;
+    zhor=x*cos(lat*RADIANS) + z*sin(lat*RADIANS);
+
+    *elevation=deg(asin(zhor));
+    *elevation-=deg(asin( 1/r * cos(rad(*elevation))));
+
+    *azimuth=deg(atan2(yhor,xhor));
+    //if (lat<0) 
+    *azimuth+=180;
+
+}
 
 /* Calling parameters:
  * A roadmapposition for the point you'd like to get the rise or set time for
@@ -329,6 +567,13 @@ int main(int argc, char **argv) {
    realtime = localtime(&rawtime);
 
    printf("current date/time: %s", asctime(realtime));
+
+   double a, b;
+   roadmap_sunposition(&position, &a, &b);
+   printf ("Sun azimuth: %.2f\nSun elevation: %.2f\n", a, b);
+
+   roadmap_moonposition(&position, &a, &b);
+   printf ("Moon azimuth: %.2f\nMoon elevation: %.2f\n", a, b);
 
    rawtime = roadmap_sunrise (&position);
    realtime = localtime(&rawtime);
