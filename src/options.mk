@@ -249,7 +249,7 @@ ifeq ($(DESKTOP),WINCE)
 		-D_TXT=\".txt\" -D_EXE=\".exe\"
 	LIBS := $(LIBS) -lm
 else
-	CFLAGS += -I$(TOP) -I/usr/local/include -DNDEBUG \
+	CFLAGS += -I$(TOP) -I/usr/local/include \
 		  -D_TXT=\"\" -D_EXE=\"\"
 	LIBS := -L/usr/local/lib $(LIBS) -lm
 endif
