@@ -1,15 +1,11 @@
 
 # WinCE Makefile, based around the arm-wince-mingw32ce cross toolchain,
 # which comes from http://cegcc.sourceforge.net/
-# Code built this way *DOES NOT WORK* as of july 2007.
+# Code built this way is known to work.
+#
 # The code may work if built with microsoft tools, in which case this
 # makefile isn't used, and the project files under wince_env/ may
-# need updating.
-#
-# support for win32 and wince is better in the roadmap_editor
-# branch of RoadMap CVS, so it's probably worth looking there for
-# fixes if things are really obviously broken.  that branch only
-# uses native windows tools, though -- not mingw32ce.
+# need updating. Not tested recently.
 #
 
 
