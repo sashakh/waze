@@ -49,6 +49,8 @@
 
 @interface RoadMapApp : UIApplication {
 }
+-(void)buttonBarItemTapped:(id) sender;
+-(UIButtonBar *)createButtonBar;
 -(void) newWithTitle: (const char *)title andWidth: (int) width andHeight: (int) height;
 -(void) ioCallback: (id) notify;
 -(void) setInput: (RoadMapIO*) io andCallback: (RoadMapInput) callback;

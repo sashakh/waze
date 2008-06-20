@@ -50,6 +50,7 @@ install:
 	cp iphoneroadmap $(INSTALLDIR)/RoadMap
 	cp Info.plist.roadmap $(INSTALLDIR)/Info.plist
 	cp ../icons/iphone_default.png $(INSTALLDIR)/icon.png
+	cp -r ../icons $(INSTALLDIR)/resources/pixmaps
 
 uninstall:
 	cd $(bindir) && rm -f $(TARGETS) iphoneroadmap iphoneroadgps

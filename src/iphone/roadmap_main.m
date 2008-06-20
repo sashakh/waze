@@ -42,8 +42,23 @@
 #include "roadmap_main.h"
 #include "roadmap_time.h"
 
+#import <Foundation/NSDictionary.h>
+
+extern NSString *kUIButtonBarButtonAction;
+extern NSString *kUIButtonBarButtonInfo;
+extern NSString *kUIButtonBarButtonInfoOffset;
+extern NSString *kUIButtonBarButtonSelectedInfo;
+extern NSString *kUIButtonBarButtonStyle;
+extern NSString *kUIButtonBarButtonTag;
+extern NSString *kUIButtonBarButtonTarget;
+extern NSString *kUIButtonBarButtonTitle;
+extern NSString *kUIButtonBarButtonTitleVerticalHeight;
+extern NSString *kUIButtonBarButtonTitleWidth;
+extern NSString *kUIButtonBarButtonType;
+
 
 static RoadMapApp *TheApp;
+static int RoadMapMainToolbarAdded = 0;
 static int sArgc;
 static char ** sArgv;
 
@@ -64,115 +79,49 @@ struct roadmap_main_timer {
 #define ROADMAP_MAX_TIMER 16
 static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
-static RoadMapCallback *idle_callback = NULL;
+static RoadMapCallback idle_callback = NULL;
 static char *RoadMapMainTitle = NULL;
 
 static RoadMapKeyInput RoadMapMainInput = NULL;
 static UIWindow    *RoadMapMainWindow  = NULL;
 static UIView      *RoadMapMainBox     = NULL;
 static RoadMapCanvasView *RoadMapCanvasBox   = NULL;
-static UIView      *RoadMapMainMenuBar = NULL;
-static UIView      *RoadMapMainToolbar = NULL;
-static UIView      *RoadMapMainStatus  = NULL;
+//static UIView      *RoadMapMainMenuBar = NULL;
+static UIButtonBar *RoadMapMainToolbar = NULL;
+//static UIView      *RoadMapMainStatus  = NULL;
+static NSArray     *RoadMapMainToolbarArray = NULL;
+static int          buttonCount = 0;
+static RoadMapCallback RoadMapMainToolbarCallbacks[6];
 
 
-static int iPhoneIconsInitialized = 0;
+static char *roadmap_main_toolbar_icon (const char *icon) {
+    unsigned int i;
 
+    if (icon == NULL)
+        return NULL;
 
-static UIView *roadmap_main_toolbar_icon (const char *icon) {
+    const char *icon_file = roadmap_path_search_icon (icon);
+    if (icon_file == NULL)
+        return NULL;
 
-   if (icon != NULL) {
-
-      const char *icon_file = roadmap_path_search_icon (icon);
-
-      if (icon_file != NULL) {
-         iPhoneIconsInitialized = 1;
-         return NULL; // gtk_image_new_from_file (icon_file);
-      }
-   }
-   return NULL;
+    for (i = 0; i < strlen(icon_file); i++)
+    {
+        if (strncmp (icon_file + i, "resources", 9) == 0)
+            return (char *)(icon_file + i);
+    }
+    return NULL;
 }
-
-/*
-static void roadmap_main_close (UIView *widget,
-                                GdkEvent *event,
-                                gpointer data) {
-
-   roadmap_main_exit ();
-}
-
-
-static void roadmap_main_activate (UIView *widget, gpointer data) {
-
-   if (data != NULL) {
-      (* (RoadMapCallback) data) ();
-   }
-}
-
-
-static gint roadmap_main_key_pressed (UIView *w, GdkEventKey *event) {
-
-   char *key = NULL;
-   char regular_key[2];
-
-
-   switch (event->keyval) {
-
-      case GDK_Left:   key = "Button-Left";           break;
-      case GDK_Right:  key = "Button-Right";          break;
-      case GDK_Up:     key = "Button-Up";             break;
-      case GDK_Down:   key = "Button-Down";           break;
-
-      case GDK_Return: key = "Enter";                 break;
-
-      // These binding are for the iPAQ buttons: 
-      case 0x1008ff1a: key = "Button-Menu";           break;
-      case 0x1008ff20: key = "Button-Calendar";       break;
-      case 0xaf9:      key = "Button-Contact";        break;
-      case 0xff67:     key = "Button-Start";          break;
-
-      // Regular keyboard keys: 
-      default:
-
-         if (event->keyval > 0 && event->keyval < 128) {
-
-            regular_key[0] = event->keyval;
-            regular_key[1] = 0;
-            key = regular_key;
-         }
-         break;
-   }
-
-   if (key != NULL && RoadMapMainInput != NULL) {
-      (*RoadMapMainInput) (key);
-   }
-
-   return FALSE;
-}
-
-
-*/
 
 void roadmap_main_toggle_full_screen (void) {
+   /* Don't care abobut full screen on the iPhone */
 }
 
 void roadmap_main_new (const char *title, int width, int height) {
     [TheApp newWithTitle: title andWidth: width andHeight: height];
 }
 
-
 void roadmap_main_title(char *fmt, ...) {
-
-   char newtitle[200];
-   va_list ap;
-   int n;
-
-   n = snprintf(newtitle, 200, "%s", RoadMapMainTitle);
-   va_start(ap, fmt);
-   vsnprintf(&newtitle[n], 200 - n, fmt, ap);
-   va_end(ap);
-
- //  gtk_window_set_title (GTK_WINDOW(RoadMapMainWindow), newtitle);
+   /* Don't care about titles on the iPhone */
 }
 
 void roadmap_main_set_keyboard (RoadMapKeyInput callback) {
@@ -180,15 +129,12 @@ void roadmap_main_set_keyboard (RoadMapKeyInput callback) {
 }
 
 RoadMapMenu roadmap_main_new_menu (const char *title) {
-
    return NULL;
 }
 
 
 void roadmap_main_free_menu (RoadMapMenu menu) {
      NSLog (@"roadmap_main_free_menu\n");
-
-   
 }
 
 
@@ -267,103 +213,57 @@ void roadmap_main_add_separator (RoadMapMenu menu) {
 
 void roadmap_main_add_toolbar (const char *orientation) {
      NSLog (@"roadmap_main_add_toolbar orientation: %s\n", orientation);
-
-    if (RoadMapMainToolbar == NULL) {
-        int on_top = 1;
-
-        //   GtkOrientation gtk_orientation = GTK_ORIENTATION_HORIZONTAL;
-
-        // RoadMapMainToolbar = gtk_toolbar_new ();
-
-        switch (orientation[0]) {
-            case 't':
-            case 'T': on_top = 1; break;
-
-            case 'b':
-            case 'B': on_top = 0; break;
-
-            case 'l':
-            case 'L': on_top = 1;
-                      //            gtk_orientation = GTK_ORIENTATION_VERTICAL;
-                      break;
-
-            case 'r':
-            case 'R': on_top = 0;
-                      //           gtk_orientation = GTK_ORIENTATION_VERTICAL;
-                      break;
-
-            default: /*roadmap_log (ROADMAP_FATAL,
-                             "Invalid toolbar orientation %s", orientation);
-                             */
-                             break;
-        }
-        /*      gtk_toolbar_set_orientation (GTK_TOOLBAR(RoadMapMainToolbar),
-                gtk_orientation);
-
-                if (gtk_orientation == GTK_ORIENTATION_VERTICAL) {
-         */
-        /* In this case we need a new box, since the "normal" box
-         * is a vertical one and we need an horizontal one. */
-
-        /*         RoadMapCanvasBox = gtk_hbox_new (FALSE, 0);
-                   gtk_container_add (GTK_CONTAINER(RoadMapMainBox), RoadMapCanvasBox);
-         */
-        // }
-
-        if (on_top) {
-            // gtk_box_pack_start (GTK_BOX(RoadMapCanvasBox),
-            //                     RoadMapMainToolbar, FALSE, FALSE, 0);
-        } else {
-            // gtk_box_pack_end   (GTK_BOX(RoadMapCanvasBox),
-            //                     RoadMapMainToolbar, FALSE, FALSE, 0);
-        }
-    }
+     RoadMapMainToolbarAdded = 1;
+     RoadMapMainToolbarArray = [[NSArray array] init];
 }
 
 void roadmap_main_add_tool (const char *label,
                             const char *icon,
                             const char *tip,
                             RoadMapCallback callback) {
-   NSLog (@"roadmap_main_add_tool label: %s icon: %s tip: %s\n", label, icon, tip);
-   if (RoadMapMainToolbar == NULL) {
-      roadmap_main_add_toolbar ("");
-   }
+    char *iconstr;
+    NSString *nsicon, *nslabel;
 
-/*
-   gtk_toolbar_append_item (GTK_TOOLBAR(RoadMapMainToolbar),
-                            label, tip, NULL,
-                            roadmap_main_toolbar_icon (icon),
-                            (GtkSignalFunc) roadmap_main_activate, callback);
+    NSLog (@"roadmap_main_add_tool label: %s icon: %s tip: %s\n", label, icon, tip);
+    if (buttonCount >= 5)
+    {
+        NSLog (@"roadmap_main_add_tool only room for 5 buttons\n");
+        return;
+    }
+    buttonCount++;
 
-   if (gdk_screen_height() < 550)
-   {
-*/
-      /* When using a small screen, we want either the labels or the icons,
-       * but not both (small screens are typical with PDAs). */
-       
-/*      gtk_toolbar_set_style
-         (GTK_TOOLBAR(RoadMapMainToolbar),
-          GtkIconsInitialized?GTK_TOOLBAR_ICONS:GTK_TOOLBAR_TEXT);
-   }
-   */
+    NSArray *tmp = RoadMapMainToolbarArray;
+    nslabel = [[NSString alloc] initWithUTF8String:icon];
+    iconstr = roadmap_main_toolbar_icon(icon);
+    if (iconstr)
+        nsicon = [[NSString alloc] initWithUTF8String:iconstr];
+    else
+        nsicon = @"";
+
+    RoadMapMainToolbarCallbacks[buttonCount] = callback;
+    NSDictionary *dict = [ NSDictionary dictionaryWithObjectsAndKeys:
+        @"buttonBarItemTapped:", kUIButtonBarButtonAction,
+        nsicon, kUIButtonBarButtonInfo,
+        @"imagedown.png", kUIButtonBarButtonSelectedInfo,
+        [ NSNumber numberWithInt: buttonCount], kUIButtonBarButtonTag,
+        TheApp, kUIButtonBarButtonTarget,
+        nslabel, kUIButtonBarButtonTitle,
+        //@"", kUIButtonBarButtonTitle,
+        @"0", kUIButtonBarButtonType,
+        nil
+    ];
+    RoadMapMainToolbarArray = [tmp arrayByAddingObject: dict];
 }
 
 
 void roadmap_main_add_tool_space (void) {
-   NSLog (@"roadmap_main_add_tool_space\n");
-   if (RoadMapMainToolbar == NULL) {
-   //   roadmap_log (ROADMAP_FATAL, "Invalid toolbar space: no toolbar yet");
-   }
-
-/*
-   gtk_toolbar_append_space (GTK_TOOLBAR(RoadMapMainToolbar));
-   */
+    /* Don't care about spaces on the iPhone... */
 }
 
 static unsigned long roadmap_main_busy_start;
 
 void roadmap_main_set_cursor (RoadMapCursor newcursor) {
-   NSLog (@"roadmap_main_set_cursor\n");
+    /* Don't care about cursors on the iPhone... */
 }
 
 void roadmap_main_busy_check(void) {
@@ -377,24 +277,32 @@ void roadmap_main_busy_check(void) {
 }
 
 void roadmap_main_add_canvas (void) {
-//    NSLog ("roadmap_main_add_canvas\n");
     struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
-    rect.origin.x = rect.origin.y = 0.0f;
+    rect.origin.x = 0.0f;
+    rect.origin.y = 0.0f;
+    if (RoadMapMainToolbarAdded)
+       rect.size.height = 480.0f - 49.0f - 20.0f;
+    else
+       rect.size.height = 480.0f - 20.0f;
 
     RoadMapCanvasBox = [[RoadMapCanvasView alloc] initWithFrame: rect];
     [RoadMapMainBox addSubview: RoadMapCanvasBox];
 }
 
 void roadmap_main_add_status (void) {
-   NSLog (@"roadmap_main_add_status\n");
+   /* Status bar seems like a waste of space on the iPhone... */
 }
 
 
 void roadmap_main_show (void) {
-   NSLog (@"roadmap_main_show\n");
-
-   if (RoadMapMainWindow != NULL) {
-   }
+    /* Since this is called after the toolbar is
+       configured, we use this to add the finalized
+       toolbar to the main view */
+     if (RoadMapMainToolbarAdded)
+     {
+        RoadMapMainToolbar = [TheApp createButtonBar];
+        [RoadMapMainBox addSubview: RoadMapMainToolbar]; 
+     }
 }
 
 void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback) {
@@ -431,12 +339,11 @@ void roadmap_main_remove_idle_function (void) {
 
 
 int roadmap_main_flush (void) {
- /*  if ([[NSNotificationCenter defaultCenter] isEmpty])
+   if ([[NSNotificationCenter defaultCenter] isEmpty])
 
       return 0;
 
    return 1;
-   */
 //   NSLog (@"roadmap_main_flush\n");
 /*
    while (gtk_events_pending ()) {
@@ -482,7 +389,6 @@ void roadmap_main_exit (void) {
 
    if (!exit_done++) {
       roadmap_start_exit ();
-     //XXX UIApplicationquit
    }
 }
 
@@ -500,6 +406,11 @@ int main (int argc, char **argv) {
         else
            sArgc--;
     }
+    putenv("HOME=/var/mobile/Library/");
+
+    // Add paths to roadmap drivers and to flite
+    putenv("PATH=/Applications/RoadMap.app/bin:/usr/bin");
+    
     roadmap_option (sArgc, sArgv, 0, NULL);
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     return UIApplicationMain(sArgc, sArgv, [RoadMapApp class]);
@@ -508,6 +419,36 @@ int main (int argc, char **argv) {
 }
 
 @implementation RoadMapApp
+
+- (UIButtonBar *)createButtonBar {
+    UIButtonBar *buttonBar;
+    buttonBar = [ [ UIButtonBar alloc ]
+       initInView: RoadMapMainBox
+       withFrame: CGRectMake(0.0f, 480.0f - 49.0f - 20.0f, 320.0f, 49.0f)
+       withItemList: RoadMapMainToolbarArray ];
+    [buttonBar setDelegate:self];
+    [buttonBar setBarStyle:0];
+    [buttonBar setButtonBarTrackingMode: 1];
+
+    int buttons[5] = { 1, 2, 3, 4, 5};
+    [buttonBar registerButtonGroup:0 withButtons:buttons withCount: buttonCount];
+    [buttonBar showButtonGroup: 0 withDuration: 0.0f];
+    int tag;
+
+    for(tag = 1; tag <= buttonCount; tag++) {
+        [ [ buttonBar viewWithTag:tag ]
+            setFrame:CGRectMake(2.0f + ((tag - 1) * 64.0f), 1.0f, 64.0f, 48.0f)
+        ];
+    }
+
+    return buttonBar;
+}
+
+- (void)buttonBarItemTapped:(id) sender {
+    int button = [ sender tag ];
+    printf("buttonclicked: %i\n", button);
+      (RoadMapMainToolbarCallbacks[button] ) ();
+}
 
 -(void) newWithTitle: (const char *)title andWidth: (int) width andHeight: (int) height
 {
@@ -520,21 +461,14 @@ int main (int argc, char **argv) {
         [RoadMapMainWindow makeKey: self];
         [RoadMapMainWindow _setHidden: NO];
         [RoadMapMainWindow setContentView: RoadMapMainBox];
-        UINavigationBar *nav = [[UINavigationBar alloc] initWithFrame: CGRectMake(
-                0.0f, 0.0f, 320.0f, 48.0f)];
-        [nav showButtonsWithLeftTitle: @"Map" rightTitle: nil leftBack: NO];
-        [nav setBarStyle: 0];
-        [nav setDelegate: self];
-
-        [RoadMapMainBox addSubview: nav]; 
     }
-
 
     if (RoadMapMainTitle != NULL) {
         free(RoadMapMainTitle);
     }
     RoadMapMainTitle = strdup (title);
 }
+
 - (void) periodicCallback: (NSTimer *) timer
 {
    int i;
@@ -657,10 +591,22 @@ int main (int argc, char **argv) {
 
     roadmap_start (sArgc, sArgv);
 
-//    atexit(roadmap_main_exit);
+    [self reportAppLaunchFinished];
 }
 
-- (void)applicationWillTerminate;
+- (void)applicationWillSuspend
+{
+ //  [self terminate];
+   printf("go to sleep\n");
+}
+
+- (void)applicationDidResume
+{
+  printf("I am alive!\n");
+
+}
+
+- (void)applicationWillTerminate
 {
     roadmap_main_exit();
     [TheApp release];

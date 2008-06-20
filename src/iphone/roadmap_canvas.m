@@ -42,8 +42,12 @@
 #include "roadmap_iphonecanvas.h"
 #include "colors.h"
 
-#define ROADMAP_CHARWIDTH 10
-#define ROADMAP_LINEHEIGHT 12
+extern int CGFontGetAscent(CGFontRef font);
+extern int CGFontGetDescent(CGFontRef font);
+extern int CGFontGetUnitsPerEm(CGFontRef font);
+extern CGFontRef CGContextGetFont(CGContextRef context);
+extern void CGFontGetGlyphsForUnichars (CGFontRef, const UniChar[], const CGGlyph[], size_t);
+extern CGFontRef CGFontCreateWithFontName (CFStringRef name);
 
 struct RoadMapColor {
    float r;
@@ -67,6 +71,8 @@ static struct roadmap_canvas_pen *RoadMapPenList = NULL;
 
 static RoadMapCanvasView  *RoadMapDrawingArea;
 static CGContextRef RoadMapGc;
+static LKLayer *mainLayer;
+static int CanvasWidth, CanvasHeight;
 
 static RoadMapPen CurrentPen;
 
@@ -100,7 +106,7 @@ static void roadmap_canvas_convert_points
 
     while (points < end) {
         cgpoints->x = points->x;
-        cgpoints->y = points->y;
+        cgpoints->y = CanvasHeight - points->y;
         cgpoints += 1;
         points += 1;
     }
@@ -113,7 +119,7 @@ static void roadmap_canvas_convert_rects
 
     while (points < end) {
         rects->origin.x = points->x;
-        rects->origin.y = points->y;
+        rects->origin.y = CanvasHeight - points->y;
         rects->size.width = 1.0;
         rects->size.height = 1.0;
         rects += 1;
@@ -123,17 +129,43 @@ static void roadmap_canvas_convert_rects
 
 void roadmap_canvas_get_text_extents 
         (const char *text, int size, int *width,
-            int *ascent, int *descent, int *can_tilt) {
-   /* These values are currently _very_ rough estimates! */
-   *width = strlen(text) * ROADMAP_CHARWIDTH;
-   *ascent = ROADMAP_LINEHEIGHT;
-   *descent = 0;
-   if (can_tilt) *can_tilt = 1;
+         int *ascent, int *descent, int *can_tilt) 
+{
+    float size_f = (size * 1.0f);
+    UniChar buf[2048];
+    CGGlyph glyphs[2048];
+    CFStringRef  string;
+    CGPoint point;
+
+    CGFontRef font = CGContextGetFont(RoadMapGc);
+    CGContextSetFontSize(RoadMapGc, size_f);
+
+    string = CFStringCreateWithCString(NULL, text, kCFStringEncodingUTF8);
+    CFIndex length = CFStringGetLength(string);
+    if (length >= 2048)
+        return;
+    CFStringGetCharacters (string, CFRangeMake(0, length), buf);
+
+    CGFontGetGlyphsForUnichars(font, buf, glyphs, length);
+
+    CGContextSetTextDrawingMode (RoadMapGc, kCGTextInvisible);
+    CGContextSetTextPosition(RoadMapGc, 0,0);
+    CGContextShowGlyphs(RoadMapGc, glyphs, length);
+    point = CGContextGetTextPosition(RoadMapGc);
+    CGContextSetTextDrawingMode (RoadMapGc, kCGTextFill);
+
+    int unitsperem = CGFontGetUnitsPerEm(font);
+    float unitsperpixel = unitsperem / size_f;
+
+    *width = point.x + 0.5;
+    *ascent = CGFontGetAscent(font) / unitsperpixel;
+    *descent = -(CGFontGetDescent(font) / unitsperpixel);
+    if (can_tilt) *can_tilt = 1;
 }
 
 RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
 
-   float lengths[2] = {2.0f, 2.0f};
+   float lengths[2] = {3.0f, 3.0f};
    RoadMapPen old_pen = CurrentPen;
    CurrentPen = pen;
 
@@ -144,7 +176,7 @@ RoadMapPen roadmap_canvas_select_pen (RoadMapPen pen) {
    }
    CGContextSetLineWidth(RoadMapGc, pen->lineWidth);
    CGContextSetRGBStrokeColor( RoadMapGc, pen->stroke.r, pen->stroke.g, pen->stroke.b, pen->stroke.a);
-   CGContextSetRGBFillColor( RoadMapGc, pen->stroke.r, pen->stroke.b, pen->stroke.b, pen->stroke.a);
+   CGContextSetRGBFillColor( RoadMapGc, pen->stroke.r, pen->stroke.g, pen->stroke.b, pen->stroke.a);
 
    return old_pen;
 }
@@ -170,6 +202,7 @@ RoadMapPen roadmap_canvas_create_pen (const char *name) {
       pen->stroke.g = 0.0;
       pen->stroke.b = 0.0;
       pen->stroke.a = 1.0;
+      pen->lineWidth = 1.0;
       pen->next = RoadMapPenList;
 
       RoadMapPenList = pen;
@@ -268,25 +301,32 @@ void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
 void roadmap_canvas_draw_string_angle (RoadMapGuiPoint *center,
                                        int size, int angle, const char *text)
 {
-    char buf[2048];
     CGAffineTransform trans;
     float angle_f = (angle * -1.0f) * M_PI / 180.0f;
     float x = center->x * 1.0f;
-    float y = center->y * 1.0f;
+    float y = CanvasHeight - center->y * 1.0f;
+    float size_f = (size * 1.0f);
+    UniChar buf[2048];
+    CGGlyph glyphs[2048];
     CFStringRef  string;
+    CGFontRef font = CGContextGetFont(RoadMapGc);
+
+    CGContextSetFontSize(RoadMapGc, size_f);
+
     string = CFStringCreateWithCString(NULL, text, kCFStringEncodingUTF8);
-    CFStringGetCString(string, buf, 2048, kCFStringEncodingMacRoman);
+    CFIndex length = CFStringGetLength(string);
+    if (length >= 2048)
+        return;
+    CFStringGetCharacters (string, CFRangeMake(0, length), buf);
 
-    trans = CGAffineTransformMakeScale(1.0, -1.0);
-/*    CGContextSelectFont (RoadMapGc, "Verdana", 14.0, kCGEncodingMacRoman);
-    CGContextSetTextDrawingMode (RoadMapGc, kCGTextFill);
-*/
-    CGAffineTransform rotatedTrans = CGAffineTransformRotate(trans, angle_f);
-    CGContextSetTextMatrix(RoadMapGc, rotatedTrans);
-    CGContextShowTextAtPoint(RoadMapGc, x, y, buf, strlen(buf));
+    CGFontGetGlyphsForUnichars(font, buf, glyphs, length);
+
+    trans = CGAffineTransformMakeRotation(angle_f);
+
+    CGContextSetTextMatrix(RoadMapGc, trans);
+
+    CGContextShowGlyphsAtPoint(RoadMapGc, x, y, glyphs, length);
 }
-
-
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points) {
 
@@ -336,9 +376,7 @@ void roadmap_canvas_draw_multiple_lines
 void roadmap_canvas_draw_multiple_polygons
          (int count, int *polygons, RoadMapGuiPoint *points, int filled,
             int fast_draw) {
-
     int i;
-    int x;
     int count_of_points;
     CGPoint cgpoints[1024];
     for (i = 0; i < count; ++i) {
@@ -383,7 +421,7 @@ void roadmap_canvas_draw_multiple_circles
 
        int r = radius[i];
 
-       CGRect circle = CGRectMake(centers[i].x-r, centers[i].y-r, r*2, r*2);
+       CGRect circle = CGRectMake(centers[i].x-r, (CanvasHeight - centers[i].y)-r, r*2, r*2);
        CGContextAddEllipseInRect(RoadMapGc, circle);
        if (filled)
            CGContextFillEllipseInRect(RoadMapGc, circle);
@@ -450,19 +488,11 @@ void roadmap_canvas_register_mouse_scroll_handler
 
 
 int roadmap_canvas_width (void) {
-
-   if (RoadMapDrawingArea == NULL) {
-      return 0;
-   }
-   return [RoadMapDrawingArea frame].size.width;
+   return CanvasWidth;
 }
 
 int roadmap_canvas_height (void) {
-
-   if (RoadMapDrawingArea == NULL) {
-      return 0;
-   }
-   return [RoadMapDrawingArea frame].size.height;
+   return CanvasHeight;
 }
 
 void roadmap_canvas_refresh (void) {
@@ -482,18 +512,25 @@ void roadmap_canvas_save_screenshot (const char* filename) {
 
 -(RoadMapCanvasView *) initWithFrame: (struct CGRect) rect
 {
+    CanvasWidth = rect.size.width;
+    CanvasHeight = rect.size.height;
     self = [super initWithFrame: rect];
 
     RoadMapDrawingArea = self;
 
-    CGColorSpaceRef    imageColorSpace = CGColorSpaceCreateDeviceRGB();
-
-    RoadMapGc = CGBitmapContextCreate(nil, rect.size.width, rect.size.height, 8, 0, imageColorSpace, kCGImageAlphaPremultipliedFirst);
+    CGColorSpaceRef    imageColorSpace = CGColorSpaceCreateDeviceRGB();       
+    RoadMapGc = CGBitmapContextCreate(nil, CanvasWidth, CanvasHeight, 8, 0, imageColorSpace, kCGImageAlphaPremultipliedFirst);
     CGColorSpaceRelease(imageColorSpace);
 
-    CGContextSelectFont (RoadMapGc, "Verdana", 14.0, kCGEncodingMacRoman);
+    CGFontRef font = CGFontCreateWithFontName((CFStringRef)@"arialuni") ;
+    CGContextSetFont(RoadMapGc, font);
     CGContextSetTextDrawingMode (RoadMapGc, kCGTextFill);
+    CGContextSetLineCap(RoadMapGc, kCGLineCapRound);
 
+    mainLayer = [[LKLayer layer] retain];
+    [mainLayer setFrame: rect];
+
+    [self._layer addSublayer: mainLayer];
     (*RoadMapCanvasConfigure) ();
 
     return self;
@@ -505,9 +542,9 @@ void roadmap_canvas_save_screenshot (const char* filename) {
     {
         /* CGBitmapContextCreateImage might use copy-on-change
            so if we're lucky no copy is actually made! */
-        CGImageRef image = CGBitmapContextCreateImage (RoadMapGc);
-        CGContextDrawImage (UICurrentContext(), [self frame], image);
-        CGImageRelease(image);
+        CGImageRef ref = CGBitmapContextCreateImage(RoadMapGc);           
+        [mainLayer setContents: (id)ref];
+        CGImageRelease(ref);
     }
 }
 
