@@ -1757,8 +1757,8 @@ static int roadmap_screen_scroll_down (RoadMapGuiPoint *point) {
 
 void roadmap_screen_refresh (void) {
 
-    int refresh = 0;
-    int force_refresh = REPAINT_MAYBE;
+    int maybe_refresh = 0;
+    int force_refresh = 0;
 
     roadmap_log_push ("roadmap_screen_refresh");
 
@@ -1766,7 +1766,7 @@ void roadmap_screen_refresh (void) {
 
         roadmap_screen_reset_delta ();
         roadmap_math_set_center (roadmap_trip_get_focus_position ());
-        force_refresh = REPAINT_NOW;
+        force_refresh++;
         REPORT_REFRESH ("focus changed");
         
         if (RoadMapScreenOrientationDynamic) {
@@ -1777,7 +1777,7 @@ void roadmap_screen_refresh (void) {
 
         roadmap_math_set_center (roadmap_trip_get_focus_position ());
 
-        refresh = 1;
+        maybe_refresh++;
         REPORT_REFRESH("focus moved");
 
         if (!RoadMapScreenOrientationDynamic) 
@@ -1805,29 +1805,31 @@ void roadmap_screen_refresh (void) {
      * probably use a callback registration system for this.)
      */
     if (roadmap_config_match (&RoadMapConfigMapRefresh, "forced")) {
-        force_refresh = REPAINT_NOW;
+        force_refresh++;
         REPORT_REFRESH( "forced\n" );
     }
     if (roadmap_trip_is_refresh_needed()) { 
-        force_refresh = REPAINT_NOW;
+        force_refresh++;
         REPORT_REFRESH( "trip\n" );
     }
     if (roadmap_landmark_is_refresh_needed()) { 
-        force_refresh = REPAINT_NOW;
+        force_refresh++;
         REPORT_REFRESH( "landmark\n" );
     }
     if (roadmap_track_is_refresh_needed()) { 
-        refresh = 1;
+        maybe_refresh++;
         REPORT_REFRESH( "track\n" );
     }
     if (roadmap_display_is_refresh_needed()) { 
-        refresh = 1;
+        maybe_refresh++;
         REPORT_REFRESH( "display\n" );
     }
 
 
-    if (refresh || force_refresh != REPAINT_NOT_NEEDED)
-        roadmap_start_request_repaint_map(force_refresh);
+    if (force_refresh)
+	roadmap_start_request_repaint_map (REPAINT_NOW);
+    else if (maybe_refresh)
+        roadmap_start_request_repaint_map (REPAINT_MAYBE);
 
     roadmap_log_pop ();
 }

@@ -302,7 +302,7 @@ int roadmap_start_map_active(void) {
 int roadmap_start_return_to_map(void) {
     if (RoadMapStartScreenActive != ROADMAP_MAP) {
         RoadMapStartScreenActive = ROADMAP_MAP;
-        roadmap_start_request_repaint(ROADMAP_MAP, 1);
+        roadmap_start_request_repaint(ROADMAP_MAP, REPAINT_NOW);
         return 1;
     }
     return 0;
@@ -310,7 +310,7 @@ int roadmap_start_return_to_map(void) {
 
 void roadmap_start_gps_console(void) {
     RoadMapStartScreenActive = ROADMAP_GPS;
-    roadmap_start_request_repaint(ROADMAP_GPS, 1);
+    roadmap_start_request_repaint(ROADMAP_GPS, REPAINT_NOW);
 }
 
 void roadmap_start_do_callback(RoadMapCallback callback) {
@@ -401,7 +401,7 @@ void roadmap_start_request_repaint (int which_screen, int priority) {
          roadmap_main_set_idle_function(roadmap_start_repaint_if_requested);
          RoadMapStartIdleInstalled = 1;
       }
-      RoadMapStartRepaintNeeded = priority ? REPAINT_NOW : REPAINT_MAYBE;
+      RoadMapStartRepaintNeeded = priority;
    }
 }
 

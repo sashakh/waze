@@ -535,7 +535,7 @@ void roadgps_screen_draw (void) {
 
 void roadgps_screen_request_repaint(void) {
 
-  roadmap_start_request_repaint(ROADMAP_GPS, 1);
+  roadmap_start_request_repaint(ROADMAP_GPS, REPAINT_NOW);
 }
 
 static void roadgps_screen_listener
