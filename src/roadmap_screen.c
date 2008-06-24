@@ -110,6 +110,9 @@ static RoadMapConfigDescriptor RoadMapConfigMapViewMode =
 static RoadMapConfigDescriptor RoadMapConfigLinefontSelector =
                         ROADMAP_CONFIG_ITEM("Map", "Use Linefont");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralBusyDelay =
+                        ROADMAP_CONFIG_ITEM("General", "Busy Cursor Delay");
+
 static RoadMapConfigDescriptor RoadMapConfigGeneralProgressDelay =
                         ROADMAP_CONFIG_ITEM("General", "Progress Bar Delay");
 
@@ -139,16 +142,10 @@ static int   SquareOnScreenCount;
 static RoadMapPen RoadMapScreenLastPen = NULL;
 
 static unsigned long RoadMapScreenBusyStart;
+static unsigned long RoadMapScreenBusyDelay;
 static unsigned long RoadMapScreenProgressStart;
 static unsigned long RoadMapScreenProgressDelay;
 static int RoadmapScreenProgressBar;
-
-
-static unsigned long RoadMapScreenBusyStart;
-static unsigned long RoadMapScreenProgressStart;
-static unsigned long RoadMapScreenProgressDelay;
-static int RoadmapScreenProgressBar;
-
 
 
 /* Define the buffers used to group all actual drawings. */
@@ -230,7 +227,10 @@ void roadmap_screen_set_cursor (RoadMapCursor newcursor) {
 
    if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
       roadmap_screen_start_progress ();
-      RoadMapScreenBusyStart = roadmap_time_get_millis();
+      RoadMapScreenBusyDelay =
+          roadmap_config_get_integer (&RoadMapConfigGeneralBusyDelay);
+      if (RoadMapScreenBusyDelay != 0)
+         RoadMapScreenBusyStart = roadmap_time_get_millis();
       roadmap_main_flush ();
       return;
    }
@@ -267,7 +267,8 @@ int roadmap_screen_busy_check(int total, int completed) {
    }
 
    if (RoadMapScreenBusyStart &&
-        roadmap_time_get_millis() - RoadMapScreenBusyStart > 1000) {
+        roadmap_time_get_millis() - RoadMapScreenBusyStart >
+            RoadMapScreenBusyDelay) {
       roadmap_screen_set_cursor (ROADMAP_CURSOR_WAIT);
    }
 
@@ -1827,7 +1828,7 @@ void roadmap_screen_refresh (void) {
 
 
     if (force_refresh)
-	roadmap_start_request_repaint_map (REPAINT_NOW);
+        roadmap_start_request_repaint_map (REPAINT_NOW);
     else if (maybe_refresh)
         roadmap_start_request_repaint_map (REPAINT_MAYBE);
 
@@ -2082,7 +2083,10 @@ void roadmap_screen_initialize (void) {
             "off", "labels", "signs", "all", NULL);
 
    roadmap_config_declare
-       ("preferences", &RoadMapConfigGeneralProgressDelay,  "300");
+       ("preferences", &RoadMapConfigGeneralBusyDelay,  "200");
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigGeneralProgressDelay,  "350");
 
 
    roadmap_pointer_register_short_click (&roadmap_screen_short_click, POINTER_DEFAULT);

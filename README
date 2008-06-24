@@ -2309,17 +2309,35 @@ CONFIGURATION
                       directory, and the system roadmap config directory,
                       will also be searched.
 
+    [General.Busy Cursor Delay] Delay until mouse cursor switches to "busy"
+
+         <<Format:>> integer (milliseconds)
+
+         <<Default:>> 200
+
+         <<Comment:>> When displaying maps that cover a large area, or on
+                      a slow computer, a screen refresh may take some time. 
+                      The mouse will change to a "watch" or hourglass or other
+                      busy indicator after this amount of time.  Use '0' to
+                      disable this.
+
     [General.Progress Bar Delay] Delay until progress bar during refresh.
 
          <<Format:>> integer (milliseconds)
 
-         <<Default:>> 300
+         <<Default:>> 350
 
          <<Comment:>> When displaying maps that cover a large area, or on
                       a slow computer, it may be helpful to have an on-screen
                       indication of how long the refresh will take.  The
                       value is the delay until the progress bar appears.  Use
-                      '0' to disable the progress bar.
+                      '0' to disable the progress bar.  It may be desirable
+                      to disable the progress bar especially if the X window
+                      manager insists on making the progress dialog fullscreen,
+                      or if it always takes focus away from roadmap (in which
+                      case keystrokes will go to the progress bar dialog
+                      box instead of roadmap).
+
 
     [General.Toolbar] Show (yes) or hide (no) the roadmap toolbar.
 
