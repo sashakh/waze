@@ -28,7 +28,7 @@
  *
  *   The function roadmap_path_user() returns a constant that represents
  *   the path of the RoadMap context for the current user (on UNIX, this
- *   is typically $HOME/,roadmap). The roadmap_path_trips() function
+ *   is typically $HOME/.roadmap). The roadmap_path_trips() function
  *   returns a constant that represents the path of the directory where
  *   the current user stores his/her trip files (this is usually a
  *   subdirectory of the user context, named "trips"). These functions
