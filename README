@@ -318,7 +318,8 @@ INSTALLATION
          * ~/.roadmap (the "user" directory, which can be referred to as
          '&' in other path references).  The specific value of the path to
          the "user" directory is configurable, using the General.UserPath
-         setting.
+         setting.  The "user" directory can be changed using the
+         "--userpath=..." commandline option.
          
   These directories are searched sequentially: any configuration item found
   in one directory overrides all the same items found in the directories
@@ -863,9 +864,15 @@ USING ROADMAP
    [--config=<PATH>] Replace the built-in search path for system
       configuration data.  While this will usually just be a simple
       directory path, it can actually be a comma-separated list of paths
-      from which RoadMap should load its config.  User directories
-      (usually "~/.roadmap") will still be processed as usual.  If specified,
-      this option will also be passed to roadgps when invoked via roadmap.
+      from which RoadMap should load its config.  User directories (usually
+      "~/.roadmap", but see --userpath, below) will still be processed as
+      usual.  If specified, this option will also be passed to roadgps when
+      invoked via roadmap.
+
+   [--userpath=<USERPATH>] Replace the default directory which holds user
+      configuration data.  The default value for the this is $HOME/.roadmap
+      (i.e., "~/.roadmap") If specified, this option will also be passed to
+      roadgps when invoked via roadmap.
 
    [--maps=<PATH>] Replace the built-in search path for maps.  While this will
       usually just be a simple directory path, it can actually be a

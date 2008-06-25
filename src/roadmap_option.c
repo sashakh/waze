@@ -65,6 +65,7 @@ static int roadmap_option_synchronous = 0;
 static char **roadmap_option_debug = NULL;
 static char *roadmap_option_gps = NULL;
 static char *roadmap_option_config = NULL;
+static char *roadmap_option_userpath = NULL;
 static char *roadmap_option_icons = NULL;
 
 static RoadMapUsage RoadMapOptionUsage = NULL;
@@ -105,6 +106,11 @@ char *roadmap_gps_source (void) {
 char *roadmap_extra_config (void) {
 
    return roadmap_option_config;
+}
+
+char *roadmap_userpath (void) {
+
+   return roadmap_option_userpath;
 }
 
 char *roadmap_icon_path (void) {
@@ -186,6 +192,20 @@ static void roadmap_option_set_configpath (const char *value) {
     roadmap_option_config = strdup (value);
 
     roadmap_path_set("config", value);
+}
+
+static void roadmap_option_set_userpath (const char *value) {
+
+    if (!value || !value[0]) {
+       roadmap_log (ROADMAP_FATAL, "invalid user path '%s'", value);
+    }
+
+    if (roadmap_option_userpath != NULL) {
+        free (roadmap_option_userpath);
+    }
+    roadmap_option_userpath = strdup (value);
+
+    roadmap_path_set("user", value);
 }
 
 static void roadmap_option_set_iconpath (const char *value) {
@@ -378,6 +398,9 @@ static struct roadmap_option_descriptor RoadMapOptionMap[] = {
     
     {"--config=", "CONFIGPATH", roadmap_option_set_configpath, 0,
         "Override the built-in path to the configuration files"},
+
+    {"--userpath=", "USERPATH", roadmap_option_set_userpath, 0,
+        "Override the default (usually ~/.roadmap) path to the user files"},
 
     {"--maps=", "MAPPATH", roadmap_option_set_mappath, 1,
         "Override the built-in (or configured) path to the map files"},

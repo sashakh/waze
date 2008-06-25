@@ -81,6 +81,7 @@ int   roadmap_verbosity  (void); /* return a minimum message level. */
 int   roadmap_is_visible (int category);
 char *roadmap_gps_source (void);
 char *roadmap_extra_config (void);
+char *roadmap_userpath (void);
 char *roadmap_icon_path (void);
 
 int roadmap_option_cache  (void);
