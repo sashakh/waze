@@ -99,6 +99,9 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralUnit =
 static RoadMapConfigDescriptor RoadMapConfigGeneralKeyboard =
                         ROADMAP_CONFIG_ITEM("General", "Keyboard");
 
+static RoadMapConfigDescriptor RoadMapConfigGeneralShowErrors =
+                        ROADMAP_CONFIG_ITEM("General", "Show Errors");
+
 static RoadMapConfigDescriptor RoadMapConfigGeometryMain =
                         ROADMAP_CONFIG_ITEM("Geometry", "Main");
 
@@ -1166,7 +1169,9 @@ static void roadmap_start_gps_monitor
 
 
 void roadmap_start_error (const char *text) {
-   roadmap_messagebox ("Error", text);
+   if (roadmap_config_match(&RoadMapConfigGeneralShowErrors, "yes")) {
+      roadmap_messagebox ("Error", text);
+   }
 }
 
 void roadmap_start_fatal (const char *text) {
@@ -1338,8 +1343,12 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralUnit, "imperial", "metric", NULL);
+   
    roadmap_config_declare_enumeration
       ("preferences", &RoadMapConfigGeneralKeyboard, "yes", "no", NULL);
+
+   roadmap_config_declare_enumeration
+      ("preferences", &RoadMapConfigGeneralShowErrors, "yes", "no", NULL);
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigGeometryMain, "800x600");
@@ -1400,6 +1409,7 @@ void roadmap_start (int argc, char **argv) {
    if (roadmap_config_get(&RoadMapConfigPathIcons)[0] != 0) {
       roadmap_path_set("icons", roadmap_config_get(&RoadMapConfigPathIcons));
    }
+
 
    roadmap_osm_initialize();
 

@@ -2345,6 +2345,16 @@ CONFIGURATION
                       case keystrokes will go to the progress bar dialog
                       box instead of roadmap).
 
+    [General.Show Errors] Should runtime errors be reported on-screen?
+
+         <<Format:>> boolean
+
+         <<Default:>> yes
+
+         <<Comment:>> Errors detected by RoadMap will always be logged
+                      to the postmortem file (and to stderr, if available),
+                      but this preference item controls whether the user
+                      will see them in a dialog box on the screen.
 
     [General.Toolbar] Show (yes) or hide (no) the roadmap toolbar.
 
