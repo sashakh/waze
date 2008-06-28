@@ -345,9 +345,11 @@ endif
 
 # the "ALL_..." variables are important in that they drive the
 # creation of the release tarballs.
-ALL_SRC = $(MKFILES) $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
+C_SRC = $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
 	$(RMPLUGINSRC) $(DMSRC) $(BMLIBSRC) $(BMSRC) \
-	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC) $(HEADERS) \
+	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC)
+
+ALL_SRC = $(MKFILES) $(C_SRC) $(HEADERS) \
 	$(PKGDATAFILES) $(MISCFILES) $(MANPAGES) $(SCRIPTS) $(FONT) $(MANUAL)
 
 ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support php win32
@@ -409,7 +411,7 @@ icons:
 	$(MAKE) -C icons all
 
 topclean:
-	rm -f *.o *.a *.da $(BUILD) $(TOOLS) $(DRIVERS)
+	rm -f *.o *.a *.da .depends.mk $(BUILD) $(TOOLS) $(DRIVERS)
 	# Clean up CVS backup files as well.
 	$(RM) .#*
 
@@ -418,7 +420,7 @@ clean:  topclean
 	do \
 		$(MAKE) -C $$module clean || exit 1; \
 	done
-	rm -f agg_support/*.o
+	rm -f agg_support/*.o agg_support/.depends.mk
 
 
 install: installdata installbin installicons \
@@ -591,3 +593,17 @@ sourcelist:
 	@echo $(foreach dir, $(ALL_SUBDIRS), \
 	    $(addprefix $(dir)/, \
 		$(shell $(MAKE) -C $(dir) --no-print-directory sourcelist)))
+
+
+depends:
+	$(MAKEDEPS) -Y -f - $(C_SRC) > .depends.mk 2>/dev/null ; \
+	for dir in $(ALL_SUBDIRS) ; \
+	do \
+		test -f $$dir/Makefile && \
+			$(MAKE) -C $$dir depends || exit 1; \
+	done
+
+.depends.mk:
+	@echo "Note: run 'make depends' to create dependency files"
+
+-include .depends.mk

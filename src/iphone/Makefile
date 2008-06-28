@@ -17,10 +17,12 @@ LDFLAGS += -L/home/ditlemor/usr/local/lib -lobjc -ObjC \
 
 # note that source is Objective C, hence .m suffix
 
+SOURCE = roadmap_main.m roadmap_canvas.m
+
 RMLIBSRCS=roadmap_messagebox.m \
           roadmap_dialog.m \
           roadmap_fileselection.m \
-		  roadmap_progress.m
+	  roadmap_progress.m
 
 RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.m=.o)
 
@@ -42,7 +44,7 @@ strip:
 	$(STRIP) $(TARGETS)
 
 clean:
-	rm -f *.o *.a *.da $(TARGETS) 
+	rm -f *.o *.a *.da $(TARGETS) .depends.mk
 	rm -rf $(ROADMAP_BUNDLE) $(ROADGPS_BUNDLE)
 
 install:
@@ -56,8 +58,7 @@ uninstall:
 	cd $(bindir) && rm -f $(TARGETS) iphoneroadmap iphoneroadgps
 
 sourcelist:
-	@echo Makefile roadmap_main.m \
-	    roadmap_canvas.m \
+	@echo Makefile $(SOURCE)
 	    $(RMLIBSRCS) $(HEADERS)
 
 # --- The real targets --------------------------------------------
@@ -79,3 +80,8 @@ iphoneroadgps: roadmap_main.o libiphoneroadmap.a \
 	$(CXX) $(LDFLAGS) -o iphoneroadgps roadmap_main.o \
 		$(TOP)/libguiroadgps.a libiphoneroadmap.a $(LIBS)
 
+
+depends:
+	$(MAKEDEPS) -Y -f - $(SOURCE) $(RMLIBSRCS) > .depends.mk
+
+-include .depends.mk

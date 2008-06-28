@@ -23,7 +23,7 @@ LIBOBJS=$(LIBSRCS:.c=.o)
 all: libosroadmap.a
 
 clean:
-	rm -f *.o *.a *.da
+	rm -f *.o *.a *.da .depends.mk
 
 install:
 
@@ -39,3 +39,8 @@ libosroadmap.a: $(LIBOBJS)
 	$(AR) $(ARFLAGS) libosroadmap.a $(LIBOBJS)
 	$(RANLIB) libosroadmap.a
 
+
+depends:
+	$(MAKEDEPS) -Y -f - $(LIBSRCS) > .depends.mk 2>/dev/null
+
+-include .depends.mk

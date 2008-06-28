@@ -29,7 +29,7 @@ all: runtime
 runtime: libgpx.a
 
 clean:
-	rm -f *.o *.a *.da
+	rm -f *.o *.a *.da .depends.mk
 
 install:
 
@@ -44,3 +44,8 @@ libgpx.a: $(LIBOBJS)
 	$(AR) $(ARFLAGS) libgpx.a $(LIBOBJS)
 	$(RANLIB) libgpx.a
 
+
+depends:
+	$(MAKEDEPS) -Y -f - $(LIBSRCS) > .depends.mk 2>/dev/null
+
+-include .depends.mk

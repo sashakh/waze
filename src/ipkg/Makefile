@@ -8,3 +8,5 @@ SOURCE = Makefile INSTALL mkipkg roadmap-build.control \
 sourcelist:
 	@echo $(SOURCE)
 
+
+depends:

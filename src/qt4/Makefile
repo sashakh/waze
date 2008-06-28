@@ -34,6 +34,8 @@ endif
 
 # --- QT sources & targets --------------------------------------------
 
+OTHER_SOURCE = roadmap_main.cc roadmap_canvas.cc  
+
 MOC_RMLIBSRCS = \
 	qt_main.cc \
 	qt_canvas.cc \
@@ -72,7 +74,7 @@ TARGETS = qtroadgps qtroadmap
 all: $(TARGETS)
 
 clean:
-	rm -f *~ *.o *.a *.da $(TARGETS) moc_qt_*.cc
+	rm -f *~ *.o *.a *.da $(TARGETS) moc_qt_*.cc .depends.mk
 
 strip:
 	$(STRIP) $(TARGETS)
@@ -100,7 +102,7 @@ uninstall:
 	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
 
 sourcelist:
-	@echo Makefile roadmap_main.cc roadmap_canvas.cc $(SOURCE) $(HEADERS)
+	@echo Makefile $(OTHER_SOURCE) $(SOURCE) $(HEADERS)
 
 # temporary
 roadmap_canvas_agg.o:
@@ -138,3 +140,8 @@ moc_qt_dialog.cc: qt_dialog.h
 moc_qt_progress.cc: qt_progress.h
 	$(MOC) qt_progress.h -o moc_qt_progress.cc
 
+
+depends:
+	$(MAKEDEPS) -Y -f - $(RMLIBSRCS) $(OTHER_SOURCE) > .depends.mk 2>/dev/null
+
+-include .depends.mk

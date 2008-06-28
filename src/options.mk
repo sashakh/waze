@@ -62,6 +62,8 @@ LD =    $(CROSS)ld
 STRIP = $(CROSS)strip
 RANLIB = $(CROSS)ranlib
 
+MAKEDEPS = makedepend
+
 
 # --- Build options ------------------------------------------------
 

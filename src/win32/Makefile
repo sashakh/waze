@@ -58,7 +58,7 @@ strip:
 	$(STRIP) $(TARGETS)
 
 clean:
-	rm -f *.o *.a *.da $(addsuffix .exe,$(TARGETS))
+	rm -f *.o *.a *.da $(addsuffix .exe,$(TARGETS)) .depends.mk
 
 libwroadmap.a: $(RMLIBOBJ)
 	$(AR) $(ARFLAGS) libwroadmap.a $(RMLIBOBJ)
@@ -97,3 +97,8 @@ roadmap.rsc: roadmap.rc
 	$(WINDRES) -D_WIN32_WCE=0x0400 -D_WIN32_IE=0x0400 roadmap.rc roadmap.rsc
 
 roadmap_colors.o:	colors.h
+
+depends:
+	$(MAKEDEPS) -Y -f - $(RMLIBSRC) > .depends.mk 2>/dev/null
+
+-include .depends.mk

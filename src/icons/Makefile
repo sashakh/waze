@@ -60,13 +60,13 @@ all:
 	-$(MAKE) $(ROADMAP_ICONS_XPM)
 
 clean:
-	$(RM) $(ROADMAP_ICONS_XPM)
+	$(RM) $(ROADMAP_ICONS_XPM) .depends.mk
 
 # manually invoking this target will cause "convert" to be
 # used to bring the .png versions of the rm_*.xpm files up-to-date.
 rm_icons: $(RM_ICONS_PNG_BUILDABLE)
 rm_icons_clean:
-	$(RM) $(RM_ICONS_PNG_BUILDABLE)
+	rm -f $(RM_ICONS_PNG_BUILDABLE)
 
 
 install: $(RM_ICONS_PNG)
@@ -95,3 +95,5 @@ road%.xpm : road%.png
 
 .PHONY: all install uninstall icons clean rm_icons
 
+
+depends:

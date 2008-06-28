@@ -16,14 +16,17 @@ endif
 
 # --- GTK2 sources & targets -----------------------------------
 
-RMLIBSRCS=roadmap_keyboard.c \
+SOURCE = roadmap_main.c \
+	    roadmap_canvas.c roadmap_canvas_agg.cpp
+
+RMLIBSRCS = roadmap_keyboard.c \
           roadmap_messagebox.c \
           roadmap_dialog.c \
           roadmap_fileselection.c \
           roadmap_signals.c \
           roadmap_progress.c
 
-RMLIBOBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.c=.o)
+OBJS = $(CANVAS_OBJS) $(RMLIBSRCS:.c=.o)
 
 TARGETS = gtkroadgps gtkroadmap
 
@@ -42,7 +45,7 @@ strip:
 	$(STRIP) $(TARGETS)
 
 clean:
-	rm -f *.o *.a *.da $(TARGETS)
+	rm -f *.o *.a *.da $(TARGETS) .depends.mk
 
 install:
 	mkdir -p $(bindir)
@@ -62,8 +65,8 @@ sourcelist:
 
 # --- The real targets --------------------------------------------
 
-libgtkroadmap.a: $(RMLIBOBJS)
-	$(AR) $(ARFLAGS) libgtkroadmap.a $(RMLIBOBJS)
+libgtkroadmap.a: $(OBJS)
+	$(AR) $(ARFLAGS) libgtkroadmap.a $(OBJS)
 	$(RANLIB) libgtkroadmap.a
 
 gtkroadmap: roadmap_main.o libgtkroadmap.a \
@@ -76,3 +79,8 @@ gtkroadgps: roadmap_main.o libgtkroadmap.a \
 	$(GTK2CC) $(LDFLAGS) -o gtkroadgps roadmap_main.o \
 		$(TOP)/libguiroadgps.a libgtkroadmap.a $(LIBS)
 
+
+depends:
+	$(MAKEDEPS) -Y -f - $(SOURCE) $(RMLIBSRCS) > .depends.mk 2>/dev/null
+
+-include .depends.mk

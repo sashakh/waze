@@ -10,6 +10,8 @@ CFLAGS += `gtk-config --cflags`
 
 # --- GTK sources & targets -----------------------------------
 
+SOURCE = roadmap_main.c roadmap_canvas.c
+
 RMLIBSRCS=roadmap_keyboard.c \
           roadmap_messagebox.c \
           roadmap_dialog.c \
@@ -36,7 +38,7 @@ strip:
 	$(STRIP) $(TARGETS)
 
 clean:
-	rm -f *.o *.a *.da $(TARGETS)
+	rm -f *.o *.a *.da $(TARGETS) .depends.mk
 
 install:
 	mkdir -p $(bindir)
@@ -50,7 +52,7 @@ uninstall:
 	cd $(bindir) && rm -f $(TARGETS) roadmap roadgps
 
 sourcelist:
-	@echo Makefile roadmap_main.c roadmap_canvas.c $(RMLIBSRCS) $(HEADERS)
+	@echo Makefile $(SOURCE) $(RMLIBSRCS) $(HEADERS)
 
 # hopefully temporary
 roadmap_canvas_agg.o:
@@ -75,3 +77,8 @@ gtkroadgps: roadmap_main.o libgtkroadmap.a \
 	$(CC) $(LDFLAGS) -o gtkroadgps roadmap_main.o \
 		$(TOP)/libguiroadgps.a libgtkroadmap.a $(LIBS)
 
+
+depends:
+	$(MAKEDEPS) -Y -f - $(SOURCE) $(RMLIBSRCS) > .depends.mk 2>/dev/null
+
+-include .depends.mk
