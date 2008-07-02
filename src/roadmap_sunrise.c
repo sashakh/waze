@@ -26,10 +26,10 @@
  *   see roadmap_sunrise.h
  *
  *   Sun and moon position calculations are (simplified) from: 
- *   http://www.satellite-calculations.com/Satellite/suncalc.htm
+ *      http://www.satellite-calculations.com/Satellite/suncalc.htm
  *   who got the actual formulas from the terrific site:
- *   http://www.stjarnhimlen.se/comp/tutorial.html
- *   (This implementation by Morten Bek, with the written
+ *      http://www.stjarnhimlen.se/comp/tutorial.html
+ *   (This implementation by Morten Bek Ditlevsen, with the written
  *   permission of the author of the javascript version on
  *   satellite-calculations.com, Jens T. Satre.)
  */
