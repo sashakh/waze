@@ -1,27 +1,27 @@
 /* roadmap_sunrise.c - calculate sunrise/sunset time
  *
- * license:
+ * License:
  *
- *   copyright 2003 eric domazlicky
- *   copyright 2003 pascal martin (changed module interface)
+ *   Copyright 2003 Eric Domazlicky
+ *   Copyright 2003 Pascal Martin (changed module interface)
  *
- *   this file is part of roadmap.
+ *   This file is part of RoadMap.
  *
- *   roadmap is free software; you can redistribute it and/or modify
- *   it under the terms of the gnu general public license as published by
- *   the free software foundation; either version 2 of the license, or
+ *   RoadMap is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
  *   (at your option) any later version.
  *
- *   roadmap is distributed in the hope that it will be useful,
- *   but without any warranty; without even the implied warranty of
- *   merchantability or fitness for a particular purpose.  see the
- *   gnu general public license for more details.
+ *   RoadMap is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
  *
- *   you should have received a copy of the gnu general public license
- *   along with roadmap; if not, write to the free software
- *   foundation, inc., 59 temple place, suite 330, boston, ma  02111-1307  usa
+ *   You should have received a copy of the GNU General Public License
+ *   along with RoadMap; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * synopsys:
+ * SYNOPSYS:
  *
  *   see roadmap_sunrise.h
  *
@@ -29,7 +29,9 @@
  *   http://www.satellite-calculations.com/Satellite/suncalc.htm
  *   who got the actual formulas from the terrific site:
  *   http://www.stjarnhimlen.se/comp/tutorial.html
- *   (This implementation by Morten Bek.)
+ *   (This implementation by Morten Bek, with the written
+ *   permission of the author of the javascript version on
+ *   satellite-calculations.com, Jens T. Satre.)
  */
 
 #include <stdio.h>
