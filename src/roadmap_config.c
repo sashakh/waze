@@ -545,14 +545,14 @@ static int roadmap_config_load_file
    RoadMapConfigItem *item;
    RoadMapConfigDescriptor descriptor;
 
-   roadmap_log(ROADMAP_DEBUG, "trying for config from '%s' in '%s'",
-        config->file_name, path ? path : "");
+   roadmap_log(ROADMAP_DEBUG, "checking for config file '%s%s%s'",
+        path ? path : "", path ? "/" : "", config->file_name);
 
    file = roadmap_file_fopen (path, config->file_name, "sr");
    if (file == NULL) return 0;
 
-   roadmap_log(ROADMAP_DEBUG, "loading config from '%s' in '%s'",
-        config->file_name, path ? path : "");
+   roadmap_log(ROADMAP_DEBUG, "loading config from '%s%s%s'",
+        path ? path : "", path ? "/" : "", config->file_name);
 
    while (!feof(file)) {
 

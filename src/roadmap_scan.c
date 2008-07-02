@@ -71,7 +71,6 @@ const char *roadmap_scan_next (const char *set,
       }
    }
 
-   roadmap_log (ROADMAP_DEBUG, "could not find file %s", name);
 
    return NULL; /* Could not find anything. */
 }
