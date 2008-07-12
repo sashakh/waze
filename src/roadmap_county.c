@@ -316,6 +316,7 @@ static RoadMapCountyByState *roadmap_county_search_state (RoadMapString state) {
  * @brief
  * @param city
  * @param state
+ * @param fips
  * @param count
  * @return
  */
