@@ -1,5 +1,4 @@
-/* roadmap_place.c - Manage placename points.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2004 Stephen Woodbridge
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Manage placename points.
  *
  * SYNOPSYS:
  *
@@ -46,6 +50,9 @@
 
 static char *RoadMapPlaceType = "RoadMapPlaceContext";
 
+/**
+ * @brief
+ */
 typedef struct {
 
    char *type;
@@ -63,7 +70,11 @@ typedef struct {
 
 static RoadMapPlaceContext *RoadMapPlaceActive = NULL;
 
-
+/**
+ * @brief
+ * @param root
+ * @return
+ */
 static void *roadmap_place_map (roadmap_db *root) {
 
    RoadMapPlaceContext *context;
@@ -118,6 +129,10 @@ roadmap_place_map_abort:
    return NULL;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_place_activate (void *context) {
 
    RoadMapPlaceContext *place_context = (RoadMapPlaceContext *) context;
@@ -128,6 +143,10 @@ static void roadmap_place_activate (void *context) {
    RoadMapPlaceActive = place_context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_place_unmap (void *context) {
 
    RoadMapPlaceContext *place_context = (RoadMapPlaceContext *) context;
@@ -138,6 +157,9 @@ static void roadmap_place_unmap (void *context) {
    free (place_context);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapPlaceHandler = {
    "place",
    roadmap_place_map,
@@ -145,7 +167,14 @@ roadmap_db_handler RoadMapPlaceHandler = {
    roadmap_place_unmap
 };
 
-
+/**
+ * @brief
+ * @param square
+ * @param layer
+ * @param first
+ * @param last
+ * @return
+ */
 int roadmap_place_in_square (int square, int layer, int *first, int *last) {
 
    int *index;
@@ -167,7 +196,11 @@ int roadmap_place_in_square (int square, int layer, int *first, int *last) {
    return (*first <= *last);
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @param position
+ */
 void roadmap_place_point   (int place, RoadMapPosition *position) {
 
 #ifdef ROADMAP_INDEX_DEBUG
@@ -178,7 +211,10 @@ void roadmap_place_point   (int place, RoadMapPosition *position) {
    roadmap_point_position (RoadMapPlaceActive->Place[place], position);
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 int  roadmap_place_count (void) {
 
    return RoadMapPlaceActive->PlaceCount;
