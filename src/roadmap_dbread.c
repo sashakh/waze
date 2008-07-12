@@ -1,8 +1,8 @@
-/* roadmap_dbread.c - a module to read a roadmap database.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,31 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   #include "roadmap_dbread.h"
- *
- *   roadmap_db_model *roadmap_db_register (const roadmap_db_model *model,
- *                                          const char *section,
- *                                          const roadmap_db_handler *handler);
- *
- *   int  roadmap_db_open (const char *path,
- *                         const char *name, roadmap_db_model *model);
- *
- *   void roadmap_db_activate (const char *path, const char *name);
- *
- *   roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path);
- *
- *   roadmap_db *roadmap_db_get_first (roadmap_db *parent);
- *   char       *roadmap_db_get_name  (roadmap_db *section);
- *   unsigned    roadmap_db_get_size  (roadmap_db *section);
- *   int         roadmap_db_get_count (roadmap_db *section);
- *   void       *roadmap_db_get_data  (roadmap_db *section);
- *   roadmap_db *roadmap_db_get_next  (roadmap_db *section);
- *
- *   void roadmap_db_close (const char *path, const char *name);
- *   void roadmap_db_end   (void);
+ */
+
+/**
+ * @file
+ * @brief a module to read a roadmap database.
  */
 
 #include <stdio.h>
@@ -56,7 +36,9 @@
 #include "roadmap.h"
 #include "roadmap_dbread.h"
 
-
+/**
+ * @brief
+ */
 typedef struct roadmap_db_database_s {
 
    char *name;
@@ -78,13 +60,24 @@ static roadmap_db_database *RoadmapDatabaseFirst  = NULL;
 
 
 
+/**
+ * @brief
+ * @param database
+ * @param offset
+ * @return
+ */
 static struct roadmap_db_section *roadmap_db_locate
                  (roadmap_db_database *database, int offset) {
 
    return (struct roadmap_db_section *) (database->base + offset);
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @return
+ */
 static roadmap_db_database *roadmap_db_find (const char *path,
                                              const char *name) {
 
@@ -104,7 +97,11 @@ static roadmap_db_database *roadmap_db_find (const char *path,
    return NULL;
 }
 
-
+/**
+ * @brief
+ * @param database
+ * @param parent
+ */
 static void roadmap_db_make_tree
                (roadmap_db_database *database, roadmap_db *parent) {
 
@@ -161,7 +158,10 @@ static void roadmap_db_make_tree
    }
 }
 
-
+/**
+ * @brief
+ * @param parent
+ */
 static void roadmap_db_free_subtree (roadmap_db *parent) {
 
    roadmap_db *child;
@@ -175,7 +175,13 @@ static void roadmap_db_free_subtree (roadmap_db *parent) {
    }
 }
 
-
+/**
+ * @brief
+ * @param model
+ * @param this
+ * @param section
+ * @return
+ */
 static int roadmap_db_call_map_one
               (roadmap_db_model *model, roadmap_db *this, char *section) {
 
@@ -201,7 +207,11 @@ static int roadmap_db_call_map_one
    return 1;
 }
 
-
+/**
+ * @brief
+ * @param database
+ * @return
+ */
 static int roadmap_db_call_map (roadmap_db_database *database) {
 
    roadmap_db *child;
@@ -223,7 +233,10 @@ static int roadmap_db_call_map (roadmap_db_database *database) {
    return roadmap_db_call_map_one (database->model, &database->root, "/");
 }
 
-
+/**
+ * @brief
+ * @param database
+ */
 static void roadmap_db_call_activate (roadmap_db_database *database) {
 
    int done;
@@ -277,7 +290,12 @@ static void roadmap_db_call_activate (roadmap_db_database *database) {
    }
 }
 
-
+/**
+ * @brief
+ * @param model
+ * @param this
+ * @param section
+ */
 static void roadmap_db_call_unmap_one
                (roadmap_db_model *model, roadmap_db *this, char *section) {
 
@@ -299,6 +317,10 @@ static void roadmap_db_call_unmap_one
    this->handler_context = NULL;
 }
 
+/**
+ * @brief
+ * @param database
+ */
 static void roadmap_db_call_unmap (roadmap_db_database *database) {
 
    roadmap_db *child;
@@ -311,7 +333,10 @@ static void roadmap_db_call_unmap (roadmap_db_database *database) {
    roadmap_db_call_unmap_one (database->model, &database->root, "/");
 }
 
-
+/**
+ * @brief close a database, specified by handler
+ * @param database the pointer to the internal structure
+ */
 static void roadmap_db_close_database (roadmap_db_database *database) {
 
    if (database->base != NULL) {
@@ -339,7 +364,13 @@ static void roadmap_db_close_database (roadmap_db_database *database) {
    free(database);
 }
 
-
+/**
+ * @brief
+ * @param model
+ * @param section
+ * @param handler
+ * @return
+ */
 roadmap_db_model *roadmap_db_register
                       (const roadmap_db_model *model,
                        const char *section,
@@ -383,9 +414,18 @@ roadmap_db_model *roadmap_db_register
 }
 
 
+/**
+ * @brief open a database, which implies activating it
+ * @param path
+ * @param name
+ * @param model
+ * @param mode
+ * @return 1 if successful, 0 on failure
+ */
 int roadmap_db_open (const char *path,
                      const char *name,
-                     roadmap_db_model *model) {
+                     roadmap_db_model *model,
+		     const char *mode) {
 
    RoadMapFileContext   file;
    roadmap_db_database *database = roadmap_db_find (path, name);
@@ -397,10 +437,10 @@ int roadmap_db_open (const char *path,
       return 1; /* Already open. */
    }
 
-   if (roadmap_file_map (path, name, "r", &file) == NULL) {
+   if (roadmap_file_map (path, name, mode, &file) == NULL) {
 
       roadmap_log (ROADMAP_INFO,
-                   "cannot open database file %s in %s", name, path);
+                   "Cannot open database file %s in directory [%s]", name, path);
       return 0;
    }
 
@@ -441,7 +481,11 @@ int roadmap_db_open (const char *path,
    return 1;
 }
 
-
+/**
+ * @brief Activate the database specified by directory and file name
+ * @param path directory name
+ * @param name file name
+ */
 void roadmap_db_activate (const char *path, const char *name) {
 
    roadmap_db_database *database = roadmap_db_find (path, name);
@@ -457,7 +501,12 @@ void roadmap_db_activate (const char *path, const char *name) {
    roadmap_db_call_activate (database);
 }
 
-
+/**
+ * @brief
+ * @param parent
+ * @param path
+ * @return
+ */
 roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path) {
 
    int found;
@@ -516,7 +565,11 @@ roadmap_db *roadmap_db_get_subsection (roadmap_db *parent, char *path) {
    return parent;
 }
 
-
+/**
+ * @brief
+ * @param parent
+ * @return
+ */
 roadmap_db *roadmap_db_get_first (roadmap_db *parent) {
 
    if (parent == NULL) {
@@ -526,19 +579,32 @@ roadmap_db *roadmap_db_get_first (roadmap_db *parent) {
    return parent->first;
 }
 
-
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 char *roadmap_db_get_name (roadmap_db *section) {
 
    return section->head->name;
 }
 
 
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 int roadmap_db_get_level (roadmap_db *section) {
 
    return section->level;
 }
 
-
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 unsigned roadmap_db_get_size  (roadmap_db *section) {
 
    if (section->head->count == 0) {
@@ -548,24 +614,44 @@ unsigned roadmap_db_get_size  (roadmap_db *section) {
 }
 
 
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 int roadmap_db_get_count (roadmap_db *section) {
 
    return section->head->count;
 }
 
 
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 void *roadmap_db_get_data  (roadmap_db *section) {
 
    return (void *)(section->head + 1);
 }
 
 
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 roadmap_db *roadmap_db_get_next  (roadmap_db *section) {
 
    return section->next;
 }
 
 
+/**
+ * @brief close a database specified by its directory and file name
+ * @param path directory in which the database is to be found
+ * @param name the file name of the database to be closed
+ */
 void roadmap_db_close (const char *path, const char *name) {
 
    roadmap_db_database *database = roadmap_db_find (path, name);
@@ -576,6 +662,9 @@ void roadmap_db_close (const char *path, const char *name) {
 }
 
 
+/**
+ * @brief close all databases
+ */
 void roadmap_db_end (void) {
 
    roadmap_db_database *database;
@@ -587,4 +676,3 @@ void roadmap_db_end (void) {
       roadmap_db_close_database (database);
    }
 }
-

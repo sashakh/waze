@@ -1,5 +1,4 @@
-/* dumpmap_main.c - a tool to dump information from a RoadMap map file.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -21,6 +20,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @file
+ * @brief a tool to dump information from a RoadMap map file.
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +37,8 @@
 #include "buildmap_opt.h"
 
 
+FILE	*out = 0;
+
 roadmap_db_model *RoadMapModel = NULL;
 
 static int   DumpMapVerbose = 0;
@@ -44,7 +50,8 @@ static char *DumpMapShowVolume = "";
 static char *DumpMapSearchStringOption = "";
 
 
-/* Tree print module -------------------------------------------------------
+/**
+ * Tree print module
  *
  * This is a simple module as it does not care about keeping any
  * context, it does its jobs once the database has been mapped, and
@@ -55,18 +62,20 @@ static void dumpmap_show_size (int size) {
 
    if (size > 1024) {
       if (size > (1024 * 1024)) {
-         printf ("%d.%d Mbytes",
+         fprintf(out, "%d.%d Mbytes",
                  size / (1024 * 1024),
                  ((10 * size) / (1024 * 1024)) % 10);
       } else {
-         printf ("%d Kbytes", size / 1024);
+         fprintf(out, "%d Kbytes", size / 1024);
       }
    } else {
-      printf ("%d bytes", size);
+      fprintf(out, "%d bytes", size);
    }
 }
 
 
+/**
+ */
 static void dumpmap_printtree (roadmap_db *parent, roadmap_db *root) {
 
    int size;
@@ -80,14 +89,14 @@ static void dumpmap_printtree (roadmap_db *parent, roadmap_db *root) {
         child != NULL;
         child = roadmap_db_get_next (child)) {
 
-      printf ("%*.*s %s (", level, level, "", roadmap_db_get_name (child));
+      fprintf(out, "%*.*s %s (", level, level, "", roadmap_db_get_name (child));
 
       size = roadmap_db_get_size (child);
 
       if (roadmap_db_get_first (child) != NULL) {
 
          dumpmap_show_size (size);
-         printf (") -->\n");
+         fprintf(out, ") -->\n");
          dumpmap_printtree (child, root);
 
       } else {
@@ -95,26 +104,31 @@ static void dumpmap_printtree (roadmap_db *parent, roadmap_db *root) {
          count = roadmap_db_get_count (child);
 
          if (count != 0) {
-            printf ("%d records, ", count);
+            fprintf(out, "%d records, ", count);
          }
 
          dumpmap_show_size (size);
-         printf (")\n");
+         fprintf(out, ")\n");
       }
    }
 }
 
+/**
+ */
 static void *dumpmap_printtree_map (roadmap_db *root) {
 
    dumpmap_printtree (root, root);
    return "OK";
 }
 
+/**
+ */
 roadmap_db_handler DumpMapPrintTree =
     {"printtree", dumpmap_printtree_map, NULL, NULL};
 
 
-/* Dictionary print module -------------------------------------------------
+/**
+ * Dictionary print module 
  *
  * This is a simple module as it does not care about keeping any
  * context, it does its jobs once the database has been mapped, and
@@ -126,6 +140,8 @@ static void *dumpmap_printstring_map (roadmap_db *root) {
    return (*RoadMapDictionaryHandler.map) (root);
 }
 
+/**
+ */
 static void dumpmap_printstring_activate (void *context) {
 
    (*RoadMapDictionaryHandler.activate) (context);
@@ -137,12 +153,15 @@ static void dumpmap_printstring_activate (void *context) {
    }
 }
 
+/**
+ */
 roadmap_db_handler DumpMapPrintString =
     {"printstring",
      dumpmap_printstring_map, dumpmap_printstring_activate, NULL};
 
 
-/* Dictionary search module ------------------------------------------------
+/**
+ * Dictionary search module
  *
  * This is a simple module as it does not care about keeping any
  * context, it does its jobs once the database has been mapped, and
@@ -154,6 +173,8 @@ static void *dumpmap_searchstring_map (roadmap_db *root) {
    return "OK"; /* Must not be null. */
 }
 
+/**
+ */
 static void dumpmap_searchstring_activate (void *context) {
 
    char data[512];
@@ -167,7 +188,7 @@ static void dumpmap_searchstring_activate (void *context) {
 
    streets = roadmap_dictionary_open (DumpMapSearchStringOption);
    if (streets == NULL) {
-      fprintf (stderr,
+      fprintf (out,
                "Could not open the dictionary volume %s\n",
                DumpMapSearchStringOption);
       exit (1);
@@ -181,38 +202,41 @@ static void dumpmap_searchstring_activate (void *context) {
 
       if (roadmap_dictionary_completable (cursor)) {
          result = roadmap_dictionary_get_result (cursor);
-         printf ("A street of that name exists at index %d.\n", result);
+         fprintf(out, "A street of that name exists at index %d.\n", result);
       }
 
       roadmap_dictionary_completion (cursor, data);
-      printf ("Current street name: %s\n", data);
+      fprintf(out, "Current street name: %s\n", data);
 
       input = ' ';
       do {
          if (input != '\n') {
-            printf ("Please select one of these characters: '%s'\n", choices);
+            fprintf(out, "Please select one of these characters: '%s'\n", choices);
          }
          scanf ("%c", &input);
 
       } while (strchr (choices, input) == NULL);
 
-      roadmap_dictionary_move_cursor (cursor, input);
+      roadmap_dictionary_move_cursor (cursor, input, NULL);
       roadmap_dictionary_get_next (cursor, choices);
    }
 
    result = roadmap_dictionary_get_result (cursor);
-   printf ("Street index & name are: %d, %s\n",
+   fprintf(out, "Street index & name are: %d, %s\n",
            result, roadmap_dictionary_get (streets, result));
    
    roadmap_dictionary_free_cursor (cursor);
 }
 
+/**
+ */
 roadmap_db_handler DumpMapSearchString =
     {"searchstring",
      dumpmap_searchstring_map, dumpmap_searchstring_activate, NULL};
 
 
-/* Attributes print module -------------------------------------------------
+/**
+ * Attributes print module
  *
  * This is a simple module as it does not care about keeping any
  * context, it does its jobs once the database has been mapped, and
@@ -224,13 +248,17 @@ static void *dumpmap_attributes_map (roadmap_db *root) {
    return (*RoadMapMetadataHandler.map) (root);
 }
 
+/**
+ */
 static void dumpmap_attributes_print (const char *category,
                                       const char *name,
                                       const char *value) {
 
-   printf ("   %s.%s: %s\n", category, name, value);
+   fprintf(out, "   %s.%s: %s\n", category, name, value);
 }
 
+/**
+ */
 static void dumpmap_attributes_activate (void *context) {
 
    (*RoadMapMetadataHandler.activate) (context);
@@ -247,7 +275,8 @@ roadmap_db_handler DumpMapPrintAttributes =
      dumpmap_attributes_map, dumpmap_attributes_activate, NULL};
 
 
-/* Index print module ------------------------------------------------------
+/**
+ * Index print module
  *
  * This is a simple module as it does not care about keeping any
  * context, it does its jobs once the database has been mapped, and
@@ -276,7 +305,7 @@ static void roadmap_index_print_maps (int wtid) {
    count = roadmap_index_by_territory (wtid, classes, files, max);
 
    for (i = 0; i < count; ++i) {
-      printf ("         map %s (%s)\n", files[i], classes[i]);
+      fprintf(out, "         map %s (%s)\n", files[i], classes[i]);
    }
 }
 
@@ -299,7 +328,7 @@ static void roadmap_index_print_territories (const char *authority) {
 
       if (path == NULL || path[0] == 0) path = ".";
 
-      printf ("      Territory %09d (%s) at %s\n",
+      fprintf(out, "      Territory %09d (%s) at %s\n",
               list[i], roadmap_index_get_territory_name (list[i]), path);
       roadmap_index_print_maps (list[i]);
    }
@@ -313,13 +342,13 @@ static void roadmap_index_print_authorities (void) {
    int authority;
 
 
-   printf ("RoadMap index tables:\n");
+   fprintf(out, "RoadMap index tables:\n");
 
    authority_count = roadmap_index_list_authorities (&symbols, &names);
 
    for (authority = 0; authority < authority_count; ++authority) {
 
-       printf ("   Authority %s (%s)\n", symbols[authority], names[authority]);
+       fprintf(out, "   Authority %s (%s)\n", symbols[authority], names[authority]);
 
        roadmap_index_print_territories (symbols[authority]);
    }
@@ -341,7 +370,8 @@ roadmap_db_handler DumpMapPrintIndex =
      dumpmap_index_map, dumpmap_index_activate, NULL};
 
 
-/* Section dump module -----------------------------------------------------
+/**
+ * Section dump module 
  *
  * This is a simple module as it does not care about keeping any
  * context, it does its jobs once the database has been mapped, and
@@ -361,20 +391,20 @@ static void *dumpmap_hexadump_map (roadmap_db *root) {
 
       int j;
 
-      printf ("%08d  ", i);
+      fprintf(out, "%08d  ", i);
 
       for (j = 0; j < 16; ++j) {
-         printf (" %02x", 0xff & ((int)data[i+j]));
+         fprintf(out, " %02x", 0xff & ((int)data[i+j]));
       }
-      printf ("\n");
+      fprintf(out, "\n");
    }
 
    if (i < size) {
-      printf ("%08d  ", i);
+      fprintf(out, "%08d  ", i);
       for (; i < size; ++i) {
-         printf (" %02x", 0xff & ((int)data[i]));
+         fprintf(out, " %02x", 0xff & ((int)data[i]));
       }
-      printf ("\n");
+      fprintf(out, "\n");
    }
 
    return "OK";
@@ -385,7 +415,8 @@ roadmap_db_handler DumpMapHexaDump =
     {"hexadump", dumpmap_hexadump_map, NULL, NULL};
 
 
-/* Main program. -----------------------------------------------------------
+/**
+ * Main program.
  */
 struct opt_defs options[] = {
    {"strings", "", opt_flag, "0",
@@ -415,8 +446,8 @@ void usage(char *progpath, const char *msg) {
        prog = progpath;
 
    if (msg)
-       fprintf(stderr, "%s: %s\n", prog, msg);
-   fprintf(stderr,
+       fprintf(out, "%s: %s\n", prog, msg);
+   fprintf(out,
        "usage: %s [options] mapfile [mapfile...]\n", prog);
    opt_desc(options, 1);
    exit(1);
@@ -425,6 +456,14 @@ void usage(char *progpath, const char *msg) {
 int main (int argc, char **argv) {
 
    int i, error;
+
+#ifdef _WIN32
+   out = fopen("/storage card/roadmap/dump.txt", "w");
+#else
+   out = stdout;
+#endif
+
+   fprintf(out, "dumpmap starting\n");
 
    /* parse the options */
    error = opt_parse(options, &argc, argv, 0);
@@ -440,7 +479,6 @@ int main (int argc, char **argv) {
            opt_val("index", &DumpMapShowIndex);
    if (error)
       usage(argv[0], opt_strerror(error));
-
 
    if (DumpMapShowAttributes) {
 
@@ -488,21 +526,33 @@ int main (int argc, char **argv) {
    }
 
 
+#ifdef _WIN32
+      if (! roadmap_db_open ("", "/storage card/roadmap/maps/usc83999.rdm", RoadMapModel, "r")) {
+         roadmap_log (ROADMAP_FATAL, "cannot open map database");
+      }
+      roadmap_db_close ("", "/storage card/roadmap/maps/usc83999.rdm");
+#else
    if (argc < 2)
       usage(argv[0], "missing map file\n");
 
 
    for (i = 1; i < argc; ++i) {
 
-      if (argc >= 3) printf ("%s\n", argv[i]);
+      if (argc >= 3) fprintf(out, "%s\n", argv[i]);
 
-      if (! roadmap_db_open ("", argv[i], RoadMapModel)) {
+      if (! roadmap_db_open ("", argv[i], RoadMapModel, "r")) {
          roadmap_log (ROADMAP_FATAL, "cannot open map database %s", argv[i]);
       }
       roadmap_db_close ("", argv[i]);
    }
+#endif
 
    roadmap_db_end ();
+
+   fprintf(out, "dumpmap terminating\n");
+#ifdef _WIN32
+   fclose(out);
+#endif
 
    return 0;
 }
