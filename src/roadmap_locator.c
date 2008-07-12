@@ -1,8 +1,8 @@
-/* roadmap_locator.c - Locate the map to which a specific place belongs.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,8 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
+ */
+
+/**
+ * @file
+ * @brief Locate the map to which a specific place belongs.
  *
  *  int roadmap_locator_by_position
  *         (RoadMapPosition *position, int *fips, int count);
@@ -47,6 +50,7 @@
 #include "roadmap_osm.h"
 #include "roadmap_math.h"
 #include "roadmap_county.h"
+#include "roadmap_config.h"
 
 #include "roadmap_locator.h"
 
@@ -70,15 +74,20 @@ static int RoadMapActiveCounty;
 static roadmap_db_model *RoadMapUsModel;
 static roadmap_db_model *RoadMapCountyModel;
 
-static RoadMapDictionary RoadMapUsCityDictionary = NULL;
+RoadMapDictionary RoadMapUsCityDictionary = NULL;
 static RoadMapDictionary RoadMapUsStateDictionary = NULL;
 
 
 static int roadmap_locator_no_download (int fips) {return 0;}
 
 static RoadMapInstaller  RoadMapDownload = roadmap_locator_no_download;
+static RoadMapConfigDescriptor RoadMapConfigStaticCounty =
+	ROADMAP_CONFIG_ITEM("Map", "Static County");
 
 
+/*
+ * @brief
+ */
 static void roadmap_locator_configure (void) {
 
    const char *path;
@@ -132,7 +141,7 @@ static void roadmap_locator_configure (void) {
            path != NULL;
            path = roadmap_scan_next ("maps", "usdir.rdm", path)) {
 
-         if (roadmap_db_open (path, "usdir.rdm", RoadMapUsModel)) {
+         if (roadmap_db_open (path, "usdir.rdm", RoadMapUsModel, "r")) {
             break;
          }
          roadmap_log (ROADMAP_ERROR,
@@ -151,10 +160,15 @@ static void roadmap_locator_configure (void) {
       RoadMapUsCityDictionary   = roadmap_dictionary_open ("city");
       RoadMapUsStateDictionary  = roadmap_dictionary_open ("state");
 
-
    }
 }
 
+/**
+ * @brief
+ * @param buf
+ * @param fips
+ * @return
+ */
 char *roadmap_locator_filename(char *buf, int fips) {
 
    static char filename[64];
@@ -169,6 +183,10 @@ char *roadmap_locator_filename(char *buf, int fips) {
    return buf;
 }
 
+/**
+ * @brief
+ * @param index
+ */
 static void roadmap_locator_remove (int index) {
 
    roadmap_db_close (RoadMapCountyCache[index].path,
@@ -179,7 +197,10 @@ static void roadmap_locator_remove (int index) {
    RoadMapCountyCache[index].last_access = 0;
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 static unsigned int roadmap_locator_new_access (void) {
 
    static unsigned int RoadMapLocatorAccessCount = 0;
@@ -205,7 +226,11 @@ static unsigned int roadmap_locator_new_access (void) {
    return RoadMapLocatorAccessCount;
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 static int roadmap_locator_open (int fips) {
 
    int i;
@@ -256,7 +281,7 @@ static int roadmap_locator_open (int fips) {
            path != NULL;
            path = roadmap_scan_next ("maps", map_name, path)) {
 
-         if (roadmap_db_open (path, map_name, RoadMapCountyModel)) {
+         if (roadmap_db_open (path, map_name, RoadMapCountyModel, "r")) {
 
             RoadMapCountyCache[oldest].fips = fips;
             RoadMapCountyCache[oldest].path = path;
@@ -273,7 +298,10 @@ static int roadmap_locator_open (int fips) {
    return ROADMAP_US_NOMAP;
 }
 
-
+/**
+ * @brief
+ * @param fips
+ */
 void roadmap_locator_close (int fips) {
 
    int i;
@@ -289,7 +317,11 @@ void roadmap_locator_close (int fips) {
    }
 }
 
-
+/**
+ * @brief
+ * @param fipslistp
+ * @return
+ */
 static int roadmap_locator_allocate (int **fipslistp) {
 
    int count;
@@ -308,7 +340,10 @@ static int roadmap_locator_allocate (int **fipslistp) {
    return count;
 }
 
-
+/**
+ * @brief
+ * @param download
+ */
 void roadmap_locator_declare_downloader (RoadMapInstaller download) {
 
    if (download == NULL) {
@@ -318,7 +353,12 @@ void roadmap_locator_declare_downloader (RoadMapInstaller download) {
    }
 }
 
-
+/**
+ * @brief
+ * @param position
+ * @param fipslistp
+ * @return
+ */
 int roadmap_locator_by_position
         (const RoadMapPosition *position, int **fipslistp) {
 
@@ -335,7 +375,12 @@ int roadmap_locator_by_position
    return roadmap_osm_by_position (position, &focus, fipslistp, count);
 }
 
-
+/**
+ * @brief
+ * @param state_symbol
+ * @param fipslistp
+ * @return
+ */
 int roadmap_locator_by_state (const char *state_symbol, int **fipslistp) {
 
    int count;
@@ -351,7 +396,13 @@ int roadmap_locator_by_state (const char *state_symbol, int **fipslistp) {
    return roadmap_county_by_state (state, *fipslistp, count);
 }
 
-
+/**
+ * @brief
+ * @param city_name
+ * @param state_symbol
+ * @param fipslistp
+ * @return
+ */
 int roadmap_locator_by_city
        (const char *city_name, const char *state_symbol, int **fipslistp) {
 
@@ -380,7 +431,11 @@ int roadmap_locator_by_city
    return roadmap_county_by_city (city, state, *fipslistp, count);
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 int roadmap_locator_activate (int fips) {
 
    if (RoadMapActiveCounty == fips) {
@@ -393,18 +448,30 @@ int roadmap_locator_activate (int fips) {
    return roadmap_locator_open (fips);
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 int roadmap_locator_active (void) {
     return RoadMapActiveCounty;
 }
 
-
+/**
+ * @brief
+ * @param state
+ * @return
+ */
 RoadMapString roadmap_locator_get_state (const char *state) {
 
    if (RoadMapCountyCache == NULL) return 0;
    return roadmap_dictionary_locate (RoadMapUsStateDictionary, state);
 }
 
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 int roadmap_locator_get_decluttered(int fips) {
 
    if (fips > 0)
@@ -413,6 +480,11 @@ int roadmap_locator_get_decluttered(int fips) {
       return 0;  /* unimplemented for geographic maps as yet */
 }
 
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 void roadmap_locator_set_decluttered(int fips) {
 
    /* unimplemented for geographic maps as yet */
