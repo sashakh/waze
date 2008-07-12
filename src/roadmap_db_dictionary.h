@@ -1,8 +1,9 @@
-/* roadmap_db_dictionary.h - Name dictionary tables for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx
+ *   Copyright (c) 2008, Pablo Rogina
  *
  *   This file is part of RoadMap.
  *
@@ -19,11 +20,13 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file roadmap_db_dictionary.h 
+ * @brief Name dictionary tables for RoadMap.
  *
- * SYNOPSYS:
- *
- *   A RoadMap dictionary is made of the following tables:
- *
+ * A RoadMap dictionary is made of the following tables:
  *   string.*.data      a buffer that contains the string value.
  *   string.*.tree      for each node, the list of children nodes.
  *   string.*.node      the tree nodes, reference either a tree branch
@@ -42,29 +45,37 @@
 #ifndef _ROADMAP_DB_DICTIONARY__H_
 #define _ROADMAP_DB_DICTIONARY__H_
 
-
 #include "roadmap_db.h"
 
 #define ROADMAP_DICTIONARY_NULL   0
 #define ROADMAP_DICTIONARY_TREE   1
 #define ROADMAP_DICTIONARY_STRING 2
 
-struct roadmap_dictionary_reference {  /* tables string.*.node */
-
-   char           character;
-   unsigned char  type;
-   unsigned short index;
+/**
+ * Layout of tables string.*.node
+ *
+ * A node consists of a character, the type of node,
+ * and a link to an index
+ */
+struct roadmap_dictionary_reference {  
+   char           character;	/**< First letter of strings */
+   unsigned char  type;		/**< Type of reference: A city, B lake, C street */
+   unsigned short index;	/**< Link to index */
 };
 
-struct roadmap_dictionary_tree {  /* tables string.*.tree */
-
-   unsigned short first;
-   unsigned char  count;
-   unsigned char  position;
+/**
+ * Layout of tables string.*.tree
+ *
+ * A tree of strings
+ */
+struct roadmap_dictionary_tree { 
+   unsigned short first;	/**< Flag: true if first record */
+   unsigned char  count;	/**< Quantity */
+   unsigned char  position;	/**< Position within the table */
+   unsigned char  num_strings;	/**< Number of strings contained in the table */
 };
 
 typedef struct roadmap_dictionary_reference RoadMapDictionaryReference;
 typedef struct roadmap_dictionary_tree      RoadMapDictionaryTree;
 
 #endif /* _ROADMAP_DB_DICTIONARY__H_ */
-

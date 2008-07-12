@@ -1,5 +1,4 @@
-/* roadmap_main.h - The interface for the RoadMap main window module.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief The interface for the RoadMap main window module.
  */
 
 #ifndef INCLUDE__ROADMAP_MAIN__H
@@ -91,3 +95,22 @@ void roadmap_main_exit (void);
 
 #endif /* INCLUDE__ROADMAP_MAIN__H */
 
+/**
+ *
+ * @mainpage A Car Navigation System for Linux and UNIX (and PocketPC too)
+ *
+ *
+ * The following is a short description of RoadMap.
+ * More information is available in the documentation distributed with RoadMap.
+ *
+ * RoadMap is an open source (GPL) program that provides a car navigation for Linux,
+ * UNIX and now Windows CE (a.k.a. PocketPC).
+ * It displays a map of the streets,
+ * tracks the position provided by a NMEA-compliant GPS receiver,
+ * identifies the street matching this GPS position,
+ * and announces the name of the crossing street at the next intersection.
+ * A trip feature allows RoadMap to display routes, tracks,
+ * and provide some basic navigation information
+ * (distance to the next waypoint, direction, speed, etc..).
+ * Voice messages are generated that duplicate some of the screen information. 
+ */
