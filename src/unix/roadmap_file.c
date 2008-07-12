@@ -1,8 +1,8 @@
-/* roadmap_file.c - a module to open/read/close a roadmap database file.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_file.h.
+ */
+
+/**
+ * @file
+ * @brief a module to open/read/close a roadmap database file.
  */
 
 #include <stdio.h>
@@ -41,6 +42,9 @@
 #include "roadmap_file.h"
 
 
+/**
+ * @brief
+ */
 struct RoadMapFileContextStructure {
 
    int   fd;
@@ -50,6 +54,13 @@ struct RoadMapFileContextStructure {
 };
 
 
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @param mode
+ * @return
+ */
 FILE *roadmap_file_fopen (const char *path,
                           const char *name,
                           const char *mode) {
@@ -86,7 +97,11 @@ FILE *roadmap_file_fopen (const char *path,
    return file;
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ */
 void roadmap_file_remove (const char *path, const char *name) {
 
    const char *full_name = roadmap_path_join (path, name);
@@ -95,7 +110,11 @@ void roadmap_file_remove (const char *path, const char *name) {
    roadmap_path_free (full_name);
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ */
 int roadmap_file_exists (const char *path, const char *name) {
 
    int   status;
@@ -109,7 +128,11 @@ int roadmap_file_exists (const char *path, const char *name) {
    return (status == 0);
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ */
 int roadmap_file_length (const char *path, const char *name) {
 
    int   status;
@@ -125,7 +148,13 @@ int roadmap_file_length (const char *path, const char *name) {
    return -1;
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @param data
+ * @param length
+ */
 void roadmap_file_save (const char *path, const char *name,
                         void *data, int length) {
 
@@ -142,7 +171,13 @@ void roadmap_file_save (const char *path, const char *name,
    }
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @param length
+ * @return
+ */
 int roadmap_file_truncate (const char *path, const char *name, int length) {
 
    int   res;
@@ -154,7 +189,13 @@ int roadmap_file_truncate (const char *path, const char *name, int length) {
    return res;
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @param data
+ * @param length
+ */
 void roadmap_file_append (const char *path, const char *name,
                           void *data, int length) {
 
@@ -171,6 +212,12 @@ void roadmap_file_append (const char *path, const char *name,
    }
 }
 
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @param new
+ */
 int roadmap_file_rename (const char *path, const char *name, const char *new) {
 
    const char *full_name, *full_new;
@@ -187,8 +234,10 @@ int roadmap_file_rename (const char *path, const char *name, const char *new) {
    return ret;
 }
 
-/*
- * Make backup file: append "~"
+/**
+ * @brief Make backup file: append "~"
+ * @param path
+ * @param name
  */
 void roadmap_file_backup(const char *path, const char *name) {
 
@@ -208,6 +257,11 @@ void roadmap_file_backup(const char *path, const char *name) {
     free(newname);
 }
 
+/**
+ * @brief
+ * @param base
+ * @return
+ */
 const char *roadmap_file_unique (const char *base) {
 
     static int    UniqueNameCounter = 0;
@@ -238,7 +292,14 @@ const char *roadmap_file_unique (const char *base) {
     return UniqueNameBuffer;
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @param mode
+ * @param file
+ * @return
+ */
 const char *roadmap_file_map (const char *path,
                               const char *name,
                               const char *mode,
@@ -312,25 +373,36 @@ const char *roadmap_file_map (const char *path,
    return context->base;
 }
 
-
-void *roadmap_file_base (RoadMapFileContext file){
-
+/**
+ * @brief
+ * @param file
+ * @return
+ */
+void *roadmap_file_base (RoadMapFileContext file)
+{
    if (file == NULL) {
       return NULL;
    }
    return file->base;
 }
 
-
-int roadmap_file_size (RoadMapFileContext file){
-
+/**
+ * @brief
+ * @param file
+ * @return
+ */
+int roadmap_file_size (RoadMapFileContext file)
+{
    if (file == NULL) {
       return 0;
    }
    return file->size;
 }
 
-
+/**
+ * @brief
+ * @param file
+ */
 void roadmap_file_unmap (RoadMapFileContext *file) {
 
    RoadMapFileContext context = *file;
@@ -347,7 +419,12 @@ void roadmap_file_unmap (RoadMapFileContext *file) {
    *file = NULL;
 }
 
-
+/**
+ * @brief
+ * @param name
+ * @param mode
+ * @return
+ */
 RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
 
    int unix_mode = 0;
@@ -365,18 +442,34 @@ RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
    return (RoadMapFile) open (name, unix_mode);
 }
 
-
+/**
+ * @brief
+ * @param file
+ * @param data
+ * @param size
+ * @return
+ */
 int roadmap_file_read  (RoadMapFile file, void *data, int size) {
    int count = read ((int)file, data, (size_t)size);
    if (count <= 0) return -1;
    return count;
 }
 
+/**
+ * @brief
+ * @param file
+ * @param data
+ * @param length
+ * @return
+ */
 int roadmap_file_write (RoadMapFile file, const void *data, int length) {
    return write ((int)file, data, (size_t)length);
 }
 
+/**
+ * @brief
+ * @param file
+ */
 void  roadmap_file_close (RoadMapFile file) {
    close ((int)file);
 }
-
