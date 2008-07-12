@@ -1,5 +1,4 @@
-/* qt_main.cc - A QT implementation for the RoadMap main function.
- *
+/*
  * LICENSE:
  *
  *   (c) Copyright 2003 Latchesar Ionkov
@@ -19,10 +18,15 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See qt_main.h
+ */
+
+/**
+ * @file
+ * @brief QT implementation for the RoadMap main function.
+ */
+
+/**
+ * @defgroup QT The QT implementation of RoadMap
  */
 #include <signal.h>
 #include <sys/types.h>

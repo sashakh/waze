@@ -1,5 +1,4 @@
-/* roadmap_main.c - The main function of the RoadMap application.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,12 +18,16 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int main (int argc, char **argv);
  */
 
+/**
+ * @file
+ * @brief The main function of the RoadMap application for GTK2.
+ */
+
+/**
+ * @defgroup Gtk2 The GTK2 GUI for RoadMap
+ */
 #include <stdlib.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,5 +1,4 @@
-/* roadmap_main.cc - A C to C++ wrapper for the QT RoadMap main function.
- *
+/*
  * LICENSE:
  *
  *   (c) Copyright 2003 Latchesar Ionkov
@@ -19,10 +18,15 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_main.h
+ */
+
+/**
+ * @file
+ * @brief C to C++ wrapper for the QT RoadMap main function.
+ */
+
+/**
+ * @defgroup QT4 Qt4 implementation of RoadMap
  */
 extern "C" {
 

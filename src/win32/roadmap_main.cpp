@@ -1,5 +1,4 @@
-/* roadmap_main.c - The main function of the RoadMap application.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
@@ -20,12 +19,16 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   roadmap_main.h
  */
 
+/**
+ * @file
+ * @brief The main function of the RoadMap application for Windows.
+ */
+
+/**
+ * @defgroup windows windows-specific part of RoadMap, currently Windows CE
+ */
 #include <windows.h>
 #include <commctrl.h>
 #include "resource.h"
@@ -71,7 +74,7 @@ extern "C" {
 
 // Menu & toolbar defines
 #define MENU_ID_START	WM_USER
-#define MAX_MENU_ITEMS	100
+#define MAX_MENU_ITEMS	200
 #define TOOL_ID_START	(MENU_ID_START + MAX_MENU_ITEMS + 1)
 #define MAX_TOOL_ITEMS	100
 struct tb_icon {
