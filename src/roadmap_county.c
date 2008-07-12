@@ -1,5 +1,4 @@
-/* roadmap_county.c - Manage the county directory used to select a map.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,15 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int  roadmap_county_by_position
- *           (RoadMapPosition *position, int *fips, int count);
- *
- *   int  roadmap_county_by_city (RoadMapString city, RoadMapString state);
- *
- *   extern roadmap_db_handler RoadMapCountyHandler;
+ */
+
+/**
+ * @file
+ * @brief Manage the county directory used to select a map.
  *
  * These functions are used to retrieve a map given a location.
  */
@@ -49,6 +44,9 @@
 
 static char RoadMapCountyType[] = "RoadMapCountyType";
 
+/**
+ * @brief
+ */
 typedef struct {
 
    char *type;
@@ -71,9 +69,15 @@ typedef struct {
 
 } RoadMapCountyContext;
 
+/**
+ */
 static RoadMapCountyContext *RoadMapCountyActive = NULL;
 
-
+/**
+ * @brief
+ * @param root
+ * @return
+ */
 static void *roadmap_county_map (roadmap_db *root) {
 
    roadmap_db *county_table;
@@ -125,6 +129,10 @@ static void *roadmap_county_map (roadmap_db *root) {
    return context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_county_activate (void *context) {
 
    RoadMapCountyContext *county_context = (RoadMapCountyContext *) context;
@@ -146,6 +154,10 @@ static void roadmap_county_activate (void *context) {
    RoadMapCountyActive = county_context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_county_unmap (void *context) {
 
    RoadMapCountyContext *county_context = (RoadMapCountyContext *) context;
@@ -163,6 +175,9 @@ static void roadmap_county_unmap (void *context) {
    free (county_context);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapCountyHandler = {
    "county",
    roadmap_county_map,
@@ -170,6 +185,12 @@ roadmap_db_handler RoadMapCountyHandler = {
    roadmap_county_unmap
 };
 
+/**
+ * @brief
+ * @param buf
+ * @param fips
+ * @return
+ */
 char *roadmap_county_filename(char *buf, int fips) {
 
       sprintf(buf, "usc%05d.rdm", fips);
@@ -177,6 +198,13 @@ char *roadmap_county_filename(char *buf, int fips) {
       return buf;
 }
 
+/**
+ * @brief
+ * @param position
+ * @param fips
+ * @param count
+ * @return
+ */
 int roadmap_county_by_position
        (const RoadMapPosition *position, int *fips, int count) {
 
@@ -262,7 +290,11 @@ int roadmap_county_by_position
    return found;
 }
 
-
+/**
+ * @brief
+ * @param state
+ * @return
+ */
 static RoadMapCountyByState *roadmap_county_search_state (RoadMapString state) {
 
    int i;
@@ -280,7 +312,13 @@ static RoadMapCountyByState *roadmap_county_search_state (RoadMapString state) {
    return NULL;
 }
 
-
+/**
+ * @brief
+ * @param city
+ * @param state
+ * @param count
+ * @return
+ */
 int roadmap_county_by_city
        (RoadMapString city, RoadMapString state, int *fips, int count) {
 
@@ -309,7 +347,13 @@ int roadmap_county_by_city
    return found;
 }
 
-
+/**
+ * @brief
+ * @param state
+ * @param fips
+ * @param count
+ * @return
+ */
 int roadmap_county_by_state(RoadMapString state, int *fips, int count) {
 
    int i;
@@ -339,7 +383,12 @@ int roadmap_county_by_state(RoadMapString state, int *fips, int count) {
    return found;
 }
 
-
+/**
+ * @brief
+ * @param state
+ * @param fips
+ * @return
+ */
 const char *roadmap_county_name (RoadMapString state, int fips) {
 
    int i;
@@ -366,7 +415,11 @@ const char *roadmap_county_name (RoadMapString state, int fips) {
    return "";
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 static int roadmap_county_search_index (int fips) {
 
    int i;
@@ -389,7 +442,11 @@ static int roadmap_county_search_index (int fips) {
    return -1;
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 const char *roadmap_county_get_name (int fips) {
 
    int i;
@@ -404,7 +461,11 @@ const char *roadmap_county_get_name (int fips) {
              (RoadMapCountyActive->names, RoadMapCountyActive->county[i].name);
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 const char *roadmap_county_get_state (int fips) {
 
    RoadMapCountyByState *this_state;
@@ -430,7 +491,10 @@ const char *roadmap_county_get_state (int fips) {
    return "";
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 int  roadmap_county_count (void) {
 
    if (RoadMapCountyActive == NULL) {
@@ -439,7 +503,11 @@ int  roadmap_county_count (void) {
    return RoadMapCountyActive->county_count;
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 const RoadMapArea *roadmap_county_get_edges (int fips) {
 
    int i;
@@ -454,6 +522,11 @@ const RoadMapArea *roadmap_county_get_edges (int fips) {
    return &RoadMapCountyActive->county[i].edges;
 }
 
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 int roadmap_county_get_decluttered(int fips) {
 
    unsigned int zoom;
@@ -480,6 +553,11 @@ int roadmap_county_get_decluttered(int fips) {
    return 0;
 }
 
+/**
+ * @brief
+ * @param fips
+ * @return
+ */
 void roadmap_county_set_decluttered(int fips) {
 
    unsigned int zoom;
