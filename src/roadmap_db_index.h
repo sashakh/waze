@@ -1,5 +1,4 @@
-/* roadmap_db_index.h - the format of the index table used by RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2005 Pascal F. Martin
@@ -20,9 +19,12 @@
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * SYNOPSYS:
+ */
+/**
+ * @file
+ * @brief roadmap_db_index.h - the format of the index table used by RoadMap.
  *
- *   The RoadMap index is described by the following table:
+ * The RoadMap index is described by the following table:
  *
  *   index/authority   The authority body. Links to territories.
  *   index/territory   The territory. Sorted by authority, links to maps.
@@ -97,39 +99,43 @@
 
 #include "roadmap_types.h"
 
-typedef struct { /* table index/authority */
+/**
+ * Table index/authority
+ */
+typedef struct {
+   RoadMapString symbol;	/**< Relative to the index's parent. */
+   RoadMapString pathname;	/**< Relative or absolute path for the maps. */
 
-   RoadMapString symbol;    /* Relative to the index's parent. */
-   RoadMapString pathname;  /* Relative or absolute path for the maps. */
-
-   RoadMapArea edges;       /* Bounding earth area for this authority. */
+   RoadMapArea edges;		/**< Bounding earth area for this authority. */
 
    unsigned short name_first;
-   unsigned short name_count; /* Cannot be 0. */
+   unsigned short name_count;	/**< Cannot be 0. */
 
    unsigned short territory_first;
-   unsigned short territory_count; /* If 0, it must have a sub-index file. */
+   unsigned short territory_count;	/**< If 0, it must have a sub-index file. */
 
 } RoadMapAuthority;
 
+/**
+ * Table index/territory
+ */
+typedef struct { 
 
-typedef struct {  /* table index/territory */
-
-   int wtid;                /* Stands for "world territory ID". */
+   int wtid;                /**< Stands for "world territory ID". */
 
    RoadMapString name;
-   RoadMapString pathname;  /* Relative or absolute path for the map files. */
+   RoadMapString pathname;  /**< Relative or absolute path for the map files. */
 
-   RoadMapArea edges;       /* Bounding earth area for this territory. */
+   RoadMapArea edges;       /**< Bounding earth area for this territory. */
 
    unsigned short map_first;
-   unsigned short map_count; /* Cannot be 0. */
+   unsigned short map_count; /**< Cannot be 0. */
 
    unsigned short city_first;
-   unsigned short city_count; /* 0 if no city is listed. */
+   unsigned short city_count; /**< 0 if no city is listed. */
 
-   unsigned int postal_low;   /* Lowest postal code in that territory. */
-   unsigned int postal_high;  /* Highest postal code in that territory. */
+   unsigned int postal_low;   /**< Lowest postal code in that territory. */
+   unsigned int postal_high;  /**< Highest postal code in that territory. */
 
 } RoadMapTerritory;
 
@@ -137,13 +143,16 @@ typedef struct {  /* table index/territory */
 typedef struct {  /* table index/map */
 
    RoadMapString class;
-   RoadMapString filename;  /* ... relative to the authority/territory path. */
+   RoadMapString filename;  /**< ... relative to the authority/territory path. */
 
 } RoadMapMap;
 
-/* table index/name is an array of RoadMapString sorted by authority. */
+/**
+ * table index/name is an array of RoadMapString sorted by authority.
+ */
 
-/* table index/city is an array of RoadMapString sorted by map. */
+/**
+ * table index/city is an array of RoadMapString sorted by map.
+ */
 
 #endif // INCLUDE__ROADMAP_DB_INDEX__H
-
