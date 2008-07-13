@@ -1,5 +1,4 @@
-/* roadmap_db_line.h - the format of the address line table used by RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,8 +18,12 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief the format of the address line table used by RoadMap.
  *
- * SYNOPSYS:
  *
  *   The RoadMap lines are described by the following table:
  *
@@ -49,25 +52,26 @@
 
 #include "roadmap_types.h"
 
-typedef struct {  /* table line/data */
-
+/**
+ * @brief table line/data
+ */
+typedef struct {
    int from;
    int to;
-
 } RoadMapLine;
 
-typedef struct { /* tables line/bysquare1 and line/bysquare2 */
-
+/**
+ * @brief tables line/bysquare1 and line/bysquare2
+ */
+typedef struct {
    int first; /* First layer item in line/layer. */
    int count; /* Number of layers + 1, the additional layer defines the end. */
 
 } RoadMapLineBySquare;
 
 typedef struct {
-
    int line;
    unsigned char layer;
-
    RoadMapArea area;
 } RoadMapLongLine;
 
@@ -78,4 +82,3 @@ typedef struct {
 /* Table line/index2 is an array of int. */
 
 #endif // INCLUDED__ROADMAP_DB_LINE__H
-
