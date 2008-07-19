@@ -1,5 +1,4 @@
-/* buildmap_osm_binary.c - a module to read OSM Mobile Binary format
- *
+/*
  * LICENSE:
  *
  *   Copyright 2007 Stephen Woodbridge
@@ -19,7 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
+ */
+
+/**
+ * @file
+ * @brief a module to read OSM Mobile Binary format
  */
 
 #include <stdio.h>
@@ -59,10 +62,10 @@
 
 extern char *BuildMapResult;
 
-
-int KMaxLon = 180000000;
-int KMaxLat = 90000000;
-
+#if 0
+static int KMaxLon = 180000000;
+static int KMaxLat = 90000000;
+#endif
 
 typedef struct layer_info {
     char *name;
@@ -132,6 +135,9 @@ static BuildMapDictionary DictionarySuffix;
 static BuildMapDictionary DictionaryCity;
 // static BuildMapDictionary DictionaryFSA;
 
+/**
+ * @brief initialize layers
+ */
 void buildmap_osm_binary_find_layers (void) {
 
    BuildMapLayerFreeway   = buildmap_layer_get ("freeways");
@@ -156,6 +162,12 @@ void buildmap_osm_binary_find_layers (void) {
    BuildMapLayerBoundary = buildmap_layer_get ("boundaries");
 }
 
+/**
+ * @brief
+ * @param d
+ * @param string
+ * @return
+ */
 static RoadMapString str2dict (BuildMapDictionary d, const char *string) {
 
    if (!strlen(string)) {
@@ -258,6 +270,7 @@ static layer_info_t highway_to_layer[] = {
         { "footway",            TRAIL,          0 },            /* 16 */
         { "steps",              TRAIL,          0 },            /* 17 */
         { "pedestrian",         TRAIL,          0 },            /* =>17 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t cycleway_to_layer[] = {
@@ -267,12 +280,24 @@ static layer_info_t cycleway_to_layer[] = {
         { "opposite_lane",      TRAIL,          0 },            /* 3 */
         { "opposite_track",     TRAIL,          0 },            /* 4 */
         { "opposite",           NULL,           0 },            /* 5 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t waterway_to_layer[] = {
         { 0,                    NULL,           0 },
         { "river",              RIVER,          0 },            /* 1 */
         { "canal",              RIVER,          0 },            /* 2 */
+	{ "stream",		RIVER,		0 },		/* 3 */
+	{ "drain",		RIVER,		0 },		/* 4 */
+	{ "dock",		RIVER,		0 },		/* 5 */
+	{ "lock_gate",		RIVER,		0 },		/* 6 */
+	{ "turning_point",	RIVER,		0 },		/* 7 */
+	{ "aquaduct",		RIVER,		0 },		/* 8 */
+	{ "boatyard",		RIVER,		0 },		/* 9 */
+	{ "water_point",	RIVER,		0 },		/* 10 */
+	{ "weir",		RIVER,		0 },		/* 11 */
+	{ "dam",		RIVER,		0 },		/* 12 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t abutters_to_layer[] = {
@@ -282,15 +307,29 @@ static layer_info_t abutters_to_layer[] = {
         { "industrial",         NULL,           0 },            /* 3 */
         { "commercial",         NULL,           0 },            /* 4 */
         { "mixed",              NULL,           0 },            /* 5 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t railway_to_layer[] = {
-        { 0,                    NULL,           0 },
-        { "rail",               RAIL,           0 },            /* 1 */
-        { "tram",               RAIL,           0 },            /* 2 */
-        { "light_rail",         RAIL,           0 },            /* 3 */
-        { "subway",             RAIL,           0 },            /* 4 */
-        { "station",            NULL,           0 },            /* 5 */
+	{ 0,			NULL,           0 },
+	{ "rail",		RAIL,           0 },            /* 1 */
+	{ "tram",		RAIL,           0 },            /* 2 */
+	{ "light_rail",		RAIL,           0 },            /* 3 */
+	{ "subway",		RAIL,           0 },            /* 4 */
+	{ "station",		NULL,           0 },            /* 5 */
+	{ "preserved",		RAIL,		0 },            /* 6 */
+	{ "disused",		RAIL,           0 },            /* 7 */
+	{ "abandoned",		RAIL,		0 },		/* 8 */
+	{ "narrow_gauge",	RAIL,		0 },            /* 9 */
+	{ "monorail",		RAIL,           0 },            /* 10 */
+	{ "halt",		RAIL,           0 },            /* 11 */
+	{ "tram_stop",		RAIL,           0 },            /* 12 */
+	{ "viaduct",		RAIL,           0 },            /* 13 */
+	{ "crossing",		RAIL,           0 },            /* 14 */
+	{ "level_crossing",	RAIL,           0 },            /* 15 */
+	{ "subway_entrance",	RAIL,           0 },            /* 16 */
+	{ "turntable",		RAIL,           0 },            /* 17 */
+	{ 0,			NULL,           0 },
 };
 
 static layer_info_t natural_to_layer[] = {
@@ -299,6 +338,7 @@ static layer_info_t natural_to_layer[] = {
         { "water",              LAKE,           AREA },         /* 2 */
         { "wood",               NULL,           AREA },         /* 3 */
         { "peak",               NULL,           0 },            /* 4 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t boundary_to_layer[] = {
@@ -307,6 +347,8 @@ static layer_info_t boundary_to_layer[] = {
         { "civil",              NULL,           AREA },         /* 2 */
         { "political",          NULL,           AREA },         /* 3 */
         { "national_park",      NULL,           AREA },         /* 4 */
+	{ "world_country",	NULL,		AREA },		/* 5 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t amenity_to_layer[] = {
@@ -337,6 +379,7 @@ static layer_info_t amenity_to_layer[] = {
         { "university",         NULL,           AREA },         /* 24 */
         { "college",            NULL,           AREA },         /* 25 */
         { "townhall",           NULL,           AREA },         /* 26 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t place_to_layer[] = {
@@ -351,6 +394,7 @@ static layer_info_t place_to_layer[] = {
         { "village",            NULL,           AREA },         /* 8 */
         { "hamlet",             NULL,           AREA },         /* 9 */
         { "suburb",             NULL,           AREA },         /* 10 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t leisure_to_layer[] = {
@@ -368,6 +412,7 @@ static layer_info_t leisure_to_layer[] = {
         { "stadium",            NULL,           AREA },         /* 11 */
         { "golf_course",        PARK,           AREA },         /* 12 */
         { "sports_centre",      NULL,           AREA },         /* 13 */
+        { 0,                    NULL,           0 },
 };
 
 static layer_info_t historic_to_layer[] = {
@@ -378,6 +423,7 @@ static layer_info_t historic_to_layer[] = {
         { "archaeological_site",NULL,           AREA },         /* 4 */
         { "icon",               NULL,           0 },            /* 5 */
         { "ruins",              NULL,           AREA },         /* 6 */
+        { 0,                    NULL,           0 },
 };
 
 #if NEEDED
@@ -439,6 +485,7 @@ static layer_info_sublist_t list_info[] = {
         {"attraction",          NULL,                 NULL },
         {"wheelchair",          NULL,                 NULL },
         {"junction",            NULL,                 NULL },
+        { 0,                    NULL,           0 },
 };
 
 static unsigned char *
@@ -457,6 +504,15 @@ read_2_byte_int(unsigned char *p, int *r)
     return p + 2;
 }
 
+/**
+ * @brief look ahead and figure out the additional info (options) like the road type
+ * @param cur
+ * @param end
+ * @param name
+ * @param ref
+ * @param flagp
+ * @return the layer that this way is in
+ */
 static int
 buildmap_osm_binary_parse_options
         (unsigned char *cur, unsigned char *end,
@@ -556,6 +612,12 @@ buildmap_osm_binary_parse_options
     return layer;
 }
 
+/**
+ * @brief
+ * @param data
+ * @param len
+ * @return
+ */
 static int
 buildmap_osm_binary_node(unsigned char *data, int len)
 {
@@ -594,7 +656,12 @@ struct shapeinfo {
 static int numshapes;
 static struct shapeinfo *shapes;
 
-
+/**
+ * @brief
+ * @param data
+ * @param len
+ * @return
+ */
 static int
 buildmap_osm_binary_way(unsigned char *data, int len)
 {
@@ -748,6 +815,9 @@ buildmap_osm_binary_way(unsigned char *data, int len)
     return 1;
 }
 
+/**
+ * @brief
+ */
 static int
 buildmap_osm_binary_ways_pass2(void)
 {
@@ -781,6 +851,11 @@ buildmap_osm_binary_ways_pass2(void)
     return 1;
 }
 
+/**
+ * @brief
+ * @param data
+ * @return
+ */
 static int
 buildmap_osm_binary_time(unsigned char *data)
 {
@@ -797,6 +872,11 @@ buildmap_osm_binary_time(unsigned char *data)
     return 0;
 }
 
+/**
+ * @brief
+ * @param data
+ * @return
+ */
 static int
 buildmap_osm_binary_error(unsigned char *data)
 {
@@ -808,6 +888,11 @@ buildmap_osm_binary_error(unsigned char *data)
     return -1;
 }
 
+/**
+ * @brief
+ * @param fdata
+ * @return
+ */
 int
 buildmap_osm_binary_read(FILE * fdata)
 {
@@ -898,5 +983,3 @@ buildmap_osm_binary_read(FILE * fdata)
 
     return ret;
 }
-
-
