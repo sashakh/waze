@@ -141,7 +141,7 @@ static void roadmap_locator_configure (void) {
            path != NULL;
            path = roadmap_scan_next ("maps", "usdir.rdm", path)) {
 
-         if (roadmap_db_open (path, "usdir.rdm", RoadMapUsModel, "r")) {
+         if (roadmap_db_open (path, "usdir.rdm", RoadMapUsModel)) {
             break;
          }
          roadmap_log (ROADMAP_ERROR,
@@ -281,7 +281,7 @@ static int roadmap_locator_open (int fips) {
            path != NULL;
            path = roadmap_scan_next ("maps", map_name, path)) {
 
-         if (roadmap_db_open (path, map_name, RoadMapCountyModel, "r")) {
+         if (roadmap_db_open (path, map_name, RoadMapCountyModel)) {
 
             RoadMapCountyCache[oldest].fips = fips;
             RoadMapCountyCache[oldest].path = path;

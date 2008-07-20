@@ -424,8 +424,7 @@ roadmap_db_model *roadmap_db_register
  */
 int roadmap_db_open (const char *path,
                      const char *name,
-                     roadmap_db_model *model,
-		     const char *mode) {
+                     roadmap_db_model *model) {
 
    RoadMapFileContext   file;
    roadmap_db_database *database = roadmap_db_find (path, name);
@@ -437,7 +436,7 @@ int roadmap_db_open (const char *path,
       return 1; /* Already open. */
    }
 
-   if (roadmap_file_map (path, name, mode, &file) == NULL) {
+   if (roadmap_file_map (path, name, "r", &file) == NULL) {
 
       roadmap_log (ROADMAP_INFO,
                    "Cannot open database file %s in directory [%s]", name, path);

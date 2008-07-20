@@ -217,7 +217,7 @@ static void dumpmap_searchstring_activate (void *context) {
 
       } while (strchr (choices, input) == NULL);
 
-      roadmap_dictionary_move_cursor (cursor, input, NULL);
+      roadmap_dictionary_move_cursor (cursor, input);
       roadmap_dictionary_get_next (cursor, choices);
    }
 
@@ -540,7 +540,7 @@ int main (int argc, char **argv) {
 
       if (argc >= 3) fprintf(out, "%s\n", argv[i]);
 
-      if (! roadmap_db_open ("", argv[i], RoadMapModel, "r")) {
+      if (! roadmap_db_open ("", argv[i], RoadMapModel)) {
          roadmap_log (ROADMAP_FATAL, "cannot open map database %s", argv[i]);
       }
       roadmap_db_close ("", argv[i]);
