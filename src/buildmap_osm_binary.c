@@ -23,6 +23,13 @@
 /**
  * @file
  * @brief a module to read OSM Mobile Binary format
+ *
+ * The protocol is documented in
+ * http://wiki.openstreetmap.org/index.php/OSM_Mobile_Binary_Protocol ,
+ * and http://wiki.openstreetmap.org/index.php/OSM_Binary_Format ,
+ * the current OSM protocol is in
+ * http://wiki.openstreetmap.org/index.php/OSM_Protocol_Version_0.5 .
+ * More generic protocol documentation : http://wiki.openstreetmap.org/index.php/Protocol .
  */
 
 #include <stdio.h>
