@@ -1,5 +1,4 @@
-/* rdmindex_main.c - The main function of the map index builder tool.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,13 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief UNFINISHED SOFTWARE, use buildus instead.
+ *
+ * The main function of the map index builder tool.
  */
 
 #include <string.h>
@@ -66,7 +72,12 @@ struct opt_defs options[] = {
    OPT_DEFS_END
 };
 
+/**
+ * @brief Save all data
+ */
 static void rdmindex_save (void) {
+
+   if (RdmIndexVerbose) buildmap_info("rdmindex_save");
 
    buildmap_set_source (RdmIndexName);
    buildmap_db_open (RdmIndexPath, RdmIndexName);
@@ -76,13 +87,16 @@ static void rdmindex_save (void) {
    buildmap_db_close ();
 }
 
-
+/**
+ * @brief
+ */
 static void rdmindex_scan_cities (void) {
 
    int i;
    char *name;
    RoadMapDictionary cities;
 
+   if (RdmIndexVerbose) buildmap_info("rdmindex_scan_cities");
 
    cities = roadmap_dictionary_open ("city");
 
@@ -96,12 +110,19 @@ static void rdmindex_scan_cities (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @param path
+ */
 static void rdmindex_scan_indexes (const char *path) {
 
+   if (RdmIndexVerbose) buildmap_info("rdmindex_scan_indexes(%s)", path);
 }
 
-
+/**
+ * @brief
+ * @param path
+ */
 static void rdmindex_scan_maps (const char *path) {
 
    int i;
@@ -118,6 +139,7 @@ static void rdmindex_scan_maps (const char *path) {
 
    RoadMapArea edges;
 
+   if (RdmIndexVerbose) buildmap_info("rdmindex_scan_maps(%s)", path);
 
    roadmap_path_set ("maps", path);
 
@@ -188,13 +210,17 @@ static void rdmindex_scan_maps (const char *path) {
    roadmap_path_list_free (files);
 }
 
-
+/**
+ * @brief
+ * @param path
+ */
 static const char **rdmindex_subdirectories (const char *path) {
 
    char **files = roadmap_path_list (path, "");
    char **cursor1;
    char **cursor2;
 
+   if (RdmIndexVerbose) buildmap_info("rdmindex_subdirectories(%s)", path);
    for (cursor1 = cursor2 = files; *cursor1 != NULL; ++cursor1) {
 
       char *filename = roadmap_path_join (path, *cursor1);
@@ -213,11 +239,16 @@ static const char **rdmindex_subdirectories (const char *path) {
    return (const char **)files;
 }
 
-
+/**
+ * @brief
+ * @param path
+ */
 static void rdmindex_recurse (const char *path) {
 
    const char **files;
    const char **cursor;
+
+   if (RdmIndexVerbose) buildmap_info("rdmindex_recurse(%s)", path);
 
    if (RdmIndexGrand) {
       rdmindex_scan_indexes (path);
@@ -238,7 +269,11 @@ static void rdmindex_recurse (const char *path) {
    roadmap_path_list_free ((char **)files);
 }
 
-
+/**
+ * @brief
+ * @param progpath
+ * @param msg
+ */
 void usage(char *progpath, const char *msg) {
 
    char *prog = strrchr(progpath, '/');
@@ -256,6 +291,12 @@ void usage(char *progpath, const char *msg) {
    exit(1);
 }
 
+/**
+ * @brief
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main (int argc, char **argv) {
 
    int i, error;
@@ -273,6 +314,7 @@ int main (int argc, char **argv) {
    if (error)
       usage(argv[0], opt_strerror(error));
 
+   if (RdmIndexVerbose) buildmap_info("starting");
 
    /* Make sure we have a directory there. */
 
