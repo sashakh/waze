@@ -30,7 +30,7 @@
 static const char vowels[] = "aeiouAEIOU";
 
 #define DEFAULT_TARGET_LEN 8
-#define DEFAULT_BADCHARS "\"$.,'!-"
+static char default_badchars[] = "\"$.,'!-";
 
 /*
  * Hash table tunings.   The reality is that our hash doesn't have to be 
@@ -87,7 +87,7 @@ mkshort_new_handle()
                 QUEUE_INIT(&h->namelist[i]);
 
         h->whitespaceok = 1;
-        h->badchars = DEFAULT_BADCHARS;
+        h->badchars = default_badchars;
         h->target_len = DEFAULT_TARGET_LEN;
         h->must_uniq = 1;
         h->defname = xstrdup("WPT");
@@ -276,10 +276,10 @@ setshort_badchars(short_handle h, const char *s)
 {
         mkshort_handle *hdl = (mkshort_handle *) h;
 
-        if ((hdl->badchars != NULL) && (hdl->badchars != DEFAULT_BADCHARS))
+        if ((hdl->badchars != NULL) && (hdl->badchars != default_badchars))
                 xfree(hdl->badchars);
         if (s == NULL) {
-                hdl->badchars = DEFAULT_BADCHARS;
+                hdl->badchars = default_badchars;
         } else {
                 hdl->badchars = xstrdup(s);
         }
