@@ -246,6 +246,7 @@ RMHEADERS = \
 	roadmap_io.h \
 	roadmap_label.h \
 	roadmap_landmark.h \
+	roadmap_lang.h \
 	roadmap_layer.h \
 	roadmap_library.h \
 	roadmap_line.h \
@@ -347,6 +348,7 @@ endif
 # creation of the release tarballs.
 C_SRC = $(RMLIBSRC) $(RMGUISRC) $(RGGUISRC) \
 	$(RMPLUGINSRC) $(DMSRC) $(BMLIBSRC) $(BMSRC) \
+	$(BMOSMSRC) \
 	$(BPSRC) $(BUSRC) $(XCHGSRC) $(MISCSRC)
 
 ALL_SRC = $(MKFILES) $(C_SRC) $(HEADERS) \
@@ -560,7 +562,7 @@ RELNAME = roadmap-$(DOTVERSION)
 .PHONY: checkdotversion sourcelist linkdir tarball webdoc
 
 # source files from "..", i.e. the real top-level.  these go into tarball.
-UPPER_SRC = README \
+UPPER_SRC = README README.osm README.iphone \
     STATUS AUTHORS BUGS TODO CHANGES COPYING INSTALL howtos/makemaps.txt 
 
 tarball: $(RELNAME)-src.tar.gz
