@@ -604,6 +604,6 @@ depends:
 	done
 
 .depends.mk:
-	@echo "Note: run 'make depends' to create dependency files"
+	@echo "Note: run 'make depends' to create dependency files" >&2
 
 -include .depends.mk
