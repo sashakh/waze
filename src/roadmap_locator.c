@@ -81,8 +81,6 @@ static RoadMapDictionary RoadMapUsStateDictionary = NULL;
 static int roadmap_locator_no_download (int fips) {return 0;}
 
 static RoadMapInstaller  RoadMapDownload = roadmap_locator_no_download;
-static RoadMapConfigDescriptor RoadMapConfigStaticCounty =
-	ROADMAP_CONFIG_ITEM("Map", "Static County");
 
 
 /*
