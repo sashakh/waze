@@ -1,5 +1,4 @@
-/* buildmap_square.c - Divide the area in more manageable squares.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,17 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Divide the area in more manageable squares.
+ *
+ * These functions are used to build a table of lines from
+ * the Tiger maps. The objective is double: (1) reduce the size of
+ * the Tiger data by sharing all duplicated information and
+ * (2) produce the index data to serve as the basis for a fast
+ * search mechanism for streets in roadmap.
  *
  * SYNOPSYS:
  *
@@ -33,11 +43,6 @@
  *   void  buildmap_square_get_reference_sorted
  *            (int square, int *longitude, int *latitude);
  *
- * These functions are used to build a table of lines from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for streets in roadmap.
  */
 
 #include <stdio.h>
@@ -164,7 +169,9 @@ static int buildmap_square_search (int longitude, int latitude) {
    return index;
 }
 
-
+/**
+ * @brief
+ */
 void buildmap_square_initialize(void) {
 
    int minlongitude;
@@ -197,6 +204,9 @@ void buildmap_square_initialize(void) {
    if (Square == NULL) {
       buildmap_fatal (0, "no more memory");
    }
+
+   if (count_longitude == 0 || count_latitude)
+	   buildmap_fatal (0, "buildmap_square: not enough data");
 
    size_longitude = (maxlongitude - minlongitude) / count_longitude;
    size_latitude = (maxlatitude - minlatitude) / count_latitude;
