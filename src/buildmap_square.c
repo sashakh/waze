@@ -205,7 +205,7 @@ void buildmap_square_initialize(void) {
       buildmap_fatal (0, "no more memory");
    }
 
-   if (count_longitude == 0 || count_latitude)
+   if (count_longitude == 0 || count_latitude == 0)
 	   buildmap_fatal (0, "buildmap_square: not enough data");
 
    size_longitude = (maxlongitude - minlongitude) / count_longitude;
