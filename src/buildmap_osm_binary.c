@@ -65,7 +65,7 @@
 #include "buildmap_polygon.h"
 
 #include "buildmap_layer.h"
-#include "buildmap_osm_static.h"
+#include "buildmap_osm_common.h"
 #include "buildmap_osm_binary.h"
 
 extern char *BuildMapResult;

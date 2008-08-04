@@ -44,6 +44,7 @@
 #include "buildmap_opt.h"
 #include "buildmap_metadata.h"
 #include "buildmap_layer.h"
+#include "buildmap_osm_common.h"
 #include "buildmap_osm_binary.h"
 #include "buildmap_osm_text.h"
 
@@ -235,7 +236,6 @@ int buildmap_osm_text_process_file(char *fn)
 {
     int ret = 0;
     FILE	*f;
-    int		tileid = 32;
 
     f = fopen(fn, "r");
     if (f == NULL) {
