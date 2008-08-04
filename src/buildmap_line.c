@@ -1,5 +1,4 @@
-/* buildmap_line.c - Build a line table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,8 +18,17 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a line table & index for RoadMap.
  *
- * SYNOPSYS:
+ * These functions are used to build a table of lines from
+ * the Tiger maps. The objective is double: (1) reduce the size of
+ * the Tiger data by sharing all duplicated information and
+ * (2) produce the index data to serve as the basis for a fast
+ * search mechanism for streets in roadmap.
  *
  *   int  buildmap_line_add (int tlid, int layer, int from, int to);
  *
@@ -33,11 +41,6 @@
  *           (int line, int *longitude, int *latitude);
  *   void buildmap_line_get_square_sorted (int line);
  *
- * These functions are used to build a table of lines from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for streets in roadmap.
  */
 
 #include <stdio.h>
@@ -160,12 +163,19 @@ static void buildmap_line_initialize (void) {
 }
 
 
-int buildmap_line_add (int tlid, int layer, int from, int to) {
-
+/**
+ * @brief add a line to buildmap's list
+ * @param tlid the line id
+ * @param layer the layer of this line
+ * @param from point 1
+ * @param to point 2
+ * @return the number of lines we know
+ */
+int buildmap_line_add (int tlid, int layer, int from, int to)
+{
    int block;
    int offset;
    BuildMapLine *this_line;
-
 
    if (LineById == NULL) buildmap_line_initialize();
 
@@ -191,7 +201,7 @@ int buildmap_line_add (int tlid, int layer, int from, int to) {
       buildmap_fatal (0, "invalid points");
    }
    if (layer <= 0) {
-      buildmap_fatal (0, "invalid layer");
+      buildmap_fatal (0, "invalid layer %d in line #%d", layer, tlid);
    }
    this_line->tlid = tlid;
    this_line->layer = layer;
@@ -299,6 +309,12 @@ int  buildmap_line_find_sorted (int tlid) {
 }
 
 
+/**
+ * @brief get point ids for a line, from the sorted list
+ * @param line index from the SortedLine array
+ * @param from return the from point
+ * @param to return the to point
+ */
 void buildmap_line_get_points_sorted (int line, int *from, int *to) {
 
    BuildMapLine *this_line = buildmap_line_get_record_sorted (line);
@@ -482,7 +498,6 @@ void buildmap_line_sort (void) {
       one_line->sorted = i;
    }
 
-
    SortedLine2 = malloc (LineCrossingCount * sizeof(int));
    if (SortedLine2 == NULL) {
       buildmap_fatal (0, "no more memory");
@@ -542,9 +557,9 @@ static void buildmap_line_save (void) {
    buildmap_db *index2_table;
 
 
-   buildmap_info ("saving lines...");
-
    if (!LineCount) return;
+
+   buildmap_info ("saving %d lines...", LineCount);
 
    square_count = buildmap_square_get_count();
 

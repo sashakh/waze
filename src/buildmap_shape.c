@@ -1,5 +1,4 @@
-/* buildmap_shape.c - Build a shape table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a shape table & index for RoadMap.
  *
  * SYNOPSYS:
  *
@@ -46,7 +50,9 @@
 #include "buildmap_shape.h"
 #include "buildmap_square.h"
 
-
+/**
+ * @brief
+ */
 typedef struct {
 
    int line;
@@ -74,7 +80,9 @@ static int *SortedShape = NULL;
 
 static void buildmap_shape_register (void);
 
-
+/**
+ * @brief
+ */
 static void buildmap_shape_initialize (void) {
 
    ShapeByLine = roadmap_hash_new ("ShapeByLine", BUILDMAP_BLOCK);
@@ -89,7 +97,16 @@ static void buildmap_shape_initialize (void) {
    buildmap_shape_register();
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @param irec
+ * @param uid
+ * @param sequence
+ * @param longitude
+ * @param latitude
+ * @return
+ */
 int buildmap_shape_add
        (int line, int irec, int uid, int sequence, int longitude, int latitude) {
 
@@ -188,7 +205,12 @@ int buildmap_shape_add
    return ShapeCount++;
 }
 
-
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_shape_compare (const void *r1, const void *r2) {
 
    int index1 = *((int *)r1);
@@ -207,7 +229,9 @@ static int buildmap_shape_compare (const void *r1, const void *r2) {
    return record1->sequence - record2->sequence;
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_shape_sort (void) {
 
    int i;
@@ -230,7 +254,9 @@ static void buildmap_shape_sort (void) {
    qsort (SortedShape, ShapeCount, sizeof(int), buildmap_shape_compare);
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_shape_save (void) {
 
    int i;
@@ -257,9 +283,9 @@ static void buildmap_shape_save (void) {
    buildmap_db *table_data;
 
 
-   buildmap_info ("saving shapes...");
-
    if (!ShapeCount) return;
+
+   buildmap_info ("saving %d shapes...", ShapeCount);
 
    square_count = buildmap_square_get_count();
 
@@ -493,7 +519,9 @@ static void buildmap_shape_save (void) {
    }
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_shape_summary (void) {
 
    fprintf (stderr,
@@ -505,7 +533,9 @@ static void buildmap_shape_summary (void) {
             ShapeLineCount, ShapeMaxLine, ShapeMaxSequence);
 }
 
-
+/**
+ * @brief
+ */
 static void  buildmap_shape_reset (void) {
 
    int i;
@@ -532,7 +562,9 @@ static void  buildmap_shape_reset (void) {
    ShapeAddCount = 0;
 }
 
-
+/**
+ * @brief
+ */
 static buildmap_db_module BuildMapShapeModule = {
    "shape",
    buildmap_shape_sort,
@@ -541,7 +573,9 @@ static buildmap_db_module BuildMapShapeModule = {
    buildmap_shape_reset
 };
 
-
+/**
+ * @brief
+ */
 static void buildmap_shape_register (void) {
    buildmap_db_register (&BuildMapShapeModule);
 }

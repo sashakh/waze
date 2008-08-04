@@ -427,7 +427,7 @@ static void buildmap_square_save (void) {
    buildmap_db *table_global;
 
 
-   buildmap_info ("saving squares...");
+   buildmap_info ("saving %d squares...", SquareCount);
 
    root = buildmap_db_add_section (NULL, "square");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");

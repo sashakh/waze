@@ -117,6 +117,8 @@ BMLIBSRC = buildmap_messages.c \
 	buildmap_tiger.c \
 	buildmap_shapefile.c \
 	buildmap_osm_binary.c \
+	buildmap_osm_common.c \
+	buildmap_osm_text.c \
 	buildmap_empty.c \
 	buildmap_place.c \
 	buildmap_index.c \
@@ -191,6 +193,8 @@ BMHEADERS = \
 	buildmap_metadata.h \
 	buildmap_opt.h \
 	buildmap_osm_binary.h \
+	buildmap_osm_common.h \
+	buildmap_osm_text.h \
 	buildmap_place.h \
 	buildmap_point.h \
 	buildmap_polygon.h \

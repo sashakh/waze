@@ -1,5 +1,4 @@
-/* buildmap_range.c - Build a street address range table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a street address range table & index for RoadMap.
  *
  * SYNOPSYS:
  *
@@ -87,7 +91,9 @@ static int *SortedNoAddress = NULL;
 
 static void buildmap_range_register (void);
 
-
+/**
+ * @brief
+ */
 static void buildmap_range_initialize (void) {
 
    RangeByLine       = roadmap_hash_new ("RangeByLine",       BUILDMAP_BLOCK);
@@ -102,7 +108,9 @@ static void buildmap_range_initialize (void) {
    buildmap_range_register();
 }
 
-
+/**
+ * @brief
+ */
 static BuildMapRange *buildmap_range_new (void) {
 
    int block = RangeCount / BUILDMAP_BLOCK;
@@ -128,7 +136,15 @@ static BuildMapRange *buildmap_range_new (void) {
    return Range[block] + offset;
 }
 
-
+/**
+ * @brief
+ * @param frleft
+ * @param toleft
+ * @param frright
+ * @param toright
+ * @param from
+ * @param to
+ */
 void buildmap_range_merge (unsigned int frleft,  unsigned int toleft,
                            unsigned int frright, unsigned int toright,
                            unsigned int *from,   unsigned int *to) {
@@ -170,7 +186,16 @@ void buildmap_range_merge (unsigned int frleft,  unsigned int toleft,
    *to   = toadd;
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @param street
+ * @param fradd
+ * @param toadd
+ * @param zip
+ * @param city
+ * @return
+ */
 int buildmap_range_add
        (int line, int street,
         unsigned int fradd, unsigned int toadd,
@@ -260,7 +285,11 @@ int buildmap_range_add
    return index;
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @param street
+ */
 void buildmap_range_add_no_address (int line, int street) {
 
    int index;
@@ -326,7 +355,11 @@ void buildmap_range_add_no_address (int line, int street) {
    RangeNoAddressCount += 1;
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @param city
+ */
 void buildmap_range_add_place (RoadMapString place, RoadMapString city) {
 
    int index;
@@ -390,7 +423,12 @@ void buildmap_range_add_place (RoadMapString place, RoadMapString city) {
    RangePlaceCount += 1;
 }
 
-
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_range_compare (const void *r1, const void *r2) {
 
    int result;
@@ -428,7 +466,12 @@ static int buildmap_range_compare (const void *r1, const void *r2) {
 
    return i1 - i2;
 }
-
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_range_compare_no_addr (const void *r1, const void *r2) {
 
    int i1 = *((int *)r1);
@@ -444,6 +487,9 @@ static int buildmap_range_compare_no_addr (const void *r1, const void *r2) {
    return record1->line - record2->line;
 }
 
+/**
+ * @brief
+ */
 static void buildmap_range_sort (void) {
 
    int i;
@@ -498,7 +544,9 @@ static void buildmap_range_sort (void) {
    }
 }
 
-
+/**
+ * @brief
+ */
 static void  buildmap_range_save (void) {
 
    int i;
@@ -649,7 +697,7 @@ static void  buildmap_range_save (void) {
    }
 
 
-   buildmap_info ("saving ranges...");
+   buildmap_info ("saving %d ranges...", RangeCount);
 
    /* Compute the space required for the "byCity" & "byzip" indexes. */
 
@@ -935,7 +983,9 @@ static void  buildmap_range_save (void) {
 
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_range_summary (void) {
 
    fprintf (stderr,
@@ -946,7 +996,9 @@ static void buildmap_range_summary (void) {
             RangeDuplicates);
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_range_reset (void) {
 
    int i;
@@ -995,7 +1047,9 @@ static void buildmap_range_reset (void) {
    SortedNoAddress = NULL;
 }
 
-
+/**
+ * @brief
+ */
 static buildmap_db_module BuildMapRangeModule = {
    "range",
    buildmap_range_sort,
@@ -1004,7 +1058,9 @@ static buildmap_db_module BuildMapRangeModule = {
    buildmap_range_reset
 };
 
-
+/**
+ * @brief
+ */
 static void buildmap_range_register (void) {
    buildmap_db_register (&BuildMapRangeModule);
 }

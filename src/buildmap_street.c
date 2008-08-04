@@ -1,5 +1,4 @@
-/* buildmap_street.c - Build a street table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a street table & index for RoadMap.
  *
  * SYNOPSYS:
  *
@@ -55,7 +59,9 @@
 #include "buildmap_street.h"
 #include "buildmap_line.h"
 
-
+/**
+ * @brief
+ */
 struct buildmap_street_struct {
 
    RoadMapStreet record;
@@ -65,6 +71,9 @@ struct buildmap_street_struct {
    int start;
 };
 
+/**
+ * @brief
+ */
 typedef struct buildmap_street_struct BuildMapStreet;
 
 static int StreetCount = 0;
@@ -79,7 +88,9 @@ static int *SortedStreet = NULL;
 
 static void buildmap_street_register (void);
 
-
+/**
+ * @brief
+ */
 static void buildmap_street_initialize (void) {
 
    StreetByName = roadmap_hash_new ("StreetByName", BUILDMAP_BLOCK);
@@ -91,6 +102,16 @@ static void buildmap_street_initialize (void) {
 }
 
 
+/**
+ * @brief
+ * @param cfcc
+ * @param fedirp
+ * @param fename
+ * @param fetype
+ * @param fedirs
+ * @param line
+ * @return
+ */
 int  buildmap_street_add
         (char cfcc,
          RoadMapString fedirp,
@@ -180,7 +201,12 @@ int  buildmap_street_add
    return StreetCount++;
 }
 
-
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_street_compare (const void *r1, const void *r2) {
 
    int i1 = *((int *)r1);
@@ -197,6 +223,9 @@ static int buildmap_street_compare (const void *r1, const void *r2) {
              - buildmap_line_get_sorted (record2->start);
 }
 
+/**
+ * @brief
+ */
 void buildmap_street_sort (void) {
 
    int i;
@@ -230,7 +259,11 @@ void buildmap_street_sort (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @param file
+ * @param street
+ */
 void buildmap_street_print_sorted (FILE *file, int street) {
 
    BuildMapStreet *this_street;
@@ -255,6 +288,11 @@ void buildmap_street_print_sorted (FILE *file, int street) {
 }
 
 
+/**
+ * @brief
+ * @param street
+ * @return
+ */
 int buildmap_street_get_sorted (int street) {
 
    BuildMapStreet *this_street;
@@ -264,12 +302,17 @@ int buildmap_street_get_sorted (int street) {
    return this_street->sorted;
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 int  buildmap_street_count (void) {
    return StreetCount;
 }
 
-
+/**
+ * @brief
+ */
 static void  buildmap_street_save (void) {
 
    int i;
@@ -283,9 +326,9 @@ static void  buildmap_street_save (void) {
    buildmap_db *table_cfcc;
 
 
-   buildmap_info ("saving street...");
-
    if (!StreetCount) return;
+
+   buildmap_info ("saving %d streets...", StreetCount);
 
    root = buildmap_db_add_section (NULL, "street");
    if (root == NULL) buildmap_fatal (0, "Can't add a new section");
@@ -312,7 +355,9 @@ static void  buildmap_street_save (void) {
    }
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_street_summary (void) {
 
    fprintf (stderr,
@@ -321,7 +366,9 @@ static void buildmap_street_summary (void) {
             (int)(StreetCount * sizeof(RoadMapStreet)));
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_street_reset (void) {
 
    int i;
@@ -344,7 +391,9 @@ static void buildmap_street_reset (void) {
    SortedStreet = NULL;
 }
 
-
+/**
+ * @brief
+ */
 static buildmap_db_module BuildMapStreetModule = {
    "street",
    buildmap_street_sort,
@@ -353,7 +402,9 @@ static buildmap_db_module BuildMapStreetModule = {
    buildmap_street_reset
 };
 
-
+/**
+ * @brief
+ */
 static void buildmap_street_register (void) {
    buildmap_db_register (&BuildMapStreetModule);
 }

@@ -1,5 +1,4 @@
-/* buildmap_point.c - Build a table of all points referenced in lines.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a table of all points referenced in lines.
  *
  * SYNOPSYS:
  *
@@ -85,7 +89,12 @@ static void buildmap_point_initialize (void) {
    buildmap_point_register();
 }
 
-
+/**
+ * @brief add a point to buildmap's tables
+ * @param longitude the longitude of this point
+ * @param latitude the latitude of this point
+ * @return the point count
+ */
 int buildmap_point_add (int longitude, int latitude) {
 
    int i;
@@ -329,10 +338,9 @@ static void buildmap_point_save (void) {
    buildmap_db *table_data;
    buildmap_db *table_bysquare;
 
-
-   buildmap_info ("saving points...");
-
    if (!PointCount) return;
+
+   buildmap_info ("saving %d points...", PointCount);
 
    square_count = buildmap_square_get_count();
 

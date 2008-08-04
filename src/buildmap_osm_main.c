@@ -1,8 +1,8 @@
-/* buildmap_osm_main.c - The map builder tool for openstreetmap maps.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2007 Paul G. Fox
+ *   Copyright (c) 2008, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -21,6 +21,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @file
+ * @brief The map builder tool for openstreetmap maps.
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,8 +42,10 @@
 
 #include "buildmap.h"
 #include "buildmap_opt.h"
+#include "buildmap_metadata.h"
 #include "buildmap_layer.h"
 #include "buildmap_osm_binary.h"
+#include "buildmap_osm_text.h"
 
 #include "roadmap_osm.h"
 
@@ -48,6 +55,7 @@ int BuildMapNoLongLines;
 
 static char *BuildMapFormat;
 static int   BuildMapReplaceAll = 0;
+static char *BuildMapFileName = 0;
 
 char *BuildMapResult;
 
@@ -75,36 +83,60 @@ struct opt_defs options[] = {
         "Show less progress information"},
    {"verbose", "v", opt_flag, "0",
         "Show more progress information"},
+   {"inputfile", "i", opt_string, "",
+	"Convert this OSM file into a map"},
+   {"outputfile", "o", opt_string, "",
+	"Write output in this file"},
    OPT_DEFS_END
 };
 
+/**
+ * @brief save our things in a custom file name
+ * @param filename
+ * @param writeit
+ */
+static void buildmap_osm_save_custom (const char *filename, int writeit) {
 
-static void buildmap_osm_save (int tileid, int writeit) {
-
-   char db_name[128];
    char *parent;
 
-   roadmap_osm_filename(db_name, 1, tileid);
-
-   parent = roadmap_path_parent(BuildMapResult, db_name);
+   parent = roadmap_path_parent(BuildMapResult, filename);
    roadmap_path_create (parent);
    roadmap_path_free(parent);
 
-   if (buildmap_db_open (BuildMapResult, db_name) < 0) {
-      buildmap_fatal (0, "cannot create database %s", db_name);
+   if (buildmap_db_open (BuildMapResult, filename) < 0) {
+      buildmap_fatal (0, "cannot create database %s", filename);
    }
 
    if (writeit) {
-        buildmap_info("writing results to %s", db_name);
+        buildmap_info("writing results to %s", filename);
         buildmap_db_save ();
    } else {
-        buildmap_info("no results to write to %s", db_name);
+        buildmap_info("no results to write to %s", filename);
    }
 
    buildmap_db_close ();
 }
 
+/**
+ * @brief save our things, if writeit is true. File name based on tileid
+ * @param tileid
+ * @param writeit
+ */
+static void buildmap_osm_save (int tileid, int writeit) {
 
+   char db_name[128];
+
+   roadmap_osm_filename(db_name, 1, tileid);
+
+   buildmap_osm_save_custom(db_name, writeit);
+}
+
+/**
+ * @brief
+ * @param llp
+ * @param end
+ * @return
+ */
 static int
 strtolatlon(char *llp, char **end) {
     int ll;
@@ -147,6 +179,13 @@ buildmap_osm_neighbors_to_mask(int tileid) {
 #define DEFAULT_NEIGHBORS \
     ( 1<<TILE_EAST | 1<<TILE_SOUTHEAST | 1<<TILE_SOUTH | 1<<TILE_SOUTHWEST )
 
+/**
+ * @brief query the web server using the OSM binary protocol, and process it
+ * @param tileid
+ * @param source
+ * @param cmdfmt is a printf style format string used to format the web query
+ * @return
+ */
 static int
 buildmap_osm_process_one_tile
         (int tileid, const char *source, const char *cmdfmt)
@@ -174,7 +213,7 @@ buildmap_osm_process_one_tile
         buildmap_fatal(0, "couldn't open \"%s\"", urlcmd);
     }
 
-    buildmap_osm_binary_find_layers();
+    buildmap_osm_common_find_layers();
 
     ret = buildmap_osm_binary_read(fdata);
 
@@ -187,6 +226,52 @@ buildmap_osm_process_one_tile
      
 }
 
+/**
+ * @brief process a .osm text file
+ * @param fn the file name
+ * @return success indicator
+ */
+int buildmap_osm_text_process_file(char *fn)
+{
+    int ret = 0;
+    FILE	*f;
+    int		tileid = 32;
+
+    f = fopen(fn, "r");
+    if (f == NULL) {
+	    buildmap_fatal(0, "couldn't open \"%s\"", fn);
+	    return -1;
+    }
+
+    buildmap_metadata_add_attribute ("Territory", "Id", "32000");
+    buildmap_metadata_add_attribute ("Territory", "Parent", "be");
+    buildmap_metadata_add_value ("Territory", "Parent", "Belgium");
+
+    buildmap_metadata_add_attribute ("Class", "Name",   "All");
+    buildmap_metadata_add_attribute ("Data",  "Source", "OSM");
+
+    buildmap_osm_common_find_layers();
+    ret = buildmap_osm_text_read(f);
+    if (fclose(f) != 0) {
+        buildmap_error(0, "problem fetching data");
+        ret = -1;
+    }
+
+    buildmap_db_sort();
+    buildmap_osm_save_custom(BuildMapFileName, ret);
+
+    return ret;
+     
+}
+
+/**
+ * @brief
+ * @param position
+ * @param focus
+ * @param fips
+ * @param bits
+ * @return
+ */
 int buildmap_osm_by_position
         (const RoadMapPosition *position,
          const RoadMapArea *focus, int **fips, int bits) {
@@ -237,6 +322,13 @@ int buildmap_osm_by_position
 
 }
 
+/**
+ * @brief Called directly from main to convert lat/lon command line arguments into a tiles list
+ * @param latlonarg
+ * @param tilesp
+ * @param bits
+ * @return
+ */
 static int
 buildmap_osm_which_tiles(const char *latlonarg, int **tilesp, int bits)
 {
@@ -331,6 +423,11 @@ buildmap_osm_which_tiles(const char *latlonarg, int **tilesp, int bits)
     return count;
 }
 
+/**
+ * @brief
+ * @param tileid
+ * @return
+ */
 static int roadmap_osm_tile_has_coverage(int tileid) {
 
     int childid, bits, j;
@@ -353,6 +450,15 @@ static int roadmap_osm_tile_has_coverage(int tileid) {
     return 1;
 }
 
+/**
+ * @brief called directly from main to convert a tiles list
+ * @param tiles
+ * @param bits
+ * @param count
+ * @param source
+ * @param cmdfmt
+ * @return
+ */
 static int
 buildmap_osm_process_tiles (int *tiles, int bits, int count,
                 const char *source, const char *cmdfmt)
@@ -416,6 +522,11 @@ buildmap_osm_process_tiles (int *tiles, int bits, int count,
     return ret < 0;
 }
 
+/**
+ * @brief
+ * @param decode
+ * @return
+ */
 int buildmap_osm_decode(char *decode) {
 
     char *p, *end;
@@ -495,6 +606,12 @@ int buildmap_osm_decode(char *decode) {
 
 }
 
+/**
+ * @brief
+ * @param latlon
+ * @param bits
+ * @return
+ */
 int buildmap_osm_encode(char *latlon, int bits) {
 
     char *latp, *lonp = NULL;
@@ -534,6 +651,11 @@ int buildmap_osm_encode(char *latlon, int bits) {
     return 0;
 }
 
+/**
+ * @brief print help text
+ * @param progpath
+ * @param msg
+ */
 void usage(char *progpath, const char *msg) {
 
     char *prog = strrchr(progpath, '/');
@@ -551,7 +673,12 @@ void usage(char *progpath, const char *msg) {
     exit(1);
 }
 
-
+/**
+ * @brief main program
+ * @param argc
+ * @param argv
+ * @return
+ */
 int
 main(int argc, char **argv)
 {
@@ -563,7 +690,7 @@ main(int argc, char **argv)
     int *tileslist;
     char *decode, *encode;
     int tileid;
-    char *class, *latlonarg, *source, *cmdfmt;
+    char *class, *latlonarg, *source, *cmdfmt, *inputfile;
 
     /* parse the options */
     error = opt_parse(options, &argc, argv, 0);
@@ -580,7 +707,9 @@ main(int argc, char **argv)
             opt_val("source", &source) ||
             opt_val("tileid", &tileid) ||
             opt_val("decode", &decode) ||
-            opt_val("encode", &encode);
+            opt_val("encode", &encode) ||
+            opt_val("outputfile", &BuildMapFileName) ||
+	    opt_val("inputfile", &inputfile);
     if (error)
         usage(argv[0], opt_strerror(error));
 
@@ -598,7 +727,8 @@ main(int argc, char **argv)
         exit ( buildmap_osm_encode(encode, osm_bits) );
     }
 
-    if (strcasecmp(BuildMapFormat, "osmbinary") != 0) {
+    if (strcasecmp(BuildMapFormat, "osmtext") != 0) {
+    } else if (strcasecmp(BuildMapFormat, "osmbinary") != 0) {
         fprintf (stderr,
             "unsupported protocol input format %s", BuildMapFormat);
         exit(1);
@@ -628,6 +758,8 @@ main(int argc, char **argv)
         *tileslist = tileid;
         count = 1;
 
+    } else if (inputfile) {
+	    exit(buildmap_osm_text_process_file(inputfile));
     } else {
 
         if (argc < 2)
