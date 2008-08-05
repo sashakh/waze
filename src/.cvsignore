@@ -1,0 +1,13 @@
+.depends.mk
+buildmap
+buildmap_osm
+buildplace
+buildus
+dumpmap
+rdmfriends
+rdmghost
+rdmindex
+rdmkismet
+rdmtrace
+rdmxchange
+sunrise
