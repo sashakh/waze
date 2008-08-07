@@ -46,7 +46,7 @@ void roadmap_log_push        (const char *description);
 void roadmap_log_pop         (void);
 void roadmap_log_reset_stack (void);
 
-void roadmap_log (int level, char *source, int line, char *format, ...);
+void roadmap_log (int level, const char *source, int line, const char *format, ...);
 
 void roadmap_log_save_all  (void);
 void roadmap_log_save_none (void);
@@ -96,7 +96,7 @@ void roadmap_option (int argc, char **argv, int pass, RoadMapUsage usage);
 
 /* This function is hidden by a macro: */
 void roadmap_check_allocated_with_source_line
-                (char *source, int line, const void *allocated);
+                (const char *source, int line, const void *allocated);
 
 typedef void (* RoadMapCallback) (void);
 

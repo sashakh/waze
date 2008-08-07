@@ -138,9 +138,9 @@ int  roadmap_log_enabled (int level, char *source, int line) {
 static void roadmap_log_one (struct roadmap_message_descriptor *category,
                              FILE *file,
                              char  saved,
-                             char *source,
+                             const char *source,
                              int line,
-                             char *format,
+                             const char *format,
                              va_list ap) {
 
    int i;
@@ -163,7 +163,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
 }
 
 static void roadmap_redirect_one (struct roadmap_message_descriptor *category,
-                                  char *format,
+                                  const char *format,
                                   va_list ap) {
 
    char message[1024];
@@ -178,7 +178,8 @@ static void roadmap_redirect_one (struct roadmap_message_descriptor *category,
 }
 
 
-void roadmap_log (int level, char *source, int line, char *format, ...) {
+void roadmap_log (int level, const char *source,
+			int line, const char *format, ...) {
 
    FILE *file;
    va_list ap;
@@ -240,7 +241,7 @@ void roadmap_log_purge (void) {
 
 
 void roadmap_check_allocated_with_source_line
-                (char *source, int line, const void *allocated) {
+                (const char *source, int line, const void *allocated) {
 
     if (allocated == NULL) {
         roadmap_log (ROADMAP_MESSAGE_FATAL, source, line, "no more memory");
