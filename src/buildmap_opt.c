@@ -162,6 +162,9 @@ int opt_val(char *opt, void *val)
 
 	if (!o) {
 		retval = opt_dontexist;
+		if (o->type == opt_string) {
+		    *str = NULL;
+		}
 	} else {
 		retval = 0;
 		switch (o->type) {
