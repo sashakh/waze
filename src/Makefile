@@ -338,7 +338,9 @@ MANUAL = manual.html
 ifeq ($(DESKTOP),WINCE)
 BUILD =
 else
-BUILD = buildmap buildmap_osm buildus buildplace dumpmap rdmindex 
+BUILD = buildmap buildmap_osm buildus buildplace dumpmap
+# rdmindex -- removed from default build.  it's unfinished s/w, and
+# its presence is confusing.
 endif
 
 RUNTIME = $(RDMLIBS) libguiroadmap.a
