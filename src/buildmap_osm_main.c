@@ -758,7 +758,7 @@ main(int argc, char **argv)
         *tileslist = tileid;
         count = 1;
 
-    } else if (inputfile) {
+    } else if (*inputfile) {
 	    exit(buildmap_osm_text_process_file(inputfile));
     } else {
 
