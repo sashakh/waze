@@ -1,5 +1,4 @@
-/* buildus_county.c - Build a county table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a county table & index for RoadMap.
  *
  * SYNOPSYS:
  *
@@ -48,6 +52,7 @@
 #include "buildmap.h"
 #include "buildus_county.h"
 
+#include "roadmap_dictionary.h"
 
 struct RoadMapCity {
    int fips;
@@ -69,17 +74,17 @@ static int *SortedInverseCounty = NULL;
 
 #define MAX_US_STATE   100
 
+/**
+ * @brief
+ */
 typedef struct {
-
-   RoadMapString name;
-   RoadMapString symbol;
-
-   RoadMapArea edges;
-
+   RoadMapString name;		/**< */
+   RoadMapString symbol;	/**< */
+   RoadMapArea edges;		/**< */
 } BuildUsState;
 
 static BuildUsState State[MAX_US_STATE+1];
-static int          StateCode[MAX_US_STATE+1];
+static int StateCode[MAX_US_STATE+1];
 
 static int StateMaxCode = 0;
 static int StateCount   = 0;
@@ -87,7 +92,9 @@ static int StateCount   = 0;
 
 static void buildus_county_register (void);
 
-
+/**
+ * @brief
+ */
 static void buildus_county_initialize (void) {
 
    int i;
@@ -108,7 +115,13 @@ static void buildus_county_initialize (void) {
    buildus_county_register();
 }
 
-
+/**
+ * @brief Add a county to the tables
+ * @param fips the US standard number to indicate this county
+ * @param name the name of this county
+ * @param state_symbol the state in which this county is
+ * @return the internal representation (index into table) of this county
+ */
 int buildus_county_add
        (int fips, RoadMapString name, RoadMapString state_symbol) {
 
@@ -116,7 +129,6 @@ int buildus_county_add
    int block;
    int offset;
    RoadMapCounty *this_county;
-
 
    if (CountyByFips == NULL) buildus_county_initialize ();
 
@@ -132,7 +144,12 @@ int buildus_county_add
        if (this_county->fips == fips) {
 
           if (this_county->name != name) {
-             buildmap_fatal (0, "non unique county FIPS code");
+	     static BuildMapDictionary county_dictionary;
+	     county_dictionary = buildmap_dictionary_open ("county");
+             buildmap_fatal (0, "non unique county FIPS code %d (%s, %s)",
+			     fips,
+			     buildmap_dictionary_get(county_dictionary, name),
+			     buildmap_dictionary_get(county_dictionary, this_county->name));
           }
           return index;
         }
@@ -185,22 +202,31 @@ int buildus_county_add
       }
 
    } else if (State[StateCode[fips]].symbol != state_symbol) {
+      static BuildMapDictionary BuildMapStateDictionary;
+      BuildMapStateDictionary = buildmap_dictionary_open ("state");
 
-      buildmap_fatal (0, "invalid state FIPS");
+      buildmap_fatal (0, "invalid state FIPS (fips %d, state %s), not %s",
+		      fips,
+		      buildmap_dictionary_get(BuildMapStateDictionary,
+			      state_symbol),
+		      buildmap_dictionary_get(BuildMapStateDictionary,
+			      State[StateCode[fips]].symbol));
    }
 
    return CountyCount++;
 }
 
-
+/**
+ * @brief Add a US state
+ * @param name the name of this state
+ * @param symbol the standard two-character symbol representing this state
+ */
 void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
 
    int i;
    RoadMapArea area_reset = {0, 0, 0, 0};
 
-
    if (CountyByFips == NULL) buildus_county_initialize ();
-
 
    /* Search if that state is not yet known. */
 
@@ -209,22 +235,35 @@ void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
        if (State[i].symbol == symbol) {
 
            if (State[i].name != name) {
+		   static BuildMapDictionary state_dictionary;
 
-               buildmap_fatal (0, "state symbol conflict");
+		   state_dictionary = buildmap_dictionary_open ("state");
+               buildmap_fatal (0, "state symbol conflict (%s %s %s)",
+			       buildmap_dictionary_get(state_dictionary, symbol),
+			       buildmap_dictionary_get(state_dictionary, State[i].name),
+			       buildmap_dictionary_get(state_dictionary, name));
            }
            return;
        }
    }
 
-   StateCount += 1;
 
+   if (StateCount == MAX_US_STATE - 1) {
+	   buildmap_fatal(0, "Cannot add more than %d states", MAX_US_STATE);
+   }
+
+   StateCount += 1;
    State[StateCount].name   = name;
    State[StateCount].symbol = symbol;
 
    State[StateCount].edges = area_reset;
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @param city
+ */
 void buildus_county_add_city (int fips, RoadMapString city) {
 
    int index;
@@ -233,9 +272,7 @@ void buildus_county_add_city (int fips, RoadMapString city) {
    RoadMapCounty *this_county;
    struct RoadMapCity *this_city;
 
-
    if (CountyByFips == NULL) buildus_county_initialize ();
-
 
    /* First retrieve the county. */
 
@@ -273,7 +310,11 @@ void buildus_county_add_city (int fips, RoadMapString city) {
    CountyCityCount += 1;
 }
 
-
+/**
+ * @brief
+ * @param fips
+ * @param bounding_box
+ */
 void buildus_county_set_position (int fips,
                                   const RoadMapArea *bounding_box) {
 
@@ -323,7 +364,12 @@ void buildus_county_set_position (int fips,
    }
 }
 
-
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_county_compare (const void *r1, const void *r2) {
 
    int index1 = *((int *)r1);
@@ -341,6 +387,12 @@ static int buildmap_county_compare (const void *r1, const void *r2) {
    return record1->fips - record2->fips;
 }
 
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_county_compare_city (const void *r1, const void *r2) {
 
    int state1;
@@ -368,6 +420,9 @@ static int buildmap_county_compare_city (const void *r1, const void *r2) {
    return record1->name - record2->name;
 }
 
+/**
+ * @brief
+ */
 static void buildus_county_sort (void) {
 
    int i;
@@ -411,7 +466,9 @@ static void buildus_county_sort (void) {
           buildmap_county_compare_city);
 }
 
-
+/**
+ * @brief
+ */
 static void buildus_county_save (void) {
 
    int i;
@@ -559,7 +616,9 @@ static void buildus_county_save (void) {
    }
 }
 
-
+/**
+ * @brief
+ */
 static buildmap_db_module BuildUsCountyModule = {
    "county",
    buildus_county_sort,
@@ -568,7 +627,9 @@ static buildmap_db_module BuildUsCountyModule = {
    NULL
 };
 
-
+/**
+ * @brief
+ */
 static void buildus_county_register (void) {
    buildmap_db_register (&BuildUsCountyModule);
 }
