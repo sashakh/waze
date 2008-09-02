@@ -78,9 +78,9 @@ static int *SortedInverseCounty = NULL;
  * @brief
  */
 typedef struct {
-   RoadMapString name;		/**< */
-   RoadMapString symbol;	/**< */
-   RoadMapArea edges;		/**< */
+   RoadMapString name;          /**< */
+   RoadMapString symbol;        /**< */
+   RoadMapArea edges;           /**< */
 } BuildUsState;
 
 static BuildUsState State[MAX_US_STATE+1];
@@ -144,12 +144,12 @@ int buildus_county_add
        if (this_county->fips == fips) {
 
           if (this_county->name != name) {
-	     static BuildMapDictionary county_dictionary;
-	     county_dictionary = buildmap_dictionary_open ("county");
+             BuildMapDictionary county_dictionary;
+             county_dictionary = buildmap_dictionary_open ("county");
              buildmap_fatal (0, "non unique county FIPS code %d (%s, %s)",
-			     fips,
-			     buildmap_dictionary_get(county_dictionary, name),
-			     buildmap_dictionary_get(county_dictionary, this_county->name));
+                fips,
+                buildmap_dictionary_get(county_dictionary, name),
+                buildmap_dictionary_get(county_dictionary, this_county->name));
           }
           return index;
         }
@@ -202,15 +202,14 @@ int buildus_county_add
       }
 
    } else if (State[StateCode[fips]].symbol != state_symbol) {
-      static BuildMapDictionary BuildMapStateDictionary;
+      BuildMapDictionary BuildMapStateDictionary;
       BuildMapStateDictionary = buildmap_dictionary_open ("state");
 
       buildmap_fatal (0, "invalid state FIPS (fips %d, state %s), not %s",
-		      fips,
-		      buildmap_dictionary_get(BuildMapStateDictionary,
-			      state_symbol),
-		      buildmap_dictionary_get(BuildMapStateDictionary,
-			      State[StateCode[fips]].symbol));
+          fips,
+          buildmap_dictionary_get(BuildMapStateDictionary, state_symbol),
+          buildmap_dictionary_get(BuildMapStateDictionary,
+                  State[StateCode[fips]].symbol));
    }
 
    return CountyCount++;
@@ -235,13 +234,13 @@ void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
        if (State[i].symbol == symbol) {
 
            if (State[i].name != name) {
-		   static BuildMapDictionary state_dictionary;
+               BuildMapDictionary state_dictionary;
 
-		   state_dictionary = buildmap_dictionary_open ("state");
+               state_dictionary = buildmap_dictionary_open ("state");
                buildmap_fatal (0, "state symbol conflict (%s %s %s)",
-			       buildmap_dictionary_get(state_dictionary, symbol),
-			       buildmap_dictionary_get(state_dictionary, State[i].name),
-			       buildmap_dictionary_get(state_dictionary, name));
+                   buildmap_dictionary_get(state_dictionary, symbol),
+                   buildmap_dictionary_get(state_dictionary, State[i].name),
+                   buildmap_dictionary_get(state_dictionary, name));
            }
            return;
        }
@@ -249,7 +248,7 @@ void buildus_county_add_state (RoadMapString name, RoadMapString symbol) {
 
 
    if (StateCount == MAX_US_STATE - 1) {
-	   buildmap_fatal(0, "Cannot add more than %d states", MAX_US_STATE);
+      buildmap_fatal(0, "Cannot add more than %d states", MAX_US_STATE);
    }
 
    StateCount += 1;
