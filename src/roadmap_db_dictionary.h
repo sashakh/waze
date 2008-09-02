@@ -72,7 +72,9 @@ struct roadmap_dictionary_tree {
    unsigned short first;	/**< Flag: true if first record */
    unsigned char  count;	/**< Quantity */
    unsigned char  position;	/**< Position within the table */
+#if LATER // danny?
    unsigned char  num_strings;	/**< Number of strings contained in the table */
+#endif
 };
 
 typedef struct roadmap_dictionary_reference RoadMapDictionaryReference;
