@@ -129,6 +129,7 @@ version=$(sed -n 's/activity_version.*=[[:space:]]*//p' $STUFF/activity.info)
 cd tmp
 find $ACTNAME  > MANIFEST
 mv MANIFEST $ACTNAME
+rm ../RoadMap-$version.xo 
 zip -r ../RoadMap-$version.xo $ACTNAME
 
 
