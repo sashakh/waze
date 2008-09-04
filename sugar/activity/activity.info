@@ -1,6 +1,6 @@
 [Activity]
 name = RoadMap
-service_name = org.x.RoadMap
+service_name = net.sourceforge.roadmap
 icon = RoadMap
 activity_version = 1
 show_launcher = yes
