@@ -1,0 +1,74 @@
+#!/bin/sh
+
+debug=;
+test -d gtk2 && debug=yes
+if [ "$debug" ]
+then
+	export SUGAR_BUNDLE_PATH=/home/olpc/Activities/RoadMap.activity
+else
+	if [ $(whoami) = olpc ]
+	then
+	    exec 2>/tmp/roadmap.log
+	else
+	    exec 2>$SUGAR_ACTIVITY_ROOT/data/roadmap.log
+	fi
+fi
+set -x 
+
+#while [ -n "$2" ] ; do
+#     case "$1" in
+#         -b | --bundle-id)     export SUGAR_BUNDLE_ID="$2" ;;
+#         -a | --activity-id)   export SUGAR_ACTIVITY_ID="$2" ;;
+#         -o | --object-id)     export SUGAR_OBJECT_ID="$2" ;;
+#         -u | --uri)           export SUGAR_URI="$2" ;;
+#         *) echo unknown argument $1 $2 ;;
+#     esac
+#     shift;shift
+#done
+
+if [ ! "$SUGAR_BUNDLE_PATH" ]
+then
+	export SUGAR_BUNDLE_PATH=.
+fi
+if [ "$SUGAR_ACTIVITY_ROOT" ]
+then
+	USERDATA=$SUGAR_ACTIVITY_ROOT/data
+fi
+export LD_PRELOAD="$SUGAR_BUNDLE_PATH/lib/libsugarize.so"
+export LD_LIBRARY_PATH=$SUGAR_BUNDLE_PATH/lib
+export NET_WM_NAME="RoadMap"
+
+
+# attempt to pick up maps from any mounted device containing a
+# "RoadMap.maps" directory
+
+maps=$(ls -d $SUGAR_BUNDLE_PATH/maps \
+        $SUGAR_BUNDLE_PATH/maps/?? \
+        /media/*/RoadMap.maps \
+        /media/*/RoadMap.maps/??)
+
+if [ "$maps" ]
+then
+    allmaps=$(echo $maps | sed 's/ /,/g')
+else
+    allmaps=$SUGAR_BUNDLE_PATH/maps/...
+fi
+
+if [ ! "$debug" ]
+then
+    exec roadmap \
+        $EXTRA_ROADMAP_ARGS \
+        --maps=$allmaps \
+        --config=$SUGAR_BUNDLE_PATH/config \
+        --userpath=$USERDATA \
+        --icons=$SUGAR_BUNDLE_PATH/pixmaps
+else
+    exec gdb --args gtk2/gtkroadmap \
+        $EXTRA_ROADMAP_ARGS \
+        --maps=$allmaps \
+        --config=$SUGAR_BUNDLE_PATH/config \
+        --userpath=$USERDATA \
+        --icons=$SUGAR_BUNDLE_PATH/pixmaps
+fi
+
+

@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# build a RoadMap executable configured to run on an XO laptop as
+# a sugar activity, tweak the normal default configuration files,
+# and create the zip RoadMap.xo bundle.
+
+# this could all be made _way_ better.  volunteers?   -pgf
+
+set -e
+
+test "$1" = clean && clean=clean
+
+TOP=..
+SRC=$TOP/src
+ACT=./tmp/RoadMap.activity
+RMROOT=./tmp/roadmap_root
+STUFF=./activity
+
+rm -rf ./tmp
+mkdir -p ./tmp
+
+mkdir -p $ACT/{bin,activity,lib,docs,maps}
+cp $STUFF/sugarRoadMap $ACT/bin
+cp $STUFF/activity.info $STUFF/RoadMap.svg $ACT/activity
+
+# bring our development host's libexpat along, so we don't need to
+# "yum install" it.
+cp -a /usr/lib/libexpat.so* $ACT/lib
+
+# and bring along a copy of libsugarize.so
+make -C ./libsugarize clean libsugarize.so
+cp ./libsugarize/libsugarize.so $ACT/lib
+
+# force some variables for the local roadmap install
+cat >tmp/overrides.mk <<-EOF
+	# created by mk_activity -- do not edit
+	DESTDIR = $PWD/$RMROOT
+	INSTALLDIR = /usr/share/activities/$ACT
+	RUNTIME_ONLY = YES
+	DESKTOP = GTK2
+	AGG = rgb565
+	# MODE=DEBUG
+	# CFLAGS += -DSUGARIZED_ACTIVITY 
+EOF
+
+# run a make in the src directory, but have it source the
+# overrides.mk file from here
+EXTERNAL_CONF=$PWD/tmp MANPAGES= \
+    make -C $SRC $clean all install
+
+mv $RMROOT/usr/share/activities/$ACT/bin/*		$ACT/bin
+mv $RMROOT/usr/share/activities/$ACT/share/pixmaps	$ACT/pixmaps
+mv $RMROOT/usr/share/activities/$ACT/share/roadmap	$ACT/config
+cp $STUFF/config/*					$ACT/config
+
+# disable the toolbar by default, but provide an example
+cp $SRC/roadmap.toolbar.ex $ACT/config
+touch $ACT/config/roadmap.toolbar
+
+mv $RMROOT/usr/share/activities/$ACT/applications/roadmap.desktop $ACT
+
+#prune some over-installation
+rm -rf $ACT/bin/rdm* $ACT/pixmaps/roadmap* $ACT/config/font.ttf
+mv $ACT/bin/gtkroadmap $ACT/bin/roadmap
+
+# provide some maps, which must already be installed on the build system
+mkdir -p tmp/RoadMap.maps 
+if [ -d /usr/local/share/roadmap/maps ]
+then
+    ln -s /usr/local/share/roadmap/maps/{SB,usdir.rdm} $ACT/maps
+    for state in MA NH VT
+    # for state in ON IL MI IN OH TN GA NC VA MD DE PA NJ NY CT MA
+    do
+	test -d /usr/local/share/roadmap/maps/$state && \
+		ln -s /usr/local/share/roadmap/maps/$state tmp/RoadMap.maps
+    done
+else # in case we're building the bundle on the XO itself (unlikely)
+    ln -s /home/olpc/Activities/RoadMap.activity/maps/{SB,usdir.rdm} $ACT/maps
+    ln -s /media/disk/RoadMap.maps/{ma,nh,vt} tmp/RoadMap.maps
+fi
+
+# append some XO-specific config parameters to the default "preferences"
+(
+ echo \
+    "Labels.FontName: /usr/share/fonts/dejavu/DejaVuLGCSans-Bold.ttf"
+ echo \
+    "General.Sprite Scale: 200"
+ echo \
+    "Navigation.Enable: no"
+ echo \
+    "General.Progress Bar Delay: 500"
+ echo \
+    "GPS.LostFixWarningTimeout: 5"
+ echo \
+    "General.Busy Cursor Delay: 400"
+) >>$ACT/config/preferences
+
+# edit preferences to get large font sizes for the XO -- the pixels are tiny
+sed -i \
+    -e "s/\(GPS.Font Size:\).*/\1 30/" \
+    -e "s/\(Display.Font Size:\).*/\1 30/" \
+    -e "s/\(Labels.Font Size:\).*/\1 20/" \
+    -e "s/\(Landmarks.Font Size:\).*/\1 30/" \
+    -e "s/\(Display.Rotate:\).*/\1 no/" \
+    $ACT/config/preferences
+
+# for the same reason, substitute a bigger GPS sprite
+sed -i \
+    -e "s/^A BlueDart/A OutlinedBlueDart/" \
+    $ACT/config/sprites
+
+
+# and move focus from san francisco default to 1cc in cambridge, MA
+sed -i \
+    -e "s/\(Focus.Name:\).*/\1 Hold/" \
+    -e "s/\(Hold.Position:\).*/\1 -71086473,42362964/" \
+    -e "s/\(General.Zoom:\).*/\1 2000/" \
+    -e "/Selection.Position:/d" \
+    -e "/Address.Position:/d" \
+    $ACT/config/session
+
+# and finally, copy in docs and licenses
+cp $TOP/COPYING $TOP/INSTALL $TOP/README README.xo_laptop $SRC/manual.html $ACT/docs
+
+# finally, bundle the bundle
+zip -r RoadMap.xo $ACT
+
+

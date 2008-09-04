@@ -1,0 +1,8 @@
+[Activity]
+name = RoadMap
+service_name = org.x.RoadMap
+icon = RoadMap
+activity_version = 1
+show_launcher = yes
+exec = sugarRoadMap
+#update_url=...
