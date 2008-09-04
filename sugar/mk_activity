@@ -51,7 +51,7 @@ EXTERNAL_CONF=$PWD/tmp MANPAGES= \
 mv $RMROOT/usr/share/activities/$ACT/bin/*		$ACT/bin
 mv $RMROOT/usr/share/activities/$ACT/share/pixmaps	$ACT/pixmaps
 mv $RMROOT/usr/share/activities/$ACT/share/roadmap	$ACT/config
-cp $STUFF/config/*					$ACT/config
+cp $STUFF/config/{roadmap.screenobjects,sprites}	$ACT/config
 
 # disable the toolbar by default, but provide an example
 cp $SRC/roadmap.toolbar.ex $ACT/config
@@ -67,8 +67,8 @@ mv $ACT/bin/gtkroadmap $ACT/bin/roadmap
 mkdir -p tmp/RoadMap.maps 
 if [ -d /usr/local/share/roadmap/maps ]
 then
-    ln -s /usr/local/share/roadmap/maps/{SB,usdir.rdm} $ACT/maps
-    for state in MA NH VT
+    ln -s /usr/local/share/roadmap/maps/{SB,MA,usdir.rdm} $ACT/maps
+    for state in NH VT
     # for state in ON IL MI IN OH TN GA NC VA MD DE PA NJ NY CT MA
     do
 	test -d /usr/local/share/roadmap/maps/$state && \
@@ -122,7 +122,8 @@ sed -i \
 # and finally, copy in docs and licenses
 cp $TOP/COPYING $TOP/INSTALL $TOP/README README.xo_laptop $SRC/manual.html $ACT/docs
 
+version=$(sed -n 's/activity_version.*=//p' $STUFF/activity.info)
 # finally, bundle the bundle
-zip -r RoadMap.xo $ACT
+zip -r RoadMap-$version.xo $ACT
 
 
