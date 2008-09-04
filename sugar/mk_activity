@@ -68,7 +68,9 @@ mv $ACT/bin/gtkroadmap $ACT/bin/roadmap
 mkdir -p tmp/RoadMap.maps 
 if [ -d /usr/local/share/roadmap/maps ]
 then
-    ln -s /usr/local/share/roadmap/maps/{SB,MA,usdir.rdm} $ACT/maps
+    ln -s /usr/local/share/roadmap/maps/{SB,usdir.rdm} $ACT/maps
+    mkdir $ACT/maps/CA
+    cp /usr/local/share/roadmap/maps/CA/usc06075.rdm $ACT/maps/CA
     for state in NH VT
     # for state in ON IL MI IN OH TN GA NC VA MD DE PA NJ NY CT MA
     do
@@ -111,14 +113,14 @@ sed -i \
     $ACT/config/sprites
 
 
-# and move focus from san francisco default to 1cc in cambridge, MA
-sed -i \
-    -e "s/\(Focus.Name:\).*/\1 Hold/" \
-    -e "s/\(Hold.Position:\).*/\1 -71086473,42362964/" \
-    -e "s/\(General.Zoom:\).*/\1 2000/" \
-    -e "/Selection.Position:/d" \
-    -e "/Address.Position:/d" \
-    $ACT/config/session
+## and move focus from san francisco default to 1cc in cambridge, MA
+#sed -i \
+#    -e "s/\(Focus.Name:\).*/\1 Hold/" \
+#    -e "s/\(Hold.Position:\).*/\1 -71086473,42362964/" \
+#    -e "s/\(General.Zoom:\).*/\1 2000/" \
+#    -e "/Selection.Position:/d" \
+#    -e "/Address.Position:/d" \
+#    $ACT/config/session
 
 # and finally, copy in docs and licenses
 cp $TOP/COPYING $TOP/INSTALL $TOP/README README.xo_laptop $SRC/manual.html $ACT/docs
