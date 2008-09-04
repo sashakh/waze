@@ -196,12 +196,19 @@ static void roadmap_start_counter_rotate (void) {
 
 static void roadmap_start_about (void) {
 
-   roadmap_messagebox ("About",
-                       "RoadMap " ROADMAP_VERSION "\n"
-                       "(c) " ROADMAP_YEAR " Pascal Martin\n"
-                       "<pascal.martin@iname.com>\n"
-                       "A Street navigation system\n"
-                       "for Linux & UNIX");
+   roadmap_messagebox ( "About",
+       "RoadMap " ROADMAP_VERSION "\n"
+       "(c) " ROADMAP_YEAR " Pascal Martin, Paul Fox, Danny Backx and many others\n"
+       "\n"
+       "RoadMap is free software; you can\n"
+       "redistribute it and/or modify it under the\n"
+       "terms of version 2 (or later) of the GNU\n"
+       "General Public License, as published by the\n"
+       "Free Software Foundation.  You should have\n"
+       "received a copy of the GPL license along\n"
+       "with this program.\n"
+   );
+
 }
 
 static void roadmap_start_mapinfo (void) {
@@ -544,7 +551,7 @@ static RoadMapAction RoadMapStartActions[] = {
       roadmap_start_show_location},
 
    {"mapdownload", "Toggle Map Download", "Download", NULL,
-      "Enable/Disable the map download mode", NULL,
+      "Enable/Disable map download mode", NULL,
       roadmap_start_toggle_download},
 
    {"mapdiskspace", "Map Disk Space", "Disk", NULL,
