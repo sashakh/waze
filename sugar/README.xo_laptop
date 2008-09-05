@@ -1,0 +1,38 @@
+
+Maps --
+
+    The RoadMap activity on the XO is packaged with nothing but
+    a set of US state outline maps.  (That's all I have that's
+    easy to package -- my apologies to the rest of the world!)
+
+    RoadMap on the XO will attempt to find maps from the activity
+    bundle directory itself, and also from _any_ directory called
+    "RoadMap.maps" on an installed removeable device.  i.e. it
+    will search in "/media/*/RoadMap.maps".
+
+    So if you download maps from http://roadmap.sourceforge.net/maps,
+    or if you run buildmap_osm to fetch OpenStreetMap maps, you should
+    put them under RoadMap.maps on your SD card or on a USB memory stick.
+
+    (As an example -- I have maps for several New England states loaded
+    on my XO.  My SD card contains:
+
+        $ ls /media/d0a9...ee70/RoadMap.maps
+        ct/ ma/ me/ nh/ ri/ usdir.rdm vt/
+
+GPS --
+
+    If you have a GPS device and want RoadMap to use it, you'll want
+    to install gpsd to help: "yum install gpsd".
+
+    If, instead, you'd prefer to access your GPS via the raw tty
+    device, RoadMap will need to be able to open /dev/ttyUSB0 to read
+    your gps device.  In that case, you'll need to make that device
+    world readable, by adding the following line to a udev config file:
+
+        # cat /etc/udev/rules.d/99-local-ttyUSB0.rules:
+        KERNEL=="ttyUSB0", NAME="%k", GROUP="root", MODE="0666"
+
+    (You'll need to do this, or the "yum install gpsd" above, after
+    every update of your XO's system software.)
+
