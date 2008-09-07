@@ -504,7 +504,7 @@ buildmap_osm_text_way_end(char *data)
 	int		from_point, to_point, line, street;
 	int		fromlon, tolon, fromlat, tolat;
 	int		j;
-	static int	lineid = 1;
+	static int	lineid = 0;
 
 	if (WayInvalid)
 		return 0;
@@ -529,7 +529,6 @@ buildmap_osm_text_way_end(char *data)
 		static int polyid = 0;
 		static int cenid = 0;
 		int line;
-		static int lineid = 0;
 
 		/*
 		 * Detect an AREA -> create a polygon
@@ -589,7 +588,8 @@ buildmap_osm_text_way_end(char *data)
 		from_point = buildmap_osm_text_point_get(WayNodes[0]);
 		to_point = buildmap_osm_text_point_get(WayNodes[nWayNodes-1]);
 
-		line = buildmap_line_add(++lineid, WayLayer, from_point, to_point);
+		lineid++;
+		line = buildmap_line_add(lineid, WayLayer, from_point, to_point);
 
 		/* Street name */
 		if (WayStreetName)
@@ -662,14 +662,6 @@ buildmap_osm_text_ways_shapeinfo(void)
         lineid = shapes[i].lineid;
         line_index = buildmap_line_find_sorted(lineid);
 
-#if 0
-	if (line_index != 25) {
-		buildmap_info("Shapes skipped for line %d", line_index);
-		continue;
-	} else {
-		buildmap_info("Shapes generated for line %d", line_index);
-	}
-#endif
         if (line_index >= 0) {
 	    lons = shapes[i].lons;
             lats = shapes[i].lats;
@@ -677,11 +669,6 @@ buildmap_osm_text_ways_shapeinfo(void)
             /* Add the shape points here */
             for (j = 1; j < count - 1; j++) {
                 buildmap_shape_add (line_index, i, lineid, j - 1, lons[j], lats[j]);
-#if 0
-		if (line_index == 25)
-		buildmap_info("buildmap_shape_add(%d,%d,%d,%d,%d,%d)",
-				line_index, i, lineid, j - 1, lons[j], lats[j]);
-#endif
             }
         }
     }
