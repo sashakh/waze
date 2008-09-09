@@ -75,9 +75,24 @@ static GdkImage   *RoadMapDrawingBuffer;
 
 int roadmap_canvas_agg_to_wchar (const char *text, wchar_t *output, int size) {
 
-   int length = mbstowcs(output, text, size - 1);
-   output[length] = 0;
+   int length;
 
+   length = mbstowcs(output, text, size - 1);
+
+   if (length < 0) {
+      static int warned;
+      if (!warned) {
+         roadmap_log(ROADMAP_WARNING,
+            "roadmap_canvas_agg_to_wchar: multi-byte conversion failed");
+         roadmap_log(ROADMAP_WARNING,
+            "roadmap_canvas_agg_to_wchar: locale setting LC_CTYPE correct?");
+         warned = 1;
+      }
+      output[0] = 0;
+      return 0;
+   }
+
+   output[length] = 0;
    return length;
 }
                                      
