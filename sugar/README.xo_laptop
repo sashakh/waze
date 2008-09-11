@@ -20,6 +20,10 @@ Maps --
         $ ls /media/d0a9...ee70/RoadMap.maps
         ct/ ma/ me/ nh/ ri/ usdir.rdm vt/
 
+    If you're using the OSM quadtile maps, the "Find by Address"
+    and "Find by Intersection" menu entries will _not_ work. 
+    Only "Find by Position".
+
 GPS --
 
     If you have a GPS device and want RoadMap to use it, you'll want
