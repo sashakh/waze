@@ -1,5 +1,6 @@
 [Activity]
 name = RoadMap
+license = GPLv2+
 service_name = net.sourceforge.roadmap
 icon = RoadMap
 activity_version = 1
