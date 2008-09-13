@@ -265,7 +265,7 @@ int buildmap_osm_text_process_file(char *fn)
 }
 
 /**
- * @brief
+ * @brief populates a list of tileids necessary to give coverage for the given position
  * @param position
  * @param focus
  * @param fips
@@ -323,11 +323,15 @@ int buildmap_osm_by_position
 }
 
 /**
- * @brief Called directly from main to convert lat/lon command line arguments into a tiles list
+ * @brief return tileids needed to for given positoin
  * @param latlonarg
  * @param tilesp
  * @param bits
  * @return
+ *
+ * Called directly from main to convert lat/lon command line
+ * arguments into a tiles list.  The area covered can be specified
+ * in several formats.
  */
 static int
 buildmap_osm_which_tiles(const char *latlonarg, int **tilesp, int bits)
@@ -523,7 +527,7 @@ buildmap_osm_process_tiles (int *tiles, int bits, int count,
 }
 
 /**
- * @brief
+ * @brief prints as much information as possible about the given hex tileid
  * @param decode
  * @return
  */
@@ -607,10 +611,13 @@ int buildmap_osm_decode(char *decode) {
 }
 
 /**
- * @brief
+ * @brief converts position to tileids
  * @param latlon
  * @param bits
  * @return
+ *
+ * Prints the RoadMap and OSM (true) tileids corresponding to the
+ * given position and bitlength.
  */
 int buildmap_osm_encode(char *latlon, int bits) {
 
@@ -691,6 +698,8 @@ main(int argc, char **argv)
     char *decode, *encode;
     int tileid;
     char *class, *latlonarg, *source, *cmdfmt, *inputfile;
+
+    BuildMapResult = strdup(roadmap_path_preferred("maps")); /* default. */
 
     /* parse the options */
     error = opt_parse(options, &argc, argv, 0);
