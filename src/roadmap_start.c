@@ -198,7 +198,8 @@ static void roadmap_start_about (void) {
 
    roadmap_messagebox ( "About",
        "RoadMap " ROADMAP_VERSION "\n"
-       "(c) " ROADMAP_YEAR " Pascal Martin, Paul Fox, Danny Backx and many others\n"
+       "Copyright " ROADMAP_YEAR " Pascal Martin,\n"
+       "Paul Fox, Ehud Shabtai, Danny Backx and many others\n"
        "\n"
        "RoadMap is free software; you can\n"
        "redistribute it and/or modify it under the\n"
@@ -550,9 +551,15 @@ static RoadMapAction RoadMapStartActions[] = {
       "Show the last selected address, crossroads, or position", NULL,
       roadmap_start_show_location},
 
-   {"mapdownload", "Toggle Map Download", "Download", NULL,
-      "Enable/Disable map download mode", NULL,
+   {"mapdownload", "Toggle Tiger Map Download", "Download", NULL,
+      "Enable/Disable Tiger map download mode", NULL,
       roadmap_start_toggle_download},
+
+#if SOON
+   {"osmdownload", "Start an OpenStreetMap Download", "OSM Download", NULL,
+      "Start OSM download", NULL,
+      roadmap_osm_start_download},
+#endif
 
    {"mapdiskspace", "Map Disk Space", "Disk", NULL,
       "Show the amount of disk space occupied by the maps", NULL,
