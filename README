@@ -14,23 +14,34 @@ INTRODUCTION
    name of the next intersection. RoadMap can be used without a GPS receiver,
    as a static map viewer and address finder.
 
-   Most of the maps are provided by the US Census Bureau, which only cover
-   the US.  RoadMap now includes a preliminary support for two other
-   formats:  the Digital Charts of the Words (DCW), a set of world-wide
-   maps produced by the US Department of Defense, and the Canadian RNF
-   (Road Network File) maps.  The DCW contains only major highways and
-   freeways, for some parts or the world (mostly Europe and japan) and
-   their accuracy does not allow any reliable car navigation.  The RNF
-   files contain road data, but currently no water features or municipality
-   information.
+   RoadMap is released under the GPL (see the COPYING file).
 
-   RoadMap is released under the GPL (see the COPYING file). The US Census
-   Bureau's data is public domain. The DCW data is mostly public domain, but
-   some administrative boundary data is copyright of ESRI
-   ({{http://www.esri.com/}}). As no administrative data is incorporated in
-   the RoadMap map files, all the RoadMap map files are in the public domain.
+   RoadMap currently support map data from several sources:
 
-   RoadMap uses a binary file format for representing the maps that is
+       * US Census Bureau (TIGER data)
+       
+       The census bureau TIGER data only covers the US and its territories.
+       
+       * OpenStreetMap
+
+       An external tool (buildmap_osm) can be used to fetch maps from
+       the OpenStreetMap (OSM) project.  More information about this
+       user-supported project can be found at {{http://www.openstreetmap.org}}.
+
+       * Canadian RNF (Road Network File) maps
+
+       The RNF files contain road data, but currently no water
+       features or municipality information.
+
+       * Digital Charts of the Words
+
+       DCW is a set of world-wide maps produced by the US Department
+       of Defense, and The DCW contains only major highways and
+       freeways, for some parts or the world (mostly Europe and
+       japan) and their accuracy does not allow any reliable car
+       navigation.  These maps are also quite old.
+   
+   RoadMap uses a binary file format for representing maps that is
    compact enough to allow the storage of many maps on a Compact Flash or
    MultiMedia card. The map of Los Angeles county takes a little more than
    10 Mbytes of flash space. RoadMap comes with a set of tools to convert
