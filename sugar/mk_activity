@@ -21,9 +21,6 @@ rm -rf ./tmp
 mkdir -p ./tmp
 
 mkdir -p $ACT/{bin,activity,lib,docs,maps}
-cp $STUFF/sugarRoadMap $ACT/bin
-cp $STUFF/activity.info $STUFF/RoadMap.svg $ACT/activity
-
 # bring our development host's libexpat along, so we don't need to
 # "yum install" it.
 cp -a /usr/lib/libexpat.so* $ACT/lib
@@ -50,9 +47,21 @@ EXTERNAL_CONF=$PWD/tmp MANPAGES= \
     make -C $SRC $clean all install
 
 mv $RMROOT/usr/share/activities/$ACT/bin/*		$ACT/bin
+
 mv $RMROOT/usr/share/activities/$ACT/share/pixmaps	$ACT/pixmaps
+
 mv $RMROOT/usr/share/activities/$ACT/share/roadmap	$ACT/config
-cp $STUFF/config/{roadmap.screenobjects,sprites}	$ACT/config
+
+cp $STUFF/sugarRoadMap $ACT/bin
+
+cp $STUFF/activity.info \
+   $STUFF/permissions.info \
+   $STUFF/RoadMap.svg \
+      $ACT/activity
+
+cp $STUFF/config/roadmap.screenobjects \
+   $STUFF/config/sprites \
+      $ACT/config
 
 # disable the toolbar by default, but provide an example
 cp $SRC/roadmap.toolbar.ex $ACT/config
@@ -101,6 +110,7 @@ fi
 # edit preferences to get large font sizes for the XO -- the pixels are tiny
 sed -i \
     -e "s/\(GPS.Font Size:\).*/\1 30/" \
+    -e "s/\(GPS.Source:\).*/\1 tty:\/\/dev\/ttyUSB0/" \
     -e "s/\(Display.Font Size:\).*/\1 30/" \
     -e "s/\(Labels.Font Size:\).*/\1 20/" \
     -e "s/\(Landmarks.Font Size:\).*/\1 30/" \
@@ -131,7 +141,7 @@ version=$(sed -n 's/activity_version.*=[[:space:]]*//p' $STUFF/activity.info)
 cd tmp
 find $ACTNAME  > MANIFEST
 mv MANIFEST $ACTNAME
-rm ../RoadMap-$version.xo 
+rm -f ../RoadMap-$version.xo 
 zip -r ../RoadMap-$version.xo $ACTNAME
 
 
