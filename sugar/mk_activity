@@ -72,6 +72,7 @@ mv $RMROOT/usr/share/activities/$ACT/applications/roadmap.desktop $ACT
 #prune some over-installation
 rm -rf $ACT/bin/rdm* $ACT/pixmaps/roadmap* $ACT/config/font.ttf
 mv $ACT/bin/gtkroadmap $ACT/bin/roadmap
+rm -f $ACT/bin/gtkroadgps
 
 # provide some maps, which must already be installed on the build system
 mkdir -p tmp/RoadMap.maps 
@@ -133,7 +134,8 @@ sed -i \
 #    $ACT/config/session
 
 # and finally, copy in docs and licenses
-cp $TOP/COPYING $TOP/INSTALL $TOP/README README.xo_laptop $SRC/manual.html $ACT/docs
+cp $TOP/COPYING $TOP/INSTALL $TOP/README README.xo_laptop $ACT/docs
+test -f $SRC/manual.html && cp $SRC/manual.html $ACT/docs
 
 version=$(sed -n 's/activity_version.*=[[:space:]]*//p' $STUFF/activity.info)
 
