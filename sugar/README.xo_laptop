@@ -26,17 +26,14 @@ Maps --
 
 GPS --
 
-    If you have a GPS device and want RoadMap to use it, you'll want
-    to install gpsd to help: "yum install gpsd".
+    As provided, RoadMap will access your USB-connected GPS device
+    directly.  For most such devices, this will work fine, as long
+    as the GPS device is the first serial USB device that your system
+    discovers (which is to say, as long as your GPS is on /dev/ttyUSB0).
 
-    If, instead, you'd prefer to access your GPS via the raw tty
-    device, RoadMap will need to be able to open /dev/ttyUSB0 to read
-    your gps device.  In that case, you'll need to make that device
-    world readable, by adding the following line to a udev config file:
+    If you'd prefer to use the free "gpsd" daemon to manage the
+    GPS, then you'll want to install gpsd with "yum install
+    gpsd", and change the method under File --> Preferences -->
+    GPS --> Source to "gpsd2://localhost".
 
-        # cat /etc/udev/rules.d/99-local-ttyUSB0.rules:
-        KERNEL=="ttyUSB0", NAME="%k", GROUP="root", MODE="0666"
-
-    (You'll need to do this, or the "yum install gpsd" above, after
-    every update of your XO's system software.)
 
