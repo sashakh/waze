@@ -299,6 +299,15 @@ static void roadmap_gps_keep_alive (void) {
    timeout = (time_t) roadmap_config_get_integer (&RoadMapConfigGPSTimeout);
    if (now - RoadMapGpsLatestData > timeout) {
       roadmap_gps_update_status ('V');
+      switch (RoadMapGpsLink.subsystem) {
+      case ROADMAP_IO_SERIAL:
+	 // if we're using a serial connection, it may well be a USB adapter
+	 // and it may have been un/re-plugged, or otherwise powered down (e.g.
+	 // by a system suspend and resume.  close it here to force a re-open
+	 // at the end of roadmap_gps_input()
+	 roadmap_io_close (&RoadMapGpsLink);
+	 break;
+      }
    }
 
 }
