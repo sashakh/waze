@@ -6,4 +6,4 @@ icon = RoadMap
 activity_version = 2
 show_launcher = yes
 exec = sugarRoadMap
-#update_url=...
+update_url = http://dev.laptop.org/~pgf/bundles/roadmap.html
