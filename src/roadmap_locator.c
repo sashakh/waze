@@ -332,8 +332,10 @@ static int roadmap_locator_allocate (int **fipslistp) {
    /* note that this can also be resized during tile splitting in
     * roadmap_osm.c -- see usage of roadmap_osm_tilelist in that file.
     */
-   *fipslistp = realloc (*fipslistp, count * sizeof(int));
-   roadmap_check_allocated(*fipslistp);
+   if (count > 0) {
+       *fipslistp = realloc (*fipslistp, count * sizeof(int));
+       roadmap_check_allocated(*fipslistp); 
+   }
 
    return count;
 }
