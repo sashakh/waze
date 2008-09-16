@@ -72,7 +72,7 @@ mv $RMROOT/usr/share/activities/$ACT/applications/roadmap.desktop $ACT
 #prune some over-installation
 rm -rf $ACT/bin/rdm* $ACT/pixmaps/roadmap* $ACT/config/font.ttf
 mv $ACT/bin/gtkroadmap $ACT/bin/roadmap
-rm -f $ACT/bin/gtkroadgps
+rm -f $ACT/bin/*roadgps
 
 # provide some maps, which must already be installed on the build system
 mkdir -p tmp/RoadMap.maps 
@@ -141,7 +141,7 @@ version=$(sed -n 's/activity_version.*=[[:space:]]*//p' $STUFF/activity.info)
 
 # finally, bundle the bundle
 cd tmp
-find $ACTNAME  > MANIFEST
+( cd $ACTNAME; find * -follow ! -type d) > MANIFEST
 mv MANIFEST $ACTNAME
 rm -f ../RoadMap-$version.xo 
 zip -r ../RoadMap-$version.xo $ACTNAME
