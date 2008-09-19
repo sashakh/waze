@@ -27,6 +27,7 @@
 void roadmap_messagebox_hide (void *handle);
 void *roadmap_messagebox        (const char *title, const char *message);
 void *roadmap_messagebox_wait   (const char *title, const char *message);
+void roadmap_messagebox_die   (const char *title, const char *message);
 #ifdef LANG_SUPPORT
 #ifndef __ROADMAP_MESSAGEBOX_NO_LANG
 #include "roadmap_lang.h"

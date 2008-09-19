@@ -162,7 +162,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
    }
 }
 
-static void roadmap_redirect_one (struct roadmap_message_descriptor *category,
+static int roadmap_redirect_one (struct roadmap_message_descriptor *category,
                                   const char *format,
                                   va_list ap) {
 
@@ -226,11 +226,18 @@ void roadmap_log (int level, const char *source,
    }
 
    roadmap_log_one (category, stderr, saved, source, line, format, ap);
-   roadmap_redirect_one (category, format, ap);
+   /* for now, assume that if someone has put in a redirect for fatal
+    * errors, that they'll also take care of terminating.
+    * (this is only necessary currently for gtk, which doesn't really run
+    * its dialog synchronously, and if we exit here, we'll never see it.)
+    */
+   if (!roadmap_redirect_one (category, format, ap)) {
+      if (category->do_exit)
+         exit(1);
+   }
 
    va_end(ap);
 
-   if (category->do_exit) exit(1);
 }
 
 

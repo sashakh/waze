@@ -49,8 +49,15 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
    return FALSE;
 }
 
+static gint roadmap_messagebox_exit (GtkWidget *w, gpointer data) {
+
+   roadmap_main_exit();
+
+   return FALSE;
+}
+
 static void *roadmap_messagebox_show (const char *title,
-                                     const char *text, int modal) {
+                                     const char *text, int modal, int die) {
 
    GtkWidget *ok;
    GtkWidget *label;
@@ -60,7 +67,7 @@ static void *roadmap_messagebox_show (const char *title,
 
    label = gtk_label_new(text);
 
-   ok = gtk_button_new_with_label ("Ok");
+   ok = gtk_button_new_with_label (die ? "Exit" : "Ok");
 
    GTK_WIDGET_SET_FLAGS (ok, GTK_CAN_DEFAULT);
 
@@ -79,7 +86,7 @@ static void *roadmap_messagebox_show (const char *title,
 
    gtk_signal_connect (GTK_OBJECT(ok),
                        "clicked",
-                       GTK_SIGNAL_FUNC(roadmap_messagebox_ok),
+                       GTK_SIGNAL_FUNC(die ? roadmap_messagebox_exit : roadmap_messagebox_ok),
                        dialog);
 
    gtk_widget_grab_default (ok);
@@ -90,13 +97,18 @@ static void *roadmap_messagebox_show (const char *title,
 }
 
 
-void *roadmap_messagebox_wait (const char *title, const char *text) {
+void *roadmap_messagebox_wait (const char *title, const char *message) {
 
-   return roadmap_messagebox_show (title, text, 1);
+   return roadmap_messagebox_show (title, message, 0, 0);
 }
 
-void *roadmap_messagebox (const char *title, const char *text) {
+void *roadmap_messagebox (const char *title, const char *message) {
 
-   return roadmap_messagebox_show (title, text, 0);
+   return roadmap_messagebox_show (title, message, 1, 0);
 }
+
+void roadmap_messagebox_die (const char *title, const char *message) {
+   (void)roadmap_messagebox_show (title, message, 1, 1);
+}
+  
 

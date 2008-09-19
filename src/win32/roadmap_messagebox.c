@@ -84,6 +84,12 @@ void *roadmap_messagebox_wait (const char *title, const char *text)
    return mb;	/* Nothing to return, the box is already popped down */
 }
 
+void roadmap_messagebox_die (const char *title, const char *text)
+{
+   roadmap_messagebox_show (title, text, MB_ICONERROR);
+   exit(1);
+}
+
 void roadmap_messagebox_hide (void *handle)
 {
 	/* This is a no op if we're using MessageBox() */

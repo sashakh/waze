@@ -56,3 +56,8 @@ void *roadmap_messagebox_wait(const char* title, const char* message) {
    mb->show();
    return mb;
 }
+
+void roadmap_messagebox_die(const char* title, const char* message) {
+   QMessageBox::critical(0, title, message);
+   exit(1);
+}

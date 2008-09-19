@@ -25,6 +25,7 @@
  *   See roadmap_messagebox.h
  */
 
+#include <stdlib.h>
 #include <gtk/gtk.h>
 
 #ifdef ROADMAP_USES_GPE
@@ -54,7 +55,7 @@ static gint roadmap_messagebox_ok (GtkWidget *w, gpointer data) {
 }
 
 static void *roadmap_messagebox_show (const char *title,
-                                     const char *text, int modal) {
+			     const char *text, int modal, char *button) {
 
    GtkWidget *ok;
    GtkWidget *label;
@@ -69,7 +70,7 @@ static void *roadmap_messagebox_show (const char *title,
 
    gtk_label_set_justify (GTK_LABEL(label), GTK_JUSTIFY_CENTER);
 
-   ok = gtk_button_new_with_label ("Ok");
+   ok = gtk_button_new_with_label (button);
 
    GTK_WIDGET_SET_FLAGS (ok, GTK_CAN_DEFAULT);
 
@@ -100,10 +101,15 @@ static void *roadmap_messagebox_show (const char *title,
 
 
 void *roadmap_messagebox (const char *title, const char *message) {
-   return roadmap_messagebox_show (title, message, 0);
+   return roadmap_messagebox_show (title, message, 0, "Ok");
 }
 
 void *roadmap_messagebox_wait (const char *title, const char *message) {
-   return roadmap_messagebox_show (title, message, 1);
+   return roadmap_messagebox_show (title, message, 1, "Ok");
+}
+
+void roadmap_messagebox_die (const char *title, const char *message) {
+   gtk_dialog_run(roadmap_messagebox_show (title, message, 1, "Exit"));
+   exit(1);
 }
 
