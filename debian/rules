@@ -20,13 +20,11 @@ export DH_COMPAT=3
 DESKTOP := GTK2
 GUI     := gtk2
 
-DESTDIR   = $(CURDIR)/debian/roadmap
+DESTDIR   = $(CURDIR)/debian/freemap-il
 BUILDFLAGS = \
   INSTALLDIR=/usr \
   desktopdir=/usr/share/applnk/Applications \
   DESKTOP=$(DESKTOP)
-
-include /usr/share/dpatch/dpatch.make
 
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -g
@@ -36,31 +34,18 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 endif
 
 configure: configure-stamp
-configure-stamp: patch-stamp
+configure-stamp: 
 	dh_testdir
 	# Add here commands to configure the package.
 
 	touch configure-stamp
 
-manual.html: README
-# Generate help file, try to use aptconvert, and download it if that
-# fails.  aptconvert is missing in Debian at the moment, so I use wget
-# to fetch it for now.  It is used at run time to show the help text.
-	if aptconvert -toc manual.html README ; then \
-		: ; \
-	else \
-		rm -f manual.html; \
-		wget http://roadmap.digitalomaha.net/manual.html ; \
-	fi
-
-
 build-arch: configure-stamp  build-arch-stamp
-build-arch-stamp: manual.html
+build-arch-stamp: 
 	dh_testdir
 
 	# Add here command to compile/build the package.
-	$(MAKE) -C src $(BUILDFLAGS)
-
+	$(MAKE) -C src maemo
 	touch build-arch-stamp
 
 build-indep:  configure-stamp build-indep-stamp
@@ -76,7 +61,7 @@ build-indep-stamp:
 
 build: build-arch build-indep
 
-clean: unpatch
+clean: 
 	dh_testdir
 	dh_testroot
 	rm -f build-arch-stamp build-indep-stamp configure-stamp
@@ -93,18 +78,17 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/roadmap.
-	$(MAKE) -C src/$(GUI) $(BUILDFLAGS) DESTDIR=$(DESTDIR) pkgbindir=/usr/lib/roadmap install
+	# Add here commands to install the package into debian/freemap-il.
+#	$(MAKE) -C src/$(GUI) $(BUILDFLAGS) DESTDIR=$(DESTDIR) pkgbindir=/usr/lib/roadmap install
+	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/share/applications/hildon/ $(DESTDIR)/usr/share/dbus-1/services/ \
+		$(DESTDIR)/usr/share/icons/hicolor/scalable/apps/ $(DESTDIR)/home/user/.freemap-il/
+	cp -a src/gtk2/gtkroadmap $(DESTDIR)/usr/bin/freemap-il
+	cp src/freemap-il.desktop $(DESTDIR)/usr/share/applications/hildon
+#	cp src/freemap-il.service $(DESTDIR)/usr/share/dbus-1/services/
+	cp src/freemap-il.png $(DESTDIR)/usr/share/icons/hicolor/scalable/apps/
+	cp -a home/* $(DESTDIR)/home/user/.freemap-il/
 
-	# Remove symlinks and move binaries in place
-	cd $(DESTDIR)/usr/bin; \
-		rm roadmap roadgps ; \
-		mv gtkroadmap roadmap ; \
-		mv gtkroadgps roadgps		
-
-	install -m644 manual.html $(DESTDIR)/usr/share/roadmap/manual.html
-
-	dh_movefiles --sourcedir=debian/roadmap
+	dh_movefiles --sourcedir=debian/freemap-il
 
 # Build architecture-independent files here.
 # Pass -i to all debhelper commands in this target to reduce clutter.
@@ -131,14 +115,14 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir -a
 	dh_testroot -a
-	dh_installdebconf -a
-	dh_installdocs -a
+#	dh_installdebconf -a
+#	dh_installdocs -a
 	dh_installexamples -a
 	dh_installmenu -a
 	dh_installcron -a
 	dh_installman -a
 	dh_installinfo -a
-	dh_installchangelogs -a
+#	dh_installchangelogs -a
 	dh_strip -a
 	dh_link -a
 	dh_compress -a

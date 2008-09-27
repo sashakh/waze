@@ -466,12 +466,18 @@ static void roadmap_screen_obj_pos (RoadMapScreenObj object,
    pos->x = object->pos_x;
    pos->y = object->pos_y;
 
+   if ((pos->x>9000) && (pos->x<11000)) {
+	   pos->x += roadmap_canvas_width ()/2 - 10000;
+   } else
    if (pos->x < 0) {
       pos->x += roadmap_canvas_width ();
    } else {
       pos->x += OffsetX;
    }
 
+   if ((pos->y>9000) && (pos->y<11000)) {
+	   pos->y += roadmap_canvas_height ()/2 - 10000;
+   } else
    if (pos->y < 0) {
       pos->y += roadmap_canvas_height ();
    } else {

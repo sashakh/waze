@@ -1,5 +1,7 @@
 # --- Installation options -------------------------------------------------
 
+include Makefile.cfg
+
 DESTDIR=
 INSTALLDIR=/usr/local
 desktopdir=$(INSTALLDIR)/applications
@@ -101,11 +103,16 @@ else
 endif
 
 
-CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) $(SSDCFLAGS) $(J2MECFLAGS) -I/usr/local/include -I$(PWD) -DROADMAP_USE_POSTGRES
+CFLAGS=$(MODECFLAGS) $(SQLCFLAGS) $(ROADMAP_USE_SHAPEFILES) $(SSDCFLAGS) $(J2MECFLAGS) -I/usr/local/include -I$(PWD) -I$(PWD)/src/ -DROADMAP_USE_POSTGRES -I/usr/local/include/agg2/ \
+	-I/usr/include/glib-2.0/ -I /usr/lib/glib-2.0/include/
 LDFLAGS=$(MODELDFLAGS) $(SQLLDFLAGS) $(SHAPELDFLAGS) -lpq 
 
+ifeq ($(MAEMO),1)
+	CFLAGS += -DMAEMO=1
+endif
+
 RDMLIBS=libroadmap.a unix/libosroadmap.a
-LIBS=$(RDMLIBS) -lpopt -lm
+LIBS=$(RDMLIBS) -lpopt -lm 
 
 
 # --- RoadMap sources & targets --------------------------------------------
@@ -148,6 +155,10 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_adjust.c \
           roadmap_lang.c \
           roadmap_sunrise.c
+
+ifeq ($(MAEMO),1)
+	RMLIBSRCS += roadmap_gpsmgr.c
+endif
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)
 
@@ -380,6 +391,9 @@ uninstall:
 	cd $(DESTDIR)$(man1dir) && rm -f roadgps.1 roadmap.1
 
 everything: modules runtime build $(TOOLS)
+
+maemo:
+	$(MAKE) -C gtk2 STDCFLAGS="$(CFLAGS)" FREEMAP_IL=YES BIDI=YES MAEMO=$(MAEMO) all
 
 modules:
 	for module in icons $(RDMODULES) ; \

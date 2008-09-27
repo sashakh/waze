@@ -8,18 +8,18 @@ ICONSRC= rm_hold.xpm \
 
 ICONS=$(ICONSRC:.xpm=.png)
 
-CONVERT=convert
+CONVERT=convert2
 
 all: icons
 
-install: $(ICONS)
+install:
 	rm -f temp.png
 	cp rm_*.png $(ICONDIR)
 
 uninstall:
 	cd $(ICONDIR) && rm -f rm_*.png
 
-icons: $(ICONS)
+icons:
 	rm -f temp.png
 
 clean: cleanone

@@ -66,6 +66,8 @@
 #include "ssd/ssd_dialog.h"
 #endif
 
+void dbg_time_print() {}
+
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
@@ -1697,6 +1699,10 @@ static void roadmap_screen_repaint_now (void) {
 
     roadmap_label_start();
 
+	roadmap_display_text("Scale", "%d", roadmap_math_get_scale(120));
+	if(roadmap_trip_get_airdistance()==-1) {
+		roadmap_display_hide("Distance");
+	} else roadmap_display_text("Distance", "%d", roadmap_trip_get_airdistance());
 #ifdef DEBUG_TIME
     end_time = NOPH_System_currentTimeMillis();
     printf ("roadmap_screen_repaint start drawing squares %d ms\n", end_time - start_time);
@@ -2607,5 +2613,4 @@ void dbg_time_start(int type) {
 void dbg_time_end(int type) {
 }
 
-void dbg_time_print() {}
 #endif

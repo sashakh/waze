@@ -95,29 +95,35 @@ static int roadmap_gpsd2_decode_coordinate (const char *input) {
 }
 
 
+static RoadMapSocket gpsd2_socket;
+
 RoadMapSocket roadmap_gpsd2_connect (const char *name) {
 
-   RoadMapSocket socket = roadmap_net_connect ("tcp", name, 2947);
+   gpsd2_socket = roadmap_net_connect ("tcp", name, 2947);
 
-   if (ROADMAP_NET_IS_VALID(socket)) {
+   if (ROADMAP_NET_IS_VALID(gpsd2_socket)) {
 
       /* Start watching what happens. */
 
       static const char request[] = "w+\n";
 
       if (roadmap_net_send
-            (socket, request, sizeof(request)-1, 1) != sizeof(request)-1) {
+            (gpsd2_socket, request, sizeof(request)-1, 1) != sizeof(request)-1) {
 
          roadmap_log (ROADMAP_WARNING, "Lost gpsd server session");
-         roadmap_net_close (socket);
+         roadmap_net_close (gpsd2_socket);
 
          return ROADMAP_INVALID_SOCKET;
       }
    }
 
-   return socket;
+   return gpsd2_socket;
 }
 
+
+void roadmap_gpsd2_periodic (void) {
+   roadmap_net_send (gpsd2_socket, "q\n", 2,1);
+}
 
 void roadmap_gpsd2_subscribe_to_navigation (RoadMapGpsdNavigation navigation) {
 

@@ -79,5 +79,6 @@ void  roadmap_trip_save (const char *name);
 
 void roadmap_trip_save_screenshot (void);
 
+int roadmap_trip_get_airdistance(void);
 #endif // INCLUDE__ROADMAP_TRIP__H
 

@@ -1,0 +1,36 @@
+#! /bin/sh
+# postinst script for roadmap
+
+set -e
+
+. /usr/share/debconf/confmodule
+
+case "$1" in
+    configure)
+	if [ -x /usr/bin/gtk-update-icon-cache ]
+	 then
+		  /usr/bin/gtk-update-icon-cache -f /usr/share/icons/hicolor
+	 fi
+        if [ -x /usr/bin/update-desktop-database ]
+         then
+		    /usr/bin/update-desktop-database
+         fi
+
+        if [ "$1" = "configure" -a -z "$2" -a -x /usr/bin/maemo-select-menu-location ]
+	 then
+		        /usr/bin/maemo-select-menu-location freemap-il.desktop 
+         fi
+        if [ -x /usr/bin/update-menus ] ; then update-menus ; fi
+        chown -R user.users /home/user/.freemap-il
+    ;;
+    abort-upgrade|abort-remove|abort-deconfigure)
+
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

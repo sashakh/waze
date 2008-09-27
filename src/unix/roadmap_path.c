@@ -60,22 +60,22 @@ static RoadMapPathList RoadMapPaths = NULL;
  * that we want to handle in a standard way.
  */
 static const char *RoadMapPathUser[] = {
-   "~/.roadmap",
+   "~/.freemap-il",
    NULL
 };
-static const char *RoadMapPathUserPreferred = "~/.roadmap";
+static const char *RoadMapPathUserPreferred = "~/.freemap-il";
 
 
 /* Skins directories */
 static const char *RoadMapPathSkin[] = {
-   "~/.roadmap/skins/default/day",
-   "~/.roadmap/skins/default",
+   "~/.freemap-il/skins/default/day",
+   "~/.freemap-il/skins/default",
    NULL
 };
-static const char *RoadMapPathSkinPreferred = "~/.roadmap/skins";
+static const char *RoadMapPathSkinPreferred = "~/.freemap-il/skins";
 
 /* The hardcoded path for configuration files (the "config" path).
- * (Note that the user directory (~/.roadmap) does not appear here
+ * (Note that the user directory (~/.freemap-il) does not appear here
  * as it is implicitely used by the callers--see above.)
  */ 
 static const char *RoadMapPathConfig[] = {
@@ -86,10 +86,10 @@ static const char *RoadMapPathConfig[] = {
    "/mnt/card/QtPalmtop/share/roadmap",
 #else
    /* This is for standard Unix configurations. */
-   "~/.roadmap",
-   "/etc/roadmap",
-   "/usr/local/share/roadmap",
-   "/usr/share/roadmap",
+   "~/.freemap-il",
+   "/etc/freemap-il",
+   "/usr/local/share/freemap-il",
+   "/usr/share/freemap-il",
 #endif
    NULL
 };
@@ -97,7 +97,7 @@ static const char *RoadMapPathConfigPreferred =
 #ifdef QWS
                       "/mnt/cf/QtPalmtop/share/roadmap";
 #else
-                      "~/.roadmap";
+                      "~/.freemap-il";
 #endif
 
 
@@ -110,15 +110,15 @@ static const char *RoadMapPathMaps[] = {
    "/mnt/card/QtPalmtop/share/roadmap",
 #else
    /* This is for standard Unix configurations. */
-   "~/.roadmap/maps",
-   "/var/lib/roadmap",
-   "/usr/lib/roadmap",
+   "~/.freemap-il/maps",
+   "/var/lib/freemap-il",
+   "/usr/lib/freemap-il",
 
    /* These paths are not really compliant with the FHS, but we
     * keep them for compatibility with older versions of RoadMap.
     */
-   "/usr/local/share/roadmap",
-   "/usr/share/roadmap",
+   "/usr/local/share/freemap-il",
+   "/usr/share/freemap-il",
 #endif
    NULL
 };
@@ -126,7 +126,7 @@ static const char *RoadMapPathMapsPreferred =
 #ifdef QWS
                       "/mnt/cf/QtPalmtop/share/roadmap";
 #else
-                      "/var/lib/roadmap";
+                      "/var/lib/freemap-il";
 #endif
 
 
@@ -281,7 +281,7 @@ const char *roadmap_path_user (void) {
     static char *RoadMapUser = NULL;
 
     if (RoadMapUser == NULL) {
-        RoadMapUser = roadmap_path_cat (roadmap_path_home(), ".roadmap");
+        RoadMapUser = roadmap_path_cat (roadmap_path_home(), ".freemap-il");
         mkdir (RoadMapUser, 0770);
     }
     return RoadMapUser;
@@ -290,7 +290,7 @@ const char *roadmap_path_user (void) {
 
 const char *roadmap_path_trips (void) {
     
-    static char  RoadMapDefaultTrips[] = ".roadmap/trips";
+    static char  RoadMapDefaultTrips[] = ".freemap-il/trips";
     static char *RoadMapTrips = NULL;
     
     if (RoadMapTrips == NULL) {

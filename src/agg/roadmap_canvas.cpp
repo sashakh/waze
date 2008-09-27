@@ -68,7 +68,7 @@ extern "C" {
 
 #define MAX_THICKNESS 50
 
-//#define RGB565
+#define RGB565
 #ifdef RGB565
 typedef agg::pixfmt_rgb565 pixfmt;
 #else

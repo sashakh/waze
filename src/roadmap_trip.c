@@ -570,7 +570,6 @@ static void roadmap_trip_format_messages (void) {
     RoadMapTripPoint *waypoint;
     RoadMapListItem *item, *tmp;
 
-
     if (RoadMapTripFocus == gps &&
         RoadMapTripDestination != NULL &&
         RoadMapTripDestination->has_value) {
@@ -1079,7 +1078,7 @@ int roadmap_trip_load (const char *name, int silent) {
     
     RoadMapPosition position;
 
-
+return 0;
     /* Load waypoints from the user environment. */
     
     file = roadmap_trip_fopen (name, silent ? "sr" : "r");
@@ -1210,3 +1209,12 @@ void roadmap_trip_save_screenshot (void) {
 }
 #endif
 
+int roadmap_trip_get_airdistance(void) {
+	RoadMapPosition *p1, *p2;
+	p1=roadmap_trip_get_position("Departure");
+	p2=roadmap_trip_get_position("Destination");
+	if(p1 && p2) {
+		return roadmap_math_distance(p1,p2);
+	}
+	return -1;
+}

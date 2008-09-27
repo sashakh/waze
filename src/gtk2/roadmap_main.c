@@ -163,7 +163,6 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
    char *key = NULL;
    char regular_key[2];
 
-
    switch (event->keyval) {
 
       case GDK_Left:   key = "Button-Left";           break;
@@ -178,6 +177,12 @@ static gint roadmap_main_key_pressed (GtkWidget *w, GdkEventKey *event) {
       case 0x1008ff20: key = "Button-Calendar";       break;
       case 0xaf9:      key = "Button-Contact";        break;
       case 0xff67:     key = "Button-Start";          break;
+
+      /* Hildon */
+      case GDK_F4: key="Z"; break;
+      case GDK_F6: key="F"; break;
+      case GDK_F7: key="+"; break;
+      case GDK_F8: key="-"; break;
 
       /* Regular keyboard keys: */
       default:

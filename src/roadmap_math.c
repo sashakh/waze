@@ -615,7 +615,8 @@ int roadmap_math_get_scale (int use_map_units) {
                   RoadMapContext.zoom_x: RoadMapContext.zoom_y;
 
    if (use_map_units) {
-      scale = res * RoadMapContext.units->unit_per_latitude * use_map_units;
+//      scale = res * RoadMapContext.units->unit_per_latitude * use_map_units;
+      scale = res * RoadMapContext.units->unit_per_longitude * use_map_units;
    } else {
       scale = res * (1.0 * DOTS_PER_INCH * INCHES_PER_DEGREE / 1000000);
    }

@@ -77,6 +77,7 @@ static RoadMapPen RoadMapConsoleForeground;
 #define SIGN_BOTTOM   0
 #define SIGN_TOP      1
 #define SIGN_CENTER   2
+#define SIGN_TOP_RIGHT 3
 
 typedef struct {
 
@@ -125,6 +126,8 @@ RoadMapSign RoadMapStreetSign[] = {
     ROADMAP_SIGN("GPS", "Approach",        SIGN_TOP, "Approaching %N, %C|Approaching %N", "#698b69", "#ffffff"),
     ROADMAP_SIGN(NULL, "Selected Street", SIGN_BOTTOM, "%F", "#ffff00", "#000000"),
     ROADMAP_SIGN(NULL, "Info",  SIGN_CENTER, NULL, "#ffff00", "#000000"),
+    ROADMAP_SIGN(NULL, "Scale",  SIGN_BOTTOM, NULL, "#ffff80", "#000000"),
+    ROADMAP_SIGN(NULL, "Distance",  SIGN_TOP_RIGHT, NULL, "#ffff80", "#000000"),
     ROADMAP_SIGN(NULL, "Error", SIGN_CENTER, NULL, "#ff0000", "#ffffff"),
     ROADMAP_SIGN("GPS", "Driving Instruction", SIGN_TOP, "In %D %I", "#ff0000", "#ffffff"),
     ROADMAP_SIGN(NULL, NULL, 0, NULL, NULL, NULL)
@@ -320,12 +323,19 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         roadmap_math_coordinate (&sign->position, points);
         roadmap_math_rotate_coordinates (1, points);
 
-        if (sign->where == SIGN_TOP) {
+        if ((sign->where == SIGN_TOP)||(sign->where == SIGN_TOP_RIGHT)) {
         
             points[1].x = 5 + (screen_width - sign_width) / 2;
             points[2].x = points[1].x - 5;
             points[4].x = (screen_width + sign_width) / 2;
             points[6].x = points[1].x + 10;
+
+			if (sign->where == SIGN_TOP_RIGHT) {
+				points[1].x += (screen_width - sign_width) / 4;
+				points[2].x += (screen_width - sign_width) / 4;
+				points[4].x += (screen_width - sign_width) / 4;
+				points[6].x += (screen_width - sign_width) / 4;
+			}
 
             text_position.x = points[2].x + 4;
             
@@ -351,7 +361,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         points[5].x = points[4].x;
     
 
-        if (sign->where == SIGN_TOP || (points[0].y > height / 2)) {
+        if (sign->where == SIGN_TOP || sign->where == SIGN_TOP_RIGHT || (points[0].y > height / 2)) {
 
             points[1].y = sign_height + 5;
             points[3].y = 5;
@@ -382,6 +392,13 @@ static void roadmap_display_sign (RoadMapSign *sign) {
         points[2].x = points[1].x;
         points[3].x = points[0].x;
     
+		if (sign->where == SIGN_TOP_RIGHT) {
+			points[0].x += (screen_width - sign_width) / 4;
+			points[1].x += (screen_width - sign_width) / 4;
+			points[2].x += (screen_width - sign_width) / 4;
+			points[3].x += (screen_width - sign_width) / 4;
+		}
+
         switch (sign->where)
         {
            case SIGN_BOTTOM:
@@ -390,6 +407,7 @@ static void roadmap_display_sign (RoadMapSign *sign) {
               break;
     
            case SIGN_TOP:
+           case SIGN_TOP_RIGHT:
     
               points[0].y = 5;
               break;

@@ -120,6 +120,8 @@ static RoadMapMenu QuickMenu;
 static RoadMapStartSubscriber  RoadMapStartSubscribers = NULL;
 static RoadMapScreenSubscriber roadmap_start_prev_after_refresh = NULL;
 
+static int NoNav=1;
+
 /* The menu and toolbar callbacks: --------------------------------------- */
 
 static void roadmap_start_periodic (void);
@@ -168,6 +170,10 @@ static void roadmap_start_rotate (void) {
 
 static void roadmap_start_counter_rotate (void) {
     roadmap_screen_rotate (-10);
+}
+
+static void roadmap_start_togglenav (void) {
+	NoNav=!NoNav;
 }
 
 static void roadmap_start_about (void) {
@@ -240,14 +246,20 @@ static void roadmap_start_trip_reverse (void) {
 
 static void roadmap_start_navigate (void) {
     
-    navigate_main_calc_route ();
+    if(!NoNav)navigate_main_calc_route ();
+}
+
+extern RoadMapNavigateRouteCB NavigateCallbacks;
+static void roadmap_stop_navigate (void) {
+    
+    roadmap_navigate_end_route (NavigateCallbacks);
 }
 
 static void roadmap_start_set_destination (void) {
 
     roadmap_trip_set_selection_as ("Destination");
     roadmap_screen_refresh();
-    navigate_main_calc_route ();
+    if(!NoNav)navigate_main_calc_route ();
 }
 
 static void roadmap_start_set_departure (void) {
@@ -494,6 +506,10 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
       "Calculate route",
       roadmap_start_navigate},
 
+   {"stopnavigate", "End Navigate", NULL, NULL,
+      "Stop navigation",
+      roadmap_stop_navigate},
+
    {"addaswaypoint", "Add as Waypoint", "Waypoint", "W",
       "Set the selected street block as waypoint", roadmap_start_set_waypoint},
 
@@ -542,6 +558,9 @@ static RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
 
    {"addvoicenote", "Add a voice note", NULL, NULL,
       "Add a voice note", editor_notes_add_voice},
+
+   {"togglenav", "Toggle Routing", "V", NULL,
+	   "Toggle route calculation", roadmap_start_togglenav},
 
    {NULL, NULL, NULL, NULL, NULL, NULL}
 };
@@ -624,6 +643,7 @@ static const char *RoadMapStartMenu[] = {
    "enablevoice",
    "nonavigation",
    "navigation",
+   "togglenav",
 
    RoadMapFactorySeparator,
 
@@ -698,6 +718,7 @@ static const char *RoadMapStartMenu[] = {
    "resumetripnorthup",
    "returntrip",
    "navigate",
+   "stopnavigate",
 
    RoadMapFactorySeparator,
 
@@ -814,11 +835,11 @@ static char const *RoadMapStartKeyBinding[] = {
    "S"               ROADMAP_MAPPED_TO "starttrip",
    /* T Unused. */
    "U"               ROADMAP_MAPPED_TO "gpsnorthup",
-   /* V Unused. */
+   "V"				 ROADMAP_MAPPED_TO "togglenav",
    "W"               ROADMAP_MAPPED_TO "addaswaypoint",
    "X"               ROADMAP_MAPPED_TO "intersection",
    "Y"               ROADMAP_MAPPED_TO "savesscreenshot",
-   /* Z Unused. */
+   "Z"		     ROADMAP_MAPPED_TO "quickmenu",
    NULL
 };
 
@@ -1288,6 +1309,11 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_obj_initialize ();
    roadmap_trip_restore_focus ();
 
+#if MAEMO
+   roadmap_gpsmgr_initialize     ();
+   roadmap_gpsmgr_start     ();
+#endif
+
    roadmap_gps_open ();
 
    if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
@@ -1318,6 +1344,9 @@ void roadmap_start_exit (void) {
     roadmap_screen_shutdown ();
     roadmap_start_save_trip ();
     roadmap_config_save (0);
+#if MAEMO
+    roadmap_gpsmgr_release();
+#endif
     roadmap_db_end ();
     roadmap_gps_shutdown ();
     roadmap_res_shutdown ();

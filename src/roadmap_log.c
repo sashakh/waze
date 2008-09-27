@@ -170,7 +170,7 @@ static void roadmap_log_one (struct roadmap_message_descriptor *category,
       vsprintf(msg, format, ap);
       sprintf (str, "%d %c%s %s, line %d %s",
          time(NULL), saved, category->prefix, source, line, msg);
-      roadmap_messagebox("Fatal Error", str);
+//      roadmap_messagebox("Fatal Error", str);
    }
 }
 

@@ -48,6 +48,8 @@
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
 
+#include "roadmap_gpsmgr.h"
+
 #include "roadmap_gps.h"
 
 #ifdef J2ME
@@ -890,6 +892,9 @@ void roadmap_gps_open (void) {
       if (! RoadMapGpsRetryPending) {
          roadmap_log (ROADMAP_WARNING, "cannot access GPS source %s", url);
          (*RoadMapGpsPeriodicAdd) (roadmap_gps_open);
+#if MAEMO
+		 (*RoadMapGpsPeriodicAdd) (roadmap_gpsmgr_start);
+#endif
          RoadMapGpsRetryPending = 1;
       }
       return;
@@ -897,6 +902,9 @@ void roadmap_gps_open (void) {
 
    if (RoadMapGpsRetryPending) {
       (*RoadMapGpsPeriodicRemove) (roadmap_gps_open);
+#if MAEMO
+	  (*RoadMapGpsPeriodicRemove) (roadmap_gpsmgr_start);
+#endif
       RoadMapGpsRetryPending = 0;
    }
 

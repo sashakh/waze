@@ -49,6 +49,7 @@
 
 #include "roadmap_start.h"
 
+#include "roadmap_gpsmgr.h"
 
 static const char *RoadGpsMainTitle = "GPS Console";
 
@@ -214,6 +215,7 @@ const char *roadmap_start_get_title (const char *name) {
 void roadmap_start_exit (void) {
     
     roadmap_config_save (0);
+	roadmap_gpsmgr_release();
     roadmap_res_shutdown ();
 }
 
@@ -244,6 +246,8 @@ void roadmap_start (int argc, char **argv) {
    roadgps_start_set_unit ();
 
    roadgps_start_window ();
+
+   roadmap_gpsmgr_initialize     ();
 
    if (RoadMapStartSubscribers) RoadMapStartSubscribers (ROADMAP_START_INIT);
 

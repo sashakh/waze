@@ -1,5 +1,7 @@
 # --- Installation options -------------------------------------------------
 
+include ../Makefile.cfg
+
 DESTDIR=
 INSTALLDIR=/usr/local
 bindir=$(INSTALLDIR)/bin
@@ -52,7 +54,12 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lagg -lfreetype -lpng
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lagg -lfreetype -lpng 
+
+ifeq ($(MAEMO),1)
+LIBS += -lgpsbt -lgpsmgr -lgps -lgthread-2.0 
+CFLAGS += -DMAEMO=1
+endif
 
 ifeq ($(BIDI),YES)
 LIBS += -lfribidi
@@ -86,6 +93,7 @@ RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg
 .PHONY: all others build runtime clean cleanone install uninstall ../libssd_widgets.a
 
 all: runtime
+	$(STRIP) $(RUNTIME)
 
 others:
 	$(MAKE) -C .. CFLAGS="$(STDCFLAGS)" runtime
