@@ -5,31 +5,35 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEDevice.cpp,v 1.2 2008/05/07 15:27:59 pgf Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEDevice.cpp,v 1.3 2008/10/03 22:26:57 dannybackx Exp $
  *
  */
-
-//#define SIMU_SMARTPHONE 1
-//#define SIMU_SMARTPHONE_2005 1
 
 #include "windows.h"
 #include "CEDevice.h"
 
-#define KEY_CALENDAR 0xc1
-#define KEY_CONTACTS 0xc2
-#define KEY_INBOX 0xc3
-#define KEY_TASK 0xc4
-
+/**
+ * @file
+ * @brief Windows CE power management code
+ *
+ * This code uses three techniques :
+ * - Call SetPowerRequirement once on the backlight device BLK1: to keep the light on
+ * - Periodically call SystemIdleTimerReset to keep the system from powering down
+ * - Periodically call SHIdleTimerReset to keep the shell from locking the device or
+ *   reverting to the Today screen.
+ *
+ * Power management code borrowed from MoDaCo & Betaplayer. Thanks !
+ */
 static void (WINAPI* _SHIdleTimerReset)(void) = NULL;
 static HANDLE (WINAPI* _SetPowerRequirement)(const void *,int,ULONG,PVOID,ULONG) = NULL;
 static DWORD (WINAPI* _ReleasePowerRequirement)(HANDLE) = NULL;
@@ -38,7 +42,6 @@ static DWORD _lastTime = 0;
 
 #define TIMER_TRIGGER 9000
 
-// Power management code borrowed from MoDaCo & Betaplayer. Thanks !
 void CEDevice::init() {
 	HINSTANCE dll = LoadLibrary(TEXT("aygshell.dll"));
 	if (dll) {
@@ -73,14 +76,10 @@ void CEDevice::wakeUp() {
 
 
 bool CEDevice::isSmartphone() {
-#ifdef SIMU_SMARTPHONE
-	return true;
-#else
 	TCHAR platformType[100];
 	BOOL result = SystemParametersInfo(SPI_GETPLATFORMTYPE, sizeof(platformType), platformType, 0);
 	if (!result && GetLastError() == ERROR_ACCESS_DENIED)
 		return true;
 	return (wcsnicmp(platformType, TEXT("SmartPhone"), 10) == 0);
-#endif
 }
 
