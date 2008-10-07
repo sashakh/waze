@@ -220,7 +220,7 @@ void roadmap_label_draw_text(const char *text,
         RoadMapGuiPoint *pos,
         int doing_angles, int angle, RoadMapPen pen)
 {
-  int size;
+  int size = RoadMapLabelFontSize;
 #else
 void roadmap_label_draw_text(const char *text,
         RoadMapGuiPoint *pos,
