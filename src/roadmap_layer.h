@@ -58,6 +58,20 @@
 
 #include "roadmap_canvas.h"
 
+/* defines the types of parameter a pen attribute function gets */
+enum {
+  ROADMAP_STYLE_TYPE_INT,
+  ROADMAP_STYLE_TYPE_STRING
+};
+
+/* structure to define a pen attribute setup function */
+typedef struct {
+  char *name;
+  int   type;
+  const char *default_value;
+  void  (*callback) ();
+} RoadMapLayerPenAttribute;
+
 unsigned int roadmap_layer_max_defined(void);
 unsigned int roadmap_layer_max_pen(void);
 
