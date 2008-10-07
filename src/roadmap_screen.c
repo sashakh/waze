@@ -951,8 +951,14 @@ static int roadmap_screen_draw_one_line(int line,
             cutoff_dist > roadmap_math_screen_distance
                     (&seg_middle, &loweredge, MATH_DIST_SQUARED)) ) {
        PluginLine l = {ROADMAP_PLUGIN_ID, line, layer, fips};
+#if defined(ROADMAP_ADVANCED_STYLE)
+       roadmap_label_add
+            (&seg_middle, angle_ptr ? *angle_ptr : 90, 
+             *total_length_ptr, &l, pen);
+#else
        roadmap_label_add
             (&seg_middle, angle_ptr ? *angle_ptr : 90, *total_length_ptr, &l);
+#endif
     }
 
     return 1;

@@ -118,6 +118,10 @@ ifeq ($(strip $(LANGS)),YES)
 	CFLAGS += -DLANG_SUPPORT
 endif
 
+ifneq ($(strip $(ADVANCED_STYLE)),)
+  CFLAGS += -DROADMAP_ADVANCED_STYLE
+endif
+
 ifeq ($(strip $(MODE)),DEBUG)
 	CFLAGS += -g
 

@@ -163,6 +163,22 @@ static RoadMapLayerPenAttribute RoadMapLayerPenSetupTable[] = {
   /* {"Delta", ROADMAP_STYLE_TYPE_INT, "",  roadmap_canvas_set_thickness},     */
   {"Color", ROADMAP_STYLE_TYPE_STRING, "#000000", roadmap_canvas_set_foreground},
   {"Style", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_linestyle},
+#if defined(ROADMAP_ADVANCED_STYLE)
+  {"LineCap", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_linecap },
+  {"LineJoin", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_linejoin },
+  {"Opacity", ROADMAP_STYLE_TYPE_INT, "", roadmap_canvas_set_opacity },
+  {"BrushColor", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_brush_color },
+  {"BrushStyle", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_brush_style },
+  {"isBackground", ROADMAP_STYLE_TYPE_INT, "", roadmap_canvas_set_brush_isbackground },
+  {"LabelFontName", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_label_font_name },
+  {"LabelFontSize", ROADMAP_STYLE_TYPE_INT, "", roadmap_canvas_set_label_font_size },
+  {"LabelFontStyle", ROADMAP_STYLE_TYPE_INT, "", roadmap_canvas_set_label_font_style },
+  {"LabelFontColor", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_label_font_color },
+  {"LabelFontWeight", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_label_font_weight },
+  {"LabelFontSpacing", ROADMAP_STYLE_TYPE_INT, "", roadmap_canvas_set_label_font_spacing },
+  {"LabelBufferColor", ROADMAP_STYLE_TYPE_STRING, "", roadmap_canvas_set_label_buffer_color },
+  {"LabelBufferSize", ROADMAP_STYLE_TYPE_INT, "", roadmap_canvas_set_label_buffer_size },
+#endif /* ADVANCED STYLE */
 };
 
 
@@ -659,7 +675,6 @@ static void roadmap_layer_load_file (const char *class_file) {
     const char *class_config = roadmap_config_new (class_file, 0);
     const char *class_name;
 
-
     if (class_config == NULL) {
        roadmap_log (ROADMAP_FATAL, "cannot access class file %s", class_file);
     }
@@ -740,41 +755,40 @@ static void roadmap_layer_load_file (const char *class_file) {
         int  other_pen_length = strlen(layers[i]) + 64;
         static char *other_pen;
         int thickness;
-        
+
         other_pen = realloc(other_pen, other_pen_length);
 
         layer->name = layers[i];
         layer->class = new_class;
         layer->navigation_modes = 0;
 
-
         /* Retrieve the layer's thickness & declutter. */
 
         layer->thickness.category = layers[i];
         layer->thickness.name     = "Thickness";
         roadmap_config_declare (class_config, &layer->thickness, "1");
-
+        
         /* this value is not used here */
         /* thickness = roadmap_config_get_integer (&layer->thickness); */
 
         layer->declutter.category = layers[i];
         layer->declutter.name     = "Declutter";
         roadmap_config_declare (class_config, &layer->declutter, "20248000000");
-
+         
         for (pen_index = 0; pen_index < ROADMAP_MAX_LAYER_PENS; ++pen_index) {
           /* retrieve delta (thickness was taken above) */
           if (pen_index > 0) {
-           const char *image;
+            const char *image;
 
-           snprintf (other_pen, other_pen_length, "Delta%d", pen_index);
+             snprintf (other_pen, other_pen_length, "Delta%d", pen_index);
 
-           image =
-              roadmap_config_get_from (class_config, layers[i], other_pen);
-           if (image == NULL || image[0] == 0) break;
+             image =
+                roadmap_config_get_from (class_config, layers[i], other_pen);
+             if (image == NULL || image[0] == 0) break;
 
-           layer->delta_thickness[pen_index] = atoi(image);
+             layer->delta_thickness[pen_index] = atoi(image);
           } 
-
+           
           /* now retrieve other pen attribute values */
           for (j = 0; j < n_of_callbacks; ++j) {
             if (pen_index == 0) {
@@ -782,7 +796,7 @@ static void roadmap_layer_load_file (const char *class_file) {
             } else {
               snprintf (other_pen, other_pen_length, "%s%d", RoadMapLayerPenSetupTable[j].name, pen_index);
             }
-
+         
             descriptor.category = layers[i];
             descriptor.name = other_pen;
             descriptor.reference = NULL;
@@ -811,9 +825,9 @@ static void roadmap_layer_load_file (const char *class_file) {
            if (pen_index == 0) {
              sprintf (other_pen, "%s", layers[i]);
            } else {
-           snprintf (other_pen, other_pen_length, "%s%d", layers[i], pen_index);
+             snprintf (other_pen, other_pen_length, "%s%d", layers[i], pen_index);
            }
-
+           
            layer->pen[pen_index] = roadmap_canvas_create_pen (other_pen);
 
            /* set up thickness based on main thickness and delta ones */
@@ -822,14 +836,14 @@ static void roadmap_layer_load_file (const char *class_file) {
              thickness = roadmap_config_get_integer (&layer->thickness);
              roadmap_canvas_set_thickness (thickness);
            } else {
-           if (layer->delta_thickness[pen_index] < 0) {
-              thickness += layer->delta_thickness[pen_index];
-           } else {
-              thickness = layer->delta_thickness[pen_index];
-           }
-           if (thickness > 0) {
-              roadmap_canvas_set_thickness (thickness);
-           }
+             if (layer->delta_thickness[pen_index] < 0) {
+                thickness += layer->delta_thickness[pen_index];
+             } else {
+                thickness = layer->delta_thickness[pen_index];
+             }
+             if (thickness > 0) {
+                roadmap_canvas_set_thickness (thickness);
+             }
            }
           
            /* now setup the other pen attributes */ 
@@ -853,6 +867,7 @@ static void roadmap_layer_load_file (const char *class_file) {
            }
         }
     }
+    
 
     /* Retrieve the navigation modes associated with each layer. */
 

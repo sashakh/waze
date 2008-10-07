@@ -93,6 +93,10 @@ typedef struct {
    RoadMapGuiRect bbox; /* label bounding box */
    RoadMapGuiPoint poly[4];
 
+#if defined(ROADMAP_ADVANCED_STYLE)
+   RoadMapPen pen;
+#endif
+
    unsigned short zoom;
    short angle;  /* degrees */
    unsigned short gen;    /* generation marker */
@@ -211,11 +215,25 @@ static int normalize_angle(int angle) {
    return angle;
 }
 
-
+#if defined(ROADMAP_ADVANCED_STYLE)
+void roadmap_label_draw_text(const char *text,
+        RoadMapGuiPoint *pos,
+        int doing_angles, int angle, RoadMapPen pen)
+{
+  int size;
+#else
 void roadmap_label_draw_text(const char *text,
         RoadMapGuiPoint *pos,
         int doing_angles, int angle, int size)
 {
+#endif
+
+#if defined(ROADMAP_ADVANCED_STYLE)
+  if (pen!=0)
+    roadmap_canvas_select_pen (pen);
+  else
+    roadmap_canvas_select_pen (RoadMapLabelPen);
+#endif
                
    if (doing_angles) {
       roadmap_screen_text_angle
@@ -256,9 +274,14 @@ void roadmap_label_start (void) {
 
 }
 
-
+#if defined(ROADMAP_ADVANCED_STYLE)
+int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
+                       int featuresize_sq, const PluginLine *line,
+                       RoadMapPen pen) {
+#else
 int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
                        int featuresize_sq, const PluginLine *line) {
+#endif
 
    roadmap_label *cPtr = 0;
 
@@ -296,6 +319,9 @@ int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
    cPtr->angle = normalize_angle(angle);
 
    cPtr->center_point = *point;
+#if defined(ROADMAP_ADVANCED_STYLE)
+   cPtr->pen = pen;
+#endif
 
    /* The stored point is not screen oriented, rotate is needed */
    roadmap_math_rotate_coordinates (1, &cPtr->center_point);
@@ -611,10 +637,17 @@ int roadmap_label_draw_cache (int angles) {
             "KK: %p: t: %s, w: %d, fsq: %d, ang: %d",
             cPtr, cPtr->text, width, cPtr->featuresize_sq, cPtr->angle);
 
+#if defined(ROADMAP_ADVANCED_STYLE)
+         roadmap_label_draw_text
+            (cPtr->text, &cPtr->center_point,
+               angles, angles ? cPtr->angle : 0,
+               cPtr->pen );
+#else
          roadmap_label_draw_text
             (cPtr->text, &cPtr->center_point,
                angles, angles ? cPtr->angle : 0,
                RoadMapLabelFontSize );
+#endif
 
          if (whichlist == NEWLIST) {
             /* move the rendered label to the cache */

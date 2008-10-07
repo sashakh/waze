@@ -141,6 +141,10 @@ BIDI = NO
 # # if you want roadmap to translate the GUI enable this
 # LANGS = YES
 
+# Advanced style (only qt4 supports this for now)
+# # Adds support to more control on the map drawings
+# ADVANCED_STYLE = YES
+
 # Basic building mode
 MODE =		# blank for "normal" build
 # MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection

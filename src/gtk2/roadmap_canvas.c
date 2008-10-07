@@ -199,6 +199,28 @@ void roadmap_canvas_set_thickness  (int thickness) {
        GDK_JOIN_ROUND);
 }
 
+#if defined(ROADMAP_ADVANCED_STYLE)
+/* this are stubs */
+void roadmap_canvas_set_opacity (int opacity) {}
+
+void roadmap_canvas_set_linejoin(const char *join) {}
+void roadmap_canvas_set_linecap(const char *cap) {}
+
+void roadmap_canvas_set_brush_color(const char *color) {}
+void roadmap_canvas_set_brush_style(const char *style) {}
+void roadmap_canvas_set_brush_isbackground(int isbackground) {}
+
+void roadmap_canvas_set_label_font_name(const char *name) {}
+void roadmap_canvas_set_label_font_color(const char *color) {}
+void roadmap_canvas_set_label_font_size(int size) {}
+void roadmap_canvas_set_label_font_spacing(int spacing) {}
+void roadmap_canvas_set_label_font_weight(const char *weight) {}
+void roadmap_canvas_set_label_font_style(int style) {}
+
+void roadmap_canvas_set_label_buffer_color(const char *color) {}
+void roadmap_canvas_set_label_buffer_size(int size) {}
+#endif /* ROADMAP_ADVANCED_STYLE */
+
 void roadmap_canvas_erase (void) {
 
    gdk_draw_rectangle (RoadMapDrawingBuffer,

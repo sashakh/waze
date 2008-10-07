@@ -30,6 +30,7 @@
 #include <qpolygon.h>
 #include <qpainter.h>
 #include "qt_canvas.h"
+#include <qdebug.h>
 
 
 RMapCanvas *roadMapCanvas = 0;
@@ -44,6 +45,8 @@ RMapCanvas::RMapCanvas(QWidget* parent):QWidget(parent) {
    pixmap = 0;
    currentPen = 0;
    roadMapCanvas = this;
+   basePen = createPen("stubPen");
+   setPenThickness(2);
 
    /* turn off the default double-buffering */
    this->setAttribute(Qt::WA_PaintOnScreen);
@@ -73,56 +76,251 @@ RoadMapPen RMapCanvas::createPen(const char* name) {
    RoadMapPen p = pens[name];
 
    if (p == 0) {
-      QPen* pen = new QPen(Qt::SolidLine/*Qt::DotLine*/);
       p = new roadmap_canvas_pen();
+      QPen* pen = new QPen(Qt::SolidLine/*Qt::DotLine*/);
       p->pen = pen;
+      p->font = new QFont("Arial",12);
+#if defined(ROADMAP_ADVANCED_STYLE)
+      p->brush = new QBrush();
+      p->fontcolor = new QColor("#000000");
+      p->capitalize = 0;
+      p->background = 0;
+      p->buffersize = 0;
+      p->buffercolor = new QColor("#ffffff");
+      p->pen->setJoinStyle(Qt::RoundJoin);
+      p->pen->setCapStyle(Qt::RoundCap);
+#endif
       pens.insert(name, p);
    }
 
-   currentPen = p->pen;
+   currentPen = p;
 
    return p;
 }
 
 void RMapCanvas::selectPen(RoadMapPen p) {
-   currentPen = p->pen;
+   currentPen = p;
 }
 
 void RMapCanvas::setPenColor(const char* color) {
    if (currentPen != 0) {
-      currentPen->setColor(getColor(color));
+     int opacity = currentPen->pen->color().alpha();
+     currentPen->pen->setColor(getColor(color));
+     currentPen->pen->color().setAlpha(opacity);
    }
 
 }
 
 void RMapCanvas::setPenLineStyle(const char* style) {
-   if (currentPen != 0) {
-      if (strcasecmp (style, "dashed") == 0) {
-        currentPen->setStyle(Qt::DashLine);
-      } else {
-        currentPen->setStyle(Qt::SolidLine);
-      }
-   }
-
+  if (currentPen != 0) {
+    if (strcasecmp(style,"blank")==0) {
+      currentPen->pen->setStyle((Qt::PenStyle)0);
+    } else if (strcasecmp(style,"solid")==0) {
+      currentPen->pen->setStyle((Qt::PenStyle)1);
+    } else if (strcasecmp(style,"dashed")==0) {
+      currentPen->pen->setStyle((Qt::PenStyle)2);
+    } else if (strcasecmp(style,"dot")==0) {
+      currentPen->pen->setStyle((Qt::PenStyle)3);
+    } else if (strcasecmp(style,"dashdot")==0) {
+      currentPen->pen->setStyle((Qt::PenStyle)4);
+    } else if (strcasecmp(style,"dashdotdot")==0) {
+      currentPen->pen->setStyle((Qt::PenStyle)5);
+    }
+  }
 }
 
 void RMapCanvas::setPenThickness(int thickness) {
    if (currentPen != 0) {
-      currentPen->setWidth(thickness);
+      currentPen->pen->setWidth(thickness);
    }
 }
 
+void RMapCanvas::setFontSize(int size) {
+  if (currentPen != 0) {
+    currentPen->font->setPointSize(size);
+  }
+}
+
+#if defined(ROADMAP_ADVANCED_STYLE)
+int RMapCanvas::getPenThickness(RoadMapPen p) {
+   if (p != 0) {
+      return (int) p->pen->width();
+   }
+   return 1;
+}
+
+void RMapCanvas::setPenOpacity(int opacity) {
+
+  if (currentPen != 0) {
+    QColor c(currentPen->pen->color().rgb());
+   
+    c.setAlpha(opacity);
+    currentPen->pen->setColor(c);
+
+  }
+}
+
+void RMapCanvas::setPenLighter(int factor) {
+
+  if (currentPen != 0) {
+    QColor c(currentPen->pen->color().light(factor));
+
+    currentPen->pen->setColor(c);
+  }
+}
+
+void RMapCanvas::setPenDarker(int factor) {
+
+  if (currentPen != 0) {
+    QColor c(currentPen->pen->color().dark(factor));
+
+    currentPen->pen->setColor(c);
+  }
+}
+
+void RMapCanvas::setPenLineCapStyle(int cap) {
+  if (currentPen != 0) {
+    currentPen->pen->setCapStyle((Qt::PenCapStyle)cap);
+  }
+}
+
+void RMapCanvas::setPenLineJoinStyle(int join) {
+  if (currentPen != 0) {
+    currentPen->pen->setJoinStyle((Qt::PenJoinStyle)join);
+  }
+}
+
+void RMapCanvas::setBrushColor(const char *color) {
+  if (currentPen != 0) {
+    int opacity = currentPen->brush->color().alpha();
+    QColor c(color);
+    c.setAlpha(opacity);
+    currentPen->brush->setColor(color);
+    if (currentPen->brush->style()==Qt::NoBrush)
+      currentPen->brush->setStyle(Qt::SolidPattern);
+  }
+}
+
+void RMapCanvas::setBrushStyle(int style) {
+  if (currentPen != 0) {
+    currentPen->brush->setStyle((Qt::BrushStyle)style);
+  }
+}
+
+void RMapCanvas::setBrushOpacity(int opacity) {
+  if (currentPen != 0) {
+    QColor c(currentPen->brush->color().rgb());
+    c.setAlpha(opacity);
+    currentPen->brush->setColor(c);
+  }
+}
+
+
+void RMapCanvas::setFontName(const char *name) {
+  if (currentPen != 0) {
+    currentPen->font->setFamily(name);
+    QFont f(*currentPen->font);
+    if (!f.exactMatch()) {
+       qWarning("font family: <%s> match not found",f.family().trimmed().toUtf8().constData());  
+    }
+  }
+}
+
+void RMapCanvas::setFontColor(const char *color) {
+  if (currentPen != 0) {
+    currentPen->fontcolor = new QColor(color);
+  }
+}
+
+void RMapCanvas::setFontWeight(int weight) {
+  if (currentPen != 0) {
+    currentPen->font->setWeight(weight);
+  }
+}
+
+void RMapCanvas::setFontSpacing(int spacing) {
+  if (currentPen != 0) {
+     currentPen->font->setStretch(spacing);
+  }
+}
+
+void RMapCanvas::setFontItalic(int italic) {
+  if (currentPen != 0) {
+    currentPen->font->setItalic(italic);
+  }
+}
+
+void RMapCanvas::setFontStrikeOut(int strikeout) {
+  if (currentPen != 0) {
+    currentPen->font->setStrikeOut(strikeout);
+  }
+}
+
+void RMapCanvas::setFontUnderline(int underline) {
+  if (currentPen != 0) {
+    currentPen->font->setUnderline(underline);
+  }
+}
+
+void RMapCanvas::setFontCapitalize(int capitalize) {
+  if (currentPen != 0) {
+    currentPen->capitalize = capitalize;
+  }
+}
+
+void RMapCanvas::setBrushAsBackground(int background) {
+  if (currentPen != 0) {
+    currentPen->background = background;
+  }
+}
+
+void RMapCanvas::setFontBufferColor(const char *color) {
+  if (currentPen != 0) {
+    currentPen->buffercolor = new QColor(color);
+  }
+}
+
+void RMapCanvas::setFontBufferSize(int size) {
+  if (currentPen != 0) {
+    currentPen->buffersize = size;
+  }
+}
+
+int RMapCanvas::getFontBufferSize(RoadMapPen pen) {
+  return pen->buffersize;
+}
+#endif /* ROADMAP_ADVANCED_STYLE */
+
 void RMapCanvas::erase() {
    if (pixmap) {
-      pixmap->fill(currentPen->color());
+      pixmap->fill(currentPen->pen->color());
    }
 }
+
+void RMapCanvas::setupPainterPen(QPainter &p) {
+
+  p.setPen(*currentPen->pen);
+  p.setFont(*currentPen->font);
+#if defined(ROADMAP_ADVENCED_STYLE)
+  if (currentPen->background) {
+    p.setBackground(*currentPen->brush);
+    p.setBackgroundMode(Qt::OpaqueMode);
+  } else {
+    p.setBrush(*currentPen->brush);
+  }
+#endif
+}
+
 
 void RMapCanvas::getTextExtents(const char* text, int* w, int* ascent,
    int* descent, int *can_tilt) {
 
-   QFont f("Arial Bold",10);
-   QFontMetrics fm(f);
+#if defined(ROADMAP_ADVANCED_STYLE)
+   QFontMetrics fm(*currentPen->font);
+#else
+   QFontMetrics fm(*currentPen->font);
+#endif
+
    
    QRect r = fm.boundingRect(QString::fromUtf8(text));
    *w = r.width();
@@ -144,10 +342,8 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
 
    QPainter p(pixmap);
    if (currentPen != 0) {
-      p.setPen(*currentPen);
+     setupPainterPen(p);
    }
-   QFont f("Arial Bold",10);
-   p.setFont(f);
                 
    int text_width;
    int text_ascent;
@@ -170,6 +366,25 @@ void RMapCanvas::drawString(RoadMapGuiPoint* position,
    else /* TOP */
       y += text_ascent;
 
+#if defined(ROADMAP_ADVANCED_STYLE)
+   if (currentPen != 0) {
+     /* draw the buffer */
+     if (currentPen->buffersize!=0) {
+       QPen pen(p.pen());
+       pen.setColor(*currentPen->buffercolor);
+       p.setPen(pen);
+       for (int i = x-currentPen->buffersize; 
+            i <= x+currentPen->buffersize; i++)
+         for (int j = y-currentPen->buffersize; 
+              j <= y+currentPen->buffersize; j++)
+            p.drawText(i, j, QString::fromUtf8(text));
+     }
+     QPen pen(p.pen());
+     pen.setColor(*currentPen->fontcolor);
+     p.setPen(pen);
+   }
+#endif
+
    p.drawText(x, y, QString::fromUtf8(text));
 }
 
@@ -182,19 +397,35 @@ void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 
    QPainter p(pixmap);
    if (currentPen != 0) {
-      p.setPen(*currentPen);
+     setupPainterPen(p);
    }
-
-   QFont f("Arial Bold",10);
 
    int text_width;
    int text_ascent;
    int text_descent;
    getTextExtents(text, &text_width, &text_ascent, &text_descent, NULL);
 
-   p.setFont(f);
    p.translate(position->x,position->y);
    p.rotate((double)angle);
+
+#if defined(ROADMAP_ADVANCED_STYLE)
+  if (currentPen != 0) {
+     if (currentPen->buffersize!=0) {
+       QPen pen(p.pen());
+       pen.setColor(*currentPen->buffercolor);
+       p.setPen(pen);
+       for (int i = 0-currentPen->buffersize; i <= currentPen->buffersize; i++)
+         for (int j = 0-currentPen->buffersize; j <= currentPen->buffersize; j++
+)
+           p.drawText((-text_width/2)+i, j-text_descent, QString::fromUtf8(text)
+);
+     }
+     QPen pen(p.pen());
+     pen.setColor(*currentPen->fontcolor);
+     p.setPen(pen);
+   }
+#endif /* ROADMAP_ADVANCED_STYLE */
+
    p.drawText(-text_width/2, -text_descent, QString::fromUtf8(text));
 #endif
 }
@@ -202,7 +433,7 @@ void RMapCanvas::drawStringAngle(RoadMapGuiPoint* position,
 void RMapCanvas::drawMultiplePoints(int count, RoadMapGuiPoint* points) {
    QPainter p(pixmap);
    if (currentPen != 0) {
-      p.setPen(*currentPen);
+     setupPainterPen(p);
    }
 
    QPolygon pa(count);
@@ -213,10 +444,16 @@ void RMapCanvas::drawMultiplePoints(int count, RoadMapGuiPoint* points) {
    p.drawPoints(pa);
 }
 
-void RMapCanvas::drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points) {
+void RMapCanvas::drawMultipleLines(int count, int* lines, 
+      RoadMapGuiPoint* points, int fast_draw) {
    QPainter p(pixmap);
    if (currentPen != 0) {
-      p.setPen(*currentPen);
+     if (fast_draw) {
+       basePen->pen->setColor(currentPen->pen->color());
+       p.setPen(*basePen->pen);
+     } else {
+       setupPainterPen(p);
+     }
    }
 
    for(int i = 0; i < count; i++) {
@@ -234,18 +471,29 @@ void RMapCanvas::drawMultipleLines(int count, int* lines, RoadMapGuiPoint* point
 }
 
 void RMapCanvas::drawMultiplePolygons(int count, int* polygons, 
-      RoadMapGuiPoint* points, int filled) {
+      RoadMapGuiPoint* points, int filled, int fast_draw) {
 
    QPainter p(pixmap);
    if (currentPen != 0) {
-
-      if (filled) {
-         p.setPen(/* *currentPen*/ QPen(Qt::NoPen));
-         p.setBrush(QBrush(currentPen->color()));
+      if (filled && !fast_draw) {
+        p.setPen(*currentPen->pen);
+#if defined(ROADMAP_ADVANCED_STYLE)
+        if (currentPen->background) {
+          p.setBackground(*currentPen->brush);
+          p.setBackgroundMode(Qt::OpaqueMode);
+        } else {
+          if (currentPen->brush->style()==Qt::NoBrush) {
+            p.setBrush(QColor(currentPen->pen->color()));
+          } else {
+            p.setBrush(*currentPen->brush);
+          }
+        }
+#else
+        p.setBrush(QColor(currentPen->pen->color()));
+#endif
       } else {
-         p.setPen(*currentPen);
+        p.setPen(*currentPen->pen);
       }
-
    }
 
    for(int i = 0; i < count; i++) {
@@ -264,15 +512,28 @@ void RMapCanvas::drawMultiplePolygons(int count, int* polygons,
 }
 
 void RMapCanvas::drawMultipleCircles(int count, RoadMapGuiPoint* centers,
-      int* radius, int filled) {
+      int* radius, int filled, int fast_draw) {
 
    QPainter p(pixmap);
    if (currentPen != 0) {
       if (filled) {
-         p.setPen(*currentPen);
-         p.setBrush(QBrush(currentPen->color()));
+         p.setPen(*currentPen->pen);
+#if defined(ROADMAP_ADVANCED_STYLE)
+        if (currentPen->background) {
+          p.setBackground(*currentPen->brush);
+          p.setBackgroundMode(Qt::OpaqueMode);
+        } else {
+          if (currentPen->brush->style()==Qt::NoBrush) {
+            p.setBrush(QColor(currentPen->pen->color()));
+          } else {
+            p.setBrush(*currentPen->brush);
+          }
+        }
+#else
+         p.setBrush(QBrush(currentPen->pen->color()));
+#endif
       } else {
-         p.setPen(*currentPen);
+         p.setPen(*currentPen->pen);
       }
 
    }

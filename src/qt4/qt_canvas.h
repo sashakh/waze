@@ -41,6 +41,15 @@ extern "C" {
 
    struct roadmap_canvas_pen {
       QPen* pen;
+      QFont* font;
+#if defined(ROADMAP_ADVANCED_STYLE)
+      QBrush* brush;
+      int capitalize;
+      int background;
+      QColor* fontcolor;
+      QColor* buffercolor;
+      int buffersize;
+#endif
    };
 };
 
@@ -57,17 +66,46 @@ public:
    void setPenColor(const char* color);
    void setPenLineStyle(const char* style);
    void setPenThickness(int thickness);
+   void setFontSize(int size);
+
+#if defined(ROADMAP_ADVANCED_STYLE)
+   int getPenThickness(RoadMapPen p);
+   void setPenOpacity(int opacity);
+   void setPenLighter(int factor);
+   void setPenDarker(int factor);
+   void setPenLineStyle(int style);
+   void setPenLineCapStyle(int cap);
+   void setPenLineJoinStyle(int join);
+   void setBrushColor(const char *color);
+   void setBrushStyle(int style);
+   void setBrushOpacity(int opacity);
+   void setFontName(const char *name);
+   void setFontColor(const char *color);
+   void setFontWeight(int weight);
+   void setFontSpacing(int spacing);
+   void setFontItalic(int italic);
+   void setFontStrikeOut(int strikeout);
+   void setFontUnderline(int underline);
+   void setFontCapitalize(int capitalize);
+   void setBrushAsBackground(int background);
+   void setFontBufferColor(const char *color);
+   void setFontBufferSize(int size);
+   int getFontBufferSize(RoadMapPen pen);
+#endif /* ROADMAP_ADVANCED_STYLE */
+
    void erase(void);
+   void setupPainterPen(QPainter &p);
    void drawString(RoadMapGuiPoint* position, int corner,
       const char* text);
    void drawStringAngle(RoadMapGuiPoint* position,
       int center, const char* text, int angle);
    void drawMultiplePoints(int count, RoadMapGuiPoint* points);
-   void drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points);
+   void drawMultipleLines(int count, int* lines, RoadMapGuiPoint* points,
+                          int fast_draw);
    void drawMultiplePolygons(int count, int* polygons, 
-      RoadMapGuiPoint* points, int filled);
+      RoadMapGuiPoint* points, int filled, int fast_draw);
    void drawMultipleCircles(int count, RoadMapGuiPoint* centers, 
-      int* radius, int filled);
+      int* radius, int filled, int fast_draw);
    void registerButtonPressedHandler(RoadMapCanvasMouseHandler handler);
    void registerButtonReleasedHandler(RoadMapCanvasMouseHandler handler);
    void registerMouseMoveHandler(RoadMapCanvasMouseHandler handler);
@@ -86,7 +124,8 @@ public:
 protected:
    QMap<QString, QColor*> colors;
    QMap<QString, RoadMapPen> pens;
-   QPen* currentPen;
+   RoadMapPen currentPen;
+   RoadMapPen basePen;
    QPixmap* pixmap;
    RoadMapCanvasConfigureHandler configureHandler;
    RoadMapCanvasMouseHandler buttonPressedHandler;

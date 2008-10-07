@@ -99,8 +99,13 @@ void roadmap_landmark_draw_waypoint
          * should probably be drawn last, however, so that their
          * labels come out on "top" of other map features.
          */
+#if defined(ROADMAP_ADVANCED_STYLE)
+        roadmap_label_draw_text(waypointp->shortname,
+           &guipoint, 0, 0, pen);
+#else
         roadmap_label_draw_text(waypointp->shortname,
            &guipoint, 0, 0, RoadMapLandmarkFontSize);
+#endif
     }
 }
 
@@ -134,8 +139,13 @@ void roadmap_landmark_draw_weepoint
          * should probably be drawn last, however, so that their
          * labels come out on "top" of other map features.
          */
+#if defined(ROADMAP_ADVANCED_STYLE)
+        roadmap_label_draw_text(weepointp->name,
+           &guipoint, 0, 0, pen);
+#else
         roadmap_label_draw_text(weepointp->name,
            &guipoint, 0, 0, RoadMapLandmarkFontSize);
+#endif
     }
 }
 
