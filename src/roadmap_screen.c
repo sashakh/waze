@@ -74,6 +74,9 @@
 static RoadMapConfigDescriptor RoadMapConfigAccuracyMouse =
                         ROADMAP_CONFIG_ITEM("Accuracy", "Mouse");
 
+static RoadMapConfigDescriptor RoadMapConfigMapPanningPercent =
+                        ROADMAP_CONFIG_ITEM("Map", "Panning Percent");
+
 static RoadMapConfigDescriptor RoadMapConfigMapBackground =
                         ROADMAP_CONFIG_ITEM("Map", "Background");
 
@@ -1945,36 +1948,46 @@ void roadmap_screen_decrease_horizon (void) {
    roadmap_start_request_repaint_map(REPAINT_NOW);
 }
 
-#define FRACMOVE 4
-// #define FRACMOVE 100  // tiny moves:  useful for debug
+#define MIN(a, b) (a) < (b) ? (a) : (b)
+
+enum { MOVE_UP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT };
+
+static void roadmap_screen_move (int dir) {
+
+   int mindim = MIN(RoadMapScreenHeight, RoadMapScreenWidth);
+   int percent =  roadmap_config_get_integer (&RoadMapConfigMapPanningPercent);
+
+   switch(dir) {
+   case MOVE_UP:
+      percent = -percent;
+   case MOVE_DOWN:
+      roadmap_screen_record_move (0, percent * mindim / 100);
+      break;
+
+   case MOVE_LEFT:
+      percent = -percent;
+   case MOVE_RIGHT:
+      roadmap_screen_record_move (percent * mindim / 100, 0);
+      break;
+   }
+   roadmap_start_request_repaint_map(REPAINT_NOW);
+}
 
 void roadmap_screen_move_up (void) {
-
-   roadmap_screen_record_move (0, 0 - (RoadMapScreenHeight / FRACMOVE));
-   roadmap_start_request_repaint_map(REPAINT_NOW);
+   roadmap_screen_move(MOVE_UP);
 }
-
 
 void roadmap_screen_move_down (void) {
-
-   roadmap_screen_record_move (0, RoadMapScreenHeight / FRACMOVE);
-   roadmap_start_request_repaint_map(REPAINT_NOW);
+   roadmap_screen_move(MOVE_DOWN);
 }
-
-
-void roadmap_screen_move_right (void) {
-
-   roadmap_screen_record_move (RoadMapScreenHeight / FRACMOVE, 0);
-   roadmap_start_request_repaint_map(REPAINT_NOW);
-}
-
 
 void roadmap_screen_move_left (void) {
-
-   roadmap_screen_record_move (0 - (RoadMapScreenHeight / FRACMOVE), 0);
-   roadmap_start_request_repaint_map(REPAINT_NOW);
+   roadmap_screen_move(MOVE_LEFT);
 }
 
+void roadmap_screen_move_right (void) {
+   roadmap_screen_move(MOVE_RIGHT);
+}
 
 void roadmap_screen_zoom_in  (void) {
 
@@ -2050,6 +2063,9 @@ void roadmap_screen_initialize (void) {
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigAccuracyMouse,  "20");
+
+   roadmap_config_declare
+       ("preferences", &RoadMapConfigMapPanningPercent ,  "25");
 
    roadmap_config_declare
        ("preferences", &RoadMapConfigMapBackground, "LightYellow");

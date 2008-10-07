@@ -2547,6 +2547,15 @@ CONFIGURATION
                       or the direction of travel, towards the top of the
                       screen.  Can be toggled by command as well.
 
+    [Map.Panning Percent] How far an arrow key will move the map view
+
+         <<Format:>> integer
+
+         <<Default:>> 25
+
+         <<Comment:>> Percentage (of the smaller or width or height) by
+                      which the map will pan when an arrow key is used.
+
     [Map.GPS map offset latitude] Allows tuning of GPS latitude results.
 
          <<Format:>> integer
