@@ -1,8 +1,8 @@
-/* buildmap_messages.c - a module for managing uniform error & info messages.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,21 +19,10 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   void buildmap_set_source (char *name);
- *   void buildmap_set_line (int line);
- *   void buildmap_error (int column, char *format, ...);
- *   void buildmap_fatal (int column, char *format, ...);
- *   void buildmap_progress (int done, int estimated);
- *   void buildmap_info (char *format, ...);
- *   void buildmap_summary (int verbose, char *format, ...);
- *   void buildmap_verbose (char *format, ...);
- *   void buildmap_is_verbose (void);
- *   int buildmap_get_error_count (void);
- *   int buildmap_get_error_total (void);
- *   void buildmap_message_level (int);
+ */
+/**
+ * @file
+ * @brief a module for managing uniform error & info messages.
  *
  * This module is used to control and manage the appearance of messages
  * printed by the buildmap tool. The goals are (1) to produce a uniform
@@ -66,17 +55,27 @@ void buildmap_message_adjust_level (int level) {
 
     BuildMapMessageLevel += level;
 
+#ifndef	_WIN32
     if (BuildMapMessageLevel >= BUILDMAP_MESSAGE_VERBOSE)
         setbuf(stdout, NULL);
+#endif
 }
 
-
+/**
+ * @brief set the name of the file we're processing, to be used in error reporting
+ * @param name the file name, or NULL to erase previous setting
+ */
 void buildmap_set_source (const char *name) {
 
    const char *p;
 
+   if (name == NULL) {
+	   if (SourceFile)
+		   free(SourceFile);
+	   SourceFile = NULL;
+	   return;
+   }
    /* Get the file's base name (for error display purpose). */
-
    p = strrchr (name, '/');
 
    if (p == NULL) {
@@ -94,12 +93,21 @@ void buildmap_set_source (const char *name) {
    LastProgress = 0;
 }
 
+/**
+ * @brief indicate which line number we're processing
+ * @param line the number
+ */
 void buildmap_set_line (int line) {
 
    SourceLine = line;
 }
 
-
+/**
+ * @brief
+ * @param output
+ * @param preamble
+ * @param column
+ */
 static void buildmap_show_source (FILE *output,
                                   const char *preamble, int column) {
 
@@ -118,7 +126,11 @@ static void buildmap_show_source (FILE *output,
    }
 }
 
-
+/**
+ * @brief print an error message
+ * @param column
+ * @param format
+ */
 void buildmap_error (int column, const char *format, ...) {
 
    va_list ap;
@@ -153,7 +165,11 @@ void buildmap_error (int column, const char *format, ...) {
    ErrorTotal += 1;
 }
 
-
+/**
+ * @brief print an error message and terminate the application
+ * @param column
+ * @param format
+ */
 void buildmap_fatal (int column, const char *format, ...) {
 
    va_list ap;
@@ -185,7 +201,11 @@ void buildmap_fatal (int column, const char *format, ...) {
    exit (1);
 }
 
-
+/**
+ * @brief
+ * @param done
+ * @param estimated
+ */
 void buildmap_progress (int done, int estimated) {
 
    int this;
@@ -201,7 +221,10 @@ void buildmap_progress (int done, int estimated) {
    }
 }
 
-
+/**
+ * @brief print an informational message
+ * @param format
+ */
 void buildmap_info (const char *format, ...) {
 
    va_list ap;
@@ -219,11 +242,19 @@ void buildmap_info (const char *format, ...) {
 
 }
 
+/**
+ * @brief
+ * @return
+ */
 int buildmap_is_verbose (void) {
 
    return (BuildMapMessageLevel >= BUILDMAP_MESSAGE_VERBOSE);
 }
 
+/**
+ * @brief
+ * @param format
+ */
 void buildmap_verbose (const char *format, ...) {
 
    va_list ap;
@@ -238,7 +269,11 @@ void buildmap_verbose (const char *format, ...) {
    fprintf (stdout, "\n");
 }
 
-
+/**
+ * @brief
+ * @param verbose
+ * @param format
+ */
 void buildmap_summary (int verbose, const char *format, ...) {
 
    va_list ap;
@@ -274,17 +309,28 @@ void buildmap_summary (int verbose, const char *format, ...) {
    }
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 int buildmap_get_error_count (void) {
 
    return ErrorCount;
 }
-
+/**
+ * @brief
+ * @return
+ */
 int buildmap_get_error_total (void) {
 
    return ErrorTotal;
 }
-
+/**
+ * @brief
+ * @param source
+ * @param line
+ * @param allocated
+ */
 void buildmap_check_allocated_with_source_line
                 (char *source, int line, const void *allocated) {
 
