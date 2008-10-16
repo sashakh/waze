@@ -1,7 +1,6 @@
 /*
  * LICENSE:
  *
- *   Copyright 2007 Paul Fox
  *   Copyright (c) 2008, Danny Backx
  *
  *   This file is part of RoadMap.
@@ -23,10 +22,23 @@
 
 /**
  * @file
- * @brief  a module to read OSM text format
+ * @brief Includes for list of country codes from ISO 3166/MA standard, and conversion functions.
  */
 
-#define	LINELEN	2048
+int roadmap_iso_alpha_to_num(char *alpha);
+void roadmap_iso_create_all_countries(void);
+int buildmap_osm_filename_iso(char *fn, char *country, char *division, char *suffix);
+int roadmap_iso_division_to_num(char *country, char *division);
+int buildmap_osm_filename_usc(char *fn, int *fips);
 
-void buildmap_osm_text_find_layers (void);
-int buildmap_osm_text_read(FILE * fdata, int country_num, int division_num);
+/**
+ * @brief structure for iso 3166-1 country codes
+ */
+typedef struct iso_country {
+	char	*name;		/**< official country names */
+	int	numeric;	/**< numeric form of iso code */
+	char	alpha3[4];	/**< alpha 3 form of iso code */
+	char	alpha2[3];	/**< alpha 2 form of iso code */
+} iso_country;
+
+extern struct iso_country IsoCountryCodeTable[];

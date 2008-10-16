@@ -47,7 +47,8 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_state.c \
 	roadmap_gpx.c \
 	roadmap_linefont.c \
-	roadmap_lang.c
+	roadmap_lang.c \
+	roadmap_iso.c
 
 RMLIBOBJS = $(RMLIBSRC:.c=.o)
 
@@ -206,6 +207,7 @@ BMHEADERS = \
 	buildmap_tiger.h \
 	buildmap_zip.h \
 	buildus_county.h \
+	roadmap_iso.h \
 	buildus_fips.h
 
 XCHGHEADERS = \

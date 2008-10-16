@@ -1,5 +1,4 @@
-/* buildus_main.c - The main function of the US directory builder tool.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -21,11 +20,17 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @file
+ * @brief The main function of the US directory builder tool.
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <ctype.h>
 
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
@@ -41,6 +46,7 @@
 
 #include "buildus_fips.h"
 #include "buildus_county.h"
+#include "roadmap_iso.h"
 
 static RoadMapConfigDescriptor RoadMapConfigMapPath =
                         ROADMAP_CONFIG_ITEM("Map", "Path");
@@ -70,6 +76,9 @@ struct opt_defs options[] = {
    OPT_DEFS_END
 };
 
+/**
+ * @brief
+ */
 static void buildus_save (void) {
 
    buildmap_set_source ("usdir.rdm");
@@ -87,7 +96,10 @@ static void buildus_save (void) {
    buildmap_db_close ();
 }
 
-
+/**
+ * @brief
+ * @param fips
+ */
 static void buildus_scan_cities (int fips) {
 
    int i;
@@ -106,19 +118,28 @@ static void buildus_scan_cities (int fips) {
    for (i = 1, name = roadmap_dictionary_get (cities, 1);
         name != NULL;
         name = roadmap_dictionary_get (cities, ++i)) {
-
+#ifdef VERBOSE
+	   fprintf(stderr, "buildus_scan_cities [cities %p] (fips %d), i %d,",
+			   us_cities, fips, i);
+	   fprintf(stderr, " name [%s]\n", name);
+#endif
       city = buildmap_dictionary_add (us_cities, name, strlen(name));
       buildus_county_add_city (fips, city);
    }
 }
 
-
+/**
+ * @brief read the specified directory, filter out the map files, scan them
+ */
 static void buildus_scan_maps (void) {
    
 
    char *extension;
    const char *mappath;
-   int found = 0;
+   int found = 0, n;
+
+   char country_iso[4] = {0, 0, 0, 0};
+   char	country_division[4] = {0, 0, 0, 0};
 
    int  fips;
 
@@ -157,18 +178,60 @@ static void buildus_scan_maps (void) {
            entry != NULL;
            entry = readdir(directory)) {
 
-         if (strncmp (entry->d_name, "usc", 3) != 0) continue;
-
+	 /* Make sure all files read end in ".rdm" */
          extension = strrchr (entry->d_name, '.');
-
          if (extension == NULL) continue;
          if (strcmp (extension, ".rdm") != 0) continue;
 
+	 /* Set the name of the file we're reading rather early,
+	  * so error messages mention it.
+	  */
+         buildmap_set_source (entry->d_name);
+
+	 n = buildmap_osm_filename_iso(entry->d_name, country_iso, country_division, ".rdm");
+	 if (n) {
+		 static BuildMapDictionary BuildMapStateDictionary;
+		 static BuildMapDictionary county_dictionary;
+		 RoadMapString state_symbol, county_name;
+
+		 fips = roadmap_iso_alpha_to_num(country_iso) * 1000 + 1000000;
+		 if (n == 2) {
+			 fips += roadmap_iso_division_to_num(country_iso, country_division);
+			 buildmap_info("Country %s division %s fips %d",
+					 country_iso, country_division, fips);
+		 } else {
+			 buildmap_info("Country %s fips %d", country_iso, fips);
+		 }
+
+		 /* Create a fake county */
+		 BuildMapStateDictionary = buildmap_dictionary_open ("state");
+
+		 state_symbol = buildmap_dictionary_add (BuildMapStateDictionary,
+				 country_iso, strlen(country_iso));
+		 if (state_symbol == 0) {
+			 buildmap_fatal (0, "invalid state description");
+		 }
+		 buildus_county_add_state (state_symbol, state_symbol);
+
+		 county_dictionary = buildmap_dictionary_open ("county");
+		 if (n == 2) {
+			 county_name = buildmap_dictionary_add (county_dictionary,
+					 country_division, strlen(country_division));
+		 } else {
+			 county_name = buildmap_dictionary_add (county_dictionary,
+				 "fake county", 11);
+		 }
+
+		 buildus_county_add (fips, county_name, state_symbol);
+	 } else if (buildmap_osm_filename_usc(entry->d_name, &fips)) {
+		 ;	/* It's decoded, that's all we needed. */
+	 } else {
+		 /* File name is invalid, bail out */
+		 continue;
+	 }
+
          found = 1;
 
-         fips = atoi (entry->d_name + 3);
-
-         buildmap_set_source (entry->d_name);
          if (! BuildMapSilent) buildmap_info ("scanning the county file...");
 
          if (! roadmap_db_open (mappath, entry->d_name, RoadMapCountyModel)) {
@@ -183,16 +246,28 @@ static void buildus_scan_maps (void) {
          buildus_county_set_position (fips, &edges);
 
          roadmap_db_close (mappath, entry->d_name);
+
+	 /* Don't report stuff about files we're already done with */
+	 buildmap_set_source (NULL);
       }
 
       closedir (directory);
-
    }
+
+   /* Call this again just in case we've fallen through the loop with a file
+    * name we have no intention of reading. */
+   buildmap_set_source (NULL);
+
    if (!found) {
       buildmap_fatal (0, "No maps found\n", mappath);
    }
 }
 
+/**
+ * @brief
+ * @param progpath
+ * @param msg
+ */
 void usage(char *progpath, const char *msg) {
 
    char *prog = strrchr(progpath, '/');
@@ -210,6 +285,41 @@ void usage(char *progpath, const char *msg) {
    exit(1);
 }
 
+/**
+ * @brief load all countries from the ISO list
+ */
+void roadmap_iso_create_all_countries(void)
+{
+	int	i;
+	static BuildMapDictionary state_dictionary;
+	static BuildMapDictionary county_dictionary;
+	RoadMapString state_symbol, state_name, dw;
+	char	symbol[8];
+
+	state_dictionary = buildmap_dictionary_open ("state");
+	county_dictionary = buildmap_dictionary_open ("county");
+	dw = buildmap_dictionary_add(state_dictionary, "DW", 2);
+	for (i=0; IsoCountryCodeTable[i].name; i++) {
+		sprintf(symbol, "%s", IsoCountryCodeTable[i].alpha2);
+		state_symbol = buildmap_dictionary_add (state_dictionary,
+				IsoCountryCodeTable[i].alpha3, strlen(IsoCountryCodeTable[i].alpha3)
+			);
+		state_name = buildmap_dictionary_add (state_dictionary,
+			IsoCountryCodeTable[i].name, strlen(IsoCountryCodeTable[i].name));
+		if (state_symbol == 0 || state_name == 0) {
+			buildmap_fatal (0, "invalid state description");
+		}
+
+		buildus_county_add_state (state_name, state_symbol);
+	}
+}
+
+/**
+ * @brief
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main (int argc, char **argv) {
 
    int error;
@@ -252,8 +362,11 @@ int main (int argc, char **argv) {
       roadmap_path_set ("maps", BuildMapResult);
    }
 
-
+   /* US specific : read states and counties from *.txt files */
    buildus_fips_read (BuildMapTiger, BuildMapVerbose);
+
+   /* ISO stuff */
+   roadmap_iso_create_all_countries();
 
    buildus_scan_maps ();
 

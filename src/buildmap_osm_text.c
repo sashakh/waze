@@ -85,6 +85,8 @@ static char	*NodePostalCode = 0;	/**< postal code */
 static int	NodeLon,		/**< coordinates */
 		NodeLat;		/**< coordinates */
 
+static int	NodeFakeFips;		/**< fake postal code */
+
 /**
  * @brief some global variables
  */
@@ -278,16 +280,16 @@ buildmap_osm_text_node_end(char *data)
 		}
 
 		if (NodeTownName) {
-#if 0
-			int fips = 32999 * 10000 + NodePostalCode;
-#else
-			static int fips = 32999 * 10000;
-			fips++;
-#endif
+			NodeFakeFips++;
+//			buildmap_verbose ("buildmap_osm_text_node_end: fake fips %d\n", NodeFakeFips);
 			int year = 2008;
+#if 0
+			buildmap_verbose("Node %d town %s, no postal code",
+					NodeId, NodeTownName);
+#endif
 			RoadMapString s = buildmap_dictionary_add (DictionaryCity,
 					(char *) NodeTownName, strlen(NodeTownName));
-			buildmap_city_add(fips, year, s);
+			buildmap_city_add(NodeFakeFips, year, s);
 		}
 		if (NodePostalCode) {
 			int zip = 0;
@@ -690,13 +692,15 @@ buildmap_osm_text_ways_shapeinfo(void)
  * All underlying processing is passed to other functions.
  */
 int
-buildmap_osm_text_read(FILE * fdata)
+buildmap_osm_text_read(FILE * fdata, int country_num, int division_num)
 {
     int got;
     static char buf[LINELEN];
     int ret = 0;
     char *p;
     time_t	t0, t1, t2, t3;
+
+    NodeFakeFips = 1000000 + country_num * 1000 + division_num;
 
     (void) time(&t0);
 
@@ -727,7 +731,7 @@ buildmap_osm_text_read(FILE * fdata)
 	if (*p == '\n' || *p == '\r') 
 		continue;
 	if (*p != '<')
-		buildmap_fatal(0, "invalid XML");
+		buildmap_fatal(0, "invalid XML (line %d, %s)", LineNo, buf);
 
 	p++; /* point to character after '<' now */
 	for (; *p && isspace(*p); p++) ;

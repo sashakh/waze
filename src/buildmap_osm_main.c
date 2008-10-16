@@ -49,6 +49,7 @@
 #include "buildmap_osm_text.h"
 
 #include "roadmap_osm.h"
+#include "roadmap_iso.h"
 
 int BuildMapNoLongLines;
 
@@ -234,8 +235,10 @@ buildmap_osm_process_one_tile
  */
 int buildmap_osm_text_process_file(char *fn)
 {
-    int ret = 0;
+    int		n, ret = 0;
     FILE	*f;
+    char	country[6], division[6];
+    int		fips, country_num, division_num;
 
     f = fopen(fn, "r");
     if (f == NULL) {
@@ -243,15 +246,28 @@ int buildmap_osm_text_process_file(char *fn)
 	    return -1;
     }
 
-    buildmap_metadata_add_attribute ("Territory", "Id", "32000");
-    buildmap_metadata_add_attribute ("Territory", "Parent", "be");
-    buildmap_metadata_add_value ("Territory", "Parent", "Belgium");
+    if ((n = buildmap_osm_filename_iso(fn, country, division, ".osm"))) {
+	    buildmap_metadata_add_attribute ("Territory", "Id", country);
+	    buildmap_metadata_add_attribute ("Territory", "Parent", country);
+	    buildmap_metadata_add_value ("Territory", "Parent", country);
+
+	    country_num = roadmap_iso_alpha_to_num(country);
+	    if (n == 2)
+		    division_num = roadmap_iso_division_to_num(country, division);
+    } else if (buildmap_osm_filename_usc(fn, &fips)) {
+	    /* ?? */
+	    buildmap_metadata_add_attribute ("Territory", "Id", fn);
+	    buildmap_metadata_add_attribute ("Territory", "Parent", fn);
+	    buildmap_metadata_add_value ("Territory", "Parent", fn);
+    } else {
+	    buildmap_fatal(0, "Invalid file name \"%s\" should be ISO or USC shape", fn);
+    }
 
     buildmap_metadata_add_attribute ("Class", "Name",   "All");
     buildmap_metadata_add_attribute ("Data",  "Source", "OSM");
 
     buildmap_osm_common_find_layers();
-    ret = buildmap_osm_text_read(f);
+    ret = buildmap_osm_text_read(f, country_num, division_num);
     if (fclose(f) != 0) {
         buildmap_error(0, "problem fetching data");
         ret = -1;
