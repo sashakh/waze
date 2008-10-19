@@ -1,5 +1,4 @@
-/* roadmap_path.c - a module to handle file path in an OS independent way.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
@@ -21,10 +20,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_path.h.
+ */
+
+/**
+ * @file
+ * @brief handle file path in an OS independent way, this is the Windows CE implementation
  */
 
 #include <windows.h>
@@ -38,6 +38,9 @@ const char *RoadMapPathCurrentDirectory = ".";
 
 typedef struct RoadMapPathRecord *RoadMapPathList;
 
+/**
+ * @brief
+ */
 struct RoadMapPathRecord {
 	RoadMapPathList next;
 
@@ -74,9 +77,16 @@ static const char *RoadMapPathConfigPreferred = "/Storage Card/roadmap";
 
 /* The default path for the map files (the "maps" path): */
 static char **RoadMapPathMaps = 0;
+static const char *RoadMapPathMapsPreferred = "/Storage Card/roadmap/maps";
 static const char *RoadMapPathMapsSuffix = "roadmap/maps";
 
-static const char *RoadMapPathMapsPreferred = "/Storage Card/roadmap/maps";
+/* The default path for the skin files (the "skin" path): */
+static char *RoadMapPathSkin[] =  {
+	"&\\skins\\default\\day",
+	"&\\skins\\default",
+	NULL
+};
+static const char *RoadMapPathSkinPreferred = "&\\skins";
 
 /* We don't have a user directory in wince so we'll leave this one empty */
 static char *RoadMapPathUser[] = {
@@ -86,6 +96,9 @@ static char *RoadMapPathUser[] = {
 static HANDLE (WINAPI *_FindFirstFlashCard)(LPWIN32_FIND_DATA) = NULL;
 static BOOL (WINAPI* _FindNextFlashCard)(HANDLE, LPWIN32_FIND_DATA) = NULL;
 
+/**
+ * @brief initialize, get FindFirstFlashCard() in a Windows CE version independent way
+ */
 static void roadmap_path_init_dll(void)
 {
 	HINSTANCE	dll;
@@ -97,6 +110,10 @@ static void roadmap_path_init_dll(void)
 	}
 }
 
+/**
+ * @brief add the directory specified to the list of search directories
+ * @param dir
+ */
 static void roadmap_path_insert(const char *dir)
 {
 	static int i = 0;
@@ -104,17 +121,35 @@ static void roadmap_path_insert(const char *dir)
 
 	if (i == ROADMAP_MAX_CARDS)
 		return;
-	if (RoadMapPathConfig == 0)
+	if (RoadMapPathConfig == 0) {
 		RoadMapPathConfig = (char **)calloc(ROADMAP_MAX_CARDS + 1,
 				sizeof(char *));
-	if (RoadMapPathMaps == 0)
+		if (RoadMapPathConfig == 0) {
+			roadmap_log(ROADMAP_FATAL, "No more memory(%d)",
+					(ROADMAP_MAX_CARDS + 1) * sizeof(char *));
+		}
+	}
+	if (RoadMapPathMaps == 0) {
 		RoadMapPathMaps = (char **)calloc(ROADMAP_MAX_CARDS + 1,
 				sizeof(char *));
+		if (RoadMapPathMaps == 0) {
+			roadmap_log(ROADMAP_FATAL, "No more memory(%d)",
+					(ROADMAP_MAX_CARDS + 1) * sizeof(char *));
+		}
+	}
 
 	RoadMapPathConfig[i] = malloc(l + strlen(RoadMapPathConfigSuffix) + 4);
+	if (RoadMapPathConfig[i] == 0) {
+		roadmap_log(ROADMAP_FATAL, "no more memory(%d)",
+				l + strlen(RoadMapPathConfigSuffix) + 4);
+	}
 	sprintf(RoadMapPathConfig[i], "/%s/%s", dir, RoadMapPathConfigSuffix);
 
 	RoadMapPathMaps[i] = malloc(l + strlen(RoadMapPathMapsSuffix) + 4);
+	if (RoadMapPathMaps[i] == 0) {
+		roadmap_log(ROADMAP_FATAL, "No more memory(%d)",
+				l + strlen(RoadMapPathMapsSuffix) + 4);
+	}
 	sprintf(RoadMapPathMaps[i], "/%s/%s", dir, RoadMapPathMapsSuffix);
 
 	i++;
@@ -124,8 +159,10 @@ static void roadmap_path_insert(const char *dir)
 	RoadMapPathMaps[i] = 0;
 }
 
-
-static void roadmap_path_get_cards()
+/**
+ * @brief Query your device to figure out how the flash (SD, ..) cards are named, add these directories to the search path. Or do something sensible by default if you can't find cards.
+ */
+static void roadmap_path_get_cards(void)
 {
 	WIN32_FIND_DATA	ffd;
 	HANDLE		h;
@@ -155,7 +192,12 @@ static void roadmap_path_get_cards()
 	}
 }
 
-
+/**
+ * @brief
+ * @param name
+ * @param items
+ * @param preferred
+ */
 static void roadmap_path_list_create(const char *name,
 		char *items[],
 		const char *preferred)
@@ -190,6 +232,11 @@ static void roadmap_path_list_create(const char *name,
 	RoadMapPaths = new_path;
 }
 
+/**
+ * @brief
+ * @param name
+ * @return
+ */
 static RoadMapPathList roadmap_path_find (const char *name)
 {
 	RoadMapPathList cursor;
@@ -203,6 +250,8 @@ static RoadMapPathList roadmap_path_find (const char *name)
 				RoadMapPathConfigPreferred);
 		roadmap_path_list_create ("maps", RoadMapPathMaps,
 				RoadMapPathMapsPreferred);
+		roadmap_path_list_create ("skin", RoadMapPathSkin,
+				RoadMapPathSkinPreferred);
 		roadmap_path_list_create ("user", RoadMapPathUser, "/");
 
 		roadmap_path_list_create ("features",    NULL, NULL);
@@ -216,7 +265,12 @@ static RoadMapPathList roadmap_path_find (const char *name)
 
 
 /* Directory path strings operations. -------------------------------------- */
-
+/**
+ * @brief concatename two parts of a file name
+ * @param s1
+ * @param s2
+ * @return
+ */
 static char *roadmap_path_cat (const char *s1, const char *s2)
 { 
 	char *result = malloc (strlen(s1) + strlen(s2) + 4);
