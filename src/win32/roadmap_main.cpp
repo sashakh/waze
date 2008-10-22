@@ -258,6 +258,7 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 			 * be visible, so this new process should quit.
 			 */
 			return 0;
+		}
 	} 
 	
 	if (!MyRegisterClass(hInstance, szWindowClass))
