@@ -218,11 +218,18 @@ ATOM MyRegisterClass(HINSTANCE hInstance, LPTSTR szWindowClass)
 	return RegisterClass(&wc);
 }
 
-
+/**
+ * @brief do the normal startup for PocketPC : check whether we're already running, quit if we are
+ * and let the old process take over.
+ * @param hInstance useless parameter on Windows CE
+ * @param lpCmdLine command line passed in, also rather useless on CE
+ * @return TRUE(0) if application should continue to start up
+ */
 BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 {
-	HWND hWnd;
+	HWND	hWnd;
 	WSADATA wsaData;
+	DWORD	e;
 	
 	g_hInst = hInstance; // Store instance handle in our global variable
 	
@@ -230,15 +237,27 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 	SHInitExtraControls();
 #endif
 	
-	//If it is already running, then focus on the window, and exit
+	SetLastError(0);
+	/*
+	 * If it is already running, then focus on the window, and exit.
+	 * In addition to the usual stuff, also cope with strange returns from FindWindow.
+	 */
 	hWnd = FindWindow(szWindowClass, NULL);	
-	if (hWnd) 
+	e = GetLastError();
+	if (hWnd && e != ERROR_CLASS_DOES_NOT_EXIST)
 	{
-		// set focus to foremost child window
-		// The "| 0x00000001" is used to bring any owned windows to the
-		// foreground and activate them.
-		SetForegroundWindow((HWND)((ULONG) hWnd | 0x00000001));
-		return 0;
+		/*
+		 * Set focus to foremost child window
+		 * The "| 0x01" is used to bring any owned windows to the
+		 * foreground and activate them.
+		 */
+		if (SetForegroundWindow((HWND)((ULONG) hWnd | 0x01)) != 0) {
+			/*
+			 * This is the normal case if another process from this application
+			 * is still running. We've succeeded in popping it up so it should
+			 * be visible, so this new process should quit.
+			 */
+			return 0;
 	} 
 	
 	if (!MyRegisterClass(hInstance, szWindowClass))
@@ -438,6 +457,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_DESTROY:
+#ifdef UNDER_CE
+		CEDevice::end();
+#endif
 		if (RoadMapMainMenuBar != NULL) {
 #ifdef UNDER_CE			
 			DestroyWindow(RoadMapMainMenuBar);
