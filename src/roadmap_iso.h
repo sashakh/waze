@@ -27,6 +27,7 @@
 
 int roadmap_iso_alpha_to_num(char *alpha);
 void roadmap_iso_create_all_countries(void);
+void roadmap_iso_mapfile_from_fips(char *buf, int fips);
 int buildmap_osm_filename_iso(char *fn, char *country, char *division, char *suffix);
 int roadmap_iso_division_to_num(char *country, char *division);
 int buildmap_osm_filename_usc(char *fn, int *fips);
