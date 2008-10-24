@@ -238,7 +238,7 @@ int buildmap_osm_text_process_file(char *fn)
     int		n, ret = 0;
     FILE	*f;
     char	country[6], division[6];
-    int		fips, country_num, division_num;
+    int		fips, country_num = 0, division_num = 0;
 
     f = fopen(fn, "r");
     if (f == NULL) {
@@ -259,6 +259,9 @@ int buildmap_osm_text_process_file(char *fn)
 	    buildmap_metadata_add_attribute ("Territory", "Id", fn);
 	    buildmap_metadata_add_attribute ("Territory", "Parent", fn);
 	    buildmap_metadata_add_value ("Territory", "Parent", fn);
+
+	    country_num = fips / 1000;
+	    division_num = fips % 1000;
     } else {
 	    buildmap_fatal(0, "Invalid file name \"%s\" should be ISO or USC shape", fn);
     }
