@@ -595,6 +595,11 @@ char **roadmap_path_list (const char *path, const char *extension) {
 
       if (entry->d_name[0] == '.') continue;
 
+      /* Don't allow file names ending in ~, they're likely to be backup files */
+      int l = strlen(entry->d_name);
+      if (entry->d_name[l-1] == '~')
+	      continue;
+
       if (length > 0) {
          
          match = entry->d_name + strlen(entry->d_name) - length;
