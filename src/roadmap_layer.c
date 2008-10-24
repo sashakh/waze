@@ -768,8 +768,7 @@ static void roadmap_layer_load_file (const char *class_file) {
         layer->thickness.name     = "Thickness";
         roadmap_config_declare (class_config, &layer->thickness, "1");
         
-        /* this value is not used here */
-        /* thickness = roadmap_config_get_integer (&layer->thickness); */
+        thickness = roadmap_config_get_integer (&layer->thickness);
 
         layer->declutter.category = layers[i];
         layer->declutter.name     = "Declutter";
