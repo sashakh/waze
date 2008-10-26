@@ -2,17 +2,20 @@
                     RoadMap - User Manual and README
                                ---------
                                ---------
-                             October 2007
+                             October 2008
 
 
 INTRODUCTION
 
-   RoadMap is an open source program for UNIX that displays street maps.
+   RoadMap is an open source program that displays street maps.
    When a GPS receiver is available RoadMap can track the current location
    of the vehicle on the screen, continuously adjusting the position of the
    map; it can also identify the name of the current street as well as the
    name of the next intersection. RoadMap can be used without a GPS receiver,
    as a static map viewer and address finder.
+
+   Roadmap runs on various UNIX and Linux systems, but it's also ported to
+   Windows CE, and other efforts are underway.
 
    RoadMap is released under the GPL (see the COPYING file).
 
@@ -182,26 +185,18 @@ INSTALLATION
 
 * WINDOWS-SPECIFIC DEPENDENCIES AND LIMITATIONS
 
-   The port of RoadMap on Windows is recent, not fully complete and has
-   not been tested thoroughly, so problems are to be expected. Thank you
-   for your understanding.
+   The initial port to Windows was implemented by Ehud Shabtai.
 
-   The port to Windows was implemented by Ehud Shabtai (eshabtai@gmail.com).
+   RoadMap is only available for Windows CE (PocketPC, Windows Mobile).
+   There is no support for desktop Windows (XP, Vista, ..) - the WIN32 API
+   is not the same on all Windows platforms.
 
-   RoadMap is only available for PocketPC 2002 and later at that time.
-   There is no support yet for Windows XP, 2000 or 2003. This is because
-   the WIN32 API is not the same on all Windows platforms: to the extend
-   of our knowledge, RoadMap might not compile, and should not run, on
-   Windows XP.
-
-   RoadMap use the WIN32 API exclusively, and no specific graphic library
+   RoadMap use the WIN32 API exclusively, no specific graphic library
    is required.
 
    There is UNIX Makefile support for building the WinCE version of
-   RoadMap using the arm-wince-mingw32ce cross-compiler toolchain,
-   available from http://cegcc.sourceforge.net, but support in the
-   code for the toolchain is incomplete.  Working versions have all
-   come from real Microsoft tools.
+   RoadMap using the arm-mingw32ce cross-compiler toolchain,
+   available from http://cegcc.sourceforge.net.
 
    Maps cannot be built under Windows (buildmap and buildus have not been
    ported yet). Maps built under Linux can be used on PocketPC systems,
@@ -217,21 +212,14 @@ INSTALLATION
 
    Instead of a local gpsd, RoadMap can uses a Windows serial port and the
    GPS source should then be specified as "COM1:", "COM2":, etc...
+   Bluetooth devices are also known to work (over a virtual serial port).
    
-   The roadmap and roadgps programs cannot run simultaneously when configured
-   for the serial port. The "GPS Console" menu item of roadmap does not work
-   in that configuration.  The GPS console built into RoadMap doesn't have
-   this restriction, of course.
-
    Only NMEA-capable GPS devices are supported, unless a remote gpsd is used.
 
-   Downloading maps on the fly is not available on Windows, due to the lack
-   of gzip and tar tools on PocketPC.
-
-   The screenshots feature of RoadMap is not available on Windows or GTK
-
-   The full-screen mode of RoadMap is not available on Windows or GTK.
-
+   Features not available on Windows :
+   - Downloading maps on the fly
+   - The screenshots feature
+   - The full-screen mode of RoadMap
 
 * {DIRECTORIES}
 
@@ -405,6 +393,11 @@ INSTALLATION
 
   As Windows CE does not really have the concept of a user directory, RoadMap
   will automatically add to the list the directory where its executable stands.
+
+  The default name of a memory card on your Windows CE device is extracted and
+  automatically supported by RoadMap. In that case, replace \storage card\..
+  in the example above by e.g. \SD Card\.. .
+
 
 ** ICON FILES
 
