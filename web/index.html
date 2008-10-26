@@ -22,7 +22,9 @@ distributed with RoadMap.
 
 <P>RoadMap is an open source (GPL) program that provides a car navigation for
 Linux, UNIX and now Windows CE (a.k.a. PocketPC).
-It displays a map of the streets, tracks the position provided by a
+??? Something about iPhone ?
+
+<P> RoadMap displays a map of the streets, tracks the position provided by a
 NMEA-compliant GPS receiver, identifies the street matching this GPS position
 and announces the name of the crossing street at the next intersection. A
 trip feature allows RoadMap to display routes, tracks, and provide some
@@ -40,6 +42,7 @@ Statistics Canada, and thus cover northern North America only.  There
 has been recent work on deriving RoadMap data from other sources,
 including postgis and other shapefile-based formats, but this work
 is either not on the main development branch, or very experimental.
+Also there are two ways of using OpenStreetMap (http://www.openstreetmap.org) maps.
 
 <P>RoadMap has been designed to be usable on both a desktop or laptop PC, 
 or on a PDA such as the iPAQ from HP (formely from COMPAQ). It can use either
@@ -47,6 +50,10 @@ the Gtk 1.2 , Gtk 2.0 or QT (QT3 or QT4) graphic library for its user
 interface.  The Qt interface supports the Sharp's Zaurus PDA.  All these
 machines share the same endianness and can use the maps provided on this
 site.
+
+<P>The Windows CE (Windows Mobile, Pocket PC, ..) port is a native one
+and has been tested on several devices.
+??? Something about iPhone ?
 
 <P>The on-screen user interface is very customizable.  All command actions
 can be bound to arbitrary menu entries, toolbar buttons, or
@@ -65,9 +72,7 @@ similar to those found in commercial street navigation systems.  The main
 limit for implementing routing is the lack of navigation information in the
 US Census Bureau database (for example one-way street are not indicated). 
 The US Census Bureau has clearly indicated that it does not plan to add
-these information in the future (the USCB does not need them).  The RoadMap
-"editor" project, maintained by Ehud Shabtai, does support navigation --
-the data used in that project supports the feature.
+these information in the future (the USCB does not need them).
 
 <P>RoadMap usually uses
 <a class="normal" href="http://gpsd.berlios.de">gpsd</a>
@@ -86,9 +91,7 @@ device's screen not accessible.  Obviously it's also useful with
 enough to allow the storage of many maps on a Compact Flash or MultiMedia card. 
 For example, the map of Los Angeles county takes about 10 Mbytes of flash
 space. RoadMap comes with a set of tools to convert the US Census bureau data
-(both the 2000 and 2002 versions) into its own map format. Future versions of
-the US Census bureau data will be supported as well (usually a 1 or 2 months
-after the data has been released).
+(both the 2000 and 2002 versions) into its own map format.
 
 <P>When RoadMap starts, it displays a map of the same area that was displayed
 on the latest session. Clicking on the map screen triggers a "sign" that
@@ -98,30 +101,31 @@ to the mouse hotpoint.
 <HR>
 <H2>Credits</H2>
 <P>
-The original RoadMap was (and still is) developed by Pascal
-Martin.  As of 2007, Paul Fox has taken over as "maintainer of
-the moment".  A version of RoadMap for the Sharp Zaurus was
-developed by Latchesar Ionkov (who wrote the original QT
-support).  The support for the Digital Charts of the World was
-contributed by Stephen Woodbridge.  The version of RoadMap for
-Windows (PocketPC) is developed and supported by Ehud Shabtai
-(eshabtai at gmail dot com).  Paul Fox has added GPX data
-interchange support for trips, routes, landmark, and
-points-of-interest.  Ehud and Paul have added street labeling and
+The original RoadMap was developed by Pascal Martin.
+As of 2007, Paul Fox has taken over as "maintainer of the moment".
+A version of RoadMap for the Sharp Zaurus was developed by Latchesar Ionkov
+(who wrote the original QT support).  The support for the Digital Charts
+of the World was contributed by Stephen Woodbridge.  The version of RoadMap
+for Windows (PocketPC) was developed by Ehud Shabtai but is now supported
+by Danny Backx.
+Paul Fox has added GPX data interchange support for trips, routes, landmark,
+and points-of-interest.  Ehud and Paul have added street labeling and
 other features as well.  Alex Briosi and Oleg Gusev contributed
 the QT4 desktop port.
 <HR>
 <BR>
 <CENTER>
-   (c) Copyright Pascal Martin, 2003, 2005 (pascal dot martin at iname dot com)
+   (c) Copyright Pascal Martin, 2003, 2005
 <BR>
    (c) Copyright Latchesar Ionkov, 2003
 <BR>
    (c) Copyright Stephen Woodbridge, 2004
 <BR>
-   (c) Copyright Ehud Shabtai, 2005 (eshabtai at gmail dot com)
+   (c) Copyright Ehud Shabtai, 2005
 <BR>
-   (c) Copyright Paul Fox, 2006, 2007
+   (c) Copyright Paul Fox, 2006, 2007, 2008
+<BR>
+   (c) Copyright Danny Backx, 2007, 2008
 </CENTER>
 <!-- INCLUDE_SITE_SPONSOR_HERE -->
 </BODY>

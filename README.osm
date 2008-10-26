@@ -10,19 +10,30 @@ Eventually this text will become part of the main README.
 
 * OpenStreetMap
 
-  * QuadTiles, RoadMap tileid values, and filenames
+  * Indexed maps
 
-    The maps that RoadMap has rendered in the past (i.e., TIGER, various
-    shapefile formats) have all needed to be indexed before RoadMap could use
-    them.  One reason for this is because there's no direct mapping between a
-    the coordinates on the screen where RoadMap is trying to display a map,
-    and the name of the map file(s) that contain(s) information for that
-    region.  The maps are named based on the source of the data that they
-    represent (e.g., "usc25027.rdm" contains data from county 27 in state 25). 
-    The file contains some information that RoadMap can use to figure out
-    where it is -- in index is made using this information so that RoadMap
-    doesn't need to continually look in all the files.  That index is
-    (currently) called "usdir.rdm".
+    The maps that RoadMap renders come from several sources (TIGER, various
+    shapefile formats, OpenStreetMap). They all need to be indexed for use
+    by RoadMap for several reasons. First, we don't want to overload RoadMap
+    to be with several ways to interpret the same data. Second, there's not
+    always a direct mapping between the coordinates on the screen where
+    RoadMap is trying to displaya map, and the name of the map file(s) that
+    contain(s) information for that region.
+
+  * File name formats
+
+    The map files are named in a way that depends on how the data was obtained
+    and therefore, how the data is organised.
+    A map file called "usc25027.rdm" contains contains data from county 27 in
+    state 25). A map file called iso-be.rdm contains the whole country "be".
+    A third map file format is based on QuadTiles.
+
+    The files contain some information that RoadMap can use to figure out where
+    it is -- an index is made using this information so that RoadMap doesn't
+    need to continually look in all the files.
+    That index is currently called "usdir.rdm".
+
+  * QuadTiles, RoadMap tileid values, and filenames
 
     If the name of the file holding the map data encoded its position and size
     somehow, then an index wouldn't be needed (at least for positioning --
@@ -63,7 +74,7 @@ Eventually this text will become part of the main README.
     As an example, to RoadMap encoding of the 19 bit OSM quadtile id of
     251833, would be 0x3d7b9007.  (251833 is 0x3d7b9 in hex).
 
-  * Fetching OpenStreetMap data
+  * Fetching OpenStreetMap data by QuadTile
 
     OSM map data is available from servers on the web, using a simple API.  As
     simple as it is, though, it can produce a lot of data in XML format, very
@@ -104,6 +115,29 @@ Eventually this text will become part of the main README.
 	buildmap_osm -m /tmp/maps -s http://localhost:801/cgi-bin/bmap.php \
 	    48.135,17.125:20km
 ----
+
+  * Fetching OpenStreetMap data in large chunks
+
+    The OpenStreetMap servers only allow obtaining a limited amount of map
+    info per query. Access via the OSM Mobile Binary Protocol is subject to
+    such limitations.
+
+    Other services (e.g. http://download.geofabrik.de/osm/europe/) provide
+    access to large chunks of OSM data in a single file, e.g. a file per
+    country, like the maps used in many commercial GPS devices.
+
+    The buildmap_osm command was extended to be able to process those files.
+    A sample command looks like
+
+      buildmap_osm -i iso-be.osm -o iso-be.rdm
+
+    which will convert one file into the other.
+
+    The file name format is twofold : iso-xx.rdm or iso-xx-yyy.rdm . The former
+    is a file per country (xx is the ISO two-character code for the country).
+    The latter format allows for country subdivisions (yyy is a subdivision of
+    country xx). The codes xx and yyy are defined in the ISO-3166-1 (country)
+    and ISO-3166-2 (country subdivision). Note that the latter is incomplete.
 
   * Limitations
     
