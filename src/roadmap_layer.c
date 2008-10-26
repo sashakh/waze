@@ -754,7 +754,7 @@ static void roadmap_layer_load_file (const char *class_file) {
         RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
         int  other_pen_length = strlen(layers[i]) + 64;
         static char *other_pen;
-        int thickness;
+        int thickness = 1; /* suppress warning: will set again before use */
 
         other_pen = realloc(other_pen, other_pen_length);
 
@@ -768,8 +768,6 @@ static void roadmap_layer_load_file (const char *class_file) {
         layer->thickness.name     = "Thickness";
         roadmap_config_declare (class_config, &layer->thickness, "1");
         
-        thickness = roadmap_config_get_integer (&layer->thickness);
-
         layer->declutter.category = layers[i];
         layer->declutter.name     = "Declutter";
         roadmap_config_declare (class_config, &layer->declutter, "20248000000");
