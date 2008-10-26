@@ -30,6 +30,7 @@ extern "C" {
 #include "roadmap_start.h"
 #define __ROADMAP_MESSAGEBOX_NO_LANG
 #include "roadmap_messagebox.h"
+#include <stdlib.h>
 }
 
 void roadmap_messagebox_hide(void *handle) {

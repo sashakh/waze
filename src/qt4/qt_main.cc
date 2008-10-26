@@ -280,26 +280,31 @@ void RMapMainWindow::keyPressEvent(QKeyEvent* event) {
 
       case Qt::Key_Left:
          if (spacePressed) {
-            key = "Button-Calendar";
+            key = (char*)"Special-Calendar";
          } else {
-            key = "Button-Left";
+            key = (char*)"LeftArrow";
          }
          break;
 
       case Qt::Key_Right:
          if (spacePressed) {
-            key = "Button-Contact";
+            key = (char*)"Special-Contact";
          } else {
-            key = "Button-Right";
+            key = (char*)"RightArrow";
          }
          break;
 
       case Qt::Key_Up:
-         key = "Button-Up";
+         key = (char*)"UpArrow";
          break;
 
       case Qt::Key_Down:
-         key = "Button-Down";
+         key = (char*)"DownArrow";
+         break;
+
+      case Qt::Key_Return:
+      case Qt::Key_Enter:
+         key = (char*)"Enter";
          break;
 
       default:
