@@ -68,7 +68,7 @@ extern "C" {
 }
 
 #ifndef _T
-#define _T(x) L ## x
+#define _T(x) (wchar_t *)(L ## x)
 #endif
 
 
@@ -130,7 +130,7 @@ static RoadMapConfigDescriptor RoadMapConfigMenuBar =
 
 int handleException(EXCEPTION_POINTERS *exceptionPointers) {
 #ifdef UNDER_CE
-	CEException::writeException(TEXT("\\roadmapCrash"), exceptionPointers);
+	CEException::writeException(_T("\\roadmapCrash"), exceptionPointers);
 #endif
 	exit(0);
 
@@ -291,10 +291,10 @@ static int roadmap_main_char_key_pressed(HWND hWnd, WPARAM wParam, LPARAM lParam
 #ifdef UNDER_CE
 	switch (wParam)
 	{
-	case VK_APP1:	key = "Button-App1";	   break;
-	case VK_APP2:	key = "Button-App2";	   break;
-	case VK_APP3:	key = "Button-App3";	   break;
-	case VK_APP4:	key = "Button-App4";	   break;
+	case VK_APP1:	key = (char *)"Button-App1";	   break;
+	case VK_APP2:	key = (char *)"Button-App2";	   break;
+	case VK_APP3:	key = (char *)"Button-App3";	   break;
+	case VK_APP4:	key = (char *)"Button-App4";	   break;
    }
 #endif
 
@@ -319,15 +319,15 @@ static int roadmap_main_vkey_pressed(HWND w, WPARAM wParam, LPARAM lParam)
 	
 	switch (wParam)
 	{
-	case VK_LEFT:	key = "Button-Left";	break;
-	case VK_RIGHT:	key = "Button-Right";	break;
-	case VK_UP:	key = "Button-Up";	break;
-	case VK_DOWN:	key = "Button-Down";	break;
+	case VK_LEFT:	key = (char *)"Button-Left";	break;
+	case VK_RIGHT:	key = (char *)"Button-Right";	break;
+	case VK_UP:	key = (char *)"Button-Up";	break;
+	case VK_DOWN:	key = (char *)"Button-Down";	break;
 #ifdef UNDER_CE
-	case VK_APP1:	key = "Button-App1";	break;
-	case VK_APP2:	key = "Button-App2";	break;
-	case VK_APP3:	key = "Button-App3";	break;
-	case VK_APP4:	key = "Button-App4";	break;
+	case VK_APP1:	key = (char *)"Button-App1";	break;
+	case VK_APP2:	key = (char *)"Button-App2";	break;
+	case VK_APP3:	key = (char *)"Button-App3";	break;
+	case VK_APP4:	key = (char *)"Button-App4";	break;
 #endif
 #if 0
 		/* These binding are for the iPAQ buttons: */
@@ -640,23 +640,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 static struct tb_icon RoadMapIcons[] = {
-	{"destination", IDB_RM_DESTINATION},
-	{"location", IDB_RM_LOCATION},
-	{"gps", IDB_RM_GPS},
-	{"hold", IDB_RM_HOLD},
-	{"counterclockwise", IDB_RM_COUNTERCLOCKWISE},
-	{"clockwise", IDB_RM_CLOCKWISE},
-	{"zoomin", IDB_RM_ZOOMIN},
-	{"zoomout", IDB_RM_ZOOMOUT},
-	{"zoom1", IDB_RM_ZOOM1},
-	{"full", IDB_RM_FULL},
-	{"record", IDB_RM_RECORD},
-	{"stop", IDB_RM_STOP},
-	{"quit", IDB_RM_QUIT},
-	{"down", IDB_RM_DOWN},
-	{"up", IDB_RM_UP},
-	{"right", IDB_RM_RIGHT},
-	{"left", IDB_RM_LEFT},
+	{(char *)"destination", IDB_RM_DESTINATION},
+	{(char *)"location", IDB_RM_LOCATION},
+	{(char *)"gps", IDB_RM_GPS},
+	{(char *)"hold", IDB_RM_HOLD},
+	{(char *)"counterclockwise", IDB_RM_COUNTERCLOCKWISE},
+	{(char *)"clockwise", IDB_RM_CLOCKWISE},
+	{(char *)"zoomin", IDB_RM_ZOOMIN},
+	{(char *)"zoomout", IDB_RM_ZOOMOUT},
+	{(char *)"zoom1", IDB_RM_ZOOM1},
+	{(char *)"full", IDB_RM_FULL},
+	{(char *)"record", IDB_RM_RECORD},
+	{(char *)"stop", IDB_RM_STOP},
+	{(char *)"quit", IDB_RM_QUIT},
+	{(char *)"down", IDB_RM_DOWN},
+	{(char *)"up", IDB_RM_UP},
+	{(char *)"right", IDB_RM_RIGHT},
+	{(char *)"left", IDB_RM_LEFT},
 	{NULL, 0}
 };
 
@@ -1217,7 +1217,6 @@ extern "C" {
        }
 
 	static RoadMapCallback idle_callback;
-	static int idle_handler_id;
 
 	static int roadmap_main_set_idle_function_helper (void *data) {
 	    if (idle_callback) idle_callback();

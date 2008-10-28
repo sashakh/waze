@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEException.cpp,v 1.2 2008/05/07 19:47:55 dannybackx Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEException.cpp,v 1.3 2008/10/28 22:41:51 dannybackx Exp $
  *
  */
 
@@ -45,7 +45,7 @@ void CEException::dumpContext(HANDLE file, HANDLE hProcess, CONTEXT *context) {
 
 #ifdef ARM
 	writeBreak(file);
-	writeString(file, "Context dump");
+	writeString(file, (char *)"Context dump");
 	sprintf(tempo, "R0=%.8lx R1=%.8lx R2=%.8lx R3=%.8lx R4=%.8lx", context->R0, context->R1,
 		context->R2, context->R3, context->R4);
 	writeString(file, tempo);
