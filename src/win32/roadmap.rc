@@ -206,3 +206,9 @@ BEGIN
 //	DEFPUSHBUTTON "Clear Listbox"	ROADMAP_BUTTON_CLEAR, 5, 5, 60, 20
 	EDITTEXT	ROADMAP_DIALOG_TEXT, 5, 5, 120, 30, WS_TABSTOP | ES_MULTILINE
 END
+
+/*
+ * With this setting, Windows CE will return the real screen dimensions when asked,
+ * not just the ones compatible with earlier versions of CE.
+ */
+HI_RES_AWARE CEUX {1}
