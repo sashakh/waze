@@ -67,11 +67,6 @@ extern "C" {
 #include "roadmap_time.h"
 }
 
-#ifndef _T
-#define _T(x) (wchar_t *)(L ## x)
-#endif
-
-
 // Menu & toolbar defines
 #define MENU_ID_START	WM_USER
 #define MAX_MENU_ITEMS	200
@@ -130,7 +125,7 @@ static RoadMapConfigDescriptor RoadMapConfigMenuBar =
 
 int handleException(EXCEPTION_POINTERS *exceptionPointers) {
 #ifdef UNDER_CE
-	CEException::writeException(_T("\\roadmapCrash"), exceptionPointers);
+	CEException::writeException((wchar_t *)L"\\roadmapCrash", exceptionPointers);
 #endif
 	exit(0);
 
@@ -829,7 +824,7 @@ extern "C" {
 			menu_callbacks[menu_id] = callback;
 			menu_id++;
 		} else {
-			AppendMenu((HMENU)menu, MF_SEPARATOR, 0, _T(""));
+			AppendMenu((HMENU)menu, MF_SEPARATOR, 0, (wchar_t *)L"");
 		}
 		
 		if (tip != NULL) {
