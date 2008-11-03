@@ -1,5 +1,4 @@
-/* roadmap_message.c - Manage screen signs.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_message.h.
+ */
+
+/**
+ * @file
+ * @brief Manage screen signs.
  */
 
 #include <stdio.h>
@@ -99,7 +99,11 @@ int roadmap_message_format (char *text, int length, const char *format) {
     return p > text;
 }
 
-
+/**
+ * @brief set a numbered message to the given string
+ * @param parameter indicates which message to set
+ * @param format this and the next parameters are printf-style
+ */
 void roadmap_message_set (int parameter, const char *format, ...) {
     
     va_list ap;
