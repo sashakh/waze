@@ -1018,6 +1018,18 @@ int roadmap_math_zoom_in (void) {
    return 0;
 }
 
+void roadmap_math_zoom_set (int zoom) {
+
+   if (zoom < MIN_ZOOM_IN) {
+      zoom = MIN_ZOOM_IN;
+   } else if (zoom >= MAX_ZOOM_OUT) {
+      zoom = MAX_ZOOM_OUT - 1;
+   }
+   RoadMapContext->zoom = zoom;
+
+   roadmap_config_set_integer (&RoadMapConfigGeneralZoom, RoadMapContext->zoom);
+   roadmap_math_compute_scale ();
+}
 
 int roadmap_math_zoom_reset (void) {
 
@@ -1213,6 +1225,15 @@ int  roadmap_math_get_orientation (void) {
    return RoadMapContext->orientation;
 }
 
+#ifdef IPHONE
+float roadmap_math_get_angle 
+	(RoadMapGuiPoint *point0, RoadMapGuiPoint *point1) {
+   float delta_x = point0->x - point1->x + 1;
+   float delta_y = point0->y - point1->y + 1;
+   return (90 * (delta_y / (delta_x + delta_y)));
+}
+
+#endif
 
 
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
@@ -1911,6 +1932,12 @@ void roadmap_math_get_context
       lowerright->y = RoadMapContext->height;
    }
 }
+
+int  roadmap_math_get_zoom (void) {
+
+   return (int) RoadMapContext->zoom;
+}
+
 
 static int powers_of_10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000 };
 
