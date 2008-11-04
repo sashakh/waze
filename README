@@ -2,7 +2,7 @@
                     RoadMap - User Manual and README
                                ---------
                                ---------
-                             October 2008
+                             November 2008
 
 
 INTRODUCTION
@@ -10,9 +10,10 @@ INTRODUCTION
    RoadMap is an open source program that displays street maps.
    When a GPS receiver is available RoadMap can track the current location
    of the vehicle on the screen, continuously adjusting the position of the
-   map; it can also identify the name of the current street as well as the
-   name of the next intersection. RoadMap can be used without a GPS receiver,
-   as a static map viewer and address finder.
+   map; with appropriate map data, it can also identify the name of the
+   current street as well as the name of the next intersection.  RoadMap
+   can be used without a GPS receiver, as a static map viewer and address
+   finder.
 
    Roadmap runs on various UNIX and Linux systems, but it's also ported to
    Windows CE, and other efforts are underway.
@@ -39,10 +40,10 @@ INTRODUCTION
        * Digital Charts of the Words
 
        DCW is a set of world-wide maps produced by the US Department
-       of Defense, and The DCW contains only major highways and
-       freeways, for some parts or the world (mostly Europe and
-       japan) and their accuracy does not allow any reliable car
-       navigation.  These maps are also quite old.
+       of Defense.  The DCW contains only major highways and freeways, for
+       some parts of the world (mostly Europe and Japan) and their accuracy
+       does not allow reliable car navigation.  These maps are also quite
+       old.
    
    RoadMap uses a binary file format for representing maps that is
    compact enough to allow the storage of many maps on a Compact Flash or
@@ -54,29 +55,25 @@ INTRODUCTION
    computer, or on a PDA such as the iPAQ from HP (formely from COMPAQ)
    or the Sharp Zaurus.
    
-   In its current version, RoadMap can work with either the GTK+ 1.2,
+   In its current version, RoadMap can work with any of the GTK+ 1.2,
    GTK 2.0, GPE, QT/X11 or QT/QPE graphic environments. The QT environment
-   --especially its QT/QPE version--is mostly used for the Zaurus port (but
-   could probably be used with OPIE). RoadMap is configured for using QT3
-   by default, but the QT2 compatibility headers must be installed (the
-   QT2-style coding has been kept because of the Zaurus QPE environment).
-   The most stable environment is the GTK 2.0 one (this is the one used for
-   developing RoadMap).  The GPE support is and optional extension of the
-   GTK 2.0 environment and is still very experimental (i.e.  untested).
+   (particularly the QT/QPE version) is mostly used for the Zaurus port (but
+   could probably be used with OPIE).  QT3 and QT4 are both supported.  The
+   most stable environment is the GTK 2.0 one (this is the one used for
+   most development).  The GPE support is and optional extension of the
+   GTK 2.0 environment and is very experimental (i.e. untested). 
    GTK 1.2 is still interesting because it's quite a bit more efficient
    when running on limited hardware than is GTK 2.0.
 
-   RoadMap is also available on Windows CE (i.e. Pocket PC). As gpsd does
-   not exist on Windows, the Windows version directly listens to the GPS
-   serial port.
+   RoadMap is also available on Windows CE (i.e. Pocket PC), built using the
+   mingw32ce cross-compiler.  As gpsd does not exist on Windows, the
+   Windows CE version directly listens to the GPS serial port.
 
-   RoadMap is at an early stage of development. At this time all the
-   features have not been implemented yet. RoadMap can display the map
-   around a specified street address, track a GPS position and identify
-   the current street and the next intersection.  Trip support is
-   provided (waypoints, route following, and general landmarks).
-   Large sets of "Point of Interest" features also can be displayed
-   on the map.
+   RoadMap can currently display the map around a specified street address,
+   track a GPS position, and identify the current street and the next
+   intersection.  Trip support is provided (waypoints, route following, and
+   general landmarks).  Large sets of "Point of Interest" features also can
+   be displayed on the map.
 
    The plan for the future is to implement some navigation features similar
    to those found in commercial car navigation systems, and to port RoadMap
@@ -117,11 +114,11 @@ INSTALLATION
    emulated serial port in the case of USB receivers), but RoadMap usually
    communicates with the GPS receiver through gpsd, a GPS communication daemon
    for UNIX.  Going through the intermediate daemon insulates RoadMap from
-   some of the GPS configuration, and lets more than one program (namely
-   RoadMap and RoadGps) use the GPS device at once.  It also allows RoadMap to
-   use a GPS device which is connected to a different computer.  The most
-   typical setup is to have gpsd on the same computer, in which case the GPS
-   source should be set as "gpsd://localhost".
+   some of the GPS configuration, and lets more than one program use the
+   GPS device at once.  It also allows RoadMap to use a GPS device which is
+   connected to a different computer.  The most typical setup is to have
+   gpsd on the same computer, in which case the GPS source should be set as
+   "gpsd://localhost".
 
         {{http://gpsd.berlios.de}}
 
@@ -137,7 +134,7 @@ INSTALLATION
    * Voice support
 
    RoadMap optionally uses flite (festival lite) to generate voice messages. 
-   See section "VOICE INTERFACE" for more information.
+   See the section "VOICE INTERFACE" for more information.
 
    * Optional libraries
 
@@ -149,18 +146,19 @@ INSTALLATION
 
    Likewise, RoadMap can sometimes use the agg library to render anti-
    aliased maps and street label text.  If you don't have agg, RoadMap will
-   label with a (relatively crude) built-in font.  To use agg, you need to
-   change the default "AGG = NO" in config.mk to choose one of the options
-   listed there.  Unfortunately those options ("rgb565", "rgba32", "bgra32",
-   "rgb24", "bgr24") cannot currently be auto-detected, so there may be some
-   trial-and-error involved to get the setting right.  See the comments in
-   config.mk for more tips.  RoadMap requires version 2.4 or later of the agg
-   library -- 2.3 is incompatible.  If your linux distribution includes 2.3,
-   make sure that if you install 2.4 as well, that RoadMap finds both headers
-   and libraries from 2.4.  Note:  currently (as of August, 2006) the agg
-   support is only available if you're using the GTK2 build of roadmap.  (On
-   Debian or Ubuntu linux systems, use "apt-get install libagg-dev" to
-   install the agg library.)
+   only create horizontal labels.  (Angled labels are available using a
+   relatively crude built-in font.  To use agg, you need to change the
+   default "AGG = NO" in config.mk to choose one of the options listed
+   there.  Unfortunately those options ("rgb565", "rgba32", "bgra32",
+   "rgb24", "bgr24") cannot currently be auto-detected, so there may be
+   some trial-and-error involved to get the setting right.  See the
+   comments in config.mk for more tips.  RoadMap requires version 2.4 or
+   later of the agg library -- 2.3 is incompatible.  If your linux
+   distribution includes 2.3, make sure that if you install 2.4 as well,
+   that RoadMap finds both headers and libraries from 2.4.  Note: 
+   currently (as of August, 2006) the agg support is only available if
+   you're using the GTK2 build of roadmap.  (On Debian or Ubuntu linux
+   systems, use "apt-get install libagg-dev" to install the agg library.)
 
    The "buildmap" program uses the shapelib library to decode the "shapefile"
    format).  Currently, most of the maps used by RoadMap are not in that
@@ -179,7 +177,7 @@ INSTALLATION
    RoadMap can use the "convert" program from the ImageMagick package to
    generate the PNG versions of some of the icons on its toolbar.  Pre-built
    copies of these PNG files are distributed, so ImageMagick is optional,
-   and in any case is only required for building RoadMap, it is not
+   and in any case is only required for building RoadMap -- it is not
    necessary when running RoadMap.
 
 
@@ -187,11 +185,11 @@ INSTALLATION
 
    The initial port to Windows was implemented by Ehud Shabtai.
 
-   RoadMap is only available for Windows CE (PocketPC, Windows Mobile).
-   There is no support for desktop Windows (XP, Vista, ..) - the WIN32 API
-   is not the same on all Windows platforms.
+   RoadMap is currently only available for Windows CE (PocketPC, Windows
+   Mobile).  There is no support for desktop Windows (XP, Vista, ..) -- the
+   WIN32 API is not the same on all Windows platforms.
 
-   RoadMap use the WIN32 API exclusively, no specific graphic library
+   RoadMap uses the WIN32 API exclusively, no specific graphic library
    is required.
 
    There is UNIX Makefile support for building the WinCE version of
@@ -199,27 +197,30 @@ INSTALLATION
    available from http://cegcc.sourceforge.net.
 
    Maps cannot be built under Windows (buildmap and buildus have not been
-   ported yet). Maps built under Linux can be used on PocketPC systems,
-   however.
+   ported yet).  Maps built under Linux can be used on PocketPC systems.
 
    The flite software is available under Windows: a PocketPC 2002 (ARM)
    binary is available on the RoadMap project's SourceForge web site. The
    flite.exe binary must be installed in the same folder as the roadmap.exe
    binary.
 
-   The gpsd software is not available on Windows. Note that network access
+   The gpsd software is not available on Windows.  Note that network access
    to a remote gpsd is possible (the remote computer must run UNIX).
 
    Instead of a local gpsd, RoadMap can uses a Windows serial port and the
-   GPS source should then be specified as "COM1:", "COM2":, etc...
+   GPS source should then be specified as "COM1:", "COM2":, etc... 
    Bluetooth devices are also known to work (over a virtual serial port).
    
-   Only NMEA-capable GPS devices are supported, unless a remote gpsd is used.
+   Only NMEA-capable GPS devices are supported, unless a remote gpsd is
+   used.
 
    Features not available on Windows :
-   - Downloading maps on the fly
-   - The screenshots feature
-   - The full-screen mode of RoadMap
+
+   * Downloading maps on the fly
+
+   * The screenshots feature
+
+   * The full-screen mode of RoadMap
 
 * {DIRECTORIES}
 
@@ -235,16 +236,14 @@ INSTALLATION
   provides some information about the standard locations in the most common
   cases.
 
-  RoadMap supports lists of directories, instead of a single location, for
-  each type of files. That does not mean you must install the RoadMap files
-  in every of these directories, only that you can install the files in any
-  of these directories.
+  RoadMap supports searching through lists of directories, instead of just
+  a single location, for each type of file.
   
   One reason for RoadMap to support a list of directories is to define a
-  default system-wide configuration, and at the same time to allow a specific
-  user to install their own setup. Another reason (for the map files on a PDA)
-  is to let the users choose the type of hardware storage that is convenient
-  for them.
+  default system-wide configuration, and at the same time to allow a
+  specific user to install their own setup.  Another reason (for the map
+  files on a PDA) is to let the users choose the type of hardware storage
+  that is most convenient.
 
   Directory pathnames in most RoadMap path lists (on UNIX -- these are not yet
   implemented in the Windows code) can include several "shortcut" characters:
@@ -254,10 +253,10 @@ INSTALLATION
         the behavior of many UNIX shell programs.
 
     * If a path begins with '&', then the rest of the path is relative
-      to the RoadMap "user" directory, which is $HOME/.roadmap.
+      to the RoadMap "user configuration" directory, which is $HOME/.roadmap.
 
     * If a list of pathnames includes a path ending with "/..." then that
-      path, plus the entire sub-tree of (unhidden) directories beneath it
+      path, <<plus>> the entire sub-tree of (unhidden) directories beneath it
       are added to the list of pathnames.  So if Map.Path is set with:
 
 ---
@@ -286,8 +285,8 @@ INSTALLATION
       region together, by letting them be more easily put into separate
       directories.  If a subdirectory may come and go while RoadMap is
       running, e.g. if it's on removeable media, then it should be named
-      specifically in the preferences -- list of subdirectories is only
-      enumerated at startup.
+      specifically in the preferences -- the complete list of
+      subdirectories is only enumerated at startup.
 
 ** EXECUTABLE FILES
 
@@ -299,10 +298,10 @@ INSTALLATION
 ** CONFIGURATION FILES
 
   RoadMap comes with some critical configuration files (files sprites,
-  preferences, etc..). RoadMap supports these files to be in a few
-  different places, which list cannot be changed in the user preferences
-  since it is used to load the preferences themselves.  The list can,
-  however, be changed using the "--config=..." commandline option.
+  preferences, etc..).  RoadMap can find these files in a few different
+  places, but the list cannot be changed in the user preferences since it
+  is used to load the preferences themselves.  The list can, however, be
+  changed using the "--config=..." commandline option.
   
   On most UNIX systems this list is:
   
@@ -312,13 +311,14 @@ INSTALLATION
 
          * /usr/share/roadmap
           
-         * an site-specific directory chosen at compile time, and
+         * a site-specific directory chosen at compile time, and
 
-         * ~/.roadmap (the "user" directory, which can be referred to as
-         '&' in other path references).  The specific value of the path to
-         the "user" directory is configurable, using the General.UserPath
-         setting.  The "user" directory can be changed using the
-         "--userpath=..." commandline option.
+	 * ~/.roadmap (the "user configuration" directory, which can be
+	 referred to as '&' in other path references).  The specific value
+	 of the path to the "user configuration" directory is configurable,
+	 using the General.UserPath setting.  The "user configuration"
+	 directory can be changed using the "--userpath=..." commandline
+	 option.
          
   These directories are searched sequentially: any configuration item found
   in one directory overrides all the same items found in the directories
@@ -335,36 +335,30 @@ INSTALLATION
 
       5- ~/.roadmap (current user configuration)
 
-  The directory <<~/.roadmap>> contains the user configuration: any user change
-  to the configuration is written there. The items in the user configuration
-  take precedence over the "default" configuration as defined in the "shared"
-  directories.  This directory can be referred to with the shorthand '&'
-  in other parts of the roadmap config.
+  The directory <<~/.roadmap>> contains the user configuration: any changes
+  the user makes while running RoadMap are saved here.  The items in the
+  user configuration take precedence over the "default" configuration
+  defined in the "shared" directories.  The user configuration directory
+  can be referred to with the shorthand '&' in other parts of the roadmap
+  config.
 
-  The directory <<~/.roadmap>> usually has two subdirectories:  <<trips>> and
-  <<maps>>.  "Usually", because while the directory <<~/.roadmap/trips>> is
-  used as the default location for the trip files, it can be changed with the
-  General.TripsPath setting.  Note that trip files can be stored anywhere,
-  not only in that directory -- they're just more convenient for selection
-  when stored there..
+  The user directory <<~/.roadmap>> usually has two subdirectories: 
+  <<trips>> and <<maps>>.  "Usually", because while the directory
+  <<~/.roadmap/trips>> is used as the default location for the trip files,
+  it can be changed with the General.TripsPath setting.  Note that trip
+  files can be stored anywhere, not just in that directory -- they're just
+  more convenient for selection when stored there..
 
-  The directory <<~/.roadmap/maps>> contains map files specific for this user.
-  As a general rule, it is not recommended for each user to have their
-  own copy of the maps, as these maps take a lot of space. This directory
-  can be used however when maps are downloaded on the fly, as shared maps
-  are usually not writable for users. The local rules can be established so
-  that either all users download maps into the shared repository, or else
-  each user manages his own maps. On a PDA or on a personal desktop systems
-  the first solution makes the more sense, but for public access computers
-  (such as computers at an University) the second solution might be the most
-  convenient.
+  The directory <<~/.roadmap/maps>> contains map files specific for this
+  user.  (As a general rule, users should probably share maps, since they
+  can take a lot of space.)  This directory might be used when maps
+  are downloaded on the fly, as shared maps might not be writeable by all
+  users.
 
-  These user configuration directories are created when needed, if they do
-  not exist.
+  These user configuration directories are created if they do not exist.
 
-  Althrough the Sharp Zaurus is a Linux (i.e. UNIX) PDA, it's setup is
-  somewhat unusual, and the location of the configuration files is
-  different.
+  Although the Sharp Zaurus is a Linux PDA, its setup is somewhat unusual,
+  and the location of the configuration files is different.
 
   The rational for the selected setup, which is typical of a PDA, is to
   try to make RoadMap an auto-installed option when sliding in the proper
@@ -391,18 +385,20 @@ INSTALLATION
 
          * \Storage Card\roadmap (preferred path)
 
-  As Windows CE does not really have the concept of a user directory, RoadMap
-  will automatically add to the list the directory where its executable stands.
+  As Windows CE does not really have the concept of a user directory,
+  RoadMap will automatically add to the list the directory holding the
+  RoadMap executable.
 
   The default name of a memory card on your Windows CE device is extracted and
-  automatically supported by RoadMap. In that case, replace \storage card\..
+  automatically supported by RoadMap.  In that case, replace \storage card\..
   in the example above by e.g. \SD Card\.. .
 
 
 ** ICON FILES
 
-  RoadMap (GTK version) needs some icons. These icons must be placed
-  in the operating system's standard locations. On UNIX, this usually is:
+  RoadMap (the GTK version, at least) needs some icons.  These icons must
+  be placed in the operating system's standard locations.  On UNIX, this
+  usually means:
   
          * ~/.roadmap/pixmaps,
 
@@ -420,34 +416,34 @@ INSTALLATION
 
   The location for these map files can be redefined in the user preferences
   (item Map.Path). The maps are a problem of their own, since they may require
-  a huge space (up to 1.8 G Bytes for the full set). It is recommended to share
-  these maps between users. Because these maps are architecture-dependent
-  you should be careful, however, not to share them on a network (this could
-  also be very inefficient, as this could saturate the network and the RoadMap
-  performances would be severely impacted).
+  a huge space (up to 1.8G Bytes for the full set). It is recommended that
+  maps be shared between users.  Sharing across a network would probably
+  be quite inefficient.  In addition, care must be taken since the map
+  format may vary between systems of different architectures.  (Technically
+  speaking, the maps contain endian-specific data.)
 
-  Maps can be located in any directory mentioned in the Map.Path preferences
-  setting.  The index file, usdir.rdm, must also be in one of those
-  directories.
+  Maps can be located in any directory mentioned in the Map.Path
+  preferences setting.  The index file <<usdir.rdm>> must also be in one of
+  those directories.
   
   RoadMap will only consult a single usdir.rdm file at a time.  The first
-  usdir.rdm index file read by RoadMap must index any and all maps you might
-  wish to view.  This means that if you've built a subset of the maps, with
-  a corresponding usdir.rdm file (using "buildus"), then when you build
-  more maps, you can't create and install a second usdir.rdm file and expect
-  RoadMap to use them both.  A new usdir.rdm must be built which indexes all
-  of the maps.
+  usdir.rdm index file discovered by RoadMap must index any and all maps
+  you might wish to view.  This means that if you've built a subset of the
+  maps, and a corresponding usdir.rdm file (using "buildus"), then when
+  you build more maps, you can't create and install a second usdir.rdm file
+  and expect RoadMap to use them both.  A new usdir.rdm must be built which
+  indexes all of the maps.
   
-  RoadMap will only read the index file once, even if a newer version becomes
-  available.  RoadMap must be restarted in order to take advantage of a new
-  usdir.rdm index file.  In contrast, new map files can be added to the
-  Map.Path directories, and RoadMap will find them as needed.  This means that
-  maps kept on removeable storage devices can be used fairly easily.  [ The
-  one caveat when introducing replacement maps is that RoadMap will only try
-  and find a map when it really needs to.  RoadMap will keep a number of maps
-  open, for easy access -- the number is controlled by "Map.Cache".  You may
-  have to visit that many other maps before RoadMap will need to reopen a map
-  file which you've visited before but subsequently replaced.  ]
+  RoadMap will only read the index file once, at startup, even if a newer
+  version becomes available.  In contrast, new map files can be added to
+  the Map.Path directories, and RoadMap will find them as needed.  This
+  means that maps kept on removeable storage devices can be used fairly
+  easily.  [ The one caveat when introducing replacement maps is that
+  RoadMap will only try and find a map when it really needs to.  RoadMap
+  will keep a number of maps open, for easy access -- the number is
+  controlled by "Map.Cache".  You may have to visit that many other maps
+  before RoadMap will need to reopen a map file which you've visited before
+  but subsequently replaced.  ]
 
   (The map search paths referred to below may be changed using the "--maps=..."
   commandline option.)
@@ -500,33 +496,37 @@ INSTALLATION
 
          * {{http://roadmap.sourceforge.net/download.html}}
 
-   A quick way to get a feel for RoadMap is to download and install
-   the contents of this tar file, which contains the US state boundary
-   outlines, the detailed map of San Francisco, and a minimal
-   directory file which will let RoadMap use them.
+   Previously, RoadMap came either as a set of sources, or as a set of binary
+   files.  This is no longer the case -- it is not hard to build, and
+   there are choices to be made when building, so the source tarball is all
+   that is currently available.  (Specific systems or software distributions
+   may offer pre-built packages.)
+
+   Because installing a full set of maps can take some time (and space!), a
+   quick way to get a feel for RoadMap is to download and install the the
+   "demo" tar file which contains outlines of the US state boundaries, the
+   detailed street map of San Francisco, and a minimal directory file which
+   will let RoadMap use them.
 
          * {{http://roadmap.digitalomaha.net/maps/demo_maps.tar.gz}}
 
-   The complete set of maps is available here:
+   The complete set of maps, along with the complete index file that
+   describes them, is available here:
    
          * {{http://roadmap.sourceforge.net/maps.html}}
 
-   The full RoadMap directory file (usdir.rdm) must be downloaded
-   first, as RoadMap will not work without it.
+   The full RoadMap index file (usdir.rdm) must be downloaded
+   to use any but the demo maps -- RoadMap will not work without it.
 
          * {{http://roadmap.digitalomaha.net/maps/usdir.rdm.tar.gz}}
 
    Please refrain from downloading all the US states at once, as the map
    files are huge and the bandwidth is expensive.
    
-   It is recommended to install the maps in one of the default directories
-   (see previous section). You may also install the maps in any directory,
-   assumed you set Map.Path accordingly in the RoadMap preferences.
+   Installing the maps in one of the default directories (see the previous
+   section) is recommended, but you can install them anywhere, assuming you
+   set Map.Path accordingly in the RoadMap preferences.
 
-   Previously, RoadMap came either as a set of sources, or as a set of binary
-   files.  This is no longer the case -- it is not hard to build, and
-   there are choices to be made when building, so the source tarball
-   is all that is currently available.
 
 
 * INSTALLING FROM THE FAMILIAR PACKAGE
@@ -577,8 +577,7 @@ INSTALLATION
 
 * INSTALLING FROM THE SOURCE TARBALL (UNIX)
 
-   It is also possible to rebuild RoadMap and the map files from scratch
-   from the source distribution:
+   To build RoadMap from the source distribution:
 
    [[1]] Install the development libraries for GTK+ 1.2, GTK+ 2.0 or Qt.
 
@@ -600,24 +599,20 @@ INSTALLATION
    Simply typing "make" will build the default selection in config.mk.
    (GNU make is required.)
 
-   <<Note for QT users>>: the RoadMap QT module is built with QT3 by
-   default, but requires the QT2 compatibility headers.
-
    The complete list of options for building RoadMap is as follow.
    These can all be modified by editing config.mk.
 
-   [DESKTOP=GTK2|GPE|GTK|QT|QPE|QT4|QPE4|WINCE] Compiles RoadMap for a specific GUI
-   environment.  By default GTK, GTK2 and QT are built.  The GPE environment
-   is a PDA variant of GTK2 and the QPE environment is a PDA variant of QT.
-   (WINCE attempts to use the arm-wince-mingw32ce cross-compiler to build
-   RoadMap for the Windows CE environment.  As of this writing, the result
-   does not yet work.)
+   [DESKTOP=GTK2|GPE|GTK|QT|QPE|QT4|QPE4|WINCE] Compiles RoadMap for a
+   specific GUI environment.  The GPE environment is a PDA variant of GTK2
+   and the QPE environment is a PDA variant of QT.  (WINCE will attempt to
+   use the arm-wince-mingw32ce cross-compiler to build RoadMap for the
+   Windows CE environment.)
 
    [SHAPEFILES=NO] Do not link buildmap with the shapelib.  The side effect of
    this option is that some map sources cannot be converted to RoadMap files
    anymore.  These include the Digital Charts of the World, the Canadian RNF
-   road maps, and the US State boundary outlines.  This option is to
-   be used only when the shapelib library is not available.
+   road maps, and the US State boundary outlines.  This option should only
+   be used when the shapelib library is not available.
 
    [EXPAT=NO] Do not link roadmap with the expat library. The side
    effect is that you cannot load or save trips or landmarks anymore.
@@ -629,10 +624,15 @@ INSTALLATION
    [MODE=DEBUG|PROFILE] Compiles RoadMap in debug mode. The PROFILE option
    also generates the necessary information and code for profiling.
 
-----
-----
+   [[5]] run make to install roadmap:
 
-   [[5]] download some maps from the US Census bureau:
+------
+      make install
+------
+
+   To build the TIGER map files from scratch:
+
+   [[6]] download some maps from the US Census bureau:
 
          {{http://www.census.gov/geo/www/tiger/tiger2006se/tgr2006se.html}}
 
@@ -646,13 +646,6 @@ INSTALLATION
    (To download older versions of the maps (e.g.  2000), see the
    script for the options available.)
 
-   [[6]] download the list of counties from the US Census bureau:
-
-         {{http://www.census.gov/geo/tigerline/app_a02.txt}}
-
-      (A world-extended version of app_a02.txt is provided in directory src,
-      so you should probably skip this step.)
-
    [[7]] Build the maps:
 
 ----
@@ -660,35 +653,32 @@ INSTALLATION
 ----
 
    This command processes all the Census Bureau files found in <tiger-path>
-   and creates the map files for RoadMap in the <map-path> directory.  There
-   is one map file generated for each county.  (To build older versions of the
-   maps (e.g.  2000), see the script source for the "format=2000" option.)
-   Alternatively, specific counties can be built.  The county shall be
-   identified by its FIPS (e.g.  06075 for San francisco, CA).
+   and creates the map files for RoadMap in the <map-path> directory. 
+   There is one map file generated for each county.  Alternately, specific
+   counties can be built.  Counties are identified by their FIPS codes
+   (e.g. 06075 for San Francisco, CA).
 
 ----
-      rdmgenmaps <tiger-path> [maps=<map-path>] <county> ..
+      rdmgenmaps <tiger-path> [maps=<map-path>] <county fips code> ..
 ----
 
    The rdmgenmaps command can also process one full state at a time:
 
 ----
-      rdmgenmaps <tiger-path> maps=<map-path> state=<state-id>
+      rdmgenmaps <tiger-path> maps=<map-path> <two-letter state abbreviation>
 ----
 
-   where the state-id is the two first digit of the FIPS (such as 06 for
-   california).
+   The rdmgenmaps tool is a shell script that extracts the TIGER files from
+   the downloaded ZIP files, invokes the buildmap tool and then cleans up
+   the TIGER files.  Last, rdmgenmaps invokes the buildus tool to generate
+   the US states and counties catalog.  The main purpose of rdmgenmaps is
+   really to keep the TIGER files in compressed form, considering their
+   huge size..
 
-   The rdmgenmaps tool is a shell script that extract the TIGER files from
-   the downloaded ZIP files, invokes the buildmap tool and then cleans
-   up the TIGER files. Last, rdmgenmaps invokes the buildus tool to generate
-   the US states and counties catalog. The main purpose of rdmgenmaps is really
-   to keep the TIGER files in compressed form, considering their huge size..
-
-
-   The <<buildmap>> tool takes a county "FIPS" and a TIGER file as input and
-   produces one RoadMap .rdm map file.  The option --help gives more
-   information about the available options.
+   The <<buildmap>> tool is the worker program used by rdmgenmaps.  It
+   takes a county "FIPS" code and a TIGER file as input and produces one
+   RoadMap .rdm map file.  The option --help gives more information about
+   the available options.
 
    Here is an example:
 
@@ -697,60 +687,7 @@ INSTALLATION
 ----
 
    The <<buildus>> tool creates a catalog of maps that is used by RoadMap
-   to combine all states and counties into a giant US map. It looks for:
-
-      [[a]] the file AllSt.txt and
-
-      [[b]] the various existing RoadmMap maps.
-
-   This is not a problem if the catalog references a map file that does not
-   exists: this way it is possible to store locally only a small portion of
-   the US maps. This is useful when using a PDA with limited storage space
-   (like the iPAQ).
-
-   [[8]] run make to install roadmap:
-
-------
-      make install
-
-------
-
-   This last step installs the RoadMap executables. These executables
-   and the maps should have been generated at their proper location in
-   steps 3 to 8. The install is not required for running RoadMap: the
-   programs and build tools) can run from the local directory as well.
-
-
-* INSTALLING FROM THE SOURCE TARBALL (WINDOWS CE)
-
-   RoadMap can be built from sources for Windows CE on a Windows XP or
-   2000 computer. The Embedded Visual C++ tool version 3 or 4 is required.
-   These tools can be downloaded for free from the Microsoft web site, see:
-   
-           {{http://msdn.microsoft.com/embedded}}
-
-   Note that not all RoadMap programs can be built on Windows. More
-   specifically, the tools used to build the maps are available only on UNIX.
-   However the maps available from the RoadMap web site do work with the
-   Windows version of RoadMap.
-
-   The directory src/win32/wince_env contains a workspace file (Roadmap.vcw)
-   that must be used to build roadmap and roadgps.
-
-
-* CROSS COMPILING FOR THE FAMILIAR TARGET
-
-   The cross compiler for the Familiar/Linux target requires some
-   additional make options: LDFLAGS, OPTIONS, CC, AR, STRIP and X11LDFLAGS.
-   For example:
-
-   LDFLAGS="-Xlinker -rpath-link -Xlinker /usr/local/arm/3.3.2/arm-linux/lib:/usr/local/arm/3.3.2/lib -L/usr/local/arm/3.3.2/lib" STRIP=arm-linux-strip CC=arm-linux-gcc AR=arm-linux-ar CC=arm-linux-gcc AR=arm-linux-ar STRIP=arm-linux-strip OPTIONS="-march=armv4 -mtune=xscale" X11LDFLAGS="-lXinerama"
-
-   In addition a few environment variables must be defined or modified:
-
-   PKG_CONFIG_PATH must be set to the right tool (for example: /usr/local/arm/3.3.2/lib/pkgconfig).
-
-   The PATH variable must contains the cross compiler directory (for example: /usr/local/arm/3.3.2/bin).
+   to combine all states and counties into a giant US map.
 
 
 * A NOTE ABOUT THE ROADMAP ICONS
@@ -779,12 +716,12 @@ INSTALLATION
    RoadMap:
 
    * When running "make build"  a compiler error message appears, complaining
-     that the file shapefil.h cannot be found. This is typically happening if
-     the shapelib library was not installed. The shapelib library is only
-     used to create additional maps using the Digital Charts of the World.
-     If only the US maps are required, or if the pre-built maps will be used,
-     it is possible to build RoadMap without the shapelib, using the option
-     "SHAPEFILES=NO" in config.mk.
+     that the file shapefil.h cannot be found. This typically happens if
+     the shapelib library was not installed.  The shapelib library is only
+     used to create some map formats -- neither the TIGER maps nor the
+     OpenStreetMap maps require shapefile support.  It is possible to build
+     RoadMap without the shapelib, using the option "SHAPEFILES=NO" in
+     config.mk.
 
    * After RoadMap has been installed, the display only shows the message
      "No map available" or a blank screen. RoadMap must be provided with
@@ -821,38 +758,35 @@ ROADMAP APPLICATIONS
    RoadMap includes the following applications:
 
    [roadmap]         This is the main application. It displays the map
-                     and can keep track of the current GPS position.
-                     Depending on which toolkit you use, this will be
-                     roadmap/src/gtk/gtkroadmap, roadmap/gtk2/gtkroadmap
-                     or roadmap/src/qt/qtroadmap (zroadmap on the Zaurus).
+		     and can keep track of the current GPS position. 
+		     Depending on which toolkit you use, and before
+		     a "make install" has been done, the final executable
+		     will be found in src/gtk/gtkroadmap, src/gtk2/gtkroadmap
+		     or src/qt/qtroadmap (zroadmap on the Zaurus).
 
-   [roadgps]         A very handy GPS console, inspired by the Garmin
-                     satellite status page, with a NMEA log capability.
-                     Thanks to gpsd, roadgps and roadmap can be active
-                     at the same time. Depending on which toolkit you use,
-                     this will be named roadmap/src/gtk/gtkroadgps,
-                     roadmap/gtk2/gtkroadgps or roadmap/src/qt/qtroadgps
-                     (zroadgps on the Zaurus).  Note that the functionality
-                     of roadgps is also now included in roadmap -- roadgps
-                     is still available as a separte program, however.
+   [roadgps]         The functionality of this program is now included
+		     directly in roadmap, but roadgps is still available as
+		     a separate program.  roadgps is a very handy GPS
+		     console, inspired by the Garmin satellite status page,
+		     with a NMEA log capability.  Thanks to gpsd, roadgps
+		     and roadmap can be active at the same time.
 
-   [buildmap]        A program that takes the US Census Bureau files
-                     as input and produces the map files used by roadmap.
-                     This application is to be run once on a desktop or
-                     beefed-up laptop to prepare the map files and is not
-                     needed when using roadmap.
+   [buildmap]	     buildmap takes various input map formats as input and
+		     produces the map files used by roadmap.  This program
+		     is only used to prepare the map files and is not
+		     needed when running roadmap.
 
-   [buildus]         A program that takes a set of roadmap map files and
-                     produce a directory file that helps roadmap choose
-                     the map(s) to display according to the location or
-                     city. This application is to be run once on a desktop
-                     or laptop and is not needed when using roadmap.
+   [buildus]	     buildus takes a set of roadmap map files and creates a
+		     directory file that lets roadmap choose the map(s) to
+		     display according to location or city.  buildus is not
+		     needed when using roadmap -- only when preparing the
+		     maps.
+
+   [rdmgenmaps]      A script to simplify the generation of the maps.
 
    [dumpmap]         Display the data tables from a map file. This application
                      is used for debug purposes only and is not needed when
                      using roadmap.
-
-   [rdmgenmaps]      A script to simplify the generation of the maps.
 
 
 USING ROADMAP
@@ -860,8 +794,8 @@ USING ROADMAP
 * COMMAND LINE {OPTIONS}
    
    The options marked as "sticky" remain in effect the next time RoadMap
-   is run. The use of the option actually changes the specified RoadMap
-   preferences item.
+   is run.  (The use of the option actually changes the specified RoadMap
+   preferences item.)
 
    The RoadMap application accepts the following command line options:
    
@@ -887,7 +821,7 @@ USING ROADMAP
       this option will also be passed to roadgps when invoked via roadmap.
 
    [--location=<LONGITUDE,LATITUDE>] Set the location point (see menu entry
-      "Show Location.."). This option is sticky (preference item
+      "Show Location..").  This option is sticky (preference item
       Locations.Location=<LONGITUDE,LATITUDE>).
 
    [--metric] Use the metric system for all units. This option is sticky
@@ -914,15 +848,8 @@ USING ROADMAP
    [--no-toolbar] Do not show the toolbar. This option is sticky (preference
       item General.Toolbar = "no").
 
-   [--no-icon] Do not show any icon, i.e. keep as much space as possible
+   [--no-icon] Do not show any icons, i.e. leave as much space as possible
       for the map. This option is sticky (preference item General.Icons = "no").
-
-   [--map-boxes] Show map bounding boxes as grey lines.  This is mostly
-      just for debug purposes, but can be useful in figuring out why no
-      map is in view at your current location.
-
-   [--square] Show squares boundaries as grey boxes. This option is for
-      debug purpose only.
 
    [--gps=<URL>] Use a specific GPS source. This option is not sticky: it
       overrides the preferences setting this time, but the preferences
@@ -934,6 +861,13 @@ USING ROADMAP
       or even from a tracklog created by roadmap itself.
 
    [--trip=<FILENAME>] tells roadmap to make the given GPX tripfile current.
+
+   [--map-boxes] Show map bounding boxes as grey lines.  This is mostly
+      just for debug purposes, but can be useful in figuring out why no
+      map is in view at your current location.
+
+   [--square] Show squares boundaries as grey boxes. This option is for
+      debug purpose only.
 
    [--debug] Print all informational and debug traces.
 
@@ -966,36 +900,38 @@ USING ROADMAP
    bar or from the keyboard or iPAQ buttons.
 
    When RoadMap starts, the map view reflects the previous session's mode
-   If no session data is found, RoadMap tracks the current GPS position. It
-   is possible to select another mode: show the current destination point
-   (see the section "Managing Trips" below), show a specific location, track
-   the GPS position with the north shown up, track the GPS position with the
-   direction of movement shown up, etc.
+   If no session data is found, RoadMap tracks the current GPS position. 
+   It is possible to select another mode:  show the current destination
+   point (see the section "Managing Trips" below), show a specific
+   location, track the GPS position with the north shown up, track the GPS
+   position with the direction of movement shown up, etc.
 
    When RoadMap is in GPS tracking mode, the map view will reflect the
-   movement of the car so that the GPS sprite will remains at the predefined
-   position (usually the center, but it is possible to move the position of
-   the GPS sprite using the arrow keys). The map can be held to its current
-   position: the "hold" button freezes the map view to its current location,
-   but updates will continue, so that, for example, one should see the GPS
-   sprite move away from the map's center. The hold mode make it easy to
-   select streets and read street names while on the road. To come back to
-   the original map view, this view must be re-selected (for example by
-   using the menu command Find / GPS position or the "G" toolbar button).
+   movement of the car so that the GPS sprite will remains at the
+   predefined position (usually the center, but it is possible to move the
+   position of the GPS sprite using the arrow keys).  The map can be held
+   to its current position:  the "hold" button freezes the map view to its
+   current location, but updates will continue, so that, for example, one
+   should see the GPS sprite move away from the map's center.  The hold
+   mode make it easy to select streets and read street names while on the
+   road.  To come back to the original map view, this view must be
+   re-selected (for example by using the menu command Find / GPS position
+   or the "G" toolbar button).
 
-   RoadMap indicates the current street a few seconds after the GPS position
-   reached the street. This display is also shown for a limited time. There
-   are several criteria used by RoadMap to "lock" on a street: the distance
-   to the street (the closest the better, not more than the value set with
-   Accuracy.Street), the direction of the street compare to the direction of
-   the vehicle or if the street is connected to the current "locked" street.
-   RoadMap uses fuzzy logic to combine these criteria into one single value.
-   None of the fuzzyfied values for the distance and direction may be below
-   the value set by Accuracy.Confidence, or else the street is not selected.
-   The final fuzzy value must also be above the same limit. RoadMap then
-   selects the street with the highest fuzzy value.
+   RoadMap indicates the current street a few seconds after the GPS
+   position reached the street.  This display is also shown for a limited
+   time.  There are several criteria used by RoadMap to "lock" on a street: 
+   the distance to the street (the closest the better, not more than the
+   value set with Accuracy.Street), the direction of the street compare to
+   the direction of the vehicle or if the street is connected to the
+   current "locked" street.  RoadMap uses fuzzy logic to combine these
+   criteria into one single value.  None of the fuzzified values for the
+   distance and direction may be below the value set by
+   Accuracy.Confidence, or else the street is not selected.  The final
+   fuzzy value must also be above the same limit.  RoadMap then selects the
+   street with the highest fuzzy value.
 
-   RoadMap can also display four messages at each of the corners of the
+   RoadMap can also display messages at each of the four corners of the
    map:  the message at top left will be shifted to leave room for the
    compass, which shows map orientation.  These messages can be defined by
    the user using RoadMap's specific format strings (see section
@@ -1004,8 +940,9 @@ USING ROADMAP
 
 * USING THE {MOUSE} OR PEN
 
-   RoadMap uses mostly one mouse button (the left button on a 3 button mouse).
-   This is because RoadMap is designed for a PDA, where pens are used.
+   RoadMap mostly uses just one mouse button (the left button on a 3 button
+   mouse).  This is because RoadMap is designed for a PDA, where pens are
+   used.
 
    A short mouse click (or pen tap) on the map screen displays information
    (i.e., name, address range, etc, as appropriate) about the closest
@@ -1041,28 +978,25 @@ USING ROADMAP
 
    If the flite program has been installed, or if RoadMap was configured
    for an available speech application, RoadMap will complement the screen
-   information with an audio one: Roadmap will "tell" the name of the street
-   on the audio output device. As a general rule, RoadMap tries not to repeat
-   the same message again, as frequent audio messages tend to border on the
-   irritating side. Thus if the same street is selected more than once, the
+   information with an audio one:  Roadmap will speak the name of the
+   street on the audio output device.  As a general rule, RoadMap tries not
+   to repeat the same message again, as frequent audio messages tend to
+   be irritating.  Thus if the same street is selected more than once, the
    screen information will be displayed each time, but the voice messge
-   will be provided only once. As voice messages tend to take a significant
-   time to be produced, RoadMap memorizes the latest message requested while
-   the current message was produced and will "air" it after the current
-   message has been completed. Only one message is stored that way, the last
-   requested one: any message generated in between is ignored.
+   will be provided only once.  For obvious reasons, RoadMap will only
+   try and speak one street name at a time.
 
-   It is possible to mute the RoadMap's voice, using the File / Mute Voice
-   item from the menu bar. The voice can be enabled later using the File /
-   Enable Voice item.
+   It is possible to mute the RoadMap's voice, using the File /
+   Announcements / "Mute Voice" item from the menu bar.  The voice can be
+   enabled later using the "Enable Voice" item.
 
-   Please note that it is possible to rebuild flite with a better voice than
-   the default one. The flite source is available at the CMU web site:
+   Note that flite may have a better voice available than whatever is
+   used by default.  The flite source is available at the CMU web site:
 
                    {{http://www.speech.cs.cmu.edu/flite/}}
 
-   The flite README file describes how to regenerate flite using another
-   voice. Here is an example, courtesy of Scot Wilcoxon:
+   The flite README file describes how to configure flite using another
+   voice.  An example, courtesy of Scot Wilcoxon:
 
 ----
      cd flite
@@ -1074,16 +1008,13 @@ USING ROADMAP
 
 * {KEY} BINDINGS
 
-   Most of the RoadMap commands are available from the keyboard (so to answer
-   requests from my loyal Zaurus fans :). In fact, the button and key bindings
-   are common to all ports, but some buttons might not exist on some platforms.
+   Most of the RoadMap commands are available from the keyboard.  The
+   button and key bindings are common to all ports, but some buttons might
+   not exist on some platforms.
 
-   Please note that all the button and key bindings are case insensitive, i.e.
-   the same binding applies to 'A' and 'a' (as well as to "Button-Left" and
+   All the button and key bindings are case insensitive, i.e. the same
+   binding applies to 'A' and 'a' (as well as to "Button-Left" and
    "button-left"--whatever it means).
-
-   On a desktop or laptop (or on the Zaurus), the keyboard keys are mapped
-   as follow:
 
 *-----------------+-----------------------------------------------------+
  <<Button-Left>>  |     Move the map view to the left.
@@ -1094,25 +1025,27 @@ USING ROADMAP
 *-----------------*-----------------------------------------------------*
  <<Button-Down>>  |     Move the map view down.
 *-----------------*-----------------------------------------------------*
-   +              |     Zoom in: enlarge the central part of the map.
+   +   (or = )    |     Zoom in: enlarge the central part of the map.
 *-----------------*-----------------------------------------------------*
    -              |     Zoom out: show a larger area.
 *-----------------*-----------------------------------------------------*
-   A              |     Show a specified address.
+   A              |     Search for a specified address.
 *-----------------*-----------------------------------------------------*
-   B              |     Start the trip back to the departure point.
+   B              |     Start the route back to the departure point.
 *-----------------*-----------------------------------------------------*
-   D              |     Show the destination point.
+   C              |     Bring up the roadgps GPS console.
+*-----------------*-----------------------------------------------------*
+   D              |     Show the current route's destination.
 *-----------------*-----------------------------------------------------*
    E              |     Erase maps among those currently visible.
 *-----------------*-----------------------------------------------------*
-   F              |     Toggle the full screen mode.
+   F              |     Toggle full screen mode.
 *-----------------*-----------------------------------------------------*
-   G              |     Show the GPS position.
+   G              |     Show the current GPS position.
 *-----------------*-----------------------------------------------------*
    H              |     Hold the map view in its current position.
 *-----------------*-----------------------------------------------------*
-   I              |     Show a specified street intersection.
+   I              |     Search for a specified street intersection.
 *-----------------*-----------------------------------------------------*
    J              |     Rotate the map counterclockwise.
 *-----------------*-----------------------------------------------------*
@@ -1147,8 +1080,8 @@ USING ROADMAP
    F11            |     Toggle the full screen mode (same as 'F').
 *-----------------*-----------------------------------------------------*
 
-   The current bindings that are used by the application are printed after
-   the options help information when the --help option is used.
+   The current bindings that are used by the application can be printed
+   using the "--help=keymap" option.
 
    Note for Familiar 0.7.1 GPE users:  the GPE environment has defined the
    button bindings in a way that makes it impossible for RoadMap to use them
@@ -1159,16 +1092,12 @@ USING ROADMAP
 
 * ON-THE-FLY MAP DOWNLOAD
 
-   Map downloading is being rewritten: future versions will download
-   rdx files from the RoadMap web site (or from a user specified site).
-
-   Today's PDA have a limited storage space, which must be shared with MP3
-   and other files. As the RoadMap maps can take up to 1.6 GB, most PDA users
-   will want to install only the few maps they need. The on-the-fly download
-   feature of RoadMap helps the user to select visually which maps to download
-   or remove. RoadMap is capable of downloading compressed maps: gzip, bzip2
-   or lzop compressed files are automatically recognized and uncompressed
-   after transfer.
+   Since maps can take a lot of space, users may want to install only the
+   few maps they need.  The on-the-fly download feature of RoadMap helps
+   the user to select visually which maps to download or remove.  RoadMap
+   is capable of downloading compressed maps:  gzip, bzip2 or lzop
+   compressed files are automatically recognized and uncompressed after
+   transfer.
 
    The map download is available in a special RoadMap mode, which can be
    activated and deactivated using the Map Download menu entry.  On startup
@@ -1253,6 +1182,9 @@ USING ROADMAP
 
 
 * WAYPOINTS AND ADDRESSES
+
+   << NOTE THAT MANY (ALL?) OF THE ADDRESS AND INTERSECTION SEARCHING
+   OPTIONS ARE ONLY CURRENTLY AVAILABLE WHEN USING THE US TIGER MAPS. >>
 
    RoadMap manages several types of points: a location point (selected using
    a street address or the mouse), the GPS position (updated automatically
@@ -1359,7 +1291,7 @@ USING ROADMAP
 
 * OTHER ADDRESS OPTIONS
 
-   It is possible not to specify the street number part of an address:
+   It is possible to not specify the street number part of an address:
    in that case, all street blocks matching the street and city names will
    be listed. Be careful, that might make a long list, and RoadMap has a
    limit of 256 items per list (matching items beyond the 256th one are
@@ -1392,14 +1324,18 @@ USING ROADMAP
    The "Position.." menu entry activates a dialog that asks for a
    longitude / latitude position. The format for the longitude and latitude
    must conform to the ISO 6709-1983 standard (with some extensions).
+
+   In short, the latitude and longitude can be entered as "[+-]dd.ddd",
+   "[+-]ddmm.mmm", or "[+-]ddmmss.sss".  N, S, E, and W are allowed as
+   either prefix or suffix.
  
-   The format for longitude is:
+   More completely, the format for longitude is:
 
 ----
    [+-EW][d]dd[mm[ss]][.ffffff][EW]
 ----
    
-   The format for latitude is:
+   and the format for latitude is:
 
 ----
    [+-NS]dd[mm[ss]][.ffffff][NS]
@@ -1414,34 +1350,33 @@ USING ROADMAP
    * the letters 'E', 'W', 'N' and 'S' are recognized as a replacement
      for '+' or '-', either as prefix or suffix.
 
-   * the longitude may be expressed with 2 digits for the degrees.
+   * the longitude may be expressed using only 2 digits for degrees.
 
 
 * MANAGING {TRIPS}
    
-   RoadMap supports an infinite number of trips:  each trip context is
-   saved in a trip file.  One trip at a time can be edited or activated.  A
-   saved trip can be reloaded from the trip file, of course.
+   RoadMap can support many trips:  each trip context is saved in a trip
+   file.  One trip at a time can be edited or activated.  A saved trip can
+   be reloaded from its trip file.
 
    The last trip created or loaded will be reloaded the next time RoadMap
    starts.  If the name of the trip has been specifically set by the user, it
    will appear in the titlebar of the RoadMap window.
 
-   A trip is a (usually small, but unlimited) collection of landmarks,
-   routes, and tracks which (usually) have some relationship to one
-   another.
+   A trip is a collection of landmarks, routes, and tracks which (usually)
+   have some relationship to one another.
 
    Routes are sequences of waypoints that (usually!) lead you somewhere you
    want to go.  Tracks are sequences of recorded waypoints that show you
    where you've been.  Although one doesn't usually do so, a track can be
    followed just as a route can be followed.
 
-   Trip landmarks are waypoints that aren't in a route or a track.  They're
-   just (presumably) interesting all by themselves.  (The trip's landmarks
-   are distinct from another set of landmarks known as your "Personal
-   Landmarks".  The "personal landmarks" are displayed on the map no matter
-   which trip is loaded.) Landmarks and waypoints are sometimes just
-   referred to as "Places".
+   Trip landmarks are arbitrary waypoints that aren't part of a route or a
+   track.  They're presumably interesting all by themselves.  (The trip's
+   landmarks are distinct from another set of landmarks known as your
+   "Personal Landmarks".  The "personal landmarks" are displayed on the map
+   no matter which trip is loaded.)  Landmarks and waypoints are sometimes
+   just referred to as "Places".
 
    One end of a route is the starting point, and the other is the
    destination.  Comments attached to the route's waypoints are used to
@@ -1451,9 +1386,9 @@ USING ROADMAP
    reversal is completely internal to RoadMap.
 
    When you load a trip (or when you start RoadMap, and the last trip you
-   used is automatically re-loaded), you'll be presented with a menu of
-   routes to choose from.  (That is, if the trip contains more than one. 
-   If there's only one, it will be selected automatically.)
+   used is automatically reloaded) you'll be presented with a menu of
+   routes to choose from.  (If there's only one route in the trip, it will
+   be selected automatically.)
 
    While you might choose to name your trips with a ".gpx" suffix, as a
    reminder of what format they're stored in, this is entirely optional. 
@@ -1693,18 +1628,18 @@ USING ROADMAP
            whenever the configured distance from the previously saved
            trackpoint has been exceeded.
 
-         * IF "Deviation" is chosen, then a new track point will only be
-           saved if the new point is the configured distance "off track"
-           from the preceding path of travel.  This minimizes the points
-           saved, since straight line travel is represented by very few
-           points.   [ Currently unimplemented. ]
+	 * IF "Deviation" is chosen, then a new track point will only be
+	   saved if the new point is significantly "off track" from the
+	   preceding path of travel.  This minimizes the points saved,
+	   since straight line travel is represented by very few points.
 
          * If "Off" is chosen, then no track points will be saved.
 
        Normally the recorded track will be saved in the configured filename. 
        The default for this file is "currenttrack.gpx".  If one wishes to
        record tracks, but never save them to disk, set the filename to the
-       special value "NONE".
+       special value "NONE".  Complete tracks are preserved in the event of
+       a system or program crash.
 
 
 * DRIVERS
@@ -1791,16 +1726,24 @@ USING ROADMAP
       Ghost2: rdmghost --driver=Ghost2
 ----
 
+* NMEA LOGGING
+
+   RoadMap (and RoadGPS, if built separately) allows logging of all the
+   NMEA sentences received.  The log file is created using the specified
+   filename, in the /var/tmp directory.  This log file can be replayed by
+   RoadMap using the --gps option with an absolute file name as an
+   argument.  For example:
+
+----
+       roadmap --gps=/var/tmp/roadgps-1.log
+----
+
 
 * ROADMAP PREFERENCES
 
-   It is possible to edit the roadmap's preferences (select File/Preferences
-   from the menu bar). Most preference items take effect only when roadmap
-   start, so quitting roadmap is usually required. Editing the roadmap
-   preferences requires a keyboard to be available. One way to configure
-   the iPAQ preferences is to run roadmap from the iPAQ, redirected to the
-   desktop's or laptop's X server.
-
+   It is possible to edit the roadmap's preferences (select File /
+   Preferences from the menu bar).  Most preference items take affect only
+   when roadmap starts, so restarting roadmap is usually required.
 
 USING ROADGPS
 
@@ -1815,22 +1758,6 @@ USING ROADGPS
    (north up) and the strength of the signal. It marks in reverse video
    those satellites used to compute the current position.
 
-   More importantly, RoadGps allows to log all the NMEA sentences received.
-   RoadGps rotates through up to 127 log files. The log file are created
-   in /var/tmp, with the name formatted as: "roadgps-%d.log" (where %d
-   represents an integer in the range 1..127).
-
-   This log file can be replayed in RoadMap using the --gps option with
-   an absolute file name as an argument. For example:
-
-----
-       roadmap --gps=/var/tmp/roadgps-1.log
-----
-
-   When RoadGps starts, the logging function is off. Whenever the logging
-   function is turned on a new log file is created (if the logging function
-   was already on, the current log file is closed and a new one is created).
-
    RoadGps uses a subset of the RoadMap preferences setup, but has no
    preferences editor of its own: configure RoadMap first, and then use
    RoadGps.
@@ -1839,8 +1766,9 @@ USING ROADGPS
 CONFIGURATION
 
    This section describes the files used to configure RoadMap on the local
-   machine. In most cases these files contain user-defined data that defines
-   the look of the RoadMap user interface, or resources used by RoadMap.
+   machine.  In most cases these files contain user-defined data that
+   defines the look of the RoadMap user interface, or resources used by
+   RoadMap.
 
    We will first describe where to find these configuration files on the
    different operating systems that RoadMap supports, then we will describe
@@ -1848,15 +1776,16 @@ CONFIGURATION
 
    The files themselves are the same on all operating systems.
 
-   Note that this section does not cover the files describing the maps:
+   Note that this section does not cover the files describing the maps: 
    there is a clear separation in RoadMap between the map data, which the
    user normally does not modify or customize, and the configuration data,
-   which the user may want to custimize. The map files are described in
-   a separate section.
+   which the user may want to custimize.  The map files are described in a
+   separate section.
 
-   The configuration files are stored in a set of directories to allow
-   for a default, system-wide configuration and allow each user to customize
-   the configuration separately. See the INSTALLATION section for more details.
+   The configuration files are stored in a set of directories to allow for
+   a default, system-wide configuration and allow each user to customize
+   the configuration separately.  See the INSTALLATION section for more
+   details.
 
 * FILES
    
@@ -1881,13 +1810,11 @@ CONFIGURATION
 
      [roadgps.toolbar] (Optional) The actions shown on the RoadGps toolbar.
 
-   The session file contains the state of roadmap, which is saved (if needed)
-   when roadmap exits. The preferences file contains all the preferences
-   items, and can be edited by the user. The schema file describes the
-   geographic entities that are shown on the map; it should normally not be
-   modified by the users. The sprites file contains the graphical definition
-   of the symbols usd by RoadMap to indicates the various locations, to draw
-   the compass, etc..
+   The session file contains the current state of roadmap, which is saved
+   (if needed) when roadmap exits.  The preferences file contains all of the
+   static preference items, and can be edited by the user.  The sprites
+   file contains the graphical definition of the symbols usd by RoadMap to
+   indicates the various locations, to draw the compass, etc..
 
    The toolbar files define the content of the RoadMap and RoadGps toolbars.
    See the section CONFIGURING THE MENUS AND TOOLBAR for more information.
@@ -1971,16 +1898,16 @@ CONFIGURATION
    Example: "%D (%W)" shows the distance to the destination point, followed
    by the distance to the next waypoint (in parenthesis).
 
-   
    A message is evaluated, and displayed, only when all referenced %-macros
-   have a defined value. Therefore the example above will show nothing if
-   there is no trip active, or if there is no next waypoint. It is possible
-   to define several alternatives, separated by the character '|': the first
-   alternative that has been successfully evaluated will be displayed.
+   have a defined value.  Therefore the example above will show nothing if
+   there is no trip active, or if there is no next waypoint.  It is
+   possible to define several alternatives, separated by the character '|': 
+   the first alternative that has been successfully evaluated will be
+   displayed.
    
-   Example: "%D (%W)|%D" shows both distances to the destination point and
+   Example:  "%D (%W)|%D" shows both distances to the destination point and
    to the next waypoint if both distances are defined, or else only the
-   distance to the destination point if this distance is defined. If none
+   distance to the destination point if this distance is defined.  If none
    of the two distance have been defined (for example when no trip is
    active), then no display is shown and/or no sound is produced.
 
@@ -1992,13 +1919,14 @@ CONFIGURATION
    next sunset (in daylight time) or sunrise (in night time).
 
    It is possible to "link" together parts of a string using simple or
-   double quotes. This is used when the string specifies an external command
-   to execute. RoadMap does not use the shell to execute commands (so to stay
-   independent from the OS-specific shell syntax), but it does recognise the
-   use of quotes to specify a command parameter that includes spaces. Such
-   a parameter may be enclosed in single or double quotes. There is no
-   difference between one quote or another, except that the parameter must
-   be terminated with the same quote character it was started with.
+   double quotes.  This is used when the string specifies an external
+   command to execute.  RoadMap does not use the shell to execute commands
+   (so to stay independent from the OS-specific shell syntax), but it does
+   recognise the use of quotes to specify a command parameter that includes
+   spaces.  Such a parameter may be enclosed in single or double quotes. 
+   There is no difference between one quote or another, except that the
+   parameter must be terminated with the same quote character it was
+   started with.
  
    Example: "flite -t 'On %N'" to specify the command flite with two
    parameters ("-f" and "On %N").
@@ -2007,17 +1935,17 @@ CONFIGURATION
 * CONFIGURING THE MENUS AND TOOLBAR
 
    The items shown in the RoadMap and RoadGps menus and toolbars can be
-   redefined by the user in text configuration files. Note that each
+   redefined by the user in text configuration files.  Note that each
    program comes with a built-in menus and toolbar configuration that
    serves as the default, so none of these configuration files is required
-   to be present for RoadMap or RoadGps to work. In fact, RoadMap is
-   distributed with none of the configuration files described in this section. 
-   (Example files are provided for RoadMap, but are not installed
+   to be present for RoadMap or RoadGps to work.  In fact, RoadMap is
+   distributed with none of the configuration files described in this
+   section.  (Example files are provided for RoadMap, but are not installed
    automatically.)
 
    It must be realized that making any change to the menus and the toolbar
-   comes at a price: this documentation was written using the standard
-   user interface. Modifying the user interface is likely to make this
+   comes at a price:  this documentation was written using the standard
+   user interface.  Modifying the user interface is likely to make this
    documentation even more confusing than it originally is.
 
    The major reason for customizing the menus or the toolbar is to let
@@ -2111,25 +2039,18 @@ CONFIGURATION
 
    It is also possible to rename the RoadMap actions, with the effect of
    changing the labels used in the menus and the text of the tooltips.
-   Why one would want to rename actions? Some poor souls have expressed
-   their disapproval of this author's choice of labels and help texts.
-   More seriously, some small screens do require short labels, while
-   longer labels are better on large screens. Since one size does not
-   fit all, we let you, the user, have the last say on this matter.
 
-   The renaming mechanism is based on the same actions as the menus and
-   toolbar customization (see above).
-
-   The translations are described in text files, one text file per program:
-   "roadmap.actionlabels" for roadmap and "roadgps.actionlabels" for roadgps.
-   These files should be located in the usual RoadMap configuration places.
+   The translations are described in text files, one text file per program: 
+   "roadmap.actionlabels" for roadmap and "roadgps.actionlabels" for
+   roadgps.  These files should be located in the usual RoadMap
+   configuration places.
 
    Each action is renamed using one line of text that contains the action
-   name, its menu label, its toolbar label and its tip label (in that order).
-   Each of these items is separated by one special character. This separator
-   can be any character except a letter (upper case or lower case) or a digit
-   ('0' to '9'). Different separators can be used on different lines, but
-   the separator must stay the same until the end of the line.
+   name, its menu label, its toolbar label and its tip label (in that
+   order).  Each of these items is separated by one special character. 
+   This separator can be any character except a letter (upper case or lower
+   case) or a digit ('0' to '9').  Different separators can be used on
+   different lines, but a single line must use a single separator character.
 
    The following are examples of valid action renaming lines (from English to
    French, to please our Canadian friends):
@@ -2140,17 +2061,12 @@ CONFIGURATION
       quit,Quitter,Q,Quitter l'application
 ----
 
+   (This mechanism is not intended to provide a general mechanism for the
+   internationalization of RoadMap.)
+
    Remember that the toolbar labels should be very short, since the toolbar
    has a limited size.
-
-   Please note that, contrary to the example above, this renaming is not
-   intended to provide a general mechanism for the internationalization of
-   RoadMap.  This would be a very crude translation mechanism, as it is very
-   incomplete (for example, dialogs are not translated).
-
-   In fact, this renaming mechanism is likely to conflict with a future
-   internationalization effort, and might be removed in later releases.
-
+   
 * CONFIGURING ON-SCREEN OBJECTS
 
    RoadMap can display small images on the screen (on-screen objects) which
@@ -3836,6 +3752,9 @@ MAP FORMAT
 
 * MAP FILES AND INDEXES
 
+   (See the file README.osm included with thre RoadMap source for
+   information about file naming for OpenStreetMap files.)
+
    As indicated in several other places, the RoadMap map files (extension
    .rdm) are organized by administrative territories, such s a county per
    file in the US. The map files are retrieved using index files, which files
@@ -4305,6 +4224,9 @@ MAP FORMAT
    [range.bysquare]  for each square, a street search accelerator.
 
 * THE EXCHANGE FORMAT
+
+   (As of November of 2008, the exchange format described here is not
+   supported -- the code is incomplete.)
 
    The rdx files are straight conversion of the rdm file in an ASCII format
    that is neither sensitive to the CPU byte order or the compiler's structure
