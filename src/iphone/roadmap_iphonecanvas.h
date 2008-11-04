@@ -32,7 +32,6 @@
 #define INCLUDE__ROADMAP_IPHONE_CANVAS__H
 
 #import <UIKit/UIKit.h>
-#import <UIKit/UIButtonBar.h>
 
 @interface RoadMapCanvasView : UIView {
 }

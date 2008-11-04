@@ -61,7 +61,7 @@ extern NSString *kUIButtonBarButtonType;
 
 
 static RoadMapApp *TheApp;
-static int RoadMapMainToolbarAdded = 0;
+static int RoadMapMainTabBarAdded = 0;
 static int sArgc;
 static char ** sArgv;
 
@@ -86,16 +86,28 @@ static RoadMapCallback idle_callback = NULL;
 static char *RoadMapMainTitle = NULL;
 
 static RoadMapKeyInput RoadMapMainInput = NULL;
-static UIWindow    *RoadMapMainWindow  = NULL;
 static UIView      *RoadMapMainBox     = NULL;
 static RoadMapCanvasView *RoadMapCanvasBox   = NULL;
 //static UIView      *RoadMapMainMenuBar = NULL;
-static UIButtonBar *RoadMapMainToolbar = NULL;
+UIToolbar *RoadMapMainTabBar = NULL;
 //static UIView      *RoadMapMainStatus  = NULL;
-static NSArray     *RoadMapMainToolbarArray = NULL;
+static NSArray     *RoadMapMainTabBarArray = NULL;
 static int          buttonCount = 0;
-static RoadMapCallback RoadMapMainToolbarCallbacks[6];
+static RoadMapCallback RoadMapMainTabBarCallbacks[6];
 
+
+void roadmap_main_send_email(const char *subject, const char *contents, 
+                             const char *att_path, const char *att_name)
+{
+    char text[4096];
+    if (att_path)
+        snprintf(text, 4096, "mailto:?subject=%s&body=%s&attachment=%s/%s", subject, contents, att_path, att_name);
+    else
+        snprintf(text, 4096, "mailto:?subject=%s&body=%s", subject, contents);
+    CFStringRef string = CFStringCreateWithCString(NULL, text, kCFStringEncodingUTF8);
+    CFStringRef urlString = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, string, NULL, NULL, kCFStringEncodingUTF8);
+    [TheApp openURL: [NSURL URLWithString: (NSString *)urlString]];
+}
 
 static char *roadmap_main_toolbar_icon (const char *icon) {
     unsigned int i;
@@ -110,7 +122,9 @@ static char *roadmap_main_toolbar_icon (const char *icon) {
     for (i = 0; i < strlen(icon_file); i++)
     {
         if (strncmp (icon_file + i, "resources", 9) == 0)
+	{
             return (char *)(icon_file + i);
+	}
     }
     return NULL;
 }
@@ -216,8 +230,8 @@ void roadmap_main_add_separator (RoadMapMenu menu) {
 
 void roadmap_main_add_toolbar (const char *orientation) {
      NSLog (@"roadmap_main_add_toolbar orientation: %s\n", orientation);
-     RoadMapMainToolbarAdded = 1;
-     RoadMapMainToolbarArray = [[NSArray array] init];
+     RoadMapMainTabBarAdded = 1;
+     RoadMapMainTabBarArray = [[NSArray array] init];
 }
 
 void roadmap_main_add_tool (const char *label,
@@ -227,35 +241,34 @@ void roadmap_main_add_tool (const char *label,
     char *iconstr;
     NSString *nsicon, *nslabel;
 
-    NSLog (@"roadmap_main_add_tool label: %s icon: %s tip: %s\n", label, icon, tip);
+//    NSLog (@"roadmap_main_add_tool label: %s icon: %s tip: %s\n", label, icon, tip);
     if (buttonCount >= 5)
     {
         NSLog (@"roadmap_main_add_tool only room for 5 buttons\n");
         return;
     }
-    buttonCount++;
 
-    NSArray *tmp = RoadMapMainToolbarArray;
+    NSArray *tmp = RoadMapMainTabBarArray;
     nslabel = [[NSString alloc] initWithUTF8String:icon];
     iconstr = roadmap_main_toolbar_icon(icon);
+    UIImage *image = NULL;
     if (iconstr)
+    {
         nsicon = [[NSString alloc] initWithUTF8String:iconstr];
-    else
-        nsicon = @"";
+        image = [UIImage imageNamed: nsicon];
+    }
 
-    RoadMapMainToolbarCallbacks[buttonCount] = callback;
-    NSDictionary *dict = [ NSDictionary dictionaryWithObjectsAndKeys:
-        @"buttonBarItemTapped:", kUIButtonBarButtonAction,
-        nsicon, kUIButtonBarButtonInfo,
-        @"imagedown.png", kUIButtonBarButtonSelectedInfo,
-        [ NSNumber numberWithInt: buttonCount], kUIButtonBarButtonTag,
-        TheApp, kUIButtonBarButtonTarget,
-        nslabel, kUIButtonBarButtonTitle,
-        //@"", kUIButtonBarButtonTitle,
-        @"0", kUIButtonBarButtonType,
-        nil
-    ];
-    RoadMapMainToolbarArray = [tmp arrayByAddingObject: dict];
+    UIBarButtonItem *item = [UIBarButtonItem alloc];
+    if (image == NULL)
+       [item initWithTitle: nslabel style: UIBarButtonItemStylePlain target: TheApp action: @selector(buttonPressed:)];
+    else
+       [item initWithImage: image style: UIBarButtonItemStylePlain target: TheApp action: @selector(buttonPressed:)];
+    item.tag = buttonCount;
+    item.width = 64.0f;
+    RoadMapMainTabBarCallbacks[buttonCount] = callback;
+
+    RoadMapMainTabBarArray = [tmp arrayByAddingObject: item];
+    buttonCount++;
 }
 
 
@@ -280,10 +293,11 @@ void roadmap_main_busy_check(void) {
 }
 
 void roadmap_main_add_canvas (void) {
-    struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
+    //struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
+    struct CGRect rect = [RoadMapMainBox frame];
     rect.origin.x = 0.0f;
-    rect.origin.y = 0.0f;
-    if (RoadMapMainToolbarAdded)
+    rect.origin.y = 20.0f;
+    if (RoadMapMainTabBarAdded)
        rect.size.height = 480.0f - 49.0f - 20.0f;
     else
        rect.size.height = 480.0f - 20.0f;
@@ -301,10 +315,10 @@ void roadmap_main_show (void) {
     /* Since this is called after the toolbar is
        configured, we use this to add the finalized
        toolbar to the main view */
-     if (RoadMapMainToolbarAdded)
+     if (RoadMapMainTabBarAdded)
      {
-        RoadMapMainToolbar = [TheApp createButtonBar];
-        [RoadMapMainBox addSubview: RoadMapMainToolbar]; 
+        RoadMapMainTabBar = [TheApp createButtonBar];
+        [RoadMapMainBox addSubview: RoadMapMainTabBar]; 
      }
 }
 
@@ -342,12 +356,31 @@ void roadmap_main_remove_idle_function (void) {
 
 
 int roadmap_main_flush (void) {
-   if ([[NSNotificationCenter defaultCenter] isEmpty])
+/*   if ([[NSNotificationCenter defaultCenter] isEmpty])
 
       return 0;
 
+   
+   NSLog (@"notificationcenter has notifications\n");
    return 1;
+*/
+
 //   NSLog (@"roadmap_main_flush\n");
+   //[[NSRunLoop currentRunLoop] run];
+   
+   double resolution = 0.0001;
+
+  
+
+       NSDate* next = [NSDate dateWithTimeIntervalSinceNow:resolution];
+
+       [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+
+                   beforeDate:next];
+
+  
+
+
 /*
    while (gtk_events_pending ()) {
       if (gtk_main_iteration ()) {
@@ -360,7 +393,7 @@ int roadmap_main_flush (void) {
 
 
 int roadmap_main_flush_synchronous (int deadline) {
-   NSLog (@"roadmap_main_flush_synchronous\n");
+//   NSLog (@"roadmap_main_flush_synchronous\n");
 
    long start_time, duration;
 
@@ -388,16 +421,19 @@ int roadmap_main_flush_synchronous (int deadline) {
 
 void roadmap_main_exit (void) {
 
-   static int exit_done;
+ /*  static int exit_done;
 
    if (!exit_done++) {
       roadmap_start_exit ();
-   }
+*/
+      // YYYY [TheApp terminate];
+   exit(0);
 }
 
 int main (int argc, char **argv) {
     int i;
     int j = 0;
+    int returnCode;
     sArgc = argc;
     sArgv = (char **)malloc(argc * (sizeof (char*)));
     for (i=0; i<argc; i++)
@@ -416,55 +452,41 @@ int main (int argc, char **argv) {
     
     roadmap_option (sArgc, sArgv, 0, NULL);
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    return UIApplicationMain(sArgc, sArgv, [RoadMapApp class]);
+    returnCode = UIApplicationMain(sArgc, sArgv, @"RoadMapApp", @"RoadMapApp");
     [pool release];
-    return 0;
+    return returnCode;
 }
 
 @implementation RoadMapApp
+@synthesize window, view;
 
-- (UIButtonBar *)createButtonBar {
-    UIButtonBar *buttonBar;
-    buttonBar = [ [ UIButtonBar alloc ]
-       initInView: RoadMapMainBox
-       withFrame: CGRectMake(0.0f, 480.0f - 49.0f - 20.0f, 320.0f, 49.0f)
-       withItemList: RoadMapMainToolbarArray ];
-    [buttonBar setDelegate:self];
-    [buttonBar setBarStyle:0];
-    [buttonBar setButtonBarTrackingMode: 1];
+-(RoadMapApp *) init
+{
+  self = [super init];
+  return self;
+}
 
-    int buttons[5] = { 1, 2, 3, 4, 5};
-    [buttonBar registerButtonGroup:0 withButtons:buttons withCount: buttonCount];
-    [buttonBar showButtonGroup: 0 withDuration: 0.0f];
-    int tag;
+- (UIToolbar *) createButtonBar {
+    UIToolbar *buttonBar;
+    buttonBar = [ [ UIToolbar alloc ]
+       initWithFrame: CGRectMake(0.0f, 480.0f - 49.0f, 320.0f, 49.0f)];
 
-    for(tag = 1; tag <= buttonCount; tag++) {
-        [ [ buttonBar viewWithTag:tag ]
-            setFrame:CGRectMake(2.0f + ((tag - 1) * 64.0f), 1.0f, 64.0f, 48.0f)
-        ];
-    }
-
+    buttonBar.items = RoadMapMainTabBarArray;
     return buttonBar;
 }
 
-- (void)buttonBarItemTapped:(id) sender {
+- (void)buttonPressed: (id) sender {
     int button = [ sender tag ];
-    printf("buttonclicked: %i\n", button);
-      (RoadMapMainToolbarCallbacks[button] ) ();
+    (RoadMapMainTabBarCallbacks[button] ) ();
 }
 
 -(void) newWithTitle: (const char *)title andWidth: (int) width andHeight: (int) height
 {
-    if (RoadMapMainWindow == NULL) {
-        struct CGRect rect = [UIHardware fullScreenApplicationContentRect];
-        rect.origin.x = rect.origin.y = 0.0f;
-        RoadMapMainWindow = [[UIWindow alloc] initWithContentRect: rect];
-        RoadMapMainBox = [[UIView alloc] initWithFrame: rect];
-        [RoadMapMainWindow orderFront: self];
-        [RoadMapMainWindow makeKey: self];
-        [RoadMapMainWindow _setHidden: NO];
-        [RoadMapMainWindow setContentView: RoadMapMainBox];
-    }
+    self.window = [[UIWindow alloc] initWithFrame: [[UIScreen mainScreen] bounds]];
+    self.view = [[UIView alloc] initWithFrame: [[UIScreen mainScreen] bounds]];
+    [self.window addSubview: self.view];
+    [self.window makeKeyAndVisible];
+    RoadMapMainBox = self.view;
 
     if (RoadMapMainTitle != NULL) {
         free(RoadMapMainTitle);
@@ -583,7 +605,7 @@ int main (int argc, char **argv) {
     }
 }
 
-- (void) applicationDidFinishLaunching: (id) unused
+- (void) applicationDidFinishLaunching: (UIApplication *) application
 {
     TheApp = self;
     int i;
@@ -593,14 +615,14 @@ int main (int argc, char **argv) {
     }
 
     roadmap_start (sArgc, sArgv);
-
-    [self reportAppLaunchFinished];
+    
+  //YYY  [self reportAppLaunchFinished];
 }
 
 - (void)applicationWillSuspend
 {
  //  [self terminate];
-   printf("go to sleep\n");
+//   printf("go to sleep\n");
 }
 
 - (void)applicationDidResume
@@ -611,8 +633,12 @@ int main (int argc, char **argv) {
 
 - (void)applicationWillTerminate
 {
-    roadmap_main_exit();
-    [TheApp release];
+    static int exit_done;
+
+    if (!exit_done++) {
+      roadmap_start_exit ();
+    }
+    [self release];
 }
 
 @end

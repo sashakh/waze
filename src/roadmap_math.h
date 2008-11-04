@@ -175,8 +175,7 @@ char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits);
 #define THOUSANDTHS 3
 #define MILLIONTHS  6
 
-#ifdef IPHONE
 float roadmap_math_get_angle (RoadMapGuiPoint *point0, RoadMapGuiPoint *point1);
-#endif
+
 #endif // INCLUDED__ROADMAP_MATH__H
 

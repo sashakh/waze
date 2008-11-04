@@ -26,7 +26,7 @@
  *   See roadmap_messagebox.h
  */
 
-#import <UIKit/UIAlertSheet.h>
+#import <UIKit/UIAlert.h>
 
 #include "roadmap.h"
 #include "roadmap_start.h"
@@ -41,25 +41,24 @@ static AlertsViewController *controller = NULL;
 
 -(void)showWithTitle: (const char *) title text: (const char *) text modal: (int) modal
 {
-    UIAlertSheet * zSheet;
+    UIAlertView * zSheet;
     NSString *nstitle = [[NSString alloc] initWithUTF8String: title];
     NSString *nstext = [[NSString alloc] initWithUTF8String: text];
-    NSArray *buttons = [NSArray arrayWithObjects:@"OK", nil];
-    zSheet = [[UIAlertSheet alloc] initWithTitle:nstitle buttons:buttons defaultButtonIndex:1 delegate:self context:self];
-    [zSheet setBodyText: nstext];
-    [zSheet setRunsModal: true]; //I'm a big fan of running sheet modally
+    zSheet = [[UIAlertView alloc] initWithTitle:nstitle message: nstext delegate:self cancelButtonTitle: @"OK" otherButtonTitles: nil];
+//    [zSheet setRunsModal: true]; //I'm a big fan of running sheet modally
     
-    [zSheet popupAlertAnimated:YES]; //Displays
+//    [zSheet popupAlertAnimated:YES]; //Displays
               //Pauses here until user taps the sheet closed
+    [zSheet show];
               
     [zSheet autorelease];
     [nstitle release];
     [nstext release];
 }
 
--(void)alertSheet:(UIAlertSheet*)sheet buttonClicked:(int)button
+-(void)alertView:(UIAlertView*)sheet clickedButtonAtIndex:(NSInteger)button
 {
-   [sheet dismiss];
+//   [sheet dismiss];
 }
 @end
 
@@ -84,4 +83,8 @@ void *roadmap_messagebox (const char *title, const char *message) {
 
 void *roadmap_messagebox_wait (const char *title, const char *message) {
    return roadmap_messagebox_show (title, message, 1);
+}
+
+void roadmap_messagebox_die (const char *title, const char *message) {
+   (void)roadmap_messagebox_show (title, message, 1);
 }

@@ -151,6 +151,12 @@ static unsigned long RoadMapScreenProgressDelay;
 static int RoadmapScreenProgressBar;
 
 
+// This is only supported for the iphone right now
+static int RoadMapScreenChordingEvent = 0;
+static RoadMapGuiPoint RoadMapScreenChordingAnchors[MAX_CHORDING_POINTS];
+static float RoadMapScreenChordingAngle;
+static int RoadMapScreenChordingIsRotating = 0;
+
 /* Define the buffers used to group all actual drawings. */
 
 #define ROADMAP_SCREEN_BULK  4096
@@ -1687,20 +1693,60 @@ static void roadmap_screen_record_move (int dx, int dy) {
 static int roadmap_screen_drag_start (RoadMapGuiPoint *point) {
 
    RoadMapScreenDragging = 1;
-   RoadMapScreenPointerLocation = *point;
+
+   if (roadmap_canvas_is_chording() && !RoadMapScreenChordingEvent) {
+      RoadMapScreenChordingEvent = 1;
+      roadmap_canvas_get_chording_pt (RoadMapScreenChordingAnchors);
+      RoadMapGuiPoint *anchors = RoadMapScreenChordingAnchors;
+           
+      if (anchors[2].x == 1) { //Rotate mode
+         //save angle
+         RoadMapScreenChordingIsRotating = 1;
+         RoadMapScreenChordingAngle =
+	    roadmap_math_get_angle (&anchors[0], &anchors[1]);
+      } else { //Drag / zoom mode
+         point->x = abs(anchors[1].x - anchors[0].x) /2;
+         if (anchors[0].x > anchors[1].x) {
+            point->x += anchors[1].x;
+         } else {
+            point->x += anchors[0].x;
+         }
+         
+         point->y = abs(anchors[1].y - anchors[0].y) /2;
+         if (anchors[0].y > anchors[1].y) {
+            point->y += anchors[1].y;
+         } else {
+            point->y += anchors[0].y;
+         }
+         RoadMapScreenPointerLocation = *point;
+      }
+
+   } else {
+
+      RoadMapScreenPointerLocation = *point;
+   }
+
    roadmap_screen_freeze (); /* We don't want to move with the GPS position. */
+   roadmap_screen_refresh ();
 
    return 1;
 }
 
 static int roadmap_screen_drag_end (RoadMapGuiPoint *point) {
+   if (RoadMapScreenChordingEvent) {
 
-   roadmap_screen_record_move
-      (RoadMapScreenPointerLocation.x - point->x,
-       RoadMapScreenPointerLocation.y - point->y);
+      RoadMapScreenChordingEvent = 0;
+      RoadMapScreenChordingIsRotating = 0;
 
+   } else {
+
+      roadmap_screen_record_move
+	 (RoadMapScreenPointerLocation.x - point->x,
+	  RoadMapScreenPointerLocation.y - point->y);
+
+      RoadMapScreenPointerLocation = *point;
+   }
    RoadMapScreenDragging = 0;
-   RoadMapScreenPointerLocation = *point;
    roadmap_screen_unfreeze ();
    roadmap_screen_refresh ();
 
@@ -1709,21 +1755,80 @@ static int roadmap_screen_drag_end (RoadMapGuiPoint *point) {
 
 static int roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
-   if (RoadMapScreenViewMode == VIEW_MODE_3D) {
-
-      RoadMapGuiPoint p = *point;
-      RoadMapGuiPoint p2 = RoadMapScreenPointerLocation;
-
-      roadmap_math_unproject (&p);
-      roadmap_math_unproject (&p2);
-
-      roadmap_screen_record_move (p2.x - p.x, p2.y - p.y);
+   if (roadmap_canvas_is_chording() && RoadMapScreenChordingEvent) {
+      RoadMapGuiPoint ChordingPt[MAX_CHORDING_POINTS];
+      roadmap_canvas_get_chording_pt (ChordingPt);
       
+      if (!RoadMapScreenChordingIsRotating) {
+         // Calculate zoom change
+	 long diag_new = roadmap_math_screen_distance
+	 	(&ChordingPt[0], &ChordingPt[1], MATH_DIST_ACTUAL);
+         long diag_anch = roadmap_math_screen_distance
+	 	(&RoadMapScreenChordingAnchors[0], &RoadMapScreenChordingAnchors[1], MATH_DIST_ACTUAL);
+         float scale = (float)diag_anch / (float)diag_new;
+         
+         roadmap_math_zoom_set (ceil(roadmap_math_get_zoom() * scale));
+         roadmap_layer_adjust ();
+         
+         // Calculate point position
+         point->x = abs(ChordingPt[1].x - ChordingPt[0].x) /2;
+         if (ChordingPt[0].x > ChordingPt[1].x) {
+            point->x += ChordingPt[1].x;
+         } else {
+            point->x += ChordingPt[0].x;
+         }
+         
+         point->y = abs(ChordingPt[1].y - ChordingPt[0].y) /2;
+         if (ChordingPt[0].y > ChordingPt[1].y) {
+            point->y += ChordingPt[1].y;
+         } else {
+            point->y += ChordingPt[0].y;
+         }
+         
+         roadmap_screen_record_move
+                     (RoadMapScreenPointerLocation.x - point->x,
+                      RoadMapScreenPointerLocation.y - point->y);
+                      
+         RoadMapScreenPointerLocation = *point;
+      } else {
+         float angle_new = roadmap_math_get_angle (&ChordingPt[0], &ChordingPt[1]);
+         
+         int angle_delta = ceil (angle_new - RoadMapScreenChordingAngle);
+         if (angle_delta > 15) {
+            roadmap_screen_rotate (15);
+            RoadMapScreenChordingAngle += 15;
+         } else if (angle_delta < -15) {
+            roadmap_screen_rotate (-15);
+            RoadMapScreenChordingAngle -= 15;
+         } else {
+            roadmap_screen_rotate (angle_delta);
+            RoadMapScreenChordingAngle += angle_delta;
+         }
+      }
+      
+      RoadMapScreenChordingAnchors[0].x = ChordingPt[0].x;
+      RoadMapScreenChordingAnchors[0].y = ChordingPt[0].y;
+      RoadMapScreenChordingAnchors[1].x = ChordingPt[1].x;
+      RoadMapScreenChordingAnchors[1].y = ChordingPt[1].y;
+
    } else {
 
-      roadmap_screen_record_move
-         (RoadMapScreenPointerLocation.x - point->x,
-          RoadMapScreenPointerLocation.y - point->y);
+      if (RoadMapScreenViewMode == VIEW_MODE_3D) {
+
+	 RoadMapGuiPoint p = *point;
+	 RoadMapGuiPoint p2 = RoadMapScreenPointerLocation;
+
+	 roadmap_math_unproject (&p);
+	 roadmap_math_unproject (&p2);
+
+	 roadmap_screen_record_move (p2.x - p.x, p2.y - p.y);
+	 
+      } else {
+
+	 roadmap_screen_record_move
+	    (RoadMapScreenPointerLocation.x - point->x,
+	     RoadMapScreenPointerLocation.y - point->y);
+      }
    }
 
    roadmap_screen_repaint ();

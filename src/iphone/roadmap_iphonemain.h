@@ -33,24 +33,25 @@
 
 #import <CoreFoundation/CoreFoundation.h>
 #import <Foundation/Foundation.h>
-#import <UIKit/CDStructures.h>
 #import <UIKit/UIWindow.h>
-#import <UIKit/UIView-Hierarchy.h>
-#import <UIKit/UIView-Geometry.h>
-#import <UIKit/UIHardware.h>
 #import <UIKit/UIKit.h>
 #import <UIKit/UIApplication.h>
 #import <UIKit/UIImageView.h>
 #import <UIKit/UIImage.h>
 #import <UIKit/UITextView.h>
-#import <UIKit/UIButtonBarTextButton.h>
-#import <UIKit/UIPushButton.h>
-#import <UIKit/UIView-Geometry.h>
+#import <UIKit/UITabBar.h>
 
-@interface RoadMapApp : UIApplication {
+@interface RoadMapApp : UIApplication <UITabBarDelegate> {
+   UIWindow *window;
+   UIView *view;
 }
--(void)buttonBarItemTapped:(id) sender;
--(UIButtonBar *)createButtonBar;
+
+@property (nonatomic, retain) UIWindow *window;
+@property (nonatomic, retain) UIView *view;
+
+//-(void)buttonBarItemTapped:(id) sender;
+//-(void)buttonPressed;
+-(UITabBar *)createButtonBar;
 -(void) newWithTitle: (const char *)title andWidth: (int) width andHeight: (int) height;
 -(void) ioCallback: (id) notify;
 -(void) setInput: (RoadMapIO*) io andCallback: (RoadMapInput) callback;

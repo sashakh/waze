@@ -32,6 +32,8 @@
 
 #include "roadmap_gui.h"
 
+#define MAX_CHORDING_POINTS 5
+
 enum { IMAGE_NORMAL,
        IMAGE_SELECTED
 };
@@ -202,6 +204,14 @@ void roadmap_canvas_copy_image (RoadMapImage dst_image,
 void roadmap_canvas_draw_image_text (RoadMapImage image,
                                      const RoadMapGuiPoint *position,
                                      int size, const char *text);
+
+#ifdef IPHONE
+void roadmap_canvas_get_chording_pt (RoadMapGuiPoint points[MAX_CHORDING_POINTS]);
+int roadmap_canvas_is_chording();
+#else
+void roadmap_canvas_get_chording_pt (RoadMapGuiPoint points[MAX_CHORDING_POINTS]);
+#define roadmap_canvas_is_chording() 0
+#endif
 
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

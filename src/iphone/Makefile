@@ -7,11 +7,17 @@ include $(TOP)/options.mk
 
 ROADMAP_BUNDLE=RoadMap.app
 ROADGPS_BUNDLE=RoadGps.app
-LIBS += 
-LDFLAGS += -L/home/ditlemor/usr/local/lib -lobjc -ObjC \
-	-framework CoreFoundation -framework Foundation \
-	-framework UIKit -framework LayerKit -framework CoreGraphics \
-	-framework GraphicsServices
+LIBS += -lobjc -lstdc++.6
+LDFLAGS += -fobjc-abi-version=2 \
+	-L/home/ditlemor/dat/sys/usr/lib \
+	-F/home/ditlemor/dat/sys/System/Library/Frameworks \
+        -framework CoreFoundation -framework CoreGraphics \
+        -framework Foundation \
+	-framework UIKit -bind_at_load \
+#	-framework GraphicsServices
+#        -F/System/Library/Frameworks \
+#
+CFLAGS += -fobjc-abi-version=2
 
 # --- iPhone sources & targets -----------------------------------
 

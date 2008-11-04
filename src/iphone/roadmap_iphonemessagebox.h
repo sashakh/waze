@@ -31,5 +31,5 @@
 {
 }
 -(void)showWithTitle: (const char *) title text: (const char *) text modal: (int) modal;
--(void)alertSheet:(UIAlertSheet*)sheet buttonClicked:(int)button;
+-(void)alertSheet:(UIActionSheet*)sheet buttonClicked:(int)button;
 @end
