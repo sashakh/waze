@@ -530,7 +530,6 @@ const RoadMapArea *roadmap_county_get_edges (int fips) {
  */
 int roadmap_county_get_decluttered(int fips) {
 
-   unsigned int zoom;
    int i;
 
    if (RoadMapCountyActive->county_no_draw == NULL) {
@@ -546,9 +545,7 @@ int roadmap_county_get_decluttered(int fips) {
       return 0;
    }
 
-   roadmap_math_get_context(0, &zoom, 0);
-
-   if (zoom >= RoadMapCountyActive->county_no_draw[i]) {
+   if (roadmap_math_get_zoom() >= RoadMapCountyActive->county_no_draw[i]) {
       return 1;
    }
    return 0;
@@ -575,7 +572,7 @@ void roadmap_county_set_decluttered(int fips) {
       roadmap_check_allocated(RoadMapCountyActive->county_no_draw);
    }
 
-   roadmap_math_get_context(0, &zoom, 0);
+   zoom = roadmap_math_get_zoom();
 
    if (RoadMapCountyActive->county_no_draw[i] == 0 ||
         zoom < RoadMapCountyActive->county_no_draw[i]) {
