@@ -30,27 +30,24 @@ DESKTOP = GTK2
 # DESKTOP = WINCE
 # DESKTOP = IPHONE
 
+# Support for WINCE is still a work in progress.
 # If you select WINCE for your WinCE device, you'll need the
-# arm-wince-mingw32ce cross-compiler.  Support for WINCE is
-# still a work in progress.
-ifeq ($(DESKTOP), WINCE)
-CROSS=arm-mingw32ce-
-CFLAGS += -I/opt/wince/include
-LIBS += -L/opt/wince/lib
-endif
+# arm-wince-mingw32ce cross-compiler.  Uncomment these 3
+# lines and adjust the paths.
+# CROSS=arm-mingw32ce-
+# CFLAGS += -I/opt/wince/include
+# LIBS += -L/opt/wince/lib
 
 # If you select IPHONE for your iPhone or iPod Touch, you'll
 # need the arm-apple-darwin cross-compiler. 
-# The following settings work for at least one iPhone. :-)
-ifeq ($(DESKTOP), IPHONE)
-#CROSS=/usr/local/bin/arm-apple-darwin-
-#CFLAGS += -I/path/to/expat/include
-#LIBS += -L/path/to/libexpat.a
-#ROADMAP_CONFIG_DIR = /Applications/RoadMap.app/resources/
-#ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps/...
-#INSTALLDIR = Applications/RoadMap.app
-#DESTDIR = /tmp
-endif
+# The following settings are a starting point, but may need adjustment:
+# CROSS=/usr/local/bin/arm-apple-darwin-
+# CFLAGS += -I/path/to/expat/include
+# LIBS += -L/path/to/libexpat.a
+# ROADMAP_CONFIG_DIR = /Applications/RoadMap.app/resources/
+# ROADMAP_MAP_DIR = $(ROADMAP_CONFIG_DIR)/maps/...
+# INSTALLDIR = Applications/RoadMap.app
+# DESTDIR = /tmp
 
 # If you selected QT or QPE above, you might also want to set QTDIR
 # here.  (But it might already be set in your environment.)
@@ -147,8 +144,9 @@ BIDI = NO
 
 # Basic building mode
 MODE =		# blank for "normal" build
-# MODE=DEBUG	# enables -g, disables -O, turns on mtrace leak detection
+# MODE=DEBUG	# enables -g, disables -O
 # MODE=PROFILE	# sets up for profiling with gprof
+# CFLAGS += -DROADMAP_MTRACE  # enable mtrace leak detection
 
 # You can add any other special local CFLAGS values here
 # e.g., CFLAGS += -DWGET_GOOGLE_ROUTE
