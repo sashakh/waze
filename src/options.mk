@@ -134,7 +134,7 @@ ifeq ($(strip $(MODE)),DEBUG)
 	#  is "valgrind", which needs no special compilation --
 	#  it works by replacing shared libraries.)
 	#
-	CFLAGS += -DROADMAP_MTRACE
+	# CFLAGS += -DROADMAP_MTRACE
 
 	# ROADMAP_LISTS_TYPESAFE forces "type safety" for the
 	# list manipulation code, which can help catch bugs earlier.
