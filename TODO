@@ -8,39 +8,21 @@
    Please feel free to contact the author(s) for more ideas.  Please
    feel especially free to contact the author(s) with patches.  ;-)
 
-   *  International maps:
+   *  Better OpenStreetMap support
       
       RoadMap began as a rendering engine for the US Census bureau Tiger maps,
-      but it's clear that it can be more useful than that.  There is now
-      shapefile support, and other early work has been done for postgis and
-      shpmp support, but the RoadMap database itself is still strongly
-      US-centric -- all of the maps (even for the rest of the world) must be
-      given fake US county identifiers.  Work has been done to outline the
-      problem, but no work has been done to implement a solution as yet.
+      but it has now grown the ability to render OpenStreetMap data.  This
+      OSM support deserves to be fleshed out in many ways.
 
    *  New Tiger map format
 
-      The census bureau has published its spec for the new shapefile format
-      which will replace the existing tiger format in the future.  When a
-      sample map becomes available, we should begin implementing a new
-      converter for that shapefile spec.  This would also be a good time to
-      address other current issues, such as the polygon shape point issue,
-      placenames, perhaps others.
-
-   *  Font size changes:
-
-      Currently, the only font capable of appearing in different sizes on the
-      screen at once is the primitive internal "linefont".  Some work has been
-      done to add better font control for QT, but nothing has been done for
-      the other desktop toolkits.
-
-   *  Error messages on screen:
-
-      The error messages are logged on the standard output, and to individual
-      dialog boxes.  Standard output isn't very useful in a GUI app, and the
-      dialog boxes can multiply much too fast with recurring errors.  Some
-      sort of an "error log" window would be a good compromise.  (One issue is
-      fonts:  should be big enough to be readable in a car.)
+      The census bureau has released data in its new shapefile format,
+      which replaces the previous TIGER format.  We could begin
+      implementing a new converter for that shapefile spec, or we could
+      ignore further TIGER updates, and concentrate on OSM, since OSM now
+      incorporates the TIGER maps.  If editing changes from the RoadMap
+      editor branch could be incorporated, RoadMap could in theory even
+      help contribute new OSM data.
 
    *  Use checkbox widget in the menus and toolbars:
 
@@ -90,10 +72,9 @@
       This would make the UI fully customizable.  Some support for this
       appears in the roadmap_editor branch, but it's not complete.
 
-   *  Show GPS location and speed
+   *  Show GPS location
       
-      The speed shows on RoadMap, but not on RoadGps.  The location shows on
-      none.  There should be a way to show the location, at least in RoadGps.
+      There should be a way to easily display the current location.
 
    *  Use GPS time and map's timezone
       
@@ -149,7 +130,8 @@
       shared resource for adding the necessary meta-data.
 
       A precursor to this work would be to make the roadmap plugin API
-      match the roadmap_editor plugin API (again).
+      match the roadmap_editor plugin API (again).  (Some progress has
+      been made on this.)
 
    *  Places
       
