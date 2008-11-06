@@ -72,7 +72,14 @@ static int exec_callbacks (int event, RoadMapGuiPoint *point) {
    int res = 0;
 
    if (!roadmap_start_map_active()) {
-      if (event == RELEASED)
+      /* return to the map (from the gps console screen) if we're
+       * clicked.  note that this means we'll get the RELEASED event
+       * for this click on a different screen than where we started.
+       * keying off of RELEASED here would be better, but if we do
+       * that, we can't bring up the console by clicking a screen object,
+       * because the release will make us return right away.
+       */
+      if (event == SHORT_CLICK)
           roadmap_start_return_to_map();
       return 0;
    }
