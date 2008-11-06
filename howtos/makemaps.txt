@@ -1,12 +1,9 @@
-                               ---------
-                    Creating a Map for RoadMap HOWTO
-                               ---------
-                 Pascal Martin (pascal.martin@ponts.org)
-                               ---------
-                                                                                                            December 2005
+Creating a Map for RoadMap HOWTO
+Pascal Martin (pascal.martin@ponts.org)
+December 2005
 
 
-INTRODUCTION
+= INTRODUCTION =
 
    This HOWTO describes how to create a new map for RoadMap. The intent is
    not to provide a complete description of the RoadMap map format, only
@@ -20,37 +17,37 @@ INTRODUCTION
    compatibility with pre-existing maps.
 
 
-OVERVIEW
+= OVERVIEW =
 
    There are four major phases involved when creating maps for RoadMap:
 
-   * One must decide how the maps will be organized. It is important to
+   - One must decide how the maps will be organized. It is important to
    have a good idea of how the country is organized and how individual
    addresses are formatted (the format of addresses will have an influence
    on the maps organization).
 
-   * Then the format of the data source must be identified and analyzed.
+   - Then the format of the data source must be identified and analyzed.
    Knowing the data come in a shape file is not enough, as there are many
    different ways of organizing shape file data. Typical questions to answer
    are: what are the layers? What field describes the layer for a specific
    feature? How does the data source layers match the Roadmap layers?
 
-   * A map builder input module may need to be modified or customized to
+   - A map builder input module may need to be modified or customized to
    handle the specific format used by the data source.
 
-   * The map builder application must be run and the map indexes created.
+   - The map builder application must be run and the map indexes created.
 
-* PLANNING THE MAP ORGANIZATION
+- PLANNING THE MAP ORGANIZATION
 
    The preliminary step when building a map is always to decide how the
    data will be organized. There are a many different cases, among them
    the main ones are:
 
-   * The map will represent a new class of features.
+   - The map will represent a new class of features.
 
-   * The map will cover a new country.
+   - The map will cover a new country.
 
-   * The map will cover an existing country and represent existing features.
+   - The map will cover an existing country and represent existing features.
 
    Even in the more complex cases when the map to be built represents new
    features for a new country, it is recommended to reduce the problem by
@@ -72,7 +69,7 @@ OVERVIEW
    organization of the maps are direct consequences of the way the index
    files are organized.
 
-* DATA SOURCE FORMAT
+- DATA SOURCE FORMAT
 
    There are two main situations: either the format of the data source is
    or is not supported by the RoadMap map builder (buildmap).
@@ -103,13 +100,13 @@ OVERVIEW
    code is not really organized to handle this. So either the RoadMap code
    must be modified, or else the data must be merged using standard GIS tools.
 
-* BUILDMAP INPUT MODULES
+- BUILDMAP INPUT MODULES
 
    A buildmap input module must provide the following function:
 
-----
+```
    buildmap_xxx_process (const char *input, const char *class);
-----
+```
 
    This function must be called in buildmap_main.c
 
@@ -124,9 +121,9 @@ OVERVIEW
    documentation.
 
 
-LAYERS
+= LAYERS =
 
-* LAYER CLASS
+- LAYER CLASS
 
    Every feature stored in a RoadMap map file belongs to one layer. Layers
    are organized in classes. Each map file provides features that belong to
@@ -137,13 +134,13 @@ LAYERS
    or a class representing all land uses (city area, national parks, etc..)
 
 
-* DEFINING A NEW LAYER CLASS
+- DEFINING A NEW LAYER CLASS
 
    A layer class is made of two lists of layers:
 
-   * One list for all line features (for example: streets).
+   - One list for all line features (for example: streets).
 
-   * One list for all polygon features (for example: lakes).
+   - One list for all polygon features (for example: lakes).
 
    Each list is an ordered sequence of layers. The order in the sequence
    defines the drawing order. Note that all polygons are drawn before any
@@ -175,7 +172,7 @@ LAYERS
    optimizations.
 
 
-MAP ORGANIZATION
+= MAP ORGANIZATION =
 
    RoadMap divides earth into territories, usually defined by administrative
    boundaries (international borders, local goverment with one country,
@@ -207,28 +204,28 @@ MAP ORGANIZATION
    elevation lines, etc..
 
 
-* MAPS IDENTIFICATION
+- MAPS IDENTIFICATION
 
    It is important to understand how maps are identified. RoadMap uses a
    32 bits integer named World Territory ID (wtid) and defined as follow:
 
-    * The wtid is made of 10 decimal digits. There are two major classes
+    - The wtid is made of 10 decimal digits. There are two major classes
     of wtid format: one is defined by legal boundaries and the other is
     defined by a longitude/latitude grid. At that time, only the legal
     boundaries class of wtid is supported in RoadMap.
 
-    * the legal-boundaries wtid for countries has the format 0CCCCXXXXX,
+    - the legal-boundaries wtid for countries has the format 0CCCCXXXXX,
     where CCCC is the telephone dialing code for the country covered by the
     maps and XXXXX is a subdivision inside that country, wich format depends
     on the country's legal organization. A XXXXX of 00000 represents the
     whole country.
  
-    * The legal-boundaries wtid for the USA has the format 00000SSCCC where
+    - The legal-boundaries wtid for the USA has the format 00000SSCCC where
     SSCCC is the county's FIPS code. Note that, in this case, the value of
     the wtid exactly matches the value of the FIPS code. A CCC of 000 means
     the whole state. A wtid value of 00000 represents the whole US.
 
-    * The grid wtid have the format: 1CCLLLLllll where LLLL is a number that
+    - The grid wtid have the format: 1CCLLLLllll where LLLL is a number that
     represents the longitude span covered by the map and llll is a number
     that represents the latitude covered by the map. CC identifies the type
     of grid used to define the map; value 00 represents the USGS "quad" grid.
@@ -250,7 +247,7 @@ MAP ORGANIZATION
    The international dialing codes are defined in the ITU Operational
    Bulletin No. 835. For more information, go to:
 
-      {{http://www.itu.int/itu-t/bulletin/annex.html}}
+      http://www.itu.int/itu-t/bulletin/annex.html
 
    RoadMap also use names to identify authorities (such as when it searches
    for the location of a given address). These names mimics the wtid using
@@ -261,7 +258,7 @@ MAP ORGANIZATION
    thus "us/ca"). The code name must be suitable for address search.
    The country code name follow the iso 3166-1 standard. See:
 
-      {{http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html}}
+      http://www.iso.org/iso/en/prods-services/iso3166ma/02iso-3166-code-lists/list-en1.html
 
    The sub-authority levels must follow the local country convention for
    postal addresses and city identification.
@@ -292,10 +289,10 @@ MAP ORGANIZATION
 
    Continuing with the US example, the US can be represented in two ways:
 
-     * as a single index, which belongs to the US country, authorities are
+     - as a single index, which belongs to the US country, authorities are
      the US states and territories are the counties.
 
-     * as a two-level tree of indexes: the top-level index lists the states
+     - as a two-level tree of indexes: the top-level index lists the states
      as authorities and contains no territory, map or cities tables; each
      lower level index represents one state, lists counties as territories
      and contain no authority table.
@@ -304,19 +301,19 @@ MAP ORGANIZATION
    list of countries as authorities.
 
 
-* DEFINING A NEW COUNTRY
+- DEFINING A NEW COUNTRY
 
    If the country was not represented in RoadMap yet, the division of the
    country into sub-territories must be decided. There are several criteria
    to consider:
 
-      * The territories must be compatible with the way postal addresses
+      - The territories must be compatible with the way postal addresses
       are organized. The major requirements are that city names should be
       unique inside a map file. If possible, the middle level authority levels
       defined for that country, if any, should match the country's postal
       convention as well.
 
-      * The territories should be compatible with the way the data source is
+      - The territories should be compatible with the way the data source is
       organized. It is possible to reorganize the data according to different
       criteria, for example by splitting or merging files, but this introduces
       a new level of complexity and should be avoided when possible.
@@ -344,11 +341,11 @@ MAP ORGANIZATION
    A new country must be described in the file countries.txt. Here is an
    example  of a countries.txt file describing the US and canada:
 
-------
+```
        # List of countries, format: iso 3166-1, itu E.164A (except USA), name
        us,0,USA
        ca,1,Canada
-------
+```
 
    The country's list of parent territories must be described in a separate
    file for each country, so that each country can be maintained independently.
@@ -357,9 +354,9 @@ MAP ORGANIZATION
 
    The format of the file is:
 
-------
+```
         wtid,symbol,name[,parent-authority-symbol]
-------
+```
 
    The wtid must be empty if an authority is described (since no map file
    exists for an authority) and the parent authority's symbol must be empty
@@ -368,14 +365,14 @@ MAP ORGANIZATION
 
    Here is an example that describes the state of Rhode Island (USA):
 
-------
+```
         ,RI,RHODE ISLAND
         44001,,Bristol,RI
         44003,,Kent,RI
         44005,,Newport,RI
         44007,,Providence,RI
         44009,,Washington,RI
-------
+```
 
    For large countries it is recommended to locate the official description
    of legal entities and to write a tool to translates it's original format

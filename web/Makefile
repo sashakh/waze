@@ -4,12 +4,14 @@
 default: all
 
 APT_WEBDOCS = \
-	status.html \
+
+T2T_WEBDOCS = \
 	manual.html \
 	buglist.html \
-	changelog.html \
-	installation.html \
+	status.html \
 	todolist.html \
+	installation.html \
+	changelog.html \
 	makemaps.html
 
 PAGES = \
@@ -53,7 +55,7 @@ SUPPORT = \
 #	sitesponsor.html \
 
 
-SITESOURCE = $(SCREENSHOTS) $(APT_WEBDOCS) $(PAGES) $(SUPPORT)
+SITESOURCE = $(SCREENSHOTS) $(T2T_WEBDOCS) $(PAGES) $(SUPPORT)
 
 all: webdoc
 
@@ -64,7 +66,7 @@ install: all $(SITESOURCE_COPIED)
 
 # use 'make SF=1 install' to send to SF
 ifeq ($(strip $(SF)),)
-OUR_SITE_REFERENCE = www.foxharp.boston.ma.us/tmp/nroadmap
+OUR_SITE_REFERENCE = roadmap.sourceforge.net
 OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
 else
 OUR_SITE_REFERENCE = roadmap.sourceforge.net
@@ -81,7 +83,7 @@ endif
 	    -e '/INCLUDE_SITE_SPONSOR_HERE/d' \
 	    $< >foo.html && \
 	scp foo.html $(OUR_SITE_ACCESS)/$<
-	rm -f foo.html
+	# rm -f foo.html
 	touch $@
 
 .copied$(SF)-% : %
@@ -95,33 +97,33 @@ roadmap-right.png: ../src/icons/roadmap-right.png
 # text files in the CVS tree, converted to html using aptconvert.
 # (http://www.xmlmind.com/aptconvert.html)
 
-webdoc: $(APT_WEBDOCS)
+webdoc: $(T2T_WEBDOCS)
 
 clean-webdoc:
-	rm -f $(APT_WEBDOCS)
+	rm -f $(T2T_WEBDOCS)
 
 # use GNU make's target-specific variables to name the sourcefile
 # for each constructed web page.  the names are somewhat random,
 # so we can't simply use a pattern rule.
-manual.html: APT_SOURCE=../README
+manual.html: DOC_SOURCE=../README
 manual.html: ../README
 
-makemaps.html: APT_SOURCE=../howtos/makemaps.txt
+makemaps.html: DOC_SOURCE=../howtos/makemaps.txt
 makemaps.html: ../howtos/makemaps.txt
 
-buglist.html: APT_SOURCE=../BUGS
+buglist.html: DOC_SOURCE=../BUGS
 buglist.html: ../BUGS
 
-changelog.html: APT_SOURCE=../CHANGES
+changelog.html: DOC_SOURCE=../CHANGES
 changelog.html: ../CHANGES
 
-todolist.html: APT_SOURCE=../TODO
+todolist.html: DOC_SOURCE=../TODO
 todolist.html: ../TODO
 
-status.html: APT_SOURCE=../STATUS
+status.html: DOC_SOURCE=../STATUS
 status.html: ../STATUS
 
-installation.html: APT_SOURCE=../INSTALL
+installation.html: DOC_SOURCE=../INSTALL
 installation.html: ../INSTALL
 
 # here's the rule for building webpages from our
@@ -130,13 +132,31 @@ installation.html: ../INSTALL
 # the site.  we also remove absolute references to our own website,
 # so that the links all work properly when installed in a test tree.
 
-$(APT_WEBDOCS):
-	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(APT_SOURCE)
+#$(APT_WEBDOCS):
+#	aptconvert -pi html showTitle yes -toc -enc ASCII $@ $(DOC_SOURCE)
+#	sed -i \
+#	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
+#	    -e '/<body>/a \
+#	    <!--#include virtual="navbar.html" -->' \
+#	    -e 's/<body>/<body class="roadmap-doc">/' \
+#	    -e 's;http://'$(OUR_SITE_REFERENCE)'/;;' $@ 
+
+# here's the rule for building webpages from our
+# txt2tags-compatible text files.  we expand tabs (since they can
+# confuse txt2tags) and post-process, to add some extra html at
+# the top, to make the docs fit in with the rest of the site.  we
+# also remove absolute references to our own website, so that the
+# links all work properly when installed in a test tree.
+
+$(T2T_WEBDOCS):
+	expand $(DOC_SOURCE) | \
+	txt2tags --target html \
+	    --toc --infile - --outfile $@
 	sed -i \
-	    -e '/<head>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
-	    -e '/<body>/a \
+	    -e '/<HEAD>/s/$$/<link href="sitestandard.css" type=text\/css rel=stylesheet>/' \
+	    -e '/<BODY .*>/a \
 	    <!--#include virtual="navbar.html" -->' \
-	    -e 's/<body>/<body class="roadmap-doc">/' \
+	    -e 's/<BODY .*>/<body class="roadmap-doc">/' \
 	    -e 's;http://'$(OUR_SITE_REFERENCE)'/;;' $@ 
 
 favicon.ico:

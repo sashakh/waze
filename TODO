@@ -1,158 +1,153 @@
-                               ---------
-                         To-do list for RoadMap
-                               ---------
-                               ---------
-                             October 2007
+To-do list for RoadMap
 
-   This is a list of changes envisioned for future versions of RoadMap. 
-   Please feel free to contact the author(s) for more ideas.  Please
-   feel especially free to contact the author(s) with patches.  ;-)
+November 2008
 
-   *  Better OpenStreetMap support
-      
-      RoadMap began as a rendering engine for the US Census bureau Tiger maps,
-      but it has now grown the ability to render OpenStreetMap data.  This
-      OSM support deserves to be fleshed out in many ways.
+This is a list of changes envisioned for future versions of RoadMap. 
+Please feel free to contact the author(s) for more ideas.  Please
+feel especially free to contact the author(s) with patches.  ;-)
 
-   *  New Tiger map format
-
-      The census bureau has released data in its new shapefile format,
-      which replaces the previous TIGER format.  We could begin
-      implementing a new converter for that shapefile spec, or we could
-      ignore further TIGER updates, and concentrate on OSM, since OSM now
-      incorporates the TIGER maps.  If editing changes from the RoadMap
-      editor branch could be incorporated, RoadMap could in theory even
-      help contribute new OSM data.
-
-   *  Use checkbox widget in the menus and toolbars:
-
-      Some menu and toolbar entries are of the "start & stop" kind.  Instead
-      of having 2 entries it would be nice to use a single checkbox one. 
-      Other entries are already toggles, but their state can't be determined
-      visually.  In any case, RoadMap should be consistent (or at least clear)
-      about whether or not the change will affect startup preferences.
-
-   *  More message formats, and message data -- users have requested
-      that more types of data be available on-screen:
-      
-        * speed should be available all the time, not just when a
-          route is active
-
-        * course (bearing), altitude
-
-        * elapsed, and projected "trip time".  moving time, idle
-          (stopped) time.
-
-        * distance traveled since program start
-
-        * distance since route start
-
-        * perhaps a shell escape, for getting data from external
-          programs?
-      
-      In addition message signs that are too long should wrap, rather than
-      truncate.
-
-      Much of this information could be put into a canned trip statistics
-      screen, so it could all be made visible at once.  (Could such a screen
-      be constructed from the roadmap_display() basics?  Would need to
-      be able to create better-formatted output -- newlines, columns, etc.)
-
-   *  Add voice output for trip navigation.
+ - Better OpenStreetMap support
    
-      The flite voice should read the routepoint comments that currently
-      appear on the screen.  Need to make the timing of the comments
-      speed-sensitive, and figure out what to do with routepoints that don't
-      have attached comments.  Probably if some routepoints do have comments,
-      then we should ignore those that don't, otherwise we should give
-      a directional indication since there are no "real" directions.
+   RoadMap began as a rendering engine for the US Census bureau Tiger maps,
+   but it has now grown the ability to render OpenStreetMap data.  This
+   OSM support deserves to be fleshed out in many ways.
 
-   *  Key bindings should be rebindable by the user.
-      
-      This would make the UI fully customizable.  Some support for this
-      appears in the roadmap_editor branch, but it's not complete.
+ - New Tiger map format
 
-   *  Show GPS location
-      
-      There should be a way to easily display the current location.
+   The census bureau has released data in its new shapefile format,
+   which replaces the previous TIGER format.  We could begin
+   implementing a new converter for that shapefile spec, or we could
+   ignore further TIGER updates, and concentrate on OSM, since OSM now
+   incorporates the TIGER maps.  If editing changes from the RoadMap
+   editor branch could be incorporated, RoadMap could in theory even
+   help contribute new OSM data.
 
-   *  Use GPS time and map's timezone
-      
-      The GPS receiver provides a reliable universal time as well as the
-      current location.  This is all what RoadMap needs to show the correct
-      local time.  (On the other hand, the user of the maps may not care about
-      the time in the place being examined.  Picture a desktop user, at home. 
-      In that case, all times should perhaps be local.)
-      
-        * Associate a timezone to each county.
+ - Use checkbox widget in the menus and toolbars:
 
-        * When showing a particular location on the map, display the
-          local time for this location.
+   Some menu and toolbar entries are of the "start & stop" kind.  Instead
+   of having 2 entries it would be nice to use a single checkbox one. 
+   Other entries are already toggles, but their state can't be determined
+   visually.  In any case, RoadMap should be consistent (or at least clear)
+   about whether or not the change will affect startup preferences.
 
-        * Show estimated time of arrival in the destination's timezone.
-      
-      One might think of setting the UNIX time and system timezone, but that
-      would be a bad idea:  this would cause a whole mess when replaying GPS
-      logs, RoadMap would need to be root or have the set UID bit set and
-      managing system setup is best left to system daemons.  In addition, gpsd
-      is now synchronizing the system time, so don't mess with that subject..
+ - More message formats, and message data -- users have requested
+   that more types of data be available on-screen:
+   
+     - speed should be available all the time, not just when a
+       route is active
+     - course (bearing), altitude
+     - elapsed, and projected "trip time".  moving time, idle
+       (stopped) time.
+     - distance traveled since program start
+     - distance since route start
+     - perhaps a shell escape, for getting data from external
+       programs?
+     -
+   
+   In addition message signs that are too long should wrap, rather than
+   truncate.
 
-   *  Modular map format
-      
-      RoadMap map format is such today that all the information must be
-      contained in a single file.  RoadMap should be able to display, and use,
-      data from multiple county files.  The benefits are that one can come
-      with his own additional information (such as railroad tracks) without
-      modifying the existing maps or making them larger.  In addition the
-      current set of maps could be cut in two (separating the street shapes
-      from the street names) to lower the amount of data mapped by RoadMap
-      when displaying the map on the screen (especially when zoomed out). 
-      Essentially, layers could be assigned to each of the split-up county
-      files.
+   Much of this information could be put into a canned trip statistics
+   screen, so it could all be made visible at once.  (Could such a screen
+   be constructed from the roadmap_display() basics?  Would need to
+   be able to create better-formatted output -- newlines, columns, etc.)
 
-   *  Modular map rendering
-      
-      The RoadMap map rendering code should be made more modular so that a new
-      type of data can be defined, associated with a plugin to implement the
-      rendering code.
+ - Add voice output for trip navigation.
 
-   *  Track more than one GPS source
-      
-      RoadMap should allow the user to track alternate GPS sources as defined
-      by the user (like GpsDrive's friendsd).
+   The flite voice should read the routepoint comments that currently
+   appear on the screen.  Need to make the timing of the comments
+   speed-sensitive, and figure out what to do with routepoints that don't
+   have attached comments.  Probably if some routepoints do have comments,
+   then we should ignore those that don't, otherwise we should give
+   a directional indication since there are no "real" directions.
 
-   *  Navigation
-      
-      While the TIGER data doesn't have the necessary data to make navigation
-      with RoadMap feasible currently, other datasets do, and the
-      roadmap_editor branch has proven that it can be done.  OpenStreetMap is
-      starting to work with TIGER maps, and perhaps that work can be used as a
-      shared resource for adding the necessary meta-data.
+ - Key bindings should be rebindable by the user.
+   
+   This would make the UI fully customizable.  Some support for this
+   appears in the roadmap_editor branch, but it's not complete.
 
-      A precursor to this work would be to make the roadmap plugin API
-      match the roadmap_editor plugin API (again).  (Some progress has
-      been made on this.)
+ - Show GPS location
+   
+   There should be a way to easily display the current location.
 
-   *  Places
-      
-      Work was begun to add "places" support (i.e.  landmark) names to the
-      RoadMap database.  This should be finished.
+ - Use GPS time and map's timezone
+   
+   The GPS receiver provides a reliable universal time as well as the
+   current location.  This is all what RoadMap needs to show the correct
+   local time.  (On the other hand, the user of the maps may not care about
+   the time in the place being examined.  Picture a desktop user, at home. 
+   In that case, all times should perhaps be local.)
+   
+     - Associate a timezone to each county.
+     - When showing a particular location on the map, display the
+       local time for this location.
+     - Show estimated time of arrival in the destination's timezone.
+     -
+   
+   One might think of setting the UNIX time and system timezone, but that
+   would be a bad idea:  this would cause a whole mess when replaying GPS
+   logs, RoadMap would need to be root or have the set UID bit set and
+   managing system setup is best left to system daemons.  In addition, gpsd
+   is now synchronizing the system time, so don't mess with that subject..
 
-   *  Interface with address book applications
-      
-      RoadMap should be able to interface with address book databases to get
-      street addresses from there.  Instead of specifying a destination
-      address, one would provide the name of a person.
+ - Modular map format
+   
+   RoadMap map format is such today that all the information must be
+   contained in a single file.  RoadMap should be able to display, and use,
+   data from multiple county files.  The benefits are that one can come
+   with his own additional information (such as railroad tracks) without
+   modifying the existing maps or making them larger.  In addition the
+   current set of maps could be cut in two (separating the street shapes
+   from the street names) to lower the amount of data mapped by RoadMap
+   when displaying the map on the screen (especially when zoomed out). 
+   Essentially, layers could be assigned to each of the split-up county
+   files.
 
-   *  Cross-platform widgets
-      
-      While the current home-grown widgets work pretty well, it's probably
-      time to implement a version of the RoadMap API in something like
-      WxWidgets.  If this were successful, and the extra cost of such a widget
-      set weren't too great, then over time we could switch to it exclusively.
+ - Modular map rendering
+   
+   The RoadMap map rendering code should be made more modular so that a new
+   type of data can be defined, associated with a plugin to implement the
+   rendering code.
 
-   *  Speed-sensitive zoom
+ - Track more than one GPS source
+   
+   RoadMap should allow the user to track alternate GPS sources as defined
+   by the user (like GpsDrive's friendsd).
 
-      While moving, there should be a mode where the zoom and 3D
-      horizon value are adjusted dynamically, to give longer range at
-      higher speeds.
+ - Navigation
+   
+   While the TIGER data doesn't have the necessary data to make navigation
+   with RoadMap feasible currently, other datasets do, and the
+   roadmap_editor branch has proven that it can be done.  OpenStreetMap is
+   starting to work with TIGER maps, and perhaps that work can be used as a
+   shared resource for adding the necessary meta-data.
+
+   A precursor to this work would be to make the roadmap plugin API
+   match the roadmap_editor plugin API (again).  (Some progress has
+   been made on this.)
+
+ - Places
+   
+   Work was begun to add "places" support (i.e.  landmark) names to the
+   RoadMap database.  This should be finished.
+
+ - Interface with address book applications
+   
+   RoadMap should be able to interface with address book databases to get
+   street addresses from there.  Instead of specifying a destination
+   address, one would provide the name of a person.
+
+ - Cross-platform widgets
+   
+   While the current home-grown widgets work pretty well, it's probably
+   time to implement a version of the RoadMap API in something like
+   WxWidgets.  If this were successful, and the extra cost of such a widget
+   set weren't too great, then over time we could switch to it exclusively.
+
+ - Speed-sensitive zoom
+
+   While moving, there should be a mode where the zoom and 3D
+   horizon value are adjusted dynamically, to give longer range at
+   higher speeds.
+
+

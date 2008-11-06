@@ -1,87 +1,59 @@
-                               ---------
-                    Approximate bug list for RoadMap
-                               ---------
-                               ---------
-                             October 2007
+Approximate bug list for RoadMap
 
+November 2008
 
-KNOWN BUGS -- patches welcome
+//(patches welcome!)//
 
 Desktop and rendering bugs:
 
- * Gtk2 interface reports error:
+ - Gtk2 interface reports error:
 
    The following error message appears:
 
+```
    (gtkroadmap:3487): WARNING **: Invalid UTF8 string passed to
         pango_layout_set_text()
+```
 
- * Long lines are sometimes incorrectly displayed
+ - Long lines are sometimes incorrectly displayed
  
    The symptom is that all of a sudden a long straight line that you know
    isn't really present will appear from edge to edge of your screen.
 
- * QT3,QT4 - no display periodic running
-
-   Periodics seem to be attached to windows (?), so the new periodic started
-   in roadmap_display_initialize() doesn't commence since there's no window
-   yet.
-
- * QT3,QT4 - no signal handling
-
-   No signal handling has been added to the QT versions.  This means user
-   changes to routes and waypoints, and the track log, can easily be lost.
-
-   (The GTK versions handle signals properly, and so RoadMap will shut down
-   cleanly in the event of the user hitting ^C in the window from which
-   RoadMap was started, or if RoadMap is killed with SIGTERM, as when the
-   system is shutting down.)
-
- * WinCE,Win32 - Executables built with the arm-wince-mingw32ce
-   cross-compiler don't run.
-   
-   It would be great if someone could finish that work.  And win32 hasn't even
-   been attempted in cross-compilation.  Using a cross-compiler has big
-   advantages for the principal developers, so please don't just toss that
-   notion aside without some discussion.
-
- * GTK/GTK2 - Deprecated interfaces in use.
+ - GTK/GTK2 - Deprecated interfaces in use.
 
    Both flavors of GTK build make fairly heavy use of deprecated API pieces. 
    Someone with good GTK skills should clean these up.
 
- * Edge cases.
+ - Edge cases.
  
    If you get too close to either the north or south pole, RoadMap will
    get confused, and may crash.  If you go past the 180th meridian, in either
    direction, RoadMap may or may not get confused, but you probably will.
+
+ - There are no errors reported when attempting to access features that
+   the current map data doesn't support.  For instance, there is no
+   address or political entity information in OpenStreetMap quadtile
+   data, but the Address searchbox will still let you try and look up
+   a city by name.
    
-Map building bugs:
-
- * Shape point are ignored when drawing polygons:
-
-   The Tiger files define polygons as delineated by a list of lines.
-   Any of these lines might be defined by a serie of shape points.
-
-   RoadMap uses the shape points when drawing the lines, but not when
-   filling the polygons.
 
 Map data bugs:
 
- * City search is broken:
+ - City search is broken:
 
    The roadmap files include a table to convert a place into a county
    subdivision.  This table causes a lot of problems because places can span
    across county subdivisions, with name clashes.
 
- * The "address by ZIP" method does not work anymore:
+ - The "address by ZIP" method does not work anymore:
 
    Since the automatic selection of the map, because the file usdir.rdm does
    not have yet any ZIP code location information (TBD).
 
    This feature has been hidden from the user interface  for now.
 
- * Street address conflicts:
+ - Street address conflicts:
 
    A few street address conflicts appears when building maps.  Some seems to
    be a TIGER map database problem.  Others might be caused by the address
@@ -90,7 +62,7 @@ Map data bugs:
    NOTE:  3 of these addresses conflicts have been confirmed to be TIGER
    database errors by the census bureau.
 
- * Street numbers are not always numerical:
+ - Street numbers are not always numerical:
 
    Some street numbers include letters, which is not well supported by
    RoadMap:  in such a case, roadmap generates a street number which is hoped
@@ -100,12 +72,12 @@ Map data bugs:
    Current kludge is deemed good enough for the time being, until someone give
    a practical case where this does not work.
 
- * Some urban areas are missing:
+ - Some urban areas are missing:
 
    For example:  Woodland Hills (in Los Angeles county).  This is a TIGER file
    problem:  the string "WOODLAND HILLS" never appears in the LA county files.
 
- * The maps for the state of Hawaii do not use the NAD83 datum:
+ - The maps for the state of Hawaii do not use the NAD83 datum:
 
    The offset can be significant (a few hundred feet), making these maps
    basically unusable for navigation.  The USGS bureau has announced that

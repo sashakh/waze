@@ -1,12 +1,8 @@
+Project Status
+Paul Fox, current RoadMap maintainer
+November 2008
 
-                               ---------
-                            Project Status
-                               ---------
-		    Paul Fox, current RoadMap maintainer
-                               ---------
-                             November 2008
-
-New Release 1.2.0
+= New Release 1.2.0 =
 
     RoadMap has another new release.  It's been over a year
     since 1.1.0 was released.  Lots of work has been done since
@@ -14,21 +10,23 @@ New Release 1.2.0
 
     Major new developments in 1.2.0 include;
 
-	* Support for OpenStreetMap maps, both geographically-based
-	  (i.e., arbitrary rectangular tiles) and political (i.e.,
-	  country-based).  The ability to use OSM maps moves RoadMap
-	  from being a highly US-centric program to one which can
-	  be useful worldwide.
+        - Support for OpenStreetMap maps, both geographically-based
+          (i.e., arbitrary rectangular tiles) and political (i.e.,
+          country-based).  The ability to use OSM maps moves RoadMap
+          from being a highly US-centric program to one which can
+          be useful worldwide.
 
-	* Resurrection of the Windows CE port.  Since the port is
-	  supported via cross-compilation with ming32w, maintenance
-	  is much easier for the developers.
+        - Resurrection of the Windows CE port.  Since the port is
+          supported via cross-compilation with ming32w, maintenance
+          is much easier for the developers.
 
-	* Initial support of the iPhone.
+        - Initial support of the iPhone.
+	
+
 
     There's more detail in the changelog.
 
-Two Branches
+= Two Branches =
 
     Not much progress has been made in merging code from the forked
     "roadmap_editor" branch, but some work has been ongoing.
@@ -40,11 +38,11 @@ Two Branches
     roadmap_editor branch as well.  This codebase is being used
     very successfully in the FreeMap Israel project.
     
-	{{ http://www.freemap.co.il }}
+        http://www.freemap.co.il
 
     (Sadly for many of us, google doesn't yet translate Hebrew.)
 
-Help Wanted!
+= Help Wanted! =
 
     If you know something about GIS and want to help with the
     conversion of new map sources, or are just a good coder who
