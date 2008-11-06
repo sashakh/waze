@@ -1,8 +1,10 @@
 
 
+/* background-image: url('background2.jpg'); */
+
 body.roadmap {
 	font-family:Times;
-	background-image: url('background2.jpg');
+	background-color: #48fbc4; /* matched to background2.jpg */
 	margin-left:    250px;    /* leave room for navigation bar */
 	margin-right:    50px;
 }
