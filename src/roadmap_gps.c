@@ -847,6 +847,10 @@ void roadmap_gps_open (void) {
       RoadMapGpsLink.os.serial =
          roadmap_serial_open (device, "r", atoi(baud));
 
+// FIXME -- maybe remove the conditional, to allow roadmap to
+// detect serial devices that are attached after startup.  check
+// on logging -- we should log at least one failure to open it. 
+// in fact, we should log every close/reopen, or open failure.
       if (ROADMAP_SERIAL_IS_VALID(RoadMapGpsLink.os.serial)) {
          RoadMapGpsLink.subsystem = ROADMAP_IO_SERIAL;
       }
