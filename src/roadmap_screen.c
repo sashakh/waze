@@ -154,8 +154,6 @@ static int RoadmapScreenProgressBar;
 // This is only supported for the iphone right now
 static int RoadMapScreenChordingEvent = 0;
 static RoadMapGuiPoint RoadMapScreenChordingAnchors[MAX_CHORDING_POINTS];
-static float RoadMapScreenChordingAngle;
-static int RoadMapScreenChordingIsRotating = 0;
 
 /* Define the buffers used to group all actual drawings. */
 
@@ -1699,27 +1697,20 @@ static int roadmap_screen_drag_start (RoadMapGuiPoint *point) {
       roadmap_canvas_get_chording_pt (RoadMapScreenChordingAnchors);
       RoadMapGuiPoint *anchors = RoadMapScreenChordingAnchors;
            
-      if (anchors[2].x == 1) { //Rotate mode
-         //save angle
-         RoadMapScreenChordingIsRotating = 1;
-         RoadMapScreenChordingAngle =
-	    roadmap_math_get_angle (&anchors[0], &anchors[1]);
-      } else { //Drag / zoom mode
-         point->x = abs(anchors[1].x - anchors[0].x) /2;
-         if (anchors[0].x > anchors[1].x) {
-            point->x += anchors[1].x;
-         } else {
-            point->x += anchors[0].x;
-         }
-         
-         point->y = abs(anchors[1].y - anchors[0].y) /2;
-         if (anchors[0].y > anchors[1].y) {
-            point->y += anchors[1].y;
-         } else {
-            point->y += anchors[0].y;
-         }
-         RoadMapScreenPointerLocation = *point;
+      point->x = abs(anchors[1].x - anchors[0].x) /2;
+      if (anchors[0].x > anchors[1].x) {
+         point->x += anchors[1].x;
+      } else {
+         point->x += anchors[0].x;
       }
+         
+      point->y = abs(anchors[1].y - anchors[0].y) /2;
+      if (anchors[0].y > anchors[1].y) {
+         point->y += anchors[1].y;
+      } else {
+         point->y += anchors[0].y;
+      }
+      RoadMapScreenPointerLocation = *point;
 
    } else {
 
@@ -1736,7 +1727,6 @@ static int roadmap_screen_drag_end (RoadMapGuiPoint *point) {
    if (RoadMapScreenChordingEvent) {
 
       RoadMapScreenChordingEvent = 0;
-      RoadMapScreenChordingIsRotating = 0;
 
    } else {
 
@@ -1757,54 +1747,43 @@ static int roadmap_screen_drag_motion (RoadMapGuiPoint *point) {
 
    if (roadmap_canvas_is_chording() && RoadMapScreenChordingEvent) {
       RoadMapGuiPoint ChordingPt[MAX_CHORDING_POINTS];
+      long diag_new;
+      long diag_anch;
+      float scale;
+
       roadmap_canvas_get_chording_pt (ChordingPt);
       
-      if (!RoadMapScreenChordingIsRotating) {
-         // Calculate zoom change
-	 long diag_new = roadmap_math_screen_distance
-	 	(&ChordingPt[0], &ChordingPt[1], MATH_DIST_ACTUAL);
-         long diag_anch = roadmap_math_screen_distance
-	 	(&RoadMapScreenChordingAnchors[0], &RoadMapScreenChordingAnchors[1], MATH_DIST_ACTUAL);
-         float scale = (float)diag_anch / (float)diag_new;
+      // Calculate zoom change
+      diag_new = roadmap_math_screen_distance
+         	    (&ChordingPt[0], &ChordingPt[1], MATH_DIST_ACTUAL);
+      diag_anch = roadmap_math_screen_distance
+ 	 	    (&RoadMapScreenChordingAnchors[0],
+		     &RoadMapScreenChordingAnchors[1], MATH_DIST_ACTUAL);
+      scale = (float)diag_anch / (float)diag_new;
          
-         roadmap_math_zoom_set (ceil(roadmap_math_get_zoom() * scale));
-         roadmap_layer_adjust ();
+      roadmap_math_zoom_set (ceil(roadmap_math_get_zoom() * scale));
+      roadmap_layer_adjust ();
          
-         // Calculate point position
-         point->x = abs(ChordingPt[1].x - ChordingPt[0].x) /2;
-         if (ChordingPt[0].x > ChordingPt[1].x) {
-            point->x += ChordingPt[1].x;
-         } else {
-            point->x += ChordingPt[0].x;
-         }
-         
-         point->y = abs(ChordingPt[1].y - ChordingPt[0].y) /2;
-         if (ChordingPt[0].y > ChordingPt[1].y) {
-            point->y += ChordingPt[1].y;
-         } else {
-            point->y += ChordingPt[0].y;
-         }
-         
-         roadmap_screen_record_move
-                     (RoadMapScreenPointerLocation.x - point->x,
-                      RoadMapScreenPointerLocation.y - point->y);
-                      
-         RoadMapScreenPointerLocation = *point;
+      // Calculate point position
+      point->x = abs(ChordingPt[1].x - ChordingPt[0].x) /2;
+      if (ChordingPt[0].x > ChordingPt[1].x) {
+         point->x += ChordingPt[1].x;
       } else {
-         float angle_new = roadmap_math_get_angle (&ChordingPt[0], &ChordingPt[1]);
-         
-         int angle_delta = ceil (angle_new - RoadMapScreenChordingAngle);
-         if (angle_delta > 15) {
-            roadmap_screen_rotate (15);
-            RoadMapScreenChordingAngle += 15;
-         } else if (angle_delta < -15) {
-            roadmap_screen_rotate (-15);
-            RoadMapScreenChordingAngle -= 15;
-         } else {
-            roadmap_screen_rotate (angle_delta);
-            RoadMapScreenChordingAngle += angle_delta;
-         }
+         point->x += ChordingPt[0].x;
       }
+         
+      point->y = abs(ChordingPt[1].y - ChordingPt[0].y) /2;
+      if (ChordingPt[0].y > ChordingPt[1].y) {
+         point->y += ChordingPt[1].y;
+      } else {
+         point->y += ChordingPt[0].y;
+      }
+         
+      roadmap_screen_record_move
+                  (RoadMapScreenPointerLocation.x - point->x,
+                   RoadMapScreenPointerLocation.y - point->y);
+                      
+      RoadMapScreenPointerLocation = *point;
       
       RoadMapScreenChordingAnchors[0].x = ChordingPt[0].x;
       RoadMapScreenChordingAnchors[0].y = ChordingPt[0].y;

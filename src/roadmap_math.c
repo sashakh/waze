@@ -1225,13 +1225,6 @@ int  roadmap_math_get_orientation (void) {
    return RoadMapContext->orientation;
 }
 
-float roadmap_math_get_angle 
-	(RoadMapGuiPoint *point0, RoadMapGuiPoint *point1) {
-   float delta_x = point0->x - point1->x + 1;
-   float delta_y = point0->y - point1->y + 1;
-   return (90 * (delta_y / (delta_x + delta_y)));
-}
-
 void roadmap_math_to_position (const RoadMapGuiPoint *point,
                                RoadMapPosition *position,
                                int projected) {
