@@ -334,7 +334,7 @@ FONT = LiberationSans-Bold.ttf
 # the manual is a post-processed version of README.  the conversion tool
 # isn't common, so we distribute both.  (this version is slightly
 # different than that built in the web subdirectory.)
-MANUAL = manual.html
+MANUAL = usermanual.html
 
 # more products
 ifeq ($(DESKTOP),WINCE)
@@ -487,7 +487,9 @@ installdoc: $(MANUAL)
 	-cp $(MANUAL) $(pkgdatadir)
 
 $(MANUAL): ../README
-	-aptconvert -pi html showTitle yes -toc -enc ASCII $@ $<
+	expand $< | \
+	(cd ../doc; txt2tags --target html \
+	    --toc --infile - --outfile - ) >$@
 
 uninstall:
 	cd $(pkgdatadir) && rm -f $(PKGDATAFILES)
@@ -570,8 +572,10 @@ RELNAME = roadmap-$(DOTVERSION)
 .PHONY: checkdotversion sourcelist linkdir tarball webdoc
 
 # source files from "..", i.e. the real top-level.  these go into tarball.
-UPPER_SRC = README README.osm README.iphone \
-    STATUS AUTHORS BUGS TODO CHANGES COPYING INSTALL howtos/makemaps.txt 
+UPPER_SRC = README COPYING 
+DOC_SRC = Bugs ChangeLog Coding Configuration Developer-Guide \
+	Installation Map-Building Map-Designing Map-Format \
+	OpenStreetMap Platforms Quickstart Status ToDo Usage
 
 tarball: $(RELNAME)-src.tar.gz
 
@@ -581,6 +585,7 @@ tarball: $(RELNAME)-src.tar.gz
 $(RELNAME)-src.tar.gz: linkdir $(ALL_SRC)
 	@tar --dereference -czvf $(RELNAME)-src.tar.gz \
 	    $(addprefix $(RELNAME)/, $(UPPER_SRC)) \
+	    $(addprefix $(RELNAME)/doc/, $(DOC_SRC)) \
 	    $(addprefix $(RELNAME)/src/, $(shell \
 		  $(MAKE) -C $(RELNAME)/src --no-print-directory sourcelist) \
 	    )
