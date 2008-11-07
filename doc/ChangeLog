@@ -4,17 +4,94 @@ November 2008
 
 Roadmap v1.2.0 (??)
 
- This list is current as of 3/17/2008, created with the help of
-
+ This list is current as of 11/7/2008, created with the help of
 ```
-   cvs2cl.pl -l "-rv1_1_0::HEAD"
+   cvs2cl.pl -l "-d2008/03/17<2008/11/30"
 ```
 
  Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
 
+  - Refactored the documentation into more files for easier maintenance.
+    Switched to "txt2tags" (from "aptconvert") for generating online
+    copies of docs.
+
+  - Added "advanced style" support, which adds many new line types etc.
+    Currently still disabled via ifdef.
+
+  - Allow fatal message popups that occur very early to actually be seen. 
+    (Previously we were exiting before they were made visible.
+
+  - Added license message to About menu.
+
+  - Added ability to suppress on-screen errors entirely. (Joshua Layne)
+
+  - Added ability to auto-build makefile dependencies.
+
+  - Many source files now support doxygen format function and file headers.
+
+  - Added commandline arguments for setting the system and user config, and
+  the icon path.
+
+  - RoadGPS console now shows sun and moon positions.  (from Morten Bek)
+
+  - Tooltips now include key-binding help.
+
+  - Added support for OLPC XO laptop, in the form of scripts to bundle
+  RoadMap as an activity.
+
+  - Allow suppressing the "Lost Satellite" message with a timeout parameter.
+
+  - Resurrection of WinCE support, from Danny Backx (uses minw32ce).
+    Includes GPS autodetection.
+
+  - Added several revisions' worth of support for Apple iPhone and iPod,
+  from Morten Bek.
+
+  - Remove many redundant repaints, for better performance on slower
+    machines.
+
+  - Preserve label, dynamic orientation, and 2D/3D preferences.  (Joshua Layne)
+
+  - Add timeout which allows map to stop tracking the GPS after a short
+    delay if it's now off-screen.  (Useful when you pan away from the
+    GPS, to stop the map from continuing to move.)
+
+  - Rationalized the units used for storing and passing altitude.
+
+  - Improve handling of GPS devices that come and go.
+
+  - Added GPS time to GPS console screen.
+
+  - Merged RoadGPS functionality into RoadMap, so separate executable
+    is no longer necessary (though still available).
+
+  - "North Up" is now the default mode.  It's much more efficient.
+
+  - Code can now more easily destroy previously displayed message boxes.
+
+  - Can now handle many more satellites, and satellites with bigger ID
+    numbers, in RoadGPS.
+
+  - Fixed issue with new fields appearing in gpsd2 protocol sentences.  We
+    should now be tolerant of such changes in the future.
+
+  - Improved handling of messages that pop up when the GPS reception is
+  poor.
+
+  - Added ability to scale sprites, either individually, or all at once.
+
+  - Added font size control for RoadGPS.
+
+  - config files can now have CR ('\r') characters at end of line.
+
+  - Added ability to disable progress bar display, and configure its delay.
+
+  - Improved efficiency of map paths specified with "/..." -- the trees
+  are now only walked when needed.
 
   - Make the screen much more responsive when lengthy rendering is in
-  progress.  User "type-ahead" can now interrupt rendering.
+  progress.  User "type-ahead" (or "mouse-ahead") can now interrupt
+  rendering.
 
   - Added a progress bar to show expected duration of lengthy repaints.
 
@@ -23,10 +100,10 @@ Roadmap v1.2.0 (??)
   - New support for "overrides.mk" file allows build preferences to be
   specified without editing any distributed files.
 
-  - New "--icons" command-line argument to accompany "--config" and
-  "--maps".  If specified, the values of "--icons" and "--config" are
-  passed to roadgps when it is started, so that it can find its config and
-  icons in the same places.
+  - New "--user" and "--icons" command-line arguments to accompany
+  "--config" and "--maps".  If specified, the values of the "--icons" and
+  the "--config" options are passed to roadgps when it is started, so that
+  it can find its config and icons in the same places.
 
   - Modify what what focus is saved on shutdown -- if the focus
   is GPS, then preserve it, otherwise, "hold" the screen at the
