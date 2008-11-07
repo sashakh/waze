@@ -1,0 +1,142 @@
+RoadMap Developer Information
+
+November 2008
+
+= Developer Information =
+
+  - Porting RoadMap
+
+     The roadmap and roadgps applications have been designed so to facilitate
+     portability. Two sub-parts of RoadMap have been isolated for that purpose:
+     the graphic user interface and the OS interface.
+
+     The graphic user interface is all defined by the following header files:
+
+        | roadmap_main.h           | The application's main window.
+        | roadmap_canvas.h         | The canvas used to draw the map.
+        | roadmap_dialog.h         | The widget used to build dialogs.
+        | roadmap_messagebox.h     | A pre-built warning/error dialogs.
+        | roadmap_fileselection.h  | A pre-built file selection dialog.
+
+     The OS interface is defined by the following header files:
+
+        | roadmap_net.h            | Isolate socket interface oddities.
+        | roadmap_path.h           | Hides the OS syntax for file path.
+        | roadmap_file.h           | Primitives to access and map binary files.
+        | roadmap_time.h           | Primitive to get the local time.
+        | roadmap_spawn.h          | Hides the OS process control.
+        | roadmap_library.h        | Load and link to dynamic libraries (future).
+
+     Implementations of the user interface for the GTK, GTK2 and Qt toolkits
+     are provided, as well as one implementation of the OS interface for UNIX.
+
+     Porting RoadMap to a new environment probably means to adapt the RoadMap
+     make files and write new implementations for the functions defined in
+     the header files listed above.
+
+  - Writing a RoadMap Driver
+
+     A RoadMap "driver" is a standard UNIX program that interacts with
+     RoadMap using the standard input and output.  There is no need to
+     link to a specific RoadMap library, even while this is not forbidden
+     either.
+
+     RoadMap launches each driver with its standard I/O redirected to
+     pipes.  The driver program must exit when any of these pipes breaks.
+
+     The protocol between RoadMap and the drivers uses the NMEA syntax,
+     with one NMEA standard sentence and some RoadMap-specific extensions. 
+     The general design is that the driver takes the initative and RoadMap
+     answers.
+
+     It is possible to write a driver that can be launched multiple times
+     by RoadMap.  The only requirement is to associate a different driver
+     name to each occurrence in the drivers file.  It is recommended the
+     driver takes its name from its command line, using the following
+     syntax:
+
+```
+         --driver=<name>
+```
+
+     It is also recommended that the driver name be used as the
+     preferences category when requesting a driver's specific preferences
+     items.  The makes it possible to configure each occurrence of the
+     driver independently.
+
+     See roadmap_ghost.c for an example of a minimal RoadMap driver.
+
+
+  - DRIVER COMMANDS
+
+```
+          $PXRMCFG,<category>,<name>,<default>
+```
+
+     This sentence requests the value of the provided RoadMap preferences
+     item. If the item is ot defined, RoadMap will answer with the default
+     value provided. The RoadMap's answer uses the exact same syntax, where
+     the default value is replaced with the actual value.
+
+     There is no need to declare a preferences item in advance: RoadMap
+     will declare the item on the fly.
+
+```
+          $PXRMSUB,<item>,...
+```
+
+     This sentence requests RoadMap to send periodic updates of the specified
+     items. Each command adds to the subscription list: there is no way to
+     unsubscribe. The subscription items supported by RoadMap are:
+
+        - RMC: requests RoadMap to transmit every change to its current GPS
+          position. The RoadMap position is sent as a NMEA $GPRMC sentence.
+
+```
+       $PXRMADD,<id>,<name>,<sprite>
+```
+
+     This sentence requests RoadMap to record a new object to its tracking
+     list. The object is identified by it's ID. The name and the sprite are
+     used for display. The sprite must have been defined in RoadMap's sprites
+     file.
+
+     A newly created object has no position. This object will not appear on
+     the screen until a position has been provided.
+
+```
+       $PXRMMOV,<id>,<latitude>,<N|S>,<longitude>,E|W,<speed>,<steering>
+```
+
+     This sentence associates a new position to the specified object. There
+     is no limit on how many times the position of an object can be changed.
+     The syntax for the position mimics the syntax used in GPRMC, except that
+     the speed and steering must be integers (no fractional part).
+
+```
+       $PXRMDEL,<id>
+```
+
+     This command requests RoadMap to delete the specified object.
+
+
+  - ROADMAP RESPONSES
+
+```
+       $PXRMCFG,<category>,<name>,<value>
+```
+
+     This sentence is the answer to the driver's $PXRMCFG requests. The
+     only difference compare to the request is that the default value has
+     been replaced with the actual value.
+
+```
+       $GPRMC,<time>,<latitude>,<N|S>,<longitude>,E|W,<speed>,<steering>,
+              <UTC date>,0,E
+```
+
+     This sentence is the answer to the driver's subscription to the RMC item.
+     It uses the standard NMEA syntax, except that the speed and steering are
+     integers (no fractional part), while the magnetic variation is always 0.
+
+

@@ -1,0 +1,108 @@
+RoadMap Map Building 
+
+November 2008
+
+
+= Building Maps =
+
+     To build the TIGER map files from scratch:
+
+     + download some maps from the US Census bureau:
+
+           http://www.census.gov/geo/www/tiger/tiger2006se/tgr2006se.html
+
+     This download can be automated by using the shell script
+     roadmap/src/rdmdownload:
+
+```
+        rdmdownload <tiger-path> [<state-symbol> ..]
+```
+
+     (To download older versions of the maps (e.g.  2000), see the
+     script for the options available.)
+
+     + Build the maps:
+
+```
+        rdmgenmaps <tiger-path> maps=<map-path>
+```
+
+     This command processes all the Census Bureau files found in <tiger-path>
+     and creates the map files for RoadMap in the <map-path> directory.
+     There is one map file generated for each county.  Alternately, specific
+     counties can be built.  Counties are identified by their FIPS codes
+     (e.g. 06075 for San Francisco, CA).
+
+```
+        rdmgenmaps <tiger-path> [maps=<map-path>] <county fips code> ..
+```
+
+     The rdmgenmaps command can also process one full state at a time:
+
+```
+        rdmgenmaps <tiger-path> maps=<map-path> <two-letter state abbreviation>
+```
+
+     The rdmgenmaps tool is a shell script that extracts the TIGER files from
+     the downloaded ZIP files, invokes the buildmap tool and then cleans up
+     the TIGER files.  Last, rdmgenmaps invokes the buildus tool to generate
+     the US states and counties catalog.  The main purpose of rdmgenmaps is
+     really to keep the TIGER files in compressed form, considering their
+     huge size..
+
+     The buildmap tool is the worker program used by rdmgenmaps.  It
+     takes a county "FIPS" code and a TIGER file as input and produces one
+     RoadMap .rdm map file.  The option --help gives more information about
+     the available options.
+
+     Here is an example:
+
+```
+        buildmap 01001 /tmp/TGR01001.RT1
+```
+
+     The buildus tool creates a catalog of maps that is used by RoadMap
+     to combine all states and counties into a giant US map.
+
+
+= Map Utilities =
+
+   RoadMap comes with a small set of utility programs and scripts which
+   are used to build and maintain the map data files that roadmap uses.
+
+   : buildmap
+       buildmap takes various input map formats as input and
+       produces the map files used by roadmap.  This program
+       is only used to prepare the map files and is not
+       needed when running roadmap.
+
+   : buildus
+       buildus takes a set of roadmap map files and creates a
+       directory file that lets roadmap choose the map(s) to
+       display according to location or city.  buildus is not
+       needed when using roadmap -- only when preparing the
+       maps.
+
+   : rdmgenmaps
+       A script to simplify the generation of the maps.
+
+   : dumpmap
+       Display the data tables from a map file.  This application is used
+       for debug purposes only and is not needed when using roadmap.
+
+       A RoadMap map file is a small database of C tables.  The tables are
+       organized in a tree fashion and each table is identified by a path. 
+       One specific set of tables (the dictionary) groups all the names
+       that appear in the map.
+
+       dumpmap can be used to display information extracted from a map file:
+```
+       dumpmap [--usage] [-d TABLE] [--strings] [--volume=NAME] [--search=NAME]
+```
+       The name of map files must be provided after the options:  dumpmap
+       will process each provided file sequentially, according to the
+       options that was selected.
+
+       See the "Map Format" section of the documentation for more
+       information about the format of the maps.
+

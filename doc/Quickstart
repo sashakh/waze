@@ -1,0 +1,69 @@
+RoadMap Quickstart
+
+November 2008
+
+= Quickstart =
+
+   This section describes the most basic steps you'll need to perform
+   in order to get RoadMap running on your system.  More detailed
+   information is available in the Installation Guide section of the
+   documentation.
+
+   To build RoadMap for a "standard" linux/unix environment, follow
+   the following steps:
+
+     - Read the commentary in "config.mk", and edit the values there
+       to select your build options.  For most users, no other
+       configuration choices should be necessary.
+       
+     - Run "make".  (RoadMap requires GNU make, and may require gcc).
+       
+     - Run "make install".  This will install the executables as well
+       as important data files.  It will _not_ install any map data,
+       however.  At this point you should be able to run "roadmap",
+       but it will tell you there are no maps.
+
+     - To test drive RoadMap for the first time, download the
+       "demo" maps from:
+
+         http://roadmap.digitalomaha.net/maps/demo_maps.tar.gz
+
+       This tarball contains state outlines for all of the continental
+       USA, plus the detailed map of San Francisco county.  Unpack
+       this file somewhere convenient, e.g. /tmp/demo_maps.
+
+     - Start RoadMap, specifying the path that you chose above:
+
+```
+        roadmap --maps=/tmp/demo_maps
+```
+
+       Use the arrow keys (or drag with the mouse) to pan, and use the
+       on-screen controls or the '+' and '-' keys to zoom.  RoadMap's
+       help text is available in html format via the Help menu (which
+       reads the installed copy of "manual.html") or in plaintext in
+       the README file.  Use the 'q' key or the File->Quit menu
+       item to quit.
+
+     - When you're ready to download a more complete set of maps, get
+       them from
+
+         http://roadmap.sourceforge.net/maps.html
+
+       Be sure to get the master index file in addition to any maps
+       you may need.  Unpack these into a more permanent home than
+       before -- under "/var/lib/roadmap", or in your home directory,
+       under "~/.roadmap/maps".  If you choose a different directory
+       than either of these, you'll need to navigate to the "Map"
+       preferences panel (File-->Preferences->Map), and enter the 
+       chosen path as Map.Path.
+
+
+   For more complete installation and configuration information,
+   please consult the "INSTALLATION" section of the README file.
+   The README is on the web, here:
+
+         http://roadmap.sourceforge.net/manual.html
+
+   Good luck, and have fun!
+

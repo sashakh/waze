@@ -1,0 +1,366 @@
+RoadMap Platform Specifics
+
+November 2008
+
+
+= Platform Specific Information =
+
+The generic instructions and information given elsewhere are appropriate
+for most "standard" linux desktop machines, but some handheld and "special"
+devices have slightly specific requirements.  These are described here.
+
+
+== Windows CE Support ==
+
+  - Dependencies and Limitations
+
+     The initial port to Windows was implemented by Ehud Shabtai.
+
+     RoadMap is currently only available for Windows CE (PocketPC, Windows
+     Mobile).  There is no support for desktop Windows (XP, Vista, ..) -- the
+     WIN32 API is not the same on all Windows platforms.
+
+     RoadMap uses the WIN32 API exclusively, no specific graphic library
+     is required.
+
+     There is UNIX Makefile support for building the WinCE version of
+     RoadMap using the arm-mingw32ce cross-compiler toolchain,
+     available from http://cegcc.sourceforge.net .
+
+     Maps cannot be built under Windows (buildmap and buildus have not been
+     ported yet).  Maps built under Linux can be used on PocketPC systems.
+
+     The flite software is available under Windows: a PocketPC 2002 (ARM)
+     binary is available on the RoadMap project's SourceForge web site. The
+     flite.exe binary must be installed in the same folder as the roadmap.exe
+     binary.
+
+     The gpsd software is not available on Windows.  Note that network access
+     to a remote gpsd is possible (the remote computer must run UNIX).
+
+     Instead of a local gpsd, RoadMap can uses a Windows serial port and the
+     GPS source should then be specified as "COM1:", "COM2":, etc...
+     Bluetooth devices are also known to work (over a virtual serial port).
+
+     Only NMEA-capable GPS devices are supported, unless a remote gpsd is
+     used.
+
+     Features not available on Windows :
+
+     - Downloading maps on the fly
+
+     - The screenshots feature
+
+     - The full-screen mode of RoadMap
+
+     - The ~ and & shortcuts used when specifying pathnames.
+
+
+  - Configuration Files
+
+    Windows CE based computers are usually of the PDA type, so we make it
+    possible to install all RoadMap files in a memory card.
+
+    The configuration directories on Windows CE are:
+
+           + \Program Files\roadmap
+           + \Storage Card\roadmap (preferred path)
+           +
+
+    As Windows CE does not really have the concept of a user directory,
+    RoadMap will automatically add to the list the directory holding the
+    RoadMap executable.
+
+    The default name of a memory card on your Windows CE device is extracted and
+    automatically supported by RoadMap.  In that case, replace \storage card\..
+    in the example above by e.g. \SD Card\.. .
+
+  - Installing maps
+
+    On Windows CE the default map search path is:
+
+           + \Program Files\roadmap\maps
+           + \Storage Card\roadmap\maps (preferred path)
+           +
+
+
+== iPhone/iPod Support ==
+
+The iPhone/iPod touch support is preliminary as of yet, but it is usable in
+the current state.  Initial iPhone support (as well as this README) was
+provided by Morten Bek.
+
+  - Official vs. unofficial SDK:
+
+       The official iPhone sdk is not used for the iPhone port.  Since a
+       GPS was added to the iPhone 3G, Apple has added a clause to the
+       license agreement that prohibits developers from making car
+       navigation applications using the official SDK.
+
+       Other than this clause, one must sign an NDA when downloading the
+       SDK, so effectively GPL'ed software can't be built using the SDK
+       since publishing the source is a violation the NDA.
+
+       Many people were hoping that once the iPhone 2.0 firmware was
+       released, the NDA would be lifted and the port could be modified to
+       work with the official SDK, but I guess that this new clause
+       effectively ends that hope...  Oh well, long live the unofficial SDK
+       and jailbroken iPhones...  :-)
+
+  - Compiling
+
+       The iPhone binaries should be compiled using the unofficial iPhone
+       toolchain ({{http://code.google.com/p/iphone-dev/wiki/Building}}). 
+       It should be possible to get the toolchain up and running on both
+       OSX, Linux and MS Windows.  In config.mk set the DESKTOP to iphone
+       and optionally use some of the example options for setting CROSS,
+       CFLAGS, etc.  If you use the example options your binaries will be
+       placed in
+
+```
+          /tmp/Applications/RoadMap.app
+```
+
+       The binaries will have references to
+```
+          /Application/RoadMap.app/resources
+```
+       so be sure to install in that location - or change your settings
+       accordingly.
+
+       The program compiles nicely with expat.  Just download the latest
+       version of expat and do a ./configure using the paths to your
+       toolchain binaries.  I haven't got dynamic linking to work, so
+       instead I copy expat/.libs/expat.a to the roadmap/src directory -
+       run the toolchain version of ranlib on the binary and then link with
+       that library statically.
+
+  - Installation
+
+       If you use the example options, simply use:
+```
+          scp -r /tmp/Applications/RoadMap.app root@your.iphone.ip:/Applications
+```
+       Notice that roadmap installs many additional binaries in
+       RoadMap.app/bin.  These are not needed for RoadMap to operate, but
+       you may play around with them on the phone or delete them before
+       copying the folder to the phone.
+
+       Maps need to be placed in
+```
+          /Applications/RoadMap.app/resources/maps
+```
+       Maps are in a binary format and sometimes need to be converted to or
+       built on the device on which they will be used.  However, maps built
+       on i386 linux are compatible with the iPhone.
+
+  - Known Issues
+
+       - No menu support
+       - Only preliminary toolbar support
+       - No keyboard shortcuts (hard without a keyboard! :-)
+       - No advanced dialog support (although messageboxes do work)
+       - Returning to the dashboard quits the application.  It could be
+         useful to have it continuing to operate in the background,
+         displaying a status icon in the iPhone status bar.
+
+  - Then What Actually Works?!?
+
+       - Map drawing (with minor flaws), zooming (no iPhone-style pinching
+         yet), panning.
+       - GPS connection to gpsd
+       - roadmap.screenobjects can be edited to show various buttons with
+         various actions.
+       - Trip logging
+       - Drivers
+       - Speech synthesis using flite -- requires flite from Saurik: 
+          http://www.telesphoreo.org/browser/trunk/data/flite
+
+  - Future Enhancements
+
+       To fix all known issues, naturally :-)
+
+
+
+== Familiar Support ==
+
+     This section describes the installation of RoadMap on an
+     ARM-powered PDA running Familiar Linux and the GPE graphic
+     environment.  The full README should be used as well, of course.
+
+     **Some of the instructions below are dated.  Proceed with caution.**
+
+  - BEFORE THE INSTALL
+
+    - Removing a prior installation of RoadMap
+
+       Since RoadMap 1.0.4 the path to the maps has changed. In addition there is
+       no more package for the maps (the maps are too big for that and there was
+       only one example map anyway). Therefore the roadmap-sfca package should be
+       removed first
+
+```
+       ipkg remove roadmap-sfca
+```
+
+       The name of the RoadMap package has also changed from roadmap-gtk2 to
+       roadmap. Therefore the roadmap-gtk2 package should be removed:
+
+```
+       ipkg remove roadmap-gtk2
+```
+
+
+    - Making room for RoadMap
+
+       On a PDA with 32Mb of RAM, GPE takes most of the available space and less
+       than 2Mb of RAM is left available. For RoadMap to work one need to make
+       some room. The author recommends removing xstroke and the GPE help from
+       the bottom panel.
+
+       Another problem is a bug in the Familiar X server that causes the file
+       ~/.xsession-errors to grow infinitely in the ramdisk, eating up all the
+       available RAM in a matter of days.
+       
+       The work-around is to not start the ipaq-sleep daemon. To do this,
+       comment out the line "/etc/init.d/ipaq-sleep start" in the file:
+
+```
+               /etc/X11/Xsession.d/69ipaq-sleep
+```
+
+
+    - Installing gpsd
+
+       RoadMap depends on gpsd for receiving data from the GPS device. Therefore
+       the gpsd package must be installed:
+
+```
+       ipkg install gpsd
+```
+
+       Once this has been done, the serial line must be configured for using gpsd
+       (see the serial line configuration tool in the Settings folder).
+
+    - Installing flite
+
+       RoadMap uses flite for generating the voice announcements. RoadMap
+       can be used without flite, but it will stay silent then.
+
+       Note that flite is a very big program: it should be installed on the
+       MMC, SD or CompactFlash (CF) card. Installing flite is easy: just copy
+       the executable file. The problem is more where to find the executable..
+
+
+  - INSTALLING ROADMAP
+
+       There are three steps: first install the RoadMap package, then install
+       some maps and last setup your preferences if you installed RoadMap in
+       a custom way.
+
+    - Installing from the Familiar package
+
+       If available at all, the RoadMap familiar distribution contains one .ipk
+       package file.  This package contains the RoadMap executables (roadmap and
+       roadgps) as well as the configuration files for a GTK 2.0 setup (such as
+       the Familiar 0.7.2 GPE image).  This package does not contain the map files
+       or the map index file.
+
+       If RoadMap is available from your feed:
+
+```
+          ipkg install roadmap
+```
+
+       If you downloaded the ipk files on the iPAQ:
+
+```
+          ipkg install roadmap_X.Y.Z_arm.ipk
+```
+
+       RoadMap is useless without maps. The maps can be downloaded from the
+       web site (http://roadmap.sourceforge.net/maps.html or mirrors) or
+       generated from the US Census Bureau's files (see later).
+
+       It is strongly recommended you install the maps on a CompactFlash or
+       SD/MMC card, and not on the iPAQ internal flash. The reason is that the
+       maps are way too big to be installed on the iPAQ flash. As configured,
+       RoadMap will look for the maps either in
+
+               - /mnt/hda/share/roadmap or
+               - /mnt/card/share/roadmap.
+               -
+
+       (This can be changed using the Map.Path item in the RoadMap preferences
+       dialog.)
+
+       The set of maps for California represents more that 100 Mbyte of data,
+       the whole US about 1.6 Gbyte. Unless you are the lucky owner of a large
+       capacity CompactFlash, you will have to install a subset. A capacity of
+       128 Mbyte is enough in most cases, 64 Mbyte might be enough if you do not
+       travel far from home.
+
+       To build the maps yourself, you need the Linux/i686 binary or the source
+       tarball. See the next section for more details.
+
+
+    - Installing maps
+
+       The RoadMap package is preconfigured for maps stored either in a MMC,
+       SD or CompactFlash (CF) card.  The map files must be installed in a
+       subdirectory of the device's root directory named "share/roadmap". 
+       The reason for that is to follow standard UNIX convention and make it
+       easier to store other types of data in the device (such as MP3 files).
+
+       The file system used for the device is indifferent (RoadMap maps comply
+       with the 8+3 limitation of the FAT file system) but VFAT is recommended
+       (if only because this is the factory default file system).
+
+       The default Map.Path on the Zaurus is:
+
+             + ROADMAP_MAP_DIR, chosen at compile time,
+             + /opt/QtPalmtop/share/roadmap/..., and its subdirectories,
+             + /mnt/cf/QtPalmtop/share/roadmap/... (preferred path) and
+               its subdirectories, and
+             + /mnt/card/QtPalmtop/share/roadmap/... and its subdirectories.
+             +
+
+       The last two directories are located on a memory card, as this would
+       be the only reasonable place where to install the maps considering
+       their size.
+
+       The map files can be retrieved from the RoadMap site:
+
+           http://roadmap.sourceforge.net
+
+       The first file to install in the share/roadmap subdirectory is the file
+       named "usdir.rdm". This file is mandatory: this is the index used to
+       retrieve all other map files. All other files are optional: one can load
+       a limited subset of maps only. If a map is not available, RoadMap will
+       issue a warning message.
+
+    - Setting the user preferences
+
+       Start Roadmap, select **File / Preferences**. The preferences dialog is
+       made of a (long) serie of tabbed screens. Most preferences do not need
+       to be modified.
+
+    - Configuration Files
+
+      Although the Sharp Zaurus runs linux, its setup is somewhat unusual,
+      and the location of the configuration files is different than the
+      standard install.
+
+      The rationale for the selected setup, which is typical of a PDA, is to
+      try to make RoadMap an auto-installed option when sliding in the proper
+      memory card. So the locations for files always include the Zaurus mount
+      points for the CompactFlash or SD cards.
+
+      The configuration directories on the Sharp Zaurus PDA are:
+
+             + /opt/QtPalmtop/share/roadmap,
+             + /mnt/cf/QtPalmtop/share/roadmap (preferred path),
+             + /mnt/card/QtPalmtop/share/roadmap and
+             + ~/.roadmap.
+             +
+

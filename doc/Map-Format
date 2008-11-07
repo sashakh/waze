@@ -1,0 +1,603 @@
+RoadMap Quickstart
+
+November 2008
+
+
+= Map Details =
+
+   This section contains additional information for developers, knowledge
+   that is not required for using RoadMap. It is here to answer some usual
+   questions and help people who want to hack with the RoadMap code.
+
+   - PROJECTION
+
+     The maps used by RoadMap define all points using longitude/latitude
+     coordinates (WGS 84 datum). This means the coordinates describe the
+     position of the point on a reference elipsoid (as close to the Earth's
+     potato-like shape as scientifically possible). On the other side the
+     Computer (or PDA) screen is still a plane. Converting a longitude and
+     latitude coordinate into a plane X/Y coordinate is traditionally called
+     a "projection". There are several standard projection methods. RoadMap
+     uses none of them that I know of.
+
+     RoadMap first approximates the WGS 84 elipsoid to a sphere. Then it
+     considers the point at the center of the screen and compute the scale
+     at that point (i.e. delta(x)/longitude and delta(y)/latitude. After that
+     the local area is approximated to the plane that is tangent to the sphere
+     on that center point. Therefore a new projection is defined each time a
+     new screen is drawn. Also the distorsion is probably very significant
+     when zooming out. It is possible to zoom out to the point of seeing
+     the full continental US on the screen, and it is still recognizable.
+     This way of doing things seems to perturbate many people familiar with
+     map projections..
+
+     The RoadMap projection has one major advantage: after the scale has been
+     computed (once per screen refresh), the only transformation left is
+     a simple and fast "(center - position) * scale" conversion. There are
+     two scales: one for longitude and one for latitude (the longitude's
+     scale depends on the latitude). Most operations are performed using
+     integer operations, including the pre-computed sine and cosine tables,
+     so that RoadMap has decent performance on integer-only processors (such
+     as most of the ARM CPUs). In order to do so the (precomputed) sine and
+     cosine table has values that have been multiplied by 32768 and the final
+     scale is being divided by 32768.
+
+     This projection was chosen because of its speed, not really for its
+     accuracy. As the Earth is not exactly a sphere, and certainly far from
+     a plane, the RoadMap projection is going to cause a measurable distorsion.
+     This is not a significant issue in RoadMap for several reasons:
+
+      - most users are concerned with very small areas (a few street blocks),
+     and the map distorsion is not going to be noticeable at this scale.
+
+      - the schematic representation of the streets and geographical features
+     is more important than a geometrically correct drawing.
+
+      - the GPS position is also provided using WGS 84 coordinates and the same
+     projection algorythm is used to represent the GPS position on the screen.
+     The same distorsion effect applies to the GPS position, and thus the GPS
+     position is correct relative to the street (at least when not considering
+     map accuracy problems..).
+
+
+  - MAP FILES AND INDEXES
+
+     The maps are made of three types of files: the map files themselves
+     contains the map data, the map indexes allow for fast retrieval of
+     the map files to display and the class files describe the features
+     stored in each map file.
+
+
+     (See the file README.osm included with thre RoadMap source for
+     information about file naming for OpenStreetMap files.)
+
+     As indicated in several other places, the RoadMap map files (extension
+     .rdm) are organized by administrative territories, such s a county per
+     file in the US. The map files are retrieved using index files, which files
+     themselves use a format similar to the map files. The index files contain
+     only the list of map files, plus some indexes to accelerate the display of
+     a specific area, or the search of an address.
+
+     As for now, the names of the US county files follow the convention below:
+
+```
+      usc<fips>.rdm
+```
+
+     where "fips" is the federal identification number for that county, made
+     of five digits: the first two digits identify the state and the last
+     three digits identify the county within the state.
+
+     As for now, there is a single index file, named usdir.rdm. This file
+     must be in the same directory as the map files.
+
+     This naming convention is likely to change in the near future!
+
+     The rdm files are binary files and uses the local conventions for byte
+     order and C structure layout. 
+     
+     [ //Future//:  In order to make it possible to share map files between
+     different systems, an ASCII format is also defined, with the suffix
+     .rdx; the rdmxchange program translates from one format to the other. 
+     Note that the data stored in the rdx files is strictly equivalent to the
+     one stored in the rdm files, and the organization of this data is very
+     specific to the RoadMap application.  The rdx format was not designed to
+     exchange data with other applications.  ]
+
+     These two types of files, the map and index files, contain very different
+     data but share the same general organization: these files contain
+     multiple data tables organized in a tree fashion.
+
+  - CLASS FILES
+
+     A class file is a text file that describes the features of a set of map
+     files, where the features are organized in layers. Each map file contains
+     features that belong to one (and only one) class.
+
+     An example of class would be roads. Roads would be organized in layers
+     like freeways, highways, streets and trails. All map files describing
+     roads will contain features organized using these same layers.
+
+     The class files are stored in the RoadMap configuration directories,
+     thus they can be customized by the user, independently from the map files.
+     It must be noted, however, that the way the layers are organized must not
+     be changed. Changing the list of layers would render the existing map files
+     more or less useless.
+
+     The preferred method for customizing a class is to create a new RoadMap
+     skin directory, copy all the class files from an existing skin directory
+     and then edit the class files in that new skin directory. The active
+     RoadMap skin can be selected in the user preferences.
+
+     The class files use the same format as the preference file. It defines
+     the properties of the various layers that make a set of maps.
+
+     The two differences with the preferences files are that there is no
+     predefined layers in RoadMap (layers are entirely defined by the class
+     files) and there is no default value.
+
+     A class file contains general attributes and layer attributes.
+
+     The general attributes are:
+
+        : Class.Name
+           The name of the class (the name of the file does not count).
+           - //Format:// string
+
+        : Class.Lines
+           The line layers, ordered with the top layer first.
+           - //Format:// a space separated list of layer names.
+
+        : Class.Polygons
+           The polygon layers, ordered with the top layer first.
+           - //Format:// a space separated list of layer names.
+
+        : Navigation.Car
+           The list of layers to be used for car navigation.
+           - //Format:// a space separated list of layer names.
+           - //Comment:// The layers should all be line layers.
+
+     For each layer, RoadMap use the following items:
+
+        : <layer>.Class
+           The class of object this layer belongs to.
+           - //Format:// Road, Feature or Area.
+           - //Comment:// Road and Feature categories are searched in the "line"
+                     table of the map files and drawn as lines. The Road
+                     layer is searched when a street name is looked for.
+                     The Area objects are drawn separatly, as polygons.
+
+        : <layer>.Color
+           The first color used when drawing the objects.
+           - //Format:// color
+
+        : <layer>.Color1
+           The second color used when drawing the objects.
+           - //Format:// color
+           - //Comment:// This color is optional. See <layer>.Delta1.
+
+        : <layer>.Color2
+           The third color used when drawing the objects.
+           - //Format:// color
+           - //Comment:// This color is optional. See <layer>.Delta2.
+
+        : <layer>.Color3
+           The fourth color used when drawing the objects.
+           - //Format:// color
+           - //Comment:// This color is optional. See <layer>.Delta3.
+
+        : <layer>.Thickness
+           The thickness used to draw the first color lines.
+           - //Format:// number of pixels
+
+        : <layer>.Delta1
+           The thickness used to draw the second color lines.
+           - //Format:// number of pixels, relative to previous color if negative.
+
+        : <layer>.Delta2
+           The thickness used to draw the third color lines.
+           - //Format:// number of pixels, relative to previous color if negative.
+
+        : <layer>.Delta3
+           The thickness used to draw the fourth color lines.
+           - //Format:// number of pixels, relative to previous color if negative.
+
+        : <layer>.Declutter
+           The zoom level from which the objects are hidden
+            - //Format:// integer
+            - //Comment:// The definition of this item is rather obscure. To be fixed.
+
+     The Color1 to Color3 and Delta1 to Delta3 attributes are optional, but
+     the 1 .. n-1 attributes must be defined if the nth attribute is defined.
+
+     These additional colors are typicall used to draw streets.
+
+  - TABLES
+
+     Each table is identified by its path name (such as "string.data.data").
+     RoadMap tables are organized into two levels, except for the string
+     storage tables that are organized into three levels.
+
+     The dumpmap tool provides a view of the tree of tables.
+
+     Each table is an array of C structures. As the map files are being
+     mapped in memory, RoadMap will access these C structure as if it was
+     a regular C array created by the program.
+
+     Each top level section is managed by a specific RoadMap module (usually
+     one source file) that retrieves all tables within the given top level
+     by name. If one table is missing, RoadMap will exit with a fatal error
+     but it is legal to have additional tables: these will simply be ignored.
+
+     Thus it is not required to know the exact details of the map format
+     in order to be able to access the map information: each module hides
+     the specifics of the section it handles. It is however be necessary
+     to understand the logic organization of the map data in order to be
+     able to navigate through it.
+
+     Each top level section is also created by a specific buildmap module
+     (usually a single source file as well). These modules are totally
+     independent from the format of the original data and should be usable
+     for creating RoadMap map files from other data sources.
+
+     Thus there is no need to know the inner details of the RoadMap map format
+     in order to generate a map file: the buildmap_* modules handle the
+     implementation details for each section, including sorting and indexing.
+
+     All sections are described using the same descriptor structure (see
+     roadmap_db.h) and are organized in a "Russian doll" fashion, i.e.
+     the data area described in a given section covers all subsections
+     (descriptor plus data area). The toplevel section are actually
+     subsections of an anonymous root section, which descriptor starts
+     at offset 0.
+
+  - THE STRING SECTION
+
+     All files contain a "string" top level section. This section stores
+     all texts associated with other records. Its purpose is to handle
+     variable length text in the most compact way, i.e. using no more than
+     the storage needed for the C string (string length plus terminator)
+     and avoiding repeating identical texts. When the string tables is built
+     all identical texts should be identified and each text stored only once.
+
+     In addition, the string section provides a search tree organized in
+     an alphabetical fashion. This tree makes it possible to implement fast
+     name search and completion and was also designed to allow for a "smart"
+     keyboard that grays out invalid characters (the "smart" keyboard was
+     never implemented since RoadMap now uses the standard system keyboard).
+
+     The string section is organized in string categories (city names, street
+     names, etc..). All categories are organized with the same tables:
+
+        : tree
+           This table contains the branches of the search treeindex.
+
+        : node
+           This table contains the leaves of the search tree.
+
+        : index
+           This table contains a relative index to the actual storage
+           location of the string.  Its purpose is to allow the use of
+           a 16 bit identifier instead of using a 32 bit offset.
+
+        : data
+           This table is really a byte buffer that contains the actual
+           strings.
+
+     The string section is handled in RoadMap by the roadmap_dictionary.c
+     module and created by the buildmap_dictionary.c module (see matching
+     header files roadmap_dictionary.h and buildmap.h for more information
+     about the API).
+
+  - DIRECTORY TABLES
+
+     The usdir.rdm file is made of the "string" and "county" sections.
+     The "county" section provides a spatial and city search index for
+     selecting maps involved in an address search or for visualization.
+
+     When an address is provided, RoadMap scans through the "county.bystate"
+     and "county.city" tables to retrieve which counties might include a
+     city by the given name. In order to separate homonymous cities in
+     different states and accelerate the search, the cities are sorted by
+     state and the table "county.bystate" points to the sub-table that covers
+     each state. Thus the logic is to identify the state (sequential search)
+     and then scan through the state's city sub-table to retrieve the city
+     name. Remember that the city names are really stored in "string.city":
+     "county.city" only contains the index to the city name (a 16 bit value).
+     This also speeds up the search.
+
+     When a position (longitude, latitude) is provided, RoadMap scans through
+     the "county.bystate" abd "county.data" tables. Once again, "county.data"
+     is sorted by state and "county.bystate" indicates the matching sub-table.
+     Both states and counties are located by there "bounding box", i.e. the
+     area defined by the most southern and northern points and the most
+     eastern and western points.
+
+     Thus RoadMap searches for all states that may cover the given location,
+     then through the associated "county.data" sub-table to search for the
+     counties that may covert the given location.
+
+     In most cases a position is actually itself the area visible on the
+     screen rather than a single point. That however does not change the
+     logic in any fundamental way: the only difference is that "coverage"
+     is defined as a non-empty intersection between the two areas (visible
+     v.s. bounding box).
+
+  - MAP TABLES
+
+     The county map files are organized into the following sections:
+
+        : string
+             See prior description in this document.  This section is
+             defined in the roadmap_db_dictionary.h header, handled by
+             the roadmap_dictionary.c module and created by the
+             buildmap_dictionary.c module.
+
+        : square
+             Each county is subdivided using an evenly defined grid.
+             Each element of the grid (square) is a rectangle in the
+             longitude / latitude coordinate system.  This section is
+             defined in the roadmap_db_square.h header, handled by the
+             roadmap_square.c module and created by the
+             buildmap_square.c module.
+
+        : point
+             A spatially sorted list of position points used to define
+             lines and polygonal areas.  This section is defined in
+             the roadmap_db_point.h header, handled by the
+             roadmap_point.c module and created by the
+             buildmap_point.c module.
+
+        : line
+             The description of lines (mostly street block).  A line
+             is defined by two points and a type (intertate, street,
+             shoreline, etc..) This section is defined in the
+             roadmap_db_line.h header, handled by the roadmap_line.c
+             module and created by the buildmap_line.c module.
+
+        : shape
+             Additional points that define the shape of lines.  Not
+             all lines have a shape:  straight lines don't.  This
+             section is defined in the roadmap_db_shape.h header,
+             handled by the roadmap_shape.c module and created by the
+             buildmap_shape.c module.
+
+        : polygon
+             The description of areas (parks, hospitals, airports,
+             malls, etc..).  A polygon is defined as a list of points.
+             This section is defined by the roadmap_db_polygon.h
+             header, handled by the roadmap_polygon.c module and
+             created by the buildmap_polygon.c module.
+
+        : street
+             Full streets, i.e. a collection of lines sharing the same
+             street name in the same city (and same ZIP code).  This
+             section is defined in the roadmap_db_street.h header,
+             handled by the roadmap_street.c module and created by the
+             buildmap_street.c module.
+
+        : range
+             A set of index tables to speed up the search of a street
+             address.  This section is defined in the
+             roadmap_db_range.h header, handled by the
+             roadmap_street.c module (not a typo !) and created by the
+             buildmap_range.c module.
+
+  - THE SQUARE SECTION
+
+     Each county is divided in tiles (called quite improperly "squares").
+     Most data (point, lines and polygons) are sorted by square and indexes
+     allow to access only the sub-table related to one square. The purpose
+     of the square design is to speed up drawing and research (scan smaller
+     amount of data), avoid page fault, limit the process memory use to the
+     local vicinity information as well as reduce the size of the maps by
+     using 16 bit relative positions instead of 32 bit absolute ones.
+
+     The squares are generated by buildmap so that each square is small
+     enough for a 16 bit longitude and latitude offset. All squares have
+     the same "size" as expressed in longitude / latitude.
+
+     In some case (Hawaii) the land is a very sparse subset of the grid,
+     so the grid is described using a list of grids instead of a complete
+     matrix. RoadMap regenerate the matrix when the file is mapped.
+     Without that optimization Hawaii could not be handled.
+
+     The square section is made of two tables: square.global and square.data.
+
+     The global table contains only one record that stores the size of
+     the matrix (in number of element) and the size of each element (as
+     longitude and latitude offsets).
+
+     The data table contains the position of each square as well as the
+     number of points located in that square.
+
+  - THE POINT SECTION
+
+     All points referenced by the lines and polygons are actually stored
+     in this section. The shape are however different (not made of points,
+     see later).
+
+     The point section is made of two tables: point.data and point.bysquare.
+
+     The data table contains the position of each point, relative to the
+     south-west corner of its square. Which means you cannot know where
+     a point is without knowing in which square it is.
+
+     The bysquare table is an index to retrieve all points within a given
+     square. The index in point.bysquare is the square index. All the points
+     sorted so that all points within a given square are grouped. This
+     format optimizes the search by square, which is the most used one (such
+     as when drawing a map).
+
+  - THE LINE SECTION
+
+     A line represents a street block, a section of freeway, a ramp, a section
+     of shore, etc.. These lines are all listed in the same table and indexes
+     allow for a fast access according to the location and type. A line is
+     represented with two points: a "from" point and a "to" point. The choice
+     of which point is the "from" is derived fro the corresponding line
+     definition in the map's original source format (usually the first point
+     listed is the "from" point).
+
+     The line section is made of the following tables: line.data, line.bysquare,
+     line.bysquare2 and line.index2.
+
+     The data table contains the reference to the two end points of the line.
+     Note that the shape is stored separately. Lines are sorted by square and
+     type.
+
+     The bysquare table references the sub-table that represents all the lines
+     in the given square. Each record actually contains as many references as
+     there are possible line type: it references each sub-table that represents
+     the lines of a given type in the square. This speeds up drawing as all
+     the lines of a given type are in the same layer, using the same video
+     attributes (color, thickness, etc..) and are displayed at the same time.
+
+     The bysquare2 and index2 tables are used to identify these lines that
+     cross square limits, i.e. the lines that have their two endpoints in
+     two different squares. Table bysquare2 is identical to bysquare, except
+     it references table index2 instead of table data. The table index2 contains
+     the index to the data table. This indirection is needed because the lines
+     have been sorted according to their "from" endpoint, not by their "to"
+     endpoint.
+
+  - THE SHAPE SECTION
+
+     A shape contains the middle points needed to represent curved lines.
+     These middle points are not regular points because they connect nothing
+     together and do not participate into the map's logical organization: the
+     shapes are only useful to display a more accurate drawing of the
+     associate line. It has no function beyond just look.
+
+     The middle points are represented using 16 bit relative offsets from each
+     others, starting with the line's "from" endpoint. If two middle points are
+     too far from each other the buildmap_shape.c module will automatically
+     create additional middle points, as many as required to comply with the
+     16 bit offset limitation.
+
+     The shape section is made of the tables shape.bysquare, shape.byline
+     and shape.data.
+
+     The table data contains the list of middle points, sorted by square, line
+     and order in the line. Thus all middle points required to represent a
+     given line are grouped together and all lines within a given square are
+     also grouped together.
+
+     The table byline identifies the line (index into the line section, see
+     above) and the list of middle points.
+
+     The table bysquare points to the sub-table of byline that contains all
+     the lines within the given square.
+
+  - THE POLYGON SECTION
+
+     The polygon section describes features such as malls, airports, parks,
+     lakes, etc..
+
+     A polygon is represented by a list of lines that defines the area of
+     the polygon (buildmap checks that the list of lines represents a valid
+     and complete border).
+
+     The polygon section contains the tables polygon.head and polygon.points.
+
+     The points table lists the points that make the border of the area,
+     grouped by polygon and sorted so to form a valid polyline fit for
+     drawing the polygon. This table references points defined in the point
+     section. The main reason d'etre for this table is the grouping and
+     sorting: the points are not sorted using the same criteria as in the
+     point section.
+
+     The head table describe the polygon's bounding box, type, name, etc..
+     It also point to the first and last point that defines its border.
+
+     Note that polygons are not sorted by square, as there is no limit on
+     how many squares a polygon could belong to. A use of a more traditional
+     spatial index could have been useful here.. Note however that the number
+     of polygons in a given county is relatively limited, so a more effective
+     visibility search is not critical to RoadMap performances.
+
+  - THE STREET SECTION
+
+     This section contains the tables street.name and street.type.
+
+     The table name contains the references to all the elements of a street
+     name: prefix (South, North, etc..), name, type (Road, Street, Lane, etc..)
+     and suffix (South, North, etc..).
+
+     The table type contains one-byte elements that indicates the type of
+     line for that street (see the line section). This table is not used.
+
+     The main reason d'etre for the street section is to gather togethers
+     elements that are repeatitively referenced together in the range section.
+
+  - THE RANGE SECTION
+
+     The range section describe the street addresses. This is the section
+     the "find by address" feature of roadmap is based on. It also contains
+     the name of those lines for which there is no address associated.
+
+     The range section is made of the following tables:
+
+        : range.bystreet
+             for each street, the ranges that belong to the street.
+        : range.bycity
+             the list of ranges by street, brocken for each city.
+        : range.addr
+             for each range, the street address numbers.
+        : range.noaddr
+             reference to the street for the lines with no address.
+        : range.byzip
+             for each range, the ZIP code.
+        : range.place
+             for each place, the city it belongs to.
+        : range.bysquare
+             for each square, a street search accelerator.
+
+  - THE EXCHANGE FORMAT
+
+     (As of November of 2008, the exchange format described here is not
+     supported -- the code is incomplete.)
+
+     The rdx files are straight conversion of the rdm file in an ASCII format
+     that is neither sensitive to the CPU byte order or the compiler's structure
+     layout. Apart from that ASCII representation, the list of tables and
+     the content of each table is exactly the same as for the rdm file. The
+     purpose of the rdx format is to allow the public distribution of map files
+     that can be used on all CPU architectures.
+
+     A rdx file is organized in two major sections: the first section contains
+     one header per table; the second section contains the data for each table.
+
+     A table header is one text line, with two comma-separated fields: the
+     table name and the table size (in number of records). The header section
+     ends with an empty line.
+
+     The data section is a sequence of table data, each table is separated
+     from the previous table with an empty line.
+
+     Each table data contains the following lines, in that order:
+
+        - Table name
+        - Fields
+        - Record
+        - ...
+        - Record
+
+     The table name is the full path of the table, such as "range/bysquare".
+
+     The fields line is a comma separated list of fields. A field may
+     be suffixed with an array size indication. For example:
+
+```
+       excluded[32],included[32],start,count
+```
+
+     Each record line is a comma separated list of values, in the same order
+     as specified in the fields line. The values of an array field are stored
+     sequentially, as if these were different fields. Value 0 may be represented
+     using an empty string. For example:
+
+```
+        5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,1,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,10,22
+```
+

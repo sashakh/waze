@@ -1,0 +1,1551 @@
+RoadMap Configuration
+
+November 2008
+
+= Configuration =
+
+     This section describes the files used to configure RoadMap on the local
+     machine.  In most cases these files contain user-defined data that
+     defines the look of the RoadMap user interface, or resources used by
+     RoadMap.
+
+     For more information on configuring specific devices (e.g., WinCE,
+     iPhone, XO laptop), see the PLATFORM SPECIFIC section of the
+     documentation.
+
+     We will first describe where to find these configuration files on the
+     different operating systems that RoadMap supports, then we will describe
+     the content of each configuration file.
+
+     The files themselves are the same on all operating systems.
+
+     Note that this section does not cover the files describing the maps:
+     there is a clear separation in RoadMap between the map data, which the
+     user normally does not modify or customize, and the configuration data,
+     which the user may want to custimize.  The map files are described in a
+     separate section.
+
+     The configuration files are stored in a set of directories to allow for
+     a default, system-wide configuration and allow each user to customize
+     the configuration separately.  See the INSTALLATION section of the
+     documentation for more details.
+
+== FILES ==
+
+     The syntax of most RoadMap configuration files is similar to the X
+     ressources file format (the exceptions are the sprites file and the
+     trip files). Each configuration item is represented by one line of text,
+     using the following format:
+
+```
+              name ': ' value
+```
+
+     The following configuration files are used:
+
+       : preferences
+            User's preferences.
+
+       : session
+            The latest context used (locations)
+
+       : sprites
+            The definition of the graphic symbols
+
+       : roadmap.toolbar //(Optional)//
+            The actions shown on the RoadMap toolbar.
+
+       : roadgps.toolbar //(Optional)//
+            The actions shown on the RoadGps toolbar.
+
+     The session file contains the current state of roadmap, which is saved
+     (if needed) when roadmap exits.  The preferences file contains all of the
+     static preference items, and can be edited by the user.  The sprites
+     file contains the graphical definition of the symbols usd by RoadMap to
+     indicates the various locations, to draw the compass, etc..
+
+     The toolbar files define the content of the RoadMap and RoadGps toolbars.
+     See the section CONFIGURING THE MENUS AND TOOLBAR for more information.
+
+  - CLASS FILES AND SKINS
+
+     The RoadMap configuration also contains the map class files. Each class
+     file describes the organization of one set of map files showing the same
+     list of layers (roads, topography, water feature, etc...).
+
+     The class files are stored in a skin subdirectory. It is possible to
+     install multiple sets of class files by creating multiple skin
+     subdirectories and then select the active skin in the user preference.
+     The default skin is named, well, "default".
+
+     The class files are described in more details in the MAP FORMAT section.
+
+     (Note that the class files replace the old //schema// file, which is no
+     longer used.)
+
+== MESSAGES ==
+
+     The RoadMap text displays and voice messages can be configured by the
+     user using format strings in the preferences. The format strings contain
+     static and dynamic parts. The dynamic parts (or "%-macros") are specified
+     using the character '%' followed by one character that denotes a predefined
+     RoadMap variable.
+
+     | %A | Estimated time of arrival (not yet implemented).
+     | %B | Direction of travel (bearing).
+     | %C | The name of the city for the selected or current street.
+     | %D | Distance to the destination (set only when a trip is active).
+     | %E | Next sunset time (evening), undefined in night time.
+     | %e | Next sunset time, always defined.
+     | %F | Full name (number, name, city) of the selected or current street.
+     | %H | Altitude.
+     | %M | Next sunrise time (morning), undefined in daylight time.
+     | %m | Next sunrise time, always defined.
+     | %N | Name of the selected or current street.
+     | %P | Name of the selected or current place.
+     | %R | Name of the route or list containing the selected place.
+     | %S | Speed.
+     | %T | Current time, format HH:MM.
+     | %W | Distance to the next waypoint (set only when a trip is active).
+     | %X | Directions to be followed when the next waypoint (with
+     |    | directions) is reached. (set only when a trip is active).
+     | %Y | Distance to the next waypoint which includes directions, unless
+     |    | the GPS is "at" that waypoint.  (set only when a trip is active).
+     | %# | the street number range to the selected or current street block.
+     | %s | Total number of satellites.
+     | %v | Total number of available satellites.
+     | %x | Distance from one side of the screen to the other.
+     | %y | Distance from the top to the bottom of the screen.
+
+     Note that the time is always shown using the military format: HH:MM.
+
+     Example: "%D (%W)" shows the distance to the destination point, followed
+     by the distance to the next waypoint (in parenthesis).
+
+     A message is evaluated, and displayed, only when all referenced %-macros
+     have a defined value.  Therefore the example above will show nothing if
+     there is no trip active, or if there is no next waypoint.  It is
+     possible to define several alternatives, separated by the character '|':
+     the first alternative that has been successfully evaluated will be
+     displayed.
+
+     Example:  "%D (%W)|%D" shows both distances to the destination point and
+     to the next waypoint if both distances are defined, or else only the
+     distance to the destination point if this distance is defined.  If none
+     of the two distance have been defined (for example when no trip is
+     active), then no display is shown and/or no sound is produced.
+
+     Likewise, "In %Y, %X|%X" will say something like "In 0.5 miles, Turn
+     Right", unless you're already at the point at which you should turn
+     right.  Then it will just say "Turn Right".
+
+     Another typical example is "sunset: %E|sunrise: %M", which shows the
+     next sunset (in daylight time) or sunrise (in night time).
+
+     It is possible to "link" together parts of a string using simple or
+     double quotes.  This is used when the string specifies an external
+     command to execute.  RoadMap does not use the shell to execute commands
+     (so to stay independent from the OS-specific shell syntax), but it does
+     recognise the use of quotes to specify a command parameter that includes
+     spaces.  Such a parameter may be enclosed in single or double quotes.
+     There is no difference between one quote or another, except that the
+     parameter must be terminated with the same quote character it was
+     started with.
+
+     Example: "flite -t 'On %N'" to specify the command flite with two
+     parameters ("-f" and "On %N").
+
+
+== MENUS AND TOOLBAR ==
+
+     The items shown in the RoadMap and RoadGps menus and toolbars can be
+     redefined by the user in text configuration files.  Note that each
+     program comes with a built-in menus and toolbar configuration that
+     serves as the default, so none of these configuration files is required
+     to be present for RoadMap or RoadGps to work.  In fact, RoadMap is
+     distributed with none of the configuration files described in this
+     section.  (Example files are provided for RoadMap, but are not installed
+     automatically.)
+
+     It must be realized that making any change to the menus and the toolbar
+     comes at a price:  this documentation was written using the standard
+     user interface.  Modifying the user interface is likely to make this
+     documentation even more confusing than it originally is.
+
+     The major reason for customizing the menus or the toolbar is to let
+     the user tailor the toolbar to fill small screens (such as a PDA) with
+     his preferred controls at the most convenient place. Using a GUI in
+     a car or on a bike is challenging enough.
+
+     The configuration files are organized with one entity per line. An
+     entity is either the title of a menu, the name of an action, a separator
+     or a comment.
+
+     Each menu is described by it's title (prefixed with character '/'),
+     followed by the list of items in that menu. The title of a menu is
+     a user-defined string with a maximum length of 254 characters (it is
+     recommended to select short titles made of a single word, however).
+     There is no such title line for toolbars: all menu title lines will be
+     silently ignored. The toolbar is organized as a single, anonymous, menu.
+
+     Each menu or toolbar item is described by its action name. A separator is
+     described by the character '-'. There must be only one item (title, action
+     name or separator) per line. Empty lines are authorized  and lines starting
+     with the '#' character are treated as comments.
+
+     There are two sorts of menus.  All menus are available as popup menus,
+     which are invoked either in response to an event (as specified in the
+     preferences "Events" section), or by being invoked from a menu entry or
+     toolbar button.  In addition, menus that are specified as menubar menus
+     will appear in the menu bar.  Invoking a popup menu from another menu is
+     how submenus are implemented in RoadMap.
+
+     The menus, popup and toolbar configuration files for roadmap are named
+     "roadmap.menus", "roadmap.popup" and "roadmap.toolbar", respectively.
+     The same configuration files for roadgps are named "roadgps.menus",
+     "roadgps.popup" and "roadgps.toolbar". These files must be stored in
+     the same places as other RoadMap configuration files.
+
+     By default, a long click of mouse button 1 will bring up the menu called
+     "/Long Click Popup" in road{map,gps}.popup, and a right click (button 3)
+     will bring up the menu called "/Right Click Popup".  These bindings can be
+     changed by setting "Events:Long Click" or "Events:Right Click" in the
+     preferences.
+
+     There is a different list of possible actions for RoadMap and RoadGps.
+     The list of valid action names can be obtained using the command line
+     option --help=actions:
+
+```
+          roadmap --help=actions
+          roadgps --help=actions
+```
+
+     The following is an example of a menus definition file for RoadMap:
+
+```
+         /Right Click Popup
+         preferences
+         gpsconsole
+         -
+         quit
+         /Help
+         about
+```
+
+     The following is an example of a toolbar definition file for RoadMap:
+
+```
+          full
+          quit
+          -
+          destination
+          location
+          gps
+          hold
+          -
+          zoomin
+          zoomout
+          zoom1
+          ->Help...
+```
+     The last item in the toolbar file example will invoke the "Help..." menu.
+     If the toolbar file is empty, no toolbar will be created.
+
+     It's actually possible to configure RoadMap with no on-screen buttons or
+     menus at all.  By creating an empty "roadmap.menus" file, the internal
+     menubar menus will be suppressed.  Then, configure the Long or Right Click
+     action to invoke the "Menus..." menu.  This special popup contains the same
+     list of menus that would normally appear in the menubar.  This allows full
+     access to RoadMap commands, all via the mouse.  More practically, one might
+     wish to bind the "->Menus..." popup menu to a toolbar button -- then
+     RoadMap could run with a toolbar, but no menubar.
+
+     It is also possible to rename the RoadMap actions, with the effect of
+     changing the labels used in the menus and the text of the tooltips.
+
+     The translations are described in text files, one text file per program:
+     "roadmap.actionlabels" for roadmap and "roadgps.actionlabels" for
+     roadgps.  These files should be located in the usual RoadMap
+     configuration places.
+
+     Each action is renamed using one line of text that contains the action
+     name, its menu label, its toolbar label and its tip label (in that
+     order).  Each of these items is separated by one special character.
+     This separator can be any character except a letter (upper case or lower
+     case) or a digit ('0' to '9').  Different separators can be used on
+     different lines, but a single line must use a single separator character.
+
+     The following are examples of valid action renaming lines (from English to
+     French, to please our Canadian friends):
+
+```
+        mutevoice;Silencieux;S;Desactive la synthese vocale
+        enablevoice+Volubile+V+Active la synthese vocale
+        quit,Quitter,Q,Quitter l'application
+```
+
+     (This mechanism is not intended to provide a general mechanism for the
+     internationalization of RoadMap.)
+
+     Remember that the toolbar labels should be very short, since the toolbar
+     has a limited size.
+
+== ON-SCREEN OBJECTS ==
+
+     RoadMap can display small images on the screen (on-screen objects) which
+     can reflect the state of the program (e.g., which way is north, how strong
+     is the GPS signal), and/or allow actions to be performed (e.g.  zoom in,
+     show the trip's destination).  These objects may be placed anywhere on the
+     screen, but nothing prevents them from being obscured by other popup
+     messages and displays, so their position is usually along the sides of the
+     screen.
+
+     The position, display, and actions associated with these objects are
+     controlled by a "roadmap.screenobjects" file.  The distributed copy of this
+     file contains definitions for a small compass image, a map download
+     indicator, zoom in and zoom out control points, and some arrow indicators
+     which help point the way when following a route.  The user is free
+     to make a local copy of this file in order to add on-screen command
+     points, and to customize the display in general.
+
+     The roadmap.screenobjects file is made of a sequence of single-line
+     commands.  The "sprites" referred to in this description are defined
+     in the configuration file named "sprites", described in the "SPRITES FILE"
+     section of the documentation.
+
+     | N <name>               |  Name of the object (unused, but starts
+     |                        |  a new object)
+     | P <x> <y>              |  The screen position of the sprite, measured
+     |                        |  from the top left in pixels.  Negative offsets
+     |                        |  measure from the right and from the bottom.  If
+     |                        |  the <x> or <y> value begins with a 'C', then
+     |                        |  the remainder is an offset from the center of
+     |                        |  the screen.
+     | E <sprite> [text]      |  The name of the sprite which will be drawn.
+     | E <sprite> [text]      |  Multiple sprites can be specified.  Which
+     |                        |  one is displayed is selected via the object's
+     |                        |  "state" indicator.  If "text" is specified, it
+     |                        |  will be displayed with the sprite (assuming the
+     |                        |  sprite has been defined to have text associated
+     |                        |  with it).
+     |                        |  - The text can be divided into multiple lines.
+     |                        |    Line breaks are indicated by inserting a '^'.
+     |                        |  - The text can contain %-macros, just as defined
+     |                        |    for other text displays, in order to display
+     |                        |    dynamic content.  The '|' "alternation" symbol
+     |                        |    is also honored.  See the "CONFIGURING THE
+     |                        |    TEXT AND VOICE MESSAGES" section of the
+     |                        |    documentation.
+     | S <statename>          |  The "state" indicator which will choose among
+     |                        |  the listed sprites.  For "constant" displays,
+     |                        |  this is optional.
+     | A <actionname>         |  The action which should be invoked when the
+     |                        |  sprite is selected.  Optional.  The action can
+     |                        |  be a simple action name, or, when prefixed with
+     |                        |  "-->", the name of a popup menu which should
+     |                        |  be invoked.
+     | R                      |  Sprites will normally rotate, either with the
+     |                        |  screen, or based on an angle retrieved via
+     |                        |  the state indicator.  Specifying 'R' suppresses
+     |                        |  this by forcing rotation to the given angle.
+     | B <x> <y> <x> <y>      |  Optional -- the bounding box used to determine
+     |                        |  whether a selection has taken place.  (I.e.,
+     |                        |  the size of the sprite.) Normally the bounding
+     |                        |  box is calculated by RoadMap itself (and if
+     |                        |  the object will rotate, the bounding box is
+     |                        |  forced to have maximal dimensions), but
+     |                        |  irregularly shaped sprites, combined with the
+     |                        |  rotation of the sprite, may require that the
+     |                        |  box be overridden.  Note that the bounding box
+     |                        |  of any text associated with the sprite is
+     |                        |  calculated and considered separately.
+
+     The screen objects can display different sprites to indicate the state of
+     various internaly RoadMap runtime states.  These state indicators are
+     referenced by name, and are linked to the screen object via the 'S'
+     descriptor in the "roadmap.screenobjects" file.
+
+     The possible state indicators are as follows.  Most have just two possible
+     "return values", but some can represent more than two state values.  In
+     addition, any can optionally return an angle which can influence the
+     display of the sprite.
+
+     |  get_download_enabled  | Indicates whether the user has enabled
+     |                        | map downloads.
+     |  get_GPS_reception     | Four possible states, indicating current GPS
+     |                        | performace:  N/A, none, poor, and good.
+     |  zoom_reset            | Indicates whether zoom is at the default level.
+     |  view_mode             | Indicates 2D or 3D map rendering.
+     |  get_orientation       | Indicates whether map rotation is fixed or
+     |                        | dynamic.  Also returns the current angle of
+     |                        | the map relative to north.  (This is what
+     |                        | drives the on-screen compass object.)
+     |  get_direction_next    | When following a route, indicates the direction
+     |                        | to the next waypoint.  This indication is
+     |                        | relative to the direction of travel -- i.e., it
+     |                        | points correctly if the user holding the display
+     |                        | is facing forward in the vehicle.
+     |  get_direction_2nd     | As above, but points to the waypoint after the
+     |                        | next.
+     |  get_direction_dest    | As above, but points to the final destination.
+
+  - A NOTE REGARDING COLORS
+
+     Some RoadMap configuration items define colors to be used. As a general
+     rule a color must be described in a way that is suitable for the target
+     graphic system.
+
+     In the case of X11, that means either a color name (as defined in the
+     /etc/X11/rgb.txt) or a color definition: #rrggbb where rr, gg and bb
+     are hexadecimal values (for example: #FFFFFF is white, #000000 is black).
+
+     Note that the #rrggbb format is broadly supported, even on target systems
+     that do not support named colors.
+
+
+== PREFERENCE ITEMS ==
+
+     : General.Unit
+         The unit system used, either "imperial" or "metric"
+          - //Default:// imperial
+
+     : General.Default Zoom
+         The zoom level when roadmap is started.
+          - //Format:// integer
+          - //Default:// 60
+
+     : General.Keyboard
+         Show (yes) or hide (no) a keyboard on the screen.
+          - //Format:// boolean
+          - //Default:// yes
+
+     : General.Icons
+         Show (yes) or hide (no) icons on the toolbar.
+          - //Format:// boolean
+          - //Default:// yes
+          - //Command line option:// --no-icon
+
+     : General.IconPath
+         The icon search path.
+          - //Format:// a comma-separated list of directory paths.
+          - //Default:// see the ICON FILES section of this document.
+          - //Comment:// The hardcoded default includes the usual linux system
+                       pixmap directories used for storing application icons.
+                       A "pixmaps" subdirectory of the user's .roadmap
+                       directory, and the system roadmap config directory,
+                       will also be searched.
+
+     : General.Busy Cursor Delay
+         Delay until mouse cursor switches to "busy"
+          - //Format:// integer (milliseconds)
+          - //Default:// 200
+          - //Comment:// When displaying maps that cover a large area, or on
+                       a slow computer, a screen refresh may take some time.
+                       The mouse will change to a "watch" or hourglass or other
+                       busy indicator after this amount of time.  Use '0' to
+                       disable this.
+
+     : General.Progress Bar Delay
+         Delay until progress bar during refresh.
+          - //Format:// integer (milliseconds)
+          - //Default:// 350
+          - //Comment:// When displaying maps that cover a large area, or on
+                       a slow computer, it may be helpful to have an on-screen
+                       indication of how long the refresh will take.  The
+                       value is the delay until the progress bar appears.  Use
+                       '0' to disable the progress bar.  It may be desirable
+                       to disable the progress bar especially if the X window
+                       manager insists on making the progress dialog fullscreen,
+                       or if it always takes focus away from roadmap (in which
+                       case keystrokes will go to the progress bar dialog
+                       box instead of roadmap).
+
+     : General.Show Errors
+         Should runtime errors be reported on-screen?
+          - //Format:// boolean
+          - //Default:// yes
+          - //Comment:// Errors detected by RoadMap will always be logged
+                       to the postmortem file (and to stderr, if available),
+                       but this preference item controls whether the user
+                       will see them in a dialog box on the screen.
+
+     : General.Toolbar
+         Show (yes) or hide (no) the roadmap toolbar.
+          - //Format:// boolean
+          - //Default:// yes
+          - //Command line option:// --no-toolbar
+          - //Comment:// In some case (GTK2) it may be necessary to suppress
+                       or minimize the toolbar if a very small screen is
+                       needed, because the size of the toolbar may dicate
+                       the minimum size of the screen.  The toolbar can also
+                       be eliminated by creating an empty "roadmap.toolbar"
+                       file.
+
+     : General.Toolbar Orientation
+         Choose where to position the toolbar
+          - //Format:// "Top", "Bottom", "Left" or "Right"
+          - //Default:// system default toolbar position (usually on top).
+
+     : General.Tooltips
+         Show (yes) or hide (no) tooltips on menus and buttons.
+          - //Format:// boolean
+          - //Default:// yes
+          - //Comment:// Tooltips may not work well on a touchscreen device.
+
+     : General.UserPath
+         Directory for per-user configuration.
+          - //Format:// a directory path, usually starting with '~'
+          - //Default:// ~/.roadmap
+          - //Comment:// This directory can be referred to in other RoadMap
+                       path specifications using the shortcut '&'.
+
+     : General.TripsPath
+         Directory in which trips are stored, usually per-user.
+          - //Format:// a directory path
+          - //Default:// &/trips, i.e. in ~/.roadmap/trips
+          - //Comment:// Trips files can be stored anywhere, but in some places
+                       RoadMap makes it easier if they're stored here.  New
+                       trips, unnamed by the users will be stored here.
+
+     : General.Sprite Scale
+         Sets a scaling factor for all RoadMap sprites.
+          - //Format:// integer (percentage)
+          - //Default:// 100
+
+     : Geometry.Main
+         Sets the size of the RoadMap main window.
+          - //Format:// <WIDTH>x<HEIGHT>
+          - //Default:// 800x600
+
+     : Geometry.Default
+         Sets the default size for other RoadMap windows.
+          - //Format:// <WIDTH>x<HEIGHT>
+          - //Default:// 300x200
+
+     : Geometry.WINDOW
+         Sets the size of the RoadMap window named WINDOW.
+          - //Format:// <WIDTH>x<HEIGHT>
+          - //Default:// <the value of Geometry.Default >
+
+     : Display.Bottom Right
+         Defines the message on the bottom right corner.
+          - //Format:// RoadMap format string
+          - //Default:// %D (%W)|%D
+
+     : Display.Bottom Left
+         Defines the message on the bottom left corner.
+          - //Format:// RoadMap format string
+          - //Default:// %S
+
+     : Display.Top Right
+         Defines the message on the top right corner.
+          - //Format:// RoadMap format string
+          - //Default:// In %Y, %X|%X");
+
+     : Display.Top Left
+         Defines the message on the top left corner.
+          - //Format:// RoadMap format string
+          - //Default:// <empty>
+
+     : Display.Duration
+         The time during which a selection or message is shown.
+          - //Format:// number of seconds.
+          - //Default:// 10
+          - //Comment:// The selection is only removed when the map is redrawn.
+
+     : Display.Refresh Period
+         Minimum interval between display refreshes.
+          - //Format:// integer (milliseconds)
+          - //Default:// 200
+
+     : Display.Font Size
+         The size of the text used for labeling.
+          - //Format:// integer (pixels)
+          - //Comment:// Currently only honored if either the internal
+                   "linefont", or AGG, is being used.
+
+     : Help.Browser
+         The browser program used to show the help text.
+          - //Format:// a program name, with or without path.
+          - //Default:// dillo
+
+     : Help.Arguments
+         The browser's command line arguments
+          - //Format:// a format string, with one '%s' for the help URL.
+          - //Default:// %s
+
+     : Map.Path
+         The map database search path.
+          - //Format:// a comma-separated list of directory paths.
+          - //Default:// empty string (i.e. RoadMap uses the hardcoded default)
+          - //Comment:// The hardcoded default also includes the directories
+                       /usr/local/share/roadmap and /usr/share/roadmap, for
+                       compatibility purposes.  These two directories were the
+                       standard locations for the maps in previous versions of
+                       RoadMap.  Maps can be located in any directory mentioned
+                       in this path.  RoadMap will only consult a single
+                       usdir.rdm file at a time, even if more than one is
+                       present in the Map.Path directories.
+
+     : Map.Cache
+         The number of entries in RoadMap's mapping cache.
+          - //Format:// integer
+          - //Default:// 8
+          - //Comment:// This value controls how many maps RoadMap will
+                      keep "open" at once, for faster access.
+
+     : Map.Background
+         The color used for the background of the maps.
+          - //Format:// color
+          - //Default:// LightYellow
+
+     : Map.Labels
+         Enable/disable the initial display of street names.
+          - //Format:// boolean
+          - //Default:// yes
+          - //Comment:// Chooses whether streets are labeled at startup.
+                       They can still be toggled by command.
+
+     : Map.DynamicOrientation
+         Rotate the map to match the GPS direction.
+          - //Format:// boolean
+          - //Default:// off
+          - //Comment:// Chooses whether the map will initially show north,
+                       or the direction of travel, towards the top of the
+                       screen.  Can be toggled by command as well.
+
+     : Map.Panning Percent
+         How far an arrow key will move the map view
+          - //Format:// integer
+          - //Default:// 25
+          - //Comment:// Percentage (of the smaller or width or height) by
+                       which the map will pan when an arrow key is used.
+
+     : Map.GPS map offset latitude
+         Allows tuning of GPS latitude results.
+          - //Format:// integer
+          - //Default:// 0
+          - //Comment:// Offset (millionths of a degree) applied to GPS results
+
+     : Map.GPS map offset longitude
+         Allows tuning of GPS longitude results.
+          - //Format:// integer
+          - //Default:// 0
+          - //Comment:// Offset (millionths of a degree) applied to GPS results
+
+     : Map.Signs
+         Enable/disable the map sprites and street signs.
+          - //Format:// boolean
+          - //Default:// yes
+          - //Comment:// Use only in special cases (very small screens)
+
+     : Map.Refresh
+         Forces a screen refresh every time.
+          - //Format:// enumeration (normal / forced)
+          - //Default:// normal
+
+     : Map.Use Linefont
+         Enables use of the internal linefont.
+          - //Format:// enumeration (off / labels / signs / all)
+          - //Default:// labels
+          - //Comment:// The internal line font may be preferable to the system
+                   font since it can draw at angles, and since its size can be
+                   easily scaled.  It is not very pretty, however.
+
+     : Map.ViewMode
+         Select 2D (flat) or 3D (perspective) map view.
+          - //Format:// enumeration (2D / 3D)
+          - //Default:// 2D
+          - //Comment:// Chooses the map view used at startup.
+
+     : Labels.MinFeatureSize
+         The shortest street which may be labeled.
+          - //Format:// integer (in pixels)
+          - //Default:// 25
+
+     : Labels.Color
+         The color used when labeling streets.
+          - //Format:// color
+          - //Default:// Black
+
+     : Labels.Font Size
+         The size of the text used for labeling.
+          - //Format:// integer (pixels)
+          - //Comment:// Currently only honored if either the internal
+                   "linefont", or AGG, is being used.
+
+     : Landmarks.Name
+         The filename used for storing personal landmarks
+          - //Format:// pathname, including & and ~ shortcuts
+          - //Default:// landmarks.gpx, in the '&' (~/.roadmap) directory.
+
+     : Landmarks.Color
+         The color used when labeling personal landmarks.
+          - //Format:// color
+          - //Default:// dark red
+
+     : Landmarks.Font Size
+         The size of the text used for labeling.
+          - //Format:// integer (pixels)
+          - //Comment:// Currently only honored if either the internal
+                   "linefont", or AGG, is being used.
+
+     : Track.Name
+         The filename used for storing current "breadcrumb" track
+         - //Format:// pathname, including & and ~ shortcuts
+         - //Default:// currenttrack.gpx, in the '&' (~/.roadmap) directory.
+         - //Comment:// The file is in stored in GPX format.
+
+     : Track.Initial Display
+         Determines whether the track is displayed when
+                     RoadMap starts.
+         - //Format:// enumeration (on, off)
+         - //Default:// on
+         - //Comment:// The display can still be toggled by command.
+
+     : Track.Policy
+         The algorithm used to decide when to store a new trackpoint
+         - //Format:// enumeration ("off", "Deviation", "Distance", "Time")
+         - //Default:// off
+         - //Comment:// When "off", no track is recorded.  When set to "Time",
+                   a new trackpoint is stored after "Track.Time Delta" time
+                   has passed since the last point was recorded.  Shen set to
+                   "Distance Delta", a new point is stored when the user has
+                   moved Track.Distance from the last point.  "Deviation" is
+                   the optimal setting:  call the most recent three points A,
+                   B, and C.  Point B is dropped if the distance from A to B
+                   and then to C is approximately equal to the distance
+                   directly from A to C.
+
+     : Track.Time Delta
+         Time interval used when Track.Policy is "Time".
+         - //Format:// integer (seconds)
+         - //Default:// 15
+
+     : Track.Distance Delta
+         Distance used when Track.Policy is "Distance".
+         - //Format:// integer (with units)
+         - //Default:// 100 m
+
+     : Track.Autosave minutes
+         Number of minutes between automatic saves of
+                   the current track.
+         - //Format:// integer
+         - //Default:// 1000
+
+     : Track.Saved Track Points
+         Approximate number of track points saved in
+                   memory, or in a single file.
+         - //Format:// integer
+         - //Default:// 1000
+         - //Comment:// After "Track.Autosave minutes", if there are 25%
+                   more points in the current track than this number, then
+                   75% are saved to an archive file, and the remainder
+                   are still kept in memory and displayed on the map.
+
+     : Trip.Name
+         The filename holding the current trip.
+         - //Format:// pathname, including & and ~ shortcuts
+         - //Default:// SavedTrip.gpx, in the '&/trips' (~/.roadmap/trips)
+                   directory, but usually chosen by the user.
+         - //Comment:// The file is in stored in GPX format.
+
+     : Trip.Show Inactive Routes
+         Should waypoints in unselected routes be shown.
+         - //Format:// boolean
+         - //Default:// yes
+         - //Comment:// Can still be toggled by command.
+
+     : Trip.Show Inactive Tracks
+         Should waypoints in unselected tracks be shown.
+         - //Format:// boolean
+         - //Default:// no
+         - //Comment:// Can still be toggled by command.
+
+     : Trip.Connect Route Points
+         Should route waypoints be connected with
+                   straight lines?
+         - //Format:// boolean
+         - //Default:// yes
+         - //Comment:// Can still be toggled by command.
+
+     : Trip.Route Connect Color
+         The color used to connect route waypoints.
+         - //Format:// color
+         - //Default:// red
+
+     : Trip.Waypoint Radius
+         How close does the GPS need to be to a waypoint
+                   to be "on" the waypoint.
+         - //Format:// integer (distance, with units)
+         - //Default:// 125 ft
+
+     : Trip.GPS Focus Release Delay
+         Delay until GPS loses focus, if off-screen.
+         - //Format:// integer (seconds)
+         - //Default:// 5 seconds
+         - //Comment:// If the GPS is being tracked, and the map is moved so
+                   that the GPS is no longer visible, the map will continue
+                   to move relative to the GPS for the specified number of
+                   seconds.  After this, the focus will "hold" to the current
+                   location.  A value of zero (0) will force tracking to
+                   continue forever -- the minimum actual delay is 1 second.
+
+     : FeatureFiles.Path
+         List of files containing "Point of Interest" features
+             to display on map.
+         - //Format:// A comma-separated list of featurefile specifiers.
+                   A featurefile specifier is a semi-colon-separated list of
+                   display parameters:
+                   filename;spritename;labelcolor;labellevel;spritelevel,filename;spritename...
+         - //Default:// <empty>
+         - //Comment:// The filename may include & and ~ as path shorthands.
+                   The spritename should appear in the sprites file.  The
+                   labelcolor will be used when writing the feature's name.
+                   The label and sprite levels are integers, representing the
+                   zoom level above which the label or sprite, respectively,
+                   will not be drawn.  Either the sprite name or the label
+                   color may be the string "NONE", which will suppress the
+                   sprite or the label, respectively.  Either declutter level
+                   may be omitted.
+
+     : Files.Make Backups
+         Enable/disable the creation of backup files.
+         - //Format:// boolean
+         - //Default:// yes
+         - //Comment:// On UNIX, backup files will have a '~' character
+                   appended.  Under Windows, a ".bak" suffix will be used.
+
+     : GPS.Background
+         The background color for the RoadGps screen.
+         - //Format:// color
+         - //Default:// LightYellow
+         - //Comment:// This color is used by RoadGps, not by RoadMap.
+
+     : GPS.Foreground
+         The foreground color for the RoadGps screen.
+         - //Format:// color
+         - //Default:// Black
+         - //Comment:// This color is used by RoadGps, not by RoadMap.
+
+     : GPS.Timeout
+         A timeout for detecting that the GPS link is down.
+         - //Format:// number of seconds.
+         - //Default:// 10
+         - //Comment:// The GPS link is considered down if no new GPS data was
+                   received for the specified amount of time.  Note that the
+                   GPS status will also go "down" because the GPS has lost
+                   satellite visibility. This timeout simply forces that
+                   status if communication with the GPS receiver is lost.
+
+     : GPS.LostFixWarningTimeout
+         Timeout for the "lost satellite" message.
+         - //Format:// number of seconds.
+         - //Default:// 10000
+         - //Comment:// If the satellite link is lost, RoadMap will alert the
+                   user with a popup message.  The message can be dismissed
+                   manually.  It will also go away when satellite communication
+                   is restored.  This timeout controls how long the message
+                   will remain up if neither of those things happen.  A setting
+                   of 0 disables the popup message altogether.
+
+     : GPS.Source
+         The URL that gives the address of the GPS data source.
+         - //Format:// <protocol>:<description>
+         - //Default:// gpsd://localhost
+         - //Comment:// The gpsd protocol (gpsd://<hostname>[:<port>]) uses
+                   the NMEA raw mode of gpsd, while the gpsd2 protocol
+                   (gpsd2://<hostname>[:<port>]) uses the gpsd native protocol.
+                   The object protocol (object:<id>) makes it possible to use
+                   an internal RoadMap object as GPS source (so that a driver
+                   can feed the GPS position to RoadMap).  The file protocol
+                   (file://<path>) is also possible, for debug.  If gpsd is not
+                   available, one can use a GPS source connected directly to a
+                   serial port.  (tty://<device-path>[:baudrate])  An example
+                   would be "tty://dev/ttyS0", or "COM1:" under Windows.  4800
+                   baud is the NMEA standard, but a different speed can be
+                   given:  "tty://dev/ttyS0:19200".  (Note that using direct
+                   tty access prevents one from running both RoadMap and
+                   RoadGps at the same time, since there is no mechanism in
+                   place to allow sharing the serial port.  Using gpsd is
+                   recommended.)
+
+     : GPS.Baud
+         The baud rate to use if GPS.Source is a serial port
+         - //Format:// integer
+         - //Default:// 4800
+
+     : GPS.Color
+         The color used for the current GPS position symbol.
+         - //Format:// color
+         - //Default:// green
+         - //Comment:// This color is used by RoadMap, not by RoadGps.
+
+     : Destination.Color
+         The color used for the destination symbol.
+         - //Format:// color
+         - //Default:// red
+
+     : Selected Street.Background
+         The color for the background of the selected
+          street name.
+         - //Format:// color
+         - //Default:// yellow
+
+     : Selected Street.Foreground
+         The color for the foreground of the selected
+          street name.
+         - //Format:// color
+         - //Default:// black
+
+     : Selected Street.Text
+         The format used for the selected street's display.
+         - //Format:// RoadMap format string
+         - //Default:// %F
+
+     : Console.Background
+         The color used for the background of the trip display.
+         - //Format:// color
+         - //Default:// yellow
+
+     : Console.Foreground
+         The color used for the foreground of the trip display.
+         - //Format:// color
+         - //Default:// black
+
+     : Current Street.Background
+         The color for the background of the current
+          street's name.
+         - //Format:// color
+         - //Default:// DarkSeaGreen4
+
+     : Current Street.Foreground
+         The color for the foreground of the current
+          street's name.
+         - //Format:// color
+         - //Default:// white
+
+     : Current Street.Text
+         The text used to display the current street's name.
+         - //Format:// color
+         - //Default:// black <(I would recommend using white--see above)>
+         - //Default:// %N, %C|%N
+
+     : Voice.Current Street
+         The command used to announce the current street's
+          name.
+         - //Format:// RoadMap format string
+         - //Default:// flite -t 'On %N'
+
+     : Voice.Selected Street
+         The command used to announce the selected street's
+          name.
+         - //Format:// RoadMap format string
+         - //Default:// flite -t '%N'
+
+     : Voice.Next Intersection
+         The command used to announce the name of the
+            next intersection.
+         - //Format:// RoadMap format string
+         - //Default:// flite -t 'Next intersection: %N'
+
+     : Voice.Approach
+         Reserved for future use (approaching waypoint).
+
+     : Accuracy.Confidence
+         The minimum rating for a street to be selected
+         - //Format:// integer, range 0 .. 1024
+         - //Default:// 25
+         - //Comment:// RoadMap uses fuzzy logic to identify what street
+                   the vehicle is on. This value if a minimum fuzzy result
+                   for RoadMap to select any street. This helps not selecting
+                   whatever street is near by when off-road. This also speeds
+                   up the identification process by filtering out unlikely
+                   matches.
+
+     : Accuracy.GPS Position
+         The GPS's estimated position error (worst case)
+         - //Format:// distance
+         - //Default:// 30m
+         - //Comment:// This default accuracy can be adjusted to the actual GPS
+                   estimate if a Garmin GPS receiver is used.
+
+     : Accuracy.GPS Speed
+         GPS's speed accuracy.
+         - //Format:// integer (ft/s or m/s depending on the current unit system).
+         - //Default:// 4
+
+     : Accuracy.Minimum drag
+         The minimum movement required to initiate a drag.
+         - //Format:// integer (pixels)
+         - //Default:// 5
+
+     : Accuracy.Mouse
+         The size of the street or place selection search area.
+         - //Format:// number of pixels
+         - //Default:// 20
+         - //Comment:// On a mouse click, RoadMap defines the street search area
+                   as the rectangle delimited by the two points
+                   (x-accuracy, y-accuracy) and (x+accuracy, y+accuracy).
+                   Limiting the search to this area speeds up the process,
+                   compared to searching in the whole screen area.
+
+     : Accuracy.Street
+         The street selection accuracy.
+         - //Format:// integer (using the current unit system).
+         - //Default:// 150
+         - //Comment:// This is the maximum distance to a street for the
+                   navigation logic. If a street is at a distance greater than
+                   this value, then RoadMap will never consider this street
+                   when searching which street the vehicle is on.
+
+     : History.Depth
+         The maximum number of items in the "Find" history.
+         - //Format:// integer
+         - //Default:// 100
+
+     : Approach.Background
+         Reserved for future use (approaching waypoint).
+
+     : Approach.Foreground
+         Reserved for future use (approaching waypoint).
+
+     : Approach.Text
+         Reserved for future use (approaching waypoint).
+
+     : Download.Source
+         The format used to generate the URL of the source.
+         - //Format:// printf() format, which must include the sequence "%05d".
+         - //Default:// /usr/local/share/roadmap/usc%05d.rdm
+         - //Comment:// This item is either a full path name (starting with a '/')
+                   or an URL (such as "file://[...]" or "http://[...]").
+
+     : Download.Destination
+         The path of the directory where to store the
+          downloaded map files.
+         - //Format:// string
+         - //Default:// &/maps
+         - //Comment:// This item must be either a full path name or start with
+                   '~' (user home directory) or '&' (RoadMap user's directory).
+
+     : Style.Use Pretty Lines
+         If "yes", roads are shown with all the defined
+           pens (see schema). If "no", roads are shown with the first pen only.
+         - //Format:// boolean
+         - //Default:// "yes"
+
+     : Style.Pretty Lines when Dragging
+         If "yes", roads are shown with all the
+           defined pens when dragging (if enabled--see above). If "no", roads
+           are shown with the first pen only while dragging.
+         - //Format:// boolean
+         - //Default:// "yes"
+
+     : Style.Show Objects when Dragging
+         If "yes", objects are shown when
+           dragging. If "no", objects are not shown while dragging. Objects
+           are the sprites, text messages, etc..
+         - //Format:// boolean
+         - //Default:// "yes"
+
+== SESSION ITEMS ==
+
+     : Location.Position
+         The latest selected position.
+         - //Format:// longitude ',' latitude.
+         - //Default:// -122394181,37794928
+         - //Comment:// The name of this item is kind of silly, to be changed.
+         - //Command line option:// --location=<LONGITUDE>,<LATITUDE>
+
+     : GPS.Position
+         The latest received GPS position.
+         - //Format:// longitude ',' latitude.
+         - //Default:// -122394181,37794928
+
+     : GPS.Direction
+         The latest received GPS direction.
+         - //Format:// degrees
+         - //Default:// 0
+
+     : Selection.Position
+         The position of the latest selection.
+         - //Format:// longitude ',' latitude.
+         - //Default:// -122394181,37794928
+
+     : Address.Position
+         The position of the latest address used.
+         - //Format:// longitude ',' latitude.
+         - //Default:// -122394181,37794928
+
+     : Trip.Name
+         The name of the last used trip file.
+         - //Format:// string
+         - //Default:// default
+
+     : Delta.X
+         The horizontal map shift compare to the reference position.
+         - //Format:// number of pixels
+         - //Default:// 0
+
+     : Delta.Y
+         The vertical map shift compare to the reference position.
+         - //Format:// number of pixels
+         - //Default:// 0
+
+     : Delta.Rotate
+         The rotational shift compare to the reference direction.
+         - //Format:// degrees.
+         - //Default:// 0
+
+     : General.Zoom
+         The current zoom level.
+         - //Format:// number
+         - //Default:// see the default zoom preference item.
+
+     : Focus.Rotate
+         Indicate if the current map focus is set to rotate.
+         - //Format:// boolean (1 or 0)
+         - //Default:// 0
+
+     : Focus.Name
+         Name of the reference position where the focus should be set.
+         - //Format:// either "GPS", "Location" or "Address"
+         - //Default:// "Location"
+
+     : Navigation.Enable
+         Controls whether navigation mode is enabled.
+         - //Format:// boolean
+         - //Default:// "yes"
+         - //Comment:// When enabled, the navigation logic will announce the
+                   names of the current and approaching streets.  See also
+                   Accuracy.Street.
+
+     : Voice.Mute
+         Defines if the voice function was muted by the user.
+         - //Format:// boolean
+         - //Default:// "no"
+
+     : Hold.Direction
+         An artefact of saving the context. Ignored.
+
+     : Hold.Position
+         An artefact of saving the context. Ignored.
+
+     : Log.Path
+         Last selected path for the RoadGps log files.
+         - //Format:// a directory path.
+         - //Default:// /var/tmp
+
+     : Events.Right Click
+         The name of the menu to open on a mouse right click.
+         - //Format:// string
+         - //Default:// Right Click Popup
+
+     : Events.Long Click
+         The name of the menu to open on a mouse long click.
+         - //Format:// string
+         - //Default:// Long Click Popup
+
+  (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
+
+
+== SCHEMA ITEMS ==
+
+     The schema file uses the same format as the preference file. It defines
+     the properties of the various categories of objects that make a map.
+     the list of categories matches the list of Tiger file's categories
+     (see Tiger's CFCC field) that have been filtered by buildmap.
+
+     The two differences with the preferences files are that there is no
+     pre-defined category in RoadMap: categories are defined by the maps
+     (FIXME: this is still to be done--as a temporary hack, the categories
+     have been hardcoded somewhere) and there is no default value.
+
+     For each category, RoadMap use the following items:
+
+     : <category>.Class:
+        the class of object this category belongs to.
+        - //Format:// Road, Feature or Area.
+        - //Comment:// Road and Feature categories are searched in the "line"
+                  table of the map files and drawn as lines. The Road
+                  category is searched when a street name is looked for.
+                  The Area objects are drawn separatly, as polygons.
+
+     : <category>.Color:
+        the color used when drawing the objects.
+        - //Format:// color
+
+     : <category>.Declutter:
+        the zoom level from which the objects are hidden
+        - //Format:// integer
+        - //Comment:// The definition of this item is rather obscure. To be fixed.
+
+     : <category>.Thickness:
+        the thickness used to draw lines.
+        - //Format:// number of pixels
+
+
+     RoadMap uses the following categories:
+
+        - Freeways
+        - Ramps
+        - Highways
+        - Streets
+        - Trails
+        - Rivers
+        - Shore
+        - Hospitals
+        - Malls
+        - Airports
+        - Stations
+        - Lakes
+        - Parks
+        - Sea
+        -
+
+
+== SPRITES ==
+
+     This file defines the drawing commands used to draw the various symbols
+     used by RoadMap:
+
+         - GPS (indicates the current GPS position and direction),
+         - Position (indicates the currently selected location),
+         - Destination,
+         - Highlight (marks the endpoints of a selected street block) and
+         - Compass (used to indicates the direction of the North pole).
+
+     The sprites file is made of a sequence of single-line commands:
+
+     | S <name>              | Starts a sprite.
+     | A <name>              | Defines the current sprite as an alias of
+     |                       | the specified sprite.
+     | F <color> <thickness> | Define the pen to be used by the subsequent
+     |                       | drawing commands.
+     | X <percent>           | Optional scale factor for this sprite.  All
+     |                       | components of the sprite will be adjusted.
+     | L <x>,<y> ..          | Draw a line.
+     | P <x>,<y> ..          | Draw a filled polygon.
+     | C <x>,<y> <radius>    | Draw a circle.
+     | D <x>,<y> <radius>    | Draw a disk (filled circle).
+     | B <x>,<y> <x>,<y>     | Optional -- the bounding box used to determine
+     |                       | whether a selection has taken place, when a
+     |                       | a sprite is in use as an on-screen object (in
+     |                       | "roadmap.screenobjects").  Normally the
+     |                       | bounding box is calculated by RoadMap itself,
+     |                       | but irregularly shaped sprites, combined with
+     |                       | the rotation of the sprite, may require that
+     |                       | the box be overridden.
+     | T <x>,<y> <s> text... | Adds text to the sprite, of size 's'.  "text"
+     |                       | can be ommitted, in cases where the sprite's
+     |                       | text will be provided by a screen object
+     |                       | definition.  Text strings are fixed, with no
+     |                       | expansion of %-macros.
+     | TR                    | If the sprite has text, supply a backing
+     |                       |   rectangle sized and positioned to match the
+     |                       |   text.
+     | TB                    | If the sprite has text, supply a box outline
+     |                       |   around the text.
+
+     The coordinates are pixel positions, relative to the sprites "hot point".
+     The "natural" direction for the sprite, for pointing purposes is to the
+     north.  Positive X and Y values are towards the east and south, negative
+     are towards the west and north.
+
+     The bounding box of a sprite is normally calculated internally, but can
+     be overridden.  If a sprite has text associated with it, the text forms a
+     second, separate, bounding box.  This is because the text may change
+     shape (if it's dynamically produced), and because sprites tend to be
+     compact, while text tends to be long and thin.  Currently these bounding
+     box outlines are only used when a sprite is referenced in
+     "roadmap.screenobjects".  The sprite's bounding box can also be
+     overridden there.
+
+     An S command must appear before any alias or drawing command.
+
+     A sprite cannot contain both an alias command and drawing commands. In
+     addition, if an alias command is present, it is the only command defining
+     this sprite (i.e. an alias sprite is defined by just one S and one A
+     command). For example:
+
+```
+     S Friend
+     A GreenTriangle
+
+     S GreenTriangle
+     F white 2
+     L 0,0 7,14 0,8 -7,14
+     F DarkGreen 2
+     L 0,1 6,13 0,10 -6,13 0,1
+```
+
+     A sprite alias is just another name for the referenced sprite: an alias
+     will be visually identical to the sprite it references. An alias command
+     can reference a sprite that is itself an alias. There is no limit to
+     the depth of the alias chain, but circular references are illegal, and
+     detected. Forward references are legal, i.e. the sprite referenced in
+     an alias command can be defined later in the file.
+
+     One reason for using alias sprites is to make it simpler to redefine
+     sprites known to RoadMap (such as "Direction" or "Destination"). The
+     alias mechanism has a negligible fixed cost at runtime: using multiple
+     alias levels will have no practical impact on RoadMap performances.
+
+
+== TRIP FILES ==
+
+     RoadMap trip data is stored in GPX format.  More about the widely-used
+     GPX data format can be found at:
+
+        http://www.topografix.com/gpx.asp
+
+     The main thing to know about this format is that a GPX file
+     may contain one or more "routes", one or more "tracks", and
+     one or more "landmarks".
+
+     Routes and tracks are very similar:  it's most useful to
+     think of a route as "where you want to go", and a track as
+     "where you've been".  Routes are usually "composed", either
+     manually or using navigation software.  Tracks are usually
+     recorded, by making a note of one's GPS location
+     periodically.  (By the way, tracks don't get included into
+     trip files automatically.  If you wish to store your tracks
+     along with your routes for a given trip, you'll need to save
+     copies of your current track and them to the trip.)
+
+     Routes and tracks are both composed of "waypoints".  To
+     reduce confusion, RoadMap tries to use the term "waypoint"
+     to _only_ refer to points which are contained in routes and
+     tracks.  Points that are unassociated with a specific route
+     or track are called "landmarks".  If you read the GPX
+     documentation you'll find that everything is called a
+     waypoint.
+
+     Waypoints simply represent a place, along with some other
+     information about that place.  For instance, a waypoint in a
+     route might have a name, and it might also have a comment
+     attached to it which says which way to turn when this
+     waypoint is reached.  A waypoint in a track might only
+     contain its location and the time at which you were there.
+     The landmarks in the trip file might represent places of
+     interest which, while not really part of a route, are
+     related to the trip somehow.
+
+     Here are some more details regarding how RoadMap uses the GPX
+     format.
+
+     Waypoints (and landmarks):
+
+        <name> is used directly if available.
+
+        If no name is available, a shortened version of the <cmt>
+        or <description> element will be used instead.  If
+        neither of these elements is available, a name will be
+        generated.
+
+        In addition, if no <cmt> is available, the <description>
+        element will be used as a description.
+
+        The <sym> element will be used as the sprite name, if it
+        is set, otherwise fixed RoadMap defaults will be used for
+        the spritename, depending on what sort of waypoint it is.
+
+        When generating a waypoint while recording a track,
+        RoadMap will set the <ele>, <speed>, <course>, and <time>
+        elements, as well as the "lat" and "lon" attributes.  All
+        of this data comes directly from the GPS.  The <name> and
+        <sym> elements are left unset.
+
+    Routes and Tracks:
+
+        The <name> and <desc> elements will be used and set.  For
+        tracks, the <trkseg> level of the hierarchy is ignored --
+        all track segments are treated as one.
+
+     The following trip file example contains just one route,
+     which goes from the Golden Gate's bridge to 1 Market St, in
+     san Francisco, California.  It also contains the locations
+     of some nearby pizza parlors:
+
+```
+      <?xml version="1.0"?>
+      <gpx version="1.1">
+         <rte>
+            <name>198 Richardson Ave to 1 Market St</name>
+            <rtept lat="37.8003" lon="-122.44703">
+               <cmt>Head southeast from Richardson Ave</cmt>
+            </rtept>
+            <rtept lat="37.79879" lon="-122.4446">
+               <cmt>Bear left at Lombard St</cmt>
+            </rtept>
+            <rtept lat="37.79901" lon="-122.44265">
+               <cmt>Turn right at Divisadero St</cmt>
+            </rtept>
+            <rtept lat="37.78336" lon="-122.43948">
+               <cmt>Turn left at Geary Blvd</cmt>
+            </rtept>
+            <rtept lat="37.78529" lon="-122.42467">
+               <cmt>Bear right at Ofarrell St</cmt>
+            </rtept>
+            <rtept lat="37.78678" lon="-122.40458">
+               <cmt>Turn left at Market St</cmt>
+            </rtept>
+            <rtept lat="37.79444" lon="-122.39487">
+               <cmt>Arrive at destination</cmt>
+            </rtept>
+         </rte>
+         <wpt lat="37.792612" lon="-122.393843">
+            <name>Village Pizzeria</name>
+         </wpt>
+         <wpt lat="37.793392" lon="-122.397554">
+            <name>Parkway Pizza</name>
+         </wpt>
+         <wpt lat="37.789001" lon="-122.394843">
+            <name>Dogzilla Cafe</name>
+         </wpt>
+      </gpx>
+
+```
+
+     In addition to the trip files, there are two other important
+     files which are also stored in GPX format.
+
+        : Personal Landmarks
+          Called "landmarks.gpx" by default, this contains
+          landmarks (waypoints) which you might want to keep handy
+          no matter what trip file you have loaded.  Examples might
+          include your home, your office, your hairdresser, etc.
+          When writing this file, only the personal landmarks are
+          written.  When reading, only the unassociated waypoints
+          are read -- any routes or tracks in the file are ignored.
+
+        : Current Track
+          Contains waypoints representing where you've been -- a
+          "breadcrumb trail", if you will.  This file (called
+          "currenttrack.gpx" by default) will only contain a single
+          track when written.  When read (on startup, to restore
+          previous state), only the first track in the file will be
+          read.  All other routes or tracks and waypoints will be
+          ignored (and likely lost, when the current track is saved
+          at the end of the session).  Along with the
+          currenttrack.gpx, you may see "recenttrack.csv", and one
+          or more "savetrack-*.gpx" files (which will include a
+          date in their names).  The "savetrack" files are archival:
+          if the in-memory list gets too big, or if the user
+          "clears" the current track, then excess historical
+          trackpoints will be written to a "savetrack" file.  A
+          "savetrack" file will also be created if you manually
+          reset the current track -- a backup of its contents is
+          saved, for good measure.  The "recenttrack.csv" file is a
+          temporary file, used to keep RoadMap from losing any
+          track points in the event that it dies (crashes)
+          unexpectedly.  The goal is to never lose a track point.
+
+     (These files are not stored in the same directory as the other
+     trip files, but instead in the same directory in which the
+     user's preferences and session file are found.)
+
+== FEATURE FILES ==
+
+     Like the RoadMap trip data, feature data is stored in GPX format.  Each
+     feature file should represent a related set of points of interest, like
+     ice cream shops, motels, campgrounds, or mountaintops.  A single sprite
+     can be associated with each file, and will be used to represent its
+     contents on the map.  Features will be labeled using the pen color
+     specified.  Either or both of the sprite and label can be suppressed by
+     specifying the name "NONE".  Feature labels and sprites can also be
+     selectively disabled as the map is zoomed out.  An example feature file
+     specification, which uses ';' as its delimiter, might be:
+        &/icecream.gpx;ConeSprite;darkblue;350;750
+     This says that the ice cream shops listed in the given file should
+     be drawn with the ConeSprite, labeled with a "darkblue" pen, the labels
+     should be eliminated above zoom level 350, and the sprites should
+     disappear above zoom 750.  Likewise:
+        &/towns.gpx;NONE;black;350;350
+     says that towns should be labeled in black, with no sprite, up to
+     zoom level 350.  If a higher sprite declutter level is specified:
+        &/towns.gpx;NONE;black;350;1000
+     then a small default sprite (with the name "PointOfInterest") will be
+     shown, up to the higher level.
+
+     Multiple file specifications (including each file's associated (and
+     semicolon-separated) sprite name, pen color, and declutter levels)
+     should be separated by ',' characters.
+
+     Note that unlike the maps, which are read and cached on an as-needed
+     basis, the feature files are read into memory in their entirety when
+     RoadMap starts, so there is a memory penalty for using large feature
+     files.
+
+== Configuration Examples ==
+
+  ~/.roadmap/preferences ("factory" defaults):
+
+```
+    Accuracy.GPS Speed: 4
+    Accuracy.Confidence: 25
+    Accuracy.Street: 150
+    Accuracy.Mouse: 20
+    Accuracy.Minimum Drag: 5
+    Approach.Background: yellow
+    Approach.Foreground: black
+    Approach.Text: Approaching %N, %C|Approaching %N
+    Console.Background: yellow
+    Console.Foreground: black
+    Current Street.Background: yellow
+    Current Street.Foreground: black
+    Current Street.Text: %N, %C|%N
+    Destination.Color: red
+    Display.Bottom Left: %S
+    Display.Bottom Right: %D (%W)|%D
+    Display.Top Right: In %Y, %X|%X
+    Display.Duration: 10
+    Display.Rotate: yes
+    General.Default Zoom: 20
+    General.Keyboard: no
+    General.Toolbar: yes
+    General.Icons: yes
+    General.Unit: imperial
+    Geometry.Main: 800x600
+    Geometry.Preferences: 800x300
+    GPS.Background: LightYellow
+    GPS.Color: red
+    GPS.Foreground: black
+    GPS.Source: gpsd://localhost
+    GPS.Timeout: 10
+    History.Depth: 100
+    Map.Path: ~/.roadmap,/var/lib/roadmap,/usr/lib/roadmap
+    Map.Cache: 8
+    Map.Background: LightYellow
+    Map.Refresh: normal
+    Map.Signs: yes
+    Polygons.Declutter: 1300
+    Selected Street.Background: yellow
+    Selected Street.Foreground: black
+    Selected Street.Text: %F
+    Shapes.Declutter: 1300
+    Voice.Approach: flite -t 'Approaching %N'
+    Voice.Current Street: flite -t 'On %N'
+    Voice.Next Intersection: flite -t 'Next intersection: %N'
+    Voice.Selected Street: flite -t 'Selected %N'
+```
+
+  ~/.roadmap/session ("factory" defaults):
+
+```
+    Delta.Rotate: 0
+    Delta.Y: 0
+    Delta.X: 0
+    Focus.Rotate: 0
+    Focus.Name: Address
+    Trip.Name: default.gpx
+    Hold.Direction: 0
+    Hold.Position: 0,0
+    Selection.Position: -122394181,37794928
+    Address.Position: -122394181,37794928
+    GPS.Direction: 0
+    GPS.Position: 0,0
+    General.Zoom: 150
+```
+

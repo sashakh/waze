@@ -1,0 +1,988 @@
+RoadMap and RoadGps Usage
+
+November 2008
+
+= Using RoadMap =
+
+  - DESCRIPTION
+
+        RoadMap is the main application.  It displays the map
+        and can keep track of the current GPS position.
+        Depending on which toolkit you use, and before
+        a "make install" has been done, the final executable
+        will be found in src/gtk/gtkroadmap, src/gtk2/gtkroadmap
+        or src/qt/qtroadmap (zroadmap on the Zaurus).
+
+== COMMAND LINE OPTIONS ==
+
+     The options marked as "sticky" remain in effect the next time RoadMap
+     is run.  (The use of the option actually changes the specified RoadMap
+     preferences item.)
+
+     The RoadMap application accepts the following command line options:
+
+     : --config=<PATH>
+        Replace the built-in search path for system
+        configuration data.  While this will usually just be a simple
+        directory path, it can actually be a comma-separated list of paths
+        from which RoadMap should load its config.  User directories (usually
+        "~/.roadmap", but see --userpath, below) will still be processed as
+        usual.  If specified, this option will also be passed to roadgps when
+        invoked via roadmap.
+
+     : --userpath=<USERPATH>
+        Replace the default directory which holds user
+        configuration data.  The default value for the this is $HOME/.roadmap
+        (i.e., "~/.roadmap") If specified, this option will also be passed to
+        roadgps when invoked via roadmap.
+
+     : --maps=<PATH>
+        Replace the built-in search path for maps.  While this will
+        usually just be a simple directory path, it can actually be a
+        comma-separated list of paths, and may include the "/..." trailer to
+        extend the search downward.  See the DIRECTORIES section.
+
+     : --icons=<PATH>
+        Replace the built-in search path for icons.  If specified,
+        this option will also be passed to roadgps when invoked via roadmap.
+
+     : --location=<LONGITUDE,LATITUDE>
+        Set the location point (see menu entry
+        "Show Location..").  This option is sticky (preference item
+        Locations.Location=<LONGITUDE,LATITUDE>).
+
+     : --metric
+        Use the metric system for all units. This option is sticky
+        (preference item General.Unit = "metric").
+
+     : --imperial
+        Use the imperial system for all units. This option is sticky
+        (preference item General.Unit = "imperial").
+
+     : --no-area
+        Do not show the polygons (parks, hospitals, malls, airports,
+        etc..).
+
+     : -geometry=<WIDTHxHEIGHT>
+        See option --geometry=<WIDTHxHEIGHT>.
+
+     : --geometry=<WIDTHxHEIGHT>
+        Sets the geometry for the RoadMap main window.
+
+     : --geometry:<WINDOW>=<WIDTHxHEIGHT>
+        Set the geometry of a specific RoadMap window, according to
+        its title.  --geometry:Main=<WIDTHxHEIGHT> is equivalent to
+        --geometry=<WIDTHxHEIGHT>.  If the window's title includes
+        any space, dashes can be used in place of the spaces (the
+        goal here is to be shell friendly).  This option is sticky
+        (preference item Geometry.<WINDOW> = <WIDTHxHEIGHT>).  To
+        set the default geometry of all unspecified windows, use
+        --geometry:Default=<WIDTHxHEIGHT>.
+
+     : --no-toolbar
+        Do not show the toolbar. This option is sticky (preference
+        item General.Toolbar = "no").
+
+     : --no-icon
+        Do not show any icons, i.e. leave as much space as possible
+        for the map.  This option is sticky (preference item
+        General.Icons = "no").
+
+     : --gps=<URL>
+        Use a specific GPS source.  This option is not sticky:  it
+        overrides the preferences setting this time, but the
+        preferences setting is not modified.  The main use of this
+        option is to rerun GPS logs created using roadgps, or to
+        run logs created using gpsbabel, from other input sources.
+        For instance:  gpsbabel -i gpx -o nmea,gprmc=1 infile.gpx
+        outfile.nmea will create an NMEA logfile from a GPX format
+        file created elsewhere, or even from a tracklog created by
+        roadmap itself.
+
+     : --trip=<FILENAME>
+        Tells roadmap to make the given GPX tripfile current.
+
+     : --map-boxes
+        Show map bounding boxes as grey lines.  This is mostly
+        just for debug purposes, but can be useful in figuring out why no
+        map is in view at your current location.
+
+     : --square
+        Show squares boundaries as grey boxes. This option is for
+        debug purpose only.
+
+     : --debug
+        Print all informational and debug traces.
+
+     : --debug=<source>,...
+        Print all informational and debug traces for the
+        specified source files only (a comma-separated list of source files).
+
+     : --verbose
+        Print all informational traces.
+
+     : --help
+        Show a description of all command line options, key bindings
+        and actions (see the section CONFIGURING THE MENUS AND TOOLBAR).
+
+     : --help=SECTION
+        Show a description of either the command line options
+        (--help=options), the key bindings (--help=keymap) or the actions
+        (--help=actions).
+
+
+  - GETTING HELP
+
+     The main RoadMap window includes a "Help" menu. This help can be used to
+     display various topics from this document. The help text is actually an
+     HTML version of this file, shown using a web brower. The default browser
+     is "dillo", but this default can be changed in the user's preferences
+     (see section PREFERENCE ITEMS).
+
+
+  - THE ROADMAP DISPLAY
+
+     The main RoadMap window shows the menu, the toolbar and the map's canvas.
+     The toolbar is optional: all the commands are also available from the menu
+     bar or from the keyboard or iPAQ buttons.
+
+     When RoadMap starts, the map view reflects the previous session's mode
+     If no session data is found, RoadMap tracks the current GPS position.
+     It is possible to select another mode:  show the current destination
+     point (see the section "Managing Trips" below), show a specific
+     location, track the GPS position with the north shown up, track the GPS
+     position with the direction of movement shown up, etc.
+
+     When RoadMap is in GPS tracking mode, the map view will reflect the
+     movement of the car so that the GPS sprite will remains at the
+     predefined position (usually the center, but it is possible to move the
+     position of the GPS sprite using the arrow keys).  The map can be held
+     to its current position:  the "hold" button freezes the map view to its
+     current location, but updates will continue, so that, for example, one
+     should see the GPS sprite move away from the map's center.  The hold
+     mode make it easy to select streets and read street names while on the
+     road.  To come back to the original map view, this view must be
+     re-selected (for example by using the menu command Find / GPS position
+     or the "G" toolbar button).
+
+     RoadMap indicates the current street a few seconds after the GPS
+     position reached the street.  This display is also shown for a limited
+     time.  There are several criteria used by RoadMap to "lock" on a street:
+     the distance to the street (the closest the better, not more than the
+     value set with Accuracy.Street), the direction of the street compare to
+     the direction of the vehicle or if the street is connected to the
+     current "locked" street.  RoadMap uses fuzzy logic to combine these
+     criteria into one single value.  None of the fuzzified values for the
+     distance and direction may be below the value set by
+     Accuracy.Confidence, or else the street is not selected.  The final
+     fuzzy value must also be above the same limit.  RoadMap then selects the
+     street with the highest fuzzy value.
+
+     RoadMap can also display messages at each of the four corners of the
+     map:  the message at top left will be shifted to leave room for the
+     compass, which shows map orientation.  These messages can be defined by
+     the user using RoadMap's specific format strings (see section
+     "Configuring the RoadMap text and voice messages").
+
+
+  - USING THE MOUSE OR PEN
+
+     RoadMap mostly uses just one mouse button (the left button on a 3 button
+     mouse).  This is because RoadMap is designed for a PDA, where pens are
+     used.
+
+     A short mouse click (or pen tap) on the map screen displays information
+     (i.e., name, address range, etc, as appropriate) about the closest
+     waypoint, landmark, street, road or freeway.  This display is shown for a
+     limited amount of time (see preference "Highlight.Duration").  Whether or
+     not one of those map features is near enough to be selected, the
+     clicked/tapped point will be remembered as the current "Selection", for
+     the purposes of adding new waypoints or landmarks.
+
+     A long mouse click or pen tap (with no accompanying motion) will bring up
+     a popup menu (see preference item "Events.Long Click").
+
+     Dragging the mouse with the button down, or dragging the pen on the
+     screen, moves the map display according to the movements of the mouse
+     or pen.
+
+     Dragging a map display is a CPU-intensive action, so a few "Style"
+     preference items can be used to limit the amount of drawing to be
+     performed while doing it.
+
+     A few additional actions are specific to the mouse devices, with no pen
+     equivalent: the mouse's right button and wheel.
+
+     A popup menu can be attached to the mouse's right button (see preference
+     item "Events.Right Click"). The menu iteself must be defined in the file
+     roadmap.popup (see section CONFIGURING THE MENUS AND TOOLBAR).
+
+     Mouse wheel actions will trigger a zoom in and out of the map display,
+     depending on the direction of the wheel movement.
+
+
+  - VOICE INTERFACE
+
+     If the flite program has been installed, or if RoadMap was configured
+     for an available speech application, RoadMap will complement the screen
+     information with an audio one:  RoadMap will speak the name of the
+     street on the audio output device.  As a general rule, RoadMap tries not
+     to repeat the same message again, as frequent audio messages tend to
+     be irritating.  Thus if the same street is selected more than once, the
+     screen information will be displayed each time, but the voice messge
+     will be provided only once.  For obvious reasons, RoadMap will only
+     try and speak one street name at a time.
+
+     It is possible to mute the RoadMap's voice, using the File /
+     Announcements / "Mute Voice" item from the menu bar.  The voice can be
+     enabled later using the "Enable Voice" item.
+
+     Note that flite may have a better voice available than whatever is
+     used by default.  The flite source is available at the CMU web site:
+
+         http://www.speech.cs.cmu.edu/flite/
+
+     The flite README file describes how to configure flite using another
+     voice.  An example, courtesy of Scot Wilcoxon:
+
+```
+       cd flite
+       make clean    # to remove old executable files
+       ./configure --with-vox=cmu_us_kal16
+       make
+```
+
+
+  - KEY BINDINGS
+
+     Most of the RoadMap commands are available from the keyboard.  The
+     button and key bindings are common to all ports, but some buttons might
+     not exist on some platforms.
+
+     All the button and key bindings are case insensitive, i.e. the same
+     binding applies to 'A' and 'a' (as well as to "Button-Left" and
+     "button-left"--whatever it means).
+
+     | //Button-Left//  |  Move the map view to the left.
+     | //Button-Right// |  Move the map view to the right.
+     | //Button-Up//    |  Move the map view up.
+     | //Button-Down//  |  Move the map view down.
+     |   +   (or = )    |  Zoom in: enlarge the central part of the map.
+     |   -              |  Zoom out: show a larger area.
+     |   A              |  Search for a specified address.
+     |   B              |  Start the route back to the departure point.
+     |   C              |  Bring up the roadgps GPS console.
+     |   D              |  Show the current route's destination.
+     |   E              |  Erase maps among those currently visible.
+     |   F              |  Toggle full screen mode.
+     |   G              |  Show the current GPS position.
+     |   H              |  Hold the map view in its current position.
+     |   I              |  Search for a specified street intersection.
+     |   J              |  Rotate the map counterclockwise.
+     |   K              |  Rotate the map clockwise.
+     |   L              |  Show the last selected location.
+     |   M              |  Enable/Disable map download.
+     |   N              |  Create a new trip.
+     |   O              |  Open an existing trip.
+     |   P              |  Stop tracking the current trip.
+     |   Q              |  Quit RoadMap.
+     |   R              |  Set the map back to the default zoom level.
+     |   S              |  Start tracking the current trip.
+     |   T              |  Toggle display of the current track.
+     |   U              |  Center the map on the GPS position (north up).
+     |   W              |  Set the selected street block as waypoint.
+     |   X              |  Find an intersection.
+     |   Y              |  Save a screenshot of the current map display.
+     |   F11            |  Toggle the full screen mode (same as 'F').
+
+     The current bindings that are used by the application can be printed
+     using the "--help=keymap" option.
+
+     Note for Familiar 0.7.1 GPE users:  the GPE environment has defined the
+     button bindings in a way that makes it impossible for RoadMap to use them
+     (the buttons are mapped to the GPE applications).  In this environment it
+     is recommended that the toolbar be enabled to replace the buttons.  The
+     joypad is still available.
+
+
+  - ON-THE-FLY MAP DOWNLOAD
+
+     Since maps can take a lot of space, users may want to install only the
+     few maps they need.  The on-the-fly download feature of RoadMap helps
+     the user to select visually which maps to download or remove.  RoadMap
+     is capable of downloading compressed maps:  gzip, bzip2 or lzop
+     compressed files are automatically recognized and uncompressed after
+     transfer.
+
+     The map download is available in a special RoadMap mode, which can be
+     activated and deactivated using the Map Download menu entry.  On startup
+     the download mode is always deactivated.  RoadMap shows a red "download"
+     icon in the right top corner of the map screen to indicate that the
+     download mode has been activated.
+
+     In the download mode, if a map is not found by the display engine, the
+     user will be asked for the permission to download the file from the
+     configured source (as defined in the preference item "Download.Source").
+     The destination directory can also be configured (using the preferences
+     item "Download.Destination"). Both the source and the destination file
+     name can be edited manually before each download.
+
+     RoadMap is designed to support multiple download protocols. The protocol
+     is selected depending on the source string, as much as possible using
+     the well-known URL syntax. Two protocols are available: a local file
+     copy (the source is either a full path or a "file://*" URL) and the HTTP
+     protocol (the source is a "http://*" URL). The local file copy protocol
+     can be useful in some cases, for example when mounting the map server's
+     disk using nfs or smbfs.
+
+     If the suffix of the downloaded file matches a well-known compressed files
+     suffix, RoadMap will invoke the appropriate tool to uncompress the file.
+     The compression tools supported are gzip (.gz suffix), bzip2 (.bz2 suffix)
+     and lzop (.lzo suffix). This feature makes it possible to store compressed
+     maps on the server side. Using compressed files may reduce by a factor of
+     two the time it takes to download the map, depending on the compression
+     tool used, the specific map's content, etc.. Note that maps are always
+     stored uncompressed: because RoadMap maps the file in memory, compressed
+     file cannot be used by RoadMap.
+
+     If the user cancels the download of a specific map, RoadMap will not
+     request the same download again for the remainder of the session. This
+     means that RoadMap will request the same maps again if stopped and then
+     restarted. This was done because there is at this time no way for the
+     user to change his mind and re-request the download of a cancelled map.
+     This is a part of the user interface that is likely to change in the
+     future.
+
+     RoadMap also provides a dialog for deleting maps, activated through the
+     "Delete Maps.." menu entry. The dialog shows the number of map files
+     stored locally, the total size of the local maps and the list of maps
+     currently visible on the RoadMap screen. The proper way for selecting
+     maps to delete is to view an area you do not need anymore, hit the
+     "Delete Maps.." entry, then select a specific county and hit the Delete
+     button. The county will immediately disappear from the map screen and
+     the dialog gets updated (i.e. the map statistics and the map list will
+     reflect the latest delete action). Several counties can be deleted this
+     way before the dialog is closed (button "Done").
+
+     Note that a deleted map is automatically added to the "cancel download"
+     list, so that RoadMap will not request for this map again. As such, it
+     is not a problem to delete maps while the download mode is active. If
+     you need to download again a map that was deleted, just restart RoadMap.
+
+     A typical use of the download feature is to preload the maps you need
+     before you go on a trip. Activate the download mode and select the
+     destination address: RoadMap will request the download on the map that
+     covers this destination. Zoom out the display to force the download of
+     adjacent counties, if required. Repeat for each place you are likely to
+     go to. Use the arrow keys or buttons to "fly over" the roads you are
+     going to travel on. If you missed a map, and you did set a public map web
+     server, it should be possible to download maps from an hotel's Internet
+     access. Of course, if you are (rich and) lucky enough to have an Internet
+     connection while on the road, the download feature can also be used at
+     any time.
+
+     Here is a typical setup using the HTTP protocol:
+
+       + Install the individual map files, gzip-compressed, in a "maps"
+         subdirectory of the web server directory tree. Say the web
+         server is named "desktop".
+
+       + Set the preference Download.Source to
+         http://desktop/maps/usc%05d.rdm.gz
+
+       + Set the preference Download.Destination to /var/lib/roadmap
+
+       + Make sure the preference Map.Path does include the directory
+         /var/lib/roadmap.
+
+
+  - WAYPOINTS AND ADDRESSES
+
+     ** NOTE THAT MANY (ALL?) OF THE ADDRESS AND INTERSECTION SEARCHING
+     OPTIONS ARE ONLY CURRENTLY AVAILABLE WHEN USING THE US TIGER MAPS. **
+
+     RoadMap manages several types of points: a location point (selected using
+     a street address or the mouse), the GPS position (updated automatically
+     if a GPS fix is available), and an arbitrary number of user-defined
+     waypoints, which may appear as part of a route or a track.
+
+     One can select which one of these locations serves as the center of
+     the map. The GPS and waypoints positions are special cases: see the
+     section on trip management.
+
+     The location point is really a buffer for the selection of a street
+     block. Once selected, the point can be defined as a (new) waypoint or
+     as the destination, by using it to establish a new trip.  Thus the
+     definition of a destination or waypoint is a two step procedure:  (1)
+     select a location, and (2) use the selected point to create a waypoint or
+     a new route (in the Trip menu).
+
+     The location point can be entered in one of three ways:
+     - by clicking on a location on the map,
+     - by entering a valid USPS address (street number, name, city and state
+       names) in the dialog launched by the "Show Location.." menu entry,
+     - by specifying the intersection of two streets in the dialog launched
+       by the "Show intersection.." menu entry.
+
+     More details are provided in the following sections.
+
+
+  - STREET NAME OPTIONS
+
+     Street names are used in the two dialogs used to select a specific location:
+     the address and intersection dialogs. These dialogs follow the same rules
+     regarding the format of the names.
+
+     When entering a street name, the street prefix and suffix, if provided,
+     must be among the abbreviations listed by the US Census Bureau (N for
+     north, SW for southwest, etc..).  The "type" part of the name (i.e.  "Rd",
+     "St", "Pl") can be given using either the Census Bureau abbreviation, or by
+     spelling it out in full (i.e., "Road", "Street", "Place").  In almost all
+     cases, the US Census Bureau conventions follow the usual abbreviations, so
+     there is no need to worry here.  In addition, any of these fields is
+     optional:  not providing them only makes the search less selective.  If
+     several matches are found, RoadMap shows a list of all matching streets and
+     lets the user select the appropriate one.
+
+     The exact format of the data expected by RoadMap as a complete street name
+     is as follow:
+
+```
+           [prefix ' '] name [[' ' suffix] ' ' type]
+```
+
+     The name itself may include space characters. Potential conflicts are
+     resolved by excluding the prefix, suffix and type fields from the name
+     only when a match is found with the valid set for that county. As such,
+     the following names would work OK in any circumstances:
+
+```
+           N Rio del Sol St   --> RoadMap detects both a prefix and a type.
+           Rio del Sol St     --> RoadMap detects the type, no valid prefix.
+           N Rio del Sol      --> RoadMap detects the prefix, no valid type.
+           Rio del Sol        --> RoadMap detects no valid prefix or type.
+```
+
+     Lets go through an example: we will search for 100 East Washington
+     Boulevard in Los Angeles, California. The name of the street should be
+     typed as follow:
+
+```
+           e washington blvd
+```
+
+     The 'e' stands for "east", 'blvd' stands for boulevard, according to the
+     US Census Bureau documentation. Note that RoadMap is not case sensitive.
+
+     The result is a single match, so RoadMap shows the location immediately
+     without any additional question. However it is possible to omit either
+     the prefix, street type, or both, with the effect of broadening the search.
+     Let say we entered:
+
+```
+           washington blvd
+```
+
+     Now RoadMap display a dialog that lists 3 matches:
+
+```
+           Washington Blvd, Los Angeles
+           W Washington Blvd, Los Angeles
+           E Washington Blvd, Los Angeles
+```
+
+     The first item in the list is shown selected, and RoadMap displays a new
+     location in the map display. In fact, each time the user selects one
+     address in the list, RoadMap displays the corresponding map location.
+     When the user hits the OK button, this simply confirms the current choice
+     as the final one.
+
+     Note that not providing a prefix, suffix or street type does broaden
+     the search, but the street name must always be provided in full: at that
+     time RoadMap provides only an exact street names search. Thus providing
+     "wash" instead of "washington" only triggers the error message "No street
+     with that name could be found".
+
+
+  - OTHER ADDRESS OPTIONS
+
+     It is possible to not specify the street number part of an address:
+     in that case, all street blocks matching the street and city names will
+     be listed. Be careful, that might make a long list, and RoadMap has a
+     limit of 256 items per list (matching items beyond the 256th one are
+     discarded).
+
+     It is also possible to specify an approximate city search: if the city
+     name is prefixed with a character '?', then the name of the city is used
+     to find the county, but is not used in the street match: the idea is to
+     list all similar addresses around (i.e. in the county). This is useful
+     when one is not sure of the city name, or only knows the name of a city
+     nearby.
+
+
+  - SELECTING AN INTERSECTION
+
+     The "Intersection.." menu entry activates a dialog that asks for
+     two street names and a state name. RoadMap will search within the given
+     state for all intersections between streets that match the street names
+     provided. This search may take a few seconds, especially if the maps must
+     be read from disk.
+
+     In the (likely) case where multiple intersections have been found, RoadMap
+     displays a list that shows the name of the city and the name of the county
+     where each intersection is located. This selection list follows the same
+     rules as the address selection list described in the previous sections.
+
+
+  - SELECTING A POSITION
+
+     The "Position.." menu entry activates a dialog that asks for a
+     longitude / latitude position. The format for the longitude and latitude
+     must conform to the ISO 6709-1983 standard (with some extensions).
+
+     In short, the latitude and longitude can be entered as "[+-]dd.ddd",
+     "[+-]ddmm.mmm", or "[+-]ddmmss.sss".  N, S, E, and W are allowed as
+     either prefix or suffix.
+
+     More completely, the format for longitude is:
+
+```
+     [+-EW][d]dd[mm[ss]][.ffffff][EW]
+```
+
+     and the format for latitude is:
+
+```
+     [+-NS]dd[mm[ss]][.ffffff][NS]
+```
+
+     Where "[d]dd" or "dd" stands for the degrees, "mm" stands for the minutes,
+     "ss" stands for the seconds and "ffffff" stands for the fractional part
+     (either fraction of degrees, minutes or seconds, depending on the context).
+
+     The main extensions compare to ISO 6709 are as follow:
+
+     - the letters 'E', 'W', 'N' and 'S' are recognized as a replacement
+       for '+' or '-', either as prefix or suffix.
+
+     - the longitude may be expressed using only 2 digits for degrees.
+
+
+  - MANAGING TRIPS
+
+     RoadMap can support many trips:  each trip context is saved in a trip
+     file.  One trip at a time can be edited or activated.  A saved trip can
+     be reloaded from its trip file.
+
+     The last trip created or loaded will be reloaded the next time RoadMap
+     starts.  If the name of the trip has been specifically set by the user, it
+     will appear in the titlebar of the RoadMap window.
+
+     A trip is a collection of landmarks, routes, and tracks which (usually)
+     have some relationship to one another.
+
+     Routes are sequences of waypoints that (usually!) lead you somewhere you
+     want to go.  Tracks are sequences of recorded waypoints that show you
+     where you've been.  Although one doesn't usually do so, a track can be
+     followed just as a route can be followed.
+
+     Trip landmarks are arbitrary waypoints that aren't part of a route or a
+     track.  They're presumably interesting all by themselves.  (The trip's
+     landmarks are distinct from another set of landmarks known as your
+     "Personal Landmarks".  The "personal landmarks" are displayed on the map
+     no matter which trip is loaded.)  Landmarks and waypoints are sometimes
+     just referred to as "Places".
+
+     One end of a route is the starting point, and the other is the
+     destination.  Comments attached to the route's waypoints are used to
+     give directions from one waypoint to the next.  Routes can be reversed,
+     in order to traverse them backwards (but the comments don't get
+     rewritten).  Reversing a route will not change the trip file -- the
+     reversal is completely internal to RoadMap.
+
+     When you load a trip (or when you start RoadMap, and the last trip you
+     used is automatically reloaded) you'll be presented with a menu of
+     routes to choose from.  (If there's only one route in the trip, it will
+     be selected automatically.)
+
+     While you might choose to name your trips with a ".gpx" suffix, as a
+     reminder of what format they're stored in, this is entirely optional.
+     File suffix doesn't matter.
+
+     Note that although tracks and routes are conceptually separate, either
+     type can be selected at this point, and any of the operations under the
+     "Routes" menu can be applied to either.
+
+     One of the buttons in this "Manage Routes" dialog is "None", which is a
+     quick way of not selecting any route at all.
+
+     - Creating a route:
+
+         If you're starting a "fresh" trip, you'll likely start by creating a
+         route.  Choose a place that will be part of the route (a waypoint,
+         a landmark, a street address, a geographic location) and then use
+         the "Create New Route" menu entry to begin constructing your route.
+         This will create an unnamed route with only one waypoint -- your
+         destination.
+
+         A route with only one waypoint isn't very interesting, so you'll
+         want to select more points along the route.  To select a new place,
+         you can a) click (or tap) on the street where you wish to go, b) use
+         the "Find" menu items "Address...", "Intersection...", or
+         "Position..." to locate it, or c) choose another, previously created
+         place from the route, the trip landmarks, or the personal landmarks.
+         After locating your new waypoint, use the "Add as waypoint" menu
+         item to add each to the route.  You'll have choices of where to add
+         (at the beginning, at the end, or as a midpoint of the nearest route
+         segment), as well as a chance to add it as a landmark, to either the
+         trip's list, or your personal list.  Continue adding waypoints to
+         your route.
+
+         (If you do much route creation, you should create a toolbar button for
+         the "addroutewaypoint" command.  Then, the easy way to create a route
+         is to first create a trivial route between the two endpoints as
+         described above, and then points on the map and add them with your
+         toolbar button.  The route will "snap" into place through each new
+         point you add.)
+
+         Note that waypoints are always copied.  So if you choose an
+         existing waypoint or landmark to use as a route waypoint, you'll
+         end up with a new waypoint, not just a second reference to an
+         existing waypoint.
+
+         You can give your new route points names as you go, or wait until
+         later and use the "Route Waypoints..." menu item to go back to the
+         list, and select the ones you wish to rename or to which you wish to
+         add comments.  Waypoint deletion can be done here as well.
+
+         It is also possible to delete, edit, or move waypoints and landmarks
+         by directly selecting them with the mouse.  Use a short click to
+         select the place of interest -- its identifying information will be
+         shown along the bottom of the screen.  Then use the appropriate
+         menu command to delete, edit, or move the selection.  These commands
+         are most readily accessed via the "long click" menu.  If doing a
+         move, you'll select the place, then choose the "Move place" command,
+         then click or tap at the new desired location.
+
+         Your route doesn't yet have a name.  That's fine -- routes and
+         tracks can be unnamed.  If there's only one route in a trip file,
+         it's no big deal, but if there's more than one, you might want to
+         give them names to help keep them straight.  You do this (you can
+         also add descriptive text) from the "Manage Current Routes" menu
+         item.  This is also where you'd select a different route to work
+         with.  If your trip has tracks, they'll appear hear as well.  Be
+         careful with delete!  There's no undo command.  Note that in
+         addition to having no name, multiple routes can have the same name.
+         This will not confuse RoadMap, though it may confuse the user.
+
+     - Converting a track to a route:
+
+         Another, perhaps less convenient, method of creating a route, is to
+         base it on a track that you (or someone else) has already travelled.
+         While it's possible to simply select a track and follow it as one
+         would follow a route, there are usually too many trackpoints showing
+         up and obscuring the actual roads.  It's better to create a route
+         from the track using the "Simplify Route" command.  (Remember that
+         all of the route commands apply to tracks as well.)  If
+         simplification was successful (i.e., if any waypoints could be
+         eliminated) a new route will be created and selected.  It will be
+         named after the original, with "Simple ..." prepended to to the
+         original name.  (If it had a name -- otherwise the result is unnamed
+         as well.)
+
+     - Importing a route:
+
+         One advantage of using the popular GPX format is that routes
+         and landmarks can be obtained from other sources.  Not only are
+         some GPS management programs converting to use GPX directly, but
+         there are many "<something-else>-to-GPX" conversion programs
+         available.  There are many such programs listed at:
+            http://www.topografix.com/gpx_resources.asp
+
+         One of the best, and most complete, of these conversion programs
+         is gpsbabel, available here:
+            http://www.gpsbabel.org
+
+         There's also an online front-end to gpsbabel, here:
+            http://www.gpsvisualizer.com/gpsbabel
+
+         Gpsbabel will convert from most popular GPS data formats, and
+         can talk directly to many GPS devices without involving their
+         vendor's "support software" at all.  [ RoadMap is particularly
+         indebted to gpsbabel, since much of the code which supports
+         RoadMap's GPX input and output came directly from gpsbabel. ]
+
+         One handy source of route and waypoint data these days is Google
+         Maps.  Google directions and waypoints can be converted directly to
+         GPX format by the GMapToGPX bookmarklet:
+            http://www.elsewhere.org/GMapToGPX
+
+         gpsbabel can do this too, somewhat more indirectly -- the following
+         script shows how:
+
+```
+          #!/bin/sh
+
+          function usage()
+          {
+              echo usage: $0 "from address" "to address" >&2
+              exit 1
+          }
+
+          if [ $# != 2 ]
+          then
+              usage
+          fi
+
+          from="$1"
+          to="$2"
+
+          # the gpsbabel line simplifies:  the "error=xxx" value is in miles,
+          # and signifies how far any single point must be from the straight
+          # line connecting its neighbors in order to not be discarded.
+          wget -O - "http://maps.google.com/maps?q=$from to $to&output=js" \
+                     2>/dev/null  |
+              sed -e 's/<b>//g' -e 's/<\/b>//g' |
+              gpsbabel -r -i google -f - -x simplify,error=0.05 -o gpx -F -
+```
+
+         The above script shows how one might use gpsbabel to simplify
+         a route or track rather than doing it with the Simplify command
+         inside RoadMap.  Using gpsbabel might give better results, since
+         it currently uses a different (and more expensive) algorithm
+         than does RoadMap.
+
+         Once you have a have a data in GPX format, it's simply a matter
+         of loading that that data with "Open Trip", or merging it into
+         another of your existing trips with "Merge Trip".
+
+     - Quick Destination:
+
+         Sometimes one doesn't really want to follow a route at all -- all
+         you want to do is set a goal, and be kept informed of how far away
+         it is, and in which direction.  (This might be useful for geocaching,
+         for instance.)  That's what the "Quick Destination" menu entry is
+         for.  Select where you want to go (a waypoint, a street address, an
+         intersection, or latitude/longitude spot), and as you move around,
+         the display will continously display the distance and direction
+         to that point.
+
+     - Following a route:
+
+         A route that has been created or loaded can then be activated.
+         Activating a route defines the departure point (the current GPS
+         location) and enables the "trip display" mode:  extra status
+         information will appear on the map.  This will include an arrow
+         beside the GPS location symbol to indicate the direction of the next
+         waypoint, as well as user configurable messages, such as distance
+         information, the directions to the next waypoint (if any are present
+         in the waypoint's comments), its distance, etc.  The messages will
+         display at the corners of the map.  (see CONFIGURATION for more
+         information about these user configurable messages).
+
+         If the route's waypoint contains comments (from the "<cmt>" element
+         of the GPX file), these will be displayed as directions which
+         should be followed when that waypoint is reached.  The directions
+         displayed will be from the next waypoint which has directions, i.e.
+         there may intervening waypoints that do not have comments.
+
+         A waypoint is "attained" by entering within its "vicinity".  This
+         radius is set in the user's' trip preferences (125 ft, by default).
+         When entering the vicinity circle, the GPS directional arrow will
+         immediately begin pointing at the next waypoint in the list.
+         On-screen directions will not be updated (i.e., to describe the next
+         turn, rather than the current turn) until one leaves the waypoint
+         vicinity.  In addition, RoadMap honors a larger circle, at twice the
+         size of the waypoint vicinity.  If one enters this circle and then
+         leaves it (without ever entering the inner "vicinity-sized" circle),
+         then RoadMap will see if the next route segment is closer than the
+         last route segment, and if so will assume that the user is on track
+         to the next.  The directional pointer and on-screen directions will
+         be updated, even though the waypoint was never "quite" attained.
+         This helps accomodate small map errors, or large roundabout or
+         interchange intersections where the actual waypoint may be
+         unreachable.
+
+         A route can be stopped at any time and then resumed.  When a route is
+         resumed, the waypoint chosen as the "next" to be visited is chosen
+         by searching for the route segment that is closest (in geometrical
+         terms) to the GPS location.  The route can also be resumed in reverse
+         mode:  in that case the departure point and the destination point
+         switch roles.  The reverse mode makes it possible to use the same
+         RoadMap route on the way back, though as noted previously, any
+         comments on the waypoints that give directions will be unchanged.
+         This can be a bit confusing sometimes!
+
+         When a route is active, RoadMap tracks the GPS position in realtime
+         and updates the map accordingly.  The GPS position can be shown in
+         two modes:  either North up or GPS direction up depending on the
+         "Map.DynamicOrientation" preference item.  In the second case, the
+         map is rotated according to the direction information received from
+         the GPS, and is convenient as it matches the driver's or passenger's
+         view.  (This dynamic rotation is in addition to the map manual
+         rotation.) Some people find it disconcerting, however, and will wish
+         to retain "North up" mode.
+
+  - CURRENT TRACK
+
+         Unless specifically disabled in preferences, the GPS track followed
+         by the user will be continuously recorded by RoadMap.  By default
+         this "breadcrumb trail" will be displayed on the map, but this can
+         be suppressed with the "Show/Hide Track" toggle command.  Whether
+         the track is displayed initially is also configurable.
+
+         The frequency at which points for the track are recorded is
+         determined by several settings in preferences:
+
+           - If "Time" is chosen, then track points will be saved
+             periodically every so many seconds (as long as the GPS
+             has moved at least a little bit).
+
+           - If "Distance" is chosen, then a new track point will be saved
+             whenever the configured distance from the previously saved
+             trackpoint has been exceeded.
+
+           - IF "Deviation" is chosen, then a new track point will only be
+             saved if the new point is significantly "off track" from the
+             preceding path of travel.  This minimizes the points saved,
+             since straight line travel is represented by very few points.
+
+           - If "Off" is chosen, then no track points will be saved.
+           -
+
+         Normally the recorded track will be saved in the configured filename.
+         The default for this file is "currenttrack.gpx".  If one wishes to
+         record tracks, but never save them to disk, set the filename to the
+         special value "NONE".  Complete tracks are preserved in the event of
+         a system or program crash.
+
+
+  - DRIVERS
+
+     RoadMap can interface with the outside world through separate driver
+     applications. A driver can:
+
+           - Receive the current GPS position from RoadMap.
+           - Access the RoadMap preferences database.
+           - Provide RoadMap with objects to track and update each
+             object's position, speed and steering (otherwise called
+             "position").
+           - Communicate with another application to export RoadMap's
+             position or import the position of objects as reported by
+             the other application.
+           -
+
+     The objects reported to RoadMap have the following attributes:
+
+           - An unique ID used to identify the object within RoadMap.
+           - A name used for (future) display.
+           - The name of a sprite used to represent the object on the screen.
+           - A position, speed and steering.
+           -
+
+     All drivers must be listed in the text file ~/.roadmap/drivers. This
+     file contains one line per driver, with the following syntax:
+
+```
+         <name> : <command>
+```
+
+     The command may have any number of parameters (or none). The program must
+     be specially designed to interact with RoadMap: do not just use any
+     program as a RoadMap driver.
+
+     Once a driver has been declared in the drivers file, it can be enabled
+     or disabled by changing the Drivers.<driver> preference item. By default,
+     all newly declared drivers are disabled. A disabled driver is known to
+     RoadMap, but is not started. Multiple drivers can be enabled at the same
+     time, however some drivers may not be designed to be started more than once.
+
+     RoadMap comes with three drivers:
+
+           : rdmghost
+             Is a driver test program.  It is a silly small application that
+             echoes back a previous position of RoadMap.  It shows a green
+             ghost vehicle that seems to chase the RoadMap position.  The
+             rdmghost driver uses the Ghost.Delay preferences items, which
+             sets the delay for echoing the RoadMap location (each delay unit
+             generally match one second time).
+
+           : rdmfriends
+             This is the driver for gpsdrive's "friends" protocol.
+             It can connect to a friends server (gpsdrive 2.0.9), advertise
+             the RoadMap location and provide RoadMap with the list and
+             location of all vehicles known to the friends server. The
+             rdmfriends driver use the Friends.Name and Friend.Server
+             preferences items. The first item provides the name that
+             rdmfriends must use to identify itself to the friends server.
+             The second item provides the network address of the friends
+             server.
+
+           : rdmkismet
+             This is the driver for the kismet wireless network scanner.
+             This driver connects to the kismet application and provide
+             RoadMap with the list and position of access points kismet is
+             detecting (the speed represent the signal strength and the
+             steering represents the channel). The rdmkismet driver uses
+             the Kismet.Server preferences items that specifies the network
+             address of the kismet application.
+           :
+
+     These three drivers were designed so each can be started more than once:
+     the option --driver=<name> replaces the default driver's name (repectively
+     Ghost, Friends and Kismet) with the specified name. This changes the
+     category of the driver's preferences items as well. It is thus possible
+     for RoadMap to interact with multiple friends servers or kismet scanners.
+
+     For example, the following drivers file declares 2 ghost drivers:
+
+```
+        Ghost1: rdmghost --driver=Ghost1
+        Ghost2: rdmghost --driver=Ghost2
+```
+
+  - NMEA LOGGING
+
+     RoadMap (and RoadGPS, if built separately) allows logging of all the
+     NMEA sentences received.  The log file is created using the specified
+     filename, in the /var/tmp directory.  This log file can be replayed by
+     RoadMap using the --gps option with an absolute file name as an
+     argument.  For example:
+
+```
+         roadmap --gps=/var/tmp/roadgps-1.log
+```
+
+  - ROADMAP PREFERENCES
+
+     It is possible to edit the roadmap's preferences (select File /
+     Preferences from the menu bar).  Most preference items take affect only
+     when roadmap starts, so restarting roadmap is usually required.
+
+
+= Using RoadGps =
+
+     RoadGps is a handy GPS console, inspired by the
+     Garmin satellite status page, with NMEA logging capability. 
+
+     The functionality of RoadGps is now included directly in
+     roadmap, but roadgps is still available as a separate
+     program.  If configured to use gpsd, roadgps and roadmap can
+     be active at the same time, since gpsd manages the serial
+     port connection to the GPS unit.
+
+     If built as separate program, roadgps can be started on its
+     own (using command line options similar to those of
+     RoadMap), and in any case from the RoadMap's File / GPS
+     Console menu item.
+
+     The screen shows the list of satellites, their position in
+     the sky (north up) and the strength of the signal.  It marks
+     in reverse video the satellites being used to compute the
+     current position.  In addition, the locations of the Sun
+     and/or Moon are shown, for general reference.
+
+     RoadGps uses a subset of the RoadMap preferences setup, but has no
+     preferences editor of its own: configure RoadMap first, and then use
+     RoadGps.
+
