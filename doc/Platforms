@@ -104,14 +104,14 @@ If that copy is inappropriate or unavailable, you can build your own.
 
   - Building the RoadMap.xo activity
 
-    Start with a relatively clean copy of the RoadMap source tree, and
-    change directory to "sugar", at the top-level of the tree.  From
-    there, simply run the script "mk_activity" -- this will build an
-    appropriately-configured copy of RoadMap, and adds the system
-    and user config to the the .zip-formatted archive that OLPC calls
-    a ".xo" bundle.  Just a few maps may be added to that bundle if
-    you have your maps installed in /usr/local/share/roadmap/maps --
-    otherwise no maps will be provided.
+    Start with a relatively clean copy of the RoadMap source tree from CVS
+    (not the tarball), and change directory to "sugar", at the top-level of
+    the tree.  From there, simply run the script "mk_activity" -- this will
+    build an appropriately-configured copy of RoadMap, and adds the system
+    and user config to the the .zip-formatted archive that OLPC calls a
+    ".xo" bundle.  Just a few maps may be added to that bundle if you have
+    your maps installed in /usr/local/share/roadmap/maps -- otherwise no
+    maps will be provided.
 
   - Installing maps
 
