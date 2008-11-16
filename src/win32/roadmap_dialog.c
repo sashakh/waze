@@ -1,5 +1,4 @@
-/* roadmap_dialog.c - manage the Widget used in roadmap dialogs.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
@@ -22,10 +21,12 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_dialog.h
+ */
+
+/**
+ * @file
+ * @brief win32/roadmap_dialog.c - manage the Widget used in roadmap dialogs.
+ * @ingroup windows
  */
 
 #include <windows.h>
@@ -62,7 +63,7 @@ extern HINSTANCE g_hInst;
 #define ROADMAP_WIDGET_IMAGE	 9
 #define	ROADMAP_WIDGET_MUL_ENTRY 10
 
-const unsigned int MAX_ROW_HEIGHT = 20;
+const unsigned int MAX_ROW_HEIGHT = 40;	/* 20 */
 const unsigned int MAX_ROW_SPACE = 5;
 const unsigned int MAX_LIST_HEIGHT = 80;
 const unsigned int BUTTON_WIDTH = 50;
@@ -1097,4 +1098,3 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	}
 	return (INT_PTR)FALSE;
 }
-
