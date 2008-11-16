@@ -1,5 +1,4 @@
-/* roadmap_sprite.c - manage the roadmap sprites that represent moving objects.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * DESCRIPTION:
- *
- *   This module draws predefined graphical objects on the RoadMap canvas.
+ */
+
+/**
+ * @file
+ * @brief This module draws predefined graphical objects on the RoadMap canvas.
  */
 
 #include <string.h>
@@ -112,15 +112,26 @@ RoadMapGuiPoint *RoadMapSpritePoints = NULL;
 static char *RoadMapSpriteFile;
 static int RoadMapSpriteLine;
 
-static void roadmap_sprite_syntax(char *msg) {
-
-      roadmap_log(ROADMAP_WARNING, "%s, line %d: %s",
-         RoadMapSpriteFile, RoadMapSpriteLine, msg);
-
+/**
+ * @brief print a warning message
+ * @param msg the message
+ */
+static void roadmap_sprite_syntax(char *msg)
+{
+      roadmap_log(ROADMAP_WARNING,
+		      "%s, line %d: %s",
+		      RoadMapSpriteFile,
+		      RoadMapSpriteLine,
+		      msg);
 }
 
-static RoadMapSprite roadmap_sprite_search (const char *name) {
-
+/**
+ * @brief look for a named sprite
+ * @param name
+ * @return the sprite
+ */
+static RoadMapSprite roadmap_sprite_search (const char *name)
+{
    RoadMapSprite cursor;
 
    for (cursor = RoadMapSpriteList; cursor != NULL; cursor = cursor->next) {
@@ -484,9 +495,13 @@ static int roadmap_sprite_drawing_is_valid (RoadMapSprite sprite) {
    return 1;
 }
 
-
-static int roadmap_sprite_load_line (char *line) {
-
+/**
+ * @brief process a line of sprite configuration file
+ * @param line text from the sprites file
+ * @return status
+ */
+static int roadmap_sprite_load_line (char *line)
+{
    int argc;
    char *argv[256];
    char *delim = " \t\n\r";
@@ -644,15 +659,16 @@ static int roadmap_sprite_load_line (char *line) {
    return 1;
 }
 
-
-static void roadmap_sprite_load_file (const char *path) {
-
+/**
+ * @brief
+ * @param path
+ */
+static void roadmap_sprite_load_file (const char *path)
+{
    FILE *file;
 
    if ((file = roadmap_file_fopen (path, "sprites", "r")) == NULL) {
-
       roadmap_log (ROADMAP_ERROR, "cannot open file 'sprites' in %s", path);
-
    } else {
       char  line[1024];
 
@@ -660,15 +676,15 @@ static void roadmap_sprite_load_file (const char *path) {
       RoadMapSpriteLine = 1;
 
       while (!feof(file)) {
-
-         if (fgets (line, sizeof(line), file) == NULL) break;
-
-         if (roadmap_sprite_load_line (line) == 0) break;
-
+         if (fgets (line, sizeof(line), file) == NULL)
+		 break;
+         if (roadmap_sprite_load_line (line) == 0)
+		 break;
          RoadMapSpriteLine++;
       }
 
       fclose (file);
+      roadmap_log (ROADMAP_DEBUG, "roadmap_sprite_load_file: %d lines", RoadMapSpriteLine);
 
       free (RoadMapSpriteFile);
    }
@@ -799,7 +815,10 @@ void roadmap_sprite_draw_with_text
    RoadmapSpriteDrawingSequence textsequence[1];
    int scale;
 
-   if (sprite == NULL || sprite->alias_name != NULL) return;
+   if (sprite == NULL || sprite->alias_name != NULL) {
+	   roadmap_log (ROADMAP_WARNING, "roadmap_sprite_draw_with_text(%s): NULL", name);
+	   return;
+   }
 
    scale = RoadMapSpritePercent * sprite->scale / 100;
 
@@ -923,25 +942,30 @@ void roadmap_sprite_draw_with_text
       roadmap_sprite_scale_bbox(text_bbox, text_bbox, scale);
 }
 
-void roadmap_sprite_draw
-        (const char *name, RoadMapGuiPoint *location, int orientation) {
-
-   roadmap_sprite_draw_with_text
-      (name, location, orientation, NULL, NULL, NULL);
+/**
+ * @brief draw a sprite
+ * @param name
+ * @param location
+ * @param orientation
+ */
+void roadmap_sprite_draw (const char *name, RoadMapGuiPoint *location, int orientation)
+{
+   roadmap_sprite_draw_with_text (name, location, orientation, NULL, NULL, NULL);
 }
 
-void roadmap_sprite_load (void) {
-
+/**
+ * @brief initialize roadmap_sprite.c, load the sprite file
+ */
+void roadmap_sprite_load (void)
+{
    int max_point_count;
    const char *cursor;
 
    RoadMapSprite sprite;
 
-
    for (cursor = roadmap_scan ("config", "sprites");
         cursor != NULL;
         cursor = roadmap_scan_next ("config", "sprites", cursor)) {
-
       roadmap_sprite_load_file (cursor);
    }
 
@@ -955,13 +979,14 @@ void roadmap_sprite_load (void) {
    RoadMapSpriteDefault = roadmap_sprite_search ("Default");
 
    if (RoadMapSpriteDefault == NULL) {
-
       /* initialize character arrays to keep these strings writeable --
        * strtok() will process them
        */
       char hardcoded1[] = "S Default";
       char hardcoded2[] = "F black 1";
       char hardcoded3[] = "P -4,-4 4,-4 4,4 -4,4";
+
+      roadmap_log (ROADMAP_WARNING, "roadmap_sprite_load: no sprites found, just a default");
 
       roadmap_sprite_load_line (hardcoded1);
       roadmap_sprite_load_line (hardcoded2);
@@ -972,14 +997,14 @@ void roadmap_sprite_load (void) {
 
    roadmap_sprite_resolve_aliases();
 
-
    /* Allocate the space required to draw any configured sprite: */
 
    RoadMapSpritePointCount = roadmap_sprite_maxpoint (RoadMapSpriteDefault);
+   roadmap_log (ROADMAP_DEBUG, "roadmap_sprite_load: %d sprites", RoadMapSpritePointCount);
 
    for (sprite = RoadMapSpriteList; sprite != NULL; sprite = sprite->next) {
-
-      if (sprite->alias_name != NULL) continue;
+      if (sprite->alias_name != NULL)
+	      continue;
 
       max_point_count = roadmap_sprite_maxpoint (sprite);
 
@@ -987,14 +1012,11 @@ void roadmap_sprite_load (void) {
          RoadMapSpritePointCount = max_point_count;
       }
    }
-   RoadMapSpritePoints =
-      calloc (RoadMapSpritePointCount, sizeof(*RoadMapSpritePoints));
 
-   roadmap_config_declare
-        ("preferences", &RoadMapConfigSpritePercent, "100");
+   RoadMapSpritePoints = calloc (RoadMapSpritePointCount, sizeof(*RoadMapSpritePoints));
 
-   RoadMapSpritePercent =
-            roadmap_config_get_integer (&RoadMapConfigSpritePercent);
+   roadmap_config_declare ("preferences", &RoadMapConfigSpritePercent, "100");
+
+   RoadMapSpritePercent = roadmap_config_get_integer (&RoadMapConfigSpritePercent);
 
 }
-
