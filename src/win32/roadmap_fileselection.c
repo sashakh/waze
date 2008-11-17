@@ -1,5 +1,4 @@
-/* roadmap_fileselection.c - manage the Widget used in roadmap dialogs.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_fileselection.h
+ */
+
+/**
+ * @file
+ * @brief win32/roadmap_fileselection.c - manage the Widget used in roadmap dialogs.
  */
 
 #include <windows.h>
@@ -34,11 +34,19 @@
 #include "../roadmap_fileselection.h"
 
 
+/**
+ * @brief pop up a dialog asking the user which file to load/save
+ * @param title the title of this dialog
+ * @param filter optional filter string, defaults to *.*
+ * @param path not used
+ * @param mode should contain 'r' for reading a file
+ * @param callback this function is called (on success) with the filename and mode as arguments
+ */
 void roadmap_fileselection_new (const char *title,
-								const char *filter,
-								const char *path,
-								const char *mode,
-								RoadMapFileCallback callback)
+				const char *filter,
+				const char *path,
+				const char *mode,
+				RoadMapFileCallback callback)
 {
 	WCHAR filename[MAX_PATH] = {0};
 	WCHAR strFilter[MAX_PATH] = {0};
@@ -54,9 +62,17 @@ void roadmap_fileselection_new (const char *title,
 	ofn.Flags = OFN_EXPLORER;
 	ofn.lpstrTitle = title_unicode;
 	if (filter != NULL) {
+		/*
+		 * Need to get the string converted into WCS and then
+		 * stored twice with a couple of NULLs in between and at the end.
+		 */
 		LPWSTR fltr = ConvertToUNICODE(filter);
-		_snwprintf(strFilter, sizeof(strFilter)/sizeof(strFilter[0]),
-						TEXT("%s\0%s\0"), fltr, fltr);
+		int l = wcslen(fltr);
+		wcscpy(strFilter, fltr);
+		strFilter[l] = L'\0';	/* one more zero */
+		wcscpy(strFilter+l+1, fltr);
+		strFilter[2*l+1] = L'\0';	/* one more zero */
+		strFilter[2*l+2] = L'\0';	/* one more zero */
 		free(fltr);
 		ofn.lpstrFilter = strFilter;
 	} else {
@@ -80,4 +96,3 @@ void roadmap_fileselection_new (const char *title,
 		free(name);
 	}
 }
-
