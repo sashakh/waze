@@ -24,6 +24,7 @@
 /**
  * @file
  * @brief The main function of the RoadMap application for Windows.
+ * @ingroup windows
  */
 
 /**
@@ -1156,8 +1157,6 @@ extern "C" {
 	void roadmap_main_exit (void)
 	{
 		roadmap_start_exit ();
-		SendMessage(RoadMapMainWindow, WM_CLOSE, 0, 0);
-
 		/* This is an easy and clean way to terminate threads too */
 		ExitProcess(0);
 	}
