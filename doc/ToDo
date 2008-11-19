@@ -90,6 +90,13 @@ feel especially free to contact the author(s) with patches.  ;-)
    managing system setup is best left to system daemons.  In addition, gpsd
    is now synchronizing the system time, so don't mess with that subject..
 
+ - Internationalization
+
+   RoadMap has some initial i18n code.  It's not based on gettext().
+   Before going further, we should revisit that decision, just in case
+   we want to do it differently.  But in any case, we should make the
+   entire program translatable, and add more languages.
+
  - Modular map format
    
    RoadMap map format is such today that all the information must be
