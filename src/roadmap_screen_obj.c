@@ -1,5 +1,4 @@
-/* roadmap_screen_obj.c - manage screen objects.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2006 Ehud Shabtai
@@ -19,8 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * DESCRIPTION:
+ */
+
+/**
+ * @file
+ * @brief roadmap_screen_obj.c - manage screen objects.
  *
  *   This module manages a dynamic list of objects to be displayed on screen.
  *   An object can be pressed on which may trigger an action and/or it can
@@ -206,7 +208,8 @@ static void roadmap_screen_obj_decode_icon
          image = roadmap_res_get (RES_BITMAP, RES_SKIN, argv[i]);
 
          if (image == NULL) {
-            roadmap_screen_obj_syntax("Can't load image");
+	    roadmap_log(ROADMAP_WARNING, "%s, line %d: Can't load image (%s)",
+			    RoadMapScreenObjFile, RoadMapScreenObjLine, argv[i]);
          }
          object->images[object->states_count] = image;
       } else {
@@ -341,7 +344,8 @@ static void roadmap_screen_obj_decode_state
    object->state_fn = roadmap_state_find (argv[1]);
 
    if (!object->state_fn) {
-      roadmap_screen_obj_syntax ("Can't find specified state indicator");
+      roadmap_log(ROADMAP_WARNING, "%s, line %d: Can't find state indicator (%s)",
+         RoadMapScreenObjFile, RoadMapScreenObjLine, argv[1]);
    }
 }
 
@@ -362,7 +366,8 @@ static void roadmap_screen_obj_decode_action
    if (action) {
       object->callback = action->callback;
    } else {
-      roadmap_screen_obj_syntax ("Can't find specified action");
+      roadmap_log(ROADMAP_WARNING, "%s, line %d: Can't find action (%s)",
+         RoadMapScreenObjFile, RoadMapScreenObjLine, argv[1]);
    }
 
    if (argc == 1) return;
@@ -371,7 +376,8 @@ static void roadmap_screen_obj_decode_action
    if (action) {
       object->long_callback = action->callback;
    } else {
-      roadmap_screen_obj_syntax ("Can't find specified action");
+      roadmap_log(ROADMAP_WARNING, "%s, line %d: Can't find action (%s)",
+         RoadMapScreenObjFile, RoadMapScreenObjLine, argv[2]);
    }
 }
 
@@ -820,5 +826,14 @@ void roadmap_screen_obj_draw (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @param x
+ * @param y
+ */
+void roadmap_screen_obj_offset (int x, int y)
+{
+	OffsetX += x;
+	OffsetY += y;
+}
 
