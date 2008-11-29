@@ -101,6 +101,34 @@ int roadmap_message_format (char *text, int length, const char *format) {
 
 /**
  * @brief set a numbered message to the given string
+ *
+ * This table outlines which message means what<table><tr>
+ *	A	estimated time of arrival (not yet implemented).<tr>
+ *	B	Direction of travel (bearing).<tr>
+ *	C	the name of the city for the selected or current street.<tr>
+ *	D	Distance to the destination (set only when a trip is active).<tr>
+ *	E	Next sunset time (evening), undefined in night time.<tr>
+ *	e	Next sunset time, always defined.<tr>
+ *	F	the full name (number, name, city) of the selected or current street.<tr>
+ *	H	Altitude.<tr>
+ *	M	Next sunrise time (morning), undefined in daylight time.<tr>
+ *	m	Next sunrise time, always defined.<tr>
+ *	N	the name of the selected or current street.<tr>
+ *	P	the name of the selected or current place.<tr>
+ *	R	the name of the route or list containing the selected place.<tr>
+ *	S	Speed.<tr>
+ *	T	Current time, format HH:MM.<tr>
+ *	W	Distance to the next waypoint (set only when a trip is active).<tr>
+ *	X	Directions to be followed when the next waypoint (with directions) is reached.
+ *		(set only when a trip is active).<tr>
+ *	Y	Distance to the next waypoint which includes directions, unless the GPS is
+ *		"at" that waypoint.  (set only when a trip is active).<tr>
+ *	#	the street number range to the selected or current street block.<tr>
+ *	s	Total number of satellites.<tr>
+ *	v	Total number of available satellites.<tr>
+ *	x	Distance from one side of the screen to the other.<tr>
+ *	y	Distance from the top to the bottom of the screen.</table>
+ *
  * @param parameter indicates which message to set
  * @param format this and the next parameters are printf-style
  */
