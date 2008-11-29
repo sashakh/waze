@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2006 Ehud Shabtai
+ *   Copyright (c) 2008, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -825,15 +826,3 @@ void roadmap_screen_obj_draw (void) {
       }
    }
 }
-
-/**
- * @brief
- * @param x
- * @param y
- */
-void roadmap_screen_obj_offset (int x, int y)
-{
-	OffsetX += x;
-	OffsetY += y;
-}
-
