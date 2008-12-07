@@ -1,0 +1,12 @@
+Delta.Rotate: 0
+Delta.Y: 0
+Delta.X: 0
+Focus.Rotate: 0
+Focus.Name: Address
+Hold.Direction: 0
+Hold.Position: 0,0
+Selection.Position: -122394181,37794928
+Address.Position: -122394181,37794928
+GPS.Direction: 0
+GPS.Position: 0,0
+General.Zoom: 150

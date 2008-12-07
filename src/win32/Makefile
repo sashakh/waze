@@ -48,7 +48,7 @@ HEADERS = \
 	roadmap_wincecanvas.h \
 	wince_input_mon.h
 
-TARGETS = wroadmap.exe
+TARGETS = wroadmap.exe wroadmap.cab
 
 # --- The real targets --------------------------------------------
 
@@ -58,7 +58,7 @@ strip:
 	$(STRIP) $(TARGETS)
 
 clean:
-	rm -f *.o *.a *.da $(addsuffix .exe,$(TARGETS)) .depends.mk
+	rm -f *.o *.a *.da $(addsuffix .exe,$(TARGETS)) .depends.mk *.rsc
 
 libwroadmap.a: $(RMLIBOBJ)
 	$(AR) $(ARFLAGS) libwroadmap.a $(RMLIBOBJ)
@@ -102,3 +102,16 @@ depends:
 	$(MAKEDEPS) -Y -f - $(RMLIBSRC) > .depends.mk 2>/dev/null
 
 -include .depends.mk
+
+CABFILES=	wroadmap.exe \
+		distribution/libexpat-1.dll \
+		distribution/font.ttf \
+		distribution/roadmap.screenobjects \
+		distribution/roadmap.toolbar \
+		distribution/sprites \
+		distribution/All \
+		distribution/session.txt \
+		distribution/preferences.txt
+
+wroadmap.cab:	wroadmap.exe
+	CreateCab.pl

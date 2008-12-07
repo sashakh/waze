@@ -1,0 +1,172 @@
+# This file describes objects which can be displayed on the screen.
+# These objects can reflect the state of the program (e.g., which way
+# is north, how strong is the GPS signal), and/or allow actions to
+# be performed (e.g. zoom in, show the trip's destination).  These
+# objects may be placed anywhere on the screen, but nothing prevents
+# them from being obscured by other popup messages and displays, so
+# their position should probably be along the sides of the screen.
+#
+# Syntax:
+#
+# N <name>              Name of the object (unused, but starts a new object)
+#                         Specifying a name, and nothing else at all, will
+#                         define a null object which can be used to
+#                         override objects defined in other (e.g. system)
+#                         screenobjects files.
+# P <x> <y>             The screen position of the sprite, measured from
+#                         the top left in pixels.  Negative offsets measure
+#                         from the right and from the bottom.  If the <x> or
+#                         <y> value begins with a 'C', then the remainder
+#                         is an offset from the center of the screen.
+# E <sprite> [text]       The name of the sprite which will be drawn.
+# E <sprite> [text]       Multiple sprites can be specified.  Which one is
+#                         displayed is selected via the object's "state"
+#                         indicator.  If "text" is specified, it will be
+#                         displayed with the sprite (assuming the sprite
+#                         has been defined to have text associated with it).
+#                          - The text can be divided into multiple lines.
+#                            Line breaks are indicated by inserting a '^'.
+#                          - The text can contain %-macros, just as defined
+#                            for other text displays, in order to display
+#                            dynamic content.  The '|' "alternation" symbol
+#                            is also honored.  See the documentation.
+# S <statename>         The "state" indicator which will choose among 
+#                         the listed sprites.  For "constant" displays, this
+#                         is optional.
+# A <actionname>        The action which should be invoked when the sprite
+#                         is selected.  Optional.
+# R <angle>             Sprites will normally rotate dynamically, either with
+#                         the screen, or based on an angle retrieved via the
+#                         state indicator.  Specifying 'R' suppresses this
+#                         by forcing rotation to the given angle. (default 0)
+# B <x> <y> <x> <y>     Optional -- the bounding box used to determine 
+#                         whether a selection has taken place.  (I.e., the
+#                         size of the sprite.) Normally the bounding box is
+#                         provided by the sprite itself, but irregularly
+#                         shaped sprites, combined with the rotation of the
+#                         sprite, may require that the box be overridden.
+#                         Note that the bounding box for any text associated
+#                         with the sprite is calculated and considered
+#                         separately.  Also note that if sprite scaling is
+#                         used, this bounding box may need to be adjusted.
+
+
+# the Compass object shows which way is north.  it changes from a
+# traditional "compass rose" to a simple arrow if "dynamic orientation"
+# is turned off.
+N Compass
+S get_orientation
+P 20 60
+E Compass
+E Compass_fixed
+A toggleorientation
+
+# The GPS_reception object displays the relative GPS signal strength.
+# Selecting it will reposition the map to the current GPS position. 
+# This version doesn't have a text object, the colour should suffice.
+N GPS_reception
+S get_GPS_reception
+P 20 100
+E reception_na
+E reception_none
+E reception_poor
+E reception_good
+A gps
+R
+
+# When the Download object is visible, it indicates that RoadMap is
+# willing to download maps from the network.
+# N Download
+# S get_download_enabled
+# P -20, 60
+# E Download
+# R
+
+# Uncomment this one to get an on-screen "Menu" icon.  With this enabled,
+# you could then get rid of the normal drop-down menus, and the toolbar.
+# (You could also get rid of them and use a long-click to get menus.)
+# N Menus
+# P -20 -60
+# E Menu
+# A ->Menus...
+# R 0
+
+# The Direction_Next object points to the route's next waypoint,
+# relative to the current direction of travel (assuming the screen
+# is facing forward in the vehicle).
+# N Direction_Next
+# S get_direction_next
+# P -20 100
+# E Direction_Next
+# A nextpoint
+
+# # The Direction_2nd object points to waypoint after the next. 
+# # relative to the current direction of travel.  This can be
+# # useful to see which way the route will go at the next turning.
+# N Direction_2nd
+# S get_direction_2nd
+# P -20 140
+# E Direction_2nd
+# A 2ndpoint
+
+# The Direction_Dest object points to the route's last waypoint,
+# relative to the direction of travel.
+# N Direction_Dest
+# S get_direction_dest
+# P -20 180
+# E Direction_Dest
+# A destination
+
+# The ZoomIn/Out_Buttons do just that, when selected.
+# N ZoomIn_Button
+# P 20 -100
+# E ZoomIn
+# A zoomin
+# R 0
+
+# N ZoomOut_Button
+# P 20 -60
+# E ZoomOut
+# A zoomout
+# R 0
+
+# The next four are up/down/left/right controls, centered on
+# each edge of the screen, each rotated appropriately.
+# (Most devices have dedicated arrow keys, though, so these
+# are commented out by default.)
+# N UpArrow
+# P C0 20
+# E PurpleTriangle
+# A up
+# R 0
+#
+# N DownArrow
+# P C0 -20
+# E PurpleTriangle
+# A down
+# R -180
+#
+# N RightArrow
+# P -20 C0
+# E PurpleTriangle
+# A right
+# R 90
+#
+# N LeftArrow
+# P 20 C0
+# E PurpleTriangle
+# A left
+# R -90
+
+# # provide a labeled "button" to switch view modes
+# N 2D3D
+# P 20 180
+# S view_mode
+# E TextBox 3D
+# E TextBox 2D
+# A toggleview
+
+# # show current time, along with either sunset or sunrise time
+# N daylight
+# P C-80 -40
+# E InfoBox Time: %T^Sunset:^%E|Time: %T^Sunrise:^%M
