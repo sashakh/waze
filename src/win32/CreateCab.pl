@@ -5,31 +5,24 @@
 
 use strict;
 
-my $userName = "wroadmap.exe";
+my $version = "-1.2";
+my $rmcabname = "wroadmap" . $version;
+my $provider = "\"RoadMap project\"";
+my $dmcabname .= "demomaps" . $version . ".cab";
 
 sub main() {
-    my $provider = "\"RoadMap project\"";
-
     my $path = "wroadmap.exe";
 
     die "$path not found\n" unless -f $path;
 
-    my $cabname = `basename $path`;
-    chomp $cabname;
-    $cabname =~ s/.exe$//;
-
-    $userName = $cabname unless $userName;
-    my $cmdline = "\"%CE1%\\RoadMap\\" . $userName . "\"";
+    my $cmdline = "\"%CE1%\\RoadMap\\wroadmap.exe\"";
     my $cmdlen = length( $cmdline );
 
     my $fname = "/tmp/file$$.list";
 
     open FILE, "> $fname";
 
-    my $tmpfile = "/tmp/$userName";
-    `cp $path $tmpfile`;
-    print FILE "$tmpfile ";
-    print FILE '%CE1%\\RoadMap', "\n";
+    print FILE 'wroadmap.exe %CE1%\\RoadMap', "\n";
 
     print FILE '%CE1%\\RoadMap', "\n";
 
@@ -41,7 +34,6 @@ sub main() {
     print FILE 'distribution/All %CE1%\\RoadMap\\default', "\n";
     print FILE 'distribution/session.txt %CE1%\\RoadMap', "\n";
     print FILE 'distribution/preferences.txt %CE1%\\RoadMap', "\n";
-    print FILE 'distribution/schema %CE1%\\RoadMap', "\n";
 
 # Create a link.  The format, says Shaun, is
 # <number of characters>#command line<no carriage return or line feed>
@@ -57,11 +49,11 @@ sub main() {
 
     close FILE;
 
-    my $appname = $cabname;
-    $cabname .= ".cab";
+    my $appname = $rmcabname;
+    $rmcabname .= ".cab";
 
-    my $cmd = "pocketpc-cab -p $provider -a $appname "
-        . "$fname $cabname";
+    my $cmd = "pocketpc-cab -p $provider -a $appname " . "$fname $rmcabname";
+
     print( STDERR $cmd, "\n");
     print `$cmd`;
 
@@ -69,7 +61,6 @@ sub main() {
 }
 
 sub DemoMapCab() {
-    my $provider = "\"RoadMap project\"";
     my $fname = "/tmp/file$$.list";
 
     open FILE, "> $fname";
@@ -81,10 +72,8 @@ sub DemoMapCab() {
     close FILE;
 
     my $appname = "\"Demo Maps\"";
-    my $cabname .= "demomaps-1.1.cab";
 
-    my $cmd = "pocketpc-cab -p $provider -a $appname "
-        . "$fname $cabname";
+    my $cmd = "pocketpc-cab -p $provider -a $appname " . "$fname $dmcabname";
     print( STDERR $cmd, "\n");
     print `$cmd`;
 
