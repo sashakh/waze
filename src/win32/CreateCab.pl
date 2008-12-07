@@ -41,6 +41,7 @@ sub main() {
     print FILE 'distribution/All %CE1%\\RoadMap\\default', "\n";
     print FILE 'distribution/session.txt %CE1%\\RoadMap', "\n";
     print FILE 'distribution/preferences.txt %CE1%\\RoadMap', "\n";
+    print FILE 'distribution/schema %CE1%\\RoadMap', "\n";
 
 # Create a link.  The format, says Shaun, is
 # <number of characters>#command line<no carriage return or line feed>
