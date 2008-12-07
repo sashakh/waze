@@ -63,7 +63,11 @@ extern HINSTANCE g_hInst;
 #define ROADMAP_WIDGET_IMAGE	 9
 #define	ROADMAP_WIDGET_MUL_ENTRY 10
 
-const unsigned int MAX_ROW_HEIGHT = 40;	/* 20 */
+static int roadmap_dialog_screen_height,
+	   roadmap_dialog_screen_width;
+
+/* The value of this variable is overruled based on the screen dimensions. */
+unsigned int MAX_ROW_HEIGHT = 40;	/* 20 */
 const unsigned int MAX_ROW_SPACE = 5;
 const unsigned int MAX_LIST_HEIGHT = 80;
 const unsigned int BUTTON_WIDTH = 50;
@@ -1058,11 +1062,13 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 				curr_y += row_height + row_space;
 			}
 		}
+#if 0
 			/* What if we're too far below ? */
 			if (curr_y > 20) {
 				roadmap_log(ROADMAP_WARNING, "Dialog %s, %d items, height %d",
 						frame->name, itemcount, curr_y);
 			}
+#endif
 	return TRUE;
 	}
 	case WM_COMMAND:
@@ -1097,4 +1103,17 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 		return TRUE;
 	}
 	return (INT_PTR)FALSE;
+}
+
+/**
+ * @brief note the screen resolution, use it to influence dialog appearance
+ * @param height the screen height
+ * @param width the screen width
+ */
+void roadmap_dialog_set_resolution(const int height, const int width)
+{
+	roadmap_dialog_screen_height = height;
+	roadmap_dialog_screen_width = width;
+
+	MAX_ROW_HEIGHT = (height > 320) ? 40 : 20;
 }

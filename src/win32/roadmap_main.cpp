@@ -66,6 +66,7 @@ extern "C" {
 #include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
 #include "roadmap_time.h"
+#include "roadmap_dialog.h"
 }
 
 // Menu & toolbar defines
@@ -169,6 +170,16 @@ int WINAPI WinMain(HINSTANCE hInstance,
         }
 	__except (handleException(GetExceptionInformation())) {}
 		
+	/*
+	 * Figure out how big the screen is, pass it on
+	 */
+	int width, height;
+	height = GetSystemMetrics(SM_CYSCREEN);
+	width = GetSystemMetrics(SM_CXSCREEN);
+	roadmap_log (ROADMAP_WARNING, "Screen %d x %d", height, width);
+	roadmap_dialog_set_resolution (height, width);
+
+
 	ShowWindow(RoadMapMainWindow, nCmdShow);
 	UpdateWindow(RoadMapMainWindow);
 	
@@ -758,7 +769,8 @@ extern "C" {
 #endif
 	}
 	
-	void roadmap_main_title(char *fmt, ...) {
+	void roadmap_main_title(char *fmt, ...)
+	{
 		/* unimplemented */
 	}
 	

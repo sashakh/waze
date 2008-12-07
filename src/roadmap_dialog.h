@@ -232,4 +232,8 @@ static __inline void roadmap_dialog_protect_i
 #endif /* __ROADMAP_DIALOG_NO_LANG */
 #endif /* LANG_SUPPORT */
 
+#ifdef	_WIN32_WCE
+void roadmap_dialog_set_resolution(const int height, const int width);
+#endif
+
 #endif // INCLUDE__ROADMAP_DIALOG__H

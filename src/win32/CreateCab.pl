@@ -65,7 +65,30 @@ sub main() {
     print( STDERR $cmd, "\n");
     print `$cmd`;
 
-    unlink $tmpfile;
+#    unlink $tmpfile;
 }
 
+sub DemoMapCab() {
+    my $provider = "\"RoadMap project\"";
+    my $fname = "/tmp/file$$.list";
+
+    open FILE, "> $fname";
+
+    print FILE 'demomaps/usc81002.rdm %CE1%\\RoadMap\\Maps', "\n";
+    print FILE 'demomaps/usc06075.rdm %CE1%\\RoadMap\\Maps', "\n";
+    print FILE 'demomaps/usdir.rdm %CE1%\\RoadMap\\Maps', "\n";
+
+    close FILE;
+
+    my $appname = "\"Demo Maps\"";
+    my $cabname .= "demomaps-1.1.cab";
+
+    my $cmd = "pocketpc-cab -p $provider -a $appname "
+        . "$fname $cabname";
+    print( STDERR $cmd, "\n");
+    print `$cmd`;
+
+    unlink $fname;
+}
 main();
+DemoMapCab();
