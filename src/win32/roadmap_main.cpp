@@ -689,7 +689,10 @@ extern "C" {
 	
 	void roadmap_main_toggle_full_screen (void)
 	{
+#if 1
 		// TODO: implement
+		return;
+#else
 #ifdef UNDER_CE
 	      RECT rc;
 	      int menu_height = 0;
@@ -728,6 +731,7 @@ extern "C" {
 		 RoadMapMainFullScreen = false;
 
 	      }
+#endif
 #endif
 	}
 
