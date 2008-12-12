@@ -680,6 +680,8 @@ buildmap_osm_text_ways_shapeinfo(void)
 /**
  * @brief This is the gut of buildmap_osm_text : parse an OSM XML file
  * @param fdata an open file pointer, this will get read twice
+ * @param country_num the country id that we're working for
+ * @param division_num the country subdivision id that we're working for
  * @return error indication
  *
  * This is a simplistic approach to parsing the OSM text (XML) files.
@@ -694,7 +696,7 @@ buildmap_osm_text_ways_shapeinfo(void)
 int
 buildmap_osm_text_read(FILE * fdata, int country_num, int division_num)
 {
-    int got;
+    char *got;
     static char buf[LINELEN];
     int ret = 0;
     char *p;
@@ -719,8 +721,8 @@ buildmap_osm_text_read(FILE * fdata, int country_num, int division_num)
 
     while (! feof(fdata)) {
         buildmap_set_line(++LineNo);
-        got = (int)fgets(buf, LINELEN, fdata);
-        if (got <= 0) {
+        got = fgets(buf, LINELEN, fdata);
+        if (got == NULL) {
             if (feof(fdata))
                 break;
             buildmap_fatal(0, "short read (length)");
@@ -790,8 +792,8 @@ buildmap_osm_text_read(FILE * fdata, int country_num, int division_num)
 
     while (! feof(fdata)) {
         buildmap_set_line(++LineNo);
-        got = (int)fgets(buf, LINELEN, fdata);
-        if (got <= 0) {
+        got = fgets(buf, LINELEN, fdata);
+        if (got == NULL) {
             if (feof(fdata))
                 break;
             buildmap_fatal(0, "short read (length)");
