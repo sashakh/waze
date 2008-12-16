@@ -86,6 +86,7 @@ static int	NodeLon,		/**< coordinates */
 		NodeLat;		/**< coordinates */
 
 static int	NodeFakeFips;		/**< fake postal code */
+static int	WayLandUseNotInteresting = 0;	/**< land use not interesting for RoadMap */
 
 /**
  * @brief some global variables
@@ -229,6 +230,7 @@ buildmap_osm_text_node(char *data)
 
     NodeLat = NodeLon = 0;
     NodeLatRead = NodeLonRead = 0;
+
     while (NodeLatRead == 0 || NodeLonRead == 0) {
 	    for (; *p && isspace(*p); p++) ;
 	    r = sscanf(p, "%[a-zA-Z0-9_]=%*[\"']%[^\"']%*[\"']%n", tag, value, &nchars);
@@ -346,6 +348,7 @@ buildmap_osm_text_way(char *data)
 	 * This only remembers which way we're in...
 	 */
 	sscanf(data, "way id=%*[\"']%d%*[\"']", &in_way);
+	WayLandUseNotInteresting = 0;
 
 	if (in_way == 0)
 		buildmap_fatal(0, "buildmap_osm_text_way(%s) error", data);
@@ -462,6 +465,9 @@ buildmap_osm_text_tag(char *data)
 			free(WayStreetName);
 		WayStreetName = strdup(value);
 		return 0;	/* FIX ME ?? */
+	} else if (strcmp(tag, "landuse") == 0) {
+		WayLandUseNotInteresting = 1;
+		buildmap_info("discarding way %d, landuse %s", in_way, data);
 	}
 
 	/* Scan list_info */
@@ -513,6 +519,13 @@ buildmap_osm_text_way_end(char *data)
 
 	if (in_way == 0)
 		buildmap_fatal(0, "Wasn't in a way (%s)", data);
+
+	if (WayLandUseNotInteresting) {
+		buildmap_info("discarding way %d, landuse %s", in_way, data);
+		WayLandUseNotInteresting = 0;
+		buildmap_osm_text_reset_way();
+		return 0;
+	}
 
 	RoadMapString rms_dirp = str2dict(DictionaryPrefix, "");
 	RoadMapString rms_dirs = str2dict(DictionarySuffix, "");
