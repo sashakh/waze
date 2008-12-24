@@ -622,3 +622,9 @@ depends:
 	@echo "Note: run 'make depends' to create dependency files" >&2
 
 -include .depends.mk
+
+#
+# Build API documentation based on doxygen
+#
+apidocs:	roadmap.doxy
+	doxygen roadmap.doxy
