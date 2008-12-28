@@ -286,18 +286,17 @@ int buildmap_range_add
 }
 
 /**
- * @brief
+ * @brief Add a range whose address we don't know
  * @param line
  * @param street
  */
-void buildmap_range_add_no_address (int line, int street) {
-
+void buildmap_range_add_no_address (int line, int street)
+{
    int index;
    RoadMapRangeNoAddress *this_noaddr;
 
    int block  = RangeNoAddressCount / BUILDMAP_BLOCK;
    int offset = RangeNoAddressCount % BUILDMAP_BLOCK;
-
 
    if (RangeByLine == NULL) buildmap_range_initialize();
 
