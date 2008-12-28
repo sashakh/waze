@@ -547,8 +547,6 @@ buildmap_osm_text_way_end(char *data)
 		static int cenid = 0;
 		int line;
 
-		buildmap_verbose("area %d nodes", nWayNodes);
-
 		/*
 		 * Detect an AREA -> create a polygon
 		 */
@@ -622,15 +620,6 @@ buildmap_osm_text_way_end(char *data)
 					rms_dirp, rms_name, rms_type,
 					rms_dirs, line);
 			buildmap_range_add_no_address(line, street);
-
-			int lon1 = buildmap_point_get_longitude(prev);
-			int lat1 = buildmap_point_get_latitude(prev);
-			int lon2 = buildmap_point_get_longitude(point);
-			int lat2 = buildmap_point_get_latitude(point);
-			buildmap_verbose("j %d prev %d point %d LineId %d street %d"
-					" (%d,%d,%d,%d)",
-					j, prev, point, LineId, street,
-					lon1, lat1, lon2, lat2);
 		}
 
 		/* These are never freed, need to be preserved for shape registration. */
