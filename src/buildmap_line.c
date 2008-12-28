@@ -22,25 +22,12 @@
 
 /**
  * @file
- * @brief Build a line table & index for RoadMap.
+ * @brief convert a map into a table of lines.
  *
- * These functions are used to build a table of lines from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for streets in roadmap.
+ * Objectives (1) reduce the size of the data by sharing all duplicated information and
+ * (2) produce the index data to serve as the basis for a fast search mechanism for streets.
  *
- *   int  buildmap_line_add (int tlid, int layer, int from, int to);
- *
- *   int  buildmap_line_get_sorted  (int line);
- *   void buildmap_line_find_sorted (int tlid);
- *   int  buildmap_line_get_id_sorted (int line);
- *   void buildmap_line_get_points_sorted (int line, int *from, int *to);
- *   void buildmap_line_get_position (int line, int *longitude, int *latitude);
- *   void buildmap_line_get_position_sorted
- *           (int line, int *longitude, int *latitude);
- *   void buildmap_line_get_square_sorted (int line);
- *
+ * Definition of a line is in roadmap_line.h .
  */
 
 #include <stdio.h>
@@ -111,21 +98,29 @@ static void buildmap_shape_update_long_line (RoadMapLongLine *line,
    }
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @return
+ */
 static BuildMapLine *buildmap_line_get_record (int line) {
 
    if ((line < 0) || (line > LineCount)) {
-      buildmap_fatal (0, "invalid line index %d", line);
+      buildmap_fatal (0, "buildmap_line_get_record : invalid line index %d", line);
    }
 
    return Line[line/BUILDMAP_BLOCK] + (line % BUILDMAP_BLOCK);
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @return
+ */
 static BuildMapLine *buildmap_line_get_record_sorted (int line) {
 
    if ((line < 0) || (line > LineCount)) {
-      buildmap_fatal (0, "invalid line index %d", line);
+      buildmap_fatal (0, "buildmap_line_get_record_sorted : invalid line index %d", line);
    }
 
    if (SortedLine == NULL) {
@@ -178,7 +173,6 @@ int buildmap_line_add (int tlid, int layer, int from, int to)
    BuildMapLine *this_line;
 
    if (LineById == NULL) buildmap_line_initialize();
-
 
    block = LineCount / BUILDMAP_BLOCK;
    offset = LineCount % BUILDMAP_BLOCK;
