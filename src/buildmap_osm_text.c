@@ -94,6 +94,8 @@ static int	WayLandUseNotInteresting = 0;	/**< land use not interesting for RoadM
 static int	LineNo;			/**< line number in the input file */
 static int	nPolygons = 0;		/**< current polygon id (number of polygons until now) */
 
+static int	LineId = 0;		/**< for buildmap_line_add */
+
 /**
  * @brief allow the user to specify a bounding box
  */
@@ -391,6 +393,7 @@ buildmap_osm_text_nd(char *data)
 			buildmap_fatal(0, "allocation failed for %d ints", nWayNodeAlloc);
 	}
 	WayNodes[nWayNodes++] = node;
+
 	return 0;
 }
 
@@ -467,7 +470,7 @@ buildmap_osm_text_tag(char *data)
 		return 0;	/* FIX ME ?? */
 	} else if (strcmp(tag, "landuse") == 0) {
 		WayLandUseNotInteresting = 1;
-		buildmap_info("discarding way %d, landuse %s", in_way, data);
+//		buildmap_info("discarding way %d, landuse %s", in_way, data);
 	}
 
 	/* Scan list_info */
@@ -512,7 +515,6 @@ buildmap_osm_text_way_end(char *data)
 	int		from_point, to_point, line, street;
 	int		fromlon, tolon, fromlat, tolat;
 	int		j;
-	static int	lineid = 0;
 
 	if (WayInvalid)
 		return 0;
@@ -521,7 +523,7 @@ buildmap_osm_text_way_end(char *data)
 		buildmap_fatal(0, "Wasn't in a way (%s)", data);
 
 	if (WayLandUseNotInteresting) {
-		buildmap_info("discarding way %d, landuse %s", in_way, data);
+//		buildmap_info("discarding way %d, landuse %s", in_way, data);
 		WayLandUseNotInteresting = 0;
 		buildmap_osm_text_reset_way();
 		return 0;
@@ -545,6 +547,8 @@ buildmap_osm_text_way_end(char *data)
 		static int cenid = 0;
 		int line;
 
+		buildmap_verbose("area %d nodes", nWayNodes);
+
 		/*
 		 * Detect an AREA -> create a polygon
 		 */
@@ -560,17 +564,17 @@ buildmap_osm_text_way_end(char *data)
 			int prevpoint = buildmap_osm_text_point_get(WayNodes[j-1]);
 			int point = buildmap_osm_text_point_get(WayNodes[j]);
 
-			lineid++;
-			line = buildmap_line_add(lineid, WayLayer, prevpoint, point);
+			LineId++;
+			line = buildmap_line_add(LineId, WayLayer, prevpoint, point);
 #if 0
 			buildmap_verbose("%d <- buildmap_line_add(%d,%d,%d,%d) - nodes %d %d",
-					line, lineid, WayLayer, prevpoint, point,
+					line, LineId, WayLayer, prevpoint, point,
 					WayNodes[j-1], WayNodes[j]);
 #endif
 
 #if 0
 			/* This will break on some polygons */
-			buildmap_polygon_add_line(cenid, polyid, lineid, POLYGON_SIDE_RIGHT);
+			buildmap_polygon_add_line(cenid, polyid, LineId, POLYGON_SIDE_RIGHT);
 #endif
 
 #if 0
@@ -580,7 +584,7 @@ buildmap_osm_text_way_end(char *data)
 			int lat2 = buildmap_point_get_latitude(point);
 			buildmap_verbose("Poly %d add line %d %d %d"
 				       	" points prev %d (%d,%d) cur %d (%d,%d)",
-					nPolygons, cenid, polyid, lineid,
+					nPolygons, cenid, polyid, LineId,
 					WayNodes[j-1], lon1, lat1,
 					WayNodes[j], lon2, lat2);
 #endif
@@ -603,16 +607,31 @@ buildmap_osm_text_way_end(char *data)
 		from_point = buildmap_osm_text_point_get(WayNodes[0]);
 		to_point = buildmap_osm_text_point_get(WayNodes[nWayNodes-1]);
 
-		lineid++;
-		line = buildmap_line_add(lineid, WayLayer, from_point, to_point);
-
 		/* Street name */
 		if (WayStreetName)
 			rms_name = str2dict(DictionaryStreet, WayStreetName);
-		street = buildmap_street_add(WayLayer,
-				rms_dirp, rms_name, rms_type,
-                                rms_dirs, line);
-		buildmap_range_add_no_address(line, street);
+
+		for (j=1; j<nWayNodes; j++) {
+			int prev = buildmap_osm_text_point_get(WayNodes[j-1]);
+			int point = buildmap_osm_text_point_get(WayNodes[j]);
+
+			LineId++;
+			line = buildmap_line_add(LineId, WayLayer, prev, point);
+
+			street = buildmap_street_add(WayLayer,
+					rms_dirp, rms_name, rms_type,
+					rms_dirs, line);
+			buildmap_range_add_no_address(line, street);
+
+			int lon1 = buildmap_point_get_longitude(prev);
+			int lat1 = buildmap_point_get_latitude(prev);
+			int lon2 = buildmap_point_get_longitude(point);
+			int lat2 = buildmap_point_get_latitude(point);
+			buildmap_verbose("j %d prev %d point %d LineId %d street %d"
+					" (%d,%d,%d,%d)",
+					j, prev, point, LineId, street,
+					lon1, lat1, lon2, lat2);
+		}
 
 		/* These are never freed, need to be preserved for shape registration. */
 		lonsbuf = calloc(nWayNodes, sizeof(int));
@@ -641,7 +660,7 @@ buildmap_osm_text_way_end(char *data)
 		shapes[numshapes].lons = lonsbuf;
 		shapes[numshapes].lats = latsbuf;
 		shapes[numshapes].count = nWayNodes;
-		shapes[numshapes].lineid = lineid;
+		shapes[numshapes].lineid = LineId;
 
 		numshapes++;
 	}
@@ -655,6 +674,9 @@ buildmap_osm_text_way_end(char *data)
  * @brief a postprocessing step to load shape info
  *
  * this needs to be a separate step because lines need to be sorted
+ *
+ * The shapes don't include the first and last points of a line, hence the strange loop
+ * beginning/end for the inner loop.
  */
 static int
 buildmap_osm_text_ways_shapeinfo(void)
@@ -666,7 +688,7 @@ buildmap_osm_text_ways_shapeinfo(void)
     buildmap_info("loading shape info (from %d ways) ...", numshapes);
 
     buildmap_line_sort();
-
+#if 0
     for (i = 0; i < numshapes; i++) {
 
         count = shapes[i].count;
@@ -681,12 +703,13 @@ buildmap_osm_text_ways_shapeinfo(void)
 	    lons = shapes[i].lons;
             lats = shapes[i].lats;
 
-            /* Add the shape points here */
+            /* Add the shape points here, don't include beginning and end point */
             for (j = 1; j < count - 1; j++) {
                 buildmap_shape_add (line_index, i, lineid, j - 1, lons[j], lats[j]);
             }
         }
     }
+#endif
     return 1;
 }
 
