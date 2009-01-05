@@ -124,6 +124,56 @@ int	HaveLonMin = 0,
 #endif
 
 /**
+ * @brief table for translating the names in XML strings into readable format
+ */
+static struct XmlIsms {
+	char	*code;		/**< the piece between & and ; */
+	char	*string;	/**< translates into this */
+} XmlIsms[] = {
+	{ "apos",	"'" },
+	{ "gt",		">" },
+	{ "lt",		"<" },
+	{ "quot",	"""" },
+	{ "amp",	"&" },
+	{ NULL,		NULL }	/* end */
+};
+
+/**
+ * @brief remove XMLisms such as &apos; and strdup
+ * limitation : names must be shorter than 256 bytes
+ * @param s input string
+ * @return duplicate, to be freed elsewhere
+ */
+static char *FromXmlAndDup(const char *s)
+{
+	int		i, j, k, l, found;
+	static char	res[256], xml[16];
+
+	for (i=j=0; s[i]; i++)
+		if (s[i] == '&') {
+			found = 0;
+			for (k=0; XmlIsms[k].code && !found; k++) {
+				for (l=0; s[l+i+1] == XmlIsms[k].code[l]; l++)
+					;
+				/* When not equal, must be at end of code */
+				if (XmlIsms[k].code[l] == NULL &&
+						s[l+i+1] == ';') {
+					found = 1;
+					i += l+1;
+					for (l=0; XmlIsms[k].string[l]; l++)
+						res[j++] = XmlIsms[k].string[l];
+				}
+			}
+			if (!found)
+				res[j++] = s[i];
+		} else {
+			res[j++] = s[i];
+		}
+	res[j] = '\0';
+	return strdup(res);
+}
+
+/**
  * @brief reset all the info about this way
  */
 static void
@@ -520,7 +570,7 @@ buildmap_osm_text_node_tag(char *data)
 		/* <tag k="name" v="Herent"/> */
 		if (NodeTownName)
 			free(NodeTownName);
-		NodeTownName = strdup(tagv);
+		NodeTownName = FromXmlAndDup(tagv);
 	}
 	return 0;
 }
@@ -557,7 +607,7 @@ buildmap_osm_text_tag(char *data)
 	if (strcmp(tag, "name") == 0) {
 		if (WayStreetName)
 			free(WayStreetName);
-		WayStreetName = strdup(value);
+		WayStreetName = FromXmlAndDup(value);
 		return 0;	/* FIX ME ?? */
 	} else if (strcmp(tag, "landuse") == 0) {
 		WayLandUseNotInteresting = 1;
