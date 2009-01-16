@@ -378,13 +378,6 @@ static void roadmap_download_ok (const char *name, void *context) {
    roadmap_path_create (directory);
    roadmap_path_free (directory);
 
-// pgf -- really need to fix this.
-// the final rename will need to be done in buildmap_osm for OSM maps.
-// and in roadmap_[http]copy.c for the others.
-
-// for OSM dloads, "destination" must be just the --maps arg -- not
-// a full path.  but i guess that's already going to be the case.
-
 
    /* FIXME: at this point, we should set a temporary destination
     * file name. When done with the transfer, we should rename the file
@@ -445,9 +438,6 @@ static void roadmap_download_next_county (void) {
 
    char buffer[2048];
 
-// FIXME --
-// create separate dialog for tileid downloads.  (distinguish by fips.)
-// create separate ConfigSource var for OSM dloads.
 
    source = roadmap_config_get (&RoadMapConfigSource);
    basename = strrchr (source, '/');

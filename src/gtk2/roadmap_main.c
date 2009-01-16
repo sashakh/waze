@@ -33,9 +33,7 @@
 #include <string.h>
 #include <signal.h>
 
-#include <X11/Xlib.h>
 #include <gtk/gtk.h>
-#include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 
 #ifdef ROADMAP_USES_GPE
@@ -250,56 +248,6 @@ void roadmap_main_toggle_full_screen (void) {
    }
 }
 
-// set X window properties so we act as a proper activity in the
-// sugar environment
-static void roadmap_main_sugarize(void) {
-
-#if MAYBE_SOMEDAY_SUGARIZED_ACTIVITY 
-
-    Display *dpy;
-    Window win;
-    Atom a_activity, a_bundle, a_pid, a_name, a_cardinal, a_string, a_utf8;
-    int pid;
-
-    const char *sugar_bundle_id = getenv("SUGAR_BUNDLE_ID");
-    const char *sugar_activity_id = getenv("SUGAR_ACTIVITY_ID");
-    const char *sugar_object_id = getenv("SUGAR_OBJECT_ID");
-    const char *net_wm_name = getenv("NET_WM_NAME");
-
-    roadmap_log (ROADMAP_DEBUG, "sugar: %s, %s, %s, %s", 
-        sugar_bundle_id ? : "none", sugar_activity_id ? : "none", sugar_object_id ? : "none", net_wm_name ? : "none");
-
-    if (!sugar_bundle_id || !sugar_activity_id ||
-        !sugar_object_id || !net_wm_name) {
-        /* apparently not a sugar activity today */
-        return;
-    }
-
-    // dpy = GDK_WINDOW_XDISPLAY(RoadMapMainWindow->window);
-
-    win = GDK_WINDOW_XID(RoadMapMainWindow);
-
-    a_activity = XInternAtom(GDK_DISPLAY(), "_SUGAR_ACTIVITY_ID", 0);
-    a_bundle = XInternAtom(GDK_DISPLAY(), "_SUGAR_BUNDLE_ID", 0);
-    a_pid = XInternAtom(GDK_DISPLAY(), "_NET_WM_PID", 0);
-    a_name = XInternAtom(GDK_DISPLAY(), "_NET_WM_NAME", 0);
-    a_cardinal = XInternAtom(GDK_DISPLAY(), "CARDINAL", 0);
-    a_string = XInternAtom(GDK_DISPLAY(), "STRING", 0);
-    a_utf8 = XInternAtom(GDK_DISPLAY(), "UTF8_STRING", 0);
-
-    pid = getpid();
-
-    XChangeProperty(GDK_DISPLAY(), win, a_name, a_utf8, 8,
-        PropModeReplace, (void *)net_wm_name, strlen(net_wm_name));
-    XChangeProperty(GDK_DISPLAY(), win, a_pid, a_cardinal, 32,
-        PropModeReplace, (unsigned char *) &pid, 1);
-    XChangeProperty(GDK_DISPLAY(), win, a_activity, a_string, 8,
-        PropModeReplace, (void *)sugar_activity_id, strlen(sugar_activity_id));
-    XChangeProperty(GDK_DISPLAY(), win, a_bundle, a_string, 8,
-        PropModeReplace, (void *)sugar_bundle_id, strlen(sugar_bundle_id));
-#endif
-}
-
 void roadmap_main_new (const char *title, int width, int height) {
 
    if (RoadMapMainBox == NULL) {
@@ -336,8 +284,6 @@ void roadmap_main_new (const char *title, int width, int height) {
       free(RoadMapMainTitle);
    }
    RoadMapMainTitle = strdup (title);
-
-   roadmap_main_sugarize();
 }
 
 void roadmap_main_title(char *fmt, ...) {
@@ -770,8 +716,8 @@ int main (int argc, char **argv) {
    roadmap_option (argc, argv, 0, NULL);
 
    if (!gtk) {
-        fprintf(stderr, "%s: cannot open X11 display\n", argv[0]);
-        exit(1);
+	fprintf(stderr, "%s: cannot open X11 display\n", argv[0]);
+	exit(1);
    }
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
