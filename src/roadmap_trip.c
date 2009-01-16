@@ -397,6 +397,8 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
     char *newdesc = (char *) roadmap_dialog_get_data ("Data", "Comment:");
     char *newlon = (char *) roadmap_dialog_get_data ("Data", "Longitude:");
     char *newlat = (char *) roadmap_dialog_get_data ("Data", "Latitude:");
+    // can't edit timestamp yet
+    // char *timestr = (char *) roadmap_dialog_get_data ("Data", "Timestamp:");
     void *which = roadmap_dialog_get_data ("Data", ".which");
     waypoint *wpt = data;
     int tmp;
@@ -443,7 +445,7 @@ static void roadmap_trip_dialog_waypoint_edit_okay (const char *name, void *data
 static void roadmap_trip_dialog_waypoint_edit
         (waypoint *wpt, void *which, int use_keyboard) {
 
-    static char lon[20], lat[20];
+    static char lon[20], lat[20], timestr[40];
 
     if (roadmap_dialog_activate ("Waypoint Edit", wpt)) {
 
@@ -451,6 +453,7 @@ static void roadmap_trip_dialog_waypoint_edit
         roadmap_dialog_new_entry ("Data", "Comment:");
         roadmap_dialog_new_entry ("Data", "Longitude:");
         roadmap_dialog_new_entry ("Data", "Latitude:");
+        roadmap_dialog_new_entry ("Data", "Timestamp:");
 
         roadmap_dialog_add_button ("Cancel",
                 roadmap_trip_dialog_cancel);
@@ -466,6 +469,14 @@ static void roadmap_trip_dialog_waypoint_edit
         ("Data", "Name:", wpt->shortname ? wpt->shortname : "");
     roadmap_dialog_set_data
         ("Data", "Comment:", wpt->description ? wpt->description : "");
+
+    if (wpt->creation_time) {
+        strftime(timestr, sizeof(timestr), "%F %T", gmtime(&wpt->creation_time));
+    } else {
+        strcpy(timestr, "N/A");
+    }
+    roadmap_dialog_set_data
+        ("Data", "Timestamp:", timestr);
 
     roadmap_dialog_set_data("Data", ".which", which);
 

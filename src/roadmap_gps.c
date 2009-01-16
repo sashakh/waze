@@ -1067,6 +1067,9 @@ void roadmap_gps_input (RoadMapIO *io) {
          roadmap_gps_open();
       }
    }
+  if (RoadMapGpsLink.subsystem == ROADMAP_IO_FILE) {
+     usleep (250000);
+  }
 
 }
 

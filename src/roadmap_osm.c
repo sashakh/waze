@@ -81,6 +81,7 @@
 #include "roadmap_types.h"
 #include "roadmap_config.h"
 #include "roadmap_math.h"
+#include "roadmap_messagebox.h"
 #include "roadmap_scan.h"
 #include "roadmap_file.h"
 #include "roadmap_osm.h"
@@ -368,6 +369,42 @@ int roadmap_osm_by_position
 
     return roadmap_osm_tilelist_len;
 }
+
+#if SOON
+static int RoadMapOSMDownloadInProgress;
+
+void roadmap_osm_start_download (void) {
+
+    RoadMapPosition *center;
+    char *distance;
+    char downloadcmd[256];
+
+#if MOVE_CHECK_TO_NON_BUILDMAP_FILE
+    if (RoadMapOSMDownloadInProgress) {
+        roadmap_messagebox_wait ("Download in Progress",
+		"Please wait for the current download to complete,"
+		"or else cancel it");
+	return;
+    }
+#endif
+
+    center = roadmap_math_get_center();
+    distance = "10km";
+
+    snprintf(downloadcmd, sizeof(downloadcmd),
+	    "buildmap_osm -c %s/%s -m %s %s,%s:%s",
+	    "path_to_default_all",
+	    "default/All",
+	    "path_to_maps",
+            roadmap_math_to_floatstring(NULL, center->latitude, MILLIONTHS),
+            roadmap_math_to_floatstring(NULL, center->longitude, MILLIONTHS),
+	    distance);
+
+    system(downloadcmd);
+
+    RoadMapOSMDownloadInProgress = 1;
+}
+#endif
 
 void roadmap_osm_initialize (void) {
 
