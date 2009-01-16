@@ -246,7 +246,7 @@ static void roadmap_display_string
 	    RoadMapDisplayFontSize, text_line);
 
 	*p1 = saved;
-	text_line = p1 + 1;
+	text_line = p1;
 	position->y += height;
 
     }
