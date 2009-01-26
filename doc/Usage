@@ -290,6 +290,7 @@ November 2008
      |   S              |  Start tracking the current trip.
      |   T              |  Toggle display of the current track.
      |   U              |  Center the map on the GPS position (north up).
+     |   V              |  Create new waypoint based on current GPS position.
      |   W              |  Set the selected street block as waypoint.
      |   X              |  Find an intersection.
      |   Y              |  Save a screenshot of the current map display.

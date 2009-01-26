@@ -1047,7 +1047,7 @@ static char const *RoadMapStartKeyBinding[] = {
    "S"               ROADMAP_MAPPED_TO "starttrip",
    "T"               ROADMAP_MAPPED_TO "tracktoggle",
    "U"               ROADMAP_MAPPED_TO "toggleorientation",
-   /* V Unused. */
+   "V"               ROADMAP_MAPPED_TO "gpsaswaypoint",
    "W"               ROADMAP_MAPPED_TO "addaswaypoint",
    "X"               ROADMAP_MAPPED_TO "intersection",
    "Y"               ROADMAP_MAPPED_TO "savesscreenshot",
