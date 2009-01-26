@@ -147,7 +147,7 @@ static struct XmlIsms {
 static char *FromXmlAndDup(const char *s)
 {
 	int		i, j, k, l, found;
-	static char	res[256], xml[16];
+	static char	res[256];
 
 	for (i=j=0; s[i]; i++)
 		if (s[i] == '&') {
@@ -156,7 +156,7 @@ static char *FromXmlAndDup(const char *s)
 				for (l=0; s[l+i+1] == XmlIsms[k].code[l]; l++)
 					;
 				/* When not equal, must be at end of code */
-				if (XmlIsms[k].code[l] == NULL &&
+				if (XmlIsms[k].code[l] == '\0' &&
 						s[l+i+1] == ';') {
 					found = 1;
 					i += l+1;
@@ -489,8 +489,7 @@ buildmap_osm_text_way(char *data)
 static int
 buildmap_osm_text_nd_pass1(char *data)
 {
-	int	node, ix;
-	float	lon, lat;
+	int	node;
 
 	if (sscanf(data, "nd ref=%*[\"']%d%*[\"']", &node) != 1)
 		return -1;
