@@ -82,15 +82,9 @@ wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 
 # for win32 we aren't as rigorous about producing
 # this list of source as we are for the other RoadMap
-# directories.  (using wildcards will do for now.)
+# directories.  (basically, pick up everything.)
 sourcelist:
-	@ls Makefile \
-	    *.[ch] *.cpp *.ico \
-	    roadmap.rc preferences \
-	    install.inf \
-	    wince_env/Roadmap.vcw \
-	    wince_env/*/*.vcp \
-	    icons/rm_*.bmp
+	@find . -name 'CVS' -prune -o -print
 
 WINDRES=$(CROSS)windres
 roadmap.rsc: roadmap.rc
