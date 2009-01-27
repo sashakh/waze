@@ -41,8 +41,6 @@ ROADMAP_ICONS_PNG = \
 	roadmap-32.png \
 	roadmap-48.png \
 	roadmap-64.png \
-	roadmap-right.png \
-	roadmap-small.png \
 	roadmap.png
 
 ROADMAP_ICONS_XPM=$(ROADMAP_ICONS_PNG:.png=.xpm)
