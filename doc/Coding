@@ -4,6 +4,17 @@ January 2009
 
 = Developer Information =
 
+  - Doxygen
+
+     Some, but nowhere near all, of the RoadMap codebase has been
+     annotated with doxygen-compatible markup.  Running "make apidocs"
+     in the "src" directory will result in a "doc/api/html" subdirectory
+     containing the doxygen-generated output.  It's best to run this
+     is a fairly clean source tree, because currently the doxygen
+     configuration examines all source files, whether or not they're
+     really part of RoadMap (e.g., old debug files, or test harnesses,
+     will be examined and "documented" as well.
+
   - Porting RoadMap
 
      The roadmap and roadgps applications have been designed so to facilitate
