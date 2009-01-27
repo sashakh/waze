@@ -97,20 +97,21 @@ void roadmap_main_exit (void);
 
 /**
  *
- * @mainpage A Car Navigation System for Linux and UNIX (and PocketPC too)
+ * @mainpage A Car Navigation System for Linux, UNIX, and Others
  *
  *
  * The following is a short description of RoadMap.
  * More information is available in the documentation distributed with RoadMap.
  *
- * RoadMap is an open source (GPL) program that provides a car navigation for Linux,
- * UNIX and now Windows CE (a.k.a. PocketPC).
- * It displays a map of the streets,
- * tracks the position provided by a NMEA-compliant GPS receiver,
- * identifies the street matching this GPS position,
- * and announces the name of the crossing street at the next intersection.
- * A trip feature allows RoadMap to display routes, tracks,
- * and provide some basic navigation information
- * (distance to the next waypoint, direction, speed, etc..).
- * Voice messages are generated that duplicate some of the screen information. 
+ * RoadMap is an open source (GPL) program that provides a car
+ * navigation for Linux, UNIX and now Windows CE and even the
+ * iPhone/iPod.  It displays a map of the streets, tracks the
+ * position provided by a NMEA-compliant GPS receiver, identifies
+ * the street matching this GPS position, and announces the name
+ * of the crossing street at the next intersection.  A trip
+ * feature allows RoadMap to display routes, tracks, and provides
+ * some basic navigation information (distance to the next
+ * waypoint, direction, speed, etc..).  Voice messages are
+ * generated that duplicate some of the screen information. 
+ *
  */
