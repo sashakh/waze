@@ -168,7 +168,7 @@ $(T2T_WEBDOCS):
 	    -e 's/<BODY .*>/<body class="roadmap-doc">/' \
 	    -e 's;http://'$(OUR_SITE_REFERENCE)'/;;' $@ 
 
-favicon.ico:
+favicon.ico: ../src/icons/roadmap-64.png 
 	mkdir -p favicon.tmpdir
 	cd favicon.tmpdir ;\
 	pngtopnm ../../src/icons/roadmap-64.png >roadmap-64.pnm ;\
@@ -176,7 +176,7 @@ favicon.ico:
 	do \
 	  for color in 16 256 ;\
 	  do \
-	    pnmscale -xsize $$size -ysize $$size roadmap-32.pnm >favicon-$$size-.ppm ;\
+	    pnmscale -xsize $$size -ysize $$size roadmap-64.pnm >favicon-$$size-.ppm ;\
 	    pnmcolormap $$color favicon-$$size-.ppm >favicon--$$color.ppm ;\
 	    pnmremap -mapfile=favicon--$$color.ppm favicon-$$size-.ppm >favicon-$$size-$$color.ppm ;\
 	    rm -f favicon-$$size-.ppm favicon--$$color.ppm ;\
