@@ -323,7 +323,7 @@ PKGDATAFILES = sprites preferences session drivers \
 MANPAGES = roadmap.1 roadgps.1
 MISCFILES = roadmap.desktop roadmap.menu default/All \
 		roadmap.toolbar.ex roadmap.actionlabels.ex \
-		app_a02.txt usstates.txt
+		app_a02.txt usstates.txt roadmap.doxy
 SCRIPTS = rdmdownload rdmcompare \
 		rdmgenmaps rdmgenshpmaps rdmgenstatemaps rdmgendcwmaps
 MKFILES = Makefile config.mk options.mk
