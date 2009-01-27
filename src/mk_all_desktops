@@ -1,0 +1,112 @@
+#!/bin/sh
+
+# script which will run make for all the unix-supported desktops
+# Paul Fox, Jan 2009
+
+# list all the easily buildable desktops
+# wince should be in this list, but i don't currently have
+# the right toolchain installed.
+desktops="gtk gtk2 gtk2agg qt4 qt" # wince
+
+if [ "$1" = "-n" ]
+then
+    noclean='y'
+    shift
+fi
+
+test "$1" && desktops="$*"
+
+# preserve whatever it is we usually work on
+cp overrides.mk saved.overrides.mk
+trap "mv saved.overrides.mk overrides.mk" 0
+
+create_overrides()
+{
+    local desk=$1
+
+    >overrides.mk
+
+cat <<-EOF >>overrides.mk
+	CFLAGS += -DINTERNAL_GPS_CONSOLE
+	MODE=DEBUG
+	SHAPEFILES = YES
+EOF
+
+    case $desk in
+
+    gtk2agg)
+	cat <<-EOF >>overrides.mk
+		DESKTOP = GTK2
+		AGG = rgb565
+	EOF
+	;;
+    gtk2)
+	cat <<-EOF >>overrides.mk
+		DESKTOP = GTK2
+		AGG = NO
+	EOF
+	;;
+    gtk)
+	cat <<-EOF >>overrides.mk
+		DESKTOP = GTK
+	EOF
+	;;
+    qt4)
+	cat <<-EOF >>overrides.mk
+		DESKTOP = QT4
+		QTDIR = /usr/share/qt4
+		CFLAGS += -I/usr/include/qt4
+	EOF
+	;;
+    qt)
+	cat <<-EOF >>overrides.mk
+		DESKTOP = QT
+		QTDIR = /usr/share/qt3
+		CFLAGS += -I/usr/include/qt3
+	EOF
+	;;
+    wince)
+	cat <<-EOF >>overrides.mk
+		DESKTOP = WINCE
+		CROSS=/opt/mingw32ce/bin/arm-wince-mingw32ce-
+		EXPAT = NO
+		SHAPEFILES = NO
+	EOF
+	;;
+    *)
+	echo "error: unknown desktop '$desk'" >&2
+	exit 1
+	;;
+    esac
+
+}
+
+
+# the logs of all the buils will end up here
+mkdir -p mk.logs
+
+# now do all the builds.
+for desk in $desktops
+do
+
+    echo -------------
+    echo Building for $desk
+    echo
+
+    # create the right overrides file for each desktop
+    create_overrides $desk
+
+    # do the build, saving the log.  remember if we fail.
+    (test "$noclean" || make clean; make) >mk.logs/$desk.log 2>&1 || quit=1
+
+    # summarize the important failures on stdout
+    if egrep -ql 'warning:|error:|undefined reference' mk.logs/$desk.log
+    then
+	echo Warnings/Errors, if any, follow
+	egrep 'warning:|error:|undefined reference' mk.logs/$desk.log
+    fi
+
+    # did we fail?  quit.
+    test "$quit" = 1 && exit
+
+done
