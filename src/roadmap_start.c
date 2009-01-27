@@ -2,7 +2,9 @@
  *
  * LICENSE:
  *
- *   (c) Copyright 2002, 2003 Pascal F. Martin
+ *   (c) Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ *	 Pascal F. Martin, Paul Fox, Ehud Shabtai, Danny Backx,
+ *	 and others.
  *
  *   This file is part of RoadMap.
  *

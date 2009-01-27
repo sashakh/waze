@@ -2,7 +2,9 @@
  *
  * LICENSE:
  *
- *   Copyright 2002 Pascal F. Martin
+ *   (c) Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ *	 Pascal F. Martin, Paul Fox, Ehud Shabtai, Danny Backx,
+ *	 and others.
  *
  *   This file is part of RoadMap.
  *
@@ -24,8 +26,8 @@
 #ifndef INCLUDE__ROADMAP_COPYRIGHT__H
 #define INCLUDE__ROADMAP_COPYRIGHT__H
 
-#define ROADMAP_VERSION "1.1.0-post"
-#define ROADMAP_YEAR    "2002, 2003, 2004, 2005, 2006, 2007, 2008"
+#define ROADMAP_VERSION "1.2.0-pre"
+#define ROADMAP_YEAR    "2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009"
 
 #endif // INCLUDE__ROADMAP_COPYRIGHT__H
 
