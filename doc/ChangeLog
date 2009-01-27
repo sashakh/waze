@@ -6,10 +6,16 @@ Roadmap v1.2.0 (??)
 
  This list is current as of 11/7/2008, created with the help of
 ```
-   cvs2cl.pl -l "-d2008/03/17<2008/11/30"
+   cvs2cl.pl -l "-d2008/11/29<2009/1/27"
 ```
 
  Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
+
+  - Support for building .rdm data from OpenStreetMap country snapshots,
+    in addition to quadtiles.  Preparatory work for allowing navigation
+    using those maps.  (Danny Backx)
+
+  - New 'V' key-binding to create waypoint from current GPS position.
 
   - Refactored the documentation into more files for easier maintenance.
     Switched to "txt2tags" (from "aptconvert") for generating online
@@ -42,7 +48,7 @@ Roadmap v1.2.0 (??)
   - Allow suppressing the "Lost Satellite" message with a timeout parameter.
 
   - Resurrection of WinCE support, from Danny Backx (uses minw32ce).
-    Includes GPS autodetection.
+    Includes GPS autodetection, and CAB files for installation.
 
   - Added several revisions' worth of support for Apple iPhone and iPod,
   from Morten Bek.
