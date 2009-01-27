@@ -1,10 +1,10 @@
 RoadMap Project Status
 Paul Fox, current RoadMap maintainer
-November 2008
+January 2009
 
 = New Release 1.2.0 =
 
-    RoadMap has another new release.  It's been over a year
+    RoadMap has another new release.  It's been well over a year
     since 1.1.0 was released.  Lots of work has been done since
     then, both in terms of features, and platform support.
 
@@ -21,8 +21,6 @@ November 2008
           is much easier for the developers.
 
         - Initial support of the iPhone.
-        
-
 
     There's more detail in the changelog.
 
