@@ -11,6 +11,12 @@ most people might need is the "Building Maps" section.
 
 % -- CUT HERE --
 %!include: Coding
+
+
 %!include: Map-Building
+
+
 %!include: Map-Format
+
+
 %!include: Map-Designing

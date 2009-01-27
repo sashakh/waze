@@ -3,7 +3,7 @@ Pascal Martin (pascal.martin@ponts.org)
 December 2005
 
 
-= INTRODUCTION =
+= Map Building Introduction =
 
    This HOWTO describes how to create a new map for RoadMap. The intent is
    not to provide a complete description of the RoadMap map format, only
@@ -17,7 +17,8 @@ December 2005
    compatibility with pre-existing maps.
 
 
-= OVERVIEW =
+
+= Overview =
 
    There are four major phases involved when creating maps for RoadMap:
 
@@ -121,7 +122,7 @@ December 2005
    documentation.
 
 
-= LAYERS =
+= Layers =
 
 - LAYER CLASS
 
@@ -172,7 +173,7 @@ December 2005
    optimizations.
 
 
-= MAP ORGANIZATION =
+= Map Organization =
 
    RoadMap divides earth into territories, usually defined by administrative
    boundaries (international borders, local goverment with one country,

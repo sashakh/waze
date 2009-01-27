@@ -30,7 +30,7 @@ November 2008
      the configuration separately.  See the INSTALLATION section of the
      documentation for more details.
 
-== FILES ==
+== Files ==
 
      The syntax of most RoadMap configuration files is similar to the X
      ressources file format (the exceptions are the sprites file and the
@@ -83,7 +83,7 @@ November 2008
      (Note that the class files replace the old //schema// file, which is no
      longer used.)
 
-== MESSAGES ==
+== Messages ==
 
      The RoadMap text displays and voice messages can be configured by the
      user using format strings in the preferences. The format strings contain
@@ -156,7 +156,7 @@ November 2008
      parameters ("-f" and "On %N").
 
 
-== MENUS AND TOOLBAR ==
+== Menus and Toolbar ==
 
      The items shown in the RoadMap and RoadGps menus and toolbars can be
      redefined by the user in text configuration files.  Note that each
@@ -291,7 +291,7 @@ November 2008
      Remember that the toolbar labels should be very short, since the toolbar
      has a limited size.
 
-== ON-SCREEN OBJECTS ==
+== On-Screen Objects ==
 
      RoadMap can display small images on the screen (on-screen objects) which
      can reflect the state of the program (e.g., which way is north, how strong
@@ -404,7 +404,7 @@ November 2008
      that do not support named colors.
 
 
-== PREFERENCE ITEMS ==
+== Preference Items ==
 
      : General.Unit
          The unit system used, either "imperial" or "metric"
@@ -1049,7 +1049,7 @@ November 2008
          - //Format:// boolean
          - //Default:// "yes"
 
-== SESSION ITEMS ==
+== Session Items ==
 
      : Location.Position
          The latest selected position.
@@ -1150,7 +1150,7 @@ November 2008
   (*) NOTE: the default position values match 1 Market St, San Francisco, CA.
 
 
-== SCHEMA ITEMS ==
+== Schema Items ==
 
      The schema file uses the same format as the preference file. It defines
      the properties of the various categories of objects that make a map.
@@ -1205,7 +1205,7 @@ November 2008
         -
 
 
-== SPRITES ==
+== Sprites ==
 
      This file defines the drawing commands used to draw the various symbols
      used by RoadMap:
@@ -1293,7 +1293,7 @@ November 2008
      alias levels will have no practical impact on RoadMap performances.
 
 
-== TRIP FILES ==
+== Trip Files ==
 
      RoadMap trip data is stored in GPX format.  More about the widely-used
      GPX data format can be found at:
@@ -1446,7 +1446,7 @@ November 2008
      trip files, but instead in the same directory in which the
      user's preferences and session file are found.)
 
-== FEATURE FILES ==
+== Feature Files ==
 
      Like the RoadMap trip data, feature data is stored in GPX format.  Each
      feature file should represent a related set of points of interest, like
