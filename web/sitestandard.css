@@ -5,7 +5,7 @@
 body.roadmap {
 	font-family:Times;
 	background-color: #48fbc4; /* matched to background2.jpg */
-	margin-left:    250px;    /* leave room for navigation bar */
+	margin-left:    170px;    /* leave room for navigation bar */
 	margin-right:    50px;
 }
 
@@ -13,17 +13,19 @@ body.roadmap {
 body.roadmap-doc {
 	font-family:Times;
 	background-color: #48fbc4; /* matched to background2.jpg */
-	margin-left:    250px;
+	margin-left:    170px;
 	margin-right:    50px;
 }
 
 
 div.navigation-bar {
 
+  top:            5px;         /* wide left margin  */
   left:           5px;         /* wide left margin  */
   position:       fixed;       /* prevent scrolling */
 
-  padding:        10px;
+  font-family:Times;
+  padding:        5px;
   background-image: url('background2.jpg');
   border-left:    1px solid black;
   border-right:   2px solid black;
@@ -77,7 +79,7 @@ a.navitem2:active { text-decoration: none }
 #first-navitem {
 
   /* not important */
-  margin-top:     15px;
+  /* margin-top:     10px; */
 }
 
 
@@ -89,7 +91,8 @@ a.navitem2:active { text-decoration: none }
 span.navbar-image:after {
 
   /* important */
-  content: url(roadmap-right.png); /* inserts image after dummy SPAN element */
+  margin-left: 23px;
+  content: url(roadmap-webicon.png); /* inserts image after dummy SPAN element */
 }
 
 

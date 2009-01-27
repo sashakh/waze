@@ -73,7 +73,7 @@ DEVGUIDE_SECTION_PATHS = $(addprefix ../doc/, $(DEVGUIDE_SECTIONS))
 
 SUPPORT = \
 	background2.jpg \
-	roadmap-right.png \
+	roadmap-webicon.png \
 	sitestandard.css
 
 # expanded locally, not installed:
@@ -113,7 +113,7 @@ endif
 	scp $< $(OUR_SITE_ACCESS)/$<
 	touch $@
 
-roadmap-right.png: ../src/icons/roadmap-right.png
+roadmap-webicon.png: ../src/icons/roadmap-64.png
 	cp $< $@
 
 # several parts of the RoadMap website are produced directly from
@@ -171,7 +171,7 @@ $(T2T_WEBDOCS):
 favicon.ico:
 	mkdir -p favicon.tmpdir
 	cd favicon.tmpdir ;\
-	pngtopnm ../../src/icons/roadmap-32.png >roadmap-32.pnm ;\
+	pngtopnm ../../src/icons/roadmap-64.png >roadmap-64.pnm ;\
 	for size in 16 24 32 48 ;\
 	do \
 	  for color in 16 256 ;\
