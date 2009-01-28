@@ -13,7 +13,7 @@ SOURCE = \
 	osmgetbmap osmgetbmap.php osmgetbmapcore.php
 
 sourcelist:
-	@echo $(SOURCE)
+	@echo Makefile $(SOURCE)
 
 
 depends:
