@@ -87,7 +87,7 @@ sourcelist:
 	@find . -name 'CVS' -prune -o -print
 
 WINDRES=$(CROSS)windres
-roadmap.rsc: roadmap.rc
+roadmap.rsc: roadmap.rc roadmap.ico
 	$(WINDRES) -D_WIN32_WCE=0x0400 -D_WIN32_IE=0x0400 roadmap.rc roadmap.rsc
 
 roadmap_colors.o:	colors.h
