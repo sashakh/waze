@@ -48,7 +48,8 @@ HEADERS = \
 	roadmap_wincecanvas.h \
 	wince_input_mon.h
 
-TARGETS = wroadmap.exe wroadmap.cab demomaps.cab
+TARGETS = wroadmap.exe
+# TARGETS += wroadmap.cab demomaps.cab
 
 # --- The real targets --------------------------------------------
 
