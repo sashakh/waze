@@ -93,7 +93,7 @@ OUR_SITE_REFERENCE = roadmap.sourceforge.net
 OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
 else
 OUR_SITE_REFERENCE = roadmap.sourceforge.net
-OUR_SITE_ACCESS = pgf,roadmap@shell.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
+OUR_SITE_ACCESS = pgf,roadmap@web.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
 endif
 
 # copy the html, and touch a local flag file.  before copying,
