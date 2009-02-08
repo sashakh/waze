@@ -568,12 +568,17 @@ January 2009
      : Help.Browser
          The browser program used to show the help text.
           - //Format:// a program name, with or without path.
-          - //Default:// dillo
+          - //Default:// firefox
 
-     : Help.Arguments
-         The browser's command line arguments
-          - //Format:// a format string, with one '%s' for the help URL.
-          - //Default:// %s
+     : Help.Source
+         Whether RoadMap will find Help text on the local machine or the web.
+          - //Format:// "local", "web"
+          - //Default:// "local"
+
+     : Help.Website
+         If Help.Source is "web", this is the site to access for Help text.
+          - //Format:// string
+          - //Default:// "roadmap.sourceforge.net"
 
      : Map.Path
          The map database search path.
