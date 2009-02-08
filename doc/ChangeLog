@@ -1,13 +1,18 @@
 RoadMap Changelog
 
-January 2009
+February 2009
+
+Roadmap v1.2.1 (January, 2009)
+
+ This list is current as of 2/8/2009, created with the help of
+```
+   cvs2cl.pl -l "-d2008/11/29<2009/2/8"
+```
+
+  - Fixed online help access, and added preferences items to allow
+    fetching local or web versions of the help.
 
 Roadmap v1.2.0 (January, 2009)
-
- This list is current as of 1/27/2009, created with the help of
-```
-   cvs2cl.pl -l "-d2008/11/29<2009/1/27"
-```
 
  Items marked (*) originated on Ehud Shabtai's roadmap_editor code branch.
 
