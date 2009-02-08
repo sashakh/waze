@@ -166,7 +166,8 @@ $(T2T_WEBDOCS):
 	    -e '/<BODY .*>/a \
 	    <!--#include virtual="navbar.html" -->' \
 	    -e 's/<BODY .*>/<body class="roadmap-doc">/' \
-	    -e 's;http://'$(OUR_SITE_REFERENCE)'/;;' $@ 
+	    -e 's;http://'$(OUR_SITE_REFERENCE)'/;;' \
+	    -e 's/@@.*runtime-help-link \(.*\) *$$/<a name="\1"><\/a>/' $@
 
 favicon.ico: ../src/icons/roadmap-64.png 
 	mkdir -p favicon.tmpdir

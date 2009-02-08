@@ -369,7 +369,7 @@ ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support php win32
 .PHONY: all gtk gtk2 qt3 qt4 qpe4 rebuild build \
          topclean clean strip install uninstall unix gpx
 
-all: runtime build $(TOOLS) icons
+all: runtime build $(TOOLS) icons $(MANUAL)
 
 
 # --- Convenience targets, to force a specific desktop build ------
@@ -490,6 +490,10 @@ $(MANUAL): ../README
 	expand $< | \
 	(cd ../doc; txt2tags --target html \
 	    --toc --infile - --outfile - ) >$@
+	 sed -i \
+	    -e 's/@@.*runtime-help-link \([^ ]*\) *$$/<a name="\1"><\/a>/' \
+	    -e '/"#toc1"/s/^/<a name="TableOfContents">/' \
+	    $@
 
 uninstall:
 	cd $(pkgdatadir) && rm -f $(PKGDATAFILES)
