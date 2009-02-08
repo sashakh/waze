@@ -37,6 +37,7 @@
 
 #include "roadmap.h"
 
+void roadmap_help_toggle_source (void);
 int roadmap_help_first_topic (const char **label, RoadMapCallback *callback);
 int roadmap_help_next_topic  (const char **label, RoadMapCallback *callback);
 

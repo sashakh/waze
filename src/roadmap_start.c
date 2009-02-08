@@ -758,6 +758,9 @@ static RoadMapAction RoadMapStartActions[] = {
       "Show parameters of the currently displayed map", NULL,
       roadmap_start_mapinfo},
 
+   {"togglehelpsource", "Toggle Help Source", NULL, NULL,
+      "Switch between local/web help", NULL, roadmap_help_toggle_source},
+
 #ifdef _WIN32
    {"detectreceiver", "Detect GPS receiver", NULL, NULL,
       "Auto-detect GPS receiver", NULL, roadmap_start_detect_receiver},
@@ -958,6 +961,8 @@ static const char *RoadMapStartMenu[] = {
 
 
    ROADMAP_MENU "Help",
+
+      "togglehelpsource",
 
       RoadMapFactoryHelpTopics,
 

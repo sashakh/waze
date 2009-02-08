@@ -39,56 +39,63 @@
 
 #include "roadmap_help.h"
 
-#define RDM_URLHEAD "file://"
 #define RDM_MANUAL "usermanual.html"
 
 #ifndef ROADMAP_BROWSER
-#define ROADMAP_BROWSER "dillo"
+#define ROADMAP_BROWSER "firefox"
 #endif
+
+static int RoadMapHelpSourceLocal;
 
 static RoadMapConfigDescriptor RoadMapConfigBrowser =
                         ROADMAP_CONFIG_ITEM("Help", "Browser");
 
-static RoadMapConfigDescriptor RoadMapConfigBrowserOptions =
-                        ROADMAP_CONFIG_ITEM("Help", "Arguments");
+static RoadMapConfigDescriptor RoadMapConfigHelpWebsite =
+                        ROADMAP_CONFIG_ITEM("Help", "Help Website");
 
-static char *RoadMapHelpManual = NULL;
+static RoadMapConfigDescriptor RoadMapConfigHelpSource =
+                        ROADMAP_CONFIG_ITEM("Help", "Source");
+
+static char *RoadMapHelpManualUrl = NULL;
+
+void roadmap_help_toggle_source (void) {
+    RoadMapHelpSourceLocal = ! RoadMapHelpSourceLocal;
+    if (RoadMapHelpSourceLocal) {
+        roadmap_config_set (&RoadMapConfigHelpSource , "local");
+    } else {
+        roadmap_config_set (&RoadMapConfigHelpSource , "web");
+    }
+}
 
 
 /* -- The help display functions. -------------------------------------- */
 
 static void roadmap_help_make_url (const char *path) {
 
-   int size;
-
-   const char *options = roadmap_config_get(&RoadMapConfigBrowserOptions);
-   char *url;
-
-   size = strlen(options)
-             + strlen(RDM_URLHEAD)
-             + strlen(path)
-             + strlen(RDM_MANUAL)
-             + 8;
-
-   url = malloc (size);
-
-   strcpy(url, RDM_URLHEAD);
-   strcat(url, path);
-   strcat(url, "/" RDM_MANUAL "#%s");
-
-   if (options[0] != 0) {
-      RoadMapHelpManual = malloc(size);
-      sprintf (RoadMapHelpManual, options, url);
-      free (url);
-   } else {
-      RoadMapHelpManual = url;
+   if (!RoadMapHelpManualUrl) {
+      RoadMapHelpManualUrl = malloc (1024);
+      roadmap_check_allocated (RoadMapHelpManualUrl);
    }
+
+   /* leave room for section name in url string (added later) */
+   if (RoadMapHelpSourceLocal) {
+       snprintf(RoadMapHelpManualUrl, 1024 - 30, "file://%s/%s",
+          path, RDM_MANUAL);
+   } else {
+       snprintf(RoadMapHelpManualUrl, 1024 - 30, "http://%s/%s",
+          roadmap_config_get(&RoadMapConfigHelpWebsite), RDM_MANUAL);
+   }
+
 }
 
 static int roadmap_help_prepare (void) {
 
    const char *path;
 
+   if (!RoadMapHelpSourceLocal) {
+      roadmap_help_make_url("");
+      return 1;
+   }
 
    /* First look for the user directory. */
    path = roadmap_path_user();
@@ -105,7 +112,6 @@ static int roadmap_help_prepare (void) {
          path = roadmap_path_next("config", path))
    {
       if (roadmap_file_exists(path, RDM_MANUAL)) {
-
          roadmap_help_make_url (path);
          return 1;
       }
@@ -117,30 +123,29 @@ static int roadmap_help_prepare (void) {
 
 static void roadmap_help_show (const char *index) {
 
-    char *arguments;
-
-    if (RoadMapHelpManual == NULL) {
-       if (! roadmap_help_prepare()) {
+    if (!roadmap_help_prepare()) {
           return;
-       }
     }
-    if (index == NULL || index[0] == 0) index = "#id.toc";
+
+    if (index == NULL || index[0] == 0) index = "#TableOfContents";
 
     roadmap_log(ROADMAP_DEBUG, "activating help %s", index);
 
-    arguments = malloc (strlen(RoadMapHelpManual) + strlen(index) + 1);
-    sprintf (arguments, RoadMapHelpManual, index);
+    if (index) {
+       strcat (RoadMapHelpManualUrl, index);
+    }
 
-    roadmap_spawn(roadmap_config_get(&RoadMapConfigBrowser), arguments);
-    free(arguments);
+    roadmap_spawn
+        (roadmap_config_get(&RoadMapConfigBrowser), RoadMapHelpManualUrl);
 }
 
-static void roadmap_help_install (void) {roadmap_help_show ("directories");}
-static void roadmap_help_options (void) {roadmap_help_show ("options");}
-static void roadmap_help_voice   (void) {roadmap_help_show ("voice");}
-static void roadmap_help_key     (void) {roadmap_help_show ("key");}
-static void roadmap_help_street  (void) {roadmap_help_show ("street");}
-static void roadmap_help_trips   (void) {roadmap_help_show ("trips");}
+static void roadmap_help_contents(void)     {roadmap_help_show (0);}
+static void roadmap_help_quickstart(void)   {roadmap_help_show ("#Quickstart");}
+static void roadmap_help_installation(void) {roadmap_help_show ("#Installation");}
+static void roadmap_help_using(void)        {roadmap_help_show ("#UsingRoadmap");}
+static void roadmap_help_trips(void)        {roadmap_help_show ("#ManagingTrips");}
+static void roadmap_help_configuration(void){roadmap_help_show ("#Configuration");}
+static void roadmap_help_osm(void)          {roadmap_help_show ("#OpenStreetMap");}
 
 
 /* -- The help display dictionnary. ------------------------------------ */
@@ -151,16 +156,16 @@ typedef struct {
 } RoadMapHelpList;
 
 static RoadMapHelpList RoadMapHelpTopics[] = {
-   {"Installation directories",  roadmap_help_install},
-   {"Command line options",      roadmap_help_options},
-   {"Voice messages",            roadmap_help_voice},
-   {"Keyboard bindings",         roadmap_help_key},
-   {"Entering street names",     roadmap_help_street},
-   {"Managing trips",            roadmap_help_trips},
+   {"Table of Contents",            roadmap_help_contents},
+   {"Quickstart",                   roadmap_help_quickstart},
+   {"Installation",                 roadmap_help_installation},
+   {"Using RoadMap",                roadmap_help_using},
+   {"Managing Trips",               roadmap_help_trips},
+   {"Configuration",                roadmap_help_configuration},
+   {"OpenStreetMap",                roadmap_help_osm},
    {NULL, NULL}
 };
 static RoadMapHelpList *RoadMapHelpTopicsCursor = NULL;
-
 
 /* -- The help initialization functions. ------------------------------- */
 
@@ -205,10 +210,22 @@ int roadmap_help_next_topic (const char **label,
 
 void roadmap_help_initialize (void) {
 
-   roadmap_config_declare
-      ("preferences", &RoadMapConfigBrowserOptions, "%s");
+   // unsafe.  no longer supported
+   // roadmap_config_declare
+   //    ("preferences", &RoadMapConfigBrowserOptions, "%s");
 
    roadmap_config_declare
       ("preferences", &RoadMapConfigBrowser, ROADMAP_BROWSER);
+
+   roadmap_config_declare
+      ("preferences", &RoadMapConfigHelpWebsite, "roadmap.sourceforge.net");
+
+   roadmap_config_declare_enumeration
+        ("preferences", &RoadMapConfigHelpSource,
+            "local", "web", NULL);
+
+   RoadMapHelpSourceLocal = roadmap_config_match
+                                (&RoadMapConfigHelpSource , "local");
+
 }
 
