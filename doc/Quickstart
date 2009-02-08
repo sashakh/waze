@@ -41,7 +41,7 @@ January 2009
        Use the arrow keys (or drag with the mouse) to pan, and use the
        on-screen controls or the '+' and '-' keys to zoom.  RoadMap's
        help text is available in html format via the Help menu (which
-       reads the installed copy of "manual.html") or in plaintext in
+       reads the installed copy of "usermanual.html") or in plaintext in
        the README file.  Use the 'q' key or the File->Quit menu
        item to quit.
 
@@ -63,7 +63,7 @@ January 2009
    please consult the "INSTALLATION" section of the README file.
    The README is on the web, here:
 
-         http://roadmap.sourceforge.net/manual.html
+         http://roadmap.sourceforge.net/usermanual.html
 
    Good luck, and have fun!
 

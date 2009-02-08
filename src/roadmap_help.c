@@ -40,7 +40,7 @@
 #include "roadmap_help.h"
 
 #define RDM_URLHEAD "file://"
-#define RDM_MANUAL "manual.html"
+#define RDM_MANUAL "usermanual.html"
 
 #ifndef ROADMAP_BROWSER
 #define ROADMAP_BROWSER "dillo"
@@ -111,7 +111,7 @@ static int roadmap_help_prepare (void) {
       }
    }
 
-   roadmap_log(ROADMAP_ERROR, "manual not found");
+   roadmap_log(ROADMAP_ERROR, RDM_MANUAL " not found");
    return 0;
 }
 

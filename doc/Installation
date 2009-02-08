@@ -74,7 +74,8 @@ January 2009
 
        RoadMap uses "aptconvert" to format the documentation (see previous
        section) into HTML format.  Since this is an uncommon tool, a
-       pre-converted copy of manual.html is provided in the RoadMap tarball.
+       pre-converted copy of usermanual.html is provided in the RoadMap
+       tarball.
 
        RoadMap can use the "convert" program from the ImageMagick package to
        generate the PNG versions of some of the icons on its toolbar.  Pre-built
