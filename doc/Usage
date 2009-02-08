@@ -569,8 +569,11 @@ January 2009
      - the longitude may be expressed using only 2 digits for degrees.
 
 
-  - MANAGING TRIPS
+@@ runtime-help-link ManagingTrips
 
+
+  - MANAGING TRIPS
+  
      RoadMap can support many trips:  each trip context is saved in a trip
      file.  One trip at a time can be edited or activated.  A saved trip can
      be reloaded from its trip file.

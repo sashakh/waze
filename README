@@ -103,10 +103,15 @@ February 2009
 
 
 % -- CUT HERE --
+@@ runtime-help-link Quickstart
 %!include: Quickstart
+@@ runtime-help-link Installation
 %!include: Installation
+@@ runtime-help-link UsingRoadMap
 %!include: Usage
+@@ runtime-help-link Configuration
 %!include: Configuration
+@@ runtime-help-link OpenStreetMap
 %!include: OpenStreetMap
 %!include: Map-Building
 
