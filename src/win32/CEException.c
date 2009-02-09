@@ -15,53 +15,56 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEException.cpp,v 1.3 2008/10/28 22:41:51 dannybackx Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/CEException.c,v 1.1 2009/02/09 19:39:17 dannybackx Exp $
  *
  */
 
 #include "CEException.h"
 
-void CEException::writeString(HANDLE file, char *data) {
+void ce_exception_writestring(HANDLE file, char *data)
+{
 	DWORD dummy;
 	WriteFile(file, data, strlen(data), &dummy, NULL);
 	WriteFile(file, "\r\n", 2, &dummy, NULL);
 }
 
-void CEException::writeBreak(HANDLE file) {
+void ce_exception_writeBreak(HANDLE file)
+{
 	char tempo[100];
 	int i;
 
 	memset(tempo, 0, sizeof(tempo));
 	for (i=0; i<40; i++)
 		tempo[i] = '-';
-	writeString(file, tempo);
+	ce_exception_writestring(file, tempo);
 }
 
-void CEException::dumpContext(HANDLE file, HANDLE hProcess, CONTEXT *context) {
+void ce_exception_dumpContext(HANDLE file, HANDLE hProcess, CONTEXT *context)
+{
 	char tempo[200];
 	unsigned char memoryDump[100];
 	DWORD size;
 	unsigned int i;
 
 #ifdef ARM
-	writeBreak(file);
-	writeString(file, (char *)"Context dump");
+	ce_exception_writeBreak(file);
+	ce_exception_writestring(file, (char *)"Context dump");
 	sprintf(tempo, "R0=%.8lx R1=%.8lx R2=%.8lx R3=%.8lx R4=%.8lx", context->R0, context->R1,
 		context->R2, context->R3, context->R4);
-	writeString(file, tempo);
+	ce_exception_writestring(file, tempo);
 	sprintf(tempo, "R5=%.8lx R6=%.8lx R7=%.8lx R8=%.8lx R9=%.8lx", context->R5, context->R6,
 		context->R7, context->R8, context->R9);
-	writeString(file, tempo);
+	ce_exception_writestring(file, tempo);
 	sprintf(tempo, "R10=%.8lx R11=%.8lx R12=%.8lx", context->R10, context->R11,
 		context->R12);
-	writeString(file, tempo);
+	ce_exception_writestring(file, tempo);
 	sprintf(tempo, "Sp=%.8lx Lr=%.8lx Pc=%.8lx Psr=%.8lx", context->Sp, context->Lr,
 		context->Pc, context->Psr);
-	writeString(file, tempo);
-	writeBreak(file);
+	ce_exception_writestring(file, tempo);
+	ce_exception_writeBreak(file);
 
 	sprintf(tempo, "Memory dump at %.8lx", context->Pc - (sizeof(memoryDump) / 2));
-	writeString(file, tempo);
+	ce_exception_writestring(file, tempo);
 	if (ReadProcessMemory(hProcess, (LPCVOID)(context->Pc - (sizeof(memoryDump) / 2)), memoryDump, sizeof(memoryDump), &size)) {
 		for (i=0; i<size; i+=8) {
 			int j;
@@ -75,21 +78,22 @@ void CEException::dumpContext(HANDLE file, HANDLE hProcess, CONTEXT *context) {
 				sprintf(digit, "%.2x ", memoryDump[i + j]);
 				strcat(tempo, digit);
 			}
-			writeString(file, tempo);
+			ce_exception_writestring(file, tempo);
 		}
 	}
 #else
-	writeBreak(file);
-	writeString(file, "Context dump only available on ARM devices");
+	ce_exception_writeBreak(file);
+	ce_exception_writestring(file, "Context dump only available on ARM devices");
 #endif
 }
 
-void CEException::dumpException(HANDLE file, EXCEPTION_RECORD *exceptionRecord) {
+void ce_exception_dumpException(HANDLE file, EXCEPTION_RECORD *exceptionRecord)
+{
 	char tempo[200];
 	char exceptionName[50];
 	unsigned int i;
 #if (_WIN32_WCE >= 300)
-	writeBreak(file);
+	ce_exception_writeBreak(file);
 	switch(exceptionRecord->ExceptionCode) {
 		case EXCEPTION_ACCESS_VIOLATION :
 			strcpy(exceptionName, "Access Violation");
@@ -119,22 +123,23 @@ void CEException::dumpException(HANDLE file, EXCEPTION_RECORD *exceptionRecord) 
 	sprintf(tempo, "Exception %s Flags %.8lx Address %.8lx", exceptionName,
 		exceptionRecord->ExceptionFlags,
 		(long unsigned int)exceptionRecord->ExceptionAddress);
-	writeString(file, tempo);
+	ce_exception_writestring(file, tempo);
 	if (exceptionRecord->NumberParameters) {
 		for (i=0; i<exceptionRecord->NumberParameters; i++) {
 			sprintf(tempo, "Parameter %d %.8lx", i, exceptionRecord->ExceptionInformation[i]);
-			writeString(file, tempo);
+			ce_exception_writestring(file, tempo);
 		}
 	}
 	if (exceptionRecord->ExceptionRecord)
-		dumpException(file, exceptionRecord->ExceptionRecord);
+		ce_exception_dumpException(file, exceptionRecord->ExceptionRecord);
 #else
-	writeBreak(file);
-	writeString(file, "Cannot get exception information on this CE version");
+	ce_exception_writeBreak(file);
+	ce_exception_writestring(file, "Cannot get exception information on this CE version");
 #endif
 }
 
-bool CEException::writeException(TCHAR *path, EXCEPTION_POINTERS *exceptionPointers) {
+BOOL ce_exception_write(TCHAR *path, EXCEPTION_POINTERS *exceptionPointers)
+{
 	HANDLE dumpFile;
 	TCHAR dumpFileName[MAX_PATH];
 	SYSTEMTIME systemTime;
@@ -145,12 +150,12 @@ bool CEException::writeException(TCHAR *path, EXCEPTION_POINTERS *exceptionPoint
 			systemTime.wHour, systemTime.wMinute, systemTime.wSecond);
 	dumpFile = CreateFile(dumpFileName, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (dumpFile == INVALID_HANDLE_VALUE)
-		return false;
+		return FALSE;
 
-	dumpException(dumpFile, exceptionPointers->ExceptionRecord);
-	dumpContext(dumpFile, GetCurrentProcess(), exceptionPointers->ContextRecord);
+	ce_exception_dumpException(dumpFile, exceptionPointers->ExceptionRecord);
+	ce_exception_dumpContext(dumpFile, GetCurrentProcess(), exceptionPointers->ContextRecord);
 
 	CloseHandle(dumpFile);
 
-	return true;
+	return TRUE;
 }

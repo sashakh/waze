@@ -15,19 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/CEException.h,v 1.1 2008/05/07 14:01:12 pgf Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/CEException.h,v 1.2 2009/02/09 19:39:17 dannybackx Exp $
  *
  */
 
 #include <windows.h>
 
-class CEException {
-public:
-	static bool writeException(TCHAR *path, EXCEPTION_POINTERS *exceptionPointers);
-private:
-	static void writeString(HANDLE file, char *data);
-	static void writeBreak(HANDLE file);
-	static void dumpContext(HANDLE file, HANDLE hProcess, CONTEXT *context);
-	static void dumpException(HANDLE file, EXCEPTION_RECORD *exceptionRecord);
-
-};
+BOOL ce_exception_write(TCHAR *path, EXCEPTION_POINTERS *exceptionPointers);

@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
- *   Copyright 2008 Danny Backx
+ *   Copyright (c) 2008, 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -46,7 +46,6 @@
 #define I_IMAGENONE (-2)
 #endif
 
-extern "C" {
 #include "../roadmap.h"
 #include "../roadmap_path.h"
 #include "../roadmap_start.h"
@@ -63,17 +62,16 @@ extern "C" {
 #include "../roadmap_dialog.h"
 #include "../roadmap_gps.h"
 #include "wince_input_mon.h"
-#include "win32_serial.h"
 #include "roadmap_wincecanvas.h"
 #include "roadmap_time.h"
 #include "roadmap_dialog.h"
-}
 
 // Menu & toolbar defines
 #define MENU_ID_START	WM_USER
 #define MAX_MENU_ITEMS	200
 #define TOOL_ID_START	(MENU_ID_START + MAX_MENU_ITEMS + 1)
 #define MAX_TOOL_ITEMS	100
+
 struct tb_icon {
 	char *name;
 	int id;
@@ -91,27 +89,27 @@ static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
 // IO stuff
 #define ROADMAP_MAX_IO 16
-extern "C" { static roadmap_main_io *RoadMapMainIo = 0; }
+static roadmap_main_io *RoadMapMainIo = 0;
 
 // varibles used across this module
 static RoadMapKeyInput	RoadMapMainInput = NULL;
 #ifdef UNDER_CE
-static HWND				   RoadMapMainMenuBar = NULL;
+static HWND	RoadMapMainMenuBar = NULL;
 #else
-static HMENU			   RoadMapMainMenuBar = NULL;
+static HMENU	RoadMapMainMenuBar = NULL;
 #endif
-static HWND				RoadMapMainToolbar = NULL;
-static bool				   RoadMapMainFullScreen = false;
+static HWND	RoadMapMainToolbar = NULL;
+static BOOL	RoadMapMainFullScreen = FALSE;
 
 // Global Variables:
-extern "C" { HINSTANCE	g_hInst = NULL; }
-extern "C" { HWND			RoadMapMainWindow  = NULL; }
+HINSTANCE	g_hInst = NULL;
+HWND	RoadMapMainWindow  = NULL;
 
 // Forward declarations of functions included in this code module:
-static ATOM				MyRegisterClass(HINSTANCE, LPTSTR);
-static BOOL				   InitInstance(HINSTANCE, LPTSTR);
+static ATOM	MyRegisterClass(HINSTANCE, LPTSTR);
+static BOOL	InitInstance(HINSTANCE, LPTSTR);
 static LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-extern "C" { static int roadmap_main_set_idle_function_helper (void *); }
+static int roadmap_main_set_idle_function_helper (void *);
 
 #define MAX_LOADSTRING 100
 
@@ -125,18 +123,20 @@ static WCHAR szWindowClass[] = L"RoadMapClass";
 static RoadMapConfigDescriptor RoadMapConfigMenuBar =
                         ROADMAP_CONFIG_ITEM("General", "Menu bar");
 
-int handleException(EXCEPTION_POINTERS *exceptionPointers) {
+int handleException(EXCEPTION_POINTERS *exceptionPointers)
+{
 #ifdef UNDER_CE
-	CEException::writeException((wchar_t *)L"\\roadmapCrash", exceptionPointers);
+	ce_exception_write((wchar_t *)L"\\roadmapCrash", exceptionPointers);
 #endif
 	exit(0);
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
 
-static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime) {
+static void CALLBACK AvoidSuspend (HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+{
 #ifdef UNDER_CE
-	CEDevice::wakeUp();
+	ce_device_wakeup();
 #endif
 }
 
@@ -159,26 +159,18 @@ int WINAPI WinMain(HINSTANCE hInstance,
 	cmd_line = L"";
 #endif
 
-	__try 
-        {
-	    
-	    // Perform application initialization:
-	    if (!InitInstance(hInstance, cmd_line))
-	    {
-		    return FALSE;
-	    }
-        }
-	__except (handleException(GetExceptionInformation())) {}
-		
+	// Perform application initialization:
+	if (!InitInstance(hInstance, cmd_line)) {
+		return FALSE;
+	}
+
 	/*
 	 * Figure out how big the screen is, pass it on
 	 */
 	int width, height;
 	height = GetSystemMetrics(SM_CYSCREEN);
 	width = GetSystemMetrics(SM_CXSCREEN);
-	roadmap_log (ROADMAP_WARNING, "Screen %d x %d", height, width);
 	roadmap_dialog_set_resolution (height, width);
-
 
 	ShowWindow(RoadMapMainWindow, nCmdShow);
 	UpdateWindow(RoadMapMainWindow);
@@ -354,19 +346,17 @@ static int roadmap_main_vkey_pressed(HWND w, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
 	HDC hdc;
-	
+	BOOL create_menu;
+
 #ifdef UNDER_CE
 	static SHACTIVATEINFO s_sai;
 #endif
 	
-   __try 
-   {
 	switch (message) 
 	{
 	case WM_COMMAND:
@@ -402,13 +392,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 		
 	case WM_CREATE:
-		bool create_menu;
 #ifdef _ROADGPS
-      create_menu = true;
+      create_menu = TRUE;
 #else
       create_menu = roadmap_config_match (&RoadMapConfigMenuBar, "Yes") != 0;
 #endif
-      create_menu = true;
+      create_menu = TRUE;
 
 #ifdef UNDER_CE
 		SHMENUBARINFO mbi;
@@ -449,8 +438,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		memset(&s_sai, 0, sizeof (s_sai));
 		s_sai.cbSize = sizeof (s_sai);
 
-		CEDevice::init();
+		ce_device_init();
 		SetTimer(NULL, 0, 50000, AvoidSuspend);
+
+		/* Start something (a thread?) to monitor power state changes */
+		roadmap_main_power_monitor_start();
 #endif
 		break;
 		
@@ -463,10 +455,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
 		break;
-		
+
 	case WM_DESTROY:
 #ifdef UNDER_CE
-		CEDevice::end();
+		roadmap_main_power_monitor_stop();
+		ce_device_end();
 #endif
 		if (RoadMapMainMenuBar != NULL) {
 #ifdef UNDER_CE			
@@ -626,9 +619,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			 if (!context->is_valid) break;
 
 			 if (lParam != 1) {
-			    Win32SerialConn *conn = (Win32SerialConn *) lParam;
-			 
-			    if (!ROADMAP_SERIAL_IS_VALID (conn)) {
+			    if (!ROADMAP_SERIAL_IS_VALID (lParam)) {
 			       /* An old input which was removed */
 			       break;
 			    }
@@ -640,8 +631,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-    }
-    __except (handleException(GetExceptionInformation())) {}
     return 0;
 }
 
@@ -670,9 +659,12 @@ static struct tb_icon RoadMapIcons[] = {
 
 static int roadmap_main_toolbar_icon (const char *icon)
 {
-	if (icon == NULL) return 0;
+	struct tb_icon *itr;
+
+	if (icon == NULL)
+		return 0;
 	
-	tb_icon *itr = RoadMapIcons;
+	itr = RoadMapIcons;
 	
 	while (itr->name != NULL) {
 		if (!strcasecmp(icon, itr->name)) {
@@ -684,561 +676,589 @@ static int roadmap_main_toolbar_icon (const char *icon)
 	return -1;
 }
 
-
-extern "C" {
-	
-	void roadmap_main_toggle_full_screen (void)
-	{
+void roadmap_main_toggle_full_screen (void)
+{
 #if 1
-		// TODO: implement
-		return;
+	// TODO: implement
+	return;
 #else
 #ifdef UNDER_CE
-	      RECT rc;
-	      int menu_height = 0;
+      RECT rc;
+      int menu_height = 0;
 
-	      if (RoadMapMainMenuBar != NULL) {
-		 menu_height = 26;
-	      }
+      if (RoadMapMainMenuBar != NULL) {
+	 menu_height = 26;
+      }
 
-	      //get window size
-	      GetWindowRect(RoadMapMainWindow, &rc);
+      //get window size
+      GetWindowRect(RoadMapMainWindow, &rc);
 
-	      if (!RoadMapMainFullScreen) {
-		 SHFullScreen(RoadMapMainWindow, SHFS_HIDETASKBAR|SHFS_HIDESIPBUTTON);
-		 if (RoadMapMainMenuBar != NULL) ShowWindow(RoadMapMainMenuBar, SW_HIDE);
+      if (!RoadMapMainFullScreen) {
+	 SHFullScreen(RoadMapMainWindow, SHFS_HIDETASKBAR|SHFS_HIDESIPBUTTON);
+	 if (RoadMapMainMenuBar != NULL) ShowWindow(RoadMapMainMenuBar, SW_HIDE);
 
-		 MoveWindow(RoadMapMainWindow,
-			      rc.left, 
-			      rc.top-26,
-			      rc.right, 
-			      rc.bottom+menu_height,
-			      TRUE);
+	 MoveWindow(RoadMapMainWindow,
+		      rc.left, 
+		      rc.top-26,
+		      rc.right, 
+		      rc.bottom+menu_height,
+		      TRUE);
 
-		 RoadMapMainFullScreen = true;
+	 RoadMapMainFullScreen = true;
 
-	      } else {
-		
-		 SHFullScreen(RoadMapMainWindow, SHFS_SHOWTASKBAR);
-		 if (RoadMapMainMenuBar != NULL) ShowWindow(RoadMapMainMenuBar, SW_SHOW);
-		 MoveWindow(RoadMapMainWindow, 
-		    rc.left, 
-		    rc.top+26,
-		    rc.right, 
-		    rc.bottom- 26 - menu_height,
-		    TRUE);
-
-		 RoadMapMainFullScreen = false;
-
-	      }
-#endif
-#endif
-	}
-
+      } else {
 	
-	void roadmap_main_new (const char *title, int width, int height)
-	{
-		LPWSTR szTitle = ConvertToUNICODE(title);
-		DWORD style = WS_VISIBLE;
+	 SHFullScreen(RoadMapMainWindow, SHFS_SHOWTASKBAR);
+	 if (RoadMapMainMenuBar != NULL) ShowWindow(RoadMapMainMenuBar, SW_SHOW);
+	 MoveWindow(RoadMapMainWindow, 
+	    rc.left, 
+	    rc.top+26,
+	    rc.right, 
+	    rc.bottom- 26 - menu_height,
+	    TRUE);
 
-      		roadmap_config_declare_enumeration
-         		("preferences", &RoadMapConfigMenuBar, "No", "Yes", NULL);
+	 RoadMapMainFullScreen = false;
+
+      }
+#endif
+#endif
+}
+
+
+void roadmap_main_new (const char *title, int width, int height)
+{
+	LPWSTR szTitle = ConvertToUNICODE(title);
+	DWORD style = WS_VISIBLE;
+
+	roadmap_config_declare_enumeration
+		("preferences", &RoadMapConfigMenuBar, "No", "Yes", NULL);
 #ifndef UNDER_CE
-		style |= WS_OVERLAPPEDWINDOW;
+	style |= WS_OVERLAPPEDWINDOW;
 #endif
-		RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, style,
-			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
-			NULL, g_hInst, NULL);
-		
-		free(szTitle);
-		if (!RoadMapMainWindow)
-		{
-			roadmap_log (ROADMAP_FATAL, "Can't create main window");
-			return;
-		}
-		
+	RoadMapMainWindow = CreateWindow(szWindowClass, szTitle, style,
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL,
+		NULL, g_hInst, NULL);
+	
+	free(szTitle);
+	if (!RoadMapMainWindow)
+	{
+		roadmap_log (ROADMAP_FATAL, "Can't create main window");
+		return;
+	}
+	
 #ifdef UNDER_CE
-		if (RoadMapMainMenuBar)
-		{
-			RECT rc;
-			RECT rcMenuBar;
-			
-			GetWindowRect(RoadMapMainWindow, &rc);
-			GetWindowRect(RoadMapMainMenuBar, &rcMenuBar);
-			rc.bottom -= (rcMenuBar.bottom - rcMenuBar.top);
-			
-			MoveWindow(RoadMapMainWindow, rc.left, rc.top, rc.right-rc.left,
-				rc.bottom-rc.top, FALSE);
-		}
-#endif
-	}
-	
-	void roadmap_main_title(char *fmt, ...)
+	if (RoadMapMainMenuBar)
 	{
-		/* unimplemented */
-	}
-	
-	void roadmap_main_set_keyboard (RoadMapKeyInput callback)
-	{
-		RoadMapMainInput = callback;
-	}
-	
-	RoadMapMenu roadmap_main_new_menu (const char *title)
-	{
-	    return (RoadMapMenu)CreatePopupMenu();
-	}
-
-	
-	void roadmap_main_add_menu (RoadMapMenu menu, const char *label)
-	{
-		static int menu_id = 0;
-		if (RoadMapMainMenuBar == NULL) {
-			roadmap_log (ROADMAP_WARNING, "roadmap_main_add_menu NULL");
-			return;
-		}
+		RECT rc;
+		RECT rcMenuBar;
 		
+		GetWindowRect(RoadMapMainWindow, &rc);
+		GetWindowRect(RoadMapMainMenuBar, &rcMenuBar);
+		rc.bottom -= (rcMenuBar.bottom - rcMenuBar.top);
+		
+		MoveWindow(RoadMapMainWindow, rc.left, rc.top, rc.right-rc.left,
+			rc.bottom-rc.top, FALSE);
+	}
+#endif
+}
+
+void roadmap_main_title(char *fmt, ...)
+{
+	va_list	ap;
+	int	n, sz;
+	char	*str;
+	wchar_t	*ws;
+
+	sz = 200;
+	str = (char *)malloc(sz);
+
+#if 1	/* Concatenate "RoadMap" with the parameter passed" */
+#define	RoadMapMainTitle	"RoadMap"
+	n = snprintf(str, sz, "%s", RoadMapMainTitle);
+	va_start(ap, fmt);
+	vsnprintf(&str[n], sz - n, fmt, ap);
+	va_end(ap);
+#else	/* Just show the path */
+	va_start(ap, fmt);
+	vsnprintf(str, sz, fmt, ap);
+	va_end(ap);
+#endif
+
+	ws = ConvertToUNICODE(str);
+	SetWindowText(RoadMapMainWindow, ws);
+
+	free(str);
+	free(ws);
+}
+
+void roadmap_main_set_keyboard (RoadMapKeyInput callback)
+{
+	RoadMapMainInput = callback;
+}
+
+RoadMapMenu roadmap_main_new_menu (const char *title)
+{
+    return (RoadMapMenu)CreatePopupMenu();
+}
+
+
+void roadmap_main_add_menu (RoadMapMenu menu, const char *label)
+{
+	static int menu_id = 0;
+	if (RoadMapMainMenuBar == NULL) {
+		roadmap_log (ROADMAP_WARNING, "roadmap_main_add_menu NULL");
+		return;
+	}
+	
+	LPWSTR label_unicode = ConvertToUNICODE(label);
+#ifdef UNDER_CE
+	TBBUTTON button;
+	SendMessage(RoadMapMainMenuBar, TB_BUTTONSTRUCTSIZE, sizeof(button),
+		0);
+	
+	memset(&button, 0, sizeof(button));
+	button.iBitmap = I_IMAGENONE;
+	button.idCommand = menu_id++;
+	button.iString = (int)label_unicode;
+	button.fsState = TBSTATE_ENABLED;
+	// I'm not really sure what this magic number represents(but it works)
+	button.fsStyle = 152;
+	
+	button.dwData = (UINT)menu;
+	
+	SendMessage(RoadMapMainMenuBar, (UINT) TB_ADDBUTTONS, (WPARAM) 1,
+		(LPARAM) (LPTBBUTTON) &button);
+#else
+	DWORD res = AppendMenu(RoadMapMainMenuBar, MF_POPUP, (UINT)menu, label_unicode);
+	SetMenu (RoadMapMainWindow, RoadMapMainMenuBar);
+#endif
+	free(label_unicode);
+}
+
+
+void roadmap_main_add_menu_item (RoadMapMenu menu, 
+	const char *label, const char *tip, RoadMapCallback callback)
+{
+	static int menu_id = 0;
+	
+	if (label != NULL) {
 		LPWSTR label_unicode = ConvertToUNICODE(label);
-#ifdef UNDER_CE
-		TBBUTTON button;
-		SendMessage(RoadMapMainMenuBar, TB_BUTTONSTRUCTSIZE, sizeof(button),
-			0);
-		
-		memset(&button, 0, sizeof(button));
-		button.iBitmap = I_IMAGENONE;
-		button.idCommand = menu_id++;
-		button.iString = (int)label_unicode;
-		button.fsState = TBSTATE_ENABLED;
-		// I'm not really sure what this magic number represents(but it works)
-		button.fsStyle = 152;
-		
-		button.dwData = (UINT)menu;
-		
-		SendMessage(RoadMapMainMenuBar, (UINT) TB_ADDBUTTONS, (WPARAM) 1,
-			(LPARAM) (LPTBBUTTON) &button);
-#else
-        	DWORD res = AppendMenu(RoadMapMainMenuBar, MF_POPUP, (UINT)menu, label_unicode);
-		SetMenu (RoadMapMainWindow, RoadMapMainMenuBar);
-#endif
+		AppendMenu((HMENU)menu, MF_STRING,
+			menu_id + MENU_ID_START, label_unicode);
 		free(label_unicode);
-	}
-	
-	
-	void roadmap_main_add_menu_item (RoadMapMenu menu, 
-		const char *label, const char *tip, RoadMapCallback callback)
-	{
-		static int menu_id = 0;
 		
-		if (label != NULL) {
-			LPWSTR label_unicode = ConvertToUNICODE(label);
-			AppendMenu((HMENU)menu, MF_STRING,
-				menu_id + MENU_ID_START, label_unicode);
-			free(label_unicode);
-			
-			if (menu_id == MAX_MENU_ITEMS) {
-				roadmap_log (ROADMAP_FATAL, "Too many menu items!");
-				return;
-			}
-			menu_callbacks[menu_id] = callback;
-			menu_id++;
-		} else {
-			AppendMenu((HMENU)menu, MF_SEPARATOR, 0, (wchar_t *)L"");
+		if (menu_id == MAX_MENU_ITEMS) {
+			roadmap_log (ROADMAP_FATAL, "Too many menu items!");
+			return;
 		}
-		
-		if (tip != NULL) {
-			//TODO: does wince support it?
-		}
+		menu_callbacks[menu_id] = callback;
+		menu_id++;
+	} else {
+		AppendMenu((HMENU)menu, MF_SEPARATOR, 0, (wchar_t *)L"");
 	}
 	
-        void roadmap_main_popup_menu (RoadMapMenu menu, 
-                                  const RoadMapGuiPoint *position) {
-
-	    TrackPopupMenuEx( (HMENU)menu, 0,
-	    	position->x, position->y, RoadMapMainWindow, NULL);
-        }
-
-	void roadmap_main_add_separator  (RoadMapMenu menu)
-	{
-		roadmap_main_add_menu_item (menu, NULL, NULL, NULL);
+	if (tip != NULL) {
+		//TODO: does wince support it?
 	}
-	
-       void roadmap_main_add_toolbar (const char *orientation) {
-		if (RoadMapMainToolbar == NULL) {
-         // TBD: consider the orientation.
+}
+
+void roadmap_main_popup_menu (RoadMapMenu menu, 
+			  const RoadMapGuiPoint *position) {
+
+    TrackPopupMenuEx( (HMENU)menu, 0,
+	position->x, position->y, RoadMapMainWindow, NULL);
+}
+
+void roadmap_main_add_separator  (RoadMapMenu menu)
+{
+	roadmap_main_add_menu_item (menu, NULL, NULL, NULL);
+}
+
+void roadmap_main_add_toolbar (const char *orientation) {
+	if (RoadMapMainToolbar == NULL) {
+ // TBD: consider the orientation.
 #ifdef UNDER_CE
-			RoadMapMainToolbar = CommandBar_Create (g_hInst,
-				RoadMapMainWindow, 1);
+		RoadMapMainToolbar = CommandBar_Create (g_hInst,
+			RoadMapMainWindow, 1);
 #else
-			INITCOMMONCONTROLSEX InitCtrlEx;
+		INITCOMMONCONTROLSEX InitCtrlEx;
 
-			InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
-			InitCtrlEx.dwICC  = ICC_BAR_CLASSES;
-			InitCommonControlsEx(&InitCtrlEx);
+		InitCtrlEx.dwSize = sizeof(INITCOMMONCONTROLSEX);
+		InitCtrlEx.dwICC  = ICC_BAR_CLASSES;
+		InitCommonControlsEx(&InitCtrlEx);
 
-			RoadMapMainToolbar = CreateWindowEx (
-				0,
-				TOOLBARCLASSNAME,     // Class name
-				L"toolbar",  		  // Window name
-				WS_CHILD|WS_VISIBLE,  // Window style
-				0,                    // x-coordinate of the upper-left corner
-				0,                    // y-coordinate of the upper-left corner
-				CW_USEDEFAULT,        // The width of the tree-view control window
-				CW_USEDEFAULT,        // The height of the tree-view control window
-				RoadMapMainWindow,    // Window handle to the parent window
-				(HMENU) NULL,         // The tree-view control identifier
-				g_hInst,              // The instance handle
-				NULL);                // Specify NULL for this parameter when you
+		RoadMapMainToolbar = CreateWindowEx (
+			0,
+			TOOLBARCLASSNAME,     // Class name
+			L"toolbar",  		  // Window name
+			WS_CHILD|WS_VISIBLE,  // Window style
+			0,                    // x-coordinate of the upper-left corner
+			0,                    // y-coordinate of the upper-left corner
+			CW_USEDEFAULT,        // The width of the tree-view control window
+			CW_USEDEFAULT,        // The height of the tree-view control window
+			RoadMapMainWindow,    // Window handle to the parent window
+			(HMENU) NULL,         // The tree-view control identifier
+			g_hInst,              // The instance handle
+			NULL);                // Specify NULL for this parameter when you
 
-			SendMessage(RoadMapMainToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
+		SendMessage(RoadMapMainToolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON), 0);
 
 #endif
-			// LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
-		}
-       }
+		// LONG style = GetWindowLong (RoadMapMainToolbar, GWL_STYLE);
+	}
+}
 
-	void roadmap_main_add_tool (const char *label,
-		const char *icon,
-		const char *tip,
-		RoadMapCallback callback)
-	{
-		static int tool_id = 0;
-		
-		if (RoadMapMainToolbar == NULL) {
-		    roadmap_main_add_toolbar (0);
-		}
-		
-		int icon_res_id = roadmap_main_toolbar_icon(icon);
-		if (icon_res_id == -1) return;
-		
-		int icon_tb_id = 0;
-		int res;
+void roadmap_main_add_tool (const char *label,
+	const char *icon,
+	const char *tip,
+	RoadMapCallback callback)
+{
+	static int tool_id = 0;
+	
+	if (RoadMapMainToolbar == NULL) {
+	    roadmap_main_add_toolbar (0);
+	}
+	
+	int icon_res_id = roadmap_main_toolbar_icon(icon);
+	if (icon_res_id == -1) return;
+	
+	int icon_tb_id = 0;
+	int res;
 #ifdef UNDER_CE
-		icon_tb_id = CommandBar_AddBitmap(RoadMapMainToolbar, g_hInst,
-			icon_res_id, 1, 16, 16);
+	icon_tb_id = CommandBar_AddBitmap(RoadMapMainToolbar, g_hInst,
+		icon_res_id, 1, 16, 16);
 #else
-		TBADDBITMAP tbb;
+	TBADDBITMAP tbb;
 
-		tbb.hInst = NULL;
-		tbb.nID   = (DWORD)LoadBitmap(g_hInst, MAKEINTRESOURCE(icon_res_id));
+	tbb.hInst = NULL;
+	tbb.nID   = (DWORD)LoadBitmap(g_hInst, MAKEINTRESOURCE(icon_res_id));
 
-		icon_tb_id = SendMessage(RoadMapMainToolbar,
-			              (UINT) TB_ADDBITMAP,
-				          (WPARAM) 1,
-				          (LPARAM) &tbb);
+	icon_tb_id = SendMessage(RoadMapMainToolbar,
+			      (UINT) TB_ADDBITMAP,
+				  (WPARAM) 1,
+				  (LPARAM) &tbb);
 #endif
-		
-		TBBUTTON but;
-		but.iBitmap = icon_tb_id;
-		but.idCommand = TOOL_ID_START + tool_id;
-		but.fsState = TBSTATE_ENABLED;
-		but.fsStyle = 0;
-		but.dwData = 0;
-		but.iString = 0;
-		
+	
+	TBBUTTON but;
+	but.iBitmap = icon_tb_id;
+	but.idCommand = TOOL_ID_START + tool_id;
+	but.fsState = TBSTATE_ENABLED;
+	but.fsStyle = 0;
+	but.dwData = 0;
+	but.iString = 0;
+	
 #if defined(UNDER_CE) && defined(CommandBar_AddButtons)
-		res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+	res = CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
 #else
-		res = SendMessage(RoadMapMainToolbar,
-			              (UINT) TB_ADDBUTTONS,
-				          (WPARAM) 1,
-				          (LPARAM) &but);
+	res = SendMessage(RoadMapMainToolbar,
+			      (UINT) TB_ADDBUTTONS,
+				  (WPARAM) 1,
+				  (LPARAM) &but);
 #endif
-		if (res != FALSE) {
-			tool_callbacks[tool_id] = callback;
-			tool_id++;
-		}
+	if (res != FALSE) {
+		tool_callbacks[tool_id] = callback;
+		tool_id++;
+	}
+}
+
+
+void roadmap_main_add_tool_space (void)
+{
+	if (RoadMapMainToolbar == NULL) {
+		roadmap_log (ROADMAP_FATAL,
+			"Invalid toolbar space: no toolbar yet");
 	}
 	
+	TBBUTTON but;
+	but.iBitmap = -1;
+	but.idCommand = 1;
+	but.fsState = 0;
+	but.fsStyle = TBSTYLE_SEP;
+	but.dwData = 0;
+	but.iString = 0;
 	
-	void roadmap_main_add_tool_space (void)
-	{
-		if (RoadMapMainToolbar == NULL) {
-			roadmap_log (ROADMAP_FATAL,
-				"Invalid toolbar space: no toolbar yet");
-		}
-		
-		TBBUTTON but;
-		but.iBitmap = -1;
-		but.idCommand = 1;
-		but.fsState = 0;
-		but.fsStyle = TBSTYLE_SEP;
-		but.dwData = 0;
-		but.iString = 0;
-		
 #ifdef UNDER_CE
-		CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
+	CommandBar_AddButtons(RoadMapMainToolbar, 1, &but);
 #else
-		SendMessage(RoadMapMainToolbar,
-			       (UINT) TB_ADDBUTTONS,
-				   (WPARAM) 1,
-				   (LPARAM) &but);
+	SendMessage(RoadMapMainToolbar,
+		       (UINT) TB_ADDBUTTONS,
+			   (WPARAM) 1,
+			   (LPARAM) &but);
 #endif
-		
-	}
 	
-	
-	void roadmap_main_add_canvas (void)
-	{
+}
+
+
+void roadmap_main_add_canvas (void)
+{
 #ifndef _ROADGPS
 //      		roadmap_main_toggle_full_screen ();
 #endif
-      
+
+	roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
+}
+
+
+void roadmap_main_add_status (void)
+{
+	//TODO: do we need this?
+}
+
+
+void roadmap_main_show (void)
+{
+	if (RoadMapMainWindow != NULL) {
 		roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
 	}
-	
-	
-	void roadmap_main_add_status (void)
-	{
-		//TODO: do we need this?
-	}
-	
-	
-	void roadmap_main_show (void)
-	{
-		if (RoadMapMainWindow != NULL) {
-			roadmap_canvas_new(RoadMapMainWindow, RoadMapMainToolbar);
-		}
-	}
-	
-	void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback)
-	{
-		int i;
-		
-		if (RoadMapMainIo == 0)
-			RoadMapMainIo = (roadmap_main_io*)calloc(ROADMAP_MAX_IO,
-					sizeof(roadmap_main_io));
+}
 
-		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			if (RoadMapMainIo[i].io == NULL) {
-#if 1
-				RoadMapMainIo[i].io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
-				*(RoadMapMainIo[i].io) = *io;
-#else
-				RoadMapMainIo[i].io = io;
-#endif
-				RoadMapMainIo[i].callback = callback;
-            			RoadMapMainIo[i].is_valid = 1;
-				break;
-			}
-		}
+void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback)
+{
+	int i;
+	
+	if (RoadMapMainIo == 0)
+		RoadMapMainIo = (roadmap_main_io*)calloc(ROADMAP_MAX_IO,
+				sizeof(roadmap_main_io));
 
-		if (i == ROADMAP_MAX_IO) {
-			roadmap_log (ROADMAP_FATAL, "Too many set input calls");
-			return;
-		}
-
-		HANDLE monitor_thread = NULL;
-		roadmap_main_io *p = &RoadMapMainIo[i];
-
-		switch (io->subsystem) {
-		case ROADMAP_IO_SERIAL:
-			monitor_thread = CreateThread(NULL, 0,
-				SerialMonThread, (void*)p, 0, NULL);
+	for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+		if (RoadMapMainIo[i].io == NULL) {
+			RoadMapMainIo[i].io = (RoadMapIO*)malloc(sizeof(RoadMapIO));
+			*(RoadMapMainIo[i].io) = *io;
+			RoadMapMainIo[i].callback = callback;
+			RoadMapMainIo[i].thread = NULL;
+			RoadMapMainIo[i].is_valid = 1;
 			break;
-		case ROADMAP_IO_NET:
-			monitor_thread = CreateThread(NULL, 0,
-				SocketMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
-			break;
-		case ROADMAP_IO_FILE:
-			monitor_thread = CreateThread(NULL, 0,
-				FileMonThread, (void*)&RoadMapMainIo[i], 0, NULL);
-			break;
-		}
-		
-		if (monitor_thread == NULL)
-		{
-			roadmap_log (ROADMAP_FATAL, "Can't create monitor thread");
-			roadmap_io_close(io);
-			return;
-		} else {
-			CloseHandle(monitor_thread);
 		}
 	}
 
+	if (i == ROADMAP_MAX_IO) {
+		roadmap_log (ROADMAP_FATAL, "Too many set input calls");
+		return;
+	}
 
-	void roadmap_main_remove_input (RoadMapIO *io)
+	HANDLE monitor_thread = NULL;
+	roadmap_main_io *p = &RoadMapMainIo[i];
+	DWORD		tid;
+
+	switch (io->subsystem) {
+	case ROADMAP_IO_SERIAL:
+		monitor_thread = CreateThread(NULL, 0,
+			SerialMonThread, (void*)p, 0, &tid);
+		break;
+	case ROADMAP_IO_NET:
+		monitor_thread = CreateThread(NULL, 0,
+			SocketMonThread, (void*)&RoadMapMainIo[i], 0, &tid);
+		break;
+	case ROADMAP_IO_FILE:
+		monitor_thread = CreateThread(NULL, 0,
+			FileMonThread, (void*)&RoadMapMainIo[i], 0, &tid);
+		break;
+	}
+
+	p->thread = tid;
+	
+	if (monitor_thread == NULL)
 	{
-		int i;
-				
-		for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-			 if (RoadMapMainIo[i].io == io) {
-				if (RoadMapMainIo[i].is_valid) {
-				   RoadMapMainIo[i].is_valid = 0;
-				} else {
+		roadmap_log (ROADMAP_FATAL, "Can't create monitor thread");
+		roadmap_io_close(io);
+		return;
+	} else {
+		CloseHandle(monitor_thread);
+	}
+}
+
+
+void roadmap_main_remove_input (RoadMapIO *io)
+{
+	int i;
+			
+	for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+		 if (RoadMapMainIo[i].io == io) {
+			if (RoadMapMainIo[i].is_valid) {
+			   RoadMapMainIo[i].is_valid = 0;
+			} else {
 //				   free (RoadMapMainIo[i]);
-				}
-				RoadMapMainIo[i].io = NULL;
-				break;
-
 			}
+			RoadMapMainIo[i].io = NULL;
+
+			if (RoadMapMainIo[i].thread) {
+				TerminateThread(RoadMapMainIo[i].thread, -1);
+				CloseHandle(RoadMapMainIo[i].thread);
+				RoadMapMainIo[i].thread = NULL;
+			}
+			break;
+
 		}
 	}
-	
-	
-	static void roadmap_main_timeout (HWND hwnd, UINT uMsg, UINT_PTR idEvent,
-		DWORD dwTime) 
-	{	
-		struct roadmap_main_timer *timer;
+}
 
-		/*
-		 * Protect against the occasional invalid call.
-		 * On my system, this happens with hwnd == 0.
-		 */
-		if (idEvent > ROADMAP_MAX_TIMER || hwnd == 0)
+
+static void roadmap_main_timeout (HWND hwnd, UINT uMsg, UINT_PTR idEvent,
+	DWORD dwTime) 
+{	
+	struct roadmap_main_timer *timer;
+
+	/*
+	 * Protect against the occasional invalid call.
+	 * On my system, this happens with hwnd == 0.
+	 */
+	if (idEvent > ROADMAP_MAX_TIMER || hwnd == 0)
+		return;
+	timer = RoadMapMainPeriodicTimer + (idEvent - 1);
+	RoadMapCallback callback = (RoadMapCallback) timer->callback;
+	
+	if (callback != NULL) {
+		(*callback) ();
+	}
+}
+
+
+void roadmap_main_set_periodic (int interval, RoadMapCallback callback)
+{
+	int index;
+	struct roadmap_main_timer *timer = NULL;
+	
+	for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
+		
+		if (RoadMapMainPeriodicTimer[index].callback == callback) {
 			return;
-		timer = RoadMapMainPeriodicTimer + (idEvent - 1);
-		RoadMapCallback callback = (RoadMapCallback) timer->callback;
-		
-		if (callback != NULL) {
-			(*callback) ();
 		}
-	}
-	
-	
-	void roadmap_main_set_periodic (int interval, RoadMapCallback callback)
-	{
-		int index;
-		struct roadmap_main_timer *timer = NULL;
-		
-		for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
-			
-			if (RoadMapMainPeriodicTimer[index].callback == callback) {
-				return;
-			}
-			if (timer == NULL) {
-				if (RoadMapMainPeriodicTimer[index].callback == NULL) {
-					timer = RoadMapMainPeriodicTimer + index;
-					timer->id = index + 1;
-				}
-			}
-		}
-		
 		if (timer == NULL) {
-			roadmap_log (ROADMAP_FATAL, "Timer table saturated");
-		}
-		
-		timer->callback = callback;
-		SetTimer(RoadMapMainWindow, timer->id, interval,
-			roadmap_main_timeout);
-	}
-	
-	
-	void roadmap_main_remove_periodic (RoadMapCallback callback)
-	{
-		int index;
-
-		for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
-			
-			if (RoadMapMainPeriodicTimer[index].callback == callback) {
-				
-				RoadMapMainPeriodicTimer[index].callback = NULL;
-				if (KillTimer(RoadMapMainWindow,
-					RoadMapMainPeriodicTimer[index].id) == 0) {
-					DWORD e = GetLastError();
-					roadmap_log (ROADMAP_ERROR, "KillTimer failed (%d)", e);
-				}
-				
-				return;
+			if (RoadMapMainPeriodicTimer[index].callback == NULL) {
+				timer = RoadMapMainPeriodicTimer + index;
+				timer->id = index + 1;
 			}
 		}
+	}
+	
+	if (timer == NULL) {
+		roadmap_log (ROADMAP_FATAL, "Timer table saturated");
+	}
+	
+	timer->callback = callback;
+	SetTimer(RoadMapMainWindow, timer->id, interval,
+		roadmap_main_timeout);
+}
+
+
+void roadmap_main_remove_periodic (RoadMapCallback callback)
+{
+	int index;
+
+	for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
 		
-		roadmap_log (ROADMAP_DEBUG, "timer 0x%08x not found", callback);
+		if (RoadMapMainPeriodicTimer[index].callback == callback) {
+			
+			RoadMapMainPeriodicTimer[index].callback = NULL;
+			if (KillTimer(RoadMapMainWindow,
+				RoadMapMainPeriodicTimer[index].id) == 0) {
+				DWORD e = GetLastError();
+				roadmap_log (ROADMAP_ERROR, "KillTimer failed (%d)", e);
+			}
+			
+			return;
+		}
 	}
 	
-	
-	void roadmap_main_set_status (const char *text) {}
-	
-	int roadmap_main_flush (void)
-        {
-	      // HWND w = GetFocus();
-	      MSG msg;
-	      int hadevent = 0;
-
-	      while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-	      {
-		 hadevent = 1;
-		 TranslateMessage(&msg);
-		 DispatchMessage(&msg);
-	      }
-
-	      //UpdateWindow(w);
-	      return hadevent;
-        }
-
-       int roadmap_main_flush_synchronous (int deadline)
-       {
-	  return 1; /* Nothing to do. */
-       }
-	
-	
-	void roadmap_main_exit (void)
-	{
-		roadmap_start_exit ();
-		/* This is an easy and clean way to terminate threads too */
-		ExitProcess(0);
-	}
-	
-       static unsigned long roadmap_main_busy_start;
-
-       void roadmap_main_set_cursor (RoadMapCursor newcursor)
-       {
-	  static RoadMapCursor lastcursor;
-
-	  roadmap_main_busy_start = 0;
-
-	  if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
-	     roadmap_main_busy_start = roadmap_time_get_millis();
-	     return;
-	  }
-
-	  if (newcursor == lastcursor)
-	     return;
-
-	  lastcursor = newcursor;
-
-	  switch (newcursor) {
-
-	  case ROADMAP_CURSOR_NORMAL:
-	     SetCursor(NULL);
-	     break;
-
-	  case ROADMAP_CURSOR_WAIT:
-	     SetCursor(LoadCursor(NULL, IDC_WAIT));
-	     break;
-
-          case ROADMAP_CURSOR_CROSS:
-	     SetCursor(LoadCursor(NULL, IDC_CROSS));
-	     break;
-
-	  case ROADMAP_CURSOR_WAIT_WITH_DELAY:
-	     /* ?? FIX ME */
-	     break;
-          }
-       }
+	roadmap_log (ROADMAP_DEBUG, "timer 0x%08x not found", callback);
+}
 
 
-       void roadmap_main_busy_check(void) {
+void roadmap_main_set_status (const char *text) {}
 
-	  if (roadmap_main_busy_start == 0)
-	     return;
+int roadmap_main_flush (void)
+{
+      // HWND w = GetFocus();
+      MSG msg;
+      int hadevent = 0;
 
-	  if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
-	     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
-	  }
-       }
+      while(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+      {
+	 hadevent = 1;
+	 TranslateMessage(&msg);
+	 DispatchMessage(&msg);
+      }
 
-	static RoadMapCallback idle_callback;
+      //UpdateWindow(w);
+      return hadevent;
+}
 
-	static int roadmap_main_set_idle_function_helper (void *data) {
-	    if (idle_callback) idle_callback();
-	    return 0;
-	}
+int roadmap_main_flush_synchronous (int deadline)
+{
+  return 1; /* Nothing to do. */
+}
 
-	void roadmap_main_set_idle_function (RoadMapCallback callback) {
 
-	   idle_callback = callback;
-	}
+void roadmap_main_exit (void)
+{
+	roadmap_start_exit ();
+	/* This is an easy and clean way to terminate threads too */
+	ExitProcess(0);
+}
 
-	void roadmap_main_remove_idle_function (void) {
-		idle_callback = 0;
-	}
-} // extern "C"
+static unsigned long roadmap_main_busy_start;
+
+void roadmap_main_set_cursor (RoadMapCursor newcursor)
+{
+  static RoadMapCursor lastcursor;
+
+  roadmap_main_busy_start = 0;
+
+  if (newcursor == ROADMAP_CURSOR_WAIT_WITH_DELAY) {
+     roadmap_main_busy_start = roadmap_time_get_millis();
+     return;
+  }
+
+  if (newcursor == lastcursor)
+     return;
+
+  lastcursor = newcursor;
+
+  switch (newcursor) {
+
+  case ROADMAP_CURSOR_NORMAL:
+     SetCursor(NULL);
+     break;
+
+  case ROADMAP_CURSOR_WAIT:
+     SetCursor(LoadCursor(NULL, IDC_WAIT));
+     break;
+
+  case ROADMAP_CURSOR_CROSS:
+     SetCursor(LoadCursor(NULL, IDC_CROSS));
+     break;
+
+  case ROADMAP_CURSOR_WAIT_WITH_DELAY:
+     /* ?? FIX ME */
+     break;
+  }
+}
+
+
+void roadmap_main_busy_check(void)
+{
+  if (roadmap_main_busy_start == 0)
+     return;
+
+  if (roadmap_time_get_millis() - roadmap_main_busy_start > 1000) {
+     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
+  }
+}
+
+static RoadMapCallback idle_callback;
+
+static int roadmap_main_set_idle_function_helper (void *data)
+{
+    if (idle_callback) idle_callback();
+    return 0;
+}
+
+void roadmap_main_set_idle_function (RoadMapCallback callback)
+{
+   idle_callback = callback;
+}
+
+void roadmap_main_remove_idle_function (void)
+{
+	idle_callback = 0;
+}

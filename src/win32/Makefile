@@ -17,7 +17,7 @@ RMLIBSRC= \
 	roadmap_dialog.c \
 	roadmap_file.c \
 	roadmap_library.c \
-	roadmap_main.cpp \
+	roadmap_main.c \
 	roadmap_fileselection.c \
 	roadmap_net.c \
 	roadmap_path.c \
@@ -28,16 +28,15 @@ RMLIBSRC= \
 	time.c \
 	wince_input_mon.c \
 	roadmap_progress.c \
-	CEDevice.cpp \
-	CEException.cpp \
+	CEDevice.c \
+	CEException.c \
 	roadmap_gps_detect.c \
 	roadmap_colors.c
 
 #	roadmap_keyboard.c \
 #	roadmap_signals.c \
 
-RMLIBOBJ1 = $(RMLIBSRC:.cpp=.o)
-RMLIBOBJ = $(CANVAS_OBJS) $(RMLIBOBJ1:.c=.o)
+RMLIBOBJ = $(CANVAS_OBJS) $(RMLIBSRC:.c=.o)
 
 HEADERS = \
 	resource.h \
@@ -67,7 +66,7 @@ libwroadmap.a: $(RMLIBOBJ)
 
 wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
-	$(CXX) $(LDFLAGS) -o wroadmap.exe roadmap_main.o roadmap.rsc \
+	$(CC) $(LDFLAGS) -o wroadmap.exe roadmap_main.o roadmap.rsc \
 		$(TOP)/libguiroadmap.a libwroadmap.a $(LIBS) \
 		libwroadmap.a -lcommctrl -laygshell -lws2
 
@@ -76,7 +75,7 @@ wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 #
 # wroadgps: roadmap_main.o libwroadmap.a roadmap.rsc \
 # 		$(TOP)/libguiroadgps.a  $(filter %.a, $(LIBS))
-# 	$(CXX) $(LDFLAGS) -o wroadgps roadmap_main.o roadmap.rsc \
+# 	$(CC) $(LDFLAGS) -o wroadgps roadmap_main.o roadmap.rsc \
 # 		$(TOP)/libguiroadgps.a libwroadmap.a $(LIBS) \
 # 		libwroadmap.a -lcommctrl -laygshell -lws2
 

@@ -15,23 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/CEDevice.h,v 1.1 2008/05/07 14:01:11 pgf Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/CEDevice.h,v 1.2 2009/02/09 19:39:17 dannybackx Exp $
  *
  */
 
 #ifndef CEDEVICE
 #define CEDEVICE
 
-class CEDevice {
-	public:
-		static void init();
-		static void end();
-		static void wakeUp();
-		static bool hasPocketPCResolution();
-		static bool hasDesktopResolution();
-		static bool hasWideResolution();
-		static bool hasSmartphoneResolution();
-		static bool isSmartphone();
-};
-
+void ce_device_init(void);
+void ce_device_wakeup(void);
+void ce_device_end(void);
 #endif

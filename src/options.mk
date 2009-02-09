@@ -251,7 +251,7 @@ endif
 
 ifeq ($(DESKTOP),WINCE)
 	CFLAGS += -I$(TOP) -I$(TOP)/win32 \
-		-DNDEBUG -D_WIN32_WCE=0x0300 -D_WIN32_IE=0x0300 \
+		-DNDEBUG -D_WIN32_WCE=0x0400 -D_WIN32_IE=0x0300 \
 		-D_TXT=\".txt\" -D_EXE=\".exe\"
 	LIBS := $(LIBS) -lm
 else

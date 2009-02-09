@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap/src/win32/Attic/CEDevice.cpp,v 1.3 2008/10/03 22:26:57 dannybackx Exp $
+ * $Header: /cvsroot/roadmap/roadmap/src/win32/CEDevice.c,v 1.1 2009/02/09 19:39:17 dannybackx Exp $
  *
  */
 
@@ -25,6 +25,7 @@
 /**
  * @file
  * @brief Windows CE power management code
+ * @ingroup windows
  *
  * This code uses three techniques :
  * - Call SetPowerRequirement once on the backlight device BLK1: to keep the light on
@@ -42,7 +43,8 @@ static DWORD _lastTime = 0;
 
 #define TIMER_TRIGGER 9000
 
-void CEDevice::init() {
+void ce_device_init(void)
+{
 	HINSTANCE dll = LoadLibrary(TEXT("aygshell.dll"));
 	if (dll) {
 		*(FARPROC*)&_SHIdleTimerReset = GetProcAddress(dll, MAKEINTRESOURCE(2006));
@@ -58,13 +60,15 @@ void CEDevice::init() {
 	_lastTime = GetTickCount();
 }
 
-void CEDevice::end() {
+void ce_device_end(void)
+{
 	if (_ReleasePowerRequirement && _hPowerManagement) {
 		_ReleasePowerRequirement(_hPowerManagement);
 	}
 }
 
-void CEDevice::wakeUp() {
+void ce_device_wakeup(void)
+{
 	DWORD currentTime = GetTickCount();
 	if (currentTime > _lastTime + TIMER_TRIGGER) {
 		_lastTime = currentTime;
@@ -73,13 +77,3 @@ void CEDevice::wakeUp() {
 			_SHIdleTimerReset();
 	}
 }
-
-
-bool CEDevice::isSmartphone() {
-	TCHAR platformType[100];
-	BOOL result = SystemParametersInfo(SPI_GETPLATFORMTYPE, sizeof(platformType), platformType, 0);
-	if (!result && GetLastError() == ERROR_ACCESS_DENIED)
-		return true;
-	return (wcsnicmp(platformType, TEXT("SmartPhone"), 10) == 0);
-}
-
