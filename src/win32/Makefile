@@ -8,6 +8,11 @@
 # need updating. Not tested recently.
 #
 
+#
+# Produce a build timestamp
+#
+BUILD_DATETIME = `date +%Y%m%d.%H%M`
+
 
 TOP = ..
 include $(TOP)/options.mk
@@ -65,8 +70,11 @@ libwroadmap.a: $(RMLIBOBJ)
 	$(RANLIB) libwroadmap.a
 
 wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
+		roadmap_build.c \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
+	$(CC) -DROADMAP_BUILD_DATE_TIME='"'$(BUILD_DATETIME)'"' -c roadmap_build.c
 	$(CC) $(LDFLAGS) -o wroadmap.exe roadmap_main.o roadmap.rsc \
+		roadmap_build.o \
 		$(TOP)/libguiroadmap.a libwroadmap.a $(LIBS) \
 		libwroadmap.a -lcommctrl -laygshell -lws2
 

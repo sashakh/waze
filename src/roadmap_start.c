@@ -89,6 +89,10 @@
 
 #include "roadmap_start.h"
 
+#ifdef _WIN32
+extern const char *roadmap_build(void);
+#endif
+
 static const char *RoadMapMainTitle = "RoadMap";
 
 static int RoadMapStartFrozen = 0;
@@ -1438,7 +1442,14 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_option (argc, argv, 1, roadmap_start_usage);
 
-   roadmap_log (ROADMAP_WARNING, "RoadMap starting, time %s", roadmap_start_now());
+   roadmap_log (ROADMAP_WARNING,
+#ifdef _WIN32
+		   "RoadMap build %s starting, time %s",
+		   roadmap_build(),
+#else
+		   "RoadMap starting, time %s",
+#endif
+		   roadmap_start_now());
 
    roadmap_start_set_unit ();
    
