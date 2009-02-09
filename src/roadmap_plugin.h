@@ -1,8 +1,8 @@
-/* roadmap_plugin.h - plugin interfaces
- *
+/*
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,8 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * DESCRIPTION:
+ */
+
+/**
+ * @file
+ * @brief roadmap_plugin.h - plugin interfaces
  *
  *   There are two types: PluginLine and PluginStreet. These types are
  *   used instead of the integer number which RoadMap uses.  A line (or a
@@ -73,16 +76,21 @@ typedef struct {
 
 } PluginStreetProperties;
 
-typedef struct {
-
-   PluginLine line;
-   int distance;
-   RoadMapPosition from;
-   RoadMapPosition to;
-   RoadMapPosition intersection;
-
+typedef struct RoadMapNeighbour_t {
+	PluginLine line;
+	int distance;
+	RoadMapPosition from;
+	RoadMapPosition to;
+	RoadMapPosition intersection;
 } RoadMapNeighbour;
 
+#define INVALID_PLUGIN_ID -1
+#define ROADMAP_PLUGIN_ID 0
+
+#define PLUGIN_VALID(plugin) (plugin.plugin_id >= 0)
+#define INVALIDATE_PLUGIN(plugin) (plugin.plugin_id = -1)
+
+#define PLUGIN_STREET_ONLY 0x1
 
 #define PLUGIN_MAKE_LINE(plugin_id, line_id, layer, fips) \
    {plugin_id, line_id, layer, fips}
@@ -91,6 +99,8 @@ typedef struct {
 #define PLUGIN_STREET_NULL {-1, -1}
 #define ROADMAP_NEIGHBOUR_NULL {PLUGIN_LINE_NULL, -1, {0,0}, {0,0}, {0,0}}
 
+
+void roadmap_plugin_initialize_all_plugins (void);
 
 int  roadmap_plugin_same_line (const PluginLine *line1,
                                const PluginLine *line2);
@@ -126,7 +136,7 @@ int  roadmap_plugin_activate_db (const PluginLine *line);
 
 int  roadmap_plugin_get_distance (RoadMapPosition *point,
                                   PluginLine *line,
-                                  RoadMapNeighbour *result);
+                                  struct RoadMapNeighbour_t *result);
 
 
 /* Hook functions definition. ---------------------------------------------- */
@@ -146,7 +156,7 @@ typedef void (*plugin_line_pos_func) (const PluginLine *line,
 
 typedef int (*plugin_get_distance_func) (const RoadMapPosition *point,
                                          PluginLine *line,
-                                         RoadMapNeighbour *result);
+                                         struct RoadMapNeighbour_t *result);
 
 typedef void (*plugin_get_street_func) (const PluginLine *line,
                                         PluginStreet *street);
@@ -164,21 +174,50 @@ typedef int (*plugin_find_connected_lines_func)
 typedef void (*plugin_adjust_layer_hook)
                   (int layer, int thickness, int pen_count);
 
-typedef struct {
-   const char                      *name;
-   plugin_line_pos_func             line_from;
-   plugin_line_pos_func             line_to;
-   plugin_activate_db_func          activate_db;
-   plugin_get_distance_func         get_distance;
-   plugin_override_line_hook        override_line;
-   plugin_override_pen_hook         override_pen;
-   plugin_screen_repaint_hook       screen_repaint;
-   plugin_get_street_func           get_street;
-   plugin_street_full_name_func     get_street_full_name;
-   plugin_street_properties_func    get_street_properties;
-   plugin_find_connected_lines_func find_connected_lines;
-   plugin_adjust_layer_hook         adjust_layer;
+typedef int (*plugin_get_closest_func)
+	       (const RoadMapPosition *position,
+		        int *categories, int categories_count,
+			        struct RoadMapNeighbour_t *neighbours, int count,
+				        int max);
 
+typedef int (*plugin_line_route_direction) (PluginLine *line, int who);
+
+typedef void (*plugin_shutdown) (void);
+typedef void (*plugin_initialize) (void);
+
+#include "roadmap_factory.h"
+
+typedef RoadMapAction *plugin_actions;
+typedef char **plugin_menu;
+typedef void (*plugin_after_refresh) (void);
+typedef void (*plugin_format_messages) (void);
+
+/**
+ * @brief definition of a plugin
+ */
+typedef struct {
+   const char				*name;			/**< plugin name */
+   const int				size;			/**< structure size, a failsafe */
+   plugin_line_pos_func			line_from;
+   plugin_line_pos_func			line_to;
+   plugin_activate_db_func		activate_db;
+   plugin_get_distance_func		get_distance;
+   plugin_override_line_hook		override_line;
+   plugin_override_pen_hook		override_pen;
+   plugin_screen_repaint_hook		screen_repaint;
+   plugin_get_street_func		get_street;
+   plugin_street_full_name_func		get_street_full_name;
+   plugin_street_properties_func	get_street_properties;
+   plugin_find_connected_lines_func	find_connected_lines;
+   plugin_adjust_layer_hook		adjust_layer;
+   plugin_get_closest_func		get_closest;
+   plugin_line_route_direction		route_direction;
+   plugin_shutdown			shutdown;
+   plugin_initialize			initialize;
+   plugin_actions			actions;		/**< Additional actions */
+   plugin_menu				menu;			/**< Additional menu definition */
+   plugin_after_refresh			after_refresh;		/**< Call this after refresh */
+   plugin_format_messages		format_messages;	/**< Display directions */
 } RoadMapPluginHooks;
 
 #define ROADMAP_PLUGIN_ID 0
@@ -204,7 +243,7 @@ void roadmap_plugin_screen_repaint (int max_pen);
 
 const char *roadmap_plugin_street_full_name (PluginLine *line);
 
-void roadmap_plugin_get_street_properties (PluginLine *line,
+void roadmap_plugin_get_street_properties (const PluginLine *line,
                                            PluginStreetProperties *props);
 
 int roadmap_plugin_find_connected_lines (RoadMapPosition *crossing,
@@ -215,5 +254,36 @@ void roadmap_plugin_adjust_layer (int layer,
                                   int thickness,
                                   int pen_count);
 
-#endif /* INCLUDED__ROADMAP_PLUGIN__H */
+int roadmap_plugin_get_closest
+       (const RoadMapPosition *position,
+	int *categories,
+	int categories_count,
+	struct RoadMapNeighbour_t *neighbours,
+	int count,
+	int max);
 
+int roadmap_plugin_get_direction (PluginLine *line, int who);
+
+int roadmap_plugin_calc_length (const RoadMapPosition *position,
+	const PluginLine *line,
+	int *total_length);
+
+void roadmap_plugin_shutdown (void);
+
+typedef void (*roadmap_plugin_action_menu_handler) (RoadMapAction *, const char **);
+
+void roadmap_plugin_actions_menu(roadmap_plugin_action_menu_handler);
+
+char *roadmap_plugin_list_all_plugins(void);
+void roadmap_plugin_after_refresh();
+void roadmap_plugin_format_messages();
+
+#ifdef HAVE_NAVIGATE_PLUGIN
+void roadmap_plugin_get_line_points (const PluginLine *line,
+                                     RoadMapPosition  *from_pos,
+                                     RoadMapPosition  *to_pos,
+                                     int              *first_shape,
+                                     int              *last_shape,
+                                     RoadMapShapeItr  *shape_itr);
+#endif
+#endif /* INCLUDED__ROADMAP_PLUGIN__H */
