@@ -737,7 +737,7 @@ void roadmap_display_periodic(void) {
     time_t now = time(NULL);
     
     if (roadmap_message_time_in_use()) {
-        char nowtime[16];
+        char nowtime[32];
         strcpy(nowtime, roadmap_time_get_hours_minutes (now));
 
         if (strcmp(thentime, nowtime) != 0) {
