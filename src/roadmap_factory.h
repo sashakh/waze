@@ -1,8 +1,8 @@
-/* roadmap_factory.h - The menu/toolbar/binding factory for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -21,6 +21,11 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @file
+ * @brief roadmap_factory.h - the menu/toolbar/binding factory for RoadMap.
+ */
+
 #ifndef INCLUDE__ROADMAP_FACTORY__H
 #define INCLUDE__ROADMAP_FACTORY__H
 
@@ -29,17 +34,17 @@
 #include "roadmap_config.h"
 
 
+/**
+ * @brief table used to create the menu, accelarators, ..
+ */
 typedef struct {
-
    const char *name;
          char *label_long;
    const char *label_short;
          char *label_terse;
    const char *tip;
-   const char *key;  /* filled in at run-time, based on key mappings */
-
+   const char *key;  /**< filled in at run-time, based on key mappings */
    RoadMapCallback callback;
-
 } RoadMapAction;
 
 

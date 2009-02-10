@@ -1,5 +1,4 @@
-/* roadmap_factory.c - The menu/toolbar/shortcut factory for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_factory.h
+ */
+
+/**
+ * @file
+ * @brief The menu/toolbar/shortcut factory for RoadMap.
  */
 
 #include <stdio.h>
@@ -42,6 +42,7 @@
 #include "roadmap_start.h"
 
 #include "roadmap_factory.h"
+#include "roadmap_plugin.h"
 
 
 static RoadMapConfigDescriptor RoadMapConfigGeneralToolbar =
@@ -60,11 +61,12 @@ static RoadMapConfigDescriptor RoadMapConfigGeneralTooltips =
 const char RoadMapFactorySeparator[] = "--separator--";
 const char RoadMapFactoryHelpTopics[] = "--help-topics--";
 
+/**
+ * @brief
+ */
 typedef struct {
-
-   RoadMapCallback action;
-   char *title;
-
+   RoadMapCallback action;	/**< */
+   char *title;			/**< */
 } RoadMapFactoryMenuPopup;
 
 void roadmap_factory_menu_popup_n(int n);
@@ -138,7 +140,10 @@ RoadMapFactoryMenuPopup RoadMapFactoryMenuPopups[] = {
 
 int RoadMapFactoryMenuPopupCount;
 
-
+/**
+ * @brief
+ * @param n
+ */
 void roadmap_factory_menu_popup_n(int n) {
 
     RoadMapGuiPoint point;
@@ -154,28 +159,39 @@ void roadmap_factory_menu_popup_n(int n) {
     roadmap_factory_popup ( RoadMapFactoryMenuPopups[n].title, &point );
 }
 
+/**
+ * @brief
+ */
 struct RoadMapFactoryKeyMap {
-
-   const char          *key;
-   const RoadMapAction *action;
+   const char          *key;	/**< */
+   const RoadMapAction *action;	/**< */
 };
 
+/**
+ * @brief
+ */
 static struct RoadMapFactoryKeyMap *RoadMapFactoryBindings = NULL;
 
+/**
+ * @brief
+ */
 static int RoadMapFactoryKeyLength = 0;
 
-
+/**
+ * @brief
+ */
 struct RoadMapFactoryPopup {
-
-   const char *title;
-   RoadMapMenu menu;
-
-   struct RoadMapFactoryPopup *next;
+   const char *title;			/**< */
+   RoadMapMenu menu;			/**< */
+   struct RoadMapFactoryPopup *next;	/**< */
 };
 
 static struct RoadMapFactoryPopup *RoadMapFactoryPopupList = NULL;
 
-
+/**
+ * @brief
+ * @param key
+ */
 static void roadmap_factory_keyboard (char *key) {
 
    const struct RoadMapFactoryKeyMap *binding;
@@ -198,6 +214,10 @@ static void roadmap_factory_keyboard (char *key) {
    }
 }
 
+/**
+ * @brief
+ * @param menu
+ */
 static void roadmap_factory_add_help (RoadMapMenu menu) {
 
    int ok;
@@ -217,6 +237,12 @@ static void roadmap_factory_add_help (RoadMapMenu menu) {
 }
 
 
+/**
+ * @brief
+ * @param actions
+ * @param item
+ * @return
+ */
 static RoadMapAction *roadmap_factory_find_action
                           (RoadMapAction *actions, const char *item) {
 
@@ -228,7 +254,11 @@ static RoadMapAction *roadmap_factory_find_action
    return NULL;
 }
 
-
+/**
+ * @brief
+ * @param action
+ * @return
+ */
 static const char *roadmap_factory_terse (const RoadMapAction *action) {
 
    if (action->label_terse != NULL) {
@@ -241,6 +271,13 @@ static const char *roadmap_factory_terse (const RoadMapAction *action) {
 }
 
 
+/**
+ * @brief
+ * @param file_name
+ * @param actions
+ * @param path
+ * @return
+ */
 static const char **roadmap_factory_load_config (const char *file_name,
                                                  RoadMapAction *actions,
                                                  const char *path) {
@@ -308,6 +345,13 @@ static const char **roadmap_factory_load_config (const char *file_name,
    return loaded;
 }
 
+/**
+ * @brief
+ * @param name
+ * @param category
+ * @param actions
+ * @return
+ */
 static const char **roadmap_factory_user_config
                                     (const char *name,
                                      const char *category,
@@ -338,7 +382,13 @@ static const char **roadmap_factory_user_config
    return loaded;
 }
 
-
+/**
+ * @brief
+ * @param file_name
+ * @param actions
+ * @param path
+ * @return
+ */
 static int roadmap_factory_load_action_labels (const char *file_name,
                                                RoadMapAction *actions,
                                                const char *path) {
@@ -435,6 +485,13 @@ static int roadmap_factory_load_action_labels (const char *file_name,
    return 1;
 }
 
+/**
+ * @brief
+ * @param name
+ * @param category
+ * @param actions
+ * @return
+ */
 static int roadmap_factory_user_action_labels
                                     (const char *name,
                                      const char *category,
@@ -466,6 +523,11 @@ static int roadmap_factory_user_action_labels
    return loaded;
 }
 
+/**
+ * @brief
+ * @param menu
+ * @param title
+ */
 static void roadmap_factory_add_popup (RoadMapMenu menu, const char *title) {
 
    struct RoadMapFactoryPopup *popup;
@@ -482,6 +544,10 @@ static void roadmap_factory_add_popup (RoadMapMenu menu, const char *title) {
    RoadMapFactoryPopupList = popup;
 }
 
+/**
+ * @brief
+ * @param title
+ */
 static RoadMapAction * roadmap_factory_menu_dummy_action
         (const char *title) {
    int i;
@@ -522,6 +588,12 @@ static RoadMapAction * roadmap_factory_menu_dummy_action
    return &this_action;
 }
 
+/**
+ * @brief
+ * @param actions
+ * @param item
+ * @return
+ */
 RoadMapAction *roadmap_factory_find_action_or_menu
                           (RoadMapAction *actions, const char *item) {
 
@@ -534,6 +606,12 @@ RoadMapAction *roadmap_factory_find_action_or_menu
    return roadmap_factory_find_action (actions, item);
 }
 
+/**
+ * @brief
+ * @param use_tips
+ * @param this_action
+ * @return
+ */
 static const char *roadmap_factory_set_tip
                         (int use_tips, const RoadMapAction *this_action) {
    static char tip_buf[256];
@@ -554,6 +632,13 @@ static const char *roadmap_factory_set_tip
    return NULL;
 }
 
+/**
+ * @brief
+ * @param item
+ * @param actions
+ * @param doing_menus
+ * @param use_tips
+ */
 void roadmap_factory_config_menu
       (const char **item, RoadMapAction *actions,
        int doing_menus, int use_tips) {
@@ -618,6 +703,13 @@ void roadmap_factory_config_menu
    }
 }
 
+/**
+ * @brief
+ * @param item
+ * @param actions
+ * @param use_icons
+ * @param use_tips
+ */
 void roadmap_factory_config_toolbar
                 (const char **item, RoadMapAction  *actions,
                  int use_icons, int use_tips) {
@@ -660,6 +752,33 @@ void roadmap_factory_config_toolbar
    }
 }
 
+/**
+ * @brief handler for plugin actions/menu
+ * Drawback of this simplistic implementation : plugin menus can only use their own actions.
+ *
+ * To fix this, the actions from the plugin should somehow be concatenated with the ones
+ * RoadMap grabbed initially.
+ * I am not convinced that this is an absolute necessity so I've left that out now.
+ *
+ * @param actions the list of actions for this plugin
+ * @param menu the menu configuration for this plugin
+ */
+static void roadmap_factory_handle_plugin_actions_menu(RoadMapAction *actions, const char **menu)
+{
+	int use_tips;
+
+	roadmap_log(ROADMAP_DEBUG, "roadmap_factory_handle_plugin_actions_menu");
+	use_tips = roadmap_config_match (&RoadMapConfigGeneralTooltips, "yes");
+	roadmap_factory_config_menu(menu, actions, 1, use_tips);
+}
+
+/**
+ * @brief create toolbar, menus, .. based on the tables passed
+ * @param name
+ * @param actions
+ * @param menu
+ * @param toolbar
+ */
 void roadmap_factory (const char           *name,
                             RoadMapAction  *actions,
                       const char           *menu[],
@@ -723,9 +842,15 @@ void roadmap_factory (const char           *name,
    if (RoadMapFactoryBindings != NULL) {
       roadmap_main_set_keyboard (roadmap_factory_keyboard);
    }
+
+   roadmap_plugin_actions_menu(roadmap_factory_handle_plugin_actions_menu);
 }
 
-
+/**
+ * @brief
+ * @param actions
+ * @param shortcuts
+ */
 void roadmap_factory_keymap (RoadMapAction  *actions,
                              const char     *shortcuts[]) {
 
@@ -812,7 +937,9 @@ void roadmap_factory_keymap (RoadMapAction  *actions,
    }
 }
 
-
+/**
+ * @brief print the keymap, only called from roadmap_factory_usage
+ */
 static void roadmap_factory_show_keymap (void) {
 
    const struct RoadMapFactoryKeyMap *binding;
@@ -833,7 +960,11 @@ static void roadmap_factory_show_keymap (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @param title
+ * @param position
+ */
 void roadmap_factory_popup (const char *title,
                             const RoadMapGuiPoint *position) {
 
@@ -853,7 +984,11 @@ void roadmap_factory_popup (const char *title,
    roadmap_log (ROADMAP_ERROR, "Couldn't find configured popup menu '%s'", title);
 }
 
-
+/**
+ * @brief Print either the keymap or the list of supported actions
+ * @param section table from which to get the information to print
+ * @param action determines whether to print keymap or action list
+ */
 void roadmap_factory_usage (const char *section, const RoadMapAction *action) {
 
    if ((section == NULL) || (strcasecmp(section, "KEYMAP") == 0)) {
@@ -871,4 +1006,3 @@ void roadmap_factory_usage (const char *section, const RoadMapAction *action) {
        }
    }
 }
-

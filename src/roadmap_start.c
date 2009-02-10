@@ -1442,14 +1442,15 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_option (argc, argv, 1, roadmap_start_usage);
 
-   roadmap_log (ROADMAP_WARNING,
 #ifdef _WIN32
+   roadmap_log (ROADMAP_WARNING,
 		   "RoadMap build %s starting, time %s",
-		   roadmap_build(),
+		   roadmap_build(), roadmap_start_now());
 #else
+   roadmap_log (ROADMAP_WARNING,
 		   "RoadMap starting, time %s",
-#endif
 		   roadmap_start_now());
+#endif
 
    roadmap_start_set_unit ();
    
