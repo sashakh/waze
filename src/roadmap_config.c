@@ -1,8 +1,8 @@
-/* roadmap_config.c - A module to handle all RoadMap configuration issues.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_config.h.
+ */
+
+/**
+ * @file
+ * @brief A module to handle all RoadMap configuration issues.
  */
 
 #include <string.h>
@@ -820,7 +821,11 @@ const char *roadmap_config_get (RoadMapConfigDescriptor *descriptor) {
    return "";
 }
 
-
+/**
+ * @brief get the value from a configuration item
+ * @param pointer to the descriptor
+ * @return the value
+ */
 int roadmap_config_get_integer(RoadMapConfigDescriptor *descriptor) {
 
     int had_units;
@@ -857,10 +862,15 @@ int roadmap_config_get_integer(RoadMapConfigDescriptor *descriptor) {
 }
 
 
-const char *roadmap_config_get_from (const char *config,
-                                     const char *category,
-                                     const char *name) {
-
+/**
+ * @brief
+ * @param config
+ * @param category
+ * @param name
+ * @return
+ */
+const char *roadmap_config_get_from (const char *config, const char *category, const char *name)
+{
    RoadMapConfig *file;
    RoadMapConfigItem *item;
 
@@ -993,4 +1003,38 @@ void  roadmap_config_set_position
    }
 }
 
+/**
+ * @brief reload a part of the configuration
+ * @param s names the configuration to be reloaded
+ */
+void roadmap_config_reload(const char *name)
+{
+	const char *p;
+	RoadMapConfig *file;
 
+	for (file = RoadMapConfigFiles; file->name != NULL; ++file) {
+		if (!strcmp (file->name, name))
+			break;
+	}
+
+	if (file->name == NULL) {
+		roadmap_log (ROADMAP_ERROR, "config_reload found no '%s' config file", name);
+		return;
+	} else {
+		int loaded = 0;
+		for (p = roadmap_path_first(file->file_name);
+				p != NULL;
+				p = roadmap_path_next(file->file_name, p)) {
+			loaded = roadmap_config_load_file (p, file, ROADMAP_CONFIG_CLEAN);
+			if (loaded)
+				break;
+		}
+		if (file->required && (!loaded)) {
+			roadmap_log (ROADMAP_ERROR,
+				"found no '%s' config file, check RoadMap installation",
+				file->name);
+			return;
+		}
+		return;
+	}
+}

@@ -1,8 +1,8 @@
-/* roadmap_config.h - A module to handle all RoadMap configuration issues.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -21,6 +21,10 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @brief
+ * @file roadmap_config.h - A module to handle all RoadMap configuration issues.
+ */
 #ifndef _ROADMAP_CONFIG__H_
 #define _ROADMAP_CONFIG__H_
 
@@ -92,7 +96,7 @@ void *roadmap_config_get_enumeration_next (void *enumeration);
 void  roadmap_config_initialize (void);
 void  roadmap_config_load       (void);
 void  roadmap_config_save       (int force);
-
+void  roadmap_config_reload     (const char *);
 
 int   roadmap_config_get_type (RoadMapConfigDescriptor *descriptor);
 
