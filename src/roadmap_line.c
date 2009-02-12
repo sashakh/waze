@@ -1,5 +1,4 @@
-/* roadmap_line.c - Manage the tiger lines.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,20 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int  roadmap_line_in_square
- *           (int square, int layer, int *first, int *last);
- *   int  roadmap_line_in_square2
- *           (int square, int layer, int *first, int *last);
- *   int  roadmap_line_get_from_index2 (int index);
- *   void roadmap_line_from (int line, RoadMapPosition *position);
- *   void roadmap_line_to   (int line, RoadMapPosition *position);
- *
- *   int  roadmap_line_count (void);
- *
- * These functions are used to retrieve the points that make the lines.
+ */
+
+/**
+ * @file
+ * @brief roadmap_line.c - retrieve the points that make the lines.
  */
 
 #include <stdio.h>
@@ -49,10 +39,13 @@
 #include "roadmap_line.h"
 #include "roadmap_shape.h"
 #include "roadmap_square.h"
-
+#include "roadmap_layer.h"
 
 static char *RoadMapLineType = "RoadMapLineContext";
 
+/**
+ * @brief
+ */
 typedef struct {
 
    char *type;
@@ -217,7 +210,14 @@ roadmap_db_handler RoadMapLineHandler = {
    roadmap_line_unmap
 };
 
-
+/**
+ * @brief get the list of lines in a square, and a specified layer
+ * @param square input parameter
+ * @param layer input parameter
+ * @param first return index of first line that complies
+ * @param last return index of last line that complies
+ * @return success indicator
+ */
 int roadmap_line_in_square (int square, int layer, int *first, int *last) {
 
    int *index;
@@ -276,7 +276,11 @@ int roadmap_line_get_from_index2 (int index) {
    return RoadMapLineActive->LineIndex2[index];
 }
 
-
+/**
+ * @brief store the position of the "from" point of the line
+ * @param line the line
+ * @param position the position to store
+ */
 void roadmap_line_from (int line, RoadMapPosition *position) {
 
 #ifdef ROADMAP_INDEX_DEBUG
@@ -287,8 +291,12 @@ void roadmap_line_from (int line, RoadMapPosition *position) {
    roadmap_point_position (RoadMapLineActive->Line[line].from, position);
 }
 
-
-void roadmap_line_to   (int line, RoadMapPosition *position) {
+/**
+ * @brief store the position of the "to" point of the line
+ * @param line the line
+ * @param position the position to store
+ */
+void roadmap_line_to  (int line, RoadMapPosition *position) {
 
 #ifdef ROADMAP_INDEX_DEBUG
    if (line < 0 || line >= RoadMapLineActive->LineCount) {
@@ -348,7 +356,12 @@ int roadmap_line_length (int line) {
    return length;
 }
 
-
+/**
+ * @brief query the points at both ends of the given line
+ * @param line this line is to be queried
+ * @param from return the point at one end of the line
+ * @param to return the point at the other end of the line
+ */
 void roadmap_line_points (int line, int *from, int *to) {
 
 #ifdef ROADMAP_INDEX_DEBUG
@@ -374,3 +387,82 @@ int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
    return 1;
 }
 
+/**
+ * @brief determine the layer that some line is in
+ * note: rewritten completely, I guess Ehud's data model is different from trunk
+ * @param line_id the line whose layer we want to query
+ * @return the layer
+ */
+int roadmap_line_get_layer (int line_id)
+{
+   int *index;
+   int  first, last, layer, i;
+   int square;
+   RoadMapPosition pos;
+   int	last_road_layer;
+
+   /*
+    * This is hacked for now, we can't call roadmap_layer_() functions from here
+    * because this would pull roadmap_canvas_() functions into executables that
+    * aren't linked with that (e.g. roadgps).
+    */
+#define roadmap_layer_road_last()	11
+#warning Hack for roadmap_layer_road_last
+
+   last_road_layer = roadmap_layer_road_last();
+
+   if (RoadMapLineActive == NULL)
+	   return 0; /* No line. */
+
+   roadmap_point_position(RoadMapLineActive->Line[line_id].from, &pos);
+   square = roadmap_square_search (&pos);
+
+   square = roadmap_square_index(square);
+   if (square < 0) {
+      return 0;   /* This square is empty. */
+   }
+
+   index = RoadMapLineActive->LineByLayer1 + RoadMapLineActive->LineBySquare1[square].first;
+
+   for (layer = 1; layer < last_road_layer; layer++) {
+	   first = index[layer-1];
+	   last = index[layer]-1;
+
+	   for (i=first; i<last; i++)
+		   if (i == line_id) {
+			   return layer;
+		   }
+   }
+   return 0;
+}
+
+#if defined(HAVE_NAVIGATE_PLUGIN)
+/**
+ * @brief look up the point that a line is coming "from"
+ * @param line the id of this line
+ * @return the point that the line is coming "from"
+ */
+int roadmap_line_from_point (int line)
+{ 
+#ifdef ROADMAP_INDEX_DEBUG
+    if (line < 0 || line >= RoadMapLineActive->LineCount) {
+	    roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+    }
+#endif
+    return RoadMapLineActive->Line[line].from;
+}
+/**
+ * @brief look up the point that a line is going "to"
+ * @param line the id of this line
+ * @return the point that the line is going to
+ */
+int roadmap_line_to_point (int line)
+{
+#ifdef ROADMAP_INDEX_DEBUG
+   if (line < 0 || line >= RoadMapLineActive->LineCount) {
+	   roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+   }
+#endif
+   return RoadMapLineActive->Line[line].to;
+}
+#endif
