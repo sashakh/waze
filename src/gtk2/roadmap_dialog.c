@@ -1,8 +1,8 @@
-/* roadmap_dialog.c - manage the Widget used in roadmap dialogs.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_dialog.h
+ */
+
+/**
+ * @file
+ * @brief gtk2/roadmap_dialog.c - manage the Widget used in roadmap dialogs.
  */
 
 #include <string.h>
@@ -346,7 +347,18 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
    return child;
 }
 
-
+/**
+ * @brief This function activates a dialog:
+ * If the dialog did not exist yet, it will create an empty dialog
+ * and roadmap_dialog_activate() returns 1; the application must then
+ * enumerate all the dialog's items.
+ * If the dialog did exist already, it will be shown on top and
+ * roadmap_dialog_activate() returns 0.
+ * This function never fails. The given dialog becomes the curent dialog.
+ * @param name
+ * @param context
+ * @return returns 1 if this is a new, undefined, dialog; 0 otherwise.
+ */
 int roadmap_dialog_activate (const char *name, void *context) {
 
    RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
@@ -381,13 +393,20 @@ int roadmap_dialog_activate (const char *name, void *context) {
    return 1; /* Tell the caller this is a new, undefined, dialog. */
 }
 
-
+/**
+ * @brief Hide the given dialog, if it exists.
+ * @param name the dialog name
+ */
 void roadmap_dialog_hide (const char *name) {
 
    roadmap_dialog_hide_window (roadmap_dialog_get (NULL, name));
 }
 
-
+/**
+ * @brief Add one text entry item to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_entry (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_entry_new ();
@@ -396,7 +415,11 @@ void roadmap_dialog_new_entry (const char *frame, const char *name) {
    child->widget_type = ROADMAP_WIDGET_ENTRY;
 }
 
-
+/**
+ * @brief Add one text label item to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_label (const char *frame, const char *name) {
 
    GtkWidget *w = gtk_label_new (name);
@@ -405,18 +428,40 @@ void roadmap_dialog_new_label (const char *frame, const char *name) {
    child->widget_type = ROADMAP_WIDGET_LABEL;
 }
 
-
+/**
+ * @brief Add one color selection item to to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_color (const char *frame, const char *name) {
 
    roadmap_dialog_new_entry (frame, name);
 }
 
-void roadmap_dialog_new_hidden (const char *frame, const char *name) {
+/**
+ * @brief Add one hidden data item to the current dialog
+ * @param frame
+ * @param name
+ */
+void roadmap_dialog_new_hidden (const char *frame, const char *name)
+{
    RoadMapDialogItem child = roadmap_dialog_new_item (frame, name, 0, 0);
 
    child->widget_type = ROADMAP_WIDGET_HIDDEN;
 }
 
+/**
+ * @brief Add one choice item (a selection box or menu).
+ * The optional callback is called each time a new selection is being made,
+ * not when the OK button is called--that is the job of the OK button callback.
+ * @param frame
+ * @param name
+ * @param count
+ * @param current
+ * @param labels
+ * @param values
+ * @param callback
+ */
 void roadmap_dialog_new_choice (const char *frame,
                                 const char *name,
                                 int count,
@@ -468,7 +513,14 @@ void roadmap_dialog_new_choice (const char *frame,
    child->value  = choice[0].value;
 }
 
-
+/**
+ * @brief Add one list item.
+ * This item is similar to the choice one, except for two things:
+ * 1) it uses a scrollable list widget instead of a combo box.
+ * 2) the list of items shown is dynamic and can be modified (it is initially empty).
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_list (const char  *frame, const char  *name) {
 
    GtkWidget         *listbox;
@@ -571,10 +623,13 @@ void roadmap_dialog_show_list (const char  *frame,
    gtk_widget_show (parent->w);
 }
 
-
-void roadmap_dialog_add_button (const char *label, 
-				RoadMapDialogCallback callback) {
-
+/**
+ * @brief Add one button to the bottom of the dialog
+ * @param label
+ * @param callback
+ */
+void roadmap_dialog_add_button (const char *label, RoadMapDialogCallback callback)
+{
    RoadMapDialogItem dialog = RoadMapDialogCurrent;
    RoadMapDialogItem child;
 
@@ -597,9 +652,12 @@ void roadmap_dialog_add_button (const char *label,
    gtk_widget_grab_default (button);
 }
 
-
-void roadmap_dialog_complete (int use_keyboard) {
-
+/**
+ * @brief When all done with building the dialog, call this to finalize and show.
+ * @param use_keyboard
+ */
+void roadmap_dialog_complete (int use_keyboard)
+{
    int count;
    RoadMapDialogItem dialog = RoadMapDialogCurrent;
    RoadMapDialogItem frame;
@@ -751,5 +809,15 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
       break;
    }
    this_item->value = (char *)data;
+}
+
+void roadmap_dialog_new_progress (const char *frame, const char *name)
+{
+#warning implement roadmap_dialog_new_progress
+}
+
+void  roadmap_dialog_set_progress (const char *frame, const char *name, int progress)
+{
+#warning implement roadmap_dialog_set_progress
 }
 

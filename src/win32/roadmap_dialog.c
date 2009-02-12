@@ -264,7 +264,18 @@ static RoadMapDialogItem roadmap_dialog_new_item (const char *frame,
 	return child;
 }
 
-
+/**
+ * @brief This function activates a dialog:
+ * If the dialog did not exist yet, it will create an empty dialog
+ * and roadmap_dialog_activate() returns 1; the application must then
+ * enumerate all the dialog's items.
+ * If the dialog did exist already, it will be shown on top and
+ * roadmap_dialog_activate() returns 0.
+ * This function never fails. The given dialog becomes the curent dialog.
+ * @param name
+ * @param context
+ * @return returns 1 if this is a new, undefined, dialog; 0 otherwise.
+ */
 int roadmap_dialog_activate (const char *name, void *context)
 {
 	RoadMapDialogItem dialog = roadmap_dialog_get (NULL, name);
@@ -287,12 +298,20 @@ int roadmap_dialog_activate (const char *name, void *context)
 }
 
 
+/**
+ * @brief Hide the given dialog, if it exists.
+ * @param name the dialog name
+ */
 void roadmap_dialog_hide (const char *name)
 {
 	roadmap_dialog_hide_window (roadmap_dialog_get (NULL, name));
 }
 
-
+/**
+ * @brief Add one text entry item to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_entry (const char *frame, const char *name)
 {
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
@@ -300,7 +319,11 @@ void roadmap_dialog_new_entry (const char *frame, const char *name)
 	child->widget_type = ROADMAP_WIDGET_ENTRY;
 }
 
-
+/**
+ * @brief Add one text label item to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_label (const char *frame, const char *name)
 {
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
@@ -308,12 +331,21 @@ void roadmap_dialog_new_label (const char *frame, const char *name)
 	child->widget_type = ROADMAP_WIDGET_LABEL;
 }
 
-
+/**
+ * @brief Add one color selection item to to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_color (const char *frame, const char *name)
 {
 	roadmap_dialog_new_entry (frame, name);
 }
 
+/**
+ * @brief Add one hidden data item to the current dialog
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_hidden (const char *frame, const char *name)
 {
 	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
@@ -321,6 +353,18 @@ void roadmap_dialog_new_hidden (const char *frame, const char *name)
 	child->widget_type = ROADMAP_WIDGET_HIDDEN;
 }
 
+/**
+ * @brief Add one choice item (a selection box or menu).
+ * The optional callback is called each time a new selection is being made,
+ * not when the OK button is called--that is the job of the OK button callback.
+ * @param frame
+ * @param name
+ * @param count
+ * @param current
+ * @param labels
+ * @param values
+ * @param callback
+ */
 void roadmap_dialog_new_choice (const char *frame,
 		const char *name,
 		int count,
@@ -355,7 +399,14 @@ void roadmap_dialog_new_choice (const char *frame,
 	child->value  = choice[current].value;
 }
 
-
+/**
+ * @brief Add one list item.
+ * This item is similar to the choice one, except for two things:
+ * 1) it uses a scrollable list widget instead of a combo box.
+ * 2) the list of items shown is dynamic and can be modified (it is initially empty).
+ * @param frame
+ * @param name
+ */
 void roadmap_dialog_new_list (const char  *frame, const char  *name)
 {
 	RoadMapDialogItem child =
@@ -419,7 +470,11 @@ void roadmap_dialog_show_list (const char  *frame,
 	/* SendMessage(child->w, (UINT) LB_SETCURSEL, 0, 0); */
 }
 
-
+/**
+ * @brief Add one button to the bottom of the dialog
+ * @param label
+ * @param callback
+ */
 void roadmap_dialog_add_button (const char *label, RoadMapDialogCallback callback)
 {
 	RoadMapDialogItem dialog = RoadMapDialogCurrent;
@@ -446,6 +501,10 @@ static int CALLBACK DoPropSheetProc(HWND hWndDlg, UINT uMsg, LPARAM lParam)
 } 
 
 
+/**
+ * @brief When all done with building the dialog, call this to finalize and show.
+ * @param use_keyboard
+ */
 void roadmap_dialog_complete (int use_keyboard)
 {
 	int count, i;
@@ -1104,6 +1163,26 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	}
 	return (INT_PTR)FALSE;
 }
+
+void roadmap_dialog_new_progress (const char *frame, const char *name)
+{
+	RoadMapDialogItem child = roadmap_dialog_new_item (frame, name);
+	child->widget_type = ROADMAP_WIDGET_PROGRESS;
+}
+
+void  roadmap_dialog_set_progress (const char *frame, const char *name, int progress)
+{
+	RoadMapDialogItem this_frame;
+	RoadMapDialogItem this_item;
+
+	this_frame  = roadmap_dialog_get (RoadMapDialogCurrent, frame);
+	this_item   = roadmap_dialog_get (this_frame, name);
+
+	if (this_item->widget_type != ROADMAP_WIDGET_PROGRESS)
+		return;
+
+	SendMessage(this_item->w, PBM_SETPOS, (WPARAM)progress, 0);
+} 
 
 /**
  * @brief note the screen resolution, use it to influence dialog appearance

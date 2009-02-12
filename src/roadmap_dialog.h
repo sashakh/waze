@@ -1,8 +1,8 @@
-/* roadmap_dialog.h - manage the roadmap dialogs is used for user input.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,8 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * DESCRIPTION:
+ */
+
+/**
+ * @file
+ * @brief roadmap_dialog.h - manage the roadmap dialogs is used for user input.
  *
  *   This module define an API to create and manipulate dialog windows.
  *
@@ -57,33 +60,11 @@
 typedef void (*RoadMapDialogCallback) (const char *name, void *context);
 
 
-/* This function activates a dialog:
- * If the dialog did not exist yet, it will create an empty dialog
- * and roadmap_dialog_activate() returns 1; the application must then
- * enumerate all the dialog's items.
- * If the dialog did exist already, it will be shown on top and
- * roadmap_dialog_activate() returns 0.
- * This function never fails. The given dialog becomes the curent dialog.
- */
 int roadmap_dialog_activate (const char *name, void *context);
-
-/* Hide the given dialog, if it exists. */
 void roadmap_dialog_hide (const char *name);
-
-/* Add one text label item to the current dialog. */
 void roadmap_dialog_new_label (const char *frame, const char *name);
-
-/* Add one text entry item to the current dialog. */
 void roadmap_dialog_new_entry (const char *frame, const char *name);
-
-/* Add one color selection item to to the current dialog. */
 void roadmap_dialog_new_color (const char *frame, const char *name);
-
-/* Add one choice item (a selection box or menu).
- * The optional callback is called each time a new selection is being made,
- * not when the OK button is called--that is the job of the OK button
- * callback.
- */
 void roadmap_dialog_new_choice (const char *frame,
                                 const char *name,
                                 int count,
@@ -91,32 +72,16 @@ void roadmap_dialog_new_choice (const char *frame,
                                 char **labels,
                                 void *values,
                                 RoadMapDialogCallback callback);
-
-/* Add one list item.
- * This item is similar to the choice one, except for two things:
- * 1) it uses a scrollable list widget instead of a combo box.
- * 2) the list of items shown is dynamic and can be modified
- *    (it is initially empty).
- */
 void roadmap_dialog_new_list (const char  *frame, const char  *name);
-
 void roadmap_dialog_show_list (const char  *frame,
                                const char  *name,
                                int    count,
                                char **labels,
                                void **values,
                                RoadMapDialogCallback callback);
-
-
-/* Add one button to the bottom of the dialog. */
 void roadmap_dialog_add_button (const char *label, RoadMapDialogCallback callback);
-
-/* Add one hidden data item to the current dialog. */
 void roadmap_dialog_new_hidden (const char *frame, const char *name);
-
-/* When all done with building the dialog, call this to finalize and show: */
 void roadmap_dialog_complete (int use_keyboard);
-
 void  roadmap_dialog_select   (const char *dialog);
 void *roadmap_dialog_get_data (const char *frame, const char *name);
 void  roadmap_dialog_set_data (const char *frame, const char *name,
@@ -236,4 +201,6 @@ static __inline void roadmap_dialog_protect_i
 void roadmap_dialog_set_resolution(const int height, const int width);
 #endif
 
+void roadmap_dialog_new_progress (const char *frame, const char *name);
+void  roadmap_dialog_set_progress (const char *frame, const char *name, int progress);
 #endif // INCLUDE__ROADMAP_DIALOG__H
