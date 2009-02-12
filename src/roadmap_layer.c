@@ -1,8 +1,8 @@
-/* roadmap_layer.c - Layer management: declutter, filtering, etc..
- *
+/*
  * LICENSE:
  *
  *   Copyright 2003 Pascal F. Martin
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,16 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Layer management: declutter, filtering, etc..
  *
- * SYNOPSYS:
- *
- *   See roadmap_layer.h.
+ * This source file has a problem : it should be split into one that provides basic
+ * layer functionality, and another one that cause roadmap_canvas.c to be pulled in.
+ * Right now this makes it impossible to call a roadmap_layer function from
+ * roadmap_line.c (and roadmap_line_get_layer() would like to use roadmap_layer_road_last()).
  */
 
 #include <stdlib.h>
@@ -40,7 +46,8 @@
 #include "roadmap_layer.h"
 
 
-/* This is the maximum number of layers PER CLASS. As there is no limit on
+/**
+ * @brief This is the maximum number of layers PER CLASS. As there is no limit on
  * the number of classes, the total number of layers is actually unlimited.
  * We could have implemented support for an unlimited number of layers per
  * class, but who wants a thousand layers per map, anyway?
@@ -49,7 +56,8 @@
  */
 #define ROADMAP_MAX_LAYERS           1024
 
-/* There is a maximum number of navigation modules that can be registered.
+/**
+ * @brief There is a maximum number of navigation modules that can be registered.
  * This is not really a limitation for now, since there is currently only
  * one navigation mode (car) and any other would be hiking, boat, plane,
  * spaceship... i.e. much less than the limit here.
@@ -57,7 +65,8 @@
  */
 #define ROADMAP_MAX_NAVIGATION_MODES   (8*sizeof(int))
 
-/* Some layers may be displayed using more than one pen.
+/**
+ * @brief Some layers may be displayed using more than one pen.
  * For example, a freeway could be displayed using 3 pens:
  * border, fill, center divider.
  */
@@ -73,14 +82,17 @@ static RoadMapConfigDescriptor RoadMapConfigSkin =
 static const char   *RoadMapNavigationMode[ROADMAP_MAX_NAVIGATION_MODES];
 static unsigned int  RoadMapNavigationModeCount = 0;
 
-
-/* CLASSES. -----------------------------------------------------------
+/* ----------------------------------------------------------- */
+/**
+ * @brief CLASSES
+ *
  * A class represent a group of categories that have the same basic
  * properties or which come from a single source. For example, the "Road"
  * class can be searched for an address. Note however that RoadMap never
  * assumes that there is any implicit property common to the layers
  * of the same class: the organization of layers into classes is only
  * a map creator's convention.
+ *
  * The lines and the polygons arrays are consecutive to each other,
  * i.e. a single array where the lines are listed first, so that we
  * can manage them as a single list, using a single index.
@@ -105,7 +117,10 @@ typedef struct roadmap_layer_class {
 static RoadMapClass *RoadMapLayerCurrentClass;
 
 
-/* LAYERS. ------------------------------------------------------------
+/* LAYERS. ------------------------------------------------------------ */
+/**
+ * @brief LAYERS
+ *
  * A layer represents a group of map objects that are represented
  * using the same pen (i.e. same color, thickness) and the same
  * graphical primitive (line, polygon, etc..).
@@ -125,7 +140,8 @@ typedef struct roadmap_layer_record {
     RoadMapPen pen[ROADMAP_MAX_LAYER_PENS];
     int delta_thickness[ROADMAP_MAX_LAYER_PENS];
 
-    int navigation_modes;
+    int navigation_modes;			/**< bitwise OR of the navigation modes supported */
+    RoadMapConfigDescriptor speed;		/**< max speed */
 
 } RoadMapLayer;
 
@@ -133,7 +149,10 @@ static unsigned int RoadMapMaxUsedPen = 1;
 static unsigned int RoadMapMaxDefinedLayers = 1;
 
 
-/* SETS. --------------------------------------------------------------
+/* SETS. -------------------------------------------------------------- */
+/**
+ * @brief SETS
+ *
  * A set represent a full configuration of classes. One set only is
  * active at any given time. The sets are always predefined (for now?).
  */
@@ -232,8 +251,15 @@ unsigned int roadmap_layer_max_pen(void) {
 }
 
 
-int roadmap_layer_navigable (int mode, int *layers, int size) {
-    
+/**
+ * @brief query the layers navigable for a given navigation mode (e.g. car)
+ * @param mode
+ * @param layers
+ * @param size
+ * @return
+ */
+int roadmap_layer_navigable (int mode, int *layers, int size)
+{
     int i;
     int mask = 1 << mode;
     int count = 0;
@@ -259,10 +285,8 @@ int roadmap_layer_navigable (int mode, int *layers, int size) {
     return count;
 }
 
-
-int roadmap_layer_visible_lines
-       (int *layers, int size, unsigned int pen_index) {
-
+int roadmap_layer_visible_lines (int *layers, int size, unsigned int pen_index)
+{
     int i;
     int count = 0;
 
@@ -380,6 +404,12 @@ void roadmap_layer_adjust (void) {
 }
 
 
+/**
+ * @brief
+ * @param layer
+ * @param pen_index
+ * @return
+ */
 RoadMapPen roadmap_layer_get_pen (int layer, unsigned int pen_index) {
 
    int total;
@@ -485,6 +515,15 @@ void roadmap_layer_select_set (const char *name) {
 
 /* Initialization code. ------------------------------------------- */
 
+/**
+ * @brief
+ * @param config
+ * @param category
+ * @param id
+ * @param args
+ * @param max
+ * @return
+ */
 static int roadmap_layer_decode (const char *config,
                                  const char *category, const char *id,
                                  char**args, int max) {
@@ -658,7 +697,10 @@ static void roadmap_layer_sort (RoadMapSet *set) {
    }
 }
 
-
+/**
+ * @brief load a "class file"
+ * @param class_file which file to load
+ */
 static void roadmap_layer_load_file (const char *class_file) {
 
     int i;
@@ -675,6 +717,7 @@ static void roadmap_layer_load_file (const char *class_file) {
     const char *class_config = roadmap_config_new (class_file, 0);
     const char *class_name;
 
+    roadmap_log (ROADMAP_WARNING, "roadmap_layer_load_file(%s)", class_file);
     if (class_config == NULL) {
        roadmap_log (ROADMAP_FATAL, "cannot access class file %s", class_file);
     }
@@ -720,6 +763,9 @@ static void roadmap_layer_load_file (const char *class_file) {
                   ((polygons_count + lines_count) * sizeof(RoadMapLayer)), 1);
     roadmap_check_allocated(new_class);
 
+    roadmap_log (ROADMAP_WARNING, "Class [%s] lines %d polygons %d",
+		    class_name, lines_count, polygons_count);
+
     new_class->name = class_name;
     new_class->lines_count = lines_count;
     new_class->polygons_count = polygons_count;
@@ -758,6 +804,7 @@ static void roadmap_layer_load_file (const char *class_file) {
 
         other_pen = realloc(other_pen, other_pen_length);
 
+	roadmap_log(ROADMAP_DEBUG, "Layer %d is %s", i, layers[i]);
         layer->name = layers[i];
         layer->class = new_class;
         layer->navigation_modes = 0;
@@ -771,6 +818,10 @@ static void roadmap_layer_load_file (const char *class_file) {
         layer->declutter.category = layers[i];
         layer->declutter.name     = "Declutter";
         roadmap_config_declare (class_config, &layer->declutter, "20248000000");
+
+	layer->speed.category = layers[i];
+	layer->speed.name = "Speed";
+	roadmap_config_declare (class_config, &layer->speed, "120");
          
         for (pen_index = 0; pen_index < ROADMAP_MAX_LAYER_PENS; ++pen_index) {
           /* retrieve delta (thickness was taken above) */
@@ -867,6 +918,11 @@ static void roadmap_layer_load_file (const char *class_file) {
     
 
     /* Retrieve the navigation modes associated with each layer. */
+    RoadMapNavigationModeCount = roadmap_layer_decode (class_config, "Class", "NavigationModes",
+		    RoadMapNavigationMode, ROADMAP_MAX_NAVIGATION_MODES);
+    if (RoadMapNavigationModeCount <= 0) return;
+
+    roadmap_log (ROADMAP_WARNING, "RoadMapNavigationModeCount %d", RoadMapNavigationModeCount);
 
     for (i = 0; i < (int)RoadMapNavigationModeCount; ++i) {
 
@@ -879,6 +935,9 @@ static void roadmap_layer_load_file (const char *class_file) {
           roadmap_layer_decode (class_config,
                                 "Navigation", RoadMapNavigationMode[i],
                                 navigation_layers, ROADMAP_MAX_LAYERS);
+
+       roadmap_log (ROADMAP_WARNING, "Navigation %d [%s] -> %d modes",
+		       i, RoadMapNavigationMode[i], layers_count);
 
        for (j = layers_count - 1; j >= 0; --j) {
 
@@ -893,9 +952,11 @@ static void roadmap_layer_load_file (const char *class_file) {
     }
 }
 
-
-void roadmap_layer_load (void) {
-
+/**
+ * @brief Load the configuration files
+ */
+void roadmap_layer_load (void)
+{
     char  *class_path;
     char **classes;
     char **cursor;
@@ -946,6 +1007,11 @@ void roadmap_layer_load (void) {
 }
 
 
+/**
+ * @brief add a navigation mode (car, bike, ..)
+ * @param name the name of this mode
+ * @return the id of this navigation mode
+ */
 int roadmap_layer_declare_navigation_mode (const char *name) {
 
    if (RoadMapNavigationModeCount >= ROADMAP_MAX_NAVIGATION_MODES) {
@@ -965,3 +1031,95 @@ void roadmap_layer_initialize (void) {
     roadmap_config_declare ("preferences", &RoadMapConfigSkin, "default");
 }
 
+/**
+ * @brief returns true if this layer is a street
+ * 	Based on the list of lines (Class.Lines) in default/All .
+ * 	The code relies on the fact that Lines have the lowest numbers,
+ * 	this is how they're loaded.
+ * @param layer the layer's integer value
+ * @return true if this is a street / line
+ */
+int roadmap_layer_is_street(int layer)
+{
+	if (RoadMapLayerCurrentClass == NULL) {
+	    roadmap_log (ROADMAP_FATAL, "roadmap_layer_is_street : no current class");
+	    return 0;
+	}
+	return (layer <= RoadMapLayerCurrentClass->lines_count);
+}
+
+/**
+ * @brief get the id of the first "road" type (assumption: they're consecutive)
+ * @return id of the first road type (whatever the first may be, this is actually meaningless)
+ */
+int roadmap_layer_road_first(void)
+{
+	return 0;
+}
+
+/**
+ * @brief get the id of the next road type (whatever "next" may mean)
+ * @param layer the current road type
+ * @return the next road type
+ */
+int roadmap_layer_road_next(int layer)
+{
+	return layer + 1;
+}
+
+/**
+ * @brief
+ * @return
+ */
+int roadmap_layer_count_roads(void)
+{
+	if (RoadMapLayerCurrentClass == NULL) {
+	    roadmap_log (ROADMAP_FATAL, "roadmap_layer_count_roads : no current class");
+	    return 0;
+	}
+	return RoadMapLayerCurrentClass->lines_count;
+}
+
+/**
+ * @brief
+ */
+int roadmap_layer_road_last(void)
+{
+	if (RoadMapLayerCurrentClass == NULL) {
+	    roadmap_log (ROADMAP_FATAL, "roadmap_layer_road_last : no current class");
+	    return 0;
+	}
+	return RoadMapLayerCurrentClass->lines_count;
+}
+
+/**
+ * @brief
+ * @return
+ */
+int roadmap_layer_last(void)
+{
+	if (RoadMapLayerCurrentClass == NULL) {
+	    roadmap_log (ROADMAP_FATAL, "roadmap_layer_last : no current class");
+	    return 0;
+	}
+	return RoadMapLayerCurrentClass->lines_count;
+}
+
+/**
+ * @brief returns the value of the Speed parameter of this layer, from default/All.
+ * @param layer
+ * @return
+ */
+int roadmap_layer_speed(int layer)
+{
+	RoadMapLayer		*TheLayer;
+	RoadMapConfigItem	*r;
+
+	if (RoadMapLayerCurrentClass == NULL) {
+	    roadmap_log (ROADMAP_FATAL, "roadmap_layer_road_last : no current class");
+	    return 0;
+	}
+
+	TheLayer = RoadMapLayerCurrentClass->layers + layer - 1;
+	return roadmap_config_get_integer (&TheLayer->speed);
+}

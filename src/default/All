@@ -1,7 +1,11 @@
 Class.Name: All
 Class.Lines: Freeways Ramps Highways Streets Trails Rivers Shore Railroads Boundaries
 Class.Polygons: Lakes Sea Parks Hospitals Airports Stations Malls
-Navigation.Car: Freeways Ramps Highways Streets Trails
+Class.NavigationModes: Car Bike Foot Boat
+Navigation.Car: Freeways Ramps Highways Streets
+Navigation.Bike: Streets Trails Shore Parks
+Navigation.Foot: Streets Trails Shore Parks Stations Malls Hospitals Airports
+Navigation.Boat: Rivers Shore Lakes Sea
 Freeways.Color: black
 Freeways.Color1: IndianRed
 Freeways.Delta1: -2

@@ -1,8 +1,8 @@
-/* roadmap_layer.h - layer management: declutter, filter, etc..
- *
+/*
  * LICENSE:
  *
  *   Copyright 2003 Pascal F. Martin
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,8 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * DESCRIPTION:
+ */
+
+/**
+ * @file
+ * @brief roadmap_layer.h - layer management: declutter, filter, etc..
  *
  *   This module gives access to the layers provided by the current maps.
  *
@@ -84,8 +87,7 @@ int  roadmap_layer_select_class (const char *name);
 
 int roadmap_layer_navigable (int mode, int *layers, int size);
 
-int  roadmap_layer_visible_lines
-        (int *layers, int size, unsigned int pen_index);
+int  roadmap_layer_visible_lines (int *layers, int size, unsigned int pen_index);
 
 int  roadmap_layer_line_is_visible (int layer);
 
@@ -101,5 +103,15 @@ void roadmap_layer_load (void);
 int  roadmap_layer_declare_navigation_mode (const char *name);
 void roadmap_layer_initialize (void);
 
-#endif // INCLUDED__ROADMAP_LAYER__H
+int roadmap_layer_last(void);
+int roadmap_layer_is_street(int layer);
+int roadmap_layer_road_first(void);
+int roadmap_layer_road_next(int layer);
+int roadmap_layer_count_roads(void);
+int roadmap_layer_road_street(void);
+int roadmap_layer_road_last(void);
 
+int roadmap_layer_speed(int layer);
+
+
+#endif // INCLUDED__ROADMAP_LAYER__H
