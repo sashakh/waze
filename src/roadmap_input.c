@@ -1,5 +1,4 @@
-/* roadmap_input.c - Decode an ASCII data stream.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_input.h
+ */
+
+/**
+ * @file
+ * @brief roadmap_input.c - Decode an ASCII data stream.
  */
 
 #include <math.h>
@@ -37,7 +37,12 @@
 #include "roadmap.h"
 #include "roadmap_input.h"
 
-
+/**
+ * @brief
+ * @param context
+ * @param from
+ * @return
+ */
 static char *roadmap_input_end_of_line (RoadMapInputContext *context,
                                         char *from) {
 
@@ -56,7 +61,11 @@ static char *roadmap_input_end_of_line (RoadMapInputContext *context,
    return NULL;
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @param from
+ */
 static void roadmap_input_shift_to_next_line (RoadMapInputContext *context,
                                               char *from) {
 
@@ -79,7 +88,14 @@ static void roadmap_input_shift_to_next_line (RoadMapInputContext *context,
    }
 }
 
-
+/**
+ * @brief
+ * @param text
+ * @param separator
+ * @param field
+ * @param max
+ * @return
+ */
 int roadmap_input_split (char *text, char separator, char *field[], int max) {
 
    int   i;
@@ -99,7 +115,11 @@ int roadmap_input_split (char *text, char separator, char *field[], int max) {
    return i;
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @return
+ */
 int roadmap_input (RoadMapInputContext *context) {
 
    int result;
@@ -201,4 +221,3 @@ int roadmap_input (RoadMapInputContext *context) {
    roadmap_log (ROADMAP_DEBUG, "buffer empty");
    return result;
 }
-
