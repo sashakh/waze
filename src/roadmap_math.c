@@ -1,9 +1,9 @@
-/* roadmap_math.c - Manage the little math required to place points on a map.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
  *   Copyright 2005,2006 Ehud Shabtai
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   3D perspective support was integrated from the RoadNav project
  *   Copyright (c) 2004 - 2006 Richard L. Lynch <rllynch@users.sourceforge.net>
@@ -23,10 +23,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_math.h.
+ */
+
+/**
+ * @file
+ * @brief roadmap_math.c - Manage the little math required to place points on a map.
  *
  * These functions are used to compute the position of points on the map,
  * or the distance between two points, given their position.
@@ -103,9 +104,24 @@ static RoadMapUnits RoadMapImperialSystem = {
     "Mph",
 };
     
-
+/**
+ * @brief We maintain two copies of this  context struct, which is all
+ * of the state information needed to position and scale the map.
+ *
+ * One copy is the working copy, and is used by all of the worker
+ * routines that adjust that context -- the zoom and motion commands, etc.
+ *
+ * The other copy is _only_ used while we're repainting the
+ * screen -- this copy is created from the "working" context when
+ * we commence the repaint.
+ *
+ * Making a static copy for the duration of the repaint guarantees that the
+ * entire repaint will be done using just one set of parameters, even if
+ * motion/zoom/rotation actions happen in the middle.  (Many of those actions
+ * will cause a new repaint, but sometimes we ignore them -- if we're almost
+ * finished with the current repaint, for instance.
+ */
 static struct {
-
    unsigned short zoom;
 
    /* The current position shown on the map: */
@@ -142,21 +158,10 @@ static struct {
 
 } RoadMapDisplayContext, RoadMapWorkingContext, *RoadMapContext;
 
-/*
- * We maintain two copies of the above context struct, which is all
- * of the state information needed to position and scale the map.
- * One copy is the working copy, and is used by all of the worker
- * routines that adjust that context -- the zoom and motion commands,
- * etc.  The other copy is _only_ used while we're repainting the
- * screen -- this copy is created from the "working" context when
- * we commence the repaint.  Making a static copy for the duration of
- * the repaint guarantees that the entire repaint will be done using
- * just one set of parameters, even if motion/zoom/rotation actions
- * happen in the middle.  (Many of those actions will cause a new
- * repaint, but sometimes we ignore them -- if we're almost finished
- * with the current repaint, for instance.
+/**
+ * @brief
+ * @param copy
  */
-
 void roadmap_math_display_context(int copy) {
 
     if (copy) RoadMapDisplayContext = RoadMapWorkingContext;
@@ -164,13 +169,20 @@ void roadmap_math_display_context(int copy) {
     RoadMapContext = &RoadMapDisplayContext;
 }
 
+/**
+ * @brief
+ */
 void roadmap_math_working_context(void) {
 
     RoadMapContext = &RoadMapWorkingContext;
 }
 
-
-
+/**
+ * @brief
+ * @param angle
+ * @param sine_p
+ * @param cosine_p
+ */
 static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
 
    int i = angle % 90;
@@ -203,7 +215,12 @@ static void roadmap_math_trigonometry (int angle, int *sine_p, int *cosine_p) {
    }
 }
 
-
+/**
+ * @brief
+ * @param cosine
+ * @param sign
+ * @return
+ */
 static int roadmap_math_arccosine (int cosine, int sign) {
     
     int i;
@@ -275,7 +292,9 @@ static int roadmap_math_arccosine (int cosine, int sign) {
     return result;
 }
 
-
+/**
+ * @brief
+ */
 void roadmap_math_compute_scale (void) {
 
    int orientation;
@@ -343,7 +362,15 @@ void roadmap_math_compute_scale (void) {
    roadmap_math_set_orientation (orientation);
 }
 
-
+/**
+ * @brief
+ * @param from
+ * @param to
+ * @param point
+ * @param count
+ * @param intersections
+ * @return
+ */
 static int roadmap_math_check_point_in_segment (const RoadMapPosition *from,
                                                 const RoadMapPosition *to,
                                                 const RoadMapPosition *point,
@@ -368,7 +395,16 @@ static int roadmap_math_check_point_in_segment (const RoadMapPosition *from,
    return count;
 }
 
-
+/**
+ * @brief
+ * @param from
+ * @param to
+ * @param a
+ * @param b
+ * @param intersections
+ * @param max_intersections
+ * @return
+ */
 static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
                                                   const RoadMapPosition *to,
                                                   double a,
@@ -458,7 +494,10 @@ static int roadmap_math_find_screen_intersection (const RoadMapPosition *from,
    return count;
 }
 
-
+/**
+ * @brief
+ * @param point
+ */
 static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
 
    int x = point->x - RoadMapContext->center_x;
@@ -475,7 +514,10 @@ static void roadmap_math_counter_rotate_coordinate (RoadMapGuiPoint *point) {
                 + (y * RoadMapContext->cos_orientation) + 16383) / 32768);
 }
 
-
+/**
+ * @brief
+ * @param point
+ */
 #if USE_FLOAT  /* for reference, until we're sure integer version works */
 static void roadmap_math_project (RoadMapGuiPoint *point) {
 
@@ -505,6 +547,10 @@ static void roadmap_math_project (RoadMapGuiPoint *point) {
                         + RoadMapContext->width / 2);
 }
 
+/**
+ * @brief
+ * @param point
+ */
 void roadmap_math_unproject (RoadMapGuiPoint *point) {
 
    RoadMapGuiPoint point2;
@@ -617,10 +663,30 @@ static int roadmap_math_zoom_state (void) {
    }
 }
 
+#if defined(HAVE_TRIP_PLUGIN)
 
-/* Rotation of the screen:
+#define	DOTS_PER_INCH 72
+#define INCHES_PER_DEGREE 4374754
+
+void roadmap_math_set_scale (int scale, int use_map_units)
+{
+	int res;
+	if (use_map_units) {
+		res = scale / (RoadMapContext->units->unit_per_latitude * use_map_units);
+	} else {
+		res = scale / (1.0 * DOTS_PER_INCH * INCHES_PER_DEGREE / 1000000);
+	}
+	roadmap_math_zoom_set (res);
+}
+#endif
+
+/**
+ * @brief Rotation of the screen:
  * rotate the coordinates of a point on the screen, the center of
  * the rotation being the center of the screen.
+ *
+ * @param count
+ * @param points
  */
 void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points) {
 
@@ -658,8 +724,11 @@ void roadmap_math_rotate_coordinates (int count, RoadMapGuiPoint *points) {
 }
 
 
-/* 
- * rotate the coordinates of a point to an arbitrary angle
+/**
+ * @brief rotate the coordinates of a point to an arbitrary angle
+ * @param point
+ * @param center
+ * @param angle
  */
 void roadmap_math_rotate_point (RoadMapGuiPoint *point,
                                 RoadMapGuiPoint *center, int angle) {
@@ -735,7 +804,9 @@ void roadmap_math_rotate_object
    }
 }
 
-
+/**
+ * @brief
+ */
 void roadmap_math_initialize (void) {
 
     roadmap_config_declare ("session", &RoadMapConfigGeneralZoom, "0");
@@ -753,19 +824,28 @@ void roadmap_math_initialize (void) {
     roadmap_math_compute_scale ();
 }
 
-
+/**
+ * @brief
+ */
 void roadmap_math_use_metric (void) {
 
     RoadMapContext->units = &RoadMapMetricSystem;
 
 }
 
-
+/**
+ * @brief
+ */
 void roadmap_math_use_imperial (void) {
 
     RoadMapContext->units = &RoadMapImperialSystem;
 }
 
+/**
+ * @brief
+ * @param focus
+ * @param focused_point
+ */
 static void roadmap_math_adjust_focus
                 (RoadMapArea *focus, const RoadMapGuiPoint *focused_point) {
 
@@ -787,6 +867,12 @@ static void roadmap_math_adjust_focus
     }
 }
 
+/**
+ * @brief
+ * @param focus
+ * @param position
+ * @param accuracy
+ */
 void
 roadmap_math_focus_area 
                 (RoadMapArea *focus, const RoadMapPosition *position,
@@ -862,6 +948,12 @@ int roadmap_math_is_visible (const RoadMapArea *area) {
     return roadmap_math_areas_intersect(area, &RoadMapContext->focus);
 }
 
+/**
+ * @brief
+ * @param point1
+ * @param point2
+ * @return
+ */
 int roadmap_math_line_is_visible (const RoadMapPosition *point1,
                                   const RoadMapPosition *point2) {
 
@@ -888,7 +980,11 @@ int roadmap_math_line_is_visible (const RoadMapPosition *point1,
    return 1; /* Do not bother checking for partial visibility yet. */
 }
 
-
+/**
+ * @brief
+ * @param point
+ * @return
+ */
 int roadmap_math_point_is_visible (const RoadMapPosition *point) {
 
    if ((point->longitude > RoadMapContext->focus.east) ||
@@ -1258,7 +1354,13 @@ void roadmap_math_to_position (const RoadMapGuiPoint *point,
          - (point->y * RoadMapContext->zoom_y);
 }
 
-/* determine whether "point" is within the "bbox" relative to "ref" */
+/**
+ * @brief determine whether "point" is within the "bbox" relative to "ref"
+ * @param point
+ * @param ref
+ * @param bbox
+ * @return
+ */
 int roadmap_math_point_in_box
     (RoadMapGuiPoint *point, RoadMapGuiPoint *ref, RoadMapGuiRect *bbox)
 {
@@ -1268,6 +1370,12 @@ int roadmap_math_point_in_box
              (point->y <= (ref->y + bbox->maxy));
 }
 
+/**
+ * @brief
+ * @param a
+ * @param b
+ * @return
+ */
 int roadmap_math_rectangle_overlap (RoadMapGuiRect *a, RoadMapGuiRect *b) {
 
    if (a->minx > b->maxx) return 0;
@@ -1370,29 +1478,32 @@ long roadmap_math_screen_distance
    return ret;
 }
 
-
-int roadmap_math_distance
-       (const RoadMapPosition *position1, const RoadMapPosition *position2) {
-
+/**
+ * @brief calculate the distance between two points
+ * @param position1
+ * @param position2
+ * @return
+ */
+int roadmap_math_distance (const RoadMapPosition *position1, const RoadMapPosition *position2)
+{
    double x;
    double y;
 
-
-   x = RoadMapContext->units->unit_per_longitude
-          * (position1->longitude - position2->longitude);
-   y = RoadMapContext->units->unit_per_latitude
-          * (position1->latitude  - position2->latitude);
+   x = RoadMapContext->units->unit_per_longitude * (position1->longitude - position2->longitude);
+   y = RoadMapContext->units->unit_per_latitude * (position1->latitude  - position2->latitude);
 
    return (int) sqrt ((x * x) + (y * y));
 }
 
 
-/* 
- * returns a square bounding box, centered at 'from',
- * roughly "distance" miles/km on a side
+/**
+ * @brief returns a square bounding box, centered at 'from', roughly "distance" miles/km on a side
+ * @param bbox
+ * @param from
+ * @param distance
+ * @param unitstring
  */
-void roadmap_math_bbox_around_point
-        (RoadMapArea *bbox, const RoadMapPosition *from,
+void roadmap_math_bbox_around_point (RoadMapArea *bbox, const RoadMapPosition *from,
          double distance, char *unitstring) {
 
    RoadMapUnits *units;
@@ -1418,7 +1529,12 @@ void roadmap_math_bbox_around_point
    bbox->north = from->latitude + distance / units->unit_per_latitude;
 }
 
-/* Take a number followed by ft/mi/m/km, and converts it to current units. */
+/*
+ * @brief Take a number followed by ft/mi/m/km, and converts it to current units.
+ * @param string
+ * @param was_explicit
+ * @return
+ */
 int roadmap_math_distance_convert(const char *string, int *was_explicit)
 {
     char *suffix;
@@ -1492,6 +1608,11 @@ int roadmap_math_to_trip_distance_tenths (int distance) {
     return (10 * distance) / RoadMapContext->units->to_trip_unit;
 }
 
+/**
+ * @brief set some distance into the message API's buffers
+ * @param which indicate which distance to set
+ * @param distance the value to use
+ */
 void roadmap_math_trip_set_distance(char which, int distance)
 {
     int distance_far;
@@ -1930,10 +2051,14 @@ int  roadmap_math_get_zoom (void) {
 
 static int powers_of_10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000 };
 
-/* convert:
+/**
+ * @brief convert
  *  from a string that looks like a floating point number
  *  to an integer, using just the specified number of fractional digits
  *  (e.g. 40.1 degrees --> 40100000 millionths of a degree)
+ * @param f
+ * @param fracdigits
+ * @return
  */
 int roadmap_math_from_floatstring(const char *f, int fracdigits)
 {
@@ -1988,3 +2113,80 @@ char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits)
 
     return buf;
 }
+
+#if defined(HAVE_TRIP_PLUGIN) || defined(HAVE_NAVIGATE_PLUGIN)
+/**
+ * @brief
+ * @param position
+ * @param from_pos
+ * @param to_pos
+ * @param first_shape
+ * @param last_shape
+ * @param shape_itr
+ * @param total_length
+ * @return
+ */
+int roadmap_math_calc_line_length (const RoadMapPosition *position,
+                                   const RoadMapPosition *from_pos,
+                                   const RoadMapPosition *to_pos,
+                                   int                    first_shape,
+                                   int                    last_shape,
+                                   RoadMapShapeItr        shape_itr,
+                                   int                   *total_length)
+{
+   RoadMapPosition from;
+   RoadMapPosition to;
+   RoadMapPosition intersection;
+   int current_length = 0;
+   int length_result = 0;
+   int smallest_distance = 0x7fffffff;
+   int distance;
+   int i;
+
+   if (first_shape <= -1) {
+      
+      from = *from_pos;
+      to = *to_pos;
+   } else {
+
+      from = *from_pos;
+      to   = *from_pos;
+
+      for (i = first_shape; i <= last_shape; i++) {
+
+         shape_itr (i, &to);
+
+         distance =
+            roadmap_math_get_distance_from_segment
+            (position, &from, &to, &intersection, NULL);
+
+         if (distance < smallest_distance) {
+            smallest_distance = distance;
+            length_result = current_length +
+               roadmap_math_distance (&from, &intersection);
+         }
+
+         current_length += roadmap_math_distance (&from, &to);
+         from = to;
+      }
+
+      to = *to_pos;
+   }
+
+   distance =
+      roadmap_math_get_distance_from_segment
+      (position, &from, &to, &intersection, NULL);
+
+   if (distance < smallest_distance) {
+
+      length_result = current_length +
+                        roadmap_math_distance (&from, &intersection);
+   }
+
+   current_length += roadmap_math_distance (&from, &to);
+
+   if (total_length) *total_length = current_length;
+
+   return length_result;
+}
+#endif
