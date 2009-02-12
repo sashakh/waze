@@ -1,5 +1,4 @@
-/* roadmap_shape.c - Manage the tiger shape points.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,15 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int  roadmap_shape_in_square (int square, int *first, int *last);
- *   int  roadmap_shape_of_line   (int line, int begin, int end,
- *                                 int *first, int *last);
- *   void roadmap_shape_get_position (int shape, RoadMapPosition *position);
- *
- * These functions are used to retrieve the shape points that belong to a line.
+ */
+
+/**
+ * @file
+ * @brief Manage shape points.
  */
 
 #include <stdio.h>
@@ -198,7 +193,15 @@ int  roadmap_shape_in_square (int square, int *first, int *last) {
    return 0;
 }
 
-
+/**
+ * @brief query the number of shape points of a line, and its first and last
+ * @param line the line number
+ * @param begin weird beginning index to use in binary search
+ * @param end weird end index to use in binary search
+ * @param first return the number of the first shape point
+ * @param last return the number of the last shape point
+ * @return return the number of points found
+ */
 int  roadmap_shape_of_line (int line, int begin, int end,
                                       int *first, int *last) {
 
@@ -261,10 +264,12 @@ int  roadmap_shape_of_line (int line, int begin, int end,
    return 0;
 }
 
-
+/**
+ * @brief query the successive points in a shape, note this requires the right order
+ * @param shape the index of this shape
+ * @param position parameter to return incremental results in
+ */
 void roadmap_shape_get_position (int shape, RoadMapPosition *position) {
-
    position->longitude += RoadMapShapeActive->Shape[shape].delta_longitude;
    position->latitude  += RoadMapShapeActive->Shape[shape].delta_latitude;
 }
-
