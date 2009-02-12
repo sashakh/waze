@@ -1,8 +1,8 @@
-/* roadmap_types.h - general type definitions used in RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -21,6 +21,10 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/**
+ * @file
+ * @brief general type definitions used in RoadMap.
+ */
 #ifndef INCLUDED__ROADMAP_TYPES__H
 #define INCLUDED__ROADMAP_TYPES__H
 
@@ -43,6 +47,14 @@ typedef struct {
    int west;
    int south;
 } RoadMapArea;
+
+#if defined(HAVE_TRIP_PLUGIN) || defined(HAVE_NAVIGATE_PLUGIN)
+typedef unsigned char LineRouteFlag;
+typedef unsigned char  LineRouteMax;
+typedef unsigned short LineRouteTime;
+
+typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
+#endif
 
 #endif // INCLUDED__ROADMAP_TYPES__H
 
