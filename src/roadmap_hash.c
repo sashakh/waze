@@ -1,5 +1,4 @@
-/* roadmap_hash.c - A simple hash index mechanism for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,21 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   RoadMapHash *roadmap_hash_new (int size);
- *
- *   void roadmap_hash_add       (RoadMapHash *hash, int key, int index);
- *   int  roadmap_hash_get_first (RoadMapHash *hash, int key);
- *   int  roadmap_hash_get_next  (RoadMapHash *hash, int index);
- *   void roadmap_hash_resize    (RoadMapHash *hash, int size);
- *
- *   void  roadmap_hash_summary (void);
- *   void  roadmap_hash_reset   (void);
- *
- * These functions are used to build a hash index. The idea is to
- * accelerate scanning a BuildMap table.
+ */
+
+/**
+ * @file
+ * @brief A simple hash index mechanism for RoadMap, to accelerate scanning a BuildMap table.
  */
 
 #include <stdio.h>
@@ -47,7 +36,10 @@
 
 static RoadMapHash *HashLast = NULL;
 
-
+/**
+ * @brief
+ * @param hash
+ */
 static void roadmap_hash_free (RoadMapHash *hash) {
 
    if (hash->values != NULL) {
@@ -57,7 +49,12 @@ static void roadmap_hash_free (RoadMapHash *hash) {
    free (hash);
 }
 
-
+/**
+ * @brief
+ * @parma name
+ * @param size
+ * @return
+ */
 RoadMapHash *roadmap_hash_new (char *name, int size) {
 
    int i;
@@ -87,7 +84,12 @@ RoadMapHash *roadmap_hash_new (char *name, int size) {
    return hash;
 }
 
-
+/**
+ * @brief
+ * @param hash
+ * @param key
+ * @param index
+ */
 void roadmap_hash_add (RoadMapHash *hash, int key, int index) {
 
    int hash_code = abs(key % ROADMAP_HASH_MODULO);
@@ -107,7 +109,11 @@ void roadmap_hash_add (RoadMapHash *hash, int key, int index) {
    hash->head[hash_code] = index;
 }
 
-
+/**
+ * @brief
+ * @param hash
+ * @param key
+ */
 int  roadmap_hash_get_first (RoadMapHash *hash, int key) {
 
    int hash_code = abs(key % ROADMAP_HASH_MODULO);
@@ -117,7 +123,11 @@ int  roadmap_hash_get_first (RoadMapHash *hash, int key) {
    return hash->head[hash_code];
 }
 
-
+/**
+ * @brief
+ * @param hash
+ * @param index
+ */
 int  roadmap_hash_get_next  (RoadMapHash *hash, int index) {
 
    if ((index < 0) || (index >= hash->size)) {
@@ -130,7 +140,11 @@ int  roadmap_hash_get_next  (RoadMapHash *hash, int index) {
    return hash->next[index];
 }
 
-
+/**
+ * @brief
+ * @param hash
+ * @param size
+ */
 void roadmap_hash_resize (RoadMapHash *hash, int size) {
 
    int i;
@@ -149,7 +163,12 @@ void roadmap_hash_resize (RoadMapHash *hash, int size) {
    hash->size = size;
 }
 
-
+/**
+ * @brief
+ * @param hash
+ * @param index
+ * @param value
+ */
 void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value) {
 
    if ((index < 0) || (index > hash->size)) {
@@ -165,7 +184,11 @@ void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value) {
    hash->values[index] = value;
 }
 
-
+/**
+ * @brief
+ * @param hash
+ * @param index
+ */
 void *roadmap_hash_get_value (RoadMapHash *hash, int index) {
 
    if ((index < 0) || (index > hash->size)) {
@@ -178,7 +201,9 @@ void *roadmap_hash_get_value (RoadMapHash *hash, int index) {
    return hash->values[index];
 }
 
-
+/**
+ * @brief
+ */
 void  roadmap_hash_summary (void) {
 
    RoadMapHash *hash;
@@ -212,7 +237,10 @@ void  roadmap_hash_summary (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @param hash
+ */
 void roadmap_hash_delete (RoadMapHash *hash) {
 
    RoadMapHash *cursor;
@@ -239,7 +267,9 @@ void roadmap_hash_delete (RoadMapHash *hash) {
    roadmap_hash_free (hash);
 }
 
-
+/**
+ * @brief
+ */
 void roadmap_hash_reset (void) {
 
    RoadMapHash *hash;
@@ -254,6 +284,10 @@ void roadmap_hash_reset (void) {
    HashLast = NULL;
 }
 
+/**
+ * @brief
+ * @param str
+ */
 int roadmap_hash_string (const char *str) {
 
    int hash = 0;
