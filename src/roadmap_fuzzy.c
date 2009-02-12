@@ -1,5 +1,4 @@
-/* roadmap_fuzzy.c - implement fuzzy operators for roadmap navigation.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_fuzzy.h.
+ */
+
+/**
+ * @file
+ * @brief implement fuzzy operators for roadmap navigation.
  */
 
 #include <stdio.h>
@@ -52,7 +52,9 @@ static int RoadMapAccuracyStreet;
 static int RoadMapConfidence;
 static int RoadMapError;
 
-
+/**
+ * @brief
+ */
 void roadmap_fuzzy_start_cycle (void) {
 
     RoadMapAccuracyStreet =
@@ -61,7 +63,10 @@ void roadmap_fuzzy_start_cycle (void) {
         roadmap_config_get_integer (&RoadMapConfigConfidence);
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 int roadmap_fuzzy_max_distance (void) {
 
     roadmap_fuzzy_start_cycle ();
@@ -70,9 +75,15 @@ int roadmap_fuzzy_max_distance (void) {
 }
 
 
-/* Angle fuzzyfication:
+/**
+ * @brief Angle fuzzyfication:
  * max fuzzy value if same angle as reference, 0 if 90 degree difference,
  * constant slope in between.
+ *
+ * @param direction
+ * @param reference
+ * @param symetric
+ * @return
  */
 RoadMapFuzzy roadmap_fuzzy_direction
                 (int direction, int reference, int symetric) {
@@ -102,10 +113,13 @@ RoadMapFuzzy roadmap_fuzzy_direction
     return (FUZZY_TRUTH_MAX * (90 - delta)) / 90;
 }
 
-
-/* Distance fuzzyfication:
+/**
+ * @brief Distance fuzzyfication:
  * max fuzzy value if distance is small, 0 if objects far away,
  * constant slope in between.
+ *
+ * @param distance
+ * @return
  */
 RoadMapFuzzy roadmap_fuzzy_distance  (int distance) {
 
@@ -117,7 +131,13 @@ RoadMapFuzzy roadmap_fuzzy_distance  (int distance) {
                                   RoadMapAccuracyStreet - RoadMapError;
 }
 
-
+/**
+ * @brief
+ * @param street
+ * @param reference
+ * @param connection
+ * @return
+ */
 RoadMapFuzzy roadmap_fuzzy_connected
                  (const RoadMapNeighbour *street,
                   const RoadMapNeighbour *reference,
@@ -167,7 +187,12 @@ RoadMapFuzzy roadmap_fuzzy_connected
     return FUZZY_TRUTH_MAX / 3;
 }
 
-
+/**
+ * @brief
+ * @param a
+ * @param b
+ * @return
+ */
 RoadMapFuzzy roadmap_fuzzy_and (RoadMapFuzzy a, RoadMapFuzzy b) {
 
     if (a < b) return a;
@@ -175,7 +200,12 @@ RoadMapFuzzy roadmap_fuzzy_and (RoadMapFuzzy a, RoadMapFuzzy b) {
     return b;
 }
 
-
+/**
+ * @brief
+ * @param a
+ * @param b
+ * @return
+ */
 RoadMapFuzzy roadmap_fuzzy_or (RoadMapFuzzy a, RoadMapFuzzy b) {
 
     if (a > b) return a;
@@ -183,32 +213,57 @@ RoadMapFuzzy roadmap_fuzzy_or (RoadMapFuzzy a, RoadMapFuzzy b) {
     return b;
 }
 
-
+/**
+ * @brief
+ * @param a
+ * @return
+ */
 RoadMapFuzzy roadmap_fuzzy_not (RoadMapFuzzy a) {
 
     return FUZZY_TRUTH_MAX - a;
 }
 
 
+/**
+ * @brief
+ * @return
+ */
 RoadMapFuzzy roadmap_fuzzy_false (void) {
     return 0;
 }
 
-
+/**
+ * @brief
+ * @param a
+ * @return
+ */
 int roadmap_fuzzy_is_acceptable (RoadMapFuzzy a) {
     return (a >= RoadMapConfidence);
 }
 
+/**
+ * @brief
+ * @param a
+ * @return
+ */
 int roadmap_fuzzy_is_good (RoadMapFuzzy a) {
     return (a >= FUZZY_TRUTH_MAX / 2);
 }
 
+/**
+ * @brief
+ * @param a
+ * @return
+ */
 int roadmap_fuzzy_is_certain (RoadMapFuzzy a) {
 
     return (a >= (FUZZY_TRUTH_MAX * 2) / 3);
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 void roadmap_fuzzy_initialize (void) {
 
     roadmap_config_declare
