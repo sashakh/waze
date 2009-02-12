@@ -1,8 +1,8 @@
-/* roadmap_square.c - Manage a county area, divided in small squares.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_square.h.
+ */
+
+/**
+ * @file
+ * @brief Manage a county area, divided in small squares.
  *
  * These functions are used to retrieve the squares that make the county
  * area. A special square (ROADMAP_SQUARE_GLOBAL) is used to describe the
@@ -43,7 +44,9 @@
 
 static char *RoadMapSquareType = "RoadMapSquareContext";
 
-
+/**
+ * @brief
+ */
 typedef struct {
 
    char *type;
@@ -51,10 +54,10 @@ typedef struct {
    RoadMapGlobal *SquareGlobal;
    RoadMapSquare *Square;
 
-   short *SquareGrid; /* keep small: large grids can use a lot of them */
+   short *SquareGrid; /**< keep small: large grids can use a lot of them */
    int  SquareGridCount;
    int SquareGridBitmapped;
-   int SquareLastLookup;  /* lookup cache for bitmapped grids */
+   int SquareLastLookup;  /**< lookup cache for bitmapped grids */
    int SquareLastIndex;
 } RoadMapSquareContext;
 
@@ -353,6 +356,11 @@ static int roadmap_square_location (const RoadMapPosition *position) {
    return square;
 }
 
+/**
+ * @brief find the square that a given position is in
+ * @param position the position whose square we want to find
+ * @return the square
+ */
 int roadmap_square_search (const RoadMapPosition *position) {
 
    int square;
@@ -443,6 +451,11 @@ void  roadmap_square_edges (int square, RoadMapArea *edges) {
 }
 
 
+/**
+ * @brief
+ * @param square
+ * @return
+ */
 int roadmap_square_index (int square) {
 
    if (RoadMapSquareActive == NULL) return -1;
