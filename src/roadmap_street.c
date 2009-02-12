@@ -1,5 +1,4 @@
-/* roadmap_street.c - Handle streets operations and attributes.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,10 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   see roadmap_street.h.
+ */
+/**
+ * @file
+ * @brief handle streets operations and attributes.
  */
 
 #include <stdio.h>
@@ -106,7 +105,11 @@ static RoadMapStreetContext *RoadMapStreetActive = NULL;
 static RoadMapZipContext    *RoadMapZipActive    = NULL;
 static RoadMapRangeContext  *RoadMapRangeActive  = NULL;
 
-
+/**
+ * @brief
+ * @param root
+ * @return
+ */
 static void *roadmap_street_map (roadmap_db *root) {
 
    RoadMapStreetContext *context;
@@ -142,6 +145,10 @@ static void *roadmap_street_map (roadmap_db *root) {
    return context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_street_activate (void *context) {
 
    RoadMapStreetContext *this = (RoadMapStreetContext *) context;
@@ -152,6 +159,10 @@ static void roadmap_street_activate (void *context) {
    RoadMapStreetActive = this;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_street_unmap (void *context) {
 
    RoadMapStreetContext *this = (RoadMapStreetContext *) context;
@@ -165,6 +176,9 @@ static void roadmap_street_unmap (void *context) {
    free (this);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapStreetHandler = {
    "street",
    roadmap_street_map,
@@ -172,7 +186,10 @@ roadmap_db_handler RoadMapStreetHandler = {
    roadmap_street_unmap
 };
 
-
+/**
+ * @brief
+ * @param root
+ */
 static void *roadmap_street_zip_map (roadmap_db *root) {
 
    RoadMapZipContext *context;
@@ -194,6 +211,10 @@ static void *roadmap_street_zip_map (roadmap_db *root) {
    return context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_street_zip_activate (void *context) {
 
    RoadMapZipContext *this = (RoadMapZipContext *) context;
@@ -204,6 +225,10 @@ static void roadmap_street_zip_activate (void *context) {
    RoadMapZipActive = this;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_street_zip_unmap (void *context) {
 
    RoadMapZipContext *this = (RoadMapZipContext *) context;
@@ -217,6 +242,9 @@ static void roadmap_street_zip_unmap (void *context) {
    free (this);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapZipHandler = {
    "zip",
    roadmap_street_zip_map,
@@ -224,7 +252,10 @@ roadmap_db_handler RoadMapZipHandler = {
    roadmap_street_zip_unmap
 };
 
-
+/**
+ * @brief
+ * @param root
+ */
 static void *roadmap_street_range_map (roadmap_db *root) {
 
    RoadMapRangeContext *context;
@@ -308,6 +339,10 @@ static void *roadmap_street_range_map (roadmap_db *root) {
    return context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_street_range_activate (void *context) {
 
    RoadMapRangeContext *this = (RoadMapRangeContext *) context;
@@ -344,6 +379,10 @@ static void roadmap_street_range_activate (void *context) {
    RoadMapRangeActive = this;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_street_range_unmap (void *context) {
 
    RoadMapRangeContext *this = (RoadMapRangeContext *) context;
@@ -357,6 +396,9 @@ static void roadmap_street_range_unmap (void *context) {
    free (this);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapRangeHandler = {
    "range",
    roadmap_street_range_map,
@@ -365,6 +407,9 @@ roadmap_db_handler RoadMapRangeHandler = {
 };
 
 
+/**
+ * @brief
+ */
 typedef struct roadmap_street_identifier {
 
    RoadMapString prefix;
@@ -375,7 +420,10 @@ typedef struct roadmap_street_identifier {
 } RoadMapStreetIdentifier;
 
 
-/* 
+/**
+ * @brief
+ *
+ * 
  *  the list of possible types (second column) was generated with:
  *
  *    for x in /usr/local/share/roadmap/maps/ *.rdm
@@ -395,7 +443,10 @@ typedef struct {
    const char *abbrev;
 } RoadmapStreetTypeMap;
 
-/* Both many-to-one and one-to-many mappings are supported, but
+/**
+ * @brief
+ *
+ * Both many-to-one and one-to-many mappings are supported, but
  * the first column must be alphabetical!
  *
  * Note:  The list in roadmap_voice.c, which is used during the
@@ -467,6 +518,12 @@ static RoadmapStreetTypeMap RoadmapStreetFullTypes[] = {
    { 0, 0 }
 };
 
+/**
+ * @brief
+ * @param type
+ * @param last
+ * @return
+ */
 static RoadmapStreetTypeMap *roadmap_street_type_to_abbrev (
    const char *type, RoadmapStreetTypeMap *last) {
 
@@ -488,7 +545,12 @@ static RoadmapStreetTypeMap *roadmap_street_type_to_abbrev (
    return 0;
 }
 
-
+/**
+ * @brief
+ * @param name
+ * @param street
+ * @return
+ */
 static void roadmap_street_locate (const char *name,
                                    RoadMapStreetIdentifier *street) {
 
@@ -613,7 +675,14 @@ static void roadmap_street_locate (const char *name,
       roadmap_dictionary_locate (RoadMapRangeActive->RoadMapStreetNames, name);
 }
 
-
+/**
+ * @brief
+ * @param street
+ * @param city
+ * @param blocks
+ * @param size
+ * @return
+ */
 static int roadmap_street_block_by_county_subdivision
               (RoadMapStreetIdentifier *street,
                int city,
@@ -624,6 +693,7 @@ static int roadmap_street_block_by_county_subdivision
    int count = 0;
    int range_count = RoadMapRangeActive->RoadMapByStreetCount;
 
+   roadmap_log(ROADMAP_DEBUG, "block_by_county_subdivision");
 
    for (i = 0; i < range_count; i++) {
 
@@ -680,7 +750,14 @@ static int roadmap_street_block_by_county_subdivision
    return count;
 }
 
-
+/**
+ * @brief
+ * @param street_name
+ * @param city_name
+ * @param blocks
+ * @param size
+ * @return
+ */
 int roadmap_street_blocks_by_city
        (const char *street_name, const char *city_name,
         RoadMapBlocks *blocks,
@@ -838,9 +915,14 @@ int roadmap_street_blocks_by_zip
 }
 #endif /* NEEDED ? */
 
-
-int roadmap_street_get_ranges
-       (RoadMapBlocks *blocks, int count, RoadMapStreetRange *ranges) {
+/**
+ * @brief
+ * @param blocks
+ * @param count
+ * @param ranges
+ * @return
+ */
+int roadmap_street_get_ranges (RoadMapBlocks *blocks, int count, RoadMapStreetRange *ranges) {
 
    int i;
    int end;
@@ -883,7 +965,13 @@ int roadmap_street_get_ranges
    return total;
 }
 
-
+/**
+ * @brief
+ * @param blocks
+ * @param number
+ * @param position
+ * @return
+ */
 int roadmap_street_get_position (RoadMapBlocks *blocks,
                                  unsigned int number,
                                  RoadMapPosition *position) {
@@ -971,7 +1059,16 @@ int roadmap_street_get_position (RoadMapBlocks *blocks,
    return -1;
 }
 
-
+/**
+ * @brief
+ * @param position
+ * @param line
+ * @param layer
+ * @param first_shape
+ * @param last_shape
+ * @param neighbour
+ * @return
+ */
 static int roadmap_street_get_distance_with_shape
               (const RoadMapPosition *position,
                int  line, int layer, int first_shape, int last_shape,
@@ -1033,26 +1130,26 @@ static int roadmap_street_get_distance_with_shape
    return smallest_distance < 0x7fffffff;
 }
 
-
-static int roadmap_street_get_distance_no_shape
-              (const RoadMapPosition *position, int line, int layer,
-               RoadMapNeighbour *neighbour) {
-
+/**
+ * @brief calculate distance between a position and a line
+ * @param position the position to take into account
+ * @param line the line
+ * @param layer which layer is this line in
+ * @param neighbour results are stored in this record
+ * @return 1 indicates success
+ */
+static int roadmap_street_get_distance_no_shape (const RoadMapPosition *position,
+		int line, int layer, RoadMapNeighbour *neighbour)
+{
    roadmap_line_from (line, &neighbour->from);
    roadmap_line_to   (line, &neighbour->to);
 
    if (roadmap_math_line_is_visible (&neighbour->from, &neighbour->to)) {
+      neighbour->distance = roadmap_math_get_distance_from_segment (position,
+	      &neighbour->from, &neighbour->to, &neighbour->intersection, NULL);
 
-      neighbour->distance =
-         roadmap_math_get_distance_from_segment
-            (position, &neighbour->from, &neighbour->to,
-             &neighbour->intersection, NULL);
-
-      roadmap_plugin_set_line (&neighbour->line,
-                               ROADMAP_PLUGIN_ID,
-                               line,
-                               layer,
-                               roadmap_locator_active ());
+      roadmap_plugin_set_line (&neighbour->line, ROADMAP_PLUGIN_ID,
+                               line, layer, roadmap_locator_active ());
 
       return 1;
    }
@@ -1099,10 +1196,16 @@ int roadmap_street_replace
 }
 
 
-int roadmap_street_get_distance (const RoadMapPosition *position,
-                                 int line,
-                                 int layer,
-                                 RoadMapNeighbour *result) {
+/**
+ * @brief calculate distance between a position and a line
+ * @param position the position to take into account
+ * @param line the line
+ * @param layer the line's layer
+ * @param result store the results in this structure
+ * @result whether we found something
+ */
+int roadmap_street_get_distance (const RoadMapPosition *position, int line, int layer,
+		RoadMapNeighbour *result) {
 
    int found = 0;
    int square;
@@ -1119,11 +1222,8 @@ int roadmap_street_get_distance (const RoadMapPosition *position,
    square = roadmap_square_search (&line_from_position);
    if (square < 0) return 0;
 
-   if (roadmap_shape_in_square (square, &first_shape_line,
-                                        &last_shape_line) > 0) {
-
-      if (roadmap_shape_of_line (line, first_shape_line,
-                                       last_shape_line,
+   if (roadmap_shape_in_square (square, &first_shape_line, &last_shape_line) > 0) {
+      if (roadmap_shape_of_line (line, first_shape_line, last_shape_line,
                                        &first_shape, &last_shape) > 0) {
 
          found = roadmap_street_get_distance_with_shape
@@ -1132,8 +1232,7 @@ int roadmap_street_get_distance (const RoadMapPosition *position,
    }
 
    if (!found) {
-      found = roadmap_street_get_distance_no_shape (position,
-                                                    line, layer, result);
+      found = roadmap_street_get_distance_no_shape (position, line, layer, result);
    }
    return found;
 }
@@ -1321,7 +1420,15 @@ static int roadmap_street_get_closest_in_long_lines
 }
 
 
-
+/**
+ * @brief
+ * @param position
+ * @param categories
+ * @param categories_count
+ * @param neighbours
+ * @param max
+ * @return
+ */
 int roadmap_street_get_closest
        (const RoadMapPosition *position,
         int *categories, int categories_count,
@@ -1867,10 +1974,13 @@ static void roadmap_street_append (char *name, char *item) {
     }
 }
 
-
-const char *roadmap_street_get_street_address
-                (const RoadMapStreetProperties *properties) {
-
+/**
+ * @brief figure out a text describing the range of addresses in this street
+ * @param properties the properties of this street
+ * @return pointer to a static array
+ */
+const char *roadmap_street_get_street_address (const RoadMapStreetProperties *properties)
+{
     static char RoadMapStreetAddress [32];
     unsigned int min;
     unsigned int max;
@@ -1909,10 +2019,13 @@ const char *roadmap_street_get_street_address
     return RoadMapStreetAddress;
 }
 
-
-const char *roadmap_street_get_street_name
-                (const RoadMapStreetProperties *properties) {
-
+/**
+ * @brief get the name of this street
+ * @param properties the properties of this street
+ * @return pointer to a static array
+ */
+const char *roadmap_street_get_street_name (const RoadMapStreetProperties *properties)
+{
     static char RoadMapStreetName [512];
 
     char *p;
@@ -1933,25 +2046,16 @@ const char *roadmap_street_get_street_name
         return "";
     }
     
-
-    roadmap_street_append
-        (RoadMapStreetName,
-         roadmap_dictionary_get
+    roadmap_street_append (RoadMapStreetName, roadmap_dictionary_get
             (RoadMapRangeActive->RoadMapStreetPrefix, this_street->fedirp));
         
-    roadmap_street_append
-        (RoadMapStreetName,
-         roadmap_dictionary_get
+    roadmap_street_append (RoadMapStreetName, roadmap_dictionary_get
             (RoadMapRangeActive->RoadMapStreetNames, this_street->fename));
         
-    roadmap_street_append
-        (RoadMapStreetName,
-         roadmap_dictionary_get
+    roadmap_street_append (RoadMapStreetName, roadmap_dictionary_get
             (RoadMapRangeActive->RoadMapStreetType, this_street->fetype));
         
-    roadmap_street_append
-        (RoadMapStreetName,
-         roadmap_dictionary_get
+    roadmap_street_append (RoadMapStreetName, roadmap_dictionary_get
             (RoadMapRangeActive->RoadMapStreetSuffix, this_street->fedirs));
 
     /* trim the resulting string on both sides (right then left): */
@@ -1964,20 +2068,26 @@ const char *roadmap_street_get_street_name
     return p;
 }
 
-
-const char *roadmap_street_get_city_name
-                (const RoadMapStreetProperties *properties) {
-    
+/**
+ * @brief get the city name
+ * @param properties the properties of this street
+ * @return
+ */
+const char *roadmap_street_get_city_name (const RoadMapStreetProperties *properties)
+{
     if (RoadMapRangeActive == NULL) return 0;
 
     return roadmap_dictionary_get
                 (RoadMapRangeActive->RoadMapCityNames, properties->city);
 }
 
-
-const char *roadmap_street_get_full_name
-                (const RoadMapStreetProperties *properties) {
-    
+/**
+ * @brief get street+city name and address range in one text
+ * @param properties the properties of this street
+ * @return pointer to a static array
+ */
+const char *roadmap_street_get_full_name (const RoadMapStreetProperties *properties)
+{
     static char RoadMapStreetName [512];
 
     const char *address;
