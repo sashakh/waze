@@ -1,5 +1,4 @@
-/* roadmap_gps.c - GPS interface for the RoadMap application.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_gps.h
+ */
+
+/**
+ * @file
+ * @brief roadmap_gps.c - GPS interface for the RoadMap application.
  */
 
 #include <string.h>
@@ -61,6 +61,8 @@ RoadMapConfigDescriptor RoadMapConfigGPSSource =
 #ifdef _WIN32
 static RoadMapConfigDescriptor RoadMapConfigGPSBaudRate =
                         ROADMAP_CONFIG_ITEM("GPS", "Baud Rate");
+RoadMapConfigDescriptor RoadMapConfigGPSOnBluetooth =
+                        ROADMAP_CONFIG_ITEM("GPS", "On Bluetooth");
 #endif
 
 static RoadMapConfigDescriptor RoadMapConfigGPSTimeout =
@@ -134,13 +136,18 @@ static roadmap_gps_link_control RoadMapGpsLinkRemove =
 
 
 /* Basic support functions -------------------------------------------- */
-
+/**
+ * @brief
+ * @return
+ */
 static int roadmap_gps_reception_state (void) {
 
    return RoadMapGpsReception;
 }
 
-
+/**
+ * @brief
+ */
 static void roadmap_gps_update_reception (void) {
 
    int new_state;
@@ -177,6 +184,11 @@ static void roadmap_gps_update_reception (void) {
    }
 }
 
+/**
+ * @brief
+ * @param status
+ * @return
+ */
 static char roadmap_gps_update_status (char status) {
 
    time_t lostfixtimeout;
@@ -217,12 +229,16 @@ static char roadmap_gps_update_status (char status) {
    return status;
 }
 
+/**
+ * @brief
+ */
 static void roadmap_gps_got_data(void) {
-
    RoadMapGpsLatestData = time(NULL);
 }
 
-
+/**
+ * @brief
+ */
 static void roadmap_gps_call_all_listeners (void) {
 
    int i;
@@ -239,7 +255,9 @@ static void roadmap_gps_call_all_listeners (void) {
 
 }
 
-
+/**
+ * @brief
+ */
 static void roadmap_gps_call_all_monitors (void) {
 
    int i;
@@ -257,7 +275,10 @@ static void roadmap_gps_call_all_monitors (void) {
 
 }
 
-
+/**
+ * @brief
+ * @param data
+ */
 static void roadmap_gps_call_loggers (const char *data) {
 
    int i;
@@ -268,7 +289,9 @@ static void roadmap_gps_call_loggers (const char *data) {
    }
 }
 
-
+/**
+ * @brief
+ */
 static void roadmap_gps_keep_alive (void) {
 
    time_t timeout, now;
@@ -318,7 +341,11 @@ static void roadmap_gps_keep_alive (void) {
 static RoadMapNmeaAccount RoadMapGpsNmeaAccount;
 static RoadMapNmeaAccount RoadMapGpsExtendedAccount;
 
-
+/**
+ * @brief
+ * @param context
+ * @param fields
+ */
 static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
 
     if ((strcasecmp (fields->pgrmm.datum, "NAD83") != 0) &&
@@ -329,7 +356,11 @@ static void roadmap_gps_pgrmm (void *context, const RoadMapNmeaFields *fields) {
     }
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @param fields
+ */
 static void roadmap_gps_pgrme (void *context, const RoadMapNmeaFields *fields) {
 
     RoadMapGpsEstimatedError =
@@ -368,7 +399,11 @@ static void roadmap_gps_gga (void *context, const RoadMapNmeaFields *fields) {
    roadmap_gps_got_data();
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @param fields
+ */
 static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
 
    char status = roadmap_gps_update_status (fields->gll.status);
@@ -387,7 +422,11 @@ static void roadmap_gps_gll (void *context, const RoadMapNmeaFields *fields) {
    roadmap_gps_got_data();
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @param fields
+ */
 static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
 
    char status = roadmap_gps_update_status (fields->rmc.status);
@@ -417,7 +456,11 @@ static void roadmap_gps_rmc (void *context, const RoadMapNmeaFields *fields) {
    roadmap_gps_got_data();
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @param fields
+ */
 static void roadmap_gps_gsa
                (void *context, const RoadMapNmeaFields *fields) {
 
@@ -441,7 +484,11 @@ static void roadmap_gps_gsa
 
 }
 
-
+/**
+ * @brief
+ * @param context
+ * @param fields
+ */
 static void roadmap_gps_gsv
                (void *context, const RoadMapNmeaFields *fields) {
 
@@ -494,7 +541,10 @@ static void roadmap_gps_gsv
    roadmap_gps_got_data();
 }
 
-
+/**
+ * @brief
+ * @param title
+ */
 static RoadMapNmeaAccount roadmap_gps_subscribe (const char *title) {
 
       RoadMapNmeaAccount account = roadmap_nmea_create (title);
@@ -512,6 +562,9 @@ static RoadMapNmeaAccount roadmap_gps_subscribe (const char *title) {
       return account;
 }
 
+/**
+ * @brief
+ */
 static void roadmap_gps_nmea (void) {
 
    if (RoadMapGpsNmeaAccount == NULL) {
@@ -688,6 +741,13 @@ void roadmap_gps_initialize (void) {
          ("preferences", &RoadMapConfigGPSSource, "COM1:");
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSBaudRate, "4800");
+      /* The Bluetooth configuration would be better off in roadmap_serial.c but
+       * then I'd have to add all kinds of overhead there. 
+       * The same applies to other variables here, btw, so I'm following the
+       * approach for these other variables.
+       */
+      roadmap_config_declare_enumeration
+	 ("preferences", &RoadMapConfigGPSOnBluetooth, "yes", "no", NULL);
 #endif
       roadmap_config_declare
          ("preferences", &RoadMapConfigGPSTimeout, "10");
@@ -713,7 +773,10 @@ void roadmap_gps_shutdown (void) {
    roadmap_io_close (&RoadMapGpsLink);
 }
 
-
+/**
+ * @brief add listener, this function will be called when new information is available
+ * @param listener this is the function to be called
+ */
 void roadmap_gps_register_listener (roadmap_gps_listener listener) {
 
    int i;
@@ -726,7 +789,10 @@ void roadmap_gps_register_listener (roadmap_gps_listener listener) {
    }
 }
 
-
+/**
+ * @brief
+ * @param monitor
+ */
 void roadmap_gps_register_monitor (roadmap_gps_monitor monitor) {
 
    int i;
