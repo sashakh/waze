@@ -56,6 +56,7 @@ RMLIBOBJS = $(RMLIBSRC:.c=.o)
 RMGUISRC = roadmap_sprite.c \
 	roadmap_object.c \
 	roadmap_trip.c \
+	roadmap_tripdb.c \
 	roadmap_track.c \
 	roadmap_landmark.c \
 	roadmap_features.c \
@@ -296,6 +297,7 @@ RMHEADERS = \
 	roadmap_track.h \
 	roadmap_trigonometry.h \
 	roadmap_trip.h \
+	roadmap_tripdb.h \
 	roadmap_types.h \
 	roadmap_vii.h \
 	roadmap_voice.h
@@ -381,6 +383,9 @@ CFLAGS += -DHAVE_TRIP_PLUGIN
 
 RMLIBSRC += roadmap_skin.c roadmap_line_speed.c roadmap_res.c
 #	roadmap_line_route.c roadmap_turns.c
+
+RMHEADERS += roadmap_skin.h roadmap_line_speed.h roadmap_db_line_speed.h roadmap_res.h
+#	roadmap_line_route.h roadmap_db_line_route.h roadmap_db_turns.h roadmap_turns.h
 
 PLUGIN_CLEAN += ${TRIP_PLUGINSRC:.c=.o} ${RMLIBSRC:.c=.o}
 
