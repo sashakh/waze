@@ -11,6 +11,10 @@
 
 # GNU make is probably required to build RoadMap.
 
+USE_EDITOR_PLUGIN = no
+USE_TRIP_PLUGIN = no
+USE_NAVIGATE_PLUGIN = no
+
 # default installation directory.
 # INSTALLDIR = /usr/local
 

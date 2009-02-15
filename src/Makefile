@@ -402,16 +402,12 @@ endif
 ifeq ($(USE_NAVIGATE_PLUGIN),yes)
 NAVIGATE_PLUGINSRC = \
 	navigate/navigate.c \
-	navigate/navigate_instr.c \
 	navigate/navigate_bar.c \
-	navigate/navigate_zoom.c \
 	navigate/navigate_plugin.c \
-	navigate/navigate_traffic.c \
-	navigate/navigate_graph.c \
+	navigate/navigate_visual.c \
 	navigate/navigate_cost.c \
 	navigate/navigate_simple.c \
 	navigate/navigate_route.c
-#	navigate/fib-1.1/fib.c 
 
 CFLAGS += -DHAVE_NAVIGATE_PLUGIN
 
