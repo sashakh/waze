@@ -89,8 +89,10 @@ RGGUISRC = roadgps_start.c \
 
 RGGUIOBJS = $(RGGUISRC:.c=.o)
 
-
-RMPLUGINSRC = roadmap_copy.c roadmap_httpcopy.c
+RMPLUGINSRC = \
+	roadmap_copy.c \
+	roadmap_httpcopy.c \
+	$(EDITOR_PLUGINSRC) $(TRIP_PLUGINSRC) $(NAVIGATE_PLUGINSRC)
 
 RMPLUGINOBJS=$(RMPLUGINSRC:.c=.o)
 
@@ -338,7 +340,7 @@ MANUAL = usermanual.html
 
 # more products
 ifeq ($(DESKTOP),WINCE)
-BUILD =
+BUILD = # buildus
 else
 BUILD = buildmap buildmap_osm buildus buildplace dumpmap
 # rdmindex -- removed from default build.  it's unfinished s/w, and
@@ -363,6 +365,116 @@ ALL_SRC = $(MKFILES) $(C_SRC) $(HEADERS) \
 	$(PKGDATAFILES) $(MISCFILES) $(MANPAGES) $(SCRIPTS) $(FONT) $(MANUAL)
 
 ALL_SUBDIRS = unix gpx gtk gtk2 qt qt4 icons ipkg agg_support php win32
+
+# --- Additions for Trip plugin -------------------------------
+
+ifeq ($(USE_TRIP_PLUGIN),yes)
+TRIP_PLUGINSRC = \
+	trip/trip_bar.c \
+	trip/trip_cost.c \
+	trip/trip_instr.c \
+	trip/trip.c \
+	trip/trip_plugin.c \
+	trip/trip_traffic.c
+
+CFLAGS += -DHAVE_TRIP_PLUGIN
+
+RMLIBSRC += roadmap_skin.c roadmap_line_speed.c roadmap_res.c
+#	roadmap_line_route.c roadmap_turns.c
+
+PLUGIN_CLEAN += ${TRIP_PLUGINSRC:.c=.o} ${RMLIBSRC:.c=.o}
+
+RMGUISRC +=
+
+ALL_SUBDIRS +=
+
+else
+TRIP_PLUGINSRC =
+endif
+
+# --- Additions for Navigate plugin -------------------------------
+
+ifeq ($(USE_NAVIGATE_PLUGIN),yes)
+NAVIGATE_PLUGINSRC = \
+	navigate/navigate.c \
+	navigate/navigate_instr.c \
+	navigate/navigate_bar.c \
+	navigate/navigate_zoom.c \
+	navigate/navigate_plugin.c \
+	navigate/navigate_traffic.c \
+	navigate/navigate_graph.c \
+	navigate/navigate_cost.c \
+	navigate/navigate_simple.c \
+	navigate/navigate_route.c
+#	navigate/fib-1.1/fib.c 
+
+CFLAGS += -DHAVE_NAVIGATE_PLUGIN
+
+PLUGIN_CLEAN += ${NAVIGATE_PLUGINSRC:.c=.o}
+#
+# support for navigate plugin without trip plugin
+#
+RMLIBSRC += roadmap_skin.c roadmap_line_speed.c roadmap_res.c roadmap_line_route.c
+#	roadmap_turns.c
+# 
+# End of support for navigate plugin without trip plugin
+#
+
+RMGUISRC +=
+
+ALL_SUBDIRS +=
+
+else
+NAVIGATE_PLUGINSRC =
+endif
+
+# --- Additions for Editor plugin -------------------------------
+
+ifeq ($(USE_EDITOR_PLUGIN),yes)
+EDITOR_PLUGINSRC = \
+	editor/editor_plugin.c \
+	editor/editor_main.c \
+	editor/editor_screen.c \
+	editor/static/editor_dialog.c \
+	editor/static/update_range.c \
+	editor/static/edit_marker.c \
+	editor/static/notes.c \
+	editor/db/editor_street.c \
+	editor/db/editor_point.c \
+	editor/db/editor_shape.c \
+	editor/db/editor_line.c \
+	editor/db/editor_square.c \
+	editor/db/editor_route.c \
+	editor/db/editor_marker.c \
+	editor/db/editor_dictionary.c \
+	editor/db/editor_override.c \
+	editor/export/editor_export.c \
+	editor/export/editor_download.c \
+	editor/export/editor_upload.c \
+	editor/export/editor_sync.c \
+	editor/db/editor_trkseg.c \
+	editor/track/editor_track_filter.c \
+	editor/track/editor_track_util.c \
+	editor/track/editor_track_main.c \
+	editor/track/editor_track_unknown.c \
+	editor/track/editor_track_known.c \
+	editor/track/editor_gps_data.c \
+	editor/db/editor_db.c \
+	buildmap_dbwrite.c \
+	buildmap_metadata.c \
+	buildmap_messages.c
+
+CFLAGS += -DHAVE_EDITOR_PLUGIN
+
+RMLIBSRC += \
+
+RMGUISRC +=
+
+ALL_SUBDIRS +=
+
+else
+EDITOR_PLUGINSRC =
+endif
 
 # --- Conventional targets ----------------------------------------
 
@@ -430,7 +542,7 @@ clean:  topclean
 	do \
 		$(MAKE) -C $$module clean || exit 1; \
 	done
-	rm -f agg_support/*.o agg_support/.depends.mk
+	rm -f agg_support/*.o agg_support/.depends.mk ${PLUGIN_CLEAN}
 
 
 install: installdata installbin installicons \
@@ -632,3 +744,14 @@ depends:
 #
 apidocs:	roadmap.doxy
 	doxygen roadmap.doxy
+#
+# This special dependency makes sure you pick up changes to the Makefile.
+# Psst: mention all the sources that have #ifdef HAVE_TRIP_PLUGIN or so.
+#
+roadmap_start.o:	Makefile config.mk
+roadmap_line.o:		Makefile config.mk
+roadmap_math.o:		Makefile config.mk
+roadmap_point.o:	Makefile config.mk
+roadmap_screen.o:	Makefile config.mk
+roadmap_plugin.o:	Makefile config.mk
+roadmap_trip.o:		Makefile config.mk

@@ -38,6 +38,16 @@ RMLIBSRC= \
 	roadmap_gps_detect.c \
 	roadmap_colors.c
 
+#
+# No support for navigate plugin without trip plugin
+#
+ifeq ($(USE_TRIP_PLUGIN),yes)
+RMLIBSRC += roadmap_sound.c
+endif
+ifeq ($(USE_NAVIGATE_PLUGIN),yes)
+RMLIBSRC += roadmap_sound.c
+endif
+
 #	roadmap_keyboard.c \
 #	roadmap_signals.c \
 
@@ -53,7 +63,8 @@ HEADERS = \
 	wince_input_mon.h
 
 TARGETS = wroadmap.exe
-# TARGETS += wroadmap.cab demomaps.cab
+TARGETS += wroadmap.cab demomaps.cab
+# TARGETS += testpower.exe
 
 # --- The real targets --------------------------------------------
 
@@ -69,6 +80,9 @@ libwroadmap.a: $(RMLIBOBJ)
 	$(AR) $(ARFLAGS) libwroadmap.a $(RMLIBOBJ)
 	$(RANLIB) libwroadmap.a
 
+WINCE_LIBS=	-lcommctrl -laygshell -lws2
+# WINCE_LIBS=	-lcommctrl -lws2
+
 wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 		roadmap_build.c \
 		$(TOP)/libguiroadmap.a $(filter %.a, $(LIBS))
@@ -76,7 +90,7 @@ wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 	$(CC) $(LDFLAGS) -o wroadmap.exe roadmap_main.o roadmap.rsc \
 		roadmap_build.o \
 		$(TOP)/libguiroadmap.a libwroadmap.a $(LIBS) \
-		libwroadmap.a -lcommctrl -laygshell -lws2
+		libwroadmap.a ${WINCE_LIBS}
 
 #
 # Unneeded, functionality is now in "roadmap"
@@ -86,7 +100,6 @@ wroadmap.exe: roadmap_main.o libwroadmap.a roadmap.rsc \
 # 	$(CC) $(LDFLAGS) -o wroadgps roadmap_main.o roadmap.rsc \
 # 		$(TOP)/libguiroadgps.a libwroadmap.a $(LIBS) \
 # 		libwroadmap.a -lcommctrl -laygshell -lws2
-
 
 # for win32 we aren't as rigorous about producing
 # this list of source as we are for the other RoadMap
