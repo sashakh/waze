@@ -71,6 +71,9 @@ typedef struct {
 
    const char *address;
    const char *street;
+#ifdef HAVE_STREET_T2S
+   const char *street_t2s;	/* What is this ? */
+#endif
    const char *city;
    PluginStreet plugin_street;
 
@@ -163,8 +166,14 @@ typedef void (*plugin_get_street_func) (const PluginLine *line,
 
 typedef const char *(*plugin_street_full_name_func) (const PluginLine *line);
 
+#if 0
+typedef void (*plugin_street_properties_func) (const PluginLine *line,
+                                               PluginStreetProperties *props,
+					       int type);
+#else
 typedef void (*plugin_street_properties_func) (const PluginLine *line,
                                                PluginStreetProperties *props);
+#endif
 
 typedef int (*plugin_find_connected_lines_func)
                   (const RoadMapPosition *crossing,
@@ -191,6 +200,8 @@ typedef RoadMapAction *plugin_actions;
 typedef char **plugin_menu;
 typedef void (*plugin_after_refresh) (void);
 typedef void (*plugin_format_messages) (void);
+typedef void (*plugin_route_clear)(void);
+typedef void (*plugin_route_add)(int, int, int);
 
 /**
  * @brief definition of a plugin
@@ -218,6 +229,8 @@ typedef struct {
    plugin_menu				menu;			/**< Additional menu definition */
    plugin_after_refresh			after_refresh;		/**< Call this after refresh */
    plugin_format_messages		format_messages;	/**< Display directions */
+   plugin_route_clear			route_clear;		/**< clear the route */
+   plugin_route_add			route_add;		/**< add a hop to the route */
 } RoadMapPluginHooks;
 
 #define ROADMAP_PLUGIN_ID 0
@@ -286,4 +299,8 @@ void roadmap_plugin_get_line_points (const PluginLine *line,
                                      int              *last_shape,
                                      RoadMapShapeItr  *shape_itr);
 #endif
+
+void roadmap_plugin_route_clear(void);
+void roadmap_plugin_route_add(int, int, int);
+
 #endif /* INCLUDED__ROADMAP_PLUGIN__H */

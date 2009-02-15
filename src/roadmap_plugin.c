@@ -489,14 +489,28 @@ const char *roadmap_plugin_street_full_name (PluginLine *line) {
    }
 }
 
+#if 0
+void roadmap_plugin_get_street_properties (const PluginLine *line,
+                                           PluginStreetProperties *props,
+					   int type)
+#else
 void roadmap_plugin_get_street_properties (const PluginLine *line,
                                            PluginStreetProperties *props)
+#endif
 {
-   
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
-
       RoadMapStreetProperties rm_properties;
 
+#warning "roadmap_street_get_street fix needed"
+#if 0
+      if (type == PLUGIN_STREET_ONLY) {
+	      roadmap_street_get_street (line->line_id, &rm_properties);
+	      props->street = roadmap_street_get_street_name (&rm_properties);
+	      props->plugin_street.plugin_id = ROADMAP_PLUGIN_ID;
+	      props->plugin_street.street_id = rm_properties.street;
+	      return;
+      }
+#endif
       roadmap_street_get_properties (line->line_id, &rm_properties);
 
       props->address = roadmap_street_get_street_address (&rm_properties);
@@ -521,8 +535,13 @@ void roadmap_plugin_get_street_properties (const PluginLine *line,
          return;
       }
 
+#if 0
+      if (hp->get_street_properties != NULL) {
+         (*hp->get_street_properties) (line, props, type);
+#else
       if (hp->get_street_properties != NULL) {
          (*hp->get_street_properties) (line, props);
+#endif
       }
 
       return;
@@ -600,6 +619,107 @@ int roadmap_plugin_get_closest
    return count;
 }
 
+#ifdef HAVE_NAVIGATE_PLUGIN
+int roadmap_plugin_get_direction (PluginLine *line, int who)
+{
+   if (line->plugin_id == ROADMAP_PLUGIN_ID) {
+
+      return roadmap_line_route_get_direction (line->line_id, who);
+
+   } else {
+      RoadMapPluginHooks *hp = get_hooks (line->plugin_id);
+
+      if (hp == NULL) {
+         roadmap_log (ROADMAP_ERROR, "plugin id:%d is missing.",
+               line->plugin_id);
+
+         return 0;
+      }
+
+      if (hp->route_direction != NULL) {
+         return (*hp->route_direction) (line, who);
+      }
+
+      return 0;
+   }
+
+}
+#endif
+
+#if defined(HAVE_TRIP_PLUGIN) || defined(HAVE_NAVIGATE_PLUGIN)
+void roadmap_plugin_get_line_points (const PluginLine *line,
+                                     RoadMapPosition  *from_pos,
+                                     RoadMapPosition  *to_pos,
+                                     int              *first_shape,
+                                     int              *last_shape,
+                                     RoadMapShapeItr  *shape_itr)
+{
+   roadmap_plugin_line_from (line, from_pos);
+   roadmap_plugin_line_to (line, to_pos);
+
+   if (line->plugin_id == ROADMAP_PLUGIN_ID) {
+#warning "roadmap_line_shapes needed"
+#if 0
+      roadmap_line_shapes (line->line_id, -1, first_shape, last_shape);
+      *shape_itr = &roadmap_shape_get_position;
+#endif
+   } else {
+      RoadMapPluginHooks *hp = get_hooks (line->plugin_id);
+      
+      if (hp == NULL) {
+         roadmap_log (ROADMAP_ERROR, "plugin id:%d is missing.",
+               line->plugin_id);
+
+         *first_shape = *last_shape = -1;
+         *shape_itr   = NULL;
+         return;
+      }
+
+      //FIXME implement for plugins
+#if 0
+      if (hp->line_shapes != NULL) {
+         (*hp->line_shapes) (line, first_shape, last_shape, shape_itr);
+
+      } else {
+#else
+         {
+#endif   
+         *first_shape = *last_shape = -1;
+         *shape_itr   = NULL;
+      }
+
+      return;
+   }
+}
+#endif
+
+/*
+ * roadmap_plugin_initialize should be here, but it's moved to roadmap_start.c
+ * because otherwise all the tools like buildmap fail to build.
+ */
+int roadmap_plugin_get_line_cfcc (const PluginLine *line) {
+	   return line->layer;
+}
+
+#ifdef HAVE_EDITOR_PLUGIN
+int roadmap_plugin_calc_length (const RoadMapPosition *position,
+		const PluginLine *line,
+		int *total_length)
+{
+	RoadMapPosition line_from_pos;
+	RoadMapPosition line_to_pos;
+	int first_shape;
+	int last_shape;
+	RoadMapShapeItr shape_itr;
+	roadmap_plugin_get_line_points (line, &line_from_pos, &line_to_pos,
+			&first_shape, &last_shape, &shape_itr);
+	return roadmap_math_calc_line_length (position,
+			&line_from_pos, &line_to_pos,
+			first_shape, last_shape,
+			shape_itr, total_length);
+} 
+#endif
+
 /**
  * @brief call the "factory" handler to register actions and menu items
  * Note that this function avoids using get_hooks() so it can work before plugin initialize.
@@ -638,5 +758,33 @@ void roadmap_plugin_initialize_all_plugins(void)
 		if (p->initialize)
 			p->initialize();
 		hooks[id].initialized = 1;
+	}
+}
+
+void roadmap_plugin_route_clear(void)
+{
+	int			id;
+	RoadMapPluginHooks	*p;
+
+	for (id=1; id<= PluginCount; id++) {
+		p = hooks[id].plugin;
+		if (!p)
+			continue;
+		if (p->route_clear)
+			p->route_clear();
+	}
+}
+
+void roadmap_plugin_route_add(int line, int layer, int fips)
+{
+	int			id;
+	RoadMapPluginHooks	*p;
+
+	for (id=1; id<= PluginCount; id++) {
+		p = hooks[id].plugin;
+		if (!p)
+			continue;
+		if (p->route_add)
+			p->route_add(line, layer, fips);
 	}
 }

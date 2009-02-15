@@ -27,7 +27,7 @@
 #include "roadmap_types.h"
 #include "roadmap_gui.h"
 #include "roadmap_gps.h"
-
+#include "roadmap_plugin.h"
 
 void  roadmap_trip_set_point (const char *name, RoadMapPosition *position);
 void  roadmap_trip_add_waypoint
@@ -124,5 +124,27 @@ int roadmap_trip_move_last_place_callback
 void roadmap_trip_replace_with_google_route(void);
 #endif
 
-#endif // INCLUDE__ROADMAP_TRIP__H
+void roadmap_trip_set_selection_as (const char *name);
 
+#ifdef HAVE_NAVIGATE_PLUGIN
+void roadmap_trip_set_selection (int lon, int lat);
+#endif
+
+void roadmap_trip_enable (int status);
+void roadmap_trip_refresh (void);
+void roadmap_trip_refresh_needed(void);
+void roadmap_trip_set_modified(int modified);
+void roadmap_trip_unset_route_focii (void);
+
+/* Add Waypoint dialog */
+#define TRIP_PLACE_PERSONAL_MARK         0
+#define TRIP_PLACE_TRIP_MARK             1
+#define TRIP_PLACE_NEW_ROUTE             2
+#define TRIP_PLACE_ROUTE_MARK_DEST       3
+#define TRIP_PLACE_ROUTE_MARK_INSERT     4
+#define TRIP_PLACE_ROUTE_MARK_START      5
+
+#define TRIP_NUM_PLACEMENTS           3
+#define TRIP_NUM_ROUTE_PLACEMENTS     6
+
+#endif // INCLUDE__ROADMAP_TRIP__H

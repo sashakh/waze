@@ -52,9 +52,9 @@ typedef struct {
 typedef unsigned char LineRouteFlag;
 typedef unsigned char  LineRouteMax;
 typedef unsigned short LineRouteTime;
+#endif
 
 typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
-#endif
 
 #endif // INCLUDED__ROADMAP_TYPES__H
 
