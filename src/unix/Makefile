@@ -13,6 +13,13 @@ LIBSRCS=roadmap_file.c \
           roadmap_spawn.c \
           roadmap_time.c
 
+ifeq ($(USE_TRIP_PLUGIN),yes)
+LIBSRCS += roadmap_sound.c
+endif
+ifeq ($(USE_NAVIGATE_PLUGIN),yes)
+LIBSRCS += roadmap_sound.c
+endif
+
 LIBOBJS=$(LIBSRCS:.c=.o)
 
 
