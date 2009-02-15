@@ -1,5 +1,4 @@
-/* roadmap_start.c - The main function of the RoadMap application.
- *
+/*
  * LICENSE:
  *
  *   (c) Copyright 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
@@ -21,10 +20,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   void roadmap_start (int argc, char **argv);
+ */
+
+/**
+ * @file
+ * @brief The main function of the RoadMap application.
  */
 
 #include <stdlib.h>
@@ -89,6 +89,17 @@
 
 #include "roadmap_start.h"
 
+/* Only for roadmap_plugin_initialize */
+#include "roadmap_library.h"
+
+#ifdef HAVE_TRIP_PLUGIN
+#include "trip/trip.h"
+#include "trip/trip_plugin.h"
+#endif
+#ifdef HAVE_NAVIGATE_PLUGIN
+#include "navigate/navigate_plugin.h"
+#endif
+
 #ifdef _WIN32
 extern const char *roadmap_build(void);
 #endif
@@ -138,7 +149,11 @@ static RoadMapConfigDescriptor RoadMapConfigDisplayRefresh =
 #define roadmap_track_save          roadmap_start_no_expat
 #define roadmap_landmark_merge      roadmap_start_no_expat
 
-static void roadmap_start_no_expat (void) {
+/**
+ * @brief warn the user that features using expat are not available
+ */
+static void roadmap_start_no_expat (void)
+{
     roadmap_log (ROADMAP_ERROR,
                  "This feature is not available (no expat library)");
 }
@@ -161,27 +176,51 @@ static void roadmap_start_purge (void) {
    roadmap_history_purge (10);
 }
 
-static void roadmap_start_show_start (void) {
+static void roadmap_start_show_start (void)
+{
+#ifdef	HAVE_TRIP_PLUGIN
+    roadmap_trip_set_focus ("Start"); /* trip_set_focus ("Start"); */
+#else
     roadmap_trip_set_focus ("Start");
+#endif
     roadmap_screen_refresh ();
 }
 
-static void roadmap_start_show_departure (void) {
+static void roadmap_start_show_departure (void)
+{
+#ifdef	HAVE_TRIP_PLUGIN
+    roadmap_trip_set_focus ("Departure"); /* trip_set_focus ("Departure"); */
+#else
     roadmap_trip_set_focus ("Departure");
+#endif
     roadmap_screen_refresh ();
 }
 
-static void roadmap_start_show_destination (void) {
+static void roadmap_start_show_destination (void)
+{
+#ifdef	HAVE_TRIP_PLUGIN
+    roadmap_trip_set_focus ("Destination"); /* trip_set_focus ("Destination"); */
+#else
     roadmap_trip_set_focus ("Destination");
+#endif
     roadmap_screen_refresh ();
 }
 
-static void roadmap_start_show_location (void) {
+static void roadmap_start_show_location (void)
+{
+#ifdef HAVE_TRIP_PLUGIN
+    roadmap_trip_set_focus ("Address"); /* trip_set_focus ("Address"); */
+#else
     roadmap_trip_set_focus ("Address");
+#endif
     roadmap_screen_refresh ();
 }
 
-static void roadmap_start_show_gps (void) {
+static void roadmap_start_show_gps (void)
+{
+#ifdef HAVE_TRIP_PLUGIN
+    roadmap_trip_set_focus ("GPS"); /* trip_set_focus ("GPS"); */
+#endif
     roadmap_trip_set_focus ("GPS");
     roadmap_screen_refresh ();
 }
@@ -200,23 +239,48 @@ static void roadmap_start_counter_rotate (void) {
     roadmap_screen_rotate (-10);
 }
 
+#if 1
+
+#define	CRLF	"\n"
+
+#else
+#ifdef _WIN32
+#define	CRLF	"\r\n"
+#else
+#define	CRLF	"\n"
+#endif
+#endif
+
 static void roadmap_start_about (void) {
 
    roadmap_messagebox ( "About",
-       "RoadMap " ROADMAP_VERSION "\n"
-       "Copyright " ROADMAP_YEAR " Pascal Martin,\n"
-       "Paul Fox, Ehud Shabtai, Danny Backx and many others\n"
-       "\n"
-       "RoadMap is free software; you can\n"
-       "redistribute it and/or modify it under the\n"
-       "terms of version 2 (or later) of the GNU\n"
-       "General Public License, as published by the\n"
-       "Free Software Foundation.  You should have\n"
-       "received a copy of the GPL license along\n"
-       "with this program.\n"
+       "RoadMap " ROADMAP_VERSION CRLF
+       "Copyright " ROADMAP_YEAR " Pascal Martin," CRLF
+       "Paul Fox, Ehud Shabtai, Danny Backx and many others" CRLF
+       CRLF
+       "RoadMap is free software; you can" CRLF
+       "redistribute it and/or modify it under the" CRLF
+       "terms of version 2 (or later) of the GNU" CRLF
+       "General Public License, as published by the" CRLF
+       "Free Software Foundation.  You should have" CRLF
+       "received a copy of the GPL license along" CRLF
+       "with this program." CRLF
    );
 
 }
+
+/**
+ * @brief show a list of all active plugins.
+ * This needs to be here, moving the roadmap_messagebox() call into roadmap_plugin.c would
+ * break the build.
+ */
+static void roadmap_start_list_all_plugins(void)
+{
+	char *r = roadmap_plugin_list_all_plugins();
+	roadmap_messagebox("Plugin list", r);
+	free(r);
+}
+
 
 static void roadmap_start_mapinfo (void) {
 
@@ -236,15 +300,23 @@ static void roadmap_start_mapinfo (void) {
    roadmap_messagebox_wait ("Map Parameters", map_info);
 }
 
-static void roadmap_start_create_waypoint (void) {
-
+static void roadmap_start_create_waypoint (void)
+{
+#ifdef HAVE_TRIP_PLUGIN
+    roadmap_trip_create_selection_waypoint (); /* trip_create_selection_waypoint (); */
+#else
     roadmap_trip_create_selection_waypoint ();
+#endif
     roadmap_screen_refresh();
 }
 
-static void roadmap_start_create_gps_waypoint (void) {
-
+static void roadmap_start_create_gps_waypoint (void)
+{
+#ifdef HAVE_TRIP_PLUGIN
+    roadmap_trip_create_gps_waypoint (); /* trip_create_gps_waypoint (); */
+#else
     roadmap_trip_create_gps_waypoint ();
+#endif
     roadmap_screen_refresh();
 }
 
@@ -770,6 +842,9 @@ static RoadMapAction RoadMapStartActions[] = {
       "Auto-detect GPS receiver", NULL, roadmap_start_detect_receiver},
 #endif
 
+   {"listplugins", "List plugins", NULL, NULL,
+	   "List the RoadMap plugins", NULL, roadmap_start_list_all_plugins},
+
    {NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
@@ -817,7 +892,10 @@ static const char *RoadMapStartMenu[] = {
 #ifdef _WIN32
       "detectreceiver",
 #endif
+#ifndef HAVE_TRIP_PLUGIN
       "savescreenshot",
+#endif
+      "listplugins",
 
       RoadMapFactorySeparator,
 
@@ -882,7 +960,7 @@ static const char *RoadMapStartMenu[] = {
       "departure",
       "gps",
 
-
+#ifndef	HAVE_TRIP_PLUGIN
    ROADMAP_MENU "Trip",
 
       "newtrip",
@@ -897,7 +975,8 @@ static const char *RoadMapStartMenu[] = {
       ROADMAP_INVOKE_SUBMENU "Places...",
       ROADMAP_INVOKE_SUBMENU "Edit Places...",
       ROADMAP_INVOKE_SUBMENU "Tracks...",
-
+#endif
+#ifndef HAVE_TRIP_PLUGIN
    ROADMAP_SUBMENU "Routes...",
 
       "manageroutes",
@@ -962,7 +1041,7 @@ static const char *RoadMapStartMenu[] = {
 
       "routepointahead",
       "routepointback",
-
+#endif
 
    ROADMAP_MENU "Help",
 
@@ -1132,6 +1211,13 @@ static void roadmap_gps_set_messages(const RoadMapGpsPosition *gps) {
 
 static int RoadMapStartGpsRefresh = 0;
 
+/**
+ * @brief GPS listener : is called when new information is available
+ * @param reception
+ * @param gps_time
+ * @param dilution
+ * @param gps_position
+ */
 static void roadmap_start_gps_listen
                (int reception,
                 int gps_time,
@@ -1139,6 +1225,8 @@ static void roadmap_start_gps_listen
                 const RoadMapGpsPosition  *gps_position) {
 
    static int RoadMapSynchronous = -1;
+
+//   roadmap_log (ROADMAP_WARNING, "roadmap_start_gps_listen");
 
    if (RoadMapStartFrozen) {
 
@@ -1154,8 +1242,13 @@ static void roadmap_start_gps_listen
 
          roadmap_object_move (RoadMapStartGpsID, gps_position);
 
+#ifdef HAVE_TRIP_PLUGIN
+	 /* Here Danny FIX ME FIXME */
+         trip_set_gps (gps_time, gps_position);
          roadmap_trip_set_gps (gps_time, gps_position);
-
+#else
+         roadmap_trip_set_gps (gps_time, gps_position);
+#endif
          roadmap_gps_set_messages(gps_position);
 
          roadmap_log_reset_stack ();
@@ -1202,7 +1295,6 @@ void roadmap_start_error (const char *text) {
 void roadmap_start_fatal (const char *text) {
    roadmap_messagebox_die ("Fatal Error", text);
 }
-
 
 static void roadmap_start_periodic (void) {
 
@@ -1339,6 +1431,10 @@ void roadmap_start_unfreeze (void) {
    roadmap_screen_unfreeze ();
 }
 
+/**
+ * @brief get a string indicating current time
+ * @return the string, pointer to a static array (overwritten next call, don't free)
+ */
 char * roadmap_start_now() {
 
    return roadmap_time_get_hours_minutes (time(NULL));
@@ -1348,6 +1444,95 @@ char * roadmap_start_now() {
 static void roadmap_start_screen_configure (void) {
    roadgps_screen_configure();
    roadmap_screen_configure();
+}
+
+#ifdef HAVE_EDITOR_PLUGIN
+int	editor_plugin_id = 0;
+#endif
+#ifdef HAVE_NAVIGATE_PLUGIN
+int	navigate_plugin_id = 0;
+#endif
+#ifdef HAVE_TRIP_PLUGIN
+int	trip_plugin_id = 0;
+#endif
+
+/**
+ * @brief read a plugin configuration file, and dynamically load whatever it says.
+ * Hardcoded this for now as there are issues with mutual requirements.
+ */
+void roadmap_start_plugin_register (void)
+{
+#if 1
+	/*
+	 * Workaround for now : register plugins here
+	 */
+#ifdef HAVE_NAVIGATE_PLUGIN
+	navigate_plugin_id = navigate_plugin_register ();
+#endif
+#else
+	RoadMapFile	plugin_file;
+	char		*buffer;
+	int		count, sz = 1024;
+	char		*dllname, *funcname;
+	RoadMapLibrary	lib;
+	void (*func)(void) = NULL;
+
+	roadmap_log (ROADMAP_WARNING, "roadmap_plugin_register()");
+
+	/*
+	 * This is not compatible with the current way of building RoadMap.
+	 *
+	 * At least on Linux/UNIX, dlopen() requires that the shared library
+	 * is either self-contained or links other libraries.
+	 * This would require e.g. roadmap_canvas_draw_image to be linked in
+	 * for navigate/navigate_bar.c . But dlopen() doesn't know that this
+	 * function is already in the RoadMap executable.
+	 *
+	 * So it is not as simple as creating a shared library per plugin :
+	 * the bulk of RoadMap must also be in shared libraries so they're
+	 * not loaded more than once.
+	 */
+	plugin_file = roadmap_file_open("plugins" _TXT, "r");
+	if (plugin_file) {
+		roadmap_log (ROADMAP_WARNING, "reading plugin file");
+		buffer = malloc(sz);
+		dllname = malloc(64);
+		funcname = malloc(64);
+		while (1) {
+			count = roadmap_file_read (plugin_file, buffer, sz);
+			if (count <= 0)
+				break;
+			/* Read two fields, separated by a comma. Ignore whitespace. */
+			sscanf(buffer, "%[^,], %s\n", dllname, funcname);
+			lib = roadmap_library_load(dllname);
+			if (lib) {
+#if 0
+				func = roadmap_library_symbol(lib, funcname);
+				roadmap_library_close(lib);
+				if (func)
+					(*func)();
+#else
+				RoadMapPluginHooks *plugin = roadmap_library_symbol(dllname, "nagivate_plugin_hooks");
+				if (plugin) {
+					roadmap_log(ROADMAP_WARNING, "Loaded plugin [%s] from %s",
+							plugin->name,
+							dllname);
+				}
+#endif
+			}
+		}
+		free(buffer);
+		roadmap_file_close (plugin_file);
+	}
+#endif
+}
+
+/**
+ * @brief loop over the registered plugins and initialize them.
+ */
+void roadmap_start_initialize_plugins (void)
+{
+	roadmap_plugin_initialize_all_plugins();
 }
 
 void roadmap_start (int argc, char **argv) {
@@ -1456,6 +1641,7 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_set_unit ();
    
    roadmap_math_restore_zoom ();
+   roadmap_start_plugin_register   ();
    roadmap_start_window      ();
    roadmap_label_activate    ();
    roadmap_sprite_load       ();
@@ -1473,6 +1659,8 @@ void roadmap_start (int argc, char **argv) {
 #endif
 
    roadmap_spawn_initialize (argv[0]);
+
+   roadmap_start_initialize_plugins();
    
    roadmap_driver_activate ();
    roadmap_gps_open ();
@@ -1481,14 +1669,26 @@ void roadmap_start (int argc, char **argv) {
 
    roadmap_screen_obj_initialize ();
 
+//#ifndef HAVE_TRIP_PLUGIN
    roadmap_trip_restore_focus ();
+//#endif
 
-#ifdef ROADMAP_USES_EXPAT
+#ifndef HAVE_TRIP_PLUGIN
+# ifdef ROADMAP_USES_EXPAT
    if ( ! roadmap_trip_load (1, 0)) {
       roadmap_trip_new ();
    }
-#else
+# else
    roadmap_trip_new ();
+# endif
+#else
+# ifdef ROADMAP_USES_EXPAT
+   if ( ! trip_load (1, 0)) {
+      trip_new ();
+   }
+# else
+   trip_new ();
+# endif
 #endif
 
    roadmap_locator_declare_downloader (&roadmap_start_no_download);
@@ -1502,18 +1702,24 @@ void roadmap_start (int argc, char **argv) {
    roadmap_start_request_repaint_map (REPAINT_NOW);
 }
 
-
-void roadmap_start_exit (void) {
-    
+/**
+ * @brief terminate RoadMap
+ */
+void roadmap_start_exit (void)
+{
     roadmap_main_set_cursor (ROADMAP_CURSOR_WAIT);
     roadmap_driver_shutdown ();
     roadmap_history_save();
 #ifdef ROADMAP_USES_EXPAT
     roadmap_track_autowrite ();
     roadmap_landmark_save ();
+#ifndef HAVE_TRIP_PLUGIN
     roadmap_trip_save ();
 #endif
+#endif
+#ifndef HAVE_TRIP_PLUGIN
     roadmap_trip_preserve_focus();
+#endif
     roadmap_config_save (0);
     roadmap_gps_shutdown ();
     roadmap_log (ROADMAP_WARNING, "RoadMap exiting, time %s", roadmap_start_now());

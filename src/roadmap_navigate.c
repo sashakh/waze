@@ -1,8 +1,8 @@
-/* roadmap_navigate.c - Basic navigation engine for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2003 Pascal F. Martin
+ *   Copyright (c) 2008, 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,13 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Basic navigation support engine for RoadMap.
  *
- * SYNOPSYS:
- *
- *   See roadmap_navigate.h.
+ * This module keeps track of where we are and which street we're on.
  */
 
 #include <string.h>
@@ -43,59 +46,56 @@
 
 #include "roadmap_navigate.h"
 
-
-
-typedef struct {
-    RoadMapFuzzy direction;
-    RoadMapFuzzy distance;
-    RoadMapFuzzy connected;
-} RoadMapDebug;
-
 static RoadMapConfigDescriptor RoadMapNavigateFlag =
                         ROADMAP_CONFIG_ITEM("Navigation", "Enable");
 
-/* The navigation flag will be set according to the session's content,
- * so that the user selected state is kept from one session to
- * the next.
+/**
+ * @brief The navigation flag will be set according to the session's content,
+ * so that the user selected state is kept from one session to * the next.
  */
 static int RoadMapNavigateEnabled = 0;
-
-static int RoadMapCarMode;
-
 
 /* Avoid doing navigation work when the position has not changed. */
 static RoadMapGpsPosition RoadMapLatestGpsPosition;
 static RoadMapPosition    RoadMapLatestPosition;
 
-typedef struct {
-
-    int valid;
-    PluginStreet street;
-
-    int direction;
-
-    RoadMapFuzzy fuzzyfied;
-
-    PluginLine intersection;
-
-    RoadMapPosition entry;
-
-    RoadMapDebug debug;
-
-} RoadMapTracking;
-
 #define ROADMAP_TRACKING_NULL  {0, PLUGIN_STREET_NULL, 0, 0, PLUGIN_LINE_NULL, {0, 0}, {0, 0, 0}};
 
-#define ROADMAP_NEIGHBOURHOUD  16
+#define ROADMAP_NEIGHBOURHOOD  16
 
+/**
+ * @brief the street we're on in the current position
+ */
 static RoadMapTracking  RoadMapConfirmedStreet = ROADMAP_TRACKING_NULL;
 
+/**
+ * @brief the line we're on in the current posiion
+ */
 static RoadMapNeighbour RoadMapConfirmedLine = ROADMAP_NEIGHBOUR_NULL;
-static RoadMapNeighbour RoadMapNeighbourhood[ROADMAP_NEIGHBOURHOUD];
 
+/**
+ * @brief local temporary storage with a list of roads close by
+ */
+static RoadMapNeighbour RoadMapNeighbourhood[ROADMAP_NEIGHBOURHOOD];
 
-static void roadmap_navigate_trace (const char *format, PluginLine *line) {
-    
+/**
+ * @brief Navigation mode, defaults to 0.
+ * Whatever that may be, probably "Car" as this is the first entry in the
+ * default default/All file under "Class.NavigationModes".
+ */
+static int RoadMapNavigateMode = 0;
+
+/**
+ * @brief query the navigation mode
+ * @return the current navigation mode
+ */
+int roadmap_navigate_get_mode(void)
+{
+	return RoadMapNavigateMode;
+}
+
+static void roadmap_navigate_trace (const char *format, PluginLine *line)
+{
     char text[1024];
     PluginStreet street;
     PluginStreetProperties properties;
@@ -120,18 +120,26 @@ static void roadmap_navigate_trace (const char *format, PluginLine *line) {
     }
 }
 
-
-static int roadmap_navigate_get_neighbours
-              (const RoadMapArea *focus,
+/**
+ * @brief
+ * @param focus
+ * @param position
+ * @param neighbours
+ * @param max
+ * @param navigation_mode
+ * @return
+ */
+int roadmap_navigate_get_neighbours (const RoadMapArea *focus,
                const RoadMapPosition *position,
-               RoadMapNeighbour *neighbours, int max) {
-
+               RoadMapNeighbour *neighbours, int max,
+	       int navigation_mode)
+{
     int count;
     int layers[128];
 
     roadmap_log_push ("roadmap_navigate_get_neighbours");
 
-    count = roadmap_layer_navigable (RoadMapCarMode, layers, 128);
+    count = roadmap_layer_navigable (navigation_mode, layers, 128);
     
     if (count > 0) {
 
@@ -148,9 +156,11 @@ static int roadmap_navigate_get_neighbours
     return count;
 }
 
-
-void roadmap_navigate_disable (void) {
-    
+/**
+ * @brief
+ */
+void roadmap_navigate_disable (void)
+{
     RoadMapNavigateEnabled = 0;
     roadmap_display_hide ("Approach");
     roadmap_display_hide ("Current Street");
@@ -158,24 +168,33 @@ void roadmap_navigate_disable (void) {
     roadmap_config_set (&RoadMapNavigateFlag, "no");
 }
 
-
-void roadmap_navigate_enable  (void) {
-    
+/**
+ * @brief
+ */
+void roadmap_navigate_enable  (void)
+{
     RoadMapNavigateEnabled  = 1;
 
     roadmap_config_set (&RoadMapNavigateFlag, "yes");
 }
 
-
+/**
+ * @brief
+ * @param focus
+ * @param position
+ * @param line
+ * @param distance
+ * @return
+ */
 int roadmap_navigate_retrieve_line (const RoadMapArea *focus,
                                     const RoadMapPosition *position,
                                     PluginLine *line,
                                     int *distance) {
 
     RoadMapNeighbour closest;
+    int navigation_mode = roadmap_navigate_get_mode();
 
-    if (roadmap_navigate_get_neighbours
-           (focus, position, &closest, 1) <= 0) {
+    if (roadmap_navigate_get_neighbours (focus, position, &closest, 1, navigation_mode) <= 0) {
 
        return -1;
     }
@@ -189,12 +208,15 @@ int roadmap_navigate_retrieve_line (const RoadMapArea *focus,
     return 0;
 }
 
-
-
-static int roadmap_navigate_fuzzify
-                (RoadMapTracking *tracked,
-                 RoadMapNeighbour *line, int direction) {
-
+/**
+ * @brief
+ * @param tracked
+ * @param line
+ * @param direction
+ * @return
+ */
+int roadmap_navigate_fuzzify (RoadMapTracking *tracked, RoadMapNeighbour *line, int direction)
+{
     RoadMapFuzzy fuzzyfied_distance;
     RoadMapFuzzy fuzzyfied_direction;
     RoadMapFuzzy connected;
@@ -215,9 +237,7 @@ static int roadmap_navigate_fuzzify
     }
 
     if (RoadMapConfirmedStreet.valid) {
-        connected =
-            roadmap_fuzzy_connected
-                (line, &RoadMapConfirmedLine, &tracked->entry);
+        connected = roadmap_fuzzy_connected (line, &RoadMapConfirmedLine, &tracked->entry);
     } else {
         connected = roadmap_fuzzy_not (0);
     }
@@ -226,15 +246,17 @@ static int roadmap_navigate_fuzzify
     tracked->debug.distance  = fuzzyfied_distance;
     tracked->debug.connected = connected;
 
-    return roadmap_fuzzy_and
-               (connected,
+    return roadmap_fuzzy_and (connected,
                 roadmap_fuzzy_and (fuzzyfied_distance, fuzzyfied_direction));
 }
 
-
-static int roadmap_navigate_confirm_intersection
-                             (const RoadMapGpsPosition *position) {
-
+/**
+ * @brief
+ * @param position
+ * @return
+ */
+static int roadmap_navigate_confirm_intersection (const RoadMapGpsPosition *position)
+{
     int delta;
 
     if (!PLUGIN_VALID(RoadMapConfirmedStreet.intersection)) return 0;
@@ -246,16 +268,20 @@ static int roadmap_navigate_confirm_intersection
 }
 
 
-/* Check if the given street block is a possible intersection and
+/**
+ * @brief Check if the given street block is a possible intersection and
  * evaluate how good an intersection guess it would be.
  * The criteria for a good intersection is that it must be as far
  * as possible from matching our current direction.
+ *
+ * @param line
+ * @param direction
+ * @param crossing
+ * @return
  */
-static RoadMapFuzzy roadmap_navigate_is_intersection
-                        (PluginLine *line,
-                         int direction,
-                         const RoadMapPosition *crossing) {
-
+static RoadMapFuzzy roadmap_navigate_is_intersection (PluginLine *line,
+		int direction, const RoadMapPosition *crossing)
+{
     RoadMapPosition line_to;
     RoadMapPosition line_from;
 
@@ -276,15 +302,12 @@ static RoadMapFuzzy roadmap_navigate_is_intersection
         }
     }
 
-    return roadmap_fuzzy_not
-               (roadmap_fuzzy_direction
-                    (roadmap_math_azymuth (&line_from, &line_to),
-                     direction,
-                     1));
+    return roadmap_fuzzy_not (roadmap_fuzzy_direction
+                    (roadmap_math_azymuth (&line_from, &line_to), direction, 1));
 }
 
-
-/* Find the next intersection point.
+/**
+ * @brief Find the next intersection point.
  * We compare the current direction with the azimuth to the two ends of
  * the closest segment of line. From there, we deduct which end of the line
  * we are going to. Note that we do not consider the azimuth toward the ends
@@ -292,10 +315,15 @@ static RoadMapFuzzy roadmap_navigate_is_intersection
  * confusing (imagine a mountain road..).
  * Once we know where we are going, we select a street that intersects
  * this point and seems the best guess as an intersection.
+ *
+ * @param position
+ * @param found
+ * @param navigation_mode
+ * @return
  */
-static int roadmap_navigate_find_intersection
-                  (const RoadMapGpsPosition *position, PluginLine *found) {
-
+int roadmap_navigate_find_intersection (const RoadMapGpsPosition *position,
+		PluginLine *found, int navigation_mode)
+{
     int layer;
     int square;
     int first_line;
@@ -317,17 +345,11 @@ static int roadmap_navigate_find_intersection
     int i;
 
 
-    delta_from =
-        roadmap_math_delta_direction
-            (position->steering,
-             roadmap_math_azymuth (&RoadMapLatestPosition,
-                                   &RoadMapConfirmedLine.from));
+    delta_from = roadmap_math_delta_direction (position->steering,
+             roadmap_math_azymuth (&RoadMapLatestPosition, &RoadMapConfirmedLine.from));
 
-    delta_to =
-        roadmap_math_delta_direction
-            (position->steering,
-             roadmap_math_azymuth (&RoadMapLatestPosition,
-                                   &RoadMapConfirmedLine.to));
+    delta_to = roadmap_math_delta_direction (position->steering,
+             roadmap_math_azymuth (&RoadMapLatestPosition, &RoadMapConfirmedLine.to));
 
     if (delta_to < delta_from - 30) {
        roadmap_plugin_line_to (&RoadMapConfirmedLine.line, &crossing);
@@ -353,7 +375,7 @@ static int roadmap_navigate_find_intersection
 
        int i;
        int layers[128];
-       int count = roadmap_layer_navigable (RoadMapCarMode, layers, 128);
+       int count = roadmap_layer_navigable (navigation_mode, layers, 128);
 
        for (i = 0; i < count; ++i) {
 
@@ -438,26 +460,18 @@ static int roadmap_navigate_find_intersection
 
     /* Search among the plugin lines. */
 
-    count = roadmap_plugin_find_connected_lines
-                  (&crossing,
-                   plugin_lines,
+    count = roadmap_plugin_find_connected_lines (&crossing, plugin_lines,
                    sizeof(plugin_lines)/sizeof(*plugin_lines));
 
     for (i=0; i<count; ++i) {
-
         PluginStreet street;
 
-        match = roadmap_navigate_is_intersection
-                    (&plugin_lines[i], position->steering, &crossing);
+        match = roadmap_navigate_is_intersection (&plugin_lines[i], position->steering, &crossing);
 
         if (best_match < match) {
-
             roadmap_plugin_get_street (&plugin_lines[i], &street);
 
-            if (!roadmap_plugin_same_street
-                  (&street,
-                   &RoadMapConfirmedStreet.street)) {
-
+            if (!roadmap_plugin_same_street (&street, &RoadMapConfirmedStreet.street)) {
                 *found = plugin_lines[i];
                 best_match = match;
             }
@@ -470,11 +484,9 @@ static int roadmap_navigate_find_intersection
         return 0;
     }
 
-    roadmap_navigate_trace
-        ("Announce crossing %N, %C|Announce crossing %N", found);
+    roadmap_navigate_trace ("Announce crossing %N, %C|Announce crossing %N", found);
 
-    if (! roadmap_plugin_same_line
-             (found, &RoadMapConfirmedStreet.intersection)) {
+    if (! roadmap_plugin_same_line (found, &RoadMapConfirmedStreet.intersection)) {
        PluginStreet street;
        RoadMapConfirmedStreet.intersection = *found;
        roadmap_display_activate ("Approach", found, &crossing, &street);
@@ -483,9 +495,15 @@ static int roadmap_navigate_find_intersection
     return 1;
 }
 
-
-void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
-
+/**
+ * @brief called periodically (from roadmap_start_gps_listen) when new GPS info is available
+ *
+ * Influences RoadMapConfirmedStreet and RoadMapConfirmedLine
+ *
+ * @param gps_position the position info
+ */
+void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position)
+{
     int i;
     int found;
     int count;
@@ -497,12 +515,11 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     static RoadMapTracking nominated;
 
     RoadMapArea focus;
+    int navigation_mode = roadmap_navigate_get_mode();
 
 
     if (! RoadMapNavigateEnabled) {
-       
-       if (strcasecmp
-             (roadmap_config_get (&RoadMapNavigateFlag), "yes") == 0) {
+       if (strcasecmp (roadmap_config_get (&RoadMapNavigateFlag), "yes") == 0) {
           RoadMapNavigateEnabled = 1;
        } else {
           return;
@@ -510,38 +527,36 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     }
 
     if ((RoadMapLatestGpsPosition.latitude == gps_position->latitude) &&
-        (RoadMapLatestGpsPosition.longitude == gps_position->longitude)) return;
+        (RoadMapLatestGpsPosition.longitude == gps_position->longitude))
+	    return;
 
     RoadMapLatestGpsPosition = *gps_position;
 
-    if (gps_position->speed < roadmap_gps_speed_accuracy()) return;
-
+    if (gps_position->speed < roadmap_gps_speed_accuracy())
+	    return;
 
     roadmap_fuzzy_start_cycle ();
 
     roadmap_adjust_position (gps_position, &RoadMapLatestPosition);
 
     if (RoadMapConfirmedStreet.valid) {
-
         /* We have an existing street match: check it is still valid. */
 
         RoadMapFuzzy before = RoadMapConfirmedStreet.fuzzyfied;
 
-        if (roadmap_plugin_activate_db
-                (&RoadMapConfirmedLine.line) == -1) {
+        if (roadmap_plugin_activate_db (&RoadMapConfirmedLine.line) == -1) {
             return;
         }
         roadmap_plugin_get_distance (&RoadMapLatestPosition,
                                      &RoadMapConfirmedLine.line,
                                      &RoadMapConfirmedLine);
 
-        if (roadmap_navigate_fuzzify
-                (&RoadMapConfirmedStreet,
+        if (roadmap_navigate_fuzzify (&RoadMapConfirmedStreet,
                  &RoadMapConfirmedLine, gps_position->steering) >= before) {
 
             if (! roadmap_navigate_confirm_intersection (gps_position)) {
                 PluginLine p_line;
-                roadmap_navigate_find_intersection (gps_position, &p_line);
+                roadmap_navigate_find_intersection (gps_position, &p_line, navigation_mode);
             }
 
             return; /* We are on the same street. */
@@ -550,17 +565,13 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
 
     /* We must search again for the best street match. */
 
-    roadmap_math_focus_area
-            (&focus, &RoadMapLatestPosition, roadmap_fuzzy_max_distance());
+    roadmap_math_focus_area (&focus, &RoadMapLatestPosition, roadmap_fuzzy_max_distance());
 
-    count = roadmap_navigate_get_neighbours
-                (&focus, &RoadMapLatestPosition,
-                 RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOUD);
+    count = roadmap_navigate_get_neighbours (&focus, &RoadMapLatestPosition,
+                 RoadMapNeighbourhood, ROADMAP_NEIGHBOURHOOD, navigation_mode);
 
     for (i = 0, best = roadmap_fuzzy_false(), found = 0; i < count; ++i) {
-
-        result = roadmap_navigate_fuzzify
-                     (&candidate, RoadMapNeighbourhood+i,
+        result = roadmap_navigate_fuzzify (&candidate, RoadMapNeighbourhood+i,
                       gps_position->steering);
 
         if (result > best) {
@@ -571,22 +582,17 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     }
 
     if (roadmap_fuzzy_is_acceptable (best)) {
-
-        if (roadmap_plugin_activate_db
-               (&RoadMapNeighbourhood[found].line) == -1) {
+        if (roadmap_plugin_activate_db (&RoadMapNeighbourhood[found].line) == -1) {
             return;
         }
 
-        if (! roadmap_plugin_same_line
-                  (&RoadMapConfirmedLine.line,
+        if (! roadmap_plugin_same_line (&RoadMapConfirmedLine.line,
                    &RoadMapNeighbourhood[found].line)) {
 
             if (PLUGIN_VALID(RoadMapConfirmedLine.line)) {
-                roadmap_navigate_trace
-                    ("Quit street %N", &RoadMapConfirmedLine.line);
+                roadmap_navigate_trace ("Quit street %N", &RoadMapConfirmedLine.line);
             }
-            roadmap_navigate_trace
-                ("Enter street %N, %C|Enter street %N",
+            roadmap_navigate_trace ("Enter street %N, %C|Enter street %N",
                  &RoadMapNeighbourhood[found].line);
 
             roadmap_display_hide ("Approach");
@@ -599,28 +605,21 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
         RoadMapConfirmedStreet.fuzzyfied = best;
         INVALIDATE_PLUGIN(RoadMapConfirmedStreet.intersection);
 
-        roadmap_display_activate
-           ("Current Street",
-            &RoadMapConfirmedLine.line,
-            NULL,
-            &RoadMapConfirmedStreet.street);
+        roadmap_display_activate ("Current Street", &RoadMapConfirmedLine.line,
+            NULL, &RoadMapConfirmedStreet.street);
 
         if (gps_position->speed > roadmap_gps_speed_accuracy()) {
            PluginLine p_line;
-           roadmap_navigate_find_intersection (gps_position, &p_line);
+           roadmap_navigate_find_intersection (gps_position, &p_line, navigation_mode);
         }
 
     } else {
-
         if (PLUGIN_VALID(RoadMapConfirmedLine.line)) {
-
-            if (roadmap_plugin_activate_db
-                   (&RoadMapConfirmedLine.line) == -1) {
+            if (roadmap_plugin_activate_db (&RoadMapConfirmedLine.line) == -1) {
                 return;
             }
 
-            roadmap_navigate_trace ("Lost street %N",
-                                    &RoadMapConfirmedLine.line);
+            roadmap_navigate_trace ("Lost street %N", &RoadMapConfirmedLine.line);
             roadmap_display_hide ("Current Street");
             roadmap_display_hide ("Approach");
         }
@@ -630,12 +629,55 @@ void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position) {
     }
 }
 
+/**
+ * @brief initialize this module
+ */
+void roadmap_navigate_initialize (void)
+{
+    int RoadMapNavigationClasses;
 
-void roadmap_navigate_initialize (void) {
-
-    RoadMapCarMode = roadmap_layer_declare_navigation_mode ("Car");
-
-    roadmap_config_declare_enumeration
-        ("session", &RoadMapNavigateFlag, "yes", "no", NULL);
+    RoadMapNavigationClasses = roadmap_layer_declare_navigation_mode ("Classes");
+    roadmap_config_declare_enumeration ("session", &RoadMapNavigateFlag, "yes", "no", NULL);
 }
 
+/**
+ * @brief query current street
+ */
+RoadMapTracking *roadmap_navigate_get_confirmed_street(void)
+{
+	return &RoadMapConfirmedStreet;
+}
+
+/**
+ * @brief determine a street for a given position, ignoring vehicle/direction
+ * @param pos
+ * @return the street (pointer to a static variable !)
+ */
+PluginLine *roadmap_navigate_position2line(RoadMapPosition pos)
+{
+	RoadMapNeighbour	nb[ROADMAP_NEIGHBOURHOOD];
+	RoadMapTracking		nominated, candidate;
+	RoadMapArea		focus;
+	int			found, result, best, i, num;
+	static PluginLine	res;
+
+	roadmap_math_focus_area(&focus, &pos, roadmap_fuzzy_max_distance());
+	num = roadmap_navigate_get_neighbours(&focus, &pos, nb, ROADMAP_NEIGHBOURHOOD,
+			0 /* some default vehicle */);
+
+	best = roadmap_fuzzy_false();
+	for (found=0, i=0; i<num; i++) {
+		result = roadmap_navigate_fuzzify(&candidate, &nb[i],
+				0 /* some default direction */);
+		if (result > best) {
+			found = i;
+			best = result;
+			nominated = candidate;
+		}
+	}
+	if (roadmap_fuzzy_is_acceptable (best)) {
+		res = nb[found].line;
+		return &res;
+	}
+	return NULL;
+}

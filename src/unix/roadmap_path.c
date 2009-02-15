@@ -1,8 +1,10 @@
-/* roadmap_path.c - a module to handle file path in an OS independent way.
+/**
+ * @brief roadmap_path.c - a module to handle file path in an OS independent way.
  *
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -20,9 +22,6 @@
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * SYNOPSYS:
- *
- *   See roadmap_path.h.
  */
 
 #include <stdio.h>
@@ -159,10 +158,25 @@ static const char *RoadMapPathIcons[] = {
    NULL
 };
 
+/* The default path for the skin files (the "skin" path): */
+static char *RoadMapPathSkin[] =  {
+	"&\\skins\\default\\day",
+	"&\\skins\\default",
+	NULL
+};
+static const char RoadMapPathSkinPreferred[] = "&\\skins";
+
 
 static char *roadmap_path_expand (const char *item, size_t length);
 static void roadmap_path_addlist(RoadMapList *list, char *path);
 
+/**
+ * @brief
+ * @param name
+ * @param items
+ * @param preferred
+ * @return
+ */
 static RoadMapPathList roadmap_path_list_create(const char *name,
                                      const char **items,
                                      const char *preferred) {
@@ -193,6 +207,9 @@ static RoadMapPathList roadmap_path_list_create(const char *name,
    return new_path;
 }
 
+/**
+ * @brief
+ */
 struct {
     char *name;
     const char **pathlist;
@@ -202,9 +219,16 @@ struct {
       {"config",    RoadMapPathConfig,  RoadMapPathConfigPreferred },
       {"maps",      RoadMapPathMaps,    RoadMapPathMapsPreferred },
       {"icons",     RoadMapPathIcons,   NULL},
+      {"skin",      RoadMapPathSkin,    RoadMapPathSkinPreferred },
       {"features",  NULL,               NULL},
 };
 
+/**
+ * @brief look up the directory path(s) associated with a given keyword
+ * @param name the keyword
+ * @param init_ok create the file if it doesn't exist
+ * @return
+ */
 static RoadMapPathList roadmap_path_find (const char *name, int init_ok) {
 
    RoadMapPathList cursor;
@@ -462,7 +486,11 @@ void roadmap_path_set (const char *name, const char *path) {
    }
 }
 
-
+/**
+ * @brief look up the path list, return the first element of that list
+ * @param name the keyword used to look up the list
+ * @return first element
+ */
 const char *roadmap_path_first (const char *name) {
 
    RoadMapPathList path_list = roadmap_path_find (name, 1);
@@ -479,7 +507,12 @@ const char *roadmap_path_first (const char *name) {
    return NULL;
 }
 
-
+/**
+ * @brief called after roadmap_path_first, return subsequent elements of the list
+ * @param name keyword
+ * @param current the previous path
+ * @return the next one
+ */
 const char *roadmap_path_next  (const char *name, const char *current) {
 
    RoadMapPathList path_list = roadmap_path_find (name, 1);
@@ -563,6 +596,14 @@ void roadmap_path_create (const char *path) {
 
 static char *RoadMapPathEmptyList = NULL;
 
+/**
+ * @brief create a list of files matching the specified path and extension
+ * There is no wildcarding mechanism here, except all files in this directory with the
+ * specified extension are a match.
+ * @param path is the directory name in which to look for files
+ * @param extension can be empty or NULL
+ * @return a list of file names
+ */
 char **roadmap_path_list (const char *path, const char *extension) {
 
    char  *match;
@@ -606,9 +647,11 @@ char **roadmap_path_list (const char *path, const char *extension) {
 
          if (! strcmp (match, extension)) {
             *(cursor++) = strdup (entry->d_name);
+	 roadmap_log (ROADMAP_WARNING, "--> %s", entry->d_name);
          }
       } else {
          *(cursor++) = strdup (entry->d_name);
+	 roadmap_log (ROADMAP_WARNING, "--> %s", entry->d_name);
       }
    }
    *cursor = NULL;

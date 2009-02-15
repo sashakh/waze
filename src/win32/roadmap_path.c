@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
- *   Copyright 2008 Danny Backx
+ *   Copyright (c) 2008, 2009 Danny Backx
  *
  *   Based on an implementation by Pascal F. Martin.
  *   This file is part of RoadMap.
@@ -25,6 +25,7 @@
 /**
  * @file
  * @brief handle file path in an OS independent way, this is the Windows CE implementation
+ * @ingroup windows
  */
 
 #include <windows.h>
@@ -121,6 +122,9 @@ static void roadmap_path_insert(const char *dir)
 
 	if (i == ROADMAP_MAX_CARDS)
 		return;
+	if (strlen(dir) == 0)
+		return;
+
 	if (RoadMapPathConfig == 0) {
 		RoadMapPathConfig = (char **)calloc(ROADMAP_MAX_CARDS + 1,
 				sizeof(char *));
@@ -313,7 +317,11 @@ char *roadmap_path_parent (const char *path, const char *name)
 	return full_name;
 }
 
-
+/**
+ * @brief skip over all directories, return just the file name
+ * @param name input file name
+ * @return point inside the string parameter passed
+ */
 char *roadmap_path_skip_directories (const char *name)
 {
 	char *result = strrchr (name, '/');
