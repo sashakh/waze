@@ -45,7 +45,7 @@
 /**
  * @brief for debugging
  */
-static void navigate_debug_trip(void)
+static void navigate_debug_be_trip(void)
 {
 /* departure : 4683870,50898550 */
 	roadmap_trip_set_selection(4683870, 50898550);
@@ -60,6 +60,17 @@ static void navigate_debug_trip(void)
  * user='Danny Backx' visible='true' lat='50.9029438' lon='4.7012746' />
  */
 	roadmap_trip_set_selection(4701274, 50902943);
+	roadmap_trip_set_selection_as ("Destination");
+}
+
+/**
+ * @brief for debugging
+ */
+static void navigate_debug_sf_trip(void)
+{
+	roadmap_trip_set_selection(-122394181, 37794928);
+	roadmap_trip_set_selection_as ("Departure");
+	roadmap_trip_set_selection(-122423168, 37788848);
 	roadmap_trip_set_selection_as ("Destination");
 }
 
@@ -122,8 +133,10 @@ static RoadMapAction NavigateActions[] = {
       "Change routing preferences", NULL,
       navigate_cost_preferences},
 
-   {"navigatedebug", "Debug trip for navigation", NULL, NULL,
-	   "Debug trip for navigation", NULL, navigate_debug_trip},
+   {"navigate-be-debug", "Belgium Debug trip for navigation", NULL, NULL,
+	   "Debug trip for navigation", NULL, navigate_debug_be_trip},
+   {"navigate-sf-debug", "San Francisco trip for navigation", NULL, NULL,
+	   "Debug trip for navigation", NULL, navigate_debug_sf_trip},
 
    {"navigate-enable", "Enable navigation", NULL, NULL,
 	   "Enable navigation", NULL, roadmap_navigate_enable},
@@ -141,7 +154,8 @@ static const char *NavigateMenu[] = {
 		"setasdeparture",
 //		"addaswaypoint",	cannot be here, is a RoadMap action
 //		"deletewaypoints",
-		"navigatedebug",
+		"navigate-be-debug",
+		"navigate-sf-debug",
 		"navigate",
 		RoadMapFactorySeparator,
 		"traffic",

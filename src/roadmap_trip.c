@@ -209,7 +209,7 @@ RoadMapTripFocal RoadMapTripFocalPoints[] = {
     ROADMAP_TRIP_ITEM ("WayPoint", NULL,            0, 1, 0, 0),
     ROADMAP_TRIP_ITEM ("Address", NULL,             0, 1, 0, 0),
     ROADMAP_TRIP_ITEM ("Selection", "Selection",    0, 0, 0, 0),
-    ROADMAP_TRIP_ITEM ("Departure", "Departure",    0, 0, 1, 0),
+    ROADMAP_TRIP_ITEM ("Departure", "Departure",    0, 1, 1, 0),
     ROADMAP_TRIP_ITEM ("Hold", NULL,                0, 1, 0, 0),
     ROADMAP_TRIP_ITEM (NULL, NULL,                  0, 0, 0, 0)
 };
