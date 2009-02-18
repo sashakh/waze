@@ -58,7 +58,7 @@ cp $STUFF/activity.info \
    $STUFF/permissions.info \
       $ACT/activity
 
-cp $STUFF/RM-foldedmap.sugar.svg \
+cp $STUFF/RoadMap.svg \
       $ACT/activity/RoadMap.svg
 
 cp $STUFF/config/roadmap.screenobjects \
