@@ -6,7 +6,7 @@
 
 # this could all be made _way_ better.  volunteers?   -pgf
 
-set -e
+set -ex
 
 test "$1" = clean && clean=clean
 
@@ -14,11 +14,11 @@ TOP=..
 SRC=$TOP/src
 ACTNAME=RoadMap.activity
 ACT=./tmp/$ACTNAME
+MAPS=./tmp/RoadMap.maps
 RMROOT=./tmp/roadmap_root
 STUFF=./activity
 
 rm -rf ./tmp
-mkdir -p ./tmp
 
 mkdir -p $ACT/{bin,activity,lib,docs,maps}
 # bring our development host's libexpat along, so we don't need to
@@ -56,8 +56,10 @@ cp $STUFF/sugarRoadMap $ACT/bin
 
 cp $STUFF/activity.info \
    $STUFF/permissions.info \
-   $STUFF/RoadMap.svg \
       $ACT/activity
+
+cp $STUFF/RM-foldedmap.sugar.svg \
+      $ACT/activity/RoadMap.svg
 
 cp $STUFF/config/roadmap.screenobjects \
    $STUFF/config/sprites \
@@ -75,7 +77,7 @@ mv $ACT/bin/gtkroadmap $ACT/bin/roadmap
 rm -f $ACT/bin/*roadgps
 
 # provide some maps, which must already be installed on the build system
-mkdir -p tmp/RoadMap.maps 
+mkdir -p $MAPS 
 if [ -d /usr/local/share/roadmap/maps ]
 then
     ln -s /usr/local/share/roadmap/maps/{SB,usdir.rdm} $ACT/maps
@@ -85,11 +87,11 @@ then
     # for state in ON IL MI IN OH TN GA NC VA MD DE PA NJ NY CT MA
     do
 	test -d /usr/local/share/roadmap/maps/$state && \
-		ln -s /usr/local/share/roadmap/maps/$state tmp/RoadMap.maps
+		ln -s /usr/local/share/roadmap/maps/$state $MAPS
     done
 else # in case we're building the bundle on the XO itself (unlikely)
     ln -s /home/olpc/Activities/RoadMap.activity/maps/{SB,usdir.rdm} $ACT/maps
-    ln -s /media/disk/RoadMap.maps/{ma,nh,vt} tmp/RoadMap.maps
+    ln -s /media/disk/RoadMap.maps/{ma,nh,vt} $MAPS
 fi
 
 # append some XO-specific config parameters to the default "preferences"
@@ -134,7 +136,9 @@ sed -i \
 #    $ACT/config/session
 
 # and finally, copy in docs and licenses
-cp $TOP/COPYING $TOP/INSTALL $TOP/README README.xo_laptop $ACT/docs
+cp $TOP/COPYING $TOP/README README.xo_laptop $ACT/docs
+cp -a $TOP/doc $ACT/docs
+rm -r $ACT/docs/doc/CVS
 test -f $SRC/manual.html && cp $SRC/manual.html $ACT/docs
 
 version=$(sed -n 's/activity_version.*=[[:space:]]*//p' $STUFF/activity.info)
@@ -146,4 +150,5 @@ mv MANIFEST $ACTNAME
 rm -f ../RoadMap-$version.xo 
 zip -r ../RoadMap-$version.xo $ACTNAME
 
+exit
 
