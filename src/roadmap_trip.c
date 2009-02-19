@@ -2603,7 +2603,7 @@ static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode)
             if ( RoadMapTripUntitled ) {
                 filename = roadmap_trip_path_relative_to_trips(filename);
                 roadmap_config_set (&RoadMapConfigTripName, filename);
-                roadmap_main_title(TRIP_TITLE_FMT, filename);
+		roadmap_main_title(TRIP_TITLE_FMT, roadmap_path_skip_directories(filename));
                 RoadMapTripUntitled = 0;
             }
         }
@@ -2785,7 +2785,8 @@ static int roadmap_trip_load_file (const char *name, int silent, int merge) {
 
     route_waypt_iterator (RoadMapCurrentRoute, roadmap_tripdb_waypoint_iter);
 
-    roadmap_main_title(TRIP_TITLE_FMT, roadmap_trip_current());
+    roadmap_main_title(TRIP_TITLE_FMT,
+		    roadmap_path_skip_directories(roadmap_trip_current()));
     roadmap_trip_refresh ();
 
     return ret;
@@ -2864,7 +2865,7 @@ int roadmap_trip_save (void) {
 
             if (roadmap_trip_save_file (name)) {
                 roadmap_config_set (&RoadMapConfigTripName, name);
-                roadmap_main_title(TRIP_TITLE_FMT, name);
+		roadmap_main_title(TRIP_TITLE_FMT, roadmap_path_skip_directories(name));
                 RoadMapTripUntitled = 0;
             }
         }
