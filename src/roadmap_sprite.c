@@ -119,10 +119,10 @@ static int RoadMapSpriteLine;
 static void roadmap_sprite_syntax(char *msg)
 {
       roadmap_log(ROADMAP_WARNING,
-		      "%s, line %d: %s",
-		      RoadMapSpriteFile,
-		      RoadMapSpriteLine,
-		      msg);
+                      "%s, line %d: %s",
+                      RoadMapSpriteFile,
+                      RoadMapSpriteLine,
+                      msg);
 }
 
 /**
@@ -677,9 +677,9 @@ static void roadmap_sprite_load_file (const char *path)
 
       while (!feof(file)) {
          if (fgets (line, sizeof(line), file) == NULL)
-		 break;
+                 break;
          if (roadmap_sprite_load_line (line) == 0)
-		 break;
+                 break;
          RoadMapSpriteLine++;
       }
 
@@ -816,8 +816,8 @@ void roadmap_sprite_draw_with_text
    int scale;
 
    if (sprite == NULL || sprite->alias_name != NULL) {
-	   roadmap_log (ROADMAP_WARNING, "roadmap_sprite_draw_with_text(%s): NULL", name);
-	   return;
+           roadmap_log (ROADMAP_WARNING, "roadmap_sprite_draw_with_text(%s): NULL", name);
+           return;
    }
 
    scale = RoadMapSpritePercent * sprite->scale / 100;
@@ -975,7 +975,13 @@ void roadmap_sprite_load (void)
 
       roadmap_sprite_load_file (cursor);
    }
+   
+   if (RoadMapSpriteList == NULL) {
+      roadmap_log (ROADMAP_WARNING,
+         "roadmap_sprite_load: no sprites found");
+   }
 
+   /* ensure there's at least a "default" sprite */
    RoadMapSpriteDefault = roadmap_sprite_search ("Default");
 
    if (RoadMapSpriteDefault == NULL) {
@@ -985,8 +991,6 @@ void roadmap_sprite_load (void)
       char hardcoded1[] = "S Default";
       char hardcoded2[] = "F black 1";
       char hardcoded3[] = "P -4,-4 4,-4 4,4 -4,4";
-
-      roadmap_log (ROADMAP_WARNING, "roadmap_sprite_load: no sprites found, just a default");
 
       roadmap_sprite_load_line (hardcoded1);
       roadmap_sprite_load_line (hardcoded2);
@@ -1004,7 +1008,7 @@ void roadmap_sprite_load (void)
 
    for (sprite = RoadMapSpriteList; sprite != NULL; sprite = sprite->next) {
       if (sprite->alias_name != NULL)
-	      continue;
+              continue;
 
       max_point_count = roadmap_sprite_maxpoint (sprite);
 
