@@ -37,3 +37,9 @@ GPS --
     GPS --> Source to "gpsd2://localhost".
 
 
+Icon --
+
+    Credit for the svg icon goes to "fmiser" from the RoadMap mailing
+    list.  However, since he only provided a PNG for the "standard"
+    icon, it was run through potrace to generate an SVG, and the
+    resulting shapes used verbatim for the XO.
