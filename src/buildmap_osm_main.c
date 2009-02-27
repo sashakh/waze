@@ -86,9 +86,9 @@ struct opt_defs options[] = {
    {"verbose", "v", opt_flag, "0",
         "Show more progress information"},
    {"inputfile", "i", opt_string, "",
-	"Convert this OSM file into a map"},
+        "Convert this OSM file into a map"},
    {"outputfile", "o", opt_string, "",
-	"Write output in this file"},
+        "Write output in this file"},
    OPT_DEFS_END
 };
 
@@ -235,35 +235,37 @@ buildmap_osm_process_one_tile
  */
 int buildmap_osm_text_process_file(char *fn)
 {
-    int		n, ret = 0;
-    FILE	*f;
-    char	country[6], division[6];
-    int		fips, country_num = 0, division_num = 0;
+    int         n, ret = 0;
+    FILE        *f;
+    char        country[6], division[6];
+    int         fips, country_num = 0, division_num = 0;
 
     f = fopen(fn, "r");
     if (f == NULL) {
-	    buildmap_fatal(0, "couldn't open \"%s\"", fn);
-	    return -1;
+            buildmap_fatal(0, "couldn't open \"%s\"", fn);
+            return -1;
     }
 
     if ((n = buildmap_osm_filename_iso(fn, country, division, ".osm"))) {
-	    buildmap_metadata_add_attribute ("Territory", "Id", country);
-	    buildmap_metadata_add_attribute ("Territory", "Parent", country);
-	    buildmap_metadata_add_value ("Territory", "Parent", country);
+            buildmap_metadata_add_attribute ("Territory", "Id", country);
+            buildmap_metadata_add_attribute ("Territory", "Parent", country);
+            buildmap_metadata_add_value ("Territory", "Parent", country);
 
-	    country_num = roadmap_iso_alpha_to_num(country);
-	    if (n == 2)
-		    division_num = roadmap_iso_division_to_num(country, division);
+            country_num = roadmap_iso_alpha_to_num(country);
+            if (n == 2)
+                    division_num =
+                        roadmap_iso_division_to_num(country, division);
     } else if (buildmap_osm_filename_usc(fn, &fips)) {
-	    /* ?? */
-	    buildmap_metadata_add_attribute ("Territory", "Id", fn);
-	    buildmap_metadata_add_attribute ("Territory", "Parent", fn);
-	    buildmap_metadata_add_value ("Territory", "Parent", fn);
+            /* ?? */
+            buildmap_metadata_add_attribute ("Territory", "Id", fn);
+            buildmap_metadata_add_attribute ("Territory", "Parent", fn);
+            buildmap_metadata_add_value ("Territory", "Parent", fn);
 
-	    country_num = fips / 1000;
-	    division_num = fips % 1000;
+            country_num = fips / 1000;
+            division_num = fips % 1000;
     } else {
-	    buildmap_fatal(0, "Invalid file name \"%s\" should be ISO or USC shape", fn);
+            buildmap_fatal(0,
+                "Invalid file name \"%s\" should be ISO or USC shape", fn);
     }
 
     buildmap_metadata_add_attribute ("Class", "Name",   "All");
@@ -284,7 +286,8 @@ int buildmap_osm_text_process_file(char *fn)
 }
 
 /**
- * @brief populates a list of tileids necessary to give coverage for the given position
+ * @brief populates a list of tileids necessary to give coverage
+ *  for the given position
  * @param position
  * @param focus
  * @param fips
@@ -587,7 +590,8 @@ int buildmap_osm_decode(char *decode) {
     roadmap_osm_tileid_to_bbox(tileid, e);
 
     printf("tileid:\t0x%08x\t%d\n", tileid, tileid);
-    printf("true tileid:\t0x%08x\t%d\n", tileid2trutile(tileid), tileid2trutile(tileid));
+    printf("true tileid:\t0x%08x\t%d\n", 
+        tileid2trutile(tileid), tileid2trutile(tileid));
     printf("bits:\t%d\n", tileid2bits(tileid));
 
     pos1.latitude = (e->north + e->south)/2;
@@ -671,8 +675,8 @@ int buildmap_osm_encode(char *latlon, int bits) {
 
     printf("tileid:\t0x%08x\t%d\n", tileid, tileid);
     printf("true tileid:\t0x%08x\t%d\n",
-		    tileid2trutile(tileid),
-		    tileid2trutile(tileid));
+                    tileid2trutile(tileid),
+                    tileid2trutile(tileid));
     printf("bits:\t%d\n", bits);
     return 0;
 }
@@ -737,7 +741,7 @@ main(int argc, char **argv)
             opt_val("decode", &decode) ||
             opt_val("encode", &encode) ||
             opt_val("outputfile", &BuildMapFileName) ||
-	    opt_val("inputfile", &inputfile);
+            opt_val("inputfile", &inputfile);
     if (error)
         usage(argv[0], opt_strerror(error));
 
@@ -767,9 +771,9 @@ main(int argc, char **argv)
     }
 
     if (strncmp(source, "http:", 5) == 0) {
-	cmdfmt = "wget -q -O - '%s?tile=%d&ts=%d&have=%d'";
+        cmdfmt = "wget -q -O - '%s?tile=%d&ts=%d&have=%d'";
     } else {
-	cmdfmt = "%s -t %d -b %d -h %d";
+        cmdfmt = "%s -t %d -b %d -h %d";
     }
 
     if (verbose || quiet)
@@ -787,7 +791,7 @@ main(int argc, char **argv)
         count = 1;
 
     } else if (*inputfile) {
-	    exit(buildmap_osm_text_process_file(inputfile));
+            exit(buildmap_osm_text_process_file(inputfile));
     } else {
 
         if (argc < 2)

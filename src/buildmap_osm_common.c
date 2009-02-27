@@ -1,7 +1,8 @@
 /*
  * LICENSE:
  *
- *   Copyright 2007 Stephen Woodbridge
+ *   Copyright (c) 2007 Paul Fox
+ *   Copyright (c) 2008, Danny Backx
  *
  *   This file is part of RoadMap.
  *

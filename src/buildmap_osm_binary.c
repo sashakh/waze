@@ -1,7 +1,7 @@
 /*
  * LICENSE:
  *
- *   Copyright 2007 Stephen Woodbridge
+ *   Copyright 2007 Paul Fox
  *
  *   This file is part of RoadMap.
  *
@@ -25,11 +25,13 @@
  * @brief a module to read OSM Mobile Binary format
  *
  * The protocol is documented in
- * http://wiki.openstreetmap.org/index.php/OSM_Mobile_Binary_Protocol ,
- * and http://wiki.openstreetmap.org/index.php/OSM_Binary_Format ,
+ *    http://wiki.openstreetmap.org/index.php/OSM_Mobile_Binary_Protocol ,
+ * and
+ *    http://wiki.openstreetmap.org/index.php/OSM_Binary_Format ,
  * the current OSM protocol is in
- * http://wiki.openstreetmap.org/index.php/OSM_Protocol_Version_0.5 .
- * More generic protocol documentation : http://wiki.openstreetmap.org/index.php/Protocol .
+ *    http://wiki.openstreetmap.org/index.php/OSM_Protocol_Version_0.5 .
+ * More generic protocol documentation:
+ *    http://wiki.openstreetmap.org/index.php/Protocol .
  */
 
 #include <stdio.h>
@@ -115,7 +117,8 @@ read_2_byte_int(unsigned char *p, int *r)
 }
 
 /**
- * @brief look ahead and figure out the additional info (options) like the road type
+ * @brief look ahead and figure out the additional info (options)
+ *  like the road type
  * @param cur
  * @param end
  * @param name
@@ -180,7 +183,8 @@ buildmap_osm_binary_parse_options
             cur = read_4_byte_int(cur, &itime);
             tim = (time_t)itime;
 
-            buildmap_verbose("'%s' is %s", datetype[key], asctime(gmtime(&tim)));
+            buildmap_verbose
+                ("'%s' is %s", datetype[key], asctime(gmtime(&tim)));
 
         } else if (key >= key_numeric_start) {
             int val;
@@ -198,7 +202,8 @@ buildmap_osm_binary_parse_options
              */
             val = *cur++;
 
-            buildmap_verbose("list type is '%s', subtype ", list_info[key].name);
+            buildmap_verbose
+                ("list type is '%s', subtype ", list_info[key].name);
 
             if (list_info[key].list) {
                 buildmap_verbose("'%s'", list_info[key].list[val].name);
@@ -241,7 +246,8 @@ buildmap_osm_binary_node(unsigned char *data, int len)
     dp = read_4_byte_int(dp, &lat);
     prop = *dp++;
 
-    buildmap_verbose("node: id %ld, lon %ld, lat %ld, prop %d", id, lon, lat, prop);
+    buildmap_verbose("node: id %ld, lon %ld, lat %ld, prop %d",
+                id, lon, lat, prop);
 
     if (dp < data + len)
         layer = buildmap_osm_binary_parse_options

@@ -26,7 +26,7 @@
  * @brief  a module to read OSM text format
  */
 
-#define	LINELEN	2048
+#define LINELEN 2048
 
 void buildmap_osm_text_find_layers (void);
 int buildmap_osm_text_read(FILE * fdata, int country_num, int division_num);
