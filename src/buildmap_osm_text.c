@@ -786,7 +786,7 @@ buildmap_osm_text_way_end(char *data)
                 from_ix = 0;
                 for (j=1; j<nWayNodes-1; j++) {
                         int point = WayNodes[j];
-                        if (NodeReportUse(point) >= 1)
+                        if (NodeReportUse(point) <= 1)
                                 continue;
 
                         int     k, num;
