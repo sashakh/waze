@@ -698,7 +698,9 @@ void usage(char *progpath, const char *msg) {
     if (msg)
         fprintf(stderr, "%s: %s\n", prog, msg);
     fprintf(stderr,
-        "usage: %s [options] lat,lon[:lat,lon] -or- lat,lon:NN{mi|km}\n", prog);
+        "usage: %s [options] lat,lon[:lat,lon] -or- lat,lon:NN{mi|km}\n"
+	"  Use '--' after the options if the 'lat' value is negative.\n",
+	prog);
     opt_desc(options, 1);
     exit(1);
 }

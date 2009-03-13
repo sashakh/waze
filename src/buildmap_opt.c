@@ -339,6 +339,7 @@ int opt_parse(struct opt_defs *options, int *argc, char **argv, int mixed)
 				i++;
 			}
 		} else if (argv[i][1] == '-' && !argv[i][2]) {
+			/* let '--' by itself terminate option processing */
 			(void)opt_shift(argc, &argv[i]);
 			return opt_ok;
 		} else {
