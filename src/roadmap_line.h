@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -64,5 +65,10 @@ int  roadmap_line_length (int line);
 int  roadmap_line_count (void);
 
 extern roadmap_db_handler RoadMapLineHandler;
+
+extern int roadmap_line_point_adjacent(int point, int ix);
+
+int roadmap_line_from_point (int line);
+int roadmap_line_to_point (int line);
 
 #endif // INCLUDED__ROADMAP_LINE__H

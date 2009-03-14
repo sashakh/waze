@@ -72,6 +72,10 @@ typedef struct {
    int *LineIndex2;
    int  LineIndex2Count;
 
+   RoadMapLineByPoint1	*LineByPoint1;
+   int			LineByPoint1Count;
+   RoadMapLineByPoint2	*LineByPoint2;
+   int			LineByPoint2Count;
 } RoadMapLineContext;
 
 static RoadMapLineContext *RoadMapLineActive = NULL;
@@ -88,6 +92,8 @@ static void *roadmap_line_map (roadmap_db *root) {
    roadmap_db *layer1_table;
    roadmap_db *layer2_table;
    roadmap_db *long_lines_table;
+   roadmap_db *by_point1_table;
+   roadmap_db *by_point2_table;
 
 
    context = (RoadMapLineContext *) malloc (sizeof(RoadMapLineContext));
@@ -104,6 +110,8 @@ static void *roadmap_line_map (roadmap_db *root) {
    layer2_table = roadmap_db_get_subsection (root, "bylayer2");
    index2_table  = roadmap_db_get_subsection (root, "index2");
    long_lines_table  = roadmap_db_get_subsection (root, "longlines");
+   by_point1_table  = roadmap_db_get_subsection (root, "bypoint1");
+   by_point2_table  = roadmap_db_get_subsection (root, "bypoint2");
 
    context->Line = (RoadMapLine *) roadmap_db_get_data (line_table);
    context->LineCount = roadmap_db_get_count (line_table);
@@ -173,6 +181,36 @@ static void *roadmap_line_map (roadmap_db *root) {
       }
    } else {
       context->LongLinesCount = 0;
+   }
+
+   if (by_point1_table && by_point2_table) {
+	   roadmap_log(ROADMAP_WARNING, "***** This map has line by point *****");
+     context->LineByPoint1 = (RoadMapLineByPoint1 *) roadmap_db_get_data (by_point1_table);
+     context->LineByPoint1Count = roadmap_db_get_count (by_point1_table);
+	   roadmap_log(ROADMAP_WARNING, "***** This map has line by point1 (%d) *****",
+			   context->LineByPoint1Count);
+
+     if (roadmap_db_get_size (by_point1_table) !=
+		     context->LineByPoint1Count * sizeof(int)) {
+       roadmap_log (ROADMAP_ERROR, "invalid line/bypoint1 structure");
+       goto roadmap_line_map_abort;
+     }
+
+     context->LineByPoint2 = (RoadMapLineByPoint2 *) roadmap_db_get_data (by_point2_table);
+     context->LineByPoint2Count = roadmap_db_get_count (by_point2_table);
+	   roadmap_log(ROADMAP_WARNING, "***** This map has line by point2 (%d) *****",
+			   context->LineByPoint2Count);
+
+     if (roadmap_db_get_size (by_point2_table) !=
+		     context->LineByPoint2Count * sizeof(int)) {
+       roadmap_log (ROADMAP_ERROR, "invalid line/bypoint2 structure");
+       goto roadmap_line_map_abort;
+     }
+   } else {
+	   context->LineByPoint1 = 0;
+	   context->LineByPoint1Count = 0;
+	   context->LineByPoint2 = 0;
+	   context->LineByPoint2Count = 0;
    }
 
    return context;
@@ -467,3 +505,41 @@ int roadmap_line_to_point (int line)
    return RoadMapLineActive->Line[line].to;
 }
 #endif
+
+/**
+ * @brief Get a line adjacent to a given point
+ * @param point this is the point referred to
+ * @param ix the index in the list of lines adjacent to this point
+ * @return a line id, or 0 if out of bounds
+ */
+int roadmap_line_point_adjacent(int point, int ix)
+{
+	int	i;
+	int	*p, *q;
+
+	if (RoadMapLineActive == NULL)
+		return 0; /* No line. */
+	if (RoadMapLineActive->LineByPoint1 == 0)
+		return 0;	/* No map data */
+	if (RoadMapLineActive->LineByPoint2 == 0)
+		return 0;	/* No map data */
+
+	if (ix < 0)
+		return 0;
+	if (point <= 0 || RoadMapLineActive->LineByPoint1Count < point)
+		return 0;
+
+	q = (int *)RoadMapLineActive->LineByPoint1;
+	q += point;
+
+	p = (int *)RoadMapLineActive->LineByPoint2;
+	p += *q;
+
+	/* expensive check ? */
+	for (i=0; i<ix; i++)
+		if (p[i] == 0) {
+			roadmap_log (ROADMAP_WARNING, "Didn't expect this !");
+			return 0;
+		}
+	return p[ix];
+}

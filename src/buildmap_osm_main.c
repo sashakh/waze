@@ -783,6 +783,8 @@ main(int argc, char **argv)
 
     buildmap_layer_load(class);
 
+    buildmap_metadata_add_attribute ("MapFormat", "Version", "1.3 alpha");
+
     buildmap_verbose("processing with bits '%d'", osm_bits);
 
     if (tileid) {

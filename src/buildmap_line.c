@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -67,13 +68,35 @@ static RoadMapHash *LineById = NULL;
 static int *SortedLine = NULL;
 static int *SortedLine2 = NULL;
 
-
 static void buildmap_line_register (void);
+static void buildmap_line_add_bypoint(int, int);
+static void buildmap_line_count_linebypoint(int *LineByPoint1Count, int *LineByPoint2Count);
+static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *, RoadMapLineByPoint2 *);
 
 #define MAX_LONG_LINES 150000
 static RoadMapLongLine *LongLines;
 static int LongLinesCount;
 static RoadMapHash *LongLinesHash = NULL;
+
+/*
+ * @brief Line By Point stuff
+ * This structure holds info about a point : it gathers the line ids of lines that
+ * start or end in a point.
+ * The point id is not stored, this structure's index in the array is the point id.
+ */
+struct lbp {
+	/* int	point; */
+	int	max,		/**< number of fields already allocated in ptr */
+		num;		/**< number of fields used in ptr */
+	int	*ptr;		/**< array that holds line ids */
+};
+static struct lbp	*lbp = NULL;	/**< array of structures holding info
+					  about a point */
+static int	max_line_by_point = 0,		/**< highest index in lbp */
+		nalloc_line_by_point = 0;	/**< allocation count of lbp */
+
+#define	ALLOC_LINES	5	/**< increment allocation of ptr by this amount */
+#define	ALLOC_POINTS	100	/**< increment allocation of lbp by this amount */
 
 
 /* FIXME.  this is called for every line, but it misses all of the
@@ -132,7 +155,11 @@ static BuildMapLine *buildmap_line_get_record_sorted (int line) {
    return Line[line/BUILDMAP_BLOCK] + (line % BUILDMAP_BLOCK);
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @return
+ */         
 static int buildmap_line_get_layer_sorted (int line) {
 
    BuildMapLine *this_line = buildmap_line_get_record_sorted (line);
@@ -140,7 +167,9 @@ static int buildmap_line_get_layer_sorted (int line) {
    return this_line->layer;
 }
 
-
+/**
+ * @brief
+ */         
 static void buildmap_line_initialize (void) {
 
    LineById = roadmap_hash_new ("LineById", BUILDMAP_BLOCK);
@@ -156,7 +185,6 @@ static void buildmap_line_initialize (void) {
 
    buildmap_line_register();
 }
-
 
 /**
  * @brief add a line to buildmap's list
@@ -204,10 +232,21 @@ int buildmap_line_add (int tlid, int layer, int from, int to)
 
    roadmap_hash_add (LineById, tlid, LineCount);
 
+   /*
+    * This adds info, but they will look wrong if you compare them with the
+    * end result : transformation happens when "sorting".
+    */
+   buildmap_line_add_bypoint(from, LineCount);
+   buildmap_line_add_bypoint(to, LineCount);
+
    return LineCount++;
 }
 
-
+/**
+ * @brief
+ * @param sorted_line
+ * @return
+ */         
 static void buildmap_line_new_long (int sorted_line)
    
 {
@@ -245,6 +284,13 @@ static void buildmap_line_new_long (int sorted_line)
     LongLinesCount++;
 }
 
+/**
+ * @brief
+ * @param sorted_line
+ * @param longitude
+ * @param latitude
+ * @return
+ */         
 void buildmap_line_test_long (int sorted_line, int longitude, int latitude) {
    RoadMapLongLine *this_long_line;
    int from;
@@ -317,6 +363,13 @@ void buildmap_line_get_points_sorted (int line, int *from, int *to) {
    *to   = this_line->record.to;
 }
 
+/**
+ * @brief
+ * @param line
+ * @param longitude
+ * @param latitude
+ * @return
+ */         
 void buildmap_line_get_position (int line, int *longitude, int *latitude) {
 
    BuildMapLine *this_line = buildmap_line_get_record (line);
@@ -325,7 +378,13 @@ void buildmap_line_get_position (int line, int *longitude, int *latitude) {
    *latitude  = buildmap_point_get_latitude  (this_line->record.from);
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @param longitude
+ * @param latitude
+ * @return
+ */         
 void buildmap_line_get_position_sorted
           (int line, int *longitude, int *latitude) {
 
@@ -335,7 +394,11 @@ void buildmap_line_get_position_sorted
    *latitude  = buildmap_point_get_latitude_sorted  (this_line->record.from);
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @return
+ */         
 int  buildmap_line_get_sorted (int line) {
 
    BuildMapLine *this_line = buildmap_line_get_record (line);
@@ -347,20 +410,33 @@ int  buildmap_line_get_sorted (int line) {
    return this_line->sorted;
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @return
+ */         
 int buildmap_line_get_id_sorted (int line) {
 
    return buildmap_line_get_record_sorted(line)->tlid;
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @return
+ */         
 int buildmap_line_get_square_sorted (int line) {
 
    return buildmap_point_get_square_sorted
              (buildmap_line_get_record_sorted(line)->record.from);
 }
 
-
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */         
 static int buildmap_line_compare (const void *r1, const void *r2) {
 
    int square1;
@@ -399,6 +475,12 @@ static int buildmap_line_compare (const void *r1, const void *r2) {
    return record1->record.to - record2->record.to;
 }
 
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */         
 static int buildmap_line_compare2 (const void *r1, const void *r2) {
 
    int square1;
@@ -444,6 +526,9 @@ static int buildmap_line_compare2 (const void *r1, const void *r2) {
    return record1->record.from - record2->record.from;
 }
 
+/**
+ * @brief
+ */         
 void buildmap_line_sort (void) {
 
    int i, j;
@@ -516,9 +601,14 @@ void buildmap_line_sort (void) {
    }
 
    qsort (SortedLine2, LineCrossingCount, sizeof(int), buildmap_line_compare2);
+   
+   /* The LineByPoint stuff gets sorted in the buildmap_line_transform_linebypoint
+    * function, when we need to pass over the info for other purposes anyway. */
 }
 
-
+/**
+ * @brief
+ */         
 static void buildmap_line_save (void) {
 
    int i;
@@ -550,8 +640,14 @@ static void buildmap_line_save (void) {
    buildmap_db *layer2_table;
    buildmap_db *index2_table;
 
+   /* Navigation support */
+   int			LineByPoint1Count = 0, LineByPoint2Count = 0;
+   RoadMapLineByPoint1	*db_line_bypoint1;
+   RoadMapLineByPoint2	*db_line_bypoint2;
+   buildmap_db		*line_bypoint1_table, *line_bypoint2_table;
 
-   if (!LineCount) return;
+   if (!LineCount)
+	   return;
 
    buildmap_info ("saving %d lines...", LineCount);
 
@@ -700,6 +796,15 @@ static void buildmap_line_save (void) {
    if (index2_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (index2_table, LineCrossingCount, sizeof(int));
 
+   buildmap_line_count_linebypoint(&LineByPoint1Count, &LineByPoint2Count);
+   line_bypoint1_table = buildmap_db_add_section (root, "bypoint1");
+   if (line_bypoint1_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (line_bypoint1_table, LineByPoint1Count, sizeof(int));
+
+   line_bypoint2_table = buildmap_db_add_section (root, "bypoint2");
+   if (line_bypoint2_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (line_bypoint2_table, LineByPoint2Count, sizeof(int));
+
    db_lines   = (RoadMapLine *) buildmap_db_get_data (data_table);
    db_square1 = (RoadMapLineBySquare *) buildmap_db_get_data (square1_table);
    db_layer1  = (int *) buildmap_db_get_data (layer1_table);
@@ -707,6 +812,8 @@ static void buildmap_line_save (void) {
    db_long_lines = (RoadMapLongLine *) buildmap_db_get_data (long_lines_table);
    db_layer2  = (int *) buildmap_db_get_data (layer2_table);
    db_index2  = (int *) buildmap_db_get_data (index2_table);
+   db_line_bypoint1 = (RoadMapLineByPoint1 *) buildmap_db_get_data (line_bypoint1_table);
+   db_line_bypoint2 = (RoadMapLineByPoint2 *) buildmap_db_get_data (line_bypoint2_table);
 
 
    square_current = -1;
@@ -823,9 +930,12 @@ static void buildmap_line_save (void) {
 
    memcpy (db_long_lines, LongLines, LongLinesCount * sizeof (RoadMapLongLine));
 
+   buildmap_line_transform_linebypoint(db_line_bypoint1, db_line_bypoint2);
 }
 
-
+/**
+ * @brief
+ */         
 static void buildmap_line_summary (void) {
 
    fprintf (stderr,
@@ -833,7 +943,9 @@ static void buildmap_line_summary (void) {
             LineCount, LineCrossingCount, LongLinesCount);
 }
 
-
+/**
+ * @brief
+ */         
 static void buildmap_line_reset (void) {
 
    int i;
@@ -858,7 +970,9 @@ static void buildmap_line_reset (void) {
    LineById = NULL;
 }
 
-
+/**
+ * @brief
+ */         
 static buildmap_db_module BuildMapLineModule = {
    "line",
    buildmap_line_sort,
@@ -867,8 +981,106 @@ static buildmap_db_module BuildMapLineModule = {
    buildmap_line_reset
 }; 
       
-         
+/**
+ * @brief
+ */         
 static void buildmap_line_register (void) {
    buildmap_db_register (&BuildMapLineModule);
 }
 
+/**
+ * @brief Line By Point support : announce that this line starts or ends at this point
+ * @param point the point
+ * @param line the line
+ */
+static void buildmap_line_add_bypoint(int point, int line)
+{
+	int	i, old;
+
+	if (max_line_by_point < point)
+		max_line_by_point = point;
+
+	old = nalloc_line_by_point;
+
+	if (nalloc_line_by_point < point) {
+		nalloc_line_by_point = point + ALLOC_POINTS;
+		lbp = (struct lbp *) realloc((void *)lbp,
+				nalloc_line_by_point * sizeof(struct lbp));
+		for (i=old; i<nalloc_line_by_point; i++) {
+			lbp[i].max = 0;
+			lbp[i].num = 0;
+			lbp[i].ptr = 0;
+		}
+	}
+	/* lbp[point].point = point; */
+	if (lbp[point].num == lbp[point].max) {
+		lbp[point].max += ALLOC_LINES;
+		lbp[point].ptr = (int *)realloc((void *)lbp[point].ptr,
+				lbp[point].max * sizeof(int));
+	}
+	for (i=0; i<lbp[point].num; i++)
+		if (lbp[point].ptr[i] == line)
+			return;	/* already there, no need to add again */
+	lbp[point].ptr[lbp[point].num++] = line;
+}
+
+/**
+ * @brief turn the data generated on the fly into the format fit for storage
+ */
+static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMapLineByPoint2 *q2)
+{
+	int	i, j, sz1, sz2;
+	int	cnt = 0;
+	int	*p1, *p2, *b;
+	int	*tmp;
+
+	for (i=0; i<max_line_by_point; i++) {
+		cnt += lbp[i].num;
+	}
+
+	sz1 = sizeof(int) * max_line_by_point;
+	sz2 = sizeof(int) * (max_line_by_point + cnt);
+
+	/*
+	 * This can be done without a tmp array, but for reasons I don't grasp,
+	 * the map only gets written right if the whole area pointed to by q1
+	 * is written.
+	 */
+	tmp = (int *)calloc(max_line_by_point, sizeof(int));
+
+	/* This is a sparse array, make it NULL first */
+	p1 = tmp;
+	for (i=0; i<max_line_by_point; i++)
+		*(p1++) = 0;
+
+	p1 = tmp;
+	b = p2 = (int *)q2;
+
+	for (i=0; i<max_line_by_point; i++) {
+		p1[buildmap_point_get_sorted(i)] = (int)(p2 - b);
+
+		for (j=0; j<lbp[i].num; j++) {
+			*(p2++) = buildmap_line_get_sorted(lbp[i].ptr[j]);
+		}
+		*(p2++) = 0;
+	}
+
+	buildmap_info("Line By Point : %d points, %d lines",
+			max_line_by_point, cnt);
+
+	memcpy(q1, tmp, max_line_by_point * sizeof (RoadMapLineByPoint1));
+	free(tmp);
+}
+
+static void buildmap_line_count_linebypoint(int *LineByPoint1Count, int *LineByPoint2Count)
+{
+	int	i;
+	int	cnt = 0;
+
+	for (i=0; i<max_line_by_point; i++) {
+		cnt += lbp[i].num;
+	}
+
+	*LineByPoint1Count = max_line_by_point;
+	*LineByPoint2Count = max_line_by_point + cnt;
+}

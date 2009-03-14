@@ -1,3 +1,4 @@
+#undef	HAVE_RUNTIME_CACHE
 /*
  * LICENSE:
  *   Copyright (c) 2008, 2009 by Danny Backx.
@@ -85,6 +86,7 @@ static int navigate_simple_on_blacklist(int line)
 	return 0;
 }
 
+#ifdef HAVE_RUNTIME_CACHE
 /*
  * Cache
  */
@@ -241,6 +243,40 @@ static void navigate_simple_square_inventory(int square)
 	}
 
 }
+#endif	/* HAVE_RUNTIME_CACHE */
+
+static void debug(int point, int maxlines)
+{
+	int	i, line_id;
+	fprintf(stderr, "CloseBy from map (%d) -> ", point);
+	for (i=0; (line_id = roadmap_line_point_adjacent(point, i)) && (i < maxlines); i++) {
+		fprintf(stderr, "%d ", line_id);
+	}
+	fprintf(stderr, "\n");
+
+#if 0
+	static int once = 1;
+	if (once) {
+		once = 0;
+		for (i=0; i<1708; i++) {
+			int j;
+			fprintf(stderr, "LBP[%d] -> ", i);
+			for (j=0; roadmap_line_point_adjacent(i, j); j++)
+				fprintf(stderr, " %d ", roadmap_line_point_adjacent(i, j));
+			fprintf(stderr, "\n");
+		}
+	}
+#endif
+#if 0
+	for (i=0; i<1708; i++) {
+		if (roadmap_line_point_adjacent(i, 0) == 21
+			&& roadmap_line_point_adjacent(i, 1) == 22
+			&& roadmap_line_point_adjacent(i, 2) == 23) {
+			fprintf(stderr, "YOW YOW YOW %d -> %d (21 22 23)\n", point, i);
+		}
+	}
+#endif
+}
 
 /**
  * @brief
@@ -254,6 +290,24 @@ static void navigate_simple_square_inventory(int square)
 int navigate_simple_lines_closeby(RoadMapPosition pos, int point, PluginLine *line,
 		PluginLine *lines, const int maxlines)
 {
+#if 1
+	debug(point, maxlines);
+	// if (point == 455) debug(367, maxlines);
+	// if (point == 461) debug(382, maxlines);
+#endif
+#ifndef HAVE_RUNTIME_CACHE
+	/* Use the line/bypoint data in newer maps, or fail */
+	int	i, line_id;
+	RoadMapStreetProperties prop;
+
+	for (i=0; (line_id = roadmap_line_point_adjacent(point, i)) && (i < maxlines); i++) {
+		roadmap_street_get_properties(line_id, &prop);
+		lines[i].line_id = line_id;
+		// lines[i].fips = prop.fips;
+		// lines[i].layer = prop.layer;
+	}
+	return i;
+#else /* HAVE_RUNTIME_CACHE */
 #define	maxlayers	10
 	int	square, i, j,
 		nlines, found, other, l;
@@ -294,6 +348,7 @@ int navigate_simple_lines_closeby(RoadMapPosition pos, int point, PluginLine *li
 		nlines++;
 	}
 	return nlines;
+#endif /* HAVE_RUNTIME_CACHE */
 }
 
 /**
@@ -319,6 +374,8 @@ int navigate_simple_get_segments (PluginLine *from_line,
                                  int *size,
                                  int *flags)
 {
+	static int do_this_once = 1;
+	int stop;
 
 #define	MAX_CAT		10	/* Not interesting */
 #define	MAX_ITER	100	/* Max #iterations */
@@ -342,22 +399,38 @@ int navigate_simple_get_segments (PluginLine *from_line,
 
 	max_iterations = MAX_ITER;
 
+	if (do_this_once) {
+		do_this_once = 0;
+#ifdef HAVE_RUNTIME_CACHE
+		roadmap_log(ROADMAP_WARNING, "Use runtime cache");
+#else
+		roadmap_log(ROADMAP_WARNING, "Use map extension");
+#endif
+	}
+
+	from_line->line_id = to_line->line_id = 0;
+
 	/* Where are we ? */
 	PluginLine	*l = roadmap_navigate_position2line(from_pos);
-	roadmap_log (ROADMAP_WARNING, "from --> %s",
-			l ? roadmap_plugin_street_full_name(l) : "??");
+	roadmap_log (ROADMAP_WARNING, "from --> %s (%d)",
+			l ? roadmap_plugin_street_full_name(l) : "??",
+			l->line_id);
 	if (l)
 		*from_line = *l;
+#if 0
 	else
 		return -1;
+#endif
 
 	l = roadmap_navigate_position2line(to_pos);
 	roadmap_log (ROADMAP_WARNING, "to --> %s",
 			l ? roadmap_plugin_street_full_name(l) : "??");
 	if (l)
 		*to_line = *l;
+#if 0
 	else
 		return -1;
+#endif
 
 	/*
 	 * Get in shape to start looking for a route
@@ -375,9 +448,16 @@ int navigate_simple_get_segments (PluginLine *from_line,
 	 * Next iteration
 	 */
 	for (loop=iteration=0; loop < max_iterations && iteration < max_iterations; loop++) {
-		roadmap_log (ROADMAP_DEBUG, "RouteGetSegments iteration === %d === point %d",
-				iteration, point);
+		roadmap_log (ROADMAP_DEBUG,
+			"RouteGetSegments iteration === %d === point %d, CurrentPos %d %d",
+			iteration, point,
+			CurrentPos.longitude, CurrentPos.latitude);
 
+#if 1
+		roadmap_point_position(point, &newpos);
+		roadmap_log (ROADMAP_DEBUG, "Point %d is at %d %d", point,
+				newpos.longitude, newpos.latitude);
+#endif
 		int	maxlines = 10, nlines;
 		PluginLine	lines[10];
 
@@ -385,6 +465,40 @@ int navigate_simple_get_segments (PluginLine *from_line,
 		nlines = navigate_simple_lines_closeby(CurrentPos, point, l, lines, maxlines);
 
 		roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d", nlines, bestdist);
+		if (nlines == 0) {
+			point = roadmap_line_from_point(from_line->line_id);
+			roadmap_log(ROADMAP_WARNING, "try point #%d", point);
+			nlines = navigate_simple_lines_closeby(CurrentPos, point, l,
+					lines, maxlines);
+
+			roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d",
+					nlines, bestdist);
+		}
+		if (nlines == 0) {
+			point = roadmap_line_to_point(from_line->line_id);
+			roadmap_log(ROADMAP_WARNING, "try point #%d", point);
+			nlines = navigate_simple_lines_closeby(CurrentPos, point, l,
+					lines, maxlines);
+
+			roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d",
+					nlines, bestdist);
+		}
+		if (nlines == 0) {
+			point = 198;
+			roadmap_log(ROADMAP_WARNING, "try point #%d", point);
+			nlines = navigate_simple_lines_closeby(CurrentPos, point, l,
+					lines, maxlines);
+
+			roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d",
+					nlines, bestdist);
+		}
+#if 1
+		int x;
+		fprintf(stderr, "Lines closeby (point %d) -> lines {", point);
+		for (x=0; x<nlines; x++)
+			fprintf(stderr, "%d ", lines[x].line_id);
+		fprintf(stderr, "}\n");
+#endif
 
 		bestdist = maxdist * 2;
 		best = -1;
@@ -416,9 +530,17 @@ int navigate_simple_get_segments (PluginLine *from_line,
 			roadmap_point_position(newpt, &newpos);
 			dist = roadmap_math_distance(&newpos, &to_pos);
 
+			roadmap_log (ROADMAP_DEBUG, "Line %d point %d pos %d %d",
+					lines[i].line_id, newpt,
+					newpos.longitude, newpos.latitude);
+
 			newpt2 = roadmap_line_from_point(lines[i].line_id);
 			roadmap_point_position(newpt2, &newpos2);
 			dist2 = roadmap_math_distance(&newpos2, &to_pos);
+
+			roadmap_log (ROADMAP_DEBUG, "Line %d point %d pos %d %d",
+					lines[i].line_id, newpt2,
+					newpos2.longitude, newpos2.latitude);
 
 			if (point == newpt2) {
 				rev = 0;
@@ -446,9 +568,15 @@ int navigate_simple_get_segments (PluginLine *from_line,
 		roadmap_log (ROADMAP_DEBUG, "After inner loop : best %d bestdist %d",
 				best, bestdist);
 
-		if (to_line->line_id == lines[best].line_id ||
-			roadmap_line_from_point(to_line->line_id) == bestnewpt ||
-			roadmap_line_to_point(to_line->line_id) == bestnewpt) {
+		stop = 0;
+		if (!stop && to_line && to_line->line_id == lines[best].line_id)
+			stop++;
+		if (!stop && roadmap_line_from_point(to_line->line_id) == bestnewpt)
+			stop++;
+		if (!stop && roadmap_line_to_point(to_line->line_id) == bestnewpt)
+			stop++;
+		if (stop) 
+		{
 			roadmap_log (ROADMAP_DEBUG, "Line match -> track time %d, dist %d",
 					tracktime, bestdist);
 			*size = iteration;

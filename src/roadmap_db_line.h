@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -54,6 +55,9 @@
 
 /**
  * @brief table line/data
+ *
+ * line/data	The ID of the line and its from and to points.
+ *		The lines are sorted by square.
  */
 typedef struct {
    int from;
@@ -62,6 +66,10 @@ typedef struct {
 
 /**
  * @brief tables line/bysquare1 and line/bysquare2
+ *
+ * line/bysquare1	An index of layers per square (points to line/bylayer1).
+ * line/bysquare2	A given line may have one end in a different square:
+ *			this 2nd index covers this (points to line/bylayer2).
  */
 typedef struct {
    int first; /* First layer item in line/layer. */
@@ -80,5 +88,23 @@ typedef struct {
 /* Table line/bylayer2 is an array of int. */
 
 /* Table line/index2 is an array of int. */
+
+/**
+ * @brief table line/bypoint1
+ *
+ * Navigation support : provide a list of lines that begin or end at this point
+ */
+typedef struct {
+  int line;
+} RoadMapLineByPoint1;
+
+/**
+ * @brief table line/bypoint2
+ *
+ * Navigation support : index into line/bypoint1
+ */
+typedef struct {
+  int nlines;
+} RoadMapLineByPoint2;
 
 #endif // INCLUDED__ROADMAP_DB_LINE__H
