@@ -48,7 +48,8 @@ RMLIBSRC = roadmap_log.c \
 	roadmap_gpx.c \
 	roadmap_linefont.c \
 	roadmap_lang.c \
-	roadmap_iso.c
+	roadmap_iso.c \
+	roadmap_turns.c
 
 RMLIBOBJS = $(RMLIBSRC:.c=.o)
 
@@ -126,7 +127,8 @@ BMLIBSRC = buildmap_messages.c \
 	buildmap_empty.c \
 	buildmap_place.c \
 	buildmap_index.c \
-	buildmap_opt.c
+	buildmap_opt.c \
+	buildmap_turn_restrictions.c
 
 BMLIBOBJS = $(BMLIBSRC:.c=.o)
 
@@ -211,7 +213,8 @@ BMHEADERS = \
 	buildmap_zip.h \
 	buildus_county.h \
 	roadmap_iso.h \
-	buildus_fips.h
+	buildus_fips.h \
+	buildmap_turn_restrictions.h
 
 XCHGHEADERS = \
 	rdmxchange.h
@@ -298,6 +301,7 @@ RMHEADERS = \
 	roadmap_trigonometry.h \
 	roadmap_trip.h \
 	roadmap_tripdb.h \
+	roadmap_turns.h \
 	roadmap_types.h \
 	roadmap_vii.h \
 	roadmap_voice.h
@@ -317,7 +321,8 @@ RMDBHEADERS = \
 	roadmap_db_shape.h \
 	roadmap_db_square.h \
 	roadmap_db_street.h \
-	roadmap_dbread.h
+	roadmap_dbread.h \
+	roadmap_db_turns.h
 
 HEADERS = $(BMHEADERS) $(XCHGHEADERS) $(RGHEADERS) $(RMHEADERS) $(RMDBHEADERS)
 
@@ -409,17 +414,24 @@ NAVIGATE_PLUGINSRC = \
 	navigate/navigate_simple.c \
 	navigate/navigate_route.c
 
+NAVIGATE_PLUGIN_HDR = \
+	navigate/navigate_bar.h \
+	navigate/navigate_cost.h \
+	navigate/navigate.h \
+	navigate/navigate_plugin.h \
+	navigate/navigate_route.h \
+	navigate/navigate_simple.h \
+	navigate/navigate_visual.h
+
 CFLAGS += -DHAVE_NAVIGATE_PLUGIN
 
 PLUGIN_CLEAN += ${NAVIGATE_PLUGINSRC:.c=.o}
-#
-# support for navigate plugin without trip plugin
-#
 RMLIBSRC += roadmap_skin.c roadmap_line_speed.c roadmap_res.c roadmap_line_route.c
 #	roadmap_turns.c
-# 
-# End of support for navigate plugin without trip plugin
-#
+
+RMHEADERS += ${NAVIGATE_PLUGIN_HDR} \
+	roadmap_skin.h roadmap_line_speed.h roadmap_db_line_speed.h roadmap_res.h
+#       roadmap_line_route.h roadmap_db_line_route.h roadmap_db_turns.h roadmap_turns.h
 
 RMGUISRC +=
 

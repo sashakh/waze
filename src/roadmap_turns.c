@@ -49,8 +49,10 @@
 
 static char *RoadMapTurnsType = "RoadMapTurnsContext";
 
+/**
+ * @brief
+ */
 typedef struct {
-
    char *type;
 
    RoadMapTurns *Turns;
@@ -64,14 +66,17 @@ typedef struct {
 
    int *turns_cache;
    int  turns_cache_size;  /* This is the size in bits ! */
-
 } RoadMapTurnsContext;
 
 static RoadMapTurnsContext *RoadMapTurnsActive = NULL;
 
 static int RoadMapTurns2Mask[8*sizeof(int)] = {0};
 
-
+/**
+ * @brief
+ * @param root
+ * @return
+ */
 static void *roadmap_turns_map (roadmap_db *root) {
 
    unsigned i;
@@ -128,6 +133,10 @@ static void *roadmap_turns_map (roadmap_db *root) {
    return context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_turns_activate (void *context) {
 
    RoadMapTurnsContext *turns_context = (RoadMapTurnsContext *) context;
@@ -151,6 +160,10 @@ static void roadmap_turns_activate (void *context) {
    RoadMapTurnsActive = turns_context;
 }
 
+/**
+ * @brief
+ * @param context
+ */
 static void roadmap_turns_unmap (void *context) {
 
    RoadMapTurnsContext *turns_context = (RoadMapTurnsContext *) context;
@@ -167,6 +180,9 @@ static void roadmap_turns_unmap (void *context) {
    free(turns_context);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapTurnsHandler = {
    "turns",
    roadmap_turns_map,
@@ -174,7 +190,12 @@ roadmap_db_handler RoadMapTurnsHandler = {
    roadmap_turns_unmap
 };
 
-
+/**
+ * @brief
+ * @param square
+ * @param first
+ * @param last
+ */
 int  roadmap_turns_in_square (int square, int *first, int *last) {
 
    RoadMapTurnsBySquare *TurnsBySquare;
@@ -196,7 +217,15 @@ int  roadmap_turns_in_square (int square, int *first, int *last) {
    return 0;
 }
 
-
+/**
+ * @brief
+ * @param node
+ * @param begin
+ * @param end
+ * @param first
+ * @param last
+ * @return
+ */
 int  roadmap_turns_of_node (int node, int begin, int end,
                             int *first, int *last) {
 
@@ -254,7 +283,13 @@ int  roadmap_turns_of_node (int node, int begin, int end,
    return 0;
 }
 
-
+/**
+ * @brief
+ * @param node
+ * @param from_line
+ * @param to_line
+ * @return
+ */
 int roadmap_turns_find_restriction (int node, int from_line, int to_line) {
 
    static int cache_square = -1;
