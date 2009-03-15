@@ -412,9 +412,12 @@ int navigate_simple_get_segments (PluginLine *from_line,
 
 	/* Where are we ? */
 	PluginLine	*l = roadmap_navigate_position2line(from_pos);
-	roadmap_log (ROADMAP_WARNING, "from --> %s (%d)",
-			l ? roadmap_plugin_street_full_name(l) : "??",
-			l->line_id);
+	if (l)
+		roadmap_log (ROADMAP_WARNING, "from --> %s (%d)",
+			roadmap_plugin_street_full_name(l), l->line_id);
+	else
+		roadmap_log (ROADMAP_WARNING, "from --> ??");
+
 	if (l)
 		*from_line = *l;
 #if 0

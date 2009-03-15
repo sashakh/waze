@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2007 Paul G. Fox
- *   Copyright (c) 2008, Danny Backx
+ *   Copyright (c) 2008, 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *

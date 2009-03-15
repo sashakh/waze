@@ -1002,7 +1002,7 @@ static void buildmap_line_add_bypoint(int point, int line)
 
 	old = nalloc_line_by_point;
 
-	if (nalloc_line_by_point < point) {
+	if (nalloc_line_by_point <= point) {
 		nalloc_line_by_point = point + ALLOC_POINTS;
 		lbp = (struct lbp *) realloc((void *)lbp,
 				nalloc_line_by_point * sizeof(struct lbp));
