@@ -28,8 +28,12 @@
  *
  *   The RoadMap lines are described by the following table:
  *
- *   line/data       The ID of the line and its from and to points.
- *                   The lines are sorted by square.
+ *   line/data       The from and to points of a line.
+ *   		     The line id isn't stored.
+ *                   The lines are sorted by square. (This is not a property
+ *                   of this table, but of the line ids : these are clustered
+ *                   in such a way that the lines of a square have a range of
+ *                   ids next to each other.)
  *   line/bysquare1  An index of layers per square (points to line/bylayer1).
  *   line/bylayer1   An indirect index, from layers to lines.
  *   line/bysquare2  A given line may have one end in a different square:
@@ -56,8 +60,8 @@
 /**
  * @brief table line/data
  *
- * line/data	The ID of the line and its from and to points.
- *		The lines are sorted by square.
+ * line/data	The from and to points of a line. Lookup is by line id.
+ *		Line ids are clustered per square.
  */
 typedef struct {
    int from;
