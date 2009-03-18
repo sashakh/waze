@@ -1,4 +1,3 @@
-#undef	HAVE_RUNTIME_CACHE
 /*
  * LICENSE:
  *   Copyright (c) 2008, 2009 by Danny Backx.
@@ -86,165 +85,6 @@ static int navigate_simple_on_blacklist(int line)
 	return 0;
 }
 
-#ifdef HAVE_RUNTIME_CACHE
-/*
- * Cache
- */
-enum direction {
-	D_NORMAL,
-	D_REVERSE
-};
-
-static int cache_point_count = 0,
-	   cache_line_count = 0;
-
-struct cache_line {
-	int line;
-	int layer;
-	int fips;
-};
-
-#define	INIT_LINES_PER_POINT	5
-#define	INIT_POINTS		80
-
-struct cache_per_point {
-	int	point;
-	int	num_lines, max_lines;
-	struct cache_line	*lines;
-};
-
-struct cache_per_point	*cache = NULL;
-int			num_cache = 0, max_cache = 0;
-int			cache_square = 0;
-
-/**
- * @brief build a cache of the line/point combinations in this square, organize per point
- * @param line
- * @param point
- * @param reverse
- */
-static void cache_point(int line, int layer, int fips, int point, enum direction reverse)
-{
-	int	i, j;
-
-	for (i=0; i<num_cache; i++) {
-		if (cache[i].point == point) {
-			for (j=0; j<cache[i].num_lines; j++) {
-				if (cache[i].lines[j].line == line)
-					return;
-			}
-			/* Found the entry for this point, but not this line, so store the line */
-			if (cache[i].num_lines == cache[i].max_lines) {
-				/* If necessary, expand the array first */
-				cache[i].max_lines += INIT_LINES_PER_POINT;
-				cache[i].lines = (struct cache_line *)realloc((void *)cache[i].lines,
-						cache[i].max_lines * sizeof(struct cache_line));
-			}
-			cache[i].lines[cache[i].num_lines].line = line;
-			cache[i].lines[cache[i].num_lines].fips = fips;
-			cache[i].lines[cache[i].num_lines].layer = layer;
-			cache[i].num_lines++;
-			cache_line_count++;
-			return;
-		}
-	}
-
-	/* Haven't seen this point yet */
-	if (num_cache == max_cache) {
-		/* Need more space */
-		max_cache += INIT_POINTS;
-		cache = (struct cache_per_point *)realloc((void *)cache,
-				max_cache * sizeof(struct cache_per_point));
-	}
-
-	/* New point, allocate initial array */
-	cache[num_cache].point = point;
-	cache[num_cache].num_lines = 0;
-	cache[num_cache].max_lines = INIT_LINES_PER_POINT;
-	cache[num_cache].lines = (struct cache_line *)calloc(cache[num_cache].max_lines,
-			sizeof(struct cache_line));
-	cache[num_cache].lines[cache[num_cache].num_lines].line = line;
-	cache[num_cache].lines[cache[num_cache].num_lines].fips = fips;
-	cache[num_cache].lines[cache[num_cache].num_lines].layer = layer;
-	cache[num_cache].num_lines++;
-	num_cache++;
-
-	cache_point_count++;
-	cache_line_count++;
-}
-
-/**
- * @brief free the cache
- */
-static void free_cache(void)
-{
-	int	i;
-
-	for (i=0; i<num_cache; i++) {
-		free((void *)cache[i].lines);
-	}
-
-	free(cache);
-	num_cache = max_cache = 0;
-	cache = NULL;
-	cache_point_count = cache_line_count = 0;
-}
-
-/**
- * @brief look up points and lines in this square
- * @param square
- */
-static void navigate_simple_square_inventory(int square)
-{
-#define	maxlayers	10
-	int	nlayer, layers[maxlayers], i, layer, fips,
-		nlines, first, last, line, from_point, to_point;
-	RoadMapPosition	pos;
-
-	if (square == cache_square)
-		return;
-	free_cache();
-	cache_square = square;
-
-	nlayer = roadmap_layer_navigable(roadmap_navigate_get_mode(), layers, maxlayers);
-
-	nlines = 0;
-	for (i=0; i<nlayer; i++) {
-		layer = layers[i];
-
-		/* Query streets per layer, due to structure of RoadMap database */
-		if (roadmap_line_in_square(square, layer, &first, &last)) {
-			nlines += last - first + 1;
-
-			for (line = first; line <= last; line++) {
-				roadmap_line_points(line, &from_point, &to_point);
-				/* We know the from_point is in the square */
-				cache_point(line, layer, fips, from_point, D_NORMAL);
-				/* Check whether the to-point is in the square */
-				roadmap_point_position(to_point, &pos);
-				if (roadmap_county_by_position(&pos, &fips, 1) == 1
-				 && roadmap_square_search(&pos) == square)
-					cache_point(line, layer, fips, to_point, D_REVERSE);
-			}
-
-		}
-
-		if (roadmap_line_in_square2(square, layer, &first, &last)) {
-			nlines += last - first + 1;
-
-			for (line = first; line <= last; line++) {
-				int l = roadmap_line_get_from_index2(line);
-				to_point = roadmap_line_to_point(l);
-				cache_point(l, layer, fips, to_point, D_NORMAL);
-			}
-		}
-		roadmap_log (ROADMAP_DEBUG, "closeby : %d lines %d points after layer %d",
-				cache_line_count, cache_point_count, layer);
-	}
-
-}
-#endif	/* HAVE_RUNTIME_CACHE */
-
 /**
  * @brief
  * @param pos
@@ -257,7 +97,6 @@ static void navigate_simple_square_inventory(int square)
 int navigate_simple_lines_closeby(RoadMapPosition pos, int point, PluginLine *line,
 		PluginLine *lines, const int maxlines)
 {
-#ifndef HAVE_RUNTIME_CACHE
 	/* Use the line/bypoint data in newer maps, or fail */
 	int	i, line_id;
 //	RoadMapStreetProperties prop;
@@ -270,48 +109,6 @@ int navigate_simple_lines_closeby(RoadMapPosition pos, int point, PluginLine *li
 		// lines[i].fips = prop.fips;
 	}
 	return i;
-#else /* HAVE_RUNTIME_CACHE */
-#define	maxlayers	10
-	int	square, i, j,
-		nlines, found, other, l;
-
-	roadmap_log (ROADMAP_DEBUG, "navigate_simple_lines_closeby(%d,%d) point %d",
-			pos.longitude, pos.latitude, point);
-
-	square = roadmap_square_search(&pos);
-
-	/* Make a point/line inventory of the whole square */
-	navigate_simple_square_inventory(square);
-
-	/* Figure out where to go now */
-	for (i=0,found=0; i<num_cache && !found; i++) {
-		if (cache[i].point == point) {
-			found = 1;
-			break;
-		}
-	}
-	if (! found) {
-		roadmap_log (ROADMAP_WARNING, "Yow : not found");
-		return 0;
-	}
-
-	for (nlines=j=0; j<cache[i].num_lines; j++) {
-		RoadMapStreetProperties prop;
-		l = cache[i].lines[j].line;
-
-		roadmap_street_get_properties(cache[i].lines[j].line, &prop);
-
-		other = roadmap_line_from_point(l);
-		if (other == point)
-			other = roadmap_line_to_point(l);
-
-		lines[nlines].line_id = l;
-		lines[nlines].fips = cache[i].lines[j].fips;
-		lines[nlines].layer = cache[i].lines[j].layer;
-		nlines++;
-	}
-	return nlines;
-#endif /* HAVE_RUNTIME_CACHE */
 }
 
 /**
@@ -364,11 +161,7 @@ int navigate_simple_get_segments (PluginLine *from_line,
 
 	if (do_this_once) {
 		do_this_once = 0;
-#ifdef HAVE_RUNTIME_CACHE
-		roadmap_log(ROADMAP_WARNING, "Use runtime cache");
-#else
 		roadmap_log(ROADMAP_WARNING, "Use map extension");
-#endif
 	}
 
 	from_line->line_id = to_line->line_id = 0;
