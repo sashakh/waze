@@ -245,39 +245,6 @@ static void navigate_simple_square_inventory(int square)
 }
 #endif	/* HAVE_RUNTIME_CACHE */
 
-static void debug(int point, int maxlines)
-{
-	int	i, line_id;
-	fprintf(stderr, "CloseBy from map (%d) -> ", point);
-	for (i=0; (line_id = roadmap_line_point_adjacent(point, i)) && (i < maxlines); i++) {
-		fprintf(stderr, "%d ", line_id);
-	}
-	fprintf(stderr, "\n");
-
-#if 0
-	static int once = 1;
-	if (once) {
-		once = 0;
-		for (i=0; i<1708; i++) {
-			int j;
-			fprintf(stderr, "LBP[%d] -> ", i);
-			for (j=0; roadmap_line_point_adjacent(i, j); j++)
-				fprintf(stderr, " %d ", roadmap_line_point_adjacent(i, j));
-			fprintf(stderr, "\n");
-		}
-	}
-#endif
-#if 0
-	for (i=0; i<1708; i++) {
-		if (roadmap_line_point_adjacent(i, 0) == 21
-			&& roadmap_line_point_adjacent(i, 1) == 22
-			&& roadmap_line_point_adjacent(i, 2) == 23) {
-			fprintf(stderr, "YOW YOW YOW %d -> %d (21 22 23)\n", point, i);
-		}
-	}
-#endif
-}
-
 /**
  * @brief
  * @param pos
@@ -290,21 +257,17 @@ static void debug(int point, int maxlines)
 int navigate_simple_lines_closeby(RoadMapPosition pos, int point, PluginLine *line,
 		PluginLine *lines, const int maxlines)
 {
-#if 1
-	debug(point, maxlines);
-	// if (point == 455) debug(367, maxlines);
-	// if (point == 461) debug(382, maxlines);
-#endif
 #ifndef HAVE_RUNTIME_CACHE
 	/* Use the line/bypoint data in newer maps, or fail */
 	int	i, line_id;
-	RoadMapStreetProperties prop;
+//	RoadMapStreetProperties prop;
 
 	for (i=0; (line_id = roadmap_line_point_adjacent(point, i)) && (i < maxlines); i++) {
-		roadmap_street_get_properties(line_id, &prop);
+//		roadmap_street_get_properties(line_id, &prop);
 		lines[i].line_id = line_id;
+		lines[i].layer = roadmap_line_get_layer(line_id);
+		lines[i].fips = roadmap_line_get_fips(line_id);
 		// lines[i].fips = prop.fips;
-		// lines[i].layer = prop.layer;
 	}
 	return i;
 #else /* HAVE_RUNTIME_CACHE */
@@ -378,7 +341,7 @@ int navigate_simple_get_segments (PluginLine *from_line,
 	int stop;
 
 #define	MAX_CAT		10	/* Not interesting */
-#define	MAX_ITER	100	/* Max #iterations */
+#define	MAX_ITER	500	/* Max #iterations */
 
 	int			ncategories, i, j, found;
 	int			categories[MAX_CAT], dist, maxdist, bestdist, dist2, rev, oldrev;
