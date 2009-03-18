@@ -413,6 +413,14 @@ void roadmap_line_points (int line, int *from, int *to) {
    *to = RoadMapLineActive->Line[line].to;
 }
 
+/**
+ * @brief
+ * @param index
+ * @param line_id
+ * @param area
+ * @param cfcc
+ * @return
+ */
 int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
 
    if (RoadMapLineActive == NULL) return 0; /* No lines */
@@ -542,4 +550,20 @@ int roadmap_line_point_adjacent(int point, int ix)
 			return 0;
 		}
 	return p[ix];
+}
+
+/**
+ * @brief return the fips for this line, based on the from point's position
+ * @param line the line id
+ * @return the fips
+ */
+int roadmap_line_get_fips(int line)
+{
+	static int	*fl = NULL;
+	RoadMapPosition	pos;
+
+	roadmap_line_from(line, &pos);
+	if (roadmap_locator_by_position(&pos, &fl) <= 0)
+		return -1;
+	return fl[0];
 }

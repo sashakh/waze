@@ -71,4 +71,6 @@ extern int roadmap_line_point_adjacent(int point, int ix);
 int roadmap_line_from_point (int line);
 int roadmap_line_to_point (int line);
 
+int roadmap_line_get_layer (int line_id);
+int roadmap_line_get_fips(int line);
 #endif // INCLUDED__ROADMAP_LINE__H
