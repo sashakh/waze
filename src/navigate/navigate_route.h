@@ -1,9 +1,9 @@
 /**
- * @file navigate_route.h - generic navigate functions
  *
  * LICENSE:
  *
  *   Copyright 2006 Ehud Shabtai
+ *   Copyright (c) 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -20,7 +20,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
+ */
+
+/**
+ * @file
+ * @brief navigate_route.h - generic navigate functions
  */
 
 #ifndef _NAVIGATE_ROUTE_H_
@@ -43,6 +47,11 @@ int navigate_route_get_segments (PluginLine *from_line,
                                  NavigateSegment *segments,
                                  int *size,
                                  int *result);
+
+NavigateStatus navigate_route_get_initial (PluginLine *from_line,
+					   RoadMapPosition from_pos,
+					   PluginLine *to_line,
+					   RoadMapPosition to_pos);
 
 #endif /* _NAVIGATE_ROUTE_H_ */
 

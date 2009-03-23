@@ -1,7 +1,7 @@
 /*
  * LICENSE:
  *
- *   Copyright 2008 by Danny Backx.
+ *   Copyright (c) 2008, 2009 by Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -33,9 +33,21 @@
 
 #include "roadmap.h"
 #include "roadmap_point.h"
+#include "roadmap_math.h"
 #include "navigate.h"
 #include "navigate/navigate_simple.h"
 #include "navigate_route.h"
+
+static NavigateAlgorithm *Algo = NULL;
+
+/**
+ * @brief register an algorithm
+ * @param algo the structure representing it
+ */
+void navigate_algorithm_register(NavigateAlgorithm *algo)
+{
+	Algo = algo;
+}
 
 /**
  * @brief calculate the basic route.
@@ -52,6 +64,7 @@
  * @param flags either NEW_ROUTE or RECALC_ROUTE
  * @return track time
  */
+#if 0
 int navigate_route_get_segments (PluginLine *from_line,
                                  RoadMapPosition from_pos,
                                  PluginLine *to_line,
@@ -59,9 +72,73 @@ int navigate_route_get_segments (PluginLine *from_line,
                                  NavigateSegment *segments,
                                  int *size,
                                  int *flags)
+#else
+NavigateStatus navigate_route_get_initial (PluginLine *from_line,
+					   RoadMapPosition from_pos,
+					   PluginLine *to_line,
+					   RoadMapPosition to_pos)
+#endif
 {
-	return navigate_simple_get_segments(from_line, from_pos, to_line, to_pos,
-			segments, size, flags);
+	int			i;
+	NavigateIteration	*p;
+	NavigateStatus	status, rev;
+
+	if (! Algo)
+		return (NavigateStatus) {NULL, NULL, NULL, 0, 0};
+
+	/* navigate_route_setup(); */
+
+	/* Set up the start info */
+	status.first = calloc(1, sizeof(struct NavigateIteration));
+	status.last = calloc(1, sizeof(struct NavigateIteration));
+
+	status.first->prev = status.first->next = NULL;
+	status.last->prev = status.last->next = NULL;
+	status.first->segment = calloc(1, sizeof(struct NavigateSegment));
+	status.last->segment = calloc(1, sizeof(struct NavigateSegment));
+
+	status.first->segment->line = *from_line;
+	status.first->segment->from_pos = from_pos;
+	status.first->segment->to_pos = from_pos;
+
+	status.last->segment->line = *to_line;
+	status.last->segment->from_pos = to_pos;
+	status.last->segment->to_pos = to_pos;
+
+	status.first->cost.distance = 0;
+	status.last->cost.distance = 0;
+	status.first->cost.time = 0;
+	status.last->cost.time = 0;
+
+	status.first->cost.distance = 0;
+	status.first->cost.time = 0;
+
+	status.maxdist = roadmap_math_distance(&from_pos, &to_pos);
+
+	status.current = status.first;
+
+	/*
+	 * Prepare for running the algorithm from both directions
+	 */
+	rev.first = status.last;
+	rev.last = status.first;
+
+	status.iteration = 1;
+	while (status.iteration <= Algo->max_iterations) {
+		Algo->step_fn(Algo, &status);
+		if (Algo->end_fn(&status)) {
+			break;
+		}
+		if (Algo->both_ways) {
+			Algo->step_fn(Algo, &rev);
+			if (Algo->end_fn(&status)) {
+				break;
+			}
+		}
+		status.iteration++;
+	}
+
+	return status;
 }
 
 /**

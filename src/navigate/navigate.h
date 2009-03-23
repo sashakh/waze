@@ -48,7 +48,7 @@ enum NavigateInstr {
  * @brief structure to keep iterations of a route in
  * also serves to pass them between navigate plugin and others
  */
-typedef struct {
+typedef struct NavigateSegment {
    PluginLine           line;
    int                  line_direction;	/**< is the direction reversed ? */
    PluginStreet         street;
@@ -62,11 +62,69 @@ typedef struct {
    RoadMapShapeItr      shape_itr;
    enum NavigateInstr   instruction;
    int                  group_id;
-   int                  distance;
-   int                  cross_time;
-   
+
+   int			dist_from_destination;	/**< how far away are we */
+   int                  distance;		/**< distance from start */
+   int                  time;			/**< time to reach this point */
+   int			heuristic;		/**< algorithm dependent */
 } NavigateSegment;
  
+/* Forward declaration, required to define the list pointers */
+struct NavigateIteration;
+
+typedef struct NavigateCost {
+   int          distance;	/**< distance until this point */
+   int          time;		/**< time to reach this point */
+//   int          heuristic;	/**< algorithm dependent heuristic about cost to get here */
+} NavigateCost;
+
+/**
+ * @brief structure of one step in navigation
+ * The code should maintain a doubly linked list of these
+ */
+typedef struct NavigateIteration {
+	struct NavigateIteration	*prev, *next;
+	struct NavigateSegment		*segment;
+	struct NavigateCost		cost;
+} NavigateIteration;
+
+/**
+ * @brief structure to store navigation status
+ * to be used in the generic navigation loop
+ * to be shared between the different navigation sub-functions
+ * may be extended by a navigation algorithm
+ */
+typedef struct {
+	NavigateIteration	*first, *last;
+	NavigateIteration	*current;
+	int			iteration;
+	int			maxdist;
+} NavigateStatus;
+
+/*
+ * Definitions for the algorithm fields
+ */
+struct NavigateAlgorithm;
+typedef int (*navigate_cost_fn) (NavigateIteration *iter);
+typedef int (*navigate_step_fn) (struct NavigateAlgorithm *algo, NavigateStatus *stp);
+typedef int (*navigate_end_fn) (NavigateStatus *stp);
+
+/**
+ * @brief structure that defines a navigation algorithm
+ * (basically a set of functions to calculate cost, next step, ..
+ * that all use the same data structures)
+ */
+typedef struct NavigateAlgorithm {
+	const char		*algorithm_name;
+	int			both_ways;
+	int			max_iterations;
+	navigate_cost_fn	cost_fn;
+	navigate_step_fn	step_fn;
+	navigate_end_fn		end_fn;
+} NavigateAlgorithm;
+
+void navigate_algorithm_register(NavigateAlgorithm *algo);
+
 int navigate_is_enabled (void);
 void navigate_shutdown (void);
 void navigate_initialize (void);
@@ -85,4 +143,3 @@ int navigate_override_pen (int line,
 void navigate_adjust_layer (int layer, int thickness, int pen_count);
 void navigate_format_messages (void);
 #endif /* INCLUDE__NAVIGATE_H */
-

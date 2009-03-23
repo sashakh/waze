@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2006 Ehud Shabtai
- *   Copyright (c) 2008, Danny Backx.
+ *   Copyright (c) 2008, 2009 by Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -606,6 +606,7 @@ void navigate_initialize (void)
 	navigate_cost_initialize ();
 	navigate_bar_initialize ();
 	navigate_visual_initialize ();
+	navigate_simple_initialize ();
 
 	navigate_set (1);
 
@@ -643,10 +644,12 @@ void navigate_set (int status)
  */
 int navigate_calc_route ()
 {
-	int track_time;
-	PluginLine from_line;
-	RoadMapPosition from_pos, *fp, *dp;
-	int flags;
+	int			track_time;
+	PluginLine		from_line;
+	RoadMapPosition		from_pos, *fp, *dp;
+	int			flags;
+	NavigateStatus		status;
+	NavigateIteration	*p;
 
 	const char *focus = roadmap_trip_get_focus_name ();
 
@@ -666,20 +669,16 @@ int navigate_calc_route ()
 
 	NavigateNumSegments = MAX_NAV_SEGMENTS;
 
-	flags = NEW_ROUTE;
-
 	show_progress_dialog ();
 
 	navigate_cost_reset ();
 
-	track_time = navigate_route_get_segments (&from_line, from_pos,
-			&NavigateDestination, NavigateDestPos,
-			NavigateSegments, &NavigateNumSegments,
-			&flags);
+	status = navigate_route_get_initial (&from_line, from_pos,
+			&NavigateDestination, NavigateDestPos);
 
-	roadmap_log(ROADMAP_DEBUG, "navigate_calc_route: after navigate_route_get_segments()");
+	roadmap_log(ROADMAP_DEBUG, "navigate_calc_route: time %d", track_time);
 
-	if (track_time <= 0) {
+	if (status.current == 0 || status.current->cost.distance <= 0) {
 		roadmap_dialog_hide ("Route calc");
 		NavigateTrackEnabled = 0;
 		navigate_bar_set_mode (NavigateTrackEnabled);
@@ -695,15 +694,8 @@ int navigate_calc_route ()
 		int i;
 		int length = 0;
 
-		/*      navigate_instr_prepare_segments (NavigateSegments, NavigateNumSegments,
-			      &NavigateSrcPos, &NavigateDestPos);
-		*/
-
-		track_time = 0;
-		for (i=0; i<NavigateNumSegments; i++) {
-			length += NavigateSegments[i].distance;
-			track_time += NavigateSegments[i].cross_time;
-		}
+		length = status.current->cost.distance;
+		track_time = status.current->cost.time;
 
 		roadmap_dialog_hide ("Route calc");
 		NavigateFlags = flags;
@@ -744,22 +736,21 @@ int navigate_calc_route ()
 		roadmap_trip_new();
 		roadmap_tripdb_empty_list();
 
-		roadmap_trip_add_waypoint("", &NavigateSegments[0].from_pos, TRIP_PLACE_ROUTE_MARK_START);
-		for (i=0; i<NavigateNumSegments; i++) {
-#if 0
-			roadmap_trip_add_way(NavigateSegments[i].from_pos,
-				NavigateSegments[i].to_pos,
-				(i == NavigateNumSegments-1)
+		roadmap_trip_add_waypoint("",
+				&status.first->segment->from_pos,
+				TRIP_PLACE_ROUTE_MARK_START);
+
+		for (i=0, p=status.first; p; p = p->next, i++) {
+			roadmap_trip_add_point_way(
+				p->segment->from_point,
+				p->segment->to_point,
+				p->segment->line,
+				(i == NavigateNumSegments - 1)
 					?  TRIP_APPROACHING_DESTINATION : TRIP_CONTINUE);
-#else
-			roadmap_trip_add_point_way(NavigateSegments[i].from_point,
-					NavigateSegments[i].to_point,
-					NavigateSegments[i].line,
-					(i == NavigateNumSegments - 1)
-					?  TRIP_APPROACHING_DESTINATION : TRIP_CONTINUE);
-#endif
-			roadmap_trip_add_waypoint("", &NavigateSegments[i].to_pos,
-					TRIP_PLACE_ROUTE_MARK_INSERT);
+
+			roadmap_trip_add_waypoint("",
+				&p->segment->to_pos,
+				TRIP_PLACE_ROUTE_MARK_INSERT);
 		}
 		roadmap_trip_complete();
 

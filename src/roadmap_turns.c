@@ -73,7 +73,7 @@ static RoadMapTurnsContext *RoadMapTurnsActive = NULL;
 static int RoadMapTurns2Mask[8*sizeof(int)] = {0};
 
 /**
- * @brief
+ * @brief called to load the turns map into memory at RoadMap startup
  * @param root
  * @return
  */
@@ -134,7 +134,7 @@ static void *roadmap_turns_map (roadmap_db *root) {
 }
 
 /**
- * @brief
+ * @brief activate the turns DB at RoadMap startup
  * @param context
  */
 static void roadmap_turns_activate (void *context) {
@@ -161,7 +161,7 @@ static void roadmap_turns_activate (void *context) {
 }
 
 /**
- * @brief
+ * @brief unmap the turns DB from RoadMap's memory
  * @param context
  */
 static void roadmap_turns_unmap (void *context) {
@@ -191,10 +191,11 @@ roadmap_db_handler RoadMapTurnsHandler = {
 };
 
 /**
- * @brief
- * @param square
- * @param first
- * @param last
+ * @brief find the first and last turns in a given square (they're sorted this way)
+ * @param square input parameter : the square
+ * @param first returns the index of the first turn in this square
+ * @param last returns the index of the last turn in this square
+ * @return the number of turns in this square
  */
 int  roadmap_turns_in_square (int square, int *first, int *last) {
 
@@ -218,15 +219,15 @@ int  roadmap_turns_in_square (int square, int *first, int *last) {
 }
 
 /**
- * @brief
- * @param node
- * @param begin
- * @param end
- * @param first
- * @param last
- * @return
+ * @brief Look up the turns of a node
+ * @param node the node id
+ * @param begin ??
+ * @param end ??
+ * @param first return the index of the first turn
+ * @param last return the index of the last turn
+ * @return the number of turns
  */
-int  roadmap_turns_of_node (int node, int begin, int end,
+int roadmap_turns_of_node (int node, int begin, int end,
                             int *first, int *last) {
 
    int middle = 0;
@@ -284,7 +285,7 @@ int  roadmap_turns_of_node (int node, int begin, int end,
 }
 
 /**
- * @brief
+ * @brief Find the restrictions when passing a node from one to another line
  * @param node
  * @param from_line
  * @param to_line

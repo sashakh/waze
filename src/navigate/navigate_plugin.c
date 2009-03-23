@@ -47,9 +47,14 @@
  */
 static void navigate_debug_be_trip(void)
 {
-/* departure : 4683870,50898550 */
+/* 11/3 - new departure : 50.8979914" lon="4.6839269 */
+	roadmap_trip_set_selection(4683927, 50897991);
+	roadmap_trip_set_selection_as ("Departure");
+#if 0
+/* old departure : 4683870,50898550 */
 	roadmap_trip_set_selection(4683870, 50898550);
 	roadmap_trip_set_selection_as ("Departure");
+#endif
 #if 0
 /* destination : 4700775, 50903168 */
 	roadmap_trip_set_selection(4700775, 50903168);

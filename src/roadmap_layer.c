@@ -1108,7 +1108,7 @@ int roadmap_layer_last(void)
 /**
  * @brief returns the value of the Speed parameter of this layer, from default/All.
  * @param layer
- * @return
+ * @return speed, assumed by calling code to be in km/h (FIX ME)
  */
 int roadmap_layer_speed(int layer)
 {

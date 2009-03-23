@@ -46,6 +46,7 @@
 #include "roadmap_county.h"
 
 #include "roadmap_navigate.h"
+#include "roadmap_turns.h"
 
 #include "navigate.h"
 // #include "navigate_traffic.h"
@@ -54,7 +55,7 @@
 
 #include "navigate_route.h"
 
-#define	maxblacklist 100
+#define	maxblacklist 30
 static int blacklist[maxblacklist];
 int nblacklist = 0;
 
@@ -64,9 +65,15 @@ int nblacklist = 0;
  */
 static void navigate_simple_blacklist_add(int line)
 {
+	int	i;
+
 	if (nblacklist == maxblacklist)
 		roadmap_log(ROADMAP_FATAL, "blacklist full");
+	for (i=0; i<nblacklist; i++)
+		if (blacklist[i] == line)
+			return;
 	blacklist[nblacklist++] = line;
+	roadmap_log (ROADMAP_DEBUG, "Blacklisting line %d", line);
 }
 
 /**
@@ -86,330 +93,294 @@ static int navigate_simple_on_blacklist(int line)
 }
 
 /**
- * @brief
- * @param pos
- * @param point
- * @param line
- * @param lines
- * @param maxlines
- * @return
+ * @brief return the lines adjacent to the given point
+ * @param point input parameter
+ * @param lines existing array that will be filled up
+ * @param maxlines number of entries that we can write in
+ * @return the number of lines found
  */
-int navigate_simple_lines_closeby(RoadMapPosition pos, int point, PluginLine *line,
-		PluginLine *lines, const int maxlines)
+int navigate_simple_lines_closeby(int point, PluginLine *lines, const int maxlines)
 {
 	/* Use the line/bypoint data in newer maps, or fail */
 	int	i, line_id;
-//	RoadMapStreetProperties prop;
 
 	for (i=0; (line_id = roadmap_line_point_adjacent(point, i)) && (i < maxlines); i++) {
-//		roadmap_street_get_properties(line_id, &prop);
 		lines[i].line_id = line_id;
 		lines[i].layer = roadmap_line_get_layer(line_id);
 		lines[i].fips = roadmap_line_get_fips(line_id);
-		// lines[i].fips = prop.fips;
 	}
 	return i;
 }
 
 /**
- * @brief calculate the basic route.
- *
- * Called from navigate_calc_route and navigate_recalc_route.
- * Result will be placed in the "segments" parameter, number of steps in "size".
- *
- * @param from_line
- * @param from_pos
- * @param to_line
- * @param to_pos
- * @param segments
- * @param size
- * @param flags either NEW_ROUTE or RECALC_ROUTE
- * @return track time
+ * @brief not sure how to use this
+ * @param iter
+ * @return
  */
-int navigate_simple_get_segments (PluginLine *from_line,
-                                 RoadMapPosition from_pos,
-                                 PluginLine *to_line,
-                                 RoadMapPosition to_pos,
-                                 NavigateSegment *segments,
-                                 int *size,
-                                 int *flags)
+static int navigate_simple_algo_cost(NavigateIteration *iter)
 {
-	static int do_this_once = 1;
-	int stop;
+	int	cost;
 
-#define	MAX_CAT		10	/* Not interesting */
-#define	MAX_ITER	500	/* Max #iterations */
+	if (iter == 0)
+		return 0;
+	if (iter->segment == 0)
+		return 0;
+	cost = navigate_cost_time(iter->next->segment->line.line_id,
+		iter->next->segment->line_direction,
+		iter->segment->time,
+		iter->segment->line.line_id,
+		iter->segment->line_direction);
 
-	int			ncategories, i, j, found;
-	int			categories[MAX_CAT], dist, maxdist, bestdist, dist2, rev, oldrev;
-	int			iteration, max_iterations, loop;
-	int			best, t;
-	int			tracktime, cost, oldcost;
-	RoadMapPosition		CurrentPos, newpos, newpos2, bestnewpos;
-	int			navmode;
-	int			point, newpt, newpt2, bestnewpt;
+	iter->next->segment->time = cost;
+	return cost;
+}
 
-	NavigateCostFn		cost_get;
+/**
+ * @brief move one step forward from the current position
+ * @param algo the algorithm pointer
+ * @param stp pointer to the navigation status to work on
+ * @return success (-1 is failure, 0 is backtrack, 1 is success)
+ */
+static int navigate_simple_algo_step(NavigateAlgorithm *algo, NavigateStatus *stp)
+{
+	int			maxlines = 10, nlines;
+	PluginLine		*l, lines[10];
+	int			point, best, newpt, newpt2, bestnewpt;
+	RoadMapStreetProperties	prop;
+	int			bestdist, dist, dist2, rev, bestheuristic;
+	int			i, found;
+	NavigateIteration	*p;
+	RoadMapPosition		newpos, newpos2, bestnewpos;
 
-	cost_get = navigate_cost_get();
+	NavigateSegment		*s = stp->current->segment;
+	NavigateSegment		bestseg;
+	RoadMapPosition		to_pos = stp->last->segment->to_pos;
 
-	/* Query the categories we can navigate in */
-	navmode = roadmap_navigate_get_mode();
-	ncategories = roadmap_layer_navigable(navmode, categories, MAX_CAT);
-
-	max_iterations = MAX_ITER;
-
-	if (do_this_once) {
-		do_this_once = 0;
-		roadmap_log(ROADMAP_WARNING, "Use map extension");
+	/* Figure out where to start */
+	nlines = 0;
+	if (s->from_point) {
+		point = s->from_point;
+		nlines = navigate_simple_lines_closeby(s->from_point, lines, maxlines);
 	}
 
-	from_line->line_id = to_line->line_id = 0;
+	if (nlines == 0) {
+		l = roadmap_navigate_position2line(s->from_pos);
+		point = roadmap_line_from_point(l->line_id);
+		nlines = navigate_simple_lines_closeby(point, lines, maxlines);
 
-	/* Where are we ? */
-	PluginLine	*l = roadmap_navigate_position2line(from_pos);
-	if (l)
-		roadmap_log (ROADMAP_WARNING, "from --> %s (%d)",
-			roadmap_plugin_street_full_name(l), l->line_id);
-	else
-		roadmap_log (ROADMAP_WARNING, "from --> ??");
+		if (nlines == 0) {
+			point = roadmap_line_to_point(l->line_id);
+			nlines = navigate_simple_lines_closeby(point, lines, maxlines);
+		}
+	}
 
-	if (l)
-		*from_line = *l;
-#if 0
-	else
+	if (nlines == 0) {
+		/* This is too simplistic, maybe backtrack from here too ? */
 		return -1;
-#endif
+	}
 
-	l = roadmap_navigate_position2line(to_pos);
-	roadmap_log (ROADMAP_WARNING, "to --> %s",
-			l ? roadmap_plugin_street_full_name(l) : "??");
-	if (l)
-		*to_line = *l;
-#if 0
-	else
-		return -1;
-#endif
+	/* Allocate the next entry */
+	stp->current->next = calloc(1, sizeof(struct NavigateIteration));
+	stp->current->next->prev = stp->current;
 
-	/*
-	 * Get in shape to start looking for a route
-	 */
-	CurrentPos = from_pos;
-	tracktime = 0;
-	oldcost = 0;
-	bestdist = maxdist = roadmap_math_distance(&CurrentPos, &to_pos);
+	stp->current->next->segment = calloc(1, sizeof(struct NavigateSegment));
 
-	/* FIX ME which of the points ? Could use roadmap_line_to_point as well. */
-	point = roadmap_line_from_point(from_line->line_id);
-	point = roadmap_line_to_point(from_line->line_id);
+	roadmap_point_position(point, &newpos);
+	roadmap_log(ROADMAP_DEBUG, "Looking from point %d (%d %d), %d lines",
+			point,
+			newpos.longitude, newpos.latitude,
+			nlines);
 
-	/*
-	 * Next iteration
-	 */
-	for (loop=iteration=0; loop < max_iterations && iteration < max_iterations; loop++) {
-		roadmap_log (ROADMAP_DEBUG,
-			"RouteGetSegments iteration === %d === point %d, CurrentPos %d %d",
-			iteration, point,
-			CurrentPos.longitude, CurrentPos.latitude);
+	/* We have a set of lines. Select the best one. */
+	bestdist = stp->maxdist * 2;
+	bestheuristic = -1;
+	best = -1;
 
-#if 1
-		roadmap_point_position(point, &newpos);
-		roadmap_log (ROADMAP_DEBUG, "Point %d is at %d %d", point,
-				newpos.longitude, newpos.latitude);
-#endif
-		int	maxlines = 10, nlines;
-		PluginLine	lines[10];
+	for (i=0; i<nlines; i++) {
+		roadmap_street_get_properties(lines[i].line_id, &prop); /* Only for debug */
 
-		l = roadmap_navigate_position2line(CurrentPos);
-		nlines = navigate_simple_lines_closeby(CurrentPos, point, l, lines, maxlines);
-
-		roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d", nlines, bestdist);
-		if (nlines == 0) {
-			point = roadmap_line_from_point(from_line->line_id);
-			roadmap_log(ROADMAP_WARNING, "try point #%d", point);
-			nlines = navigate_simple_lines_closeby(CurrentPos, point, l,
-					lines, maxlines);
-
-			roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d",
-					nlines, bestdist);
+		/* Have we already been here ? */
+		for (p=stp->first, found=0; p && found == 0; p=p->next)
+			if (lines[i].line_id == p->segment->line.line_id)
+				found = 1;
+		if (found) {
+			roadmap_log (ROADMAP_DEBUG, " line %d already visited",
+					lines[i].line_id);
+			continue;
 		}
-		if (nlines == 0) {
-			point = roadmap_line_to_point(from_line->line_id);
-			roadmap_log(ROADMAP_WARNING, "try point #%d", point);
-			nlines = navigate_simple_lines_closeby(CurrentPos, point, l,
-					lines, maxlines);
 
-			roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d",
-					nlines, bestdist);
+		/* Is this line forbidden ? */
+		if (navigate_simple_on_blacklist(lines[i].line_id)) {
+			roadmap_log (ROADMAP_DEBUG, " line %d [%d] {%s} blacklisted",
+				i, lines[i].line_id,
+				roadmap_street_get_full_name(&prop));
+			continue;
 		}
-		if (nlines == 0) {
-			point = 198;
-			roadmap_log(ROADMAP_WARNING, "try point #%d", point);
-			nlines = navigate_simple_lines_closeby(CurrentPos, point, l,
-					lines, maxlines);
 
-			roadmap_log(ROADMAP_WARNING, "lines_closeby -> %d, best dist %d",
-					nlines, bestdist);
+		/* Use the turns DB : is this turn allowed ? */
+		if (roadmap_turns_find_restriction (s->from_point,
+			stp->current->prev ? stp->current->prev->segment->line.line_id : 0,
+			stp->current->segment->line.line_id)) {
+
+			roadmap_log (ROADMAP_WARNING, "Turn forbidden at %d from %d to %d",
+				s->from_point,
+				stp->current->prev ? stp->current->prev->segment->line.line_id : 0,
+				stp->current->segment->line.line_id);
+			continue;
 		}
-#if 1
-		int x;
-		fprintf(stderr, "Lines closeby (point %d) -> lines {", point);
-		for (x=0; x<nlines; x++)
-			fprintf(stderr, "%d ", lines[x].line_id);
-		fprintf(stderr, "}\n");
-#endif
 
-		bestdist = maxdist * 2;
-		best = -1;
-
-		for (i=0; i<nlines; i++) {
-			RoadMapStreetProperties prop;
-
-			roadmap_street_get_properties(lines[i].line_id, &prop);
-
-			/* Have we already been here ? */
-			for (j=0, found=0; j<iteration && found == 0; j++)
-				if (lines[i].line_id == segments[j].line.line_id)
-					found = 1;
-			if (found) {
-				roadmap_log (ROADMAP_DEBUG, " line %d already visited",
-						lines[i].line_id);
-				continue;
-			}
-
-			/* Is this line forbidden ? */
-			if (navigate_simple_on_blacklist(lines[i].line_id)) {
-				roadmap_log (ROADMAP_DEBUG, " line %d [%d] {%s} blacklisted",
-					i, lines[i].line_id,
-					roadmap_street_get_full_name(&prop));
-				continue;
-			}
-
+		stp->current->next->segment->line = lines[i];
+		newpt2 = roadmap_line_from_point(lines[i].line_id);
+		if (point == newpt2) {
 			newpt = roadmap_line_to_point(lines[i].line_id);
 			roadmap_point_position(newpt, &newpos);
 			dist = roadmap_math_distance(&newpos, &to_pos);
 
-			roadmap_log (ROADMAP_DEBUG, "Line %d point %d pos %d %d",
-					lines[i].line_id, newpt,
-					newpos.longitude, newpos.latitude);
-
-			newpt2 = roadmap_line_from_point(lines[i].line_id);
+			stp->current->next->segment->line_direction = rev = 0;
+			stp->current->next->segment->from_point = newpt;
+			stp->current->next->segment->from_pos = newpos;
+			stp->current->next->segment->dist_from_destination = dist;
+			stp->current->segment->to_point = newpt;
+			stp->current->segment->to_pos = newpos;
+		} else {
 			roadmap_point_position(newpt2, &newpos2);
 			dist2 = roadmap_math_distance(&newpos2, &to_pos);
 
-			roadmap_log (ROADMAP_DEBUG, "Line %d point %d pos %d %d",
-					lines[i].line_id, newpt2,
-					newpos2.longitude, newpos2.latitude);
-
-			if (point == newpt2) {
-				rev = 0;
-				if (dist < bestdist) {
-					best = i;
-					bestdist = dist;
-					bestnewpt = newpt;
-					bestnewpos = newpos;
-				}
-			} else {
-				rev = 1;
-				if (dist2 < bestdist) {
-					best = i;
-					bestdist = dist2;
-					bestnewpt = newpt2;
-					bestnewpos = newpos2;
-				}
-			}
-			roadmap_log (ROADMAP_DEBUG, " line %d [%d] {%s} %d",
-				i, lines[i].line_id,
-				roadmap_street_get_full_name(&prop),
-				rev ? dist2 : dist);
+			stp->current->next->segment->line_direction = rev = 1;
+			stp->current->next->segment->from_point = newpt2;
+			stp->current->next->segment->from_pos = newpos2;
+			stp->current->next->segment->dist_from_destination = dist2;
+			stp->current->segment->to_point = newpt2;
+			stp->current->segment->to_pos = newpos2;
 		}
 
-		roadmap_log (ROADMAP_DEBUG, "After inner loop : best %d bestdist %d",
-				best, bestdist);
+		roadmap_log (ROADMAP_DEBUG, "Line %d (%s) point %d pos %d %d",
+				lines[i].line_id,
+				roadmap_street_get_full_name(&prop),
+				stp->current->next->segment->from_point,
+				stp->current->next->segment->from_pos.longitude,
+				stp->current->next->segment->from_pos.latitude);
 
-		stop = 0;
-		if (!stop && to_line && to_line->line_id == lines[best].line_id)
+		stp->current->next->segment->distance = stp->current->segment->distance +
+			roadmap_math_distance(&stp->current->segment->from_pos,
+					&stp->current->segment->to_pos);
+
+		(void) algo->cost_fn(stp->current);
+
+		stp->current->next->segment->heuristic =
+			stp->current->next->segment->dist_from_destination;
+
+		if (bestheuristic < 0 || stp->current->next->segment->heuristic < bestheuristic) {
+			bestseg = *stp->current->next->segment;
+			best = i;
+			bestdist = stp->current->next->segment->distance;
+			bestnewpt = stp->current->segment->to_point;
+			bestnewpos = stp->current->segment->to_pos;
+			bestheuristic = stp->current->next->segment->heuristic;
+			roadmap_log (ROADMAP_DEBUG,
+					"Better ix %d, dist %d, pt %d, pos %d %d, hr %d",
+					best, bestdist, bestnewpt,
+					bestnewpos.longitude, bestnewpos.latitude,
+					bestheuristic);
+		}
+
+	}
+
+	/* Is the result really bad ? */
+	if (best < 0) {
+		if (stp->iteration < 2) {
+			roadmap_log (ROADMAP_WARNING, "On an island ?");
+			return -1;
+		}
+
+		roadmap_log (ROADMAP_DEBUG, "Backtrack ..");
+
+		navigate_simple_blacklist_add(stp->current->segment->line.line_id);
+
+		stp->current = stp->current->prev;
+		if (stp->current == 0)
+			stp->current = stp->first;
+		return 0;
+	}
+
+	/* Put the data for the "best" selection back */
+	stp->current->next->segment->distance = bestdist;
+	stp->current->next->segment->from_point =
+		stp->current->segment->to_point = bestnewpt;
+	stp->current->next->segment->from_pos =
+		stp->current->segment->to_pos = bestnewpos;
+	stp->current->next->segment->heuristic = bestheuristic;
+	*stp->current->next->segment = bestseg;
+
+	/* Move along */
+	stp->current = stp->current->next;
+
+	/* Store cost information */
+	stp->current->cost.distance = stp->current->segment->distance;
+	stp->current->cost.time = stp->current->segment->time;
+
+	roadmap_log (ROADMAP_DEBUG, "New point %d distance %d, time %d",
+			bestnewpt,
+			stp->current->segment->distance,
+			stp->current->segment->time);
+	/* return */
+	return 1;
+}
+
+/**
+ * @brief Figure out whether the routing algorithm needs to do another iteration
+ * @param stp pointer to all the navigation info
+ * @return 0 to keep going, 1 to stop (reached the destination)
+ */
+static int navigate_simple_algo_end(NavigateStatus *stp)
+{
+	RoadMapPosition	p1, p2;
+	int dist;
+
+	if (stp->current->segment->from_point)
+		roadmap_point_position(stp->current->segment->from_point, &p1);
+	else
+		p1 = stp->current->segment->from_pos;
+
+	if (stp->last->segment->to_point)
+		roadmap_point_position(stp->last->segment->to_point, &p2);
+	else
+		p2 = stp->last->segment->to_pos;
+
+	dist = roadmap_math_distance(&p1, &p2);
+
+	roadmap_log (ROADMAP_DEBUG, "Distance is now %d", dist);
+	if (dist < 30)
+		return 1;
+	return 0;	/* Keep going */
+#if 0
+	if (!stop && to_line && to_line->line_id == lines[best].line_id)
 			stop++;
 		if (!stop && roadmap_line_from_point(to_line->line_id) == bestnewpt)
 			stop++;
 		if (!stop && roadmap_line_to_point(to_line->line_id) == bestnewpt)
 			stop++;
-		if (stop) 
-		{
-			roadmap_log (ROADMAP_DEBUG, "Line match -> track time %d, dist %d",
-					tracktime, bestdist);
-			*size = iteration;
-			return tracktime;
-		}
-		if (bestdist < 30) /* FIX ME */ {
-			roadmap_log (ROADMAP_DEBUG, "< 30 -> tracktime %d, dist %d",
-					tracktime, bestdist);
-			*size = iteration;
-			return tracktime;
-		}
-		if (bestdist == maxdist) {
-			/* Not better than the previous step */
-			/* We might be "there" */
-			if (bestdist < 100 /* FIX ME */) {
-				roadmap_log (ROADMAP_DEBUG, "Tracktime %d, dist %d",
-						tracktime, bestdist);
-				*size = iteration;
-				return tracktime;
-			}
-		}
-		if (best < 0) {
-			if (iteration == 0) {
-				roadmap_log (ROADMAP_WARNING, "On an island ?");
-				return -1;
-			}
+	return 0;	/* Nearly infinite loop */
+	return 1;	/* Stop immediately */
+#endif
+}
 
-			roadmap_log (ROADMAP_DEBUG, "Backtrack ..");
+/**
+ * @brief structure to pass an "algorithm" to the navigation engine
+ */
+NavigateAlgorithm SimpleAlgo = {
+	"Simple navigation",		/**< name of this algorithm */
+	0,				/**< cannot go both ways */
+	500,				/**< max #iterations */
+	navigate_simple_algo_cost,	/**< cost function */
+	navigate_simple_algo_step,	/**< step function */
+	navigate_simple_algo_end	/**< end function */
+};
 
-			iteration--;
-			navigate_simple_blacklist_add(segments[iteration].line.line_id);
-
-			point = segments[iteration].from_point;
-			CurrentPos = segments[iteration].from_pos;
-			tracktime -= segments[iteration].cross_time;
-			oldrev = segments[iteration].line_direction;
-			oldcost = segments[iteration].cross_time;
-			continue;
-		}
-
-
-		t = /* FIX ME */ (maxdist - bestdist) / 10;
-
-		cost = (*cost_get)(lines[best].line_id, rev, oldcost,
-				(iteration > 1) ? segments[iteration-1].line.line_id : 0,
-				(iteration > 1) ? oldrev : 0, 0);
-
-		segments[iteration].from_pos = CurrentPos;
-		segments[iteration].from_point = point;
-		segments[iteration].distance = maxdist - bestdist;
-//		segments[iteration].cross_time = t;
-		segments[iteration].line = lines[best];
-		segments[iteration].line_direction = rev;
-		segments[iteration].cross_time = cost;
-
-		segments[iteration].to_pos = CurrentPos = bestnewpos;
-		segments[iteration].to_point = bestnewpt;
-		point = bestnewpt;
-
-		tracktime += t;
-		oldcost = cost;
-		iteration++;
-
-		roadmap_log (ROADMAP_DEBUG, "To point %d (%d,%d) via line %d (rev %d)",
-				point,
-				CurrentPos.longitude, CurrentPos.latitude,
-				lines[best].line_id,
-				rev);
-		roadmap_log (ROADMAP_DEBUG, "Line selected : from %d to %d",
-				newpt, newpt2);
-	}
-
-	/*
-	 * Clean up and return
-	 */
-	return -1;
+/**
+ * @brief register the algorithm
+ */
+void navigate_simple_initialize(void)
+{
+	navigate_algorithm_register(&SimpleAlgo);
 }

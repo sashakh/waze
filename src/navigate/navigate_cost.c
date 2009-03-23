@@ -158,7 +158,7 @@ static int cost_fastest (int line_id, int is_reversed, int cur_cost,
    int layer = roadmap_line_get_layer (line_id);
 
    int penalty = 0;
-   float m_s;
+   float m_s;	/**< speed in m/s */
 
    if (node_id != -1) {
       penalty = calc_penalty (line_id, layer, prev_line);
@@ -178,21 +178,9 @@ static int cost_fastest (int line_id, int is_reversed, int cur_cost,
 
    length = penalty + roadmap_line_length (line_id);
 
-/*
- * if (roadmap_layer_is_primary(layer))
- *       m_s = (float)(75 / 3.6);
- * else if (roadmap_layer_is_freeway(layer))
- *       m_s = (float)(100 / 3.6);
- * else if (roadmap_layer_is_secondary(layer) || roadmap_layer_is_ramp(layer))
- *       m_s = (float)(65 / 3.6);
- * else if (roadmap_layer_is_main(layer))
- *       m_s = (float)(30 / 3.6);
- * else
- *       m_s = (float)(20 / 3.6);
- */
-   m_s = roadmap_layer_speed(layer) / 3.6;
+   m_s = roadmap_layer_speed(layer) / 3.6;	/* FIX ME needs to be configurable */
 
-   res = (int) (length / m_s) + 1;
+   res = (int) (length / m_s) + 1 + cur_cost;
    roadmap_log (ROADMAP_DEBUG, "cost_fastest(%d,%d,%d) -> %d",
 		   line_id, is_reversed, cur_cost, res);
    return res;
@@ -277,8 +265,13 @@ NavigateCostFn navigate_cost_get (void)
 int navigate_cost_time (int line_id, int is_reversed, int cur_cost,
                         int prev_line_id, int is_prev_reversed)
 {
+#if 0
    return cost_fastest_traffic (line_id, is_reversed, cur_cost,
                                 prev_line_id, is_prev_reversed, -1);
+#else
+   return cost_fastest (line_id, is_reversed, cur_cost,
+                                prev_line_id, is_prev_reversed, -1);
+#endif
 }
 
 /**

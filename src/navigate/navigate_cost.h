@@ -1,6 +1,4 @@
-/**
- * @file navigate_cost.h - generic navigate cost functions
- *
+/*
  * LICENSE:
  *
  *   Copyright 2007 Ehud Shabtai
@@ -20,7 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
+ */
+
+/**
+ * @file
+ * @brief navigate_cost.h - generic navigate cost functions
  */
 
 #ifndef _NAVIGATE_COST_H_
