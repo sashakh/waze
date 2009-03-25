@@ -1038,7 +1038,7 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 		cnt += lbp[i].num;
 	}
 
-	sz1 = sizeof(int) * max_line_by_point;
+	sz1 = max_line_by_point;
 	sz2 = sizeof(int) * (max_line_by_point + cnt);
 
 	/*
@@ -1057,6 +1057,12 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 	b = p2 = (int *)q2;
 
 	for (i=0; i<max_line_by_point; i++) {
+		int	ix = buildmap_point_get_sorted(i);
+
+		if (ix > sz1) {
+			sz1 = ix + 10;
+			tmp = realloc((void *)tmp, sz1 * sizeof(int));
+		}
 		p1[buildmap_point_get_sorted(i)] = (int)(p2 - b);
 
 		for (j=0; j<lbp[i].num; j++) {
