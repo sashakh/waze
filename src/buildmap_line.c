@@ -1039,7 +1039,7 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 	}
 
 	sz1 = max_line_by_point;
-	sz2 = sizeof(int) * (max_line_by_point + cnt);
+/*	sz2 = sizeof(int) * (max_line_by_point + cnt);	*/
 
 	/*
 	 * This can be done without a tmp array, but for reasons I don't grasp,
