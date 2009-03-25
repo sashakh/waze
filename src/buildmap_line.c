@@ -1057,13 +1057,19 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 	b = p2 = (int *)q2;
 
 	for (i=0; i<max_line_by_point; i++) {
+		/*
+		 * The index in p1[buildmap_point_get_sorted(i)] turned out
+		 * to be larger than max_line_by_point. Because I'm not sure
+		 * by how much it's larger, I'll just test it and realloc
+		 * when needed.
+		 */
 		int	ix = buildmap_point_get_sorted(i);
 
 		if (ix > sz1) {
-			sz1 = ix + 10;
+			sz1 = ix + 10;	/* Exaggerate a bit. */
 			tmp = realloc((void *)tmp, sz1 * sizeof(int));
 		}
-		p1[buildmap_point_get_sorted(i)] = (int)(p2 - b);
+		p1[ix] = (int)(p2 - b);
 
 		for (j=0; j<lbp[i].num; j++) {
 			*(p2++) = buildmap_line_get_sorted(lbp[i].ptr[j]);
