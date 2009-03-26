@@ -60,6 +60,7 @@
 #include "roadmap_sprite.h"
 #include "roadmap_gpx.h"
 #include "roadmap_trip.h"
+#include "roadmap_tripdb.h"
 #include "roadmap_track.h"
 #include "roadmap_landmark.h"
 #include "roadmap_features.h"
