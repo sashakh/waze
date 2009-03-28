@@ -34,6 +34,9 @@
  *                   of this table, but of the line ids : these are clustered
  *                   in such a way that the lines of a square have a range of
  *                   ids next to each other.)
+ *   line/data2	is an extension of line/data (more fields). The table has
+ * 		identical structure and clustering. The tables are not merged
+ * 		for backwards compatibility.
  *   line/bysquare1  An index of layers per square (points to line/bylayer1).
  *   line/bylayer1   An indirect index, from layers to lines.
  *   line/bysquare2  A given line may have one end in a different square:
@@ -67,6 +70,21 @@ typedef struct {
    int from;
    int to;
 } RoadMapLine;
+
+/**
+ * @brief table line/data2
+ *
+ * line/data2	is an extension of line/data (more fields). The table has
+ * 		identical structure and clustering. The tables are not merged
+ * 		for backwards compatibility.
+ */
+typedef struct {
+   unsigned short filler : 4;	/**< reserved for future use */
+   unsigned short oneway : 2;	/**< is this a oneway street */
+   unsigned short layer : 10;	/**< the layer of this line
+				     Note that the #bits here matches ROADMAP_MAX_LAYERS
+				     defined in roadmap_layer.c */
+} RoadMapLine2;
 
 /**
  * @brief tables line/bysquare1 and line/bysquare2
