@@ -234,8 +234,8 @@ static int roadmap_db_call_map (roadmap_db_database *database) {
 }
 
 /**
- * @brief
- * @param database
+ * @brief A map is being opened, call the functions to read the map tables
+ * @param database points to the map database
  */
 static void roadmap_db_call_activate (roadmap_db_database *database) {
 
@@ -243,7 +243,6 @@ static void roadmap_db_call_activate (roadmap_db_database *database) {
    const char *section;
    const roadmap_db *child;
    const roadmap_db_model *registered;
-
 
    /* For each module declared in the model, search for the matching table
     * and activate it. If no table has been found, de-activate the currently
@@ -419,7 +418,6 @@ roadmap_db_model *roadmap_db_register
  * @param path
  * @param name
  * @param model
- * @param mode
  * @return 1 if successful, 0 on failure
  */
 int roadmap_db_open (const char *path,
@@ -429,9 +427,7 @@ int roadmap_db_open (const char *path,
    RoadMapFileContext   file;
    roadmap_db_database *database = roadmap_db_find (path, name);
 
-
    if (database != NULL) {
-
       roadmap_db_call_activate (database);
       return 1; /* Already open. */
    }
