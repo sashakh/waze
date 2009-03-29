@@ -496,7 +496,8 @@ static void buildmap_shapefile_read_rte (const char *source, int verbose) {
          from_point = buildmap_point_add (frlong, frlat);
          to_point   = buildmap_point_add (tolong, tolat);
 
-         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point,
+			 ROADMAP_LINE_DIRECTION_BOTH);
 
          SHPDestroyObject(shp);
 
@@ -749,7 +750,8 @@ static void buildmap_shapefile_read_rnf_rte (const char *source, int verbose) {
          from_point = buildmap_point_add (frlong, frlat);
          to_point   = buildmap_point_add (tolong, tolat);
 
-         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point,
+			 ROADMAP_LINE_DIRECTION_BOTH);
 
          SHPDestroyObject(shp);
 
@@ -983,7 +985,8 @@ static void buildmap_shapefile_read_dcw_roads (const char *source, int verbose) 
          from_point = buildmap_point_add (frlong, frlat);
          to_point   = buildmap_point_add (tolong, tolat);
 
-         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point,
+			 ROADMAP_LINE_DIRECTION_BOTH);
 
          SHPDestroyObject(shp);
 
@@ -1149,7 +1152,8 @@ static void buildmap_shapefile_read_state (const char *source, int verbose) {
              from_point = buildmap_point_add (frlong, frlat);
              to_point   = buildmap_point_add (tolong, tolat);
 
-             line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+             line = buildmap_line_add (tlid, cfcc, from_point, to_point,
+			     ROADMAP_LINE_DIRECTION_BOTH);
          }
 
          SHPDestroyObject(shp);
@@ -1311,7 +1315,8 @@ static void buildmap_shapefile_read_province (const char *source, int verbose) {
              from_point = buildmap_point_add (frlong, frlat);
              to_point   = buildmap_point_add (tolong, tolat);
 
-             line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+             line = buildmap_line_add (tlid, cfcc, from_point, to_point,
+			     ROADMAP_LINE_DIRECTION_BOTH);
          }
 
          SHPDestroyObject(shp);
