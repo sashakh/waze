@@ -301,7 +301,7 @@ short buildmap_square_get_sorted (int squareid) {
    }
 
    if ((squareid < 0) || (squareid > SquareTableSize)) {
-      buildmap_fatal (0, "invalid square index %d", squareid);
+      buildmap_fatal (0, "buildmap_square_get_sorted : invalid square index %d", squareid);
    }
 
    if (Square[squareid].count == 0) {
@@ -330,7 +330,7 @@ void  buildmap_square_get_reference_sorted
    }
 
    if ((square < 0) || (square > SquareCount)) {
-      buildmap_fatal (0, "invalid square index %d", square);
+      buildmap_fatal (0, "buildmap_square_get_reference_sorted : invalid square index %d", square);
    }
 
    square = SortedSquare[square];
