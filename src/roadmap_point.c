@@ -1,5 +1,4 @@
-/* roadmap_point.c - Manage the points that define tiger lines.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,13 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int  roadmap_point_in_square (int square, int *first, int *last);
- *   void roadmap_point_position  (int point, RoadMapPosition *position);
- *
- * These functions are used to retrieve the points that make the lines.
+ */
+
+/**
+ * @file
+ * @brief Manage the points that define lines.
  */
 
 #include <stdio.h>
@@ -40,19 +37,21 @@
 #include "roadmap_square.h"
 #include "roadmap_point.h"
 
-
+/**
+ * @brief
+ */
 typedef struct {
 
-   char *type;
+   char *type;	/**< */
 
-   RoadMapPoint *Point;
-   int           PointCount;
+   RoadMapPoint *Point;	/**< */
+   int           PointCount;	/**< */
 
-   RoadMapPointBySquare *BySquare;
-   int                   BySquareCount;
+   RoadMapPointBySquare *BySquare;	/**< */
+   int                   BySquareCount;	/**< */
 
-   unsigned short *PointToSquare2;
-   int            *PointToSquare4;
+   unsigned short *PointToSquare2;	/**< */
+   int            *PointToSquare4;	/**< */
 
 } RoadMapPointContext;
 
@@ -60,8 +59,11 @@ static RoadMapPointContext *RoadMapPointActive = NULL;
 static int RoadMapPointPositionLastSquare = -2;
 static RoadMapPosition RoadMapPointPositionLastMin;
 
-
-
+/**
+ * @brief
+ * @param root
+ * @return
+ */
 static void *roadmap_point_map (roadmap_db *root) {
 
    roadmap_db *point_table;
@@ -98,6 +100,11 @@ static void *roadmap_point_map (roadmap_db *root) {
    return context;
 }
 
+/**
+ * @brief
+ * @param context
+ * @return
+ */
 static void roadmap_point_activate (void *context) {
 
    RoadMapPointContext *point_context = (RoadMapPointContext *) context;
@@ -110,6 +117,11 @@ static void roadmap_point_activate (void *context) {
    RoadMapPointPositionLastSquare = -2;
 }
 
+/**
+ * @brief
+ * @param context
+ * @return
+ */
 static void roadmap_point_unmap (void *context) {
 
    RoadMapPointContext *point_context = (RoadMapPointContext *) context;
@@ -127,6 +139,9 @@ static void roadmap_point_unmap (void *context) {
    free (point_context);
 }
 
+/**
+ * @brief
+ */
 roadmap_db_handler RoadMapPointHandler = {
    "point",
    roadmap_point_map,
@@ -134,8 +149,9 @@ roadmap_db_handler RoadMapPointHandler = {
    roadmap_point_unmap
 };
 
-
-
+/**
+ * @brief
+ */
 static void roadmap_point_retrieve_square (void) {
 
    int i;
@@ -194,7 +210,13 @@ lot_of_squares:
    }
 }
 
-
+/**
+ * @brief query the number of points (and the first and last ones) in a square
+ * @param square
+ * @param first
+ * @param last
+ * @return
+ */
 int roadmap_point_in_square (int square, int *first, int *last) {
 
    if (RoadMapPointActive == NULL) return 0;
@@ -210,7 +232,11 @@ int roadmap_point_in_square (int square, int *first, int *last) {
    return RoadMapPointActive->BySquare[square].count;
 }
 
-
+/**
+ * @brief query the position of a point
+ * @param point
+ * @param position
+ */
 void roadmap_point_position  (int point, RoadMapPosition *position) {
 
    int point_square;
@@ -256,3 +282,16 @@ void roadmap_point_position  (int point, RoadMapPosition *position) {
 	RoadMapPointPositionLastMin.latitude  + Point->latitude;
 }
 
+#ifdef HAVE_NAVIGATE_PLUGIN
+/**
+ * @brief queries the total number of points
+ * @return the total number of points
+ */
+int roadmap_point_count(void)
+{
+	if (RoadMapPointActive == NULL)
+		return 0;	/* No line */
+
+	return RoadMapPointActive->PointCount;
+}
+#endif
