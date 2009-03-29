@@ -72,5 +72,12 @@ int roadmap_line_from_point (int line);
 int roadmap_line_to_point (int line);
 
 int roadmap_line_get_layer (int line_id);
+int roadmap_line_get_oneway (int line_id);
 int roadmap_line_get_fips(int line);
+
+#define ROADMAP_LINE_DIRECTION_BOTH	0
+#define	ROADMAP_LINE_DIRECTION_ONEWAY	1
+#define ROADMAP_LINE_DIRECTION_REVERSE	2
+#define ROADMAP_LINE_DIRECTION_RESERVED	3
+
 #endif // INCLUDED__ROADMAP_LINE__H

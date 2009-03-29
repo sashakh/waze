@@ -116,4 +116,9 @@ void dbg_time_end(int type);
 
 #endif  // ROADMAP_DBG_TIME
 
+#ifdef	HAVE_TRIP_PLUGIN
+int roadmap_screen_height(void);
+void roadmap_screen_move_center (int dy);
+#endif
+
 #endif // INCLUDE__ROADMAP_SCREEN__H

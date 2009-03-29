@@ -175,5 +175,17 @@ char *roadmap_math_to_floatstring(char *buf, int value, int fracdigits);
 #define THOUSANDTHS 3
 #define MILLIONTHS  6
 
-#endif // INCLUDED__ROADMAP_MATH__H
+#if defined(HAVE_TRIP_PLUGIN)
+void roadmap_math_set_scale (int scale, int use_map_units);
+#endif
+#if defined(HAVE_TRIP_PLUGIN) || defined(HAVE_NAVIGATE_PLUGIN)
+int roadmap_math_calc_line_length (const RoadMapPosition *position,
+                                   const RoadMapPosition *from_pos,
+                                   const RoadMapPosition *to_pos,
+                                   int                    first_shape,
+                                   int                    last_shape,
+                                   RoadMapShapeItr        shape_itr,
+                                   int                   *total_length);
+#endif
 
+#endif // INCLUDED__ROADMAP_MATH__H

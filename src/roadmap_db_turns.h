@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2006 Ehud Shabtai
+ *   Copyright (c) 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -46,5 +47,8 @@ typedef struct {
    int count;
 } RoadMapTurnsBySquare;
 
+/**
+ * Modelling one way streets in this database would be very expensive.
+ * Instead, this is in the line/data2 table, together with layer info.
+ */
 #endif // _ROADMAP_DB_TURNS_H_
-
