@@ -89,7 +89,7 @@ static int *SortedStreet = NULL;
 static void buildmap_street_register (void);
 
 /**
- * @brief
+ * @brief initialize the buildmap street module
  */
 static void buildmap_street_initialize (void) {
 
@@ -103,14 +103,14 @@ static void buildmap_street_initialize (void) {
 
 
 /**
- * @brief
- * @param cfcc
- * @param fedirp
- * @param fename
- * @param fetype
- * @param fedirs
- * @param line
- * @return
+ * @brief Add a street to the buildmap street module
+ * @param cfcc the layer
+ * @param fedirp directory
+ * @param fename name
+ * @param fetype type
+ * @param fedirs huh ?
+ * @param line line number
+ * @return the number of the newly created street
  */
 int  buildmap_street_add
         (char cfcc,
@@ -132,7 +132,6 @@ int  buildmap_street_add
 
 
    if (StreetByName == NULL) buildmap_street_initialize();
-
 
    StreetAddCount += 1;
 
