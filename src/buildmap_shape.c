@@ -24,16 +24,10 @@
  * @file
  * @brief Build a shape table & index for RoadMap.
  *
- * SYNOPSYS:
+ * Shapes are definitions of the points that make up a non-straight line.
  *
- *   int buildmap_shape_add
- *          (int line, int sequence, int longitude, int latitude);
- *
- * These functions are used to build a table of shape points from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for areas in roadmap.
+ * Remember : a line is a non-interrupted thing (e.g. no intersections in between),
+ * but this makes it possible for it to have another shape than straight.
  */
 
 #include <stdio.h>
@@ -98,7 +92,7 @@ static void buildmap_shape_initialize (void) {
 }
 
 /**
- * @brief
+ * @brief Add a shape entry
  * @param line
  * @param irec
  * @param uid
@@ -107,18 +101,15 @@ static void buildmap_shape_initialize (void) {
  * @param latitude
  * @return
  */
-int buildmap_shape_add
-       (int line, int irec, int uid, int sequence, int longitude, int latitude) {
-
+int buildmap_shape_add (int line, int irec, int uid, int sequence, int longitude, int latitude)
+{
    int index;
    int line_exists;
    int block;
    int offset;
    BuildMapShape *this_shape;
 
-
    if (ShapeByLine == NULL) buildmap_shape_initialize ();
-
 
    ShapeAddCount += 1;
 
