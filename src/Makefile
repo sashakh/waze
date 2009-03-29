@@ -386,11 +386,11 @@ TRIP_PLUGINSRC = \
 
 CFLAGS += -DHAVE_TRIP_PLUGIN
 
-RMLIBSRC += roadmap_skin.c roadmap_line_speed.c roadmap_res.c
-#	roadmap_line_route.c roadmap_turns.c
+RMLIBSRC += roadmap_skin.c roadmap_res.c
+# RMLIBSRC += roadmap_turns.c
 
-RMHEADERS += roadmap_skin.h roadmap_line_speed.h roadmap_db_line_speed.h roadmap_res.h
-#	roadmap_line_route.h roadmap_db_line_route.h roadmap_db_turns.h roadmap_turns.h
+RMHEADERS += roadmap_skin.h roadmap_res.h
+#	roadmap_db_turns.h roadmap_turns.h
 
 PLUGIN_CLEAN += ${TRIP_PLUGINSRC:.c=.o} ${RMLIBSRC:.c=.o}
 
@@ -426,12 +426,12 @@ NAVIGATE_PLUGIN_HDR = \
 CFLAGS += -DHAVE_NAVIGATE_PLUGIN
 
 PLUGIN_CLEAN += ${NAVIGATE_PLUGINSRC:.c=.o}
-RMLIBSRC += roadmap_skin.c roadmap_line_speed.c roadmap_res.c roadmap_line_route.c
+RMLIBSRC += roadmap_skin.c roadmap_res.c
 #	roadmap_turns.c
 
 RMHEADERS += ${NAVIGATE_PLUGIN_HDR} \
-	roadmap_skin.h roadmap_line_speed.h roadmap_db_line_speed.h roadmap_res.h
-#       roadmap_line_route.h roadmap_db_line_route.h roadmap_db_turns.h roadmap_turns.h
+	roadmap_skin.h roadmap_res.h
+#       roadmap_db_turns.h roadmap_turns.h
 
 RMGUISRC +=
 
