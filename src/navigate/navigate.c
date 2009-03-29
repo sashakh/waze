@@ -47,7 +47,7 @@
 #include "roadmap_tripdb.h"
 #include "roadmap_navigate.h"
 #include "roadmap_screen.h"
-#include "roadmap_line_route.h"
+// #include "roadmap_line_route.h"
 #include "roadmap_math.h"
 #include "roadmap_point.h"
 #include "roadmap_layer.h"
@@ -413,9 +413,21 @@ static void navigate_update (RoadMapPosition *position, PluginLine *current)
 #endif
 }
 
+/**
+ * @brief gets called after every GPS input, choose when to do something
+ */
 void navigate_format_messages(void)
 {
-//	roadmap_log (ROADMAP_WARNING, "navigate_format_messages -> navigate_update(NULL, NULL);");
+	static int counter = 0;
+
+	counter++;
+
+	/* Don't call this so often */
+	if (counter < 10)
+		return;
+
+	counter = 0;
+	roadmap_log (ROADMAP_WARNING, "navigate_format_messages -> navigate_update(NULL, NULL);");
 	navigate_update(NULL, NULL);
 }
 
@@ -613,6 +625,8 @@ void navigate_initialize (void)
 //	roadmap_address_register_nav (navigate_address_cb);
 	roadmap_skin_register (navigate_init_pens);
 
+#if 0
+	/* FIX ME need to figure out why this causes roadmap to stop */
 	if (roadmap_config_get_integer (&NavigateConfigNavigating)) {
 		RoadMapPosition pos;
 		roadmap_config_get_position (&NavigateConfigLastPos, &pos);
@@ -621,6 +635,7 @@ void navigate_initialize (void)
 
 		navigate_calc_route ();
 	}
+#endif
 }
 
 /**

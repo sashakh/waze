@@ -1,5 +1,4 @@
-/* roadmap_screen.c - Draw the map on the screen.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_screen.h.
+ */
+
+/**
+ * @file
+ * @brief  Draw the map on the screen.
  */
 
 #include <math.h>
@@ -339,7 +339,19 @@ static void roadmap_screen_flush_lines (void) {
    LinePoints.cursor  = LinePoints.data;
 }
 
-
+/**
+ * @brief draw a line, including non-straight ones
+ * @param from
+ * @param to
+ * @param fully_visible
+ * @param shape_start
+ * @param first_shape
+ * @param last_shape
+ * @param pen
+ * @param total_length_ptr
+ * @param middle
+ * @param angle
+ */
 static void roadmap_screen_draw_line (const RoadMapPosition *from,
                                const RoadMapPosition *to,
                                int fully_visible,
@@ -941,8 +953,7 @@ static int roadmap_screen_draw_one_line(int line,
     }
 
     /* Check if a plugin wants to override the pen. */
-    if (! roadmap_plugin_override_pen
-             (line, layer, pen_index, fips, &pen)) {
+    if (! roadmap_plugin_override_pen (line, layer, pen_index, fips, &pen)) {
        pen = layer_pen;
     }
 
@@ -1003,7 +1014,6 @@ static int roadmap_screen_draw_square
           * decide not to draw the line.
           */
          if (!roadmap_plugin_override_line (line, layer, fips)) {
-
             if (roadmap_screen_draw_one_line(line, layer,
                     pen_index, layer_pen, fips,
                     first_shape_line, last_shape_line,
@@ -1078,7 +1088,6 @@ static int roadmap_screen_draw_square
          }
 
          if (!roadmap_plugin_override_line (line, layer, fips)) {
-
             if (roadmap_screen_draw_one_line(line, layer,
                     pen_index, layer_pen, fips,
                     first_shape_line, last_shape_line,
@@ -1186,7 +1195,6 @@ static int roadmap_screen_draw_long_lines (int pen_index) {
          }
 
          if (!roadmap_plugin_override_line (line, layer, fips)) {
-
             if (roadmap_screen_draw_one_line(line, layer,
                     pen_index, layer_pen, fips,
                     first_shape_line, last_shape_line,
@@ -1573,10 +1581,17 @@ void roadmap_screen_repaint (void) {
        roadmap_object_iterate_polygon (roadmap_screen_draw_polygon_object);
        roadmap_screen_flush_polygons  ();
        roadmap_object_iterate_sprite  (roadmap_screen_draw_sprite_object);
+
+       roadmap_plugin_format_messages ();
        roadmap_trip_format_messages ();
+
        roadmap_landmark_display ();
        roadmap_features_display ();
+#ifdef HAVE_TRIP_PLUGIN
+       roadmap_trip_display(); /* trip_display (); */
+#else
        roadmap_trip_display ();
+#endif
        roadmap_track_display ();
        roadmap_screen_obj_draw ();
 
@@ -1591,6 +1606,9 @@ void roadmap_screen_repaint (void) {
         roadmap_screen_busy_check(count, count);
 
     roadmap_canvas_refresh ();
+
+    /* After the refresh, but after what exactly ? */
+    roadmap_plugin_after_refresh ();
 
 out:
     if (!RoadMapScreenDragging)
@@ -1642,7 +1660,11 @@ static int roadmap_screen_short_click (RoadMapGuiPoint *point) {
        roadmap_start_request_repaint_map(REPAINT_NOW);
    }
 
+#ifdef HAVE_TRIP_PLUGIN
+   roadmap_trip_set_point ("Selection", &position); /* trip_set_point ("Selection", &position); */
+#else
    roadmap_trip_set_point ("Selection", &position);
+#endif
    roadmap_screen_refresh ();
 
    return 1;
@@ -2265,3 +2287,25 @@ void dbg_time_end(int type) {
 }
 
 #endif // ROADMAP_DBG_TIME
+
+#if defined(HAVE_TRIP_PLUGIN) || defined(HAVE_NAVIGATE_PLUGIN)
+/**
+ * @brief
+ * @param dy
+ */
+void roadmap_screen_move_center (int dy)
+{
+//	RoadMapScreenCenterDelta += dy;
+}
+#endif
+
+#ifdef HAVE_TRIP_PLUGIN
+/**
+ * @brief simplistic version
+ * @return
+ */
+int roadmap_screen_height(void)
+{
+	return RoadMapScreenHeight;
+}
+#endif

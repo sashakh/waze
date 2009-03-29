@@ -289,7 +289,7 @@ int roadmap_turns_of_node (int node, int begin, int end,
  * @param node
  * @param from_line
  * @param to_line
- * @return
+ * @return 1 if there's a restriction (if this move is not allowed), 0 otherwise.
  */
 int roadmap_turns_find_restriction (int node, int from_line, int to_line) {
 

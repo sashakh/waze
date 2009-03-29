@@ -36,9 +36,6 @@
 #include "roadmap_file.h"
 #include "roadmap_library.h"
 #include "roadmap_plugin.h"
-#ifdef HAVE_NAVIGATE_PLUGIN
-#include "roadmap_line_route.h"
-#endif
 #include "roadmap_messagebox.h"
 
 #define MAX_PLUGINS 10
@@ -310,8 +307,12 @@ int roadmap_plugin_get_distance (RoadMapPosition *point, PluginLine *line, RoadM
       return 0;
    }
 }
-      
 
+/**
+ * @brief
+ * @param line
+ * @param pos
+ */
 void roadmap_plugin_line_from (const PluginLine *line, RoadMapPosition *pos) {
 
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
@@ -339,7 +340,11 @@ void roadmap_plugin_line_from (const PluginLine *line, RoadMapPosition *pos) {
    }
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @param pos
+ */
 void roadmap_plugin_line_to (const PluginLine *line, RoadMapPosition *pos) {
 
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
@@ -367,7 +372,13 @@ void roadmap_plugin_line_to (const PluginLine *line, RoadMapPosition *pos) {
    }
 }
 
-
+/**
+ * @brief
+ * @param line
+ * @param layer
+ * @param fips
+ * @return
+ */
 int roadmap_plugin_override_line (int line, int layer, int fips) {
 
    int i;
@@ -389,6 +400,15 @@ int roadmap_plugin_override_line (int line, int layer, int fips) {
 }
 
 
+/**
+ * @brief
+ * @param line
+ * @param layer
+ * @param pen_type
+ * @param fips
+ * @param override_pen
+ * @return
+ */
 int roadmap_plugin_override_pen (int line,
                                  int layer,
                                  int pen_type,
@@ -622,6 +642,10 @@ int roadmap_plugin_get_closest
 #ifdef HAVE_NAVIGATE_PLUGIN
 int roadmap_plugin_get_direction (PluginLine *line, int who)
 {
+#if 1
+#warning implement roadmap_plugin_get_direction
+	return 0;
+#else
    if (line->plugin_id == ROADMAP_PLUGIN_ID) {
 
       return roadmap_line_route_get_direction (line->line_id, who);
@@ -642,7 +666,7 @@ int roadmap_plugin_get_direction (PluginLine *line, int who)
 
       return 0;
    }
-
+#endif
 }
 #endif
 

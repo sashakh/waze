@@ -34,8 +34,8 @@
 
 #include "roadmap.h"
 #include "roadmap_line.h"
-#include "roadmap_line_route.h"
-#include "roadmap_line_speed.h"
+// #include "roadmap_line_route.h"
+// #include "roadmap_line_speed.h"
 #include "roadmap_lang.h"
 #include "roadmap_layer.h"
 #include "roadmap_locator.h"

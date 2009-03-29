@@ -35,8 +35,8 @@
 #include "roadmap_line.h"
 #include "roadmap_lang.h"
 #include "roadmap_start.h"
-#include "roadmap_line_route.h"
-#include "roadmap_line_speed.h"
+// #include "roadmap_line_route.h"
+// #include "roadmap_line_speed.h"
 #include "roadmap_layer.h"
 #include "roadmap_dialog.h"
 
@@ -206,11 +206,15 @@ static int cost_fastest_traffic (int line_id, int is_reversed, int cur_cost,
    
    if (node_id != -1) penalty = calc_penalty (line_id, layer, prev_line);
 
+#if 1
+#warning need to replace roadmap_line_speed
+#else
    cross_time = roadmap_line_speed_get_cross_time_at (line_id, is_reversed,
                        start_time + cur_cost);
 
    if (!cross_time) cross_time =
          roadmap_line_speed_get_avg_cross_time (line_id, is_reversed);
+#endif
 
    switch (penalty) {
       case PENALTY_AVOID:

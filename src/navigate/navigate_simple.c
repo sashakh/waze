@@ -40,7 +40,7 @@
 #include "roadmap_turns.h"
 #include "roadmap_dialog.h"
 #include "roadmap_main.h"
-#include "roadmap_line_route.h"
+// #include "roadmap_line_route.h"
 #include "roadmap_street.h"
 #include "roadmap_fuzzy.h"
 #include "roadmap_county.h"
@@ -55,9 +55,11 @@
 
 #include "navigate_route.h"
 
-#define	maxblacklist 30
+#define	maxblacklist 300
 static int blacklist[maxblacklist];
 int nblacklist = 0;
+
+static int NavigateEndAtThisDistance = 50;	/**< If we're this close, we're there. */
 
 /**
  * @brief add this line to the blacklist : never to be visited
@@ -217,6 +219,14 @@ static int navigate_simple_algo_step(NavigateAlgorithm *algo, NavigateStatus *st
 			continue;
 		}
 
+		/* Oneway street ? */
+		if (roadmap_line_get_oneway(lines[i].line_id) == ROADMAP_LINE_DIRECTION_ONEWAY) {
+			roadmap_log (ROADMAP_WARNING, "Not taking oneway street %d (%s)",
+					lines[i].line_id,
+					roadmap_street_get_full_name(&prop));
+			continue;
+		}
+
 		/* Use the turns DB : is this turn allowed ? */
 		if (roadmap_turns_find_restriction (s->from_point,
 			stp->current->prev ? stp->current->prev->segment->line.line_id : 0,
@@ -350,7 +360,7 @@ static int navigate_simple_algo_end(NavigateStatus *stp)
 	dist = roadmap_math_distance(&p1, &p2);
 
 	roadmap_log (ROADMAP_DEBUG, "Distance is now %d", dist);
-	if (dist < 30)
+	if (dist < NavigateEndAtThisDistance)
 		return 1;
 	return 0;	/* Keep going */
 #if 0

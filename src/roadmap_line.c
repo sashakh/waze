@@ -53,6 +53,7 @@ typedef struct {
 
    RoadMapLine *Line;
    int          LineCount;
+   RoadMapLine2 *Line2;
 
    RoadMapLineBySquare *LineBySquare1;
    int                  LineBySquare1Count;
@@ -86,6 +87,7 @@ static void *roadmap_line_map (roadmap_db *root) {
    RoadMapLineContext *context;
 
    roadmap_db *line_table;
+   roadmap_db *line2_table;
    roadmap_db *index2_table;
    roadmap_db *square1_table;
    roadmap_db *square2_table;
@@ -104,6 +106,7 @@ static void *roadmap_line_map (roadmap_db *root) {
    context->type = RoadMapLineType;
 
    line_table    = roadmap_db_get_subsection (root, "data");
+   line2_table    = roadmap_db_get_subsection (root, "data2");
    square1_table = roadmap_db_get_subsection (root, "bysquare1");
    layer1_table = roadmap_db_get_subsection (root, "bylayer1");
    square2_table = roadmap_db_get_subsection (root, "bysquare2");
@@ -120,6 +123,15 @@ static void *roadmap_line_map (roadmap_db *root) {
        context->LineCount * sizeof(RoadMapLine)) {
       roadmap_log (ROADMAP_ERROR, "invalid line/data structure");
       goto roadmap_line_map_abort;
+   }
+   /* Backwards compatibility : cope with data2 absence */
+   if (line2_table) {
+	   context->Line2 = (RoadMapLine2 *) roadmap_db_get_data (line2_table);
+	   if (roadmap_db_get_size (line2_table) !=
+	       context->LineCount * sizeof(RoadMapLine2)) {
+	      roadmap_log (ROADMAP_ERROR, "invalid line/data2 structure");
+	      goto roadmap_line_map_abort;
+	   }
    }
 
    context->LineBySquare1 =
@@ -184,10 +196,10 @@ static void *roadmap_line_map (roadmap_db *root) {
    }
 
    if (by_point1_table && by_point2_table) {
-	   roadmap_log(ROADMAP_WARNING, "***** This map has line by point *****");
+	   roadmap_log(ROADMAP_DEBUG, "***** This map has line by point *****");
      context->LineByPoint1 = (RoadMapLineByPoint1 *) roadmap_db_get_data (by_point1_table);
      context->LineByPoint1Count = roadmap_db_get_count (by_point1_table);
-	   roadmap_log(ROADMAP_WARNING, "***** This map has line by point1 (%d) *****",
+	   roadmap_log(ROADMAP_DEBUG, "***** This map has line by point1 (%d) *****",
 			   context->LineByPoint1Count);
 
      if (roadmap_db_get_size (by_point1_table) !=
@@ -198,7 +210,7 @@ static void *roadmap_line_map (roadmap_db *root) {
 
      context->LineByPoint2 = (RoadMapLineByPoint2 *) roadmap_db_get_data (by_point2_table);
      context->LineByPoint2Count = roadmap_db_get_count (by_point2_table);
-	   roadmap_log(ROADMAP_WARNING, "***** This map has line by point2 (%d) *****",
+	   roadmap_log(ROADMAP_DEBUG, "***** This map has line by point2 (%d) *****",
 			   context->LineByPoint2Count);
 
      if (roadmap_db_get_size (by_point2_table) !=
@@ -435,12 +447,13 @@ int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
 }
 
 /**
- * @brief determine the layer that some line is in
+ * @brief OLD, TO BE REMOVED EXCEPT FOR BACKWARDS COMPATIBILITY
+ * determine the layer that some line is in
  * note: rewritten completely, I guess Ehud's data model is different from trunk
  * @param line_id the line whose layer we want to query
  * @return the layer
  */
-int roadmap_line_get_layer (int line_id)
+int roadmap_line_get_layer_old (int line_id)
 {
    int *index;
    int  first, last, layer, i;
@@ -481,6 +494,57 @@ int roadmap_line_get_layer (int line_id)
 		   }
    }
    return 0;
+}
+
+/**
+ * @brief determine the layer that some line is in
+ * @param line_id the line whose layer we want to query
+ * @return the layer
+ */
+int roadmap_line_get_layer (int line)
+{
+#ifdef ROADMAP_INDEX_DEBUG
+    if (line < 0 || line >= RoadMapLineActive->LineCount) {
+	    roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+    }
+#endif
+    if (RoadMapLineActive->Line2 == 0) {
+	static int once = 1;
+
+	if (once) {
+	   once = 0;
+	   roadmap_log (ROADMAP_WARNING, "Map without data2 -> no layer info");
+
+	}
+	return roadmap_line_get_layer_old(line);
+    }
+
+#if 0
+    /* debug */
+    int ol = roadmap_line_get_layer_old(line),
+	nl = RoadMapLineActive->Line2[line].layer;
+    if (ol != nl)
+	    roadmap_log (ROADMAP_WARNING, "roadmap_line_get_layer(%d) old %d new %d",
+			    line, ol, nl);
+#endif
+    return RoadMapLineActive->Line2[line].layer;
+}
+
+/**
+ * @brief determine the layer that some line is in
+ * @param line_id the line whose layer we want to query
+ * @return the layer
+ */
+int roadmap_line_get_oneway (int line)
+{
+#ifdef ROADMAP_INDEX_DEBUG
+    if (line < 0 || line >= RoadMapLineActive->LineCount) {
+	    roadmap_log (ROADMAP_FATAL, "illegal line index %d", line);
+    }
+#endif
+    if (RoadMapLineActive->Line2 == 0)
+	    return 0;
+    return RoadMapLineActive->Line2[line].oneway;
 }
 
 #if defined(HAVE_NAVIGATE_PLUGIN)
