@@ -605,6 +605,8 @@ unsigned roadmap_db_get_size  (roadmap_db *section) {
    if (section->head->count == 0) {
       return 0;
    }
+   roadmap_log (ROADMAP_DEBUG, "roadmap_db_get_size(%s) : %d",
+		   section->head->name, section->head->size);
    return (unsigned) (section->head->size);
 }
 

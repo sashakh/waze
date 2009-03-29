@@ -196,11 +196,8 @@ static void *roadmap_line_map (roadmap_db *root) {
    }
 
    if (by_point1_table && by_point2_table) {
-	   roadmap_log(ROADMAP_DEBUG, "***** This map has line by point *****");
      context->LineByPoint1 = (RoadMapLineByPoint1 *) roadmap_db_get_data (by_point1_table);
      context->LineByPoint1Count = roadmap_db_get_count (by_point1_table);
-	   roadmap_log(ROADMAP_DEBUG, "***** This map has line by point1 (%d) *****",
-			   context->LineByPoint1Count);
 
      if (roadmap_db_get_size (by_point1_table) !=
 		     context->LineByPoint1Count * sizeof(int)) {
@@ -210,14 +207,40 @@ static void *roadmap_line_map (roadmap_db *root) {
 
      context->LineByPoint2 = (RoadMapLineByPoint2 *) roadmap_db_get_data (by_point2_table);
      context->LineByPoint2Count = roadmap_db_get_count (by_point2_table);
-	   roadmap_log(ROADMAP_DEBUG, "***** This map has line by point2 (%d) *****",
-			   context->LineByPoint2Count);
 
      if (roadmap_db_get_size (by_point2_table) !=
 		     context->LineByPoint2Count * sizeof(int)) {
        roadmap_log (ROADMAP_ERROR, "invalid line/bypoint2 structure");
        goto roadmap_line_map_abort;
      }
+
+#if 0
+     /* Get sizes */
+     {
+	     int i, j, counters[20], lost;
+	     int *p, *q;
+
+	     for (j=0; j<20; j++) counters[j] = 0;
+	     lost = 0;
+	     for (i=0; i<context->LineByPoint1Count; i++) {
+		     q = (int *)context->LineByPoint1;
+		     q += i;
+
+		     p = (int *)context->LineByPoint2;
+		     p += *q;
+
+		     for (j=0; p[j]; j++)
+			     ;
+		     if (j < 20)
+			     counters[j]++;
+		     else
+			     lost++;
+	     }
+	     for (j=0; j<20; j++)
+		     roadmap_log(ROADMAP_DEBUG, "stats(%d) -> %d", j, counters[j]);
+	     roadmap_log(ROADMAP_DEBUG, "lost stats(>= 20) -> %d", lost);
+     }
+#endif
    } else {
 	   context->LineByPoint1 = 0;
 	   context->LineByPoint1Count = 0;
@@ -447,56 +470,6 @@ int roadmap_line_long (int index, int *line_id, RoadMapArea *area, int *cfcc) {
 }
 
 /**
- * @brief OLD, TO BE REMOVED EXCEPT FOR BACKWARDS COMPATIBILITY
- * determine the layer that some line is in
- * note: rewritten completely, I guess Ehud's data model is different from trunk
- * @param line_id the line whose layer we want to query
- * @return the layer
- */
-int roadmap_line_get_layer_old (int line_id)
-{
-   int *index;
-   int  first, last, layer, i;
-   int square;
-   RoadMapPosition pos;
-   int	last_road_layer;
-
-   /*
-    * This is hacked for now, we can't call roadmap_layer_() functions from here
-    * because this would pull roadmap_canvas_() functions into executables that
-    * aren't linked with that (e.g. roadgps).
-    */
-#define roadmap_layer_road_last()	11
-#warning Hack for roadmap_layer_road_last
-
-   last_road_layer = roadmap_layer_road_last();
-
-   if (RoadMapLineActive == NULL)
-	   return 0; /* No line. */
-
-   roadmap_point_position(RoadMapLineActive->Line[line_id].from, &pos);
-   square = roadmap_square_search (&pos);
-
-   square = roadmap_square_index(square);
-   if (square < 0) {
-      return 0;   /* This square is empty. */
-   }
-
-   index = RoadMapLineActive->LineByLayer1 + RoadMapLineActive->LineBySquare1[square].first;
-
-   for (layer = 1; layer < last_road_layer; layer++) {
-	   first = index[layer-1];
-	   last = index[layer]-1;
-
-	   for (i=first; i<last; i++)
-		   if (i == line_id) {
-			   return layer;
-		   }
-   }
-   return 0;
-}
-
-/**
  * @brief determine the layer that some line is in
  * @param line_id the line whose layer we want to query
  * @return the layer
@@ -516,17 +489,9 @@ int roadmap_line_get_layer (int line)
 	   roadmap_log (ROADMAP_WARNING, "Map without data2 -> no layer info");
 
 	}
-	return roadmap_line_get_layer_old(line);
+	return 0;
     }
 
-#if 0
-    /* debug */
-    int ol = roadmap_line_get_layer_old(line),
-	nl = RoadMapLineActive->Line2[line].layer;
-    if (ol != nl)
-	    roadmap_log (ROADMAP_WARNING, "roadmap_line_get_layer(%d) old %d new %d",
-			    line, ol, nl);
-#endif
     return RoadMapLineActive->Line2[line].layer;
 }
 
@@ -547,7 +512,6 @@ int roadmap_line_get_oneway (int line)
     return RoadMapLineActive->Line2[line].oneway;
 }
 
-#if defined(HAVE_NAVIGATE_PLUGIN)
 /**
  * @brief look up the point that a line is coming "from"
  * @param line the id of this line
@@ -576,7 +540,6 @@ int roadmap_line_to_point (int line)
 #endif
    return RoadMapLineActive->Line[line].to;
 }
-#endif
 
 /**
  * @brief Get a line adjacent to a given point
