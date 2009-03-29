@@ -1,5 +1,4 @@
-/* buildmap_layer.c - Layer management: list, identify.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2003 Pascal F. Martin
@@ -19,14 +18,15 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Layer management: list, identify.
  *
- * SYNOPSYS:
- *
- *   See buildmap_layer.h.
- *
- *   This module is only concerned about retrieving which layers are
- *   defined for a given class. It is used by the data source decoders
- *   to filter out unwanted layers from the data source.
+ * This module is only concerned with retrieving which layers are
+ * defined for a given class. It is used by the data source decoders
+ * to filter out unwanted layers from the data source.
  */
 
 #include <stdlib.h>
@@ -46,7 +46,11 @@ static int   BuildMapLineLayerCount = 0;
 static char *BuildMapPolygonLayerList[BUILDMAP_LAYER_MAX];
 static int   BuildMapPolygonLayerCount = 0;
 
-
+/**
+ * @brief look up the layer number, for a given layer name
+ * @param name a layer name (string)
+ * @return numeric representation of a layer
+ */
 int buildmap_layer_get (const char *name) {
 
    int i;
@@ -68,7 +72,13 @@ int buildmap_layer_get (const char *name) {
 
 
 /* Initialization code. ------------------------------------------- */
-
+/**
+ * @brief
+ * @param text
+ * @param field
+ * @param max
+ * @return
+ */
 static int buildmap_layer_split (char *text, char *field[], int max) {
 
    int   i;
@@ -88,6 +98,14 @@ static int buildmap_layer_split (char *text, char *field[], int max) {
    return i;
 }
 
+/**
+ * @brief
+ * @param config
+ * @param id
+ * @param args
+ * @param max
+ * @return
+ */
 static int buildmap_layer_decode (const char *config,
                                   const char *id, char**args, int max) {
 
@@ -117,7 +135,10 @@ static int buildmap_layer_decode (const char *config,
    return count;
 }
 
-
+/**
+ * @brief load a class file into memory
+ * @param class_file path to the class file to load, usually "default/All" .
+ */
 void buildmap_layer_load (const char *class_file) {
 
     const char *config;
