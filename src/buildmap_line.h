@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -24,7 +25,7 @@
 #ifndef INCLUDED__BUILDMAP_LINE__H
 #define INCLUDED__BUILDMAP_LINE__H
 
-int  buildmap_line_add (int tlid, int cfcc, int from, int to);
+int  buildmap_line_add (int tlid, int layer, int from, int to, int oneway);
 
 int  buildmap_line_find_sorted   (int tlid);
 void buildmap_line_get_position  (int line, int *longitude, int *latitude);
@@ -38,6 +39,8 @@ void buildmap_line_get_position_sorted
 void buildmap_line_sort (void);
 
 void buildmap_line_test_long (int line, int longitude, int latitude);
+void buildmap_line_oneway(int way, int oneway);
+void buildmap_line_layer(int way, int layer);
 
 #endif // INCLUDED__BUILDMAP_LINE__H
 
