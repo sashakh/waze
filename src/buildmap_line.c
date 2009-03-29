@@ -1071,6 +1071,12 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 	p1 = tmp;
 	b = p2 = (int *)q2;
 
+	/*
+	 * With this NULL header, we know that no pointer in LineByPoint1
+	 * can be 0. We'll use this in roadmap_line_point_adjacent().
+	 */
+	*(p2++) = 0;
+
 	for (i=0; i<max_line_by_point; i++) {
 		/*
 		 * The index in p1[buildmap_point_get_sorted(i)] turned out
@@ -1084,12 +1090,18 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 			sz1 = ix + 10;	/* Exaggerate a bit. */
 			tmp = realloc((void *)tmp, sz1 * sizeof(int));
 		}
-		p1[ix] = (int)(p2 - b);
 
-		for (j=0; j<lbp[i].num; j++) {
-			*(p2++) = buildmap_line_get_sorted(lbp[i].ptr[j]);
+		/* Avoid storing NULL lists */
+		if (lbp[i].num == 0) {
+			p1[ix] = 0;	/* Catch this in roadmap_line_point_adjacent() */
+		} else {
+			p1[ix] = (int)(p2 - b);
+
+			for (j=0; j<lbp[i].num; j++) {
+				*(p2++) = buildmap_line_get_sorted(lbp[i].ptr[j]);
+			}
+			*(p2++) = 0;
 		}
-		*(p2++) = 0;
 	}
 
 	buildmap_info("Line By Point : %d points, %d lines",
@@ -1102,12 +1114,14 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 static void buildmap_line_count_linebypoint(int *LineByPoint1Count, int *LineByPoint2Count)
 {
 	int	i;
-	int	cnt = 0;
+	int	cnt = 1;	/* Count the initial NULL */
 
 	for (i=0; i<max_line_by_point; i++) {
 		cnt += lbp[i].num;
+		if (lbp[i].num)
+			cnt++;	/* Count the NULL terminator */
 	}
 
 	*LineByPoint1Count = max_line_by_point;
-	*LineByPoint2Count = max_line_by_point + cnt;
+	*LineByPoint2Count = cnt;
 }

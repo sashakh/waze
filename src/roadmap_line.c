@@ -41,6 +41,7 @@
 #include "roadmap_shape.h"
 #include "roadmap_square.h"
 #include "roadmap_layer.h"
+#include "roadmap_locator.h"
 
 static char *RoadMapLineType = "RoadMapLineContext";
 
@@ -214,7 +215,7 @@ static void *roadmap_line_map (roadmap_db *root) {
        goto roadmap_line_map_abort;
      }
 
-#if 0
+#if 1
      /* Get sizes */
      {
 	     int i, j, counters[20], lost;
@@ -568,6 +569,15 @@ int roadmap_line_point_adjacent(int point, int ix)
 	q += point;
 
 	p = (int *)RoadMapLineActive->LineByPoint2;
+
+	/*
+	 * A NULL pointer in LineByPoint1 means an empty list, so we
+	 * can avoid storing an almost meaningless NULL.
+	 */
+	if (*q == 0) {
+		return 0;
+	}
+
 	p += *q;
 
 	/* expensive check ? */
