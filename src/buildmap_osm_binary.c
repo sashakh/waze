@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2007 Paul Fox
+ *   Copyright (c) 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -53,6 +54,7 @@
 #include "roadmap_path.h"
 #include "roadmap_file.h"
 #include "roadmap_osm.h"
+#include "roadmap_line.h"
 
 #include "buildmap.h"
 #include "buildmap_zip.h"
@@ -384,7 +386,8 @@ buildmap_osm_binary_way(unsigned char *data, int len)
             tolat = *(latp + 1);
 
             to_point = buildmap_point_add(tolong, tolat);
-            line = buildmap_line_add(++lineid, layer, from_point, to_point);
+            line = buildmap_line_add(++lineid, layer, from_point, to_point,
+			    ROADMAP_LINE_DIRECTION_BOTH);
 
             buildmap_verbose("from: %d, %d        to: %d, %d      lineid %d",
                    frlong, frlat, tolong, tolat, lineid);
@@ -401,7 +404,8 @@ buildmap_osm_binary_way(unsigned char *data, int len)
 
         from_point = buildmap_point_add(frlong, frlat);
         to_point = buildmap_point_add(tolong, tolat);
-        line = buildmap_line_add(++lineid, layer, from_point, to_point);
+        line = buildmap_line_add(++lineid, layer, from_point, to_point,
+			ROADMAP_LINE_DIRECTION_BOTH);
 
         buildmap_verbose("from: %d, %d    to: %d, %d      lineid %d",
                frlong, frlat, tolong, tolat, lineid);

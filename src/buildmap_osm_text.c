@@ -46,6 +46,7 @@
 #include "roadmap_path.h"
 #include "roadmap_file.h"
 #include "roadmap_osm.h"
+#include "roadmap_line.h"
 
 #include "buildmap.h"
 #include "buildmap_zip.h"
@@ -79,6 +80,8 @@ static char     *WayStreetName = 0;     /**< the street name */
 static int      WayFlags = 0;           /**< properties of this way, from
                                                         the table flags */
 static int      WayInvalid = 0;         /**< this way contains invalid nodes */
+static int	WayIsOneWay = ROADMAP_LINE_DIRECTION_BOTH;
+					/**< is this way one direction only */
 
 /**
  * @brief variables referring to the current node
@@ -192,6 +195,7 @@ buildmap_osm_text_reset_way(void)
         free(WayStreetName); WayStreetName = 0;
         WayFlags = 0;
         WayInvalid = 0;
+	WayIsOneWay = ROADMAP_LINE_DIRECTION_BOTH;
 }
 
 /**
@@ -452,8 +456,9 @@ static int NodeReportUse(int node)
         int i;
 
         for (i=0; i<nc[row].max; i++)
-                if (node == nc[row].row[i].node)
+                if (node == nc[row].row[i].node) {
                         return nc[row].row[i].count;
+		}
         buildmap_fatal(0, "NodeReportUse %d", node);
         return -1;
 }
@@ -509,6 +514,7 @@ buildmap_osm_text_nd_pass1(char *data)
         CountNode(node);
         return 0;
 }
+
 /**
  * @brief
  * @param data points into the line of text being processed
@@ -602,18 +608,64 @@ buildmap_osm_text_node_tag(char *data)
 static int
 buildmap_osm_text_tag(char *data)
 {
-        static char     *tag = 0, *value = 0;
-        int             i, found;
-        layer_info_t    *list;
-        int             ret = 0;
+	static char	*tag = 0, *value = 0;
+	int		i, found;
+	layer_info_t	*list;
+	int		ret = 0;
 
-        if (! in_way) {
-                /* Deal with tags outside ways */
-                return buildmap_osm_text_node_tag(data);
-        }
+	if (! in_way) {
+		/* Deal with tags outside ways */
+		return buildmap_osm_text_node_tag(data);
+	}
 
-        if (! tag) tag = malloc(512);
-        if (! value) value = malloc(512);
+	if (! tag) tag = malloc(512);
+	if (! value) value = malloc(512);
+
+	sscanf(data, "tag k=%*[\"']%[^\"']%*[\"'] v=%*[\"']%[^\"']%*[\"']", tag, value);
+
+	/* street names */
+	if (strcmp(tag, "name") == 0) {
+		if (WayStreetName)
+			free(WayStreetName);
+		WayStreetName = FromXmlAndDup(value);
+		return 0;	/* FIX ME ?? */
+	} else if (strcmp(tag, "landuse") == 0) {
+		WayLandUseNotInteresting = 1;
+//		buildmap_info("discarding way %d, landuse %s", in_way, data);
+	} else if (strcmp(tag, "oneway") == 0 && strcmp(value, "yes") == 0) {
+		WayIsOneWay = ROADMAP_LINE_DIRECTION_ONEWAY;
+	}
+
+	/* Scan list_info
+	 *
+	 * This will map tags such as highway and cycleway.
+	 */
+	found = 0;
+	for (i=1; found == 0 && list_info[i].name != 0; i++) {
+		if (strcmp(tag, list_info[i].name) == 0) {
+			list = list_info[i].list;
+			found = 1;
+			break;
+		}
+	}
+
+	if (found) {
+		if (list) {
+			for (i=1; list[i].name; i++) {
+				if (strcmp(value, list[i].name) == 0) {
+					WayFlags = list[i].flags;
+					if (list[i].layerp)
+						ret = *(list[i].layerp);
+				}
+			}
+		} else {
+			/* */
+		}
+	}
+
+	/* FIX ME When are we supposed to do this */
+	if (ret)
+		WayLayer = ret;
 
         sscanf(data, "tag k=%*[\"']%[^\"']%*[\"'] v=%*[\"']%[^\"']%*[\"']",
                 tag, value);
@@ -681,7 +733,9 @@ buildmap_osm_text_way_end(char *data)
                 buildmap_fatal(0, "Wasn't in a way (%s)", data);
 
         if (WayLandUseNotInteresting) {
-//              buildmap_info("discarding way %d, landuse %s", in_way, data);
+#if 0
+                buildmap_info("discarding way %d, landuse %s", in_way, data);
+#endif
                 WayLandUseNotInteresting = 0;
                 buildmap_osm_text_reset_way();
                 return 0;
@@ -724,32 +778,8 @@ buildmap_osm_text_way_end(char *data)
 
                         LineId++;
                         line = buildmap_line_add
-                                (LineId, WayLayer, prevpoint, point);
-#if 0
-                        buildmap_verbose
-                            ("%d <- buildmap_line_add(%d,%d,%d,%d)"
-                                " - nodes %d %d",
-                                line, LineId, WayLayer, prevpoint, point,
-                                WayNodes[j-1], WayNodes[j]);
-#endif
-
-#if 0
-                        /* This will break on some polygons */
-                        buildmap_polygon_add_line
-                            (cenid, polyid, LineId, POLYGON_SIDE_RIGHT);
-#endif
-
-#if 0
-                        int lon1 = buildmap_point_get_longitude(prevpoint);
-                        int lat1 = buildmap_point_get_latitude(prevpoint);
-                        int lon2 = buildmap_point_get_longitude(point);
-                        int lat2 = buildmap_point_get_latitude(point);
-                        buildmap_verbose("Poly %d add line %d %d %d"
-                                    " points prev %d (%d,%d) cur %d (%d,%d)",
-                                    nPolygons, cenid, polyid, LineId,
-                                    WayNodes[j-1], lon1, lat1,
-                                    WayNodes[j], lon2, lat2);
-#endif
+                                (LineId, WayLayer, prevpoint, point,
+				 ROADMAP_LINE_DIRECTION_BOTH);
                 }
         } else {
                 /*
@@ -804,7 +834,8 @@ buildmap_osm_text_way_end(char *data)
 
                         LineId++;
                         line = buildmap_line_add(
-                            LineId, WayLayer, from_point, to_point);
+                            LineId, WayLayer, from_point, to_point,
+			    WayIsOneWay);
 
                         street = buildmap_street_add(WayLayer,
                                         rms_dirp, rms_name, rms_type,
@@ -882,7 +913,7 @@ buildmap_osm_text_way_end(char *data)
 
                         LineId++;
                         line = buildmap_line_add(LineId,
-                                WayLayer, from_point, to_point);
+                                WayLayer, from_point, to_point, WayIsOneWay);
 
                         street = buildmap_street_add(WayLayer,
                                         rms_dirp, rms_name, rms_type,
@@ -948,7 +979,7 @@ buildmap_osm_text_way_end(char *data)
 
                         LineId++;
                         line = buildmap_line_add(LineId,
-                                WayLayer, from_point, to_point);
+                                WayLayer, from_point, to_point, WayIsOneWay);
 
                         street = buildmap_street_add(WayLayer,
                                         rms_dirp, rms_name, rms_type,

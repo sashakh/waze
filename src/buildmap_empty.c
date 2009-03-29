@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -34,6 +35,7 @@
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_path.h"
+#include "roadmap_line.h"
 
 #include "buildmap.h"
 #include "buildmap_point.h"
@@ -86,10 +88,10 @@ void buildmap_empty_process (const char *source) {
    p3 = buildmap_point_add (points[2], points[3]);
    p4 = buildmap_point_add (points[0], points[3]);
 
-   buildmap_line_add (1, cfcc, p1, p2);
-   buildmap_line_add (2, cfcc, p2, p3);
-   buildmap_line_add (3, cfcc, p3, p4);
-   buildmap_line_add (4, cfcc, p4, p1);
+   buildmap_line_add (1, cfcc, p1, p2, ROADMAP_LINE_DIRECTION_BOTH);
+   buildmap_line_add (2, cfcc, p2, p3, ROADMAP_LINE_DIRECTION_BOTH);
+   buildmap_line_add (3, cfcc, p3, p4, ROADMAP_LINE_DIRECTION_BOTH);
+   buildmap_line_add (4, cfcc, p4, p1, ROADMAP_LINE_DIRECTION_BOTH);
 
    buildmap_dictionary_open ("prefix");
    buildmap_dictionary_open ("street");

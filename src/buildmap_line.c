@@ -48,6 +48,7 @@
 
 typedef struct {
    RoadMapLine record;
+   RoadMapLine2 data2;
    int tlid;
    int sorted;
    int layer;
@@ -192,9 +193,10 @@ static void buildmap_line_initialize (void) {
  * @param layer the layer of this line
  * @param from point 1
  * @param to point 2
+ * @param oneway indicates one way streets
  * @return the number of lines we know
  */
-int buildmap_line_add (int tlid, int layer, int from, int to)
+int buildmap_line_add (int tlid, int layer, int from, int to, int oneway)
 {
    int block;
    int offset;
@@ -225,10 +227,15 @@ int buildmap_line_add (int tlid, int layer, int from, int to)
    if (layer <= 0) {
       buildmap_fatal (0, "invalid layer %d in line #%d", layer, tlid);
    }
+
    this_line->tlid = tlid;
    this_line->layer = layer;
+
    this_line->record.from = from;
    this_line->record.to   = to;
+
+   this_line->data2.oneway = oneway;
+   this_line->data2.layer = layer;
 
    roadmap_hash_add (LineById, tlid, LineCount);
 
@@ -607,7 +614,7 @@ void buildmap_line_sort (void) {
 }
 
 /**
- * @brief
+ * @brief a collection of actions for everything all tables in the "line" database
  */         
 static void buildmap_line_save (void) {
 
@@ -627,12 +634,14 @@ static void buildmap_line_save (void) {
    int *db_layer2;
    int *db_index2;
    RoadMapLine *db_lines;
+   RoadMapLine2 *db_lines2;
    RoadMapLineBySquare *db_square1;
    RoadMapLineBySquare *db_square2;
    RoadMapLongLine *db_long_lines;
 
    buildmap_db *root;
    buildmap_db *data_table;
+   buildmap_db *data2_table;
    buildmap_db *square1_table;
    buildmap_db *layer1_table;
    buildmap_db *square2_table;
@@ -768,6 +777,10 @@ static void buildmap_line_save (void) {
    if (data_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (data_table, LineCount, sizeof(RoadMapLine));
 
+   data2_table = buildmap_db_add_section (root, "data2");
+   if (data2_table == NULL) buildmap_fatal (0, "Can't add a new section");
+   buildmap_db_add_data (data2_table, LineCount, sizeof(RoadMapLine2));
+
    square1_table = buildmap_db_add_section (root, "bysquare1");
    if (square1_table == NULL) buildmap_fatal (0, "Can't add a new section");
    buildmap_db_add_data (square1_table,
@@ -806,6 +819,7 @@ static void buildmap_line_save (void) {
    buildmap_db_add_data (line_bypoint2_table, LineByPoint2Count, sizeof(int));
 
    db_lines   = (RoadMapLine *) buildmap_db_get_data (data_table);
+   db_lines2  = (RoadMapLine2 *) buildmap_db_get_data (data2_table);
    db_square1 = (RoadMapLineBySquare *) buildmap_db_get_data (square1_table);
    db_layer1  = (int *) buildmap_db_get_data (layer1_table);
    db_square2 = (RoadMapLineBySquare *) buildmap_db_get_data (square2_table);
@@ -827,6 +841,7 @@ static void buildmap_line_save (void) {
       one_line = Line[j/BUILDMAP_BLOCK] + (j % BUILDMAP_BLOCK);
 
       db_lines[i] = one_line->record;
+      db_lines2[i] = one_line->data2;
 
       square = one_line->square_from;
 
@@ -980,7 +995,7 @@ static buildmap_db_module BuildMapLineModule = {
    buildmap_line_summary,
    buildmap_line_reset
 }; 
-      
+
 /**
  * @brief
  */         
