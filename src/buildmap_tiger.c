@@ -1,8 +1,8 @@
-/* buildmap_tiger.c - a module to read the original Tiger files.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -19,15 +19,12 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   This module decodes (and converts to the RoadMap format) the TIGER/Line
- *   data.
- *
- *   See buildmap-tiger.h
  */
 
+/**
+ * @file
+ * @brief a module to read the original Tiger files.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +40,7 @@
 #include "roadmap_types.h"
 #include "roadmap_math.h"
 #include "roadmap_path.h"
+#include "roadmap_line.h"
 
 #include "buildmap.h"
 #include "buildmap_zip.h"
@@ -486,7 +484,8 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
 
          BuildMapTigerLayerStatistics[cfcc].line_count += 1;
 
-         line = buildmap_line_add (tlid, cfcc, from_point, to_point);
+         line = buildmap_line_add (tlid, cfcc, from_point, to_point,
+			 ROADMAP_LINE_DIRECTION_BOTH);
 
          if (cursor[55] == 'A') { /* Roads. */
 
@@ -644,7 +643,6 @@ static void buildmap_tiger_read_rt1 (const char *source, int verbose) {
       buildmap_summary (verbose, "%d ranges merged", merged_range_count);
    }
 }
-
 
 /* Table 2: shapes. */
 
