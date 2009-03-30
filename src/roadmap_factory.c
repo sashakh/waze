@@ -312,7 +312,8 @@ static const char **roadmap_factory_load_config (const char *file_name,
 
       if (strncmp (p, ROADMAP_MENU, sizeof(ROADMAP_MENU)-1) == 0 ||
           strncmp (p, ROADMAP_SUBMENU, sizeof(ROADMAP_SUBMENU)-1) == 0 ||
-          strncmp (p, ROADMAP_INVOKE_SUBMENU, sizeof(ROADMAP_INVOKE_SUBMENU)-1) == 0) {
+          strncmp (p, ROADMAP_INVOKE_SUBMENU,
+		    sizeof(ROADMAP_INVOKE_SUBMENU)-1) == 0) {
 
          p = strdup(p);
          roadmap_check_allocated(p);
@@ -754,20 +755,24 @@ void roadmap_factory_config_toolbar
 
 /**
  * @brief handler for plugin actions/menu
- * Drawback of this simplistic implementation : plugin menus can only use their own actions.
+ * Drawback of this simplistic implementation :  plugin menus can
+ * only use their own actions.
  *
- * To fix this, the actions from the plugin should somehow be concatenated with the ones
- * RoadMap grabbed initially.
- * I am not convinced that this is an absolute necessity so I've left that out now.
+ * To fix this, the actions from the plugin should somehow be
+ * concatenated with the ones RoadMap grabbed initially.  I am
+ * not convinced that this is an absolute necessity so I've left
+ * that out now.
  *
  * @param actions the list of actions for this plugin
  * @param menu the menu configuration for this plugin
  */
-static void roadmap_factory_handle_plugin_actions_menu(RoadMapAction *actions, const char **menu)
+static void roadmap_factory_handle_plugin_actions_menu
+	    (RoadMapAction *actions, const char **menu)
 {
 	int use_tips;
 
-	roadmap_log(ROADMAP_DEBUG, "roadmap_factory_handle_plugin_actions_menu");
+	roadmap_log(ROADMAP_DEBUG, 
+	    "roadmap_factory_handle_plugin_actions_menu");
 	use_tips = roadmap_config_match (&RoadMapConfigGeneralTooltips, "yes");
 	roadmap_factory_config_menu(menu, actions, 1, use_tips);
 }
@@ -981,7 +986,8 @@ void roadmap_factory_popup (const char *title,
          return;
       }
    }
-   roadmap_log (ROADMAP_ERROR, "Couldn't find configured popup menu '%s'", title);
+   roadmap_log (ROADMAP_ERROR,
+	"Couldn't find configured popup menu '%s'", title);
 }
 
 /**
