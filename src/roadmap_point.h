@@ -32,4 +32,8 @@ void roadmap_point_position  (int point, RoadMapPosition *position);
 
 extern roadmap_db_handler RoadMapPointHandler;
 
+#ifdef HAVE_NAVIGATE_PLUGIN
+int roadmap_point_count(void);
+#endif
+
 #endif // _ROADMAP_POINT__H_

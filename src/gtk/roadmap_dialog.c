@@ -666,7 +666,15 @@ void  roadmap_dialog_set_data (const char *frame, const char *name,
       gtk_label_set_text (GTK_LABEL(this_item->w), (const char *)data);
       break;
    }
-
    this_item->value = (char *)data;
 }
 
+void roadmap_dialog_new_progress (const char *frame, const char *name)
+{
+#warning implement GTK version of roadmap_dialog_new_progress
+}
+
+void  roadmap_dialog_set_progress (const char *frame, const char *name, int progress)
+{
+#warning implement GTK version of roadmap_dialog_set_progress
+}

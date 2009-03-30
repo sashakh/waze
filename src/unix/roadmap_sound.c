@@ -33,9 +33,13 @@
 
 #define MAX_LISTS 2
 
+#ifdef NEEDED_LATER
+
 static RoadMapSoundList sound_lists[MAX_LISTS];
 
 static int save_wav_file (void *data, unsigned int size);
+
+#endif
 
 int roadmap_sound_play (RoadMapSound sound)
 {
@@ -100,6 +104,7 @@ void roadmap_sound_shutdown (void)
 {
 }
 
+#ifdef NEEDED_LATER
 /* Recording */
 static int allocate_rec_buffer(int seconds)
 {
@@ -110,6 +115,7 @@ static int save_wav_file (void *data, unsigned int size)
 {
    return 0;
 }
+#endif
 
 int roadmap_sound_record (const char *file_name, int seconds)
 {

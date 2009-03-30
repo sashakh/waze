@@ -222,8 +222,9 @@ static RoadMapTripFocal
 	*RoadMapTripWaypointFocus = &RoadMapTripFocalPoints[3],
 	*RoadMapTripAddress = &RoadMapTripFocalPoints[4],
 	*RoadMapTripSelection = &RoadMapTripFocalPoints[5],
-	*RoadMapTripDeparture = &RoadMapTripFocalPoints[6],
-	*RoadMapTripHold = &RoadMapTripFocalPoints[7];
+	*RoadMapTripDeparture = &RoadMapTripFocalPoints[6];
+
+// 	*RoadMapTripHold = &RoadMapTripFocalPoints[7];
 
 /* These will point at one of the above. */
 static RoadMapTripFocal *RoadMapTripFocus = NULL;

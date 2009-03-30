@@ -39,7 +39,7 @@
 
 #define BLOCK_SIZE 100
 
-const char *ResourceName[] = {
+char *ResourceName[] = {
    "bitmap_res",
    "sound_res"
 };

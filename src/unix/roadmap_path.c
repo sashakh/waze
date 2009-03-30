@@ -159,7 +159,7 @@ static const char *RoadMapPathIcons[] = {
 };
 
 /* The default path for the skin files (the "skin" path): */
-static char *RoadMapPathSkin[] =  {
+static const char *RoadMapPathSkin[] =  {
 	"&\\skins\\default\\day",
 	"&\\skins\\default",
 	NULL

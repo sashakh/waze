@@ -79,7 +79,7 @@ static RoadMapConfigDescriptor RoadMapConfigStylePretty =
 static RoadMapConfigDescriptor RoadMapConfigSkin =
                         ROADMAP_CONFIG_ITEM("Display", "Skin");
 
-static const char   *RoadMapNavigationMode[ROADMAP_MAX_NAVIGATION_MODES];
+static char   *RoadMapNavigationMode[ROADMAP_MAX_NAVIGATION_MODES];
 static unsigned int  RoadMapNavigationModeCount = 0;
 
 /* ----------------------------------------------------------- */
@@ -918,7 +918,8 @@ static void roadmap_layer_load_file (const char *class_file) {
     
 
     /* Retrieve the navigation modes associated with each layer. */
-    RoadMapNavigationModeCount = roadmap_layer_decode (class_config, "Class", "NavigationModes",
+    RoadMapNavigationModeCount = roadmap_layer_decode ( class_config,
+		    "Class", "NavigationModes",
 		    RoadMapNavigationMode, ROADMAP_MAX_NAVIGATION_MODES);
     if (RoadMapNavigationModeCount <= 0) return;
 
@@ -1113,7 +1114,6 @@ int roadmap_layer_last(void)
 int roadmap_layer_speed(int layer)
 {
 	RoadMapLayer		*TheLayer;
-	RoadMapConfigItem	*r;
 
 	if (RoadMapLayerCurrentClass == NULL) {
 	    roadmap_log (ROADMAP_FATAL, "roadmap_layer_road_last : no current class");

@@ -84,9 +84,15 @@ static void *roadmap_messagebox_show (const char *title,
    gtk_container_set_border_width
       (GTK_CONTAINER(GTK_BOX(GTK_DIALOG(dialog)->vbox)), 4);
 
-   gtk_signal_connect (GTK_OBJECT(ok),
+   if (die)
+      gtk_signal_connect (GTK_OBJECT(ok),
                        "clicked",
-                       GTK_SIGNAL_FUNC(die ? roadmap_messagebox_exit : roadmap_messagebox_ok),
+                       GTK_SIGNAL_FUNC(roadmap_messagebox_exit),
+                       dialog);
+   else
+      gtk_signal_connect (GTK_OBJECT(ok),
+                       "clicked",
+                       GTK_SIGNAL_FUNC(roadmap_messagebox_ok),
                        dialog);
 
    gtk_widget_grab_default (ok);

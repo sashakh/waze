@@ -197,7 +197,7 @@ typedef void (*plugin_initialize) (void);
 #include "roadmap_factory.h"
 
 typedef RoadMapAction *plugin_actions;
-typedef char **plugin_menu;
+typedef const char **plugin_menu;
 typedef void (*plugin_after_refresh) (void);
 typedef void (*plugin_format_messages) (void);
 typedef void (*plugin_route_clear)(void);
