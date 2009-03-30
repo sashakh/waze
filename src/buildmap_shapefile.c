@@ -1,5 +1,4 @@
-/* buildmap_shapefile.c - a module to read shapefiles.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2004 Stephen Woodbridge
@@ -19,10 +18,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   see buildmap_shapefile.h
+ */
+
+/**
+ * @file
+ * @brief a module to read shapefiles.
  */
 
 #include <stdio.h>
@@ -44,6 +44,7 @@
 #include "roadmap_types.h"
 #include "roadmap_math.h"
 #include "roadmap_path.h"
+#include "roadmap_line.h"
 
 #include "buildmap.h"
 #include "buildmap_zip.h"
