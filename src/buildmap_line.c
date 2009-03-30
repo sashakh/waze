@@ -1042,9 +1042,10 @@ static void buildmap_line_add_bypoint(int point, int line)
 /**
  * @brief turn the data generated on the fly into the format fit for storage
  */
-static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMapLineByPoint2 *q2)
+static void buildmap_line_transform_linebypoint
+    (RoadMapLineByPoint1 *q1, RoadMapLineByPoint2 *q2)
 {
-	int	i, j, sz1, sz2;
+	int	i, j, sz1;
 	int	cnt = 0;
 	int	*p1, *p2, *b;
 	int	*tmp;
@@ -1064,9 +1065,10 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 	tmp = (int *)calloc(max_line_by_point, sizeof(int));
 
 	/* This is a sparse array, make it NULL first */
-	p1 = tmp;
-	for (i=0; i<max_line_by_point; i++)
-		*(p1++) = 0;
+	// it's already nulled by calloc
+	// p1 = tmp;
+	// for (i=0; i<max_line_by_point; i++)
+	// 	*(p1++) = 0;
 
 	p1 = tmp;
 	b = p2 = (int *)q2;
@@ -1086,9 +1088,16 @@ static void buildmap_line_transform_linebypoint(RoadMapLineByPoint1 *q1, RoadMap
 		 */
 		int	ix = buildmap_point_get_sorted(i);
 
-		if (ix > sz1) {
-			sz1 = ix + 10;	/* Exaggerate a bit. */
-			tmp = realloc((void *)tmp, sz1 * sizeof(int));
+		if (ix >= sz1) {
+
+			fprintf (stderr, "realloc'ing: sz1 %d --> ix %d\n", sz1, ix);;
+			int newsize;
+			newsize = ix + 10;	/* Exaggerate a bit. */
+			tmp = realloc((void *)tmp, newsize * sizeof(int));
+			// zero out the new area
+			memset(&tmp[sz1], 0, (newsize - sz1) * sizeof(int));
+			sz1 = newsize;
+			p1 = tmp;
 		}
 
 		/* Avoid storing NULL lists */
