@@ -1055,7 +1055,6 @@ static void buildmap_line_transform_linebypoint
 	}
 
 	sz1 = max_line_by_point;
-/*	sz2 = sizeof(int) * (max_line_by_point + cnt);	*/
 
 	/*
 	 * This can be done without a tmp array, but for reasons I don't grasp,
@@ -1064,11 +1063,9 @@ static void buildmap_line_transform_linebypoint
 	 */
 	tmp = (int *)calloc(max_line_by_point, sizeof(int));
 
-	/* This is a sparse array, make it NULL first */
-	// it's already nulled by calloc
-	// p1 = tmp;
-	// for (i=0; i<max_line_by_point; i++)
-	// 	*(p1++) = 0;
+	/* This is a sparse array, needs to be filled with NULL
+	 * but calloc() does that for us.
+	 */
 
 	p1 = tmp;
 	b = p2 = (int *)q2;
@@ -1089,12 +1086,18 @@ static void buildmap_line_transform_linebypoint
 		int	ix = buildmap_point_get_sorted(i);
 
 		if (ix >= sz1) {
-
+#if 0
 			fprintf (stderr, "realloc'ing: sz1 %d --> ix %d\n", sz1, ix);;
+#endif
 			int newsize;
 			newsize = ix + 10;	/* Exaggerate a bit. */
 			tmp = realloc((void *)tmp, newsize * sizeof(int));
-			// zero out the new area
+			/*
+			 * The new area needs to be zeroed out because the
+			 * realloc manual doesn't speak about initialisation,
+			 * and we rely on the fact that this is NULL if
+			 * not overwritten by us.
+			 */
 			memset(&tmp[sz1], 0, (newsize - sz1) * sizeof(int));
 			sz1 = newsize;
 			p1 = tmp;
