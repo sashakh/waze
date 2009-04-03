@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
- *   Copyright (c) 2008, Danny Backx.
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   Based on an implementation by Pascal F. Martin.
  *
@@ -70,7 +70,8 @@ static int roadmap_dialog_screen_height,
 unsigned int MAX_ROW_HEIGHT = 40;	/* 20 */
 const unsigned int MAX_ROW_SPACE = 5;
 const unsigned int MAX_LIST_HEIGHT = 80;
-const unsigned int BUTTON_WIDTH = 50;
+
+const unsigned int ROADMAP_WIDGETLIST_ROWS = 8;
 
 static INT_PTR CALLBACK DialogFunc(HWND, UINT, WPARAM, LPARAM);
 static INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
@@ -415,7 +416,15 @@ void roadmap_dialog_new_list (const char  *frame, const char  *name)
 	child->widget_type = ROADMAP_WIDGET_LIST;
 }
 
-
+/**
+ * @brief populate the list created with roadmap_dialog_new_list()
+ * @param frame names the list
+ * @param name names the list
+ * @param count
+ * @param labels
+ * @param values
+ * @param callback
+ */
 void roadmap_dialog_show_list (const char  *frame,
 		const char  *name,
 		int    count,
@@ -452,6 +461,9 @@ void roadmap_dialog_show_list (const char  *frame,
 	choice = (RoadMapDialogSelection *)calloc(count + 1, sizeof(*choice));
 	roadmap_check_allocated(choice);
 	
+	roadmap_log (ROADMAP_WARNING, "roadmap_dialog_show_list(%s,%s) #items %d",
+			frame, name, count);
+
 	for (i = 0; i < count; ++i) {
 		
 		choice[i].type_id = "RoadMapDialogSelection";
@@ -805,7 +817,7 @@ static HWND create_item(RoadMapDialogItem item, HWND parent)
 			g_hInst,              // The instance handle
 			NULL);                // Specify NULL for this parameter when you 
 
-		dwStyle |= WS_BORDER|LBS_NOTIFY;
+		dwStyle |= WS_BORDER|LBS_NOTIFY | WS_VSCROLL;
 		item->w = CreateWindowEx (
 			0,
 			_T("LISTBOX"),        // Class name
@@ -888,35 +900,54 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			if (dialog == NULL) {
 				return (INT_PTR)FALSE;
 			} else {
-				//buttons
+				/*
+				 * FIX ME
+				 *
+				 * This is already improved w.r.t. the fixed
+				 * width buttons that used to be here.
+				 * Now the button width is proportional to
+				 * its #chars. All the screen width available
+				 * is used, which is good for manipulating
+				 * a mobile device with your finger.
+				 *
+				 * Still it might be better to use data from
+				 * the font.
+				 */
 				int curr_y = height - MAX_ROW_HEIGHT;
 				int row_height = MAX_ROW_HEIGHT - 1;
 				int column_separator = 5;
-				int curr_x;
+				int curr_x, cw;
 				int num_buttons = 0;
+				int chars = 0;
 
+				/* Get data about our buttons */
 				for (frame = dialog->children; frame != NULL;
 								frame = frame->next) {
 					if (frame->widget_type == ROADMAP_WIDGET_BUTTON) {
-							num_buttons++;
+						num_buttons++;
+						chars += 2 + strlen(frame->name);
 					}
 				}
+				
+				/*
+				 * This is the width we'll spend on a character
+				 * in a button.
+				 */
+				cw = (width - num_buttons * column_separator)
+					/ chars;
 
-				if (((BUTTON_WIDTH + column_separator) * num_buttons) >=
-								(unsigned)width) {
-					curr_x = width - BUTTON_WIDTH - 1;
-				} else {
-					curr_x = width - BUTTON_WIDTH -
-						(width - (BUTTON_WIDTH + column_separator) *
-						 num_buttons) / 2;
-				}
+				curr_x = width;
 
+				/* Now position & resize the buttons */
 				for (frame = dialog->children; frame != NULL;
 								frame = frame->next) {
 					if (frame->widget_type != ROADMAP_WIDGET_CONTAINER) {
+						int l = strlen(frame->name) + 2;
+						curr_x -= l * cw + column_separator;
 						MoveWindow(frame->w,
-							curr_x, curr_y, BUTTON_WIDTH, row_height, TRUE);
-						curr_x -= BUTTON_WIDTH + column_separator;
+							curr_x, curr_y,
+							l * cw, row_height,
+							TRUE);
 					}	
 				}
 			}
@@ -955,6 +986,18 @@ INT_PTR CALLBACK DialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 	return (INT_PTR)FALSE;
 }
 
+/**
+ * @brief the TabDialogFunc is called to handle events of a dialog
+ * Two very important events are WM_SETTINGCHANGE and WM_SIZE. When
+ * they come, the geometry of all widgets in the dialog is changed
+ * by the algorithms in this function.
+ *
+ * @param hDlg the id of this dialog
+ * @param message the message that Windows sends us
+ * @param wParam one of the predefined parameters, context dependent
+ * @param lParam the other predefined parameter, context dependent
+ * @return (need to look up what this means)
+ */
 INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 							   LPARAM lParam)
 {
@@ -1036,7 +1079,7 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 			if (item->widget_type == ROADMAP_WIDGET_CONTAINER)
 				continue;
 			if (item->widget_type == ROADMAP_WIDGET_LIST)
-				num_entries += 4;
+				num_entries += ROADMAP_WIDGETLIST_ROWS;
 			else
 				num_entries++;
 			name = ConvertToUNICODE(item->name);
@@ -1089,7 +1132,8 @@ INT_PTR CALLBACK TabDialogFunc(HWND hDlg, UINT message, WPARAM wParam,
 				MoveWindow(widget,
 					column_edge_width, curr_y,
 					width - column_edge_width*2,
-					row_height*3, TRUE);
+					row_height*ROADMAP_WIDGETLIST_ROWS,
+					TRUE);
 				curr_y += row_height*3 + row_space;
 			} else {
 				if (label != NULL) {
