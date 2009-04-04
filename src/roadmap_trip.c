@@ -997,7 +997,11 @@ static void roadmap_trip_waypoint_manage_dialog_selected (
     }
 }
 
-
+/**
+ * @brief populate a list (created before) with items
+ * @param which indicates which list (of waypoints) to use to populate
+ * @return success indicator (1 if ok, 0 if not)
+ */
 static int roadmap_trip_waypoint_manage_dialog_populate (void *which) {
 
     char **names = NULL;
@@ -1052,7 +1056,42 @@ static int roadmap_trip_waypoint_manage_dialog_populate (void *which) {
     return 1;
 }
 
+/**
+ * @brief function called from roadmap_trip_waypoint_select_navigation_waypoint
+ *   and roadmap_trip_waypoint_manage_dialog_worker
+ *   to store the Departure waypoint
+ * @param name
+ * @param data
+ */
+static void roadmap_trip_set_nav_departure (const char *name, void *data)
+{
+    roadmap_log (ROADMAP_WARNING, "roadmap_trip_departure_waypoint");
+    roadmap_trip_set_point ("Departure",
+	    &RoadMapTripSelectedPlace->wpt->pos);
+    roadmap_dialog_hide (name);
+    roadmap_screen_refresh ();
+}
 
+/**
+ * @brief function called from roadmap_trip_waypoint_select_navigation_waypoint
+ *   and roadmap_trip_waypoint_manage_dialog_worker
+ *   to store the Destination waypoint
+ * @param name
+ * @param data
+ */
+static void roadmap_trip_set_nav_destination (const char *name, void *data)
+{
+    roadmap_log (ROADMAP_DEBUG, "roadmap_trip_destination_waypoint");
+    roadmap_trip_set_point ("Destination",
+	    &RoadMapTripSelectedPlace->wpt->pos);
+    roadmap_dialog_hide (name);
+    roadmap_screen_refresh ();
+}
+
+/**
+ * @brief function to manage the Trip waypoint dialog
+ * @param which indicates which list of waypoints to display
+ */
 static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
 
     int empty = 1;      /* warning suppression */
@@ -1096,6 +1135,10 @@ static void roadmap_trip_waypoint_manage_dialog_worker (void *which) {
             ("Edit", roadmap_trip_waypoint_manage_dialog_edit);
         roadmap_dialog_add_button
             ("Okay", roadmap_trip_dialog_cancel);
+	roadmap_dialog_add_button
+	    ("Destination", roadmap_trip_set_nav_destination);
+	roadmap_dialog_add_button
+	    ("Departure", roadmap_trip_set_nav_departure);
 
         roadmap_dialog_new_hidden ("Names", ".which");
 
@@ -3679,3 +3722,88 @@ void roadmap_trip_refresh_needed(void)
 {
 	RoadMapTripRefresh = 1;
 }
+
+#if 1
+/*
+ * Stuff to add menu items in the navigate menu
+ * These could be integrated with the existing Trip UI.
+ * (Done so experimentally already)
+ */
+/**
+ * @brief Pop up a dialog to select a departure or destination from a list of waypoints
+ * @param which selects the list of waypoints to use for display
+ * @param destination do we select a destination or a departure
+ */
+void roadmap_trip_waypoint_select_navigation_waypoint (void *which, int destination) {
+
+    int empty = 1;      /* warning suppression */
+    const char *name = NULL; /* ditto */
+
+    if (destination)
+	    name = "Select destination";
+    else
+	    name = "Select departure";
+
+    if (which == TRIP_WAYPOINTS) {
+	    empty = ROADMAP_LIST_EMPTY(&RoadMapTripWaypointHead);
+    } else if (which == PERSONAL_WAYPOINTS) {
+	    empty = ROADMAP_LIST_EMPTY(roadmap_landmark_list());
+    } else if (which == ROUTE_WAYPOINTS) {
+	    if (RoadMapCurrentRoute == NULL) {
+		    return;     /* Nothing to edit. */
+	    }
+	    empty = ROADMAP_LIST_EMPTY(&RoadMapCurrentRoute->waypoint_list);
+    } else if (which == LOST_WAYPOINTS) {
+	    empty = ROADMAP_LIST_EMPTY(roadmap_landmark_list());
+    }
+
+    if (empty) {
+        return;         /* Nothing to edit. */
+    }
+
+    if (roadmap_dialog_activate ( name, which)) {
+        roadmap_dialog_new_list ("Names", ".Waypoints");
+        if (which == ROUTE_WAYPOINTS) {
+            roadmap_dialog_add_button
+                ("Back", roadmap_trip_waypoint_manage_dialog_up);
+            roadmap_dialog_add_button
+                ("Ahead", roadmap_trip_waypoint_manage_dialog_down);
+        }
+        roadmap_dialog_add_button
+            ("Show", roadmap_trip_dialog_cancel);
+
+	if (destination)
+		roadmap_dialog_add_button
+			("Destination", roadmap_trip_set_nav_destination);
+	else
+		roadmap_dialog_add_button
+			("Departure", roadmap_trip_set_nav_departure);
+
+        roadmap_dialog_new_hidden ("Names", ".which");
+
+        roadmap_dialog_complete (0);    /* No need for a keyboard. */
+    }
+
+    roadmap_trip_waypoint_manage_dialog_populate (which);
+}
+
+/**
+ * @brief Pop up a dialog to select a departure from the list of Personal waypoints
+ * Calls the (static) worker function roadmap_trip_waypoint_select_navigation_waypoint
+ * which is a slightly modified version of roadmap_trip_waypoint_manage_dialog_worker .
+ */
+void roadmap_trip_departure_waypoint (void)
+{
+	roadmap_trip_waypoint_select_navigation_waypoint(PERSONAL_WAYPOINTS, 0);
+}
+
+/**
+ * @brief Pop up a dialog to select a destination from the list of Personal waypoints
+ * Calls the (static) worker function roadmap_trip_waypoint_select_navigation_waypoint
+ * which is a slightly modified version of roadmap_trip_waypoint_manage_dialog_worker .
+ */
+void roadmap_trip_destination_waypoint (void)
+{
+	roadmap_trip_waypoint_select_navigation_waypoint(PERSONAL_WAYPOINTS, 1);
+}
+#endif
