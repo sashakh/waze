@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2008, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -188,41 +189,42 @@ static void buildus_scan_maps (void) {
 	  */
          buildmap_set_source (entry->d_name);
 
-	 n = buildmap_osm_filename_iso(entry->d_name, country_iso, country_division, ".rdm");
+	 n = buildmap_osm_filename_iso(entry->d_name, country_iso,
+			 country_division, ".rdm");
 	 if (n) {
-		 static BuildMapDictionary BuildMapStateDictionary;
-		 static BuildMapDictionary county_dictionary;
-		 RoadMapString state_symbol, county_name;
+	     static BuildMapDictionary BuildMapStateDictionary;
+	     static BuildMapDictionary county_dictionary;
+	     RoadMapString state_symbol, county_name;
 
-		 fips = roadmap_iso_alpha_to_num(country_iso) * 1000 + 1000000;
-		 if (n == 2) {
-			 fips += roadmap_iso_division_to_num(country_iso, country_division);
-			 buildmap_info("Country %s division %s fips %d",
-					 country_iso, country_division, fips);
-		 } else {
-			 buildmap_info("Country %s fips %d", country_iso, fips);
-		 }
+	     fips = roadmap_iso_alpha_to_num(country_iso) * 1000 + 1000000;
+	     if (n == 2) {
+                 fips += roadmap_iso_division_to_num(country_iso,
+				 country_division);
+		 buildmap_info("Country %s division %s fips %d",
+				 country_iso, country_division, fips);
+	     } else {
+                 buildmap_info("Country %s fips %d", country_iso, fips);
+	     }
 
-		 /* Create a fake county */
-		 BuildMapStateDictionary = buildmap_dictionary_open ("state");
+	     /* Create a fake county */
+	     BuildMapStateDictionary = buildmap_dictionary_open ("state");
 
-		 state_symbol = buildmap_dictionary_add (BuildMapStateDictionary,
-				 country_iso, strlen(country_iso));
-		 if (state_symbol == 0) {
-			 buildmap_fatal (0, "invalid state description");
-		 }
-		 buildus_county_add_state (state_symbol, state_symbol);
+	     state_symbol = buildmap_dictionary_add (BuildMapStateDictionary,
+			     country_iso, strlen(country_iso));
+	     if (state_symbol == 0) {
+                 buildmap_fatal (0, "invalid state description");
+	     }
+	     buildus_county_add_state (state_symbol, state_symbol);
+	     county_dictionary = buildmap_dictionary_open ("county");
+	     if (n == 2) {
+		     county_name = buildmap_dictionary_add (county_dictionary,
+			     country_division, strlen(country_division));
+	     } else {
+		     county_name = buildmap_dictionary_add (county_dictionary,
+				     "fake county", 11);
+	     }
 
-		 county_dictionary = buildmap_dictionary_open ("county");
-		 if (n == 2) {
-			 county_name = buildmap_dictionary_add (county_dictionary,
-					 country_division, strlen(country_division));
-		 } else {
-			 county_name = buildmap_dictionary_add (county_dictionary,
-				 "fake county", 11);
-		 }
-
-		 buildus_county_add (fips, county_name, state_symbol);
+	     buildus_county_add (fips, county_name, state_symbol);
 	 } else if (buildmap_osm_filename_usc(entry->d_name, &fips)) {
 		 ;	/* It's decoded, that's all we needed. */
 	 } else {
@@ -290,28 +292,28 @@ void usage(char *progpath, const char *msg) {
  */
 void roadmap_iso_create_all_countries(void)
 {
-	int	i;
-	static BuildMapDictionary state_dictionary;
-	static BuildMapDictionary county_dictionary;
-	RoadMapString state_symbol, state_name, dw;
-	char	symbol[8];
+    int i;
+    static BuildMapDictionary state_dictionary;
+    static BuildMapDictionary county_dictionary;
+    RoadMapString state_symbol, state_name, dw;
+    char symbol[8];
 
-	state_dictionary = buildmap_dictionary_open ("state");
-	county_dictionary = buildmap_dictionary_open ("county");
-	dw = buildmap_dictionary_add(state_dictionary, "DW", 2);
-	for (i=0; IsoCountryCodeTable[i].name; i++) {
-		sprintf(symbol, "%s", IsoCountryCodeTable[i].alpha2);
-		state_symbol = buildmap_dictionary_add (state_dictionary,
-				IsoCountryCodeTable[i].alpha3, strlen(IsoCountryCodeTable[i].alpha3)
-			);
-		state_name = buildmap_dictionary_add (state_dictionary,
-			IsoCountryCodeTable[i].name, strlen(IsoCountryCodeTable[i].name));
-		if (state_symbol == 0 || state_name == 0) {
-			buildmap_fatal (0, "invalid state description");
-		}
-
-		buildus_county_add_state (state_name, state_symbol);
-	}
+    state_dictionary = buildmap_dictionary_open ("state");
+    county_dictionary = buildmap_dictionary_open ("county");
+    dw = buildmap_dictionary_add(state_dictionary, "DW", 2);
+    for (i=0; IsoCountryCodeTable[i].name; i++) {
+        sprintf(symbol, "%s", IsoCountryCodeTable[i].alpha2);
+	state_symbol = buildmap_dictionary_add (state_dictionary,
+            IsoCountryCodeTable[i].alpha3,
+	    strlen(IsoCountryCodeTable[i].alpha3));
+	state_name = buildmap_dictionary_add (state_dictionary,
+            IsoCountryCodeTable[i].name,
+	    strlen(IsoCountryCodeTable[i].name));
+	if (state_symbol == 0 || state_name == 0) {
+            buildmap_fatal (0, "invalid state description");
+        }
+	buildus_county_add_state (state_name, state_symbol);
+    }
 }
 
 /**
@@ -373,7 +375,6 @@ int main (int argc, char **argv) {
    buildmap_db_sort();
 
    if (BuildMapVerbose) {
-
       roadmap_hash_summary ();
       buildmap_db_summary ();
    }
@@ -382,4 +383,3 @@ int main (int argc, char **argv) {
 
    return 0;
 }
-
