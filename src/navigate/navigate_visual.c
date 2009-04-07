@@ -34,8 +34,6 @@
 
 #include "roadmap.h"
 #include "roadmap_line.h"
-// #include "roadmap_line_route.h"
-// #include "roadmap_line_speed.h"
 #include "roadmap_lang.h"
 #include "roadmap_layer.h"
 #include "roadmap_locator.h"
@@ -46,7 +44,6 @@
 
 #include "navigate_visual.h"
 
-// #define MAX_LAYERS (ROADMAP_ROAD_LAST + 1)
 #define MAX_PEN_LAYERS 2
 #define MAX_ROAD_COLORS 2
 
