@@ -134,6 +134,15 @@ static int navigate_simple_algo_cost(NavigateIteration *iter)
 		iter->segment->line_direction);
 
 	iter->next->segment->time = cost;
+//	iter->next->segment->heuristic = iter->next->segment->dist_from_destination;
+	iter->next->segment->heuristic =
+		iter->next->segment->dist_from_destination
+		+ iter->next->segment->time;
+	roadmap_log (ROADMAP_DEBUG, "navigate_simple_algo_cost(cost %d, dist_from_dest %d) -> %d",
+			cost,
+			iter->next->segment->dist_from_destination,
+			iter->next->segment->heuristic);
+
 	return cost;
 }
 
@@ -167,12 +176,14 @@ static int navigate_simple_algo_step(NavigateAlgorithm *algo, NavigateStatus *st
 
 	if (nlines == 0) {
 		l = roadmap_navigate_position2line(s->from_pos);
-		point = roadmap_line_from_point(l->line_id);
-		nlines = navigate_simple_lines_closeby(point, lines, maxlines);
-
-		if (nlines == 0) {
-			point = roadmap_line_to_point(l->line_id);
+		if (l) {
+			point = roadmap_line_from_point(l->line_id);
 			nlines = navigate_simple_lines_closeby(point, lines, maxlines);
+
+			if (nlines == 0) {
+				point = roadmap_line_to_point(l->line_id);
+				nlines = navigate_simple_lines_closeby(point, lines, maxlines);
+			}
 		}
 	}
 
@@ -271,15 +282,27 @@ static int navigate_simple_algo_step(NavigateAlgorithm *algo, NavigateStatus *st
 				stp->current->next->segment->from_pos.longitude,
 				stp->current->next->segment->from_pos.latitude);
 
+		/*
+		 * Which distance did we cross already ?
+		 */
 		stp->current->next->segment->distance = stp->current->segment->distance +
 			roadmap_math_distance(&stp->current->segment->from_pos,
 					&stp->current->segment->to_pos);
 
+		/*
+		 * Calculate algorithm dependent cost
+		 */
 		(void) algo->cost_fn(stp->current);
 
+#if 0
 		stp->current->next->segment->heuristic =
 			stp->current->next->segment->dist_from_destination;
+#endif
 
+		/*
+		 * The heuristic (comes out of the cost function) is what determines
+		 * where we go next.
+		 */
 		if (bestheuristic < 0 || stp->current->next->segment->heuristic < bestheuristic) {
 			bestseg = *stp->current->next->segment;
 			best = i;
