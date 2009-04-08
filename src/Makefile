@@ -739,13 +739,16 @@ sourcelist:
 		$(shell $(MAKE) -C $(dir) --no-print-directory sourcelist)))
 
 
-depends:
+depends::
 	$(MAKEDEPS) -Y -f - $(C_SRC) > .depends.mk 2>/dev/null ; \
 	for dir in $(ALL_SUBDIRS) ; \
 	do \
 		test -f $$dir/Makefile && \
 			$(MAKE) -C $$dir depends || exit 1; \
 	done
+
+depends::
+	awk '/\%\!include/ {printf("usermanual.html: ../doc/%s\n", $$2);}' ../README >>.depends.mk
 
 .depends.mk:
 	@echo "Note: run 'make depends' to create dependency files" >&2
