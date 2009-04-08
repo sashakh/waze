@@ -1,0 +1,81 @@
+RoadMap Navigation
+
+April 2009
+
+
+
+= RoadMap Navigation =
+
+ Navigation support is work in progress.
+
+ It requires maps that have been built with a new version of buildmap 
+ (or buildmap_osm) because this new version will add a couple of tables
+ to the map.
+
+ Navigation support needs to be compiled in, see "Building". RoadMap will
+ show an additional menu labelled "Navigate" when this code is compiled in.
+
+
+
+
+ - Building RoadMap with Navigation Support
+
+   Set USE_NAVIGATE_PLUGIN = yes in config.mk and run "make".
+
+   The Makefile dependency rules should cause a recompile of the right files.
+   If that doesn't happen, please rebuild the dependencies with
+   "make depends".
+
+
+ - Use of RoadMap Navigation
+
+   Use one of the new buttons in the Trip -> Places -> Personal Landmarks
+   dialog to specify both Departure and Destination.
+   Then say Navigate -> Navigate.
+
+   A dialog should then appear saying how far you'll travel, and how much
+   time it'll take to travel there. The route is also drawn.
+
+   On my Linux PC, calculating the route is almost instantaneous for short
+   trips, on my PDA it takes a bit longer.
+
+   The next step isn't there yet (working on that) : RoadMap should do
+   sensible things when it notices that you're following the route.
+
+   Also route calculation isn't what it should be, I need to look at the
+   algorithm, it makes the strangest moves :-)
+
+
+= Maps for Navigation =
+
+  In order to support navigation, several extensions were made to the
+  RoadMap map format :
+
+  - Line By Point table
+
+    This allows you to query which lines start or end at a given point.
+
+  - Turn restriction table
+
+    This allows you to specify that some turns aren't allowed.
+
+  - Oneway street and layer table
+
+    This table has an indication whether a street is "oneway" only, and
+    it also stores the layer (type of street). The layer info was in
+    another map table already (RoadMap used it) but it was stored in a
+    way which made access to it slow.
+
+  All of these additions are exactly that : there's more info in the maps,
+  but the existing tables aren't changed in any way.
+
+  This means that old maps still work for RoadMap, just don't try to use
+  navigation with them.
+
+  Both buildmap (Tiger) and buildmap_osm (OpenStreetMap) have been extended,
+  both kinds of maps will support navigation.
+
+  You'll find that the maps are substantially bigger than before.
+  The line by point tables can use another round of space optimisation,
+  this awaits understanding of the hashing.
+

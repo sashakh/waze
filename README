@@ -114,4 +114,5 @@ February 2009
 @@ runtime-help-link OpenStreetMap
 %!include: OpenStreetMap
 %!include: Map-Building
-
+@@ runtime-help-link Navigation
+%!include: Navigation
