@@ -1451,6 +1451,7 @@ January 2009
      trip files, but instead in the same directory in which the
      user's preferences and session file are found.)
 
+
 == Feature Files ==
 
      Like the RoadMap trip data, feature data is stored in GPX format.  Each

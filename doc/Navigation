@@ -58,6 +58,8 @@ April 2009
   - Turn restriction table
 
     This allows you to specify that some turns aren't allowed.
+    There's no buildmap support for this feature yet, meaning none of
+    our maps currently contain this table.
 
   - Oneway street and layer table
 
@@ -78,4 +80,5 @@ April 2009
   You'll find that the maps are substantially bigger than before.
   The line by point tables can use another round of space optimisation,
   this awaits understanding of the hashing.
+
 
