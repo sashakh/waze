@@ -1,8 +1,8 @@
-/* roadmap_display.c - Manage screen signs.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009, Danny Backx
  *
  *   This file is part of RoadMap.
  *
@@ -19,10 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   See roadmap_display.h.
+ */
+
+/**
+ * @file
+ * @brief Manage screen signs.
  */
 
 #include <stdio.h>
@@ -92,6 +93,9 @@ static int RoadMapDisplayDeadline;
 #define SIGN_TOP      1
 #define SIGN_CENTER   2
 
+/**
+ * @brief
+ */
 typedef struct {
 
     const char *page;
@@ -121,7 +125,9 @@ typedef struct {
     const char *default_background;
     const char *default_foreground;
 
-    PluginStreet street;
+    PluginStreet street;	/**< remember current street, this is used in
+				  roadmap_display_activate() to figure out
+				  whether we're still in the same street. */
 
 } RoadMapSign;
 
@@ -134,7 +140,9 @@ typedef struct {
         {n, "Foreground", NULL}, \
      w, t, b, f, PLUGIN_STREET_NULL}
 
-
+/**
+ * @brief RoadMapSign table, indicates what to show under predefined conditions.
+ */
 RoadMapSign RoadMapStreetSign[] = {
     ROADMAP_SIGN("GPS", "Current Street",  SIGN_BOTTOM, "%N, %C|%N", "DarkSeaGreen4", "white"),
     ROADMAP_SIGN("GPS", "Approach",        SIGN_TOP, "Approaching %N, %C|Approaching %N", "DarkSeaGreen4", "white"),
@@ -256,7 +264,11 @@ static void roadmap_display_string
                 RoadMapDisplayFontSize, text_line);
 }
 
-
+/**
+ * @brief look up a named sign
+ * @param title the name/title of this sign
+ * @return pointer to the structure of this sign
+ */
 static RoadMapSign *roadmap_display_search_sign (const char *title) {
 
     RoadMapSign *sign;
@@ -470,7 +482,14 @@ void roadmap_display_page (const char *name) {
    RoadMapDisplayRefreshNeeded = 1;
 }
 
-
+/**
+ * @brief Announce where we are. This function also figures out whether the street changed.
+ * @param title name of the sign to use (failure if this is not predefined)
+ * @param line
+ * @param position
+ * @param street
+ * @return 0 on success
+ */
 int roadmap_display_activate (const char *title,
                               PluginLine *line,
                               const RoadMapPosition *position,
@@ -565,6 +584,8 @@ int roadmap_display_activate (const char *title,
         sign->has_position = 1;
         sign->position = *position;
     }
+
+//    roadmap_plugin_update_position (position);
 
     roadmap_log_pop ();
     *street = sign->street;
