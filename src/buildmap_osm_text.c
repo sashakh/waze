@@ -1,7 +1,8 @@
 /*
  * LICENSE:
  *
- *   Copyright (c) 2008, Danny Backx
+ *   Copyright (c) 2008, 2009, Danny Backx.
+ *
  *   Based on code Copyright 2007 Paul Fox that interprets the OSM
  *   binary stream.
  *
@@ -77,6 +78,8 @@ static int      *WayNodes = 0;          /**< the array to keep track of
                                                         this way's nodes */
 static int      WayLayer = 0;           /**< the layer for this way */
 static char     *WayStreetName = 0;     /**< the street name */
+static char	*WayStreetRef = 0;	/**< street code,
+					  to be used when no name (e.g. motorway) */
 static int      WayFlags = 0;           /**< properties of this way, from
                                                         the table flags */
 static int      WayInvalid = 0;         /**< this way contains invalid nodes */
@@ -193,6 +196,7 @@ buildmap_osm_text_reset_way(void)
         in_way = 0;
         nWayNodes = 0;
         free(WayStreetName); WayStreetName = 0;
+        free(WayStreetRef); WayStreetRef = 0;
         WayFlags = 0;
         WayInvalid = 0;
 	WayIsOneWay = ROADMAP_LINE_DIRECTION_BOTH;
@@ -604,6 +608,8 @@ buildmap_osm_text_node_tag(char *data)
  *     <tag k="highway" v="residential"/>
  *     <tag k="name" v="Rue de Thiribut"/>
  *     <tag k="created_by" v="JOSM"/>
+ *     <tag k="ref" v="E40">
+ *     <tag k="int_ref" v="E 40">
  */
 static int
 buildmap_osm_text_tag(char *data)
@@ -634,6 +640,11 @@ buildmap_osm_text_tag(char *data)
 //		buildmap_info("discarding way %d, landuse %s", in_way, data);
 	} else if (strcmp(tag, "oneway") == 0 && strcmp(value, "yes") == 0) {
 		WayIsOneWay = ROADMAP_LINE_DIRECTION_ONEWAY;
+	} else if (strcmp(tag, "ref") == 0) {
+		if (WayStreetRef)
+			free(WayStreetRef);
+		WayStreetRef = FromXmlAndDup(value);
+		return 0;	/* FIX ME ?? */
 	}
 
 	/* Scan list_info
@@ -676,6 +687,11 @@ buildmap_osm_text_tag(char *data)
                         free(WayStreetName);
                 WayStreetName = FromXmlAndDup(value);
                 return 0;       /* FIX ME ?? */
+	} else if (strcmp(tag, "ref") == 0) {
+		if (WayStreetRef)
+			free(WayStreetRef);
+		WayStreetRef = FromXmlAndDup(value);
+		return 0;	/* FIX ME ?? */
         } else if (strcmp(tag, "landuse") == 0) {
                 WayLandUseNotInteresting = 1;
 //              buildmap_info("discarding way %d, landuse %s", in_way, data);
@@ -804,6 +820,8 @@ buildmap_osm_text_way_end(char *data)
                 /* Street name */
                 if (WayStreetName)
                         rms_name = str2dict(DictionaryStreet, WayStreetName);
+		else if (WayStreetRef)
+                        rms_name = str2dict(DictionaryStreet, WayStreetRef);
 
                 /*
                  * Loop over the points of the way.
