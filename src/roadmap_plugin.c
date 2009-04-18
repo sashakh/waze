@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
- *   Copyright (c) 2008, Danny Backx.
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -35,6 +35,7 @@
 #include "roadmap_shape.h"
 #include "roadmap_file.h"
 #include "roadmap_library.h"
+#include "roadmap_gps.h"
 #include "roadmap_plugin.h"
 #include "roadmap_messagebox.h"
 
@@ -149,7 +150,7 @@ char *roadmap_plugin_list_all_plugins(void)
 }
 
 /**
- * @brief
+ * @brief are the two lines the same ?
  * @param line1
  * @param line2
  * @return
@@ -595,6 +596,9 @@ void roadmap_plugin_adjust_layer (int layer, int thickness, int pen_count)
    }
 }
 
+/**
+ * @brief call plugins to tell the user where to go
+ */
 void roadmap_plugin_format_messages (void)
 {
    int i;
@@ -605,6 +609,30 @@ void roadmap_plugin_format_messages (void)
    }
 }
 
+/**
+ * @brief call plugins with new information about where we are
+ * This is called by roadmap_display_activate() to pass info to the plugins.
+ * @param position the GPS info
+ * @param line the line we're on
+ * @param street the street we're on
+ * @param street_has_changed boolean value to alert the plugin of a change
+ */
+void roadmap_plugin_update_position (const RoadMapPosition *position,
+		const PluginLine *line, const PluginStreet *street,
+		const int street_has_changed)
+{
+   int i;
+
+   for (i=1; i<=PluginCount; i++) {
+      RoadMapPluginHooks *hp = get_hooks (i);
+      if (hp && hp->update_position)
+	      hp->update_position (position, line, street, street_has_changed);
+   }
+}
+
+/**
+ * @brief
+ */
 void roadmap_plugin_after_refresh (void)
 {
    int i;
@@ -785,6 +813,9 @@ void roadmap_plugin_initialize_all_plugins(void)
 	}
 }
 
+/**
+ * @brief plugins that maintain a route should clear it now
+ */
 void roadmap_plugin_route_clear(void)
 {
 	int			id;
@@ -799,6 +830,12 @@ void roadmap_plugin_route_clear(void)
 	}
 }
 
+/**
+ * @brief plugins that maintain a route should add this line to it
+ * @param line
+ * @param layer
+ * @param fips
+ */
 void roadmap_plugin_route_add(int line, int layer, int fips)
 {
 	int			id;

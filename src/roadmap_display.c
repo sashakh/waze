@@ -484,6 +484,10 @@ void roadmap_display_page (const char *name) {
 
 /**
  * @brief Announce where we are. This function also figures out whether the street changed.
+ *
+ * This function is not only called when the GPS tells us about our position,
+ * but also when the user highlights a position on the map.
+ *
  * @param title name of the sign to use (failure if this is not predefined)
  * @param line
  * @param position
@@ -502,7 +506,6 @@ int roadmap_display_activate (const char *title,
     RoadMapSign *sign;
 
     PluginStreetProperties properties;
-
 
     roadmap_log_push ("roadmap_display_activate");
 
@@ -535,6 +538,10 @@ int roadmap_display_activate (const char *title,
            sign->street = *street;
            street_has_changed = 1;
         }
+	roadmap_log (ROADMAP_WARNING, "roadmap_display_activate(%d, %s) %s",
+			line ? line->line_id : 0,
+			sign ? sign->id : "",
+			street_has_changed ? " changed" : " unchanged");
     }
 
 
@@ -585,7 +592,7 @@ int roadmap_display_activate (const char *title,
         sign->position = *position;
     }
 
-//    roadmap_plugin_update_position (position);
+    roadmap_plugin_update_position (position, line, street, street_has_changed);
 
     roadmap_log_pop ();
     *street = sign->street;

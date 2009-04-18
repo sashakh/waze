@@ -2,7 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Ehud Shabtai
- *   Copyright (c) 2008, Danny Backx.
+ *   Copyright (c) 2008, 2009, Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -47,6 +47,7 @@
 
 #include "roadmap_types.h"
 #include "roadmap_canvas.h"
+#include "roadmap_gps.h"
 
 
 /* Map access functions. --------------------------------------------------- */
@@ -202,6 +203,8 @@ typedef void (*plugin_after_refresh) (void);
 typedef void (*plugin_format_messages) (void);
 typedef void (*plugin_route_clear)(void);
 typedef void (*plugin_route_add)(int, int, int);
+typedef void (*plugin_update_position)(const RoadMapPosition *,
+		const PluginLine *, const PluginStreet *, const int);
 
 /**
  * @brief definition of a plugin
@@ -231,6 +234,7 @@ typedef struct {
    plugin_format_messages		format_messages;	/**< Display directions */
    plugin_route_clear			route_clear;		/**< clear the route */
    plugin_route_add			route_add;		/**< add a hop to the route */
+   plugin_update_position		update_position;	/**< GPS position info update */
 } RoadMapPluginHooks;
 
 #define ROADMAP_PLUGIN_ID 0
@@ -302,5 +306,7 @@ void roadmap_plugin_get_line_points (const PluginLine *line,
 
 void roadmap_plugin_route_clear(void);
 void roadmap_plugin_route_add(int, int, int);
+void roadmap_plugin_update_position (const RoadMapPosition *,
+		const PluginLine *, const PluginStreet *, const int);
 
 #endif /* INCLUDED__ROADMAP_PLUGIN__H */
