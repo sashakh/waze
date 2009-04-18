@@ -538,7 +538,7 @@ int roadmap_display_activate (const char *title,
            sign->street = *street;
            street_has_changed = 1;
         }
-	roadmap_log (ROADMAP_WARNING, "roadmap_display_activate(%d, %s) %s",
+	roadmap_log (ROADMAP_DEBUG, "roadmap_display_activate(%d, %s) %s",
 			line ? line->line_id : 0,
 			sign ? sign->id : "",
 			street_has_changed ? " changed" : " unchanged");
