@@ -678,53 +678,6 @@ buildmap_osm_text_tag(char *data)
 	if (ret)
 		WayLayer = ret;
 
-        sscanf(data, "tag k=%*[\"']%[^\"']%*[\"'] v=%*[\"']%[^\"']%*[\"']",
-                tag, value);
-
-        /* street names */
-        if (strcmp(tag, "name") == 0) {
-                if (WayStreetName)
-                        free(WayStreetName);
-                WayStreetName = FromXmlAndDup(value);
-                return 0;       /* FIX ME ?? */
-	} else if (strcmp(tag, "ref") == 0) {
-		if (WayStreetRef)
-			free(WayStreetRef);
-		WayStreetRef = FromXmlAndDup(value);
-		return 0;	/* FIX ME ?? */
-        } else if (strcmp(tag, "landuse") == 0) {
-                WayLandUseNotInteresting = 1;
-//              buildmap_info("discarding way %d, landuse %s", in_way, data);
-        }
-
-        /* Scan list_info */
-        found = 0;
-        for (i=1; found == 0 && list_info[i].name != 0; i++) {
-                if (strcmp(tag, list_info[i].name) == 0) {
-                        list = list_info[i].list;
-                        found = 1;
-                        break;
-                }
-        }
-
-        if (found) {
-                if (list) {
-                        for (i=1; list[i].name; i++) {
-                                if (strcmp(value, list[i].name) == 0) {
-                                        WayFlags = list[i].flags;
-                                        if (list[i].layerp)
-                                                ret = *(list[i].layerp);
-                                }
-                        }
-                } else {
-                        /* */
-                }
-        }
-
-        /* FIX ME When are we supposed to do this */
-        if (ret)
-                WayLayer = ret;
-
         return ret;
 }
 
