@@ -723,6 +723,14 @@ buildmap_osm_text_way_end(char *data)
         tolon = buildmap_point_get_longitude(to_point);
         tolat = buildmap_point_get_latitude(to_point);
 
+	if (WayLayer == 0) {
+		buildmap_info ("Way %d (%s) layer 0 is invalid",
+				in_way,
+				WayStreetName ? WayStreetName :
+				WayStreetRef ? WayStreetRef : "");
+		WayLayer = TRAIL;
+	}
+
         if ((WayFlags & AREA)  && (fromlon == tolon) && (fromlat == tolat)) {
                 static int polyid = 0;
                 static int cenid = 0;
@@ -775,7 +783,16 @@ buildmap_osm_text_way_end(char *data)
                         rms_name = str2dict(DictionaryStreet, WayStreetName);
 		else if (WayStreetRef)
                         rms_name = str2dict(DictionaryStreet, WayStreetRef);
-
+#if 0
+		else {
+			char s[64];
+			sprintf(s, "OSM unnamed way %d", in_way);
+                        rms_name = str2dict(DictionaryStreet, s);
+		}
+#endif
+		buildmap_verbose ("Way %d [%s] ref [%s]", in_way,
+				WayStreetName ? WayStreetName : "",
+				WayStreetRef ? WayStreetRef : "");
                 /*
                  * Loop over the points of the way.
                  *
