@@ -558,7 +558,7 @@ clean:  topclean
 	rm -f agg_support/*.o agg_support/.depends.mk ${PLUGIN_CLEAN}
 
 
-install: installdata installbin installicons \
+install: all installdata installbin installicons \
 		installdesktop installdoc installman
 	for module in $(RDMODULES) ; \
 	do \
