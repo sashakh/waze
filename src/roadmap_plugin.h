@@ -45,6 +45,7 @@
 #ifndef INCLUDED__ROADMAP_PLUGIN__H
 #define INCLUDED__ROADMAP_PLUGIN__H
 
+#include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_canvas.h"
 #include "roadmap_gps.h"
