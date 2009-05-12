@@ -1,8 +1,8 @@
-/* buildmap.h - General definition for the map builder tool.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -21,13 +21,17 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * buildmap.h - General definition for the map builder tool.
+ */
+
 #ifndef INCLUDED__ROADMAP_BUILDMAP__H
 #define INCLUDED__ROADMAP_BUILDMAP__H
 
 #include "roadmap_types.h"
 #include "roadmap_db.h"
 
-#define BUILDMAP_BLOCK  2048 /* memory allocation block. */
+#define BUILDMAP_BLOCK  4096 /* memory allocation block. */
 
 
 void buildmap_set_source (const char *name);

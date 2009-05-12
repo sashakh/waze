@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -173,6 +174,12 @@ int  buildmap_street_add
 
    block = StreetCount / BUILDMAP_BLOCK;
    offset = StreetCount % BUILDMAP_BLOCK;
+
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned street table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
 
    if (Street[block] == NULL) {
 

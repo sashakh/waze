@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -146,6 +147,12 @@ int buildmap_shape_add (int line, int irec, int uid, int sequence, int longitude
 
    block = ShapeCount / BUILDMAP_BLOCK;
    offset = ShapeCount % BUILDMAP_BLOCK;
+
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned shape table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
 
    if (block >= BUILDMAP_BLOCK) {
       buildmap_fatal (0, "too many shape records");

@@ -121,6 +121,12 @@ int buildmap_turn_restrictions_add
    offset = TurnsCount % BUILDMAP_BLOCK;
 
    if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned turns table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
+
+   if (block >= BUILDMAP_BLOCK) {
       buildmap_fatal (0, "too many shape records");
    }
 
@@ -182,7 +188,12 @@ int buildmap_turn_restrictions_exists (int node, int from_line, int to_line) {
    return 0;
 }
 
-
+/**
+ * @brief support function for sorting the turns
+ * @param r1
+ * @param r2
+ * @return
+ */
 static int buildmap_turns_compare (const void *r1, const void *r2) {
 
    int index1 = *((int *)r1);
@@ -206,6 +217,9 @@ static int buildmap_turns_compare (const void *r1, const void *r2) {
 }
 
 
+/**
+ * @brief Sort turns by node id, then by line ids.
+ */
 void buildmap_turn_restrictions_sort (void) {
 
    int i;
@@ -226,7 +240,9 @@ void buildmap_turn_restrictions_sort (void) {
    qsort (SortedTurns, TurnsCount, sizeof(int), buildmap_turns_compare);
 }
 
-
+/**
+ * @brief Save the turn restrictions database
+ */
 void buildmap_turn_restrictions_save (void) {
 
    int i;

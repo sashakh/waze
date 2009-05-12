@@ -1,8 +1,8 @@
-/* buildmap_place.c - Build a place table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2004 Stephen Woodbridge <woodbri@swoodbridge.com>
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,29 +19,14 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int  buildmap_place_add (int name, int layer, int point);
- *
- *   int  buildmap_place_get_sorted  (int place);
- *   int buildmap_place_get_name_sorted (int place);
- *   BuildMapPlace *buildmap_place_get_record (int place);
- *   BuildMapPlace *buildmap_place_get_record_sorted (int place);
- *   void buildmap_place_find_sorted (int name);
- *   void buildmap_place_get_position 
- *           (int place, int *longitude, int *latitude);
- *   int buildmap_place_get_point_sorted (int place);
- *   void buildmap_place_get_position_sorted
- *           (int place, int *longitude, int *latitude);
- *   void buildmap_place_get_square_sorted (int place);
- *   int buildmap_place_compare (const void *r1, const void *r2);
+ */
+
+/**
+ * @file
+ * @brief Build a place table & index for RoadMap.
  *
  * These functions are used to build a table of places from
- * the various data sources. The objective is double: (1) reduce 
- * the size of the data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for places in roadmap.
+ * the various data sources.
  */
 
 #include <stdio.h>
@@ -78,7 +63,9 @@ static int *SortedPlace = NULL;
 
 static void buildmap_place_register (void);
 
-
+/**
+ * @brief
+ */
 static void buildmap_place_initialize (void) {
 
    PlaceByName = roadmap_hash_new ("PlaceByName", BUILDMAP_BLOCK);
@@ -93,7 +80,13 @@ static void buildmap_place_initialize (void) {
    buildmap_place_register();
 }
 
-
+/**
+ * @brief
+ * @param name
+ * @param layer
+ * @param point
+ * @return
+ */
 int buildmap_place_add (int name, int layer, int point) {
 
    int block;
@@ -106,6 +99,12 @@ int buildmap_place_add (int name, int layer, int point) {
 
    block = PlaceCount / BUILDMAP_BLOCK;
    offset = PlaceCount % BUILDMAP_BLOCK;
+
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned place table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
 
    if (Place[block] == NULL) {
 
@@ -133,7 +132,11 @@ int buildmap_place_add (int name, int layer, int point) {
    return PlaceCount++;
 }
 
-
+/**
+ * @brief
+ * @param name
+ * @return
+ */
 int  buildmap_place_find_sorted (int name) {
 
    int index;
@@ -157,7 +160,11 @@ int  buildmap_place_find_sorted (int name) {
    return -1;
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @return
+ */
 static BuildMapPlace *buildmap_place_get_record (int place) {
 
    if ((place < 0) || (place > PlaceCount)) {
@@ -167,7 +174,11 @@ static BuildMapPlace *buildmap_place_get_record (int place) {
    return Place[place/BUILDMAP_BLOCK] + (place % BUILDMAP_BLOCK);
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @return
+ */
 static BuildMapPlace *buildmap_place_get_record_sorted (int place) {
 
    if ((place < 0) || (place > PlaceCount)) {
@@ -183,7 +194,11 @@ static BuildMapPlace *buildmap_place_get_record_sorted (int place) {
    return Place[place/BUILDMAP_BLOCK] + (place % BUILDMAP_BLOCK);
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @return
+ */
 int buildmap_place_get_point_sorted (int place) {
 
    BuildMapPlace *this_place = buildmap_place_get_record_sorted (place);
@@ -191,6 +206,12 @@ int buildmap_place_get_point_sorted (int place) {
    return this_place->point;
 }
 
+/**
+ * @brief
+ * @param place
+ * @param longitude
+ * @param latitude
+ */
 void buildmap_place_get_position (int place, int *longitude, int *latitude) {
 
    BuildMapPlace *this_place = buildmap_place_get_record (place);
@@ -199,7 +220,12 @@ void buildmap_place_get_position (int place, int *longitude, int *latitude) {
    *latitude  = buildmap_point_get_latitude  (this_place->point);
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @param longitude
+ * @param latitude
+ */
 void buildmap_place_get_position_sorted
           (int place, int *longitude, int *latitude) {
 
@@ -209,7 +235,11 @@ void buildmap_place_get_position_sorted
    *latitude  = buildmap_point_get_latitude_sorted  (this_place->point);
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @return
+ */
 int  buildmap_place_get_sorted (int place) {
 
    BuildMapPlace *this_place = buildmap_place_get_record (place);
@@ -221,19 +251,33 @@ int  buildmap_place_get_sorted (int place) {
    return this_place->sorted;
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @return
+ */
 int buildmap_place_get_name_sorted (int place) {
 
    return buildmap_place_get_record_sorted(place)->name;
 }
 
-
+/**
+ * @brief
+ * @param place
+ * @return
+ */
 int buildmap_place_get_square_sorted (int place) {
 
    return buildmap_point_get_square_sorted
              (buildmap_place_get_record_sorted(place)->point);
 }
 
+/**
+ * @brief
+ * @param r1
+ * @param r2
+ * @return
+ */
 
 static int buildmap_place_compare (const void *r1, const void *r2) {
 
@@ -269,6 +313,9 @@ static int buildmap_place_compare (const void *r1, const void *r2) {
    return record1->point - record2->point;
 }
 
+/**
+ * @brief
+ */
 static void buildmap_place_sort (void) {
 
    int i;
@@ -318,7 +365,9 @@ static void buildmap_place_sort (void) {
 
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_place_save (void) {
 
    int i;
@@ -467,7 +516,9 @@ static void buildmap_place_save (void) {
    }
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_place_summary (void) {
 
    fprintf (stderr,
@@ -475,7 +526,9 @@ static void buildmap_place_summary (void) {
             PlaceCount);
 }
 
-
+/**
+ * @brief
+ */
 static void buildmap_place_reset (void) {
 
    int i;
@@ -496,7 +549,9 @@ static void buildmap_place_reset (void) {
    PlaceByName = NULL;
 }
 
-
+/**
+ * @brief
+ */
 static buildmap_db_module BuildMapPlaceModule = {
    "place",
    buildmap_place_sort,
@@ -504,9 +559,10 @@ static buildmap_db_module BuildMapPlaceModule = {
    buildmap_place_summary,
    buildmap_place_reset
 }; 
-      
-         
+   
+/**
+ * @brief
+ */
 static void buildmap_place_register (void) {
    buildmap_db_register (&BuildMapPlaceModule);
 }
-

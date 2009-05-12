@@ -1,8 +1,8 @@
-/* buildmap_city.c - Build a city table & index for BuildMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,18 +19,13 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * @file
+ * @brief Build a city table & index for BuildMap.
  *
- * SYNOPSYS:
- *
- *   void  buildmap_city_add        (int fips, int year, RoadMapString name);
- *
- *   RoadMapString buildmap_city_get_name   (int fips);
- *
- * These functions are used to build a table of cities from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for streets in roadmap.
+ * These functions are used to build a table of cities.
  *
  * There is no city table for RoadMap, because the only attribute
  * of the city we do care about is its name: we just reference the
@@ -65,7 +60,9 @@ static RoadMapHash *CityByFips = NULL;
 
 static void buildmap_city_register (void);
 
-
+/**
+ * @brief initialize the city module
+ */
 static void buildmap_city_initialize (void) {
 
    CityByFips = roadmap_hash_new ("CityByFips", BUILDMAP_BLOCK);
@@ -75,7 +72,12 @@ static void buildmap_city_initialize (void) {
    buildmap_city_register();
 }
 
-
+/**
+ * @brief add a city
+ * @param fips a region code (county or other country subdivision)
+ * @param year (not sure why this is relevant)
+ * @param name the city name
+ */
 void buildmap_city_add (int fips, int year, RoadMapString name) {
 
    int index;
@@ -115,6 +117,12 @@ void buildmap_city_add (int fips, int year, RoadMapString name) {
    block = CityCount / BUILDMAP_BLOCK;
    offset = CityCount % BUILDMAP_BLOCK;
 
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned city table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
+
    if (City[block] == NULL) {
 
       /* We need to add a new block to the table. */
@@ -137,7 +145,11 @@ void buildmap_city_add (int fips, int year, RoadMapString name) {
    CityCount += 1;
 }
 
-
+/**
+ * @brief query the name of a city by fips
+ * @param fips identifies the city
+ * @return internal represenation of city name
+ */
 RoadMapString buildmap_city_get_name (int fips) {
 
    int index;
@@ -159,14 +171,18 @@ RoadMapString buildmap_city_get_name (int fips) {
    return 0;
 }
 
-
+/**
+ * @brief print buildmap summary for this module
+ */
 static void buildmap_city_summary (void) {
 
    fprintf (stderr,
             "-- city table statistics: %d cities\n", CityCount);
 }
 
-
+/**
+ * @brief clear city module database
+ */
 static void buildmap_city_reset (void) {
 
    int i;
@@ -184,7 +200,9 @@ static void buildmap_city_reset (void) {
    CityByFips = NULL;
 }
 
-
+/**
+ * @brief identify the city module
+ */
 static buildmap_db_module BuildMapCityModule = {
    "city",
    NULL,
@@ -193,8 +211,9 @@ static buildmap_db_module BuildMapCityModule = {
    buildmap_city_reset
 };
 
-
+/**
+ * @brief register the city module with the buildmap application
+ */
 static void buildmap_city_register (void) {
    buildmap_db_register (&BuildMapCityModule);
 }
-

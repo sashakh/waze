@@ -1,8 +1,8 @@
-/* buildmap_polygon.c - Build a line table & index for RoadMap.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,22 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   int  buildmap_polygon_add_landmark
- *           (int landid, char cfcc, RoadMapString name);
- *   int  buildmap_polygon_add (int landid, RoadMapString cenid, int polyid);
- *   int  buildmap_polygon_add_line
- *           (RoadMapString cenid, int polyid, int tlid, int side);
- *
- *   int  buildmap_polygon_use_line (int tlid);
- *
- * These functions are used to build a table of lines from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for streets in roadmap.
+ */
+
+/**
+ * @file
+ * @brief Build a line table & index for RoadMap.
  *
  * This module considers a single area to be described by a unique landmark
  * ID. Each area can be made of multiple polygons, but the name of the area
@@ -486,6 +475,12 @@ int  buildmap_polygon_add_landmark
 
    block = LandmarkCount / BUILDMAP_BLOCK;
    offset = LandmarkCount % BUILDMAP_BLOCK;
+
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned landmark table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
 
    if (Landmark[block] == NULL) {
 

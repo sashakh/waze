@@ -100,7 +100,13 @@ static int	max_line_by_point = 0,		/**< highest index in lbp */
 #define	ALLOC_POINTS	100	/**< increment allocation of lbp by this amount */
 
 
-/* FIXME.  this is called for every line, but it misses all of the
+/**
+ * @brief
+ * @param line
+ * @param longitude
+ * @param latitude
+ *
+ * FIXME.  this is called for every line, but it misses all of the
  * shape points for the line, so the bounding box is a poor
  * approximation, at best.  polygons have the same problem.
  */
@@ -207,6 +213,12 @@ int buildmap_line_add (int tlid, int layer, int from, int to, int oneway)
    block = LineCount / BUILDMAP_BLOCK;
    offset = LineCount % BUILDMAP_BLOCK;
 
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned line table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
+
    if (Line[block] == NULL) {
 
       /* We need to add a new block to the table. */
@@ -225,6 +237,7 @@ int buildmap_line_add (int tlid, int layer, int from, int to, int oneway)
       buildmap_fatal (0, "invalid points");
    }
    if (layer <= 0) {
+	   abort();
       buildmap_fatal (0, "invalid layer %d in line #%d", layer, tlid);
    }
 

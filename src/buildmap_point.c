@@ -2,6 +2,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -23,24 +24,6 @@
 /**
  * @file
  * @brief Build a table of all points referenced in lines.
- *
- * SYNOPSYS:
- *
- *   int  buildmap_point_add        (int longitude, int latitude);
- *
- *   int  buildmap_point_get_square (int pointid);
- *   int  buildmap_point_get_longitude (int pointid);
- *   int  buildmap_point_get_latitude  (int pointid);
- *   int  buildmap_point_get_sorted (int pointid);
- *   int  buildmap_point_get_longitude_sorted (int point);
- *   int  buildmap_point_get_latitude_sorted  (int point);
- *   int  buildmap_point_get_square_sorted (int pointid);
- *
- * These functions are used to build a table of lines from
- * the Tiger maps. The objective is double: (1) reduce the size of
- * the Tiger data by sharing all duplicated information and
- * (2) produce the index data to serve as the basis for a fast
- * search mechanism for streets in roadmap.
  */
 
 #include <stdio.h>
@@ -55,7 +38,9 @@
 #include "buildmap.h"
 #include "buildmap_square.h"
 
-
+/**
+ * @brief internal structure of the point database while building a map
+ */
 typedef struct {
    int longitude;
    int latitude;
@@ -74,6 +59,9 @@ static int *SortedPoint = NULL;
 
 static void buildmap_point_register (void);
 
+/**
+ * @brief initialize the point module
+ */
 static void buildmap_point_initialize (void) {
 
    PointByPosition =
@@ -127,6 +115,12 @@ int buildmap_point_add (int longitude, int latitude) {
    block = PointCount / BUILDMAP_BLOCK;
    offset = PointCount % BUILDMAP_BLOCK;
 
+   if (block >= BUILDMAP_BLOCK) {
+      buildmap_fatal (0,
+         "Underdimensioned point table (block %d, BUILDMAP_BLOCK %d)",
+	 block, BUILDMAP_BLOCK);
+   }
+
    if (Point[block] == NULL) {
 
       /* We need to add a new block to the table. */
@@ -158,7 +152,11 @@ int buildmap_point_add (int longitude, int latitude) {
    return PointCount++;
 }
 
-
+/**
+ * @brief get the id of a point
+ * @param point the point to query
+ * @return id
+ */
 static BuildMapPoint *buildmap_point_get (int pointid) {
 
    BuildMapPoint *this_point;
@@ -172,25 +170,41 @@ static BuildMapPoint *buildmap_point_get (int pointid) {
    return this_point;
 }
 
-
+/**
+ * @brief get the square of a point
+ * @param point the point to query
+ * @return square
+ */
 int buildmap_point_get_square (int pointid) {
 
    return buildmap_point_get(pointid)->square;
 }
 
-
+/**
+ * @brief get the longitude of a point
+ * @param point the point to query
+ * @return longitude
+ */
 int buildmap_point_get_longitude (int pointid) {
 
    return buildmap_point_get(pointid)->longitude;
 }
 
-
+/**
+ * @brief get the latitude of a point
+ * @param point the point to query
+ * @return latitude
+ */
 int buildmap_point_get_latitude  (int pointid) {
 
    return buildmap_point_get(pointid)->latitude;
 }
 
-
+/**
+ * @brief get the id of a point
+ * @param point the point to query
+ * @return id
+ */
 int buildmap_point_get_sorted (int pointid) {
 
    if (SortedPoint == NULL) {
@@ -200,7 +214,11 @@ int buildmap_point_get_sorted (int pointid) {
    return buildmap_point_get(pointid)->sorted;
 }
 
-
+/**
+ * @brief get the square of a sorted point
+ * @param point the point to query
+ * @return square
+ */
 int buildmap_point_get_square_sorted (int point) {
 
    if (SortedPoint == NULL) {
@@ -213,7 +231,11 @@ int buildmap_point_get_square_sorted (int point) {
    return buildmap_point_get(SortedPoint[point])->square;
 }
 
-
+/**
+ * @brief get the longitude of a sorted point
+ * @param point the point to query
+ * @return longitude
+ */
 int  buildmap_point_get_longitude_sorted (int point) {
 
    if (SortedPoint == NULL) {
@@ -226,7 +248,11 @@ int  buildmap_point_get_longitude_sorted (int point) {
    return buildmap_point_get(SortedPoint[point])->longitude;
 }
 
-
+/**
+ * @brief get the latitude of a sorted point
+ * @param point the point to query
+ * @return latitude
+ */
 int  buildmap_point_get_latitude_sorted  (int point) {
 
    if (SortedPoint == NULL) {
@@ -239,7 +265,12 @@ int  buildmap_point_get_latitude_sorted  (int point) {
    return buildmap_point_get(SortedPoint[point])->latitude;
 }
 
-
+/**
+ * @brief compare two points
+ * @param r1 the first point
+ * @param r2 the second point
+ * @return 0 if equal
+ */
 static int buildmap_point_compare (const void *r1, const void *r2) {
 
    int result;
@@ -270,6 +301,9 @@ static int buildmap_point_compare (const void *r1, const void *r2) {
    return record1->latitude - record2->latitude;
 }
 
+/**
+ * @brief sort the points
+ */
 void buildmap_point_sort (void) {
 
    int i;
@@ -318,7 +352,9 @@ void buildmap_point_sort (void) {
    }
 }
 
-
+/**
+ * @brief save points into the database file
+ */
 static void buildmap_point_save (void) {
 
    int i;
@@ -386,14 +422,18 @@ static void buildmap_point_save (void) {
    }
 }
 
-
+/**
+ * @brief print a summary for this module
+ */
 static void buildmap_point_summary (void) {
 
    fprintf (stderr, "-- point table statistics: %d points, %d bytes used\n",
                     PointCount, (int)(PointCount * sizeof(RoadMapPoint)));
 }
 
-
+/**
+ * @brief remove all points
+ */
 static void buildmap_point_reset (void) {
 
    int i;
@@ -417,7 +457,9 @@ static void buildmap_point_reset (void) {
 
 }
 
-
+/**
+ * @brief structure to register the point module
+ */
 static buildmap_db_module BuildMapPointModule = {
    "point",
    buildmap_point_sort,
@@ -426,8 +468,9 @@ static buildmap_db_module BuildMapPointModule = {
    buildmap_point_reset
 };
 
-
+/**
+ * @brief register the point module with the buildmap application
+ */
 static void buildmap_point_register (void) {
    buildmap_db_register (&BuildMapPointModule);
 }
-

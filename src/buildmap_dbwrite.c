@@ -1,8 +1,8 @@
-/* buildmap_dbwrite.c - a module to write a roadmap database.
- *
+/*
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright (c) 2009 Danny Backx.
  *
  *   This file is part of RoadMap.
  *
@@ -19,18 +19,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with RoadMap; if not, write to the Free Software
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * SYNOPSYS:
- *
- *   #include "buildmap.h"
- *
- *   int buildmap_db_open (char *path, char *name);
- *
- *   buildmap_db *buildmap_db_add_section (buildmap_db *parent, char *name);
- *   int    buildmap_db_add_data (buildmap_db *section, int count, int size);
- *   void  *buildmap_db_get_data (buildmap_db *section);
- *
- *   void buildmap_db_close (void);
+ */
+
+/**
+ * @file
+ * @brief buildmap_dbwrite.c - a module to write a roadmap database.
  */
 
 #include <stdio.h>
@@ -62,7 +55,10 @@ static buildmap_db *BuildmapCurrentDbSection = NULL;
 static const buildmap_db_module *BuildmapModuleRegistration[BUILDMAP_MAX_MODULE];
 static int BuildmapModuleCount = 0;
 
-
+/**
+ * @brief
+ * @param section
+ */
 static void buildmap_db_repair_tree (buildmap_db *section) {
 
    buildmap_db *child;
@@ -76,7 +72,10 @@ static void buildmap_db_repair_tree (buildmap_db *section) {
    }
 }
 
-
+/**
+ * @brief
+ * @param size
+ */
 static int buildmap_db_extend (int size) {
 
    if (size >= BuildmapCurrentDbSize) {
@@ -119,7 +118,11 @@ static int buildmap_db_extend (int size) {
    return 0;
 }
 
-
+/**
+ * @brief
+ * @param parent
+ * @param size
+ */
 static void buildmap_db_propagate (buildmap_db *parent, int size) {
 
    while (parent != NULL) {
@@ -129,7 +132,11 @@ static void buildmap_db_propagate (buildmap_db *parent, int size) {
    }
 }
 
-
+/**
+ * @brief
+ * @param parent
+ * @param section
+ */
 static void buildmap_db_update_tree
                (buildmap_db *parent, buildmap_db *section) {
 
@@ -152,7 +159,12 @@ static void buildmap_db_update_tree
    }
 }
 
-
+/**
+ * @brief
+ * @param path
+ * @param name
+ * @return
+ */
 int buildmap_db_open (const char *path, const char *name) {
 
    struct roadmap_db_section *root;
@@ -187,7 +199,12 @@ int buildmap_db_open (const char *path, const char *name) {
    return 0;
 }
 
-
+/**
+ * @brief
+ * @param parent
+ * @param name
+ * @return
+ */
 buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name) {
 
    int offset;
@@ -243,7 +260,13 @@ buildmap_db *buildmap_db_add_section (buildmap_db *parent, const char *name) {
    return new;
 }
 
-
+/**
+ * @brief
+ * @param section
+ * @param count
+ * @param size
+ * @return
+ */
 int buildmap_db_add_data (buildmap_db *section, int count, int size) {
 
    int offset;
@@ -276,13 +299,21 @@ int buildmap_db_add_data (buildmap_db *section, int count, int size) {
    return sizeof(*BuildmapDbRoot.head) + BuildmapDbRoot.head->size;
 }
 
-
+/**
+ * @brief
+ * @param section
+ * @return
+ */
 void *buildmap_db_get_data (buildmap_db *section) {
 
    return BuildmapCurrentDbBase + section->data;
 }
 
-
+/**
+ * @brief
+ * @param node
+ * @return
+ */
 static void buildmap_db_free (buildmap_db *node) {
 
    buildmap_db *cursor;
@@ -298,7 +329,10 @@ static void buildmap_db_free (buildmap_db *node) {
    }
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 void buildmap_db_close (void) {
 
    int actual_size = 0;
@@ -332,7 +366,14 @@ void buildmap_db_close (void) {
    BuildmapCurrentDbSection = NULL;
 }
 
-
+/**
+ * @brief
+ * @param parent
+ * @param name
+ * @param count
+ * @param size
+ * @return
+ */
 buildmap_db *buildmap_db_add_child (buildmap_db *parent,
                                     char *name,
                                     int count,
@@ -358,6 +399,10 @@ buildmap_db *buildmap_db_add_child (buildmap_db *parent,
  * modules.
  */
 
+/**
+ * @brief register a module that can write a map
+ * @param module pointer to the required structure
+ */
 void buildmap_db_register (const buildmap_db_module *module) {
 
    int i;
@@ -375,7 +420,10 @@ void buildmap_db_register (const buildmap_db_module *module) {
    BuildmapModuleRegistration[BuildmapModuleCount++] = module;
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 void buildmap_db_sort (void) {
 
    int i;
@@ -388,6 +436,9 @@ void buildmap_db_sort (void) {
 }
 
 
+/**
+ * @brief save the map
+ */
 void buildmap_db_save (void) {
 
    int i;
@@ -399,7 +450,10 @@ void buildmap_db_save (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 void buildmap_db_summary (void) {
 
    int i;
@@ -411,7 +465,10 @@ void buildmap_db_summary (void) {
    }
 }
 
-
+/**
+ * @brief
+ * @return
+ */
 void buildmap_db_reset (void) {
 
    int i;
@@ -422,4 +479,3 @@ void buildmap_db_reset (void) {
       }
    }
 }
-
