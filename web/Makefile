@@ -87,13 +87,19 @@ SITESOURCE = $(SCREENSHOTS) $(T2T_WEBDOCS) $(PAGES) $(SUPPORT)
 # flag files that say we did the copy
 SITESOURCE_COPIED = $(addprefix .copied$(SF)-, $(SITESOURCE))
 
+# Support both Paul and Danny
+ifeq ($(USER),danny)
+SF_UID=dannybackx
+else
+SF_UID=pgf
+endif
 # use 'make SF=1 install' to send to SF
 ifeq ($(strip $(SF)),)
 OUR_SITE_REFERENCE = roadmap.sourceforge.net
 OUR_SITE_ACCESS = mulch:/var/web/home/tmp/nroadmap
 else
 OUR_SITE_REFERENCE = roadmap.sourceforge.net
-OUR_SITE_ACCESS = pgf,roadmap@web.sourceforge.net:/home/groups/r/ro/roadmap/htdocs
+OUR_SITE_ACCESS = $(SF_UID),roadmap@web.sourceforge.net:htdocs
 endif
 
 # copy the html, and touch a local flag file.  before copying,
@@ -190,7 +196,7 @@ favicon.ico: ../src/icons/roadmap-64.png
 
 webdoc: $(T2T_WEBDOCS)
 
-install: webdoc $(SITESOURCE_COPIED)
+install:	webdoc $(SITESOURCE_COPIED)
 
 clean-webdoc:
 	rm -f $(T2T_WEBDOCS)
