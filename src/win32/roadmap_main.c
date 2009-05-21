@@ -270,9 +270,37 @@ BOOL InitInstance(HINSTANCE hInstance, LPTSTR lpCmdLine)
 		roadmap_log (ROADMAP_FATAL, "Can't initialize network");
 	}
 	
-	char *args[1] = {0};
+	if (lpCmdLine) {
+		char	*argv[10];
+		char	*args, *p, *st;
+		int	len;
+		int	argc = 0;
 
-	roadmap_start(0, args);
+		argv[argc++] = "wroadmap.exe";
+
+		len = wcslen(lpCmdLine);
+		args = malloc(len+1);
+		wcstombs(args, lpCmdLine, len);
+		args[len] = '\0';
+
+		for (p=args, st=NULL; *p; p++) {
+			if (st != NULL && (*p == ' ' || *p == '\t')) {
+				*p = '\0';
+				argv[argc++] = st;
+				st = NULL;
+			} else if ((st == NULL) && ! (*p == ' ' || *p == '\t'))
+				st = p;
+		}
+		if (st)
+			argv[argc++] = st;
+		
+		roadmap_log (ROADMAP_WARNING, "Yow %d args", argc);
+		roadmap_option(argc, argv, 0, NULL);
+		roadmap_start(argc, argv);
+	} else {
+		char *args[1] = {0};
+		roadmap_start(0, args);
+	}
 
 #ifndef _ROADGPS
 	/* RoadmapEditor has stuff for first time handling here */
