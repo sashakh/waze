@@ -221,8 +221,8 @@ buildmap_osm_process_one_tile
     ret = buildmap_osm_binary_read(fdata);
 
     if (pclose(fdata) != 0) {
-        buildmap_error(0, "problem fetching data (%s)", strerror(errno));
-        ret = -1;
+        buildmap_error(0, "problem fetching data (pclose: %s), continuing", strerror(errno));
+        // ret = -1;
     }
 
     return ret;
@@ -275,7 +275,7 @@ int buildmap_osm_text_process_file(char *fn)
     buildmap_osm_common_find_layers();
     ret = buildmap_osm_text_read(f, country_num, division_num);
     if (fclose(f) != 0) {
-        buildmap_error(0, "problem fetching data");
+        buildmap_error(0, "problem fetching data (fclose: %s)", strerror(errno));
         ret = -1;
     }
 
