@@ -9,7 +9,7 @@ See
 for more information.
 
 This script takes requests for OSM map information for a bounding box,
-makes the request to the Open Street Map API v0.5 and reforms the reply
+makes the request to the Open Street Map API v0.6 and reforms the reply
 from XML to a simplified binary format.
 
 eg: bmap.php?tile=tileid&ts=31&have=neighboursdownloaded

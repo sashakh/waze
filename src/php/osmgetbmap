@@ -17,7 +17,7 @@ function usage() {
 $server = "www.openstreetmap.org";
 //$server = "osmxapi.informationfreeway.org";
 //$server = "openstreetmap.gryph.de";
-$path = "/api/0.5/map"; 
+$path = "/api/0.6/map"; 
 
 function doLog($text) {
     fwrite(STDERR, $text . "\n");
