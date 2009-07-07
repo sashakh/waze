@@ -81,9 +81,10 @@ static RoadMapHash *LongLinesHash = NULL;
 
 /*
  * @brief Line By Point stuff
- * This structure holds info about a point : it gathers the line ids of lines that
- * start or end in a point.
- * The point id is not stored, this structure's index in the array is the point id.
+ * This structure holds info about a point :  it gathers the line
+ * ids of lines that start or end in a point.  The point id is
+ * not stored, this structure's index in the array is the point
+ * id.
  */
 struct lbp {
 	/* int	point; */
@@ -996,6 +997,11 @@ static void buildmap_line_reset (void) {
 
    roadmap_hash_delete (LineById);
    LineById = NULL;
+
+   free(lbp);
+   lbp = 0;
+   max_line_by_point = 0;
+   nalloc_line_by_point = 0;
 }
 
 /**
@@ -1034,21 +1040,20 @@ static void buildmap_line_add_bypoint(int point, int line)
 		nalloc_line_by_point = point + ALLOC_POINTS;
 		lbp = (struct lbp *) realloc((void *)lbp,
 				nalloc_line_by_point * sizeof(struct lbp));
-		for (i=old; i<nalloc_line_by_point; i++) {
-			lbp[i].max = 0;
-			lbp[i].num = 0;
-			lbp[i].ptr = 0;
-		}
+		memset(&lbp[old], 0,
+			(nalloc_line_by_point  - old) * sizeof(struct lbp));
 	}
+	for (i=0; i<lbp[point].num; i++)
+		if (lbp[point].ptr[i] == line)
+			return;	/* already there, no need to add again */
+
 	/* lbp[point].point = point; */
 	if (lbp[point].num == lbp[point].max) {
 		lbp[point].max += ALLOC_LINES;
 		lbp[point].ptr = (int *)realloc((void *)lbp[point].ptr,
 				lbp[point].max * sizeof(int));
 	}
-	for (i=0; i<lbp[point].num; i++)
-		if (lbp[point].ptr[i] == line)
-			return;	/* already there, no need to add again */
+
 	lbp[point].ptr[lbp[point].num++] = line;
 }
 
