@@ -35,7 +35,7 @@
  * @param gmt the input time
  * @return the string that can be printed
  */
-char *roadmap_time_get_hours_minutes (time_t gmt) {
+char *roadmap_time_get_date_hours_minutes (time_t gmt) {
 
     static char image[32];
     struct tm *tm;
@@ -44,6 +44,17 @@ char *roadmap_time_get_hours_minutes (time_t gmt) {
     snprintf (image, sizeof(image), "%4d.%02d.%02d %2d:%02d",
 		    1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
 		    tm->tm_hour, tm->tm_min);
+
+    return image;
+}
+
+char *roadmap_time_get_hours_minutes (time_t gmt) {
+
+    static char image[32];
+    struct tm *tm;
+
+    tm = localtime (&gmt);
+    snprintf (image, sizeof(image), "%2d:%02d", tm->tm_hour, tm->tm_min);
 
     return image;
 }

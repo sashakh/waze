@@ -760,7 +760,7 @@ const char *roadmap_display_get_id (const char *title) {
 
 void roadmap_display_periodic(void) {
 
-    static char thentime[16];
+    static char thentime[32];
     int need_time_update = 0;
     time_t now = time(NULL);
     

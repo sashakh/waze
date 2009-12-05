@@ -27,6 +27,7 @@
 #include <time.h>
 
 char *roadmap_time_get_hours_minutes (time_t gmt);
+char *roadmap_time_get_date_hours_minutes (time_t gmt);
 
 unsigned long roadmap_time_get_millis(void);
 

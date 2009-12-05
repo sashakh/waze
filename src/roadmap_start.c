@@ -1438,7 +1438,7 @@ void roadmap_start_unfreeze (void) {
  */
 char * roadmap_start_now() {
 
-   return roadmap_time_get_hours_minutes (time(NULL));
+   return roadmap_time_get_date_hours_minutes (time(NULL));
 
 }
 
