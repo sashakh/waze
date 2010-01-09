@@ -54,10 +54,10 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lagg -lfreetype -lpng 
+LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lagg -lfreetype -lpng -llocation 
 
 ifeq ($(MAEMO),1)
-LIBS += -lgpsbt -lgpsmgr -lgps -lgthread-2.0 
+LIBS += -lgthread-2.0 
 CFLAGS += -DMAEMO=1
 endif
 

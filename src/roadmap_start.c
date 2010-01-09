@@ -1309,11 +1309,6 @@ void roadmap_start (int argc, char **argv) {
    roadmap_screen_obj_initialize ();
    roadmap_trip_restore_focus ();
 
-#if MAEMO
-   roadmap_gpsmgr_initialize     ();
-   roadmap_gpsmgr_start     ();
-#endif
-
    roadmap_gps_open ();
 
    if (! roadmap_trip_load (roadmap_trip_current(), 1)) {
@@ -1344,9 +1339,6 @@ void roadmap_start_exit (void) {
     roadmap_screen_shutdown ();
     roadmap_start_save_trip ();
     roadmap_config_save (0);
-#if MAEMO
-    roadmap_gpsmgr_release();
-#endif
     roadmap_db_end ();
     roadmap_gps_shutdown ();
     roadmap_res_shutdown ();

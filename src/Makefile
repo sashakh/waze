@@ -145,9 +145,8 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_geocode.c \
           roadmap_history.c \
           roadmap_input.c \
-          roadmap_nmea.c \
-          roadmap_gpsd2.c \
           roadmap_io.c \
+          roadmap_nmea.c \
           roadmap_gps.c \
           roadmap_object.c \
           roadmap_state.c \
@@ -157,7 +156,7 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_sunrise.c
 
 ifeq ($(MAEMO),1)
-	RMLIBSRCS += roadmap_gpsmgr.c
+	RMLIBSRCS += 
 endif
 
 RMLIBOBJS=$(RMLIBSRCS:.c=.o)

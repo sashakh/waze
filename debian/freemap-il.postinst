@@ -22,6 +22,10 @@ case "$1" in
          fi
         if [ -x /usr/bin/update-menus ] ; then update-menus ; fi
         chown -R user.users /home/user/.freemap-il
+		if [ ! -f /home/user/.freemap-il/preferences ] 
+         then
+          mv /home/user/.freemap-il/preferences.new /home/user/.freemap-il/preferences
+         fi
     ;;
     abort-upgrade|abort-remove|abort-deconfigure)
 

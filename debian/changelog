@@ -1,6 +1,13 @@
+freemap-il (1.0.8-0.2maemo3) unstable; urgency=low
+
+  * Dependencies for fremantle.
+
+ -- Matan Ziv-Av <matan@svgalib.org>  Sat,  9 Jan 2010 22:15:15 +0200
+
 freemap-il (1.0.8-0.2maemo2) unstable; urgency=low
 
   * Initial release.
+  * Use liblocation for GPS. 
 
- -- Matan Ziv-Av <matan@svgalib.org>  Sat, 27 Sep 2008 13:37:52 +0300
+ -- Matan Ziv-Av <matan@svgalib.org>  Sat,  9 Jan 2010 22:14:18 +0200
 

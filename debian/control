@@ -2,7 +2,7 @@ Source: freemap-il
 Section: user/utils
 Priority: optional
 Maintainer: Matan Ziv-Av <matan@svgalib.org>
-Build-Depends: debhelper (>> 3.0.0), libpopt-dev, libgtk2.0-dev, libagg-dev, libfribidi-dev, libgpsbt-dev, libgpsmgr-dev
+Build-Depends: debhelper (>> 3.0.0), libpopt-dev, libgtk2.0-dev, libagg-dev, libfribidi-dev, liblocation-dev
 Standards-Version: 3.6.1
 
 Package: freemap-il
