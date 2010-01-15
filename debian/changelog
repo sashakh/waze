@@ -1,3 +1,10 @@
+freemap-il (1.0.8-0.2maemo4) unstable; urgency=low
+
+  * Start GPS on N900.
+  * Compile gtkroadgps.
+
+ -- Matan Ziv-Av <matan@svgalib.org>  Fri, 15 Jan 2010 20:05:01 +0200
+
 freemap-il (1.0.8-0.2maemo3) unstable; urgency=low
 
   * Dependencies for fremantle.

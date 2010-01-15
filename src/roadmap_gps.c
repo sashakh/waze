@@ -239,16 +239,31 @@ static void on_changed(LocationGPSDevice *device, gpointer data)
                 return;
 
         if (device->fix) {
+				int i;
 				RoadMapGpsReceivedPosition.longitude=device->fix->longitude*1000000;
 				RoadMapGpsReceivedPosition.latitude=device->fix->latitude*1000000;
 				RoadMapGpsReceivedPosition.altitude=device->fix->altitude;
 				RoadMapGpsReceivedPosition.speed=device->fix->speed;
 				RoadMapGpsReceivedPosition.steering=device->fix->track;
 				RoadMapGpsQuality.dimension = device->fix->mode;
-				RoadMapGpsQuality.dilution_position = device->fix->eph;
-				RoadMapGpsQuality.dilution_horizontal = device->fix->eph;
-				RoadMapGpsQuality.dilution_vertical = device->fix->epv;
+				RoadMapGpsQuality.dilution_position = 2; //device->fix->eph;
+				RoadMapGpsQuality.dilution_horizontal = 2; //device->fix->eph;
+				RoadMapGpsQuality.dilution_vertical = 2; //device->fix->epv;
 				RoadMapGpsReceivedTime = time(NULL);
+#if 1
+				RoadMapGpsSatelliteCount = device->satellites_in_view;
+				RoadMapGpsActiveSatelliteCount = device->satellites_in_use;
+				for(i=0;i<RoadMapGpsSatelliteCount;i++) {
+					LocationGPSDeviceSatellite *sat =
+						        g_ptr_array_index(device->satellites, i);
+					RoadMapGpsDetected[i].id = sat->prn;
+					RoadMapGpsDetected[i].elevation = sat->elevation;
+					RoadMapGpsDetected[i].azimuth = sat->azimuth;
+					RoadMapGpsDetected[i].strength = sat->signal_strength;
+					RoadMapGpsDetected[i].status = sat->in_use ? 'A':'F';
+				}
+				roadmap_gps_call_monitors();
+#endif
 				roadmap_gps_process_position();
 			}
 }
@@ -270,12 +285,13 @@ void roadmap_gps_initialize (void) {
 	  control = location_gpsd_control_get_default();
 	  device = g_object_new(LOCATION_TYPE_GPS_DEVICE, NULL);
 
-	  g_object_set(G_OBJECT(control), "preferred-method", LOCATION_METHOD_AGNSS,
+	  g_object_set(G_OBJECT(control), "preferred-method", LOCATION_METHOD_USER_SELECTED,
 				  "preferred-interval", LOCATION_INTERVAL_DEFAULT, NULL);
 
 //	  g_signal_connect(control, "error-verbose", G_CALLBACK(on_error), loop);
 	  g_signal_connect(device, "changed", G_CALLBACK(on_changed), control);
 //	  g_signal_connect(control, "gpsd-stopped", G_CALLBACK(on_stop), loop);
+	  location_gpsd_control_start(control);
    }
 }
 

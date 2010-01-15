@@ -70,7 +70,7 @@ RUNTIME=gtkroadmap gtkroadgps
 
 ifeq ($(FREEMAP_IL),YES)
 CFLAGS += -DFREEMAP_IL
-RUNTIME=gtkroadmap
+#RUNTIME=gtkroadmap
 endif
 
 CXXFLAGS = $(CFLAGS) -I/usr/include/agg2 -I/usr/include/freetype2 -I/usr/include/fribidi
@@ -133,8 +133,8 @@ libgtkroadmap.a: $(RMLIBOBJS)
 gtkroadmap: roadmap_main.o $(SSDLIB) ../libguiroadmap.a $(RDMLIBS)
 	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap $(SSDLIB) ../libguiroadmap.a $(LIBS) $(SSDLIB) ../libguiroadmap.a
 
-gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
-	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps $(SSDLIB) ../libguiroadgps.a $(LIBS) $(SSDLIB) ../libguiroadgps.a $(RDMLIBS)
+gtkroadgps: roadgps_main.o ../libguiroadgps.a $(RDMLIBS)
+	$(CXX) $(LDFLAGS) roadgps_main.o -o gtkroadgps $(SSDLIB) ../libguiroadgps.a $(LIBS) $(SSDLIB) ../libguiroadgps.a $(RDMLIBS) -lfribidi
 
 ../libssd_widgets.a:
 	$(MAKE) -C .. libssd_widgets.a

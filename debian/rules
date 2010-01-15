@@ -83,6 +83,7 @@ install: build
 	mkdir -p $(DESTDIR)/usr/bin $(DESTDIR)/usr/share/applications/hildon/ $(DESTDIR)/usr/share/dbus-1/services/ \
 		$(DESTDIR)/usr/share/icons/hicolor/scalable/apps/ $(DESTDIR)/home/user/.freemap-il/
 	cp -a src/gtk2/gtkroadmap $(DESTDIR)/usr/bin/freemap-il
+	cp -a src/gtk2/gtkroadgps $(DESTDIR)/usr/bin/roadgps
 	cp src/freemap-il.desktop $(DESTDIR)/usr/share/applications/hildon
 #	cp src/freemap-il.service $(DESTDIR)/usr/share/dbus-1/services/
 	cp src/freemap-il.png $(DESTDIR)/usr/share/icons/hicolor/scalable/apps/
