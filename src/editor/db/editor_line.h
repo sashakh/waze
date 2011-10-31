@@ -25,36 +25,35 @@
 #define INCLUDE__EDITOR_LINE__H
 
 #include "roadmap_types.h"
-#include "roadmap_dbread.h"
-#include "roadmap_street.h"
+#include "editor/db/editor_db.h"
 #include "roadmap_plugin.h"
 
 #define ED_LINE_DELETED         0x1 /* flag */
 #define ED_LINE_EXPLICIT_SPLIT  0x2 /* flag */
 #define ED_LINE_DIRTY           0x4 /* flag */
 #define ED_LINE_CONNECTION      0x8
+#define ED_LINE_NEW_DIRECTION   0x10
+
 
 typedef struct editor_db_line_s {
+	int update_timestamp;
    int point_from;
    int point_to;
-   int first_trkseg;
-   int last_trkseg;
+   int trkseg;
    int cfcc;
    int flags;
+   int direction;
    int street;
-   int range;
-   int route;
 } editor_db_line;
 
-//int editor_line_del_add (int line_id, int cfcc);
-//void editor_line_del_remove (int line_id);
-//int editor_line_del_find (int line_id, int cfcc);
 
 int editor_line_add
          (int p_from,
           int p_to,
           int trkseg,
           int cfcc,
+          int direction,
+          int street,
           int flag);
 
 void editor_line_get (int line,
@@ -72,28 +71,34 @@ void editor_line_modify_properties (int line,
                                     int cfcc,
                                     int flags);
 
+void editor_line_set_flag (int line, int flag);
+void editor_line_reset_flag (int line, int flag);
+
 int editor_line_get_count (void);
 
-int editor_line_copy (int line, int cfcc, int fips);
+int editor_line_get_timestamp (int line_id);
+int editor_line_is_valid (int line_id);
+void editor_line_invalidate (int line_id);
+int editor_line_get_update_time (int line_id);
 
-int editor_line_split (PluginLine *line,
-                       RoadMapPosition *previous_point, 
-                       RoadMapPosition *split_position,
-                       int *split_point);
+int editor_line_get_street (int line, int *street);
+int editor_line_set_street (int line, int street);
 
-int editor_line_get_street (int line, int *street, int *range);
+int editor_line_get_direction (int line, int *direction);
+int editor_line_set_direction (int line, int direction);
 
-int editor_line_set_street (int line, int *street, int *range);
-
-int editor_line_get_route (int line);
-int editor_line_set_route (int line, int route);
-void editor_line_get_trksegs (int line, int *first, int *last);
-void editor_line_set_trksegs (int line, int first, int last);
 int editor_line_get_cross_time (int line, int direction);
 int editor_line_mark_dirty (int line_id);
 
-extern roadmap_db_handler EditorLinesHandler;
-extern roadmap_db_handler EditorLinesDelHandler;
+int editor_line_committed (int line_id);
+int editor_line_begin_commit (void);
+void editor_line_confirm_commit (int id);
+int editor_line_items_pending (void);
+
+int editor_line_copy (PluginLine *line, int street);
+
+
+extern editor_db_handler EditorLinesHandler;
 
 #endif // INCLUDE__EDITOR_LINE__H
 

@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -366,8 +367,10 @@ RoadMapFile roadmap_file_open  (const char *name, const char *mode) {
 
    if (strcmp(mode, "r") == 0) {
       unix_mode = O_RDONLY;
-   } else if (strchr (mode, 'w') != NULL) {
+   } else if (strcmp (mode, "rw") == 0) {
       unix_mode = O_RDWR|O_CREAT;
+   } else if (strchr (mode, 'w') != NULL) {
+      unix_mode = O_RDWR|O_CREAT|O_TRUNC;
    } else if (strchr (mode, 'a') != NULL) {
       unix_mode = O_RDWR|O_CREAT|O_APPEND;
    } else {
@@ -387,6 +390,29 @@ int roadmap_file_read  (RoadMapFile file, void *data, int size) {
 int roadmap_file_write (RoadMapFile file, const void *data, int length) {
    return write ((int)file, data, length);
 }
+
+int roadmap_file_seek (RoadMapFile file, int offset, RoadMapSeekWhence whence) {
+
+	int unix_whence;
+	
+	switch (whence) {
+		case ROADMAP_SEEK_START:
+			unix_whence = SEEK_SET;
+			break;
+		case ROADMAP_SEEK_CURR:
+			unix_whence = SEEK_CUR;
+			break;
+		case ROADMAP_SEEK_END:
+			unix_whence = SEEK_END;
+			break;
+		default:
+	      roadmap_log (ROADMAP_ERROR,
+	                   "invalid file seek whence %d", (int)whence);
+	      return -1;
+	}
+	
+	return lseek ((int)file, offset, unix_whence);
+} 
 
 void  roadmap_file_close (RoadMapFile file) {
    close ((int)file);

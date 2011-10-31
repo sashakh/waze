@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -36,7 +37,22 @@ int roadmap_display_activate
          const RoadMapPosition *position,
          PluginStreet *street);
 
+void roadmap_display_update_points
+        (const char *title,
+         RoadMapPosition *from,
+         RoadMapPosition *to);
+         
+int roadmap_display_pop_up
+        (const char *title,
+         const char *image,
+         const RoadMapPosition *position,
+         const char *format, ...) ;
+
+int roadmap_activate_image_sign(const char *title,
+         				   		const char *image);
+         				   		
 void roadmap_display_text (const char *title, const char *format, ...);
+int  roadmap_display_is_sign_active (const char *title);
 
 void roadmap_display_show (const char *title);
 void roadmap_display_hide (const char *title);

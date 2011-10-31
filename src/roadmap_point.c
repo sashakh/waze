@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -33,57 +34,51 @@
 #include <string.h>
 #include <ctype.h>
 
+#define DECLARE_ROADMAP_POINT
+
 #include "roadmap.h"
 #include "roadmap_dbread.h"
+#include "roadmap_tile_model.h"
 #include "roadmap_db_point.h"
 
 #include "roadmap_square.h"
+
 #include "roadmap_point.h"
 
 
-typedef struct {
+RoadMapPointContext *RoadMapPointActive = NULL;
+static char *RoadMapPointType = "RoadMapPointContext";
 
-   char *type;
+#ifndef J2ME
+// used as cache for inline functions
+int point_cache_square = -2;
+int point_cache_scale_factor;
+int point_cache_square_position_x;
+int point_cache_square_position_y;
+#endif
 
-   RoadMapPoint *Point;
-   int           PointCount;
-
-   int *PointID;
-   int  PointIDCount;
-
-} RoadMapPointContext;
-
-static RoadMapPointContext *RoadMapPointActive = NULL;
-
-
-static void *roadmap_point_map (roadmap_db *root) {
-
-   roadmap_db *point_table;
-   roadmap_db *bysquare_table;
-   roadmap_db *id_table;
+static void *roadmap_point_map (const roadmap_db_data_file *file) {
 
    RoadMapPointContext *context;
 
    context = malloc (sizeof(RoadMapPointContext));
    roadmap_check_allocated(context);
-   context->type = "RoadMapPointContext";
+   context->type = RoadMapPointType;
 
-   bysquare_table  = roadmap_db_get_subsection (root, "bysquare");
-   point_table = roadmap_db_get_subsection (root, "data");
-   id_table = roadmap_db_get_subsection (root, "id");
-
-   context->Point = (RoadMapPoint *) roadmap_db_get_data (point_table);
-
-   if (id_table != NULL) {
-      context->PointID = (int *) roadmap_db_get_data (id_table);
-      context->PointIDCount  = roadmap_db_get_count (id_table);
+   if (!roadmap_db_get_data (file,
+   								  model__tile_point_data,
+   								  sizeof (RoadMapPoint),
+   								  (void**)&(context->Point),
+   								  &(context->PointCount))) {
+      roadmap_log (ROADMAP_FATAL, "invalid point/data structure");
    }
 
-   context->PointCount    = roadmap_db_get_count (point_table);
-
-   if (roadmap_db_get_size(point_table) !=
-          context->PointCount * sizeof(RoadMapPoint)) {
-      roadmap_log (ROADMAP_FATAL, "invalid point/data structure");
+   if (!roadmap_db_get_data (file,
+   								  model__tile_point_id,
+   								  sizeof (int),
+   								  (void**)&(context->PointID),
+   								  &(context->PointIDCount))) {
+      roadmap_log (ROADMAP_FATAL, "invalid point/id structure");
    }
 
    return context;
@@ -94,9 +89,10 @@ static void roadmap_point_activate (void *context) {
    RoadMapPointContext *point_context = (RoadMapPointContext *) context;
 
    if ((point_context != NULL) &&
-       (strcmp (point_context->type, "RoadMapPointContext") != 0)) {
+       (point_context->type != RoadMapPointType)) {
       roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
    }
+
    RoadMapPointActive = point_context;
 }
 
@@ -119,39 +115,10 @@ roadmap_db_handler RoadMapPointHandler = {
 };
 
 
-void roadmap_point_position (int point, RoadMapPosition *position) {
-
-   static int square = -2;
-   static RoadMapPosition square_position;
-   RoadMapPoint *Point;
-
-   int point_id = point & 0xffff;
-   int point_square = (point >> 16) & 0xffff;
-
-   point_id += roadmap_square_first_point(point_square);
-
-#ifdef DEBUG
-   if (point_id < 0 || point_id >= RoadMapPointActive->PointCount) {
-      roadmap_log (ROADMAP_FATAL, "invalid point index %d", point_id);
-   }
-#endif
-
-   if (square != point_square) {
-
-      square = point_square;
-      roadmap_square_min (point_square, &square_position);
-   }
-
-   Point = RoadMapPointActive->Point + point_id;
-   position->longitude = square_position.longitude + Point->longitude;
-   position->latitude  = square_position.latitude  + Point->latitude;
-}
-
-
 int roadmap_point_db_id (int point) {
 
    int point_id = point & 0xffff;
-   int point_square = (point >> 16) & 0xffff;
+   int point_square = roadmap_square_active (); //(point >> 16) & 0xffff;
 
    if ((RoadMapPointActive == NULL) ||
          (RoadMapPointActive->PointID == NULL)) {
@@ -172,12 +139,12 @@ int roadmap_point_count (void) {
    return RoadMapPointActive->PointCount;
 }
 
-
+/*
 int roadmap_point_square (int point) {
 
    int point_square = (point >> 16) & 0xffff;
 
    return roadmap_square_from_index (point_square);
 }
-
+*/
 

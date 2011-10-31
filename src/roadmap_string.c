@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "roadmap.h"
 #include "roadmap_string.h"
@@ -195,5 +196,37 @@ int roadmap_string_match (RoadMapDynamicString item, const char *value) {
    if (item == NULL) return 0;
 
    return (strcmp (item->data, value) == 0);
+}
+
+
+int roadmap_string_is_sub_ignore_case (const char *where, const char *what) {
+
+	const char *start;
+	const char *find;
+	
+	if (!*what) return 1;
+	
+	for (start = where; *start; start++) {
+		const char *curr = start;
+		for (find = what; (*find) && *(curr); find++, curr++) {
+			if (tolower(*find) != tolower (*curr)) break;
+		} 
+		if (!*find) return 1;
+	}	
+	
+	return 0;
+}
+
+
+int roadmap_string_compare_ignore_case (const char *str1, const char *str2) {
+
+	while (*str1 == *str2) {
+	
+		if (!*str1) return 0;
+		str1++;
+		str2++;	
+	}	
+	
+	return (*str1) - (*str2);
 }
 

@@ -111,9 +111,19 @@ void roadmap_message_set (char parameter, const char *format, ...) {
     char    value[256];
     
     if (parameter <= 0) {
-        roadmap_log (ROADMAP_ERROR,
-                     "invalid parameter code %d (value %s)",
-                     parameter, value);
+        roadmap_log( ROADMAP_ERROR, "invalid parameter code %d",  parameter);
+        return;
+    }
+    /*
+    *  Check this   AGA 
+    */
+    if (format == NULL) {
+        roadmap_log( ROADMAP_ERROR, "format is NULL");
+        return;
+    }
+    
+    if (format == NULL) {
+        roadmap_log( ROADMAP_ERROR, "format is NULL");
         return;
     }
     
@@ -145,4 +155,17 @@ void roadmap_message_unset (char parameter) {
         free (RoadMapMessageParameters[(int)parameter]);
         RoadMapMessageParameters[(int)parameter] = NULL;
     }
+}
+
+
+int roadmap_message_is_set (char parameter) {
+    
+    if (parameter <= 0) {
+        roadmap_log (ROADMAP_ERROR,
+                     "invalid parameter code %d",
+                     parameter);
+        return 0;
+    }
+    
+    return RoadMapMessageParameters[(int)parameter] != NULL;
 }

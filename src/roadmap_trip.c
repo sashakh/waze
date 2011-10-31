@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -48,7 +49,10 @@
 #include "roadmap_preferences.h"
 #include "roadmap_display.h"
 #include "roadmap_adjust.h"
+#include "roadmap_res.h"
 #include "roadmap_sunrise.h"
+#include "roadmap_screen.h"
+#include "editor/editor_screen.h"
 
 #include "roadmap_trip.h"
 
@@ -63,6 +67,10 @@ static RoadMapConfigDescriptor RoadMapConfigFocusName =
 
 static RoadMapConfigDescriptor RoadMapConfigFocusRotate =
                         ROADMAP_CONFIG_ITEM("Focus", "Rotate");
+
+static RoadMapConfigDescriptor RoadMapConfigCarName =
+                        ROADMAP_CONFIG_ITEM("Trip", "Car");
+
 
 
 /* Default location is: Kikar Ha-Medina, Tel Aviv, Israel. */
@@ -79,10 +87,11 @@ static RoadMapCallback RoadMapTripNextMessageUpdate;
 typedef struct roadmap_trip_point {
 
     RoadMapListItem link;
-    
+
     char *id;
     char *sprite;
-    
+    char *image;
+
     char predefined;
     char mobile;
     char in_trip;
@@ -96,25 +105,32 @@ typedef struct roadmap_trip_point {
 
     int distance;   /* .. from the destination point. */
 
+    int from_node_id;		// Start of the line segment
+    int to_node_id;			// End of the line segment
 } RoadMapTripPoint;
 
 
-#define ROADMAP_TRIP_ITEM(id,sprite,mobile,in_trip, has_value) \
-    {{NULL, NULL}, id, sprite, 1, mobile, in_trip, has_value, \
+#define ROADMAP_TRIP_ITEM(id,sprite,image, mobile,in_trip, has_value) \
+    {{NULL, NULL}, id, sprite, image, 1, mobile, in_trip, has_value, \
      {0, 0}, \
      ROADMAP_GPS_NULL_POSITION, \
      ROADMAP_CONFIG_ITEM(id,"Position"), \
      ROADMAP_CONFIG_ITEM(id,"Direction"), \
-     0 \
+     0, \
+     -1, -1 \
     }
 
 RoadMapTripPoint RoadMapTripPredefined[] = {
-    ROADMAP_TRIP_ITEM("GPS",         "GPS",         1, 0, 1),
-    ROADMAP_TRIP_ITEM("Destination", "Destination", 0, 1, 0),
-    ROADMAP_TRIP_ITEM("Address",     NULL,          0, 0, 1),
-    ROADMAP_TRIP_ITEM("Selection",   "Selection",   0, 0, 1),
-    ROADMAP_TRIP_ITEM("Hold",        NULL,          1, 0, 0),
-    ROADMAP_TRIP_ITEM(NULL, NULL, 0, 0, 0)
+    ROADMAP_TRIP_ITEM("GPS",         "GPS", NULL,         1, 0, 1),
+    ROADMAP_TRIP_ITEM("Destination", "Destination", "Destination", 0, 1, 0),
+    ROADMAP_TRIP_ITEM("Departure", "Departure", "Departure", 1, 1, 0),
+    ROADMAP_TRIP_ITEM("Address",     NULL,    NULL,       0, 0, 1),
+    ROADMAP_TRIP_ITEM("Selection",   "Selection",  NULL,  0, 0, 1),
+    ROADMAP_TRIP_ITEM("Hold",        NULL,    NULL,       1, 0, 0),
+    ROADMAP_TRIP_ITEM("Location",   "Location",  "location",    0, 0, 1),
+    ROADMAP_TRIP_ITEM("ORIG_GPS",   "ORIG_GPS",  NULL,    0, 0, 1),
+    ROADMAP_TRIP_ITEM("Marked_Location", "Selection",    "mark_location_pin",       0, 1, 0),
+    ROADMAP_TRIP_ITEM(NULL, NULL, NULL, 0, 0, 0)
 };
 
 
@@ -130,9 +146,9 @@ static RoadMapPosition RoadMapTripLastPosition;
 
 
 static void roadmap_trip_unfocus (void) {
-    
+
     if (RoadMapTripFocus != NULL) {
-        
+
         RoadMapTripLastPosition = RoadMapTripFocus->map;
         RoadMapTripFocus = NULL;
     }
@@ -142,10 +158,10 @@ static void roadmap_trip_unfocus (void) {
 
 
 static RoadMapTripPoint *roadmap_trip_search (const char *name) {
-    
+
     RoadMapListItem *item, *tmp;
     RoadMapTripPoint *trip;
-    
+
     ROADMAP_LIST_FOR_EACH (&RoadMapTripWaypoints, item, tmp) {
 
        trip = (RoadMapTripPoint *)item;
@@ -159,7 +175,7 @@ static RoadMapTripPoint *roadmap_trip_search (const char *name) {
 
 
 static void roadmap_trip_coordinate (const RoadMapPosition *position, RoadMapGuiPoint *point) {
-    
+
     if (roadmap_math_point_is_visible (position)) {
         roadmap_math_coordinate (position, point);
     } else {
@@ -168,25 +184,36 @@ static void roadmap_trip_coordinate (const RoadMapPosition *position, RoadMapGui
     }
 }
 
+static void roadmap_trip_set_nodes( RoadMapTripPoint *trip_point, int from_node, int to_node )
+{
+	if ( trip_point )
+	{
+		trip_point->from_node_id = from_node;
+
+		trip_point->to_node_id = to_node;
+	}
+}
+
 
 static RoadMapTripPoint *roadmap_trip_update
                             (const char *name,
                              const RoadMapPosition *position,
                              const RoadMapGpsPosition *gps_position,
-                             const char *sprite) {
+                             const char *sprite,
+                             const char *image) {
 
     RoadMapTripPoint *result;
-    
-    
+
+
     if (strchr (name, ',') != NULL) {
-        
+
         /* Because we use a 'simplified' CSV format, we cannot have
          * commas in the name.
          */
         char *to;
         char *from;
         char *cleaned = strdup (name);
-            
+
         for (from = cleaned, to = cleaned; *from != 0; ++from) {
             if (*from != ',') {
                 if (to != from) {
@@ -196,16 +223,16 @@ static RoadMapTripPoint *roadmap_trip_update
             }
         }
         *to = 0;
-            
-        result = roadmap_trip_update (cleaned, position, gps_position, sprite);
+
+        result = roadmap_trip_update (cleaned, position, gps_position, sprite, image);
         free (cleaned);
-        
+
         return result;
     }
-        
+
     result = roadmap_trip_search (name);
     if (result == NULL) {
-        
+
         /* A new point: refresh is needed only if this point
          * is visible.
          */
@@ -219,16 +246,19 @@ static RoadMapTripPoint *roadmap_trip_update
         result->in_trip = 1;
         result->sprite = strdup(sprite);
         result->mobile = (gps_position != NULL);
+        if (image != NULL)
+        	result->image = strdup(image);
+        else
+        	result->image = NULL;
 
         if (roadmap_math_point_is_visible (position)) {
             RoadMapTripRefresh = 1;
         }
-        
+
         roadmap_list_append (&RoadMapTripWaypoints, &result->link);
         RoadMapTripModified = 1;
-        
     } else {
-        
+
         /* An existing point: refresh is needed only if the point
          * moved in a visible fashion.
          */
@@ -243,16 +273,19 @@ static RoadMapTripPoint *roadmap_trip_update
                 RoadMapTripRefresh = 1;
             }
             RoadMapTripModified = 1;
-        
+
             if (result == RoadMapTripFocus) {
                 RoadMapTripFocusMoved = 1;
             }
             result->distance = 0;
         }
     }
-    
+
     result->map = *position;
     result->has_value = 1;
+
+    // Nodes should be updated explicitly
+    roadmap_trip_set_nodes( result, -1, -1 );
 
     if (gps_position != NULL) {
 
@@ -291,17 +324,16 @@ static RoadMapTripPoint *roadmap_trip_update
     return result;
 }
 
-
 /* TODO remove the dialog stuff to another file */
 #ifndef J2ME
 static void roadmap_trip_dialog_cancel (const char *name, void *data) {
-    
+
     roadmap_dialog_hide (name);
 }
 
 
 static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode) {
-    
+
     if (mode[0] == 'w') {
         roadmap_trip_save (filename);
     } else {
@@ -311,7 +343,7 @@ static void roadmap_trip_file_dialog_ok (const char *filename, const char *mode)
 
 
 static void roadmap_trip_file_dialog (const char *mode) {
-    
+
     roadmap_fileselection_new ("RoadMap Trip",
                                 NULL, /* no filter. */
                                 roadmap_path_trips(),
@@ -321,9 +353,9 @@ static void roadmap_trip_file_dialog (const char *mode) {
 
 
 static void roadmap_trip_set_dialog_ok (const char *name, void *data) {
-    
+
     char *point_name = (char *) roadmap_dialog_get_data ("Name", "Name:");
-    
+
     if (point_name[0] != 0) {
         roadmap_trip_set_point (point_name, (RoadMapPosition *)data);
         roadmap_dialog_hide (name);
@@ -336,7 +368,7 @@ static void roadmap_trip_set_dialog (const RoadMapPosition *position) {
     static RoadMapPosition point_position;
 
     point_position = *position;
-    
+
     if (roadmap_dialog_activate ("Add Waypoint", &point_position, 1)) {
 
         roadmap_dialog_new_entry  ("Name", "Name:", NULL);
@@ -351,14 +383,14 @@ static void roadmap_trip_set_dialog (const RoadMapPosition *position) {
 static void roadmap_trip_remove_dialog_populate (int count);
 
 static void roadmap_trip_remove_dialog_delete (const char *name, void *data) {
-    
+
     int count;
     char *point_name = (char *) roadmap_dialog_get_data ("Names", ".Waypoints");
-    
+
     if (point_name && (point_name[0] != 0)) {
-        
+
         roadmap_trip_remove_point (point_name);
-        
+
         count = roadmap_list_count (&RoadMapTripWaypoints);
         if (count > 0) {
             roadmap_trip_remove_dialog_populate (count);
@@ -388,7 +420,7 @@ static void roadmap_trip_remove_dialog_populate (int count) {
     int i;
     RoadMapListItem *item, *tmp;
     RoadMapTripPoint *point;
-    
+
     if (Names != NULL) {
        free (Names);
     }
@@ -402,7 +434,7 @@ static void roadmap_trip_remove_dialog_populate (int count) {
             Names[i++] = point->id;
         }
     }
-    
+
     roadmap_dialog_show_list
         ("Names", ".Waypoints", i, Names, (void **)Names,
          roadmap_trip_remove_dialog_selected);
@@ -410,14 +442,14 @@ static void roadmap_trip_remove_dialog_populate (int count) {
 
 
 static void roadmap_trip_remove_dialog (void) {
-    
+
     int count;
-    
+
     count = roadmap_list_count (&RoadMapTripWaypoints);
     if (count <= 0) {
         return; /* Nothing to delete. */
     }
-    
+
     if (roadmap_dialog_activate ("Delete Waypoints", NULL, 1)) {
 
         roadmap_dialog_new_list   ("Names", ".Waypoints");
@@ -471,7 +503,7 @@ static void roadmap_trip_set_point_focus (RoadMapTripPoint *point) {
        rotate = roadmap_config_match (&RoadMapConfigTripRotate, "yes");
     }
 
-    
+
     if (RoadMapTripRotate != rotate) {
         roadmap_config_set_integer (&RoadMapConfigFocusRotate, rotate);
         RoadMapTripRotate = rotate;
@@ -499,12 +531,12 @@ static void roadmap_trip_activate (void) {
     RoadMapTripPoint *destination;
     RoadMapTripPoint *waypoint;
     RoadMapListItem *item, *tmp;
- 
+
     destination = RoadMapTripDestination;
     if (destination == NULL) return;
 
     /* Compute the distances to the destination. */
-    
+
     ROADMAP_LIST_FOR_EACH (&RoadMapTripWaypoints, item, tmp) {
 
        waypoint = (RoadMapTripPoint *)item;
@@ -521,23 +553,23 @@ static void roadmap_trip_activate (void) {
        }
     }
     destination->distance = 0;
-    
+
     roadmap_trip_set_focus ("GPS");
     roadmap_screen_redraw ();
 }
 
 
 static void roadmap_trip_clear (void) {
-    
+
     RoadMapTripPoint *point;
     RoadMapListItem *item, *tmp;
-    
+
     ROADMAP_LIST_FOR_EACH (&RoadMapTripWaypoints, item, tmp) {
-        
+
         point = (RoadMapTripPoint *)item;
-        
+
         if (! point->predefined) {
-        
+
             if (RoadMapTripFocus == point) {
                 roadmap_trip_unfocus ();
             }
@@ -555,7 +587,7 @@ static void roadmap_trip_clear (void) {
             point->has_value = 0;
         }
     }
-    
+
     if (RoadMapTripModified) {
         roadmap_config_set (&RoadMapConfigTripName, "default");
     }
@@ -563,7 +595,7 @@ static void roadmap_trip_clear (void) {
 
 
 static void roadmap_trip_format_messages (void) {
-    
+
     int distance_to_destination;
     int distance_to_destination_far;
     RoadMapTripPoint *gps = RoadMapTripGps;
@@ -574,7 +606,7 @@ static void roadmap_trip_format_messages (void) {
     if (RoadMapTripFocus == gps &&
         RoadMapTripDestination != NULL &&
         RoadMapTripDestination->has_value) {
-    
+
         time_t now = time(NULL);
         time_t sun;
 
@@ -582,7 +614,7 @@ static void roadmap_trip_format_messages (void) {
 
         distance_to_destination =
             roadmap_math_distance (&gps->map, &RoadMapTripDestination->map);
-    
+
         roadmap_log (ROADMAP_DEBUG,
                         "GPS: distance to destination = %d %s",
                         distance_to_destination,
@@ -597,13 +629,13 @@ static void roadmap_trip_format_messages (void) {
                                 roadmap_math_trip_unit());
         } else {
            roadmap_message_set ('D', "%d %s",
-                                distance_to_destination,
+                                roadmap_math_distance_to_current(distance_to_destination),
                                 roadmap_math_distance_unit());
         };
 
-        
+
         RoadMapTripNextWaypoint = RoadMapTripDestination;
-        
+
         ROADMAP_LIST_FOR_EACH (&RoadMapTripWaypoints, item, tmp) {
 
             waypoint = (RoadMapTripPoint *)item;
@@ -615,28 +647,28 @@ static void roadmap_trip_format_messages (void) {
                 }
             }
         }
-        
+
         if (RoadMapTripNextWaypoint != RoadMapTripDestination) {
-            
+
             int distance_to_waypoint =
                     roadmap_math_distance (&gps->map,
                                            &RoadMapTripNextWaypoint->map);
-            
+
             roadmap_log (ROADMAP_DEBUG,
                             "GPS: distance to next waypoint %s = %d %s",
                             RoadMapTripNextWaypoint->id,
                             distance_to_waypoint,
                             roadmap_math_distance_unit());
-            
+
             roadmap_message_set ('W', "%d %s",
                                  roadmap_math_to_trip_distance
                                             (distance_to_waypoint),
                                  roadmap_math_trip_unit());
-            
+
         } else {
             roadmap_message_unset ('W');
         }
-        
+
         roadmap_message_set ('S', "%3d %s",
                              roadmap_math_to_speed_unit(gps->gps.speed),
                              roadmap_math_speed_unit());
@@ -645,7 +677,7 @@ static void roadmap_trip_format_messages (void) {
                              gps->gps.altitude,
                              roadmap_math_distance_unit());
 
-        sun = roadmap_sunset (&gps->gps);
+        sun = roadmap_sunset (&gps->gps, time(NULL));
         if (sun > now) {
 
            roadmap_message_unset ('M');
@@ -656,7 +688,7 @@ static void roadmap_trip_format_messages (void) {
 
            roadmap_message_unset ('E');
 
-           sun = roadmap_sunrise (&gps->gps);
+           sun = roadmap_sunrise (&gps->gps, time(NULL));
            roadmap_message_set ('M', roadmap_time_get_hours_minutes(sun));
         }
 
@@ -677,10 +709,11 @@ static void roadmap_trip_format_messages (void) {
 }
 
 
-static int roadmap_trip_gps_state (void) {
+int roadmap_trip_gps_state (void) {
 
-   if (roadmap_trip_get_focus_name () == RoadMapTripGps->id) {
-      
+   if (!RoadMapTripGps->has_value ||
+         (roadmap_trip_get_focus_name () == RoadMapTripGps->id)) {
+
       return TRIP_FOCUS_GPS;
    }
 
@@ -696,7 +729,7 @@ void roadmap_trip_set_point (const char *name,
         roadmap_trip_set_dialog (position);
 #endif
     } else {
-        roadmap_trip_update (name, position, NULL, "Waypoint");
+        roadmap_trip_update (name, position, NULL, "Waypoint", NULL);
     }
 }
 
@@ -709,7 +742,7 @@ void roadmap_trip_set_selection_as (const char *name) {
       Selection = roadmap_trip_search ("Selection");
    }
 
-   roadmap_trip_update (name, &Selection->map, NULL, "Waypoint");
+   roadmap_trip_update (name, &Selection->map, NULL, "Waypoint", NULL);
 }
 
 
@@ -720,7 +753,31 @@ void roadmap_trip_set_mobile (const char *name,
 
     roadmap_adjust_position (gps_position, &position);
 
-    roadmap_trip_update (name, &position, gps_position, "Mobile");
+    roadmap_trip_update (name, &position, gps_position, "Mobile", NULL);
+}
+
+void roadmap_trip_set_gps_position (const char *name, const char*sprite, const char* image,
+                              const RoadMapGpsPosition *gps_position) {
+
+    RoadMapPosition position;
+
+    roadmap_adjust_position (gps_position, &position);
+
+    roadmap_trip_update (name, &position, gps_position, sprite, image);
+}
+
+
+void roadmap_trip_set_gps_and_nodes_position (const char *name, const char*sprite, const char* image,
+                              const RoadMapGpsPosition *gps_position, int from_node, int to_node ) {
+
+    RoadMapPosition position;
+    RoadMapTripPoint *trip_point;
+
+    roadmap_adjust_position (gps_position, &position);
+
+    trip_point = roadmap_trip_update (name, &position, gps_position, sprite, image);
+
+    roadmap_trip_set_nodes( trip_point, from_node, to_node );
 }
 
 
@@ -745,7 +802,7 @@ void  roadmap_trip_copy_focus (const char *name) {
 
 
 void roadmap_trip_remove_point (const char *name) {
-    
+
     RoadMapTripPoint *result;
 
 #ifndef J2ME
@@ -756,13 +813,13 @@ void roadmap_trip_remove_point (const char *name) {
 #endif
 
     result = roadmap_trip_search (name);
-    
+
     if (result == NULL) {
         roadmap_log (ROADMAP_ERROR, "cannot delete: point %s not found", name);
         return;
     }
     if (result->predefined) {
-        roadmap_log (ROADMAP_ERROR, "cannot delete: point %s is predefined", name);
+        result->has_value = 0;
         return;
     }
 
@@ -771,16 +828,16 @@ void roadmap_trip_remove_point (const char *name) {
         RoadMapTripDestination == result) {
         roadmap_trip_unfocus ();
     }
-    
+
     if (roadmap_math_point_is_visible (&result->map)) {
         RoadMapTripRefresh = 1;
     }
-    
+
     roadmap_list_remove (&result->link);
     free (result->id);
     free (result->sprite);
     free(result);
-    
+
     RoadMapTripModified = 1;
 
     roadmap_screen_refresh();
@@ -829,28 +886,30 @@ void  roadmap_trip_restore_focus (void) {
     if (focus == NULL) {
         focus = RoadMapTripGps;
     }
+
     roadmap_trip_set_point_focus (focus);
-    RoadMapTripFocusChanged = 0;
+    RoadMapTripFocusChanged = 1;
 }
 
 
 void roadmap_trip_set_focus (const char *name) {
-    
+
     RoadMapTripPoint *point = roadmap_trip_search (name);
-    
+
     if (point == NULL) {
         roadmap_log
             (ROADMAP_ERROR, "cannot activate: point %s not found", name);
         return;
     }
-
-    if (point->has_value) roadmap_trip_set_point_focus (point);
+//AVI
+    //if (point->has_value)
+    roadmap_trip_set_point_focus (point);
 }
 
 int roadmap_trip_is_focus_changed (void) {
-    
+
     if (RoadMapTripFocusChanged) {
-        
+
         RoadMapTripFocusChanged = 0;
         return 1;
     }
@@ -858,9 +917,9 @@ int roadmap_trip_is_focus_changed (void) {
 }
 
 int roadmap_trip_is_focus_moved (void) {
-    
+
     if (RoadMapTripFocusMoved) {
-        
+
         RoadMapTripFocusMoved = 0;
         return 1;
     }
@@ -868,10 +927,10 @@ int roadmap_trip_is_focus_moved (void) {
 }
 
 int roadmap_trip_is_refresh_needed (void) {
-    
+
     if (RoadMapTripRefresh ||
         RoadMapTripFocusChanged || RoadMapTripFocusMoved) {
-    
+
         RoadMapTripFocusChanged = 0;
         RoadMapTripFocusMoved = 0;
         RoadMapTripRefresh = 0;
@@ -883,11 +942,11 @@ int roadmap_trip_is_refresh_needed (void) {
 
 
 int roadmap_trip_get_orientation (void) {
-    
+
     if (RoadMapTripRotate && (RoadMapTripFocus != NULL)) {
         return 360 - RoadMapTripFocus->gps.steering;
     }
-    
+
     return 0;
 }
 
@@ -897,29 +956,53 @@ const char *roadmap_trip_get_focus_name (void) {
     if (RoadMapTripFocus != NULL) {
         return RoadMapTripFocus->id;
     }
-    
+
     return NULL;
 }
 
 
 const RoadMapPosition *roadmap_trip_get_focus_position (void) {
-    
+
     if (RoadMapTripFocus != NULL) {
         return &RoadMapTripFocus->map;
     }
-    
+
     return &RoadMapTripLastPosition;
 }
 
 
 const RoadMapPosition *roadmap_trip_get_position (const char *name) {
-    
+
    RoadMapTripPoint *trip = NULL;
 
    trip = roadmap_trip_search (name);
    if (trip == NULL) return NULL;
 
    return &trip->map;
+}
+
+const RoadMapGpsPosition *roadmap_trip_get_gps_position(const char *name){
+
+   RoadMapTripPoint *trip = NULL;
+
+   trip = roadmap_trip_search (name);
+   if (trip == NULL) return NULL;
+
+   return &trip->gps;
+}
+
+void roadmap_trip_get_nodes(const char *name, int *from_node, int *to_node )
+{
+
+   RoadMapTripPoint *trip = NULL;
+   *from_node = -1;
+   *to_node = -1;
+
+   trip = roadmap_trip_search (name);
+   if (trip == NULL) return;
+
+   *from_node = trip->from_node_id;
+   *to_node = trip->to_node_id;
 }
 
 
@@ -936,7 +1019,7 @@ void  roadmap_trip_start (void) {
     }
 }
 
-    
+
 void roadmap_trip_resume (void) {
 
     RoadMapTripDeparture = roadmap_trip_search ("Departure");
@@ -953,7 +1036,7 @@ void roadmap_trip_resume (void) {
 
 
 void roadmap_trip_reverse (void) {
-    
+
     RoadMapTripDestination = roadmap_trip_search ("Departure");
 
     if (RoadMapTripDestination != NULL) {
@@ -984,7 +1067,7 @@ void roadmap_trip_display (void) {
     RoadMapTripPoint *gps = RoadMapTripGps;
     RoadMapTripPoint *waypoint;
     RoadMapListItem *item, *tmp;
-
+    const char *focus = roadmap_trip_get_focus_name ();
 
     ROADMAP_LIST_FOR_EACH (&RoadMapTripWaypoints, item, tmp) {
         waypoint = (RoadMapTripPoint *)item;
@@ -993,16 +1076,68 @@ void roadmap_trip_display (void) {
         if (! waypoint->has_value) continue;
 
         if (roadmap_math_point_is_visible (&waypoint->map)) {
-
             roadmap_math_coordinate (&waypoint->map, &point);
             roadmap_math_rotate_coordinates (1, &point);
-            roadmap_sprite_draw
-               (waypoint->sprite, &point, waypoint->gps.steering);
+
+            if ((focus != NULL) && ((!strcmp(waypoint->sprite,"GPS") &&
+            		!strcmp (focus, "GPS") && (roadmap_screen_get_orientation_mode() != ORIENTATION_FIXED) ))) {
+                RoadMapImage image;
+                RoadMapGuiPoint screen_point;
+                char *car_name;
+                const char *config_car;
+
+                roadmap_math_coordinate ((RoadMapPosition *)&waypoint->gps, &screen_point);
+
+                roadmap_math_rotate_coordinates (1, &screen_point);
+                config_car = roadmap_config_get (&RoadMapConfigCarName);
+                if (config_car[0] != 0){
+                	car_name = editor_screen_overide_car();
+
+                	if (car_name == NULL){
+                	    car_name = roadmap_path_join("cars", config_car);
+                       image =  (RoadMapImage) roadmap_res_get(RES_BITMAP, RES_SKIN, car_name);
+                       free(car_name);
+                	}
+                	else
+                     image =  (RoadMapImage) roadmap_res_get(RES_BITMAP, RES_SKIN, car_name);
+
+                    if (image){
+                        screen_point.x -= roadmap_canvas_image_width(image)/2;
+                        screen_point.y -= roadmap_canvas_image_height(image)/2;
+                        roadmap_canvas_draw_image (image, &screen_point,  0, IMAGE_NORMAL);
+                    } else
+                        roadmap_sprite_draw (waypoint->sprite, &point, waypoint->gps.steering);
+                } else
+                    roadmap_sprite_draw (waypoint->sprite, &point, waypoint->gps.steering);
+            }else{
+               BOOL is_location = !strcmp( waypoint->sprite,"Location" );
+               if ((waypoint->image != NULL) && (  !is_location || ( is_location && focus && !strcmp( focus, "Location" ) ) )){
+                    RoadMapImage image;
+                    image =  (RoadMapImage) roadmap_res_get(RES_BITMAP, RES_SKIN, waypoint->image);
+                    if (image != NULL){
+
+                        point.x -= roadmap_canvas_image_width(image)/2;
+                        point.y -= roadmap_canvas_image_height(image)/2;
+                        roadmap_canvas_draw_image (image, &point,  0, IMAGE_NORMAL);
+                    }
+                    else
+                        roadmap_sprite_draw
+                            (waypoint->sprite, &point, waypoint->gps.steering);
+                }
+                else
+                {
+                	if (  !is_location || ( is_location && focus && !strcmp( focus, "Location" ) ) )
+                	{
+						roadmap_sprite_draw
+							(waypoint->sprite, &point, waypoint->gps.steering);
+                	}
+                }
+            }
         }
     }
 
     if (RoadMapTripNextWaypoint != NULL) {
-    
+
         azymuth = roadmap_math_azymuth (&gps->map,
                                         &RoadMapTripNextWaypoint->map);
         roadmap_math_coordinate (&gps->map, &point);
@@ -1011,7 +1146,7 @@ void roadmap_trip_display (void) {
     }
 }
 
-    
+
 const char *roadmap_trip_current (void) {
     return roadmap_config_get (&RoadMapConfigTripName);
 }
@@ -1028,9 +1163,9 @@ void roadmap_trip_new (void) {
 
 
 void roadmap_trip_initialize (void) {
-    
+
     int i;
-    
+
     ROADMAP_LIST_INIT (&RoadMapTripWaypoints);
 
     for (i = 0; RoadMapTripPredefined[i].id != NULL; ++i) {
@@ -1060,30 +1195,32 @@ void roadmap_trip_initialize (void) {
         ("session", &RoadMapConfigFocusName, "GPS", NULL);
     roadmap_config_declare
         ("session", &RoadMapConfigFocusRotate, "1", NULL);
+    roadmap_config_declare
+    	("user", &RoadMapConfigCarName, "car_blue", NULL);
 
     RoadMapTripNextMessageUpdate =
        roadmap_message_register (roadmap_trip_format_messages);
-    
+
     roadmap_state_add ("GPS_focus", roadmap_trip_gps_state);
 }
 
 
 #ifndef J2ME
 int roadmap_trip_load (const char *name, int silent) {
-    
+
     FILE *file;
     int   i;
     char *p;
     char *argv[8];
     char  line[1024];
-    
+
     RoadMapPosition position;
 
 
     /* Load waypoints from the user environment. */
-    
+
     file = roadmap_trip_fopen (name, silent ? "sr" : "r");
-    
+
     if (file == NULL) {
        if (name == NULL) {
           return 1; /* Delay the answer: file selection has been activated. */
@@ -1104,26 +1241,26 @@ int roadmap_trip_load (const char *name, int silent) {
        p = roadmap_config_extract_data (line, sizeof(line));
 
        if (p == NULL) continue;
-         
+
        argv[0] = p;
-             
+
        for (p = strchr (p, ','), i = 0; p != NULL && i < 8; p = strchr (p, ',')) {
            *p = 0;
            argv[++i] = ++p;
        }
-         
+
        if (i != 3) {
            roadmap_log (ROADMAP_ERROR, "erroneous trip line (%d fields)", i);
            continue;
        }
        position.longitude = atoi(argv[2]);
        position.latitude  = atoi(argv[3]);
-       roadmap_trip_update (argv[1], &position, NULL, argv[0]);
+       roadmap_trip_update (argv[1], &position, NULL, argv[0], NULL);
     }
-      
+
     fclose (file);
     RoadMapTripModified = 0;
-      
+
     roadmap_screen_refresh();
     return 1;
 }
@@ -1139,7 +1276,7 @@ static void roadmap_trip_printf (FILE *file, const RoadMapTripPoint *point) {
 }
 
 void roadmap_trip_save (const char *name) {
-    
+
     RoadMapTripPoint *point;
     RoadMapListItem *item, *tmp;
 
@@ -1150,21 +1287,21 @@ void roadmap_trip_save (const char *name) {
     if (name == NULL) {
         RoadMapTripModified = 1;
     }
-        
+
     if (RoadMapTripModified) {
-        
+
         FILE *file;
-        
+
         file = roadmap_trip_fopen (name, "w");
 
         if (file == NULL) {
             return;
         }
-        
+
 
         ROADMAP_LIST_FOR_EACH (&RoadMapTripWaypoints, item, tmp) {
             point = (RoadMapTripPoint *)item;
-                  
+
             if (point->in_trip && point->has_value && (! point->mobile)) {
                 roadmap_trip_printf (file, point);
             }
@@ -1201,7 +1338,7 @@ void roadmap_trip_save_screenshot (void) {
    memcpy (picture_name, trip_name, trip_length);
    sprintf (picture_name, "%s/%*.*s-%010d%s",
             trip_path,
-            trip_length, trip_length, trip_name, 
+            trip_length, trip_length, trip_name,
             (int)time(NULL),
             extension);
 
@@ -1209,4 +1346,5 @@ void roadmap_trip_save_screenshot (void) {
    free (picture_name);
 }
 #endif
+
 

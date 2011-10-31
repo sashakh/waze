@@ -25,14 +25,19 @@
 #define INCLUDE__NAVIGATE_BAR__H
 
 #include "roadmap_canvas.h"
-#include "navigate_main.h"
+#include "navigate/navigate_main.h"
 
 void navigate_bar_initialize (void);
 void navigate_bar_set_mode (int mode);
 void navigate_bar_draw (void);
 void navigate_bar_set_instruction (enum NavigateInstr instr);
+void navigate_bar_set_exit (int exit);
 void navigate_bar_set_distance (int distance);
+void navigate_bar_set_speed ();
 void navigate_bar_set_street (const char *street);
-
+void navigate_bar_set_distance_to_destination (void);
+void navigate_bar_set_time_to_destination (void);
+void navigate_bar_set_draw_offsets ( int offset_x, int offset_y );
+void navigate_bar_resize( void );
 #endif // INCLUDE__NAVIGATE_BAR__H
 

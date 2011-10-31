@@ -26,7 +26,11 @@
 
 typedef void (*SyncProgressCallback) (int progress);
 
+const char *editor_sync_get_export_path (void);
+const char *editor_sync_get_export_name (void);
+
 int export_sync (void);
+void editor_sync_upload (void);
 
 #endif // INCLUDE__EDITOR_SYNC_H
 

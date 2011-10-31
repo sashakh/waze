@@ -27,6 +27,8 @@
 #include <time.h>
 #include "roadmap_io.h"
 
+#define INVALID_STEERING 0x1000
+
 enum {GPS_RECEPTION_NA = 0,
       GPS_RECEPTION_NONE,
       GPS_RECEPTION_POOR,
@@ -67,7 +69,7 @@ typedef void (*roadmap_gps_listener)
                    const RoadMapGpsPosition *position);
 
 void roadmap_gps_register_listener (roadmap_gps_listener listener);
-
+void roadmap_gps_unregister_listener(roadmap_gps_listener listener);
 
 /* The monitor is a function to be called each time a valid GPS satellite
  * status has been received. There can be more than one monitor at a given
@@ -125,16 +127,27 @@ void roadmap_gps_register_logger (roadmap_gps_logger logger);
 void roadmap_gps_open   (void);
 void roadmap_gps_input  (RoadMapIO *io);
 int  roadmap_gps_active (void);
-
+BOOL roadmap_gps_have_reception(void);
 int  roadmap_gps_estimated_error (void);
 int  roadmap_gps_speed_accuracy  (void);
 
 int  roadmap_gps_is_nmea (void);
 
+void roadmap_gps_raw (time_t tm, int longitude, int latitude,
+                      int steering, int speed);
+
 void roadmap_gps_shutdown (void);
-
+int roadmap_gps_reception_state (void);
 void roadmap_gps_detect_receiver (void);
+void roadmap_gps_csv_tracker_initialize(void);
+void roadmap_gps_csv_tracker_set_enable( BOOL value );
+BOOL roadmap_gps_csv_tracker_get_enable( void );
+void roadmap_gps_csv_tracker_shutdown( void );
+void roadmap_gps_coarse_fix( int latitude, int longitude );
+void roadmap_gps_detect_receiver_callback(RoadMapCallback callback);
+int roadmap_gps_satelite_count(void);
 
+time_t roadmap_gps_get_received_time(void);
 /* Generic protocols */
 #define ROADMAP_NO_VALID_DATA    -512000000
 

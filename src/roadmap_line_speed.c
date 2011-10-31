@@ -31,7 +31,9 @@
 
 #include "roadmap.h"
 #include "roadmap_dbread.h"
+#include "roadmap_tile_model.h"
 #include "roadmap_line.h"
+#include "roadmap_math.h"
 #include "roadmap_line_speed.h"
 
 static char *RoadMapLineSpeedType = "RoadMapLineSpeedContext";
@@ -57,14 +59,9 @@ typedef struct {
 static RoadMapLineSpeedContext *RoadMapLineSpeedActive = NULL;
 
 
-static void *roadmap_line_speed_map (roadmap_db *root) {
+static void *roadmap_line_speed_map (const roadmap_db_data_file *file) {
 
    RoadMapLineSpeedContext *context;
-
-   roadmap_db *ref_table;
-   roadmap_db *avg_table;
-   roadmap_db *index_table;
-   roadmap_db *data_table;
 
    context =
       (RoadMapLineSpeedContext *) calloc (1, sizeof(RoadMapLineSpeedContext));
@@ -76,37 +73,39 @@ static void *roadmap_line_speed_map (roadmap_db *root) {
 
    context->type = RoadMapLineSpeedType;
 
-   ref_table     = roadmap_db_get_subsection (root, "line_ref");
-   avg_table     = roadmap_db_get_subsection (root, "avg");
-   index_table   = roadmap_db_get_subsection (root, "index");
-   data_table    = roadmap_db_get_subsection (root, "data");
-
-   if (avg_table) {
-
-      context->LineSpeedAvg =
-         (RoadMapLineSpeedAvg *) roadmap_db_get_data (avg_table);
-      context->LineSpeedAvgCount = roadmap_db_get_count (avg_table);
+   if (!roadmap_db_get_data (file,
+   								  model__tile_line_speed_avg,
+   								  sizeof (RoadMapLineSpeedAvg),
+   								  (void**)&(context->LineSpeedAvg),
+   								  &(context->LineSpeedAvgCount))) {
+      roadmap_log (ROADMAP_FATAL, "invalid line_speed/avg structure");
    }
 
-   if (ref_table) {
+   if (!roadmap_db_get_data (file,
+   								  model__tile_line_speed_line_ref,
+   								  sizeof (RoadMapLineSpeed),
+   								  (void**)&(context->LineSpeedRef),
+   								  &(context->LineSpeedRefCount))) {
+      roadmap_log (ROADMAP_FATAL, "invalid line_speed/line_ref structure");
+   }
 
-      context->LineSpeedRef =
-         (RoadMapLineSpeed *) roadmap_db_get_data (ref_table);
-      context->LineSpeedRefCount = roadmap_db_get_count (ref_table);
+   if (context->LineSpeedRefCount) {
 
-      context->LineSpeedIndex = (int *) roadmap_db_get_data (index_table);
-      context->LineSpeedIndexCount = roadmap_db_get_count (index_table);
+	   if (!roadmap_db_get_data (file,
+	   								  model__tile_line_speed_index,
+	   								  sizeof (int),
+	   								  (void**)&(context->LineSpeedIndex),
+	   								  &(context->LineSpeedIndexCount))) {
+	      roadmap_log (ROADMAP_FATAL, "invalid line_speed/index structure");
+	   }
 
-      context->LineSpeedSlots = (RoadMapLineSpeedRef *)
-         roadmap_db_get_data (data_table);
-      context->LineSpeedSlotsCount = roadmap_db_get_count (data_table);
-
-      if (roadmap_db_get_size (data_table) !=
-            context->LineSpeedSlotsCount * sizeof(RoadMapLineSpeedRef)) {
-         roadmap_log (ROADMAP_ERROR, "invalid line speed data structure");
-         free(context);
-         return NULL;
-      }
+	   if (!roadmap_db_get_data (file,
+	   								  model__tile_line_speed_data,
+	   								  sizeof (RoadMapLineSpeedRef),
+	   								  (void**)&(context->LineSpeedSlots),
+	   								  &(context->LineSpeedSlotsCount))) {
+	      roadmap_log (ROADMAP_FATAL, "invalid line_speed/index structure");
+	   }
    }
 
    return context;
@@ -179,7 +178,7 @@ static LineRouteTime calc_cross_time (int line, int time_slot,
                                       int against_dir) {
 
    int speed;
-   int length;
+   int length, length_m;
    int speed_ref = get_speed_ref (line, against_dir);
 
    if (speed_ref == INVALID_SPEED) return 0;
@@ -189,15 +188,17 @@ static LineRouteTime calc_cross_time (int line, int time_slot,
    if (!speed) return 0;
 
    length = roadmap_line_length (line);
+   
+   length_m = roadmap_math_to_cm(length) / 100;
 
-   return (LineRouteTime)(length * 3.6 / speed) + 1;
+   return (LineRouteTime)(length_m * 3.6 / speed) + 1;
 }
 
 
 static LineRouteTime calc_avg_cross_time (int line, int against_dir) {
 
    int speed;
-   int length;
+   int length, length_m;
    int speed_ref = get_speed_ref (line, against_dir);
 
    if (speed_ref == INVALID_SPEED) return 0;
@@ -206,8 +207,8 @@ static LineRouteTime calc_avg_cross_time (int line, int against_dir) {
 
    if (!speed) return 0;
    length = roadmap_line_length (line);
-
-   return (LineRouteTime)(length * 3.6 / speed) + 1;
+   length_m = roadmap_math_to_cm(length) / 100;
+   return (LineRouteTime)(length_m * 3.6 / speed) + 1;
 }
 
 
@@ -287,7 +288,7 @@ int roadmap_line_speed_get_cross_times (int line,
 
 
 int roadmap_line_speed_get_cross_time_at (int line, int against_dir,
-                                          int at_time) {
+                                          time_t at_time) {
 
    int time_slot;
 
@@ -306,7 +307,7 @@ int roadmap_line_speed_get_cross_time (int line, int against_dir) {
 int roadmap_line_speed_get_avg_cross_time (int line, int against_dir) {
 
    int speed;
-   int length;
+   int length, length_m;
    int avg_time;
 
    if (RoadMapLineSpeedActive == NULL) return 0; /* No data. */
@@ -331,7 +332,9 @@ int roadmap_line_speed_get_avg_cross_time (int line, int against_dir) {
 
       length = roadmap_line_length (line);
 
-      return (int)(length * 3.6 / speed) + 1;
+	  length_m = roadmap_math_to_cm(length) / 100;
+
+      return (int)(length_m * 3.6 / speed) + 1;
    }
 
    return -1;

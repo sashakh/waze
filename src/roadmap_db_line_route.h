@@ -33,6 +33,7 @@
 #include "roadmap_types.h"
 
 #define ROUTE_CAR_ALLOWED 0x1
+#define ROUTE_LOW_WEIGHT  0x2
 
 typedef struct {  /* table line_route */
 

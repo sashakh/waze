@@ -20,7 +20,7 @@
 
 #if defined(PNG_READ_SUPPORTED)
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(__SYMBIAN32__)
 #include <windows.h>
 #endif
 /* Read the data from whatever input you are using.  The default routine
@@ -47,15 +47,16 @@ png_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
 void PNGAPI
 png_default_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   png_size_t check;
 
    /* fread() returns 0 on error, so it is OK to store this in a png_size_t
     * instead of an int, which is what fread() actually returns.
     */
-#if defined(_WIN32)
-   if ( !ReadFile((HANDLE)(png_ptr->io_ptr), data, length, &check, NULL) )
+#if defined(_WIN32) && !defined(__SYMBIAN32__)
+   DWORD check;
+   if ( !ReadFile((HANDLE)(png_ptr->io_ptr), data, (DWORD)length, &check, NULL) )
       check = 0;
 #else
+   png_size_t check;
    check = (png_size_t)fread(data, (png_size_t)1, length,
       (png_FILE_p)png_ptr->io_ptr);
 #endif

@@ -27,20 +27,20 @@
 
 #define REVERSED (1 << 31)
 
-typedef unsigned char PrevItem;
-
 struct successor {
+	int square_id;
    int line_id;
    unsigned char reversed;
    int to_point;
 };
 
-int get_connected_segments (int seg_line_id, int is_seg_reversed,
+int get_connected_segments (int square,
+									 int seg_line_id, int is_seg_reversed,
                             int node_id, struct successor *successors,
-                            int max, int use_restrictions,
-                            PrevItem *prev_item);
+                            int max, int use_restrictions, int use_directions);
 
 int navigate_graph_get_line (int node, int line_no);
+void navigate_graph_clear (int square);
 
 #endif /* _NAVIGATE_GRAPH_H_ */
 

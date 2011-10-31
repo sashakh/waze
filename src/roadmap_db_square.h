@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -44,26 +45,46 @@
 
 typedef struct {
 
-   RoadMapArea edges;
-   int position;
-   int first_point;
-   int first_shape;
-
+	int square_id;
+	int scale;
+   unsigned int timestamp;
 } RoadMapSquare;
 
 typedef struct {
 
    RoadMapArea edges;
-
+   int num_scales;
+   int count_squares;  /* Necessary because empty squares have been removed. */
    int step_longitude;
    int step_latitude;
+
+} RoadMapGrid;
+
+typedef struct {
+
+   unsigned int timestamp;
+
+} RoadMapGlobal;
+
+typedef struct {
+
+   int first_longitude;
+   int first_latitude;
 
    int count_longitude;
    int count_latitude;
 
-   int count_squares;  /* Necessary because empty squares have been removed. */
+	int scale_factor;
+} RoadMapScale;
 
-} RoadMapGlobal;
+#define GZM_ENTRY_LEN	8		
+typedef struct {
+	
+	char		name[GZM_ENTRY_LEN];
+	int		offset;
+	int		compressed_size;
+	int		raw_size;
+} RoadMapSquareIndex;
 
 #endif // _ROADMAP_DB_SQUARE__H_
 

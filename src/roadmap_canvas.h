@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -31,6 +32,8 @@
 #define INCLUDE__ROADMAP_CANVAS__H
 
 #include "roadmap_gui.h"
+
+#define MAX_CORDING_POINTS 5
 
 enum { IMAGE_NORMAL,
        IMAGE_SELECTED
@@ -63,7 +66,7 @@ void roadmap_canvas_register_configure_handler
  * It is used to compute the positioning of things on the screen,
  * according to the current font.
  */
-void roadmap_canvas_get_text_extents 
+void roadmap_canvas_get_text_extents
         (const char *text, int size, int *width,
             int *ascent, int *descent, int *can_tilt);
 
@@ -124,6 +127,11 @@ void roadmap_canvas_draw_string  (RoadMapGuiPoint *position,
                                   int corner,
                                   const char *text);
 
+void roadmap_canvas_draw_string_size (RoadMapGuiPoint *position,
+                                 int corner,
+                                 int size,
+                                 const char *text);
+
 void roadmap_canvas_draw_string_angle (const RoadMapGuiPoint *position,
                                        RoadMapGuiPoint *center,
                                        int angle, int size,
@@ -131,7 +139,7 @@ void roadmap_canvas_draw_string_angle (const RoadMapGuiPoint *position,
 
 void roadmap_canvas_draw_multiple_points (int count, RoadMapGuiPoint *points);
 
-void roadmap_canvas_draw_multiple_lines 
+void roadmap_canvas_draw_multiple_lines
          (int count, int *lines, RoadMapGuiPoint *points, int fast_draw);
 
 void roadmap_canvas_draw_multiple_polygons
@@ -142,7 +150,7 @@ void roadmap_canvas_draw_multiple_circles
         (int count, RoadMapGuiPoint *centers, int *radius, int filled,
                 int fast_draw);
 
-
+void roadmap_canvas_draw_rounded_rect(RoadMapGuiPoint *bottom, RoadMapGuiPoint *top, int radius);
 int roadmap_canvas_width (void);
 int roadmap_canvas_height (void);
 
@@ -164,6 +172,9 @@ void roadmap_canvas_image_set_mutable (RoadMapImage src);
 void roadmap_canvas_draw_image (RoadMapImage image, const RoadMapGuiPoint *pos,
                                 int opacity, int mode);
 
+RoadMapImage roadmap_canvas_new_image (int width, int height);
+
+
 void roadmap_canvas_copy_image (RoadMapImage dst_image,
                                 const RoadMapGuiPoint *pos,
                                 const RoadMapGuiRect  *rect,
@@ -173,7 +184,14 @@ void roadmap_canvas_draw_image_text (RoadMapImage image,
                                      const RoadMapGuiPoint *position,
                                      int size, const char *text);
 
+RoadMapImage roadmap_canvas_image_from_buf( unsigned char* buf, int width, int height, int stride );
+
 void roadmap_canvas_free_image (RoadMapImage image);
+
+#ifdef IPHONE
+void roadmap_canvas_get_cording_pt (RoadMapGuiPoint points[MAX_CORDING_POINTS]);
+int roadmap_canvas_is_cording();
+#endif
 
 #endif // INCLUDE__ROADMAP_CANVAS__H
 

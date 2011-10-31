@@ -25,12 +25,11 @@
 #ifndef _NAVIGATE_ZOOM_H_
 #define _NAVIGATE_ZOOM_H_
 
-void navigate_zoom_update (RoadMapPosition *pos,
-                           NavigateSegment *segments,
-                           int current_segment,
-                           const NavigateSegment *last_group_seg,
+void navigate_zoom_update (int distance,
                            int distance_to_prev,
                            int distance_to_next);
+
+int navigate_zoom_get_scale (void);
 
 #endif /* _NAVIGATE_ZOOM_H_ */
 

@@ -32,6 +32,7 @@
 #define RES_SKIN      0x1
 #define RES_NOCACHE   0x2
 #define RES_NOCREATE  0x4
+#define RES_LOCK      0x8
 
 void *roadmap_res_get (unsigned int type, unsigned int flags,
                        const char *name);

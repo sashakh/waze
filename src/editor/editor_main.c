@@ -33,30 +33,29 @@
 #include "../roadmap_plugin.h"
 #include "../roadmap_layer.h"
 #include "../roadmap_locator.h"
-#include "../roadmap_metadata.h"
 #include "../roadmap_messagebox.h"
 
 #include "editor_screen.h"
+#include "editor_bar.h"
 #include "static/update_range.h"
 #include "static/notes.h"
+#include "static/add_alert.h"
 #include "track/editor_track_main.h"
+#include "track/editor_track_report.h"
 #include "track/editor_gps_data.h"
-#include "export/editor_upload.h"
-#include "export/editor_export.h"
 #include "editor_plugin.h"
 #include "db/editor_db.h"
 #include "editor_main.h"
+#include "export/editor_upload.h"
 
 int EditorEnabled = 0;
 int EditorPluginID = -1;
 
-const char *EDITOR_VERSION = "0.10.0 rc5";
+const char *EDITOR_VERSION = "0.11.0";
 
 void editor_main_check_map (void) {
 
    int fips;
-   time_t now_t;
-   time_t map_time_t;
 
    fips = roadmap_locator_active ();
 
@@ -66,16 +65,10 @@ void editor_main_check_map (void) {
 
    if (roadmap_locator_activate (fips) != ROADMAP_US_OK) {
       roadmap_messagebox ("Error.", "Can't load map data.");
-      return;
+      //return;
    }
-
-   now_t = time (NULL);
-   map_time_t = atoi(roadmap_metadata_get_attribute ("Version", "UnixTime"));
-
-   if ((map_time_t + 3600*24) < now_t) {
-      roadmap_messagebox
-         ("Warning", "Your map is not updated. Please synchronize.");
-   }
+   
+   editor_db_activate (fips);
 }
 
 
@@ -88,22 +81,27 @@ void editor_main_initialize (void) {
 
    editor_upload_initialize   ();
    editor_gps_data_initialize ();
-   editor_export_initialize   ();
+   //editor_export_initialize   ();
    editor_screen_initialize   ();
    editor_track_initialize    ();
    update_range_initialize    ();
    editor_notes_initialize    ();
+   add_alert_initialize       ();
 
    EditorPluginID = editor_plugin_register ();
    /* This is due to the WinCE auto sync */
    assert(EditorPluginID == 1);
 
    roadmap_layer_adjust ();
+   editor_bar_initialize();
 }
 
 
 void editor_main_shutdown (void) {
-   editor_gps_data_shutdown ();
+   //editor_gps_data_shutdown ();
+   // temporary hack - lose extra trkseg data
+   //editor_track_report_begin_export ();
+   //editor_track_report_conclude_export (1);
    editor_db_close (roadmap_locator_active ());
 }
 

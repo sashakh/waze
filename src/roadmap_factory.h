@@ -25,19 +25,8 @@
 #define INCLUDE__ROADMAP_FACTORY__H
 
 #include "roadmap_main.h"
+#include "ssd/ssd_contextmenu.h"
 
-
-typedef struct {
-
-   const char *name;
-   const char *label_long;
-   const char *label_short;
-   const char *label_terse;
-   const char *tip;
-
-   RoadMapCallback callback;
-
-} RoadMapAction;
 
 struct RoadMapFactoryKeyMap {
 
@@ -70,6 +59,10 @@ RoadMapMenu roadmap_factory_menu (const char           *name,
 const char **roadmap_factory_user_config (const char *name,
                                           const char *category,
                                           const RoadMapAction *actions);
+
+ssd_contextmenu_ptr roadmap_factory_load_menu(
+                        const char*          filename,
+                        const RoadMapAction* actions);
 
 #endif /* INCLUDE__ROADMAP_FACTORY__H */
 

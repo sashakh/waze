@@ -71,7 +71,7 @@ static void roadmap_crossing_done (RoadMapStreetIntersection *selected) {
         PluginStreet street;
 
         roadmap_plugin_set_line
-           (&line, ROADMAP_PLUGIN_ID, selected->line1, -1, selected->fips);
+           (&line, ROADMAP_PLUGIN_ID, selected->line1, -1, selected->square, selected->fips);
         roadmap_display_activate
            ("Selected Street", &line, &selected->position, &street);
         roadmap_trip_set_point ("Selection", &selected->position);
@@ -152,19 +152,20 @@ static void roadmap_crossing_ok (const char *name, void *data) {
 
    const char *argv[3];
 
-   RoadMapString state;
+   //RoadMapString state;
 
 
    street1_name   = (char *) roadmap_dialog_get_data ("Crossing", "Street 1:");
    street2_name   = (char *) roadmap_dialog_get_data ("Crossing", "Street 2:");
    state_name     = (char *) roadmap_dialog_get_data ("Crossing", "State:");
 
-
+/*
    state = roadmap_locator_get_state (state_name);
    if (state == ROADMAP_INVALID_STRING) {
        roadmap_messagebox ("Warning", "unknown state");
        return;
    }
+*/
 
    if (RoadMapCrossingSelections == NULL) {
        RoadMapCrossingSelections = (RoadMapStreetIntersection *)

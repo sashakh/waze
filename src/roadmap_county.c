@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -49,7 +50,7 @@
 #include "roadmap_county.h"
 
 
-static char RoadMapCountyType[] = "RoadMapCountyType";
+//static char RoadMapCountyType[] = "RoadMapCountyType";
 
 typedef struct {
 
@@ -73,7 +74,7 @@ typedef struct {
 
 static RoadMapCountyContext *RoadMapCountyActive = NULL;
 
-
+#if 0
 static void *roadmap_county_map (roadmap_db *root) {
 
    roadmap_db *county_table;
@@ -168,7 +169,7 @@ roadmap_db_handler RoadMapCountyHandler = {
    roadmap_county_activate,
    roadmap_county_unmap
 };
-
+#endif
 
 int roadmap_county_by_position
        (const RoadMapPosition *position, int *fips, int count) {
@@ -188,14 +189,24 @@ int roadmap_county_by_position
       if (static_fips &&
             (roadmap_locator_activate (static_fips) == ROADMAP_US_OK)) {
 
+/*
          RoadMapArea edges;
          roadmap_square_edges (ROADMAP_SQUARE_GLOBAL, &edges);
+
+         if (position->longitude > edges.east ||
+             position->longitude < edges.west ||
+             position->latitude  > edges.north || 
+             position->latitude  < edges.south) {
+            RoadMapPosition *pos = (RoadMapPosition *)position;
+             pos->longitude = (edges.east + edges.west) / 2;
+             pos->latitude = (edges.north + edges.south) / 2;
+         }
 
          if (position->longitude > edges.east) return 0;
          if (position->longitude < edges.west) return 0;
          if (position->latitude  > edges.north)  return 0;
          if (position->latitude  < edges.south)  return 0;
-
+*/
          fips[0] = static_fips;
          return 1;
       }

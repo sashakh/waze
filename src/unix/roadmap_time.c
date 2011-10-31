@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -28,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 
 #include "roadmap.h"
@@ -45,3 +47,17 @@ char *roadmap_time_get_hours_minutes (time_t gmt) {
 
     return image;
 }
+
+static unsigned long tv_to_msec(struct timeval *tv)
+{
+    return (tv->tv_sec & 0xffff) * 1000 + tv->tv_usec/1000;
+}
+
+uint32_t roadmap_time_get_millis(void) {
+   struct timeval tv;
+
+   gettimeofday(&tv, NULL);
+   return tv_to_msec(&tv);
+
+}
+

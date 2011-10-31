@@ -4,7 +4,7 @@
 # $Author: behdad
 # $Date: 2007/01/07 10:49:09 $
 # $Revision: 1.1 $
-# $Source: /cvsroot/roadmap/roadmap_editor/src/libfribidi/bootstrap,v $
+# $Source: /home/ehud/tmp/sf_cvs/roadmap_editor/src/libfribidi/bootstrap,v $
 ##############################################################################
 #                                               -*- Bootstrap -*-
 # Run this file to produce a configure script.

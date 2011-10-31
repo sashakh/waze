@@ -48,6 +48,7 @@
 #include "../editor_main.h"
 #include "../editor_log.h"
 #include "edit_marker.h"
+#include "../export/editor_report.h"
 
 #include "notes.h"
 
@@ -60,22 +61,24 @@ static const char *yesno[2];
 static RoadMapConfigDescriptor ConfigVoiceLength =
                         ROADMAP_CONFIG_ITEM("Notes", "Recording length");
 
-static int update_range_export(int marker,
-                               const char **description,
-                               const char  *keys[MAX_ATTR],
-                               char        *values[MAX_ATTR],
-                               int         *count) {
+static int note_export(int marker,
+                       const char **name,
+                       const char **description,
+                       const char  *keys[ED_MARKER_MAX_ATTRS],
+                       char        *values[ED_MARKER_MAX_ATTRS],
+                       int         *count) {
    
    *count = 0;
+   *name = NULL;
    *description = editor_marker_note (marker);
    
    return 0;
 }
 
 
-static int update_range_verify(int marker,
-                               unsigned char *flags,
-                               const char **note) {
+static int note_verify(int marker,
+                       unsigned char *flags,
+                       const char **note) {
    return 0;
 }
 
@@ -83,8 +86,8 @@ static int update_range_verify(int marker,
 static int NotesMarkerType;
 static EditorMarkerType NotesMarker = {
    "User note",
-   update_range_export,
-   update_range_verify
+   note_export,
+   note_verify
 };
 
 
@@ -115,9 +118,11 @@ static void notes_dialog_save (const char *name, void *context) {
                           pos->steering,
                           time(NULL),
                           NotesMarkerType,
-                          flags, note) == -1) {
+                          flags, note, NULL) == -1) {
 
       roadmap_messagebox ("Error", "Can't save note.");
+   } else {
+		editor_report_markers ();
    }
 
    roadmap_trip_remove_point ("New note");
@@ -234,7 +239,7 @@ static void notes_add(int mode, RoadMapPosition *point) {
                                     pos.steering,
                                     time(NULL),
                                     NotesMarkerType,
-                                    ED_MARKER_UPLOAD, "")) == -1) {
+                                    ED_MARKER_UPLOAD, "", NULL)) == -1) {
 
       roadmap_messagebox ("Error", "Can't save marker.");
       return;
@@ -253,6 +258,8 @@ static void notes_add(int mode, RoadMapPosition *point) {
          roadmap_log (ROADMAP_FATAL, "Invalid note mode: %d", mode);
          break;
    }
+
+	editor_report_markers ();
 }
 
 

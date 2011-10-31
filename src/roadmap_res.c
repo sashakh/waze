@@ -34,10 +34,12 @@
 #include "roadmap_hash.h"
 #include "roadmap_list.h"
 #include "roadmap_path.h"
+#include "roadmap_lang.h"
+#include "roadmap_prompts.h"
 
 #include "roadmap_res.h"
 
-#define BLOCK_SIZE 100
+#define BLOCK_SIZE 300
 
 const char *ResourceName[] = {
    "bitmap_res",
@@ -81,7 +83,6 @@ static void *load_resource (unsigned int type, unsigned int flags,
       for (cursor = roadmap_path_first ("skin");
             cursor != NULL;
             cursor = roadmap_path_next ("skin", cursor)) {
-
          switch (type) {
             case RES_BITMAP:
                *mem = 0;
@@ -93,24 +94,23 @@ static void *load_resource (unsigned int type, unsigned int flags,
                break;
          }
 
-         if (data) break; 
+         if (data) break;
       }
 
    } else {
 
       const char *user_path = roadmap_path_user ();
-      char *path;
+      char path[512];
       switch (type) {
          case RES_BITMAP:
             *mem = 0;
-            path = roadmap_path_join (user_path, "icons");
+            roadmap_path_format (path, sizeof (path), user_path, "icons");
             data = roadmap_canvas_load_image (path, name);
-            roadmap_path_free (path);
             break;
          case RES_SOUND:
-            path = roadmap_path_join (user_path, "sound");
+            roadmap_path_format (path, sizeof (path), roadmap_path_downloads(), "sound");
+            roadmap_path_format (path, sizeof (path), path, roadmap_prompts_get_name());
             data = roadmap_sound_load (path, name, mem);
-            roadmap_path_free (path);
             break;
       }
    }
@@ -123,26 +123,30 @@ static void free_resource (unsigned int type, int slot) {
 
    void *data = Resources[type].slots[slot].data;
 
-   switch (type) {
-      case RES_BITMAP:
-         roadmap_canvas_free_image ((RoadMapImage)data);
-         break;
-      case RES_SOUND:
-         roadmap_sound_free ((RoadMapSound)data);
-         break;
+   if (data) {
+      switch (type) {
+         case RES_BITMAP:
+            roadmap_canvas_free_image ((RoadMapImage)data);
+            break;
+         case RES_SOUND:
+            roadmap_sound_free ((RoadMapSound)data);
+            break;
+      }
    }
 
    free (Resources[type].slots[slot].name);
 }
 
 
-static void *find_resource (unsigned int type, const char *name) {
+static void *find_resource (unsigned int type, const char *name, int* found) {
    int hash;
    int i;
    RoadMapResource *res = &Resources[type];
 
+   *found = FALSE;
+
    if (!res->count) return NULL;
-   
+
    hash = roadmap_hash_string (name);
 
    for (i = roadmap_hash_get_first (res->hash, hash);
@@ -150,7 +154,7 @@ static void *find_resource (unsigned int type, const char *name) {
         i = roadmap_hash_get_next (res->hash, i)) {
 
       if (!strcmp(name, res->slots[i].name)) {
-         
+         *found = TRUE;
          return res->slots[i].data;
       }
    }
@@ -162,35 +166,55 @@ static void *find_resource (unsigned int type, const char *name) {
 void *roadmap_res_get (unsigned int type, unsigned int flags,
                        const char *name) {
 
-   void *data;
+   void *data = NULL;
    int mem;
    RoadMapResource *res = &Resources[type];
 
+   if (name == NULL)
+   	return NULL;
+
    if (! (flags & RES_NOCACHE)) {
-      data = find_resource (type, name);
+      int found;
+      data = find_resource (type, name, &found);
 
-      if (data) return data;
-
-      if (!Resources[type].count) allocate_resource (type);
+      if (found) return data;
+      if (Resources[type].slots == NULL) allocate_resource (type);
 
       //TODO implement grow (or old deletion)
-      if (Resources[type].count == Resources[type].max) return NULL;
+      if (Resources[type].count == Resources[type].max){
+       	roadmap_log (ROADMAP_ERROR, "roadmap_res_get:%s table is full",name);
+      	return NULL;
+      }
    }
 
    if (flags & RES_NOCREATE) return NULL;
 
    switch (type) {
    case RES_BITMAP:
-      if (strchr (name, '.')) {
-         data = load_resource (type, flags, name, &mem);
-      } else {
-         char *full_name = malloc (strlen (name) + 5);
-         sprintf(full_name, "%s.png", name);
-         data = load_resource (type, flags, full_name, &mem);
-         if (!data) {
-            sprintf(full_name, "%s.bmp", name);
+      if ( strchr (name, '.') )
+      {
+     	 if ( !data )
+     	 {
+     		 data = load_resource( type, flags, name, &mem );
+     	 }
+      }
+      else
+      {
+    	 char *full_name = malloc (strlen (name) + 5);
+    	 data = NULL;
+    	 /* Try PNG */
+    	 if ( !data )
+    	 {
+    		 sprintf( full_name, "%s.png", name );
+    		 data = load_resource (type, flags, full_name, &mem);
+    	 }
+    	 /* Try BIN */
+         if ( !data )
+         {
+            sprintf( full_name, "%s.bin", name );
             data = load_resource (type, flags, full_name, &mem);
          }
+
          free (full_name);
       }
       break;
@@ -199,8 +223,11 @@ void *roadmap_res_get (unsigned int type, unsigned int flags,
       data = load_resource (type, flags, name, &mem);
    }
 
-   if (!data) return NULL;
-
+   if (!data) {
+   	if (type != RES_SOUND)
+   		roadmap_log (ROADMAP_ERROR, "roadmap_res_get - resource %s type=%d not found.", name, type);
+   	return NULL;
+   }
    if (flags & RES_NOCACHE) return data;
 
    res->slots[res->count].data = data;
@@ -219,14 +246,18 @@ void roadmap_res_shutdown (void) {
    int type;
 
    for (type=0; type<MAX_RESOURCES; type++) {
-
+      RoadMapResource *res = &Resources[type];
       int i;
 
       for (i=0; i<Resources[type].count; i++) {
 
          free_resource (type, i);
       }
+      
+      if (res->slots)
+         free(res->slots);
    }
+   
 }
 
 

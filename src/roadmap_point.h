@@ -26,6 +26,72 @@
 
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
+#include "roadmap_square.h"
+#include "roadmap_db_point.h"
+
+typedef struct RoadMapPointContext_t {
+
+   char *type;
+
+   RoadMapPoint *Point;
+   int           PointCount;
+
+   int *PointID;
+   int  PointIDCount;
+
+} RoadMapPointContext;
+
+extern RoadMapPointContext *RoadMapPointActive;
+
+#ifndef J2ME
+extern int point_cache_square;
+extern int point_cache_scale_factor;
+extern int point_cache_square_position_x;
+extern int point_cache_square_position_y;
+#endif
+
+#if defined(FORCE_INLINE) || defined(DECLARE_ROADMAP_POINT)
+#if !defined(INLINE_DEC)
+#define INLINE_DEC
+#endif
+
+INLINE_DEC void roadmap_point_position
+                     (int point, RoadMapPosition *position) {
+
+   RoadMapPoint *Point;
+
+   int point_id = point & POINT_REAL_MASK;
+
+#ifdef J2ME
+   Point = RoadMapPointActive->Point + point_id;
+   position->longitude = Point->longitude;
+   position->latitude  = Point->latitude;
+
+#else   
+   int point_square = roadmap_square_active (); //(point >> 16) & 0xffff;
+
+#ifdef DEBUG
+   if (point_id < 0 || point_id >= RoadMapPointActive->PointCount) {
+    		roadmap_log (ROADMAP_FATAL, "invalid point index %d", point_id);      
+   }
+#endif
+
+   if  (point_cache_square != point_square) {
+
+      RoadMapPosition square_position;
+      point_cache_square = point_square;
+      roadmap_square_min (point_square, &square_position);
+      point_cache_square_position_x = square_position.longitude;
+      point_cache_square_position_y = square_position.latitude;
+      point_cache_scale_factor = roadmap_square_current_scale_factor ();
+   }
+
+   Point = RoadMapPointActive->Point + point_id;
+   position->longitude = point_cache_square_position_x + Point->longitude * point_cache_scale_factor;
+   position->latitude  = point_cache_square_position_y  + Point->latitude * point_cache_scale_factor;
+#endif
+}
+#endif // inline
 
 int  roadmap_point_in_square (int square, int *first, int *last);
 void roadmap_point_position  (int point, RoadMapPosition *position);

@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -23,6 +24,14 @@
 
 #ifndef INCLUDED__ROADMAP_TYPES__H
 #define INCLUDED__ROADMAP_TYPES__H
+
+#if !defined(_WIN32) || defined(__SYMBIAN32__)
+#ifdef __cplusplus
+   #define EXTERN_C extern "C"
+#else
+   #define EXTERN_C
+#endif
+#endif   // ~EXTERN_C
 
 #define ROADMAP_INVALID_STRING ((unsigned short) -1)
 
@@ -50,6 +59,21 @@ typedef struct {
    int south;
 } RoadMapArea;
 
+/***** Screen types and categories definition *****/
+#define RM_SCREEN_TYPE_CATEGORY_SD 	0x0000FFFF		/* Standard definition */
+#define RM_SCREEN_TYPE_CATEGORY_HD 	0x0001FFFF		/* High definition	   */
+
+#define RM_SCREEN_TYPE_SD_GENERIC 		0x00000000
+#define RM_SCREEN_TYPE_QVGA			 	0x00000001
+#define RM_SCREEN_TYPE_HVGA			 	0x00000002
+#define RM_SCREEN_TYPE_VGA			 	0x00000003
+
+#define RM_SCREEN_TYPE_HD_GENERIC		0x00010000
+#define RM_SCREEN_TYPE_WVGA640		 	0x00010001
+#define RM_SCREEN_TYPE_WVGA800		 	0x00010002
+#define RM_SCREEN_TYPE_WVGA854		 	0x00010003
+/**************************************************/
+
 typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 
 /* The cfcc category codes: */
@@ -67,7 +91,7 @@ typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 #define ROADMAP_ROAD_STREET      7
 #define ROADMAP_ROAD_PEDESTRIAN  8
 #define ROADMAP_ROAD_4X4         9
-#define ROADMAP_ROAD_TRAIL      10 
+#define ROADMAP_ROAD_TRAIL      10
 #define ROADMAP_ROAD_WALKWAY    11
 
 #define ROADMAP_ROAD_LAST       11
@@ -81,7 +105,7 @@ typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 #define ROADMAP_AREA_HOSPITAL   13
 #define ROADMAP_AREA_AIRPORT    14
 #define ROADMAP_AREA_STATION    15
-#define ROADMAP_AREA_MALL       16
+#define ROADMAP_AREA_CITY       16
 
 #define ROADMAP_AREA_LAST       16
 
@@ -98,6 +122,19 @@ typedef void (*RoadMapShapeItr) (int shape, RoadMapPosition *position);
 #define ROADMAP_WATER_LAST      20
 
 #define ROADMAP_CATEGORY_RANGE  20
+
+/* flags for fake (on tile border) points */
+
+#define POINT_FAKE_FLAG				0x8000
+#define POINT_REAL_MASK				0x7FFF
+
+enum {
+	ROADMAP_DIRECTION_EAST,
+	ROADMAP_DIRECTION_NORTH,
+	ROADMAP_DIRECTION_WEST,
+	ROADMAP_DIRECTION_SOUTH,
+	ROADMAP_DIRECTION_COUNT
+};
 
 #endif // INCLUDED__ROADMAP_TYPES__H
 

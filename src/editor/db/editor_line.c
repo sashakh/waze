@@ -40,10 +40,14 @@
 #include "roadmap_shape.h"
 #include "roadmap_street.h"
 #include "roadmap_math.h"
+#include "roadmap_line_route.h"
 #include "roadmap_navigate.h"
+#include "roadmap_tile.h"
+#include "roadmap_tile_manager.h"
 
 #include "../editor_log.h"
 #include "../editor_main.h"
+#include "../editor_bar.h"
 
 #include "editor_db.h"
 #include "editor_point.h"
@@ -52,120 +56,72 @@
 #include "editor_shape.h"
 #include "editor_square.h"
 #include "editor_street.h"
-#include "editor_route.h"
 #include "editor_override.h"
 
+typedef struct {
+	RoadMapPosition	last_position;
+	int					first_shape;
+	int					last_shape;
+} editor_line_copy_points;
+
+
 static editor_db_section *ActiveLinesDB;
-static editor_db_section *ActiveLinesDelDB;
 
-static void editor_lines_activate (void *context) {
-   ActiveLinesDB = (editor_db_section *) context;
+static void editor_lines_activate (editor_db_section *context) {
+   ActiveLinesDB = context;
 }
 
-static void editor_lines_del_activate (void *context) {
-   ActiveLinesDelDB = (editor_db_section *) context;
-}
-
-roadmap_db_handler EditorLinesHandler = {
-   "lines",
-   editor_map,
-   editor_lines_activate,
-   editor_unmap
+editor_db_handler EditorLinesHandler = {
+   EDITOR_DB_LINES,
+   sizeof (editor_db_line),
+   1,
+   editor_lines_activate
 };
 
-roadmap_db_handler EditorLinesDelHandler = {
-   "lines_del",
-   editor_map,
-   editor_lines_del_activate,
-   editor_unmap
-};
 
-#if 0
-int editor_line_del_add (int line_id, int cfcc) {
+static void editor_line_set_modification_time (editor_db_line *line_db) {
 
-   int id = editor_db_add_item (ActiveLinesDelDB, &line_id);
-
-   if (id == -1) {
-      editor_db_grow ();
-      id = editor_db_add_item (ActiveLinesDelDB, &line_id);
-   }
-
-   if (id != -1) {
-      editor_db_mark_cfcc (cfcc);
-   }
-
-   return id;
+	int time_now = (int)roadmap_navigate_get_time ();
+	if (time_now > line_db->update_timestamp)
+		line_db->update_timestamp = (time_t)time_now;	
 }
 
 
-void editor_line_del_remove (int line_id) {
-
-   int *line_db =
-         (int *) editor_db_get_item
-              (ActiveLinesDelDB, line_id, 0, NULL);
-
-   assert (line_db != NULL);
-   *line_db = -1;
-}
-
-
-int editor_line_del_find (int line_id, int cfcc) {
-   
-   int count;
-   int i;
-   
-   if (cfcc > 0 && !editor_db_is_cfcc_marked (cfcc)) return 0;
-
-   count = editor_db_get_item_count (ActiveLinesDelDB);
-   
-   for (i=0; i<count; i++) {
-
-      if (line_id == *(int *)editor_db_get_item
-                              (ActiveLinesDelDB, i, 0, NULL)) {
-         return 1;
-      }
-   }
-
-   return 0;
-}
-#endif
- 
 int editor_line_add
          (int p_from,
           int p_to,
           int trkseg,
           int cfcc,
+          int direction,
+          int street,
           int flags) {
 
    editor_db_line line;
    int id;
+   time_t update_time = roadmap_navigate_get_time ();
 
+	line.update_timestamp = (int)update_time;
    line.point_from = p_from;
    line.point_to = p_to;
 
-   line.first_trkseg = line.last_trkseg = trkseg;
+   line.trkseg = trkseg;
 
    line.cfcc = cfcc;
    line.flags = flags;
 
-   line.street = -1;
-   line.range = -1;
-   line.route = -1;
+   line.street = street;
+   line.direction = direction;
 
-   id = editor_db_add_item (ActiveLinesDB, &line);
-
-   if (id == -1) {
-      editor_db_grow ();
-      id = editor_db_add_item (ActiveLinesDB, &line);
-   }
+   id = editor_db_add_item (ActiveLinesDB, &line, 1);
 
    if (id == -1) return -1;
    assert (editor_line_length (id) > 0);
 
    if (editor_line_length (id) == 0) return -1;
 
-   editor_square_add_line (id, p_from, p_to, trkseg, cfcc);
-
+   editor_bar_set_temp_length(0);
+   editor_bar_set_length(editor_line_length (id));
+   
    editor_log
       (ROADMAP_INFO,
        "Adding new line - from:%d, to:%d, trkseg:%d, cfcc:%d, flags:%d",
@@ -191,10 +147,13 @@ void editor_line_get (int line,
    line_db = (editor_db_line *) editor_db_get_item
                            (ActiveLinesDB, line, 0, NULL);
 
+	assert (line_db);
+	if (!line_db) return;
+	
    if (from) editor_point_position (line_db->point_from, from);
    if (to) editor_point_position (line_db->point_to, to);
 
-   if (trkseg) *trkseg = line_db->first_trkseg;
+   if (trkseg) *trkseg = line_db->trkseg;
    if (cfcc) *cfcc = line_db->cfcc;
    if (flags) *flags = line_db->flags;
 }
@@ -207,8 +166,11 @@ void editor_line_get_points (int line, int *from, int *to) {
    line_db = (editor_db_line *) editor_db_get_item
                            (ActiveLinesDB, line, 0, NULL);
 
-   *from = line_db->point_from;
-   *to = line_db->point_to;
+	assert (line_db);
+	if (!line_db) return;
+
+   if (from) *from = line_db->point_from;
+   if (to) *to = line_db->point_to;
 }
 
 
@@ -227,313 +189,43 @@ void editor_line_modify_properties (int line,
 
    line_db->cfcc = cfcc;
    line_db->flags = flags;
+   
+	editor_line_set_modification_time (line_db);
+   editor_db_update_item (ActiveLinesDB, line);
 }
 
 
-int editor_line_copy (int line, int cfcc, int fips) {
+void editor_line_set_flag (int line, int flag) {
 
-   int p_from, p_to;
-   int trkseg_from;
-   RoadMapPosition pos;
-   int trkseg;
-   int j;
-   int square;
-   int first;
-   int last;
-   int editor_first_shape = -1;
-   int editor_last_shape = -2;
-   int line_id;
    editor_db_line *line_db;
 
-   editor_log_push ("editor_line_copy");
-
-   roadmap_locator_activate (fips);
-
-   if (editor_override_line_set_flags (line,
-            editor_override_line_get_flags (line)|ED_LINE_DELETED)) {
-      editor_log (ROADMAP_ERROR, "Can't override roadmap line.");
-      editor_log_pop ();
-      return -1;
-   }
-
-   roadmap_line_points (line, &p_from, &p_to);
-   p_from = editor_point_roadmap_to_editor (p_from);
-   p_to = editor_point_roadmap_to_editor (p_to);
-
-   if ((p_from == -1) || (p_to == -1)) {
-      editor_log (ROADMAP_ERROR, "Can't copy points.");
-      editor_log_pop ();
-      return -1;
-   }
-
-   roadmap_line_from (line, &pos);
-   trkseg_from = editor_point_add (&pos, 0, -1);
-
-   if (trkseg_from == -1) {
-      editor_log (ROADMAP_ERROR, "Can't create points.");
-      editor_log_pop ();
-      return -1;
-   }
-         
-   square = roadmap_square_search (&pos);
-
-   //TODO get avg speed and compute time for this trkseg
-   if ((square >= 0) &&
-         (roadmap_line_shapes (line, square, &first, &last) > 0)) {
-
-      RoadMapPosition shape_pos;
-
-      shape_pos = pos;
-
-      for (j = first; j <= last; j++) {
-               
-         roadmap_shape_get_position (j, &shape_pos);
-         editor_last_shape =
-               editor_shape_add
-                        (shape_pos.longitude - pos.longitude,
-                         shape_pos.latitude - pos.latitude,
-                         -1);
-
-         if (editor_last_shape == -1) {
-            editor_log
-               (ROADMAP_ERROR,
-                "Can't create new shape. Line creation is aborted.");
-            editor_log_pop ();
-            return -1;
-         }
-
-         if (editor_first_shape == -1) {
-            editor_first_shape = editor_last_shape;
-         }
-
-         pos = shape_pos;
-      }
-   }
-         
-   trkseg = editor_trkseg_add
-            (-1,
-             EditorPluginID,
-             trkseg_from,
-             editor_first_shape,
-             editor_last_shape,
-             -1,
-             -1,
-             ED_TRKSEG_FAKE|ED_TRKSEG_NO_GLOBAL);
-
-   if (trkseg == -1) {
-      editor_log_pop ();
-      return -1;
-   }
-
-   line_id = editor_line_add
-            (p_from, p_to, trkseg, cfcc, 0);
-
-   if (line_id == -1) {
-      editor_log_pop ();
-      return -1;
-   }
-
    line_db = (editor_db_line *) editor_db_get_item
-                           (ActiveLinesDB, line_id, 0, NULL);
+                           (ActiveLinesDB, line, 0, NULL);
 
-   j = editor_trkseg_dup (trkseg);
-   if (j == -1) {
-      editor_log_pop ();
-      return -1;
-   }
+   assert (line_db != NULL);
 
-   editor_trkseg_connect_roads (trkseg, j);
-   editor_trkseg_set_line (line_db->first_trkseg, line_id, EditorPluginID);
+   if (line_db == NULL) return;
 
-   /* Add roadmap line trksegs to copied line */
-   editor_override_line_get_trksegs (line, &first, &last);
-
-   if (first != -1) {
-      editor_trkseg_set_line (first, line_id, EditorPluginID);
-      line_db->last_trkseg = last;
-      editor_trkseg_connect_roads (j, first);
-   } else {
-      line_db->last_trkseg = j;
-   }
-
-   line_db->first_trkseg = trkseg;
-
-   editor_route_segment_copy (line, ROADMAP_PLUGIN_ID, line_id);
-   editor_street_copy_street (line, ROADMAP_PLUGIN_ID, line_id);
-   editor_street_copy_range (line, ROADMAP_PLUGIN_ID, line_id);
-
-   //TODO: copy street
-
-   editor_log (ROADMAP_INFO, "Copied roadmap line:%d as editor line:%d",
-         line, line_id);
-
-   editor_log_pop ();
-   return line_id;
+	line_db->flags = line_db->flags | flag;
+	editor_line_set_modification_time (line_db);
+   editor_db_update_item (ActiveLinesDB, line);
 }
 
 
-int editor_line_split (PluginLine *line,
-                       RoadMapPosition *previous_point, 
-                       RoadMapPosition *split_position,
-                       int *split_point) {
-
-   RoadMapPosition from;
-   RoadMapPosition to;
-   EditorStreetProperties properties;
-   int i;
-   int line_id;
-   int new_point;
-   int new_line_id;
+void editor_line_reset_flag (int line, int flag) {
+	
    editor_db_line *line_db;
-   int azymuth;
-   int lines[2];
-
-   int trkseg;
-   int new_trkseg_first;
-   int new_trkseg_curr;
-   int old_trkseg_first;
-   int old_trkseg_curr;
-
-   int cfcc = line->cfcc;
-
-   editor_log_push ("editor_line_split");
-
-   if (roadmap_plugin_get_id (line) != EditorPluginID) {
-
-      line_id = editor_line_copy
-                     (line->line_id, cfcc, line->fips);
-
-      if (line_id == -1) {
-         editor_log (ROADMAP_ERROR, "Can't split line. Line copy failed.");
-         editor_log_pop ();
-         return -1;
-      }
-
-      roadmap_plugin_set_line (line, EditorPluginID, line_id, cfcc, line->fips);
-   } else {
-      line_id = roadmap_plugin_get_line_id (line);
-   }
 
    line_db = (editor_db_line *) editor_db_get_item
-                           (ActiveLinesDB, line_id, 0, NULL);
+                           (ActiveLinesDB, line, 0, NULL);
 
-   editor_point_position (line_db->point_from, &from);
-   editor_point_position (line_db->point_to, &to);
+   assert (line_db != NULL);
 
-   if (*split_point != -1) {
-      new_point = *split_point;
-   } else {
-      *split_point = new_point = editor_point_add (split_position, 0, -1);
+   if (line_db == NULL) return;
 
-      if (new_point == -1) {
-         editor_log (ROADMAP_ERROR, "Can't split line. Add point failed.");
-         editor_log_pop ();
-         return -1;
-      }
-   }
-
-   /* split trksegs */
-   trkseg = line_db->first_trkseg;
-   new_trkseg_first = new_trkseg_curr = -1;
-   old_trkseg_first = old_trkseg_curr = -1;
-
-   while (trkseg != -1) {
-      int new_trkseg_prev = new_trkseg_curr;
-      int old_trkseg_prev = old_trkseg_curr;
-      int trkseg_flags;
-      int global_next;
-      int new_trkseg;
-
-      editor_trkseg_get (trkseg, NULL, NULL, NULL, &trkseg_flags);
-
-      new_trkseg =
-         editor_trkseg_split (trkseg, &from, &to, split_position);
-
-      if (trkseg_flags & ED_TRKSEG_OPPOSITE_DIR) {
-         old_trkseg_curr = new_trkseg;
-         new_trkseg_curr = trkseg;
-      } else {
-         old_trkseg_curr = trkseg;
-         new_trkseg_curr = new_trkseg;
-      }
-
-      if (new_trkseg_first == -1) {
-         new_trkseg_first = new_trkseg_curr;
-      } else {
-         editor_trkseg_connect_roads (new_trkseg_prev, new_trkseg_curr);
-      }
-
-      if (old_trkseg_first == -1) {
-         old_trkseg_first = old_trkseg_curr;
-      } else {
-         editor_trkseg_connect_roads (old_trkseg_prev, old_trkseg_curr);
-      }
-
-      global_next = editor_trkseg_next_in_global (trkseg);
-      editor_trkseg_connect_global (trkseg, new_trkseg);
-      editor_trkseg_connect_global (new_trkseg, global_next);
-
-      trkseg = editor_trkseg_next_in_road (trkseg);
-   }
-    
-   new_line_id =
-      editor_line_add
-         (new_point, line_db->point_to, 
-          new_trkseg_first,
-          line_db->cfcc, line_db->flags);
-
-   if (new_line_id == -1) {
-      editor_log (ROADMAP_ERROR, "Can't create new line.");
-      editor_log_pop ();
-      return -1;
-   }
-
-   line_db->point_to = new_point;
-   line_db->flags |= ED_LINE_EXPLICIT_SPLIT;
-
-   editor_trkseg_set_line (new_trkseg_first, new_line_id, EditorPluginID);
-   editor_line_set_trksegs (new_line_id, new_trkseg_first, new_trkseg_curr);
-   editor_trkseg_set_line (old_trkseg_first, line_id, EditorPluginID);
-   editor_line_set_trksegs (line_id, old_trkseg_first, old_trkseg_curr);
-
-   editor_route_segment_copy (line_id, EditorPluginID, new_line_id);
-   editor_street_copy_street (line_id, EditorPluginID, new_line_id);
-
-   editor_street_get_properties (line_id, &properties);
-
-   if (properties.range_id != -1) {
-      int l_from, l_to, r_from, r_to;
-
-      editor_street_copy_range (line_id, 1, new_line_id);
-      editor_street_get_street_range
-         (&properties, ED_STREET_LEFT_SIDE, &l_from, &l_to);
-      editor_street_get_street_range
-         (&properties, ED_STREET_RIGHT_SIDE, &r_from, &r_to);
-
-      lines[0] = line_id;
-      lines[1] = new_line_id;
-      editor_street_distribute_range (lines, 2, l_from, l_to, r_from, r_to);
-   }
-
-   editor_log (ROADMAP_INFO, "split %d, to %d & %d", line_id,
-         line_id, new_line_id);
-
-   azymuth = roadmap_math_azymuth (previous_point, split_position);
-
-   if (roadmap_math_delta_direction
-         (azymuth, roadmap_math_azymuth (&from, split_position)) >
-       roadmap_math_delta_direction
-         (azymuth, roadmap_math_azymuth (&to, split_position))) {
-
-      i = line_id;
-      line->line_id = new_line_id;
-      new_line_id = 1;
-   }
-
-   editor_log (ROADMAP_INFO, "current line: %d", line_id);
-
-   editor_log_pop ();
-   return new_line_id;
+	line_db->flags = line_db->flags & ~flag;
+	editor_line_set_modification_time (line_db);
+   editor_db_update_item (ActiveLinesDB, line);
 }
 
 
@@ -551,7 +243,7 @@ int editor_line_length (int line) {
    line_db = (editor_db_line *) editor_db_get_item
                            (ActiveLinesDB, line, 0, NULL);
 
-   editor_trkseg_get (line_db->first_trkseg,
+   editor_trkseg_get (line_db->trkseg,
                       &trk_from, &first_shape, &last_shape, NULL);
 
    editor_point_position (line_db->point_from, &p1);
@@ -575,8 +267,7 @@ int editor_line_length (int line) {
 
 
 int editor_line_get_street (int line,
-                            int *street,
-                            int *range) {
+                            int *street) {
 
    editor_db_line *line_db;
 
@@ -587,15 +278,13 @@ int editor_line_get_street (int line,
    if (line_db == NULL) return -1;
 
    if (street != NULL) *street = line_db->street;
-   if (range != NULL) *range = line_db->range;
 
    return 0;
 }
 
 
 int editor_line_set_street (int line,
-                            int *street,
-                            int *range) {
+                            int street) {
 
    editor_db_line *line_db;
 
@@ -605,67 +294,43 @@ int editor_line_set_street (int line,
 
    if (line_db == NULL) return -1;
 
-   if (street != NULL) line_db->street = *street;
-   if (range != NULL) line_db->range = *range;
+   line_db->street = street;
+
+	editor_line_set_modification_time (line_db);
+   return editor_db_update_item (ActiveLinesDB, line);
+}
+
+
+int editor_line_get_direction (int line, int *direction) {
+
+   editor_db_line *line_db;
+
+   line_db =
+      (editor_db_line *) editor_db_get_item
+         (ActiveLinesDB, line, 0, NULL);
+
+   if (line_db == NULL) return -1;
+
+   if (direction != NULL) *direction = line_db->direction;
 
    return 0;
 }
 
 
-int editor_line_get_route (int line) {
+int editor_line_set_direction (int line, int direction) {
+
    editor_db_line *line_db;
 
    line_db =
-      (editor_db_line *) editor_db_get_item (ActiveLinesDB, line, 0, NULL);
+      (editor_db_line *) editor_db_get_item
+         (ActiveLinesDB, line, 0, NULL);
 
    if (line_db == NULL) return -1;
 
-   return line_db->route;
-}
+   line_db->direction = direction;
 
-
-int editor_line_set_route (int line, int route) {
-   editor_db_line *line_db;
-
-   line_db =
-      (editor_db_line *) editor_db_get_item (ActiveLinesDB, line, 0, NULL);
-
-   if (line_db == NULL) return -1;
-
-   line_db->route = route;
-
-   return 0;
-}
-
-
-void editor_line_get_trksegs (int line, int *first, int *last) {
-   editor_db_line *line_db;
-
-   line_db =
-      (editor_db_line *) editor_db_get_item (ActiveLinesDB, line, 0, NULL);
-
-   if (line_db == NULL) {
-      *first = *last = -1;
-      return;
-   }
-
-   *first = line_db->first_trkseg;
-   *last = line_db->last_trkseg;
-}
-
-
-void editor_line_set_trksegs (int line, int first, int last) {
-   editor_db_line *line_db;
-
-   line_db =
-      (editor_db_line *) editor_db_get_item (ActiveLinesDB, line, 0, NULL);
-
-   if (line_db == NULL) {
-      return;
-   }
-
-   line_db->first_trkseg = first;
-   line_db->last_trkseg = last;
+	editor_line_set_modification_time (line_db);
+   return editor_db_update_item (ActiveLinesDB, line);
 }
 
 
@@ -679,7 +344,7 @@ int editor_line_get_cross_time (int line, int direction) {
                            (ActiveLinesDB, line, 0, NULL);
 
    editor_trkseg_get_time
-      (line_db->first_trkseg, &start_time, &end_time);
+      (line_db->trkseg, &start_time, &end_time);
 
    if (start_time == end_time) return -1;
 
@@ -687,9 +352,134 @@ int editor_line_get_cross_time (int line, int direction) {
 }
 
 
+int editor_line_get_timestamp (int line_id) {
+	
+   editor_db_line *line_db;
+
+   line_db =
+      (editor_db_line *) editor_db_get_item
+         (ActiveLinesDB, line_id, 0, NULL);
+
+   if (line_db == NULL) return -1;
+
+   return line_db->update_timestamp;
+}
+
+
+int editor_line_is_valid (int line_id) {
+	
+   editor_db_line *line_db;
+
+   line_db =
+      (editor_db_line *) editor_db_get_item
+         (ActiveLinesDB, line_id, 0, NULL);
+
+   if (line_db == NULL) return 0;
+
+   return !(line_db->flags & ED_LINE_DELETED);
+}
+
+
+void editor_line_invalidate (int line_id) {
+
+	editor_line_set_flag (line_id, ED_LINE_DELETED);
+}
+
+
+static int editor_line_interpolate_request_tiles (int from_tile, int to_tile, 
+																	RoadMapPosition *from_pos, RoadMapPosition *to_pos,
+																	int min_update) {
+
+	int mid_tile;
+	RoadMapPosition mid_pos;
+   int tile_update;
+	
+	if (roadmap_tile_is_adjacent (from_tile, to_tile)) {
+		return min_update;
+	}
+
+	mid_pos.longitude = (from_pos->longitude + to_pos->longitude) / 2;
+	mid_pos.latitude = (from_pos->latitude + to_pos->latitude) / 2;
+	if ((mid_pos.longitude == from_pos->longitude && mid_pos.latitude == from_pos->latitude) ||
+		 (mid_pos.longitude == to_pos->longitude && mid_pos.latitude == to_pos->latitude)) {
+		 return min_update;
+	}
+	mid_tile = roadmap_tile_get_id_from_position (0, &mid_pos);
+	if (mid_tile != from_tile && mid_tile != to_tile) {
+		roadmap_tile_request (mid_tile, 0, 1, NULL);
+		tile_update = (int)roadmap_square_timestamp (mid_tile);
+		if (tile_update < min_update) {
+			min_update = tile_update;
+		}
+	}
+	if (mid_tile != from_tile) {
+		min_update = editor_line_interpolate_request_tiles (from_tile, mid_tile, from_pos, &mid_pos, min_update);
+	}																	
+	if (mid_tile != to_tile) {
+		min_update = editor_line_interpolate_request_tiles (mid_tile, to_tile, &mid_pos, to_pos, min_update);
+	}
+	
+	return min_update;
+}
+
+
+int editor_line_get_update_time (int line_id) {
+
+   RoadMapPosition pos;
+   RoadMapPosition last_pos;
+   int shape;
+   int last_tile = -1;
+   int tile;
+   editor_db_line *line_db;
+   int min_update = 0x7fffffff;
+   int tile_update;
+   int first_shape;
+   int last_shape;
+   int from_point;
+
+   line_db =
+      (editor_db_line *) editor_db_get_item
+         (ActiveLinesDB, line_id, 0, NULL);
+
+   if (line_db == NULL) return min_update;
+	
+	editor_trkseg_get (line_db->trkseg, &from_point, &first_shape, &last_shape, NULL);
+	if (first_shape == -1) {
+		last_shape = -1;
+	}
+	for (shape = first_shape - 1; shape <= last_shape; shape++) {
+		if (shape == -2) {
+			editor_point_position (line_db->point_from, &pos);
+		} else if (shape < first_shape) {
+			editor_point_position (from_point, &pos);
+		} else if (shape >= 0) {
+			editor_shape_position (shape, &pos);
+		} else {
+			editor_point_position (line_db->point_to, &pos);
+		}
+		
+		tile = roadmap_tile_get_id_from_position (0, &pos);
+		if (tile != last_tile) {
+			roadmap_tile_request (tile, 0, 1, NULL);
+			tile_update = (int)roadmap_square_timestamp (tile);
+			if (tile_update < min_update) {
+				min_update = tile_update;
+			}
+			if (last_tile != -1) {
+				min_update = editor_line_interpolate_request_tiles (last_tile, tile, &last_pos, &pos, min_update);
+			}
+			last_tile = tile;
+		}
+		last_pos = pos;
+	}
+	
+	return min_update;
+}
+
+
 int editor_line_get_count (void) {
    
-   return ActiveLinesDB->num_items;
+   return editor_db_get_item_count (ActiveLinesDB);
 }
 
 
@@ -704,6 +494,124 @@ int editor_line_mark_dirty (int line_id) {
 
    line_db->flags |= ED_LINE_DIRTY;
 
-   return 0;
+	editor_line_set_modification_time (line_db);
+   return editor_db_update_item (ActiveLinesDB, line_id);
 }
+
+
+int editor_line_committed (int line_id) {
+	
+	return editor_db_item_committed (ActiveLinesDB, line_id);	
+}
+
+
+int editor_line_begin_commit (void) {
+
+	return editor_db_begin_commit (ActiveLinesDB);	
+}
+
+
+void editor_line_confirm_commit (int id) {
+
+	editor_db_confirm_commit (ActiveLinesDB, id);	
+}
+
+
+int editor_line_items_pending (void) {
+
+	return editor_db_items_pending (ActiveLinesDB);	
+}
+
+
+static void add_point (editor_line_copy_points *copy_points, RoadMapPosition *position) {
+
+	int delta_lon = position->longitude - copy_points->last_position.longitude;
+	int delta_lat = position->latitude - copy_points->last_position.latitude;
+	int shape_id;
+	
+	if (delta_lon == 0 && delta_lat == 0) return;
+	
+	shape_id = editor_shape_add (0, delta_lon, delta_lat, -1);
+	
+	if (copy_points->first_shape == -1) {
+		copy_points->first_shape = shape_id;
+	}
+	copy_points->last_shape = shape_id;
+	copy_points->last_position = *position;
+}
+
+
+static int handle_segment (const PluginLine *line, void *context, int extend_flags) {
+	
+	editor_line_copy_points		*copy_points = (editor_line_copy_points *)context;
+	RoadMapPosition				from;
+	RoadMapPosition				to;
+	int								first;
+	int								last;
+	RoadMapShapeItr				itr;
+	int								shape;
+	
+	roadmap_plugin_get_line_points (line, &from, &to, &first, &last, &itr);
+	add_point (copy_points, &from);
+
+	if (first >= 0) {
+		for (shape = first; shape <= last; shape++) {
+			if (itr)
+				itr (shape, &from);
+			else
+				roadmap_shape_get_position (shape, &from);
+			add_point (copy_points, &from);
+		}
+	} 
+	
+	return 0;
+} 
+
+
+int editor_line_copy (PluginLine *line, int street) {
+
+	editor_line_copy_points		copy_points;
+	RoadMapPosition				from_pos;
+	RoadMapPosition				to_pos;
+	int								trkseg;
+	int								from_point;
+	int								to_point;
+	int								line_id;
+	int								direction;
+	int								id_from;
+	int								id_to;
+		
+	// collect shape points for trkseg
+	roadmap_plugin_line_from (line, &copy_points.last_position);
+	copy_points.first_shape = -1;
+	copy_points.last_shape = -1; 
+	
+	// we assume that in case of a line broken because of tiles,
+	// we begin with the original "from" segment
+	handle_segment (line, &copy_points, FLAG_EXTEND_TO);
+	roadmap_street_extend_line_ends (line, &from_pos, &to_pos, FLAG_EXTEND_TO, 
+												  handle_segment, &copy_points);
+												  
+	if (line->plugin_id == EditorPluginID) {
+
+		editor_line_get_points (line->line_id, &from_point, &to_point); 
+	} else {
+	
+		roadmap_square_set_current (line->square);
+		roadmap_line_point_ids (line->line_id, &id_from, &id_to);
+		
+		from_point = editor_point_add (&from_pos, id_from);
+		to_point = editor_point_add (&to_pos, id_to);
+	}
+	
+	trkseg = editor_trkseg_add (-1, -1, from_point, 
+										 copy_points.first_shape, copy_points.last_shape,
+										 -1, -1, 0, 0, ED_TRKSEG_FAKE);
+										 
+	direction = roadmap_plugin_get_direction (line, ROUTE_DIRECTION_ANY);									 
+	line_id = editor_line_add (from_point, to_point, trkseg, line->cfcc, direction, street, ED_LINE_DIRTY);	
+		
+	return line_id;	
+}
+
 

@@ -1,4 +1,4 @@
-/* editor_upload.c - Upload a gpx file to freemap.co.il
+/* editor_upload.c - Upload a track file to waze
  *
  * LICENSE:
  *
@@ -47,16 +47,17 @@
 #include "../editor_main.h"
 #include "editor_upload.h"
 
-#define ROADMAP_HTTP_MAX_CHUNK 4096
+#define ROADMAP_HTTP_MAX_CHUNK      (4096)
+#define DEFAULT_CONTENT_TYPE        ("application/octet-stream")
 
 static RoadMapConfigDescriptor RoadMapConfigTarget =
-                                  ROADMAP_CONFIG_ITEM("FreeMap", "Target");
+                                  ROADMAP_CONFIG_ITEM("Realtime", "OfflineTarget");
 
 static RoadMapConfigDescriptor RoadMapConfigUser =
-                                  ROADMAP_CONFIG_ITEM("FreeMap", "User Name");
+                                  ROADMAP_CONFIG_ITEM("Realtime", "Name");
 
 static RoadMapConfigDescriptor RoadMapConfigPassword =
-                                  ROADMAP_CONFIG_ITEM("FreeMap", "Password");
+                                  ROADMAP_CONFIG_ITEM("Realtime", "Password");
 
 static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 static const char *RoadMapUploadCurrentName = "";
@@ -151,7 +152,7 @@ static int editor_http_send (RoadMapSocket socket,
    va_list ap;
    int     length;
    char    buffer[ROADMAP_HTTP_MAX_CHUNK];
-   
+
    va_start(ap, format);
    vsnprintf (buffer, sizeof(buffer), format, ap);
    va_end(ap);
@@ -173,7 +174,7 @@ static void send_auth(const char *user, const char *pw, RoadMapSocket fd,
     char auth_encoded[sizeof(auth_string) * 2];
     char *itr = auth_string;
     char *encoded_itr = auth_encoded;
-    
+
     snprintf (auth_string, sizeof(auth_string), "%s:%s", user, pw);
     auth_string[sizeof(auth_string) - 1] = 0;
 
@@ -201,6 +202,7 @@ static void send_auth(const char *user, const char *pw, RoadMapSocket fd,
 
 
 static RoadMapSocket editor_http_send_header (const char *target,
+                                     const char *content_type,
                                      const char *full_name,
                                      size_t size,
                                      const char *user,
@@ -208,62 +210,11 @@ static RoadMapSocket editor_http_send_header (const char *target,
                                      RoadMapDownloadCallbackError error) {
 
    RoadMapSocket fd;
-   char *host;
-   char *path;
+   
+   fd = roadmap_net_connect ("http_post", target, 0, 80, NULL);
 
-
-   /* Get a local copy of the URL, for us to decode. */
-
-   target += 7; /* Skip the "http://" prefix. */
-
-   host = strdup(target);
-   if (host == NULL) {
-      error ("no more memory");
-      return ROADMAP_INVALID_SOCKET;
-   }
-
-
-   /* Separate the file path from the server's address. */
-
-   path = strchr (host, '/');
-   if (path == NULL) {
-      error ("bad URL syntax in: %s", host);
-      free (host);
-      return ROADMAP_INVALID_SOCKET;
-   }
-   *path = 0; /* Isolate the host string. */
-
-   path = strchr (target, '/');
-   if (path == NULL) {
-      error ("bad URL syntax in: %s", target);
-      free (host);
-      return ROADMAP_INVALID_SOCKET;
-   }
-
-#ifndef J2ME
-   /* Connect to the server (roadmap_net understands the "host:port"
-    * syntax).
-    */
-   fd = roadmap_net_connect ("tcp", host, 80);
-#else
-   fd = roadmap_net_connect ("http", target, 80);
-#endif
    if (ROADMAP_NET_IS_VALID(fd)) {
       const char *filename = roadmap_path_skip_directories (full_name);
-      char *p = strchr(host, ':');
-
-      if (p != NULL) *p = 0; /* remove the port/service info. */
-
-#ifndef J2ME
-      if (editor_http_send (fd, error, "POST %s HTTP/1.0\r\n", path) == -1)
-         goto send_error;
-
-      if (editor_http_send (fd, error, "Host: %s\r\n", host) == -1)
-         goto send_error;
-      
-      if (editor_http_send (fd, error, "User-Agent: FreeMap/%s\r\n",
-            editor_main_get_version() ) == -1) goto send_error;
-#endif
 
       send_auth (user, pw, fd, error);
 
@@ -273,7 +224,7 @@ static RoadMapSocket editor_http_send_header (const char *target,
       }
 
       if (editor_http_send (fd, error, "Content-Length: %d\r\n",
-               size + 261 + strlen(filename)) == -1) {
+               size + 237 + strlen(filename) + strlen(content_type) ) == -1) {
          goto send_error;
       }
 
@@ -291,9 +242,10 @@ static RoadMapSocket editor_http_send_header (const char *target,
       }
 
       if (editor_http_send (fd, error,
-               "Content-type: application/octet-stream\r\n") == -1) {
+               "Content-type: %s\r\n", content_type ) == -1) {
          goto send_error;
       }
+
 
       if (editor_http_send (fd, error,
                "Content-Transfer-Encoding: binary\r\n\r\n") == -1) {
@@ -301,14 +253,12 @@ static RoadMapSocket editor_http_send_header (const char *target,
       }
 
    } else {
-      error ("Can't connect to server: %s", host);
+      error ("Can't connect to server: %s", target);
    }
 
-   free (host);
    return fd;
 
 send_error:
-   free (host);
    roadmap_net_close (fd);
    return ROADMAP_INVALID_SOCKET;
 }
@@ -421,6 +371,7 @@ static int editor_http_decode_response (RoadMapSocket fd,
 
 
 static int editor_post_file (const char *target,
+                             const char *content_type,
                              const char *file_name,
                              const char *user_name,
                              const char *password,
@@ -468,7 +419,7 @@ static int editor_post_file (const char *target,
          roadmap_file_close (file);
          return -1;
       }
-      
+
       strcpy(user_digest_hex, "anon_");
       MD5Hex (digest, user_digest_hex + strlen(user_digest_hex));
 
@@ -483,7 +434,7 @@ static int editor_post_file (const char *target,
    }
 #endif
    fd = editor_http_send_header
-         (target, file_name, size, user_name, password, callbacks->error);
+         (target, content_type, file_name, size, user_name, password, callbacks->error);
    if (!ROADMAP_NET_IS_VALID(fd)) {
       roadmap_file_close (file);
       return -1;
@@ -493,12 +444,9 @@ static int editor_post_file (const char *target,
    (*callbacks->progress) (uploaded);
 
    loaded = uploaded;
-
    while (loaded < size) {
-
       uploaded = roadmap_file_read (file, buffer, sizeof(buffer));
       uploaded = roadmap_net_send (fd, buffer, uploaded, 1);
-
       if (uploaded <= 0) {
          (*callbacks->error) ("Send error after %d data bytes", loaded);
          goto cancel_upload;
@@ -509,11 +457,9 @@ static int editor_post_file (const char *target,
    }
 
    editor_http_send (fd, callbacks->error, "\r\n-----------------------------10424402741337131014341297293--\r\n");
-
    loaded = sizeof(buffer);
    size = editor_http_decode_response
              (fd, buffer, &loaded, callbacks->error);
-             
    if (size < 0) {
       goto cancel_upload;
    }
@@ -532,7 +478,6 @@ static int editor_post_file (const char *target,
       }
 
       (*message)[loaded] = '\0';
-
    }
 
    roadmap_net_close (fd);
@@ -559,7 +504,7 @@ static void editor_upload_ok (const char *name, void *context) {
    const char *password;
    char *message;
 
-   int remove_file = (int)context;
+   long remove_file = (long)context;
 
    filename = roadmap_dialog_get_data (".file", "Name");
 
@@ -575,7 +520,7 @@ static void editor_upload_ok (const char *name, void *context) {
    roadmap_dialog_hide (name);
 
    if ((editor_post_file
-         (target, filename, username, password, NULL, &message) != -1) &&
+         (target, DEFAULT_CONTENT_TYPE, filename, username, password, NULL, &message) != -1) &&
           remove_file) {
 
       roadmap_file_remove (NULL, filename);
@@ -596,10 +541,10 @@ static void editor_upload_cancel (const char *name, void *context) {
 void editor_upload_file (const char *filename, int remove_file) {
 
    static char s_file[500];
-   strncpy (s_file, filename, sizeof(s_file));
+   strncpy_safe (s_file, filename, sizeof(s_file));
    s_file[sizeof(s_file)-1] = 0;
 
-   if (roadmap_dialog_activate ("Upload gpx file", (void *)remove_file, 1)) {
+   if (roadmap_dialog_activate ("Upload track file", (void *)(long)remove_file, 1)) {
 
       roadmap_dialog_new_label  (".file", "Name");
       roadmap_dialog_new_entry  (".file", "To", NULL);
@@ -633,9 +578,9 @@ static void editor_upload_file_dialog_ok
 
 
 void editor_upload_select (void) {
-                                
+
    roadmap_fileselection_new ("Upload file",
-                              "gpx.gz",
+                              "track.gz",
                               roadmap_path_user (),
                               "r",
                               editor_upload_file_dialog_ok);
@@ -648,22 +593,40 @@ void editor_upload_initialize (void) {
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigTarget,
-      "http://www.freemap.co.il/upload/upload_rm.php", NULL);
+      "", NULL);
 
-   roadmap_config_declare ("preferences", &RoadMapConfigUser, "", NULL);
-   roadmap_config_declare_password ("preferences", &RoadMapConfigPassword, "");
+   roadmap_config_declare ("user", &RoadMapConfigUser, "", NULL);
+   roadmap_config_declare_password ("user", &RoadMapConfigPassword, "");
 }
 
 
 int editor_upload_auto (const char *filename,
                         RoadMapDownloadCallbacks *callbacks,
-                        char **message) {
+                        char **message, const char* custom_target, const char* custom_content_type ) {
+
+	const char *user = roadmap_config_get (&RoadMapConfigUser);
+	const char *password = roadmap_config_get (&RoadMapConfigPassword);
+	const char *url; 
+	const char *content_type;		
+
+	// Custom target
+	if ( custom_target )
+	    url = custom_target;
+	else
+		url = roadmap_config_get (&RoadMapConfigTarget);
+
+	// Content type
+	if ( custom_content_type )
+		content_type = custom_content_type;
+	else
+		content_type = DEFAULT_CONTENT_TYPE;
 
    return editor_post_file (
-            roadmap_config_get (&RoadMapConfigTarget),
-            filename, 
-            roadmap_config_get (&RoadMapConfigUser),
-            roadmap_config_get (&RoadMapConfigPassword),
+            url,
+            content_type,
+            filename,
+            user,
+            password,
             callbacks,
             message);
 }
