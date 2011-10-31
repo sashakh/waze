@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -37,6 +38,7 @@
 #include "roadmap_trip.h"
 #include "roadmap_lang.h"
 #include "roadmap_preferences.h"
+#include "roadmap_square.h"
 
 #include "roadmap_geocode.h"
 
@@ -44,7 +46,8 @@
 #define ROADMAP_MAX_STREETS  256
 
 
-static const char *RoadMapGeocodeError = NULL;
+static const char*            RoadMapGeocodeLastErrorString = NULL;
+static roadmap_geocode_error  RoadMapGeocodeLastErrorCode   = geo_error_none;
 
 
 int roadmap_geocode_address (RoadMapGeocode **selections,
@@ -53,17 +56,18 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
                              const char *city_name,
                              const char *state_name) {
 
-   int i, j, k;
+   int i, j;
    int fips;
    int count;
+   int number;
 
-   int   street_number [ROADMAP_MAX_STREETS];
    RoadMapBlocks blocks[ROADMAP_MAX_STREETS];
 
    RoadMapGeocode *results;
 
 
-   RoadMapGeocodeError = "No error";
+   RoadMapGeocodeLastErrorString = "No error";
+   RoadMapGeocodeLastErrorCode   = geo_error_none;
    *selections = NULL;
 
    switch (roadmap_locator_by_city (city_name, state_name)) {
@@ -76,20 +80,23 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
    case ROADMAP_US_NOSTATE:
 
-      RoadMapGeocodeError =
+      RoadMapGeocodeLastErrorString =
          roadmap_lang_get ("No state with that name could be found");
+      RoadMapGeocodeLastErrorCode = geo_error_no_state;
       return 0;
 
    case ROADMAP_US_NOCITY:
 
-      RoadMapGeocodeError =
+      RoadMapGeocodeLastErrorString =
          roadmap_lang_get ("No city with that name could be found");
+      RoadMapGeocodeLastErrorCode = geo_error_no_city;
       return 0;
 
    default:
 
-      RoadMapGeocodeError =
+      RoadMapGeocodeLastErrorString =
          roadmap_lang_get ("No related map could be found");
+      RoadMapGeocodeLastErrorCode = geo_error_no_map;
       return 0;
    }
 
@@ -97,25 +104,30 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
       switch (count) {
       case ROADMAP_STREET_NOADDRESS:
-         RoadMapGeocodeError =
-            roadmap_lang_get ("No such address could be found on that street");
+         RoadMapGeocodeLastErrorString =
+            roadmap_lang_get ("Address could not be found");
+         RoadMapGeocodeLastErrorCode = geo_error_no_address;
          break;
       case ROADMAP_STREET_NOCITY:
-         RoadMapGeocodeError =
+         RoadMapGeocodeLastErrorString =
             roadmap_lang_get ("No city with that name could be found");
+         RoadMapGeocodeLastErrorCode = geo_error_no_city;
          break;
       case ROADMAP_STREET_NOSTREET:
-         RoadMapGeocodeError =
-         roadmap_lang_get ("No street with that name could be found");
+         RoadMapGeocodeLastErrorString =
+            roadmap_lang_get ("No street with that name could be found");
+         RoadMapGeocodeLastErrorCode = geo_error_no_street;
       default:
-         RoadMapGeocodeError =
-         roadmap_lang_get ("The address could not be found");
+         RoadMapGeocodeLastErrorString =
+            roadmap_lang_get ("The address could not be found");
+         RoadMapGeocodeLastErrorCode = geo_error_no_address;
       }
       return 0;
    }
 
    if (count > ROADMAP_MAX_STREETS) {
       roadmap_log (ROADMAP_ERROR, "too many blocks");
+      RoadMapGeocodeLastErrorCode = geo_error_general;
       count = ROADMAP_MAX_STREETS;
    }
 
@@ -123,49 +135,14 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
     * expand the match list, else decode that street number and update the
     * match list.
     */
+    
    if (number_image[0] == 0) {
-
-      int range_count;
-      RoadMapStreetRange ranges[ROADMAP_MAX_STREETS];
-
-      for (i = 0, j = 0; i < count; ++i) {
-         street_number[i] = -1;
-      }
-
-      for (i = 0, j = 0; i < count && street_number[i] < 0; ++i) {
-
-         range_count =
-            roadmap_street_get_ranges (blocks+i, ROADMAP_MAX_STREETS, ranges);
-
-         if (range_count > 0) {
-
-            street_number[i] = ranges[0].fradd;
-
-            for (k = 1; k < range_count; ++k) {
-
-               if (count >= ROADMAP_MAX_STREETS) {
-                  roadmap_log (ROADMAP_WARNING,
-                               "too many blocks, cannot expand");
-                  break;
-               }
-               blocks[count] = blocks[i];
-               ranges[count] = ranges[k];
-               street_number[count] = ranges[count].fradd;
-               count += 1;
-            }
-         }
-      }
-
+   	
+   	number = -1;
    } else {
-
-      int number;
-
+   	
       number = roadmap_math_street_address (number_image, strlen(number_image));
-
-      for (i = 0, j = 0; i < count; ++i) {
-         street_number[i] = number;
-      }
-   }
+   } 
 
    results = (RoadMapGeocode *)
        calloc (count, sizeof(RoadMapGeocode));
@@ -174,27 +151,17 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
    for (i = 0, j = 0; i< count; ++i) {
 
-      int line;
+      if (roadmap_street_get_position
+      			(blocks + i, number, &results[j].position)) {
 
-      line = roadmap_street_get_position
-                    (blocks+i, street_number[i], &results[j].position);
-
-      for (k = 0; k < j; ++k) {
-         if (results[k].line == line) {
-            line = -1;
-            break;
-         }
-      }
-
-      if (line >= 0) {
-
-        RoadMapStreetProperties properties;
-          
-        roadmap_street_get_properties (line, &properties);
-        results[j].fips = fips;
-        results[j].line = line;
-        results[j].name = strdup (roadmap_street_get_full_name (&properties));
-        j += 1;
+	      RoadMapStreetProperties properties;
+	          
+	      roadmap_street_get_properties (blocks[i].line, &properties);
+       	results[j].fips = fips;
+        	results[j].square = blocks[i].square; // roadmap_square_active ();
+        	results[j].line = blocks[i].line;
+        	results[j].name = strdup (roadmap_street_get_full_name (&properties));
+        	j += 1;
       }
    }
 
@@ -202,10 +169,12 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 
       free (results);
       if (number_image[0] != 0) {
-         RoadMapGeocodeError =
-            roadmap_lang_get ("No such address could be found on that street");
+         RoadMapGeocodeLastErrorString =
+            roadmap_lang_get ("House number was not found in that street. Please enter a valid house number, or erase the house number entry");
+         RoadMapGeocodeLastErrorCode = geo_error_no_house_number;
       } else {
-         RoadMapGeocodeError = roadmap_lang_get ("No valid street was found");
+         RoadMapGeocodeLastErrorString = roadmap_lang_get ("No valid street was found");
+         RoadMapGeocodeLastErrorCode = geo_error_no_street;
       }
 
    } else {
@@ -217,8 +186,12 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
 }
 
 
-const char *roadmap_geocode_last_error (void) {
+const char* roadmap_geocode_last_error_string(void) {
 
-   return RoadMapGeocodeError;
+   return RoadMapGeocodeLastErrorString;
 }
 
+roadmap_geocode_error roadmap_geocode_last_error_code(void) {
+
+   return RoadMapGeocodeLastErrorCode;
+}

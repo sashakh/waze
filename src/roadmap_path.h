@@ -119,6 +119,7 @@ const char *roadmap_path_trips   (void);
 
 char *roadmap_path_join (const char *path, const char *name);
 char *roadmap_path_parent (const char *path, const char *name);
+void roadmap_path_format (char *buffer, int buffer_size, const char *path, const char *name);
 
 void roadmap_path_create (const char *path);
 
@@ -138,5 +139,22 @@ const char *roadmap_path_temporary (void);
 
 int roadmap_path_is_directory (const char *name);
 
+const char *roadmap_path_gps( void );
+
+const char *roadmap_path_images( void );
+
+const char *roadmap_path_downloads( void );
+
+const char *roadmap_path_config( void );
+
+#ifdef IPHONE
+const char *roadmap_path_bundle (void);
+#endif //IPHONE
+
+#ifdef ANDROID
+const char *roadmap_path_sdcard (void);
+#endif //ANDROID
+
+const char *roadmap_path_debug( void );
 #endif // INCLUDE__ROADMAP_PATH__H
 

@@ -31,52 +31,63 @@
 #include "roadmap.h"
 #include "roadmap_math.h"
 #include "roadmap_layer.h"
-#include "roadmap_line_route.h"
 
 #include "navigate_main.h"
 #include "navigate_zoom.h"
 
-void navigate_zoom_update (RoadMapPosition *pos,
-                           NavigateSegment *segments,
-                           int current_segment,
-                           const NavigateSegment *last_group_seg,
+static int NavigateZoomScale;
+
+void navigate_zoom_update (int distance,
                            int distance_to_prev,
                            int distance_to_next) {
 
-   const RoadMapPosition *turn_pos;
-   int distance;
+   /* We might still be close to the previous junction. Let's make
+    * sure that we don't zoom out too fast
+    */
 
-   if (last_group_seg->line_direction == ROUTE_DIRECTION_WITH_LINE) {
-      turn_pos = &last_group_seg->to_pos;
-   } else {
-      turn_pos = &last_group_seg->from_pos;
+   if ((distance_to_prev < distance) && (distance > 200) && (distance_to_prev < 200)) {
+
+      distance = (distance_to_prev * (200 - distance_to_prev) + distance * distance_to_prev) / 200;
+
    }
 
-   distance = roadmap_math_distance (pos, turn_pos);
-
-   if ((current_segment > 0) &&
-        (last_group_seg->group_id !=
-         (segments + current_segment -1)->group_id)) {
-      /* We might still be close to the previous junction. Let's make
-       * sure that we don't zoom out too fast
-       */
-
-      if ((distance_to_prev < distance) && (distance > 200)) {
-
-         distance = (distance_to_prev * (200 - distance_to_prev) + distance * distance_to_prev) / 200;
-
-      }
-   }
-
-   if ((distance_to_next <= 300) && (distance < distance_to_next)) {
+   if ((distance_to_next <= 150) && (distance < distance_to_next)) {
       distance = distance_to_next;
    }
 
    if (distance < 100) distance = 100;
-
-   roadmap_math_set_scale (distance, roadmap_screen_height() / 3);
-
-   roadmap_layer_adjust ();
    
+#if 0
+   if (distance > 500) {
+      units = roadmap_screen_height();
+   } else {
+      units = roadmap_screen_height() / 3;
+   }
+#endif
+
+#if 0
+   if (distance <= 500) {
+      distance *= 3;
+      if (distance > 500) 
+      	distance = 500;
+   }
+#endif
+
+   if (distance <= 250) {
+      NavigateZoomScale = 750;
+   } else if (distance <= 500) {
+   	NavigateZoomScale = distance*3;
+	} else if (distance <= 1000) {
+   	NavigateZoomScale = ((distance - 500) * 2000 + (1000 - distance) * 1500) / 500;
+	} else {
+	   if (distance > 5000)
+	      NavigateZoomScale = 10000;
+	   else
+	      NavigateZoomScale = distance * 2;
+	}
+}
+
+int navigate_zoom_get_scale (void) {
+   return NavigateZoomScale;
 }
 

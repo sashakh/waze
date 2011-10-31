@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -35,9 +36,11 @@
 #include <string.h>
 #include <ctype.h>
 
+#define DECLARE_ROADMAP_SHAPE
+
 #include "roadmap.h"
 #include "roadmap_dbread.h"
-#include "roadmap_db_shape.h"
+#include "roadmap_tile_model.h"
 
 #include "roadmap_line.h"
 #include "roadmap_shape.h"
@@ -46,36 +49,25 @@
 
 static char *RoadMapShapeType = "RoadMapShapeContext";
 
-typedef struct {
+RoadMapShapeContext *RoadMapShapeActive = NULL;
 
-   char *type;
+int shape_cache_square = -1;
+int shape_cache_scale_factor = 1;
 
-   RoadMapShape *Shape;
-   int           ShapeCount;
-
-} RoadMapShapeContext;
-
-static RoadMapShapeContext *RoadMapShapeActive = NULL;
-
-
-static void *roadmap_shape_map (roadmap_db *root) {
+static void *roadmap_shape_map (const roadmap_db_data_file *file) {
 
    RoadMapShapeContext *context;
-
-   roadmap_db *shape_table;
 
    context = malloc(sizeof(RoadMapShapeContext));
    roadmap_check_allocated(context);
 
    context->type = RoadMapShapeType;
 
-   shape_table  = roadmap_db_get_subsection (root, "data");
-
-   context->Shape = (RoadMapShape *) roadmap_db_get_data (shape_table);
-   context->ShapeCount = roadmap_db_get_count (shape_table);
-
-   if (roadmap_db_get_size (shape_table) !=
-       context->ShapeCount * sizeof(RoadMapShape)) {
+   if (!roadmap_db_get_data (file,
+   								  model__tile_shape_data,
+   								  sizeof (RoadMapShape),
+   								  (void**)&(context->Shape),
+   								  &(context->ShapeCount))) {
       roadmap_log (ROADMAP_FATAL, "invalid shape/data structure");
    }
 
@@ -116,10 +108,4 @@ roadmap_db_handler RoadMapShapeHandler = {
    roadmap_shape_unmap
 };
 
-
-void roadmap_shape_get_position (int shape, RoadMapPosition *position) {
-
-   position->longitude += RoadMapShapeActive->Shape[shape].delta_longitude;
-   position->latitude  += RoadMapShapeActive->Shape[shape].delta_latitude;
-}
 

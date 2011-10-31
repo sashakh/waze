@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -28,33 +29,26 @@
 #include "roadmap_plugin.h"
 #include "roadmap_dbread.h"
 #include "roadmap_dictionary.h"
+#include "roadmap_range.h"
 
 typedef struct {
 
+	int square;
+   int line;
    int street;
-   int first;
-   int count;
    RoadMapString city;
-
+	RoadMapStreetRange range[2];
 } RoadMapBlocks;
 
 typedef struct {
 
-   int fradd;
-   int toadd;
-
-} RoadMapStreetRange;
-
-
-typedef struct {
-    
     RoadMapStreetRange first_range;
     RoadMapStreetRange second_range;
-    
+
     int street;
-    
+
     RoadMapString city;
-    
+
 } RoadMapStreetProperties;
 
 #define ROADMAP_STREET_NOPROPERTY {{0, 0}, 0, 0}
@@ -62,6 +56,7 @@ typedef struct {
 typedef struct {
 
     int fips;
+    int square;
     int line1;
     int line2;
     RoadMapPosition position;
@@ -78,6 +73,13 @@ typedef struct RoadMapNeighbour_t {
     RoadMapPosition intersection;
 
 } RoadMapNeighbour;
+
+#define	FLAG_EXTEND_FROM			0x0001
+#define	FLAG_EXTEND_TO				0x0002
+#define	FLAG_EXTEND_BOTH			(FLAG_EXTEND_FROM | FLAG_EXTEND_TO)
+#define	FLAG_EXTEND_CB_NO_SQUARE	0x0004		// Indicates if callback has to be called if the square is not available
+
+typedef int (*RoadMapStreetIterCB) (const PluginLine *line, void *context, int extend_flags);
 
 #define ROADMAP_NEIGHBOUR_NULL {PLUGIN_LINE_NULL, -1, {0,0}, {0,0}, {0,0}}
 
@@ -116,8 +118,8 @@ int roadmap_street_get_distance
 	int cfcc, RoadMapNeighbour *result);
 
 int roadmap_street_get_closest
-       (const RoadMapPosition *position, int *categories, int categories_count,
-        RoadMapNeighbour *neighbours, int max);
+       (const RoadMapPosition *position, int scale, int *categories, int categories_count,
+        int max_shapes, RoadMapNeighbour *neighbours, int max);
 
 int roadmap_street_intersection (const char *state,
                                  const char *street1_name,
@@ -133,13 +135,13 @@ void roadmap_street_get_street (int line, RoadMapStreetProperties *properties);
 
 const char *roadmap_street_get_street_address
                 (const RoadMapStreetProperties *properties);
-                
+
 const char *roadmap_street_get_street_name
                 (const RoadMapStreetProperties *properties);
 
 const char *roadmap_street_get_city_name
                 (const RoadMapStreetProperties *properties);
-            
+
 const char *roadmap_street_get_full_name
                 (const RoadMapStreetProperties *properties);
 
@@ -168,11 +170,19 @@ int roadmap_street_replace
                const RoadMapNeighbour *this);
 
 int  roadmap_street_search (const char *city, const char *str,
+                            int max_results,
                             RoadMapDictionaryCB cb,
                             void *data);
 
 int roadmap_street_search_city (const char *str, RoadMapDictionaryCB cb,
                                 void *data);
+
+void roadmap_street_update_city_index (void);
+
+int roadmap_street_extend_line_ends
+			(const PluginLine *line, RoadMapPosition *from, RoadMapPosition *to,
+			 int flags, RoadMapStreetIterCB cb, void *context);
+int roadmap_street_line_has_predecessor (PluginLine *line);
 
 extern roadmap_db_handler RoadMapStreetHandler;
 extern roadmap_db_handler RoadMapZipHandler;

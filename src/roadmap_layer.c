@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define DECLARE_ROADMAP_LAYER
+
 #include "roadmap.h"
 #include "roadmap_gui.h"
 #include "roadmap_math.h"
@@ -35,6 +37,9 @@
 #include "roadmap_canvas.h"
 #include "roadmap_plugin.h"
 #include "roadmap_skin.h"
+#include "roadmap_screen.h"
+#include "editor/editor_screen.h"
+
 
 #include "roadmap_layer.h"
 
@@ -61,7 +66,7 @@ static char *RoadMapDefaultCategoryTable[] = {
    "Hospitals",
    "Airports",
    "Stations",
-   "Malls",
+   "Cities",
    "Shore",
    "Rivers",
    "Lakes",
@@ -77,42 +82,12 @@ static char *RoadMapDefaultCategoryTable[] = {
  * For example, a freeway could be displayed using 3 pens:
  * border, fill, center divider.
  */
-#define ROADMAP_LAYER_PENS    3
-
-static struct roadmap_canvas_category {
-
-    const char *name;
     
-    int class_index;
-    int visible;
-    int pen_count;
-    
-    RoadMapConfigDescriptor declutter;
-    RoadMapConfigDescriptor thickness;
 
-    int delta_thickness[ROADMAP_LAYER_PENS];
-    RoadMapPen pen[LAYER_PROJ_AREAS][ROADMAP_LAYER_PENS];
-    int in_use[LAYER_PROJ_AREAS][ROADMAP_LAYER_PENS];
-
-} *RoadMapCategory;
-
+struct roadmap_canvas_category *RoadMapCategory;
 static int RoadMapCategoryCount = 0;
-static int RoadMapMaxUsedPen = 1;
+int RoadMapMaxUsedPen = 1;
 
-
-/* CLASSES.
- * A class represent a group of categories that have the same basic
- * properties. For example, the "Road" class can be searched for an
- * address.
- */
-typedef struct {
-
-   char *name;
-
-   int   count;
-   char  category[128];
-
-} RoadMapClass;
 
 static RoadMapClass RoadMapClasses[] = {
     {"Area",    0, {0}},
@@ -121,7 +96,7 @@ static RoadMapClass RoadMapClasses[] = {
     {NULL,      0, {0}}
 };
 
-static RoadMapClass *RoadMapLineClass = &(RoadMapClasses[1]);
+RoadMapClass *RoadMapLineClass = &(RoadMapClasses[1]);
 static RoadMapClass *RoadMapRoadClass = &(RoadMapClasses[1]);
 
 
@@ -133,7 +108,8 @@ static void roadmap_layer_reload (void) {
     RoadMapConfigDescriptor descriptor = ROADMAP_CONFIG_ITEM_EMPTY;
 
     for (i = 1; i <= RoadMapCategoryCount; ++i) {
-
+		int max_pens;
+		
         struct roadmap_canvas_category *category = RoadMapCategory + i;
 
         const char *name = RoadMapDefaultCategoryTable[i-1];
@@ -151,10 +127,17 @@ static void roadmap_layer_reload (void) {
 
         /* Retrieve the category thickness & declutter. */
 
-        category->thickness.reference = NULL;
-        thickness = roadmap_config_get_integer (&category->thickness);
+        descriptor.name = "Thickness";
+        descriptor.reference = NULL;
+        thickness = category->thickness = roadmap_config_get_integer (&descriptor);
+#ifdef HI_RES_SCREEN
+        category->thickness = (int)(category->thickness * 1.5);
+        thickness = (int)(thickness * 1.5);
+#endif  
 
-        category->declutter.reference = NULL;
+        descriptor.name = "Declutter";
+        descriptor.reference = NULL;
+        //category->declutter = roadmap_config_get_integer (&descriptor);
 
         /* Retrieve the first pen's color (mandatory). */
 
@@ -164,8 +147,12 @@ static void roadmap_layer_reload (void) {
         color[0] = roadmap_config_get (&descriptor);
 
         /* Retrieve the category's other colors (optional). */
-
-        for (j = 1; j < ROADMAP_LAYER_PENS; ++j) {
+		if (!editor_screen_gray_scale())
+			max_pens = 2;
+		else
+			max_pens = ROADMAP_LAYER_PENS;
+			 		
+        for (j = 1; j < max_pens; ++j) {
 
            snprintf (other_pens, other_pens_length, "Delta%d", j);
 
@@ -174,9 +161,13 @@ static void roadmap_layer_reload (void) {
 
            category->delta_thickness[j] =
               roadmap_config_get_integer (&descriptor);
+#ifdef HI_RES_SCREEN
+           category->delta_thickness[j] = (int)(category->delta_thickness[j] * 1.5);
+#endif
+           if ((j == 2) && !editor_screen_gray_scale()) break;
 
            if (category->delta_thickness[j] == 0) break;
-
+           
            snprintf (other_pens, other_pens_length, "Color%d", j);
 
            descriptor.name = other_pens;
@@ -196,8 +187,7 @@ static void roadmap_layer_reload (void) {
            snprintf (other_pens, other_pens_length, "%d%s", j, name);
            category->pen[j][0] = roadmap_canvas_create_pen (other_pens);
 
-           roadmap_canvas_set_thickness
-              (roadmap_config_get_integer (&category->thickness));
+           roadmap_canvas_set_thickness (category->thickness);
 
            if (color[0] != NULL && *(color[0]) > ' ') {
               roadmap_canvas_set_foreground (color[0]);
@@ -212,7 +202,7 @@ static void roadmap_layer_reload (void) {
               category->pen[k][j] = roadmap_canvas_create_pen (other_pens);
 
               if (category->delta_thickness[j] < 0) {
-                 thickness += category->delta_thickness[j];
+                 thickness = category->thickness + category->delta_thickness[j];
               } else {
                  thickness = category->delta_thickness[j];
               }
@@ -230,25 +220,7 @@ static void roadmap_layer_reload (void) {
 }
 
 
-int roadmap_layer_max_pen(void) {
-   if (! roadmap_config_match (&RoadMapConfigStylePretty, "yes")) {
-      return 1;
-   }
-   return RoadMapMaxUsedPen;
-}
-
-int roadmap_layer_is_visible (int layer, int area) {
-    
-    struct roadmap_canvas_category *category = RoadMapCategory + layer;
-
-    if (! category->visible) {
-        return 0;
-    }
-    return roadmap_math_declutter
-                (roadmap_config_get_integer (&category->declutter), area);
-}
-
-
+   
 int roadmap_layer_all_roads (int *layers, int size) {
     
     int i;
@@ -288,66 +260,12 @@ int roadmap_layer_visible_roads (int *layers, int size) {
 }
 
 
-int roadmap_layer_visible_lines (int *layers, int size, int pen_type) {
-
-    int i;
-    int j;
-    int count = -1;
-    
-    --size; /* To match our boundary check. */
-    
-    for (i = 0; RoadMapLineClass[i].name != NULL; ++i) {
-
-        RoadMapClass *this_class = RoadMapLineClass + i;
-
-        for (j = 0; j<this_class->count; ++j) {
-
-            int category = this_class->category[j];
-
-            if (pen_type >= RoadMapCategory[category].pen_count) continue;
-            if (! RoadMapCategory[category].in_use[pen_type]) continue;
-
-            if (roadmap_layer_is_visible (category, 0)) {
-                if (count >= size) goto done;
-                layers[++count] = category;
-            }
-        }
-    }
-    
-done:
-    return count + 1;
-}
-
-
-RoadMapPen roadmap_layer_get_pen (int layer, int pen_type, int area) {
-
-   if (!roadmap_layer_is_visible (layer, area)) return NULL;
-   
-   if (pen_type == -1) {
-
-      int i;
-      for (i=RoadMapMaxUsedPen; i>=0; i--) {
-
-         if (RoadMapCategory[layer].in_use[area][i])
-            return RoadMapCategory[layer].pen[area][i];
-      }
-
-      return NULL;   
-   }
-
-   if (!RoadMapCategory[layer].in_use[area][pen_type]) return NULL;
-   
-   return RoadMapCategory[layer].pen[area][pen_type];
-}
-
-
 void roadmap_layer_adjust (void) {
     
    int i;
    int j;
    int k;
    int thickness;
-   int future_thickness;
    struct roadmap_canvas_category *category;
 
    for (i = RoadMapCategoryCount; i > 0; --i) {
@@ -359,32 +277,37 @@ void roadmap_layer_adjust (void) {
          if (roadmap_layer_is_visible(i, k)) {
 
             thickness =
-               roadmap_math_thickness
-               (roadmap_config_get_integer (&category->thickness),
-                roadmap_config_get_integer (&category->declutter),
-                k+1,
-                category->pen_count > 1);
+               roadmap_math_thickness (category->thickness,
+                     category->declutter,
+                     k+1,
+                     category->pen_count > 1);
 
             if (thickness <= 0) thickness = 1;
             if (thickness > 40) thickness = 40;
 
+	    if (roadmap_screen_fast_refresh()) {
+               if (thickness && (thickness <= 4)) thickness = 1;
+
+            } else {
+
+               /* As a matter of taste, I do dislike roads with a filler
+                * of 1 pixel. Lets force at least a filler of 2.
+                */
+               int future_thickness = thickness;
+
+               for (j = 1; j < category->pen_count; ++j) {
+
+                  if (category->delta_thickness[j] > 0) break;
+
+                  future_thickness = category->thickness + category->delta_thickness[j];
+                  if (future_thickness == 1) {
+                     thickness += 1;
+                  }
+               }
+            }
+
             if (k == 0) {
                roadmap_plugin_adjust_layer (i, thickness, category->pen_count);
-            }
-            /* As a matter of taste, I do dislike roads with a filler
-             * of 1 pixel. Lets force at least a filler of 2.
-             */
-            future_thickness = thickness;
-
-            for (j = 1; j < category->pen_count; ++j) {
-
-               if (category->delta_thickness[j] > 0) break;
-
-               future_thickness =
-                  future_thickness + category->delta_thickness[j];
-               if (future_thickness == 1) {
-                  thickness += 1;
-               }
             }
 
             if (thickness > 0) {
@@ -411,11 +334,12 @@ void roadmap_layer_adjust (void) {
                   /* Don't end with a road mostly drawn with the latter
                    * pen.
                    */
-                  if (category->delta_thickness[j] >= thickness / 2) {
+                  if ((category->delta_thickness[j] >= thickness / 2) && (j != 2)) {
                      category->in_use[k][j] = 0;
                      thickness = 1;
                      continue;
                   }
+                
                   thickness = category->delta_thickness[j];
                }
 
@@ -499,17 +423,18 @@ void roadmap_layer_initialize (void) {
 
         /* Retrieve the category thickness & declutter. */
 
-        category->thickness.category = name;
-        category->thickness.name     = "Thickness";
-        roadmap_config_declare ("schema", &category->thickness, "1", NULL);
+        descriptor.name     = "Thickness";
+        descriptor.reference = NULL;
+        roadmap_config_declare ("schema", &descriptor, "1", NULL);
 
-        thickness = roadmap_config_get_integer (&category->thickness);
+        thickness = category->thickness = roadmap_config_get_integer (&descriptor);
 
-        category->declutter.category = name;
-        category->declutter.name     = "Declutter";
+        descriptor.name     = "Declutter";
+        descriptor.reference = NULL;
         roadmap_config_declare
-               ("schema", &category->declutter, "2024800000", NULL);
+               ("schema", &descriptor, "2024800000", NULL);
 
+        category->declutter = roadmap_config_get_integer (&descriptor);
 
         /* Retrieve the first pen's color (mandatory). */
 
@@ -539,6 +464,8 @@ void roadmap_layer_initialize (void) {
 
            if (category->delta_thickness[j] == 0) break;
 
+		   if ((j == 2) && !editor_screen_gray_scale()) break;
+		    
            snprintf (other_pens, other_pens_length, "Color%d", j);
 
            descriptor.name = strdup(other_pens);
@@ -560,8 +487,7 @@ void roadmap_layer_initialize (void) {
            snprintf (other_pens, other_pens_length, "%d%s", j, name);
            category->pen[j][0] = roadmap_canvas_create_pen (other_pens);
 
-           roadmap_canvas_set_thickness
-              (roadmap_config_get_integer (&category->thickness));
+           roadmap_canvas_set_thickness (category->thickness);
 
            if (color[0] != NULL && *(color[0]) > ' ') {
               roadmap_canvas_set_foreground (color[0]);
@@ -575,7 +501,7 @@ void roadmap_layer_initialize (void) {
               category->pen[k][j] = roadmap_canvas_create_pen (other_pens);
 
               if (category->delta_thickness[j] < 0) {
-                 thickness += category->delta_thickness[j];
+                 thickness = category->thickness + category->delta_thickness[j];
               } else {
                  thickness = category->delta_thickness[j];
               }
@@ -599,4 +525,16 @@ void roadmap_layer_get_categories_names (char **names[], int *count) {
    *count = 
        sizeof(RoadMapDefaultCategoryTable) / sizeof(char *);
 }
+
+
+const char *roadmap_layer_cfcc2type(int cfcc) {
+
+   char **categories;
+   int count;
+
+   roadmap_layer_get_categories_names (&categories, &count);
+
+   return categories[cfcc - ROADMAP_ROAD_FIRST];
+}
+
 

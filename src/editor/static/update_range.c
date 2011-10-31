@@ -48,14 +48,20 @@
 #include "../db/editor_marker.h"
 #include "../editor_main.h"
 #include "../editor_log.h"
+#include "../export/editor_report.h"
 
 #ifdef SSD
 #include "ssd/ssd_dialog.h"
 #include "ssd/ssd_container.h"
 #include "ssd/ssd_button.h"
-#include "ssd/ssd_keyboard.h"
+#include "ssd/ssd_keyboard_dialog.h"
 #include "ssd/ssd_text.h"
 #endif
+
+#ifdef IPHONE
+#include "roadmap_main.h"
+#include "roadmap_editbox.h"
+#endif //IPHONE
 
 #include "update_range.h"
 
@@ -105,7 +111,6 @@ static int extract_field(const char *note, const char *field_name,
          if ((end - note) < size) size = end - note;
          strncpy(field, note, size);
          field[size] = '\0';
-
          return 0;
       }
 
@@ -119,16 +124,18 @@ static int extract_field(const char *note, const char *field_name,
 
 
 static int update_range_export(int marker,
+                               const char **name,
                                const char **description,
-                               const char  *keys[MAX_ATTR],
-                               char        *values[MAX_ATTR],
+                               const char  *keys[ED_MARKER_MAX_ATTRS],
+                               char        *values[ED_MARKER_MAX_ATTRS],
                                int         *count) {
-   
+
    char field[255];
    const char *note = editor_marker_note (marker);
    *count = 0;
    *description = NULL;
-   
+   *name = NULL;
+
    if (extract_field (note, STREET_PREFIX, field, sizeof(field)) == -1) {
       roadmap_log (ROADMAP_ERROR, "Update range - Can't find street name.");
       return -1;
@@ -183,9 +190,9 @@ static int update_range_verify(int marker,
                                unsigned char *flags,
                                const char **note) {
 
-   char field[255]; 
+   char field[255];
    int found_update = 0;
-   
+
    if (extract_field (*note, STREET_PREFIX, field, sizeof(field)) == -1) {
       roadmap_messagebox ("Error", "Can't find street name.");
       return -1;
@@ -240,7 +247,7 @@ static void update_range (const char *updated_left, const char *updated_right,
    if (!*updated_left && !*updated_right) {
       return;
    }
-      
+
    if (roadmap_county_by_position (&CurrentFixedPosition, &fips, 1) < 1) {
       roadmap_messagebox ("Error", "Can't locate county");
       return;
@@ -284,27 +291,38 @@ static void update_range (const char *updated_left, const char *updated_right,
             CurrentGpsPoint.steering,
             time(NULL),
             UpdateRangeMarkerType,
-            ED_MARKER_UPLOAD, note) == -1) {
+            ED_MARKER_UPLOAD, note, NULL) == -1) {
 
       roadmap_messagebox ("Error", "Can't save marker.");
+   } else {
+		editor_report_markers ();
    }
 
 }
 
 #ifdef SSD
-static int keyboard_callback (int type, const char *new_value, void *context) {
+static BOOL keyboard_callback(int         exit_code, 
+                              const char* value,
+                              void*       context)
+{
    SsdWidget button = (SsdWidget)context;
 
-   if (type != SSD_KEYBOARD_OK) return 1;
+#ifdef IPHONE
+	roadmap_main_show_root(NO);
+#endif //IPHONE
+	
+   if( dec_ok != exit_code)
+        return TRUE;
 
    if (!strcmp(button->name, "left_button")) {
-      ssd_widget_set_value (button->parent, UPDATE_LEFT, new_value);
+      ssd_widget_set_value (button->parent, UPDATE_LEFT, value);
    } else {
-      ssd_widget_set_value (button->parent, UPDATE_RIGHT, new_value);
+      ssd_widget_set_value (button->parent, UPDATE_RIGHT, value);
    }
+	
+	roadmap_screen_redraw();
 
-   ssd_keyboard_hide ();
-   return 1;
+   return TRUE;
 }
 
 static int button_callback (SsdWidget widget, const char *new_value) {
@@ -319,7 +337,7 @@ static int button_callback (SsdWidget widget, const char *new_value) {
          ssd_dialog_get_value (CITY_PREFIX),
          ssd_dialog_get_value (STREET_PREFIX));
 
-      ssd_dialog_hide_current ();
+      ssd_dialog_hide_current (dec_cancel);
 
       return 1;
 
@@ -331,52 +349,65 @@ static int button_callback (SsdWidget widget, const char *new_value) {
       value = ssd_widget_get_value (widget->parent, UPDATE_RIGHT);
    }
 
-   ssd_keyboard_show (SSD_KEYBOARD_DIGITS,
-                      title, value, NULL, keyboard_callback, (void *)widget);
 
+#if (defined(__SYMBIAN32__) && !defined(TOUCH_SCREEN)) || defined(IPHONE)
+    ShowEditbox(title, "",
+            keyboard_callback, (void *)widget, EEditBoxStandard | EEditBoxNumeric );
+#else
+
+   ssd_show_keyboard_dialog(  title,
+                              NULL,
+                              keyboard_callback,
+                              widget);
+
+#endif
    return 1;
 }
 
 static void create_ssd_dialog (void) {
 
-   const char *left_icon[] = {"left"};
-   const char *right_icon[] = {"right"};
+   const char *left_icon[] = {"left_side"};
+   const char *right_icon[] = {"right_side"};
+   SsdWidget text;
    SsdWidget left;
    SsdWidget right;
    SsdWidget box;
-   SsdWidget text;
-   int align;
+   int align = 0;
 
-   SsdWidget dialog = ssd_dialog_new ("Update street range",
-                  roadmap_lang_get ("Update street range"),
+   SsdWidget dialog = ssd_dialog_new ("Update house number",
+                  roadmap_lang_get ("Update house number"),NULL,
                   SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE|SSD_DIALOG_FLOAT|
-                  SSD_ALIGN_CENTER|SSD_ALIGN_VCENTER);
+                  SSD_ALIGN_CENTER|SSD_ALIGN_VCENTER|SSD_ROUNDED_CORNERS|SSD_ROUNDED_BLACK);
 
    ssd_widget_set_color (dialog, "#000000", "#ffffffdd");
 
    /* Labels */
    box = ssd_container_new ("labels_box", NULL, -1, -1, SSD_WIDGET_SPACE);
-   ssd_widget_set_color (box, "#000000", NULL);
+   ssd_widget_set_color (box, "#fffff", NULL);
 
-   ssd_widget_add (box,
-      ssd_text_new ("street_label", roadmap_lang_get (STREET_PREFIX),
-                    14, SSD_TEXT_LABEL|SSD_END_ROW));
-         
-   ssd_widget_add (box,
-      ssd_text_new ("city_label", roadmap_lang_get (CITY_PREFIX),
-                    14, SSD_TEXT_LABEL|SSD_END_ROW));
+   text = ssd_text_new ("street_label", roadmap_lang_get (STREET_PREFIX),
+                  14, SSD_TEXT_LABEL|SSD_END_ROW);
+   ssd_text_set_color(text, "#ffffff");
+   ssd_widget_add (box, text);
+
+   text = ssd_text_new ("city_label", roadmap_lang_get (CITY_PREFIX),
+                    14, SSD_TEXT_LABEL|SSD_END_ROW);
+   ssd_text_set_color(text, "#ffffff");
+   ssd_widget_add (box, text);
 
    ssd_widget_add (dialog, box);
-         
+
    /* Values */
    box = ssd_container_new ("values_box", NULL, -1, -1, SSD_END_ROW);
-   ssd_widget_set_color (box, "#000000", NULL);
+   ssd_widget_set_color (box, "#ffffff", NULL);
 
-   ssd_widget_add (box,
-      ssd_text_new (STREET_PREFIX, "", 14, SSD_END_ROW));
-         
-   ssd_widget_add (box,
-      ssd_text_new (CITY_PREFIX, "", 14, SSD_END_ROW));
+   text = ssd_text_new (STREET_PREFIX, "", 14, SSD_END_ROW);
+   ssd_text_set_color(text, "#ffffff");
+   ssd_widget_add (box, text);
+
+   text = ssd_text_new (CITY_PREFIX, "", 14, SSD_END_ROW);
+   ssd_text_set_color(text, "#ffffff");
+   ssd_widget_add (box, text);
 
    ssd_widget_add (dialog, box);
 
@@ -389,16 +420,18 @@ static void create_ssd_dialog (void) {
       align = SSD_ALIGN_RIGHT;
    }
 
-   left = ssd_container_new ("left", NULL, -1, -1, align);
-   ssd_widget_set_color (left, "#000000", NULL);
+   left = ssd_container_new ("left", NULL, -1, -1, align|SSD_WS_TABSTOP);
+   ssd_widget_set_color (left, "#ffffff", NULL);
    ssd_widget_set_offset (left, 2, 0);
 
    box = ssd_container_new ("left_box", NULL, 50, 20,
-                            SSD_CONTAINER_BORDER|SSD_ALIGN_CENTER|SSD_END_ROW);
-   ssd_widget_set_color (box, "#000000", NULL);
+                            SSD_ALIGN_CENTER|SSD_END_ROW);
+   ssd_widget_set_color (box, "#ffffff", NULL);
 
-   ssd_widget_add (box,
-      ssd_text_new ("estimated_left", "", 16, SSD_END_ROW|SSD_ALIGN_CENTER));
+   text = ssd_text_new ("estimated_left", "", 16, SSD_END_ROW|SSD_ALIGN_CENTER);
+   ssd_text_set_color(text, "#ffffff");
+   ssd_widget_add (box, text);
+
    ssd_widget_add (left, box);
 
    ssd_widget_add (left,
@@ -406,30 +439,32 @@ static void create_ssd_dialog (void) {
                          SSD_ALIGN_CENTER|SSD_END_ROW, button_callback));
 
    text = ssd_text_new (UPDATE_LEFT, "", 15, SSD_END_ROW|SSD_ALIGN_CENTER);
-   ssd_widget_set_color (text, "#ff0000", 0);
+   ssd_text_set_color(text, "#ffffff");
    ssd_widget_add (left, text);
 
    /* Right side */
    if (ssd_widget_rtl (NULL)) align = 0;
    else align = SSD_ALIGN_RIGHT;
 
-   right = ssd_container_new ("right", NULL, -1, -1, align);
+   right = ssd_container_new ("right", NULL, -1, -1, align|SSD_WS_TABSTOP);
    ssd_widget_set_offset (right, 2, 0);
-   ssd_widget_set_color (right, "#000000", NULL);
+   ssd_widget_set_color (right, "#fffff", NULL);
    box = ssd_container_new ("right_box", NULL, 50, 20,
-                            SSD_CONTAINER_BORDER|SSD_ALIGN_CENTER|SSD_END_ROW);
+                            SSD_ALIGN_CENTER|SSD_END_ROW);
    ssd_widget_set_color (box, "#000000", NULL);
 
-   ssd_widget_add (box,
-      ssd_text_new ("estimated_right", "", 16, SSD_END_ROW|SSD_ALIGN_CENTER));
+   text = ssd_text_new ("estimated_right", "", 16, SSD_END_ROW|SSD_ALIGN_CENTER);
+   ssd_text_set_color(text, "#ffffff");
+   ssd_widget_add (box, text);
+   
    ssd_widget_add (right, box);
 
    ssd_widget_add (right,
          ssd_button_new ("right_button", "", right_icon, 1,
                          SSD_ALIGN_CENTER|SSD_END_ROW, button_callback));
 
-   text = ssd_text_new (UPDATE_RIGHT, "", 15, SSD_END_ROW|SSD_ALIGN_CENTER);
-   ssd_widget_set_color (text, "#ff0000", 0);
+   text = ssd_text_new (UPDATE_RIGHT, "", 15, SSD_END_ROW);
+   ssd_text_set_color(text, "#ffffff");
    ssd_widget_add (right, text);
 
    if (ssd_widget_rtl (NULL)) {
@@ -442,7 +477,7 @@ static void create_ssd_dialog (void) {
 
    ssd_widget_add (dialog,
       ssd_button_label ("OK", roadmap_lang_get ("Ok"),
-                        SSD_ALIGN_CENTER|SSD_START_NEW_ROW, button_callback));
+                        SSD_ALIGN_CENTER|SSD_START_NEW_ROW|SSD_WS_TABSTOP, button_callback));
 
 }
 #endif
@@ -473,16 +508,16 @@ static int get_estimated_range(const PluginLine *line,
       *left = *right;
       *right = tmp;
    }
-      
+
    return 0;
 }
- 
+
 
 static int fill_dialog(PluginLine *line, RoadMapPosition *pos,
                        int direction) {
 
-   const char *street_name;
-   const char *city_name;
+   const char *street_name = NULL;
+   const char *city_name = NULL;
    int fraddl;
    int toaddl;
    int fraddr;
@@ -492,6 +527,7 @@ static int fill_dialog(PluginLine *line, RoadMapPosition *pos,
    char str[100];
 
    if (line->plugin_id == EditorPluginID) {
+#if 0
       EditorStreetProperties properties;
 
       if (editor_db_activate (line->fips) == -1) return -1;
@@ -507,7 +543,7 @@ static int fill_dialog(PluginLine *line, RoadMapPosition *pos,
          (&properties, ED_STREET_LEFT_SIDE, &fraddl, &toaddl);
       editor_street_get_street_range
          (&properties, ED_STREET_RIGHT_SIDE, &fraddr, &toaddr);
-
+#endif
    } else {
       RoadMapStreetProperties properties;
 
@@ -530,7 +566,7 @@ static int fill_dialog(PluginLine *line, RoadMapPosition *pos,
 
    get_estimated_range
          (line, pos, direction, fraddl, toaddl, fraddr, toaddr, &left, &right);
-#ifndef SSD   
+#ifndef SSD
    roadmap_dialog_set_data ("Update", STREET_PREFIX, street_name);
 
    roadmap_dialog_set_data ("Update", CITY_PREFIX, city_name);
@@ -589,11 +625,15 @@ void update_range_dialog(void) {
    PluginLine line;
    RoadMapNeighbour result;
    int direction;
+	
 
    if (roadmap_navigate_get_current
          (&CurrentGpsPoint, &line, &direction) == -1) {
 
       roadmap_messagebox ("Error", "Can't find current street.");
+#ifdef IPHONE
+	   roadmap_main_show_root(1);
+#endif //IPHONE
       return;
    }
 
@@ -604,13 +644,20 @@ void update_range_dialog(void) {
         ((RoadMapPosition *)&CurrentGpsPoint, &line, &result)) {
 
       roadmap_messagebox ("Error", "Can't find a road near point.");
+#ifdef IPHONE
+	   roadmap_main_show_root(1);
+#endif //IPHONE 
       return;
    }
+	
+#ifdef IPHONE
+	roadmap_main_show_root(0);
+#endif //IPHONE
 
    CurrentFixedPosition = result.intersection;
 
 #ifndef SSD
-   if (roadmap_dialog_activate ("Update street range", NULL, 1)) {
+   if (roadmap_dialog_activate ("Update house number", NULL, 1)) {
 
       roadmap_dialog_new_label ("Update", STREET_PREFIX);
       roadmap_dialog_new_label ("Update", CITY_PREFIX);
@@ -625,9 +672,9 @@ void update_range_dialog(void) {
       roadmap_dialog_complete (roadmap_preferences_use_keyboard ());
    }
 #else
-   if (!ssd_dialog_activate ("Update street range", NULL)) {
+   if (!ssd_dialog_activate ("Update house number", NULL)) {
       create_ssd_dialog();
-      ssd_dialog_activate ("Update street range", NULL);
+      ssd_dialog_activate ("Update house number", NULL);
    }
 #endif
    fill_dialog (&line, &CurrentFixedPosition, direction);

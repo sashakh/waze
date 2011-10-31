@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -60,17 +61,31 @@ typedef struct {
    void (*update) (RoadMapPosition *position, PluginLine *current);
    void (*get_next_line)
           (PluginLine *current, int direction, PluginLine *next);
+   int (*line_in_route)
+          (PluginLine *current, int direction);
 
 } RoadMapNavigateRouteCB;
 
+int roadmap_navigate_get_neighbours
+              (const RoadMapPosition *position, int scale, int accuracy, int max_shapes,
+               RoadMapNeighbour *neighbours, int max, int type);
+               
 void roadmap_navigate_disable (void);
 void roadmap_navigate_enable  (void);
 
 int roadmap_navigate_retrieve_line
-        (const RoadMapPosition *position, int accuracy, PluginLine *line,
+        (const RoadMapPosition *position, int scale, int accuracy, PluginLine *line,
          int *distance, int type);
 
-void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position);
+int roadmap_navigate_retrieve_line_force_name
+        (const RoadMapPosition *position, int scale, int accuracy, PluginLine *line,
+         int *distance, int type, int orig_square, const char *name,
+         int route, int fake_from, int fake_to,
+         RoadMapPosition *force_from, RoadMapPosition *force_to);
+
+int roadmap_navigate_is_jammed (void);
+
+void roadmap_navigate_locate (const RoadMapGpsPosition *gps_position, time_t gps_time);
 
 void roadmap_navigate_initialize (void);
 
@@ -85,8 +100,11 @@ int roadmap_navigate_fuzzify
 int roadmap_navigate_get_current (RoadMapGpsPosition *position,
                                   PluginLine *line,
                                   int *direction);
+time_t roadmap_navigate_get_time (void);
+                                  
+void roadmap_navigate_check_alerts (void);                                  
 
 void roadmap_navigate_route (RoadMapNavigateRouteCB callbacks);
-void roadmap_navigate_end_route (RoadMapNavigateRouteCB callbacks);
-
+void roadmap_navigate_end_route (void);
+void roadmap_navigate_resume_route (void);
 #endif // INCLUDE__ROADMAP_NAVIGATE__H

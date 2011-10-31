@@ -43,7 +43,7 @@
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
 #include "roadmap_point.h"
-#include "roadmap_navigate.h"
+#include "roadmap_square.h"
 
 #include "../db/editor_db.h"
 #include "../db/editor_point.h"
@@ -55,8 +55,11 @@
 #include "../db/editor_override.h"
 #include "../editor_main.h"
 #include "../editor_log.h"
+#include "../editor_points.h"
 
+#include "../editor_screen.h"
 #include "editor_track_main.h"
+#include "editor_track_compress.h"
 #include "editor_track_util.h"
 
 #define FOCUS_RANGE 10000
@@ -110,6 +113,7 @@ static int find_split_point (PluginLine *line,
    int points_count = last_point_id + 1;
    int distance;
    int min_distance;
+   int create_point;
 
    editor_log_push ("find_split_point");
 
@@ -281,6 +285,7 @@ static int find_split_point (PluginLine *line,
       }
    }
 
+   create_point = 0;
    if (min_distance >= max_distance_allowed) {
       editor_log
          (ROADMAP_INFO,
@@ -292,31 +297,16 @@ static int find_split_point (PluginLine *line,
          return -1;
       }
       
-      if (editor_line_split
-                  (line,
-                  (split_type & SPLIT_START ?
-                   track_point_pos (0) :
-                   track_point_pos (points_count-1)),
-                  &split_pos,
-                  &connect_point->id) == -1) {
-
-         editor_log
-            (ROADMAP_ERROR, "Can't split line.");
-         editor_log_pop ();
-
-         return -1;
-      }
-
-      connect_point->plugin_id = EditorPluginID;
-   }
-
-   if (connect_point->id == -1) {
+      create_point = 1;
+   } else {
 
       int from, to;
       int plugin_id = roadmap_plugin_get_id (line);
 
       if (plugin_id != EditorPluginID) {
-         roadmap_line_points (roadmap_plugin_get_line_id (line), &from, &to);
+      	roadmap_square_set_current (roadmap_plugin_get_square (line));
+      	roadmap_line_points (roadmap_plugin_get_line_id (line), &from, &to);
+      	connect_point->square = roadmap_plugin_get_square (line);
       } else {
          editor_line_get_points (roadmap_plugin_get_line_id (line), &from, &to);
       }
@@ -329,6 +319,13 @@ static int find_split_point (PluginLine *line,
       }
 
       connect_point->plugin_id = plugin_id;
+   }
+   
+   if (create_point) {
+   
+   	connect_point->plugin_id = EditorPluginID;
+   	connect_point->id = editor_point_add (&split_pos, -1);
+   	if (connect_point->id < 0) return -1;	
    }
 
    if ((start_point_id == -1) ||
@@ -378,6 +375,7 @@ static void editor_track_util_node_pos (NodeNeighbour *node,
 
    if (node->plugin_id != EditorPluginID) {
 
+		roadmap_square_set_current (node->square);
       roadmap_point_position (node->id, position);
    } else {
 
@@ -385,7 +383,7 @@ static void editor_track_util_node_pos (NodeNeighbour *node,
    }
 }
 
-
+#if 0
 static int editor_track_util_nodes_distance (NodeNeighbour *node1,
                                              NodeNeighbour *node2) {
 
@@ -397,7 +395,7 @@ static int editor_track_util_nodes_distance (NodeNeighbour *node1,
 
    return roadmap_math_distance (&p1, &p2);
 }
-
+#endif
 
 static int editor_track_util_same_node (NodeNeighbour *from_node,
                                         NodeNeighbour *to_node) {
@@ -426,7 +424,6 @@ static int adjust_connect_node (NodeNeighbour *node, PluginLine *line) {
 
    if (!roadmap_plugin_get_distance (&split_position, line, &result)) {
 
-      assert (0);
       return -1;
    }
 
@@ -439,12 +436,13 @@ static int adjust_connect_node (NodeNeighbour *node, PluginLine *line) {
    split_position.latitude = result.intersection.latitude;
 
    if (node->plugin_id == ROADMAP_PLUGIN_ID) {
-      node->id = editor_point_roadmap_to_editor (node->id);
+      node->id = editor_point_add (&split_position, -1);
       node->plugin_id = EditorPluginID;
-   }
+   } else {
 
-   //TODO: make sure that the point is not shared
-   editor_point_set_pos (node->id, &split_position);
+	   //TODO: make sure that the point is not shared
+   	editor_point_set_pos (node->id, &split_position);
+   }
 
    return 0;
 }
@@ -457,6 +455,7 @@ static void editor_track_util_get_node (PluginLine *from,
    
    int plugin_id = roadmap_plugin_get_id (from);
    int line_id   = roadmap_plugin_get_line_id (from);
+   int square	  = roadmap_plugin_get_square (from);
 
    if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
       /* toggle node type */
@@ -467,28 +466,12 @@ static void editor_track_util_get_node (PluginLine *from,
 
    if (plugin_id == EditorPluginID) {
 
-      int from_point_id;
-      int to_point_id;
-      int roadmap_id;
-
-      editor_line_get_points (line_id, &from_point_id, &to_point_id);
+      node->plugin_id = EditorPluginID;
 
       if (node_type == NODE_FROM) {
-         editor_point_roadmap_id (from_point_id, &roadmap_id);
+      	editor_line_get_points (line_id, &node->id, NULL);
       } else {
-         editor_point_roadmap_id (to_point_id, &roadmap_id);
-      }
-
-      if (roadmap_id != -1) {
-
-         node->plugin_id = ROADMAP_PLUGIN_ID;
-         node->id = roadmap_id;
-      } else {
-
-         node->plugin_id = EditorPluginID;
-
-         if (node_type == NODE_FROM) node->id = from_point_id;
-         else node->id = to_point_id;
+      	editor_line_get_points (line_id, NULL, &node->id);
       }
 
    } else {
@@ -496,9 +479,11 @@ static void editor_track_util_get_node (PluginLine *from,
       int from_point_id;
       int to_point_id;
 
+		roadmap_square_set_current (square);
       roadmap_line_points (line_id, &from_point_id, &to_point_id);
 
       node->plugin_id = ROADMAP_PLUGIN_ID;
+      node->square = square;
 
       if (node_type == NODE_FROM) node->id = from_point_id;
       else node->id = to_point_id;
@@ -535,10 +520,10 @@ int find_connecting_road (RoadMapPosition *pos,
    layer_count = roadmap_layer_all_roads (layers, 128);
 
    count = roadmap_street_get_closest
-           (pos, layers, layer_count, neighbourhood, max);
+           (pos, 0, layers, layer_count, 1, neighbourhood, max);
 
    count = roadmap_plugin_get_closest
-           (pos, layers, layer_count, neighbourhood, count, max);
+           (pos, layers, layer_count, 1, neighbourhood, count, max);
 
    for (i = 0; i < count; ++i) {
       NodeNeighbour c_from_node;
@@ -633,12 +618,12 @@ int editor_track_util_find_street
    layer_count = roadmap_layer_all_roads (layers, 128);
 
    count = roadmap_street_get_closest
-           ((RoadMapPosition *)gps_position, layers, layer_count,
-             neighbourhood, max);
+           ((RoadMapPosition *)gps_position, 0, layers, layer_count,
+             3, neighbourhood, max);
 
    count = roadmap_plugin_get_closest
            ((RoadMapPosition *)gps_position, layers, layer_count,
-             neighbourhood, count, max);
+             3, neighbourhood, count, max);
 
    //editor_track_util_release_focus ();
 
@@ -692,8 +677,8 @@ int editor_track_util_find_street
          /* if this line is the current line, or connected to the
           * current line, allow it
           */
-         if (!roadmap_plugin_same_line (&neighbourhood[i].line,
-                                        &previous_line->line)) {
+         if (!roadmap_plugin_same_db_line (&neighbourhood[i].line,
+                                        		&previous_line->line)) {
 
             if (roadmap_fuzzy_is_certain (
                   roadmap_fuzzy_connected
@@ -784,6 +769,7 @@ int editor_track_util_connect_roads (PluginLine *from,
          return (from_point + to_point) / 2;
       }
 
+#if 0
       if (editor_track_util_nodes_distance (&from_node, &to_node) >
             2 * editor_track_point_distance ()) {
          editor_log (ROADMAP_INFO,
@@ -791,6 +777,7 @@ int editor_track_util_connect_roads (PluginLine *from,
          editor_log_pop ();
          return -1;
       }
+#endif
 
       editor_log_pop ();
       return (from_point + to_point) / 2;
@@ -798,7 +785,7 @@ int editor_track_util_connect_roads (PluginLine *from,
 
    if ((from_point == -1) && (to_point == -1)) {
 
-      if (roads_connected && !roadmap_plugin_same_line(from, to)) {
+      if (roads_connected && !roadmap_plugin_same_db_line(from, to)) {
          editor_log (ROADMAP_INFO,
                "Neither lines have a node near connection but the roads are connected. We need a connection road.");
 
@@ -905,7 +892,8 @@ int editor_track_util_connect_roads (PluginLine *from,
 }
 
 
-int editor_track_util_create_trkseg (int line_id,
+int editor_track_util_create_trkseg (int square,
+												 int line_id,
                                      int plugin_id,
                                      int first_point,
                                      int last_point,
@@ -918,38 +906,58 @@ int editor_track_util_create_trkseg (int line_id,
    int i;
    time_t gps_time = track_point_time (first_point);
    RoadMapPosition *pos = track_point_pos (first_point);
+   int from_point_id;
+   int to_point_id;
+   PluginLine pline;
+   int user_points;
 
-   trk_from = editor_point_add (pos, 0, -1);
+   trk_from = editor_point_add (pos, -1);
+
+	editor_track_compress_track (first_point, last_point);
 
    for (i=first_point; i<=last_point; i++) {
 
-      RoadMapPosition *shape_pos = track_point_pos (i);
-      last_shape = editor_shape_add
-                     (shape_pos->longitude - pos->longitude,
-                      shape_pos->latitude - pos->latitude,
-                      (short) (track_point_time (i) - gps_time));
+		if (*track_point_status (i) == POINT_STATUS_SAVE) {
+			
+	      RoadMapPosition *shape_pos = track_point_pos (i);
 
-      if (last_shape == -1) {
-         editor_log (ROADMAP_ERROR, "Can't add shape point.");
-         editor_log_pop ();
-         return -1;
-      }
-      
-      if (first_shape == -1) {
-         first_shape = last_shape;
-      }
-
-      pos = shape_pos;
-      gps_time = track_point_time (i);
+	      last_shape = editor_shape_add
+	                     (track_point_ordinal (i),
+	                      shape_pos->longitude - pos->longitude,
+	                      shape_pos->latitude - pos->latitude,
+	                      (short) (track_point_time (i) - gps_time));
+	
+	      if (last_shape == -1) {
+	         editor_log (ROADMAP_ERROR, "Can't add shape point.");
+	         editor_log_pop ();
+	         return -1;
+	      }
+	      
+	      if (first_shape == -1) {
+	         first_shape = last_shape;
+	      }
+	
+	      pos = shape_pos;
+	      gps_time = track_point_time (i);
+		}
    }
 
-   trkseg_id = editor_trkseg_add (line_id,
-                                  plugin_id,
+	pline.square = square;
+	pline.line_id = line_id;
+	pline.plugin_id = plugin_id;
+   
+   user_points = editor_points_reset_munching();
+	
+	editor_track_util_get_line_point_ids (&pline, flags & ED_TRKSEG_OPPOSITE_DIR, &from_point_id, &to_point_id);
+   trkseg_id = editor_trkseg_add (from_point_id,
+   										 to_point_id,
                                   trk_from,
                                   first_shape,
                                   last_shape,
                                   track_point_time (first_point),
                                   track_point_time (last_point),
+                                  user_points,
+                                  roadmap_square_version(square),
                                   flags);
 
    if (trkseg_id == -1) return -1;
@@ -965,86 +973,30 @@ void editor_track_add_trkseg (PluginLine *line,
                               int direction,
                               int who) {
    
-   int first;
-   int last;
-   int route;
+   int dir_line;
 
    int plugin_id = roadmap_plugin_get_id (line);
+   int square = roadmap_plugin_get_square (line);
+   int line_id = roadmap_plugin_get_line_id (line);
 
    if (direction != ROUTE_DIRECTION_NONE) {
 
-      LineRouteFlag from_flags = 0;
-      LineRouteFlag to_flags = 0;
-      LineRouteMax speed_limit = 0;
-      
       if (plugin_id == ROADMAP_PLUGIN_ID) {
-         route = editor_override_line_get_route
-                     (roadmap_plugin_get_line_id (line));
+
+      	roadmap_square_set_current (square);
+      	dir_line = roadmap_line_route_get_direction (line_id, ROUTE_CAR_ALLOWED);
+         editor_override_line_get_direction (line_id, line->square, &dir_line);
+
+			if (!(direction & dir_line)) {
+				editor_override_line_set_direction (line_id, line->square, direction | dir_line);
+			}
       } else {
-         route = editor_line_get_route (roadmap_plugin_get_line_id (line));
+
+         editor_line_get_direction (line_id, &dir_line);
+			if (!(direction & dir_line)) {
+				editor_line_set_direction (line_id, direction | dir_line);
+			}
       }
-
-      if (route == -1) {
-         
-         if (plugin_id == ROADMAP_PLUGIN_ID) {
-            roadmap_line_route_get_flags
-               (roadmap_plugin_get_line_id (line),
-                &from_flags, &to_flags);
-
-            roadmap_line_route_get_speed_limit
-               (roadmap_plugin_get_line_id (line),
-                &speed_limit, &speed_limit);
-         }
-
-         route = editor_route_segment_add
-                  (from_flags, to_flags, speed_limit, speed_limit);
-      } else {
-         editor_route_segment_get
-            (route, &from_flags, &to_flags, &speed_limit, &speed_limit);
-      }
-
-      if (direction == ROUTE_DIRECTION_WITH_LINE) {
-         from_flags |= who;
-      } else if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
-         to_flags |= who;
-      } else {
-         assert (0);
-      }
-      
-      if (route != -1) {
-         editor_route_segment_set
-            (route, from_flags, to_flags, speed_limit, speed_limit);
-      }
-   }
-
-   if (plugin_id != EditorPluginID) {
-
-      editor_override_line_get_trksegs
-         (roadmap_plugin_get_line_id (line), &first, &last);
-      
-      if (first == -1) {
-         first = last = trkseg;
-      } else {
-         editor_trkseg_connect_roads (last, trkseg);
-         last = trkseg;
-      }
-      editor_override_line_set_trksegs
-         (roadmap_plugin_get_line_id (line), first, last);
-
-   } else {
-
-      editor_line_get_trksegs
-         (roadmap_plugin_get_line_id (line), &first, &last);
-      
-      if (first == -1) {
-         first = last = trkseg;
-      } else {
-         editor_trkseg_connect_roads (last, trkseg);
-         last = trkseg;
-      }
-
-      editor_line_set_trksegs
-         (roadmap_plugin_get_line_id (line), first, last);
    }
 }
 
@@ -1056,15 +1008,14 @@ int editor_track_util_create_line (int gps_first_point,
                                    int cfcc,
                                    int is_new_track) {
 
-   int route;
    int trkseg;
-   int trkseg2;
    int line_id;
    PluginLine line;
-   int fips = editor_db_locator (track_point_pos (gps_last_point));
-   int trk_flags = 0;
+   int fips = roadmap_locator_active ();
+   int square = roadmap_square_active ();
+   int flags = 0;
 
-   assert (gps_first_point != gps_last_point);
+   //   assert (gps_first_point != gps_last_point); 
 
    editor_log_push ("editor_track_create_line");
 
@@ -1074,58 +1025,46 @@ int editor_track_util_create_line (int gps_first_point,
       return -1;
    }
 
-   if (editor_db_activate (fips) == -1) {
-      editor_db_create (fips);
-      if (editor_db_activate (fips) == -1) {
+   editor_track_util_create_db (track_point_pos (gps_last_point));
+
+   if (is_new_track) {
+           flags = flags | ED_TRKSEG_NEW_TRACK;
+   }
+
+   if (!editor_ignore_new_roads() || editor_screen_show_candidates()) {
+      /* we skip the first and last points of the GPS track */
+      trkseg =
+         editor_track_util_create_trkseg
+         (square, -1, EditorPluginID, gps_first_point+1, gps_last_point-1,
+          ED_TRKSEG_FAKE);
+
+      if (trkseg == -1) {
+         editor_log (ROADMAP_ERROR, "Can't create new trkseg.");
          editor_log_pop ();
          return -1;
       }
+
+      line_id = editor_line_add (from_point, to_point, trkseg, cfcc, ROUTE_DIRECTION_WITH_LINE, -1, ED_LINE_DIRTY);
+
+      if (line_id == -1) {
+         editor_log (ROADMAP_ERROR, "Can't create new line.");
+         editor_log_pop ();
+         return -1;
+      }
+
+      roadmap_plugin_set_line (&line, EditorPluginID, line_id, cfcc, square, fips);
+   } else {
+      /* Do not create an editor line, only trkseg */
+      line_id = -1;
    }
 
-   /* we skip the first and last points of the GPS track */
-   trkseg =
-      editor_track_util_create_trkseg
-         (-1, EditorPluginID, gps_first_point+1, gps_last_point-1,
-          ED_TRKSEG_FAKE|ED_TRKSEG_NO_GLOBAL);
-
-   if (trkseg == -1) {
-      editor_log (ROADMAP_ERROR, "Can't create new trkseg.");
-      editor_log_pop ();
-      return -1;
-   }
-
-   line_id = editor_line_add (from_point, to_point, trkseg, cfcc, 0);
-
-   if (line_id == -1) {
-      editor_log (ROADMAP_ERROR, "Can't create new line.");
-      editor_log_pop ();
-      return -1;
-   }
-
-   editor_trkseg_set_line (trkseg, line_id, EditorPluginID);
-
-   /* this is the second trkseg of the line */
-   if (is_new_track) {
-      trk_flags |= ED_TRKSEG_NEW_TRACK;
-   }
-      
-   trkseg2 =
-      editor_track_util_create_trkseg
-         (line_id, EditorPluginID, gps_first_point, gps_last_point, trk_flags);
-
-   if (trkseg2 == -1) {
-      editor_log (ROADMAP_ERROR, "Can't create new trkseg.");
-      editor_log_pop ();
-      return -1;
-   }
-
-   editor_trkseg_connect_roads (trkseg, trkseg2);
-   editor_line_set_trksegs (line_id, trkseg, trkseg2);
-
-   route = editor_route_segment_add (ROUTE_CAR_ALLOWED, 0, 0, 0);
-   editor_line_set_route (line_id, route);
-
-   roadmap_plugin_set_line (&line, EditorPluginID, line_id, cfcc, fips);
+	/* add actual trkseg with end points */
+	if (!editor_ignore_new_roads ()) {
+		flags |= ED_TRKSEG_RECORDING_ON;
+	}
+   editor_track_util_create_trkseg
+      (square, line_id, EditorPluginID, gps_first_point, gps_last_point,
+       flags);
 
    editor_log_pop ();
    return line_id;
@@ -1150,7 +1089,7 @@ int editor_track_util_length (int first, int last) {
 
 int editor_track_util_create_db (const RoadMapPosition *pos) {
 
-   int fips = editor_db_locator (pos);
+   int fips = roadmap_locator_active (); //editor_db_locator (pos);
 
    if (editor_db_activate (fips) == -1) {
       editor_db_create (fips);
@@ -1162,4 +1101,68 @@ int editor_track_util_create_db (const RoadMapPosition *pos) {
 
    return fips;
 }
+
+
+int editor_track_util_roadmap_node_to_editor (NodeNeighbour *node) {
+
+   RoadMapPosition position;
+	
+	roadmap_square_set_current (node->square);
+	roadmap_point_position (node->id, &position);
+   return editor_point_add (&position, roadmap_point_db_id (node->id));
+}
+
+
+static int add_line_length (const PluginLine *line, void *context, int extend_flags) {
+
+	int *len = (int *)context;
+	
+	roadmap_square_set_current (roadmap_plugin_get_square (line));
+	*len += roadmap_line_length (roadmap_plugin_get_line_id (line));
+
+	return 0;		
+}
+
+
+int editor_track_util_get_line_length (const PluginLine *line) {
+
+	int len = 0;
+	int plugin_id = roadmap_plugin_get_id (line);
+	
+	if (plugin_id == EditorPluginID) {
+	
+			len = editor_line_length (roadmap_plugin_get_line_id (line));
+	
+	} else if (plugin_id == ROADMAP_PLUGIN_ID) {
+		
+		add_line_length (line, &len, 0);
+		roadmap_street_extend_line_ends (line, NULL, NULL, FLAG_EXTEND_BOTH, add_line_length, &len);
+	}
+	
+	return len; 		
+}
+
+
+void editor_track_util_get_line_point_ids (const PluginLine *line, 
+														 int reverse, 
+														 int *from_id, 
+														 int *to_id) {
+	
+   if (line->plugin_id == ROADMAP_PLUGIN_ID &&
+   	 line->line_id >= 0) {
+   	
+		roadmap_square_set_current (line->square);
+
+		if (reverse) {
+      	roadmap_line_point_ids (line->line_id, to_id, from_id);
+		} else {
+      	roadmap_line_point_ids (line->line_id, from_id, to_id);
+		}
+   } else {
+   
+   	*from_id = -1;
+   	*to_id = -1;	
+   }
+}
+
 

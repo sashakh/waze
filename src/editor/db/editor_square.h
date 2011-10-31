@@ -27,7 +27,7 @@
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
 
-#include "editor_db.h"
+#include "editor/db/editor_db.h"
 
 #define MAX_BLOCKS_PER_SQUARE 50
 

@@ -25,33 +25,24 @@
 #define INCLUDE__EDITOR_POINT__H
 
 #include "roadmap_types.h"
-#include "roadmap_dbread.h"
+#include "editor/db/editor_db.h"
 
-
-#define ED_POINT_SHARED 1
 
 typedef struct editor_db_point_s {
    int longitude;
    int latitude;
-   int flags;
-   int roadmap_id;
+   int db_id;
 } editor_db_point;
 
-typedef struct editor_db_del_point_s {
-   int roadmap_id;
-   int editor_id;
-} editor_db_del_point;
+#define EDITOR_POINT_TYPE_MUNCHING 1
 
-
-int editor_point_add (RoadMapPosition *position, int flags, int roadmap_id);
+int editor_point_add (RoadMapPosition *position, int db_id);
 void editor_point_position  (int point, RoadMapPosition *position);
+int editor_point_db_id  (int point);
 int editor_point_set_pos (int point, RoadMapPosition *position);
 
-int editor_point_roadmap_to_editor (int roadmap_id);
-void editor_point_roadmap_id (int point_id, int *roadmap_id);
 
-extern roadmap_db_handler EditorPointsHandler;
-extern roadmap_db_handler EditorPointsDelHandler;
+extern editor_db_handler EditorPointsHandler;
 
 #endif // INCLUDE__EDITOR_POINT__H
 

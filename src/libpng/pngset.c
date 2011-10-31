@@ -386,7 +386,7 @@ png_set_pCAL(png_structp png_ptr, png_infop info_ptr,
    png_charp purpose, png_int_32 X0, png_int_32 X1, int type, int nparams,
    png_charp units, png_charpp params)
 {
-   png_uint_32 length;
+   png_size_t length;
    int i;
 
    png_debug1(1, "in %s storage function\n", "pCAL");
@@ -395,13 +395,13 @@ png_set_pCAL(png_structp png_ptr, png_infop info_ptr,
 
    length = png_strlen(purpose) + 1;
    png_debug1(3, "allocating purpose for info (%lu bytes)\n", length);
-   info_ptr->pcal_purpose = (png_charp)png_malloc_warn(png_ptr, length);
+   info_ptr->pcal_purpose = (png_charp)png_malloc_warn(png_ptr, (png_uint_32)length);
    if (info_ptr->pcal_purpose == NULL)
      {
        png_warning(png_ptr, "Insufficient memory for pCAL purpose.");
        return;
      }
-   png_memcpy(info_ptr->pcal_purpose, purpose, (png_size_t)length);
+   png_memcpy(info_ptr->pcal_purpose, purpose, (png_uint_32)length);
 
    png_debug(3, "storing X0, X1, type, and nparams in info\n");
    info_ptr->pcal_X0 = X0;
@@ -411,7 +411,7 @@ png_set_pCAL(png_structp png_ptr, png_infop info_ptr,
 
    length = png_strlen(units) + 1;
    png_debug1(3, "allocating units for info (%lu bytes)\n", length);
-   info_ptr->pcal_units = (png_charp)png_malloc_warn(png_ptr, length);
+   info_ptr->pcal_units = (png_charp)png_malloc_warn(png_ptr, (png_uint_32)length);
    if (info_ptr->pcal_units == NULL)
      {
        png_warning(png_ptr, "Insufficient memory for pCAL units.");
@@ -433,7 +433,7 @@ png_set_pCAL(png_structp png_ptr, png_infop info_ptr,
    {
       length = png_strlen(params[i]) + 1;
       png_debug2(3, "allocating parameter %d for info (%lu bytes)\n", i, length);
-      info_ptr->pcal_params[i] = (png_charp)png_malloc_warn(png_ptr, length);
+      info_ptr->pcal_params[i] = (png_charp)png_malloc_warn(png_ptr, (png_uint_32)length);
       if (info_ptr->pcal_params[i] == NULL)
         {
           png_warning(png_ptr, "Insufficient memory for pCAL parameter.");
@@ -682,7 +682,7 @@ png_set_iCCP(png_structp png_ptr, png_infop info_ptr,
    if (png_ptr == NULL || info_ptr == NULL || name == NULL || profile == NULL)
       return;
 
-   new_iccp_name = (png_charp)png_malloc_warn(png_ptr, png_strlen(name)+1);
+   new_iccp_name = (png_charp)png_malloc_warn(png_ptr, (png_uint_32)(png_strlen(name)+1));
    if (new_iccp_name == NULL)
    {
       png_warning(png_ptr, "Insufficient memory to process iCCP chunk.");
@@ -972,7 +972,7 @@ png_set_sPLT(png_structp png_ptr,
         png_sPLT_tp from = entries + i;
 
         to->name = (png_charp)png_malloc(png_ptr,
-            png_strlen(from->name) + 1);
+            (png_uint_32)(png_strlen(from->name) + 1));
         /* TODO: use png_malloc_warn */
         png_strcpy(to->name, from->name);
         to->entries = (png_sPLT_entryp)png_malloc(png_ptr,
@@ -1005,8 +1005,8 @@ png_set_unknown_chunks(png_structp png_ptr,
         return;
 
     np = (png_unknown_chunkp)png_malloc_warn(png_ptr,
-        (info_ptr->unknown_chunks_num + num_unknowns) *
-        png_sizeof(png_unknown_chunk));
+        (png_uint_32)((info_ptr->unknown_chunks_num + num_unknowns) *
+        png_sizeof(png_unknown_chunk)));
     if (np == NULL)
     {
        png_warning(png_ptr, "Out of memory while processing unknown chunk.");
@@ -1024,7 +1024,7 @@ png_set_unknown_chunks(png_structp png_ptr,
         png_unknown_chunkp from = unknowns + i;
 
         png_strncpy((png_charp)to->name, (png_charp)from->name, 5);
-        to->data = (png_bytep)png_malloc_warn(png_ptr, from->size);
+        to->data = (png_bytep)png_malloc_warn(png_ptr, (png_uint_32)from->size);
         if (to->data == NULL)
         {
            png_warning(png_ptr, "Out of memory processing unknown chunk.");

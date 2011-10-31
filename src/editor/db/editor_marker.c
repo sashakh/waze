@@ -32,6 +32,8 @@
 
 #include "roadmap.h"
 #include "roadmap_path.h"
+#include "roadmap_square.h"
+#include "roadmap_tile.h"
 
 #include "../editor_log.h"
 
@@ -44,20 +46,17 @@ static EditorMarkerType *MarkerTypes[MAX_MARKER_TYPES];
 static int MarkerTypesCount;
 
 static editor_db_section *ActiveMarkersDB;
-static EditorDictionary   ActiveNoteDictionary;
 
-static void editor_marker_activate (void *context) {
-   ActiveMarkersDB = (editor_db_section *) context;
-   ActiveNoteDictionary = editor_dictionary_open ("notes");
+static void editor_marker_activate (editor_db_section *section) {
+   ActiveMarkersDB = section;
 }
 
-roadmap_db_handler EditorMarkersHandler = {
-   "marker",
-   editor_map,
-   editor_marker_activate,
-   editor_unmap
+editor_db_handler EditorMarkersHandler = {
+   EDITOR_DB_MARKERS,
+   sizeof(editor_db_marker),
+   1,
+   editor_marker_activate
 };
-
 
 int editor_marker_add(int longitude,
                       int latitude,
@@ -65,15 +64,28 @@ int editor_marker_add(int longitude,
                       time_t time,
                       unsigned char type,
                       unsigned char flags,
-                      const char *note) {
+                      const char *note,
+                      const char *icon) {
    
    editor_db_marker marker;
    int id;
-
+   RoadMapPosition pos;
+   
+	while (steering < 0) {
+		steering += 360;
+	}
+	while (steering >= 360) {
+		steering -= 360;
+	}
+	
+	pos.longitude = longitude;
+	pos.latitude = latitude;
+	marker.tile_timestamp = (int)roadmap_square_timestamp (roadmap_tile_get_id_from_position (0, &pos));
+	
    marker.longitude = longitude;
    marker.latitude  = latitude;
    marker.steering  = steering;
-   marker.time      = time;
+   marker.time      = (int)time;
    marker.type      = type;
    marker.flags     = flags | ED_MARKER_DIRTY;
 
@@ -81,19 +93,18 @@ int editor_marker_add(int longitude,
       marker.note = ROADMAP_INVALID_STRING;
    } else {
       
-      marker.note = editor_dictionary_add
-                           (ActiveNoteDictionary, note, strlen(note));
+      marker.note = editor_dictionary_add(note);
    }
 
-   id = editor_db_add_item (ActiveMarkersDB, &marker);
-
-   if (id == -1) {
-      editor_db_grow ();
-      id = editor_db_add_item (ActiveMarkersDB, &marker);
+   if (icon == NULL) {
+     marker.icon = ROADMAP_INVALID_STRING;
+   } else {
+      
+      marker.icon = editor_dictionary_add(icon);
    }
 
-   /* FIXME this is a temporary solution for my bad DB design */
-   editor_db_check_grow ();
+   id = editor_db_add_item (ActiveMarkersDB, &marker, 1);
+
    return id;
 }
 
@@ -102,7 +113,7 @@ int  editor_marker_count(void) {
 
    if (!ActiveMarkersDB) return 0;
 
-   return ActiveMarkersDB->num_items;
+   return editor_db_get_item_count (ActiveMarkersDB);
 }
 
 
@@ -119,6 +130,34 @@ void editor_marker_position(int marker,
    if (steering) *steering = marker_st->steering;
 }
 
+
+int editor_marker_is_obsolete(int marker) {
+	
+   editor_db_marker *marker_st =
+      editor_db_get_item (ActiveMarkersDB, marker, 0, 0);
+   RoadMapPosition pos;
+   
+   assert(marker_st != NULL);
+
+	pos.longitude = marker_st->longitude;
+	pos.latitude = marker_st->latitude;
+	return (int)roadmap_square_timestamp (roadmap_tile_get_id_from_position (0, &pos)) > marker_st->tile_timestamp;
+}
+
+
+const char *edit_marker_icon(int marker){
+
+   editor_db_marker *marker_st =
+      editor_db_get_item (ActiveMarkersDB, marker, 0, 0);
+   assert(marker_st != NULL);
+
+   if (marker_st->icon == ROADMAP_INVALID_STRING) {
+      return "";
+   } else {
+
+      return editor_dictionary_get(marker_st->icon);
+   }
+}
 
 const char *editor_marker_type(int marker) {
    
@@ -140,7 +179,7 @@ const char *editor_marker_note(int marker) {
       return "";
    } else {
 
-      return editor_dictionary_get (ActiveNoteDictionary, marker_st->note);
+      return editor_dictionary_get(marker_st->note);
    }
 }
 
@@ -165,6 +204,12 @@ unsigned char editor_marker_flags(int marker) {
 }
 
 
+int editor_marker_committed (int marker) {
+
+	return editor_db_item_committed (ActiveMarkersDB, marker);	
+}
+
+
 void editor_marker_update(int marker, unsigned char flags,
                           const char *note) {
 
@@ -180,13 +225,11 @@ void editor_marker_update(int marker, unsigned char flags,
          marker_st->note = ROADMAP_INVALID_STRING;
       }
    } else if ((marker_st->note == ROADMAP_INVALID_STRING) ||
-               strcmp(editor_dictionary_get (ActiveNoteDictionary,
-                                                marker_st->note),
+               strcmp(editor_dictionary_get(marker_st->note),
                       note)) {
 
       dirty++;
-      marker_st->note = editor_dictionary_add
-                           (ActiveNoteDictionary, note, strlen(note));
+      marker_st->note = editor_dictionary_add(note);
    }
 
    if ((marker_st->flags & ~ED_MARKER_DIRTY) !=
@@ -196,7 +239,7 @@ void editor_marker_update(int marker, unsigned char flags,
 
    marker_st->flags = flags;
 
-   if (dirty) marker_st->flags |= ED_MARKER_DIRTY;
+   if (dirty) editor_db_update_item(ActiveMarkersDB, marker);
 }
 
 
@@ -214,25 +257,21 @@ int editor_marker_reg_type(EditorMarkerType *type) {
 
 
 void editor_marker_voice_file(int marker, char *file, int size) {
-   char *path = roadmap_path_join (roadmap_path_user (), "markers");
+   
+   char path[512];
    char file_name[100];
-   char *full_name;
 
+   roadmap_path_format (path, sizeof (path), roadmap_path_user (), "markers");
    roadmap_path_create (path);
    snprintf (file_name, sizeof(file_name), "voice_%d.wav", marker);
 
-   full_name = roadmap_path_join (path, file_name);
-   strncpy (file, full_name, size);
-   file[size-1] = '\0';
-
-   roadmap_path_free (full_name);
-   roadmap_path_free (path);
+   roadmap_path_format (file, size, path, file_name);
 }
 
 
-int editor_marker_export(int marker, const char **description,
-                         const char *keys[MAX_ATTR],
-                         char       *values[MAX_ATTR],
+int editor_marker_export(int marker, const char **name, const char **description,
+                         const char *keys[ED_MARKER_MAX_ATTRS],
+                         char       *values[ED_MARKER_MAX_ATTRS],
                          int *count) {
    
    editor_db_marker *marker_st =
@@ -241,6 +280,7 @@ int editor_marker_export(int marker, const char **description,
    assert(marker_st != NULL);
    
    return MarkerTypes[marker_st->type]->export_marker (marker,
+                                                       name,
                                                        description,
                                                        keys,
                                                        values,
@@ -258,3 +298,26 @@ int editor_marker_verify(int marker, unsigned char *flags, const char **note) {
    return MarkerTypes[marker_st->type]->update_marker (marker, flags, note);
 }
 
+
+int editor_marker_begin_commit (void) {
+
+	return editor_db_begin_commit (ActiveMarkersDB);	
+}
+
+
+void editor_marker_confirm_commit (int id) {
+
+	editor_db_confirm_commit (ActiveMarkersDB, id);	
+}
+
+
+int editor_marker_item_committed (int item_id) {
+
+	return editor_db_item_committed (ActiveMarkersDB, item_id);	
+}
+
+
+int editor_marker_items_pending (void) {
+
+	return editor_db_items_pending (ActiveMarkersDB);	
+}

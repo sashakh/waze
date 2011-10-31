@@ -71,7 +71,11 @@ RoadMapHash *roadmap_hash_new (const char *name, int size) {
       hash->next[i] = -1;
    }
 
+	if (HashLast) {
+		HashLast->prev_hash = hash;
+	}
    hash->next_hash = HashLast;
+   hash->prev_hash = NULL;
    HashLast = hash;
 
    return hash;
@@ -121,6 +125,32 @@ int  roadmap_hash_get_next  (RoadMapHash *hash, int index) {
 }
 
 
+int	roadmap_hash_remove	(RoadMapHash *hash, int key, int index) {
+
+   int hash_code = abs(key % ROADMAP_HASH_MODULO);
+   int *slot;
+
+   if ((index < 0) || (index > hash->size)) {
+      roadmap_log (ROADMAP_FATAL, "invalid index %d in hash table %s",
+                         index, hash->name);
+   }
+
+	slot = &(hash->head[hash_code]);
+	
+	while (*slot >= 0) {
+	
+		if (*slot == index) {
+
+			*slot = hash->next[index];
+			return 1;			
+		}	
+		slot = &(hash->next[*slot]);
+	}
+
+	return 0;	
+}
+
+
 void roadmap_hash_resize (RoadMapHash *hash, int size) {
 
    int i;
@@ -142,6 +172,19 @@ void roadmap_hash_resize (RoadMapHash *hash, int size) {
 
 void roadmap_hash_free (RoadMapHash *hash) {
 
+	RoadMapHash *prev = hash->prev_hash;
+	RoadMapHash *next = hash->next_hash;
+
+	if (hash == HashLast) {
+		HashLast = hash->next_hash;
+	}
+	if (hash->prev_hash) {
+		hash->prev_hash->next_hash = next;
+	}
+	if (hash->next_hash) {
+		hash->next_hash->prev_hash = prev;
+	}
+	
    if (hash->values != NULL) {
       free (hash->values);
    }
@@ -214,25 +257,6 @@ void  roadmap_hash_summary (void) {
 }
 
 #endif
-
-
-void roadmap_hash_reset (void) {
-
-   RoadMapHash *hash;
-   RoadMapHash *next;
-
-   for (hash = HashLast; hash != NULL; hash = next) {
-
-      next = hash->next_hash;
-
-      if (hash->values != NULL) {
-         free (hash->values);
-      }
-      free (hash->next);
-      free (hash);
-   }
-   HashLast = NULL;
-}
 
 
 int roadmap_hash_string (const char *str) {

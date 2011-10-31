@@ -24,8 +24,26 @@
 #ifndef __ROADMAP_LANG__H
 #define __ROADMAP_LANG__H
 
+#include "roadmap.h"
+
 void roadmap_lang_initialize (void);
 const char* roadmap_lang_get (const char *name);
 int roadmap_lang_rtl (void);
-
+const char *roadmap_lang_get_system_lang();
+void roadmap_lang_set_system_lang(const char *lang);
+const void *roadmap_lang_get_lang_value(const char *value);
+void roadmap_lang_reload(void);
+void roadmap_lang_set_update_time(const char *update_time);
+const char *roadmap_lang_get_update_time(void);
+void roadmap_lang_set_default_lang(const char *lang);
+const char *roadmap_lang_get_default_lang();
+void roadmap_lang_download_lang_file(const char *lang, RoadMapCallback callback);
+int roadmap_lang_get_available_langs_count(void);
+const void **roadmap_lang_get_available_langs_values(void);
+const char **roadmap_lang_get_available_langs_labels(void);
+const void *roadmap_lang_get_label(const char *value);
+void roadmap_lang_download_conf_file(RoadMapCallback callback);
+void download_lang_files(void);
+const char *roadmap_lang_get_user_lang();
+void roadmap_lang_set_update_time(const char *update_time);
 #endif // __ROADMAP_LANG__H

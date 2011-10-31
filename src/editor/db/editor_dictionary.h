@@ -24,62 +24,16 @@
 #ifndef INCLUDE__EDITOR_DICTIONARY__H
 #define INCLUDE__EDITOR_DICTIONARY__H
 
-#define DICTIONARY_INDEX_SIZE 0x10000
-#define DICTIONARY_DATA_SIZE 0x10000
-
-#define ROADMAP_DICTIONARY_NULL   0
-#define ROADMAP_DICTIONARY_TREE   1
-#define ROADMAP_DICTIONARY_STRING 2
-
-struct ed_dictionary_reference {
-
-   char character;
-   char type;
-
-   int child;
-
-   int next;
-};
-
-
-struct ed_dictionary_tree {
-
-   int first;
-   unsigned short count;
-   unsigned short position;
-};
-
-struct editor_db_section_s;
-
-struct ed_dictionary_volume {
-
-   char *name;
- 
-   struct ed_dictionary_volume *next;
-
-   struct editor_db_section_s *reference_db_section;
-   struct editor_db_section_s *tree_db_section;
-   struct editor_db_section_s *data_db_section;
-
-   int hits;
-};
+#include "editor/db/editor_db.h"
 
 typedef int EditorString;
-typedef struct ed_dictionary_volume *EditorDictionary;
 
-int editor_dictionary_add
-                 (struct ed_dictionary_volume *dictionary,
-                  const char *string, int length);
+int editor_dictionary_locate (const char *string);
+int editor_dictionary_add (const char *string);
 
-char *editor_dictionary_get
-         (struct ed_dictionary_volume *dictionary, int index);
+char *editor_dictionary_get (int index);
 
-int editor_dictionary_locate
-          (struct ed_dictionary_volume *dictionary, const char *string);
-
-EditorDictionary editor_dictionary_open (char *name);
-
-extern roadmap_db_handler EditorDictionaryHandler;
+extern editor_db_handler EditorDictionaryHandler;
 
 #endif // INCLUDE__EDITOR_DICTIONARY__H
 

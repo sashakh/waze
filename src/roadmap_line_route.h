@@ -34,6 +34,7 @@
 #define ROUTE_DIRECTION_ANY          3
 
 int roadmap_line_route_get_direction (int line, int who);
+int roadmap_line_route_is_low_weight (int line);
 
 int roadmap_line_route_get_flags
       (int line, LineRouteFlag *from, LineRouteFlag *to);

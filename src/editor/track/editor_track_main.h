@@ -26,15 +26,17 @@
 
 #include "roadmap_gps.h"
 #include "roadmap_canvas.h"
+#include "editor/track/editor_track_filter.h"
 
 typedef struct {
 
+   int square;
    int id;
    int plugin_id;
 
 } NodeNeighbour;
 
-#define NODE_NEIGHBOUR_NULL  {-1, -1}
+#define NODE_NEIGHBOUR_NULL  {-1, -1, -1}
 
 typedef struct {
 
@@ -51,15 +53,49 @@ typedef struct {
 #define POINT_UNKNOWN         0x1
 #define POINT_GAP             0x2
 
+#define POINT_STATUS_IGNORE	0
+#define POINT_STATUS_SAVE		1
+
 void editor_track_initialize (void);
 int editor_track_point_distance (void);
+void editor_track_toggle_new_roads (void);
 
 RoadMapPosition *track_point_pos (int index);
 RoadMapGpsPosition *track_point_gps (int index);
 time_t track_point_time (int index);
+int *track_point_status (int index);
+int track_point_ordinal (int index);
+
+RoadMapPosition *export_track_point_pos (int index);
+RoadMapGpsPosition *export_track_point_gps (int index);
+time_t export_track_point_time (int index);
+int *export_track_point_status (int index);
+int export_track_point_ordinal (int index);
+int export_track_is_new (void);
+
+int export_track_num_points (void);
+void export_track_reset_points (void);
+
+const struct GPSFilter *editor_track_get_gps_filter (void);
+int editor_track_get_num_update_toggles (void);
+const time_t *editor_track_get_update_toggle_times (void);
+int editor_track_get_update_toggle_state (int index);
+void editor_track_reset_update_toggles (void);
+
 int editor_track_draw_current (RoadMapPen pen);
 void editor_track_end (void);
 void editor_track_reset (void);
+int editor_track_deflate (void);
 
+int editor_ignore_new_roads (void);
+int editor_track_is_new_direction_roads ();
+
+int editor_track_shortcut(void);
+
+int editor_track_draw_new_direction_roads ();
+int editor_track_is_new_road();
+char * editor_track_main_getRecordRoadsLabel();
+#define TRACK_RECORD_ROADS_LABEL "Record new roads"
+#define TRACK_DONT_RECORD_ROADS_LABEL  "Stop recording roads"
 #endif // INCLUDE__EDITOR_TRACK_MAIN__H
 

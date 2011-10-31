@@ -59,13 +59,6 @@ static char RoadMapNmeaDate[16];
 static RoadMapDynamicStringCollection RoadMapNmeaCollection;
 
 
-static void safecpy (char *d, const char *s, int length) {
-
-   strncpy (d, s, length);
-   d[length-1] = 0;
-}
-
-
 static int hex2bin (char c) {
 
    if ((c >= '0') && (c <= '9')) {
@@ -224,11 +217,11 @@ static int roadmap_nmea_decode_coordinate
 
 static char *roadmap_nmea_decode_unit (const char *original) {
 
-    if (strcasecmp (original, "M") == 0) {
+    if( original && (*original) && (strcasecmp (original, "M") == 0)) {
         return "cm";
     }
 
-    roadmap_log (ROADMAP_ERROR, "unknown distance unit '%s'", original);
+    roadmap_log (ROADMAP_WARNING, "unknown distance unit (%s)", original);
     return "??";
 }
 
@@ -241,11 +234,13 @@ static int roadmap_nmea_rmc (int argc, char *argv[]) {
 
    RoadMapNmeaReceived.rmc.status = *(argv[2]);
 
+   if (RoadMapNmeaReceived.rmc.status == 'V')
+      return 1;//no fix, other fields should be ignored 
 
    RoadMapNmeaReceived.rmc.fixtime =
       roadmap_nmea_decode_time (argv[1], argv[9]);
 
-   safecpy (RoadMapNmeaDate, argv[9], sizeof(RoadMapNmeaDate));
+   strncpy_safe (RoadMapNmeaDate, argv[9], sizeof(RoadMapNmeaDate));
 
    if (RoadMapNmeaReceived.rmc.fixtime < 0) return 0;
 
@@ -275,17 +270,6 @@ static int roadmap_nmea_gga (int argc, char *argv[]) {
 
    if (argc <= 10) return 0;
 
-   RoadMapNmeaReceived.gga.fixtime =
-      roadmap_nmea_decode_time (argv[1], RoadMapNmeaDate);
-
-   if (RoadMapNmeaReceived.gga.fixtime < 0) return 0;
-
-   RoadMapNmeaReceived.gga.latitude =
-      roadmap_nmea_decode_coordinate  (argv[2], argv[3], 'N', 'S');
-
-   RoadMapNmeaReceived.gga.longitude =
-      roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
-
    switch (*argv[6]) {
 
       case '0':
@@ -308,6 +292,20 @@ static int roadmap_nmea_gga (int argc, char *argv[]) {
          RoadMapNmeaReceived.gga.quality = ROADMAP_NMEA_QUALITY_OTHER;
          break;
    }
+
+   if (RoadMapNmeaReceived.gga.quality == ROADMAP_NMEA_QUALITY_INVALID)
+      return 1; //no fix, other fields should be ignored
+
+   RoadMapNmeaReceived.gga.fixtime =
+      roadmap_nmea_decode_time (argv[1], RoadMapNmeaDate);
+
+   if (RoadMapNmeaReceived.gga.fixtime < 0) return 0;
+
+   RoadMapNmeaReceived.gga.latitude =
+      roadmap_nmea_decode_coordinate  (argv[2], argv[3], 'N', 'S');
+
+   RoadMapNmeaReceived.gga.longitude =
+      roadmap_nmea_decode_coordinate (argv[4], argv[5], 'E', 'W');
 
    RoadMapNmeaReceived.gga.count =
       roadmap_nmea_decode_numeric (argv[7], 1);
@@ -473,8 +471,8 @@ static int roadmap_nmea_pgrmm (int argc, char *argv[]) {
 
     if (argc <= 1) return 0;
 
-    safecpy (RoadMapNmeaReceived.pgrmm.datum,
-             argv[1], sizeof(RoadMapNmeaReceived.pgrmm.datum));
+    strncpy_safe (RoadMapNmeaReceived.pgrmm.datum,
+             		argv[1], sizeof(RoadMapNmeaReceived.pgrmm.datum));
 
     return 1;
 }
@@ -763,7 +761,7 @@ int roadmap_nmea_decode (void *user_context,
    if (*p != '$') return 0; /* Ignore this ill-formed sentence. */
 
    sentence = p++;
-
+   //roadmap_log (ROADMAP_ERROR, "NMEA: '%s'", sentence);
    while ((*p != '*') && (*p >= ' ')) {
       checksum ^= *p;
       p += 1;
@@ -826,7 +824,7 @@ int roadmap_nmea_decode (void *user_context,
       }
    }
 
-   roadmap_log (ROADMAP_DEBUG, "unknown nmea sentence %s\n", field[0]);
+   roadmap_log (ROADMAP_DEBUG, "unknown nmea sentence %s", field[0]);
 
    return 0; /* Could not decode it. */
 }

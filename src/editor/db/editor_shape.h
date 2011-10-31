@@ -26,22 +26,26 @@
 
 #include <time.h>
 #include "roadmap_types.h"
-#include "roadmap_dbread.h"
+#include "editor/db/editor_db.h"
 
 
 typedef struct editor_db_shape_s {
+	int ordinal;
    short delta_longitude;
    short delta_latitude;
    short delta_time;
+   short filler;
 } editor_db_shape;
 
 
-int editor_shape_add (short delta_longitude,
+int editor_shape_add (int ordinal,
+							 short delta_longitude,
                       short delta_latitude,
                       short delta_time);
 
 void editor_shape_position (int shape, RoadMapPosition *position);
 void editor_shape_time (int shape, time_t *time);
+int editor_shape_ordinal (int shape);
 
 void editor_shape_adjust_point (int shape,
                                 int lon_diff,
@@ -53,7 +57,7 @@ void editor_shape_set_point (int shape,
                              int lat_diff,
                              int time_diff);
 
-extern roadmap_db_handler EditorShapeHandler;
+extern editor_db_handler EditorShapeHandler;
 
 #endif // INCLUDE__EDITOR_SHAPE__H
 

@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -24,7 +25,10 @@
 #ifndef _ROADMAP_NET__H_
 #define _ROADMAP_NET__H_
 
-#ifdef _WIN32
+#include <time.h>
+#include "roadmap.h"
+
+#if defined (_WIN32) && !defined (__SYMBIAN32__)
 
 #include <winsock.h>
 
@@ -37,6 +41,11 @@ struct roadmap_socket_t;
 typedef struct roadmap_socket_t *RoadMapSocket;
 #define ROADMAP_INVALID_SOCKET ((RoadMapSocket) NULL)
 
+#elif defined __SYMBIAN32__
+
+typedef void* RoadMapSocket;
+#define ROADMAP_INVALID_SOCKET NULL
+
 #else
 
 typedef int RoadMapSocket; /* UNIX style. */
@@ -46,9 +55,21 @@ typedef int RoadMapSocket; /* UNIX style. */
 
 #define ROADMAP_NET_IS_VALID(s) (s != ROADMAP_INVALID_SOCKET)
 
+typedef void (*RoadMapNetConnectCallback) (RoadMapSocket socket, void *context, roadmap_result res);
 
-RoadMapSocket roadmap_net_connect (const char *protocol,
-                                   const char *name, int default_port);
+RoadMapSocket roadmap_net_connect(  const char*       protocol,
+                                    const char*       name, 
+                                    time_t			update_time, 
+                                    int               default_port,
+                                    roadmap_result*   res); // Optional, can be NULL
+
+// A-syncronious receive:
+int roadmap_net_connect_async (const char *protocol,
+                                const char *name, 
+                                time_t update_time,
+                                int default_port,
+                                RoadMapNetConnectCallback callback,
+                                void *context);
 
 /* If there is any problem detected, the 2 functions below MUST return
  * a negative value (never 0).
@@ -63,6 +84,10 @@ RoadMapSocket roadmap_net_accept(RoadMapSocket server_socket);
 int roadmap_net_unique_id (unsigned char *buffer, unsigned int size);
 
 void roadmap_net_close  (RoadMapSocket s);
+
+void roadmap_net_shutdown ( void );
+
+void roadmap_net_initialize( void );
 
 #endif // _ROADMAP_NET__H_
 

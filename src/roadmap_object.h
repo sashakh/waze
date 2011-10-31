@@ -58,7 +58,8 @@
 void roadmap_object_add (RoadMapDynamicString origin,
                          RoadMapDynamicString id,
                          RoadMapDynamicString name,
-                         RoadMapDynamicString sprite);
+                         RoadMapDynamicString sprite,
+                         RoadMapDynamicString image);
 
 void roadmap_object_move (RoadMapDynamicString id,
                           const RoadMapGpsPosition *position);
@@ -70,7 +71,12 @@ void roadmap_object_cleanup (RoadMapDynamicString origin);
 
 typedef void (*RoadMapObjectAction) (const char *name,
                                      const char *sprite,
-                                     const RoadMapGpsPosition *gps_position);
+                                     const char *image,
+                                     const RoadMapGpsPosition *gps_position,
+                                     const char *id);
+
+void roadmap_object_set_action (RoadMapDynamicString id,
+                                RoadMapObjectAction action);
 
 void roadmap_object_iterate (RoadMapObjectAction action);
 

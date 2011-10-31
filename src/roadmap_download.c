@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2003 Pascal Martin.
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -29,10 +30,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#ifndef J2ME
 #include <zlib.h>
+#endif
 
 #include "roadmap.h"
 #include "roadmap_types.h"
+#include "roadmap_dbread.h"
 #include "roadmap_hash.h"
 #include "roadmap_path.h"
 #include "roadmap_file.h"
@@ -44,14 +48,19 @@
 #include "roadmap_messagebox.h"
 #include "roadmap_dialog.h"
 #include "roadmap_start.h"
+#include "roadmap_square.h"
 #include "roadmap_main.h"
 #include "roadmap_preferences.h"
 #include "roadmap_spawn.h"
+#include "roadmap_db.h"
+
+#include "navigate/navigate_main.h"
+#include "Realtime/RealtimeTrafficInfo.h"
 
 #include "roadmap_download.h"
 
 
-#define ROADMAP_FILE_NAME_FORMAT "usc%05d.rdm.gz"
+#define FREEMAP_FILE_NAME_FORMAT "map%05d.gzm"
 
 
 static RoadMapConfigDescriptor RoadMapConfigSource =
@@ -358,8 +367,11 @@ int roadmap_download_blocked (int fips) {
 
 static int roadmap_download_uncompress (const char *tmp_file,
                                         const char *destination) {
+#ifdef J2ME
+	return 0;
+#else
    char *p;
-   RoadMapFile source_file;
+   RoadMapFile source_file = 0;
    gzFile      source_file_gz = NULL;
    RoadMapFile dest_file;
    char *dest_name = strdup(destination);
@@ -428,6 +440,7 @@ end:
    }
 
    return res;
+#endif
 }
 
 
@@ -465,12 +478,6 @@ static int roadmap_download_start (const char *name,
 
    roadmap_file_remove (NULL, tmp_file);
 
-   /* FIXME: at this point, we should set a temporary destination
-    * file name. When done with the transfer, we should rename the file
-    * to its final name. That would replace the "freeze" in a more
-    * elegant manner.
-    */
-
    /* Search for the correct protocol handler to call this time. */
 
    for (protocol = RoadMapDownloadProtocolMap;
@@ -479,13 +486,19 @@ static int roadmap_download_start (const char *name,
 
       if (strncmp (source, protocol->prefix, strlen(protocol->prefix)) == 0) {
 
-         roadmap_start_freeze ();
-         roadmap_locator_close (fips);
-
          if (protocol->handler (callbacks, source, tmp_file)) {
 
-            roadmap_download_uncompress (tmp_file, destination);
-            RoadMapDownloadRefresh = 1;
+            navigate_main_stop_navigation();
+            roadmap_locator_close (fips);
+            roadmap_file_remove (NULL, destination);
+            roadmap_file_rename (tmp_file, destination);
+            if (roadmap_locator_activate (fips) == ROADMAP_US_OK) {
+               roadmap_square_rebuild_index();
+               RTTrafficInfo_RecalculateSegments();
+               RoadMapDownloadRefresh = 1;
+            } else {
+               error = 1;
+            }
          } else {
             error = 1;
 
@@ -493,7 +506,6 @@ static int roadmap_download_start (const char *name,
             RoadMapDownloadQueueConsumer = RoadMapDownloadQueueProducer - 1;
          }
          roadmap_download_unblock (fips);
-         roadmap_start_unfreeze ();
          roadmap_download_end (callbacks);
          break;
       }
@@ -554,8 +566,7 @@ static int roadmap_download_usdir (RoadMapDownloadCallbacks *callbacks) {
 
    if (!callbacks) callbacks = &RoadMapDownloadCallbackFunctions;
 
-   strncpy (source, roadmap_config_get (&RoadMapConfigSource), sizeof(source));
-   source[sizeof(source)-1] = 0;
+   strncpy_safe (source, roadmap_config_get (&RoadMapConfigSource), sizeof(source));
 
    format = strrchr (source, '/');
    if (!format) {
@@ -565,13 +576,13 @@ static int roadmap_download_usdir (RoadMapDownloadCallbacks *callbacks) {
       return -1;
    }
 
-   strncpy (format+1, "usdir.rdm", sizeof(source) - (format - source + 1));
+   strncpy_safe (format+1, "usdir.rdm", sizeof(source) - (format - source + 1));
 
 #ifndef _WIN32
-   snprintf (destination, sizeof(destination), "%s/usdir.rdm", 
+   snprintf (destination, sizeof(destination), "%s/usdir.rdm",
          roadmap_config_get (&RoadMapConfigDestination));
 #else
-   snprintf (destination, sizeof(destination), "%s\\usdir.rdm", 
+   snprintf (destination, sizeof(destination), "%s\\usdir.rdm",
          roadmap_config_get (&RoadMapConfigDestination));
 #endif
 
@@ -590,7 +601,9 @@ static int roadmap_download_usdir (RoadMapDownloadCallbacks *callbacks) {
       if (strncmp (source, protocol->prefix, strlen(protocol->prefix)) == 0) {
 
          roadmap_start_freeze ();
+#if 0
          roadmap_locator_close_dir();
+#endif
 
          if (protocol->handler (callbacks, source, tmp_file)) {
 
@@ -629,8 +642,9 @@ int roadmap_download_next_county (RoadMapDownloadCallbacks *callbacks) {
 
    const char *source;
    const char *basename;
+   char *dest;
 
-   char buffer[2048];
+   int res;
 
    if (fips == -1) {
       return roadmap_download_usdir (callbacks);
@@ -664,23 +678,23 @@ int roadmap_download_next_county (RoadMapDownloadCallbacks *callbacks) {
    RoadMapDownloadFrom = source;
    roadmap_dialog_set_data (".file", "From", source);
 
-#ifndef _WIN32
-   snprintf (buffer, sizeof(buffer), "%s%s", 
-             roadmap_config_get (&RoadMapConfigDestination), basename);
+   dest = roadmap_path_join(roadmap_config_get (&RoadMapConfigDestination), basename + 1);
+
+   RoadMapDownloadTo = dest;
+
+#ifdef __SYMBIAN32__
+   res = roadmap_download_start ("Download a Map", callbacks);
 #else
-   snprintf (buffer, sizeof(buffer), "%s\\%s",
-             roadmap_config_get (&RoadMapConfigDestination), basename+1);
+   if (!callbacks) {
+      roadmap_dialog_set_data (".file", "To", dest);
+      res = 0;
+   } else {
+      res = roadmap_download_start ("Download a Map", callbacks);
+   }
 #endif
 
-   RoadMapDownloadTo = buffer;
-
-   if (!callbacks) {
-      roadmap_dialog_set_data (".file", "To", buffer);
-   } else {
-      return roadmap_download_start ("Download a Map", callbacks);
-   }
-
-   return 0;
+   roadmap_path_free(dest);
+   return res;
 }
 
 
@@ -875,11 +889,11 @@ static void roadmap_download_delete_populate (void) {
     for (i = 0; i < RoadMapDownloadDeleteCount; ++i) {
 
 #ifndef _WIN32
-       snprintf (name, sizeof(name), "%s/" ROADMAP_FILE_NAME_FORMAT,
+       snprintf (name, sizeof(name), "%s/" FREEMAP_FILE_NAME_FORMAT,
                  roadmap_config_get (&RoadMapConfigDestination),
                  RoadMapDownloadDeleteFips[i]);
 #else
-       snprintf (name, sizeof(name), "%s\\" ROADMAP_FILE_NAME_FORMAT,
+       snprintf (name, sizeof(name), "%s\\" FREEMAP_FILE_NAME_FORMAT,
                  roadmap_config_get (&RoadMapConfigDestination),
                  RoadMapDownloadDeleteFips[i]);
 #endif
@@ -922,11 +936,11 @@ static void roadmap_download_delete_doit (const char *name, void *context) {
       roadmap_download_block (RoadMapDownloadDeleteSelected);
 
 #ifndef _WIN32
-      snprintf (path, sizeof(path), "%s/" ROADMAP_FILE_NAME_FORMAT,
+      snprintf (path, sizeof(path), "%s/" FREEMAP_FILE_NAME_FORMAT,
                 roadmap_config_get (&RoadMapConfigDestination),
                 RoadMapDownloadDeleteSelected);
 #else
-      snprintf (path, sizeof(path), "%s\\" ROADMAP_FILE_NAME_FORMAT,
+      snprintf (path, sizeof(path), "%s\\" FREEMAP_FILE_NAME_FORMAT,
                 roadmap_config_get (&RoadMapConfigDestination),
                 RoadMapDownloadDeleteSelected);
 #endif
@@ -996,16 +1010,28 @@ int  roadmap_download_enabled (void) {
 
 void roadmap_download_initialize (void) {
 
-   char *default_destination = roadmap_path_join (roadmap_path_user(), "maps");
+	char default_destination[256];
+	
+#ifdef __SYMBIAN32__
+	strncpy_safe (default_destination, roadmap_db_map_path(), sizeof (default_destination));
+#else
+   roadmap_path_format (default_destination, sizeof (default_destination), roadmap_path_user(), "maps");
+#endif
 
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigSource,
-      "http://www.freemap.co.il/roadmap/maps/dev2/" ROADMAP_FILE_NAME_FORMAT,
+      "" FREEMAP_FILE_NAME_FORMAT,
       NULL);
 
    roadmap_config_declare
       ("preferences",
       &RoadMapConfigDestination, default_destination, NULL);
+
+	/* Avi R. - this would cause a crash in roadmap_config_update because the default_destination is not retained. Bypassing this code.
+#ifndef __SYMBIAN32__ //Avi R. - fix memory leak
+	roadmap_path_free(default_destination);
+#endif
+	 */
 }
 

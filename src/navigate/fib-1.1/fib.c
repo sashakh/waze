@@ -31,11 +31,15 @@
 #include "fibpriv.h"
 
 /* Minimum and maximum values a `signed int' can hold.  */
-
-#  define INT_MIN       (-INT_MAX - 1)
-#  define INT_MAX       2147483647
-
 #include <stdlib.h>
+
+#ifndef	INT_MAX
+	#define INT_MAX       (2147483647)
+#endif	//	INT_MAX	
+
+#ifndef	INT_MIN
+	#define INT_MIN       (-INT_MAX - 1)
+#endif	//	INT_MIN
 
 #define swap(type, a, b)		\
 		do {			\

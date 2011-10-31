@@ -56,7 +56,7 @@ void editor_route_segment_copy (int source_line, int plugin_id, int dest_line);
 
 int editor_route_get_direction (int route_id, int who);
 
-extern roadmap_db_handler EditorRouteHandler;
+extern editor_db_handler EditorRouteHandler;
 
 #endif // INCLUDE__EDITOR_ROUTE__H
 

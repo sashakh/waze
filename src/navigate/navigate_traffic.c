@@ -95,13 +95,13 @@ static int button_callback (SsdWidget widget, const char *new_value) {
       navigate_traffic_display
          (roadmap_config_match(&TrafficDisplayEnabledCfg, "yes"));
 
-      ssd_dialog_hide_current ();
+      ssd_dialog_hide_current (dec_ok);
 
       return 1;
 
    }
 
-   ssd_dialog_hide_current ();
+   ssd_dialog_hide_current (dec_close);
    return 1;
 }
 
@@ -110,6 +110,7 @@ static void create_ssd_dialog (void) {
    SsdWidget box;
    SsdWidget dialog = ssd_dialog_new ("traffic_prefs",
                       roadmap_lang_get ("Traffic preferences"),
+                      NULL,
                       SSD_CONTAINER_BORDER|SSD_CONTAINER_TITLE|
                       SSD_DIALOG_FLOAT|SSD_ALIGN_CENTER|SSD_ALIGN_VCENTER);
 
@@ -132,7 +133,7 @@ static void create_ssd_dialog (void) {
                     -1, SSD_TEXT_LABEL|SSD_END_ROW));
 
     ssd_widget_add (box,
-         ssd_choice_new ("navigate", 2,
+         ssd_choice_new ("navigate",roadmap_lang_get ("Use for calculating routes"),2,
                          (const char **)yesno_label,
                          (const void **)yesno,
                          SSD_END_ROW, NULL));
@@ -149,7 +150,7 @@ static void create_ssd_dialog (void) {
                     -1, SSD_TEXT_LABEL|SSD_END_ROW));
 
     ssd_widget_add (box,
-         ssd_choice_new ("display", 2,
+         ssd_choice_new ("display", roadmap_lang_get ("Display traffic information"), 2,
                          (const char **)yesno_label,
                          (const void **)yesno,
                          SSD_END_ROW, NULL));
@@ -284,6 +285,8 @@ void navigate_traffic_adjust_layer (int layer, int thickness, int pen_count) {
       roadmap_canvas_select_pen (*pen);
 
       if (i == 1) {
+         if (thickness < 3) thickness = 3;
+         
          roadmap_canvas_set_thickness (thickness - 2);
       } else {
          roadmap_canvas_set_thickness (thickness);

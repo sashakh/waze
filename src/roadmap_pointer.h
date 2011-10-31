@@ -60,6 +60,12 @@ void roadmap_pointer_unregister_drag_start  (RoadMapPointerHandler handler);
 void roadmap_pointer_unregister_drag_motion (RoadMapPointerHandler handler);
 void roadmap_pointer_unregister_drag_end    (RoadMapPointerHandler handler);
 void roadmap_pointer_unregister_pressed     (RoadMapPointerHandler handler);
+void roadmap_pointer_unregister_released    (RoadMapPointerHandler handler);
+void roadmap_pointer_cancel_dragging( void );
+int roadmap_pointer_long_click_expired( void );
+BOOL roadmap_pointer_is_down( void );
+
+int roadmap_pointer_screen_state(void);
 
 #endif // INCLUDE__ROADMAP_POINTER__H
 

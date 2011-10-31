@@ -31,196 +31,185 @@
 
 #include "roadmap.h"
 #include "roadmap_locator.h"
+#include "roadmap_line_route.h"
+#include "roadmap_square.h"
 
 #include "editor_db.h"
-#include "editor_route.h"
 #include "editor_override.h"
 
-typedef struct {
-   editor_db_section *index;
-   editor_db_section *data;
-} EditorOverrideContext;
+static editor_db_section *ActiveOverridesDB;
 
-static EditorOverrideContext *EditorOverrideActive;
 
-static void *editor_route_map (roadmap_db *root) {
+static void editor_override_activate (editor_db_section *context) {
 
-   EditorOverrideContext *context;
-
-   roadmap_db *table;
-
-   context = (EditorOverrideContext *) malloc (sizeof(EditorOverrideContext));
-   if (context == NULL) {
-      roadmap_log (ROADMAP_ERROR, "no more memory");
-      return NULL;
-   }
-
-   table = roadmap_db_get_subsection (root, "index");
-   context->index = (editor_db_section *) roadmap_db_get_data (table);
-
-   table = roadmap_db_get_subsection (root, "data");
-   context->data = (editor_db_section *) roadmap_db_get_data (table);
-
-   return context;
+   ActiveOverridesDB = context;
 }
 
-static void editor_route_activate (void *context) {
-
-   EditorOverrideActive = (EditorOverrideContext *) context;
-}
-
-static void editor_route_unmap (void *context) {
-
-   free (context);
-}
-
-
-roadmap_db_handler EditorOverrideHandler = {
-   "override",
-   editor_route_map,
-   editor_route_activate,
-   editor_route_unmap
+editor_db_handler EditorOverrideHandler = {
+   EDITOR_DB_OVERRIDES,
+   sizeof (editor_db_override),
+   0,
+   editor_override_activate
 };
 
+int editor_override_get_count (void) {
 
-static void editor_override_init_index_item (void *item) {
-   
-   *(int *)item = -1;
+   return editor_db_get_item_count (ActiveOverridesDB);
 }
 
+int editor_override_get (int index, int *line_id, int *square_id, int *direction, int *flags){
+   editor_db_override *rec;
 
-static editor_db_override *editor_override_data (int line, int create) {
+   rec = (editor_db_override *) editor_db_get_item
+                           (ActiveOverridesDB, index, 0, NULL);
 
-   int *index;
+   assert (rec);
+   if (!rec) return 0;
 
-   if (editor_db_activate (roadmap_locator_active ()) == -1) {
-      if (create) {
-         editor_db_create (roadmap_locator_active ());
-         if (editor_db_activate (roadmap_locator_active ()) == -1) {
-            return NULL;
-         }
-      } else {
-         return NULL;
-      }
+   if (line_id)   *line_id = rec->line;
+   if (square_id) *square_id = rec->square;
+   if (direction) *direction = rec->direction;
+   if (flags)     *flags = rec->flags;
+
+   if (rec->timestamp != (int)roadmap_square_timestamp (rec->square)) {
+   	return 0;
    }
 
-   index =
-      (int *) editor_db_get_item
-         (EditorOverrideActive->index,
-          line,
-          create,
-          editor_override_init_index_item);
+   return 1;
+}
 
-   if ((index == NULL) || (*index == -1)) {
-      
-      if (!create) return NULL;
+static int editor_override_find (int line, int square, editor_db_override **data, int *create) {
 
-      if (index == NULL) {
-         editor_db_grow ();
-         index =
-            (int *) editor_db_get_item
-                  (EditorOverrideActive->index,
-                   line,
-                   create,
-                   editor_override_init_index_item);
+   int id;
+   int count;
+   int curr_timestamp = (int)roadmap_square_timestamp (square);
 
-      }
+   editor_db_override *rec = NULL;
 
-      if (index == NULL) return NULL;
+   count = editor_db_get_item_count (ActiveOverridesDB);
 
-      if (*index == -1) {
-         
-         static editor_db_override data = NULL_OVERRIDE;
+	for (id = 0; id < count; id++) {
 
-         *index =
-            editor_db_add_item (EditorOverrideActive->data, &data);
+		rec = (editor_db_override *)editor_db_get_item (ActiveOverridesDB, id, 0, NULL);
+		if (rec->square == square && rec->line == line &&
+			 rec->timestamp == curr_timestamp) {
+			if (create) *create = 0;
+			break;
+		}
+	}
 
-         if (*index == -1) {
-            editor_db_grow ();
-            *index =
-               editor_db_add_item (EditorOverrideActive->data, &data);
-         }
-      }
+	if (id == count) {
+		if (!create) return -1;
 
-      if (*index == -1) return NULL;
+		id = editor_db_add_item (ActiveOverridesDB, NULL, 0);
+		if (id >= 0) {
+			rec = (editor_db_override *)editor_db_get_item (ActiveOverridesDB, id, 0, NULL);
+			rec->square = square;
+			rec->timestamp = curr_timestamp;
+			rec->line = line;
+			rec->flags = 0;
+			rec->direction = roadmap_line_route_get_direction (line, ROUTE_CAR_ALLOWED);
+			*create = 1;
+		}
+	}
 
-   }
-
-   return (editor_db_override *) editor_db_get_item (
-                                       EditorOverrideActive->data,
-                                      *index,
-                                       0,
-                                       NULL);
+	if (data) *data = rec;
+	return id;
 }
 
 
-int editor_override_line_get_route (int line) {
+int editor_override_line_get_flags (int line, int square, int *flags) {
 
-   editor_db_override *data = editor_override_data (line, 0);
+   editor_db_override *data;
+   int id = editor_override_find (line, square, &data, NULL);
 
-   if (data == NULL) return -1;
-
-   return data->route;
-}
-
-
-int editor_override_line_set_route (int line, int route) {
-
-   editor_db_override *data = editor_override_data (line, 1);
-
-   if (data == NULL) return -1;
-   
-   data->route = route;
+   if (id < 0)
+      return -1;
+	if (flags) *flags = data->flags;
 
    return 0;
 }
 
 
-int editor_override_line_get_flags (int line) {
+int editor_override_line_set_flag (int line, int square, int flags) {
 
-   editor_db_override *data = editor_override_data (line, 0);
+   editor_db_override *data;
+   int created;
+   int id = editor_override_find (line,square,  &data, &created);
+   int rc;
 
-   if (data == NULL) return 0;
+   if (id < 0) return 0;
 
-   return data->flags;
+   data->flags = data->flags | flags;
+
+	if (created) {
+		rc = editor_db_write_item (ActiveOverridesDB, id, 1);
+	} else {
+   	rc = editor_db_update_item (ActiveOverridesDB, id);
+	}
+
+	return rc;
 }
 
 
-int editor_override_line_set_flags (int line, int flags) {
+int editor_override_line_reset_flag (int line, int square, int flags) {
 
-   editor_db_override *data = editor_override_data (line, 1);
+   editor_db_override *data;
+   int created;
+   int id = editor_override_find (line, square, &data, &created);
+   int rc;
 
-   if (data == NULL) return -1;
-   
-   data->flags = flags;
+   if (id < 0) return 0;
+
+   data->flags = data->flags & ~flags;
+
+	if (created) {
+		rc = editor_db_write_item (ActiveOverridesDB, id, 1);
+	} else {
+   	rc = editor_db_update_item (ActiveOverridesDB, id);
+	}
+
+	return rc;
+}
+
+
+int editor_override_line_get_direction (int line, int square, int *direction) {
+
+   editor_db_override *data;
+   int id = editor_override_find (line, square,  &data, NULL);
+
+   if (id < 0) return -1;
+   if (direction) *direction = data->direction;
 
    return 0;
 }
 
 
-void editor_override_line_get_trksegs (int line, int *first, int *last) {
+int editor_override_line_set_direction (int line, int square, int direction) {
 
-   editor_db_override *data = editor_override_data (line, 0);
+   editor_db_override *data;
+   int created;
+   int id = editor_override_find (line, square,  &data, &created);
+   int rc;
 
-   if (data == NULL) {
-      *first = *last = -1;
-      return;
-   }
+   if (id < 0) return 0;
 
-   *first = data->first_trkseg;
-   *last = data->last_trkseg;
+   data->direction = direction;
+
+	if (created) {
+		rc = editor_db_write_item (ActiveOverridesDB, id, 1);
+	} else {
+   	rc = editor_db_update_item (ActiveOverridesDB, id);
+	}
+
+	return rc;
 }
 
-
-int editor_override_line_set_trksegs (int line, int first, int last) {
-
-   editor_db_override *data = editor_override_data (line, 1);
-
-   if (data == NULL) return -1;
-
-   data->first_trkseg = first;
-   data->last_trkseg = last;
-
-   return 0;
+int editor_override_exists (int line, int square) {
+	int id = editor_override_find (line, square,  NULL, NULL);
+	if (id == -1)
+		return FALSE;
+	else
+		return TRUE;
 }
 

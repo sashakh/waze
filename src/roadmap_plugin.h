@@ -31,8 +31,8 @@
 #define INVALID_PLUGIN_ID -1
 #define ROADMAP_PLUGIN_ID 0
 
-#define PLUGIN_MAKE_LINE(plugin_id, line_id, cfcc, fips) \
-   {plugin_id, line_id, cfcc, fips}
+#define PLUGIN_MAKE_LINE(plugin_id, line_id, cfcc, square, fips) \
+   {plugin_id, line_id, cfcc, square, fips}
 
 #define PLUGIN_VALID(plugin) (plugin.plugin_id >= 0)
 #define INVALIDATE_PLUGIN(plugin) (plugin.plugin_id = -1)
@@ -45,11 +45,13 @@ typedef struct {
    int plugin_id;
    int line_id;
    int cfcc;
+   int square;
    int fips;
 } PluginLine;
 
 typedef struct {
    int plugin_id;
+   int square;
    int street_id;
 } PluginStreet;
 
@@ -61,13 +63,16 @@ typedef struct {
    PluginStreet plugin_street;
 } PluginStreetProperties;
 
-#define PLUGIN_LINE_NULL {-1, -1, -1, -1}
-#define PLUGIN_STREET_NULL {-1, -1}
+#define PLUGIN_LINE_NULL {-1, -1, -1, -1, -1}
+#define PLUGIN_STREET_NULL {-1, -1, -1}
 
 struct RoadMapNeighbour_t;
 
 int roadmap_plugin_same_line (const PluginLine *line1, const PluginLine *line2);
 
+int roadmap_plugin_same_db_line (const PluginLine *line1,
+                              	const PluginLine *line2);
+                              	
 int roadmap_plugin_same_street (const PluginStreet *street1,
                                 const PluginStreet *street2);
 
@@ -86,6 +91,8 @@ void roadmap_plugin_get_line_points (const PluginLine *line,
 
 int roadmap_plugin_get_id (const PluginLine *line);
 
+int roadmap_plugin_get_square (const PluginLine *line);
+
 int roadmap_plugin_get_fips (const PluginLine *line);
 
 int roadmap_plugin_get_line_id (const PluginLine *line);
@@ -98,10 +105,12 @@ void roadmap_plugin_set_line (PluginLine *line,
                               int plugin_id,
                               int line_id,
                               int cfcc,
+                              int square,
                               int fips);
 
 void roadmap_plugin_set_street (PluginStreet *street,
                                 int plugin_id,
+                                int square,
                                 int street_id);
 
 int roadmap_plugin_activate_db (const PluginLine *line);
@@ -151,7 +160,7 @@ typedef void (*plugin_adjust_layer_hook)
 
 typedef int (*plugin_get_closest_func)
        (const RoadMapPosition *position,
-        int *categories, int categories_count,
+        int *categories, int categories_count, int max_shapes,
         struct RoadMapNeighbour_t *neighbours, int count,
         int max);
 
@@ -210,7 +219,7 @@ void roadmap_plugin_adjust_layer (int layer,
 
 int roadmap_plugin_get_closest
        (const RoadMapPosition *position,
-        int *categories, int categories_count,
+        int *categories, int categories_count, int max_shapes,
         struct RoadMapNeighbour_t *neighbours, int count,
         int max);
 

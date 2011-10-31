@@ -16,9 +16,32 @@
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
 
-CC=cc
+ifeq ($(DESKTOP),IPHONE)
 
-CFLAGS=-O
+ifeq ($(IPHONE_TOOLS_DIR),)
+IPHONE_TOOLS_DIR=/usr
+endif
+
+#CC=$(IPHONE_TOOLS_DIR)/bin/arm-apple-darwin9-gcc -I/var/include
+#AR=$(IPHONE_TOOLS_DIR)/bin/arm-apple-darwin9-ar r
+#RANLIB = $(IPHONE_TOOLS_DIR)/bin/arm-apple-darwin9-ranlib
+#ARFLAGS =
+
+else
+
+ifeq ($(DESKTOP),ANDROID)
+include ../android/Makefile.in.android
+ARFLAGS = "r"
+else
+CC=cc
+AR=ar rc
+RANLIB=ranlib
+
+endif
+endif
+
+
+CFLAGS=-O $(CFLAGS_ANDROID)
 #CFLAGS=-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7
 #CFLAGS=-g -DDEBUG
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
@@ -33,8 +56,6 @@ SHAREDLIB=libz.so
 SHAREDLIBV=libz.so.1.2.3
 SHAREDLIBM=libz.so.1
 
-AR=ar rc
-RANLIB=ranlib
 TAR=tar
 SHELL=/bin/sh
 EXE=
@@ -54,8 +75,8 @@ OBJA =
 
 TEST_OBJS = example.o minigzip.o
 
-all: example$(EXE) minigzip$(EXE)
-
+#all: example$(EXE) minigzip$(EXE)
+all: minigzip$(EXE)
 check: test
 test: all
 	@LD_LIBRARY_PATH=.:$(LD_LIBRARY_PATH) ; export LD_LIBRARY_PATH; \
@@ -68,7 +89,7 @@ test: all
 	fi
 
 libz.a: $(OBJS) $(OBJA)
-	$(AR) $@ $(OBJS) $(OBJA)
+	$(AR) $(ARFLAGS) $@ $(OBJS) $(OBJA)
 	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
 
 match.o: match.S

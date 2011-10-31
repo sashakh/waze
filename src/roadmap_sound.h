@@ -25,7 +25,15 @@
 #define __ROADMAP_SOUND__H
 
 #define MAX_SOUND_LIST 20
-#define MAX_SOUND_NAME 30
+
+#ifdef __SYMBIAN32__
+//TODO temp
+#define MAX_SOUND_NAME 300
+#elif defined(IPHONE)
+#define MAX_SOUND_NAME 512
+#else
+#define MAX_SOUND_NAME 100
+#endif
 
 #define SOUND_LIST_NO_FREE 0x1
 
@@ -42,6 +50,12 @@ typedef struct roadmap_sound_list_t *RoadMapSoundList;
 
 typedef int RoadMapSoundList;
 #endif
+
+/* Defined in C file */
+extern const int SND_VOLUME_LVLS_COUNT;
+extern const int SND_VOLUME_LVLS[];
+extern const char* SND_VOLUME_LVLS_LABELS[];
+extern const char* SND_DEFAULT_VOLUME_LVL;
 
 struct roadmap_sound_st;
 typedef struct roadmap_sound_st *RoadMapSound;
@@ -61,6 +75,7 @@ int roadmap_sound_play_list (const RoadMapSoundList list);
 
 void roadmap_sound_initialize (void);
 void roadmap_sound_shutdown   (void);
+void roadmap_sound_set_volume ( int volLvl );
 
 int roadmap_sound_record (const char *file_name, int seconds);
 

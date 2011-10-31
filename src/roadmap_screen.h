@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -44,6 +45,7 @@ void roadmap_screen_zoom_in    (void);
 void roadmap_screen_zoom_out   (void);
 void roadmap_screen_zoom_reset (void);
 
+void roadmap_screen_move       (int dx, int dy);
 void roadmap_screen_move_up    (void);
 void roadmap_screen_move_down  (void);
 void roadmap_screen_move_right (void);
@@ -52,18 +54,28 @@ void roadmap_screen_move_left  (void);
 void roadmap_screen_move_center (int dy);
 
 void roadmap_screen_toggle_view_mode (void);
+void roadmap_screen_set_view(int view_mode);
+void roadmap_screen_restore_view(void);
+int  roadmap_screen_get_view_mdode(void);
 void roadmap_screen_toggle_orientation_mode (void);
+void roadmap_screen_set_orientation_fixed (void);
+void roadmap_screen_set_orientation_dynamic (void);
 void roadmap_screen_increase_horizon (void);
 void roadmap_screen_decrease_horizon (void);
+int roadmap_screen_get_orientation_mode (void);
+int roadmap_screen_get_view_mode (void);
 
 void roadmap_screen_rotate (int delta);
 
-void roadmap_screen_refresh (void); /* Conditional: only if needed. */
+int  roadmap_screen_refresh (void); /* Conditional: only if needed. */
 void roadmap_screen_redraw  (void); /* Force a screen redraw, no move. */
 
 void roadmap_screen_hold     (void); /* Hold on at the current position. */
 void roadmap_screen_freeze   (void); /* Forbid any screen refresh. */
 void roadmap_screen_unfreeze (void); /* Enable screen refresh. */
+
+void roadmap_screen_update_center (const RoadMapPosition *pos);
+
 
 void roadmap_screen_get_center (RoadMapPosition *center);
 
@@ -72,7 +84,10 @@ typedef void (*RoadMapScreenSubscriber) (void);
 RoadMapScreenSubscriber roadmap_screen_subscribe_after_refresh
                                     (RoadMapScreenSubscriber handler);
 
-void roadmap_screen_draw_one_line (RoadMapPosition *from,
+void roadmap_screen_subscribe_after_flow_control_refresh
+                                    (RoadMapScreenSubscriber handler);
+
+int  roadmap_screen_draw_one_line (RoadMapPosition *from,
                                    RoadMapPosition *to,
                                    int fully_visible,
                                    RoadMapPosition *first_shape_pos,
@@ -81,6 +96,7 @@ void roadmap_screen_draw_one_line (RoadMapPosition *from,
                                    RoadMapShapeItr shape_itr,
                                    RoadMapPen *pens,
                                    int num_pens,
+                                   int label_min_proj,
                                    int *total_length,
                                    RoadMapGuiPoint *middle,
                                    int *angle);
@@ -92,12 +108,28 @@ void roadmap_screen_draw_line_direction (RoadMapPosition *from,
                                          int last_shape,
                                          RoadMapShapeItr shape_itr,
                                          int width,
-                                         int direction);
+                                         int direction, 
+                                         const char *color);
 
 int roadmap_screen_fast_refresh (void);
 
+void show_me_on_map(void);
+void focus_on_me (void);
+int  is_screen_wide (void);
+
+void roadmap_screen_add_focus_on_me_softkey(void);
+
 int roadmap_screen_height (void);
 
+int roadmap_screen_touched_state(void);
+int roadmap_screen_not_touched_state(void);
+
+void roadmap_screen_touched(void);
+void roadmap_screen_touched_off(void);
+
+void roadmap_screen_mark_redraw (void);
+int roadmap_screen_show_icons_only_when_touched(void);
+int roadmap_screen_show_top_bar_only_when_touched(void);
 #define DBG_TIME_FULL 0
 #define DBG_TIME_DRAW_SQUARE 1
 #define DBG_TIME_DRAW_ONE_LINE 2
@@ -125,5 +157,7 @@ int roadmap_screen_height (void);
 
 void dbg_time_start(int type);
 void dbg_time_end(int type);
-
+int dbg_time_print();
+void roadmap_screen_draw_flush(void);
+int roadmap_screen_show_top_bar(void);
 #endif // INCLUDE__ROADMAP_SCREEN__H

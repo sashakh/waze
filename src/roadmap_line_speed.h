@@ -37,7 +37,7 @@ int roadmap_line_speed_get_cross_times
       (int line, LineRouteTime *from, LineRouteTime *to);
 
 int roadmap_line_speed_get_cross_time_at (int line, int against_dir,
-                                          int time_slot);
+                                          time_t time_slot);
 
 int roadmap_line_speed_get_avg_cross_time (int line, int against_dir);
 

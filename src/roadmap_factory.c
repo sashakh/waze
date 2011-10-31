@@ -172,6 +172,192 @@ static const char **roadmap_factory_load_config (const char *file_name,
    return loaded;
 }
 
+static BOOL roadmap_factory_load_menu_item(
+                                 ssd_contextmenu_ptr  menu,
+                                 const char*          item_name,
+                                 const RoadMapAction* actions)
+                                 
+{
+   const RoadMapAction* action;
+   ssd_cm_item_ptr      new_item = menu->item + menu->item_count;
+   const char*          p;
+   int                  i;
+   
+   memset( new_item, 0, sizeof(ssd_cm_item));
+   
+   p = strchr( item_name, '.');
+   if( p)
+   {
+      ssd_contextmenu_ptr  popup_menu = NULL;
+      char                 popup_name[CONTEXT_MENU_LABEL_MAX_SIZE+1];
+      int                  size = (p-item_name);
+      
+      if( CONTEXT_MENU_LABEL_MAX_SIZE < size)
+      {
+         assert(0);
+         return FALSE;
+      }
+      
+      strncpy( popup_name, item_name, size);
+      popup_name[size] = '\0';
+      
+      action = roadmap_factory_find_action( actions, popup_name);
+      if( !action)
+      {
+         roadmap_log (ROADMAP_ERROR, "roadmap_factory_load_menu_item() - invalid POPUP name '%s'", popup_name);
+         return FALSE;
+      }
+      
+      new_item->flags = CONTEXT_MENU_FLAG_POPUP;
+      new_item->label = action->label_long;
+      new_item->action= (void*)action;
+      new_item->icon = strdup(popup_name);
+      
+      // Try to find existing popup menu:
+      for( i=0; i<menu->item_count; i++)
+      {
+         ssd_cm_item_ptr existing_item = menu->item + i;
+         
+         if((CONTEXT_MENU_FLAG_POPUP & existing_item->flags) &&  
+            !strcmp( existing_item->label, new_item->label))
+         {
+            popup_menu = existing_item->popup;
+            break;
+         }
+      }
+      
+      if( !popup_menu)
+      {
+         if( CONTEXT_MENU_MAX_ITEMS_COUNT == menu->item_count)
+         {
+            assert(0);
+            return FALSE;
+         }
+         
+         menu->item_count++;
+         new_item->popup = malloc(sizeof(ssd_contextmenu));
+         memset( new_item->popup, 0, sizeof(ssd_contextmenu));
+         
+         new_item->popup->item = calloc( sizeof(ssd_cm_item), CONTEXT_MENU_MAX_ITEMS_COUNT);
+         
+         popup_menu = new_item->popup;
+      }
+
+      return roadmap_factory_load_menu_item( popup_menu, p+1, actions);
+   }
+   
+   if( CONTEXT_MENU_MAX_ITEMS_COUNT == menu->item_count)
+   {
+      assert(0);
+      return FALSE;
+   }
+   
+   if( ((*item_name) == '|') || ((*item_name) == '-'))
+   {
+      new_item->flags = CONTEXT_MENU_FLAG_SEPERATOR;
+      
+      menu->item_count++;
+   }
+   else
+   {
+      action = roadmap_factory_find_action (actions, item_name);
+      if( !action)
+      {
+         roadmap_log (ROADMAP_ERROR, "invalid action name '%s'", item_name);
+         return FALSE;
+      }
+      
+      new_item->icon = strdup(item_name) ;
+      new_item->flags = CONTEXT_MENU_FLAG_NORMAL;
+      new_item->label = action->label_long;
+      new_item->action= (void*)action;
+      
+      menu->item_count++;
+   }
+
+   return TRUE;
+}
+
+static ssd_contextmenu_ptr roadmap_factory_load_menu_file(
+                                 const char*          file_name,
+                                 const RoadMapAction* actions,
+                                 const char*          path)
+{
+   char*                p;
+   char                 buffer[256];
+   ssd_contextmenu_ptr  menu;
+   FILE*                file = roadmap_file_fopen (path, file_name, "sr");
+
+   if( !file)
+   {
+      assert(0);
+      return NULL;
+   }
+   
+   menu = malloc( sizeof(ssd_contextmenu));
+   memset( menu, 0, sizeof(ssd_contextmenu));
+   menu->item = calloc( sizeof(ssd_cm_item), CONTEXT_MENU_MAX_ITEMS_COUNT);
+
+   buffer[sizeof(buffer)-1] = 0;
+
+   while (! feof(file)) {
+
+      fgets( buffer, sizeof(buffer)-1, file);
+
+      if (feof(file) || ferror(file)) break;
+
+      // remove the end-of-line character. #7	0x000b2f70 in roadmap_search_menu at roadmap_search.c:1006
+
+      p = strchr (buffer, '\r');
+      if (p != NULL) *p = 0;
+      p = strchr (buffer, '\n');
+      if (p != NULL) *p = 0;
+
+      // Remove any leading space. 
+      for (p = buffer; isspace(*p); ++p) ;
+
+      if ((*p == 0) || (*p == '#')) continue; // Empty line. 
+      
+      if( !roadmap_factory_load_menu_item( menu, p, actions))
+      {
+         assert(0);
+         ssd_contextmenu_delete( menu, FALSE);
+         menu = NULL;
+         break;
+      }
+   }
+   fclose(file);
+
+   return menu;
+}
+
+ssd_contextmenu_ptr roadmap_factory_load_menu(
+                        const char*          filename,
+                        const RoadMapAction* actions)
+{
+   const char*          path = roadmap_path_first("config");
+   ssd_contextmenu_ptr  menu = roadmap_factory_load_menu_file( 
+                                          filename, 
+                                          actions, 
+#ifndef IPHONE
+                                          roadmap_path_user());
+#else
+                                          roadmap_path_bundle());
+#endif //IPHONE
+
+   if( menu)
+      return menu;
+   
+   path = roadmap_path_first("config");
+   while( !menu && path)
+   {
+      menu = roadmap_factory_load_menu_file( filename, actions, path);
+      path = roadmap_path_next("config", path);
+   }
+   
+   return menu;
+}
+
 const char **roadmap_factory_user_config (const char *name,
                                           const char *category,
                                           const RoadMapAction *actions) {
@@ -180,7 +366,9 @@ const char **roadmap_factory_user_config (const char *name,
 
    char file_name[256];
 
-
+	if (name == NULL)
+		return NULL;
+		
    snprintf (file_name, sizeof(file_name), "%s.%s", name, category);
 
    loaded = roadmap_factory_load_config

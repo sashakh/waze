@@ -35,15 +35,27 @@
 #include "roadmap_path.h"
 #include "roadmap_locator.h"
 #include "roadmap_metadata.h"
+#include "roadmap_lang.h"
+#ifdef SSD
+#include "ssd/ssd_dialog.h"
+#include "ssd/ssd_text.h"
+#include "ssd/ssd_button.h"
+#include "ssd/ssd_container.h"
+#else
 #include "roadmap_dialog.h"
+#endif
 #include "roadmap_main.h"
 #include "roadmap_messagebox.h"
+#include "roadmap_label.h"
+#include "roadmap_warning.h"
 
-#include "editor_upload.h"
-#include "editor_export.h"
 #include "editor_download.h"
 #include "../editor_main.h"
 #include "editor_sync.h"
+#include "editor_upload.h"
+
+#include "navigate/navigate_graph.h"
+#include "Realtime/RealtimeOffline.h"
 
 #define MAX_MSGS 10
 #define MIN_FREE_SPACE 5000 //Free space in KB
@@ -52,6 +64,28 @@ static int SyncProgressItems;
 static int SyncProgressCurrentItem;
 static int SyncProgressTarget;
 static int SyncProgressLoaded;
+static char SyncProgressLabel[100];
+
+
+BOOL download_warning_fn ( char* dest_string ) {
+     
+   int progress;
+   
+   if (SyncProgressLoaded < 0) {
+      return FALSE;
+   }
+   
+   progress = 100 / SyncProgressItems * (SyncProgressCurrentItem - 1) +
+         (100 / SyncProgressItems) * SyncProgressLoaded / SyncProgressTarget;
+   
+   snprintf (dest_string, ROADMAP_WARNING_MAX_LEN, "%s %s: %d%%%%",
+               roadmap_lang_get("Progress status"),
+               roadmap_lang_get(SyncProgressLabel), 
+               progress);
+               
+   roadmap_main_flush ();
+   return TRUE;   
+}
 
 static int roadmap_download_request (int size) {
 
@@ -72,25 +106,13 @@ static void roadmap_download_error (const char *format, ...) {
    va_end(ap);
 
    roadmap_log (ROADMAP_ERROR, "Sync error: %s", message);
-   roadmap_messagebox ("Download Error", message);
 }
+
 
 
 static void roadmap_download_progress (int loaded) {
 
-   if (roadmap_dialog_activate ("Sync process", NULL, 1)) {
-
-      const char *icon = roadmap_path_join (roadmap_path_user(), "skins/default/sync.bmp");
-      roadmap_dialog_new_image  ("Sync", icon);
-      roadmap_dialog_new_label  ("Sync", "Progress status");
-      roadmap_dialog_new_progress  ("Sync", "Progress");
-      roadmap_path_free (icon);
-
-      roadmap_dialog_complete (0);
-   }
-
    if ((SyncProgressLoaded > loaded) || !loaded || !SyncProgressItems) {
-      roadmap_dialog_set_progress ("Sync", "Progress", 0);
       SyncProgressLoaded = loaded;
    } else {
 
@@ -103,14 +125,9 @@ static void roadmap_download_progress (int loaded) {
       }
 
       SyncProgressLoaded = loaded;
-
-      roadmap_dialog_set_progress ("Sync", "Progress",
-         100 / SyncProgressItems * (SyncProgressCurrentItem - 1) +
-         (100 / SyncProgressItems) * SyncProgressLoaded / SyncProgressTarget);
    }
-
-   roadmap_main_flush ();
 }
+
 
 
 static RoadMapDownloadCallbacks SyncDownloadCallbackFunctions = {
@@ -120,33 +137,58 @@ static RoadMapDownloadCallbacks SyncDownloadCallbackFunctions = {
 };
 
 
-static int sync_do_export (void) {
+const char *editor_sync_get_export_path (void) {
 
-   char path[255];
-   char name[255];
+	static char path[1024];
+	static int initialized = 0; 
+	
+	if (!initialized) {
+#ifdef IPHONE
+      roadmap_path_format (path, sizeof (path), roadmap_path_preferred("maps"), "queue");
+#else
+		roadmap_path_format (path, sizeof (path), roadmap_db_map_path (), "queue");
+#endif //IPHONE
+	   roadmap_path_create (path);
+	   initialized = 1;
+	}
+
+	return path;
+}
+
+
+const char *editor_sync_get_export_name (void) {
+
+	static char name[255];
    struct tm *tm;
-   char *full_name;
    time_t now;
-   int res;
-
-   snprintf (path, sizeof(path), "%s/queue", roadmap_path_user());
-   roadmap_path_create (path);
 
    time(&now);
    tm = gmtime (&now);
 
-   snprintf (name, sizeof(name), "rm_%02d_%02d_%02d_%02d%02d.gpx.gz",
-                     tm->tm_mday, tm->tm_mon+1, tm->tm_year-100,
-                     tm->tm_hour, tm->tm_min);
- 
-   full_name = roadmap_path_join (path, name);
+   snprintf (name, sizeof(name), "rm_%02d_%02d_%02d_%02d%02d%02d.wud",
+                     tm->tm_mday, tm->tm_mon+1, tm->tm_year%100,
+                     tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-   SyncProgressItems = 1;
-   SyncProgressCurrentItem = 0;
-   res = editor_export_data (full_name, &SyncDownloadCallbackFunctions);
-   free (full_name);
+	return name;
+}
 
-   return res;
+
+static int count_upload_files(void) {
+   char **files;
+   char **cursor;
+   const char* directory = editor_sync_get_export_path();
+   int count;
+   
+   files = roadmap_path_list (directory, ".wud");
+
+   count = 0;
+   for (cursor = files; *cursor != NULL; ++cursor) {
+      count++;
+   }
+   
+   roadmap_path_list_free (files);
+   
+   return count;
 }
 
 
@@ -154,11 +196,10 @@ static int sync_do_upload (char *messages[MAX_MSGS], int *num_msgs) {
 
    char **files;
    char **cursor;
-   char directory[255];
+   const char* directory = editor_sync_get_export_path();
    int count;
-   snprintf (directory, sizeof(directory), "%s/queue", roadmap_path_user());
 
-   files = roadmap_path_list (directory, ".gpx.gz");
+   files = roadmap_path_list (directory, ".wud");
 
    count = 0;
    for (cursor = files; *cursor != NULL; ++cursor) {
@@ -171,16 +212,17 @@ static int sync_do_upload (char *messages[MAX_MSGS], int *num_msgs) {
 
    for (cursor = files; *cursor != NULL; ++cursor) {
       
-      char *full_name = roadmap_path_join (directory, *cursor);
-      int res = editor_upload_auto (full_name, &SyncDownloadCallbackFunctions,
-                                    messages + *num_msgs);
+      char full_name[512];
+		int res;
+      
+      roadmap_path_format (full_name, sizeof (full_name), directory, *cursor);
+      res = editor_upload_auto (full_name, &SyncDownloadCallbackFunctions,
+                                    messages + *num_msgs, NULL, NULL);
 
       if (res == 0) {
          roadmap_file_remove (NULL, full_name);
          if (messages[*num_msgs] != NULL) (*num_msgs)++;
       }
-
-      free (full_name);
 
       if (*num_msgs == MAX_MSGS) break;
    }
@@ -190,18 +232,34 @@ static int sync_do_upload (char *messages[MAX_MSGS], int *num_msgs) {
    return 0;
 }
 
+void editor_sync_upload (void) {
+   int res;
+   char *messages[MAX_MSGS];
+   int num_msgs = 0;
+   
+   if (count_upload_files() == 0)
+      return;
+   
+   
+   roadmap_download_progress (0);
+
+   snprintf (SyncProgressLabel, sizeof(SyncProgressLabel), "%s",
+             roadmap_lang_get ("Uploading data..."));
+   
+   roadmap_warning_register (download_warning_fn, "edtsync");
+   
+   res = sync_do_upload (messages, &num_msgs);
+   
+   roadmap_warning_unregister (download_warning_fn);
+}
 
 int export_sync (void) {
 
    int i;
    int res;
-   int fips;
-   struct tm now_tm;
-   struct tm map_time_tm;
-   time_t now_t;
-   time_t map_time_t;
    char *messages[MAX_MSGS];
-   int num_msgs;
+   int num_msgs = 0;
+   int fips;
 
    if (!editor_is_enabled ()) {
       return 0;
@@ -209,22 +267,34 @@ int export_sync (void) {
 
    res = roadmap_file_free_space (roadmap_path_user());
 
+#ifndef __SYMBIAN32__
    if ((res >= 0) && (res < MIN_FREE_SPACE)) {
       roadmap_messagebox ("Error",
                   "Please free at least 5MB of space before synchronizing.");
       return -1;
    }
+#endif
 
    roadmap_download_progress (0);
-   roadmap_dialog_set_data ("Sync", "Progress status",
-                            roadmap_lang_get ("Preparing export data..."));
+
+   snprintf (SyncProgressLabel, sizeof(SyncProgressLabel), "%s",
+             roadmap_lang_get ("Preparing export data..."));
+
+   roadmap_warning_register (download_warning_fn, "edtsync");
+   
    roadmap_main_flush ();
-   res = sync_do_export ();
    roadmap_download_progress (0);
-   roadmap_dialog_set_data ("Sync", "Progress status",
-                            roadmap_lang_get ("Uploading data..."));
+
+   snprintf (SyncProgressLabel, sizeof(SyncProgressLabel), "%s",
+             roadmap_lang_get ("Uploading data..."));
+
    roadmap_main_flush ();
+
+   Realtime_OfflineClose ();
    res = sync_do_upload (messages, &num_msgs);
+	Realtime_OfflineOpen (editor_sync_get_export_path (),
+								 editor_sync_get_export_name ());
+
 
    fips = roadmap_locator_active ();
 
@@ -232,6 +302,7 @@ int export_sync (void) {
       fips = 77001;
    }
 
+#if 0
    if (roadmap_locator_activate (fips) == ROADMAP_US_OK) {
       now_t = time (NULL);
       map_time_t = atoi(roadmap_metadata_get_attribute ("Version", "UnixTime"));
@@ -253,25 +324,32 @@ int export_sync (void) {
          }
       }
    }
+#endif //0
 
    SyncProgressItems = 1;
    SyncProgressCurrentItem = 0;
    roadmap_download_progress (0);
-   roadmap_dialog_set_data ("Sync", "Progress status",
-                            roadmap_lang_get ("Downloading new maps..."));
+
+   snprintf (SyncProgressLabel, sizeof(SyncProgressLabel), "%s",
+             roadmap_lang_get ("Downloading new maps..."));
+
+	roadmap_label_clear (-1);
+	navigate_graph_clear (-1);
+	
    roadmap_main_flush ();
    res = editor_download_update_map (&SyncDownloadCallbackFunctions);
 
    if (res == -1) {
       roadmap_messagebox ("Download Error", roadmap_lang_get("Error downloading map update"));
    }
-end_sync:
 
    for (i=0; i<num_msgs; i++) {
       roadmap_messagebox ("Info", messages[i]);
       free (messages[i]);
    }
-   roadmap_dialog_hide ("Sync process");
+
+   roadmap_warning_unregister (download_warning_fn);
+
    return 0;
 }
 

@@ -36,7 +36,6 @@
 #include "../editor_main.h"
 #include "navigate/navigate_main.h"
 #include "../db/editor_db.h"
-#include "editor_export.h"
 #include "editor_download.h"
 
 static void download_map_done (void) {
@@ -71,6 +70,10 @@ static int editor_download_map (RoadMapDownloadCallbacks *callbacks) {
    roadmap_screen_get_center (&center);
    count = roadmap_locator_by_position (&center, &fips);
 
+#ifdef __SYMBIAN32__
+   fips[0] = 77001;
+   count = 1;
+#else
    if (count == 0) {
 
       if (callbacks) {
@@ -81,7 +84,9 @@ static int editor_download_map (RoadMapDownloadCallbacks *callbacks) {
          return -1;
       }
    }
-
+#endif
+   
+#if 0
    for (i = count-1; i >= 0; --i) {
 
       if (!editor_export_empty (fips[i])) {
@@ -93,6 +98,7 @@ static int editor_download_map (RoadMapDownloadCallbacks *callbacks) {
          return -1;
       }
    }
+#endif
 
    roadmap_screen_freeze ();
    editor_main_set (0);

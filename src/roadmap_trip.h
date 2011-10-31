@@ -28,6 +28,11 @@
 #include "roadmap_list.h"
 #include "roadmap_gps.h"
 
+#define ROADMAP_DEFAULT_LOC_LONGITUDE 34794810
+#define ROADMAP_DEFAULT_LOC_LATITUDE   32106010
+
+#define IS_DEFAULT_LOCATION( loc_ptr ) ( ( (loc_ptr)->longitude == ROADMAP_DEFAULT_LOC_LONGITUDE ) && \
+									 ( (loc_ptr)->latitude == ROADMAP_DEFAULT_LOC_LATITUDE ) )
 enum { TRIP_FOCUS_GPS = -1,
        TRIP_FOCUS_NO_GPS = 0};
 
@@ -36,6 +41,12 @@ void  roadmap_trip_set_point (const char *name,
 
 void  roadmap_trip_set_mobile (const char *name,
                                const RoadMapGpsPosition *gps_position);
+
+void roadmap_trip_set_gps_position (const char *name, const char*sprite, const char* image,
+                              const RoadMapGpsPosition *gps_position);
+
+void roadmap_trip_set_gps_and_nodes_position (const char *name, const char*sprite, const char* image,
+							  const RoadMapGpsPosition *gps_position, int from_node, int to_node );
 
 void  roadmap_trip_copy_focus (const char *name);
 
@@ -56,7 +67,9 @@ const char *roadmap_trip_get_focus_name (void);
 
 const RoadMapPosition *roadmap_trip_get_focus_position (void);
 const RoadMapPosition *roadmap_trip_get_position (const char *name);
+const RoadMapGpsPosition *roadmap_trip_get_gps_position(const char*name);
 
+void roadmap_trip_get_nodes(const char *name, int *from_node, int *to_node );
 
 void  roadmap_trip_start   (void);
 void  roadmap_trip_resume  (void);
@@ -78,6 +91,8 @@ int   roadmap_trip_load (const char *name, int silent);
 void  roadmap_trip_save (const char *name);
 
 void roadmap_trip_save_screenshot (void);
+
+int roadmap_trip_gps_state (void) ;
 
 #endif // INCLUDE__ROADMAP_TRIP__H
 

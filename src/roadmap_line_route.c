@@ -31,6 +31,7 @@
 
 #include "roadmap.h"
 #include "roadmap_dbread.h"
+#include "roadmap_tile_model.h"
 #include "roadmap_line.h"
 #include "roadmap_line_speed.h"
 #include "roadmap_line_route.h"
@@ -51,11 +52,9 @@ typedef struct {
 static RoadMapLineRouteContext *RoadMapLineRouteActive = NULL;
 
 
-static void *roadmap_line_route_map (roadmap_db *root) {
+static void *roadmap_line_route_map (const roadmap_db_data_file *file) {
 
    RoadMapLineRouteContext *context;
-
-   roadmap_db *data_table;
 
    context =
       (RoadMapLineRouteContext *) malloc (sizeof(RoadMapLineRouteContext));
@@ -67,17 +66,12 @@ static void *roadmap_line_route_map (roadmap_db *root) {
 
    context->type = RoadMapLineRouteType;
 
-   data_table    = roadmap_db_get_subsection (root, "data");
-
-   context->LineRoute =
-      (RoadMapLineRoute *) roadmap_db_get_data (data_table);
-   context->LineRouteCount = roadmap_db_get_count (data_table);
-
-   if (roadmap_db_get_size (data_table) !=
-       context->LineRouteCount * sizeof(RoadMapLineRoute)) {
-      roadmap_log (ROADMAP_ERROR, "invalid line route data structure");
-      free(context);
-      return NULL;
+   if (!roadmap_db_get_data (file,
+   								  model__tile_line_route_data,
+   								  sizeof (RoadMapLineRoute),
+   								  (void**)&(context->LineRoute),
+   								  &(context->LineRouteCount))) {
+      roadmap_log (ROADMAP_FATAL, "invalid line_route/data structure");
    }
 
    return context;
@@ -119,21 +113,34 @@ int roadmap_line_route_get_direction (int line, int who) {
    RoadMapLineRoute *route;
    if (RoadMapLineRouteActive == NULL) return 0; /* No data. */
    if (RoadMapLineRouteActive->LineRouteCount <= line) return 0;
-
+   
    route = &RoadMapLineRouteActive->LineRoute[line];
-
+      
    if ((route->from_flags & who) && (route->to_flags & who)) {
-
       return ROUTE_DIRECTION_ANY;
    } else if (!(route->from_flags & who) && !(route->to_flags & who)) {
       return ROUTE_DIRECTION_NONE;
    } else if (route->from_flags & who) {
-
       return ROUTE_DIRECTION_WITH_LINE;
    } else {
-
       return ROUTE_DIRECTION_AGAINST_LINE;
    }
+}
+
+
+int roadmap_line_route_is_low_weight (int line) {
+
+   RoadMapLineRoute *route;
+   if (RoadMapLineRouteActive == NULL) return 0; /* No data. */
+   if (RoadMapLineRouteActive->LineRouteCount <= line) return 0;
+   
+   route = &RoadMapLineRouteActive->LineRoute[line];
+      
+   if ((route->from_flags & ROUTE_LOW_WEIGHT) && (route->to_flags & ROUTE_LOW_WEIGHT)) {
+      return 1;
+   }
+
+   return 0;
 }
 
 
@@ -175,7 +182,10 @@ int roadmap_line_route_get_restrictions (int line, int against_dir) {
    RoadMapLineRoute *route;
 
    if (RoadMapLineRouteActive == NULL) return -1; /* No data. */
-   assert (line < RoadMapLineRouteActive->LineRouteCount);
+   if (line >= RoadMapLineRouteActive->LineRouteCount) {
+   	roadmap_log (ROADMAP_FATAL, "roadmap_line_route_get_restrictions(): line id %d is out of range (%d) for square %d",
+   						line, RoadMapLineRouteActive->LineRouteCount, roadmap_square_active ());	
+   }
 
    route = &RoadMapLineRouteActive->LineRoute[line];
 

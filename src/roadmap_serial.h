@@ -31,7 +31,7 @@
 
 #define MAX_SERIAL_ENUMS 10
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined (__SYMBIAN32__)
 
 #include <windows.h>
 #include "win32/win32_serial.h"

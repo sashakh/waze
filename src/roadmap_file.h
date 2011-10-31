@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -32,7 +33,7 @@
 #define INCLUDE__ROADMAP_FILE__H
 
 
-#ifdef _WIN32
+#if defined (_WIN32) && !defined (__SYMBIAN32__)
 
 #include <windows.h>
 #include <stdio.h>
@@ -49,6 +50,14 @@ typedef FILE* RoadMapFile;
 #define ROADMAP_FILE_IS_VALID(f) (f != NULL)
 #define ROADMAP_INVALID_FILE NULL
 
+#elif defined __SYMBIAN32__
+
+#include <stdio.h>
+
+typedef void* RoadMapFile;
+#define ROADMAP_FILE_IS_VALID(f) (f != NULL)
+#define ROADMAP_INVALID_FILE NULL
+
 #else
 
 #include <stdio.h>
@@ -59,10 +68,16 @@ typedef int RoadMapFile; /* UNIX style. */
 
 #endif
 
+typedef enum {
+	ROADMAP_SEEK_START,
+	ROADMAP_SEEK_CURR,
+	ROADMAP_SEEK_END
+} RoadMapSeekWhence; 
 
 RoadMapFile roadmap_file_open  (const char *name, const char *mode);
 int   roadmap_file_read  (RoadMapFile file, void *data, int size);
 int   roadmap_file_write (RoadMapFile file, const void *data, int length);
+int   roadmap_file_seek  (RoadMapFile file, int offset, RoadMapSeekWhence whence); 
 void  roadmap_file_close (RoadMapFile file);
 
 void  roadmap_file_remove (const char *path, const char *name);

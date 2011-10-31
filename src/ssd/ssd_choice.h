@@ -27,7 +27,7 @@
   
 #include "ssd_widget.h"
 
-SsdWidget ssd_choice_new (const char *name, int count,
+SsdWidget ssd_choice_new (const char *name, const char *title, int count,
                           const char **labels,
                           const void **values,
                           int flags,

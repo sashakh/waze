@@ -45,6 +45,13 @@ void editor_screen_set (int status);
 void editor_screen_update_fips (int fips);
 void editor_screen_repaint (int max_pen);
 void editor_screen_reset_selected (void);
+void report_accident_at_screen_point(void);
+void report_accident_opposite_side_at_screen_point(void);
 
+int editor_screen_show_candidates (void);
+
+int editor_screen_gray_scale(void);
+char *editor_screen_overide_car();
+void editor_screen_set_override_car(const char *name);
 #endif // INCLUDE__EDITOR_SCREEN__H
 
