@@ -61,7 +61,11 @@ extern "C"
 
 
   typedef fribidi_int8 FriBidiLevel;
+#ifdef ANDROID
+  typedef fribidi_uint32 FriBidiChar;
+#else
   typedef fribidi_uint16 FriBidiChar;
+#endif
   typedef fribidi_int FriBidiStrIndex;
   typedef fribidi_int32 FriBidiMaskType;
   typedef FriBidiMaskType FriBidiCharType;

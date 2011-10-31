@@ -53,5 +53,7 @@ const char *roadmap_string_get (RoadMapDynamicString item);
 
 int roadmap_string_match (RoadMapDynamicString item, const char *value);
 
+int roadmap_string_is_sub_ignore_case (const char *where, const char *what);
+int roadmap_string_compare_ignore_case (const char *str1, const char *str2);
 #endif // INCLUDED__ROADMAP_STRING__H
 

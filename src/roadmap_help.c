@@ -32,6 +32,7 @@
 #include "roadmap.h"
 #include "roadmap_types.h"
 #include "roadmap_config.h"
+#include "roadmap_internet.h"
 
 #include "roadmap_path.h"
 #include "roadmap_file.h"
@@ -202,6 +203,12 @@ int roadmap_help_next_topic (const char **label,
    return roadmap_help_get_topic(label, callback);
 }
 
+
+void roadmap_open_help(void){
+#if defined (_WIN32) || defined (__SYMBIAN32__)
+	roadmap_internet_open_browser(roadmap_config_get(&RoadMapConfigBrowserOptions));
+#endif
+}
 
 void roadmap_help_initialize (void) {
 

@@ -24,9 +24,21 @@
 
 #ifndef __SSD_WIDGET_ENTRY_H_
 #define __SSD_WIDGET_ENTRY_H_
-  
-#include "ssd_widget.h"
 
-SsdWidget ssd_entry_new (const char *name, const char *value, int flags);
+
+#include "ssd_keyboard_dialog.h"
+
+SsdWidget ssd_entry_new (const char *name, const char *value, int entry_flags,
+                         int text_flags, int width, int height, const char *background_text);
+
+SsdWidget ssd_confirmed_entry_new (const char *name,const char *value, int entry_flags,
+                                  int text_flags, int width, int height, const char *messagebox_text,
+                                  const char *background_text);
+
+void ssd_entry_set_kb_params( SsdWidget wisget, const char* kb_title,
+							  const char* kb_label, const char* kb_note,
+							  CB_OnKeyboardDone kb_post_done_cb, int kb_flags );
+
+void ssd_entry_set_kb_title( SsdWidget widget, const char* kb_title );
 
 #endif // __SSD_WIDGET_ENTRY_H_

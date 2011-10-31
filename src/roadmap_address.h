@@ -26,11 +26,13 @@
 
 #include "roadmap.h"
 #include "roadmap_plugin.h"
+#include "address_search/address_search.h"
 
 typedef void (*RoadMapAddressSearchCB) (const char *result, void *context);
 typedef int  (*RoadMapAddressNav) (const RoadMapPosition *point,
                                    const PluginLine *line,
-                                   int direction);
+                                   int direction,
+                                   address_info_ptr ai);
 
 void roadmap_address_destination_by_city (void);
 void roadmap_address_location_by_city (void);
@@ -39,6 +41,7 @@ void roadmap_address_search_dialog (const char *city,
                                     void *data);
 
 void roadmap_address_register_nav (RoadMapAddressNav navigate);
+void roadmap_poi_register_nav (RoadMapAddressNav navigate);
 
 #ifdef SSD
 void roadmap_address_history (void);

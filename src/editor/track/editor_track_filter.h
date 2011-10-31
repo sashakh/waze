@@ -42,5 +42,7 @@ int editor_track_filter_add (struct GPSFilter *filter,
 
 const RoadMapGpsPosition *editor_track_filter_get (struct GPSFilter *filter);
 
+int editor_track_filter_get_current (const struct GPSFilter *filter, RoadMapPosition *pos, time_t *time);
+
 #endif // INCLUDE__EDITOR_TRACK_FILTER__H
 

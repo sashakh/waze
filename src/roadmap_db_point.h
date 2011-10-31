@@ -38,17 +38,15 @@ typedef struct {  /* table point.data */
    /* The position here is relative to the upper-left corner
     * of the square the point belongs to.
     */
+#if defined(J2MEMAP)
+   int longitude;
+   int latitude;
+#else
    unsigned short longitude;
    unsigned short latitude;
+#endif
 
 } RoadMapPoint;
-
-typedef struct {  /* table point.bysquare */
-
-  int first;
-  int count;
-
-} RoadMapPointBySquare;
 
 #endif // _ROADMAP_DB_POINT__H_
 

@@ -33,9 +33,11 @@
 #include "roadmap.h"
 #include "roadmap_config.h"
 #include "roadmap_line.h"
+#include "roadmap_math.h"
 #include "roadmap_locator.h"
 #include "roadmap_plugin.h"
 #include "roadmap_line_route.h"
+#include "roadmap_street.h"
 
 #include "roadmap_fuzzy.h"
 
@@ -51,7 +53,7 @@ static RoadMapConfigDescriptor RoadMapConfigAccuracyStreet =
 
 static int RoadMapAccuracyStreet;
 static int RoadMapConfidence;
-static int RoadMapError;
+static int RoadMapError = 10;
 
 
 void roadmap_fuzzy_set_cycle_params (int street_accuracy, int confidence) {
@@ -61,7 +63,7 @@ void roadmap_fuzzy_set_cycle_params (int street_accuracy, int confidence) {
 }
 
 
-void roadmap_fuzzy_start_cycle (void) {
+void roadmap_fuzzy_reset_cycle (void) {
 
     RoadMapAccuracyStreet =
         roadmap_config_get_integer (&RoadMapConfigAccuracyStreet);
@@ -71,8 +73,6 @@ void roadmap_fuzzy_start_cycle (void) {
 
 
 int roadmap_fuzzy_max_distance (void) {
-
-    roadmap_fuzzy_start_cycle ();
 
     return RoadMapAccuracyStreet;
 }
@@ -107,7 +107,7 @@ RoadMapFuzzy roadmap_fuzzy_direction
 
     if (delta >= 90) return 0;
 
-    return (FUZZY_TRUTH_MAX * (90 - delta)) / 90;
+    return (FUZZY_TRUTH_MAX * (100 - delta)) / 100;
 }
 
 
@@ -120,6 +120,10 @@ RoadMapFuzzy roadmap_fuzzy_distance  (int distance) {
     if (distance >= RoadMapAccuracyStreet) return 0;
 
     if (distance <= RoadMapError) return FUZZY_TRUTH_MAX;
+
+    distance *= 2;
+
+    if (distance >= RoadMapAccuracyStreet) return FUZZY_TRUTH_MAX / 3;
 
     return (FUZZY_TRUTH_MAX * (RoadMapAccuracyStreet - distance)) /
                                   RoadMapAccuracyStreet - RoadMapError;
@@ -145,22 +149,11 @@ RoadMapFuzzy roadmap_fuzzy_connected
     int i, j;
 
 
-    if (roadmap_plugin_same_line (&street->line, &reference->line))
-       return FUZZY_TRUTH_MAX;
+    if (roadmap_plugin_same_db_line (&street->line, &reference->line))
+       return (FUZZY_TRUTH_MAX * 3) / 4;
 
-    if (roadmap_plugin_activate_db (&street->line) == -1) {
-       return 0;
-    }
-
-    roadmap_plugin_line_from (&street->line, &(line_point[0]));
-    roadmap_plugin_line_to   (&street->line, &(line_point[1]));
-
-    if (roadmap_plugin_activate_db (&reference->line) == -1) {
-       return 0;
-    }
-
-    roadmap_plugin_line_from (&reference->line, &(reference_point[0]));
-    roadmap_plugin_line_to   (&reference->line, &(reference_point[1]));
+	 roadmap_street_extend_line_ends (&street->line,&(line_point[0]), &(line_point[1]), FLAG_EXTEND_BOTH, NULL, NULL); 
+	 roadmap_street_extend_line_ends (&reference->line,&(reference_point[0]), &(reference_point[1]), FLAG_EXTEND_BOTH, NULL, NULL); 
 
     if (direction == ROUTE_DIRECTION_AGAINST_LINE) {
        i = 1;
@@ -180,6 +173,29 @@ RoadMapFuzzy roadmap_fuzzy_connected
        *connection = line_point[i];
 
        return (FUZZY_TRUTH_MAX * 2) / 3;
+    } else if ((line_point[i].latitude == reference_point[!j].latitude) &&
+         (line_point[i].longitude == reference_point[!j].longitude)) {
+
+       *connection = line_point[i];
+
+       return FUZZY_TRUTH_MAX / 2;
+
+    } else {
+       RoadMapPosition pos1;
+       RoadMapPosition pos2;
+       int d;
+
+       pos1 = line_point[i];
+       pos2 = reference_point[j];
+
+       d = roadmap_math_distance (&pos1, &pos2);
+
+       if (roadmap_math_distance (&pos1, &pos2) < 50) {
+          connection->latitude  = 0;
+          connection->longitude = 0;
+
+          return FUZZY_TRUTH_MAX * 2 / 3;
+       }
     }
 
     connection->latitude  = 0;
@@ -191,6 +207,7 @@ RoadMapFuzzy roadmap_fuzzy_connected
 
 RoadMapFuzzy roadmap_fuzzy_and (RoadMapFuzzy a, RoadMapFuzzy b) {
 
+   return a*b/FUZZY_TRUTH_MAX;
     if (a < b) return a;
 
     return b;
@@ -234,10 +251,10 @@ int roadmap_fuzzy_is_certain (RoadMapFuzzy a) {
 void roadmap_fuzzy_initialize (void) {
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigAccuracyStreet, "150", NULL);
+        ("preferences", &RoadMapConfigAccuracyStreet, "120", NULL);
 
     roadmap_config_declare
-        ("preferences", &RoadMapConfigConfidence, "25", NULL);
+        ("preferences", &RoadMapConfigConfidence, "50", NULL);
 }
 
 

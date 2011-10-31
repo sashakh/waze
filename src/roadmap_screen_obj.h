@@ -31,7 +31,8 @@ struct RoadMapScreenObjDescriptor;
 typedef struct RoadMapScreenObjDescriptor *RoadMapScreenObj;
 
 void roadmap_screen_obj_initialize (void);
-void roadmap_screen_obj_offset (int x, int y);
+void roadmap_screen_obj_global_offset (int x, int y);
+void roadmap_screen_obj_offset ( const char* obj_name, int offset_x, int offset_y );
 void roadmap_screen_obj_draw (void);
 
 #endif // INCLUDE__ROADMAP_SCREEN_OBJECT__H

@@ -30,17 +30,55 @@
 
 #include "roadmap.h"
 #include "roadmap_canvas.h"
+#include "../roadmap_phone_keyboard.h"
+#include "../roadmap_strings.h"
+#include "../roadmap_keyboard_text.h"
 
 #include "ssd_widget.h"
 #include "ssd_text.h"
 
-struct ssd_text_data {
-   int size;
-};
+#define  AUTO_HEIGHT_FACTOR      (0.5F)
+#define  HEIGHT_FACTOR           (1.2F)
 
-static int initialized;
-static RoadMapPen pen;
-static const char *def_color = "#000000";
+static int           initialized;
+static RoadMapPen    pen;
+static const char*   def_color = "#000000";
+
+typedef struct tag_text_ctx
+{
+   int                  size;
+   roadmap_input_type   input_type;
+   BOOL                 used_last_char;
+   BOOL                 auto_size;
+   BOOL                 auto_size_set;
+   BOOL                 auto_trim;
+   int                  lines_space_padding; 	/* Additional padding for the inter-lines space */
+   int                  value_max_size;
+
+}  text_ctx, *text_ctx_ptr;
+
+void text_ctx_init( text_ctx_ptr this)
+{
+   memset( this, 0, sizeof(text_ctx));
+   this->input_type     = inputtype_binary;
+   this->value_max_size = SSD_TEXT_MAXIMUM_TEXT_LENGTH;
+}
+
+void ssd_text_set_auto_size( SsdWidget this)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+   ctx->auto_size = TRUE;
+}
+
+void ssd_text_set_auto_trim( SsdWidget this)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+   ctx->auto_trim = TRUE;
+}
+
+void ssd_text_set_color( SsdWidget this, const char* color)
+{ this->fg_color = color;}
+
 
 static void init_containers (void) {
    pen = roadmap_canvas_create_pen ("ssd_text_pen");
@@ -49,11 +87,66 @@ static void init_containers (void) {
    initialized = 1;
 }
 
+void ssd_text_set_input_type( SsdWidget this, roadmap_input_type input_type)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+
+   ctx->input_type   = input_type;
+   this->flags       &= ~SSD_TEXT_READONLY;
+}
+
+void ssd_text_set_text_size( SsdWidget this, int size)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+
+   ctx->value_max_size = size;
+
+   if( this->value)
+      free( this->value);
+
+   this->value = calloc( 1, ctx->value_max_size+1);
+}
+
+void ssd_text_set_font_size( SsdWidget this, int size)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+   ctx->size = size;
+}
+
+///[BOOKMARK]:[NOTE]:[PAZ] - This will also position widget at offset (n,m)
+static void select_text_size( SsdWidget this)
+{
+   text_ctx_ptr   ctx = (text_ctx_ptr)this->data;
+   int            parent_height;
+   int            text_size;
+   int            text_offset;
+
+   if(!this->value      || !this->parent  ||
+      !ctx->auto_size   || ctx->auto_size_set)
+      return;
+
+   parent_height = this->parent->size.height;
+   if( parent_height < 1)
+      parent_height = this->parent->cached_size.height;
+   if( parent_height < 1)
+      return;
+
+   text_size   = (int)(((double) parent_height * AUTO_HEIGHT_FACTOR)+0.5F);
+   text_offset = (int)(((double)(parent_height - text_size)/2.F)+0.5);
+
+   ctx->size      = text_size;
+   this->offset_x = text_offset;
+   this->offset_y = text_offset;
+
+   ///[BOOKMARK]:[VERIFY] - Do we need to modify widget size?
+
+   ctx->auto_size_set = TRUE;
+}
 
 static int format_text (SsdWidget widget, int draw,
                         RoadMapGuiRect *rect) {
 
-   struct ssd_text_data *data = (struct ssd_text_data *) widget->data;
+   text_ctx_ptr ctx = (text_ctx_ptr) widget->data;
    char line[255] = {0};
    const char *text;
    int text_width;
@@ -63,22 +156,26 @@ static int format_text (SsdWidget widget, int draw,
    int width = rect->maxx - rect->minx + 1;
    int max_width = 0;
    RoadMapGuiPoint p;
-   
+
    if (draw) {
       p.x = rect->minx;
       p.y = rect->miny;
    }
 
-   text = widget->value;
+   if (( widget->flags & SSD_TEXT_PASSWORD) && (widget->value[0] != 0))
+      	text = "*****";
+   else
+      text = widget->value;
 
    while (*text || *line) {
       const char *space = strchr(text, ' ');
       const char *new_line = strchr(text, '\n');
-      unsigned int len;
-      unsigned int new_len;
+      size_t len;
+      size_t new_len;
 
       if (!*text) {
          new_len = strlen(line);
+         len = 0;
 
       } else {
 
@@ -111,8 +208,8 @@ static int format_text (SsdWidget widget, int draw,
          if (space) text++;
       }
 
-      roadmap_canvas_get_text_extents 
-         (line, data->size, &text_width, &text_ascent,
+      roadmap_canvas_get_text_extents
+         (line, ctx->size, &text_width, &text_ascent,
           &text_descent, NULL);
 
       if (!*text || new_line || (text_width > width)) {
@@ -123,12 +220,12 @@ static int format_text (SsdWidget widget, int draw,
             text -= len;
             if (space) text--;
 
-            roadmap_canvas_get_text_extents 
-               (line, data->size, &text_width, &text_ascent,
+            roadmap_canvas_get_text_extents
+               (line, ctx->size, &text_width, &text_ascent,
                 &text_descent, NULL);
          }
 
-         h = text_ascent + text_descent;
+         h = (text_ascent + text_descent + ctx->lines_space_padding)*HEIGHT_FACTOR;
 
          if (draw) {
             p.y += h;
@@ -138,13 +235,13 @@ static int format_text (SsdWidget widget, int draw,
                if (ssd_widget_rtl (NULL)) {
                   p.x += (width - text_width) / 2;
                } else {
-                  p.x -= (width - text_width) / 2;
+                  p.x += (width - text_width) / 2;
                }
             } else if (ssd_widget_rtl (NULL)) {
                p.x += width - text_width;
             }
 
-            roadmap_canvas_draw_string_angle (&p, NULL, 0, data->size, line);
+            roadmap_canvas_draw_string_angle (&p, NULL, 0, ctx->size, line);
          }
 
          line[0] = '\0';
@@ -162,12 +259,29 @@ static int format_text (SsdWidget widget, int draw,
 }
 
 
+static void release( SsdWidget widget )
+{
+	if ( widget->value )
+	{
+		free( widget->value );
+		widget->value = NULL;
+	}
+	if ( widget->data )
+	{
+		free( widget->data );
+		widget->data = NULL;
+	}
+}
+
 static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
 
    const char *color = def_color;
 
-   if (flags & SSD_GET_SIZE) {
-      format_text (widget, 0, rect);
+   select_text_size( widget);
+
+   if( flags & SSD_GET_SIZE)
+   {
+      format_text( widget, 0, rect);
       return;
    }
 
@@ -176,68 +290,212 @@ static void draw (SsdWidget widget, RoadMapGuiRect *rect, int flags) {
    rect->miny -= 2;
 
    roadmap_canvas_select_pen (pen);
-   if (widget->fg_color) color = widget->fg_color;
-   roadmap_canvas_set_foreground (color);
+   if( widget->fg_color)
+      color = widget->fg_color;
+
+   if ((widget->parent) && (widget->parent->in_focus) && widget->bg_color)
+      color = widget->bg_color;
+   roadmap_canvas_set_foreground( color);
 
    format_text (widget, 1, rect);
+
+
 
    rect->miny += 2;
 }
 
 
-static int set_value (SsdWidget widget, const char *value) {
+static int set_value (SsdWidget widget, const char *value)
+{
+   if( widget->callback && !widget->callback (widget, value))
+      return -1;
 
-   if (widget->callback && !widget->callback (widget, value)) return -1;
+   if( *value)
+   {
+      text_ctx_ptr ctx = widget->data;
 
-   if (widget->value && *widget->value) free (widget->value);
+      sttstr_copy( widget->value, value, ctx->value_max_size);
 
-   if (*value) {
-      int len = strlen(value);
-
-      if (widget->flags & SSD_TEXT_LABEL) {
-         len += 1;
-      }
-
-      widget->value = (char *) malloc (len + 1);
-      strcpy (widget->value, value);
-
-      if (widget->flags & SSD_TEXT_LABEL) strcat (widget->value, ":");
-
-   } else {
-      widget->value = "";
+//      if( widget->flags & SSD_TEXT_LABEL)
+//         sttstr_append_char( widget->value, ':',   ctx->value_max_size);
    }
+   else
+      sttstr_reset( widget->value);
 
    ssd_widget_reset_cache (widget);
 
    return 0;
 }
 
+void ssd_text_reset_text( SsdWidget this)
+{
+   if( this)
+      sttstr_reset( this->value);
+}
 
-SsdWidget ssd_text_new (const char *name, const char *value,
-                        int size, int flags) {
+const char* ssd_text_get_text( SsdWidget this)
+{
+   if( !this)
+      return NULL;
 
-   SsdWidget w;
-   struct ssd_text_data *data =
-      (struct ssd_text_data *)calloc (1, sizeof(*data));
+   return (const char*)this->value;
+}
 
-   if (!initialized) {
-      init_containers();
+void ssd_text_set_text( SsdWidget this, const char* new_value)
+{
+   if( this)
+   {
+      text_ctx_ptr ctx = this->data;
+
+      sttstr_copy( (char*)this->value, new_value, ctx->value_max_size);
+   }
+}
+
+static BOOL ssd_text_on_key_pressed( SsdWidget this, const char* utf8char, uint32_t flags)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+
+   if( this->flags & SSD_TEXT_READONLY)
+      return FALSE;
+
+   if( KEYBOARD_VIRTUAL_KEY & flags)
+      return FALSE;
+
+   if( KEY_IS_BACKSPACE || KEY_IS_ESCAPE )
+   {
+      if( this->value && this->value[0])
+      {
+    	  if( flags & KEYBOARD_LONG_PRESS )
+    		  this->value[0] = 0;
+    	  else
+             sttstr_trim_last_char( this->value);
+
+         return TRUE;
+      }
+
+      return FALSE;
    }
 
-   w = ssd_widget_new (name, flags);
+   if( USING_PHONE_KEYPAD)
+   {
+      BOOL        value_was_replaced;
+      const char* translated_char = roadmap_phone_keyboard_get_multiple_key_value(
+                                       this,
+                                       utf8char,
+                                       ctx->input_type,
+                                       &value_was_replaced);
 
-   w->typeid = "Text";
+      if( !translated_char)
+         return FALSE;
 
-   w->draw = draw;
-   w->set_value = set_value;
-   w->flags = flags;
+      if( value_was_replaced)
+         sttstr_trim_last_char( this->value);
 
-   data->size = size;
-   w->data = data;
+      utf8char = translated_char;
+   }
+   else
+   {
+      if( !is_valid_key( utf8char, ctx->input_type))
+         return FALSE;
+   }
 
-   set_value (w, value);
+   sttstr_append_string( this->value, utf8char, ctx->value_max_size);
+   return TRUE;
+}
+
+static roadmap_input_type ssd_text__get_input_type( SsdWidget this)
+{
+   text_ctx_ptr ctx = (text_ctx_ptr)this->data;
+   return ctx->input_type;
+}
+
+SsdWidget ssd_text_new( const char* name,
+                        const char* value,
+                        int         size,
+                        int         flags)
+{
+   SsdWidget   w;
+
+   text_ctx_ptr   ctx =(text_ctx_ptr)calloc (1, sizeof(*ctx));
+   text_ctx_init( ctx);
+
+   ctx->size = size;
+
+   if( !initialized)
+      init_containers();
+
+   // Default:
+   flags |= SSD_TEXT_READONLY;
+
+   w                    = ssd_widget_new (name, ssd_text_on_key_pressed, flags);
+   w->_typeid           = "Text";
+   w->draw              = draw;
+   w->release 			= release;
+   w->set_value         = set_value;
+   w->flags             = flags;
+   w->data              = ctx;
+   w->value             = calloc( 1, ctx->value_max_size+1);
+   w->get_input_type    = ssd_text__get_input_type;
+
+   sttstr_reset( w->value);
+   set_value( w, value);
 
    return w;
+}
+
+
+int ssd_text_get_char_height(int size)
+{
+   static int s_char_height= 0;
+   static int s_last_size  = 0;
+
+   if( !s_char_height || (s_last_size != size))
+   {
+      int text_width;
+      int text_ascent;
+      int text_descent;
+
+      roadmap_canvas_get_text_extents( "aAbB19Xx8", size, &text_width, &text_ascent, &text_descent, NULL);
+      s_char_height  = 3 + text_ascent + text_descent;
+      s_last_size    = size;
+   }
+
+   return s_char_height;
+}
+
+int ssd_text_get_char_width()
+{
+   static int s_char_width = 0;
+
+   if( !s_char_width)
+   {
+      int text_width;
+      int text_ascent;
+      int text_descent;
+
+      roadmap_canvas_get_text_extents( "W", -1, &text_width, &text_ascent, &text_descent, NULL);
+      s_char_width = text_width;
+   }
+
+   return s_char_width;
+}
+
+void ssd_text_set_readonly( SsdWidget this, BOOL read_only)
+{
+   int flags = this->flags;
+
+   if( read_only)
+      flags |=  SSD_TEXT_READONLY;
+   else
+      flags &= ~SSD_TEXT_READONLY;
+
+   this->flags = flags;
+}
+
+void ssd_text_set_lines_space_padding( SsdWidget this, int space )
+{
+   text_ctx_ptr ctx = (text_ctx_ptr) this->data;
+   ctx->lines_space_padding = space;
 }
 
 

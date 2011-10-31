@@ -71,7 +71,8 @@ int editor_track_util_new_road_end (RoadMapNeighbour *line,
 
 int editor_track_util_length (int first, int last);
 
-int editor_track_util_create_trkseg (int line_id,
+int editor_track_util_create_trkseg (int square,
+												 int line_id,
                                      int plugin_id,
                                      int first_point,
                                      int last_point,
@@ -84,6 +85,14 @@ int editor_track_util_create_db (const RoadMapPosition *pos);
 
 void editor_track_util_set_focus(const RoadMapPosition *position);
 void editor_track_util_release_focus();
+
+int editor_track_util_roadmap_node_to_editor (NodeNeighbour *node);
+
+int editor_track_util_get_line_length (const PluginLine *line);
+void editor_track_util_get_line_point_ids (const PluginLine *line, 
+														 int reverse, 
+														 int *from_id, 
+														 int *to_id);
 
 #endif // INCLUDE__EDITOR_TRACK_UTIL__H
 

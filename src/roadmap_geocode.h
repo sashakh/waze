@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -47,9 +48,23 @@
 #ifndef INCLUDE__ROADMAP_GEOCODE__H
 #define INCLUDE__ROADMAP_GEOCODE__H
 
+typedef enum tag_roadmap_geocode_error{
+
+	geo_error_none,
+	geo_error_general,
+	geo_error_no_map,
+	geo_error_no_address,
+	geo_error_no_state,
+	geo_error_no_city,
+	geo_error_no_street,
+	geo_error_no_house_number
+	
+}	roadmap_geocode_error;
+
 typedef struct {
 
    int fips;
+   int square;
    int line;
    char *name;
    RoadMapPosition position;
@@ -63,7 +78,8 @@ int roadmap_geocode_address (RoadMapGeocode **selections,
                              const char *city_name,
                              const char *state_name);
 
-const char *roadmap_geocode_last_error (void);
+const char* roadmap_geocode_last_error_string(void);
+roadmap_geocode_error roadmap_geocode_last_error_code (void);
 
 #endif // INCLUDE__ROADMAP_GEOCODE__H
 

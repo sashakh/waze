@@ -24,7 +24,7 @@
 #ifndef INCLUDE__EDITOR_DIALOG__H
 #define INCLUDE__EDITOR_DIALOG__H
 
-#include "../editor_screen.h"
+#include "editor/editor_screen.h"
 
 void editor_segments_properties (SelectedLine *lines, int count);
 

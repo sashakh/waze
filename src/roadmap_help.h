@@ -41,6 +41,8 @@ int roadmap_help_first_topic (const char **label, RoadMapCallback *callback);
 int roadmap_help_next_topic  (const char **label, RoadMapCallback *callback);
 
 void roadmap_help_initialize (void);
+void roadmap_help_menu(void);
+void roadmap_open_help(void);
 
 #endif // INCLUDE__ROADMAP_HELP__H
 

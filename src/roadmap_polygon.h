@@ -32,6 +32,8 @@ int  roadmap_polygon_category (int polygon);
 void roadmap_polygon_edges    (int polygon, RoadMapArea *edges);
 int  roadmap_polygon_points   (int polygon, int *list, int size);
 
+const char *roadmap_polygon_name (int polygon);
+
 extern roadmap_db_handler RoadMapPolygonHandler;
 
 #endif // _ROADMAP_POLYGON__H_

@@ -37,6 +37,10 @@
 #endif
 #endif
 
+#ifdef __SYMBIAN32__
+#define PNG_NO_WRITE_SUPPORTED
+#define PNG_NO_FLOATING_POINT_SUPPORTED
+#endif
 /*
  * Added at libpng-1.2.8
  *  
@@ -1293,6 +1297,7 @@ typedef z_stream FAR *  png_zstreamp;
 #  define PNG_IMPEXP
 #endif
 
+#ifndef __SYMBIAN32__
 #if defined(PNG_DLL) || defined(_DLL) || defined(__DLL__ ) || \
     (( defined(_Windows) || defined(_WINDOWS) || \
        defined(WIN32) || defined(_WIN32) || defined(__WIN32__) ))
@@ -1348,6 +1353,7 @@ typedef z_stream FAR *  png_zstreamp;
 #      if 0 /* ... other platforms, with other meanings */
 #      endif
 #   endif
+#endif
 #endif
 
 #ifndef PNGAPI

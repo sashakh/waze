@@ -31,43 +31,39 @@
 #include <assert.h>
 
 #include "roadmap.h"
-#include "roadmap_file.h"
-#include "roadmap_path.h"
 
 #include "editor_db.h"
 #include "editor_shape.h"
 
 static editor_db_section *ActiveShapeDB;
 
-static void editor_shape_activate (void *context) {
-   ActiveShapeDB = (editor_db_section *) context;
+static void editor_shape_activate (editor_db_section *context) {
+   ActiveShapeDB = context;
 }
 
-roadmap_db_handler EditorShapeHandler = {
-   "shape",
-   editor_map,
-   editor_shape_activate,
-   editor_unmap
+editor_db_handler EditorShapeHandler = {
+   EDITOR_DB_SHAPES,
+   sizeof (editor_db_shape),
+   0,
+   editor_shape_activate
 };
 
 
-int editor_shape_add (short delta_longitude,
+int editor_shape_add (int ordinal,
+							 short delta_longitude,
                       short delta_latitude,
                       short delta_time) {
    
    editor_db_shape shape;
    int id;
 
+	shape.ordinal = ordinal;
    shape.delta_longitude = delta_longitude;
    shape.delta_latitude = delta_latitude;
    shape.delta_time = delta_time;
-
-   id = editor_db_add_item (ActiveShapeDB, &shape);
-
-   if (id == -1) {
-      editor_db_grow ();
-      id = editor_db_add_item (ActiveShapeDB, &shape);
-   }
+	shape.filler = 0;
+	
+   id = editor_db_add_item (ActiveShapeDB, &shape, 1);
 
    return id;
 }
@@ -92,6 +88,14 @@ void editor_shape_time (int shape, time_t *time) {
 }
 
 
+int editor_shape_ordinal (int shape) {
+	
+   editor_db_shape *shape_st = editor_db_get_item (ActiveShapeDB, shape, 0, 0);
+   assert(shape_st != NULL);
+
+	return shape_st->ordinal;
+}
+
 void editor_shape_adjust_point (int shape,
                                 int lon_diff,
                                 int lat_diff,
@@ -103,6 +107,8 @@ void editor_shape_adjust_point (int shape,
    shape_st->delta_longitude += lon_diff;
    shape_st->delta_latitude += lat_diff;
    shape_st->delta_time += time_diff;
+   
+   editor_db_update_item (ActiveShapeDB, shape);
 }
 
 
@@ -117,5 +123,7 @@ void editor_shape_set_point (int shape,
    shape_st->delta_longitude = lon_diff;
    shape_st->delta_latitude = lat_diff;
    shape_st->delta_time = time_diff;
+   
+   editor_db_update_item (ActiveShapeDB, shape);
 }
 

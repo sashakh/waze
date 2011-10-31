@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -37,7 +38,10 @@
 
 #include "roadmap.h"
 #include "roadmap_dbread.h"
+#include "roadmap_tile_model.h"
+#include "roadmap_dictionary.h"
 #include "roadmap_db_polygon.h"
+#include "roadmap_square.h"
 
 
 static char *RoadMapPolygonType = "RoadMapPolygonContext";
@@ -52,43 +56,38 @@ typedef struct {
    RoadMapPolygonPoint *PolygonPoint;
    int                  PolygonPointCount;
 
+   RoadMapDictionary DictionaryLandmark;
 } RoadMapPolygonContext;
 
 static RoadMapPolygonContext *RoadMapPolygonActive = NULL;
 
 
-static void *roadmap_polygon_map (roadmap_db *root) {
+static void *roadmap_polygon_map (const roadmap_db_data_file *file) {
 
    RoadMapPolygonContext *context;
-
-   roadmap_db *head_table;
-   roadmap_db *point_table;
-
 
    context = malloc (sizeof(RoadMapPolygonContext));
    roadmap_check_allocated(context);
 
    context->type = RoadMapPolygonType;
 
-   head_table  = roadmap_db_get_subsection (root, "head");
-   point_table = roadmap_db_get_subsection (root, "point");
-
-   context->Polygon = (RoadMapPolygon *) roadmap_db_get_data (head_table);
-   context->PolygonCount = roadmap_db_get_count (head_table);
-
-   if (roadmap_db_get_size (head_table) !=
-       context->PolygonCount * sizeof(RoadMapPolygon)) {
+   if (!roadmap_db_get_data (file,
+   								  model__tile_polygon_head,
+   								  sizeof (RoadMapPolygon),
+   								  (void**)&(context->Polygon),
+   								  &(context->PolygonCount))) {
       roadmap_log (ROADMAP_FATAL, "invalid polygon/head structure");
    }
 
-   context->PolygonPoint =
-      (RoadMapPolygonPoint *) roadmap_db_get_data (point_table);
-   context->PolygonPointCount = roadmap_db_get_count (point_table);
-
-   if (roadmap_db_get_size (point_table) !=
-       context->PolygonPointCount * sizeof(RoadMapPolygonPoint)) {
+   if (!roadmap_db_get_data (file,
+   								  model__tile_polygon_point,
+   								  sizeof (RoadMapPolygonPoint),
+   								  (void**)&(context->PolygonPoint),
+   								  &(context->PolygonPointCount))) {
       roadmap_log (ROADMAP_FATAL, "invalid polygon/point structure");
    }
+
+   context->DictionaryLandmark = NULL;
 
    return context;
 }
@@ -101,6 +100,12 @@ static void roadmap_polygon_activate (void *context) {
        (polygon_context->type != RoadMapPolygonType)) {
       roadmap_log (ROADMAP_FATAL, "cannot activate (invalid context type)");
    }
+
+   if (polygon_context != NULL &&
+   	 polygon_context->DictionaryLandmark == NULL) {
+      polygon_context->DictionaryLandmark = roadmap_dictionary_open ("landmark");
+   }
+
    RoadMapPolygonActive = polygon_context;
 }
 
@@ -139,14 +144,26 @@ int  roadmap_polygon_category (int polygon) {
 }
 
 
+const char *roadmap_polygon_name (int polygon) {
+
+   return roadmap_dictionary_get (RoadMapPolygonActive->DictionaryLandmark,
+   				   RoadMapPolygonActive->Polygon[polygon].name);
+}
+
+
 void roadmap_polygon_edges (int polygon, RoadMapArea *edges) {
 
    RoadMapPolygon *this_polygon = RoadMapPolygonActive->Polygon + polygon;
+   RoadMapPosition pos_square;
+   int scale_factor;
+   
+   roadmap_square_min (roadmap_square_active (), &pos_square);
+   scale_factor = roadmap_square_current_scale_factor ();
 
-   edges->west = this_polygon->west;
-   edges->east = this_polygon->east;
-   edges->north = this_polygon->north;
-   edges->south = this_polygon->south;
+   edges->west = pos_square.longitude + this_polygon->west * scale_factor;
+   edges->east = pos_square.longitude + this_polygon->east * scale_factor;
+   edges->north = pos_square.latitude + this_polygon->north * scale_factor;
+   edges->south = pos_square.latitude + this_polygon->south * scale_factor;
 }
 
 

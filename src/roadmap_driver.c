@@ -328,7 +328,8 @@ static void roadmap_driver_pxrmadd (void *context,
    roadmap_object_add (driver->name,
                        fields->pxrmadd.id,
                        fields->pxrmadd.name,
-                       fields->pxrmadd.sprite);
+                       fields->pxrmadd.sprite,
+                       NULL);
 }
 
 

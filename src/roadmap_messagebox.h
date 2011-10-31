@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -24,6 +25,18 @@
 #ifndef INCLUDE__ROADMAP_MESSAGEBOX__H
 #define INCLUDE__ROADMAP_MESSAGEBOX__H
 
+#define  SSD_MESSAGEBOX_DEFBUTTON_YES           (0x01)
+#define  SSD_MESSAGEBOX_DEFBUTTON_NO            (0x02)
+
+typedef void(*messagebox_closed)( int exit_code );
+
 void roadmap_messagebox (const char *title, const char *message);
+
+void roadmap_messagebox_custom( const char *title, const char *text,
+		int title_font_size, char* title_color, int text_font_size, char* text_color );
+
+void roadmap_messagebox_cb(const char *title, const char *message,
+         messagebox_closed on_messagebox_closed);
+void roadmap_messagebox_timeout (const char *title, const char *text, int seconds);
 
 #endif // INCLUDE__ROADMAP_MESSAGEBOX__H

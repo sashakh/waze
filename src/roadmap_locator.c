@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -32,15 +33,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "roadmap.h"
 #include "roadmap_config.h"
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
+#include "roadmap_tile_model.h"
+#include "roadmap_county_model.h"
 #include "roadmap_dictionary.h"
 #include "roadmap_point.h"
 #include "roadmap_square.h"
 #include "roadmap_shape.h"
+#include "roadmap_alert.h"
 #include "roadmap_turns.h"
 #include "roadmap_line.h"
 #include "roadmap_line_route.h"
@@ -48,7 +53,10 @@
 #include "roadmap_street.h"
 #include "roadmap_polygon.h"
 #include "roadmap_county.h"
-#include "roadmap_metadata.h"
+#include "roadmap_path.h"
+#include "roadmap_db_square.h"
+#include "roadmap_tile_manager.h"
+#include "roadmap_gzm.h"
 
 #include "roadmap_locator.h"
 
@@ -59,6 +67,7 @@ struct roadmap_cache_entry {
 
    int          fips;
    unsigned int last_access;
+   int			 gzm_id;
 };
 
 static struct roadmap_cache_entry *RoadMapCountyCache = NULL;
@@ -66,14 +75,18 @@ static struct roadmap_cache_entry *RoadMapCountyCache = NULL;
 static int RoadMapCountyCacheSize = 0;
 
 static int RoadMapActiveCounty = -2;
+static int RoadMapActiveMap = -1;
 
+#if 0
 static int RoadMapUsdirActive = 0;
+#endif
 
-static roadmap_db_model *RoadMapUsModel;
+//static roadmap_db_model *RoadMapUsModel;
 static roadmap_db_model *RoadMapCountyModel;
+static roadmap_db_model *RoadMapTileModel;
 
-static RoadMapDictionary RoadMapUsCityDictionary = NULL;
-static RoadMapDictionary RoadMapUsStateDictionary = NULL;
+//static RoadMapDictionary RoadMapUsCityDictionary = NULL;
+//static RoadMapDictionary RoadMapUsStateDictionary = NULL;
 
 
 static int roadmap_locator_no_download (int fips) {return 0;}
@@ -90,52 +103,20 @@ static void roadmap_locator_configure (void) {
 
    if (RoadMapCountyCache == NULL) {
 
+		roadmap_db_sector sector_global = {model__county_global_first, model__county_global_last};
+		roadmap_db_sector sector_square = {model__tile_square_first, model__tile_square_last};
+		
       RoadMapCountyModel =
          roadmap_db_register
-            (RoadMapCountyModel, "metadata", &RoadMapMetadataHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "zip", &RoadMapZipHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "street", &RoadMapStreetHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "range", &RoadMapRangeHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "polygon", &RoadMapPolygonHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "shape", &RoadMapShapeHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "turns", &RoadMapTurnsHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "line", &RoadMapLineHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "line_speed", &RoadMapLineSpeedHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "line_route", &RoadMapLineRouteHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "point", &RoadMapPointHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "square", &RoadMapSquareHandler);
-      RoadMapCountyModel =
-         roadmap_db_register
-            (RoadMapCountyModel, "string", &RoadMapDictionaryHandler);
-
+            (RoadMapCountyModel, &sector_global, &RoadMapSquareHandler);
+/*
       RoadMapUsModel =
          roadmap_db_register
             (RoadMapUsModel, "county", &RoadMapCountyHandler);
-      RoadMapUsModel =
+*/
+      RoadMapTileModel =
          roadmap_db_register
-            (RoadMapUsModel, "string", &RoadMapDictionaryHandler);
+            (RoadMapTileModel, &sector_square, &RoadMapSquareOneHandler);
 
       RoadMapCountyCacheSize = roadmap_option_cache ();
       if (RoadMapCountyCacheSize < ROADMAP_CACHE_SIZE) {
@@ -147,9 +128,9 @@ static void roadmap_locator_configure (void) {
    }
 
    if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) return;
-
+/*
    if (!RoadMapUsdirActive) {
-      if (! roadmap_db_open ("usdir", RoadMapUsModel, "r")) {
+      if (! roadmap_db_open ("usdir", NULL, RoadMapUsModel, "r")) {
          roadmap_log (ROADMAP_ERROR, "cannot open directory database (usdir)");
          return;
       }
@@ -159,20 +140,17 @@ static void roadmap_locator_configure (void) {
 
       RoadMapUsdirActive = 1;
    }
-
+*/
 }
 
 
 static void roadmap_locator_remove (int index) {
 
-   char map_name[64];
-
-   snprintf (map_name, sizeof(map_name),
-             "usc%05d", RoadMapCountyCache[index].fips);
-   roadmap_db_close (map_name);
-
    RoadMapCountyCache[index].fips = 0;
    RoadMapCountyCache[index].last_access = 0;
+   if (RoadMapCountyCache[index].gzm_id >= 0) {
+   	roadmap_gzm_close (RoadMapCountyCache[index].gzm_id);
+   }
 }
 
 
@@ -194,6 +172,7 @@ static unsigned int roadmap_locator_new_access (void) {
          }
       }
       RoadMapActiveCounty = 0;
+      RoadMapActiveMap = -1;
 
       RoadMapLocatorAccessCount += 1;
    }
@@ -207,23 +186,25 @@ static int roadmap_locator_open (int fips) {
    int i;
    int access;
    int oldest = 0;
-
-   char map_name[64];
-
+   char gzm_name[256];
 
    if (fips <= 0) {
       return ROADMAP_US_NOMAP;
    }
-   snprintf (map_name, sizeof(map_name), "usc%05d", fips);
-
+   
+   if (fips == RoadMapActiveCounty) {
+   	return ROADMAP_US_OK;
+   }
+   
    /* Look for the oldest entry in the cache. */
 
    for (i = RoadMapCountyCacheSize-1; i >= 0; --i) {
 
       if (RoadMapCountyCache[i].fips == fips) {
 
-         roadmap_db_activate (map_name);
+         roadmap_db_activate (fips, -1);
          RoadMapActiveCounty = fips;
+         RoadMapActiveMap = RoadMapCountyCache[i].gzm_id;
 
          return ROADMAP_US_OK;
       }
@@ -239,12 +220,13 @@ static int roadmap_locator_open (int fips) {
        roadmap_locator_remove (oldest);
        if (RoadMapCountyCache[oldest].fips == RoadMapActiveCounty) {
            RoadMapActiveCounty = 0;
+           RoadMapActiveMap = -1;
        }
    }
 
    access = roadmap_locator_new_access ();
 
-   while (! roadmap_db_open (map_name, RoadMapCountyModel, "r")) {
+   while (! roadmap_db_open (fips, -1, RoadMapCountyModel, "r")) {
 
       if (! RoadMapDownload (fips)) {
          return ROADMAP_US_NOMAP;
@@ -254,8 +236,34 @@ static int roadmap_locator_open (int fips) {
    RoadMapCountyCache[oldest].fips = fips;
    RoadMapCountyCache[oldest].last_access = access;
 
+	snprintf (gzm_name, sizeof(gzm_name), "map%05d%s", fips, ROADMAP_GZM_TYPE);
+	RoadMapCountyCache[oldest].gzm_id = roadmap_gzm_open (gzm_name);
+	
    RoadMapActiveCounty = fips;
+   RoadMapActiveMap = RoadMapCountyCache[oldest].gzm_id;
    
+   roadmap_square_load_index ();
+   return ROADMAP_US_OK;
+}
+
+
+int roadmap_locator_refresh (int fips) {
+
+	int n_tiles;
+	int i_tile;
+	int rc;
+	
+	rc = roadmap_locator_open (fips);
+	if (rc != ROADMAP_US_OK) {
+		return rc;
+	}
+	
+	n_tiles = roadmap_map_get_num_tiles (RoadMapActiveMap);
+	for (i_tile = 0; i_tile < n_tiles; i_tile++) {
+		int tile_id = roadmap_map_get_tile_id (RoadMapActiveMap, i_tile);
+		roadmap_db_remove (fips, tile_id);
+	}
+
    return ROADMAP_US_OK;
 }
 
@@ -273,10 +281,12 @@ void roadmap_locator_close (int fips) {
 
    if (RoadMapActiveCounty == fips) {
       RoadMapActiveCounty = 0;
+      RoadMapActiveMap = -1;
    }
 }
 
 
+#if 0
 void roadmap_locator_close_dir (void) {
 
    if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) return;
@@ -286,6 +296,7 @@ void roadmap_locator_close_dir (void) {
       RoadMapUsdirActive = 0;
    }
 }
+#endif
 
 
 static int roadmap_locator_allocate (int **fips) {
@@ -329,7 +340,7 @@ int roadmap_locator_by_position
    return roadmap_county_by_position (position, *fips, count);
 }
 
-
+/*
 int roadmap_locator_by_state (const char *state_symbol, int **fips) {
 
    int count;
@@ -345,12 +356,12 @@ int roadmap_locator_by_state (const char *state_symbol, int **fips) {
    }
    return roadmap_county_by_state (state, *fips, count);
 }
-
+*/
 
 int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
 
-   RoadMapString city;
-   RoadMapString state;
+//   RoadMapString city;
+//   RoadMapString state;
 
    roadmap_locator_configure();
 
@@ -359,6 +370,7 @@ int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
                 (roadmap_config_get_integer(&RoadMapConfigStaticCounty));
    }
 
+/*
    state = roadmap_dictionary_locate (RoadMapUsStateDictionary, state_symbol);
    if (state == ROADMAP_INVALID_STRING) {
       return ROADMAP_US_NOSTATE;
@@ -374,6 +386,8 @@ int roadmap_locator_by_city (const char *city_name, const char *state_symbol) {
    }
 
    return roadmap_locator_open (roadmap_county_by_city (city, state));
+*/
+   return ROADMAP_US_NOSTATE;
 }
 
 
@@ -393,12 +407,12 @@ int roadmap_locator_active (void) {
     return RoadMapActiveCounty;
 }
 
-
+/*
 RoadMapString roadmap_locator_get_state (const char *state) {
 
    return roadmap_dictionary_locate (RoadMapUsStateDictionary, state);
 }
-
+*/
 
 int roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
                                  void *data) {
@@ -406,9 +420,11 @@ int roadmap_locator_search_city (const char *str, RoadMapDictionaryCB cb,
    if (roadmap_config_get_integer(&RoadMapConfigStaticCounty) != 0) {
       return roadmap_street_search_city (str, cb, data);
    }
-
+/*
    return roadmap_dictionary_search_all
             (RoadMapUsCityDictionary, NULL, str, 1, cb, data);
+*/
+   return ROADMAP_US_NOCITY;
 }
 
 
@@ -417,3 +433,60 @@ int roadmap_locator_static_county (void) {
    return roadmap_config_get_integer(&RoadMapConfigStaticCounty);
 }
 
+
+int roadmap_locator_load_tile (int index) {
+	
+   int rc;
+
+   if (RoadMapActiveCounty <= 0) {
+      return ROADMAP_US_NOMAP;
+   }
+   
+   rc = roadmap_db_open (RoadMapActiveCounty, index, RoadMapTileModel, "r");
+   
+   if (! rc) {
+
+		if (RoadMapActiveMap >= 0) {
+			void *data;
+			int length;
+			
+			if (0 == roadmap_gzm_get_section (RoadMapActiveMap, index, &data, &length)) {
+   			rc = roadmap_db_open_mem (RoadMapActiveCounty, index, RoadMapTileModel, data, length);
+			}
+		}
+		
+		if (!rc)
+      	return ROADMAP_US_NOMAP;
+   }
+   
+   return ROADMAP_US_OK;
+}
+
+
+int roadmap_locator_load_tile_mem (int index, void *data, size_t size) {
+	
+   int rc;
+
+   if (RoadMapActiveCounty <= 0) {
+      return ROADMAP_US_NOMAP;
+   }
+   
+   rc = roadmap_db_open_mem (RoadMapActiveCounty, index, RoadMapTileModel, data, size);
+   
+   if (! rc) {
+
+      return ROADMAP_US_NOMAP;
+   }
+   
+   return ROADMAP_US_OK;
+}
+
+
+int roadmap_locator_unload_tile (int index) {
+	
+   if (RoadMapActiveCounty <= 0) {
+      return 0;
+   }
+
+   return roadmap_db_close (RoadMapActiveCounty, index);
+}

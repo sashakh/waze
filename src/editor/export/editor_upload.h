@@ -32,7 +32,7 @@ void editor_upload_file       (const char *filename, int remove_file);
 
 int  editor_upload_auto       (const char *filename,
                                RoadMapDownloadCallbacks *callbacks,
-                               char **message);
+                               char **message, const char* custom_target, const char* custom_content_type  );
 
 #endif // INCLUDE__EDITOR_UPLOAD__H
 
