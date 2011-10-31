@@ -1,13 +1,13 @@
-/* (C) 2001-2005 Joaquín Mª López Muñoz (joaquin@tid.es). All rights reserved.
+/* (C) 2001-2005 Joaquï¿½n Mï¿½ Lï¿½pez Muï¿½oz (joaquin@tid.es). All rights reserved.
  * (C) 2005 Tony Kmoch, Telematix a.s. [Windows CE version]
  *
  * Permission is granted to use, distribute and modify this code provided that:
- *   · this copyright notice remain unchanged,
- *   · you submit all changes to the copyright holder and properly mark the
+ *   ï¿½ this copyright notice remain unchanged,
+ *   ï¿½ you submit all changes to the copyright holder and properly mark the
  *     changes so they can be told from the original code,
- *   · credits are given to the copyright holder in the documentation of any
+ *   ï¿½ credits are given to the copyright holder in the documentation of any
  *     software using this code with the following line:
- *       "Portions copyright 2001 Joaquín Mª López Muñoz (joaquin@tid.es)"
+ *       "Portions copyright 2001 Joaquï¿½n Mï¿½ Lï¿½pez Muï¿½oz (joaquin@tid.es)"
  *
  * The author welcomes any suggestions on the code or reportings of actual
  * use of the code. Please send your comments to joaquin@tid.es.
@@ -91,7 +91,7 @@ BOOL Win9xListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
  *   |-LEVEL1
  *     |-LEVEL2
  *       |-LEVEL3
- *         · CLASS
+ *         ï¿½ CLASS
  *
  * LEVEL1 keys indicate the type of technology (vg., "PCI", "BIOS", "SCSI"). LEVEL2
  * keys refer to the type of device. So, for instance, "*PNP0501" is for 16550A UARTs.
@@ -106,9 +106,9 @@ BOOL Win9xListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
  *   |-BIOS
  *     |-*PNP0501
  *       |-0D (or any other value, this is not important for us)
- *         · CLASS=        "Ports"
- *         · PORTNAME=     "COM1"
- *         · FRIENDLYNAME= "Communications Port (COM1)"
+ *         ï¿½ CLASS=        "Ports"
+ *         ï¿½ PORTNAME=     "COM1"
+ *         ï¿½ FRIENDLYNAME= "Communications Port (COM1)"
  *
  * Win9xListPorts() scans all LEVEL3 keys under HKLM\ENUM searching for the Class
  * for ports, and when this is found determines, by means of "PORTNAME", whether the
@@ -192,10 +192,10 @@ end:
 BOOL Win2000ListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
 /* Information on serial ports is stored in the Win2000 registry in a manner very
  * similar to that of Win9x, with three differences:
- *   · The ENUM tree is not located under HKLM, but under HKLM\SYSTEM\CURRENTCONTROLSET.
- *   · The parameter "PORTNAME" is not a LEVEL3 value like "CLASS" and "FRIENDLYNAME";
+ *   ï¿½ The ENUM tree is not located under HKLM, but under HKLM\SYSTEM\CURRENTCONTROLSET.
+ *   ï¿½ The parameter "PORTNAME" is not a LEVEL3 value like "CLASS" and "FRIENDLYNAME";
  *     instead, it is located under an additional subkey named "DEVICE PARAMETERS"
- *   · "CLASS" seems to be deprecated in favor of "CLASSGUID" wich contains a GUID
+ *   ï¿½ "CLASS" seems to be deprecated in favor of "CLASSGUID" wich contains a GUID
  *     identifying each type of device. I've seen Win200 installations with and
  *     without "CLASS" values. Moreover, I've seen Win9x installations containing
  *     "CLASSGUID" values, so, to be as robust as possible, ScanEnumTree() accept either
@@ -207,10 +207,10 @@ BOOL Win2000ListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
  *   |-BIOS
  *     |-*PNP0501
  *       |-0D (or any other value, this is not important for us)
- *         · CLASSGUID=    "{4D36E978-E325-11CE-BFC1-08002BE10318}"
- *         · FRIENDLYNAME= "Communications Port (COM1)"
+ *         ï¿½ CLASSGUID=    "{4D36E978-E325-11CE-BFC1-08002BE10318}"
+ *         ï¿½ FRIENDLYNAME= "Communications Port (COM1)"
  *         |-DEVICE PARAMETERS
- *           · PORTNAME=   "COM1"
+ *           ï¿½ PORTNAME=   "COM1"
  */
 {
   return ScanEnumTree(TEXT("SYSTEM\\CURRENTCONTROLSET\\ENUM"),lpCbk,lpCbkValue);
@@ -294,8 +294,8 @@ static BOOL WinCEListPorts(LISTPORTS_CALLBACK lpCbk,LPVOID lpCbkValue)
      DWORD dwIndex = 0;
      
      for(;;){
-        TCHAR SubKeyName[20];
-        DWORD cbSubkeyName = 20 * sizeof(TCHAR);
+        TCHAR SubKeyName[20+1];
+        DWORD cbSubkeyName = 20;
         FILETIME           filetime;
         
         if(!(dwError=RegEnumKeyEx(hKey,dwIndex,SubKeyName,&cbSubkeyName,

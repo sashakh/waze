@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2005 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -38,6 +39,13 @@
 
 #include "roadmap.h"
 #include "roadmap_types.h"
+#include "roadmap_pointer.h"
+#include "roadmap_math.h"
+#include "roadmap_canvas.h"
+#include "roadmap_math.h"
+#include "roadmap_res.h"
+#include "roadmap_sound.h"
+#include "roadmap_screen.h"
 
 #include "roadmap_object.h"
 
@@ -51,10 +59,14 @@ struct RoadMapObjectDescriptor {
    RoadMapDynamicString name; /* Name displayed, need not be unique. */
 
    RoadMapDynamicString sprite; /* Icon for the object on the map. */
+   
+   RoadMapDynamicString image; /* Icon for the object on the map. */
 
    RoadMapGpsPosition position;
 
    RoadMapObjectListener listener;
+   
+   RoadMapObjectAction action;
 
    struct RoadMapObjectDescriptor *next;
    struct RoadMapObjectDescriptor *previous;
@@ -65,6 +77,8 @@ typedef struct RoadMapObjectDescriptor RoadMapObject;
 
 static RoadMapObject *RoadmapObjectList = NULL;
 
+static BOOL initialized = FALSE;
+
 
 
 void roadmap_object_null_listener (RoadMapDynamicString id,
@@ -72,11 +86,12 @@ void roadmap_object_null_listener (RoadMapDynamicString id,
 
 void roadmap_object_null_monitor (RoadMapDynamicString id) {}
 
+
 static RoadMapObjectMonitor RoadMapObjectFirstMonitor =
                                       roadmap_object_null_monitor;
 
 
-RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
+static RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
 
    RoadMapObject *cursor;
 
@@ -91,7 +106,8 @@ RoadMapObject *roadmap_object_search (RoadMapDynamicString id) {
 void roadmap_object_add (RoadMapDynamicString origin,
                          RoadMapDynamicString id,
                          RoadMapDynamicString name,
-                         RoadMapDynamicString sprite) {
+                         RoadMapDynamicString sprite,
+                         RoadMapDynamicString image) {
 
    RoadMapObject *cursor = roadmap_object_search (id);
 
@@ -106,13 +122,17 @@ void roadmap_object_add (RoadMapDynamicString origin,
       cursor->id     = id;
       cursor->name   = name;
       cursor->sprite = sprite;
+      cursor->image = image;
 
       cursor->listener = roadmap_object_null_listener;
+      
+      cursor -> action = NULL;
 
       roadmap_string_lock(origin);
       roadmap_string_lock(id);
       roadmap_string_lock(name);
       roadmap_string_lock(sprite);
+      roadmap_string_lock(image);
 
       cursor->previous  = NULL;
       cursor->next      = RoadmapObjectList;
@@ -166,6 +186,9 @@ void roadmap_object_remove (RoadMapDynamicString id) {
       roadmap_string_release(cursor->id);
       roadmap_string_release(cursor->name);
       roadmap_string_release(cursor->sprite);
+      
+      roadmap_string_release(cursor->image);
+      
       free (cursor);
    }
 }
@@ -179,7 +202,9 @@ void roadmap_object_iterate (RoadMapObjectAction action) {
 
       (*action) (roadmap_string_get(cursor->name),
                  roadmap_string_get(cursor->sprite),
-                 &(cursor->position));
+                 roadmap_string_get(cursor->image),
+                 &(cursor->position),
+                 roadmap_string_get(cursor->id));
    }
 }
 
@@ -225,3 +250,103 @@ RoadMapObjectMonitor roadmap_object_register_monitor
    return previous;
 }
 
+static RoadMapObject *roadmap_object_by_pos (RoadMapGuiPoint *point, BOOL action_only) {
+   
+   RoadMapObject *cursor;
+   RoadMapGuiPoint touched_point = *point;
+   
+   for (cursor = RoadmapObjectList; cursor != NULL; cursor = cursor->next) {
+	  int image_height;
+	  int image_width;
+	  RoadMapPosition cursor_position;
+      RoadMapGuiPoint pos;
+      RoadMapImage image;
+
+	  if (!cursor->image) continue;
+      if (action_only && !cursor->action) continue;
+      
+      
+      cursor_position.latitude = cursor->position.latitude;
+      cursor_position.longitude = cursor->position.longitude;
+      
+
+      roadmap_math_coordinate(&cursor_position, &pos);
+      roadmap_math_rotate_coordinates (1, &pos);
+
+      image = roadmap_res_get (RES_BITMAP, RES_SKIN, roadmap_string_get(cursor->image));
+      if (!image) continue;
+      
+      image_height = roadmap_canvas_image_height(image);
+	  image_width = roadmap_canvas_image_width(image);
+      
+      if ((touched_point.x >= (pos.x - image_width/2)) &&
+          (touched_point.x <= (pos.x + image_width/2)) &&
+          (touched_point.y >= (pos.y - image_height/2)) &&
+          (touched_point.y <= (pos.y + image_height/2))) {
+               return cursor;
+      }
+   }
+   
+   return NULL;
+}
+
+static int roadmap_object_short_click (RoadMapGuiPoint *point) {
+   
+   RoadMapObject *object = roadmap_object_by_pos (point, TRUE);
+   
+   if (!object) {
+      return 0;
+   }
+   
+   if (object->action) {
+      static RoadMapSoundList list;
+      
+      if (!list) {
+         list = roadmap_sound_list_create (SOUND_LIST_NO_FREE);
+         roadmap_sound_list_add (list, "click");
+         roadmap_res_get (RES_SOUND, 0, "click");
+      }
+#ifndef IPHONE
+      roadmap_sound_play_list (list);
+#endif //IPHONE
+      (*(object->action)) (roadmap_string_get(object->name),
+                           roadmap_string_get(object->sprite),
+                           roadmap_string_get(object->image),
+                           &(object->position),
+                           roadmap_string_get(object->id));
+      roadmap_screen_touched();
+   } 
+   
+   return 1;
+}
+
+static int roadmap_object_pressed (RoadMapGuiPoint *point) {
+   
+   RoadMapObject *object = roadmap_object_by_pos (point, TRUE);
+   
+   if (!object) {
+      return 0;
+   }
+   roadmap_pointer_cancel_dragging();
+   return 1;
+}
+
+void roadmap_object_set_action (RoadMapDynamicString id,
+                                RoadMapObjectAction action) {
+   RoadMapObject *object = roadmap_object_search (id);
+   
+   if (object == NULL) return;
+   
+   if (action) {
+      object->action = action;
+      if (!initialized) {
+         roadmap_pointer_register_pressed
+            (roadmap_object_pressed, POINTER_NORMAL);
+         roadmap_pointer_register_short_click
+            (roadmap_object_short_click, POINTER_NORMAL);
+         roadmap_pointer_register_enter_key_press
+            (roadmap_object_short_click, POINTER_HIGH);   
+         initialized = TRUE;
+      }
+   }
+}

@@ -24,23 +24,27 @@
 #ifndef INCLUDE__EDITOR_OVERRIDE__H
 #define INCLUDE__EDITOR_OVERRIDE__H
 
+#include "roadmap_types.h"
+#include "editor/db/editor_db.h"
+
 typedef struct editor_db_override_s {
-   int first_trkseg;
-   int last_trkseg;
-   int route;
+   int square;
+   int timestamp;
+   int line;
    int flags;
+   int direction;
 } editor_db_override;
 
-#define NULL_OVERRIDE {-1, -1, -1, 0}
+int editor_override_get_count (void);
+int editor_override_get (int index, int *line_id, int *square_id, int *direction, int *flags);
+int editor_override_line_get_flags (int line, int square, int *flags);
+int editor_override_line_set_flag (int line, int square, int flags);
+int editor_override_line_reset_flag (int line, int square, int flags);
+int editor_override_line_get_direction (int line, int square, int *direction);
+int editor_override_line_set_direction (int line, int square, int direction);
+int editor_override_exists (int line, int square);
 
-int editor_override_line_get_route (int line);
-int editor_override_line_set_route (int line, int route);
-int editor_override_line_get_flags (int line);
-int editor_override_line_set_flags (int line, int flags);
-void editor_override_line_get_trksegs (int line, int *first, int *last);
-int editor_override_line_set_trksegs (int line, int first, int last);
-
-extern roadmap_db_handler EditorOverrideHandler;
+extern editor_db_handler EditorOverrideHandler;
 
 #endif // INCLUDE__EDITOR_OVERRIDE__H
 

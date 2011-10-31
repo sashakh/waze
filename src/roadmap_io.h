@@ -52,6 +52,7 @@
 typedef struct {
 
    int subsystem;
+   void *context;
 
    union {
       RoadMapFile file;

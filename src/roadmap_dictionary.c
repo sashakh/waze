@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -46,12 +47,13 @@
 
 #include "roadmap.h"
 #include "roadmap_dbread.h"
+#include "roadmap_tile_model.h"
 #include "roadmap_dictionary.h"
 
 
 struct dictionary_volume {
 
-   char *name;
+   const char *name;
    struct dictionary_volume *next;
 
    struct roadmap_dictionary_tree      *tree;
@@ -110,7 +112,7 @@ static void roadmap_dictionary_print_subtree
                     tree->position,
                     tree->position,
                     "",
-                    (tree - dictionary->tree),
+                    (int)(tree - dictionary->tree),
                     tree->count);
 
    for (index = tree->first;
@@ -277,10 +279,26 @@ roadmap_dictionary_search
 
 
 static struct dictionary_volume *
-         roadmap_dictionary_initialize_one (roadmap_db *child) {
+         roadmap_dictionary_initialize_one (const roadmap_db_data_file *file,
+         											  unsigned int id,
+         											  const char *name,
+         											  struct dictionary_volume *first) {
 
-   roadmap_db *table;
    struct dictionary_volume *dictionary;
+   void *data;
+   int size;
+   
+   if (!roadmap_db_get_data (file,
+   								  id,
+   								  sizeof (char),
+   								  &data,
+   								  &size)) {
+   
+   	roadmap_log (ROADMAP_ERROR, "invalid dictionary structure");
+   	return first;								  	
+   }
+   
+   if (!data) return first;
 
 
    /* Retrieve all the database sections: */
@@ -289,53 +307,42 @@ static struct dictionary_volume *
 
    roadmap_check_allocated(dictionary);
 
-   dictionary->name = roadmap_db_get_name (child);
+   dictionary->name = name;
 
-   table = roadmap_db_get_subsection (child, "data");
+   dictionary->data = data;
+   dictionary->size = size;
 
-   dictionary->data = roadmap_db_get_data (table);
-   dictionary->size = roadmap_db_get_size (table);
+   dictionary->tree = NULL;
+   dictionary->tree_count = 0;
 
-   table = roadmap_db_get_subsection (child, "tree");
+   dictionary->reference = NULL;
+   dictionary->reference_count = 0;
 
-   dictionary->tree =
-      (struct roadmap_dictionary_tree *) roadmap_db_get_data (table);
-   dictionary->tree_count = roadmap_db_get_count (table);
-
-   table = roadmap_db_get_subsection (child, "node");
-
-   dictionary->reference =
-      (struct roadmap_dictionary_reference *) roadmap_db_get_data (table);
-   dictionary->reference_count = roadmap_db_get_count (table);
-
-   table = roadmap_db_get_subsection (child, "index");
-
-   dictionary->string_index = (unsigned int *) roadmap_db_get_data (table);
-   dictionary->string_count = roadmap_db_get_count (table);
+   dictionary->string_index = NULL;
+   dictionary->string_count = 0;
 
    dictionary->subtrees = NULL;
    dictionary->subtrees_count = 0;
 
+	dictionary->next = first;
+	
    return dictionary;
 }
 
 
-static void *roadmap_dictionary_map (roadmap_db *parent) {
+static void *roadmap_dictionary_map (const roadmap_db_data_file *file) {
 
-   roadmap_db *child;
-   struct dictionary_volume *volume;
    struct dictionary_volume *first = NULL;
 
 
-   for (child = roadmap_db_get_first(parent);
-        child != NULL;
-        child = roadmap_db_get_next(child)) {
-
-       volume = roadmap_dictionary_initialize_one (child);
-       volume->next = first;
-
-       first = volume;
-   }
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_prefix, "prefix", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_street, "street", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_text2speech, "text2speech", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_type, "type", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_suffix, "suffix", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_city, "city", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_landmark, "landmark", first);
+	first = roadmap_dictionary_initialize_one (file, model__tile_string_attributes, "attributes", first);
 
    return first;
 }
@@ -446,12 +453,12 @@ RoadMapDictionary roadmap_dictionary_open (char *name) {
 
 
 char *roadmap_dictionary_get (RoadMapDictionary d, RoadMapString index) {
-
+/*
    if (index >= d->string_count) {
       return NULL;
    }
-
-   return d->data + d->string_index[index];
+*/
+   return d->data + index; //d->string_index[index];
 }
 
 

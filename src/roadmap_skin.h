@@ -29,6 +29,14 @@
 void roadmap_skin_register (RoadMapCallback listener);
 void roadmap_skin_set_subskin (const char *sub_skin);
 void roadmap_skin_toggle (void);
+int roadmap_skin_state(void);
+int roadmap_skin_state_screen_touched(void);
 
+void roadmap_skin_init(void);
+void roadmap_skin_auto_night_mode(void);
+void roadmap_skin_auto_night_mode_kill_timer(void);
+BOOL roadmap_skin_auto_night_feature_enabled (void) ;
+void roadmap_skin_set_scheme(const char *new_scheme);
+int roadmap_skin_get_scheme(void);
 #endif // INCLUDE__ROADMAP_SKIN__H
 

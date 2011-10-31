@@ -76,6 +76,7 @@ int roadmap_canvas_agg_to_wchar (const char *text, wchar_t *output, int size) {
 
 	LPWSTR text_unicode = ConvertToWideChar(text, CP_UTF8);
    wcsncpy(output, text_unicode, size);
+   free(text_unicode);
    output[size - 1] = 0;
 
    return wcslen(output);
@@ -84,14 +85,14 @@ int roadmap_canvas_agg_to_wchar (const char *text, wchar_t *output, int size) {
 
 agg::rgba8 roadmap_canvas_agg_parse_color (const char *color) {
 	int high, i, low;
-	
+
 	if (*color == '#') {
 		int r, g, b, a;
       int count;
-      
+
 		count = sscanf(color, "#%2x%2x%2x%2x", &r, &g, &b, &a);
 
-      if (count == 4) {    
+      if (count == 4) {
          return agg::rgba8(r, g, b, a);
       } else {
          return agg::rgba8(r, g, b);
@@ -105,63 +106,63 @@ agg::rgba8 roadmap_canvas_agg_parse_color (const char *color) {
 			if (strcmp(color, color_table[i].name) <= 0) high = i;
 			else low = i;
 		}
-		
+
 		if (!strcmp(color, color_table[high].name)) {
          return agg::rgba8(color_table[high].r, color_table[high].g,
             color_table[high].b);
 		} else {
          return agg::rgba8(0, 0, 0);
 		}
-	}	
+	}
 }
 
 
 void roadmap_canvas_button_pressed(POINT *data) {
    RoadMapGuiPoint point;
-   
+
    point.x = (short)data->x;
    point.y = (short)data->y;
-   
+
    (*RoadMapCanvasMouseButtonPressed) (&point);
-   
+
 }
 
 
 void roadmap_canvas_button_released(POINT *data) {
    RoadMapGuiPoint point;
-   
+
    point.x = (short)data->x;
    point.y = (short)data->y;
-   
+
    (*RoadMapCanvasMouseButtonReleased) (&point);
-   
+
 }
 
 
 void roadmap_canvas_mouse_moved(POINT *data) {
    RoadMapGuiPoint point;
-   
+
    point.x = (short)data->x;
    point.y = (short)data->y;
-   
+
    (*RoadMapCanvasMouseMoved) (&point);
-   
+
 }
 
 
 void roadmap_canvas_refresh (void) {
    HDC hdc;
-   
+
    if (RoadMapDrawingArea == NULL) return;
-   
+
    dbg_time_start(DBG_TIME_FLIP);
-   
+
    hdc = GetDC(RoadMapDrawingArea);
    BitBlt(hdc, ClientRect.left, ClientRect.top,
       ClientRect.right - ClientRect.left + 1,
       ClientRect.bottom - ClientRect.top + 1,
-      RoadMapDrawingBuffer, 0, 0, SRCCOPY); 
-   
+      RoadMapDrawingBuffer, 0, 0, SRCCOPY);
+
    DeleteDC(hdc);
    dbg_time_end(DBG_TIME_FLIP);
 }
@@ -170,20 +171,20 @@ void roadmap_canvas_refresh (void) {
 HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
    HDC hdc;
    static BITMAPINFO* bmp_info = (BITMAPINFO*) malloc(sizeof(BITMAPINFO) +
-                                       (sizeof(RGBQUAD)*3)); 
+                                       (sizeof(RGBQUAD)*3));
    HBITMAP bmp;
    void* buf = 0;
-   
+
    memset(bmp_info, 0, sizeof(BITMAPINFO) + sizeof(RGBQUAD)*3);
 
    if (RoadMapDrawingBuffer != NULL) {
-      
+
       DeleteObject(SelectObject(RoadMapDrawingBuffer, OldBitmap));
       DeleteDC(RoadMapDrawingBuffer);
    }
-   
+
    hdc = GetDC(RoadMapDrawingArea);
-   
+
    RoadMapDrawingArea = hWnd;
    GetClientRect(hWnd, &ClientRect);
    if (tool_bar != NULL) {
@@ -193,50 +194,51 @@ HWND roadmap_canvas_new (HWND hWnd, HWND tool_bar) {
 		ClientRect.top += tb_rect.bottom + 2;
 	  }
    }
-   
-   
+
+
    RoadMapDrawingBuffer = CreateCompatibleDC(hdc);
-   
-   bmp_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
+
+   bmp_info->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
    bmp_info->bmiHeader.biWidth = ClientRect.right;
-   bmp_info->bmiHeader.biHeight = ClientRect.bottom; 
-   bmp_info->bmiHeader.biPlanes = 1; 
-   bmp_info->bmiHeader.biBitCount = 16; 
-   bmp_info->bmiHeader.biCompression = BI_BITFIELDS; 
-   bmp_info->bmiHeader.biSizeImage = 0; 
-   bmp_info->bmiHeader.biXPelsPerMeter = 0; 
-   bmp_info->bmiHeader.biYPelsPerMeter = 0; 
-   bmp_info->bmiHeader.biClrUsed = 0; 
-   bmp_info->bmiHeader.biClrImportant = 0; 
+   bmp_info->bmiHeader.biHeight = ClientRect.bottom;
+   bmp_info->bmiHeader.biPlanes = 1;
+   bmp_info->bmiHeader.biBitCount = 16;
+   bmp_info->bmiHeader.biCompression = BI_BITFIELDS;
+   bmp_info->bmiHeader.biSizeImage = 0;
+   bmp_info->bmiHeader.biXPelsPerMeter = 0;
+   bmp_info->bmiHeader.biYPelsPerMeter = 0;
+   bmp_info->bmiHeader.biClrUsed = 0;
+   bmp_info->bmiHeader.biClrImportant = 0;
    ((DWORD*)bmp_info->bmiColors)[0] = 0xF800;
    ((DWORD*)bmp_info->bmiColors)[1] = 0x07E0;
-   ((DWORD*)bmp_info->bmiColors)[2] = 0x001F; 
-   
-   bmp = CreateDIBSection( 
-      RoadMapDrawingBuffer, 
-      bmp_info, 
-      DIB_RGB_COLORS, 
-      &buf, 
-      0, 
-      0 
-      ); 
+   ((DWORD*)bmp_info->bmiColors)[2] = 0x001F;
+
+   bmp = CreateDIBSection(
+      RoadMapDrawingBuffer,
+      bmp_info,
+      DIB_RGB_COLORS,
+      &buf,
+      0,
+      0
+      );
+
    
    int stride = ((ClientRect.right * 2 + 3) >> 2) << 2;
    roadmap_canvas_agg_configure((unsigned char*)buf,
       ClientRect.right,
       ClientRect.bottom,
       -stride);
-      
+
    OldBitmap = (HBITMAP)SelectObject(RoadMapDrawingBuffer, bmp);
-   
+
    DeleteDC(hdc);
    (*RoadMapCanvasConfigure) ();
-   
+
    return RoadMapDrawingArea;
 }
 
 
-static RoadMapImage load_bmp (const char *full_name) {
+RoadMapImage roadmap_canvas_agg_load_bmp (const char *full_name) {
 
    agg::pixel_map pmap_tmp;
 
@@ -247,7 +249,7 @@ static RoadMapImage load_bmp (const char *full_name) {
    if (pmap_tmp.bpp() != 24) {
       return NULL;
    }
-   
+
    int width = pmap_tmp.width();
    int height = pmap_tmp.height();
    int stride = pmap_tmp.stride();
@@ -259,7 +261,7 @@ static RoadMapImage load_bmp (const char *full_name) {
                                    -pmap_tmp.stride());
 
    RoadMapImage image =  new roadmap_canvas_image();
-   
+
    image->rbuf.attach (buf,
                        width, height,
                        width * 4);
@@ -269,7 +271,7 @@ static RoadMapImage load_bmp (const char *full_name) {
 }
 
 
-static RoadMapImage load_png (const char *full_name) {
+RoadMapImage roadmap_canvas_agg_load_png (const char *full_name) {
 
    int width;
    int height;
@@ -279,6 +281,7 @@ static RoadMapImage load_png (const char *full_name) {
 
    if (!buf) return NULL;
 
+   
    RoadMapImage image =  new roadmap_canvas_image();
    image->rbuf.attach (buf, width, height, stride);
 
@@ -286,28 +289,9 @@ static RoadMapImage load_png (const char *full_name) {
 }
 
 
-RoadMapImage roadmap_canvas_agg_load_image (const char *path,
-                                            const char *file_name) {
-
-   char *full_name = roadmap_path_join (path, file_name);
-   RoadMapImage image;
-
-   if ((strlen(file_name) > 4) &&
-      !strcasecmp (file_name + strlen(file_name) - 4, ".png")) {
-
-      image = load_png (full_name);
-   } else {
-      image = load_bmp (full_name);
-   }
-
-   free (full_name);
-
-   return image;
-}
-
 
 void roadmap_canvas_agg_free_image (RoadMapImage image) {
-   
+
    free (image->rbuf.buf());
    delete image;
 }
@@ -317,7 +301,7 @@ static void roadmap_canvas_convert_points (POINT *winpoints,
 			RoadMapGuiPoint *points, int count)
 {
     RoadMapGuiPoint *end = points + count;
-	
+
     while (points < end) {
         winpoints->x = points->x;
         winpoints->y = points->y;
@@ -334,7 +318,7 @@ void select_native_color (COLORREF color, int thickness) {
    static int init;
 
    if (!init) {
-      oldBrush = (HBRUSH) SelectObject(RoadMapDrawingBuffer, 
+      oldBrush = (HBRUSH) SelectObject(RoadMapDrawingBuffer,
             CreateSolidBrush(color));
 
       oldPen = (HPEN) SelectObject(RoadMapDrawingBuffer, CreatePen(PS_SOLID,
@@ -379,9 +363,9 @@ void roadmap_canvas_native_draw_multiple_lines (int count, int *lines,
 
       RoadMapGuiPoint end_points[2];
       int first = 1;
-		
+
 		count_of_points = *lines;
-		
+
       if (count_of_points < 2) continue;
 
 		while (count_of_points > 1024) {

@@ -101,8 +101,9 @@ int editor_track_filter_add (GPSFilter *filter,
       filter->normalized_gps_point = *gps_position;
       return 0;
    }
-
-   if ((gps_time - filter->last_gps_time) > filter->timeout) {
+   
+   if (gps_time > filter->last_gps_time + filter->timeout ||
+      gps_time < filter->last_gps_time - filter->timeout) {
       editor_track_filter_reset (filter);
       editor_track_filter_add (filter, gps_time, dilution, gps_position);
 
@@ -111,7 +112,7 @@ int editor_track_filter_add (GPSFilter *filter,
 
    filter->last_gps_time = gps_time;
 
-   if (gps_position->speed == 0) return 0;
+   //if (gps_position->speed == 0) return 0;
 
    if ((filter->last_gps_point.latitude == gps_position->latitude) &&
        (filter->last_gps_point.longitude == gps_position->longitude)) return 0;
@@ -153,6 +154,9 @@ int editor_track_filter_add (GPSFilter *filter,
 
    filter->normalized_gps_point.steering = azymuth;
 
+	//TODO is this better?
+   filter->normalized_gps_point.steering = gps_position->steering;
+
    /* ignore consecutive points which generate a big curve */
    if (roadmap_math_delta_direction (azymuth, filter->last_azymuth) > 90) {
 
@@ -193,5 +197,16 @@ const RoadMapGpsPosition *editor_track_filter_get (GPSFilter *filter) {
    }
 
    return NULL;
+}
+
+
+int editor_track_filter_get_current (const GPSFilter *filter, RoadMapPosition *pos, time_t *time) {
+
+	if (filter->first_point) return 0;
+
+	pos->longitude = filter->normalized_gps_point.longitude;
+	pos->latitude = filter->normalized_gps_point.latitude;
+	*time = filter->last_gps_time;
+	return 1;	
 }
 

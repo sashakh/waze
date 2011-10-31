@@ -27,7 +27,16 @@
   
 #include "ssd_widget.h"
 
+void ssd_container_get_visible_dimentions(
+                     SsdWidget         this, 
+                     RoadMapGuiPoint*  position,
+                     SsdSize*          size);
+
+void ssd_container_get_zero_offset(
+                     SsdWidget         this, 
+                     int*              zero_offset_x,
+                     int*              zero_offset_y);
+
 SsdWidget ssd_container_new (const char *name, const char *title,
                              int width, int height, int flags);
-
 #endif // __SSD_WIDGET_CONTAINER_H_

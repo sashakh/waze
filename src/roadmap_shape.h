@@ -26,8 +26,58 @@
 
 #include "roadmap_types.h"
 #include "roadmap_dbread.h"
+#include "roadmap_db_shape.h"
+
+typedef struct {
+
+   char *type;
+
+   RoadMapShape *Shape;
+   int           ShapeCount;
+
+} RoadMapShapeContext;
+
+extern RoadMapShapeContext *RoadMapShapeActive;
+
+extern int shape_cache_square;
+extern int shape_cache_scale_factor;
+
+#if defined(FORCE_INLINE) || defined(DECLARE_ROADMAP_SHAPE)
+#if !defined(INLINE_DEC)
+#define INLINE_DEC
+#endif
+
+INLINE_DEC void roadmap_shape_get_position (int shape, RoadMapPosition *position) {
+
+   int square = roadmap_square_active();
+
+   if (square != shape_cache_square) {
+      shape_cache_square = square;
+      shape_cache_scale_factor = roadmap_square_current_scale_factor ();
+   }
+
+   position->longitude += (int)RoadMapShapeActive->Shape[shape].delta_longitude * shape_cache_scale_factor;
+   position->latitude  += (int)RoadMapShapeActive->Shape[shape].delta_latitude * shape_cache_scale_factor;
+}
+
+
+INLINE_DEC int roadmap_shape_get_count (int shape) {
+
+   return RoadMapShapeActive->Shape[shape].delta_latitude;
+}
+
+
+INLINE_DEC int roadmap_shape_count (void) {
+
+   if (RoadMapShapeActive == NULL) return 0; /* No line. */
+
+   return RoadMapShapeActive->ShapeCount;
+}
+#endif // inline
 
 void roadmap_shape_get_position (int shape, RoadMapPosition *position);
+int roadmap_shape_get_count (int shape);
+int roadmap_shape_count (void);
 
 extern roadmap_db_handler RoadMapShapeHandler;
 

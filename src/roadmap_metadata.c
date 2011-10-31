@@ -35,6 +35,7 @@
 #include "roadmap.h"
 #include "roadmap_dictionary.h"
 #include "roadmap_metadata.h"
+#include "roadmap_tile_model.h"
 
 #include "roadmap_db_metadata.h"
 
@@ -55,12 +56,9 @@ typedef struct {
 static RoadMapMetadataContext *RoadMapMetadataActive = NULL;
 
 
-static void *roadmap_metadata_map (roadmap_db *root) {
+static void *roadmap_metadata_map (const roadmap_db_data_file *file) {
 
    RoadMapMetadataContext *context;
-
-   roadmap_db *attributes_table;
-
 
    context = (RoadMapMetadataContext *) malloc (sizeof(RoadMapMetadataContext));
    if (context == NULL) {
@@ -70,14 +68,11 @@ static void *roadmap_metadata_map (roadmap_db *root) {
    context->type = RoadMapMetadataType;
    context->RoadMapAttributeStrings = NULL;
 
-   attributes_table = roadmap_db_get_subsection (root, "attributes");
-
-   context->Attributes =
-      (RoadMapAttribute *) roadmap_db_get_data (attributes_table);
-   context->AttributesCount = roadmap_db_get_count (attributes_table);
-
-   if (roadmap_db_get_size (attributes_table) !=
-       context->AttributesCount * sizeof(RoadMapAttribute)) {
+   if (!roadmap_db_get_data (file,
+   								  model__tile_metadata_attributes,
+   								  sizeof (RoadMapAttribute),
+   								  (void**)&(context->Attributes),
+   								  &(context->AttributesCount))) {
       roadmap_log (ROADMAP_ERROR, "invalid metadata/attributes structure");
       goto roadmap_metadata_map_abort;
    }
@@ -139,22 +134,17 @@ const char *roadmap_metadata_get_attribute (const char *category,
 
    int i;
 
-   RoadMapString coded_category;
-   RoadMapString coded_name;
-
    if (RoadMapMetadataActive == NULL) return "";
 
-   coded_category =
-      roadmap_dictionary_locate
-         (RoadMapMetadataActive->RoadMapAttributeStrings, category);
-
-   coded_name =
-      roadmap_dictionary_locate
-         (RoadMapMetadataActive->RoadMapAttributeStrings, name);
-
    for (i = RoadMapMetadataActive->AttributesCount - 1; i >= 0; --i) {
-      if (RoadMapMetadataActive->Attributes[i].name == coded_name &&
-          RoadMapMetadataActive->Attributes[i].category == coded_category) {
+
+	   const char *attr_category = 
+	   	roadmap_dictionary_get (RoadMapMetadataActive->RoadMapAttributeStrings, RoadMapMetadataActive->Attributes[i].category);
+	   const char *attr_name = 
+	   	roadmap_dictionary_get (RoadMapMetadataActive->RoadMapAttributeStrings, RoadMapMetadataActive->Attributes[i].name);
+
+      if (strcmp (name, attr_name) == 0 &&
+          strcmp (category, attr_category) == 0) {
          return roadmap_dictionary_get
                    (RoadMapMetadataActive->RoadMapAttributeStrings,
                     RoadMapMetadataActive->Attributes[i].value);

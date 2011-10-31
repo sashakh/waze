@@ -44,8 +44,8 @@
 #include "roadmap.h"
 #include "roadmap_gps.h"
 
-time_t roadmap_sunrise (const RoadMapGpsPosition *position);
-time_t roadmap_sunset  (const RoadMapGpsPosition *position);
+time_t roadmap_sunrise (const RoadMapGpsPosition *position, time_t now);
+time_t roadmap_sunset  (const RoadMapGpsPosition *position, time_t now);
 
 #endif // INCLUDE__ROADMAP_SUNRISE_H
 

@@ -2,7 +2,7 @@
  *
  * LICENSE:
  *
- *   Copyright 2006 Ehud Shabtai.
+ *   Copyright 2006 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -44,7 +44,7 @@
 #include "roadmap_square.h"
 
 
-static char *RoadMapTurnsType = "RoadMapTurnsContext";
+//static char *RoadMapTurnsType = "RoadMapTurnsContext";
 
 typedef struct {
 
@@ -68,7 +68,7 @@ static RoadMapTurnsContext *RoadMapTurnsActive = NULL;
 
 static int RoadMapTurns2Mask[8*sizeof(int)] = {0};
 
-
+#if 0
 static void *roadmap_turns_map (roadmap_db *root) {
 
    unsigned i;
@@ -170,7 +170,7 @@ roadmap_db_handler RoadMapTurnsHandler = {
    roadmap_turns_activate,
    roadmap_turns_unmap
 };
-
+#endif
 
 int  roadmap_turns_in_square (int square, int *first, int *last) {
 
@@ -178,7 +178,7 @@ int  roadmap_turns_in_square (int square, int *first, int *last) {
 
    if (RoadMapTurnsActive == NULL) return 0;
 
-   square = roadmap_square_index(square);
+   //square = roadmap_square_index(square);
 
    if (square >= 0 && square < RoadMapTurnsActive->TurnsBySquareCount) {
 
@@ -258,7 +258,6 @@ int roadmap_turns_find_restriction (int node, int from_line, int to_line) {
    static int cache_first = -1;
    static int cache_last = -1;
 
-   RoadMapPosition pos;
    int square;
    int first_turn;
    int last_turn;
@@ -270,9 +269,7 @@ int roadmap_turns_find_restriction (int node, int from_line, int to_line) {
    /* no U turns */
    if (from_line == to_line) return 1;
    
-   roadmap_point_position (node, &pos);
-
-   square = roadmap_square_search (&pos);
+   square = roadmap_square_active ();
 
    if (square != cache_square) {
       cache_square = square;

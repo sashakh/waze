@@ -2,7 +2,7 @@
  *
  * LICENSE:
  *
- *   Copyright 2005 Ehud Shabtai.
+ *   Copyright 2005 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *

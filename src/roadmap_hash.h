@@ -35,6 +35,7 @@ struct roadmap_hash_struct {
    const char *name;
 
    struct roadmap_hash_struct *next_hash;
+   struct roadmap_hash_struct *prev_hash;
 
    int head[ROADMAP_HASH_MODULO];
 
@@ -59,6 +60,7 @@ void roadmap_hash_add       (RoadMapHash *hash, int key, int index);
 int  roadmap_hash_get_first (RoadMapHash *hash, int key);
 int  roadmap_hash_get_next  (RoadMapHash *hash, int index);
 void roadmap_hash_resize    (RoadMapHash *hash, int size);
+int  roadmap_hash_remove    (RoadMapHash *hash, int key, int index);
 
 void roadmap_hash_free (RoadMapHash *hash);
 
@@ -66,7 +68,6 @@ void  roadmap_hash_set_value (RoadMapHash *hash, int index, void *value);
 void *roadmap_hash_get_value (RoadMapHash *hash, int index);
 
 void  roadmap_hash_summary (void);
-void  roadmap_hash_reset   (void);
 
 int roadmap_hash_string (const char *str);
 

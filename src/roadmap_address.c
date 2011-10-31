@@ -57,7 +57,7 @@ static RoadMapAddressNav RoadMapAddressNavigate;
 typedef struct {
 
     const char *title;
-    
+
     int   use_zip;
     int   navigate;
 
@@ -76,6 +76,7 @@ typedef struct {
 } RoadMapAddressSearch;
 
 static void roadmap_address_done (RoadMapGeocode *selected,
+                                  address_info *ai,
                                   RoadMapAddressDialog *context) {
 
     PluginStreet street;
@@ -92,23 +93,23 @@ static void roadmap_address_done (RoadMapGeocode *selected,
                  selected->position.latitude >= 0 ? 'N' : 'S');
 
     roadmap_plugin_set_line
-       (&line, ROADMAP_PLUGIN_ID, selected->line, -1, selected->fips);
+       (&line, ROADMAP_PLUGIN_ID, selected->line, -1, selected->square, selected->fips);
 
     roadmap_trip_set_point ("Selection", &selected->position);
     roadmap_trip_set_point ("Address", &selected->position);
 
     if (!context->navigate || !RoadMapAddressNavigate) {
-       
+
        roadmap_dialog_hide (context->title);
 
        roadmap_trip_set_focus ("Address");
 
        roadmap_display_activate
           ("Selected Street", &line, &selected->position, &street);
-       
+
        roadmap_screen_refresh ();
     } else {
-       if ((*RoadMapAddressNavigate) (&selected->position, &line, 0) != -1) {
+       if ((*RoadMapAddressNavigate) (&selected->position, &line, 0, ai) != -1) {
          roadmap_dialog_hide (context->title);
        }
     }
@@ -246,7 +247,6 @@ static void roadmap_address_show (const char *name, void *data) {
    if (count <= 0) {
       roadmap_messagebox (roadmap_lang_get ("Warning"),
                           roadmap_geocode_last_error());
-      free (selections);
       return;
    }
 
@@ -256,6 +256,7 @@ static void roadmap_address_show (const char *name, void *data) {
    argv[3] = state;
 
    roadmap_history_add ('A', argv);
+   roadmap_history_save();
 
    if (count > 1) {
 
@@ -271,8 +272,14 @@ static void roadmap_address_show (const char *name, void *data) {
       context->selections = selections; /* Free these only when done. */
 
    } else {
+      address_info   ai;
+      ai.state = state;
+      ai.country = NULL;
+      ai.city = city;
+      ai.street = street_name;
+      ai.house = street_number_image;
 
-      roadmap_address_done (selections, context);
+      roadmap_address_done (selections, &ai, context);
 
       free (selections[0].name);
       free (selections);
@@ -353,7 +360,7 @@ static void roadmap_address_search_done (const char *name, void *data) {
 
    char *result_name = (char *) roadmap_dialog_get_data (".search", ".results");
    RoadMapAddressSearch *context = (RoadMapAddressSearch *)data;
-      
+
    roadmap_dialog_hide ("Search Address");
 
    (*context->callback) (result_name, context->data);
@@ -365,7 +372,7 @@ static void roadmap_address_search_done (const char *name, void *data) {
 static void roadmap_address_city_result (const char *result, void *data) {
 
    RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
-      
+
    roadmap_dialog_activate (context->title, context, 1);
 
    if ((result == NULL) || !strlen (result)) return;
@@ -379,13 +386,12 @@ static void roadmap_address_street_result (const char *result, void *data) {
    RoadMapAddressDialog *context = (RoadMapAddressDialog *)data;
    char name[255];
    char *tmp;
-      
+
    roadmap_dialog_activate (context->title, context, 1);
 
    if ((result == NULL) || !strlen (result)) return;
 
-   strncpy (name, result, sizeof(name));
-   name [sizeof(name) - 1] = 0;
+   strncpy_safe (name, result, sizeof(name));
 
    tmp = strrchr (name, ',');
    if (!tmp) return;
@@ -403,13 +409,13 @@ static void roadmap_address_street_result (const char *result, void *data) {
 static void roadmap_address_other_cb (const char *name, void *context) {
 
    if (!strcmp(roadmap_dialog_get_data ("Address", "City"), def_values[1]) ){
-      
+
       roadmap_dialog_set_data ("Address", "City", def_values[0]);
       roadmap_address_search_dialog
          (NULL, roadmap_address_city_result, context);
    } else if (!strcmp(roadmap_dialog_get_data ("Address", "Street"),
                       def_values[1])) {
-      
+
       roadmap_dialog_set_data ("Address", "Street", def_values[0]);
 
       roadmap_address_search_dialog
@@ -449,7 +455,7 @@ static void roadmap_address_dialog (RoadMapAddressDialog *context) {
             ("Address", "State",
              roadmap_county_get_name (roadmap_locator_active ()));
 
-      roadmap_history_declare ('A', 4);
+      roadmap_history_declare ('A', 7);
    }
 
    context->navigate = 0;

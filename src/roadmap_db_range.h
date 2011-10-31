@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -41,71 +42,22 @@
 
 #include "roadmap_types.h"
 
-#define CONTINUATION_FLAG   0x80000000
+#define RANGE_FLAG_MASK   		(3 << 14)
+#define RANGE_FLAG_COMPACT		(0 << 14) /* left+right 4 byte-size numbers */
+#define RANGE_FLAG_LEFT_ONLY	(1 << 14) /* 2 short values, left address only */
+#define RANGE_FLAG_RIGHT_ONLY	(2 << 14) /* 2 short values, right address only */
+#define RANGE_FLAG_BOTH			(3 << 14) /* 2 short values, left address, right to follow */
 
-#define HAS_CONTINUATION(r) ((r->line & CONTINUATION_FLAG) != 0)
+#define RANGE_FLAG_STREET_ONLY	0x8000
+#define RANGE_ADDR_MAX_VALUE	0xffffff
 
 typedef struct {   /* table range.addr */
 
-   int line; /* Sign is used to mark a "wide range" record. */
-
+	unsigned short street;
    unsigned short fradd;
    unsigned short toadd;
 
 } RoadMapRange;
-
-
-typedef struct {  /* table range.bystreet */
-   int first_range;
-   int first_city;
-#ifndef J2MEMAP
-   int first_zip;
-#endif   
-   int count_range;
-} RoadMapRangeByStreet;
-
-
-typedef struct {  /* table range.bycity */
-
-   RoadMapString city;
-   unsigned short count;
-
-} RoadMapRangeByCity;
-
-
-typedef struct { /* table range.byzip */
-
-   RoadMapZip     zip;
-   unsigned short count;
-
-} RoadMapRangeByZip;
-
-
-typedef struct {  /* table range.place */
-
-   RoadMapString place;
-   RoadMapString city;
-
-} RoadMapRangePlace;
-
-
-typedef struct {
-
-   unsigned short excluded;
-   unsigned short included;
-
-} RoadMapRangeHole;
-
-#define ROADMAP_RANGE_HOLES 32
-
-typedef struct {  /* table range.bysquare */
-
-   RoadMapRangeHole hole[ROADMAP_RANGE_HOLES];
-
-   int noaddr_start;
-   int noaddr_count;
-
-} RoadMapRangeBySquare;
 
 
 #endif // _ROADMAP_DB_RANGE__H_

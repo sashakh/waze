@@ -27,7 +27,9 @@
 #include "roadmap_navigate.h"
 #include "editor_track_main.h"
 
+int editor_track_known_num_candidates (void);
 int editor_track_known_resolve (void);
+void editor_track_known_reset_resolve (void);
 
 int editor_track_known_locate_point (int point_id,
                                      const RoadMapGpsPosition *gps_position,

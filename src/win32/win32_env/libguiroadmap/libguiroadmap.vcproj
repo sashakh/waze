@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="libguiroadmap"
 	ProjectGUID="{72889516-82BE-42D1-8AE4-2373AC0EE1B2}"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -15,7 +16,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
+			OutputDirectory="\Bin\$(ConfigurationName)"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -41,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\zlib"
-				PreprocessorDefinitions="_DEBUG;WIN32;_MBCS;_LIB;UNICODE;USE_FRIBIDI"
+				AdditionalIncludeDirectories="..\..\..\zlib;..\..\..\"
+				PreprocessorDefinitions="_DEBUG;WIN32;_MBCS;_LIB;UNICODE;USE_FRIBIDI;SSD;_CRT_SECURE_NO_WARNINGS;MENU_ONLY"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -67,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Debug\libguiroadmap.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -90,7 +91,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release"
+			OutputDirectory="\Bin\$(ConfigurationName)"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -118,8 +119,8 @@
 				AdditionalOptions="/D_CRT_SECURE_NO_DEPRECATE"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\zlib"
-				PreprocessorDefinitions="NDEBUG;WIN32;_MBCS;_LIB;UNICODE;USE_FRIBIDI"
+				AdditionalIncludeDirectories="..\..\..\zlib;..\..\..\"
+				PreprocessorDefinitions="NDEBUG;WIN32;_MBCS;_LIB;UNICODE;USE_FRIBIDI;SSD;_CRT_SECURE_NO_WARNINGS;MENU_ONLY"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -143,7 +144,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release\libguiroadmap.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -173,24 +174,24 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
-				RelativePath="..\..\..\roadmap_address.c"
+				RelativePath="..\..\..\address_search\address_search.c"
 				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PreprocessorDefinitions=""
-					/>
-				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\address_search\address_search_dlg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\auto_hide_dlg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_address_ssd.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_city_combobox.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\roadmap_coord.c"
@@ -335,6 +336,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\roadmap_general_settings.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\roadmap_help.c"
 				>
 				<FileConfiguration
@@ -373,6 +378,14 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_httpcopy_async.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_keyboard.c"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\roadmap_label.c"
@@ -539,6 +552,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\roadmap_search.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\roadmap_skin.c"
 				>
 			</File>
@@ -583,6 +600,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\roadmap_ticker.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\roadmap_trip.c"
 				>
 				<FileConfiguration
@@ -602,11 +623,163 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath="..\..\..\roadmap_view.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_welcome_wizard.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\..\address_search\address_search.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\address_search\address_search_defs.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\address_search\address_search_dlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\auto_hide_dlg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_address.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_alert.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_alerter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_city_combobox.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_coord.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_copy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_display.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_download.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_factory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_fuzzy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_general_settings.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_help.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_httpcopy.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_httpcopy_async.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_keyboard.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_label.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_layer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_navigate.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_object.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_pointer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_preferences.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_res.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_screen.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_screen_obj.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_search.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_skin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_sprite.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_start.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_ticker.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_trip.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_view.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\roadmap_welcome_wizard.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

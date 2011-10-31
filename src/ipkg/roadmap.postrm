@@ -1,4 +1,0 @@
-rm -f /usr/bin/roadmap /usr/bin/roadgps
-if test -x /usr/bin/update-menus; then update-menus; fi
-exit 0
-

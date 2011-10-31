@@ -43,7 +43,7 @@
 
 
 struct roadmap_voice_config {
-    
+
     RoadMapConfigDescriptor config;
     const char *default_text;
 };
@@ -56,7 +56,7 @@ static struct roadmap_voice_config RoadMapVoiceText[] = {
     {ROADMAP_CONFIG_ITEM("Voice", "Current Street"), "flite -t 'On %N'"},
     {ROADMAP_CONFIG_ITEM("Voice", "Next Intersection"), "flite -t 'Next intersection: %N'"},
     {ROADMAP_CONFIG_ITEM("Voice", "Selected Street"), "flite -t 'Selected %N'"},
-    {ROADMAP_CONFIG_ITEM("Voice", "Driving Instruction"), "flite -t 'In %w, %I'|flite -t '%I to %T'|flite -t '%I'"},
+    {ROADMAP_CONFIG_ITEM("Voice", "Driving Instruction"), "flite -t 'In %t, %I'|flite -t '%I to %T'|flite -t '%I'"},
     {ROADMAP_CONFIG_ITEM_EMPTY, NULL}
 };
 
@@ -118,7 +118,7 @@ static void roadmap_voice_launch (const char *name, const char *arguments) {
         (RoadMapVoiceCurrentArguments != NULL) &&
         (strcmp (name, RoadMapVoiceCurrentCommand) == 0) &&
         (strcmp (arguments, RoadMapVoiceCurrentArguments) == 0)) {
-        
+
         /* Do not repeat the same message again. */
 
         RoadMapVoiceInUse = 0;
@@ -129,7 +129,7 @@ static void roadmap_voice_launch (const char *name, const char *arguments) {
     roadmap_log(ROADMAP_DEBUG, "activating message %s", arguments);
 
     RoadMapVoiceInUse = 1;
-    
+
     if (RoadMapVoiceCurrentCommand != NULL) {
         free (RoadMapVoiceCurrentCommand);
     }
@@ -138,24 +138,24 @@ static void roadmap_voice_launch (const char *name, const char *arguments) {
     }
     RoadMapVoiceCurrentCommand = strdup (name);
     RoadMapVoiceCurrentArguments = strdup (arguments);
-    
+
     roadmap_spawn_with_feedback (name, arguments, &RoadMapVoiceActive);
 }
 
 
 static void roadmap_voice_queue (const char *name, const char *arguments) {
-    
+
     if (RoadMapVoiceInUse) {
 
         roadmap_log(ROADMAP_DEBUG, "queuing message: %s", arguments);
 
         /* Replace the previously queued message (too old now). */
-        
+
         if (RoadMapVoiceNextCommand != NULL) {
             free(RoadMapVoiceNextCommand);
         }
         RoadMapVoiceNextCommand = strdup (name);
-        
+
         if (RoadMapVoiceNextArguments != NULL) {
             free(RoadMapVoiceNextArguments);
         }
@@ -164,31 +164,31 @@ static void roadmap_voice_queue (const char *name, const char *arguments) {
         roadmap_spawn_check ();
 
     } else {
-        
+
         roadmap_voice_launch (name, arguments);
     }
 }
 
 
 static void roadmap_voice_complete (void *data) {
-    
+
     if (RoadMapVoiceNextCommand != NULL) {
-        
+
         /* Play the queued message now. */
-        
+
         roadmap_voice_launch
             (RoadMapVoiceNextCommand, RoadMapVoiceNextArguments);
-        
+
         free (RoadMapVoiceNextCommand);
         RoadMapVoiceNextCommand = NULL;
-        
+
         if (RoadMapVoiceNextArguments != NULL) {
             free (RoadMapVoiceNextArguments);
             RoadMapVoiceNextArguments = NULL;
         }
-        
+
     } else {
-        
+
         /* The sound device is now available (as far as we know). */
 
         roadmap_log(ROADMAP_DEBUG, "voice now idle");
@@ -210,14 +210,14 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
     if (size <= 0) {
         return 0;
     }
-    
+
     acronym = input;
     acronym_length = 0;
     acronym_found = input + strlen(input);
     cursor_found  = NULL;
-    
+
     for (cursor = RoadMapVoiceTranslation; cursor->from != NULL; ++cursor) {
-        
+
         acronym = strstr (input, cursor->from);
         if (acronym != NULL) {
             if (acronym < acronym_found) {
@@ -226,7 +226,7 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
             }
         }
     }
-    
+
     if (cursor_found == NULL) {
         strncpy (output, input, size);
         return 1;
@@ -235,28 +235,28 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
     acronym = acronym_found;
     cursor  = cursor_found;
     acronym_length = strlen(cursor->from);
-    
+
     length = acronym - input;
-        
+
     if (length > size) return 0;
-    
+
     /* Copy the unexpanded part, up to the acronym that was found. */
     strncpy (output, input, length);
     output += length;
     size -= length;
 
     if (size <= 0) return 0;
-    
+
     if ((acronym_length != 0) &&
         (acronym[acronym_length] == 0 ||
          (! isalnum(acronym[acronym_length])))) {
-        
+
         /* This is a valid acronym: translate it. */
         length = strlen(cursor->to);
         strncpy (output, cursor->to, size);
         output += length;
         size   -= length;
-        
+
         if (size <= 0) return 0;
 
     } else {
@@ -265,8 +265,8 @@ static int roadmap_voice_expand (const char *input, char *output, int size) {
         output += acronym_length;
         size   -= acronym_length;
     }
-        
-        
+
+
     return roadmap_voice_expand (acronym + acronym_length, output, size);
 }
 
@@ -290,20 +290,20 @@ void roadmap_voice_announce (const char *title) {
     }
 
     RoadMapVoiceActive.handler = roadmap_voice_complete;
-    
-    
+
+
     for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
-        
+
         if (strcmp (title, RoadMapVoiceText[i].config.name) == 0) {
             break;
         }
     }
-    
+
     if (RoadMapVoiceText[i].default_text == NULL) {
         roadmap_log (ROADMAP_ERROR, "invalid voice %s", title);
         return;
     }
-    
+
     if (!roadmap_message_format
              (text, sizeof(text),
               roadmap_config_get (&RoadMapVoiceText[i].config)) ||
@@ -329,7 +329,7 @@ void roadmap_voice_announce (const char *title) {
     } else {
 
         *arguments = 0;
-        
+
         while (isspace(*(++arguments))) ;
 
         roadmap_voice_queue (final, arguments);
@@ -355,12 +355,12 @@ void roadmap_voice_enable (void) {
 
 
 void roadmap_voice_initialize (void) {
-    
+
     int i;
-    
+
     roadmap_config_declare_enumeration
-               ("session", &RoadMapVoiceMute, NULL, "no", "yes", NULL);
-    
+               ("session", &RoadMapVoiceMute, NULL, "yes", "no", NULL);
+
     for (i = 0; RoadMapVoiceText[i].default_text != NULL; ++i) {
         roadmap_config_declare
             ("preferences",

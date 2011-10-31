@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="agg"
 	ProjectGUID="{29CF3C12-8A60-46EF-96BE-6031722224C6}"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -15,7 +16,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
+			OutputDirectory="\Bin\$(ConfigurationName)"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -42,8 +43,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/DUSE_FRIBIDI"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../agg/include,../../../freetype/include,../../../libfribidi"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				AdditionalIncludeDirectories="../../../agg/include,../../../freetype/include,../../../libfribidi,../../../agg/font_freetype"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Debug\agg.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -91,7 +92,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release"
+			OutputDirectory="\Bin\$(ConfigurationName)"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -119,8 +120,8 @@
 				AdditionalOptions="/DUSE_FRIBIDI"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../agg/include,../../../freetype/include,../../../libfribidi"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				AdditionalIncludeDirectories="../../../agg/include,../../../freetype/include,../../../libfribidi,../../../agg/font_freetype"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -144,7 +145,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release\agg.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -174,6 +175,14 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\agg\src\agg_arc.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_arrowhead.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\agg\src\agg_bezier_arc.cpp"
 				>
 				<FileConfiguration
@@ -193,6 +202,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_bspline.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\agg\src\agg_curves.cpp"
@@ -216,6 +229,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\agg\src\agg_embedded_raster_fonts.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\agg\font_freetype\agg_font_freetype.cpp"
 				>
 				<FileConfiguration
@@ -235,6 +252,14 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_gsv_text.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_image_filters.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\agg\src\agg_line_aa_basics.cpp"
@@ -279,6 +304,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\..\..\agg\src\agg_rounded_rect.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\agg\src\agg_sqrt_tables.cpp"
 				>
 				<FileConfiguration
@@ -319,6 +348,54 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_trans_double_path.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_trans_single_path.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_trans_warp_magnifier.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vcgen_bspline.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vcgen_contour.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vcgen_dash.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vcgen_markers_term.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vcgen_smooth_poly1.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vcgen_stroke.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vpgen_clip_polygon.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vpgen_clip_polyline.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\agg\src\agg_vpgen_segmentator.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\..\..\agg\src\platform\win32\agg_win32_bmp.cpp"

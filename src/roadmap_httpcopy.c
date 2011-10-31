@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2003 Pascal Martin.
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -54,93 +55,14 @@
 #include "roadmap_httpcopy.h"
 
 
-#ifndef _WIN32
+#if !defined (_WIN32) && !defined (__SYMBIAN32__)
 #define ROADMAP_HTTP_MAX_CHUNK 32768
 #else
 #define ROADMAP_HTTP_MAX_CHUNK 4096
 #endif
 
 
-static int roadmap_http_send (int socket,
-                              RoadMapDownloadCallbackError error,
-                              const char *format, ...)
-{
-   va_list ap;
-   int     length;
-   char    buffer[ROADMAP_HTTP_MAX_CHUNK];
-
-   va_start(ap, format);
-   vsnprintf (buffer, sizeof(buffer), format, ap);
-   va_end(ap);
-
-   length = strlen(buffer);
-   if (roadmap_net_send (socket, buffer, length, 1) != length) {
-      error ("send error on: %s", buffer);
-      return 0;
-   }
-   return length;
-}
-
-
-static int roadmap_http_send_request (const char *source,
-                                      RoadMapDownloadCallbackError error) {
-
-   int   fd;
-   char *host;
-   char *path;
-
-
-   /* Get a local copy of the URL, for us to decode. */
-
-   source += 7; /* Skip the "http://" prefix. */
-
-   host = strdup(source);
-   if (host == NULL) {
-      error ("no more memory");
-      return 0;
-   }
-
-
-   /* Separate the file path from the server's address. */
-
-   path = strchr (host, '/');
-   if (path == NULL) {
-      error ("bad URL syntax in: %s", host);
-      free (host);
-      return 0;
-   }
-   *path = 0; /* Isolate the host string. */
-
-   path = strchr (source, '/');
-   if (path == NULL) {
-      error ("bad URL syntax in: %s", source);
-      free (host);
-      return 0;
-   }
-
-   /* Connect to the server (roadmap_net understands the "host:port"
-    * syntax).
-    */
-   fd = roadmap_net_connect ("tcp", host, 80);
-   if (fd >= 0) {
-
-      char *p = strchr(host, ':');
-
-      if (p != NULL) *p = 0; /* remove the port/service info. */
-
-      roadmap_http_send (fd, error, "GET %s HTTP/1.1\r\n", path);
-      roadmap_http_send (fd, error, "User-Agent: FreeMap/%s\r\n",
-                         editor_main_get_version() );
-      roadmap_http_send (fd, error, "Host: %s\r\n\r\n", host);
-   }
-
-   free (host);
-
-   return fd;
-}
-
-
-static int roadmap_http_decode_header (int   fd,
+static int roadmap_http_decode_header (RoadMapSocket   fd,
                                        char *buffer,
                                        int  *sizeof_buffer,
                                        RoadMapDownloadCallbackError error) {
@@ -251,7 +173,8 @@ static int roadmap_httpcopy (RoadMapDownloadCallbacks *callbacks,
                              const char *source,
                              const char *destination) {
 
-   int fd;
+   RoadMapSocket fd;
+   RoadMapFile file;
    int size;
    int loaded;
    int received;
@@ -259,10 +182,9 @@ static int roadmap_httpcopy (RoadMapDownloadCallbacks *callbacks,
    char buffer[ROADMAP_HTTP_MAX_CHUNK];
 
 
-   fd = roadmap_http_send_request (source, callbacks->error);
-   if (fd < 0) {
-      return 0;
-   }
+   fd = roadmap_net_connect("http_get", source, 0, 80, NULL);
+   if (!ROADMAP_NET_IS_VALID(fd)) return 0;
+   if (roadmap_net_send(fd, "\r\n", 2, 0) == -1) return 0;
 
    received = sizeof(buffer);
    size = roadmap_http_decode_header
@@ -279,9 +201,17 @@ static int roadmap_httpcopy (RoadMapDownloadCallbacks *callbacks,
 
    callbacks->progress (received);
    roadmap_file_remove (NULL, destination);
+   file = roadmap_file_open(destination, "w");
+   if (!ROADMAP_FILE_IS_VALID(file)) {
+      roadmap_net_close (fd);
+      return 0;
+   }
 
    if (received > 0) {
-      roadmap_file_append (NULL, destination, buffer, received);
+      if (roadmap_file_write(file, buffer, received) != received) {
+         callbacks->error ("Error writing data");
+         goto cancel_download;
+      }
    }
    loaded = received;
 
@@ -293,18 +223,29 @@ static int roadmap_httpcopy (RoadMapDownloadCallbacks *callbacks,
          callbacks->error ("Receive error after %d data bytes", loaded);
          goto cancel_download;
       }
-      roadmap_file_append (NULL, destination, buffer, received);
+      
+      if (roadmap_file_write(file, buffer, received) != received) {
+         callbacks->error ("Error writing data");
+         goto cancel_download;
+      }
+
       loaded += received;
 
       callbacks->progress (loaded);
    }
 
+   if (loaded != size) {
+      callbacks->error ("Receive error after %d data bytes", loaded);
+      goto cancel_download;   
+   }
    roadmap_net_close (fd);
+   roadmap_file_close(file);
 
    return 1;
 
 cancel_download:
 
+   roadmap_file_close(file);
    roadmap_file_remove (NULL, destination);
    roadmap_net_close (fd);
 

@@ -148,7 +148,7 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
       Sleep(2000);
 
       conn->data_count = -1;
-      SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
+      SendMessage(RoadMapMainWindow, WM_FREEMAP_READ, (WPARAM)data, (LPARAM)conn);
    }
 
    while(data->is_valid && (conn->handle != INVALID_HANDLE_VALUE)) {
@@ -190,7 +190,7 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
 		}
 
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, (LPARAM)conn);
+		SendMessage(RoadMapMainWindow, WM_FREEMAP_READ, (WPARAM)data, (LPARAM)conn);
 	}
 
    if (!--conn->ref_count) {
@@ -206,6 +206,7 @@ DWORD WINAPI SerialMonThread(LPVOID lpParam) {
 	return 0;
 }
 
+extern BOOL shutting_down;
 
 DWORD WINAPI SocketMonThread(LPVOID lpParam)
 {
@@ -219,8 +220,11 @@ DWORD WINAPI SocketMonThread(LPVOID lpParam)
 	{
 		FD_SET(fd, &set);
 		if(select(fd+1, &set, NULL, NULL, NULL) == SOCKET_ERROR) {
-			roadmap_log (ROADMAP_ERROR,
-					"Error in select.");
+			
+			if( shutting_down)
+			   return 0;
+
+			roadmap_log (ROADMAP_ERROR,"Error in select.");
 		}
 
 		/* Check if this input was unregistered while we were
@@ -231,7 +235,7 @@ DWORD WINAPI SocketMonThread(LPVOID lpParam)
 		}
 
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 1);
+		SendMessage(RoadMapMainWindow, WM_FREEMAP_READ, (WPARAM)data, 1);
 	}
 
    if (data->is_valid) {
@@ -256,7 +260,7 @@ DWORD WINAPI FileMonThread(LPVOID lpParam)
 	while(data->is_valid && (io->subsystem != ROADMAP_IO_INVALID))
 	{
 		/* Send a message to main window so it can read. */
-		SendMessage(RoadMapMainWindow, WM_USER_READ, (WPARAM)data, 1);
+		SendMessage(RoadMapMainWindow, WM_FREEMAP_READ, (WPARAM)data, 1);
 	}
 
    if (data->is_valid) {

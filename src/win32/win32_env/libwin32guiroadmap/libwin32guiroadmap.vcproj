@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="libwin32guiroadmap"
 	ProjectGUID="{BED55FF0-3908-427A-ACE0-F22AAEF25D20}"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -15,7 +16,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
+			OutputDirectory="\Bin\$(ConfigurationName)"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -41,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../agg/font_freetype,../../../freetype/include,../../../"
-				PreprocessorDefinitions="_DEBUG;WIN32;_MBCS;_LIB;UNICODE"
+				AdditionalIncludeDirectories="../../../agg/font_freetype,../../../freetype/include,../../../,..\..\..\zlib,..\..\..\libpng"
+				PreprocessorDefinitions="_DEBUG;WIN32;_MBCS;_LIB;UNICODE;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -67,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Debug\libwin32guiroadmap.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -90,7 +91,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\release"
+			OutputDirectory="\Bin\$(ConfigurationName)"
 			IntermediateDirectory=".\release"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -118,8 +119,8 @@
 				AdditionalOptions="/D_CRT_SECURE_NO_DEPRECATE"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../agg/font_freetype,../../../freetype/include,../../../"
-				PreprocessorDefinitions="NDEBUG;WIN32;_MBCS;_LIB;UNICODE"
+				AdditionalIncludeDirectories="../../../agg/font_freetype,../../../freetype/include,../../../,..\..\..\zlib,..\..\..\libpng"
+				PreprocessorDefinitions="NDEBUG;WIN32;_MBCS;_LIB;UNICODE;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -143,7 +144,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\release\libwin32guiroadmap.lib"
+				OutputFile="$(OutDir)\$(ProjectName).lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool

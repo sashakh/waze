@@ -44,5 +44,10 @@ typedef struct {
 
 } RoadMapStreet;
 
+typedef struct {
+	RoadMapString  city;
+	unsigned short first_street;
+} RoadMapCity;
+
 #endif // _ROADMAP_DB_STREET__H_
 

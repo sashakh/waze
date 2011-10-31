@@ -35,6 +35,8 @@ struct roadmap_canvas_image {
    roadmap_canvas_image():pixfmt(rbuf) {}
 };
 
+EXTERN_C void roadmap_canvas_set_properties( int aWidth, int aHeight, int aPixelFormat );
+
 extern RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonPressed;
 
 extern RoadMapCanvasMouseHandler RoadMapCanvasMouseButtonReleased;
@@ -48,13 +50,16 @@ void roadmap_canvas_agg_configure (unsigned char *buf, int width, int height, in
 /* GUI specific implementation */
 int roadmap_canvas_agg_to_wchar (const char *text, wchar_t *output, int size);
 agg::rgba8 roadmap_canvas_agg_parse_color (const char *color);
-RoadMapImage roadmap_canvas_agg_load_image (const char *path,
-                                            const char *file_name);
 
 void roadmap_canvas_agg_free_image (RoadMapImage image);
 
 void roadmap_canvas_native_draw_multiple_lines (int count, int *lines,
 				RoadMapGuiPoint *points, int r, int g, int b, int thickness);
+
+RoadMapImage roadmap_canvas_agg_load_png( const char *full_name );
+RoadMapImage roadmap_canvas_agg_load_bmp( const char *full_name );
+
+
 
 #endif // INCLUDE__ROADMAP_CANVAS_AGG__H
 

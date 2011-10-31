@@ -25,60 +25,64 @@
 #define INCLUDE__EDITOR_DB__H
 
 #include "roadmap_types.h"
-#include "roadmap_dbread.h"
 
-#define EDITOR_MAX_POINTS 10000
-#define EDITOR_MAX_SHAPES 100000
-#define EDITOR_MAX_STREETS 500
-#define EDITOR_MAX_LINES 5000
-#define EDITOR_MAX_LINES_DEL 1000
-
-#define DB_DEFAULT_INITIAL_BLOCKS 1000
+#define EDITOR_DB_MARKERS		1
+#define EDITOR_DB_DICTIONARY	2
+#define EDITOR_DB_SHAPES		3
+#define EDITOR_DB_POINTS		4
+#define EDITOR_DB_TRKSEGS		5
+#define EDITOR_DB_STREETS		6
+#define EDITOR_DB_LINES			7
+#define EDITOR_DB_OVERRIDES	    8
 
 typedef struct editor_db_section_s {
+   unsigned int type_id;
    int num_items;
    int max_blocks;
-   int max_items;
-   int item_size;
+   int flag_committed;
+   size_t item_offset;
+   size_t item_size;
+   size_t record_size;
    int items_per_block;
-   int blocks[1]; /* dynamic */
+   char **blocks; /* dynamic */
+   int current_generation;
+   int committed_generation;
+   int pending_generation;
 } editor_db_section;
-
-typedef struct editor_db_header_s {
-   int fips;
-   RoadMapArea edges;
-   int cfccs; /* Bitmap of cfccs we override */
-   int block_size;
-   int num_total_blocks;
-   int num_used_blocks;
-   int file_size;
-   char rm_map_date[40];
-} editor_db_header;
 
 typedef void (*editor_item_init)  (void *item);
 
-void *editor_map (roadmap_db *root);
-void editor_unmap (void *context);
+typedef void (*editor_db_activator) (editor_db_section *section);
+
+typedef struct {
+
+   unsigned int type_id;
+   size_t item_size;
+   int flag_committed;
+
+   editor_db_activator activate;
+
+} editor_db_handler;
+
 
 int editor_db_create (int fips);
 int editor_db_activate (int fips);
-int editor_db_locator(const RoadMapPosition *position);
 void editor_db_sync (int fips);
 void editor_db_close (int fips);
 void editor_db_delete (int fips);
 
-void editor_db_mark_cfcc (int cfcc);
-int editor_db_is_cfcc_marked (int cfcc);
-int editor_db_add_item (editor_db_section *section, void *data);
+int editor_db_add_item (editor_db_section *section, void *data, int write);
 int editor_db_get_item_count (editor_db_section *section);
 void *editor_db_get_item (editor_db_section *section, int item_id, int create, editor_item_init init);
 int editor_db_get_block_size (void);
 void *editor_db_get_last_item (editor_db_section *section);
 int editor_db_allocate_items (editor_db_section *section, int count);
-int editor_db_insert_item (editor_db_section *section, void *data, int pos);
-int editor_db_grow (void);
-RoadMapArea *editor_db_get_active_edges(void);
-void editor_db_check_grow (void);
+int editor_db_update_item (editor_db_section *section, int item_id);
+int editor_db_write_item (editor_db_section *section, int item_id, int count);
+int editor_db_begin_commit (editor_db_section *section);
+void editor_db_confirm_commit (editor_db_section *section, int id);
+int editor_db_item_committed (editor_db_section *section, int item_id);
+int editor_db_items_pending (editor_db_section *section);
 
 #endif // INCLUDE__EDITOR_DB__H
 

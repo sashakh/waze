@@ -1,4 +1,5 @@
 /* ScummVM - Scumm Interpreter
+ * LICENSE:
  * Copyright (C) 2001-2006 The ScummVM project
  *
  * This program is free software; you can redistribute it and/or
@@ -15,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * $Header: /cvsroot/roadmap/roadmap_editor/src/win32/CEException.cpp,v 1.1 2006/08/09 07:43:03 eshabtai Exp $
+ * $Header: /home/ehud/tmp/sf_cvs/roadmap_editor/src/win32/CEException.cpp,v 1.1 2006/08/09 07:43:03 eshabtai Exp $
  *
  */
 

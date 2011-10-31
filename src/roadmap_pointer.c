@@ -34,18 +34,38 @@
 #include "roadmap_gui.h"
 #include "roadmap_canvas.h"
 #include "roadmap_main.h"
+#include "roadmap_screen.h"
 
+
+// Threshold for the pointer movement indicating the drag operation (in any coordinate)
+#if (defined(ANDROID))
+#define	DRAG_MOVEMENT_THR	8	// Android
+#define LONG_CLICK_TIMEOUT 400
+#elif (defined(__SYMBIAN32__))
+#define  DRAG_MOVEMENT_THR 8 // Sym touch
+#define LONG_CLICK_TIMEOUT 400
+#elif (defined(_WIN32_))
+#define  DRAG_MOVEMENT_THR 8 // Win
+#define LONG_CLICK_TIMEOUT 400
+#else
+#define	DRAG_MOVEMENT_THR	3	// Default value
 #define LONG_CLICK_TIMEOUT 350
+#endif
+
+
+
 #define DRAG_FLOW_CONTROL_TIMEOUT 30
 
 static int is_button_down = 0;
 static int cancel_dragging = 0;
 static int is_dragging = 0;
 static int is_drag_flow_control_on = 0;
+static int is_long_click_expired = 0;
+
 
 static RoadMapGuiPoint last_pointer_point;
 
-enum POINTER_EVENT {SHORT_CLICK = 0, LONG_CLICK, PRESSED, RELEASED, DRAG_START, DRAG_MOTION, DRAG_END, MAX_EVENTS};
+
 
 #define MAX_CALLBACKS 10
 
@@ -70,15 +90,22 @@ static int exec_callbacks (int event, RoadMapGuiPoint *point) {
    return res;
 }
 
-
-static void roadmap_pointer_button_timeout(void) {
-
-   roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-
-   exec_callbacks (LONG_CLICK, &last_pointer_point);
-   is_button_down = 0;
+int roadmap_pointer_force_click(int event,RoadMapGuiPoint *point){
+  return(exec_callbacks(event,point)); // delegate to the registered callbacks
 }
- 
+
+static void roadmap_pointer_button_timeout(void)
+{
+   roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
+   is_long_click_expired = 1;
+   if ( !is_dragging )
+   {
+	   exec_callbacks (LONG_CLICK, &last_pointer_point);
+	   is_button_down = 0;
+   }
+
+}
+
 /* Instead of calling the drag motion event with every mouse move,
  * we use this timer as a flow control. It may take time for the
  * application to finish the task of drawing the screen and we don't
@@ -91,28 +118,28 @@ static void roadmap_pointer_drag_flow_control(void) {
    exec_callbacks (DRAG_MOTION, &last_pointer_point);
    is_drag_flow_control_on = 0;
 }
-   
+
 
 static void roadmap_pointer_button_pressed (RoadMapGuiPoint *point) {
    last_pointer_point = *point;
 
-   if (exec_callbacks (PRESSED, point)) {
+   /* The dragging can be cancelled from the callback, using the roadmap_pointer_cancel_dragging() */
+   cancel_dragging = 0;
+   is_button_down = 1;
 
-      /* If a handler returns true dragging event is off.
-       */
-      cancel_dragging = 1;
-   } else {
-      cancel_dragging = 0;
-   }
+   exec_callbacks (PRESSED, point);
 
-   is_button_down = 1;    
+   is_long_click_expired = 0;
+
    roadmap_main_set_periodic
       (LONG_CLICK_TIMEOUT, roadmap_pointer_button_timeout);
 }
 
 
 static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
-    
+
+    roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
+
    if (is_dragging) {
       if (is_drag_flow_control_on) {
          roadmap_main_remove_periodic(roadmap_pointer_drag_flow_control);
@@ -124,26 +151,35 @@ static void roadmap_pointer_button_released (RoadMapGuiPoint *point) {
       is_dragging = 0;
       is_button_down = 0;
    } else if (is_button_down) {
-      roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      
+
+
       exec_callbacks (SHORT_CLICK, point);
       is_button_down = 0;
    }
 
    exec_callbacks (RELEASED, point);
+
+   cancel_dragging = 0;
+}
+
+static int get_drag_movement_thr(void){
+   if ( roadmap_screen_is_hd_screen() )
+      return DRAG_MOVEMENT_THR * 2;
+   return DRAG_MOVEMENT_THR;
 }
 
 static void roadmap_pointer_moved (RoadMapGuiPoint *point) {
+
    if (cancel_dragging || (!is_button_down && !is_dragging)) return;
 
    if (!is_dragging) {
 
       /* Less sensitive, since a car is not a quiet environment... */
-      if ((abs(point->x - last_pointer_point.x) <= 3) &&
-          (abs(point->y - last_pointer_point.y) <= 3)) return;
+      if ((abs(point->x - last_pointer_point.x) <= get_drag_movement_thr()) &&
+          (abs(point->y - last_pointer_point.y) <= get_drag_movement_thr())) return;
 
-      roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
-      
+      // roadmap_main_remove_periodic(roadmap_pointer_button_timeout);
+
       exec_callbacks (DRAG_START, &last_pointer_point);
 
       last_pointer_point = *point;
@@ -170,8 +206,9 @@ static void remove_callback (int event, void *handler) {
    }
 
    if (i==MAX_CALLBACKS) {
-      roadmap_log (ROADMAP_FATAL, "Can't find a callback to remove. Event: %d",
+      roadmap_log (ROADMAP_ERROR, "Can't find a callback to remove. Event: %d",
       event);
+      return;
    }
 
    memmove (&pointer_callbacks[event][i], &pointer_callbacks[event][i+1],
@@ -192,7 +229,7 @@ static void queue_callback (int event, void *handler, int priority) {
       if (pointer_callbacks[event][i].priority <= priority) break;
    }
 
-   
+
    memmove (&pointer_callbacks[event][i+1], &pointer_callbacks[event][i],
             sizeof(PointerCallback) * (MAX_CALLBACKS - i - 1));
 
@@ -231,6 +268,10 @@ void roadmap_pointer_register_long_click (RoadMapPointerHandler handler,
    queue_callback (LONG_CLICK, handler, priority);
 }
 
+void roadmap_pointer_register_enter_key_press    (RoadMapPointerHandler handler,
+                                                  int priority){
+   queue_callback (KEY_BOARD_PRESS, handler, priority);                                           	
+}
 
 void roadmap_pointer_register_pressed (RoadMapPointerHandler handler,
                                        int priority) {
@@ -308,4 +349,18 @@ void roadmap_pointer_unregister_drag_end (RoadMapPointerHandler handler) {
    remove_callback (DRAG_END, handler);
 }
 
+void roadmap_pointer_cancel_dragging( void )
+{
+   cancel_dragging = 1;
+}
 
+
+int roadmap_pointer_long_click_expired( void )
+{
+   return is_long_click_expired;
+}
+
+BOOL roadmap_pointer_is_down( void )
+{
+	return is_button_down;
+}

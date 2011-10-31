@@ -47,17 +47,17 @@ struct RoadMapPathRecord {
 static RoadMapPathList RoadMapPaths = NULL;
 
 /* The hardcoded path for configuration files (the "config" path).
-*/ 
+*/
 static const char *RoadMapPathConfig[] = {
    "&",
-   "\\Program Files\\roadmap",
+   "\\Program Files\\waze",
    "\\Storage Card\\roadmap",
    NULL
 };
 
-static const char *RoadMapPathConfigPreferred = "\\Storage Card\\roadmap";
+static const char *RoadMapPathConfigPreferred = "\\Storage Card\\Waze";
 
-/* Skins directories */ 
+/* Skins directories */
 static const char *RoadMapPathSkin[] = {
    "&\\skins\\default\\day",
    "&\\skins\\default",
@@ -66,15 +66,17 @@ static const char *RoadMapPathSkin[] = {
 
 static const char *RoadMapPathSkinPreferred = "&\\skins";
 
+static const char *RoadMapPathGpsSuffix = "gps";
+
 /* The default path for the map files (the "maps" path): */
 static const char *RoadMapPathMaps[] = {
    "&\\maps",
-   "\\Program Files\\roadmap\\maps",
-   "\\Storage Card\\roadmap\\maps",
+   "\\Program Files\\Waze\\maps",
+   "\\Storage Card\\Waze\\maps",
    NULL
 };
 
-static const char *RoadMapPathMapsPreferred = "\\Storage Card\\roadmap\\maps";
+static const char *RoadMapPathMapsPreferred = "\\Storage Card\\Waze\\maps";
 
 /* We don't have a user directory in wince so we'll leave this one empty */
 static const char *RoadMapPathUser[] = {
@@ -138,7 +140,7 @@ static RoadMapPathList roadmap_path_find (const char *name)
 /* Directory path strings operations. -------------------------------------- */
 
 static char *roadmap_path_cat (const char *s1, const char *s2)
-{ 
+{
    char *result = malloc (strlen(s1) + strlen(s2) + 4);
 
    roadmap_check_allocated (result);
@@ -155,6 +157,9 @@ char *roadmap_path_join (const char *path, const char *name)
 {
    if (path == NULL) {
       return strdup (name);
+   }
+   if ( name == NULL ) {
+	  return strdup( path );
    }
    return roadmap_path_cat (path, name);
 }
@@ -173,6 +178,30 @@ char *roadmap_path_parent (const char *path, const char *name)
    *separator = 0;
 
    return full_name;
+}
+
+
+void roadmap_path_format (char *buffer, int buffer_size, const char *path, const char *name) {
+
+	int len1 = path ? strlen (path) + 1 : 0;
+	int len2 = name ? strlen (name) : 0;
+
+	if (len1 >= buffer_size) {
+		len1 = buffer_size - 1;
+	}
+	if (len1 + len2 >= buffer_size) {
+		len2 = buffer_size - 1 - len1;
+	}
+
+	// first copy file name, for the case where buffer and name are the same pointer
+	if (len2) {
+		memmove (buffer + len1, name, len2);
+	}
+	if (len1) {
+		memmove (buffer, path, len1 - 1);
+		buffer[len1 - 1] = '\\';
+	}
+	buffer[len1 + len2] = '\0';
 }
 
 
@@ -224,9 +253,49 @@ const char *roadmap_path_user (void)
    return RoadMapUser;
 }
 
+const char *roadmap_path_gps (void)
+{
+   static char *RoadMapGps = NULL;
+
+   if (RoadMapGps == NULL)
+   {
+	  RoadMapGps = roadmap_path_cat (roadmap_path_user(), RoadMapPathGpsSuffix );
+      roadmap_path_create( RoadMapGps );
+   }
+   return RoadMapGps;
+}
+
+const char *roadmap_path_images( void )
+{
+   static char *RoadMapPathImages = NULL;
+
+   if ( RoadMapPathImages == NULL )
+   {
+	  RoadMapPathImages = roadmap_path_cat( roadmap_path_user(), "images" );
+	  roadmap_path_create( RoadMapPathImages );
+   }
+   return RoadMapPathImages;
+}
+
+const char *roadmap_path_downloads( void )
+{
+   return roadmap_path_user();
+}
+
+const char *roadmap_path_debug( void )
+{
+   static char *RoadMapPathDebug = NULL;
+
+   if ( RoadMapPathDebug == NULL )
+   {
+      RoadMapPathDebug = roadmap_path_join( roadmap_path_user(), "debug" );
+      roadmap_path_create( RoadMapPathDebug );
+   }
+   return RoadMapPathDebug;
+}
 
 const char *roadmap_path_trips (void)
-{   
+{
    static char  RoadMapDefaultTrips[] = "trips";
    static char *RoadMapTrips = NULL;
 
@@ -410,9 +479,33 @@ const char *roadmap_path_preferred (const char *name)
 
 void roadmap_path_create (const char *path)
 {
-   LPWSTR path_unicode = ConvertToWideChar(path, CP_UTF8);
-   CreateDirectory(path_unicode, NULL);
-   free(path_unicode);
+   LPWSTR path_unicode;
+   int res, stopFlag = 0;
+	char parent_path[512] = {0};
+	char *pNext = parent_path;
+	char delim = '\\';
+   
+	strncpy( parent_path, path, 512 );
+   
+	while( !stopFlag )
+	{
+		pNext = strchr( pNext+1, delim );
+		if ( pNext )
+			*pNext = 0;
+		else
+			stopFlag = 1;
+      
+		path_unicode = ConvertToWideChar(parent_path, CP_UTF8);
+      res = CreateDirectory(path_unicode, NULL);
+      free(path_unicode);
+		if ( res == 0 && GetLastError() != 183) // error 183 = path already exists
+		{
+			roadmap_log( ROADMAP_ERROR, "Error creating path: %s, Error: %d", path, GetLastError() );
+			stopFlag = 1;
+		}
+		if ( pNext )
+			*pNext = delim;
+	}
 }
 
 
@@ -517,3 +610,8 @@ int roadmap_path_is_directory (const char *name) {
    return dwAttributes & FILE_ATTRIBUTE_DIRECTORY;
 }
 
+
+const char *roadmap_path_config( void )
+{
+	return roadmap_path_user();
+}

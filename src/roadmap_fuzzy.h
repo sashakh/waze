@@ -32,7 +32,7 @@
 
 typedef int RoadMapFuzzy;
 
-void roadmap_fuzzy_start_cycle (void);
+void roadmap_fuzzy_reset_cycle (void);
 void roadmap_fuzzy_set_cycle_params (int street_accuracy, int confidence);
 
 int roadmap_fuzzy_max_distance (void);

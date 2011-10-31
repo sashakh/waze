@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="RoadGPS"
 	ProjectGUID="{3E5C3628-912B-4E54-8A74-BC7DE65CFA62}"
+	RootNamespace="RoadGPS"
 	>
 	<Platforms>
 		<Platform
@@ -276,6 +277,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\resource.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

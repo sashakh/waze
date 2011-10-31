@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -36,22 +37,23 @@
 
 #include "roadmap_types.h"
 #define ROADMAP_LINE_NO_SHAPES ((unsigned short)-1)
-#define ROADMAP_LINE_NO_STREET ((unsigned short)-1)
+#define ROADMAP_LINE_NO_RANGE ((unsigned short)-1)
 
 typedef struct {  /* table line */
 
-   int from;
-   int to;
+   unsigned short from;
+   unsigned short to;
    unsigned short first_shape;
-   unsigned short street;
+   unsigned short range;
 
 } RoadMapLine;
 
 typedef struct { /* tables bysquare1 and bysquare2 */
 
-   int first[ROADMAP_CATEGORY_RANGE];
-   int last;
-
+   unsigned short next[ROADMAP_CATEGORY_RANGE + 1];
+   
+   unsigned short num_roundabout;
+   unsigned short first_broken[ROADMAP_DIRECTION_COUNT * 2 + 1];
 } RoadMapLineBySquare;
 
 typedef struct {

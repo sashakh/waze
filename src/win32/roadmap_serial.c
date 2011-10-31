@@ -57,11 +57,11 @@ RoadMapSerial roadmap_serial_open(const char *name, const char *mode,
    Win32SerialConn *conn = malloc (sizeof(Win32SerialConn));
 
    if (conn == NULL) return NULL;
+   
+   memset( conn, 0, sizeof(Win32SerialConn));
 
-   strncpy (conn->name, name, sizeof(conn->name));
-   conn->name[sizeof(conn->name)-1] = '\0';
-   strncpy (conn->mode, mode, sizeof(conn->mode));
-   conn->mode[sizeof(conn->mode)-1] = '\0';
+   strncpy_safe (conn->name, name, sizeof(conn->name));
+   strncpy_safe (conn->mode, mode, sizeof(conn->mode));
    conn->baud_rate = baud_rate;
 
    conn->handle = INVALID_HANDLE_VALUE;

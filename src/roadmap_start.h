@@ -3,6 +3,7 @@
  * LICENSE:
  *
  *   Copyright 2002 Pascal F. Martin
+ *   Copyright 2008 Ehud Shabtai
  *
  *   This file is part of RoadMap.
  *
@@ -25,6 +26,9 @@
 #define INCLUDE__ROADMAP_START__H
 
 #include "roadmap_factory.h"
+#ifdef SSD
+#include "ssd/ssd_dialog.h"
+#endif
 
 #define ROADMAP_START_INIT 1
 #define ROADMAP_START_SHUTDOWN 2
@@ -41,6 +45,7 @@ typedef void (*RoadMapStartSubscriber) (int event);
 void roadmap_start_freeze   (void);
 void roadmap_start_unfreeze (void);
 int roadmap_start_is_frozen (void);
+void roadmap_confirmed_exit(void);
 
 void roadmap_start      (int argc, char **argv);
 void roadmap_start_exit (void);
@@ -62,15 +67,29 @@ int roadmap_start_add_action (const char *name, const char *label_long,
                               const char *label_short, const char *label_terse,
                               const char *tip, RoadMapCallback callback);
 
+#ifdef SSD
 void roadmap_start_popup_menu (const char *name,
                                const char *items[],
-                               RoadMapCallback callback,
+                               PFN_ON_DIALOG_CLOSED callback,
                                const RoadMapGuiPoint *point);
+#endif
 
 void roadmap_start_hide_menu (const char *name);
 
 void roadmap_start_screen_refresh (int refresh);
 void roadmap_start_redraw (void);
+
+void start_alerts_quick_menu(void);
+
+const char* roadmap_start_version();
+
+void roadmap_start_reset_debug_mode();
+
+int roadmap_start_get_first_time_use();
+void start_settings_quick_menu(void);
+ssd_cm_item_ptr roadmap_start_get_menu_item( const char*          menu_name,
+											 const char*          item_name,
+											 ssd_contextmenu_ptr  parent );
 
 #endif /* INCLUDE__ROADMAP_START__H */
 

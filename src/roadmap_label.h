@@ -28,10 +28,14 @@
 
 #include "roadmap.h"
 #include "roadmap_gui.h"
+#include "roadmap_plugin.h"
 
 
 int roadmap_label_add (const RoadMapGuiPoint *point, int angle,
                        int featuresize, const PluginLine *line);
+
+int roadmap_label_add_place (const RoadMapGuiPoint *point, int angle,
+                             int featuresize_sq, const char *name);
 
 void roadmap_label_activate (void);
 int roadmap_label_initialize (void);
@@ -39,5 +43,6 @@ int roadmap_label_initialize (void);
 int roadmap_label_draw_cache (int angles);
 
 void roadmap_label_start (void);
+void roadmap_label_clear (int square);
 
 #endif // __ROADMAP_LABEL__H

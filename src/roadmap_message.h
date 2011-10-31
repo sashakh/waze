@@ -32,4 +32,6 @@ void roadmap_message_unset  (char parameter);
 
 int  roadmap_message_format (char *text, int length, const char *format);
 
+int roadmap_message_is_set (char parameter);
+
 #endif // INCLUDE__ROADMAP_MESSAGE__H

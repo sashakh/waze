@@ -24,19 +24,29 @@
 #ifndef INCLUDE__NAVIGATE_INSTR__H
 #define INCLUDE__NAVIGATE_INSTR__H
 
-#include "navigate_main.h"
+#include "navigate/navigate_main.h"
 
 #define LINE_START 0
 #define LINE_END   1
+
+typedef NavigateSegment * (*SegmentIterator) (int i);
 
 int navigate_instr_calc_length (const RoadMapPosition *position,
                                 const NavigateSegment *segment,
                                 int type);
 
-int navigate_instr_prepare_segments (NavigateSegment *segments,
+void navigate_instr_fix_line_end (RoadMapPosition *position,
+                                   NavigateSegment *segment,
+                                   int type);
+
+int navigate_instr_prepare_segments (SegmentIterator get_segment,
                                      int count,
+                                     int count_new,
                                      RoadMapPosition *src_pos,
                                      RoadMapPosition *dst_pos);
 
+void navigate_instr_calc_cross_time (NavigateSegment *segments,
+                                     int count);
+                                     
 #endif // INCLUDE__NAVIGATE_INSTR__H
 
