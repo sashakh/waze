@@ -84,6 +84,12 @@ static const char *RoadMapPathSkin[] = {
 	"+/"HOME_PREFIX"/skins/default/day",
 	"+/"HOME_PREFIX"/skins/default",
 #endif //IPHONE
+#ifdef __linux__
+   "/usr/local/share/waze/skins/default/day",
+   "/usr/local/share/waze/skins/default",
+   "/usr/share/waze/skins/default/day",
+   "/usr/share/waze/skins/default",
+#endif
    NULL
 };
 #ifndef IPHONE
