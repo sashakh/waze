@@ -976,7 +976,7 @@ RoadMapAction RoadMapStartActions[MAX_ACTIONS + 1] = {
    {"scoreboard", "Scoreboard", NULL,  NULL,
       "Scoreboard", roadmap_scoreboard},
 
-#if defined (IPHONE) || defined (_WIN32) || defined(ANDROID)
+#if defined (__linux__) || defined (IPHONE) || defined (_WIN32) || defined(ANDROID)
    {"search_ab", "Contacts", "Contacts", NULL,
          "Contacts", roamdmap_search_address_book},
 #endif

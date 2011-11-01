@@ -54,7 +54,7 @@ void search_menu_search_local(void);
 void search_menu_my_saved_places(void);
 void search_menu_geo_reminders(void);
 
-#if defined (IPHONE) || defined (_WIN32) || defined(ANDROID)
+#if defined (__linux__) || defined (IPHONE) || defined (_WIN32) || defined(ANDROID)
 void roamdmap_search_address_book(void);
 void search_menu_set_local_search_attrs( void );
 #endif
