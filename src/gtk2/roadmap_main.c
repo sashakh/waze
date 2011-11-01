@@ -64,7 +64,7 @@ struct roadmap_main_timer {
    RoadMapCallback callback;
 };
 
-#define ROADMAP_MAX_TIMER 16
+#define ROADMAP_MAX_TIMER 32
 static struct roadmap_main_timer RoadMapMainPeriodicTimer[ROADMAP_MAX_TIMER];
 
 
@@ -422,90 +422,70 @@ void roadmap_main_show (void) {
 }
 
 
-static void roadmap_main_input
-               (gpointer data, gint source, GdkInputCondition conditions) {
+static gboolean io_handler(GIOChannel *source, GIOCondition condition, gpointer data)
+{
+	if (data != NULL) {
+		struct roadmap_main_io *cxt = (struct roadmap_main_io *) data;
+		(* cxt->callback) (&cxt->io);
+	}
 
-   if (data != NULL) {
-      struct roadmap_main_io *context = (struct roadmap_main_io *) data;
-      (* context->callback) (&context->io);
-   }
+	return TRUE;
 }
 
+static guint add_io_handler(int fd, GIOCondition condition, void * data)
+{
+	GIOChannel *channel;
+	guint id;
 
-void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback) {
+	channel =  g_io_channel_unix_new(fd);
+	if (!channel) {
+		roadmap_log(ROADMAP_ERROR, "%s: Cannot create %s io channel",
+			    __func__,
+			    condition == G_IO_IN ? "input" : "output");
+		return -1;
+	}
 
+	id = g_io_add_watch_full(channel, 0, condition, io_handler, data, NULL);
+
+	return id;
+}
+
+static void set_io_handler(RoadMapIO *io, GIOCondition condition, RoadMapInput callback)
+{
    int i;
    int fd = io->os.file; /* All the same on UNIX. */
+
+   if (io->subsystem == ROADMAP_IO_NET)
+	fd = roadmap_net_get_fd(io->os.socket);
 
    for (i = 0; i < ROADMAP_MAX_IO; ++i) {
       if (RoadMapMainIo[i].io.subsystem == ROADMAP_IO_INVALID) {
+	 io->data = &RoadMapMainIo[i];
          RoadMapMainIo[i].io = *io;
          RoadMapMainIo[i].callback = callback;
-         RoadMapMainIo[i].id =
-            gtk_input_add_full (fd, GDK_INPUT_READ, roadmap_main_input,
-                                NULL, &RoadMapMainIo[i], NULL);
+         RoadMapMainIo[i].id = add_io_handler(fd, condition, &RoadMapMainIo[i]);
          break;
       }
    }
 }
 
-
-void roadmap_main_remove_input (RoadMapIO *io) {
-
-   int i;
-   int fd = io->os.file; /* All the same on UNIX. */
-
-   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      if (RoadMapMainIo[i].io.os.file == fd) {
-         gtk_input_remove (RoadMapMainIo[i].id);
-         RoadMapMainIo[i].io.os.file = -1;
-         RoadMapMainIo[i].io.subsystem = ROADMAP_IO_INVALID;
-         break;
-      }
-   }
-}
-
-/*************************************************************************************************
- * roadmap_main_set_output()
- * Allocates the entry for the io and creates the handler thread
- */
-void roadmap_main_set_output ( RoadMapIO *io, RoadMapInput callback )
+void roadmap_main_set_input (RoadMapIO *io, RoadMapInput callback)
 {
-#if 0 // TODO me
-	int i, retVal;
-	int fd;
+	set_io_handler(io, G_IO_IN, callback);
+}
 
-	roadmap_log( ROADMAP_DEBUG, "Setting the output for the subsystem : %d\n", io->subsystem );
+void roadmap_main_remove_input (RoadMapIO *io)
+{
+	struct roadmap_main_io *r = io->data;
 
-   if (io->subsystem == ROADMAP_IO_NET) fd = roadmap_net_get_fd(io->os.socket);
-   else fd = io->os.file; /* All the same on UNIX except sockets. */
+	g_source_remove(r->id);
+	r->io.os.file = -1;
+	r->io.subsystem = ROADMAP_IO_INVALID;
+}
 
-	for ( i = 0; i < ROADMAP_MAX_IO; ++i )
-	{
-		if ( !IO_VALID( RoadMapMainIo[i].io_id ) )
-		{
-			RoadMapMainIo[i].io = *io;
-			RoadMapMainIo[i].callback = callback;
-			RoadMapMainIo[i].io_id = i;
-			RoadMapMainIo[i].io_type = _IO_DIR_WRITE;
-         RoadMapMainIo[i].start_time = time(NULL);
-         retVal = pthread_mutex_init( &RoadMapMainIo[i].mutex, NULL );
-         LogResult( retVal, "Mutex init. ", ROADMAP_ERROR );
-         retVal = pthread_cond_init( &RoadMapMainIo[i].cond, NULL );
-         LogResult( retVal, "Condition init init. ", ROADMAP_ERROR );
-			break;
-		}
-	}
-
-	if ( i == ROADMAP_MAX_IO )
-	{
-	   roadmap_log ( ROADMAP_FATAL, "Too many set output calls" );
-	   return;
-	}
-
-	// Setting the handler
-	roadmap_main_set_handler( &RoadMapMainIo[i] );
-#endif
+void roadmap_main_set_output(RoadMapIO *io, RoadMapInput callback)
+{
+	set_io_handler(io, G_IO_OUT, callback);
 }
 
 RoadMapIO *roadmap_main_output_timedout(time_t timeout) {
@@ -522,7 +502,6 @@ RoadMapIO *roadmap_main_output_timedout(time_t timeout) {
 #endif
    return NULL;
 }
-
 
 static gboolean roadmap_main_timeout (gpointer data) {
 
@@ -555,13 +534,12 @@ void roadmap_main_set_periodic (int interval, RoadMapCallback callback) {
       roadmap_log (ROADMAP_FATAL, "Timer table saturated");
    }
 
-   timer->id = gtk_timeout_add (interval, roadmap_main_timeout, callback);
+   timer->id = g_timeout_add(interval, roadmap_main_timeout, callback);
    timer->callback = callback;
 }
 
-
-void roadmap_main_remove_periodic (RoadMapCallback callback) {
-
+void roadmap_main_remove_periodic (RoadMapCallback callback)
+{
    int index;
 
    for (index = 0; index < ROADMAP_MAX_TIMER; ++index) {
@@ -569,7 +547,7 @@ void roadmap_main_remove_periodic (RoadMapCallback callback) {
       if (RoadMapMainPeriodicTimer[index].callback == callback) {
 
          RoadMapMainPeriodicTimer[index].callback = NULL;
-         gtk_timeout_remove (RoadMapMainPeriodicTimer[index].id);
+         g_source_remove(RoadMapMainPeriodicTimer[index].id);
 
          return;
       }
