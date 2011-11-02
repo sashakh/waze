@@ -53,6 +53,7 @@ struct roadmap_main_io {
    int id;
    RoadMapIO io;
    RoadMapInput callback;
+   time_t start_time;
 };
 
 #define ROADMAP_MAX_IO 16
@@ -463,6 +464,7 @@ static void set_io_handler(RoadMapIO *io, GIOCondition condition, RoadMapInput c
 	 io->data = &RoadMapMainIo[i];
          RoadMapMainIo[i].io = *io;
          RoadMapMainIo[i].callback = callback;
+	 RoadMapMainIo[i].start_time = condition == G_IO_OUT ? time(NULL) : 0;
          RoadMapMainIo[i].id = add_io_handler(fd, condition, &RoadMapMainIo[i]);
          break;
       }
@@ -488,19 +490,17 @@ void roadmap_main_set_output(RoadMapIO *io, RoadMapInput callback)
 	set_io_handler(io, G_IO_OUT, callback);
 }
 
-RoadMapIO *roadmap_main_output_timedout(time_t timeout) {
-   int i;
-#if 0 // TODO me
-   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
-      if ( IO_VALID( RoadMapMainIo[i].io_id ) ) {
-         if (RoadMapMainIo[i].start_time &&
-               (timeout > RoadMapMainIo[i].start_time)) {
-            return &RoadMapMainIo[i].io;
-         }
-      }
-   }
-#endif
-   return NULL;
+RoadMapIO *roadmap_main_output_timedout(time_t timeout)
+{
+	int i;
+
+	for (i = 0; i < ROADMAP_MAX_IO; ++i)
+		if (RoadMapMainIo[i].io.subsystem != ROADMAP_IO_INVALID &&
+		    RoadMapMainIo[i].start_time &&
+		    timeout > RoadMapMainIo[i].start_time)
+			return &RoadMapMainIo[i].io;
+
+	return NULL;
 }
 
 static gboolean roadmap_main_timeout (gpointer data) {
