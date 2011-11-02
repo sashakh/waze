@@ -91,6 +91,8 @@ endif
 
 RMLIBOBJS := $(RMLIBSRCS:.c=.o) roadmap_libpng.o
 
+RMLIBOBJS += roadmap_native_keyboard.o roadmap_device.o roadmap_camera.o
+
 ifeq ($(RENDERING),OPENGL)
 RMLIBOBJS += roadmap_canvas_ogl.o
 else

@@ -80,6 +80,8 @@ static GtkWidget      *RoadMapMainStatus  = NULL;
 
 static int GtkIconsInitialized = 0;
 
+int USING_PHONE_KEYPAD = 0;
+
 
 static void roadmap_start_event (int event) {
    switch (event) {
@@ -463,6 +465,64 @@ void roadmap_main_remove_input (RoadMapIO *io) {
    }
 }
 
+/*************************************************************************************************
+ * roadmap_main_set_output()
+ * Allocates the entry for the io and creates the handler thread
+ */
+void roadmap_main_set_output ( RoadMapIO *io, RoadMapInput callback )
+{
+#if 0 // TODO me
+	int i, retVal;
+	int fd;
+
+	roadmap_log( ROADMAP_DEBUG, "Setting the output for the subsystem : %d\n", io->subsystem );
+
+   if (io->subsystem == ROADMAP_IO_NET) fd = roadmap_net_get_fd(io->os.socket);
+   else fd = io->os.file; /* All the same on UNIX except sockets. */
+
+	for ( i = 0; i < ROADMAP_MAX_IO; ++i )
+	{
+		if ( !IO_VALID( RoadMapMainIo[i].io_id ) )
+		{
+			RoadMapMainIo[i].io = *io;
+			RoadMapMainIo[i].callback = callback;
+			RoadMapMainIo[i].io_id = i;
+			RoadMapMainIo[i].io_type = _IO_DIR_WRITE;
+         RoadMapMainIo[i].start_time = time(NULL);
+         retVal = pthread_mutex_init( &RoadMapMainIo[i].mutex, NULL );
+         LogResult( retVal, "Mutex init. ", ROADMAP_ERROR );
+         retVal = pthread_cond_init( &RoadMapMainIo[i].cond, NULL );
+         LogResult( retVal, "Condition init init. ", ROADMAP_ERROR );
+			break;
+		}
+	}
+
+	if ( i == ROADMAP_MAX_IO )
+	{
+	   roadmap_log ( ROADMAP_FATAL, "Too many set output calls" );
+	   return;
+	}
+
+	// Setting the handler
+	roadmap_main_set_handler( &RoadMapMainIo[i] );
+#endif
+}
+
+RoadMapIO *roadmap_main_output_timedout(time_t timeout) {
+   int i;
+#if 0 // TODO me
+   for (i = 0; i < ROADMAP_MAX_IO; ++i) {
+      if ( IO_VALID( RoadMapMainIo[i].io_id ) ) {
+         if (RoadMapMainIo[i].start_time &&
+               (timeout > RoadMapMainIo[i].start_time)) {
+            return &RoadMapMainIo[i].io;
+         }
+      }
+   }
+#endif
+   return NULL;
+}
+
 
 static gboolean roadmap_main_timeout (gpointer data) {
 
@@ -518,6 +578,30 @@ void roadmap_main_remove_periodic (RoadMapCallback callback) {
    roadmap_log (ROADMAP_ERROR, "timer 0x%08x not found", callback);
 }
 
+static void on_auto_hide_dialog_close( int exit_code, void* context )
+{
+}
+
+void roadmap_gui_minimize( void )
+{
+	//FreeMapNativeManager_MinimizeApplication( -1 );
+}
+
+void roadmap_gui_maximize( void )
+{
+	//FreeMapNativeManager_MaximizeApplication();
+}
+
+void roadmap_main_minimize( void )
+{
+   auto_hide_dlg(on_auto_hide_dialog_close);
+}
+
+BOOL roadmap_horizontal_screen_orientation()
+{
+	//return roadmap_canvas_is_landscape();
+	return TRUE;
+}
 
 void roadmap_main_set_status (const char *text) {
 
