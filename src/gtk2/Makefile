@@ -52,14 +52,25 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
-LIBS = -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lagg -lfreetype -lpng
+LIBS := -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lfreetype -lpng
 
 ifeq ($(BIDI),YES)
 LIBS += -lfribidi
 CFLAGS += -DUSE_FRIBIDI
 endif
 
-RUNTIME=gtkroadmap gtkroadgps
+ifeq ($(TILESTORAGE),SQLITE)
+LIBS += -lsqlite3
+endif
+
+ifeq ($(RENDERING),OPENGL)
+# make OpenGL support
+else
+LIBS += -lagg
+endif
+
+RUNTIME := gtkroadmap
+#RUNTIME=gtkroadmap gtkroadgps
 
 ifeq ($(FREEMAP_IL),YES)
 CFLAGS += -DFREEMAP_IL
@@ -78,8 +89,13 @@ RMLIBSRCS += roadmap_messagebox.c
 endif
 
 
-RMLIBOBJS=$(RMLIBSRCS:.c=.o) roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o roadmap_libpng.o
+RMLIBOBJS := $(RMLIBSRCS:.c=.o) roadmap_libpng.o
 
+ifeq ($(RENDERING),OPENGL)
+RMLIBOBJS += roadmap_canvas_ogl.o
+else
+RMLIBOBJS += roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
+endif
 
 # --- Conventional targets ----------------------------------------
 
