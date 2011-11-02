@@ -77,11 +77,11 @@ unsigned char *read_png_file(const char* file_name, int *width, int *height,
 
    png_read_info(png_ptr, info_ptr);
 
-   *width = info_ptr->width;
-   *height = info_ptr->height;
-   *stride = info_ptr->rowbytes;
-   color_type = info_ptr->color_type;
-   bit_depth = info_ptr->bit_depth;
+   *width = png_get_image_width(png_ptr, info_ptr);
+   *height = png_get_image_height(png_ptr, info_ptr);
+   *stride = png_get_rowbytes(png_ptr, info_ptr);
+   color_type = png_get_color_type(png_ptr, info_ptr);
+   bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
    number_of_passes = png_set_interlace_handling(png_ptr);
    png_read_update_info(png_ptr, info_ptr);
@@ -94,9 +94,9 @@ unsigned char *read_png_file(const char* file_name, int *width, int *height,
    }
 
    row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * *height);
-   buf = malloc (*height * info_ptr->rowbytes);
+   buf = malloc (*height * *stride);
    for (y=0; y<*height; y++) {
-      row_pointers[y] = (png_byte*) (buf + y * info_ptr->rowbytes);
+      row_pointers[y] = (png_byte*) (buf + y * *stride);
    }
 
    png_read_image(png_ptr, row_pointers);
