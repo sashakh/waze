@@ -50,7 +50,7 @@ General.Default Zoom: 20
 Map.Cache: 8
 General.Icons: yes
 General.Toolbar: no
-Geometry.Main: -1x-1
+Geometry.Main: 800x600
 General.Keyboard: no
 General.Unit: imperial
 Map.Static County: 77001
