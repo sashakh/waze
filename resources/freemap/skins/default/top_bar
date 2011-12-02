@@ -1,0 +1,135 @@
+N logo
+I TS_top_logo
+P 7 4
+B -7 -4 70 37
+A about
+
+N Seperator
+I Topbar_Sep
+P 70 5
+
+N alerts 
+I top_alerts
+I top_alerts
+I top_alerts
+I top_alerts
+I top_alerts
+P 84 0
+B -14 4 46 44
+S alerts_state
+C real_time_state 1
+A real_time_alerts_list
+
+
+N num_alerts
+T num_alerts
+P 101 5
+F 16
+S alerts_state
+C real_time_state 1
+A real_time_alerts_list
+
+
+N Seperator
+I Topbar_Sep
+P 130 5
+
+N alerts_group 
+I TS_top_bar_groups
+I TS_top_bar_groups
+I TS_top_bar_groups_new
+P 135 2
+B -5 -14 55 30
+S groups_state
+C real_time_state 1
+A real_time_alerts_list_group
+
+
+N num_alerts_group
+T group_num_alerts
+P 170 5
+F 16
+S alerts_state
+C real_time_state 1
+A real_time_alerts_list_group
+
+N Seperator
+I Topbar_Sep
+P 190 5
+
+N moods
+S mood_state
+A mood_dialog
+B -14 -4 46 62
+I TS_top_mood_disabled
+I TS_top_mood_happy
+I TS_top_mood_sad
+I TS_top_mood_mad
+I TS_top_mood_bored
+I TS_top_mood_speedy
+I TS_top_mood_starving
+I TS_top_mood_sleepy
+I TS_top_mood_cool
+I TS_top_mood_inlove
+I TS_top_mood_LOL
+I TS_top_mood_peaceful2
+I TS_top_mood_singing
+I TS_top_mood_wondering
+I TS_top_mood_happy
+I TS_top_mood_sad
+I TS_top_mood_mad
+I TS_top_mood_bored
+I TS_top_mood_speedy
+I TS_top_mood_starving
+I TS_top_mood_sleepy
+I TS_top_mood_cool
+I TS_top_mood_inlove
+I TS_top_mood_LOL
+I TS_top_mood_peaceful
+I TS_top_mood_singing
+I TS_top_mood_wondering
+I TS_top_mood_bronze
+I TS_top_mood_silver
+I TS_top_mood_gold
+I TS_top_mood_busy
+I TS_top_mood_busy
+I TS_top_mood_in_a_hurry
+I TS_top_mood_in_a_hurry
+I TS_top_mood_baby
+P 204 2
+
+N GroupWazer
+G group_wazer
+C real_time_state 1
+P 203 2
+
+N crown
+S user_addon_state
+I TS_top_mood_crown
+I TS_top_mood_sword
+I TS_top_mood_shield 
+P 204 2
+
+N Seperator
+I Topbar_Sep
+P -70 5
+
+N gps_reception
+I TS_top_satellite_off
+I TS_top_satellite_off
+I TS_top_satellite_poor
+I TS_top_satellite_on
+P -35 0
+S GPS_reception
+A gps_net_stat
+B -4 -4 40 40
+
+N on_line
+I TS_top_not_connected
+I TS_top_connected
+P -70 2
+S real_time_state
+A gps_net_stat
+B -4 -4 40 40
+
+Y 1

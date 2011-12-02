@@ -1,0 +1,153 @@
+Map.Background: #ebe7dd
+Labels.Color: #3b3838
+Labels.BgColor: #ffffffbf
+Console.Foreground: #000000
+Console.Background: #edeae0
+Freeways.Class: Road
+Freeways.Color2: # ffc44d
+Freeways.Color1: #ffc44d
+Freeways.Color: #e5b045
+Freeways.Declutter: 2147483647
+Freeways.Delta1: -2
+Freeways.Delta2: -2
+Freeways.Thickness: 6
+Primary.Class: Road
+Primary.Color2: # ffc44d
+Primary.Color1: # ffc44d
+Primary.Color: # e5b045
+Primary.Declutter: 4000
+Primary.Delta2: -2
+Primary.Delta1: -2
+Primary.Thickness: 6
+Secondary.Class: Road
+Secondary.Color2: #ffe266
+Secondary.Color1: #ffe266
+Secondary.Color: #d8c882
+Secondary.Declutter: 1500
+Secondary.Delta1: -2
+Secondary.Delta2: -2
+Secondary.Thickness: 5
+Ramps.Class: Road
+Ramps.Color2: # ffb625
+Ramps.Color1: # ffd35a
+Ramps.Color: # f1b12f
+Ramps.Declutter: 160
+Ramps.Delta1: -2
+Ramps.Delta2: -2
+Ramps.Thickness: 3
+Highways.Class: Road
+Highways.Color2: #ffe266
+Highways.Color1: #ffe266
+Highways.Color: #d8c882
+Highways.Declutter: 350
+Highways.Delta1: -2
+Highways.Delta2: -2
+Highways.Thickness: 4
+Exit.Class: Road
+Exit.Color2: # ffb625
+Exit.Color1: # ffb625
+Exit.Color: # e6a523
+Exit.Declutter: 350
+Exit.Delta1: -2
+Exit.Delta2: -2
+Exit.Thickness: 3
+Streets.Class: Road
+Streets.Color2: #ffffff
+Streets.Color1: #ffffff
+Streets.Color: #e0dcd3
+Streets.Declutter: 120
+Streets.Delta1: -2
+Streets.Delta2: -2
+Streets.Thickness: 3
+Pedestrian.Class: Road
+Pedestrian.Color: # d0ccc4
+Pedestrian.Declutter: 160
+Pedestrian.Delta1: 0
+Pedestrian.Thickness: 1
+4X4 Trails.Class: Road
+4X4 Trails.Color: # d0ccc4
+4X4 Trails.Declutter: 160
+4X4 Trails.Delta1: 0
+4X4 Trails.Thickness: 1
+Trails.Class: Road
+Trails.Color: # d0ccc4
+Trails.Declutter: 160
+Trails.Delta1: 0
+Trails.Thickness: 1
+Walkway.Class: Road
+Walkway.Color: # d0ccc4
+Walkway.Declutter: 160
+Walkway.Delta1: 0
+Walkway.Thickness: 1
+Airports.Class: Area
+Airports.Color: #cdc6b0
+Airports.Declutter: 4000
+Airports.Delta1: 0
+Airports.Thickness: 1
+Hospitals.Class: Area
+Hospitals.Color: #fffa73
+Hospitals.Declutter: 200
+Hospitals.Delta1: 0
+Hospitals.Thickness: 1
+Lakes.Class: Area
+Lakes.Color: #80aaff
+Lakes.Declutter: 1500
+Lakes.Delta1: 0
+Lakes.Thickness: 1
+Malls.Class: Area
+Malls.Color: #ff000000
+Malls.Color1: #ff000000
+Malls.Declutter: 200
+Malls.Delta1: 0
+Malls.Thickness: 1
+Cities.Class: Area
+Cities.Color: #ff000000
+Cities.Color1: #ff000000
+Cities.Declutter: 2147483647
+Cities.Delta1: 1
+Cities.Thickness: 1
+Cities.LabelColor: #7f7f7f
+Parks.Class: Area
+Parks.Color: #a9c567
+Parks.Declutter: 1500
+Parks.Delta1: 0
+Parks.Thickness: 1
+Parks.LabelDeclutter: 800
+Parks.LabelColor: #46751a
+Rivers.Class: Feature
+Rivers.Color: #80aaff
+Rivers.Declutter: 1500
+Rivers.Delta1: 0
+Rivers.Thickness: 3
+Sea.Class: Area
+Sea.Color: #80aaff
+Sea.Declutter: 2147483647
+Sea.Delta1: 0
+Sea.Thickness: 1
+Sea.LabelDeclutter: 100
+Sea.LabelColor: #6383a0
+Shore.Class: Feature
+Shore.Color: #99b3cc
+Shore.Declutter: 2147483647
+Shore.Delta1: 0
+Shore.Thickness: 2
+Stations.Class: Area
+Stations.Color: #d4d0cc
+Stations.Declutter: 200
+Stations.Delta1: 0
+Stations.Thickness: 1
+Stations.LabelDeclutter: 100
+Stations.LabelColor: #817a7a
+Navigation.RouteColor: #9933FF
+Labels.MinFeatureSize: 25
+Activity.Background: #535252
+Activity.Foreground: #FFFFFF
+Cities.Delta2: 0
+TrafficInfo.RouteColorMild: # ff7f00
+TrafficInfo.RouteColorBad: # d90000
+TrafficInfo.RouteColorStandStill: #7f0000
+Navigation.PossibleRouteColor: #9933FF
+Navigation.Alt1outeColor: #fb27ea
+Navigation.Alt2outeColor: #71c113
+Navigation.Alt3RouteColor: #3dbce0
+Traffic.JamRoadColor: #8b0000

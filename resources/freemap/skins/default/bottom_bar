@@ -1,0 +1,72 @@
+N me_on_map
+I me_on_map me_on_map2
+P 0 -50
+A show_me
+B -10 0 95 50
+
+N Map_text
+E Me_on_map
+P 45 -14
+L 12
+F 11
+D #ffffff
+
+N me_on_map
+I me_on_map_d me_on_map2
+P 0 -50
+A show_me
+B -10 0 95 50
+C bottom_bar 1
+
+N Map_text
+E Me_on_map
+P 45 -14
+L 12
+F 11
+D #939393
+C bottom_bar 1
+
+N search
+I Search Search2
+P 97 -50
+A search_menu
+B -10 0 73 50
+
+
+N Search_text
+E Drive_to
+P 133 -14
+L 12
+F 11
+D #ffffff
+
+N Report
+I Report Report2
+P 172 -50
+A alertsmenu
+B -10 0 73 50
+
+N Report_text
+E Report
+P 208 -14
+L 12
+F 11
+D #ffffff
+
+N More
+I More More2
+P 247 -50
+A more_menu
+B -10 0 73 50
+
+
+N Report_text
+E More
+P 283 -14
+L 12
+F 11
+D #ffffff
+
+
+
+Y 1

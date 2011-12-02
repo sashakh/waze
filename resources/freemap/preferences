@@ -1,0 +1,80 @@
+;GeoConfig.Force Location: usa
+GeoConfig.Web-Service Address: http://rt.waze.com/rtserver
+Geo-Location.Enabled: yes
+Editor.Gray scale: yes
+Style.Use Pretty Lines: yes
+Shapes.Declutter: 1300
+Polygons.Declutter: 1300
+Location.Color: red
+Highlight.Thickness: 4
+Highlight.Duration: 10
+Highlight.Background: yellow
+GPS.Foreground: black
+GPS.Color: red
+GPS.Background: LightYellow
+Destination.Color: red
+Drivers.Trace: Disabled
+Drivers.Kismet: Disabled
+Drivers.Friends: Disabled
+Drivers.Ghost2: Disabled
+Drivers.Ghost1: Disabled
+Drivers.Port: 2007
+Map.GPS map offset longitude: 0
+Map.GPS map offset latitude: 0
+History.Depth: 100
+GPS.Timeout: 10
+Error.Foreground: white
+Error.Background: red
+Info.Foreground: black
+Info.Background: yellow
+Selected Street.Foreground: black
+Selected Street.Background: yellow
+Selected Street.Text: %F
+Approach.Foreground: #262424
+Approach.Background: #bdd1e7
+Current Street.Foreground: white
+Current Street.Background: DarkSeaGreen4
+Current Street.Text: %N, %C|%N
+Console.Foreground: black
+Console.Background: yellow
+Display.Top Right: ETA: %A|%T
+Display.Bottom Left: %S
+Display.Bottom Right: %D (%W)|%D
+Display.Duration: 10
+Style.Show Objects when Dragging: yes
+Style.Pretty Lines when Dragging: yes
+Map.Refresh: normal
+Map.Signs: yes
+Display.Rotate: yes
+General.Default Zoom: 20
+Map.Cache: 8
+General.Icons: yes
+General.Toolbar: no
+Geometry.Main: -1x-1
+General.Keyboard: no
+General.Unit: imperial
+Map.Static County: 77001
+Welcome Wizard.Enabled: yes
+Navigation Bar.Street Normal Font: 22
+Navigation Bar.Destination Time Font: 20
+Navigation Bar.Destination Distance Font: 20
+GPS.Show GPS: no
+Realtime.Auto registration: Enabled
+Routing.Tolls roads: no
+Realtime.Comm Check period (minutes): 1
+Realtime.Refresh rate (minutes): 2
+Realtime.Summary Refresh rate (minutes): 0.5
+Realtime.Hi-Res Refresh rate (minutes): 0.17
+Navigation.Min Mobile Knots: 19
+Navigation.Max Jam Knots: 11
+Keyboard.Typing lock threshold: 1000
+Download.Images: http://75.101.158.200/resources/images/
+Download.Sound: http://75.101.158.200/resources/sounds/
+Download.Langs: http://75.101.158.200/resources/langs/
+Download.Config: http://75.101.158.200/resources/config/
+Download.Images_Ver: 1.0
+Download.Sound_Ver: 1.0
+Download.Langs_Ver: 1.0
+Download.Config_Ver: 1.0
+Download.Country_Specific_Images_Ver: 1.0
+

@@ -1,0 +1,66 @@
+N Drive_to
+! 0
+O 0, 1
+L Drive_to
+I ic_menu_directions 1
+T 0
+A search_menu
+
+N Settings
+! 1
+O 1, 2
+L Settings
+I ic_menu_preferences 1
+T 0
+A settingsmenu
+
+N More
+! 2
+O 2, 5
+L More
+I ic_menu_more 1
+T 1
+A ####
+
+
+N me_on_map
+! 3
+O 3, 0
+L Me_on_map
+I ic_menu_mylocation 1
+T 0
+A show_me
+
+N Exit
+! 4
+O 4, 3
+L Quit
+I ic_menu_revert 1
+T 0
+A exit
+
+
+N Report
+! 5
+O 5, 4
+L Report
+I report_menu 0
+T 0
+A alertsmenu
+
+
+N Scoreboard
+! 6
+O 6, 6
+L Scoreboard
+I scoreboard_menu 0
+T 0
+A scoreboard_menu
+
+N Groups
+! 7
+O 7, 7
+L Groups
+I ic_menu_share 1
+T 0
+A groups

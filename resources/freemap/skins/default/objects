@@ -1,0 +1,116 @@
+N zoomout_button
+I rm_zoomout
+P 0 18
+A zoomout
+B -1 -2 66 63
+S show_screen_icons
+
+N zoomin_button
+I rm_zoomin
+P -62 18
+A zoomin
+B -1 -2 66 63
+S show_screen_icons
+
+N Compass
+E Compass
+P 32 122
+S orientation_mode
+
+N Compass_north
+I north_off
+I north
+P 0 84
+A toggleorientation
+B -1 -2 66 63
+S orientation_mode
+
+N map_update_shortcut
+I update_map_button
+I update_map_button_recording
+P 0 150
+A map_updates_menu
+B -1 -2 66 63
+S new_roads
+C editor_shortcut 1
+
+N recording_shortcut
+I record_new_roads
+I update_map_button_recording
+P 0 150
+A togglenewroads
+B -1 -2 66 63
+S new_roads
+C editor_shortcut 2
+
+N minimized_alert
+I minimized_chitchat
+I minimized_police
+I minimized_accident
+I minimized_trafficjam
+I minimized_trafficjam
+I minimized_hazard
+I minimized_hazard
+I minimized_hazard
+I minimized_parking
+P -42 -250
+O 220
+A minimized_alert_dialog
+B -4 -4 42 36
+S alert_minimized
+
+N wazer_nearby_n
+I Wazer_up
+P -200 25
+A show_wazer_nearby
+C wazer_nearby_state 1
+B 0 0 36 42
+
+N wazer_nearby_w
+I Wazer_left
+P 0 -190
+A show_wazer_nearby
+C wazer_nearby_state 2
+B 0 0 42 36
+
+N wazer_nearby_s
+I Wazer_down
+P 100 -145
+A show_wazer_nearby
+C wazer_nearby_state 3
+B 0 0 36 42
+
+N wazer_nearby_e
+I Wazer_right
+P -42 -290
+A show_wazer_nearby
+C wazer_nearby_state 4
+B 0 0 42 36
+
+N wazer_fb_nearby_n
+I Wazer_Facebook_up
+P -200 25
+A show_wazer_nearby
+C wazer_nearby_state 5
+B 0 0 36 42
+
+N wazer_fb_nearby_w
+I Wazer_Facebook_left
+P 0 -190
+A show_wazer_nearby
+C wazer_nearby_state 6
+B 0 0 42 36
+
+N wazer_fb_nearby_s
+I Wazer_Facebook_down
+P 100 -145
+A show_wazer_nearby
+C wazer_nearby_state 7
+B 0 0 36 42
+
+N wazer_fb_nearby_e
+I Wazer_Facebook_right
+P -42 -290
+A show_wazer_nearby
+C wazer_nearby_state 8
+B 0 0 42 36
