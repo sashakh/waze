@@ -1,0 +1,29 @@
+This is initial backport of Waze (http://www.waze.com) to Linux.
+
+To install:
+
+1. Build as regular user:
+
+    $ make
+
+2. Install some resource files in user's home directory:
+
+    make install-user
+
+, default installation directory is ~/.waze .
+
+Note that this step is needed per each user which is supposed to use waze.
+
+2. Install waze binary shared resources as root:
+
+    make install
+
+, default installation of waze binary is '/usr/local/bin/waze', installation
+path for resource directory is '/usr/local/share/waze' (both is changeable
+using PREFIX variable).
+
+To run:
+
+    $ waze
+
+Enjoy!
