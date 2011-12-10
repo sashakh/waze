@@ -103,6 +103,10 @@ ifeq ($(NO_MENU),YES)
 roadmap_main.o: CFLAGS += -DNO_MENU
 endif
 
+ifeq ($(MAEMO5),YES)
+../agg/roadmap_canvas.o: CFLAGS += -DRGB565
+endif
+
 # --- Conventional targets ----------------------------------------
 
 .PHONY: all others build runtime clean cleanone install uninstall ../libssd_widgets.a
