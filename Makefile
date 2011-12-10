@@ -18,6 +18,9 @@ export NO_MENU:=YES
 all clean:
 	$(MAKE) PROJ_NAME=$(PWD) -C src $@
 
+maemo:
+	$(MAKE) PROJ_NAME=$(PWD) MAEMO5=YES -C src all
+
 install: install-waze
 
 install-waze:
