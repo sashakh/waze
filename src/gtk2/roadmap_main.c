@@ -281,6 +281,7 @@ void roadmap_main_set_keyboard (struct RoadMapFactoryKeyMap *bindings,
 }
 
 
+#ifndef NO_MENU
 RoadMapMenu roadmap_main_new_menu (void) {
 
    return (RoadMapMenu) gtk_menu_new ();
@@ -336,7 +337,26 @@ void roadmap_main_add_menu_item (RoadMapMenu menu,
       gtk_tooltips_set_tip (gtk_tooltips_new (), menu_item, tip, NULL);
    }
 }
+#else
 
+RoadMapMenu roadmap_main_new_menu(void)
+{
+	return NULL;
+}
+
+void roadmap_main_free_menu(RoadMapMenu menu)
+{
+}
+
+void roadmap_main_add_menu(RoadMapMenu menu, const char *label)
+{
+}
+
+void roadmap_main_add_menu_item(RoadMapMenu menu, const char *label,
+				const char *tip, RoadMapCallback callback)
+{
+}
+#endif
 
 void roadmap_main_popup_menu (RoadMapMenu menu, int x, int y) {
 

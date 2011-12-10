@@ -99,6 +99,10 @@ else
 RMLIBOBJS += roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
 endif
 
+ifeq ($(NO_MENU),YES)
+roadmap_main.o: CFLAGS += -DNO_MENU
+endif
+
 # --- Conventional targets ----------------------------------------
 
 .PHONY: all others build runtime clean cleanone install uninstall ../libssd_widgets.a
