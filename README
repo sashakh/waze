@@ -6,6 +6,13 @@ To install:
 
     $ make
 
+(Some build dependencies may be needed. For examle for Ubuntu it is:
+ - libsqlite3-dev
+ - libgtk2.0-dev
+ - libagg-dev
+ - libfribidi-dev
+)
+
 2. Install some resource files in user's home directory:
 
     make install-user
