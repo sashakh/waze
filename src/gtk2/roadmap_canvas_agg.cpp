@@ -316,4 +316,18 @@ GtkWidget *roadmap_canvas_new (void) {
    return RoadMapDrawingArea;
 }
 
+// stubs yet
+void roadmap_canvas_draw_image_stretch( RoadMapImage image, const RoadMapGuiPoint *top_left_pos, const RoadMapGuiPoint *bottom_right_pos,
+
+        const RoadMapGuiPoint *pivot_pos, int opacity, int mode )
+{}
+
+void roadmap_canvas_draw_image_scaled( RoadMapImage image, const RoadMapGuiPoint *top_left_pos, const RoadMapGuiPoint *bottom_right_pos,
+                                      int opacity, int mode )
+{}
+
+void roadmap_canvas_set_background (const char *color)
+{
+   //set_color(color, FALSE);
+}
 

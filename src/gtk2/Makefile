@@ -52,7 +52,7 @@ endif
 
 
 CFLAGS = $(STDCFLAGS) $(GPECFLAGS) $(GUICFLAGS) -I.. -I/usr/local/include -DNDEBUG -w
-LIBS := -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS) -lm -lfreetype -lpng -lz
+LIBS := -L/usr/local/lib $(RDMLIBS) $(GPELDFLAGS) $(GUILDFLAGS)
 
 ifeq ($(BIDI),YES)
 LIBS += -lfribidi
@@ -65,9 +65,13 @@ endif
 
 ifeq ($(RENDERING),OPENGL)
 # make OpenGL support
+RDMLIBS +=
+LIBS +=
 else
 LIBS += -lagg
 endif
+
+LIBS += -lfreetype -lpng -lssl -lcrypto -lz -lm
 
 RUNTIME := gtkroadmap
 #RUNTIME=gtkroadmap gtkroadgps
@@ -141,10 +145,10 @@ libgtkroadmap.a: $(RMLIBOBJS)
 	$(RANLIB) libgtkroadmap.a
 
 gtkroadmap: roadmap_main.o $(SSDLIB) ../libguiroadmap.a $(RDMLIBS)
-	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap $(SSDLIB) ../libguiroadmap.a $(LIBS) $(SSDLIB) ../libguiroadmap.a
+	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadmap $(SSDLIB) ../libguiroadmap.a $(SSDLIB) ../libguiroadmap.a $(LIBS)
 
 gtkroadgps: roadmap_main.o ../libguiroadgps.a $(RDMLIBS)
-	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps $(SSDLIB) ../libguiroadgps.a $(LIBS) $(SSDLIB) ../libguiroadgps.a $(RDMLIBS)
+	$(CXX) $(LDFLAGS) roadmap_main.o -o gtkroadgps $(SSDLIB) ../libguiroadgps.a $(SSDLIB) ../libguiroadgps.a $(RDMLIBS) $(LIBS)
 
 ../libssd_widgets.a:
 	$(MAKE) -C .. libssd_widgets.a

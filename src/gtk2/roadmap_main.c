@@ -485,7 +485,7 @@ void roadmap_main_remove_input (RoadMapIO *io)
 	r->io.subsystem = ROADMAP_IO_INVALID;
 }
 
-void roadmap_main_set_output(RoadMapIO *io, RoadMapInput callback)
+void roadmap_main_set_output(RoadMapIO *io, RoadMapInput callback, BOOL is_connected)
 {
 	set_io_handler(io, G_IO_OUT, callback);
 }

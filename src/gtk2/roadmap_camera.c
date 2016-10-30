@@ -78,3 +78,14 @@ BOOL roadmap_camera_take_picture( CameraImageFile* image_file, CameraImageBuf* i
 #endif
 }
 
+/***********************************************************
+ *  Name        : roadmap_camera_take_picture_async
+ *  Purpose     : Asynchronous function. Main thread still running.
+ *                Shows the camera preview, passes target image attributes
+ *                   and defines the target capture file location
+ *
+ */
+BOOL roadmap_camera_take_picture_async( CameraImageCaptureCallback callback, CameraImageCaptureContext* context )
+{
+	return TRUE;
+}
