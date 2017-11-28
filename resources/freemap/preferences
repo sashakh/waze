@@ -59,6 +59,7 @@ Navigation Bar.Street Normal Font: 22
 Navigation Bar.Destination Time Font: 20
 Navigation Bar.Destination Distance Font: 20
 GPS.Show GPS: no
+GPS.Source: maemo5
 Realtime.Auto registration: Enabled
 Routing.Tolls roads: no
 Realtime.Comm Check period (minutes): 1

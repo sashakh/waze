@@ -40,7 +40,7 @@ RANLIB = ranlib
 endif
 
 
-WARNFLAGS = -W -Wall -Wno-unused-parameter
+WARNFLAGS = -Wall -Wno-unused-parameter
 
 
 ifeq ($(MODE),DEBUG)
@@ -92,13 +92,15 @@ endif
 ifeq ($(CSV_GPS),REALTIME)
    CSVGPSFLAGS=-DCSV_GPS -DCSV_REALTIME
    csv_gps_c=roadmap_gps_csv.c
-else ifeq ($(CSV_GPS),YES)
+else
+ifeq ($(CSV_GPS),YES)
 # Small screen devices
    CSVGPSFLAGS=-DCSV_GPS
    csv_gps_c=roadmap_gps_csv.c
 else
    CSVGPSFLAGS=
    csv_gps_c=
+endif
 endif
 
 ifeq ($(J2ME),YES)
@@ -167,7 +169,9 @@ ifneq ($(DESKTOP),GTK2)	# GTK libs include the glu
 endif    
 endif
 
-
+ifeq ($(MAEMO5),YES)
+  CFLAGS += -DMAEMO5
+endif
 
 # --- RoadMap sources & targets --------------------------------------------
 
