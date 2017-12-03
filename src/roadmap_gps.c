@@ -47,6 +47,7 @@
 #include "roadmap_trip.h"
 #include "roadmap_nmea.h"
 #include "roadmap_gpsd2.h"
+#include "roadmap_libgps.h"
 #include "roadmap_warning.h"
 #include "roadmap_analytics.h"
 #include "navigate/navigate_main.h"
@@ -154,6 +155,7 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 #define ROADMAP_GPS_CSV      6
 #define ROADMAP_GPS_ANDROID  7
 #define ROADMAP_GPS_IPHONE   8
+#define ROADMAP_GPS_LIBGPS   11
 
 #define RM_GPS_WARNING_TIMEOUT	 30000 /* Timeout before the GPS data becomes reliable (msec) */
 
@@ -1289,7 +1291,14 @@ void roadmap_gps_open (void) {
 
 #ifndef J2ME
    if (strncasecmp (url, "gpsd://", 7) == 0) {
-
+#ifdef USE_LIBGPS
+	if (roadmap_libgps_connect(&RoadMapGpsLink, url + 7, "2947")) {
+		roadmap_log (ROADMAP_ERROR, "cannot subscribe to gpsd");
+	} else {
+		RoadMapGpsProtocol = ROADMAP_GPS_LIBGPS;
+		RoadMapGpsLink.subsystem = ROADMAP_IO_FILE;
+	}
+#else
       RoadMapGpsLink.os.socket = roadmap_net_connect ("tcp", url+7, 0, 2947, 0, NULL);
 
       if (ROADMAP_NET_IS_VALID(RoadMapGpsLink.os.socket)) {
@@ -1304,6 +1313,7 @@ void roadmap_gps_open (void) {
             roadmap_net_close(RoadMapGpsLink.os.socket);
          }
       }
+#endif
 
    } else if (strncasecmp (url, "gpsd2://", 8) == 0) {
 
@@ -1459,9 +1469,13 @@ void roadmap_gps_open (void) {
          roadmap_gps_nmea();
          break;
 
+      case ROADMAP_GPS_LIBGPS:
+         roadmap_libgps_subscribe_to_navigation (roadmap_gps_navigation);
+         roadmap_libgps_subscribe_to_satellites (roadmap_gps_satellites);
+         roadmap_libgps_subscribe_to_dilution   (roadmap_gps_dilution);
+         break;
 #if !defined (J2ME) && !defined (__SYMBIAN32__)
       case ROADMAP_GPS_GPSD2:
-
          roadmap_gpsd2_subscribe_to_navigation (roadmap_gps_navigation);
          roadmap_gpsd2_subscribe_to_satellites (roadmap_gps_satellites);
          roadmap_gpsd2_subscribe_to_dilution   (roadmap_gps_dilution);
@@ -1569,6 +1583,11 @@ void roadmap_gps_input (RoadMapIO *io) {
 
    switch (RoadMapGpsProtocol) {
 
+      case ROADMAP_GPS_LIBGPS:
+         res = roadmap_libgps_input(NULL);
+	 goto done;
+         break;
+
       case ROADMAP_GPS_NMEA:
 
          decode.decoder = roadmap_nmea_decode;
@@ -1606,6 +1625,7 @@ void roadmap_gps_input (RoadMapIO *io) {
 
    res = roadmap_input (&decode);
 
+done:
    if (res < 0) {
 
       (*RoadMapGpsLinkRemove) (io);

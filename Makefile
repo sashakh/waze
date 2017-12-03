@@ -13,6 +13,7 @@ export J2ME:=NO
 #export RENDERING:=OPENGL
 export TILESTORAGE:=SQLITE
 export TTS:=YES
+export LIBGPS:=YES
 
 all clean:
 	$(MAKE) PROJ_NAME=$(PWD) -C src $@

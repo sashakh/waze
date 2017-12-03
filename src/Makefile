@@ -241,6 +241,12 @@ RMLIBSRCS=roadmap_log.c \
           roadmap_recorder_dlg.c \
           roadmap_analytics.c
 
+ifeq ($(LIBGPS),YES)
+	LIBS += -lgps
+	CFLAGS += -DUSE_LIBGPS
+	RMLIBSRCS += roadmap_libgps.c
+endif
+
 #TILE STORAGE DEPENDENT SOURCES
 ifeq ($(TILESTORAGE),SQLITE)
   RMLIBSRCS += roadmap_tile_storage_sqlite.c
@@ -329,8 +335,6 @@ ifeq ($(RENDERING),OPENGL)
    RMLIBSRCS+= $(OPENGL_DIR)/roadmap_canvas.c $(OPENGL_DIR)/roadmap_canvas_font.c 
    RMLIBSRCS+= $(OPENGL_DIR)/roadmap_canvas_atlas.c $(OPENGL_DIR)/roadmap_canvas3d.c $(OPENGL_DIR)/roadmap_glmatrix.c  
 endif
-
-
 
 
 RMGUIOBJS=$(RMGUISRCS:.c=.o)

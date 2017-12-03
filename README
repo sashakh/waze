@@ -7,6 +7,7 @@ To install:
     $ make
 
 (Some build dependencies may be needed. For examle for Ubuntu it is:
+ - libgps-dev
  - libsqlite3-dev
  - libgtk2.0-dev
  - libagg-dev

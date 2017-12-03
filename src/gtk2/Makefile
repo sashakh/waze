@@ -71,6 +71,11 @@ else
 LIBS += -lagg
 endif
 
+ifeq ($(LIBGPS),YES)
+	LIBS += -lgps
+	CFLAGS += -DUSE_LIBGPS
+endif
+
 LIBS += -lfreetype -lpng -lssl -lcrypto -lz -lm
 
 RUNTIME := gtkroadmap
