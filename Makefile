@@ -14,9 +14,15 @@ export J2ME:=NO
 export TILESTORAGE:=SQLITE
 export TTS:=YES
 export LIBGPS:=YES
+## export this to support Maemo5
+#export NO_MENU:=YES
+#export MAEMO5:=YES
 
 all clean:
 	$(MAKE) PROJ_NAME=$(PWD) -C src $@
+
+maemo:
+	$(MAKE) PROJ_NAME=$(PWD) MAEMO5=YES -C src all
 
 install: install-waze
 

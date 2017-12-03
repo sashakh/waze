@@ -78,6 +78,10 @@
 #define FILTER_SPEED_DROPS 0
 #endif
 
+#ifdef MAEMO5
+// WRITE ME
+#endif
+
 #define FILTER_MAX_DISTANCE	50
 #define FILTER_MIN_SECONDS		10
 #define FILTER_MAX_ACCURACY   70
@@ -155,6 +159,7 @@ static roadmap_gps_logger   RoadMapGpsLoggers[ROADMAP_GPS_CLIENTS] = {NULL};
 #define ROADMAP_GPS_CSV      6
 #define ROADMAP_GPS_ANDROID  7
 #define ROADMAP_GPS_IPHONE   8
+#define ROADMAP_GPS_MAEMO5   10
 #define ROADMAP_GPS_LIBGPS   11
 
 #define RM_GPS_WARNING_TIMEOUT	 30000 /* Timeout before the GPS data becomes reliable (msec) */
@@ -1138,7 +1143,8 @@ void roadmap_gps_shutdown (void) {
 
    (*RoadMapGpsPeriodicRemove) (roadmap_gps_keep_alive);
 
-   (*RoadMapGpsLinkRemove) (&RoadMapGpsLink);
+   if (RoadMapGpsLink.subsystem != ROADMAP_IO_NULL)
+      (*RoadMapGpsLinkRemove) (&RoadMapGpsLink);
 
    roadmap_io_close (&RoadMapGpsLink);
 
@@ -1403,6 +1409,9 @@ void roadmap_gps_open (void) {
          RoadMapGpsLink.subsystem = ROADMAP_IO_FILE;
       }
 
+   } else if (strncasecmp(url, "maemo5", 6) == 0) {
+	RoadMapGpsLink.subsystem = ROADMAP_IO_NULL;
+	RoadMapGpsProtocol = ROADMAP_GPS_MAEMO5;
    } else {
       roadmap_log (ROADMAP_ERROR, "invalid protocol in url %s", url);
       return;
@@ -1498,6 +1507,13 @@ void roadmap_gps_open (void) {
 
          break;
 #endif //ANDROID
+#ifdef MAEMO5
+	case ROADMAP_GPS_MAEMO5:
+		roadmap_maemo5_gps_subscribe_to_navigation(roadmap_gps_navigation);
+		roadmap_maemo5_gps_subscribe_to_satellites(roadmap_gps_satellites);
+		roadmap_maemo5_gps_subscribe_to_dilution(roadmap_gps_dilution);
+		break;
+#endif /* MAEMO5 */
 #ifdef IPHONE
       case ROADMAP_GPS_IPHONE:
 
@@ -1734,7 +1750,7 @@ static void roadmap_gps_csv_tracker( time_t gps_time, char status, const RoadMap
 }
 
 int roadmap_gps_active (void) {
-#if defined(IPHONE) || defined(ANDROID)
+#if defined(IPHONE) || defined(ANDROID) || defined(MAEMO5)
    return 1;
 #endif // IPHONE, ANDROID
 

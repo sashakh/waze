@@ -14,7 +14,7 @@ GUICFLAGS=`pkg-config --cflags gtk+-2.0`
 GUILDFLAGS=`pkg-config --libs gtk+-2.0` $(X11LDFLAGS)
 
 
-WARNFLAGS = -W -Wall -Wno-unused-parameter
+WARNFLAGS = -Wall -Wno-unused-parameter
 
 ifeq ($(MODE),DEBUG)
    STDCFLAGS=-g $(WARNFLAGS) -DROADMAP_DEBUG_HEAP
@@ -106,6 +106,17 @@ ifeq ($(RENDERING),OPENGL)
 RMLIBOBJS += roadmap_canvas_ogl.o
 else
 RMLIBOBJS += roadmap_canvas_agg.o ../agg/roadmap_canvas.o ../agg/font_freetype/agg_font_freetype.o
+endif
+
+ifeq ($(NO_MENU),YES)
+roadmap_main.o: CFLAGS += -DNO_MENU
+endif
+
+ifeq ($(MAEMO5),YES)
+CFLAGS += -DMAEMO5
+../agg/roadmap_canvas.o: CFLAGS += -DRGB565
+RMLIBOBJS += roadmap_maemo5_gps.o
+LIBS += -llocation
 endif
 
 # --- Conventional targets ----------------------------------------

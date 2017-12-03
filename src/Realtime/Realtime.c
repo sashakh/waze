@@ -2792,7 +2792,7 @@ void OnAsyncOperationCompleted_Register( void* ctx, roadmap_result rc)
 }
 
 
-void OnAsyncOperationCompleted_GetGeoConfig( void* ctx, roadmap_result rc)
+static void OnAsyncOperationCompleted_GetGeoConfig( void* ctx, roadmap_result rc)
 {
 
    if( succeeded == rc)

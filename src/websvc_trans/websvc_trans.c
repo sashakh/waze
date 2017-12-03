@@ -777,7 +777,7 @@ BOOL wst_start_trans(wst_handle           h,             // Session object
    return bRes;
 }
 
-transaction_result on_socket_connected_(  RoadMapSocket     Socket,
+static transaction_result on_socket_connected_(  RoadMapSocket     Socket,
                                           wst_context_ptr   session,
                                           roadmap_result    res)
 {
@@ -831,7 +831,7 @@ transaction_result on_socket_connected_(  RoadMapSocket     Socket,
    return trans_in_progress;
 }
 
-void on_socket_connected( RoadMapSocket Socket, void* context, roadmap_result res)
+static void on_socket_connected( RoadMapSocket Socket, void* context, roadmap_result res)
 {
    wst_context_ptr session = (wst_context_ptr)context;
 

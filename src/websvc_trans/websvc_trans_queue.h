@@ -21,7 +21,7 @@
 #ifndef	__HTTPTRANSQUEUE_H__
 #define	__HTTPTRANSQUEUE_H__
 
-#define  TRANSACTION_QUEUE_SIZE              (5)
+#define  TRANSACTION_QUEUE_SIZE              (20)
 
 typedef struct tag_wstq_item
 {
