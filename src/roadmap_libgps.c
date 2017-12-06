@@ -102,7 +102,7 @@ int roadmap_libgps_input(void *context)
 	gd->set = 0;
 	gps_read(gd);
 
-	printf("%s: gps_read(): %08lx: %s\n", __func__, gd->set, gps_data(gd));
+	//printf("%s: gps_read(): %08lx: %s\n", __func__, gd->set, gps_data(gd));
 
 	if (!(gd->set & TIME_SET))
 		return 0;
