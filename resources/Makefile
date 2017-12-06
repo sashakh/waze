@@ -15,6 +15,7 @@ install-user:
 	$(INSTALL) -D -m 0644 $(base_dir)/*.menu $(USER_DIR)
 	$(INSTALL) -D -m 0644 $(base_dir)/sprites $(USER_DIR)
 	$(INSTALL) -D -m 0644 $(base_dir)/preferences $(USER_DIR)
+	$(INSTALL) -D -m 0644 $(base_dir)/prompt_list.txt $(USER_DIR)
 	$(INSTALL) -d $(USER_DIR)/maps
 	$(INSTALL) -D -m 0644 $(base_dir)/maps/* $(USER_DIR)/maps
 	#$(INSTALL) -D -m 0644 $(base_dir)/* $(USER_DIR)
