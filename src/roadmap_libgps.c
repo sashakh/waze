@@ -56,12 +56,14 @@ void roadmap_libgps_subscribe_to_dilution(RoadMapGpsdDilution dilution)
 	libgps_dilution = dilution;
 }
 
-static struct gps_data_t gpsdata = { };
+static struct gps_data_t gpsdata;
 
 int roadmap_libgps_connect(RoadMapIO * io, const char *hostname,
 			   const char *port)
 {
 	int ret;
+
+	memset(&gpsdata, 0, sizeof(gpsdata));
 
 	ret = gps_open(hostname, port, &gpsdata);
 	if (ret) {
@@ -107,7 +109,7 @@ int roadmap_libgps_input(void *context)
 	if (!(gd->set & TIME_SET))
 		return 0;
 
-	int status;
+	//int status;
 	int latitude = ROADMAP_NO_VALID_DATA;
 	int longitude = ROADMAP_NO_VALID_DATA;
 	int altitude = ROADMAP_NO_VALID_DATA;
