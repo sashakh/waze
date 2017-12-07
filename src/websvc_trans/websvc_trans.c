@@ -709,7 +709,7 @@ BOOL wst_start_trans(wst_handle           h,             // Session object
 
    if( !h || !action || !(*action) || !parsers || !parsers_count || !cbOnCompleted || !szFormat || !(*szFormat))
    {
-      assert(0);  // Invalid arguments
+      roadmap_log(ROADMAP_ERROR, "Invalid arguments%s", h ? "" : " - no handle.");
       return FALSE;
    }
 
